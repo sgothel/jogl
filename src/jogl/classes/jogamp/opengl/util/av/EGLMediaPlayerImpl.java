@@ -69,7 +69,7 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
         public final long getSync() { return sync; }
         
         public String toString() {
-            return "EGLTextureFrame[" + texture + ", img "+ image + ", sync "+ sync+", clientBuffer "+clientBuffer+"]";
+            return "EGLTextureFrame[pts " + pts + " ms, l " + duration + " ms, texID "+ texture.getTextureObject() + ", img "+ image + ", sync "+ sync+", clientBuffer "+clientBuffer+"]";
         }
         protected final Buffer clientBuffer;
         protected final long image;
@@ -81,10 +81,6 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
         super();
         this.texType = texType;
         this.useKHRSync = useKHRSync;
-    }
-    @Override
-    protected final int validateTextureCount(int desiredTextureCount) {
-        return desiredTextureCount>2 ? Math.max(4, desiredTextureCount) : 2;
     }
 
     @Override

@@ -96,7 +96,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
     
     @Override
-    protected void initGLStreamImpl(GL gl, int vid, int aid) throws IOException {
+    protected void initStreamImpl(int vid, int aid) throws IOException {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }
@@ -115,6 +115,10 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
         if(DEBUG) {
             System.out.println("initGLStream: p2 "+this);
         }
+    }
+    @Override
+    protected final void initGLImpl(GL gl) throws IOException, GLException {
+        // NOP
     }
     
     @Override
@@ -160,11 +164,11 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
 
     @Override
-    protected boolean getNextTextureImpl(GL gl, TextureFrame nextFrame, boolean blocking, boolean issuePreAndPost) {
+    protected boolean getNextTextureImpl(GL gl, TextureFrame nextFrame) {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }
-        final int nextTex = _getNextTextureID(moviePtr, blocking);
+        final int nextTex = _getNextTextureID(moviePtr, true);
         if(0 < nextTex) {
             /* FIXME 
             final TextureSequence.TextureFrame eglImgTex = 

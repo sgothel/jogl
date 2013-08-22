@@ -32,6 +32,7 @@ import java.net.URLConnection;
 import java.nio.ByteBuffer;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import jogamp.opengl.util.av.GLMediaPlayerImpl;
@@ -82,7 +83,7 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     }
     
     @Override
-    protected final boolean getNextTextureImpl(GL gl, TextureFrame nextFrame, boolean blocking, boolean issuePreAndPost) {
+    protected final boolean getNextTextureImpl(GL gl, TextureFrame nextFrame) {
         nextFrame.setPTS( getAudioPTSImpl() );
         return true;
     }
@@ -103,7 +104,7 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     }
         
     @Override
-    protected final void initGLStreamImpl(GL gl, int vid, int aid) throws IOException {
+    protected final void initStreamImpl(int vid, int aid) throws IOException {
         try {
             URLConnection urlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-160x90.png", this.getClass().getClassLoader());
             if(null != urlConn) {
@@ -137,6 +138,10 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
                          _w, _h, 0, 
                          0, 0, _fps, 
                          _totalFrames, 0, _duration, "png-static", null);
+    }    
+    @Override
+    protected final void initGLImpl(GL gl) throws IOException, GLException {
+        // NOP
     }
     
     @Override

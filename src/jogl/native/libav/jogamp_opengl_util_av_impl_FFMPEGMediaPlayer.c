@@ -60,8 +60,11 @@ typedef AVCodec *(APIENTRYP AVCODEC_FIND_DECODER)(enum CodecID id);
 typedef int (APIENTRYP AVCODEC_OPEN2)(AVCodecContext *avctx, AVCodec *codec, AVDictionary **options);                          // 53.6.0
 typedef int (APIENTRYP AVCODEC_OPEN)(AVCodecContext *avctx, AVCodec *codec);
 typedef AVFrame *(APIENTRYP AVCODEC_ALLOC_FRAME)(void);
+typedef void (APIENTRYP AVCODEC_GET_FRAME_DEFAULTS)(AVFrame *frame);
+typedef void (APIENTRYP AVCODEC_FREE_FRAME)(AVFrame **frame);
 typedef int (APIENTRYP AVCODEC_DEFAULT_GET_BUFFER)(AVCodecContext *s, AVFrame *pic);
 typedef void (APIENTRYP AVCODEC_DEFAULT_RELEASE_BUFFER)(AVCodecContext *s, AVFrame *pic);
+typedef void (APIENTRYP AVCODEC_FLUSH_BUFFERS)(AVCodecContext *avctx);
 typedef void (APIENTRYP AV_INIT_PACKET)(AVPacket *pkt);
 typedef int (APIENTRYP AV_NEW_PACKET)(AVPacket *pkt, int size);
 typedef void (APIENTRYP AV_DESTRUCT_PACKET)(AVPacket *pkt);
@@ -76,8 +79,11 @@ static AVCODEC_FIND_DECODER sp_avcodec_find_decoder;
 static AVCODEC_OPEN2 sp_avcodec_open2;                    // 53.6.0
 static AVCODEC_OPEN sp_avcodec_open;
 static AVCODEC_ALLOC_FRAME sp_avcodec_alloc_frame;
+static AVCODEC_GET_FRAME_DEFAULTS sp_avcodec_get_frame_defaults;
+static AVCODEC_FREE_FRAME sp_avcodec_free_frame;
 static AVCODEC_DEFAULT_GET_BUFFER sp_avcodec_default_get_buffer;
 static AVCODEC_DEFAULT_RELEASE_BUFFER sp_avcodec_default_release_buffer;
+static AVCODEC_FLUSH_BUFFERS sp_avcodec_flush_buffers;
 static AV_INIT_PACKET sp_av_init_packet;
 static AV_NEW_PACKET sp_av_new_packet;
 static AV_DESTRUCT_PACKET sp_av_destruct_packet;
@@ -85,17 +91,19 @@ static AV_FREE_PACKET sp_av_free_packet;
 static AVCODEC_DECODE_AUDIO4 sp_avcodec_decode_audio4;    // 53.25.0
 static AVCODEC_DECODE_AUDIO3 sp_avcodec_decode_audio3;    // 52.23.0
 static AVCODEC_DECODE_VIDEO2 sp_avcodec_decode_video2;    // 52.23.0
-// count: 15
+// count: 21
 
 // libavutil
+typedef void (APIENTRYP AV_FRAME_UNREF)(AVFrame *frame);
 typedef void (APIENTRYP AV_FREE)(void *ptr);
 typedef int (APIENTRYP AV_GET_BITS_PER_PIXEL)(const AVPixFmtDescriptor *pixdesc);
 typedef int (APIENTRYP AV_SAMPLES_GET_BUFFER_SIZE)(int *linesize, int nb_channels, int nb_samples, enum AVSampleFormat sample_fmt, int align);
 static const AVPixFmtDescriptor* sp_av_pix_fmt_descriptors;
+static AV_FRAME_UNREF sp_av_frame_unref;
 static AV_FREE sp_av_free;
 static AV_GET_BITS_PER_PIXEL sp_av_get_bits_per_pixel;
 static AV_SAMPLES_GET_BUFFER_SIZE sp_av_samples_get_buffer_size;
-// count: 22
+// count: 26
 
 // libavformat
 typedef AVFormatContext *(APIENTRYP AVFORMAT_ALLOC_CONTEXT)(void);
@@ -131,9 +139,9 @@ static AVFORMAT_NETWORK_INIT sp_avformat_network_init;            // 53.13.0
 static AVFORMAT_NETWORK_DEINIT sp_avformat_network_deinit;        // 53.13.0
 static AVFORMAT_FIND_STREAM_INFO sp_avformat_find_stream_info;    // 53.3.0
 static AV_FIND_STREAM_INFO sp_av_find_stream_info;
-// count: 38
+// count: 42
 
-#define SYMBOL_COUNT 38
+#define SYMBOL_COUNT 42
 
 JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGDynamicLibraryBundleInfo_initSymbols0
   (JNIEnv *env, jclass clazz, jobject jSymbols, jint count)
@@ -162,8 +170,11 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGDynamicLibraryB
     sp_avcodec_open2 = (AVCODEC_OPEN2) (intptr_t) symbols[i++];
     sp_avcodec_open  = (AVCODEC_OPEN) (intptr_t) symbols[i++];
     sp_avcodec_alloc_frame = (AVCODEC_ALLOC_FRAME) (intptr_t) symbols[i++];
+    sp_avcodec_get_frame_defaults = (AVCODEC_GET_FRAME_DEFAULTS) (intptr_t) symbols[i++];
+    sp_avcodec_free_frame = (AVCODEC_FREE_FRAME) (intptr_t) symbols[i++];
     sp_avcodec_default_get_buffer = (AVCODEC_DEFAULT_GET_BUFFER) (intptr_t) symbols[i++];
     sp_avcodec_default_release_buffer = (AVCODEC_DEFAULT_RELEASE_BUFFER) (intptr_t) symbols[i++];
+    sp_avcodec_flush_buffers = (AVCODEC_FLUSH_BUFFERS) (intptr_t) symbols[i++];
     sp_av_init_packet = (AV_INIT_PACKET) (intptr_t) symbols[i++];
     sp_av_new_packet = (AV_NEW_PACKET) (intptr_t) symbols[i++];
     sp_av_destruct_packet = (AV_DESTRUCT_PACKET) (intptr_t) symbols[i++];
@@ -174,6 +185,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGDynamicLibraryB
     // count: 18
 
     sp_av_pix_fmt_descriptors = (const AVPixFmtDescriptor*)  (intptr_t) symbols[i++];
+    sp_av_frame_unref = (AV_FRAME_UNREF) (intptr_t) symbols[i++];
     sp_av_free = (AV_FREE) (intptr_t) symbols[i++];
     sp_av_get_bits_per_pixel = (AV_GET_BITS_PER_PIXEL) (intptr_t) symbols[i++];
     sp_av_samples_get_buffer_size = (AV_SAMPLES_GET_BUFFER_SIZE) (intptr_t) symbols[i++];
@@ -234,11 +246,11 @@ static void _updateJavaAttributes(JNIEnv *env, jobject instance, FFMPEGToolBasic
                                pAV->vBitsPerPixel, pAV->vBytesPerPixelPerPlane,
                                pAV->vLinesize[0], pAV->vLinesize[1], pAV->vLinesize[2],
                                pAV->vTexWidth[0], pAV->vTexWidth[1], pAV->vTexWidth[2],
-                               pAV->aSampleFmt, pAV->aSampleRate, pAV->aChannels);
+                               pAV->aFramesPerVideoFrame, pAV->aSampleFmt, pAV->aSampleRate, pAV->aChannels);
     }
 }
 
-static void freeInstance(FFMPEGToolBasicAV_t* pAV) {
+static void freeInstance(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
     int i;
     if(NULL != pAV) {
         // Close the V codec
@@ -257,12 +269,34 @@ static void freeInstance(FFMPEGToolBasicAV_t* pAV) {
 
         // Close the frames
         if(NULL != pAV->pVFrame) {
-            sp_av_free(pAV->pVFrame);
+            if(HAS_FUNC(sp_avcodec_free_frame)) {
+                sp_avcodec_free_frame(&pAV->pVFrame);
+            } else {
+                sp_av_free(pAV->pVFrame);
+            }
             pAV->pVFrame = NULL;
+        }
+        if(NULL != pAV->pANIOBuffers) {
+            for(i=0; i<pAV->aFrameCount; i++) {
+                NIOBuffer_t * pNIOBuffer = &pAV->pANIOBuffers[i];
+                if( NULL != pNIOBuffer->nioRef ) {
+                    if(pAV->verbose) {
+                        fprintf(stderr, "A NIO: Free.X ptr %p / ref %p, %d bytes\n", 
+                            pNIOBuffer->origPtr, pNIOBuffer->nioRef, pNIOBuffer->size);
+                    }
+                    (*env)->DeleteGlobalRef(env, pNIOBuffer->nioRef);
+                }
+            }
+            free(pAV->pANIOBuffers);
+            pAV->pANIOBuffers = NULL;
         }
         if(NULL != pAV->pAFrames) {
             for(i=0; i<pAV->aFrameCount; i++) {
-                sp_av_free(pAV->pAFrames[i]);
+                if(HAS_FUNC(sp_avcodec_free_frame)) {
+                    sp_avcodec_free_frame(&pAV->pAFrames[i]);
+                } else {
+                    sp_av_free(pAV->pAFrames[i]);
+                }
             }
             free(pAV->pAFrames);
             pAV->pAFrames = NULL;
@@ -358,7 +392,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_ini
 
     jni_mid_pushSound = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "pushSound", "(Ljava/nio/ByteBuffer;II)V");
     jni_mid_updateAttributes1 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes", "(IIIIIIIFIIILjava/lang/String;Ljava/lang/String;)V");
-    jni_mid_updateAttributes2 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes2", "(IIIIIIIIIIIII)V");
+    jni_mid_updateAttributes2 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes2", "(IIIIIIIIIIIIII)V");
 
     if(jni_mid_pushSound == NULL ||
        jni_mid_updateAttributes1 == NULL ||
@@ -380,6 +414,16 @@ JNIEXPORT jlong JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_create
     pAV->avformatVersion = sp_avformat_version(); 
     pAV->avutilVersion = sp_avutil_version();
 
+    #if LIBAVCODEC_VERSION_MAJOR >= 55
+        // TODO: We keep code on using 1 a/v frame per decoding cycle now.
+        //       This is compatible w/ OpenAL's alBufferData(..)
+        //       and w/ OpenGL's texture update command, both copy data immediatly.
+        // pAV->useRefCountedFrames = AV_HAS_API_REFCOUNTED_FRAMES(pAV);
+        pAV->useRefCountedFrames = 0;
+    #else
+        pAV->useRefCountedFrames = 0;
+    #endif
+
     // Register all formats and codecs
     sp_av_register_all();
     // Network too ..
@@ -400,7 +444,7 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_destroy
   FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
   if (pAV != NULL) {
       // stop assumed ..
-      freeInstance(pAV);
+      freeInstance(env, pAV);
   }
 }
 
@@ -418,9 +462,14 @@ static uint64_t getDefaultAudioChannelLayout(int channelCount) {
     }
 }
 
+static int countAudioPacketsTillVideo(const int maxPackets, FFMPEGToolBasicAV_t *pAV, AVPacket* pPacket, int packetFull, AVFrame* pAFrame, int * pAudioFrames, int *pMaxDataSize);
+static int countVideoPacketsTillAudio(const int maxPackets, FFMPEGToolBasicAV_t *pAV, AVPacket* pPacket, int packetFull, int * pVideoFrames);
+static void initPTSStats(PTSStats *ptsStats);
+static int64_t evalPTS(PTSStats *ptsStats, int64_t inPTS, int64_t inDTS);
+
 JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStream0
-  (JNIEnv *env, jobject instance, jlong ptr, jstring jURL, jint vid, jint aid, jint audioFrameCount,
-   jint aChannelCount, jint aSampleRate)
+  (JNIEnv *env, jobject instance, jlong ptr, jstring jURL, jint vid, jint aid,
+   jint snoopVideoFrameCount, jint aChannelCount, jint aSampleRate)
 {
     int res, i;
     jboolean iscopy;
@@ -437,8 +486,8 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStre
     const char *urlPath = (*env)->GetStringUTFChars(env, jURL, &iscopy);
     res = sp_avformat_open_input(&pAV->pFormatCtx, urlPath, NULL, NULL);
     if(res != 0) {
+        JoglCommon_throwNewRuntimeException(env, "Couldn't open URI: %s", urlPath);
         (*env)->ReleaseStringChars(env, jURL, (const jchar *)urlPath);
-        JoglCommon_throwNewRuntimeException(env, "Couldn't open URL");
         return;
     }
 
@@ -508,6 +557,12 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStre
     }
 
     if(0<=pAV->aid) {
+        AVFrame * pAFrame0 = sp_avcodec_alloc_frame();
+        if( NULL == pAFrame0 ) {
+            JoglCommon_throwNewRuntimeException(env, "Couldn't alloc 1st audio frame\n");
+            return;
+        }
+
         // Get a pointer to the codec context for the audio stream
         // FIXME: Libav Binary compatibility! JAU01
         pAV->pACodecCtx=pAV->pAStream->codec;
@@ -543,6 +598,9 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStre
         }
 
         // Open codec
+        #if LIBAVCODEC_VERSION_MAJOR >= 55
+            pAV->pACodecCtx->refcounted_frames = pAV->useRefCountedFrames;
+        #endif
         if(HAS_FUNC(sp_avcodec_open2)) {
             res = sp_avcodec_open2(pAV->pACodecCtx, pAV->pACodec, NULL);
         } else {
@@ -553,14 +611,11 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStre
             return;
         }
 
-        // Allocate audio frames
-        // FIXME: Libav Binary compatibility! JAU01
         pAV->aSampleRate = pAV->pACodecCtx->sample_rate;
         pAV->aChannels = pAV->pACodecCtx->channels;
         pAV->aFrameSize = pAV->pACodecCtx->frame_size; // in samples!
         pAV->aSampleFmt = pAV->pACodecCtx->sample_fmt;
         pAV->frames_audio = pAV->pAStream->nb_frames;
-
         if( pAV->verbose ) {
             fprintf(stderr, "A channels %d, sample_rate %d, frame_size %d, frame_number %d, r_frame_rate %f, avg_frame_rate %f, nb_frames %d, \n", 
                 pAV->aChannels, pAV->aSampleRate, pAV->aFrameSize, pAV->pACodecCtx->frame_number,
@@ -569,12 +624,97 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStre
                 pAV->pAStream->nb_frames);
         }
 
-        pAV->aFrameCount = audioFrameCount;
-        pAV->pAFrames = calloc(audioFrameCount, sizeof(AVFrame*));
-        for(i=0; i<pAV->aFrameCount; i++) {
-            pAV->pAFrames[i]=sp_avcodec_alloc_frame();
-            if(pAV->pAFrames[i]==NULL) {
-                JoglCommon_throwNewRuntimeException(env, "Couldn't alloc audio frame %d / %d", i, audioFrameCount);
+        if( 0 >= snoopVideoFrameCount ) {
+            pAV->aFramesPerVideoFrame = 0;
+        } else {
+            if( 0<=pAV->vid ) {
+                int aFramesPerVideoFrame;
+                int aFramesSequential = 0;
+                int aMaxDataSize = 0;
+                AVPacket packet;
+                int packetFull = 0;
+                int _aFramesBeforeVideo;
+                int _audioFramesOverlap=0;
+                int _aMaxDataSize;
+                int _vFrames;
+                int _vFramesOverlap=0;
+                int _packetCount;
+                int totalVFrames = 0;
+                int totalAFrames = 0;
+                int totalPackets = 0;
+
+                while( totalVFrames < snoopVideoFrameCount ) {
+                    int _packetCount = countAudioPacketsTillVideo(40, pAV, &packet, packetFull, pAFrame0, &_aFramesBeforeVideo, &_aMaxDataSize);
+                    if( _packetCount >= 0 ) {
+                        totalPackets += _packetCount;
+                        if( _aFramesBeforeVideo > 0 ) {
+                            // one video frame!
+                            _vFramesOverlap=1;
+                            packetFull = 1;
+                        }
+                        _aFramesBeforeVideo += _audioFramesOverlap;
+                        totalAFrames += _aFramesBeforeVideo;
+                        if( _aFramesBeforeVideo > aFramesSequential ) {
+                            aFramesSequential = _aFramesBeforeVideo;
+                        }
+                        if( _aMaxDataSize > aMaxDataSize ) {
+                            aMaxDataSize = _aMaxDataSize;
+                        }
+                        _packetCount = countVideoPacketsTillAudio(40, pAV, &packet, packetFull, &_vFrames);
+                        if( _packetCount >= 0 ) {
+                            totalPackets += _packetCount;
+                            if( _vFrames > 0 ) {
+                                // one audio frame!
+                                _audioFramesOverlap=1;
+                                packetFull = 1;
+                            }
+                            _vFrames += _vFramesOverlap;
+                            totalVFrames += _vFrames;
+                        }
+                        if( pAV->verbose ) {
+                            fprintf(stderr, "Snoop Packet #%d, V-Frames: %d, A-frames %d Seq(now %d, max %d), max-size (now %d, max %d)\n", 
+                                totalPackets, totalVFrames, totalAFrames, _aFramesBeforeVideo, aFramesSequential, _aMaxDataSize, aMaxDataSize);
+                        }
+                    }
+                }
+                const int audioFramesReadAhead = totalAFrames - totalVFrames;
+                if( audioFramesReadAhead > aFramesSequential ) {
+                    aFramesPerVideoFrame = audioFramesReadAhead;
+                } else {
+                    aFramesPerVideoFrame = aFramesSequential;
+                }
+                if( AV_DEFAULT_AFRAMES > aFramesPerVideoFrame || aFramesPerVideoFrame > 10*AV_DEFAULT_AFRAMES ) {
+                    aFramesPerVideoFrame = AV_DEFAULT_AFRAMES;
+                }
+                pAV->aFramesPerVideoFrame = aFramesPerVideoFrame;
+                sp_av_seek_frame(pAV->pFormatCtx, -1, 0, AVSEEK_FLAG_BACKWARD);
+                sp_avcodec_flush_buffers( pAV->pACodecCtx );
+                if( pAV->verbose ) {
+                    fprintf(stderr, "Snooped Packets %d, V-Frames: %d, A-frames %d Seq %d, readAhead %d -> Cached %d/%d, max-size %d\n", 
+                        totalPackets, totalVFrames, totalAFrames, aFramesSequential, audioFramesReadAhead, aFramesPerVideoFrame, pAV->aFramesPerVideoFrame, aMaxDataSize);
+                }
+            } else {
+                pAV->aFramesPerVideoFrame = AV_DEFAULT_AFRAMES;
+                if( pAV->verbose ) {
+                    fprintf(stderr, "A-frame Count %d\n", pAV->aFramesPerVideoFrame);
+                }
+            }
+        }
+
+        // Allocate audio frames
+        // FIXME: Libav Binary compatibility! JAU01
+        if( pAV->useRefCountedFrames && pAV->aFramesPerVideoFrame > 0 ) {
+            pAV->aFrameCount = pAV->aFramesPerVideoFrame;
+        } else {
+            pAV->aFrameCount = 1;
+        }
+        pAV->pANIOBuffers = calloc(pAV->aFrameCount, sizeof(NIOBuffer_t));
+        pAV->pAFrames = calloc(pAV->aFrameCount, sizeof(AVFrame*));
+        pAV->pAFrames[0] = pAFrame0;
+        for(i=1; i<pAV->aFrameCount; i++) {
+            pAV->pAFrames[i] = sp_avcodec_alloc_frame();
+            if( NULL == pAV->pAFrames[i] ) {
+                JoglCommon_throwNewRuntimeException(env, "Couldn't alloc audio frame %d / %d", i, pAV->aFrameCount);
                 return;
             }
         }
@@ -612,6 +752,9 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStre
         }
 
         // Open codec
+        #if LIBAVCODEC_VERSION_MAJOR >= 55
+            pAV->pVCodecCtx->refcounted_frames = pAV->useRefCountedFrames;
+        #endif
         if(HAS_FUNC(sp_avcodec_open2)) {
             res = sp_avcodec_open2(pAV->pVCodecCtx, pAV->pVCodec, NULL);
         } else {
@@ -643,7 +786,7 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStre
                 pAV->pVStream->nb_frames);
         }
 
-        // Allocate video frames
+        // Allocate video frame
         // FIXME: Libav Binary compatibility! JAU01
         pAV->vPixFmt = pAV->pVCodecCtx->pix_fmt;
         {   
@@ -677,15 +820,19 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStre
     }
     pAV->vPTS=0;
     pAV->aPTS=0;
+    initPTSStats(&pAV->vPTSStats);
+    initPTSStats(&pAV->aPTSStats);
     _updateJavaAttributes(env, instance, pAV);
 }
 
 JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setGLFuncs0
-  (JNIEnv *env, jobject instance, jlong ptr, jlong jProcAddrGLTexSubImage2D, jlong jProcAddrGLGetError)
+  (JNIEnv *env, jobject instance, jlong ptr, jlong jProcAddrGLTexSubImage2D, jlong jProcAddrGLGetError, jlong jProcAddrGLFlush, jlong jProcAddrGLFinish)
 {
     FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
     pAV->procAddrGLTexSubImage2D = (PFNGLTEXSUBIMAGE2DPROC) (intptr_t)jProcAddrGLTexSubImage2D;
     pAV->procAddrGLGetError = (PFNGLGETERRORPROC) (intptr_t)jProcAddrGLGetError;
+    pAV->procAddrGLFlush = (PFNGLFLUSH) (intptr_t)jProcAddrGLFlush;
+    pAV->procAddrGLFinish = (PFNGLFINISH) (intptr_t)jProcAddrGLFinish;
 }
 
 #if 0
@@ -707,15 +854,19 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
 
     sp_av_init_packet(&packet);
 
-    if( sp_av_read_frame(pAV->pFormatCtx, &packet) >= 0 ) {
+    const int avRes = sp_av_read_frame(pAV->pFormatCtx, &packet);
+    if( AVERROR_EOF == avRes || ( pAV->pFormatCtx->pb && pAV->pFormatCtx->pb->eof_reached ) ) {
+        resPTS = END_OF_STREAM_PTS;
+    } else if( 0 <= avRes ) {
+        if( pAV->verbose ) {
+            fprintf(stderr, "P: ptr %p, size %d\n", packet.data, packet.size);
+        }
         if(packet.stream_index==pAV->aid) {
             // Decode audio frame
             if(NULL == pAV->pAFrames) { // no audio registered
                 sp_av_free_packet(&packet);
                 return 0;
             }
-            AVFrame* pAFrameCurrent = pAV->pAFrames[pAV->aFrameCurrent];
-            pAV->aFrameCurrent = ( pAV->aFrameCurrent + 1 ) % pAV->aFrameCount ;
             int frameCount;
             int flush_complete = 0;
             for ( frameCount=0; 0 < packet.size || 0 == frameCount; frameCount++ ) {
@@ -723,6 +874,13 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                 if (flush_complete) {
                     break;
                 }
+                NIOBuffer_t * pNIOBufferCurrent = &pAV->pANIOBuffers[pAV->aFrameCurrent];
+                AVFrame* pAFrameCurrent = pAV->pAFrames[pAV->aFrameCurrent];
+                if( pAV->useRefCountedFrames ) {
+                    sp_av_frame_unref(pAFrameCurrent);
+                    pAV->aFrameCurrent = ( pAV->aFrameCurrent + 1 ) % pAV->aFrameCount ;
+                }
+                sp_avcodec_get_frame_defaults(pAFrameCurrent);
                 if(HAS_FUNC(sp_avcodec_decode_audio4)) {
                     len1 = sp_avcodec_decode_audio4(pAV->pACodecCtx, pAFrameCurrent, &frameDecoded, &packet);
                 } else {
@@ -763,24 +921,41 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
 
                 const AVRational time_base = pAV->pAStream->time_base;
                 const int64_t pkt_pts = pAFrameCurrent->pkt_pts;
-                int aptsMode;
                 if( 0 == frameCount && AV_NOPTS_VALUE != pkt_pts ) { // 1st frame only, discard invalid PTS ..
                     pAV->aPTS = my_av_q2i32( pkt_pts * 1000, time_base);
-                    aptsMode = 0;
                 } else { // subsequent frames or invalid PTS ..
                     const int32_t bytesPerSample = 2; // av_get_bytes_per_sample( pAV->pACodecCtx->sample_fmt );
                     pAV->aPTS += data_size / ( pAV->aChannels * bytesPerSample * ( pAV->aSampleRate / 1000 ) );
-                    aptsMode = 1;
                 }
                 if( pAV->verbose ) {
                     int32_t aDTS = my_av_q2i32( pAFrameCurrent->pkt_dts * 1000, time_base);
 
-                    fprintf(stderr, "A pts %d [pkt_pts %ld], dts %d [pkt_dts %ld], dataSize %d, f# %d, pts-mode %d\n", 
-                        pAV->aPTS, pkt_pts, aDTS, pAFrameCurrent->pkt_dts, data_size, frameCount, aptsMode);
+                    fprintf(stderr, "A pts %d [pkt_pts %ld], dts %d [pkt_dts %ld], f# %d, aFrame %d/%d %p, dataPtr %p, dataSize %d\n", 
+                        pAV->aPTS, pkt_pts, aDTS, pAFrameCurrent->pkt_dts, frameCount,
+                        pAV->aFrameCurrent, pAV->aFrameCount, pAFrameCurrent, pAFrameCurrent->data[0], data_size);
                 }
                 if( NULL != env ) {
-                    jobject jSampleData = (*env)->NewDirectByteBuffer(env, pAFrameCurrent->data[0], data_size);
-                    (*env)->CallVoidMethod(env, instance, jni_mid_pushSound, jSampleData, data_size, pAV->aPTS);
+                    NIOBuffer_t * pNIOBufferCurrent = &pAV->pANIOBuffers[pAV->aFrameCurrent];
+                    int newNIO = NULL == pNIOBufferCurrent->nioRef;
+                    if( !newNIO && ( pAFrameCurrent->data[0] != pNIOBufferCurrent->origPtr || data_size > pNIOBufferCurrent->size ) ) {
+                        if(pAV->verbose) {
+                            fprintf(stderr, "A NIO: Free.0 ptr %p / ref %p, %d bytes\n", 
+                                pNIOBufferCurrent->origPtr, pNIOBufferCurrent->nioRef, pNIOBufferCurrent->size);
+                        }
+                        (*env)->DeleteGlobalRef(env, pNIOBufferCurrent->nioRef);
+                        newNIO = 1;
+                    }
+                    if( newNIO ) {
+                        jobject jSampleData = (*env)->NewDirectByteBuffer(env, pAFrameCurrent->data[0], data_size);
+                        pNIOBufferCurrent->nioRef = (*env)->NewGlobalRef(env, jSampleData);
+                        pNIOBufferCurrent->origPtr = pAFrameCurrent->data[0];
+                        pNIOBufferCurrent->size = data_size;
+                        if(pAV->verbose) {
+                            fprintf(stderr, "A NIO: Alloc ptr %p / ref %p, %d bytes\n", 
+                                pNIOBufferCurrent->origPtr, pNIOBufferCurrent->nioRef, pNIOBufferCurrent->size);
+                        }
+                    }
+                    (*env)->CallVoidMethod(env, instance, jni_mid_pushSound, pNIOBufferCurrent->nioRef, data_size, pAV->aPTS);
                 }
             }
         } else if(packet.stream_index==pAV->vid) {
@@ -796,6 +971,7 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                 if (flush_complete) {
                     break;
                 }
+                sp_avcodec_get_frame_defaults(pAV->pVFrame);
                 len1 = sp_avcodec_decode_video2(pAV->pVCodecCtx, pAV->pVFrame, &frameDecoded, &packet);
                 if (len1 < 0) {
                     // if error, we skip the frame
@@ -816,26 +992,27 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                 // FIXME: Libav Binary compatibility! JAU01
                 const AVRational time_base = pAV->pVStream->time_base;
                 const int64_t pkt_pts = pAV->pVFrame->pkt_pts;
-                if(AV_NOPTS_VALUE != pkt_pts) { // discard invalid PTS ..
-                    pAV->vPTS =  my_av_q2i32( pkt_pts * 1000, time_base);
-                    if( pAV->verbose ) {
-                        int32_t vDTS = my_av_q2i32( pAV->pVFrame->pkt_dts * 1000, time_base);
+                const int64_t pkt_dts = pAV->pVFrame->pkt_dts;
+                const int64_t fix_pts = evalPTS(&pAV->vPTSStats, pkt_pts, pkt_dts);
+                if( AV_NOPTS_VALUE != fix_pts ) { // discard invalid PTS ..
+                    pAV->vPTS =  my_av_q2i32( fix_pts * 1000, time_base);
+                }
+                if( pAV->verbose ) {
+                    const int32_t vPTS = AV_NOPTS_VALUE != pkt_pts ? my_av_q2i32( pkt_pts * 1000, time_base) : 0;
+                    const int32_t vDTS = AV_NOPTS_VALUE != pkt_dts ? my_av_q2i32( pkt_dts * 1000, time_base) : 0;
 
-                        double frame_delay_d = av_q2d(pAV->pVCodecCtx->time_base);
-                        double frame_repeat_d = pAV->pVFrame->repeat_pict * (frame_delay_d * 0.5);
+                    const double frame_delay_d = av_q2d(pAV->pVCodecCtx->time_base);
+                    const double frame_repeat_d = pAV->pVFrame->repeat_pict * (frame_delay_d * 0.5);
 
-                        int32_t frame_delay_i = my_av_q2i32(1000, pAV->pVCodecCtx->time_base);
-                        int32_t frame_repeat_i = pAV->pVFrame->repeat_pict * (frame_delay_i / 2);
+                    const int32_t frame_delay_i = my_av_q2i32(1000, pAV->pVCodecCtx->time_base);
+                    const int32_t frame_repeat_i = pAV->pVFrame->repeat_pict * (frame_delay_i / 2);
 
-                        const char * warn = frame_repeat_i > 0 ? "REPEAT" : "NORMAL" ;
+                    const char * warn = frame_repeat_i > 0 ? "REPEAT" : "NORMAL" ;
 
-                        fprintf(stderr, "V pts %d [pkt_pts %ld], dts %d [pkt_dts %ld], time d(%lf s + r %lf = %lf s), i(%d ms + r %d = %d ms) - %s - f# %d\n", 
-                                pAV->vPTS, pkt_pts, vDTS, pAV->pVFrame->pkt_dts, 
-                                frame_delay_d, frame_repeat_d, (frame_delay_d + frame_repeat_d),
-                                frame_delay_i, frame_repeat_i, (frame_delay_i + frame_repeat_i), warn, frameCount);
-                    }
-                } else if( pAV->verbose ) {
-                    fprintf(stderr, "V pts ?? [pkt_pts %ld], pts2 ?? [pkt_dts %ld], f# %d\n", pkt_pts, pAV->pVFrame->pkt_dts, frameCount);
+                    fprintf(stderr, "V fix_pts %d, pts %d [pkt_pts %ld], dts %d [pkt_dts %ld], time d(%lf s + r %lf = %lf s), i(%d ms + r %d = %d ms) - %s - f# %d\n", 
+                            pAV->vPTS, vPTS, pkt_pts, vDTS, pkt_dts, 
+                            frame_delay_d, frame_repeat_d, (frame_delay_d + frame_repeat_d),
+                            frame_delay_i, frame_repeat_i, (frame_delay_i + frame_repeat_i), warn, frameCount);
                 }
                 resPTS = pAV->vPTS; // Video Frame!
 
@@ -866,6 +1043,11 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                                             texFmt, texType, pAV->pVFrame->data[2]);
                     DBG_TEXSUBIMG2D_b(pAV);
                 } // FIXME: Add more planar formats !
+                pAV->procAddrGLFinish();
+                //pAV->procAddrGLFlush();
+                if( pAV->useRefCountedFrames ) {
+                    sp_av_frame_unref(pAV->pVFrame);
+                }
             }
         }
 
@@ -876,6 +1058,135 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
     }
     return resPTS;
 }
+
+static int countAudioPacketsTillVideo(const int maxPackets, FFMPEGToolBasicAV_t *pAV, AVPacket* pPacket, int packetFull, AVFrame* pAFrame, int * pAudioFrames, int *pMaxDataSize) {
+    int frameDecoded;
+    int audioFrames = 0;
+    int maxDataSize = 0;
+    int packetCount = 0;
+
+    for( packetCount = 0; packetCount < maxPackets; packetCount++ ) {
+        int readRes;
+        if( !packetFull ) {
+            sp_av_init_packet(pPacket);
+            readRes = sp_av_read_frame(pAV->pFormatCtx, pPacket);
+        } else {
+            readRes = 1;
+            packetFull = 0;
+        }
+        if( readRes >= 0 ) {
+            if(pPacket->stream_index==pAV->aid) {
+                // Decode audio frame
+                int frameCount;
+                int flush_complete = 0;
+                for ( frameCount=0; 0 < pPacket->size || 0 == frameCount; frameCount++ ) {
+                    int len1;
+                    if (flush_complete) {
+                        break;
+                    }
+                    if(HAS_FUNC(sp_avcodec_decode_audio4)) {
+                        len1 = sp_avcodec_decode_audio4(pAV->pACodecCtx, pAFrame, &frameDecoded, pPacket);
+                    } else {
+                        #if 0
+                        len1 = sp_avcodec_decode_audio3(pAV->pACodecCtx, int16_t *samples, int *frame_size_ptr, &frameDecoded, pPacket);
+                        #endif
+                        return -1;
+                    }
+                    if (len1 < 0) {
+                        // if error, we skip the frame 
+                        pPacket->size = 0;
+                        break;
+                    }
+                    pPacket->data += len1;
+                    pPacket->size -= len1;
+
+                    if (!frameDecoded) {
+                        // stop sending empty packets if the decoder is finished 
+                        if (!pPacket->data && pAV->pACodecCtx->codec->capabilities & CODEC_CAP_DELAY) {
+                            flush_complete = 1;
+                        }
+                        continue;
+                    }
+
+                    int32_t data_size = 0;
+                    if(HAS_FUNC(sp_av_samples_get_buffer_size)) {
+                        data_size = sp_av_samples_get_buffer_size(NULL /* linesize, may be NULL */,
+                                                                  pAV->aChannels,
+                                                                  pAFrame->nb_samples,
+                                                                  pAFrame->format,
+                                                                  1 /* align */);
+                        if( data_size > maxDataSize ) {
+                            maxDataSize = data_size;
+                        }
+                    }
+                    if( pAV->useRefCountedFrames ) {
+                        sp_av_frame_unref(pAFrame);
+                    }
+                    audioFrames++;
+                }
+            } else if(pPacket->stream_index==pAV->vid) {
+                if( 0 < audioFrames ) {
+                    break; // done!
+                }
+            }
+        }
+    }
+    *pAudioFrames = audioFrames;
+    *pMaxDataSize = maxDataSize;
+    return packetCount;
+}
+static int countVideoPacketsTillAudio(const int maxPackets, FFMPEGToolBasicAV_t *pAV, AVPacket* pPacket, int packetFull, int * pVideoFrames) {
+    int videoFrames = 0;
+    int packetCount = 0;
+
+    for( packetCount = 0; packetCount < maxPackets; packetCount++ ) {
+        int readRes;
+        if( !packetFull ) {
+            sp_av_init_packet(pPacket);
+            readRes = sp_av_read_frame(pAV->pFormatCtx, pPacket);
+        } else {
+            readRes = 1;
+            packetFull = 0;
+        }
+        if( readRes >= 0 ) {
+            if(pPacket->stream_index==pAV->aid) {
+                if( 0 < videoFrames ) {
+                    break; // done!
+                }
+            } else if(pPacket->stream_index==pAV->vid) {
+                videoFrames++;
+            }
+        }
+    }
+    *pVideoFrames = videoFrames;
+    return packetCount;
+}
+static void initPTSStats(PTSStats *ptsStats) {
+    ptsStats->ptsError = 0;
+    ptsStats->dtsError = 0;
+    ptsStats->ptsLast = INT64_MIN;
+    ptsStats->dtsLast = INT64_MIN;
+}
+static int64_t evalPTS(PTSStats *ptsStats, int64_t inPTS, int64_t inDTS) {
+    int64_t resPTS = AV_NOPTS_VALUE;
+            
+    if ( inDTS != AV_NOPTS_VALUE ) {
+        ptsStats->dtsError += inDTS <= ptsStats->dtsLast;
+        ptsStats->dtsLast = inDTS;
+    }       
+    if ( inPTS != AV_NOPTS_VALUE ) {
+        ptsStats->ptsError += inPTS <= ptsStats->ptsLast;
+        ptsStats->ptsLast = inPTS;
+    }       
+    if ( inPTS != AV_NOPTS_VALUE &&
+         ( ptsStats->ptsError<=ptsStats->dtsError || inDTS == AV_NOPTS_VALUE ) ) {
+        resPTS = inPTS;
+    } else {
+        resPTS = inDTS;
+    }
+    return resPTS;
+}           
+
 
 JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_play0
   (JNIEnv *env, jobject instance, jlong ptr)
@@ -893,21 +1204,51 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_pause0
 JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_seek0
   (JNIEnv *env, jobject instance, jlong ptr, jint pos1)
 {
-    FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
-    int64_t pos0 = pAV->vPTS;
-    int64_t pts0 = pAV->pVFrame->pkt_pts;
-    int64_t pts1 = (int64_t) (pos1 * (int64_t) pAV->pVStream->time_base.den)
-                             / (1000 * (int64_t) pAV->pVStream->time_base.num);
-
+    const FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
+    const int64_t pos0 = pAV->vPTS;
+    const int64_t pts0 = pAV->pVFrame->pkt_pts;
+    int streamID;
+    AVRational time_base;
+    if( pAV->vid >= 0 ) {
+        streamID = pAV->vid;
+        time_base = pAV->pVStream->time_base;
+    } else if( pAV->aid >= 0 ) {
+        streamID = pAV->aid;
+        time_base = pAV->pAStream->time_base;
+    } else {
+        return pAV->vPTS;
+    }
+    int64_t pts1 = (int64_t) (pos1 * (int64_t) time_base.den)
+                           / (1000 * (int64_t) time_base.num);
     int flags = 0;
     if(pos1 < pos0) {
         flags |= AVSEEK_FLAG_BACKWARD;
     }
-    fprintf(stderr, "SEEK: pre  : u %ld, p %ld -> u %ld, p %ld\n", pos0, pts0, pos1, pts1);
-    sp_av_seek_frame(pAV->pFormatCtx, pAV->vid, pts1, flags);
-    pAV->vPTS =  my_av_q2i32( pAV->pVFrame->pkt_pts * 1000, pAV->pVStream->time_base);
-    fprintf(stderr, "SEEK: post : u %ld, p %ld\n", pAV->vPTS, pAV->pVFrame->pkt_pts);
-    return pAV->vPTS;
+    int res;
+    if(HAS_FUNC(sp_av_seek_frame)) {
+        if(pos1 < pos0) {
+            flags |= AVSEEK_FLAG_BACKWARD;
+        }
+        fprintf(stderr, "SEEK.0: pre  : s %ld / %ld -> t %ld / %ld\n", pos0, pts0, pos1, pts1);
+        sp_av_seek_frame(pAV->pFormatCtx, streamID, pts1, flags);
+
+    } else if(HAS_FUNC(sp_avformat_seek_file)) {
+        int64_t ptsD = pts1 - pts0;
+        int64_t seek_min    = ptsD > 0 ? pts1 - ptsD : INT64_MIN;
+        int64_t seek_max    = ptsD < 0 ? pts1 - ptsD : INT64_MAX;
+        fprintf(stderr, "SEEK.1: pre  : s %ld / %ld -> t %ld / %ld [%ld .. %ld]\n", 
+            pos0, pts0, pos1, pts1, seek_min, seek_max);
+        res = sp_avformat_seek_file(pAV->pFormatCtx, -1, seek_min, pts1, seek_max, flags);
+    }
+    if(NULL != pAV->pVCodecCtx) {
+        sp_avcodec_flush_buffers( pAV->pVCodecCtx );
+    }
+    if(NULL != pAV->pACodecCtx) {
+        sp_avcodec_flush_buffers( pAV->pACodecCtx );
+    }
+    const jint vPTS =  my_av_q2i32( pAV->pVFrame->pkt_pts * 1000, pAV->pVStream->time_base);
+    fprintf(stderr, "SEEK: post : res %d, u %ld, p %ld\n", res, vPTS, pAV->pVFrame->pkt_pts);
+    return vPTS;
 }
 
 JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_getVideoPTS0

@@ -108,14 +108,14 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     /** POSIX ENOSYS {@value}: Function not implemented. FIXME: Move to GlueGen ?!*/
     private static final int ENOSYS = 38;
     
-    /** Count of zeroed buffers to return before switching to real sample provider */
-    private static final int TEMP_BUFFER_COUNT = 20;
+    /** Default number of audio frames per video frame */
+    private static final int AV_DEFAULT_AFRAMES = 8;
 
     // Instance data
-    public static final VersionNumber avUtilVersion;
-    public static final VersionNumber avFormatVersion;
-    public static final VersionNumber avCodecVersion;    
-    static final boolean available;
+    private static final VersionNumber avUtilVersion;
+    private static final VersionNumber avFormatVersion;
+    private static final VersionNumber avCodecVersion;    
+    private static final boolean available;
     
     static {
         final boolean libAVGood = FFMPEGDynamicLibraryBundleInfo.initSingleton();
@@ -146,31 +146,33 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     // General
     //
     
-    protected long moviePtr = 0;    
+    private long moviePtr = 0;    
     
     //
     // Video
     //
     
-    protected PixelFormat vPixelFmt = null;
-    protected int vPlanes = 0;
-    protected int vBitsPerPixel = 0;
-    protected int vBytesPerPixelPerPlane = 0;    
-    protected int[] vLinesize = { 0, 0, 0 }; // per plane
-    protected int[] vTexWidth = { 0, 0, 0 }; // per plane
-    protected int texWidth, texHeight; // overall (stuffing planes in one texture)
-    protected String singleTexComp = "r";
-    protected GLPixelStorageModes psm;
+    private PixelFormat vPixelFmt = null;
+    private int vPlanes = 0;
+    private int vBitsPerPixel = 0;
+    private int vBytesPerPixelPerPlane = 0;    
+    private int[] vLinesize = { 0, 0, 0 }; // per plane
+    private int[] vTexWidth = { 0, 0, 0 }; // per plane
+    private int texWidth, texHeight; // overall (stuffing planes in one texture)
+    private String singleTexComp = "r";
+    private GLPixelStorageModes psm;
 
     //
     // Audio
     //
     
-    protected static final int AFRAMES_PER_VFRAME = 8;
-    protected int aFrameCount = 0;
-    protected SampleFormat aSampleFmt = null;
-    protected AudioSink.AudioDataFormat avChosenAudioFormat;
-    protected AudioSink.AudioDataFormat sinkChosenAudioFormat;
+    /** Initial audio frame count, ALAudioSink may grow buffer! */
+    private int initialAudioFrameCount = AV_DEFAULT_AFRAMES;
+    private final int audioFrameGrowAmount = 8;
+    private final int audioFrameLimit = 128;
+    private SampleFormat aSampleFmt = null;
+    private AudioSink.AudioDataFormat avChosenAudioFormat;
+    private AudioSink.AudioDataFormat sinkChosenAudioFormat;
     
     public FFMPEGMediaPlayer() {
         if(!available) {
@@ -182,10 +184,6 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         }
         psm = new GLPixelStorageModes();
         audioSink = null;
-    }
-    @Override
-    protected final int validateTextureCount(int desiredTextureCount) {
-        return desiredTextureCount>2 ? Math.max(4, desiredTextureCount) : 2;
     }
 
     @Override
@@ -205,101 +203,108 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     }
     
     @Override
-    protected final void initGLStreamImpl(GL gl, int vid, int aid) throws IOException {
+    protected final void initStreamImpl(int vid, int aid) throws IOException {
         if(0==moviePtr) {
             throw new GLException("FFMPEG native instance null");
         }
-        {
-            final GLContextImpl ctx = (GLContextImpl)gl.getContext();
-            final ProcAddressTable pt = ctx.getGLProcAddressTable();
-            final long procAddrGLTexSubImage2D = getAddressFor(pt, "glTexSubImage2D");
-            if( 0 == procAddrGLTexSubImage2D ) {
-                throw new InternalError("glTexSubImage2D n/a in ProcAddressTable: "+pt.getClass().getName()+" of "+ctx.getGLVersion());
-            }
-            final long procAddrGLGetError = getAddressFor(pt, "glGetError");
-            if( 0 == procAddrGLGetError ) {
-                throw new InternalError("glGetError n/a in ProcAddressTable: "+pt.getClass().getName()+" of "+ctx.getGLVersion());
-            }
-            setGLFuncs0(moviePtr, procAddrGLTexSubImage2D, procAddrGLGetError);
-        }
-        
-        final String streamLocS=streamLoc.toString();
-        
-        aFrameCount = AFRAMES_PER_VFRAME * textureCount + AFRAMES_PER_VFRAME/2;
-    
         if(DEBUG) {
-            System.err.println("initGLStream: p1 "+this);
+            System.err.println("initStream: p1 "+this);
         }
+        
+        final String streamLocS=streamLoc.toString();        
         destroyAudioSink();
-        AudioSink _audioSink;
         if( GLMediaPlayer.STREAM_ID_NONE == aid ) {
-            _audioSink = AudioSinkFactory.createNull();
+            audioSink = AudioSinkFactory.createNull();
         } else {
-            _audioSink = AudioSinkFactory.createDefault();
+            audioSink = AudioSinkFactory.createDefault();
         }
-        final AudioDataFormat preferredAudioFormat = _audioSink.getPreferredFormat();
+        final AudioDataFormat preferredAudioFormat = audioSink.getPreferredFormat();
+        if(DEBUG) {
+            System.err.println("initStream: p2 preferred "+preferredAudioFormat+", "+this);
+        }
          // setStream(..) issues updateAttributes*(..), and defines avChosenAudioFormat, vid, aid, .. etc
-        setStream0(moviePtr, streamLocS, vid, aid, aFrameCount, preferredAudioFormat.channelCount, preferredAudioFormat.sampleRate);
-        // final int audioBytesPerFrame = bps_audio/8000 * frame_period * textureCount;
-        
-        if(DEBUG) {
-            System.err.println("initGLStream: p2 preferred "+preferredAudioFormat+", avChosen "+avChosenAudioFormat+", "+this);
+        final int snoopVideoFrameCount = 0; // 10*textureCount
+        setStream0(moviePtr, streamLocS, vid, aid, snoopVideoFrameCount, preferredAudioFormat.channelCount, preferredAudioFormat.sampleRate);
+    }
+
+    @Override
+    protected final void initGLImpl(GL gl) throws IOException, GLException {
+        if(0==moviePtr) {
+            throw new GLException("FFMPEG native instance null");
         }
-        sinkChosenAudioFormat = _audioSink.initSink(avChosenAudioFormat, aFrameCount);
+        if(null == audioSink) {
+            throw new GLException("AudioSink null");
+        }
+        if( null != gl ) {
+            final GLContextImpl ctx = (GLContextImpl)gl.getContext();
+            AccessController.doPrivileged(new PrivilegedAction<Object>() {
+                public Object run() {
+                    final ProcAddressTable pt = ctx.getGLProcAddressTable();
+                    final long procAddrGLTexSubImage2D = pt.getAddressFor("glTexSubImage2D");
+                    final long procAddrGLGetError = pt.getAddressFor("glGetError");
+                    final long procAddrGLFlush = pt.getAddressFor("glFlush");
+                    final long procAddrGLFinish = pt.getAddressFor("glFinish");
+                    setGLFuncs0(moviePtr, procAddrGLTexSubImage2D, procAddrGLGetError, procAddrGLFlush, procAddrGLFinish);
+                    return null;
+            } } );
+        }            
+
+        sinkChosenAudioFormat = audioSink.initSink(avChosenAudioFormat, initialAudioFrameCount, audioFrameGrowAmount, audioFrameLimit);
         if(DEBUG) {
-            System.err.println("initGLStream: p3 avChosen "+avChosenAudioFormat+", chosen "+sinkChosenAudioFormat);
+            System.err.println("initGL: p3 avChosen "+avChosenAudioFormat+", chosen "+sinkChosenAudioFormat);
         }
         if( null == sinkChosenAudioFormat ) {
-            System.err.println("AudioSink "+_audioSink.getClass().getName()+" does not support "+avChosenAudioFormat+", using Null");
-            _audioSink.destroy();
-            _audioSink = AudioSinkFactory.createNull();
-            sinkChosenAudioFormat = _audioSink.initSink(avChosenAudioFormat, aFrameCount);
+            System.err.println("AudioSink "+audioSink.getClass().getName()+" does not support "+avChosenAudioFormat+", using Null");
+            audioSink.destroy();
+            audioSink = AudioSinkFactory.createNull();
+            sinkChosenAudioFormat = audioSink.initSink(avChosenAudioFormat, initialAudioFrameCount, audioFrameGrowAmount, audioFrameLimit);
         }
-        audioSink = _audioSink;
         
-        int tf, tif=GL.GL_RGBA; // texture format and internal format
-        switch(vBytesPerPixelPerPlane) {
-            case 1:
-                if( gl.isGL3ES3() ) {
-                    // RED is supported on ES3 and >= GL3 [core]; ALPHA is deprecated on core
-                    tf = GL2ES2.GL_RED;   tif=GL2ES2.GL_RED; singleTexComp = "r";
-                } else {
-                    // ALPHA is supported on ES2 and GL2, i.e. <= GL3 [core] or compatibility
-                    tf = GL2ES2.GL_ALPHA; tif=GL2ES2.GL_ALPHA; singleTexComp = "a";
-                }
-                break;
-            case 3: tf = GL2ES2.GL_RGB;   tif=GL.GL_RGB;     break;
-            case 4: tf = GL2ES2.GL_RGBA;  tif=GL.GL_RGBA;    break;
-            default: throw new RuntimeException("Unsupported bytes-per-pixel / plane "+vBytesPerPixelPerPlane);
-        }        
-        setTextureFormat(tif, tf);
-        setTextureType(GL.GL_UNSIGNED_BYTE);
-    }
+        if( null != gl ) {
+            int tf, tif=GL.GL_RGBA; // texture format and internal format
+            switch(vBytesPerPixelPerPlane) {
+                case 1:
+                    if( gl.isGL3ES3() ) {
+                        // RED is supported on ES3 and >= GL3 [core]; ALPHA is deprecated on core
+                        tf = GL2ES2.GL_RED;   tif=GL2ES2.GL_RED; singleTexComp = "r";
+                    } else {
+                        // ALPHA is supported on ES2 and GL2, i.e. <= GL3 [core] or compatibility
+                        tf = GL2ES2.GL_ALPHA; tif=GL2ES2.GL_ALPHA; singleTexComp = "a";
+                    }
+                    break;
+                case 3: tf = GL2ES2.GL_RGB;   tif=GL.GL_RGB;     break;
+                case 4: tf = GL2ES2.GL_RGBA;  tif=GL.GL_RGBA;    break;
+                default: throw new RuntimeException("Unsupported bytes-per-pixel / plane "+vBytesPerPixelPerPlane);
+            }        
+            setTextureFormat(tif, tf);
+            setTextureType(GL.GL_UNSIGNED_BYTE);
+        }
+    }    
     @Override
     protected final TextureFrame createTexImage(GL gl, int texName) {
         return new TextureFrame( createTexImageImpl(gl, texName, texWidth, texHeight, true) );
     }
     
     /**
-     * Catches IllegalArgumentException and returns 0 if functionName is n/a,
-     * otherwise the ProcAddressTable's field value. 
+     * @param pixFmt
+     * @param planes
+     * @param bitsPerPixel
+     * @param bytesPerPixelPerPlane
+     * @param lSz0
+     * @param lSz1
+     * @param lSz2
+     * @param tWd0
+     * @param tWd1
+     * @param tWd2
+     * @param audioFrameCount snooped audio-frame-count per video-frame, maybe 0
+     * @param sampleFmt
+     * @param sampleRate
+     * @param channels
      */
-    private final long getAddressFor(final ProcAddressTable table, final String functionName) {
-        return AccessController.doPrivileged(new PrivilegedAction<Long>() {
-            public Long run() {
-                try {
-                    return Long.valueOf( table.getAddressFor(functionName) );
-                } catch (IllegalArgumentException iae) { 
-                    return Long.valueOf(0);
-                }
-            }
-        } ).longValue();
-    }
-
     private void updateAttributes2(int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,
                                    int lSz0, int lSz1, int lSz2,
                                    int tWd0, int tWd1, int tWd2,
-                                   int sampleFmt, int sampleRate, int channels) {
+                                   int audioFrameCount, int sampleFmt, int sampleRate, int channels) {
         vPixelFmt = PixelFormat.valueOf(pixFmt);
         vPlanes = planes;
         vBitsPerPixel = bitsPerPixel;
@@ -329,7 +334,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             default: // FIXME: Add more formats !
                 throw new RuntimeException("Unsupported pixelformat: "+vPixelFmt);
         }
-
+        initialAudioFrameCount = audioFrameCount > 0 ? audioFrameCount : AV_DEFAULT_AFRAMES * 2;
         aSampleFmt = SampleFormat.valueOf(sampleFmt);
         final int sampleSize;
         final boolean signed, fixedP;
@@ -370,7 +375,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         avChosenAudioFormat = new AudioDataFormat(AudioDataType.PCM, sampleRate, sampleSize, channels, signed, fixedP, true /* littleEndian */);  
         
         if(DEBUG) {
-            System.err.println("audio: fmt "+aSampleFmt+", "+avChosenAudioFormat);
+            System.err.println("audio: fmt "+aSampleFmt+", "+avChosenAudioFormat+", aFrameCount "+audioFrameCount+" -> "+initialAudioFrameCount);
             System.err.println("video: fmt "+vPixelFmt+", planes "+vPlanes+", bpp "+vBitsPerPixel+"/"+vBytesPerPixelPerPlane);
             for(int i=0; i<3; i++) {
                 System.err.println("video: "+i+": "+vTexWidth[i]+"/"+vLinesize[i]);
@@ -473,6 +478,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     @Override
     protected void preNextTextureImpl(GL gl) {
         psm.setUnpackAlignment(gl, 1); // RGBA ? 4 : 1
+        gl.glActiveTexture(GL.GL_TEXTURE0+getTextureUnit());
     }
     
     @Override
@@ -481,31 +487,25 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     }
     
     @Override
-    protected final boolean getNextTextureImpl(GL gl, TextureFrame nextFrame, boolean blocking, boolean issuePreAndPost) {
+    protected final boolean getNextTextureImpl(GL gl, TextureFrame nextFrame) {
         if(0==moviePtr) {
             throw new GLException("FFMPEG native instance null");
         }
-        if( issuePreAndPost ) {
-            preNextTextureImpl(gl);
-        }
         int vPTS = TextureFrame.INVALID_PTS;
-        try {
+        if( null != nextFrame ) {
             final Texture tex = nextFrame.getTexture();
-            gl.glActiveTexture(GL.GL_TEXTURE0+getTextureUnit());
             tex.enable(gl);
             tex.bind(gl);
+        }
 
-            /** Try decode up to 10 packets to find one containing video. */
-            for(int i=0; TextureFrame.INVALID_PTS == vPTS && 10 > i; i++) {
-               vPTS = readNextPacket0(moviePtr, textureTarget, textureFormat, textureType);
-            }
-        } finally {
-            if( issuePreAndPost ) {
-                postNextTextureImpl(gl);
-            }
+        /** Try decode up to 10 packets to find one containing video. */
+        for(int i=0; TextureFrame.INVALID_PTS == vPTS && 10 > i; i++) {
+           vPTS = readNextPacket0(moviePtr, textureTarget, textureFormat, textureType);
         }
         if( TextureFrame.INVALID_PTS != vPTS ) {
-            nextFrame.setPTS(vPTS);
+            if( null != nextFrame ) {
+                nextFrame.setPTS(vPTS);
+            }
             return true;
         } else {
             return false;
@@ -524,9 +524,6 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         return time * ( sinkChosenAudioFormat.channelCount * bytesPerSample * ( sinkChosenAudioFormat.sampleRate / 1000 ) );        
     }
     
-    @Override
-    protected final boolean syncAVRequired() { return true; }
-    
     private static native int getAvUtilVersion0();
     private static native int getAvFormatVersion0();
     private static native int getAvCodecVersion0();
@@ -543,10 +540,18 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      *   [type PCM, sampleRate [10000(?)..44100..48000], sampleSize 16, channelCount 1-2, signed, littleEndian]
      * </pre>
      * </p>
+     * 
+     * @param moviePtr
+     * @param url
+     * @param vid
+     * @param aid
+     * @param snoopVideoFrameCount snoop this number of video-frames to gather audio-frame-count per video-frame. 
+     *        If zero, gathering audio-frame-count is disabled!   
+     * @param aChannelCount
+     * @param aSampleRate
      */
-    private native void setStream0(long moviePtr, String url, int vid, int aid, int audioFrameCount,
-                                   int aChannelCount, int aSampleRate);
-    private native void setGLFuncs0(long moviePtr, long procAddrGLTexSubImage2D, long procAddrGLGetError);
+    private native void setStream0(long moviePtr, String url, int vid, int aid, int snoopVideoFrameCount, int aChannelCount, int aSampleRate);
+    private native void setGLFuncs0(long moviePtr, long procAddrGLTexSubImage2D, long procAddrGLGetError, long procAddrGLFlush, long procAddrGLFinish);
 
     private native int getVideoPTS0(long moviePtr);    
     

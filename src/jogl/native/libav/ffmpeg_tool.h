@@ -52,6 +52,8 @@
 
 typedef void (APIENTRYP PFNGLTEXSUBIMAGE2DPROC) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *pixels);
 typedef GLenum (APIENTRYP PFNGLGETERRORPROC) (void);
+typedef void (APIENTRYP PFNGLFLUSH) (void);
+typedef void (APIENTRYP PFNGLFINISH) (void);
 
 /**
  *  AV_TIME_BASE   1000000
@@ -68,10 +70,20 @@ typedef GLenum (APIENTRYP PFNGLGETERRORPROC) (void);
 /** Sync w/ GLMediaPlayer.STREAM_ID_AUTO */
 #define AV_STREAM_ID_AUTO -1
 
-/** Constant marking an invalid PTS, i.e. Integer.MIN_VALUE 0x80000000 {@value}. Sync w/ TextureFrame.INVALID_PTS */
+/** Default number of audio frames per video frame. Sync w/ FFMPEGMediaPlayer.AV_DEFAULT_AFRAMES. */
+#define AV_DEFAULT_AFRAMES 8
+
+/** Constant PTS marking an invalid PTS, i.e. Integer.MIN_VALUE == 0x80000000 == {@value}. Sync w/ TextureFrame.INVALID_PTS */
 #define INVALID_PTS 0x80000000
 
+/** Constant PTS marking the end of the stream, i.e. Integer.MIN_VALUE - 1 == 0x7FFFFFFF == {@value}. Sync w/ TextureFrame.END_OF_STREAM_PTS */
+#define END_OF_STREAM_PTS 0x7FFFFFFF
+
+/** Until 55.0.0 */
 #define AV_HAS_API_REQUEST_CHANNELS(pAV) (AV_VERSION_MAJOR(pAV->avcodecVersion) < 55)
+
+/** Since 55.0.0 */
+#define AV_HAS_API_REFCOUNTED_FRAMES(pAV) (AV_VERSION_MAJOR(pAV->avcodecVersion) >= 55)
 
 static inline float my_av_q2f(AVRational a){
     return a.num / (float) a.den;
@@ -81,14 +93,32 @@ static inline int32_t my_av_q2i32(int64_t snum, AVRational a){
 }
 
 typedef struct {
+    void *origPtr;
+    jobject nioRef;
+    int32_t size;
+} NIOBuffer_t;
+
+typedef struct {
+    int64_t ptsError; // Number of backward PTS values (earlier than last PTS, excluding AV_NOPTS_VALUE)
+    int64_t dtsError; // Number of backward DTS values (earlier than last PTS, excluding AV_NOPTS_VALUE)
+    int64_t ptsLast;  // PTS of the last frame
+    int64_t dtsLast;  // DTS of the last frame
+} PTSStats;
+
+
+typedef struct {
     int32_t          verbose;
 
     uint32_t         avcodecVersion;
     uint32_t         avformatVersion;
     uint32_t         avutilVersion;
 
+    int32_t          useRefCountedFrames;
+
     PFNGLTEXSUBIMAGE2DPROC procAddrGLTexSubImage2D;
     PFNGLGETERRORPROC procAddrGLGetError;
+    PFNGLFLUSH procAddrGLFlush;
+    PFNGLFINISH procAddrGLFinish;
 
     AVFormatContext* pFormatCtx;
     int32_t          vid;
@@ -101,6 +131,7 @@ typedef struct {
     uint32_t         vBytesPerPixelPerPlane;
     enum PixelFormat vPixFmt;    // native decoder fmt
     int32_t          vPTS;       // msec - overall last video PTS
+    PTSStats         vPTSStats;
     int32_t          vLinesize[3];  // decoded video linesize in bytes for each plane
     int32_t          vTexWidth[3];  // decoded video tex width in bytes for each plane
 
@@ -110,6 +141,7 @@ typedef struct {
     AVCodecContext*  pACodecCtx;
     AVCodec*         pACodec;
     AVFrame**        pAFrames;
+    NIOBuffer_t*     pANIOBuffers;
     int32_t          aFrameCount;
     int32_t          aFrameCurrent;
     int32_t          aSampleRate;
@@ -117,6 +149,8 @@ typedef struct {
     int32_t          aFrameSize;
     enum AVSampleFormat aSampleFmt; // native decoder fmt
     int32_t          aPTS;       // msec - overall last audio PTS
+    PTSStats         aPTSStats;
+    int32_t          aFramesPerVideoFrame; // is 'snooped'
 
     float            fps;        // frames per seconds
     int32_t          bps_stream; // bits per seconds

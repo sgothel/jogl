@@ -1,34 +1,29 @@
-/*
- * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+/**
+ * Copyright 2012 JogAmp Community. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
  * 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
  * 
- * - Redistribution of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
  * 
- * - Redistribution in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in the
- *   documentation and/or other materials provided with the distribution.
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * Neither the name of Sun Microsystems, Inc. or the names of
- * contributors may be used to endorse or promote products derived from
- * this software without specific prior written permission.
- * 
- * This software is provided "AS IS," without a warranty of any kind. ALL
- * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
- * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
- * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
- * DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, INCIDENTAL OR PUNITIVE
- * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
- * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
- * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
  */
 
 package com.jogamp.opengl.test.junit.jogl.demos.es2.av;
@@ -58,37 +53,54 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
+import com.jogamp.opengl.util.av.GLMediaPlayer.StreamException;
 import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
+/**
+ * Simple cube movie player w/ aspect ration true projection on a cube. 
+ */
 public class MovieCube implements GLEventListener, GLMediaEventListener {
-    static boolean waitForKey = false;
-    int textureCount = 3; // default - threaded
-    final URI streamLoc;
-    final int vid, aid;
-    final float zoom0, rotx, roty;
-    TextureSequenceCubeES2 cube=null;
-    GLMediaPlayer mPlayer=null;
+    private static boolean waitForKey = false;
+    private final float zoom0, rotx, roty;
+    private TextureSequenceCubeES2 cube=null;
+    private GLMediaPlayer mPlayer=null;
+    private int swapInterval = 1;
+    private long lastPerfPos = 0;
     
+    /** Blender's Big Buck Bunny Trailer: 24f 640p VP8, Vorbis 44100Hz mono, WebM/Matroska Stream. */
+    public static final URI defURI;
+    static {
+        URI _defURI = null;
+        try {
+            _defURI = new URI("http://video.webmfiles.org/big-buck-bunny_trailer.webm");
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        defURI = _defURI;
+    }
+        
     public MovieCube() throws IOException, URISyntaxException {
-        this(new URI("http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4"), 
-             GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, -2.3f, 0f, 0f);        
+        this(-2.3f, 0f, 0f);        
     }
     
-    public MovieCube(URI streamLoc, int vid, int aid, float zoom0, float rotx, float roty) throws IOException {
-        this.streamLoc = streamLoc;
+    public MovieCube(float zoom0, float rotx, float roty) throws IOException {
         this.zoom0 = zoom0;
         this.rotx = rotx;
         this.roty = roty;
-        this.vid = vid;
-        this.aid = aid;
         mPlayer = GLMediaPlayerFactory.createDefault();
         mPlayer.addEventListener(this);        
     }
 
-    public void setTextureCount(int v) {
-        textureCount = v;
+    public void initStream(URI streamLoc, int vid, int aid, int textureCount) {
+        mPlayer.addEventListener(this);
+        mPlayer.initStream(streamLoc, vid, aid, textureCount);
+        System.out.println("pC.1b "+mPlayer);
     }
+    
+    public void setSwapInterval(int v) { this.swapInterval = v; }
+    
+    public GLMediaPlayer getGLMediaPlayer() { return mPlayer; }
     
     private final KeyListener keyAction = new KeyAdapter() {
         public void keyReleased(KeyEvent e)  {
@@ -149,7 +161,7 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
     };
     
     @Override
-    public void attributesChanges(GLMediaPlayer mp, int event_mask, long when) {
+    public void attributesChanged(GLMediaPlayer mp, int event_mask, long when) {
         System.out.println("attributesChanges: "+mp+", 0x"+Integer.toHexString(event_mask)+", when "+when);        
     }
 
@@ -160,6 +172,16 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
 
     @Override
     public void init(GLAutoDrawable drawable) {
+        if(null == mPlayer) {
+            throw new InternalError("mPlayer null");
+        }
+        if( GLMediaPlayer.State.Initialized != mPlayer.getState() ) {
+            throw new IllegalStateException("mPlayer not in state initialized: "+mPlayer);
+        }
+        if( GLMediaPlayer.STREAM_ID_NONE == mPlayer.getVID() ) {
+            System.err.println("MovieCube: No VID/stream selected - no GL: "+mPlayer);
+            return;
+        }
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         System.err.println(JoglVersion.getGLInfo(gl, null));
 
@@ -168,19 +190,20 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
         if(waitForKey) {
             UITestCase.waitForKey("Init>");
         }
+        
         try {
-            mPlayer.initGLStream(gl, textureCount, streamLoc, vid, aid);
-        } catch (Exception e) { 
-            e.printStackTrace(); 
+            mPlayer.initGL(gl);
+        } catch (Exception e) {
+            e.printStackTrace();
             if(null != mPlayer) {
                 mPlayer.destroy(gl);
                 mPlayer = null;
             }
             throw new GLException(e);
         }
-        
         cube.init(drawable);
         mPlayer.play();
+        System.out.println("pStart "+mPlayer);
 
         boolean added;
         final Object upstreamWidget = drawable.getUpstreamWidget();
@@ -194,6 +217,10 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
 
     @Override
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
+        if(-1 != swapInterval) {
+            gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
+        }
         if(null == mPlayer) { return; }
         cube.reshape(drawable, x, y, width, height);
     }
@@ -209,8 +236,6 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
         cube=null;
     }
 
-    long lastPerfPos = 0;
-    
     @Override
     public void display(GLAutoDrawable drawable) {
         if(null == mPlayer) { return; }
@@ -225,6 +250,7 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException, URISyntaxException {
+        int swapInterval = 1;
         int width = 510;
         int height = 300;
         int textureCount = 3; // default - threaded
@@ -237,7 +263,7 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
         int aid = GLMediaPlayer.STREAM_ID_AUTO;
         final boolean origSize;
         
-        String url_s="http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4";
+        String url_s=null;
         {
             boolean _origSize = false;        
             for(int i=0; i<args.length; i++) {
@@ -269,20 +295,32 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
                     forceGL3 = true;
                 } else if(args[i].equals("-gldef")) {
                     forceGLDef = true;
+                } else if(args[i].equals("-vsync")) {
+                    i++;
+                    swapInterval = MiscUtils.atoi(args[i], swapInterval);
                 } else if(args[i].equals("-wait")) {
                     waitForKey = true;
                 }
             }
             origSize = _origSize;
         }
+        final URI streamLoc;
+        if( null == url_s ) {
+            streamLoc = defURI;
+        } else {
+            streamLoc = new URI(url_s);
+        }
+        System.err.println("stream "+streamLoc);
         System.err.println("vid "+vid+", aid "+aid);
         System.err.println("textureCount "+textureCount);
         System.err.println("forceES2   "+forceES2);
         System.err.println("forceES3   "+forceES3);
         System.err.println("forceGL3   "+forceGL3);
         System.err.println("forceGLDef "+forceGLDef);
+        System.err.println("swapInterval "+swapInterval);
         
-        final MovieCube mc = new MovieCube(new URI(url_s), vid, aid, -2.3f, 0f, 0f);
+        final MovieCube mc = new MovieCube(-2.3f, 0f, 0f);
+        mc.setSwapInterval(swapInterval);
         
         final GLProfile glp;
         if(forceGLDef) {
@@ -298,9 +336,15 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
         }        
         System.err.println("GLProfile: "+glp);
         final GLWindow window = GLWindow.create(new GLCapabilities(glp));
-        // Size OpenGL to Video Surface
+        final Animator anim = new Animator(window);
+        window.addWindowListener(new WindowAdapter() {
+            public void windowDestroyed(WindowEvent e) {
+                anim.stop();
+            }                
+        });
         window.setSize(width, height);
-        window.addGLEventListener(mc);
+        window.setVisible(true);
+        anim.start();
         
         mc.mPlayer.addEventListener(new GLMediaEventListener() {
             @Override
@@ -308,22 +352,30 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
             }
 
             @Override
-            public void attributesChanges(final GLMediaPlayer mp, int event_mask, long when) {
+            public void attributesChanged(final GLMediaPlayer mp, int event_mask, long when) {
+                System.err.println("Player AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
+                System.err.println("Player State: "+mp);
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_SIZE & event_mask ) && origSize ) {
                     window.setSize(mp.getWidth(), mp.getHeight());
                 }
+                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
+                    window.addGLEventListener(mc);
+                    anim.setUpdateFPSFrames(60, System.err);
+                    anim.resetFPSCounter();
+                }
+                if( 0 != ( ( GLMediaEventListener.EVENT_CHANGE_ERR | GLMediaEventListener.EVENT_CHANGE_EOS ) & event_mask ) ) {
+                    final StreamException se = mc.mPlayer.getStreamException();
+                    if( null != se ) {
+                        se.printStackTrace();                        
+                    }
+                    new Thread() {
+                        public void run() {
+                            window.destroy();
+                        } }.start();
+                }
             }            
-        });
-        
-        final Animator anim = new Animator(window);
-        window.addWindowListener(new WindowAdapter() {
-            public void windowDestroyed(WindowEvent e) {
-                anim.stop();
-            }                
-        });
-        window.setVisible(true);
-        anim.setUpdateFPSFrames(60, System.err);
-        anim.start();
+        });        
+        mc.initStream(streamLoc, vid, aid, textureCount);
     }
 }
 

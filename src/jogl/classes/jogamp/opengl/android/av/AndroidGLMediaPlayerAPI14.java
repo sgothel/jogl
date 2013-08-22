@@ -31,6 +31,7 @@ import java.io.IOException;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLES2;
+import javax.media.opengl.GLException;
 
 import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.os.Platform;
@@ -179,14 +180,14 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
         public final Surface getSurface() { return surface; }
         
         public String toString() {
-            return "SurfaceTextureFrame[" + pts + "ms: " + texture + ", " + surfaceTex + "]";
+            return "SurfaceTextureFrame[pts " + pts + " ms, l " + duration + " ms, texID "+ texture.getTextureObject() + ", " + surfaceTex + "]";
         }
         private final SurfaceTexture surfaceTex;
         private final Surface surface; 
     }
     
     @Override
-    protected final void initGLStreamImpl(GL gl, int vid, int aid) throws IOException {
+    protected final void initStreamImpl(int vid, int aid) throws IOException {
         if(null!=mp && null!=streamLoc) {
             if( GLMediaPlayer.STREAM_ID_NONE == aid ) {
                 mp.setVolume(0f, 0f);
@@ -220,9 +221,13 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                              0, 0, mp.getDuration(), icodec, icodec);
         }
     }
+    @Override
+    protected final void initGLImpl(GL gl) throws IOException, GLException {
+        // NOP
+    }
     
     @Override
-    protected final boolean getNextTextureImpl(GL gl, TextureFrame nextFrame, boolean blocking, boolean issuePreAndPost) {
+    protected final boolean getNextTextureImpl(GL gl, TextureFrame nextFrame) {
         if(null != stex && null != mp) {
             final SurfaceTextureFrame nextSFrame = (SurfaceTextureFrame) nextFrame;
             final Surface nextSurface = nextSFrame.getSurface();
@@ -232,7 +237,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             // Only block once, no while-loop. 
             // This relaxes locking code of non crucial resources/events.
             boolean update = updateSurface;
-            if(!update && blocking) {
+            if( !update ) {
                 synchronized(updateSurfaceLock) {
                     if(!updateSurface) { // volatile OK.
                         try {

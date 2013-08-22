@@ -59,7 +59,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     
     private static final List<String> glueLibNames = new ArrayList<String>(); // none
     
-    private static final int symbolCount = 38;
+    private static final int symbolCount = 42;
     private static final String[] symbolNames = {
          "avcodec_version",
          "avformat_version",
@@ -71,22 +71,26 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "avcodec_find_decoder", 
          "avcodec_open2",             // 53.6.0    (opt) 
          "avcodec_open", 
-         "avcodec_alloc_frame", 
+         "avcodec_alloc_frame",
+         "avcodec_get_frame_defaults",
+         "avcodec_free_frame",        // 54.28.0   (opt)
          "avcodec_default_get_buffer", 
          "avcodec_default_release_buffer",
+         "avcodec_flush_buffers",
          "av_init_packet",
          "av_new_packet",
          "av_destruct_packet",
          "av_free_packet", 
          "avcodec_decode_audio4",     // 53.25.0   (opt)
          "avcodec_decode_audio3",     // 52.23.0
-/* 18 */ "avcodec_decode_video2",     // 52.23.0
+/* 21 */ "avcodec_decode_video2",     // 52.23.0
         
          // libavutil
-         "av_pix_fmt_descriptors", 
-         "av_free", 
+         "av_pix_fmt_descriptors",
+         "av_frame_unref",            // 55.0.0 (opt)
+         "av_free",
          "av_get_bits_per_pixel",
-/* 22 */ "av_samples_get_buffer_size",
+/* 26 */ "av_samples_get_buffer_size",
         
          // libavformat
          "avformat_alloc_context",
@@ -98,13 +102,13 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "av_dump_format", 
          "av_read_frame",
          "av_seek_frame",
-         "avformat_seek_file",
+         "avformat_seek_file",        // ???       (opt)
          "av_read_play",
          "av_read_pause",
          "avformat_network_init",     // 53.13.0   (opt)
          "avformat_network_deinit",   // 53.13.0   (opt)
          "avformat_find_stream_info", // 53.3.0    (opt)
-/* 38 */ "av_find_stream_info",
+/* 42 */ "av_find_stream_info",
     };
     
     // alternate symbol names
@@ -120,6 +124,9 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "avformat_free_context",     // 52.96.0   (opt)
          "avformat_network_init",     // 53.13.0   (opt)
          "avformat_network_deinit",   // 53.13.0   (opt)
+         "avformat_seek_file",        // ???       (opt)
+         "avcodec_free_frame",        // 54.28.0   (opt)
+         "av_frame_unref",            // 55.0.0 (opt)
     };
     
     private static long[] symbolAddr;

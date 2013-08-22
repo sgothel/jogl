@@ -27,7 +27,6 @@
  */
 package com.jogamp.opengl.test.android;
 
-import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -49,6 +48,9 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
+import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
+import com.jogamp.opengl.util.av.GLMediaPlayer.StreamException;
+import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -84,25 +86,44 @@ public class MovieSimpleActivity0 extends NewtBaseActivity {
        final com.jogamp.newt.Screen scrn = NewtFactory.createScreen(dpy, 0);
        scrn.addReference();
               
-       try {
-           final Animator animator = new Animator();
-           
-           // Main           
-           final MovieSimple demoMain = new MovieSimple(streamLoc, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO);
-           demoMain.setScaleOrig(true);
-           final GLWindow glWindowMain = GLWindow.create(scrn, capsMain);
-           glWindowMain.setFullscreen(true);
-           setContentView(getWindow(), glWindowMain);
-           glWindowMain.addGLEventListener(demoMain);
-           animator.add(glWindowMain);
-           glWindowMain.setVisible(true);
-           
-           animator.setUpdateFPSFrames(60, System.err);
-           // animator.setUpdateFPSFrames(-1, null);
-           animator.resetFPSCounter();
-       } catch (IOException e) {
-           e.printStackTrace();
-       }
+       final Animator anim = new Animator();
+       
+       // Main           
+       final GLWindow glWindowMain = GLWindow.create(scrn, capsMain);
+       glWindowMain.setFullscreen(true);
+       setContentView(getWindow(), glWindowMain);
+       anim.add(glWindowMain);
+       glWindowMain.setVisible(true);
+       
+       final MovieSimple demoMain = new MovieSimple();
+       demoMain.setScaleOrig(true);
+       final GLMediaPlayer mPlayer = demoMain.getGLMediaPlayer();
+       mPlayer.addEventListener( new GLMediaPlayer.GLMediaEventListener() {            
+           @Override
+           public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) { }
+            
+           @Override
+           public void attributesChanged(GLMediaPlayer mp, int event_mask, long when) {
+               System.err.println("Player AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
+               System.err.println("Player State: "+mp);
+               if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
+                   glWindowMain.addGLEventListener(demoMain);
+                   anim.setUpdateFPSFrames(60, System.err);
+                   anim.resetFPSCounter();
+               }
+               if( 0 != ( ( GLMediaEventListener.EVENT_CHANGE_ERR | GLMediaEventListener.EVENT_CHANGE_EOS ) & event_mask ) ) {
+                   final StreamException se = mPlayer.getStreamException();
+                   if( null != se ) {
+                       se.printStackTrace();                        
+                   }
+                   new Thread() {
+                       public void run() {
+                           glWindowMain.destroy();
+                       } }.start();
+               }
+           }
+       });
+       demoMain.initStream(streamLoc, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, 0);
        
        scrn.removeReference();
 

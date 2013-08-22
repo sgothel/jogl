@@ -27,7 +27,6 @@
  */
 package com.jogamp.opengl.test.android;
 
-import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -51,6 +50,9 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
+import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
+import com.jogamp.opengl.util.av.GLMediaPlayer.StreamException;
+import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -110,82 +112,123 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
        final com.jogamp.newt.Screen scrn = NewtFactory.createScreen(dpy, 0);
        scrn.addReference();
               
-       try {
-           final Animator animator = new Animator();
-           
-           // Main           
-           final MovieSimple demoMain = new MovieSimple(streamLoc0, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO);
-           if(mPlayerHUD) {
-               demoMain.setEffects(MovieSimple.EFFECT_GRADIENT_BOTTOM2TOP);
-               demoMain.setTransparency(0.9f);
+       final Animator anim = new Animator();
+       
+       // Main           
+       final GLWindow glWindowMain = GLWindow.create(scrn, capsMain);
+       {
+           final int padding = mPlayerHUD ? 32 : 0;
+           final android.view.View androidView = ((jogamp.newt.driver.android.WindowDriver)glWindowMain.getDelegatedWindow()).getAndroidView();
+           glWindowMain.setSize(scrn.getWidth()-padding, scrn.getHeight()-padding);
+           glWindowMain.setUndecorated(true);
+           // setContentView(getWindow(), glWindowMain);
+           viewGroup.addView(androidView, new android.widget.FrameLayout.LayoutParams(glWindowMain.getWidth(), glWindowMain.getHeight(), Gravity.BOTTOM|Gravity.RIGHT));
+           registerNEWTWindow(glWindowMain);
+       }
+       anim.add(glWindowMain);
+       glWindowMain.setVisible(true);
+       
+       final MovieSimple demoMain = new MovieSimple();
+       final GLMediaPlayer mPlayerMain = demoMain.getGLMediaPlayer();       
+       if(mPlayerHUD) {
+           demoMain.setEffects(MovieSimple.EFFECT_GRADIENT_BOTTOM2TOP);
+           demoMain.setTransparency(0.9f);
+       }
+       demoMain.setScaleOrig(mPlayerNoZoom);
+       mPlayerMain.addEventListener( new GLMediaPlayer.GLMediaEventListener() {            
+           @Override
+           public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) { }
+            
+           @Override
+           public void attributesChanged(GLMediaPlayer mp, int event_mask, long when) {
+               System.err.println("Player AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
+               System.err.println("Player State: "+mp);
+               if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
+                   glWindowMain.addGLEventListener(demoMain);
+                   anim.setUpdateFPSFrames(60, System.err);
+                   anim.resetFPSCounter();
+               }
+               if( 0 != ( ( GLMediaEventListener.EVENT_CHANGE_ERR | GLMediaEventListener.EVENT_CHANGE_EOS ) & event_mask ) ) {
+                   final StreamException se = mPlayerMain.getStreamException();
+                   if( null != se ) {
+                       se.printStackTrace();                        
+                   }
+                   new Thread() {
+                       public void run() {
+                           glWindowMain.destroy();
+                       } }.start();
+               }
            }
-           demoMain.setScaleOrig(mPlayerNoZoom);
-           final GLWindow glWindowMain = GLWindow.create(scrn, capsMain);
-           {
-               final int padding = mPlayerHUD ? 32 : 0;
-               final android.view.View androidView = ((jogamp.newt.driver.android.WindowDriver)glWindowMain.getDelegatedWindow()).getAndroidView();
-               glWindowMain.setSize(scrn.getWidth()-padding, scrn.getHeight()-padding);
-               glWindowMain.setUndecorated(true);
-               // setContentView(getWindow(), glWindowMain);
-               viewGroup.addView(androidView, new android.widget.FrameLayout.LayoutParams(glWindowMain.getWidth(), glWindowMain.getHeight(), Gravity.BOTTOM|Gravity.RIGHT));
-               registerNEWTWindow(glWindowMain);
-           }
-           
-           glWindowMain.addGLEventListener(demoMain);
-           animator.add(glWindowMain);
-           glWindowMain.setVisible(true);
-           
-           if(mPlayerHUD) {
-                final GLMediaPlayer sharedPlayer = mPlayerSharedHUD ? demoMain.getGLMediaPlayer() : null; 
-                final GLCapabilities capsHUD = new GLCapabilities(GLProfile.getGL2ES2());
-                capsHUD.setBackgroundOpaque(false);
-                final GLWindow glWindowHUD = GLWindow.create(scrn, capsHUD);
-                glWindowMain.invoke(false, new GLRunnable() {
-                    @Override
-                    public boolean run(GLAutoDrawable drawable) {
-                        int x2 = scrn.getX();
-                        int y2 = scrn.getY();
-                        int w2 = scrn.getWidth()/3;
-                        int h2 = scrn.getHeight()/3;
-                        if(null != sharedPlayer) {
-                           if(0 < sharedPlayer.getWidth() && sharedPlayer.getWidth()<scrn.getWidth()/2 &&
-                              0 < sharedPlayer.getHeight() && sharedPlayer.getHeight()<scrn.getHeight()/2) {
-                               w2 = sharedPlayer.getWidth();
-                               h2 = sharedPlayer.getHeight();
+       });
+       demoMain.initStream(streamLoc0, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, 0);
+              
+       if(mPlayerHUD) {
+            final GLMediaPlayer mPlayerShared = mPlayerSharedHUD ? mPlayerMain : null; 
+            final GLCapabilities capsHUD = new GLCapabilities(GLProfile.getGL2ES2());
+            capsHUD.setBackgroundOpaque(false);
+            final GLWindow glWindowHUD = GLWindow.create(scrn, capsHUD);
+            glWindowMain.invoke(false, new GLRunnable() {
+                @Override
+                public boolean run(GLAutoDrawable drawable) {
+                    final GLMediaPlayer mPlayerSub;
+                    final MovieSimple demoHUD;
+                    int x2 = scrn.getX();
+                    int y2 = scrn.getY();
+                    int w2 = scrn.getWidth()/3;
+                    int h2 = scrn.getHeight()/3;
+                    if(null != mPlayerShared) {
+                       if(0 < mPlayerShared.getWidth() && mPlayerShared.getWidth()<scrn.getWidth()/2 &&
+                          0 < mPlayerShared.getHeight() && mPlayerShared.getHeight()<scrn.getHeight()/2) {
+                           w2 = mPlayerShared.getWidth();
+                           h2 = mPlayerShared.getHeight();
+                       }
+                       glWindowHUD.setSharedContext(glWindowMain.getContext());
+                       demoHUD = new MovieSimple(mPlayerShared);
+                       mPlayerSub = mPlayerShared;
+                    } else {
+                       demoHUD = new MovieSimple();
+                       mPlayerSub = demoHUD.getGLMediaPlayer();
+                    }
+                    mPlayerSub.addEventListener( new GLMediaPlayer.GLMediaEventListener() {            
+                       @Override
+                       public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) { }
+                        
+                       @Override
+                       public void attributesChanged(GLMediaPlayer mp, int event_mask, long when) {
+                            if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
+                                glWindowHUD.addGLEventListener(demoHUD);
+                            }
+                           if( 0 != ( ( GLMediaEventListener.EVENT_CHANGE_ERR | GLMediaEventListener.EVENT_CHANGE_EOS ) & event_mask ) ) {
+                               final StreamException se = mPlayerMain.getStreamException();
+                               if( null != se ) {
+                                   se.printStackTrace();                        
+                               }
+                               new Thread() {
+                                   public void run() {
+                                       glWindowHUD.destroy();
+                                   } }.start();
                            }
-                           glWindowHUD.setSharedContext(glWindowMain.getContext());
-                           glWindowHUD.addGLEventListener(new MovieSimple(sharedPlayer));                            
-                        } else {
-                           try {
-                               glWindowHUD.addGLEventListener(new MovieSimple(streamLoc1, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO));
-                           } catch (IOException e) {
-                               e.printStackTrace();
-                           }
-                        }
-                        glWindowHUD.setPosition(x2, y2);
-                        glWindowHUD.setSize(w2, h2);
-                        System.err.println("HUD: "+mPlayerHUD);
-                        System.err.println("HUD: "+w2+"x"+h2);                            
-                        glWindowHUD.addMouseListener(toFrontMouseListener);               
+                       }
+                    });
+                    demoHUD.initStream(streamLoc1, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, 0);
+                   
+                    glWindowHUD.setPosition(x2, y2);
+                    glWindowHUD.setSize(w2, h2);
+                    System.err.println("HUD: "+mPlayerHUD);
+                    System.err.println("HUD: "+w2+"x"+h2);                            
+                    glWindowHUD.addMouseListener(toFrontMouseListener);               
 
-                        viewGroup.post(new Runnable() {
-                            public void run() {
-                                final android.view.View androidView = ((jogamp.newt.driver.android.WindowDriver)glWindowHUD.getDelegatedWindow()).getAndroidView();
-                                // addContentView(getWindow(), glWindowHUD, new android.view.ViewGroup.LayoutParams(glWindowHUD.getWidth(), glWindowHUD.getHeight()));
-                                viewGroup.addView(androidView, new android.widget.FrameLayout.LayoutParams(glWindowHUD.getWidth(), glWindowHUD.getHeight(), Gravity.TOP|Gravity.LEFT));
-                                registerNEWTWindow(glWindowHUD);  
-                                animator.add(glWindowHUD);
-                                glWindowHUD.setVisible(true);
-                            } } );
-                        return true;
-                    } } );
-           }
-           
-           animator.setUpdateFPSFrames(60, System.err);
-           // animator.setUpdateFPSFrames(-1, null);
-           animator.resetFPSCounter();
-       } catch (IOException e) {
-           e.printStackTrace();
+                    viewGroup.post(new Runnable() {
+                        public void run() {
+                            final android.view.View androidView = ((jogamp.newt.driver.android.WindowDriver)glWindowHUD.getDelegatedWindow()).getAndroidView();
+                            // addContentView(getWindow(), glWindowHUD, new android.view.ViewGroup.LayoutParams(glWindowHUD.getWidth(), glWindowHUD.getHeight()));
+                            viewGroup.addView(androidView, new android.widget.FrameLayout.LayoutParams(glWindowHUD.getWidth(), glWindowHUD.getHeight(), Gravity.TOP|Gravity.LEFT));
+                            registerNEWTWindow(glWindowHUD);  
+                            anim.add(glWindowHUD);
+                            glWindowHUD.setVisible(true);
+                        } } );
+                    return true;
+                } } );
        }
        
        scrn.removeReference();

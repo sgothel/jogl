@@ -48,6 +48,9 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
+import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
+import com.jogamp.opengl.util.av.GLMediaPlayer.StreamException;
+import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -85,21 +88,45 @@ public class MovieCubeActivity0 extends NewtBaseActivity {
        scrn.addReference();
               
        try {
-           final Animator animator = new Animator();
+           final Animator anim = new Animator();
            
            // Main           
-           final MovieCube demoMain = new MovieCube(streamLoc, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, -2.3f, 0f, 0f);
            final GLWindow glWindowMain = GLWindow.create(scrn, capsMain);
            glWindowMain.setFullscreen(true);
            setContentView(getWindow(), glWindowMain);
-           glWindowMain.addMouseListener(showKeyboardMouseListener);
-           glWindowMain.addGLEventListener(demoMain);
-           animator.add(glWindowMain);
+           anim.add(glWindowMain);
            glWindowMain.setVisible(true);
+           glWindowMain.addMouseListener(showKeyboardMouseListener);
            
-           // animator.setUpdateFPSFrames(60, System.err);
-           animator.setUpdateFPSFrames(-1, null);
-           animator.resetFPSCounter();
+           final MovieCube demoMain = new MovieCube(-2.3f, 0f, 0f);
+           final GLMediaPlayer mPlayer = demoMain.getGLMediaPlayer();
+           mPlayer.addEventListener(new GLMediaEventListener() {
+                @Override
+                public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) {
+                }
+    
+                @Override
+                public void attributesChanged(final GLMediaPlayer mp, int event_mask, long when) {
+                    System.err.println("Player AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
+                    System.err.println("Player State: "+mp);
+                    if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
+                        glWindowMain.addGLEventListener(demoMain);
+                        anim.setUpdateFPSFrames(60, System.err);
+                        anim.resetFPSCounter();
+                    }
+                    if( 0 != ( ( GLMediaEventListener.EVENT_CHANGE_ERR | GLMediaEventListener.EVENT_CHANGE_EOS ) & event_mask ) ) {
+                        final StreamException se = mPlayer.getStreamException();
+                        if( null != se ) {
+                            se.printStackTrace();                        
+                        }
+                        new Thread() {
+                            public void run() {
+                                glWindowMain.destroy();
+                            } }.start();
+                    }
+                }            
+            });        
+           demoMain.initStream(streamLoc, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, 0);
        } catch (IOException e) {
            e.printStackTrace();
        }

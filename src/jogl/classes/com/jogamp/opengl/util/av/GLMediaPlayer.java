@@ -27,7 +27,6 @@
  */
 package com.jogamp.opengl.util.av;
 
-import java.io.IOException;
 import java.net.URI;
 
 import javax.media.opengl.GL;
@@ -38,22 +37,56 @@ import jogamp.opengl.Debug;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 /**
- * GLMediaPlayer interface specifies a {@link TextureSequence}
- * with a video stream as it's source.
+ * GLMediaPlayer interface specifies a {@link TextureSequence} state machine
+ * using a multiplexed audio/video stream as it's source.
  * <p>
- * Audio maybe supported and played back internally or via an {@link AudioSink} implementation,
- * if an audio stream is selected in {@link #initGLStream(GL, int, URI, int, int)}.
+ * Audio maybe supported and played back internally or via an {@link AudioSink} implementation.
+ * </p>
+ * <p>
+ * Audio and video streams can be selected or muted via {@link #initStream(URI, int, int, int)}
+ * using the appropriate <a href="#streamIDs">stream id</a>'s.
  * </p>
  *   
+ * <a name="streamworker"><h5><i>StreamWorker</i> Decoding Thread</h5></a>
+ * <p>
+ * Most of the stream processing is performed on the decoding thread, a.k.a. <i>StreamWorker</i>:
+ * <ul>
+ *   <li>Stream initialization triggered by {@link #initStream(URI, int, int, int) initStream(..)} - User gets notified whether the stream has been initialized or not via {@link GLMediaEventListener#attributesChanged(GLMediaPlayer, int, long) attributesChanges(..)}.</li>
+ *   <li>Stream decoding - User gets notified of a new frame via {@link GLMediaEventListener#newFrameAvailable(GLMediaPlayer, com.jogamp.opengl.util.texture.TextureSequence.TextureFrame, long) newFrameAvailable(...)}.</li>
+ *   <li>Caught <a href="#streamerror">exceptions on the decoding thread</a> are delivered as {@link StreamException}s.</li>
+ * </ul>
+ * <i>StreamWorker</i> generates it's own {@link GLContext}, shared with the one passed to {@link #initGL(GL)}.
+ * The shared {@link GLContext} allows the decoding thread to push the video frame data directly into 
+ * the designated {@link TextureFrame}, later returned via {@link #getNextTexture(GL)} and used by the user.
+ * </p>
+ * <a name="streamerror"><h7><i>StreamWorker</i> Error Handling</h7></a>
+ * <p>
+ * Caught exceptions on <a href="#streamworker">StreamWorker</a> are delivered as {@link StreamException}s,
+ * which either degrades the {@link State} to {@link State#Uninitialized} or {@link State#Paused}.
+ * </p>
+ * <p>
+ * An occurring {@link StreamException} triggers a {@link GLMediaEventListener#EVENT_CHANGE_ERR EVENT_CHANGE_ERR} event,
+ * which can be listened to via {@link GLMediaEventListener#attributesChanged(GLMediaPlayer, int, long)}. 
+ * </p>
+ * <p>
+ * An occurred {@link StreamException} can be read via {@link #getStreamException()}. 
+ * </p>
+ * 
+ * </p>
  * <a name="lifecycle"><h5>GLMediaPlayer Lifecycle</h5></a>
  * <p>
  * <table border="1">
- *   <tr><th>action</th>                                                  <th>state before</th>        <th>state after</th></tr>
- *   <tr><td>{@link #initGLStream(GL, int, URI, int, int)}</td> <td>Uninitialized</td>       <td>Paused</td></tr>
- *   <tr><td>{@link #play()}</td>                                         <td>Paused</td>              <td>Playing</td></tr>
- *   <tr><td>{@link #pause()}</td>                                        <td>Playing</td>             <td>Paused</td></tr>
- *   <tr><td>{@link #seek(int)}</td>                                      <td>Playing, Paused</td>     <td>Unchanged</td></tr>
- *   <tr><td>{@link #destroy(GL)}</td>                                    <td>ANY</td>                 <td>Uninitialized</td></tr>
+ *   <tr><th>Action</th>                                               <th>{@link State} Before</th>                                        <th>{@link State} After</th>                                                                                                       <th>{@link GLMediaEventListener Event}</th></tr>
+ *   <tr><td>{@link #initStream(URI, int, int, int)}</td>              <td>{@link State#Uninitialized Uninitialized}</td>                   <td>{@link State#Initialized Initialized}<sup><a href="#streamworker">1</a></sup>, {@link State#Uninitialized Uninitialized}</td> <td>{@link GLMediaEventListener#EVENT_CHANGE_INIT EVENT_CHANGE_INIT} or ( {@link GLMediaEventListener#EVENT_CHANGE_ERR EVENT_CHANGE_ERR} + {@link GLMediaEventListener#EVENT_CHANGE_UNINIT EVENT_CHANGE_UNINIT} )</td></tr>
+ *   <tr><td>{@link #initGL(GL)}</td>                                  <td>{@link State#Initialized Initialized}</td>                       <td>{@link State#Paused Paused}, {@link State#Initialized Initialized}</td>                                                        <td>{@link GLMediaEventListener#EVENT_CHANGE_PAUSE EVENT_CHANGE_PAUSE}</td></tr>
+ *   <tr><td>{@link #play()}</td>                                      <td>{@link State#Paused Paused}</td>                                 <td>{@link State#Playing Playing}</td>                                                                                             <td>{@link GLMediaEventListener#EVENT_CHANGE_PLAY EVENT_CHANGE_PLAY}</td></tr>
+ *   <tr><td>{@link #pause()}</td>                                     <td>{@link State#Playing Playing}</td>                               <td>{@link State#Paused Paused}</td>                                                                                               <td>{@link GLMediaEventListener#EVENT_CHANGE_PAUSE EVENT_CHANGE_PAUSE}</td></tr>
+ *   <tr><td>{@link #seek(int)}</td>                                   <td>{@link State#Paused Paused}, {@link State#Playing Playing}</td>  <td>{@link State#Paused Paused}, {@link State#Playing Playing}</td>                                                                <td>none</td></tr>
+ *   <tr><td>{@link #getNextTexture(GL)}</td>                          <td>{@link State#Paused Paused}, {@link State#Playing Playing}</td>  <td>{@link State#Paused Paused}, {@link State#Playing Playing}</td>                                                                <td>none</td></tr>
+ *   <tr><td>{@link #getLastTexture()}</td>                            <td>{@link State#Paused Paused}, {@link State#Playing Playing}</td>  <td>{@link State#Paused Paused}, {@link State#Playing Playing}</td>                                                                <td>none</td></tr>
+ *   <tr><td>{@link TextureFrame#END_OF_STREAM_PTS END_OF_STREAM}</td> <td>{@link State#Playing Playing}</td>                               <td>{@link State#Paused Paused}</td>                                                                                               <td>{@link GLMediaEventListener#EVENT_CHANGE_EOS EVENT_CHANGE_EOS} + {@link GLMediaEventListener#EVENT_CHANGE_PAUSE EVENT_CHANGE_PAUSE}</td></tr>
+ *   <tr><td>{@link StreamException}</td>                              <td>ANY</td>                                                         <td>{@link State#Paused Paused}, {@link State#Uninitialized Uninitialized}</td>                                                    <td>{@link GLMediaEventListener#EVENT_CHANGE_ERR EVENT_CHANGE_ERR} + ( {@link GLMediaEventListener#EVENT_CHANGE_PAUSE EVENT_CHANGE_PAUSE} or {@link GLMediaEventListener#EVENT_CHANGE_UNINIT EVENT_CHANGE_UNINIT} )</td></tr>
+ *   <tr><td>{@link #destroy(GL)}</td>                                 <td>ANY</td>                                                         <td>{@link State#Uninitialized Uninitialized}</td>                                                                                 <td>{@link GLMediaEventListener#EVENT_CHANGE_UNINIT EVENT_CHANGE_UNINIT}</td></tr>
  * </table>
  * </p>
  * 
@@ -90,16 +123,18 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  * will allow tracking time up 2,147,483.647 seconds or
  * 24 days 20 hours 31 minutes and 23 seconds.
  * Milliseconds granularity is also more than enough to deal with A-V synchronization,
- * where the threshold usually lies within 100ms. 
+ * where the threshold usually lies within 22ms. 
  * </p>
  * 
  * <a name="synchronization"><h5>Audio and video synchronization</h5></a>
  * <p>
  * The class follows a passive A/V synchronization pattern.
- * Audio is being untouched, while {@link #getNextTexture(GL, boolean)} delivers a new video frame
- * only, if its timestamp is less than 22ms ahead of <i>time</i>.
- * Otherwise the early frame is cached for later retrieval and the previous frame is returned.
- * FIXME: Refine!
+ * Audio is being untouched, while {@link #getNextTexture(GL)} delivers a new video frame
+ * only, if its timestamp is less than {@link #MAXIMUM_VIDEO_ASYNC} ahead of <i>time</i>.
+ * If its timestamp is more than {@link #MAXIMUM_VIDEO_ASYNC} ahead of <i>time</i>,
+ * the previous frame is returned.
+ * If its timestamp is more than {@link #MAXIMUM_VIDEO_ASYNC} after <i>time</i>,
+ * the frame is dropped and the next frame is being fetched.
  * </p>
  * <p>
  * https://en.wikipedia.org/wiki/Audio_to_video_synchronization
@@ -149,37 +184,80 @@ public interface GLMediaPlayer extends TextureSequence {
     public static final boolean DEBUG = Debug.debug("GLMediaPlayer");
     public static final boolean DEBUG_NATIVE = Debug.debug("GLMediaPlayer.Native");
     
+    /** Minimum texture count, value {@value}. */
+    public static final int TEXTURE_COUNT_MIN = 4;
+    
     /** Constant {@value} for <i>mute</i> or <i>not available</i>. See <a href="#streamIDs">Audio and video Stream IDs</a>. */
     public static final int STREAM_ID_NONE = -2;
     /** Constant {@value} for <i>auto</i> or <i>unspecified</i>. See <a href="#streamIDs">Audio and video Stream IDs</a>. */
     public static final int STREAM_ID_AUTO = -1;
     
-    /** Maximum video frame async .. */
+    /** Maximum video frame async of {@value} milliseconds. */
     public static final int MAXIMUM_VIDEO_ASYNC = 22;
         
+    /**
+     * A StreamException encapsulates a caught exception in the decoder thread, a.k.a <i>StreamWorker</i>,
+     * see See <a href="#streamerror"><i>StreamWorker</i> Error Handling</a>.
+     */
+    @SuppressWarnings("serial")
+    public static class StreamException extends Exception {
+        public StreamException(Throwable cause) {
+            super(cause);
+        }
+        public StreamException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
     public interface GLMediaEventListener extends TexSeqEventListener<GLMediaPlayer> {
     
-        static final int EVENT_CHANGE_VID    = 1<<0;
-        static final int EVENT_CHANGE_AID    = 1<<1;
-        static final int EVENT_CHANGE_SIZE   = 1<<2;
-        static final int EVENT_CHANGE_FPS    = 1<<3;
-        static final int EVENT_CHANGE_BPS    = 1<<4;
-        static final int EVENT_CHANGE_LENGTH = 1<<5;
-        static final int EVENT_CHANGE_CODEC  = 1<<6;
+        /** State changed to {@link State#Initialized}. See <a href="#lifecycle">Lifecycle</a>.*/
+        static final int EVENT_CHANGE_INIT   = 1<<0;
+        /** State changed to {@link State#Uninitialized}. See <a href="#lifecycle">Lifecycle</a>.*/
+        static final int EVENT_CHANGE_UNINIT = 1<<1;
+        /** State changed to {@link State#Playing}. See <a href="#lifecycle">Lifecycle</a>.*/
+        static final int EVENT_CHANGE_PLAY   = 1<<2;
+        /** State changed to {@link State#Paused}. See <a href="#lifecycle">Lifecycle</a>.*/
+        static final int EVENT_CHANGE_PAUSE  = 1<<3;
+        /** End of stream reached. See <a href="#lifecycle">Lifecycle</a>.*/
+        static final int EVENT_CHANGE_EOS    = 1<<4;
+        /** An error occurred, e.g. during off-thread initialization. See {@link StreamException} and <a href="#lifecycle">Lifecycle</a>. */
+        static final int EVENT_CHANGE_ERR    = 1<<5;
+        
+        /** Stream video id change. */
+        static final int EVENT_CHANGE_VID    = 1<<16;
+        /** Stream audio id change. */
+        static final int EVENT_CHANGE_AID    = 1<<17;
+        /** TextureFrame size change. */
+        static final int EVENT_CHANGE_SIZE   = 1<<18;
+        /** Stream fps change. */
+        static final int EVENT_CHANGE_FPS    = 1<<19;
+        /** Stream bps change. */
+        static final int EVENT_CHANGE_BPS    = 1<<20;
+        /** Stream length change. */
+        static final int EVENT_CHANGE_LENGTH = 1<<21;
+        /** Stream codec change. */
+        static final int EVENT_CHANGE_CODEC  = 1<<22;
     
         /**
          * @param mp the event source 
          * @param event_mask the changes attributes
          * @param when system time in msec. 
          */
-        public void attributesChanges(GLMediaPlayer mp, int event_mask, long when);    
+        public void attributesChanged(GLMediaPlayer mp, int event_mask, long when);    
     }
     
     /**
-     * See <a href="#lifecycle">GLMediaPlayer Lifecycle</a>.
+     * See <a href="#lifecycle">Lifecycle</a>.
      */
     public enum State {
-        Uninitialized(0), Playing(1), Paused(2);
+        /** Uninitialized player, no resources shall be hold. */
+        Uninitialized(0),
+        /** Stream has been initialized, user may play or call {@link #initGL(GL)}. */ 
+        Initialized(1), 
+        /** Stream is playing. */
+        Playing(2),
+        /** Stream is pausing. */
+        Paused(3);
         
         public final int id;
 
@@ -202,28 +280,62 @@ public interface GLMediaPlayer extends TextureSequence {
     public void setTextureWrapST(int[] wrapST);
     
     /** 
-     * Sets the stream to be used. Initializes all stream related states inclusive OpenGL ones,
-     * if <code>gl</code> is not null.
+     * Issues asynchronous stream initialization.
      * <p>
-     * <a href="#lifecycle">GLMediaPlayer Lifecycle</a>: Uninitialized -> Paused
+     * <a href="#lifecycle">Lifecycle</a>: {@link State#Uninitialized} -> {@link State#Initialized}<sup><a href="#streamworker">1</a></sup> or {@link State#Uninitialized}
      * </p>
-     * @param gl current GL object. If null, no video output and textures will be available.
-     * @param textureCount desired number of buffered textures to be decoded off-thread, use <code>1</code> for on-thread decoding.  
+     * <p>
+     * {@link State#Initialized} is reached asynchronous, 
+     * i.e. user gets notified via {@link GLMediaEventListener#attributesChanged(GLMediaPlayer, int, long) attributesChanges(..)}.
+     * </p>
+     * <p>
+     * A possible caught asynchronous {@link StreamException} while initializing the stream off-thread
+     * will be thrown at {@link #initGL(GL)}.
+     * </p>
+     * <p>
+     * Muted audio can be achieved by passing {@link #STREAM_ID_NONE} to <code>aid</code>.
+     * </p>
+     * <p>
+     * Muted video can be achieved by passing {@link #STREAM_ID_NONE} to <code>vid</code>,
+     * in which case <code>textureCount</code> is ignored as well as the passed GL object of the subsequent {@link #initGL(GL)} call. 
+     * </p>
      * @param streamLoc the stream location
      * @param vid video stream id, see <a href="#streamIDs">audio and video Stream IDs</a>
      * @param aid video stream id, see <a href="#streamIDs">audio and video Stream IDs</a>
-     * @return the new state
+     * @param textureCount desired number of buffered textures to be decoded off-thread, will be validated by implementation.
+     *        The minimum value is {@link #TEXTURE_COUNT_MIN}.
+     *        Ignored if video is muted.
+     * @throws IllegalStateException if not invoked in {@link State#Uninitialized} 
+     * @throws IllegalArgumentException if arguments are invalid
+     */
+    public void initStream(URI streamLoc, int vid, int aid, int textureCount) throws IllegalStateException, IllegalArgumentException;
+    
+    /**
+     * Returns the {@link StreamException} caught in the decoder thread, or <code>null</code>.
+     * @see GLMediaEventListener#EVENT_CHANGE_ERR
+     * @see StreamException
+     */
+    public StreamException getStreamException();
+    
+    /** 
+     * Initializes OpenGL related resources.
+     * <p>
+     * <a href="#lifecycle">Lifecycle</a>: {@link State#Initialized} -> {@link State#Paused} or {@link State#Initialized}
+     * </p>
+     * Argument <code>gl</code> is ignored if video is muted, see {@link #initStream(URI, int, int, int)}.
      * 
-     * @throws IllegalStateException if not invoked in state Uninitialized 
-     * @throws IOException in case of difficulties to open or process the stream
+     * @param gl current GL object. Maybe <code>null</code>, for audio only.
+     * @throws IllegalStateException if not invoked in {@link State#Initialized}. 
+     * @throws IllegalArgumentException if arguments are invalid
+     * @throws StreamException forwarded from the off-thread stream initialization
      * @throws GLException in case of difficulties to initialize the GL resources
      */
-    public State initGLStream(GL gl, int textureCount, URI streamLoc, int vid, int aid) throws IllegalStateException, GLException, IOException;
+    public void initGL(GL gl) throws IllegalStateException, IllegalArgumentException, StreamException, GLException;
     
     /** 
      * If implementation uses a {@link AudioSink}, it's instance will be returned.
      * <p> 
-     * The {@link AudioSink} instance is available after {@link #initGLStream(GL, int, URI, int, int)}, 
+     * The {@link AudioSink} instance is available after {@link #initStream(URI, int, int, int)}, 
      * if used by implementation.
      * </p> 
      */
@@ -232,7 +344,7 @@ public interface GLMediaPlayer extends TextureSequence {
     /**
      * Releases the GL and stream resources.
      * <p>
-     * <a href="#lifecycle">GLMediaPlayer Lifecycle</a>: <code>ANY</code> -> Uninitialized
+     * <a href="#lifecycle">Lifecycle</a>: <code>ANY</code> -> {@link State#Uninitialized}
      * </p>
      */
     public State destroy(GL gl);
@@ -250,18 +362,18 @@ public interface GLMediaPlayer extends TextureSequence {
     public float getPlaySpeed();
 
     /**
-     * <a href="#lifecycle">GLMediaPlayer Lifecycle</a>: Paused -> Playing
+     * <a href="#lifecycle">Lifecycle</a>: {@link State#Paused} -> {@link State#Playing}
      */
     public State play();
 
     /**
-     * <a href="#lifecycle">GLMediaPlayer Lifecycle</a>: Playing -> Paused
+     * <a href="#lifecycle">Lifecycle</a>: {@link State#Playing} -> {@link State#Paused}
      */
     public State pause();
 
     /**
-     * Allowed in state Playing and Paused, otherwise ignored,
-     * see <a href="#lifecycle">GLMediaPlayer Lifecycle</a>. 
+     * Allowed in state {@link State#Playing} and {@link State#Paused}, otherwise ignored,
+     * see <a href="#lifecycle">Lifecycle</a>. 
      * 
      * @param msec absolute desired time position in milliseconds 
      * @return time current position in milliseconds, after seeking to the desired position  
@@ -269,8 +381,8 @@ public interface GLMediaPlayer extends TextureSequence {
     public int seek(int msec);
 
     /**
-     * See <a href="#lifecycle">GLMediaPlayer Lifecycle</a>.
-     * @return the current state, either Uninitialized, Playing, Paused
+     * See <a href="#lifecycle">Lifecycle</a>.
+     * @return the current state, either {@link State#Uninitialized}, {@link State#Initialized}, {@link State#Playing} or {@link State#Paused}
      */
     public State getState();
     
@@ -286,13 +398,13 @@ public interface GLMediaPlayer extends TextureSequence {
     
     /**
      * @return the current decoded frame count since {@link #play()} and {@link #seek(int)} 
-     *         as increased by {@link #getNextTexture(GL, boolean)} or the decoding thread.
+     *         as increased by {@link #getNextTexture(GL)} or the decoding thread.
      */
     public int getDecodedFrameCount();
     
     /**
      * @return the current presented frame count since {@link #play()} and {@link #seek(int)} 
-     *         as increased by {@link #getNextTexture(GL, boolean)} for new frames.
+     *         as increased by {@link #getNextTexture(GL)} for new frames.
      */
     public int getPresentedFrameCount();
     
@@ -311,6 +423,7 @@ public interface GLMediaPlayer extends TextureSequence {
      * <p>
      * See <a href="#synchronization">audio and video synchronization</a>.
      * </p>
+     * @throws IllegalStateException if not invoked in {@link State#Paused} or {@link State#Playing}
      */
     @Override
     public TextureSequence.TextureFrame getLastTexture() throws IllegalStateException;
@@ -324,14 +437,15 @@ public interface GLMediaPlayer extends TextureSequence {
      * <p>
      * See <a href="#synchronization">audio and video synchronization</a>.
      * </p>
+     * @throws IllegalStateException if not invoked in {@link State#Paused} or {@link State#Playing}
      * 
      * @see #addEventListener(GLMediaEventListener)
      * @see GLMediaEventListener#newFrameAvailable(GLMediaPlayer, TextureFrame, long)
      */
     @Override
-    public TextureSequence.TextureFrame getNextTexture(GL gl, boolean blocking) throws IllegalStateException;
+    public TextureSequence.TextureFrame getNextTexture(GL gl) throws IllegalStateException;
     
-    /** Return the stream location, as set by {@link #initGLStream(GL, int, URI, int, int)}. */
+    /** Return the stream location, as set by {@link #initStream(URI, int, int, int)}. */
     public URI getURI();
 
     /**
