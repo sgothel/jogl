@@ -239,7 +239,7 @@ static void _updateJavaAttributes(JNIEnv *env, jobject instance, FFMPEGToolBasic
                                pAV->vBitsPerPixel, pAV->vBytesPerPixelPerPlane,
                                pAV->vLinesize[0], pAV->vLinesize[1], pAV->vLinesize[2],
                                pAV->vTexWidth[0], pAV->vTexWidth[1], pAV->vTexWidth[2], h,
-                               pAV->aFramesPerVideoFrame, pAV->aSampleFmt, pAV->aSampleRate, pAV->aChannels);
+                               pAV->aFramesPerVideoFrame, pAV->aSampleFmt, pAV->aSampleRate, pAV->aChannels, pAV->aFrameSize);
         (*env)->CallVoidMethod(env, instance, jni_mid_updateAttributes1,
                                pAV->vid, pAV->aid,
                                w, h, 
@@ -392,7 +392,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_ini
 
     jni_mid_pushSound = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "pushSound", "(Ljava/nio/ByteBuffer;II)V");
     jni_mid_updateAttributes1 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes", "(IIIIIIIFIIILjava/lang/String;Ljava/lang/String;)V");
-    jni_mid_updateAttributes2 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes2", "(IIIIIIIIIIIIIII)V");
+    jni_mid_updateAttributes2 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes2", "(IIIIIIIIIIIIIIII)V");
 
     if(jni_mid_pushSound == NULL ||
        jni_mid_updateAttributes1 == NULL ||
@@ -613,7 +613,7 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStre
 
         pAV->aSampleRate = pAV->pACodecCtx->sample_rate;
         pAV->aChannels = pAV->pACodecCtx->channels;
-        pAV->aFrameSize = pAV->pACodecCtx->frame_size; // in samples!
+        pAV->aFrameSize = pAV->pACodecCtx->frame_size; // in samples per channel!
         pAV->aSampleFmt = pAV->pACodecCtx->sample_fmt;
         pAV->frames_audio = pAV->pAStream->nb_frames;
         if( pAV->verbose ) {

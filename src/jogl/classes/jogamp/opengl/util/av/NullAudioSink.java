@@ -33,7 +33,7 @@ public class NullAudioSink implements AudioSink {
     }
 
     @Override
-    public AudioDataFormat initSink(AudioDataFormat requestedFormat, int initialFrameCount, int frameGrowAmount, int frameLimit) {
+    public AudioDataFormat init(AudioDataFormat requestedFormat, float frameDuration, int initialQueueSize, int queueGrowAmount, int queueLimit) {
         return requestedFormat;
     }
     

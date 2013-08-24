@@ -146,7 +146,7 @@ typedef struct {
     int32_t          aFrameCurrent;
     int32_t          aSampleRate;
     int32_t          aChannels;
-    int32_t          aFrameSize;
+    int32_t          aFrameSize; // in samples per channel!
     enum AVSampleFormat aSampleFmt; // native decoder fmt
     int32_t          aPTS;       // msec - overall last audio PTS
     PTSStats         aPTSStats;

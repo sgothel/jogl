@@ -68,7 +68,7 @@ public class JavaSoundAudioSink implements AudioSink {
     }
     
     @Override
-    public AudioDataFormat initSink(AudioDataFormat requestedFormat, int initialFrameCount, int frameGrowAmount, int frameLimit) {
+    public AudioDataFormat init(AudioDataFormat requestedFormat, float frameDuration, int initialQueueSize, int queueGrowAmount, int queueLimit) {
         if( !staticAvailable ) {
             return null;
         }
@@ -178,7 +178,7 @@ public class JavaSoundAudioSink implements AudioSink {
 
     @Override
     public AudioFrame enqueueData(int pts, ByteBuffer bytes, int byteCount) {
-        return enqueueData(new AudioDataFrame(pts, chosenFormat.getDuration(byteCount), bytes, byteCount));
+        return enqueueData(new AudioDataFrame(pts, chosenFormat.getBytesDuration(byteCount), bytes, byteCount));
     }    
     
     @Override

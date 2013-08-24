@@ -167,14 +167,10 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     // Audio
     //
     
-    /** Initial audio frame count, ALAudioSink may grow buffer! */
-    private int initialAudioFrameCount = AV_DEFAULT_AFRAMES;
-    private final int audioFrameGrowAmount = 8;
-    private final int audioFrameLimitWithVideo =  64; // 128;
-    private final int audioFrameLimitAudioOnly =  32; // 64;
     private SampleFormat aSampleFmt = null;
     private AudioSink.AudioDataFormat avChosenAudioFormat;
     private AudioSink.AudioDataFormat sinkChosenAudioFormat;
+    private int audioSamplesPerFrameAndChannel = 0;
     
     public FFMPEGMediaPlayer() {
         if(!available) {
@@ -237,7 +233,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         if(null == audioSink) {
             throw new GLException("AudioSink null");
         }
-        final int audioFrameLimit;
+        final int audioQueueLimit;
         if( null != gl ) {
             final GLContextImpl ctx = (GLContextImpl)gl.getContext();
             AccessController.doPrivileged(new PrivilegedAction<Object>() {
@@ -250,12 +246,18 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                     setGLFuncs0(moviePtr, procAddrGLTexSubImage2D, procAddrGLGetError, procAddrGLFlush, procAddrGLFinish);
                     return null;
             } } );
-            audioFrameLimit = audioFrameLimitWithVideo;
+            audioQueueLimit = AudioSink.DefaultQueueLimitWithVideo;
         } else {
-            audioFrameLimit = audioFrameLimitAudioOnly;
+            audioQueueLimit = AudioSink.DefaultQueueLimitAudioOnly;
         }
-
-        sinkChosenAudioFormat = audioSink.initSink(avChosenAudioFormat, initialAudioFrameCount, audioFrameGrowAmount, audioFrameLimit);
+        final float frameDuration;
+        if( audioSamplesPerFrameAndChannel > 0 ) {
+            frameDuration= avChosenAudioFormat.getSamplesDuration(audioSamplesPerFrameAndChannel);
+        } else {
+            frameDuration = AudioSink.DefaultFrameDuration;
+        }
+        
+        sinkChosenAudioFormat = audioSink.init(avChosenAudioFormat, frameDuration, AudioSink.DefaultInitialQueueSize, AudioSink.DefaultQueueGrowAmount, audioQueueLimit);
         if(DEBUG) {
             System.err.println("initGL: p3 avChosen "+avChosenAudioFormat+", chosen "+sinkChosenAudioFormat);
         }
@@ -263,7 +265,11 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             System.err.println("AudioSink "+audioSink.getClass().getName()+" does not support "+avChosenAudioFormat+", using Null");
             audioSink.destroy();
             audioSink = AudioSinkFactory.createNull();
-            sinkChosenAudioFormat = audioSink.initSink(avChosenAudioFormat, initialAudioFrameCount, audioFrameGrowAmount, audioFrameLimit);
+            sinkChosenAudioFormat = audioSink.init(avChosenAudioFormat, 0, AudioSink.DefaultInitialQueueSize, AudioSink.DefaultQueueGrowAmount, audioQueueLimit);
+        }
+        if(DEBUG) {
+            System.err.println("initGL: p4 chosen "+sinkChosenAudioFormat);
+            System.err.println("initGL: "+audioSink);
         }
         
         if( null != gl ) {
@@ -303,14 +309,16 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * @param tWd1
      * @param tWd2
      * @param audioFrameCount snooped audio-frame-count per video-frame, maybe 0
-     * @param sampleFmt
-     * @param sampleRate
-     * @param channels
+     * @param audioSampleFmt
+     * @param audioSampleRate
+     * @param audioChannels
+     * @param audioSamplesPerFrameAndChannel in audio samples per frame and channel
      */
     private void updateAttributes2(int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,
                                    int lSz0, int lSz1, int lSz2,
                                    int tWd0, int tWd1, int tWd2, int tH,
-                                   int audioFrameCount, int sampleFmt, int sampleRate, int channels) {
+                                   int audioFrameCount, int audioSampleFmt, int audioSampleRate, 
+                                   int audioChannels, int audioSamplesPerFrameAndChannel) {
         vPixelFmt = PixelFormat.valueOf(pixFmt);
         vPlanes = planes;
         vBitsPerPixel = bitsPerPixel;
@@ -340,8 +348,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             default: // FIXME: Add more formats !
                 throw new RuntimeException("Unsupported pixelformat: "+vPixelFmt);
         }
-        initialAudioFrameCount = audioFrameCount > 0 ? audioFrameCount : AV_DEFAULT_AFRAMES * 2;
-        aSampleFmt = SampleFormat.valueOf(sampleFmt);
+        aSampleFmt = SampleFormat.valueOf(audioSampleFmt);
         final int sampleSize;
         final boolean signed, fixedP;
         switch( aSampleFmt ) {
@@ -378,10 +385,11 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             default: // FIXME: Add more formats !
                 throw new RuntimeException("Unsupported sampleformat: "+aSampleFmt);
         }
-        avChosenAudioFormat = new AudioDataFormat(AudioDataType.PCM, sampleRate, sampleSize, channels, signed, fixedP, true /* littleEndian */);  
+        avChosenAudioFormat = new AudioDataFormat(AudioDataType.PCM, audioSampleRate, sampleSize, audioChannels, signed, fixedP, true /* littleEndian */);  
+        this.audioSamplesPerFrameAndChannel = audioSamplesPerFrameAndChannel;
         
         if(DEBUG) {
-            System.err.println("audio: fmt "+aSampleFmt+", "+avChosenAudioFormat+", aFrameCount "+audioFrameCount+" -> "+initialAudioFrameCount);
+            System.err.println("audio: fmt "+aSampleFmt+", "+avChosenAudioFormat+", aFrameSize/fc "+audioSamplesPerFrameAndChannel+", aFrameCount "+audioFrameCount);
             System.err.println("video: fmt "+vPixelFmt+", planes "+vPlanes+", bpp "+vBitsPerPixel+"/"+vBytesPerPixelPerPlane);
             for(int i=0; i<3; i++) {
                 System.err.println("video: "+i+": "+vTexWidth[i]+"/"+vLinesize[i]);

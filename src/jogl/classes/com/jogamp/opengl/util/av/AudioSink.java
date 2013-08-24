@@ -36,6 +36,18 @@ import jogamp.opengl.Debug;
 public interface AudioSink {
     public static final boolean DEBUG = Debug.debug("AudioSink");
     
+    /** Default frame duration in millisecond, i.e. 1 frame per {@value} ms. */
+    public static final int DefaultFrameDuration = 32;
+        
+    /** Initial audio queue size in milliseconds. {@value} ms, i.e. 16 frames per 32 ms. See {@link #init(AudioDataFormat, float, int, int, int)}.*/
+    public static final int DefaultInitialQueueSize = 16 * 32; // 512 ms
+    /** Audio queue grow size in milliseconds. {@value} ms, i.e. 16 frames per 32 ms. See {@link #init(AudioDataFormat, float, int, int, int)}.*/
+    public static final int DefaultQueueGrowAmount = 16 * 32; // 512 ms
+    /** Audio queue limit w/ video in milliseconds. {@value} ms, i.e. 96 frames per 32 ms. See {@link #init(AudioDataFormat, float, int, int, int)}.*/
+    public static final int DefaultQueueLimitWithVideo =  96 * 32; // 3072 ms
+    /** Audio queue limit w/o video in milliseconds. {@value} ms, i.e. 32 frames per 32 ms. See {@link #init(AudioDataFormat, float, int, int, int)}.*/
+    public static final int DefaultQueueLimitAudioOnly =  32 * 32; // 1024 ms
+    
     /** Specifies the audio data type. Currently only PCM is supported. */
     public static enum AudioDataType { PCM };
     
@@ -66,21 +78,65 @@ public interface AudioSink {
         public final boolean littleEndian;
         
         /** 
-         * Returns the duration in milliseconds of the given byte count according 
-         * to {@link #sampleSize}, {@link #channelCount} and {@link #sampleRate}. 
+         * Returns the byte size of the given milliseconds 
+         * according to {@link #sampleSize}, {@link #channelCount} and {@link #sampleRate}. 
          */
-        public final int getDuration(int byteCount) {
+        public final int getByteSize(int millisecs) {
+            final int bytesPerSample = sampleSize >>> 3; // /8
+            return millisecs * ( channelCount * bytesPerSample * ( sampleRate / 1000 ) );
+        }
+        
+        /** 
+         * Returns the duration in milliseconds of the given byte count 
+         * according to {@link #sampleSize}, {@link #channelCount} and {@link #sampleRate}. 
+         */
+        public final int getBytesDuration(int byteCount) {
             final int bytesPerSample = sampleSize >>> 3; // /8
             return byteCount / ( channelCount * bytesPerSample * ( sampleRate / 1000 ) );        
         }
         
-        /** 
-         * Returns the byte count of the given milliseconds according 
-         * to {@link #sampleSize}, {@link #channelCount} and {@link #sampleRate}. 
+        /**
+         * Returns the duration in milliseconds of the given and sample count per frame and channel
+         * according to the {@link #sampleRate}, i.e.
+         * <pre>
+         *    ( 1000f * sampleCount ) / sampleRate
+         * </pre>
+         * @param sampleCount sample count per frame and channel
          */
-        public final int getByteCount(int millisecs) {
-            final int bytesPerSample = sampleSize >>> 3; // /8
-            return millisecs * ( channelCount * bytesPerSample * ( sampleRate / 1000 ) );
+        public final float getSamplesDuration(int sampleCount) {
+            return ( 1000f * (float) sampleCount ) / (float)sampleRate;
+        }
+        
+        /**
+         * Returns the rounded frame count of the given milliseconds and frame duration.
+         * <pre>
+         *     Math.max( 1, millisecs / frameDuration + 0.5f )
+         * </pre>
+         * <p>
+         * Note: <code>frameDuration</code> can be derived by <i>sample count per frame and channel</i>
+         * via {@link #getSamplesDuration(int)}.
+         * </p>
+         * @param millisecs time in milliseconds
+         * @param frameDuration duration per frame in milliseconds.
+         */
+        public final int getFrameCount(int millisecs, float frameDuration) {
+            return Math.max(1, (int) ( (float)millisecs / frameDuration + 0.5f ));
+        }
+        
+        /**
+         * Returns the byte size of given sample count
+         * according to the {@link #sampleSize}, i.e.: 
+         * <pre>
+         *  sampleCount * ( sampleSize / 8 )
+         * </pre>
+         * <p>
+         * Note: To retrieve the byte size for all channels, you need to pre-multiply <code>sampleCount</code>
+         * with {@link #channelCount}.
+         * </p>
+         * @param sampleCount sample count
+         */
+        public final int getSamplesByteSize(int sampleCount) {
+            return sampleCount * ( sampleSize >>> 3 );
         }
         
         public String toString() { 
@@ -175,12 +231,16 @@ public interface AudioSink {
      * The {@link #DefaultFormat} <i>should be</i> supported by all implementations.
      * </p>
      * @param requestedFormat the requested {@link AudioDataFormat}. 
-     * @param initialFrameCount initial number of frames to queue in this sink
-     * @param frameGrowAmount number of frames to grow queue if full 
-     * @param frameLimit maximum number of frames
-     * @return if successful the chosen AudioDataFormat based on the <code>requestedFormat</code> and this sinks capabilities, otherwise <code>null</code>. 
+     * @param frameDuration average or fixed frame duration in milliseconds
+     *                      helping a caching {@link AudioFrame} based implementation to determine the frame count in the queue.
+     *                      See {@link #DefaultFrameDuration}.
+     * @param initialQueueSize initial time in milliseconds to queue in this sink, see {@link #DefaultInitialQueueSize}.
+     * @param queueGrowAmount time in milliseconds to grow queue if full, see {@link #DefaultQueueGrowAmount}.
+     * @param queueLimit maximum time in milliseconds the queue can hold (and grow), see {@link #DefaultQueueLimitWithVideo} and {@link #DefaultQueueLimitAudioOnly}.
+     * @return if successful the chosen AudioDataFormat based on the <code>requestedFormat</code> and this sinks capabilities, otherwise <code>null</code>.
      */
-    public AudioDataFormat initSink(AudioDataFormat requestedFormat, int initialFrameCount, int frameGrowAmount, int frameLimit);
+    public AudioDataFormat init(AudioDataFormat requestedFormat, float frameDuration, 
+                                int initialQueueSize, int queueGrowAmount, int queueLimit);
     
     /**
      * Returns true, if {@link #play()} has been requested <i>and</i> the sink is still playing,
@@ -207,7 +267,7 @@ public interface AudioSink {
     /**
      * Flush all queued buffers, implies {@link #pause()}.
      * <p>
-     * {@link #initSink(AudioDataFormat, int, int, int)} must be called first.
+     * {@link #init(AudioDataFormat, float, int, int, int)} must be called first.
      * </p>
      * @see #play()
      * @see #pause()
@@ -220,17 +280,17 @@ public interface AudioSink {
     
     /** 
      * Returns the number of allocated buffers as requested by 
-     * {@link #initSink(AudioDataFormat, int, int, int)}.
+     * {@link #init(AudioDataFormat, float, int, int, int)}.
      */
     public int getFrameCount();
 
-    /** @return the current enqueued frames count since {@link #initSink(AudioDataFormat, int, int, int)}. */
+    /** @return the current enqueued frames count since {@link #init(AudioDataFormat, float, int, int, int)}. */
     public int getEnqueuedFrameCount();
     
     /** 
      * Returns the current number of frames queued for playing.
      * <p>
-     * {@link #initSink(AudioDataFormat, int, int, int)} must be called first.
+     * {@link #init(AudioDataFormat, float, int, int, int)} must be called first.
      * </p>
      */
     public int getQueuedFrameCount();
@@ -238,7 +298,7 @@ public interface AudioSink {
     /** 
      * Returns the current number of bytes queued for playing.
      * <p>
-     * {@link #initSink(AudioDataFormat, int, int, int)} must be called first.
+     * {@link #init(AudioDataFormat, float, int, int, int)} must be called first.
      * </p>
      */
     public int getQueuedByteCount();
@@ -246,7 +306,7 @@ public interface AudioSink {
     /** 
      * Returns the current queued frame time in milliseconds for playing.
      * <p>
-     * {@link #initSink(AudioDataFormat, int, int, int)} must be called first.
+     * {@link #init(AudioDataFormat, float, int, int, int)} must be called first.
      * </p>
      */
     public int getQueuedTime();
@@ -259,7 +319,7 @@ public interface AudioSink {
     /** 
      * Returns the current number of frames in the sink available for writing.
      * <p>
-     * {@link #initSink(AudioDataFormat, int, int, int)} must be called first.
+     * {@link #init(AudioDataFormat, float, int, int, int)} must be called first.
      * </p>
      */
     public int getFreeFrameCount();
@@ -270,7 +330,7 @@ public interface AudioSink {
      * The data must comply with the chosen {@link AudioDataFormat} as returned by {@link #initSink(AudioDataFormat)}.
      * </p>
      * <p>
-     * {@link #initSink(AudioDataFormat, int, int, int)} must be called first.
+     * {@link #init(AudioDataFormat, float, int, int, int)} must be called first.
      * </p>
      * @returns the enqueued internal {@link AudioFrame}, which may differ from the input <code>audioDataFrame</code>.
      * @deprecated User shall use {@link #enqueueData(int, ByteBuffer, int)}, which allows implementation
@@ -284,7 +344,7 @@ public interface AudioSink {
      * The data must comply with the chosen {@link AudioDataFormat} as returned by {@link #initSink(AudioDataFormat)}.
      * </p>
      * <p>
-     * {@link #initSink(AudioDataFormat, int, int, int)} must be called first.
+     * {@link #init(AudioDataFormat, float, int, int, int)} must be called first.
      * </p>
      * @returns the enqueued internal {@link AudioFrame}.
      */

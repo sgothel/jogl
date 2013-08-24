@@ -213,7 +213,8 @@ public class ALAudioSink implements AudioSink {
         return "ALAudioSink[init "+initialized+", playRequested "+playRequested+", device "+deviceSpecifier+", ctx "+toHexString(ctxHash)+", alSource "+alSrcName+
                ", chosen "+chosenFormat+", alFormat "+toHexString(alFormat)+
                ", playSpeed "+playSpeed+", buffers[total "+alBuffersLen+", avail "+alFramesAvail.size()+", "+
-               "queued["+alFramesPlaying.size()+", apts "+getPTS()+", "+getQueuedTime() + " ms, " + alBufferBytesQueued+" bytes]";
+               "queued["+alFramesPlaying.size()+", apts "+getPTS()+", "+getQueuedTime() + " ms, " + alBufferBytesQueued+" bytes], "+
+               "queue[g "+frameGrowAmount+", l "+frameLimit+"]";
     }
     public final String getPerfString() {
         final int alBuffersLen = null != alBufferNames ? alBufferNames.length : 0;
@@ -226,7 +227,7 @@ public class ALAudioSink implements AudioSink {
     }
     
     @Override
-    public final AudioDataFormat initSink(AudioDataFormat requestedFormat, int initialFrameCount, int frameGrowAmount, int frameLimit) {
+    public final AudioDataFormat init(AudioDataFormat requestedFormat, float frameDuration, int initialQueueSize, int queueGrowAmount, int queueLimit) {
         if( !staticAvailable ) {
             return null;
         }
@@ -260,6 +261,10 @@ public class ALAudioSink implements AudioSink {
             // Allocate buffers
             destroyBuffers();
             {
+                final float useFrameDuration = frameDuration > 1f ? frameDuration : AudioSink.DefaultFrameDuration;  
+                final int initialFrameCount = requestedFormat.getFrameCount(
+                        initialQueueSize > 0 ? initialQueueSize : AudioSink.DefaultInitialQueueSize, useFrameDuration);
+                // frameDuration, int initialQueueSize, int queueGrowAmount, int queueLimit) {                
                 alBufferNames = new int[initialFrameCount];
                 al.alGenBuffers(initialFrameCount, alBufferNames, 0);
                 final int err = al.alGetError();
@@ -274,8 +279,10 @@ public class ALAudioSink implements AudioSink {
                 
                 alFramesAvail = new LFRingbuffer<ALAudioFrame>(alFrames);
                 alFramesPlaying = new LFRingbuffer<ALAudioFrame>(ALAudioFrame[].class, initialFrameCount);
-                this.frameGrowAmount = frameGrowAmount;
-                this.frameLimit = frameLimit;
+                this.frameGrowAmount = requestedFormat.getFrameCount(
+                        queueGrowAmount > 0 ? queueGrowAmount : AudioSink.DefaultQueueGrowAmount, useFrameDuration);
+                this.frameLimit = requestedFormat.getFrameCount(
+                        queueLimit > 0 ? queueLimit : AudioSink.DefaultQueueLimitWithVideo, useFrameDuration);
             }
         } finally {
             unlockContext();
@@ -423,9 +430,9 @@ public class ALAudioSink implements AudioSink {
                 if( wait && val[0] < releaseBufferLimes ) {
                     i++;
                     // clip wait at [2 .. 100] ms
-                    final int avgBufferDura = chosenFormat.getDuration( alBufferBytesQueued / alFramesPlaying.size() );
+                    final int avgBufferDura = chosenFormat.getBytesDuration( alBufferBytesQueued / alFramesPlaying.size() );
                     final int sleep = Math.max(2, Math.min(100, releaseBufferLimes * avgBufferDura));
-                    if( DEBUG ) {
+                    if( DEBUG || true ) {
                         System.err.println(getThreadName()+": ALAudioSink: Dequeue.wait["+i+"]: avgBufferDura "+avgBufferDura+", releaseBufferLimes "+releaseBufferLimes+", sleep "+sleep+" ms, playImpl "+isPlayingImpl1()+", processed "+val[0]+", "+this);
                     }                
                     unlockContext();
@@ -512,7 +519,7 @@ public class ALAudioSink implements AudioSink {
                 throw new RuntimeException("ALError "+toHexString(alErr)+" while makeCurrent. "+this);
             }
             
-            final int duration = chosenFormat.getDuration(byteCount);
+            final int duration = chosenFormat.getBytesDuration(byteCount);
             final boolean dequeueDone;
             if( alFramesAvail.isEmpty() ) {
                 // try to dequeue first
@@ -738,7 +745,7 @@ public class ALAudioSink implements AudioSink {
         if( !initialized || null == chosenFormat ) {
             return 0;
         }
-        return chosenFormat.getDuration(alBufferBytesQueued);
+        return chosenFormat.getBytesDuration(alBufferBytesQueued);
     }
     
     @Override
