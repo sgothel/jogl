@@ -1,6 +1,8 @@
 package jogamp.opengl.util.av;
 
 
+import java.nio.ByteBuffer;
+
 import com.jogamp.opengl.util.av.AudioSink;
 
 public class NullAudioSink implements AudioSink {
@@ -92,6 +94,12 @@ public class NullAudioSink implements AudioSink {
     }
     
     @Override
-    public void enqueueData(AudioFrame audioFrame) {
+    public AudioFrame enqueueData(AudioDataFrame audioDataFrame) {
+        return null;
+    }
+
+    @Override
+    public AudioFrame enqueueData(int pts, ByteBuffer bytes, int byteCount) {
+        return null;
     }    
 }

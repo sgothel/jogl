@@ -1,5 +1,6 @@
 package jogamp.opengl.util.av;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import javax.sound.sampled.AudioSystem;
@@ -155,23 +156,30 @@ public class JavaSoundAudioSink implements AudioSink {
         // FIXEM: complete code!
     }
     
-    public void enqueueData(AudioFrame audioFrame) {
-        int data_size = audioFrame.dataSize;
-        final byte[] lala = new byte[data_size];
-        final int p = audioFrame.data.position();
-        audioFrame.data.get(lala, 0, data_size);
-        audioFrame.data.position(p);
+    @Override
+    public AudioFrame enqueueData(AudioDataFrame audioDataFrame) {
+        int byteSize = audioDataFrame.getByteSize();
+        final ByteBuffer byteBuffer = audioDataFrame.getData();
+        final byte[] bytes = new byte[byteSize];
+        final int p = byteBuffer.position();
+        byteBuffer.get(bytes, 0, byteSize);
+        byteBuffer.position(p);
         
         int written = 0;
         int len;
-        while (data_size > 0) {
-            // Nope: We don't make compromises for this crappy API !
-            len = auline.write(lala, written, data_size);
-            data_size -= len;
+        while (byteSize > 0) {
+            len = auline.write(bytes, written, byteSize);
+            byteSize -= len;
             written += len;
         }
         playImpl();
+        return audioDataFrame;
     }
+
+    @Override
+    public AudioFrame enqueueData(int pts, ByteBuffer bytes, int byteCount) {
+        return enqueueData(new AudioDataFrame(pts, chosenFormat.getDuration(byteCount), bytes, byteCount));
+    }    
     
     @Override
     public int getQueuedByteCount() {

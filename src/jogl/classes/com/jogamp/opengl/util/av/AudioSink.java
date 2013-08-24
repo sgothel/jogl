@@ -29,6 +29,8 @@ package com.jogamp.opengl.util.av;
 
 import java.nio.ByteBuffer;
 
+import com.jogamp.opengl.util.TimeFrameI;
+
 import jogamp.opengl.Debug;
 
 public interface AudioSink {
@@ -63,6 +65,24 @@ public interface AudioSink {
         public final boolean fixedP;
         public final boolean littleEndian;
         
+        /** 
+         * Returns the duration in milliseconds of the given byte count according 
+         * to {@link #sampleSize}, {@link #channelCount} and {@link #sampleRate}. 
+         */
+        public final int getDuration(int byteCount) {
+            final int bytesPerSample = sampleSize >>> 3; // /8
+            return byteCount / ( channelCount * bytesPerSample * ( sampleRate / 1000 ) );        
+        }
+        
+        /** 
+         * Returns the byte count of the given milliseconds according 
+         * to {@link #sampleSize}, {@link #channelCount} and {@link #sampleRate}. 
+         */
+        public final int getByteCount(int millisecs) {
+            final int bytesPerSample = sampleSize >>> 3; // /8
+            return millisecs * ( channelCount * bytesPerSample * ( sampleRate / 1000 ) );
+        }
+        
         public String toString() { 
             return "AudioDataFormat[type "+dataType+", sampleRate "+sampleRate+", sampleSize "+sampleSize+", channelCount "+channelCount+
                    ", signed "+signed+", fixedP "+fixedP+", "+(littleEndian?"little":"big")+"endian]"; }
@@ -70,27 +90,43 @@ public interface AudioSink {
     /** Default {@link AudioDataFormat}, [type PCM, sampleRate 44100, sampleSize 16, channelCount 2, signed, fixedP, littleEndian]. */    
     public static final AudioDataFormat DefaultFormat = new AudioDataFormat(AudioDataType.PCM, 44100, 16, 2, true /* signed */, true /* fixed point */, true /* littleEndian */);
     
-    public static class AudioFrame {
-        /** Constant marking an invalid PTS, i.e. Integer.MIN_VALUE == 0x80000000 == {@value}. Sync w/ native code. */
-        public static final int INVALID_PTS = 0x80000000;
+    public static abstract class AudioFrame extends TimeFrameI {
+        protected int byteSize;
         
-        /** Constant marking the end of the stream PTS, i.e. Integer.MIN_VALUE - 1 == 0x7FFFFFFF == {@value}. Sync w/ native code. */
-        public static final int END_OF_STREAM_PTS = 0x7FFFFFFF;    
-        
-        public final ByteBuffer data;
-        public final int dataSize;
-        public final int pts;
-        
-        public AudioFrame(ByteBuffer data, int dataSize, int pts) {
-            if( dataSize > data.remaining() ) {
-                throw new IllegalArgumentException("Give size "+dataSize+" exceeds remaining bytes in ls "+data+". "+this);
-            }
-            this.data=data;
-            this.dataSize=dataSize;
-            this.pts=pts;
+        public AudioFrame() {
+            this.byteSize = 0;
+        }
+        public AudioFrame(int pts, int duration, int byteCount) {
+            super(pts, duration);
+            this.byteSize=byteCount;
         }
         
-        public String toString() { return "AudioFrame[apts "+pts+", data "+data+", payloadSize "+dataSize+"]"; }
+        /** Get this frame's size in bytes. */
+        public final int getByteSize() { return byteSize; }
+        /** Set this frame's size in bytes. */
+        public final void setByteSize(int size) { this.byteSize=size; }
+        
+        public String toString() { 
+            return "AudioFrame[pts " + pts + " ms, l " + duration + " ms, "+byteSize + " bytes]";
+        }
+    }
+    public static class AudioDataFrame extends AudioFrame {
+        protected final ByteBuffer data;
+        
+        public AudioDataFrame(int pts, int duration, ByteBuffer bytes, int byteCount) {
+            super(pts, duration, byteCount);
+            if( byteCount > bytes.remaining() ) {
+                throw new IllegalArgumentException("Give size "+byteCount+" exceeds remaining bytes in ls "+bytes+". "+this);
+            }
+            this.data=bytes;
+        }
+        
+        /** Get this frame's data. */
+        public final ByteBuffer getData() { return data; }
+        
+        public String toString() { 
+            return "AudioDataFrame[pts " + pts + " ms, l " + duration + " ms, "+byteSize + " bytes, " + data + "]";
+        }
     }
     
     /** 
@@ -229,13 +265,28 @@ public interface AudioSink {
     public int getFreeFrameCount();
     
     /** 
-     * Enqueue the remaining bytes of the given {@link AudioFrame}'s direct ByteBuffer to this sink.
+     * Enqueue the remaining bytes of the given {@link AudioDataFrame}'s direct ByteBuffer to this sink.
      * <p>
      * The data must comply with the chosen {@link AudioDataFormat} as returned by {@link #initSink(AudioDataFormat)}.
      * </p>
      * <p>
      * {@link #initSink(AudioDataFormat, int, int, int)} must be called first.
      * </p>
+     * @returns the enqueued internal {@link AudioFrame}, which may differ from the input <code>audioDataFrame</code>.
+     * @deprecated User shall use {@link #enqueueData(int, ByteBuffer, int)}, which allows implementation
+     *             to reuse specialized {@link AudioFrame} instances.
      */
-    public void enqueueData(AudioFrame audioFrame);    
+    public AudioFrame enqueueData(AudioDataFrame audioDataFrame);
+    
+    /** 
+     * Enqueue <code>byteCount</code> bytes of the remaining bytes of the given NIO {@link ByteBuffer} to this sink.
+     * <p>
+     * The data must comply with the chosen {@link AudioDataFormat} as returned by {@link #initSink(AudioDataFormat)}.
+     * </p>
+     * <p>
+     * {@link #initSink(AudioDataFormat, int, int, int)} must be called first.
+     * </p>
+     * @returns the enqueued internal {@link AudioFrame}.
+     */
+    public AudioFrame enqueueData(int pts, ByteBuffer bytes, int byteCount);
 }
