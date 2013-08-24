@@ -35,6 +35,7 @@ import javax.media.opengl.GLException;
 
 import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.os.Platform;
+import com.jogamp.opengl.util.TimeFrameI;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
@@ -227,7 +228,8 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
     
     @Override
-    protected final boolean getNextTextureImpl(GL gl, TextureFrame nextFrame) {
+    protected final int getNextTextureImpl(GL gl, TextureFrame nextFrame) {
+        int pts = TimeFrameI.INVALID_PTS;
         if(null != stex && null != mp) {
             final SurfaceTextureFrame nextSFrame = (SurfaceTextureFrame) nextFrame;
             final Surface nextSurface = nextSFrame.getSurface();
@@ -254,11 +256,12 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                 final SurfaceTexture nextSTex = nextSFrame.getSurfaceTexture(); 
                 nextSTex.updateTexImage();
                 // nextFrame.setPTS( (int) ( nextSTex.getTimestamp() / 1000000L ) ); // nano -9 -> milli -3
-                nextFrame.setPTS( mp.getCurrentPosition() );
+                pts = mp.getCurrentPosition();
+                nextFrame.setPTS( pts );
                 // stex.getTransformMatrix(atex.getSTMatrix());
             }
         }
-        return true;
+        return pts;
     }
     
     @Override

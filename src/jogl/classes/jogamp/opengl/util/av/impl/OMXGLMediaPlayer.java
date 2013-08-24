@@ -164,12 +164,13 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
 
     @Override
-    protected boolean getNextTextureImpl(GL gl, TextureFrame nextFrame) {
+    protected int getNextTextureImpl(GL gl, TextureFrame nextFrame) {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }
         final int nextTex = _getNextTextureID(moviePtr, true);
         if(0 < nextTex) {
+            // FIXME set pts !
             /* FIXME 
             final TextureSequence.TextureFrame eglImgTex = 
                     texFrameMap.get(new Integer(_getNextTextureID(moviePtr, blocking)));
@@ -177,7 +178,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
                 lastTex = eglImgTex;
             } */
         }
-        return true;
+        return 0; // FIXME: return pts
     }
     
     private String replaceAll(String orig, String search, String repl) {

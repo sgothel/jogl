@@ -35,6 +35,7 @@ import javax.media.opengl.GLException;
 import jogamp.opengl.Debug;
 
 import com.jogamp.opengl.util.texture.TextureSequence;
+import com.jogamp.opengl.util.TimeFrameI;
 
 /**
  * GLMediaPlayer interface specifies a {@link TextureSequence} state machine
@@ -116,14 +117,11 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  * to be properly considered by {@link GLMediaPlayerFactory#create(ClassLoader, String)}
  * and {@link GLMediaPlayerFactory#createDefault()}.
  * </p>
+ * <a name="timestampaccuracy"><h5>Timestamp Accuracy</h5></a>
  * <p>
- * Variable type, value range and dimension has been chosen to suit embedded CPUs
- * and characteristics of audio and video streaming.
- * Milliseconds of type integer with a maximum value of {@link Integer#MAX_VALUE} 
- * will allow tracking time up 2,147,483.647 seconds or
- * 24 days 20 hours 31 minutes and 23 seconds.
- * Milliseconds granularity is also more than enough to deal with A-V synchronization,
- * where the threshold usually lies within 22ms. 
+ * <p>
+ * Timestamp type and value range has been chosen to suit embedded CPUs
+ * and characteristics of audio and video streaming. See {@link TimeFrameI}.
  * </p>
  * 
  * <a name="synchronization"><h5>Audio and video synchronization</h5></a>

@@ -52,6 +52,7 @@ import com.jogamp.opengl.util.glsl.ShaderState;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureCoords;
 import com.jogamp.opengl.util.texture.TextureSequence;
+import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 public class TextureSequenceCubeES2 implements GLEventListener {
     public TextureSequenceCubeES2 (TextureSequence texSource, boolean innerCube, float zoom0, float rotx, float roty) {
@@ -188,7 +189,11 @@ public class TextureSequenceCubeES2 implements GLEventListener {
     public void init(GLAutoDrawable drawable) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         System.err.println(JoglVersion.getGLInfo(gl, null));
-        final Texture tex= texSeq.getLastTexture().getTexture();
+        final TextureFrame frame = texSeq.getLastTexture();
+        if( null == frame ) {
+            return;
+        }
+        final Texture tex= frame.getTexture();
         
         final boolean useExternalTexture = GLES2.GL_TEXTURE_EXTERNAL_OES == tex.getTarget();
         if(useExternalTexture && !gl.isExtensionAvailable("GL_OES_EGL_image_external")) {
@@ -315,20 +320,22 @@ public class TextureSequenceCubeES2 implements GLEventListener {
     
     
     private void reshapePMV(int width, int height) {
-        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-        pmvMatrix.glLoadIdentity();
-        if(!innerCube) {
-            pmvMatrix.gluPerspective(45.0f, (float)width / (float)height, 1f, 10.0f);
-            nearPlaneNormalized = 1f/(100f-1f);
-        } else {
-            pmvMatrix.glOrthof(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 10.0f);
-            nearPlaneNormalized = 0f;
+        if(null != pmvMatrix) {
+            pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
+            pmvMatrix.glLoadIdentity();
+            if(!innerCube) {
+                pmvMatrix.gluPerspective(45.0f, (float)width / (float)height, 1f, 10.0f);
+                nearPlaneNormalized = 1f/(100f-1f);
+            } else {
+                pmvMatrix.glOrthof(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 10.0f);
+                nearPlaneNormalized = 0f;
+            }
+            System.err.println("XXX0: Perspective nearPlaneNormalized: "+nearPlaneNormalized);
+    
+            pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+            pmvMatrix.glLoadIdentity();
+            pmvMatrix.glTranslatef(0, 0, zoom);
         }
-        System.err.println("XXX0: Perspective nearPlaneNormalized: "+nearPlaneNormalized);
-
-        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-        pmvMatrix.glLoadIdentity();
-        pmvMatrix.glTranslatef(0, 0, zoom);
     }
 
 

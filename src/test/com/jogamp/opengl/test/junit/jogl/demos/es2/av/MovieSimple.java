@@ -75,7 +75,7 @@ import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 /**
  * Simple planar movie player w/ orthogonal 1:1 projection. 
  */
-public class MovieSimple implements GLEventListener, GLMediaEventListener {
+public class MovieSimple implements GLEventListener {
     public static final int EFFECT_NORMAL                  =    0;
     public static final int EFFECT_GRADIENT_BOTTOM2TOP     = 1<<1;
     public static final int EFFECT_TRANSPARENT             = 1<<3; 
@@ -234,12 +234,10 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         mPlayerShared = true;
         mPlayerExternal = true;
         mPlayer = sharedMediaPlayer;
-        mPlayer.addEventListener(this);
         System.out.println("pC.2 shared "+mPlayerShared+", "+mPlayer);
     }
     
     public void initStream(URI streamLoc, int vid, int aid, int textureCount) {
-        mPlayer.addEventListener(this);
         mPlayer.initStream(streamLoc, vid, aid, textureCount);
         System.out.println("pC.1b "+mPlayer);
     }
@@ -262,16 +260,6 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         this.effects |= EFFECT_TRANSPARENT;
         this.alpha = alpha;
     }    
-
-    @Override
-    public void attributesChanged(GLMediaPlayer mp, int event_mask, long when) {
-        System.out.println("attributesChanges: "+mp+", 0x"+Integer.toHexString(event_mask)+", when "+when);        
-    }
-
-    @Override
-    public void newFrameAvailable(GLMediaPlayer mp, TextureFrame newFrame, long when) {
-        // System.out.println("newFrameAvailable: "+mp+", when "+when);        
-    }
 
     private void initShader(GL2ES2 gl) {
         // Create & Compile the shader objects
@@ -316,8 +304,7 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
             throw new IllegalStateException("mPlayer not in state initialized: "+mPlayer);
         }
         if( GLMediaPlayer.STREAM_ID_NONE == mPlayer.getVID() ) {
-            System.err.println("MovieSimple: No VID/stream selected - no GL: "+mPlayer);
-            return;
+            throw new IllegalStateException("mPlayer has no VID/stream selected: "+mPlayer);
         }
         zoom0 =  orthoProjection ? 0f : -2.5f;
         zoom1 = orthoProjection ? 0f : -5f;
@@ -338,8 +325,12 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
             if(!mPlayerShared) {
                 mPlayer.initGL(gl);
             }
-            tex = mPlayer.getLastTexture().getTexture();
             System.out.println("p1 "+mPlayer+", shared "+mPlayerShared);
+            final TextureFrame frame = mPlayer.getLastTexture();
+            if( null == frame ) {
+                throw new InternalError("XXX: "+mPlayer);
+            }
+            tex = mPlayer.getLastTexture().getTexture();
             useExternalTexture = GLES2.GL_TEXTURE_EXTERNAL_OES == tex.getTarget();
             if(useExternalTexture && !gl.isExtensionAvailable("GL_OES_EGL_image_external")) {
                 throw new GLException("GL_OES_EGL_image_external requested but not available");
@@ -415,10 +406,9 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
             interleavedVBO.addGLSLSubArray("mgl_MultiTexCoord", 2, GL.GL_ARRAY_BUFFER);
             
             final FloatBuffer ib = (FloatBuffer)interleavedVBO.getBuffer();
-            final TextureCoords tc = tex.getImageTexCoords();                                   
-            final float aspect = tex.getAspectRatio();
+            final TextureCoords tc = tex.getImageTexCoords();
             System.err.println("XXX0: "+tc);
-            System.err.println("XXX0: tex aspect: "+aspect);
+            System.err.println("XXX0: tex aspect: "+tex.getAspectRatio());
             System.err.println("XXX0: tex y-flip: "+tex.getMustFlipVertically());
             
              // left-bottom
@@ -472,7 +462,7 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
 
         if(!mPlayerShared) {
             mPlayer.play();
-            System.out.println("pStart "+mPlayer);
+            System.out.println("play.0 "+mPlayer);
         }        
         startTime = System.currentTimeMillis();
         
@@ -493,9 +483,6 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
             gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
         }
         if(null == mPlayer) { return; }
-        if( GLMediaPlayer.STREAM_ID_NONE == mPlayer.getVID() ) {
-            return;
-        }
         winWidth = width;
         winHeight = height;
                 
@@ -535,7 +522,6 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         System.out.println("pD.1 "+mPlayer);        
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         if( null != mPlayer ) {
-            mPlayer.removeEventListener(this);
             if(!mPlayerExternal) {
                 mPlayer.destroy(gl);
             }
@@ -563,11 +549,7 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         if( currentPos - lastPerfPos > 2000 ) {
             System.err.println( mPlayer.getPerfString() );
             lastPerfPos = currentPos;  
-        }
-        
-        if( GLMediaPlayer.STREAM_ID_NONE == mPlayer.getVID() ) {
-            return;
-        }
+        }        
                 
         GL2ES2 gl = drawable.getGL().getGL2ES2();        
 
@@ -721,31 +703,47 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
             anim.start();
 
             ms.mPlayer.addEventListener(new GLMediaEventListener() {
+                void destroyWindow() {
+                    new Thread() {
+                        public void run() {
+                            window.destroy();
+                        } }.start();                    
+                }
+                
                 @Override
                 public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) {
                 }
     
                 @Override
                 public void attributesChanged(final GLMediaPlayer mp, int event_mask, long when) {
-                    System.err.println("Player AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
-                    System.err.println("Player State: "+mp);
+                    System.err.println("MovieSimple AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
+                    System.err.println("MovieSimple State: "+mp);
                     if( 0 != ( GLMediaEventListener.EVENT_CHANGE_SIZE & event_mask ) && origSize ) {
                         window.setSize(mp.getWidth(), mp.getHeight());
                     }
                     if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
-                        window.addGLEventListener(ms);
-                        anim.setUpdateFPSFrames(60, System.err);
-                        anim.resetFPSCounter();
+                        if( GLMediaPlayer.STREAM_ID_NONE != ms.mPlayer.getVID() ) {
+                            window.addGLEventListener(ms);
+                            anim.setUpdateFPSFrames(60, System.err);
+                            anim.resetFPSCounter();
+                        } else {
+                            try {
+                                ms.mPlayer.initGL(null);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                destroyWindow();
+                                return;
+                            }
+                            ms.mPlayer.play();
+                            System.out.println("play.1 "+ms.mPlayer);
+                        }
                     }
                     if( 0 != ( ( GLMediaEventListener.EVENT_CHANGE_ERR | GLMediaEventListener.EVENT_CHANGE_EOS ) & event_mask ) ) {
                         final StreamException se = ms.mPlayer.getStreamException();
                         if( null != se ) {
                             se.printStackTrace();                        
                         }
-                        new Thread() {
-                            public void run() {
-                                window.destroy();
-                            } }.start();
+                        destroyWindow();
                     }
                 }
             });

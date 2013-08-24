@@ -73,10 +73,10 @@ typedef void (APIENTRYP PFNGLFINISH) (void);
 /** Default number of audio frames per video frame. Sync w/ FFMPEGMediaPlayer.AV_DEFAULT_AFRAMES. */
 #define AV_DEFAULT_AFRAMES 8
 
-/** Constant PTS marking an invalid PTS, i.e. Integer.MIN_VALUE == 0x80000000 == {@value}. Sync w/ TextureFrame.INVALID_PTS */
+/** Constant PTS marking an invalid PTS, i.e. Integer.MIN_VALUE == 0x80000000 == {@value}. Sync w/ TimeFrameI.INVALID_PTS */
 #define INVALID_PTS 0x80000000
 
-/** Constant PTS marking the end of the stream, i.e. Integer.MIN_VALUE - 1 == 0x7FFFFFFF == {@value}. Sync w/ TextureFrame.END_OF_STREAM_PTS */
+/** Constant PTS marking the end of the stream, i.e. Integer.MIN_VALUE - 1 == 0x7FFFFFFF == {@value}. Sync w/ TimeFrameI.END_OF_STREAM_PTS */
 #define END_OF_STREAM_PTS 0x7FFFFFFF
 
 /** Until 55.0.0 */

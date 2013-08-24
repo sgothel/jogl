@@ -42,14 +42,17 @@ import javax.media.opengl.GLES2;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
+import jogamp.opengl.Debug;
+
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.LFRingbuffer;
 import com.jogamp.common.util.Ringbuffer;
+import com.jogamp.opengl.util.TimeFrameI;
 import com.jogamp.opengl.util.av.AudioSink;
-import com.jogamp.opengl.util.av.AudioSink.AudioFrame;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
+import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 /**
  * After object creation an implementation may customize the behavior:
@@ -64,6 +67,7 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  * </p>
  */
 public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
+    private static final int STREAM_WORKER_DELAY = Debug.getIntProperty("jogl.debug.GLMediaPlayer.StreamWorker.delay", false, 0);
 
     protected static final String unknown = "unknown";
 
@@ -151,13 +155,6 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
     private ArrayList<GLMediaEventListener> eventListeners = new ArrayList<GLMediaEventListener>();
 
-    private static Ringbuffer.AllocEmptyArray<TextureFrame> rbAllocTextureFrameArray = new Ringbuffer.AllocEmptyArray<TextureFrame>() {
-        @Override
-        public TextureFrame[] newArray(int size) {
-            return new TextureFrame[size];
-        }        
-    };
-    
     protected GLMediaPlayerImpl() {
         this.textureCount=0;
         this.textureTarget=GL.GL_TEXTURE_2D;
@@ -284,6 +281,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     @Override
     public final State play() {
         synchronized( stateLock ) {
+            final State preState = state;
             switch( state ) {
                 case Paused:
                     if( playImpl() ) {
@@ -296,7 +294,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     }
                 default:
             }
-            if(DEBUG) { System.err.println("Play: "+toString()); }
+            if(DEBUG) { System.err.println("Play: "+preState+" -> "+state+", "+toString()); }
             return state;
         }
     }
@@ -308,6 +306,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
     private final State pauseImpl(int event_mask) {
         synchronized( stateLock ) {
+            final State preState = state;
             if( State.Playing == state ) {
                 event_mask = addStateEventMask(event_mask, GLMediaPlayer.State.Paused);
                 state = State.Paused;
@@ -320,7 +319,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     play();
                 }
             }
-            if(DEBUG) { System.err.println("Pause: "+toString()); }            
+            if(DEBUG) { System.err.println("Pause: "+preState+" -> "+state+", "+toString()); }
             return state;
         }
     }
@@ -329,6 +328,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     @Override
     public final int seek(int msec) {
         synchronized( stateLock ) {
+            final State preState = state;
             final int pts1;
             switch(state) {
                 case Playing:
@@ -348,7 +348,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 default:
                     pts1 = 0;
             }
-            if(DEBUG) { System.err.println("Seek("+msec+"): "+toString()); }
+            if(DEBUG) { System.err.println("Seek("+msec+"): "+preState+" -> "+state+", "+toString()); }
             return pts1;
         }
     }
@@ -362,6 +362,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     @Override
     public final boolean setPlaySpeed(float rate) {
         synchronized( stateLock ) {
+            final State preState = state;
+            final float preSpeed = playSpeed;
             boolean res = false;
             if(State.Uninitialized != state ) {
                 if( rate > 0.01f ) {
@@ -371,11 +373,11 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     if( setPlaySpeedImpl(rate) ) {
                         resetAudioVideoPTS();
                         playSpeed = rate;
-                        if(DEBUG) { System.err.println("SetPlaySpeed: "+toString()); }
                         res = true;
                     }
                 }
             }
+            if(DEBUG) { System.err.println("setPlaySpeed("+rate+"): "+preState+"/"+preSpeed+" -> "+state+"/"+playSpeed+", "+toString()); }
             return res;
         }
     }
@@ -464,14 +466,16 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     removeAllTextureFrames(gl);
                     initGLImpl(gl);
                     videoFramesOrig = createTexFrames(gl, textureCount);
-                    videoFramesFree = new LFRingbuffer<TextureFrame>(videoFramesOrig, rbAllocTextureFrameArray);
-                    videoFramesDecoded = new LFRingbuffer<TextureFrame>(textureCount, rbAllocTextureFrameArray);
+                    videoFramesFree = new LFRingbuffer<TextureFrame>(videoFramesOrig);
+                    videoFramesDecoded = new LFRingbuffer<TextureFrame>(TextureFrame[].class, textureCount);
                     lastFrame = videoFramesFree.getBlocking( );
                     streamWorker.initGL(gl);
                 } else {
+                    removeAllTextureFrames(null);
                     initGLImpl(null);
                     setTextureFormat(-1, -1);
                     setTextureType(-1);
+                    videoFramesOrig = null;
                     videoFramesFree = null;
                     videoFramesDecoded = null;
                     lastFrame = null;
@@ -482,6 +486,15 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             }
         }
     }
+    /** 
+     * Shall initialize all GL related resources, if not audio-only.
+     * <p>
+     * Shall also take care of {@link AudioSink} initialization if appropriate.
+     * </p>
+     * @param gl null for audio-only, otherwise a valid and current GL object.
+     * @throws IOException
+     * @throws GLException
+     */
     protected abstract void initGLImpl(GL gl) throws IOException, GLException;
     
     /** 
@@ -570,12 +583,12 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
     
     private final void removeAllTextureFrames(GL gl) {
-        if( null != videoFramesOrig ) {
-            final TextureFrame[] texFrames = videoFramesOrig;
-            videoFramesOrig = null;
-            videoFramesFree = null;
-            videoFramesDecoded = null;
-            lastFrame = null;
+        final TextureFrame[] texFrames = videoFramesOrig;
+        videoFramesOrig = null;
+        videoFramesFree = null;
+        videoFramesDecoded = null;
+        lastFrame = null;
+        if( null != texFrames ) {
             for(int i=0; i<texFrames.length; i++) {
                 final TextureFrame frame = texFrames[i];
                 if(null != frame) {
@@ -605,28 +618,32 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     do {
                         final long currentTimeMillis;
                         final boolean playCached = null != cachedFrame;
+                        final boolean droppedFrame;
                         if( dropFrame ) {
                             presentedFrameCount--;
                             dropFrame = false;
+                            droppedFrame = true;
+                        } else {
+                            droppedFrame = false;
                         }
                         if( playCached ) {
                             nextFrame = cachedFrame;
                             cachedFrame = null;
                             presentedFrameCount--;
                         } else if( STREAM_ID_NONE != vid ) {
-                            nextFrame = videoFramesDecoded.getBlocking();
+                            nextFrame = videoFramesDecoded.get();
                         }
                         currentTimeMillis = Platform.currentTimeMillis();
                         if( null != nextFrame ) {
                             presentedFrameCount++;
                             final int video_pts = nextFrame.getPTS();
-                            if( video_pts == TextureFrame.END_OF_STREAM_PTS ) {
+                            if( video_pts == TimeFrameI.END_OF_STREAM_PTS ) {
                                 pauseImpl(GLMediaEventListener.EVENT_CHANGE_EOS);
-                            } else if( video_pts != TextureFrame.INVALID_PTS ) {
+                            } else if( video_pts != TimeFrameI.INVALID_PTS ) {
                                 final int audio_pts = getAudioPTSImpl();
                                 final int audio_scr = (int) ( ( currentTimeMillis - audio_scr_t0 ) * playSpeed );
                                 final int d_apts;
-                                if( audio_pts != AudioFrame.INVALID_PTS ) {
+                                if( audio_pts != TimeFrameI.INVALID_PTS ) {
                                     d_apts = audio_pts - audio_scr;
                                 } else {
                                     d_apts = 0;
@@ -662,7 +679,9 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                     if( dt > maxVideoDelay ) {
                                         cachedFrame = nextFrame;
                                         nextFrame = null;
-                                    } else if ( dt < -maxVideoDelay ) {
+                                    } else if ( !droppedFrame && dt < -maxVideoDelay && videoFramesDecoded.size() > 0 ) {
+                                        // only drop if prev. frame has not been dropped and 
+                                        // frame is too late and one decoded frame is already available.
                                         dropFrame = true;
                                     }
                                     video_pts_last = video_pts;
@@ -682,6 +701,20 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                 lastFrame = nextFrame;
                                 videoFramesFree.putBlocking(_lastFrame);
                             }
+                        } else if( DEBUG ) {                            
+                            final int video_pts = lastFrame.getPTS();
+                            final int audio_pts = getAudioPTSImpl();
+                            final int audio_scr = (int) ( ( currentTimeMillis - audio_scr_t0 ) * playSpeed );
+                            final int d_apts;
+                            if( audio_pts != TimeFrameI.INVALID_PTS ) {
+                                d_apts = audio_pts - audio_scr;
+                            } else {
+                                d_apts = 0;
+                            }
+                            final int video_scr = video_scr_pts + (int) ( ( currentTimeMillis - video_scr_t0 ) * playSpeed );
+                            final int d_vpts = video_pts - video_scr;
+                            System.err.println( "AV~: dT "+(currentTimeMillis-lastTimeMillis)+", "+
+                                    getPerfStringImpl( video_scr, video_pts, d_vpts, audio_scr, audio_pts, d_apts, 0 ) + ", droppedFrame "+droppedFrame);
                         }
                         lastTimeMillis = currentTimeMillis;
                     } while( dropFrame );
@@ -696,12 +729,27 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected void preNextTextureImpl(GL gl) {}
     protected void postNextTextureImpl(GL gl) {}
     /**
+     * Process stream until the next video frame, i.e. {@link TextureFrame}, has been reached.
+     * Audio frames, i.e. {@link AudioSink.AudioFrame}, shall be handled in the process.
+     * <p>
+     * Video frames shall be ignored, if {@link #getVID()} is {@link #STREAM_ID_NONE}.
+     * </p> 
+     * <p>
+     * Audio frames shall be ignored, if {@link #getAID()} is {@link #STREAM_ID_NONE}.
+     * </p>
+     * <p>
+     * Methods is invoked on the <a href="#streamworker"><i>StreamWorker</i> decoding thread</a>.
+     * </p> 
+     * <p>
      * Implementation shall care of OpenGL synchronization as required, e.g. glFinish()/glFlush()!
-     * @param gl
-     * @param nextFrame
-     * @return
+     * </p>
+     * @param gl valid and current GL instance, shall be <code>null</code> for audio only. 
+     * @param nextFrame the {@link TextureFrame} to store the video PTS and texture data,
+     *                  shall be <code>null</code> for audio only.
+     * @return the last processed video PTS value, maybe {@link TimeFrameI#INVALID_PTS} if video frame is invalid or n/a.
+     *         Will be {@link TimeFrameI#END_OF_STREAM_PTS} if end of stream reached. 
      */
-    protected abstract boolean getNextTextureImpl(GL gl, TextureFrame nextFrame);
+    protected abstract int getNextTextureImpl(GL gl, TextureFrame nextFrame);
     
     /** 
      * {@inheritDoc}
@@ -731,12 +779,12 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     private void flushAllVideoFrames() {
         if( null != videoFramesFree ) {
             videoFramesFree.resetFull(videoFramesOrig);
+            lastFrame = videoFramesFree.get();
+            if( null == lastFrame ) { throw new InternalError("XXX"); }
         }
         if( null != videoFramesDecoded ) {
             videoFramesDecoded.clear();
         }
-        lastFrame = videoFramesFree.get( );
-        if( null == lastFrame ) { throw new InternalError("XXX"); }
         cachedFrame = null;
     }
     private void resetAllAudioVideoSync() {
@@ -842,14 +890,16 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         public synchronized void doPause() {
             if( isActive ) {
                 shallPause = true;
-                if( isBlocked && isActive ) {
-                    this.interrupt();
-                }
-                while( isActive ) {
-                    try {
-                        this.wait(); // wait until paused
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                if( Thread.currentThread() != this ) {
+                    if( isBlocked && isActive ) {
+                        this.interrupt();
+                    }
+                    while( isActive ) {
+                        try {
+                            this.wait(); // wait until paused
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
@@ -857,12 +907,14 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         public synchronized void doResume() {
             if( isRunning && !isActive ) {
                 shallPause = false;
-                while( !isActive ) {
-                    this.notify();  // wake-up pause-block
-                    try {
-                        this.wait(); // wait until resumed 
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                if( Thread.currentThread() != this ) {
+                    while( !isActive ) {
+                        this.notify();  // wake-up pause-block
+                        try {
+                            this.wait(); // wait until resumed 
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
@@ -870,15 +922,17 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         public synchronized void doStop() {
             if( isRunning ) {
                 shallStop = true;
-                if( isBlocked && isRunning ) {
-                    this.interrupt();
-                }
-                while( isRunning ) {
-                    this.notify();  // wake-up pause-block (opt)
-                    try {
-                        this.wait();  // wait until stopped
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                if( Thread.currentThread() != this ) {
+                    if( isBlocked && isRunning ) {
+                        this.interrupt();
+                    }
+                    while( isRunning ) {
+                        this.notify();  // wake-up pause-block (opt)
+                        try {
+                            this.wait();  // wait until stopped
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
@@ -939,51 +993,68 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                             preNextTextureImpl(sharedGLCtx.getGL());
                             sharedGLCtxCurrent = true;
                         }
+                        if( null == videoFramesFree ) {
+                            throw new InternalError("XXX videoFramesFree is null");
+                        }
                     }
                 }
                 
                 if( !shallStop ) {
                     TextureFrame nextFrame = null;
-                    if( null != sharedGLCtx ) {
-                        try {
-                            isBlocked = true;
-                            nextFrame = videoFramesFree.getBlocking( );
-                            isBlocked = false;
-                            nextFrame.setPTS( TextureFrame.INVALID_PTS ); // mark invalid until processed!
-                            final GL gl = sharedGLCtxCurrent ? sharedGLCtx.getGL() : null;
-                            if( getNextTextureImpl(gl, nextFrame) ) {
+                    try {
+                        final GL gl;
+                        isBlocked = true;
+                        if( null != videoFramesFree ) {
+                            nextFrame = videoFramesFree.getBlocking();
+                            nextFrame.setPTS( TimeFrameI.INVALID_PTS ); // mark invalid until processed!
+                            gl = sharedGLCtx.getGL();
+                        } else {
+                            gl = null;
+                        }
+                        isBlocked = false;
+                        final int vPTS = getNextTextureImpl(gl, nextFrame);
+                        if( TimeFrameI.INVALID_PTS != vPTS ) {
+                            if( null != nextFrame ) {
+                                if( STREAM_WORKER_DELAY > 0 ) {
+                                    Thread.sleep(STREAM_WORKER_DELAY);
+                                }
                                 if( !videoFramesDecoded.put(nextFrame) ) {
                                     throw new InternalError("XXX: free "+videoFramesFree+", decoded "+videoFramesDecoded+", "+GLMediaPlayerImpl.this); 
                                 }
                                 newFrameAvailable(nextFrame, Platform.currentTimeMillis());
                                 nextFrame = null;
-                            }
-                        } catch (InterruptedException e) {
-                            isBlocked = false;
-                            if( !shallStop && !shallPause ) {
-                                streamErr = new StreamException("InterruptedException while decoding: "+GLMediaPlayerImpl.this.toString(), e);
-                            }
-                        } catch (Throwable t) {
-                            streamErr = new StreamException(t.getClass().getSimpleName()+" while decoding: "+GLMediaPlayerImpl.this.toString(), t);
-                        } finally {
-                            if( null != nextFrame ) { // put back
-                                videoFramesFree.put(nextFrame);
-                            }
-                            if( null != streamErr ) {
-                                if( DEBUG ) {
-                                    final Throwable t = null != streamErr.getCause() ? streamErr.getCause() : streamErr;
-                                    System.err.println("Caught StreamException: "+t.getMessage());
-                                    t.printStackTrace();
+                            } else {
+                                // audio only
+                                if( TimeFrameI.END_OF_STREAM_PTS == vPTS ) {
+                                    // state transition incl. notification
+                                    shallPause = true;
+                                    isActive = false;
+                                    pauseImpl(GLMediaEventListener.EVENT_CHANGE_EOS);
                                 }
-                                // state transition incl. notification
-                                shallPause = true;
-                                isActive = false;
-                                pause();
                             }
                         }
-                    } else {
-                        // audio only
-                        getNextTextureImpl(null, null);
+                    } catch (InterruptedException e) {
+                        isBlocked = false;
+                        if( !shallStop && !shallPause ) {
+                            streamErr = new StreamException("InterruptedException while decoding: "+GLMediaPlayerImpl.this.toString(), e);
+                        }
+                    } catch (Throwable t) {
+                        streamErr = new StreamException(t.getClass().getSimpleName()+" while decoding: "+GLMediaPlayerImpl.this.toString(), t);
+                    } finally {
+                        if( null != nextFrame ) { // put back
+                            videoFramesFree.put(nextFrame);
+                        }
+                        if( null != streamErr ) {
+                            if( DEBUG ) {
+                                final Throwable t = null != streamErr.getCause() ? streamErr.getCause() : streamErr;
+                                System.err.println("Caught StreamException: "+t.getMessage());
+                                t.printStackTrace();
+                            }
+                            // state transition incl. notification
+                            shallPause = true;
+                            isActive = false;
+                            pauseImpl(GLMediaEventListener.EVENT_CHANGE_ERR);
+                        }
                     }
                 }
             }
@@ -1106,13 +1177,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             destroyImpl(gl);
             removeAllTextureFrames(gl);
             textureCount=0;
-            if( null != videoFramesFree ) {
-                videoFramesFree.clear();
-            }
-            if( null != videoFramesDecoded ) {
-                videoFramesDecoded.clear();
-            }
-            changeState(0, State.Uninitialized);            
+            changeState(0, State.Uninitialized);
             return state;
         }
     }
@@ -1215,7 +1280,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         final String audioSinkInfo;
         final AudioSink audioSink = getAudioSink();
         if( null != audioSink ) {
-            audioSinkInfo = "AudioSink[frames [d "+audioSink.getEnqueuedFrameCount()+", q "+audioSink.getQueuedFrameCount()+", f "+audioSink.getFreeFrameCount()+"], time "+audioSink.getQueuedTime()+", bytes "+audioSink.getQueuedByteCount()+"]";
+            audioSinkInfo = "AudioSink[frames [p "+audioSink.getEnqueuedFrameCount()+", q "+audioSink.getQueuedFrameCount()+", f "+audioSink.getFreeFrameCount()+", c "+audioSink.getFrameCount()+"], time "+audioSink.getQueuedTime()+", bytes "+audioSink.getQueuedByteCount()+"]";
         } else {
             audioSinkInfo = "";
         }

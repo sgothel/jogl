@@ -29,6 +29,8 @@ package com.jogamp.opengl.util.texture;
 
 import javax.media.opengl.GL;
 
+import com.jogamp.opengl.util.TimeFrameI;
+
 /**
  * Protocol for texture sequences, like animations, movies, etc.
  * <p>
@@ -109,35 +111,21 @@ public interface TextureSequence {
      * Texture holder interface, maybe specialized by implementation
      * to associated related data. 
      */
-    public static class TextureFrame {
-        /** Constant marking an invalid PTS, i.e. Integer.MIN_VALUE == 0x80000000 == {@value}. Sync w/ native code. */
-        public static final int INVALID_PTS = 0x80000000;
-        
-        /** Constant marking the end of the stream PTS, i.e. Integer.MIN_VALUE - 1 == 0x7FFFFFFF == {@value}. Sync w/ native code. */
-        public static final int END_OF_STREAM_PTS = 0x7FFFFFFF;    
-        
+    public static class TextureFrame extends TimeFrameI {
+        public TextureFrame(Texture t, int pts, int duration) {
+            super(pts, duration);
+            texture = t;
+        }
         public TextureFrame(Texture t) {
             texture = t;
-            pts = INVALID_PTS;
-            duration = 0;
         }
         
         public final Texture getTexture() { return texture; }
-        /** Get this frame's presentation timestamp (PTS) in milliseconds. */
-        public final int getPTS() { return pts; }
-        /** Set this frame's presentation timestamp (PTS) in milliseconds. */
-        public final void setPTS(int pts) { this.pts = pts; }
-        /** Get this frame's duration in milliseconds. */
-        public final int getDuration() { return duration; }
-        /** Set this frame's duration in milliseconds. */
-        public final void setDuration(int duration) { this.duration = duration; }
         
         public String toString() {
-            return "TextureFrame[pts " + pts + " ms, l " + duration + " ms, texID "+ texture.getTextureObject() + "]";
+            return "TextureFrame[pts " + pts + " ms, l " + duration + " ms, texID "+ (null != texture ? texture.getTextureObject() : 0) + "]";
         }
         protected final Texture texture;
-        protected int pts;
-        protected int duration;
     }
 
     public interface TexSeqEventListener<T extends TextureSequence> {

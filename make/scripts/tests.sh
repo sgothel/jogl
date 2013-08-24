@@ -134,6 +134,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.AudioSink"
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLMediaPlayer.Native"
     #D_ARGS="-Djogl.debug.GLMediaPlayer"
+    #D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25 -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.Native"
     #D_ARGS="-Djogl.debug.AudioSink"
     #D_ARGS="-Djogl.debug.GLArrayData"
@@ -318,8 +319,8 @@ function testawtswt() {
 # av demos
 #
 #testnoawt jogamp.opengl.openal.av.ALDummyUsage $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 
 #
 # core/newt (testnoawt and testawt)

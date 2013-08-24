@@ -83,9 +83,10 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     }
     
     @Override
-    protected final boolean getNextTextureImpl(GL gl, TextureFrame nextFrame) {
-        nextFrame.setPTS( getAudioPTSImpl() );
-        return true;
+    protected final int getNextTextureImpl(GL gl, TextureFrame nextFrame) {
+        final int pts = getAudioPTSImpl();
+        nextFrame.setPTS( pts );
+        return pts;
     }
     
     @Override
@@ -102,40 +103,42 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
             texData = null;
         }                      
     }
-        
-    @Override
-    protected final void initStreamImpl(int vid, int aid) throws IOException {
+    
+    public final static TextureData createTestTextureData() {
+        TextureData res = null;
         try {
-            URLConnection urlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-160x90.png", this.getClass().getClassLoader());
+            URLConnection urlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-160x90.png", NullGLMediaPlayer.class.getClassLoader());
             if(null != urlConn) {
-                texData = TextureIO.newTextureData(GLProfile.getGL2ES2(), urlConn.getInputStream(), false, TextureIO.PNG);
+                res = TextureIO.newTextureData(GLProfile.getGL2ES2(), urlConn.getInputStream(), false, TextureIO.PNG);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        final int _w, _h;
-        if(null != texData) {
-            _w = texData.getWidth();
-            _h = texData.getHeight();            
-        } else {
-            _w = 640;
-            _h = 480;
-            ByteBuffer buffer = Buffers.newDirectByteBuffer(_w*_h*4);
+        if(null == res) {
+            final int w = 160;
+            final int h =  90;
+            ByteBuffer buffer = Buffers.newDirectByteBuffer(w*h*4);
             while(buffer.hasRemaining()) {
                 buffer.put((byte) 0xEA); buffer.put((byte) 0xEA); buffer.put((byte) 0xEA); buffer.put((byte) 0xEA);
             }
             buffer.rewind();
-            texData = new TextureData(GLProfile.getGL2ES2(),
-                   GL.GL_RGBA, _w, _h, 0,
+            res = new TextureData(GLProfile.getGL2ES2(),
+                   GL.GL_RGBA, w, h, 0,
                    GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, false, 
                    false, false, buffer, null);
         }
+        return res;
+    }
+        
+    @Override
+    protected final void initStreamImpl(int vid, int aid) throws IOException {
+        texData = createTestTextureData();
         final int r_aid = GLMediaPlayer.STREAM_ID_NONE == aid ? GLMediaPlayer.STREAM_ID_NONE : GLMediaPlayer.STREAM_ID_AUTO; 
         final float _fps = 24f;
         final int _duration = 10*60*1000; // msec
         final int _totalFrames = (int) ( (_duration/1000)*_fps );
         updateAttributes(GLMediaPlayer.STREAM_ID_AUTO, r_aid, 
-                         _w, _h, 0, 
+                         texData.getWidth(), texData.getHeight(), 0, 
                          0, 0, _fps, 
                          _totalFrames, 0, _duration, "png-static", null);
     }    

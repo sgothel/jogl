@@ -234,6 +234,12 @@ static void _updateJavaAttributes(JNIEnv *env, jobject instance, FFMPEGToolBasic
             w = 0;                      h = 0;
         }
 
+        (*env)->CallVoidMethod(env, instance, jni_mid_updateAttributes2,
+                               pAV->vPixFmt, pAV->vBufferPlanes, 
+                               pAV->vBitsPerPixel, pAV->vBytesPerPixelPerPlane,
+                               pAV->vLinesize[0], pAV->vLinesize[1], pAV->vLinesize[2],
+                               pAV->vTexWidth[0], pAV->vTexWidth[1], pAV->vTexWidth[2], h,
+                               pAV->aFramesPerVideoFrame, pAV->aSampleFmt, pAV->aSampleRate, pAV->aChannels);
         (*env)->CallVoidMethod(env, instance, jni_mid_updateAttributes1,
                                pAV->vid, pAV->aid,
                                w, h, 
@@ -241,12 +247,6 @@ static void _updateJavaAttributes(JNIEnv *env, jobject instance, FFMPEGToolBasic
                                pAV->fps, pAV->frames_video, pAV->frames_audio, pAV->duration,
                                (*env)->NewStringUTF(env, pAV->vcodec),
                                (*env)->NewStringUTF(env, pAV->acodec) );
-        (*env)->CallVoidMethod(env, instance, jni_mid_updateAttributes2,
-                               pAV->vPixFmt, pAV->vBufferPlanes, 
-                               pAV->vBitsPerPixel, pAV->vBytesPerPixelPerPlane,
-                               pAV->vLinesize[0], pAV->vLinesize[1], pAV->vLinesize[2],
-                               pAV->vTexWidth[0], pAV->vTexWidth[1], pAV->vTexWidth[2],
-                               pAV->aFramesPerVideoFrame, pAV->aSampleFmt, pAV->aSampleRate, pAV->aChannels);
     }
 }
 
@@ -392,7 +392,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_ini
 
     jni_mid_pushSound = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "pushSound", "(Ljava/nio/ByteBuffer;II)V");
     jni_mid_updateAttributes1 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes", "(IIIIIIIFIIILjava/lang/String;Ljava/lang/String;)V");
-    jni_mid_updateAttributes2 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes2", "(IIIIIIIIIIIIII)V");
+    jni_mid_updateAttributes2 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes2", "(IIIIIIIIIIIIIII)V");
 
     if(jni_mid_pushSound == NULL ||
        jni_mid_updateAttributes1 == NULL ||
@@ -858,9 +858,10 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
     if( AVERROR_EOF == avRes || ( pAV->pFormatCtx->pb && pAV->pFormatCtx->pb->eof_reached ) ) {
         resPTS = END_OF_STREAM_PTS;
     } else if( 0 <= avRes ) {
+        /**
         if( pAV->verbose ) {
             fprintf(stderr, "P: ptr %p, size %d\n", packet.data, packet.size);
-        }
+        } */
         if(packet.stream_index==pAV->aid) {
             // Decode audio frame
             if(NULL == pAV->pAFrames) { // no audio registered
@@ -1206,38 +1207,43 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_seek0
 {
     const FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
     const int64_t pos0 = pAV->vPTS;
-    const int64_t pts0 = pAV->pVFrame->pkt_pts;
+    int64_t pts0;
     int streamID;
     AVRational time_base;
     if( pAV->vid >= 0 ) {
         streamID = pAV->vid;
         time_base = pAV->pVStream->time_base;
+        pts0 = pAV->pVFrame->pkt_pts;
     } else if( pAV->aid >= 0 ) {
         streamID = pAV->aid;
         time_base = pAV->pAStream->time_base;
+        pts0 = pAV->pAFrames[pAV->aFrameCurrent]->pkt_pts;
     } else {
         return pAV->vPTS;
     }
     int64_t pts1 = (int64_t) (pos1 * (int64_t) time_base.den)
                            / (1000 * (int64_t) time_base.num);
+    if(pAV->verbose) {
+        fprintf(stderr, "SEEK: vid %d, aid %d, pos1 %d, pts: %ld -> %ld\n", pAV->vid, pAV->aid, pos1, pts0, pts1);
+    }
     int flags = 0;
     if(pos1 < pos0) {
         flags |= AVSEEK_FLAG_BACKWARD;
     }
     int res;
     if(HAS_FUNC(sp_av_seek_frame)) {
-        if(pos1 < pos0) {
-            flags |= AVSEEK_FLAG_BACKWARD;
+        if(pAV->verbose) {
+            fprintf(stderr, "SEEK.0: pre  : s %ld / %ld -> t %d / %ld\n", pos0, pts0, pos1, pts1);
         }
-        fprintf(stderr, "SEEK.0: pre  : s %ld / %ld -> t %ld / %ld\n", pos0, pts0, pos1, pts1);
         sp_av_seek_frame(pAV->pFormatCtx, streamID, pts1, flags);
-
     } else if(HAS_FUNC(sp_avformat_seek_file)) {
         int64_t ptsD = pts1 - pts0;
         int64_t seek_min    = ptsD > 0 ? pts1 - ptsD : INT64_MIN;
         int64_t seek_max    = ptsD < 0 ? pts1 - ptsD : INT64_MAX;
-        fprintf(stderr, "SEEK.1: pre  : s %ld / %ld -> t %ld / %ld [%ld .. %ld]\n", 
-            pos0, pts0, pos1, pts1, seek_min, seek_max);
+        if(pAV->verbose) {
+            fprintf(stderr, "SEEK.1: pre  : s %ld / %ld -> t %d / %ld [%ld .. %ld]\n", 
+                pos0, pts0, pos1, pts1, seek_min, seek_max);
+        }
         res = sp_avformat_seek_file(pAV->pFormatCtx, -1, seek_min, pts1, seek_max, flags);
     }
     if(NULL != pAV->pVCodecCtx) {
@@ -1246,9 +1252,11 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_seek0
     if(NULL != pAV->pACodecCtx) {
         sp_avcodec_flush_buffers( pAV->pACodecCtx );
     }
-    const jint vPTS =  my_av_q2i32( pAV->pVFrame->pkt_pts * 1000, pAV->pVStream->time_base);
-    fprintf(stderr, "SEEK: post : res %d, u %ld, p %ld\n", res, vPTS, pAV->pVFrame->pkt_pts);
-    return vPTS;
+    const jint rPTS =  my_av_q2i32( ( pAV->vid >= 0 ? pAV->pVFrame->pkt_pts : pAV->pAFrames[pAV->aFrameCurrent]->pkt_pts ) * 1000, time_base);
+    if(pAV->verbose) {
+        fprintf(stderr, "SEEK: post : res %d, u %ld\n", res, rPTS);
+    }
+    return rPTS;
 }
 
 JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_getVideoPTS0

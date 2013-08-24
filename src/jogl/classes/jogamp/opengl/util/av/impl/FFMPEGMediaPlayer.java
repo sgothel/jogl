@@ -40,6 +40,7 @@ import javax.media.opengl.GLException;
 
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
+import com.jogamp.opengl.util.TimeFrameI;
 import com.jogamp.opengl.util.GLPixelStorageModes;
 import com.jogamp.opengl.util.av.AudioSink;
 import com.jogamp.opengl.util.av.AudioSink.AudioDataFormat;
@@ -169,7 +170,8 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     /** Initial audio frame count, ALAudioSink may grow buffer! */
     private int initialAudioFrameCount = AV_DEFAULT_AFRAMES;
     private final int audioFrameGrowAmount = 8;
-    private final int audioFrameLimit = 128;
+    private final int audioFrameLimitWithVideo =  64; // 128;
+    private final int audioFrameLimitAudioOnly =  32; // 64;
     private SampleFormat aSampleFmt = null;
     private AudioSink.AudioDataFormat avChosenAudioFormat;
     private AudioSink.AudioDataFormat sinkChosenAudioFormat;
@@ -235,6 +237,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         if(null == audioSink) {
             throw new GLException("AudioSink null");
         }
+        final int audioFrameLimit;
         if( null != gl ) {
             final GLContextImpl ctx = (GLContextImpl)gl.getContext();
             AccessController.doPrivileged(new PrivilegedAction<Object>() {
@@ -247,7 +250,10 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                     setGLFuncs0(moviePtr, procAddrGLTexSubImage2D, procAddrGLGetError, procAddrGLFlush, procAddrGLFinish);
                     return null;
             } } );
-        }            
+            audioFrameLimit = audioFrameLimitWithVideo;
+        } else {
+            audioFrameLimit = audioFrameLimitAudioOnly;
+        }
 
         sinkChosenAudioFormat = audioSink.initSink(avChosenAudioFormat, initialAudioFrameCount, audioFrameGrowAmount, audioFrameLimit);
         if(DEBUG) {
@@ -303,7 +309,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      */
     private void updateAttributes2(int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,
                                    int lSz0, int lSz1, int lSz2,
-                                   int tWd0, int tWd1, int tWd2,
+                                   int tWd0, int tWd1, int tWd2, int tH,
                                    int audioFrameCount, int sampleFmt, int sampleRate, int channels) {
         vPixelFmt = PixelFormat.valueOf(pixFmt);
         vPlanes = planes;
@@ -320,7 +326,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                 // w*h + 2 ( w/2 * h/2 ) 
                 // w*h + w*h/2
                 // 2*w/2 * h 
-                texWidth = vTexWidth[0] + vTexWidth[1]; texHeight = height; 
+                texWidth = vTexWidth[0] + vTexWidth[1]; texHeight = tH; 
                 break;
             // case PIX_FMT_YUYV422:
             case RGB24:
@@ -329,7 +335,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             case RGBA:
             case ABGR:
             case BGRA:
-                texWidth = vTexWidth[0]; texHeight = height; 
+                texWidth = vTexWidth[0]; texHeight = tH; 
                 break;
             default: // FIXME: Add more formats !
                 throw new RuntimeException("Unsupported pixelformat: "+vPixelFmt);
@@ -487,41 +493,32 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     }
     
     @Override
-    protected final boolean getNextTextureImpl(GL gl, TextureFrame nextFrame) {
+    protected final int getNextTextureImpl(GL gl, TextureFrame nextFrame) {
         if(0==moviePtr) {
             throw new GLException("FFMPEG native instance null");
         }
-        int vPTS = TextureFrame.INVALID_PTS;
-        if( null != nextFrame ) {
+        int vPTS = TimeFrameI.INVALID_PTS;
+        if( null != gl ) {
             final Texture tex = nextFrame.getTexture();
             tex.enable(gl);
             tex.bind(gl);
         }
 
         /** Try decode up to 10 packets to find one containing video. */
-        for(int i=0; TextureFrame.INVALID_PTS == vPTS && 10 > i; i++) {
+        for(int i=0; TimeFrameI.INVALID_PTS == vPTS && 10 > i; i++) {
            vPTS = readNextPacket0(moviePtr, textureTarget, textureFormat, textureType);
         }
-        if( TextureFrame.INVALID_PTS != vPTS ) {
-            if( null != nextFrame ) {
-                nextFrame.setPTS(vPTS);
-            }
-            return true;
-        } else {
-            return false;
+        if( null != nextFrame ) {
+            nextFrame.setPTS(vPTS);
         }
-    }
+        return vPTS;
+    }    
     
     private final void pushSound(ByteBuffer sampleData, int data_size, int audio_pts) {
         setFirstAudioPTS2SCR( audio_pts );
         if( 1.0f == playSpeed || audioSinkPlaySpeedSet ) {
-            audioSink.enqueueData( new AudioSink.AudioFrame(sampleData, data_size, audio_pts ) );
+            audioSink.enqueueData( audio_pts, sampleData, data_size);
         }
-    }
-
-    private final int getBytesPerMS(int time) {
-        final int bytesPerSample = sinkChosenAudioFormat.sampleSize >>> 3; // /8
-        return time * ( sinkChosenAudioFormat.channelCount * bytesPerSample * ( sinkChosenAudioFormat.sampleRate / 1000 ) );        
     }
     
     private static native int getAvUtilVersion0();
