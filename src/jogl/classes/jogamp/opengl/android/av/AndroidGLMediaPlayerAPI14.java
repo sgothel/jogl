@@ -46,6 +46,7 @@ import jogamp.opengl.util.av.GLMediaPlayerImpl;
 import android.graphics.SurfaceTexture;
 import android.graphics.SurfaceTexture.OnFrameAvailableListener;
 import android.media.MediaPlayer;
+import android.media.MediaPlayer.OnCompletionListener;
 import android.net.Uri;
 import android.view.Surface;
 
@@ -61,6 +62,12 @@ import android.view.Surface;
  *   <li>Android API Level 14: {@link MediaPlayer#setSurface(Surface)}</li>
  *   <li>Android API Level 14: {@link Surface#Surface(android.graphics.SurfaceTexture)}</li>
  * </ul>
+ * <p>
+ * Since the MediaPlayer API can only deal w/ <i>one</i> SurfaceTexture, 
+ * we enforce <code>textureCount</code> = 2 via {@link #validateTextureCount(int)}
+ * and duplicate the single texture via {@link #createTexFrames(GL, int)} .. etc.
+ * Two instanceds of TextureFrame are required due our framework implementation w/ Ringbuffer and 'lastFrame' access.
+ * </p>
  */
 public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     static final boolean available;
@@ -77,9 +84,13 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     
     public static final boolean isAvailable() { return available; }
     
-    MediaPlayer mp;
-    volatile boolean updateSurface = false;
-    Object updateSurfaceLock = new Object();
+    private MediaPlayer mp;
+    private volatile boolean updateSurface = false;
+    private Object updateSurfaceLock = new Object();
+    private SurfaceTextureFrame singleSTexFrame = null;
+    private int sTexFrameCount = 0;
+    private boolean sTexFrameAttached = false;
+    private volatile boolean eos = false;    
 
     /**
     private static String toString(MediaPlayer m) {
@@ -122,6 +133,8 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
         if(null != mp) {        
             try {
                 mp.start();
+                eos = false;
+                mp.setOnCompletionListener(onCompletionListener);
                 return true;
             } catch (IllegalStateException ise) {
                 if(DEBUG) {
@@ -185,22 +198,16 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
         }
     }
     
-    SurfaceTexture stex = null;
     public static class SurfaceTextureFrame extends TextureSequence.TextureFrame {        
         public SurfaceTextureFrame(Texture t, SurfaceTexture stex) {
             super(t);
             this.surfaceTex = stex;
-            this.surface = new Surface(stex);
         }
-        
-        public final SurfaceTexture getSurfaceTexture() { return surfaceTex; }
-        public final Surface getSurface() { return surface; }
         
         public String toString() {
             return "SurfaceTextureFrame[pts " + pts + " ms, l " + duration + " ms, texID "+ texture.getTextureObject() + ", " + surfaceTex + "]";
         }
-        private final SurfaceTexture surfaceTex;
-        private final Surface surface; 
+        public final SurfaceTexture surfaceTex;
     }
     
     @Override
@@ -221,18 +228,15 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             } catch (IllegalStateException e) {
                 throw new RuntimeException(e);
             }
-            if( null == stex ) {
-                throw new InternalError("XXX");
-            }
             mp.setSurface(null);
             try {
                 mp.prepare();
             } catch (IOException ioe) {
                 throw new IOException("MediaPlayer failed to process stream <"+streamLoc.toString()+">: "+ioe.getMessage(), ioe);
             }
-            final int r_aid = GLMediaPlayer.STREAM_ID_NONE == aid ? GLMediaPlayer.STREAM_ID_NONE : GLMediaPlayer.STREAM_ID_AUTO;
+            final int r_aid = GLMediaPlayer.STREAM_ID_NONE == aid ? GLMediaPlayer.STREAM_ID_NONE : 1 /* fake */;
             final String icodec = "android";
-            updateAttributes(GLMediaPlayer.STREAM_ID_AUTO, r_aid, 
+            updateAttributes(0 /* fake */, r_aid, 
                              mp.getVideoWidth(), mp.getVideoHeight(), 0, 
                              0, 0, 0f, 
                              0, 0, mp.getDuration(), icodec, icodec);
@@ -243,66 +247,129 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
         // NOP
     }
     
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Returns 2 - implementation duplicates single texture
+     * </p>
+     */
+    @Override
+    protected int validateTextureCount(int desiredTextureCount) {
+        return 2;
+    }
+    
     @Override
     protected final int getNextTextureImpl(GL gl, TextureFrame nextFrame) {
         int pts = TimeFrameI.INVALID_PTS;
-        if(null != stex && null != mp) {
-            final SurfaceTextureFrame nextSFrame = (SurfaceTextureFrame) nextFrame;
-            final Surface nextSurface = nextSFrame.getSurface();
-            mp.setSurface(nextSurface);
-            nextSurface.release();
-            
-            // Only block once, no while-loop. 
-            // This relaxes locking code of non crucial resources/events.
-            boolean update = updateSurface;
-            if( !update ) {
-                synchronized(updateSurfaceLock) {
-                    if(!updateSurface) { // volatile OK.
-                        try {
-                            updateSurfaceLock.wait();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
+        if(null != mp) {
+            final SurfaceTextureFrame sTexFrame = (SurfaceTextureFrame) nextFrame;
+            final SurfaceTexture surfTex = sTexFrame.surfaceTex;
+            if( sTexFrame != singleSTexFrame ) {
+                throw new InternalError("XXX: sTexFrame: "+sTexFrame+", singleSTexFrame "+singleSTexFrame);
+            }
+            if( !sTexFrameAttached ) {
+                sTexFrameAttached = true;
+                final Surface surface = new Surface(sTexFrame.surfaceTex);
+                mp.setSurface(surface);
+                surface.release();
+                surfTex.setOnFrameAvailableListener(onFrameAvailableListener);
+            }
+            if( eos || !mp.isPlaying() ) {
+                eos = true;
+                pts = TimeFrameI.END_OF_STREAM_PTS;
+            } else {
+                // Only block once, no while-loop. 
+                // This relaxes locking code of non crucial resources/events.
+                boolean update = updateSurface;
+                if( !update ) {
+                    synchronized(updateSurfaceLock) {
+                        if(!updateSurface) { // volatile OK.
+                            try {
+                                updateSurfaceLock.wait();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
                         }
+                        update = updateSurface;
+                        updateSurface = false;
                     }
-                    update = updateSurface;
-                    updateSurface = false;
+                }
+                if(update) {
+                    surfTex.updateTexImage();
+                    // nextFrame.setPTS( (int) ( nextSTex.getTimestamp() / 1000000L ) ); // nano -9 -> milli -3
+                    pts = mp.getCurrentPosition();
+                    // stex.getTransformMatrix(atex.getSTMatrix());
                 }
             }
-            if(update) {
-                final SurfaceTexture nextSTex = nextSFrame.getSurfaceTexture(); 
-                nextSTex.updateTexImage();
-                // nextFrame.setPTS( (int) ( nextSTex.getTimestamp() / 1000000L ) ); // nano -9 -> milli -3
-                pts = mp.getCurrentPosition();
-                nextFrame.setPTS( pts );
-                // stex.getTransformMatrix(atex.getSTMatrix());
-            }
+            nextFrame.setPTS( pts );
         }
         return pts;
     }
     
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Creates only one single texture and duplicated content to 2 TextureFrames
+     * </p>
+     */
+    @Override
+    protected TextureFrame[] createTexFrames(GL gl, final int count) {
+        final int[] texNames = new int[1];
+        gl.glGenTextures(1, texNames, 0);
+        final int err = gl.glGetError();
+        if( GL.GL_NO_ERROR != err ) {
+            throw new RuntimeException("TextureNames creation failed (num: 1/"+count+"): err "+toHexString(err));
+        }
+        final TextureFrame[] texFrames = new TextureFrame[count];
+        for(int i=0; i<count; i++) {
+            texFrames[i] = createTexImage(gl, texNames[0]);
+        }
+        return texFrames;
+    }
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Returns the single texture, which is created at 1st call.
+     * </p>
+     */
     @Override
     protected final TextureSequence.TextureFrame createTexImage(GL gl, int texName) {
-        if( null != stex ) {
-            throw new InternalError("XXX");
+        sTexFrameCount++;
+        if( 1 == sTexFrameCount ) {
+            singleSTexFrame = new SurfaceTextureFrame( createTexImageImpl(gl, texName, width, height, true), new SurfaceTexture(texName) );
         }
-        stex = new SurfaceTexture(texName); // only 1 texture
-        stex.setOnFrameAvailableListener(onFrameAvailableListener);
-        return new TextureSequence.TextureFrame( createTexImageImpl(gl, texName, width, height, true) );
+        return singleSTexFrame;
     }
     
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Destroys the single texture at last call.
+     * </p>
+     */
     @Override
-    protected final void destroyTexFrame(GL gl, TextureSequence.TextureFrame imgTex) {
-        if(null != stex) {
-            stex.release();
-            stex = null;
+    protected final void destroyTexFrame(GL gl, TextureSequence.TextureFrame frame) {
+        sTexFrameCount--;
+        if( 0 == sTexFrameCount ) {
+            singleSTexFrame = null;
+            sTexFrameAttached = false;
+            final SurfaceTextureFrame sFrame = (SurfaceTextureFrame) frame;
+            sFrame.surfaceTex.release();
+            super.destroyTexFrame(gl, frame);
         }
-        super.destroyTexFrame(gl, imgTex);
     }
     
-    protected OnFrameAvailableListener onFrameAvailableListener = new OnFrameAvailableListener() {
+    private OnFrameAvailableListener onFrameAvailableListener = new OnFrameAvailableListener() {
         @Override
         public void onFrameAvailable(SurfaceTexture surfaceTexture) {
             wakeUp(true);
+        }        
+    };
+    
+    private OnCompletionListener onCompletionListener = new OnCompletionListener() {
+        @Override
+        public void onCompletion(MediaPlayer mp) {
+            eos = true;
         }        
     };
 }

@@ -153,10 +153,7 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
                    if( null != se ) {
                        se.printStackTrace();                        
                    }
-                   new Thread() {
-                       public void run() {
-                           glWindowMain.destroy();
-                       } }.start();
+                   getActivity().finish();
                }
            }
        });
@@ -203,10 +200,7 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
                                if( null != se ) {
                                    se.printStackTrace();                        
                                }
-                               new Thread() {
-                                   public void run() {
-                                       glWindowHUD.destroy();
-                                   } }.start();
+                               getActivity().finish();
                            }
                        }
                     });

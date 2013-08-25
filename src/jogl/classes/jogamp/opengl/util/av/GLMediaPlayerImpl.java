@@ -453,8 +453,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             }
             if( STREAM_ID_NONE != vid ) {
                 textureCount = validateTextureCount(reqTextureCount);
-                if( textureCount < TEXTURE_COUNT_MIN ) {
-                    throw new InternalError("Validated texture count < "+TEXTURE_COUNT_MIN+": "+textureCount);
+                if( textureCount < 2 ) {
+                    throw new InternalError("Validated texture count < 2: "+textureCount);
                 }
             } else {
                 textureCount = 0;
@@ -545,14 +545,17 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     /** 
      * Returns the validated number of textures to be handled.
      * <p>
-     * Default is {@link #TEXTURE_COUNT_MIN} textures, last texture and the decoding texture.
+     * Default is {@link #TEXTURE_COUNT_MIN} minimum textures.
+     * </p>
+     * <p>
+     * Implementation must at least return a texture count of <i>two</i>, the last texture and the decoding texture.
      * </p>
      */
     protected int validateTextureCount(int desiredTextureCount) {
         return desiredTextureCount < TEXTURE_COUNT_MIN ? TEXTURE_COUNT_MIN : desiredTextureCount;
     }
     
-    private final TextureFrame[] createTexFrames(GL gl, final int count) {
+    protected TextureFrame[] createTexFrames(GL gl, final int count) {
         final int[] texNames = new int[count];
         gl.glGenTextures(count, texNames, 0);
         final int err = gl.glGetError();
@@ -783,7 +786,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
      * Audio frames shall be ignored, if {@link #getAID()} is {@link #STREAM_ID_NONE}.
      * </p>
      * <p>
-     * Methods is invoked on the <a href="#streamworker"><i>StreamWorker</i> decoding thread</a>.
+     * Method may be invoked on the <a href="#streamworker"><i>StreamWorker</i> decoding thread</a>.
      * </p> 
      * <p>
      * Implementation shall care of OpenGL synchronization as required, e.g. glFinish()/glFlush()!

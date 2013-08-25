@@ -119,10 +119,7 @@ public class MovieCubeActivity0 extends NewtBaseActivity {
                         if( null != se ) {
                             se.printStackTrace();                        
                         }
-                        new Thread() {
-                            public void run() {
-                                glWindowMain.destroy();
-                            } }.start();
+                        getActivity().finish();
                     }
                 }            
             });        
