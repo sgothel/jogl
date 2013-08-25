@@ -118,7 +118,8 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
         final boolean res = isGLStatePreservationSupported() ? true : false;
         if( res ) {
             if( DEBUG ) {
-                System.err.println("GLAutoDrawableBase.setPreserveGLStateAtDestroy: ("+getThreadName()+"): "+preserveGLELSAtDestroy+" -> "+value+" - surfaceHandle 0x"+Long.toHexString(getNativeSurface().getSurfaceHandle()));
+                final long surfaceHandle = null != getNativeSurface() ? getNativeSurface().getSurfaceHandle() : 0;
+                System.err.println("GLAutoDrawableBase.setPreserveGLStateAtDestroy: ("+getThreadName()+"): "+preserveGLELSAtDestroy+" -> "+value+" - surfaceHandle 0x"+Long.toHexString(surfaceHandle));
             }
             preserveGLELSAtDestroy = value;
         }
@@ -200,7 +201,8 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
         GLDrawableImpl _drawable = drawable;
         if( null!=_drawable ) {
             if(DEBUG) {
-                System.err.println("GLAutoDrawableBase.sizeChanged: ("+getThreadName()+"): "+newWidth+"x"+newHeight+" - surfaceHandle 0x"+Long.toHexString(getNativeSurface().getSurfaceHandle()));
+                final long surfaceHandle = null != getNativeSurface() ? getNativeSurface().getSurfaceHandle() : 0;
+                System.err.println("GLAutoDrawableBase.sizeChanged: ("+getThreadName()+"): "+newWidth+"x"+newHeight+" - surfaceHandle 0x"+Long.toHexString(surfaceHandle));
             }
             if( ! _drawable.getChosenGLCapabilities().isOnscreen() ) {
                 final RecursiveLock _lock = getLock();
