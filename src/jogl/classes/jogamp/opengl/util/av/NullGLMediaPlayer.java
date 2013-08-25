@@ -133,11 +133,10 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     @Override
     protected final void initStreamImpl(int vid, int aid) throws IOException {
         texData = createTestTextureData();
-        final int r_aid = GLMediaPlayer.STREAM_ID_NONE == aid ? GLMediaPlayer.STREAM_ID_NONE : GLMediaPlayer.STREAM_ID_AUTO; 
         final float _fps = 24f;
         final int _duration = 10*60*1000; // msec
         final int _totalFrames = (int) ( (_duration/1000)*_fps );
-        updateAttributes(GLMediaPlayer.STREAM_ID_AUTO, r_aid, 
+        updateAttributes(0 /* fake */, GLMediaPlayer.STREAM_ID_NONE, 
                          texData.getWidth(), texData.getHeight(), 0, 
                          0, 0, _fps, 
                          _totalFrames, 0, _duration, "png-static", null);
@@ -145,6 +144,17 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     @Override
     protected final void initGLImpl(GL gl) throws IOException, GLException {
         // NOP
+    }
+    
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Returns 2
+     * </p>
+     */
+    @Override
+    protected int validateTextureCount(int desiredTextureCount) {
+        return 2;
     }
     
     @Override
