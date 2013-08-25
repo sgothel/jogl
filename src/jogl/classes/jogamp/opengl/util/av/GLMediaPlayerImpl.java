@@ -88,6 +88,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected URI streamLoc = null;
     
     protected volatile float playSpeed = 1.0f;
+    protected float audioVolume = 1.0f;
     
     /** Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
     protected int vid = GLMediaPlayer.STREAM_ID_AUTO;
@@ -362,7 +363,6 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     @Override
     public final boolean setPlaySpeed(float rate) {
         synchronized( stateLock ) {
-            final State preState = state;
             final float preSpeed = playSpeed;
             boolean res = false;
             if(State.Uninitialized != state ) {
@@ -377,7 +377,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     }
                 }
             }
-            if(DEBUG) { System.err.println("setPlaySpeed("+rate+"): "+preState+"/"+preSpeed+" -> "+state+"/"+playSpeed+", "+toString()); }
+            if(DEBUG) { System.err.println("setPlaySpeed("+rate+"): "+state+", "+preSpeed+" -> "+playSpeed+", "+toString()); }
             return res;
         }
     }
@@ -397,6 +397,51 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         return true;
     }
 
+    @Override
+    public final float getAudioVolume() {
+        getAudioVolumeImpl();
+        return audioVolume;
+    }
+    /** 
+     * Override if not using AudioSink, or AudioSink's {@link AudioSink#getVolume()} is not sufficient!
+     */
+    protected void getAudioVolumeImpl() {
+        if( null != audioSink ) {
+            audioVolume = audioSink.getVolume();
+        }
+    }
+    
+    @Override
+    public boolean setAudioVolume(float v) {
+        synchronized( stateLock ) {
+            final float preVolume = audioVolume;
+            boolean res = false;
+            if(State.Uninitialized != state ) {
+                if( Math.abs(v) < 0.01f ) {
+                    v = 0.0f;
+                } else if( Math.abs(1.0f - v) < 0.01f ) {
+                    v = 1.0f;
+                }
+                if( setAudioVolumeImpl(v) ) {
+                    audioVolume = v;
+                    res = true;
+                }
+            }
+            if(DEBUG) { System.err.println("setAudioVolume("+v+"): "+state+", "+preVolume+" -> "+audioVolume+", "+toString()); }
+            return res;
+        }
+    }
+    /** 
+     * Override if not using AudioSink, or AudioSink's {@link AudioSink#setVolume(float)} is not sufficient!
+     */
+    protected boolean setAudioVolumeImpl(float v) {
+        if( null != audioSink ) {
+            return audioSink.setVolume(v);
+        }
+        // still true, even if audioSink rejects command ..
+        return true;
+    }
+    
     @Override
     public final void initStream(URI streamLoc, int vid, int aid, int reqTextureCount) throws IllegalStateException, IllegalArgumentException {
         synchronized( stateLock ) {

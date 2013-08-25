@@ -58,7 +58,8 @@ public class ALAudioSink implements AudioSink {
 
     /** Playback speed, range [0.5 - 2.0], default 1.0. */
     private float playSpeed;
-    
+    private float volume = 1.0f;
+        
     static class ALAudioFrame extends AudioFrame {
         private final int alBuffer;
         
@@ -677,6 +678,34 @@ public class ALAudioSink implements AudioSink {
             if( 0.5f <= rate && rate <= 2.0f ) { // OpenAL limits 
                 playSpeed = rate;
                 al.alSourcef(alSource[0], AL.AL_PITCH, playSpeed);
+                return true;
+            } 
+        } finally {
+            unlockContext();
+        }
+        return false; 
+    }
+    
+    @Override
+    public final float getVolume() {
+        return volume;        
+    }
+    
+    @Override
+    public final boolean setVolume(float v) {
+        if( !initialized || null == chosenFormat ) {
+            return false;
+        }
+        lockContext();
+        try {
+            if( Math.abs(v) < 0.01f ) {
+                v = 0.0f;
+            } else if( Math.abs(1.0f - v) < 0.01f ) {
+                v = 1.0f;
+            }
+            if( 0.0f <= v && v <= 1.0f ) { // OpenAL limits 
+                volume = v;
+                al.alSourcef(alSource[0], AL.AL_GAIN, v);
                 return true;
             } 
         } finally {

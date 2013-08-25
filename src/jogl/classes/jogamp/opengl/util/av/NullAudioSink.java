@@ -14,7 +14,8 @@ public class NullAudioSink implements AudioSink {
 
     private volatile float playSpeed = 1.0f;
     private volatile boolean playRequested = false;
-    
+    private float volume = 1.0f;
+        
     @Override
     public final float getPlaySpeed() { return playSpeed; }
     
@@ -24,6 +25,19 @@ public class NullAudioSink implements AudioSink {
             rate = 1.0f;
         }
         playSpeed = rate; 
+        return true;
+    }
+    
+    @Override
+    public final float getVolume() {
+        // FIXME
+        return volume;        
+    }
+    
+    @Override
+    public final boolean setVolume(float v) {
+        // FIXME
+        volume = v;        
         return true;
     }
     

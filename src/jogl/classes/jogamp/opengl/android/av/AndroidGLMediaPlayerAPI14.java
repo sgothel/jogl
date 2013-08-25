@@ -98,6 +98,22 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
 
     @Override
     protected final boolean setPlaySpeedImpl(float rate) {
+        // FIXME
+        return false;
+    }
+
+    @Override
+    protected final boolean setAudioVolumeImpl(float v) {
+        if(null != mp) {        
+            try {
+                mp.setVolume(v, v);
+                return true;
+            } catch (IllegalStateException ise) {
+                if(DEBUG) {
+                    ise.printStackTrace();
+                }
+            }
+        }
         return false;
     }
 

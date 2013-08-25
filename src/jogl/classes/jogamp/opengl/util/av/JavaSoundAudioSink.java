@@ -36,6 +36,7 @@ public class JavaSoundAudioSink implements AudioSink {
     private AudioDataFormat chosenFormat = null;
     
     private volatile boolean playRequested = false;
+    private float volume = 1.0f;
     
     static {
         boolean ok = false;
@@ -60,6 +61,19 @@ public class JavaSoundAudioSink implements AudioSink {
     @Override
     public final boolean setPlaySpeed(float rate) { 
         return false; // FIXME 
+    }
+    
+    @Override
+    public final float getVolume() {
+        // FIXME
+        return volume;        
+    }
+    
+    @Override
+    public final boolean setVolume(float v) {
+        // FIXME
+        volume = v;
+        return true;
     }
     
     @Override

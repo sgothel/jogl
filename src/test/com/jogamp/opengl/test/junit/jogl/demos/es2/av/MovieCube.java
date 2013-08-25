@@ -150,6 +150,15 @@ public class MovieCube implements GLEventListener {
                       }
                       mPlayer.setPlaySpeed(playSpeed); 
                     } break;
+                case KeyEvent.VK_M: {
+                      float audioVolume = mPlayer.getAudioVolume();
+                      if( audioVolume > 0.5f ) {
+                          audioVolume = 0f;
+                      } else {
+                          audioVolume = 1f;
+                      }
+                      mPlayer.setAudioVolume(audioVolume); 
+                    } break;
             }
             
             if( 0 != pts1 ) {

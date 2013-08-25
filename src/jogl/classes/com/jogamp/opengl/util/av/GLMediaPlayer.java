@@ -350,15 +350,34 @@ public interface GLMediaPlayer extends TextureSequence {
     /**
      * Sets the playback speed.
      * <p>
-     * Play speed is set to <i>normal</i>, i.e. <code>1.0f</code>
-     * if <code> abs(1.0f - rate) < 0.01f</code> to simplify test.
+     * To simplify test, play speed is  <i>normalized</i>, i.e.
+     * <ul> 
+     *   <li><code>1.0f</code>: if <code> Math.abs(1.0f - rate) < 0.01f </code></li> 
+     * </ul>
      * </p>
      * @return true if successful, otherwise false, i.e. due to unsupported value range of implementation. 
      */
     public boolean setPlaySpeed(float rate);
 
+    /** Returns the playback speed. */
     public float getPlaySpeed();
 
+    /**
+     * Sets the audio volume, [0f..1f].
+     * <p>
+     * To simplify test, volume is <i>normalized</i>, i.e.
+     * <ul> 
+     *   <li><code>0.0f</code>: if <code> Math.abs(v) < 0.01f </code></li> 
+     *   <li><code>1.0f</code>: if <code> Math.abs(1.0f - v) < 0.01f </code></li> 
+     * </ul>
+     * </p>
+     * @return true if successful, otherwise false, i.e. due to unsupported value range of implementation. 
+     */
+    public boolean setAudioVolume(float v);
+    
+    /** Returns the audio volume. */
+    public float getAudioVolume();
+    
     /**
      * <a href="#lifecycle">Lifecycle</a>: {@link State#Paused} -> {@link State#Playing}
      */
