@@ -14,6 +14,9 @@ public GLES3Impl(GLProfile glp, GLContextImpl context) {
   this._isES3 = glp.getImplName() == GLProfile.GLES3;
 }
 
+public final void finalizeInit() {
+}
+
 @Override
 public final boolean isGL4bc() {
     return false;
