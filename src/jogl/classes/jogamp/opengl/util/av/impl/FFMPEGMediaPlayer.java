@@ -38,6 +38,7 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLException;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.opengl.util.TimeFrameI;
@@ -113,6 +114,9 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     private static final int AV_DEFAULT_AFRAMES = 8;
 
     // Instance data
+    private static final int avUtilMajorVersionCC;
+    private static final int avFormatMajorVersionCC;
+    private static final int avCodecMajorVersionCC;    
     private static final VersionNumber avUtilVersion;
     private static final VersionNumber avFormatVersion;
     private static final VersionNumber avCodecVersion;    
@@ -120,19 +124,33 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     
     static {
         final boolean libAVGood = FFMPEGDynamicLibraryBundleInfo.initSingleton();
+        final boolean libAVVersionGood;
         if( FFMPEGDynamicLibraryBundleInfo.libsLoaded() ) {
+            avUtilMajorVersionCC = getAvUtilMajorVersionCC0();
+            avFormatMajorVersionCC = getAvFormatMajorVersionCC0();
+            avCodecMajorVersionCC = getAvCodecMajorVersionCC0();
             avUtilVersion = getAVVersion(getAvUtilVersion0());
             avFormatVersion = getAVVersion(getAvFormatVersion0());
             avCodecVersion = getAVVersion(getAvCodecVersion0());        
-            System.err.println("LIB_AV Util  : "+avUtilVersion);
-            System.err.println("LIB_AV Format: "+avFormatVersion);
-            System.err.println("LIB_AV Codec : "+avCodecVersion);
+            System.err.println("LIB_AV Util  : "+avUtilVersion+" [cc "+avUtilMajorVersionCC+"]");
+            System.err.println("LIB_AV Format: "+avFormatVersion+" [cc "+avFormatMajorVersionCC+"]");
+            System.err.println("LIB_AV Codec : "+avCodecVersion+" [cc "+avCodecMajorVersionCC+"]");
+            libAVVersionGood = avUtilMajorVersionCC   == avUtilVersion.getMajor() &&
+                               avFormatMajorVersionCC == avFormatVersion.getMajor() &&
+                               avCodecMajorVersionCC  == avCodecVersion.getMajor();
+            if( !libAVVersionGood ) {
+                System.err.println("LIB_AV Not Matching Compile-Time / Runtime Major-Version");
+            }
         } else {
+            avUtilMajorVersionCC = 0;
+            avFormatMajorVersionCC = 0;
+            avCodecMajorVersionCC = 0;
             avUtilVersion = null;
             avFormatVersion = null;
             avCodecVersion = null;
+            libAVVersionGood = false;
         }
-        available = libAVGood ? initIDs0() : false;            
+        available = libAVGood && libAVVersionGood ? initIDs0() : false;
     }
     
     public static final boolean isAvailable() { return available; }
@@ -200,6 +218,9 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         }
     }
     
+    public static final String dev_video = "/dev/video";
+    private static final int dev_video_len = dev_video.length();
+    
     @Override
     protected final void initStreamImpl(int vid, int aid) throws IOException {
         if(0==moviePtr) {
@@ -222,7 +243,38 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         }
          // setStream(..) issues updateAttributes*(..), and defines avChosenAudioFormat, vid, aid, .. etc
         final int snoopVideoFrameCount = 0; // 10*textureCount
-        setStream0(moviePtr, streamLocS, vid, aid, snoopVideoFrameCount, preferredAudioFormat.channelCount, preferredAudioFormat.sampleRate);
+        
+        final int streamLocSLen = streamLocS.length();
+        final String inFormat;
+        final String resStreamLocS;
+        if( streamLocSLen == dev_video_len + 1 && streamLocS.startsWith(dev_video) ) {            
+            final int index = Integer.valueOf( streamLocS.substring(streamLocSLen-1) ).intValue();
+            switch(Platform.OS_TYPE) {
+            case ANDROID:
+                // ??
+            case FREEBSD:
+            case HPUX:
+            case LINUX:
+            case SUNOS:
+                resStreamLocS = streamLocS;
+                inFormat = "video4linux2";
+                break;
+            case WINDOWS:
+                resStreamLocS = String.valueOf(index);
+                inFormat = "vfwcap";
+                break;
+            case MACOS:
+            case OPENKODE:
+            default:
+                resStreamLocS = streamLocS;
+                inFormat = null;
+                break;            
+            }
+        } else {
+            resStreamLocS = streamLocS;
+            inFormat = null;            
+        }
+        setStream0(moviePtr, resStreamLocS, inFormat, vid, aid, snoopVideoFrameCount, preferredAudioFormat.channelCount, preferredAudioFormat.sampleRate);
     }
 
     @Override
@@ -530,8 +582,11 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     }
     
     private static native int getAvUtilVersion0();
+    private static native int getAvUtilMajorVersionCC0();
     private static native int getAvFormatVersion0();
+    private static native int getAvFormatMajorVersionCC0();
     private static native int getAvCodecVersion0();
+    private static native int getAvCodecMajorVersionCC0();
     private static native boolean initIDs0();
     private native long createInstance0(boolean verbose);    
     private native void destroyInstance0(long moviePtr);
@@ -555,7 +610,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * @param aChannelCount
      * @param aSampleRate
      */
-    private native void setStream0(long moviePtr, String url, int vid, int aid, int snoopVideoFrameCount, int aChannelCount, int aSampleRate);
+    private native void setStream0(long moviePtr, String url, String inFormat, int vid, int aid, int snoopVideoFrameCount, int aChannelCount, int aSampleRate);
     private native void setGLFuncs0(long moviePtr, long procAddrGLTexSubImage2D, long procAddrGLGetError, long procAddrGLFlush, long procAddrGLFinish);
 
     private native int getVideoPTS0(long moviePtr);    

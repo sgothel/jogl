@@ -30,8 +30,13 @@
 
 #include "JoglCommon.h"
 #include "ffmpeg_tool.h"
+#include <libavutil/avutil.h>
 #include <libavutil/pixdesc.h>
 #include <libavutil/samplefmt.h>
+#if LIBAVUTIL_VERSION_MAJOR < 53
+    #include <libavutil/audioconvert.h>
+    // 52: #include <libavutil/channel_layout.h>
+#endif
 #include <GL/gl.h>
 
 static const char * const ClazzNameFFMPEGMediaPlayer = "jogamp/opengl/util/av/impl/FFMPEGMediaPlayer";
@@ -111,6 +116,7 @@ typedef void (APIENTRYP AVFORMAT_FREE_CONTEXT)(AVFormatContext *s);  // 52.96.0
 typedef void (APIENTRYP AVFORMAT_CLOSE_INPUT)(AVFormatContext **s);  // 53.17.0
 typedef void (APIENTRYP AV_CLOSE_INPUT_FILE)(AVFormatContext *s);
 typedef void (APIENTRYP AV_REGISTER_ALL)(void);
+typedef AVInputFormat *(APIENTRYP AV_FIND_INPUT_FORMAT)(const char *short_name);
 typedef int (APIENTRYP AVFORMAT_OPEN_INPUT)(AVFormatContext **ps, const char *filename, AVInputFormat *fmt, AVDictionary **options);
 typedef void (APIENTRYP AV_DUMP_FORMAT)(AVFormatContext *ic, int index, const char *url, int is_output);
 typedef int (APIENTRYP AV_READ_FRAME)(AVFormatContext *s, AVPacket *pkt);
@@ -128,6 +134,7 @@ static AVFORMAT_FREE_CONTEXT sp_avformat_free_context;            // 52.96.0
 static AVFORMAT_CLOSE_INPUT sp_avformat_close_input;              // 53.17.0
 static AV_CLOSE_INPUT_FILE sp_av_close_input_file;
 static AV_REGISTER_ALL sp_av_register_all;
+static AV_FIND_INPUT_FORMAT sp_av_find_input_format;
 static AVFORMAT_OPEN_INPUT sp_avformat_open_input;
 static AV_DUMP_FORMAT sp_av_dump_format;
 static AV_READ_FRAME sp_av_read_frame;
@@ -139,9 +146,9 @@ static AVFORMAT_NETWORK_INIT sp_avformat_network_init;            // 53.13.0
 static AVFORMAT_NETWORK_DEINIT sp_avformat_network_deinit;        // 53.13.0
 static AVFORMAT_FIND_STREAM_INFO sp_avformat_find_stream_info;    // 53.3.0
 static AV_FIND_STREAM_INFO sp_av_find_stream_info;
-// count: 42
+// count: 43
 
-#define SYMBOL_COUNT 42
+#define SYMBOL_COUNT 43
 
 JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGDynamicLibraryBundleInfo_initSymbols0
   (JNIEnv *env, jclass clazz, jobject jSymbols, jint count)
@@ -196,6 +203,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGDynamicLibraryB
     sp_avformat_close_input = (AVFORMAT_CLOSE_INPUT) (intptr_t) symbols[i++];
     sp_av_close_input_file = (AV_CLOSE_INPUT_FILE) (intptr_t) symbols[i++];
     sp_av_register_all = (AV_REGISTER_ALL) (intptr_t) symbols[i++];
+    sp_av_find_input_format = (AV_FIND_INPUT_FORMAT) (intptr_t) symbols[i++];
     sp_avformat_open_input = (AVFORMAT_OPEN_INPUT) (intptr_t) symbols[i++];
     sp_av_dump_format = (AV_DUMP_FORMAT) (intptr_t) symbols[i++];
     sp_av_read_frame = (AV_READ_FRAME) (intptr_t) symbols[i++];
@@ -359,15 +367,27 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_getAvUt
   (JNIEnv *env, jclass clazz) {
     return (jint) sp_avutil_version();
 }
+JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_getAvUtilMajorVersionCC0
+  (JNIEnv *env, jclass clazz) {
+    return (jint) LIBAVUTIL_VERSION_MAJOR;
+}
 
 JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_getAvFormatVersion0
   (JNIEnv *env, jclass clazz) {
     return (jint) sp_avformat_version();
 }
+JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_getAvFormatMajorVersionCC0
+  (JNIEnv *env, jclass clazz) {
+    return (jint) LIBAVFORMAT_VERSION_MAJOR;
+}
 
 JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_getAvCodecVersion0
   (JNIEnv *env, jclass clazz) {
     return (jint) sp_avcodec_version();
+}
+JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_getAvCodecMajorVersionCC0
+  (JNIEnv *env, jclass clazz) {
+    return (jint) LIBAVCODEC_VERSION_MAJOR;
 }
 
 JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_initIDs0
@@ -468,7 +488,7 @@ static void initPTSStats(PTSStats *ptsStats);
 static int64_t evalPTS(PTSStats *ptsStats, int64_t inPTS, int64_t inDTS);
 
 JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStream0
-  (JNIEnv *env, jobject instance, jlong ptr, jstring jURL, jint vid, jint aid,
+  (JNIEnv *env, jobject instance, jlong ptr, jstring jURL, jstring jInFmtStr, jint vid, jint aid,
    jint snoopVideoFrameCount, jint aChannelCount, jint aSampleRate)
 {
     int res, i;
@@ -483,8 +503,17 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStre
     pAV->pFormatCtx = sp_avformat_alloc_context();
 
     // Open video file
+    AVInputFormat *inFmt = NULL;
+    const char *inFmtStr = NULL != jInFmtStr ? (*env)->GetStringUTFChars(env, jInFmtStr, &iscopy) : NULL;
+    if( NULL != inFmtStr ) {
+        inFmt = sp_av_find_input_format(inFmtStr);
+        if( NULL == inFmt ) {
+            fprintf(stderr, "Warning: Could not find input format '%s'\n", inFmtStr);
+        }
+        (*env)->ReleaseStringChars(env, jInFmtStr, (const jchar *)inFmtStr);
+    }
     const char *urlPath = (*env)->GetStringUTFChars(env, jURL, &iscopy);
-    res = sp_avformat_open_input(&pAV->pFormatCtx, urlPath, NULL, NULL);
+    res = sp_avformat_open_input(&pAV->pFormatCtx, urlPath, inFmt, NULL);
     if(res != 0) {
         JoglCommon_throwNewRuntimeException(env, "Couldn't open URI: %s", urlPath);
         (*env)->ReleaseStringChars(env, jURL, (const jchar *)urlPath);
@@ -610,18 +639,25 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStre
             JoglCommon_throwNewRuntimeException(env, "Couldn't open audio codec %d, %s", pAV->pACodecCtx->codec_id, pAV->acodec);
             return;
         }
-
+        if (!pAV->pACodecCtx->channel_layout) {
+            pAV->pACodecCtx->channel_layout = getDefaultAudioChannelLayout(pAV->pACodecCtx->channels);
+        }
+        if (!pAV->pACodecCtx->channel_layout) {
+            JoglCommon_throwNewRuntimeException(env, "Couldn't determine channel layout of %d channels\n", pAV->pACodecCtx->channels);
+            return;
+        }
         pAV->aSampleRate = pAV->pACodecCtx->sample_rate;
         pAV->aChannels = pAV->pACodecCtx->channels;
         pAV->aFrameSize = pAV->pACodecCtx->frame_size; // in samples per channel!
         pAV->aSampleFmt = pAV->pACodecCtx->sample_fmt;
         pAV->frames_audio = pAV->pAStream->nb_frames;
         if( pAV->verbose ) {
-            fprintf(stderr, "A channels %d, sample_rate %d, frame_size %d, frame_number %d, r_frame_rate %f, avg_frame_rate %f, nb_frames %d, \n", 
-                pAV->aChannels, pAV->aSampleRate, pAV->aFrameSize, pAV->pACodecCtx->frame_number,
+            fprintf(stderr, "A channels %d [l %d], sample_rate %d, frame_size %d, frame_number %d, r_frame_rate %f, avg_frame_rate %f, nb_frames %d, [req_chan_layout %d, req_chan %d] \n", 
+                pAV->aChannels, pAV->pACodecCtx->channel_layout, pAV->aSampleRate, pAV->aFrameSize, pAV->pACodecCtx->frame_number,
                 my_av_q2f(pAV->pAStream->r_frame_rate),
                 my_av_q2f(pAV->pAStream->avg_frame_rate),
-                pAV->pAStream->nb_frames);
+                pAV->pAStream->nb_frames,
+                pAV->pACodecCtx->request_channel_layout, pAV->pACodecCtx->request_channels);
         }
 
         if( 0 >= snoopVideoFrameCount ) {

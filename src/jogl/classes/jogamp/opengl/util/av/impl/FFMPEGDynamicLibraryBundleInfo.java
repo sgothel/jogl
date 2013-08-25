@@ -59,7 +59,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     
     private static final List<String> glueLibNames = new ArrayList<String>(); // none
     
-    private static final int symbolCount = 42;
+    private static final int symbolCount = 43;
     private static final String[] symbolNames = {
          "avcodec_version",
          "avformat_version",
@@ -98,6 +98,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "avformat_close_input",      // 53.17.0   (opt)
          "av_close_input_file",
          "av_register_all", 
+         "av_find_input_format",
          "avformat_open_input", 
          "av_dump_format", 
          "av_read_frame",
@@ -108,7 +109,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "avformat_network_init",     // 53.13.0   (opt)
          "avformat_network_deinit",   // 53.13.0   (opt)
          "avformat_find_stream_info", // 53.3.0    (opt)
-/* 42 */ "av_find_stream_info",
+/* 43 */ "av_find_stream_info",
     };
     
     // alternate symbol names

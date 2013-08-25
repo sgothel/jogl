@@ -79,8 +79,8 @@ typedef void (APIENTRYP PFNGLFINISH) (void);
 /** Constant PTS marking the end of the stream, i.e. Integer.MIN_VALUE - 1 == 0x7FFFFFFF == {@value}. Sync w/ TimeFrameI.END_OF_STREAM_PTS */
 #define END_OF_STREAM_PTS 0x7FFFFFFF
 
-/** Until 55.0.0 */
-#define AV_HAS_API_REQUEST_CHANNELS(pAV) (AV_VERSION_MAJOR(pAV->avcodecVersion) < 55)
+/** Until 55.0.0, but stopped working w/ 54 already :( */
+#define AV_HAS_API_REQUEST_CHANNELS(pAV) (AV_VERSION_MAJOR(pAV->avcodecVersion) < 54)
 
 /** Since 55.0.0 */
 #define AV_HAS_API_REFCOUNTED_FRAMES(pAV) (AV_VERSION_MAJOR(pAV->avcodecVersion) >= 55)
