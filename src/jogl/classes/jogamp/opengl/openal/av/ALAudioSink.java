@@ -161,7 +161,7 @@ public class ALAudioSink implements AudioSink {
                 
                 hasSOFTBufferSamples = al.alIsExtensionPresent(AL_SOFT_buffer_samples);
                 preferredAudioFormat = queryPreferredAudioFormat();
-                if( DEBUG | true ) {
+                if( DEBUG ) {
                     System.out.println("ALAudioSink: OpenAL Extensions:"+al.alGetString(AL.AL_EXTENSIONS));
                     System.out.println("ALAudioSink: Null device OpenAL Extensions:"+alc.alcGetString(null, ALC.ALC_EXTENSIONS));
                     System.out.println("ALAudioSink: Device "+deviceSpecifier+" OpenAL Extensions:"+alc.alcGetString(device, ALC.ALC_EXTENSIONS));
