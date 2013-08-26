@@ -29,6 +29,7 @@
 #ifndef _FFMPEG_TOOL_H
 #define _FFMPEG_TOOL_H
 
+/***
 #ifdef _WIN32
     #include <windows.h>
     // __declspec(dllimport) void __stdcall Sleep(unsigned long dwMilliseconds);
@@ -41,12 +42,14 @@
 #include <gluegen_stddef.h>
 #include <gluegen_stdint.h>
 
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libavutil/avutil.h>
+#include "libavcodec/avcodec.h"
+#include "libavformat/avformat.h"
+#include "libavutil/avutil.h"
 #if LIBAVCODEC_VERSION_MAJOR >= 54
-#include <libavresample/avresample.h>
+#include "libavresample/avresample.h"
 #endif
+
+*/
 
 #ifndef LIBAVRESAMPLE_VERSION_MAJOR
 #define LIBAVRESAMPLE_VERSION_MAJOR 0
@@ -122,6 +125,7 @@ typedef struct {
 
 
 typedef struct {
+    jobject          ffmpegMediaPlayer;
     int32_t          verbose;
 
     uint32_t         avcodecVersion;

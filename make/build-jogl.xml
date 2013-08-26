@@ -1434,7 +1434,9 @@
           <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
           <!-- FIXME: the Mixer should be moved to another library -->
           <!--include name="${rootrel.src.c}/Mixer.cpp" if="isWindows"/-->
-          <include name="${rootrel.src.c.libav}/jogamp_opengl_util_av_impl_FFMPEGMediaPlayer.c"/>
+          <include name="${rootrel.src.c.libav}/jogamp_opengl_util_av_impl_FFMPEGStaticNatives.c"/>
+          <include name="${rootrel.src.c.libav}/lavc53.lavf53.lavu51/jogamp_opengl_util_av_impl_FFMPEGv08Natives.c"/>
+          <include name="${rootrel.src.c.libav}/lavc54.lavf54.lavu52.lavr01/jogamp_opengl_util_av_impl_FFMPEGv09Natives.c"/>
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="setup.addNativeOpenMAX"/>
           <include name="${rootrel.src.c.openmax}/jogamp_opengl_util_av_impl_OMXGLMediaPlayer.c"  if="setup.addNativeOpenMAX"/>
 
@@ -1451,7 +1453,9 @@
           <include name="${rootrel.src.c}/JoglCommon.c"/>
           <include name="${rootrel.src.c}/GLDebugMessageHandler.c"/>
           <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
-          <include name="${rootrel.src.c.libav}/jogamp_opengl_util_av_impl_FFMPEGMediaPlayer.c"/>
+          <include name="${rootrel.src.c.libav}/jogamp_opengl_util_av_impl_FFMPEGStaticNatives.c"/>
+          <include name="${rootrel.src.c.libav}/lavc53.lavf53.lavu51/jogamp_opengl_util_av_impl_FFMPEGv08Natives.c"/>
+          <include name="${rootrel.src.c.libav}/lavc54.lavf54.lavu52.lavr01/jogamp_opengl_util_av_impl_FFMPEGv09Natives.c"/>
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="setup.addNativeOpenMAX"/>
           <include name="${rootrel.src.c.openmax}/jogamp_opengl_util_av_impl_OMXGLMediaPlayer.c"  if="setup.addNativeOpenMAX"/>
 
@@ -1500,8 +1504,6 @@
                 <includepath path="stub_includes/khr"/>
                 <includepath path="stub_includes/egl"/>
                 <includepath path="stub_includes/opengl"/>
-                <includepath path="stub_includes/libav/lavc53.lavf53.lavu51" /> <!-- headers required by our libav/ffmpeg MediaPlayer impl. using lavc53.lavf53.lavu51 -->
-                <!-- includepath path="stub_includes/libav/lavc54.lavf54.lavu52.lavr01" / --> <!-- headers required by our libav/ffmpeg MediaPlayer impl. using lavc54.lavf54.lavu52.lavr01 -->
                 <includepath path="stub_includes/openmax" if="setup.addNativeOpenMAX"/>
                 <includepath path="stub_includes/cg" if="setup.addNativeNVidiaCG"/>        
       
@@ -1554,7 +1556,9 @@
     <target name="c.build.jogl.prepare">
       <javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${javah.classpath}" class="jogamp.opengl.GLDebugMessageHandler" />
       <javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${javah.classpath}" class="jogamp.opengl.GLContextImpl" />
-      <javah destdir="${src.generated.c.libav}" classpath="${javah.classpath}" class="jogamp.opengl.util.av.impl.FFMPEGMediaPlayer" />
+      <javah destdir="${src.generated.c.libav}" classpath="${javah.classpath}" class="jogamp.opengl.util.av.impl.FFMPEGStaticNatives" />
+      <javah destdir="${src.generated.c.libav}" classpath="${javah.classpath}" class="jogamp.opengl.util.av.impl.FFMPEGv08Natives" />
+      <javah destdir="${src.generated.c.libav}" classpath="${javah.classpath}" class="jogamp.opengl.util.av.impl.FFMPEGv09Natives" />
       <javah destdir="${src.generated.c.openmax}" classpath="${javah.classpath}" class="jogamp.opengl.util.av.impl.OMXGLMediaPlayer" />
       <!-- Generate the waveout Mixer header -->
       <!-- FIXME: this is temporary until we move this to another workspace -->

@@ -43,6 +43,7 @@ import javax.media.opengl.GLProfile;
 import com.jogamp.common.os.DynamicLibraryBundle;
 import com.jogamp.common.os.DynamicLibraryBundleInfo;
 import com.jogamp.common.util.RunnableExecutor;
+import com.jogamp.common.util.VersionNumber;
 
 /**
  * FIXME: We need native structure access methods to deal with API changes
@@ -148,10 +149,15 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "avresample_convert",
     };
     
-    private static long[] symbolAddr;
+    private static final long[] symbolAddr = new long[symbolCount];
     private static final boolean ready;
     private static final boolean libsLoaded;
     private static final boolean avresampleLoaded;  // optional
+    static final VersionNumber avCodecVersion;    
+    static final VersionNumber avFormatVersion;
+    static final VersionNumber avUtilVersion;
+    static final VersionNumber avResampleVersion;
+    private static final FFMPEGNatives natives;
     
     static {
         // native ffmpeg media player implementation is included in jogl_desktop and jogl_mobile     
@@ -159,26 +165,51 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         boolean _ready = false;
         boolean[] _libsLoaded= { false };
         boolean[] _avresampleLoaded= { false };
+        VersionNumber[] _versions = new VersionNumber[4];
         try {
-            _ready = initSymbols(_libsLoaded, _avresampleLoaded);
+            _ready = initSymbols(_libsLoaded, _avresampleLoaded, _versions);
         } catch (Throwable t) {
             t.printStackTrace();
         }
         libsLoaded = _libsLoaded[0];
         avresampleLoaded = _avresampleLoaded[0];
-        ready = _ready;
+        avCodecVersion = _versions[0];    
+        avFormatVersion = _versions[1];
+        avUtilVersion = _versions[2];
+        avResampleVersion = _versions[3];
         if(!libsLoaded) {
             System.err.println("LIB_AV Not Available");
-        } else if(!ready) {
+            natives = null;
+            ready = false;
+        } else if(!_ready) {
             System.err.println("LIB_AV Not Matching");
+            natives = null;
+            ready = false;
+        } else {
+            if( avCodecVersion.getMajor() <= 53 && avFormatVersion.getMajor() <= 53 && avUtilVersion.getMajor() <= 51 ) {
+                // lavc53.lavf53.lavu51
+                natives = new FFMPEGv08Natives();
+            } else if( avCodecVersion.getMajor() == 54 && avFormatVersion.getMajor() <= 54 && avUtilVersion.getMajor() <= 52 ) {
+                // lavc54.lavf54.lavu52.lavr01
+                natives = new FFMPEGv09Natives();
+            } else {
+                System.err.println("LIB_AV No Version/Native-Impl Match");
+                natives = null;
+            }
+            if( null != natives ) {
+                ready = natives.initSymbols0(symbolAddr, symbolCount);
+            } else {
+                ready = false;
+            }
         }
     }
     
     static boolean libsLoaded() { return libsLoaded; }
     static boolean avResampleLoaded() { return avresampleLoaded; }
+    static FFMPEGNatives getNatives() { return natives; }
     static boolean initSingleton() { return ready; }
     
-    private static final boolean initSymbols(boolean[] libsLoaded, boolean[] avresampleLoaded) {
+    private static final boolean initSymbols(boolean[] libsLoaded, boolean[] avresampleLoaded, VersionNumber[] versions) {
         libsLoaded[0] = false;
         final DynamicLibraryBundle dl = AccessController.doPrivileged(new PrivilegedAction<DynamicLibraryBundle>() {
                                           public DynamicLibraryBundle run() {
@@ -191,15 +222,11 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
             throw new RuntimeException("FFMPEG Tool library incomplete: [ avutil "+avutilLoaded+", avformat "+avformatLoaded+", avcodec "+avcodecLoaded+"]");
         }
         avresampleLoaded[0] = dl.isToolLibLoaded(3);
-        /** Ignore .. due to optional libavresample
-        if(!dl.isToolLibComplete()) {
-            throw new RuntimeException("FFMPEG Tool libraries incomplete");
-        } */
         libsLoaded[0] = true;
+        
         if(symbolNames.length != symbolCount) {
             throw new InternalError("XXX0 "+symbolNames.length+" != "+symbolCount);
         }
-        symbolAddr = new long[symbolCount];        
         
         // optional symbol name set
         final Set<String> optionalSymbolNameSet = new HashSet<String>();
@@ -258,7 +285,12 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
                 }
             }
         }
-        return initSymbols0(symbolAddr, symbolCount) && res;
+        versions[0] = FFMPEGStaticNatives.getAVVersion(FFMPEGStaticNatives.getAvCodecVersion0(symbolAddr[0]));
+        versions[1] = FFMPEGStaticNatives.getAVVersion(FFMPEGStaticNatives.getAvFormatVersion0(symbolAddr[1]));
+        versions[2] = FFMPEGStaticNatives.getAVVersion(FFMPEGStaticNatives.getAvUtilVersion0(symbolAddr[2]));
+        versions[3] = FFMPEGStaticNatives.getAVVersion(FFMPEGStaticNatives.getAvResampleVersion0(symbolAddr[3]));
+        
+        return res;
     }
     
     protected FFMPEGDynamicLibraryBundleInfo() {
@@ -361,6 +393,4 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     public final RunnableExecutor getLibLoaderExecutor() {
         return DynamicLibraryBundle.getDefaultRunnableExecutor();
     }    
-    
-    private static native boolean initSymbols0(long[] symbols, int count);
 }

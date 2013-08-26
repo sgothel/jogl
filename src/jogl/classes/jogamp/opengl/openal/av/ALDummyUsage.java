@@ -1,7 +1,5 @@
 package jogamp.opengl.openal.av;
 
-import jogamp.opengl.util.av.impl.FFMPEGMediaPlayer;
-
 import com.jogamp.openal.AL;
 import com.jogamp.openal.JoalVersion;
 
@@ -10,7 +8,6 @@ import com.jogamp.openal.JoalVersion;
  */
 public class ALDummyUsage {
     static AL al;
-    static FFMPEGMediaPlayer.PixelFormat pfmt;
     
     public static void main(String args[]) {
         System.err.println("JOGL> Hello JOAL");

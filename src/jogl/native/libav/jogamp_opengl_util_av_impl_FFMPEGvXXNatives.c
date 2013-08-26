@@ -26,16 +26,18 @@
  * or implied, of JogAmp Community.
  */
  
-#include "jogamp_opengl_util_av_impl_FFMPEGMediaPlayer.h"
+// #define FF_FUNC(METHOD) Java_jogamp_opengl_util_av_impl_FFMPEGv08 ## METHOD
 
 #include "JoglCommon.h"
 #include "ffmpeg_tool.h"
-#include <libavutil/pixdesc.h>
-#include <libavutil/samplefmt.h>
+/**
+#include "libavutil/pixdesc.h"
+#include "libavutil/samplefmt.h"
 #if LIBAVUTIL_VERSION_MAJOR < 53
-    #include <libavutil/audioconvert.h>
-    // 52: #include <libavutil/channel_layout.h>
+    #include "libavutil/audioconvert.h"
+    // 52: #include "libavutil/channel_layout.h"
 #endif
+*/
 #include <GL/gl.h>
 
 static const char * const ClazzNameFFMPEGMediaPlayer = "jogamp/opengl/util/av/impl/FFMPEGMediaPlayer";
@@ -170,14 +172,14 @@ static AVRESAMPLE_CONVERT sp_avresample_convert;
 
 #define SYMBOL_COUNT 51
 
-JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGDynamicLibraryBundleInfo_initSymbols0
-  (JNIEnv *env, jclass clazz, jobject jSymbols, jint count)
+JNIEXPORT jboolean JNICALL FF_FUNC(initSymbols0)
+  (JNIEnv *env, jobject instance, jobject jSymbols, jint count)
 {
     int64_t* symbols; // jlong -> int64_t -> intptr_t -> FUNC_PTR
     int i;
 
     if(SYMBOL_COUNT != count) {
-        fprintf(stderr, "FFMPEGDynamicLibraryBundleInfo.initSymbols0: Wrong symbol count: Expected %d, Is %d\n", 
+        fprintf(stderr, "FFMPEGNatives.initSymbols0: Wrong symbol count: Expected %d, Is %d\n", 
                 SYMBOL_COUNT, count);
         return JNI_FALSE;
     }
@@ -251,7 +253,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGDynamicLibraryB
 
     if(SYMBOL_COUNT != i) {
         // boom
-        fprintf(stderr, "FFMPEGDynamicLibraryBundleInfo.initSymbols0: Wrong symbol assignment count: Expected %d, Is %d\n", 
+        fprintf(stderr, "FFMPEGNatives.initSymbols0: Wrong symbol assignment count: Expected %d, Is %d\n", 
                 SYMBOL_COUNT, i);
         return JNI_FALSE;
     }
@@ -259,9 +261,9 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGDynamicLibraryB
     return JNI_TRUE;
 }
 
-static int _isAudioFormatSupported(JNIEnv *env, jobject instance, enum AVSampleFormat aSampleFmt, int32_t aSampleRate, int32_t aChannels)
+static int _isAudioFormatSupported(JNIEnv *env, jobject ffmpegMediaPlayer, enum AVSampleFormat aSampleFmt, int32_t aSampleRate, int32_t aChannels)
 {
-    return JNI_TRUE == (*env)->CallBooleanMethod(env, instance, jni_mid_isAudioFormatSupported, aSampleFmt, aSampleRate, aChannels);
+    return JNI_TRUE == (*env)->CallBooleanMethod(env, ffmpegMediaPlayer, jni_mid_isAudioFormatSupported, aSampleFmt, aSampleRate, aChannels);
 }
 static void _updateJavaAttributes(JNIEnv *env, jobject instance, FFMPEGToolBasicAV_t* pAV)
 {
@@ -276,13 +278,13 @@ static void _updateJavaAttributes(JNIEnv *env, jobject instance, FFMPEGToolBasic
             w = 0;                      h = 0;
         }
 
-        (*env)->CallVoidMethod(env, instance, jni_mid_updateAttributes2,
+        (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, jni_mid_updateAttributes2,
                                pAV->vPixFmt, pAV->vBufferPlanes, 
                                pAV->vBitsPerPixel, pAV->vBytesPerPixelPerPlane,
                                pAV->vLinesize[0], pAV->vLinesize[1], pAV->vLinesize[2],
                                pAV->vTexWidth[0], pAV->vTexWidth[1], pAV->vTexWidth[2], h,
                                pAV->aSampleFmtOut, pAV->aSampleRateOut, pAV->aChannelsOut, pAV->aFrameSize);
-        (*env)->CallVoidMethod(env, instance, jni_mid_updateAttributes1,
+        (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, jni_mid_updateAttributes1,
                                pAV->vid, pAV->aid,
                                w, h, 
                                pAV->bps_stream, pAV->bps_video, pAV->bps_audio,
@@ -366,6 +368,10 @@ static void freeInstance(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
             }
             pAV->pFormatCtx = NULL;
         }
+        if( NULL != pAV->ffmpegMediaPlayer ) {
+            (*env)->DeleteGlobalRef(env, pAV->ffmpegMediaPlayer);
+            pAV->ffmpegMediaPlayer = NULL;
+        }
         free(pAV);
     }
 }
@@ -407,48 +413,28 @@ static enum PixelFormat my_get_format(struct AVCodecContext *s, const enum Pixel
 }
 #endif
 
-JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_getAvUtilVersion0
-  (JNIEnv *env, jclass clazz) {
-    return (jint) sp_avutil_version();
-}
-JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_getAvUtilMajorVersionCC0
-  (JNIEnv *env, jclass clazz) {
+JNIEXPORT jint JNICALL FF_FUNC(getAvUtilMajorVersionCC0)
+  (JNIEnv *env, jobject instance) {
     return (jint) LIBAVUTIL_VERSION_MAJOR;
 }
 
-JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_getAvFormatVersion0
-  (JNIEnv *env, jclass clazz) {
-    return (jint) sp_avformat_version();
-}
-JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_getAvFormatMajorVersionCC0
-  (JNIEnv *env, jclass clazz) {
+JNIEXPORT jint JNICALL FF_FUNC(getAvFormatMajorVersionCC0)
+  (JNIEnv *env, jobject instance) {
     return (jint) LIBAVFORMAT_VERSION_MAJOR;
 }
 
-JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_getAvCodecVersion0
-  (JNIEnv *env, jclass clazz) {
-    return (jint) sp_avcodec_version();
-}
-JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_getAvCodecMajorVersionCC0
-  (JNIEnv *env, jclass clazz) {
+JNIEXPORT jint JNICALL FF_FUNC(getAvCodecMajorVersionCC0)
+  (JNIEnv *env, jobject instance) {
     return (jint) LIBAVCODEC_VERSION_MAJOR;
 }
 
-JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_getAvResampleVersion0
-  (JNIEnv *env, jclass clazz) {
-    if(HAS_FUNC(sp_avresample_version)) {
-        return (jint) sp_avresample_version();
-    } else {
-        return 0;
-    }
-}
-JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_getAvResampleMajorVersionCC0
-  (JNIEnv *env, jclass clazz) {
+JNIEXPORT jint JNICALL FF_FUNC(getAvResampleMajorVersionCC0)
+  (JNIEnv *env, jobject instance) {
     return (jint) LIBAVRESAMPLE_VERSION_MAJOR;
 }
 
-JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_initIDs0
-  (JNIEnv *env, jclass clazz)
+JNIEXPORT jboolean JNICALL FF_FUNC(initIDs0)
+  (JNIEnv *env, jobject instance)
 {
     JoglCommon_init(env);
 
@@ -481,8 +467,8 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_ini
     return JNI_TRUE;
 }
 
-JNIEXPORT jlong JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_createInstance0
-  (JNIEnv *env, jobject instance, jboolean verbose)
+JNIEXPORT jlong JNICALL FF_FUNC(createInstance0)
+  (JNIEnv *env, jobject instance, jobject ffmpegMediaPlayer, jboolean verbose)
 {
     FFMPEGToolBasicAV_t * pAV = calloc(1, sizeof(FFMPEGToolBasicAV_t));
     if(NULL==pAV) {
@@ -515,6 +501,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_create
         sp_avformat_network_init();
     }
 
+    pAV->ffmpegMediaPlayer = (*env)->NewGlobalRef(env, ffmpegMediaPlayer);
     pAV->verbose = verbose;
     pAV->vid=AV_STREAM_ID_AUTO;
     pAV->aid=AV_STREAM_ID_AUTO;
@@ -522,7 +509,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_create
     return (jlong) (intptr_t) pAV;
 }
 
-JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_destroyInstance0
+JNIEXPORT void JNICALL FF_FUNC(destroyInstance0)
   (JNIEnv *env, jobject instance, jlong ptr)
 {
   FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
@@ -549,7 +536,7 @@ static uint64_t getDefaultAudioChannelLayout(int channelCount) {
 static void initPTSStats(PTSStats *ptsStats);
 static int64_t evalPTS(PTSStats *ptsStats, int64_t inPTS, int64_t inDTS);
 
-JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStream0
+JNIEXPORT void JNICALL FF_FUNC(setStream0)
   (JNIEnv *env, jobject instance, jlong ptr, jstring jURL, jstring jInFmtStr, jint vid, jint aid,
    jint aMaxChannelCount, jint aPrefSampleRate)
 {
@@ -716,7 +703,7 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStre
         pAV->aFrameSize = pAV->pACodecCtx->frame_size; // in samples per channel!
         pAV->aSampleFmt = pAV->pACodecCtx->sample_fmt;
         pAV->frames_audio = pAV->pAStream->nb_frames;
-        pAV->aSinkSupport = _isAudioFormatSupported(env, instance, pAV->aSampleFmt, pAV->aSampleRate, pAV->aChannels);
+        pAV->aSinkSupport = _isAudioFormatSupported(env, pAV->ffmpegMediaPlayer, pAV->aSampleFmt, pAV->aSampleRate, pAV->aChannels);
         if( pAV->verbose ) {
             fprintf(stderr, "A channels %d [l %d], sample_rate %d, frame_size %d, frame_number %d, r_frame_rate %f, avg_frame_rate %f, nb_frames %d, [maxChan %d, prefRate %d, req_chan_layout %d, req_chan %d], sink-support %d \n", 
                 pAV->aChannels, pAV->pACodecCtx->channel_layout, pAV->aSampleRate, pAV->aFrameSize, pAV->pACodecCtx->frame_number,
@@ -746,11 +733,11 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStre
             int32_t aSampleRateOut;
             int32_t minChannelCount = MIN_INT(aMaxChannelCount,pAV->pACodecCtx->channels);
             
-            if( _isAudioFormatSupported(env, instance, aSampleFmtOut, aPrefSampleRate, pAV->pACodecCtx->channels) ) {
+            if( _isAudioFormatSupported(env, pAV->ffmpegMediaPlayer, aSampleFmtOut, aPrefSampleRate, pAV->pACodecCtx->channels) ) {
                 aChannelsOut = pAV->pACodecCtx->channels;
                 aSampleRateOut = aPrefSampleRate;
                 aSinkSupport = 1;
-            } else if( _isAudioFormatSupported(env, instance, aSampleFmtOut, aPrefSampleRate, minChannelCount) ) {
+            } else if( _isAudioFormatSupported(env, pAV->ffmpegMediaPlayer, aSampleFmtOut, aPrefSampleRate, minChannelCount) ) {
                 aChannelsOut = minChannelCount;
                 aSampleRateOut = aPrefSampleRate;
                 aSinkSupport = 1;
@@ -898,7 +885,7 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStre
     _updateJavaAttributes(env, instance, pAV);
 }
 
-JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setGLFuncs0
+JNIEXPORT void JNICALL FF_FUNC(setGLFuncs0)
   (JNIEnv *env, jobject instance, jlong ptr, jlong jProcAddrGLTexSubImage2D, jlong jProcAddrGLGetError, jlong jProcAddrGLFlush, jlong jProcAddrGLFinish)
 {
     FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
@@ -916,7 +903,7 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setGLFu
 #define DBG_TEXSUBIMG2D_b(p)
 #endif
 
-JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNextPacket0
+JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
   (JNIEnv *env, jobject instance, jlong ptr, jint texTarget, jint texFmt, jint texType)
 {
     FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
@@ -961,7 +948,7 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                     #if 0
                     len1 = sp_avcodec_decode_audio3(pAV->pACodecCtx, int16_t *samples, int *frame_size_ptr, &frameDecoded, &packet);
                     #endif
-                    JoglCommon_throwNewRuntimeException(env, "Unimplemented: FFMPEGMediaPlayer sp_avcodec_decode_audio3 fallback");
+                    JoglCommon_throwNewRuntimeException(env, "Unimplemented: FFMPEGNatives sp_avcodec_decode_audio3 fallback");
                     return 0;
                 }
                 if (len1 < 0) {
@@ -1066,7 +1053,7 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                                 pNIOBufferCurrent->origPtr, pNIOBufferCurrent->nioRef, pNIOBufferCurrent->size);
                         }
                     }
-                    (*env)->CallVoidMethod(env, instance, jni_mid_pushSound, pNIOBufferCurrent->nioRef, data_size, pAV->aPTS);
+                    (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, jni_mid_pushSound, pNIOBufferCurrent->nioRef, data_size, pAV->aPTS);
                 }
             }
         } else if(packet.stream_index==pAV->vid) {
@@ -1197,20 +1184,20 @@ static int64_t evalPTS(PTSStats *ptsStats, int64_t inPTS, int64_t inDTS) {
 }           
 
 
-JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_play0
+JNIEXPORT jint JNICALL FF_FUNC(play0)
   (JNIEnv *env, jobject instance, jlong ptr)
 {
     FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
     return sp_av_read_play(pAV->pFormatCtx);
 }
-JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_pause0
+JNIEXPORT jint JNICALL FF_FUNC(pause0)
   (JNIEnv *env, jobject instance, jlong ptr)
 {
     FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
     return sp_av_read_pause(pAV->pFormatCtx);
 }
 
-JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_seek0
+JNIEXPORT jint JNICALL FF_FUNC(seek0)
   (JNIEnv *env, jobject instance, jlong ptr, jint pos1)
 {
     const FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
@@ -1267,14 +1254,14 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_seek0
     return rPTS;
 }
 
-JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_getVideoPTS0
+JNIEXPORT jint JNICALL FF_FUNC(getVideoPTS0)
   (JNIEnv *env, jobject instance, jlong ptr)
 {
     FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
     return pAV->vPTS;
 }
 
-JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_getAudioPTS0
+JNIEXPORT jint JNICALL FF_FUNC(getAudioPTS0)
   (JNIEnv *env, jobject instance, jlong ptr)
 {
     FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
