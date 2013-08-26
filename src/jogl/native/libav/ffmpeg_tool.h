@@ -43,6 +43,15 @@
 
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#include <libavutil/avutil.h>
+#if LIBAVCODEC_VERSION_MAJOR >= 54
+#include <libavresample/avresample.h>
+#endif
+
+#ifndef LIBAVRESAMPLE_VERSION_MAJOR
+#define LIBAVRESAMPLE_VERSION_MAJOR 0
+typedef void* AVAudioResampleContext;
+#endif
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -85,6 +94,12 @@ typedef void (APIENTRYP PFNGLFINISH) (void);
 /** Since 55.0.0 */
 #define AV_HAS_API_REFCOUNTED_FRAMES(pAV) (AV_VERSION_MAJOR(pAV->avcodecVersion) >= 55)
 
+/** Since 54.0.0.1 */
+#define AV_HAS_API_AVRESAMPLE(pAV) (AV_VERSION_MAJOR(pAV->avresampleVersion) >= 1)
+
+#define MAX_INT(a,b) ( (a >= b) ? a : b )
+#define MIN_INT(a,b) ( (a <= b) ? a : b )
+
 static inline float my_av_q2f(AVRational a){
     return a.num / (float) a.den;
 }
@@ -112,6 +127,7 @@ typedef struct {
     uint32_t         avcodecVersion;
     uint32_t         avformatVersion;
     uint32_t         avutilVersion;
+    uint32_t         avresampleVersion;
 
     int32_t          useRefCountedFrames;
 
@@ -144,10 +160,16 @@ typedef struct {
     NIOBuffer_t*     pANIOBuffers;
     int32_t          aFrameCount;
     int32_t          aFrameCurrent;
-    int32_t          aSampleRate;
-    int32_t          aChannels;
     int32_t          aFrameSize; // in samples per channel!
     enum AVSampleFormat aSampleFmt; // native decoder fmt
+    int32_t          aSampleRate;
+    int32_t          aChannels;
+    int32_t          aSinkSupport; // supported by AudioSink
+    AVAudioResampleContext *aResampleCtx;
+    uint8_t*         aResampleBuffer;
+    enum AVSampleFormat aSampleFmtOut; // out fmt
+    int32_t          aChannelsOut;
+    int32_t          aSampleRateOut;
     int32_t          aPTS;       // msec - overall last audio PTS
     PTSStats         aPTSStats;
     int32_t          aFramesPerVideoFrame; // is 'snooped'

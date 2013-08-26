@@ -44,8 +44,7 @@ import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.opengl.util.TimeFrameI;
 import com.jogamp.opengl.util.GLPixelStorageModes;
 import com.jogamp.opengl.util.av.AudioSink;
-import com.jogamp.opengl.util.av.AudioSink.AudioDataFormat;
-import com.jogamp.opengl.util.av.AudioSink.AudioDataType;
+import com.jogamp.opengl.util.av.AudioSink.AudioFormat;
 import com.jogamp.opengl.util.av.AudioSinkFactory;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.texture.Texture;
@@ -117,9 +116,11 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     private static final int avUtilMajorVersionCC;
     private static final int avFormatMajorVersionCC;
     private static final int avCodecMajorVersionCC;    
+    private static final int avResampleMajorVersionCC;    
     private static final VersionNumber avUtilVersion;
     private static final VersionNumber avFormatVersion;
     private static final VersionNumber avCodecVersion;    
+    private static final VersionNumber avResampleVersion;    
     private static final boolean available;
     
     static {
@@ -129,15 +130,19 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             avUtilMajorVersionCC = getAvUtilMajorVersionCC0();
             avFormatMajorVersionCC = getAvFormatMajorVersionCC0();
             avCodecMajorVersionCC = getAvCodecMajorVersionCC0();
+            avResampleMajorVersionCC = getAvResampleMajorVersionCC0();
             avUtilVersion = getAVVersion(getAvUtilVersion0());
             avFormatVersion = getAVVersion(getAvFormatVersion0());
             avCodecVersion = getAVVersion(getAvCodecVersion0());        
-            System.err.println("LIB_AV Util  : "+avUtilVersion+" [cc "+avUtilMajorVersionCC+"]");
-            System.err.println("LIB_AV Format: "+avFormatVersion+" [cc "+avFormatMajorVersionCC+"]");
-            System.err.println("LIB_AV Codec : "+avCodecVersion+" [cc "+avCodecMajorVersionCC+"]");
+            avResampleVersion = getAVVersion(getAvResampleVersion0());        
+            System.err.println("LIB_AV Util    : "+avUtilVersion+" [cc "+avUtilMajorVersionCC+"]");
+            System.err.println("LIB_AV Format  : "+avFormatVersion+" [cc "+avFormatMajorVersionCC+"]");
+            System.err.println("LIB_AV Codec   : "+avCodecVersion+" [cc "+avCodecMajorVersionCC+"]");
+            System.err.println("LIB_AV Resample: "+avResampleVersion+" [cc "+avResampleMajorVersionCC+"]");
             libAVVersionGood = avUtilMajorVersionCC   == avUtilVersion.getMajor() &&
                                avFormatMajorVersionCC == avFormatVersion.getMajor() &&
-                               avCodecMajorVersionCC  == avCodecVersion.getMajor();
+                               avCodecMajorVersionCC  == avCodecVersion.getMajor() &&
+                               avResampleMajorVersionCC  == avResampleVersion.getMajor();
             if( !libAVVersionGood ) {
                 System.err.println("LIB_AV Not Matching Compile-Time / Runtime Major-Version");
             }
@@ -145,9 +150,11 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             avUtilMajorVersionCC = 0;
             avFormatMajorVersionCC = 0;
             avCodecMajorVersionCC = 0;
+            avResampleMajorVersionCC = 0;
             avUtilVersion = null;
             avFormatVersion = null;
             avCodecVersion = null;
+            avResampleVersion = null;
             libAVVersionGood = false;
         }
         available = libAVGood && libAVVersionGood ? initIDs0() : false;
@@ -185,9 +192,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     // Audio
     //
     
-    private SampleFormat aSampleFmt = null;
-    private AudioSink.AudioDataFormat avChosenAudioFormat;
-    private AudioSink.AudioDataFormat sinkChosenAudioFormat;
+    private AudioSink.AudioFormat avChosenAudioFormat;
     private int audioSamplesPerFrameAndChannel = 0;
     
     public FFMPEGMediaPlayer() {
@@ -237,7 +242,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         } else {
             audioSink = AudioSinkFactory.createDefault();
         }
-        final AudioDataFormat preferredAudioFormat = audioSink.getPreferredFormat();
+        final AudioFormat preferredAudioFormat = audioSink.getPreferredFormat();
         if(DEBUG) {
             System.err.println("initStream: p2 preferred "+preferredAudioFormat+", "+this);
         }
@@ -274,7 +279,9 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             resStreamLocS = streamLocS;
             inFormat = null;            
         }
-        setStream0(moviePtr, resStreamLocS, inFormat, vid, aid, snoopVideoFrameCount, preferredAudioFormat.channelCount, preferredAudioFormat.sampleRate);
+        final int aMaxChannelCount = audioSink.getMaxSupportedChannels();
+        final int aPrefSampleRate = preferredAudioFormat.sampleRate;
+        setStream0(moviePtr, resStreamLocS, inFormat, vid, aid, snoopVideoFrameCount, aMaxChannelCount, aPrefSampleRate);
     }
 
     @Override
@@ -308,20 +315,20 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         } else {
             frameDuration = AudioSink.DefaultFrameDuration;
         }
-        
-        sinkChosenAudioFormat = audioSink.init(avChosenAudioFormat, frameDuration, AudioSink.DefaultInitialQueueSize, AudioSink.DefaultQueueGrowAmount, audioQueueLimit);
         if(DEBUG) {
-            System.err.println("initGL: p3 avChosen "+avChosenAudioFormat+", chosen "+sinkChosenAudioFormat);
+            System.err.println("initGL: p3 avChosen "+avChosenAudioFormat);
         }
-        if( null == sinkChosenAudioFormat ) {
+        
+        final boolean audioSinkOK = audioSink.init(avChosenAudioFormat, frameDuration, AudioSink.DefaultInitialQueueSize, AudioSink.DefaultQueueGrowAmount, audioQueueLimit);
+        if( !audioSinkOK ) {
             System.err.println("AudioSink "+audioSink.getClass().getName()+" does not support "+avChosenAudioFormat+", using Null");
             audioSink.destroy();
             audioSink = AudioSinkFactory.createNull();
-            sinkChosenAudioFormat = audioSink.init(avChosenAudioFormat, 0, AudioSink.DefaultInitialQueueSize, AudioSink.DefaultQueueGrowAmount, audioQueueLimit);
+            audioSink.init(avChosenAudioFormat, 0, AudioSink.DefaultInitialQueueSize, AudioSink.DefaultQueueGrowAmount, audioQueueLimit);
         }
         if(DEBUG) {
-            System.err.println("initGL: p4 chosen "+sinkChosenAudioFormat);
-            System.err.println("initGL: "+audioSink);
+            System.err.println("initGL: p4 chosen "+avChosenAudioFormat);
+            System.err.println("initGL: p4 chosen "+audioSink);
         }
         
         if( null != gl ) {
@@ -347,6 +354,84 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     @Override
     protected final TextureFrame createTexImage(GL gl, int texName) {
         return new TextureFrame( createTexImageImpl(gl, texName, texWidth, texHeight, true) );
+    }
+    
+    /**
+     * @param sampleRate sample rate in Hz (1/s)
+     * @param sampleSize sample size in bits
+     * @param channelCount number of channels
+     * @param signed true if signed number, false for unsigned
+     * @param fixedP true for fixed point value, false for unsigned floating point value with a sampleSize of 32 (float) or 64 (double)
+     * @param planar true for planar data package (each channel in own data buffer), false for packed data channels interleaved in one buffer.
+     * @param littleEndian true for little-endian, false for big endian
+     * @return
+     */
+    
+    /**
+     * Converts the given libav/ffmpeg values to {@link AudioFormat} and returns {@link AudioSink#isSupported(AudioFormat)}. 
+     * @param audioSampleFmt ffmpeg/libav audio-sample-format, see {@link SampleFormat}.
+     * @param audioSampleRate sample rate in Hz (1/s)
+     * @param audioChannels number of channels
+     */
+    private final boolean isAudioFormatSupported(int audioSampleFmt, int audioSampleRate, int audioChannels) {
+        final AudioFormat audioFormat = avAudioFormat2Local(SampleFormat.valueOf(audioSampleFmt), audioSampleRate, audioChannels);
+        final boolean res = audioSink.isSupported(audioFormat);
+        if( DEBUG ) {
+            System.err.println("AudioSink.isSupported: "+res+": "+audioFormat);
+        }
+        return res;
+    }
+    
+    /**
+     * Returns {@link AudioFormat} as converted from the given libav/ffmpeg values. 
+     * @param audioSampleFmt ffmpeg/libav audio-sample-format, see {@link SampleFormat}.
+     * @param audioSampleRate sample rate in Hz (1/s)
+     * @param audioChannels number of channels
+     */
+    private final AudioFormat avAudioFormat2Local(SampleFormat audioSampleFmt, int audioSampleRate, int audioChannels) {
+        final int sampleSize;
+        boolean planar = true;
+        final boolean signed, fixedP;
+        switch( audioSampleFmt ) {
+            case S32:
+                planar = false;
+            case S32P:
+                sampleSize = 32;
+                signed = true;
+                fixedP = true;
+                break;
+            case S16:
+                planar = false;
+            case S16P:
+                sampleSize = 16;
+                signed = true;
+                fixedP = true;
+                break;
+            case U8:
+                planar = false;
+            case U8P:
+                sampleSize = 8;
+                signed = false;
+                fixedP = true;
+                break;
+            case DBL:
+                planar = false;
+            case DBLP:
+                sampleSize = 64;
+                signed = true;
+                fixedP = true;
+                break;
+            case FLT:
+                planar = false;
+            case FLTP:
+                sampleSize = 32;
+                signed = true;
+                fixedP = true;
+                break;
+            default: // FIXME: Add more formats !
+                throw new IllegalArgumentException("Unsupported sampleformat: "+audioSampleFmt);
+        }
+        return new AudioFormat(audioSampleRate, sampleSize, audioChannels, signed, fixedP, planar, true /* littleEndian */);
     }
     
     /**
@@ -400,44 +485,9 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             default: // FIXME: Add more formats !
                 throw new RuntimeException("Unsupported pixelformat: "+vPixelFmt);
         }
-        aSampleFmt = SampleFormat.valueOf(audioSampleFmt);
-        final int sampleSize;
-        final boolean signed, fixedP;
-        switch( aSampleFmt ) {
-            case S32:
-            case S32P:
-                sampleSize = 32;
-                signed = true;
-                fixedP = true;
-                break;
-            case S16:
-            case S16P:
-                sampleSize = 16;
-                signed = true;
-                fixedP = true;
-                break;
-            case U8:
-            case U8P:
-                sampleSize = 8;
-                signed = false;
-                fixedP = true;
-                break;
-            case DBL:
-            case DBLP:
-                sampleSize = 64;
-                signed = true;
-                fixedP = true;
-                break;
-            case FLT:
-            case FLTP:
-                sampleSize = 32;
-                signed = true;
-                fixedP = true;
-                break;
-            default: // FIXME: Add more formats !
-                throw new RuntimeException("Unsupported sampleformat: "+aSampleFmt);
-        }
-        avChosenAudioFormat = new AudioDataFormat(AudioDataType.PCM, audioSampleRate, sampleSize, audioChannels, signed, fixedP, true /* littleEndian */);  
+        final SampleFormat aSampleFmt = SampleFormat.valueOf(audioSampleFmt);
+        avChosenAudioFormat = avAudioFormat2Local(aSampleFmt, audioSampleRate, audioChannels);
+
         this.audioSamplesPerFrameAndChannel = audioSamplesPerFrameAndChannel;
         
         if(DEBUG) {
@@ -587,6 +637,8 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     private static native int getAvFormatMajorVersionCC0();
     private static native int getAvCodecVersion0();
     private static native int getAvCodecMajorVersionCC0();
+    private static native int getAvResampleVersion0();
+    private static native int getAvResampleMajorVersionCC0();
     private static native boolean initIDs0();
     private native long createInstance0(boolean verbose);    
     private native void destroyInstance0(long moviePtr);
@@ -595,7 +647,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * Issues {@link #updateAttributes(int, int, int, int, int, int, int, float, int, int, String, String)}
      * and {@link #updateAttributes2(int, int, int, int, int, int, int, int, int, int)}.
      * <p>
-     * Always uses {@link AudioSink.AudioDataFormat}:
+     * Always uses {@link AudioSink.AudioFormat}:
      * <pre>
      *   [type PCM, sampleRate [10000(?)..44100..48000], sampleSize 16, channelCount 1-2, signed, littleEndian]
      * </pre>
@@ -607,10 +659,10 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * @param aid
      * @param snoopVideoFrameCount snoop this number of video-frames to gather audio-frame-count per video-frame. 
      *        If zero, gathering audio-frame-count is disabled!   
-     * @param aChannelCount
-     * @param aSampleRate
+     * @param aPrefChannelCount
+     * @param aPrefSampleRate
      */
-    private native void setStream0(long moviePtr, String url, String inFormat, int vid, int aid, int snoopVideoFrameCount, int aChannelCount, int aSampleRate);
+    private native void setStream0(long moviePtr, String url, String inFormat, int vid, int aid, int snoopVideoFrameCount, int aMaxChannelCount, int aPrefSampleRate);
     private native void setGLFuncs0(long moviePtr, long procAddrGLTexSubImage2D, long procAddrGLGetError, long procAddrGLFlush, long procAddrGLFinish);
 
     private native int getVideoPTS0(long moviePtr);    
@@ -627,6 +679,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     private native int pause0(long moviePtr);
     private native int seek0(long moviePtr, int position);
     
+    /** FFMPEG/libAV Audio Sample Format */
     public static enum SampleFormat {
         // NONE = -1,
         U8,          ///< unsigned 8 bits
@@ -653,6 +706,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         }
     };
 
+    /** FFMPEG/libAV Pixel Format */
     public static enum PixelFormat {
         // NONE= -1,
         YUV420P,   ///< planar YUV 4:2:0, 12bpp, (1 Cr & Cb sample per 2x2 Y samples)
