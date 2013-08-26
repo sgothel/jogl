@@ -1501,7 +1501,7 @@
                 <includepath path="stub_includes/egl"/>
                 <includepath path="stub_includes/opengl"/>
                 <includepath path="stub_includes/libav/lavc53.lavf53.lavu51" /> <!-- headers required by our libav/ffmpeg MediaPlayer impl. using lavc53.lavf53.lavu51 -->
-                <!--includepath path="stub_includes/libav/lavc54.lavf54.lavu52" /--> <!-- headers required by our libav/ffmpeg MediaPlayer impl. using lavc54.lavf54.lavu52 -->
+                <!-- includepath path="stub_includes/libav/lavc54.lavf54.lavu52.lavr01" / --> <!-- headers required by our libav/ffmpeg MediaPlayer impl. using lavc54.lavf54.lavu52.lavr01 -->
                 <includepath path="stub_includes/openmax" if="setup.addNativeOpenMAX"/>
                 <includepath path="stub_includes/cg" if="setup.addNativeNVidiaCG"/>        
       
