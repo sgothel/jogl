@@ -39,7 +39,9 @@ import com.jogamp.openal.AL;
 import com.jogamp.openal.ALC;
 import com.jogamp.openal.ALCcontext;
 import com.jogamp.openal.ALCdevice;
+import com.jogamp.openal.ALExt;
 import com.jogamp.openal.ALFactory;
+import com.jogamp.openal.util.ALHelpers;
 import com.jogamp.opengl.util.av.AudioSink;
 
 /***
@@ -47,12 +49,16 @@ import com.jogamp.opengl.util.av.AudioSink;
  */
 public class ALAudioSink implements AudioSink {
 
+    private static final String AL_SOFT_buffer_samples = "AL_SOFT_buffer_samples";
     private static final ALC alc;
     private static final AL al;
+    private static final ALExt alExt;
     private static final boolean staticAvailable;    
     
     private String deviceSpecifier;
     private ALCdevice device;
+    private boolean hasSOFTBufferSamples;
+    private AudioFormat preferredAudioFormat; 
     private ALCcontext context;
     private final RecursiveLock lock = LockFactory.createRecursiveLock();
 
@@ -91,8 +97,10 @@ public class ALAudioSink implements AudioSink {
     private volatile int enqueuedFrameCount;
 
     private int[] alSource = null;
-    private AudioDataFormat chosenFormat;
-    private int alFormat;    
+    private AudioFormat chosenFormat;
+    private int alChannelLayout;
+    private int alSampleType;
+    private int alFormat;
     private boolean initialized;
     
     private volatile boolean playRequested = false;
@@ -100,9 +108,11 @@ public class ALAudioSink implements AudioSink {
     static {
         ALC _alc = null;
         AL _al = null;
+        ALExt _alExt = null;
         try {
             _alc = ALFactory.getALC();            
             _al = ALFactory.getAL();
+            _alExt = ALFactory.getALExt();
         } catch(Throwable t) {
             if( DEBUG ) {
                 System.err.println("ALAudioSink: Catched "+t.getClass().getName()+": "+t.getMessage());
@@ -111,7 +121,8 @@ public class ALAudioSink implements AudioSink {
         }
         alc = _alc;
         al = _al;
-        staticAvailable = null != alc && null != al;
+        alExt = _alExt;
+        staticAvailable = null != alc && null != al && null != alExt;
     }
     
     public ALAudioSink() {
@@ -138,7 +149,7 @@ public class ALAudioSink implements AudioSink {
             // Create audio context.
             context = alc.alcCreateContext(device, null);
             if (context == null) {
-                throw new RuntimeException("ALAudioSink: Error creating OpenAL context");
+                throw new RuntimeException("ALAudioSink: Error creating OpenAL context for "+deviceSpecifier);
             }
         
             lockContext();
@@ -146,6 +157,16 @@ public class ALAudioSink implements AudioSink {
                 // Check for an error.
                 if ( alc.alcGetError(device) != ALC.ALC_NO_ERROR ) {
                     throw new RuntimeException("ALAudioSink: Error making OpenAL context current");
+                }
+                
+                hasSOFTBufferSamples = al.alIsExtensionPresent(AL_SOFT_buffer_samples);
+                preferredAudioFormat = queryPreferredAudioFormat();
+                if( DEBUG | true ) {
+                    System.out.println("ALAudioSink: OpenAL Extensions:"+al.alGetString(AL.AL_EXTENSIONS));
+                    System.out.println("ALAudioSink: Null device OpenAL Extensions:"+alc.alcGetString(null, ALC.ALC_EXTENSIONS));
+                    System.out.println("ALAudioSink: Device "+deviceSpecifier+" OpenAL Extensions:"+alc.alcGetString(device, ALC.ALC_EXTENSIONS));
+                    System.out.println("ALAudioSink: hasSOFTBufferSamples "+hasSOFTBufferSamples);
+                    System.out.println("ALAudioSink: preferredAudioFormat "+preferredAudioFormat);
                 }
                 
                 // Create source
@@ -173,6 +194,16 @@ public class ALAudioSink implements AudioSink {
             }
             destroy();
         }
+    }
+    
+    private final AudioFormat queryPreferredAudioFormat() {
+        int sampleRate = DefaultFormat.sampleRate;
+        final int[] value = new int[1];
+        alc.alcGetIntegerv(device, ALC.ALC_FREQUENCY, 1, value, 0);
+        if ( alc.alcGetError(device) == ALC.ALC_NO_ERROR ) {
+            sampleRate = value[0];
+        }
+        return new AudioFormat(sampleRate, DefaultFormat.sampleSize, DefaultFormat.channelCount, DefaultFormat.signed, DefaultFormat.fixedP, DefaultFormat.planar, DefaultFormat.littleEndian);
     }
     
     private final void lockContext() {
@@ -212,53 +243,78 @@ public class ALAudioSink implements AudioSink {
         final int alBuffersLen = null != alBufferNames ? alBufferNames.length : 0;
         final int ctxHash = context != null ? context.hashCode() : 0; 
         return "ALAudioSink[init "+initialized+", playRequested "+playRequested+", device "+deviceSpecifier+", ctx "+toHexString(ctxHash)+", alSource "+alSrcName+
-               ", chosen "+chosenFormat+", alFormat "+toHexString(alFormat)+
-               ", playSpeed "+playSpeed+", buffers[total "+alBuffersLen+", avail "+alFramesAvail.size()+", "+
+               ", chosen "+chosenFormat+
+               ", al[chan "+ALHelpers.alChannelLayoutName(alChannelLayout)+", type "+ALHelpers.alSampleTypeName(alSampleType)+
+               ", fmt "+toHexString(alFormat)+", soft "+hasSOFTBufferSamples+
+               "], playSpeed "+playSpeed+", buffers[total "+alBuffersLen+", avail "+alFramesAvail.size()+", "+
                "queued["+alFramesPlaying.size()+", apts "+getPTS()+", "+getQueuedTime() + " ms, " + alBufferBytesQueued+" bytes], "+
                "queue[g "+frameGrowAmount+", l "+frameLimit+"]";
     }
+    
     public final String getPerfString() {
         final int alBuffersLen = null != alBufferNames ? alBufferNames.length : 0;
         return "Play [buffer "+alFramesPlaying.size()+"/"+alBuffersLen+", apts "+getPTS()+", "+getQueuedTime() + " ms, " + alBufferBytesQueued+" bytes]";
     }
     
     @Override
-    public final AudioDataFormat getPreferredFormat() {
-        return DefaultFormat;
-    }
-    
-    @Override
-    public final AudioDataFormat init(AudioDataFormat requestedFormat, float frameDuration, int initialQueueSize, int queueGrowAmount, int queueLimit) {
+    public final AudioFormat getPreferredFormat() {
         if( !staticAvailable ) {
             return null;
         }
-        if( !requestedFormat.fixedP ||
-            !requestedFormat.littleEndian ||
-            ( 1 != requestedFormat.channelCount && requestedFormat.channelCount != 2 ) ||
-            ( 8 != requestedFormat.sampleSize  && requestedFormat.sampleSize != 16 )
-          ) {
-            return null; // not supported w/ OpenAL
+        return preferredAudioFormat;
+    }
+    
+    @Override
+    public final int getMaxSupportedChannels() {
+        if( !staticAvailable ) {
+            return 0;
         }
-        // final float samplePeriod = 1.0f / requestedFormat.sampleRate;
-        switch( requestedFormat.channelCount ) {
-            case 1: { 
-                switch ( requestedFormat.sampleSize ) {
-                    case 8: 
-                        alFormat = AL.AL_FORMAT_MONO8; break;
-                    case 16:
-                        alFormat = AL.AL_FORMAT_MONO16; break;
-                }
-            } break;
-            case 2: 
-                switch ( requestedFormat.sampleSize ) {
-                    case 8: 
-                        alFormat = AL.AL_FORMAT_STEREO8; break;
-                    case 16:
-                        alFormat = AL.AL_FORMAT_STEREO16; break;
-                }
+        return hasSOFTBufferSamples ? 8 : 2;
+    }
+    
+    @Override
+    public final boolean isSupported(AudioFormat format) {
+        if( !staticAvailable ) {
+            return false;
         }
+        if( format.planar || !format.littleEndian ) {
+            // FIXME big-endian supported w/ SOFT where it's native format! 
+            return false;
+        }
+        final int alChannelLayout = ALHelpers.getDefaultALChannelLayout(format.channelCount);
+        if( AL.AL_NONE != alChannelLayout ) {
+            final int alSampleType = ALHelpers.getALSampleType(format.sampleSize, format.signed, format.fixedP);
+            if( AL.AL_NONE != alSampleType ) {
+                lockContext();
+                try {                
+                    final int alFormat = ALHelpers.getALFormat(alChannelLayout, alSampleType, hasSOFTBufferSamples, al, alExt);
+                    return AL.AL_NONE != alFormat;
+                } finally {
+                    unlockContext();
+                }
+            }
+        }
+        return false;
+    }
+    
+    @Override
+    public final boolean init(AudioFormat requestedFormat, float frameDuration, int initialQueueSize, int queueGrowAmount, int queueLimit) {
+        if( !staticAvailable ) {
+            return false;
+        }
+        alChannelLayout = ALHelpers.getDefaultALChannelLayout(requestedFormat.channelCount);
+        alSampleType = ALHelpers.getALSampleType(requestedFormat.sampleSize, requestedFormat.signed, requestedFormat.fixedP);
         lockContext();
         try {
+            if( AL.AL_NONE != alChannelLayout && AL.AL_NONE != alSampleType ) {
+                alFormat = ALHelpers.getALFormat(alChannelLayout, alSampleType, hasSOFTBufferSamples, al, alExt);
+            } else {
+                alFormat = AL.AL_NONE;
+            }
+            if( AL.AL_NONE == alFormat ) {
+                // not supported
+                return false;
+            }
             // Allocate buffers
             destroyBuffers();
             {
@@ -290,7 +346,7 @@ public class ALAudioSink implements AudioSink {
         }
         
         chosenFormat = requestedFormat;
-        return chosenFormat;
+        return true;
     }
     
     private static int[] concat(int[] first, int[] second) {
@@ -548,7 +604,15 @@ public class ALAudioSink implements AudioSink {
             if( !alFramesPlaying.put( alFrame ) ) {
                 throw new InternalError("Internal Error: "+this);
             }
-            al.alBufferData(alFrame.alBuffer, alFormat, bytes, byteCount, chosenFormat.sampleRate);
+            if( hasSOFTBufferSamples ) {
+                final int samplesPerChannel = chosenFormat.getBytesSampleCount(byteCount) / chosenFormat.channelCount;
+                // final int samplesPerChannel = ALHelpers.bytesToSampleCount(byteCount, alChannelLayout, alSampleType);
+                alExt.alBufferSamplesSOFT(alFrame.alBuffer, chosenFormat.sampleRate, alFormat,
+                                          samplesPerChannel, alChannelLayout, alSampleType, bytes);
+            } else {
+                al.alBufferData(alFrame.alBuffer, alFormat, bytes, byteCount, chosenFormat.sampleRate);
+            }
+            
             final int[] alBufferNames = new int[] { alFrame.alBuffer };
             al.alSourceQueueBuffers(alSource[0], 1, alBufferNames, 0);
             alErr = al.alGetError();

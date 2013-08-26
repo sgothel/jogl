@@ -33,7 +33,7 @@ public class JavaSoundAudioSink implements AudioSink {
     private int bufferCount;
     private byte [] sampleData = new byte[BUFFER_SIZE];  
     private boolean initialized = false;
-    private AudioDataFormat chosenFormat = null;
+    private AudioSink.AudioFormat chosenFormat = null;
     
     private volatile boolean playRequested = false;
     private float volume = 1.0f;
@@ -77,14 +77,24 @@ public class JavaSoundAudioSink implements AudioSink {
     }
     
     @Override
-    public AudioDataFormat getPreferredFormat() {
+    public AudioSink.AudioFormat getPreferredFormat() {
         return DefaultFormat;
     }
     
     @Override
-    public AudioDataFormat init(AudioDataFormat requestedFormat, float frameDuration, int initialQueueSize, int queueGrowAmount, int queueLimit) {
+    public final int getMaxSupportedChannels() {
+        return 2;
+    }
+    
+    @Override
+    public final boolean isSupported(AudioSink.AudioFormat format) {
+        return true;
+    }
+    
+    @Override
+    public boolean init(AudioSink.AudioFormat requestedFormat, float frameDuration, int initialQueueSize, int queueGrowAmount, int queueLimit) {
         if( !staticAvailable ) {
-            return null;
+            return false;
         }
         // Create the audio format we wish to use
         format = new javax.sound.sampled.AudioFormat(requestedFormat.sampleRate, requestedFormat.sampleSize, requestedFormat.channelCount, requestedFormat.signed, !requestedFormat.littleEndian);
@@ -105,7 +115,7 @@ public class JavaSoundAudioSink implements AudioSink {
         } catch (Exception e) {
             initialized=false;
         }
-        return chosenFormat;
+        return true;
     }
     
     @Override

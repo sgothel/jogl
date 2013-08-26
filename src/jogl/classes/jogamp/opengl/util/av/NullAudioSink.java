@@ -42,13 +42,23 @@ public class NullAudioSink implements AudioSink {
     }
     
     @Override
-    public AudioDataFormat getPreferredFormat() {
+    public AudioFormat getPreferredFormat() {
         return DefaultFormat;
     }
 
     @Override
-    public AudioDataFormat init(AudioDataFormat requestedFormat, float frameDuration, int initialQueueSize, int queueGrowAmount, int queueLimit) {
-        return requestedFormat;
+    public final int getMaxSupportedChannels() {
+        return 8;
+    }
+    
+    @Override
+    public final boolean isSupported(AudioFormat format) {
+        return true;
+    }
+    
+    @Override
+    public boolean init(AudioFormat requestedFormat, float frameDuration, int initialQueueSize, int queueGrowAmount, int queueLimit) {
+        return true;
     }
     
     @Override
