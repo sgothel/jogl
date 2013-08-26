@@ -246,8 +246,6 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         if(DEBUG) {
             System.err.println("initStream: p2 preferred "+preferredAudioFormat+", "+this);
         }
-         // setStream(..) issues updateAttributes*(..), and defines avChosenAudioFormat, vid, aid, .. etc
-        final int snoopVideoFrameCount = 0; // 10*textureCount
         
         final int streamLocSLen = streamLocS.length();
         final String inFormat;
@@ -281,7 +279,8 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         }
         final int aMaxChannelCount = audioSink.getMaxSupportedChannels();
         final int aPrefSampleRate = preferredAudioFormat.sampleRate;
-        setStream0(moviePtr, resStreamLocS, inFormat, vid, aid, snoopVideoFrameCount, aMaxChannelCount, aPrefSampleRate);
+         // setStream(..) issues updateAttributes*(..), and defines avChosenAudioFormat, vid, aid, .. etc
+        setStream0(moviePtr, resStreamLocS, inFormat, vid, aid, aMaxChannelCount, aPrefSampleRate);
     }
 
     @Override
@@ -445,7 +444,6 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * @param tWd0
      * @param tWd1
      * @param tWd2
-     * @param audioFrameCount snooped audio-frame-count per video-frame, maybe 0
      * @param audioSampleFmt
      * @param audioSampleRate
      * @param audioChannels
@@ -454,7 +452,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     private void updateAttributes2(int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,
                                    int lSz0, int lSz1, int lSz2,
                                    int tWd0, int tWd1, int tWd2, int tH,
-                                   int audioFrameCount, int audioSampleFmt, int audioSampleRate, 
+                                   int audioSampleFmt, int audioSampleRate, 
                                    int audioChannels, int audioSamplesPerFrameAndChannel) {
         vPixelFmt = PixelFormat.valueOf(pixFmt);
         vPlanes = planes;
@@ -491,7 +489,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         this.audioSamplesPerFrameAndChannel = audioSamplesPerFrameAndChannel;
         
         if(DEBUG) {
-            System.err.println("audio: fmt "+aSampleFmt+", "+avChosenAudioFormat+", aFrameSize/fc "+audioSamplesPerFrameAndChannel+", aFrameCount "+audioFrameCount);
+            System.err.println("audio: fmt "+aSampleFmt+", "+avChosenAudioFormat+", aFrameSize/fc "+audioSamplesPerFrameAndChannel);
             System.err.println("video: fmt "+vPixelFmt+", planes "+vPlanes+", bpp "+vBitsPerPixel+"/"+vBytesPerPixelPerPlane);
             for(int i=0; i<3; i++) {
                 System.err.println("video: "+i+": "+vTexWidth[i]+"/"+vLinesize[i]);
@@ -657,12 +655,10 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * @param url
      * @param vid
      * @param aid
-     * @param snoopVideoFrameCount snoop this number of video-frames to gather audio-frame-count per video-frame. 
-     *        If zero, gathering audio-frame-count is disabled!   
      * @param aPrefChannelCount
      * @param aPrefSampleRate
      */
-    private native void setStream0(long moviePtr, String url, String inFormat, int vid, int aid, int snoopVideoFrameCount, int aMaxChannelCount, int aPrefSampleRate);
+    private native void setStream0(long moviePtr, String url, String inFormat, int vid, int aid, int aMaxChannelCount, int aPrefSampleRate);
     private native void setGLFuncs0(long moviePtr, long procAddrGLTexSubImage2D, long procAddrGLGetError, long procAddrGLFlush, long procAddrGLFinish);
 
     private native int getVideoPTS0(long moviePtr);    

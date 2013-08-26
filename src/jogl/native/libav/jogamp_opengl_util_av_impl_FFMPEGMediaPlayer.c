@@ -281,7 +281,7 @@ static void _updateJavaAttributes(JNIEnv *env, jobject instance, FFMPEGToolBasic
                                pAV->vBitsPerPixel, pAV->vBytesPerPixelPerPlane,
                                pAV->vLinesize[0], pAV->vLinesize[1], pAV->vLinesize[2],
                                pAV->vTexWidth[0], pAV->vTexWidth[1], pAV->vTexWidth[2], h,
-                               pAV->aFramesPerVideoFrame, pAV->aSampleFmtOut, pAV->aSampleRateOut, pAV->aChannelsOut, pAV->aFrameSize);
+                               pAV->aSampleFmtOut, pAV->aSampleRateOut, pAV->aChannelsOut, pAV->aFrameSize);
         (*env)->CallVoidMethod(env, instance, jni_mid_updateAttributes1,
                                pAV->vid, pAV->aid,
                                w, h, 
@@ -469,7 +469,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_ini
 
     jni_mid_pushSound = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "pushSound", "(Ljava/nio/ByteBuffer;II)V");
     jni_mid_updateAttributes1 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes", "(IIIIIIIFIIILjava/lang/String;Ljava/lang/String;)V");
-    jni_mid_updateAttributes2 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes2", "(IIIIIIIIIIIIIIII)V");
+    jni_mid_updateAttributes2 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes2", "(IIIIIIIIIIIIIII)V");
     jni_mid_isAudioFormatSupported = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "isAudioFormatSupported", "(III)Z");
 
     if(jni_mid_pushSound == NULL ||
@@ -546,14 +546,12 @@ static uint64_t getDefaultAudioChannelLayout(int channelCount) {
     }
 }
 
-static int countAudioPacketsTillVideo(const int maxPackets, FFMPEGToolBasicAV_t *pAV, AVPacket* pPacket, int packetFull, AVFrame* pAFrame, int * pAudioFrames, int *pMaxDataSize);
-static int countVideoPacketsTillAudio(const int maxPackets, FFMPEGToolBasicAV_t *pAV, AVPacket* pPacket, int packetFull, int * pVideoFrames);
 static void initPTSStats(PTSStats *ptsStats);
 static int64_t evalPTS(PTSStats *ptsStats, int64_t inPTS, int64_t inDTS);
 
 JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStream0
   (JNIEnv *env, jobject instance, jlong ptr, jstring jURL, jstring jInFmtStr, jint vid, jint aid,
-   jint snoopVideoFrameCount, jint aMaxChannelCount, jint aPrefSampleRate)
+   jint aMaxChannelCount, jint aPrefSampleRate)
 {
     int res, i;
     jboolean iscopy;
@@ -780,90 +778,9 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStre
             }
         }
 
-        if( 0 >= snoopVideoFrameCount ) {
-            pAV->aFramesPerVideoFrame = 0;
-        } else {
-            if( 0<=pAV->vid ) {
-                int aFramesPerVideoFrame;
-                int aFramesSequential = 0;
-                int aMaxDataSize = 0;
-                AVPacket packet;
-                int packetFull = 0;
-                int _aFramesBeforeVideo;
-                int _audioFramesOverlap=0;
-                int _aMaxDataSize;
-                int _vFrames;
-                int _vFramesOverlap=0;
-                int _packetCount;
-                int totalVFrames = 0;
-                int totalAFrames = 0;
-                int totalPackets = 0;
-
-                while( totalVFrames < snoopVideoFrameCount ) {
-                    int _packetCount = countAudioPacketsTillVideo(40, pAV, &packet, packetFull, pAFrame0, &_aFramesBeforeVideo, &_aMaxDataSize);
-                    if( _packetCount >= 0 ) {
-                        totalPackets += _packetCount;
-                        if( _aFramesBeforeVideo > 0 ) {
-                            // one video frame!
-                            _vFramesOverlap=1;
-                            packetFull = 1;
-                        }
-                        _aFramesBeforeVideo += _audioFramesOverlap;
-                        totalAFrames += _aFramesBeforeVideo;
-                        if( _aFramesBeforeVideo > aFramesSequential ) {
-                            aFramesSequential = _aFramesBeforeVideo;
-                        }
-                        if( _aMaxDataSize > aMaxDataSize ) {
-                            aMaxDataSize = _aMaxDataSize;
-                        }
-                        _packetCount = countVideoPacketsTillAudio(40, pAV, &packet, packetFull, &_vFrames);
-                        if( _packetCount >= 0 ) {
-                            totalPackets += _packetCount;
-                            if( _vFrames > 0 ) {
-                                // one audio frame!
-                                _audioFramesOverlap=1;
-                                packetFull = 1;
-                            }
-                            _vFrames += _vFramesOverlap;
-                            totalVFrames += _vFrames;
-                        }
-                        if( pAV->verbose ) {
-                            fprintf(stderr, "Snoop Packet #%d, V-Frames: %d, A-frames %d Seq(now %d, max %d), max-size (now %d, max %d)\n", 
-                                totalPackets, totalVFrames, totalAFrames, _aFramesBeforeVideo, aFramesSequential, _aMaxDataSize, aMaxDataSize);
-                        }
-                    }
-                }
-                const int audioFramesReadAhead = totalAFrames - totalVFrames;
-                if( audioFramesReadAhead > aFramesSequential ) {
-                    aFramesPerVideoFrame = audioFramesReadAhead;
-                } else {
-                    aFramesPerVideoFrame = aFramesSequential;
-                }
-                if( AV_DEFAULT_AFRAMES > aFramesPerVideoFrame || aFramesPerVideoFrame > 10*AV_DEFAULT_AFRAMES ) {
-                    aFramesPerVideoFrame = AV_DEFAULT_AFRAMES;
-                }
-                pAV->aFramesPerVideoFrame = aFramesPerVideoFrame;
-                sp_av_seek_frame(pAV->pFormatCtx, -1, 0, AVSEEK_FLAG_BACKWARD);
-                sp_avcodec_flush_buffers( pAV->pACodecCtx );
-                if( pAV->verbose ) {
-                    fprintf(stderr, "Snooped Packets %d, V-Frames: %d, A-frames %d Seq %d, readAhead %d -> Cached %d/%d, max-size %d\n", 
-                        totalPackets, totalVFrames, totalAFrames, aFramesSequential, audioFramesReadAhead, aFramesPerVideoFrame, pAV->aFramesPerVideoFrame, aMaxDataSize);
-                }
-            } else {
-                pAV->aFramesPerVideoFrame = AV_DEFAULT_AFRAMES;
-                if( pAV->verbose ) {
-                    fprintf(stderr, "A-frame Count %d\n", pAV->aFramesPerVideoFrame);
-                }
-            }
-        }
-
         // Allocate audio frames
         // FIXME: Libav Binary compatibility! JAU01
-        if( pAV->useRefCountedFrames && pAV->aFramesPerVideoFrame > 0 ) {
-            pAV->aFrameCount = pAV->aFramesPerVideoFrame;
-        } else {
-            pAV->aFrameCount = 1;
-        }
+        pAV->aFrameCount = 1;
         pAV->pANIOBuffers = calloc(pAV->aFrameCount, sizeof(NIOBuffer_t));
         pAV->pAFrames = calloc(pAV->aFrameCount, sizeof(AVFrame*));
         pAV->pAFrames[0] = pAFrame0;
@@ -1253,108 +1170,6 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
     return resPTS;
 }
 
-static int countAudioPacketsTillVideo(const int maxPackets, FFMPEGToolBasicAV_t *pAV, AVPacket* pPacket, int packetFull, AVFrame* pAFrame, int * pAudioFrames, int *pMaxDataSize) {
-    int frameDecoded;
-    int audioFrames = 0;
-    int maxDataSize = 0;
-    int packetCount = 0;
-
-    for( packetCount = 0; packetCount < maxPackets; packetCount++ ) {
-        int readRes;
-        if( !packetFull ) {
-            sp_av_init_packet(pPacket);
-            readRes = sp_av_read_frame(pAV->pFormatCtx, pPacket);
-        } else {
-            readRes = 1;
-            packetFull = 0;
-        }
-        if( readRes >= 0 ) {
-            if(pPacket->stream_index==pAV->aid) {
-                // Decode audio frame
-                int frameCount;
-                int flush_complete = 0;
-                for ( frameCount=0; 0 < pPacket->size || 0 == frameCount; frameCount++ ) {
-                    int len1;
-                    if (flush_complete) {
-                        break;
-                    }
-                    if(HAS_FUNC(sp_avcodec_decode_audio4)) {
-                        len1 = sp_avcodec_decode_audio4(pAV->pACodecCtx, pAFrame, &frameDecoded, pPacket);
-                    } else {
-                        #if 0
-                        len1 = sp_avcodec_decode_audio3(pAV->pACodecCtx, int16_t *samples, int *frame_size_ptr, &frameDecoded, pPacket);
-                        #endif
-                        return -1;
-                    }
-                    if (len1 < 0) {
-                        // if error, we skip the frame 
-                        pPacket->size = 0;
-                        break;
-                    }
-                    pPacket->data += len1;
-                    pPacket->size -= len1;
-
-                    if (!frameDecoded) {
-                        // stop sending empty packets if the decoder is finished 
-                        if (!pPacket->data && pAV->pACodecCtx->codec->capabilities & CODEC_CAP_DELAY) {
-                            flush_complete = 1;
-                        }
-                        continue;
-                    }
-
-                    int32_t data_size = 0;
-                    if(HAS_FUNC(sp_av_samples_get_buffer_size)) {
-                        data_size = sp_av_samples_get_buffer_size(NULL /* linesize, may be NULL */,
-                                                                  pAV->aChannels,
-                                                                  pAFrame->nb_samples,
-                                                                  pAFrame->format,
-                                                                  1 /* align */);
-                        if( data_size > maxDataSize ) {
-                            maxDataSize = data_size;
-                        }
-                    }
-                    if( pAV->useRefCountedFrames ) {
-                        sp_av_frame_unref(pAFrame);
-                    }
-                    audioFrames++;
-                }
-            } else if(pPacket->stream_index==pAV->vid) {
-                if( 0 < audioFrames ) {
-                    break; // done!
-                }
-            }
-        }
-    }
-    *pAudioFrames = audioFrames;
-    *pMaxDataSize = maxDataSize;
-    return packetCount;
-}
-static int countVideoPacketsTillAudio(const int maxPackets, FFMPEGToolBasicAV_t *pAV, AVPacket* pPacket, int packetFull, int * pVideoFrames) {
-    int videoFrames = 0;
-    int packetCount = 0;
-
-    for( packetCount = 0; packetCount < maxPackets; packetCount++ ) {
-        int readRes;
-        if( !packetFull ) {
-            sp_av_init_packet(pPacket);
-            readRes = sp_av_read_frame(pAV->pFormatCtx, pPacket);
-        } else {
-            readRes = 1;
-            packetFull = 0;
-        }
-        if( readRes >= 0 ) {
-            if(pPacket->stream_index==pAV->aid) {
-                if( 0 < videoFrames ) {
-                    break; // done!
-                }
-            } else if(pPacket->stream_index==pAV->vid) {
-                videoFrames++;
-            }
-        }
-    }
-    *pVideoFrames = videoFrames;
-    return packetCount;
-}
 static void initPTSStats(PTSStats *ptsStats) {
     ptsStats->ptsError = 0;
     ptsStats->dtsError = 0;

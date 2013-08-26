@@ -172,7 +172,6 @@ typedef struct {
     int32_t          aSampleRateOut;
     int32_t          aPTS;       // msec - overall last audio PTS
     PTSStats         aPTSStats;
-    int32_t          aFramesPerVideoFrame; // is 'snooped'
 
     float            fps;        // frames per seconds
     int32_t          bps_stream; // bits per seconds
