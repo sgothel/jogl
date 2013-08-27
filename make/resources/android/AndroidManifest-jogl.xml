@@ -4,7 +4,8 @@
       package="javax.media.opengl">
 
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
-    <!-- uses-feature android:name="android.hardware.camera" android:required="false" / --> <!-- not yet -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
     <uses-library android:name="com.jogamp.common" android:required="true" />
 

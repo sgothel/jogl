@@ -85,7 +85,14 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected int[] texMinMagFilter = { GL.GL_NEAREST, GL.GL_NEAREST };
     protected int[] texWrapST = { GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE };
     
+    /** User requested URI stream location. */
     protected URI streamLoc = null;
+    /** 
+     * In case {@link #streamLoc} is a {@link GLMediaPlayer#CameraInputScheme},
+     * {@link #cameraHostPart} holds the URI's path portion
+     * as parsed in {@link #initStream(URI, int, int, int)}.
+     */
+    protected String cameraHostPart = null;
     
     protected volatile float playSpeed = 1.0f;
     protected float audioVolume = 1.0f;
@@ -463,6 +470,15 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             presentedFrameCount = 0;
             displayedFrameCount = 0;            
             this.streamLoc = streamLoc;
+
+            // Pre-parse for camera-input scheme
+            final String streamLocScheme = streamLoc.getScheme();
+            if( null != streamLocScheme && streamLocScheme.equals(CameraInputScheme) ) {
+                cameraHostPart = streamLoc.getHost();
+            } else {
+                cameraHostPart = null; 
+            }
+            
             this.vid = vid;
             this.aid = aid;
             if (this.streamLoc != null) {
@@ -598,7 +614,9 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             {
                 final int err = gl.glGetError();
                 if( GL.GL_NO_ERROR != err ) {
-                    throw new RuntimeException("Couldn't create TexImage2D RGBA "+tWidth+"x"+tHeight+", err "+toHexString(err));
+                    throw new RuntimeException("Couldn't create TexImage2D RGBA "+tWidth+"x"+tHeight+", target "+toHexString(textureTarget)+
+                                   ", ifmt "+toHexString(GL.GL_RGBA)+", fmt "+toHexString(textureFormat)+", type "+toHexString(textureType)+
+                                   ", err "+toHexString(err));
                 }
             }
             if(DEBUG) {
@@ -1303,12 +1321,13 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         final String loc = ( null != streamLoc ) ? streamLoc.toString() : "<undefined stream>" ;
         final int freeVideoFrames = null != videoFramesFree ? videoFramesFree.size() : 0;
         final int decVideoFrames = null != videoFramesDecoded ? videoFramesDecoded.size() : 0;
-        final int video_scr = video_scr_pts + (int) ( ( Platform.currentTimeMillis() - video_scr_t0 ) * playSpeed );        
+        final int video_scr = video_scr_pts + (int) ( ( Platform.currentTimeMillis() - video_scr_t0 ) * playSpeed );
+        final String camPath = null != cameraHostPart ? ", camera: "+cameraHostPart : "";
         return "GLMediaPlayer["+state+", vSCR "+video_scr+", frames[p "+presentedFrameCount+", d "+decodedFrameCount+", t "+videoFrames+" ("+tt+" s)], "+
                "speed "+playSpeed+", "+bps_stream+" bps, "+
                "Texture[count "+textureCount+", free "+freeVideoFrames+", dec "+decVideoFrames+", target "+toHexString(textureTarget)+", format "+toHexString(textureFormat)+", type "+toHexString(textureType)+"], "+               
                "Video[id "+vid+", <"+vcodec+">, "+width+"x"+height+", "+fps+" fps, "+frame_duration+" fdur, "+bps_video+" bps], "+
-               "Audio[id "+aid+", <"+acodec+">, "+bps_audio+" bps, "+audioFrames+" frames], uri "+loc+"]";
+               "Audio[id "+aid+", <"+acodec+">, "+bps_audio+" bps, "+audioFrames+" frames], uri "+loc+camPath+"]";
     }
     
     @Override

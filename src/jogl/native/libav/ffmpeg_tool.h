@@ -154,7 +154,8 @@ typedef struct {
     PTSStats         vPTSStats;
     int32_t          vLinesize[3];  // decoded video linesize in bytes for each plane
     int32_t          vTexWidth[3];  // decoded video tex width in bytes for each plane
-
+    int32_t          vWidth;
+    int32_t          vHeight;
 
     int32_t          aid;
     AVStream*        pAStream;

@@ -53,7 +53,7 @@ class FFMPEGv09Natives implements FFMPEGNatives {
     public native void destroyInstance0(long moviePtr);
 
     @Override
-    public native void setStream0(long moviePtr, String url, String inFormat, int vid, int aid, int aMaxChannelCount, int aPrefSampleRate);
+    public native void setStream0(long moviePtr, String url, boolean isCameraInput, int vid, int aid, int aMaxChannelCount, int aPrefSampleRate);
 
     @Override
     public native void setGLFuncs0(long moviePtr, long procAddrGLTexSubImage2D, long procAddrGLGetError, long procAddrGLFlush, long procAddrGLFinish);

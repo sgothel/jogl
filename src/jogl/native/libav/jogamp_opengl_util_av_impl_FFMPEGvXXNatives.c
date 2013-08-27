@@ -62,6 +62,7 @@ static AVRESAMPLE_VERSION sp_avresample_version;
 // count: 4
 
 // libavcodec
+typedef int (APIENTRYP AVCODEC_REGISTER_ALL)(void);
 typedef int (APIENTRYP AVCODEC_CLOSE)(AVCodecContext *avctx);
 typedef void (APIENTRYP AVCODEC_STRING)(char *buf, int buf_size, AVCodecContext *enc, int encode);
 typedef AVCodec *(APIENTRYP AVCODEC_FIND_DECODER)(enum CodecID id);
@@ -81,6 +82,7 @@ typedef int (APIENTRYP AVCODEC_DECODE_AUDIO4)(AVCodecContext *avctx, AVFrame *fr
 typedef int (APIENTRYP AVCODEC_DECODE_AUDIO3)(AVCodecContext *avctx, int16_t *samples, int *frame_size_ptr, AVPacket *avpkt);  // 52.23.0
 typedef int (APIENTRYP AVCODEC_DECODE_VIDEO2)(AVCodecContext *avctx, AVFrame *picture, int *got_picture_ptr, AVPacket *avpkt); // 52.23.0
 
+static AVCODEC_REGISTER_ALL sp_avcodec_register_all;
 static AVCODEC_CLOSE sp_avcodec_close;
 static AVCODEC_STRING sp_avcodec_string;
 static AVCODEC_FIND_DECODER sp_avcodec_find_decoder;
@@ -99,10 +101,11 @@ static AV_FREE_PACKET sp_av_free_packet;
 static AVCODEC_DECODE_AUDIO4 sp_avcodec_decode_audio4;    // 53.25.0
 static AVCODEC_DECODE_AUDIO3 sp_avcodec_decode_audio3;    // 52.23.0
 static AVCODEC_DECODE_VIDEO2 sp_avcodec_decode_video2;    // 52.23.0
-// count: 22
+// count: 23
 
 // libavutil
 typedef void (APIENTRYP AV_FRAME_UNREF)(AVFrame *frame);
+typedef void* (APIENTRYP AV_REALLOC)(void *ptr, size_t size);
 typedef void (APIENTRYP AV_FREE)(void *ptr);
 typedef int (APIENTRYP AV_GET_BITS_PER_PIXEL)(const AVPixFmtDescriptor *pixdesc);
 typedef int (APIENTRYP AV_SAMPLES_GET_BUFFER_SIZE)(int *linesize, int nb_channels, int nb_samples, enum AVSampleFormat sample_fmt, int align);
@@ -110,12 +113,13 @@ typedef int (APIENTRYP AV_GET_BYTES_PER_SAMPLE)(enum AVSampleFormat sample_fmt);
 typedef int (APIENTRYP AV_OPT_SET_INT)(void *obj, const char *name, int64_t val, int search_flags);
 static const AVPixFmtDescriptor* sp_av_pix_fmt_descriptors;
 static AV_FRAME_UNREF sp_av_frame_unref;
+static AV_REALLOC sp_av_realloc;
 static AV_FREE sp_av_free;
 static AV_GET_BITS_PER_PIXEL sp_av_get_bits_per_pixel;
 static AV_SAMPLES_GET_BUFFER_SIZE sp_av_samples_get_buffer_size;
 static AV_GET_BYTES_PER_SAMPLE sp_av_get_bytes_per_sample;
 static AV_OPT_SET_INT sp_av_opt_set_int;
-// count: 28
+// count: 30
 
 // libavformat
 typedef AVFormatContext *(APIENTRYP AVFORMAT_ALLOC_CONTEXT)(void);
@@ -153,7 +157,12 @@ static AVFORMAT_NETWORK_INIT sp_avformat_network_init;            // 53.13.0
 static AVFORMAT_NETWORK_DEINIT sp_avformat_network_deinit;        // 53.13.0
 static AVFORMAT_FIND_STREAM_INFO sp_avformat_find_stream_info;    // 53.3.0
 static AV_FIND_STREAM_INFO sp_av_find_stream_info;
-// count: 46
+// count: 47
+
+// libavdevice [53.0.0]
+typedef int (APIENTRYP AVDEVICE_REGISTER_ALL)(void);
+static AVDEVICE_REGISTER_ALL sp_avdevice_register_all;
+// count: 49
 
 // libavresample [1.0.1]
 typedef AVAudioResampleContext* (APIENTRYP AVRESAMPLE_ALLOC_CONTEXT)(void);  // 1.0.1
@@ -168,9 +177,9 @@ static AVRESAMPLE_OPEN sp_avresample_open;
 static AVRESAMPLE_CLOSE sp_avresample_close;
 static AVRESAMPLE_FREE sp_avresample_free;
 static AVRESAMPLE_CONVERT sp_avresample_convert;
-// count: 51
+// count: 54
 
-#define SYMBOL_COUNT 51
+#define SYMBOL_COUNT 54
 
 JNIEXPORT jboolean JNICALL FF_FUNC(initSymbols0)
   (JNIEnv *env, jobject instance, jobject jSymbols, jint count)
@@ -194,6 +203,7 @@ JNIEXPORT jboolean JNICALL FF_FUNC(initSymbols0)
     sp_avresample_version = (AVRESAMPLE_VERSION) (intptr_t) symbols[i++];
     // count:  4
 
+    sp_avcodec_register_all = (AVCODEC_REGISTER_ALL)  (intptr_t) symbols[i++];
     sp_avcodec_close = (AVCODEC_CLOSE)  (intptr_t) symbols[i++];
     sp_avcodec_string = (AVCODEC_STRING) (intptr_t) symbols[i++];
     sp_avcodec_find_decoder = (AVCODEC_FIND_DECODER) (intptr_t) symbols[i++];
@@ -212,16 +222,17 @@ JNIEXPORT jboolean JNICALL FF_FUNC(initSymbols0)
     sp_avcodec_decode_audio4 = (AVCODEC_DECODE_AUDIO4) (intptr_t) symbols[i++];
     sp_avcodec_decode_audio3 = (AVCODEC_DECODE_AUDIO3) (intptr_t) symbols[i++];
     sp_avcodec_decode_video2 = (AVCODEC_DECODE_VIDEO2) (intptr_t) symbols[i++];
-    // count: 22
+    // count: 23
 
     sp_av_pix_fmt_descriptors = (const AVPixFmtDescriptor*)  (intptr_t) symbols[i++];
     sp_av_frame_unref = (AV_FRAME_UNREF) (intptr_t) symbols[i++];
+    sp_av_realloc = (AV_REALLOC) (intptr_t) symbols[i++];
     sp_av_free = (AV_FREE) (intptr_t) symbols[i++];
     sp_av_get_bits_per_pixel = (AV_GET_BITS_PER_PIXEL) (intptr_t) symbols[i++];
     sp_av_samples_get_buffer_size = (AV_SAMPLES_GET_BUFFER_SIZE) (intptr_t) symbols[i++];
     sp_av_get_bytes_per_sample = (AV_GET_BYTES_PER_SAMPLE) (intptr_t) symbols[i++];
     sp_av_opt_set_int = (AV_OPT_SET_INT) (intptr_t) symbols[i++];
-    // count: 29
+    // count: 31
 
     sp_avformat_alloc_context = (AVFORMAT_ALLOC_CONTEXT) (intptr_t) symbols[i++];;
     sp_avformat_free_context = (AVFORMAT_FREE_CONTEXT) (intptr_t) symbols[i++];
@@ -240,14 +251,17 @@ JNIEXPORT jboolean JNICALL FF_FUNC(initSymbols0)
     sp_avformat_network_deinit = (AVFORMAT_NETWORK_DEINIT) (intptr_t) symbols[i++];
     sp_avformat_find_stream_info = (AVFORMAT_FIND_STREAM_INFO) (intptr_t) symbols[i++];
     sp_av_find_stream_info = (AV_FIND_STREAM_INFO) (intptr_t) symbols[i++];
-    // count: 46
+    // count: 48
+
+    sp_avdevice_register_all = (AVDEVICE_REGISTER_ALL) (intptr_t) symbols[i++];
+    // count: 49
 
     sp_avresample_alloc_context = (AVRESAMPLE_ALLOC_CONTEXT) (intptr_t) symbols[i++];
     sp_avresample_open = (AVRESAMPLE_OPEN) (intptr_t) symbols[i++];
     sp_avresample_close = (AVRESAMPLE_CLOSE) (intptr_t) symbols[i++];
     sp_avresample_free = (AVRESAMPLE_FREE) (intptr_t) symbols[i++];
     sp_avresample_convert = (AVRESAMPLE_CONVERT) (intptr_t) symbols[i++];
-    // count: 51
+    // count: 54
 
     (*env)->ReleasePrimitiveArrayCritical(env, jSymbols, symbols, 0);
 
@@ -270,23 +284,16 @@ static void _updateJavaAttributes(JNIEnv *env, jobject instance, FFMPEGToolBasic
     // int shallBeDetached = 0;
     // JNIEnv  * env = JoglCommon_GetJNIEnv (&shallBeDetached); 
     if(NULL!=env) {
-        int32_t w, h;
-        if( NULL != pAV->pVCodecCtx ) {
-            // FIXME: Libav Binary compatibility! JAU01
-            w = pAV->pVCodecCtx->width; h = pAV->pVCodecCtx->height;
-        } else {
-            w = 0;                      h = 0;
-        }
-
         (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, jni_mid_updateAttributes2,
                                pAV->vPixFmt, pAV->vBufferPlanes, 
                                pAV->vBitsPerPixel, pAV->vBytesPerPixelPerPlane,
                                pAV->vLinesize[0], pAV->vLinesize[1], pAV->vLinesize[2],
-                               pAV->vTexWidth[0], pAV->vTexWidth[1], pAV->vTexWidth[2], h,
+                               pAV->vTexWidth[0], pAV->vTexWidth[1], pAV->vTexWidth[2],
+                               pAV->vWidth, pAV->vHeight,
                                pAV->aSampleFmtOut, pAV->aSampleRateOut, pAV->aChannelsOut, pAV->aFrameSize);
         (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, jni_mid_updateAttributes1,
                                pAV->vid, pAV->aid,
-                               w, h, 
+                               pAV->vWidth, pAV->vHeight,
                                pAV->bps_stream, pAV->bps_video, pAV->bps_audio,
                                pAV->fps, pAV->frames_video, pAV->frames_audio, pAV->duration,
                                (*env)->NewStringUTF(env, pAV->vcodec),
@@ -455,7 +462,7 @@ JNIEXPORT jboolean JNICALL FF_FUNC(initIDs0)
 
     jni_mid_pushSound = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "pushSound", "(Ljava/nio/ByteBuffer;II)V");
     jni_mid_updateAttributes1 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes", "(IIIIIIIFIIILjava/lang/String;Ljava/lang/String;)V");
-    jni_mid_updateAttributes2 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes2", "(IIIIIIIIIIIIIII)V");
+    jni_mid_updateAttributes2 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes2", "(IIIIIIIIIIIIIIII)V");
     jni_mid_isAudioFormatSupported = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "isAudioFormatSupported", "(III)Z");
 
     if(jni_mid_pushSound == NULL ||
@@ -495,6 +502,10 @@ JNIEXPORT jlong JNICALL FF_FUNC(createInstance0)
     #endif
 
     // Register all formats and codecs
+    sp_avcodec_register_all();
+    if(HAS_FUNC(sp_avdevice_register_all)) {
+        sp_avdevice_register_all();
+    }
     sp_av_register_all();
     // Network too ..
     if(HAS_FUNC(sp_avformat_network_init)) {
@@ -536,8 +547,47 @@ static uint64_t getDefaultAudioChannelLayout(int channelCount) {
 static void initPTSStats(PTSStats *ptsStats);
 static int64_t evalPTS(PTSStats *ptsStats, int64_t inPTS, int64_t inDTS);
 
+static AVInputFormat* tryAVInputFormat(const char * name, int verbose) {
+    AVInputFormat* inFmt = sp_av_find_input_format(name);
+    if( verbose) {
+        if ( inFmt == NULL ) {
+            fprintf(stderr, "Warning: Could not find input format '%s'\n", name);
+        } else {
+            fprintf(stderr, "Info: Found input format '%s'\n", name);
+        }
+    }
+    return inFmt;
+}
+static const char * inFmtNames[] = {
+    "video4linux2",
+    "video4linux",
+    "vfwcap",
+    "dshow",
+    "mpg",
+    "yuv2",
+    "mjpeg",
+    "avi",
+    "wmv",
+    "libx264",
+    "h264",
+    "mpegts"
+};
+static AVInputFormat* findAVInputFormat(int verbose) {
+    AVInputFormat* inFmt = NULL;
+    const char *inFmtName;
+    int i=0;
+    do {
+        inFmtName = inFmtNames[i++];
+        if( NULL == inFmtName ) {
+            break;
+        }
+        inFmt = tryAVInputFormat(inFmtName, verbose);
+    } while ( NULL == inFmt );
+    return inFmt;
+}
+
 JNIEXPORT void JNICALL FF_FUNC(setStream0)
-  (JNIEnv *env, jobject instance, jlong ptr, jstring jURL, jstring jInFmtStr, jint vid, jint aid,
+  (JNIEnv *env, jobject instance, jlong ptr, jstring jURL, jboolean jIsCameraInput, jint vid, jint aid,
    jint aMaxChannelCount, jint aPrefSampleRate)
 {
     int res, i;
@@ -552,15 +602,8 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
     pAV->pFormatCtx = sp_avformat_alloc_context();
 
     // Open video file
-    AVInputFormat *inFmt = NULL;
-    const char *inFmtStr = NULL != jInFmtStr ? (*env)->GetStringUTFChars(env, jInFmtStr, &iscopy) : NULL;
-    if( NULL != inFmtStr ) {
-        inFmt = sp_av_find_input_format(inFmtStr);
-        if( NULL == inFmt ) {
-            fprintf(stderr, "Warning: Could not find input format '%s'\n", inFmtStr);
-        }
-        (*env)->ReleaseStringChars(env, jInFmtStr, (const jchar *)inFmtStr);
-    }
+    AVInputFormat* inFmt = jIsCameraInput ? findAVInputFormat(pAV->verbose) : NULL;
+
     const char *urlPath = (*env)->GetStringUTFChars(env, jURL, &iscopy);
     res = sp_avformat_open_input(&pAV->pFormatCtx, urlPath, inFmt, NULL);
     if(res != 0) {
@@ -838,22 +881,26 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
         }
         pAV->frames_video = pAV->pVStream->nb_frames;
             
-        if( pAV->verbose ) {
-            fprintf(stderr, "V frame_size %d, frame_number %d, r_frame_rate %f %d/%d, avg_frame_rate %f %d/%d, nb_frames %d, \n", 
-                pAV->pVCodecCtx->frame_size, pAV->pVCodecCtx->frame_number, 
-                my_av_q2f(pAV->pVStream->r_frame_rate), pAV->pVStream->r_frame_rate.num, pAV->pVStream->r_frame_rate.den, 
-                my_av_q2f(pAV->pVStream->avg_frame_rate), pAV->pVStream->avg_frame_rate.num, pAV->pVStream->avg_frame_rate.den,
-                pAV->pVStream->nb_frames);
-        }
-
         // Allocate video frame
         // FIXME: Libav Binary compatibility! JAU01
+        pAV->vWidth = pAV->pVCodecCtx->width;
+        pAV->vHeight = pAV->pVCodecCtx->height;
         pAV->vPixFmt = pAV->pVCodecCtx->pix_fmt;
         {   
             AVPixFmtDescriptor pixDesc = sp_av_pix_fmt_descriptors[pAV->vPixFmt];
             pAV->vBitsPerPixel = sp_av_get_bits_per_pixel(&pixDesc);
             pAV->vBufferPlanes = my_getPlaneCount(&pixDesc);
         }
+
+        if( pAV->verbose ) {
+            fprintf(stderr, "V frame_size %d, frame_number %d, r_frame_rate %f %d/%d, avg_frame_rate %f %d/%d, nb_frames %d, size %dx%d, fmt 0x%X, bpp %d, planes %d\n", 
+                pAV->pVCodecCtx->frame_size, pAV->pVCodecCtx->frame_number, 
+                my_av_q2f(pAV->pVStream->r_frame_rate), pAV->pVStream->r_frame_rate.num, pAV->pVStream->r_frame_rate.den, 
+                my_av_q2f(pAV->pVStream->avg_frame_rate), pAV->pVStream->avg_frame_rate.num, pAV->pVStream->avg_frame_rate.den,
+                pAV->pVStream->nb_frames,
+                pAV->vWidth, pAV->vHeight, pAV->vPixFmt, pAV->vBitsPerPixel, pAV->vBufferPlanes);
+        }
+
         pAV->pVFrame=sp_avcodec_alloc_frame();
         if( pAV->pVFrame == NULL ) {
             JoglCommon_throwNewRuntimeException(env, "Couldn't alloc video frame");
@@ -867,10 +914,20 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
             } else {
                 pAV->vBytesPerPixelPerPlane = 1;
             }
-            for(i=0; i<3; i++) {
-                // FIXME: Libav Binary compatibility! JAU01
-                pAV->vLinesize[i] = pAV->pVFrame->linesize[i];
-                pAV->vTexWidth[i] = pAV->vLinesize[i] / pAV->vBytesPerPixelPerPlane ;
+            if( pAV->vBufferPlanes > 1 ) {
+                for(i=0; i<3; i++) {
+                    // FIXME: Libav Binary compatibility! JAU01
+                    pAV->vLinesize[i] = pAV->pVFrame->linesize[i];
+                    pAV->vTexWidth[i] = pAV->vLinesize[i] / pAV->vBytesPerPixelPerPlane ;
+                }
+            } else {
+                pAV->vLinesize[0] = pAV->pVCodecCtx->width * pAV->vBytesPerPixelPerPlane;
+                if( pAV->vPixFmt == PIX_FMT_YUYV422 ) {
+                    // Stuff 2x 16bpp (YUYV) into one RGBA pixel!
+                    pAV->vTexWidth[0] = pAV->pVCodecCtx->width / 2;
+                } else {
+                    pAV->vTexWidth[0] = pAV->pVCodecCtx->width;
+                }
             }
             sp_avcodec_default_release_buffer(pAV->pVCodecCtx, pAV->pVFrame);
         } else {
@@ -896,10 +953,10 @@ JNIEXPORT void JNICALL FF_FUNC(setGLFuncs0)
 }
 
 #if 0
-#define DBG_TEXSUBIMG2D_a(c,p,i) fprintf(stderr, "TexSubImage2D.%c offset %d / %d, size %d x %d, ", c, p->pVCodecCtx->width, p->pVCodecCtx->height/2, p->vTexWidth[i], p->pVCodecCtx->height/2)
+#define DBG_TEXSUBIMG2D_a(c,p,d,i) fprintf(stderr, "TexSubImage2D.%c offset %d / %d, size %d x %d, ", c, p->pVCodecCtx->width, p->pVCodecCtx->height/d, p->vTexWidth[i], p->pVCodecCtx->height/d)
 #define DBG_TEXSUBIMG2D_b(p) fprintf(stderr, "err 0x%X\n", pAV->procAddrGLGetError())
 #else
-#define DBG_TEXSUBIMG2D_a(c,p,i)
+#define DBG_TEXSUBIMG2D_a(c,p,d,i)
 #define DBG_TEXSUBIMG2D_b(p)
 #endif
 
@@ -911,17 +968,22 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
     AVPacket packet;
     int frameDecoded;
     jint resPTS = INVALID_PTS;
+    uint8_t * pkt_odata;
+    int pkt_osize;
 
+    packet.data = NULL; // minimum
+    packet.size = 0;    // requirement
     sp_av_init_packet(&packet);
 
     const int avRes = sp_av_read_frame(pAV->pFormatCtx, &packet);
+    pkt_odata = packet.data;
+    pkt_osize = packet.size;
     if( AVERROR_EOF == avRes || ( pAV->pFormatCtx->pb && pAV->pFormatCtx->pb->eof_reached ) ) {
         resPTS = END_OF_STREAM_PTS;
     } else if( 0 <= avRes ) {
-        /**
         if( pAV->verbose ) {
             fprintf(stderr, "P: ptr %p, size %d\n", packet.data, packet.size);
-        } */
+        }
         if(packet.stream_index==pAV->aid) {
             // Decode audio frame
             if(NULL == pAV->pAFrames) { // no audio registered
@@ -932,9 +994,6 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
             int flush_complete = 0;
             for ( frameCount=0; 0 < packet.size || 0 == frameCount; frameCount++ ) {
                 int len1;
-                if (flush_complete) {
-                    break;
-                }
                 NIOBuffer_t * pNIOBufferCurrent = &pAV->pANIOBuffers[pAV->aFrameCurrent];
                 AVFrame* pAFrameCurrent = pAV->pAFrames[pAV->aFrameCurrent];
                 if( pAV->useRefCountedFrames ) {
@@ -942,6 +1001,10 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                     pAV->aFrameCurrent = ( pAV->aFrameCurrent + 1 ) % pAV->aFrameCount ;
                 }
                 sp_avcodec_get_frame_defaults(pAFrameCurrent);
+
+                if (flush_complete) {
+                    break;
+                }
                 if(HAS_FUNC(sp_avcodec_decode_audio4)) {
                     len1 = sp_avcodec_decode_audio4(pAV->pACodecCtx, pAFrameCurrent, &frameDecoded, &packet);
                 } else {
@@ -1013,7 +1076,7 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                                                                  nb_samples,
                                                                  pAV->aSampleFmtOut, 0 /* align */);
 
-                        tmp_out = av_realloc(pAV->aResampleBuffer, out_size);
+                        tmp_out = sp_av_realloc(pAV->aResampleBuffer, out_size);
                         if (!tmp_out) {
                             JoglCommon_throwNewRuntimeException(env, "Couldn't alloc resample buffer of size %d", out_size);
                             return;
@@ -1066,10 +1129,10 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
             int flush_complete = 0;
             for ( frameCount=0; 0 < packet.size || 0 == frameCount; frameCount++ ) {
                 int len1;
+                sp_avcodec_get_frame_defaults(pAV->pVFrame);
                 if (flush_complete) {
                     break;
                 }
-                sp_avcodec_get_frame_defaults(pAV->pVFrame);
                 len1 = sp_avcodec_decode_video2(pAV->pVCodecCtx, pAV->pVFrame, &frameDecoded, &packet);
                 if (len1 < 0) {
                     // if error, we skip the frame
@@ -1116,7 +1179,7 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
 
                 // 1st plane or complete packed frame
                 // FIXME: Libav Binary compatibility! JAU01
-                DBG_TEXSUBIMG2D_a('Y',pAV,0);
+                DBG_TEXSUBIMG2D_a('Y',pAV,1,0);
                 pAV->procAddrGLTexSubImage2D(texTarget, 0, 
                                         0,                 0, 
                                         pAV->vTexWidth[0], pAV->pVCodecCtx->height, 
@@ -1126,7 +1189,7 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                 if(pAV->vPixFmt == PIX_FMT_YUV420P) {
                     // U plane
                     // FIXME: Libav Binary compatibility! JAU01
-                    DBG_TEXSUBIMG2D_a('U',pAV,1);
+                    DBG_TEXSUBIMG2D_a('U',pAV,2,1);
                     pAV->procAddrGLTexSubImage2D(texTarget, 0, 
                                             pAV->pVCodecCtx->width, 0,
                                             pAV->vTexWidth[1],      pAV->pVCodecCtx->height/2, 
@@ -1134,7 +1197,7 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                     DBG_TEXSUBIMG2D_b(pAV);
                     // V plane
                     // FIXME: Libav Binary compatibility! JAU01
-                    DBG_TEXSUBIMG2D_a('V',pAV,2);
+                    DBG_TEXSUBIMG2D_a('V',pAV,2,2);
                     pAV->procAddrGLTexSubImage2D(texTarget, 0, 
                                             pAV->pVCodecCtx->width, pAV->pVCodecCtx->height/2,
                                             pAV->vTexWidth[2],      pAV->pVCodecCtx->height/2, 
@@ -1148,11 +1211,10 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                 }
             }
         }
-
-        // Free the packet that was allocated by av_read_frame
-        // This code cause a double free and have been commented out.
-        // TODO: check what release the packets memory. 
-        // sp_av_free_packet(&packet);
+        // restore orig pointer and size values, we may have moved along within packet
+        packet.data = pkt_odata;
+        packet.size = pkt_osize;
+        sp_av_free_packet(&packet);
     }
     return resPTS;
 }

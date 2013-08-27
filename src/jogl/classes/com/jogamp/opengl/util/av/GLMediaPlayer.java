@@ -47,6 +47,9 @@ import com.jogamp.opengl.util.TimeFrameI;
  * Audio and video streams can be selected or muted via {@link #initStream(URI, int, int, int)}
  * using the appropriate <a href="#streamIDs">stream id</a>'s.
  * </p>
+ * <p>
+ * Camera input can be selected using the {@link #CameraInputScheme} URI. 
+ * </p>
  *   
  * <a name="streamworker"><h5><i>StreamWorker</i> Decoding Thread</h5></a>
  * <p>
@@ -189,6 +192,18 @@ public interface GLMediaPlayer extends TextureSequence {
     public static final int STREAM_ID_NONE = -2;
     /** Constant {@value} for <i>auto</i> or <i>unspecified</i>. See <a href="#streamIDs">Audio and video Stream IDs</a>. */
     public static final int STREAM_ID_AUTO = -1;
+    
+    /** 
+     * {@link URI#getScheme() URI scheme} name {@value} for camera input. E.g. <code>camera://0</code>
+     * for the 1st camera device.
+     * <p>
+     * Note: the {@link URI#getHost() URI host} is being used to identify the camera:
+     * <pre>
+     *    camera://<id>
+     * </pre>
+     * </p> 
+     */
+    public static final String CameraInputScheme = "camera";
     
     /** Maximum video frame async of {@value} milliseconds. */
     public static final int MAXIMUM_VIDEO_ASYNC = 22;

@@ -129,7 +129,8 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             System.err.println("LIB_AV Util    : "+FFMPEGDynamicLibraryBundleInfo.avUtilVersion+" [cc "+avUtilMajorVersionCC+"]");
             System.err.println("LIB_AV Format  : "+FFMPEGDynamicLibraryBundleInfo.avFormatVersion+" [cc "+avFormatMajorVersionCC+"]");
             System.err.println("LIB_AV Codec   : "+FFMPEGDynamicLibraryBundleInfo.avCodecVersion+" [cc "+avCodecMajorVersionCC+"]");
-            System.err.println("LIB_AV Resample: "+FFMPEGDynamicLibraryBundleInfo.avResampleVersion+" [cc "+avResampleMajorVersionCC+"]");
+            System.err.println("LIB_AV Device  : [loaded "+FFMPEGDynamicLibraryBundleInfo.avDeviceLoaded()+"]");
+            System.err.println("LIB_AV Resample: "+FFMPEGDynamicLibraryBundleInfo.avResampleVersion+" [cc "+avResampleMajorVersionCC+", loaded "+FFMPEGDynamicLibraryBundleInfo.avResampleLoaded()+"]");
             libAVVersionGood = avUtilMajorVersionCC   == FFMPEGDynamicLibraryBundleInfo.avUtilVersion.getMajor() &&
                                avFormatMajorVersionCC == FFMPEGDynamicLibraryBundleInfo.avFormatVersion.getMajor() &&
                                avCodecMajorVersionCC  == FFMPEGDynamicLibraryBundleInfo.avCodecVersion.getMajor() &&
@@ -160,6 +161,8 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     // Video
     //
     
+    private String texLookupFuncName = "ffmpegTexture2D";
+    private boolean usesTexLookupShader = false;    
     private PixelFormat vPixelFmt = null;
     private int vPlanes = 0;
     private int vBitsPerPixel = 0;
@@ -205,8 +208,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         }
     }
     
-    public static final String dev_video = "/dev/video";
-    private static final int dev_video_len = dev_video.length();
+    public static final String dev_video_linux = "/dev/video";
     
     @Override
     protected final void initStreamImpl(int vid, int aid) throws IOException {
@@ -229,40 +231,34 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             System.err.println("initStream: p2 preferred "+preferredAudioFormat+", "+this);
         }
         
-        final int streamLocSLen = streamLocS.length();
-        final String inFormat;
+        final boolean isCameraInput = null != cameraHostPart;
         final String resStreamLocS;
-        if( streamLocSLen == dev_video_len + 1 && streamLocS.startsWith(dev_video) ) {            
-            final int index = Integer.valueOf( streamLocS.substring(streamLocSLen-1) ).intValue();
+        if( isCameraInput ) {
             switch(Platform.OS_TYPE) {
-            case ANDROID:
-                // ??
-            case FREEBSD:
-            case HPUX:
-            case LINUX:
-            case SUNOS:
-                resStreamLocS = streamLocS;
-                inFormat = "video4linux2";
-                break;
-            case WINDOWS:
-                resStreamLocS = String.valueOf(index);
-                inFormat = "vfwcap";
-                break;
-            case MACOS:
-            case OPENKODE:
-            default:
-                resStreamLocS = streamLocS;
-                inFormat = null;
-                break;            
+                case ANDROID:
+                    // ??
+                case FREEBSD:
+                case HPUX:
+                case LINUX:
+                case SUNOS:
+                    resStreamLocS = dev_video_linux + cameraHostPart;
+                    break;
+                case WINDOWS:
+                    resStreamLocS = cameraHostPart;
+                    break;
+                case MACOS:
+                case OPENKODE:
+                default:
+                    resStreamLocS = streamLocS; // FIXME: ??
+                    break;            
             }
         } else {
             resStreamLocS = streamLocS;
-            inFormat = null;            
         }
         final int aMaxChannelCount = audioSink.getMaxSupportedChannels();
         final int aPrefSampleRate = preferredAudioFormat.sampleRate;
          // setStream(..) issues updateAttributes*(..), and defines avChosenAudioFormat, vid, aid, .. etc
-        natives.setStream0(moviePtr, resStreamLocS, inFormat, vid, aid, aMaxChannelCount, aPrefSampleRate);
+        natives.setStream0(moviePtr, resStreamLocS, isCameraInput, vid, aid, aMaxChannelCount, aPrefSampleRate);
     }
 
     @Override
@@ -300,6 +296,10 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             System.err.println("initGL: p3 avChosen "+avChosenAudioFormat);
         }
         
+        if( STREAM_ID_NONE == aid ) {
+            audioSink.destroy();
+            audioSink = AudioSinkFactory.createNull();
+        }
         final boolean audioSinkOK = audioSink.init(avChosenAudioFormat, frameDuration, AudioSink.DefaultInitialQueueSize, AudioSink.DefaultQueueGrowAmount, audioQueueLimit);
         if( !audioSinkOK ) {
             System.err.println("AudioSink "+audioSink.getClass().getName()+" does not support "+avChosenAudioFormat+", using Null");
@@ -314,6 +314,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         
         if( null != gl ) {
             int tf, tif=GL.GL_RGBA; // texture format and internal format
+            int tt = GL.GL_UNSIGNED_BYTE;
             switch(vBytesPerPixelPerPlane) {
                 case 1:
                     if( gl.isGL3ES3() ) {
@@ -324,12 +325,20 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                         tf = GL2ES2.GL_ALPHA; tif=GL2ES2.GL_ALPHA; singleTexComp = "a";
                     }
                     break;
-                case 3: tf = GL2ES2.GL_RGB;   tif=GL.GL_RGB;     break;
-                case 4: tf = GL2ES2.GL_RGBA;  tif=GL.GL_RGBA;    break;
+                
+                case 2: if( vPixelFmt == PixelFormat.YUYV422 ) {
+                            // YUYV422: // < packed YUV 4:2:2, 2x 16bpp, Y0 Cb Y1 Cr
+                            // Stuffed into RGBA half width texture
+                            tf = GL2ES2.GL_RGBA; tif=GL2ES2.GL_RGBA; break;
+                        } else {
+                            tf = GL2ES2.GL_RG;   tif=GL2ES2.GL_RG; break;
+                        }
+                case 3: tf = GL2ES2.GL_RGB;   tif=GL.GL_RGB;   break;
+                case 4: tf = GL2ES2.GL_RGBA;  tif=GL.GL_RGBA;  break;
                 default: throw new RuntimeException("Unsupported bytes-per-pixel / plane "+vBytesPerPixelPerPlane);
             }        
             setTextureFormat(tif, tf);
-            setTextureType(GL.GL_UNSIGNED_BYTE);
+            setTextureType(tt);
         }
     }    
     @Override
@@ -435,7 +444,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      */
     void updateAttributes2(int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,
                            int lSz0, int lSz1, int lSz2,
-                           int tWd0, int tWd1, int tWd2, int tH,
+                           int tWd0, int tWd1, int tWd2, int vW, int vH,
                            int audioSampleFmt, int audioSampleRate, 
                            int audioChannels, int audioSamplesPerFrameAndChannel) {
         vPixelFmt = PixelFormat.valueOf(pixFmt);
@@ -446,23 +455,28 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         vTexWidth[0] = tWd0; vTexWidth[1] = tWd1; vTexWidth[2] = tWd2;
         
         switch(vPixelFmt) {
-            case YUV420P:
+            case YUV420P: // < planar YUV 4:2:0, 12bpp, (1 Cr & Cb sample per 2x2 Y samples)
+                usesTexLookupShader = true;
                 // YUV420P: Adding U+V on right side of fixed height texture,
                 //          since width is already aligned by decoder.
                 // Y=w*h, Y=w/2*h/2, U=w/2*h/2
                 // w*h + 2 ( w/2 * h/2 ) 
                 // w*h + w*h/2
                 // 2*w/2 * h 
-                texWidth = vTexWidth[0] + vTexWidth[1]; texHeight = tH; 
+                texWidth = vTexWidth[0] + vTexWidth[1]; texHeight = vH;
                 break;
-            // case PIX_FMT_YUYV422:
+            case YUYV422: // < packed YUV 4:2:2, 2x 16bpp, Y0 Cb Y1 Cr - stuffed into RGBA half width texture
+                usesTexLookupShader = true;
+                texWidth = vTexWidth[0]; texHeight = vH; 
+                break;
             case RGB24:
             case BGR24:
             case ARGB:
             case RGBA:
             case ABGR:
             case BGRA:
-                texWidth = vTexWidth[0]; texHeight = tH; 
+                usesTexLookupShader = false;
+                texWidth = vTexWidth[0]; texHeight = vH; 
                 break;
             default: // FIXME: Add more formats !
                 throw new RuntimeException("Unsupported pixelformat: "+vPixelFmt);
@@ -474,7 +488,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         
         if(DEBUG) {
             System.err.println("audio: fmt "+aSampleFmt+", "+avChosenAudioFormat+", aFrameSize/fc "+audioSamplesPerFrameAndChannel);
-            System.err.println("video: fmt "+vPixelFmt+", planes "+vPlanes+", bpp "+vBitsPerPixel+"/"+vBytesPerPixelPerPlane);
+            System.err.println("video: fmt "+vW+"x"+vH+", "+vPixelFmt+", planes "+vPlanes+", bpp "+vBitsPerPixel+"/"+vBytesPerPixelPerPlane+", usesTexLookupShader "+usesTexLookupShader);
             for(int i=0; i<3; i++) {
                 System.err.println("video: "+i+": "+vTexWidth[i]+"/"+vLinesize[i]);
             }
@@ -494,15 +508,14 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         if(State.Uninitialized == state) {
             throw new IllegalStateException("Instance not initialized: "+this);
         }
-        if(PixelFormat.YUV420P == vPixelFmt) {
+        if( usesTexLookupShader ) {
             if(null != desiredFuncName && desiredFuncName.length()>0) {
-                textureLookupFunctionName = desiredFuncName;
+                texLookupFuncName = desiredFuncName;
             }
-            return textureLookupFunctionName;
+            return texLookupFuncName;
         }
         return super.getTextureLookupFunctionName(desiredFuncName);        
     }
-    private String textureLookupFunctionName = "ffmpegTexture2D";
     
     /**
      * {@inheritDoc}
@@ -515,11 +528,14 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
       if(State.Uninitialized == state) {
           throw new IllegalStateException("Instance not initialized: "+this);
       }
+      if( !usesTexLookupShader ) {
+          return super.getTextureLookupFragmentShaderImpl();
+      }
       final float tc_w_1 = (float)getWidth() / (float)texWidth;
       switch(vPixelFmt) {
-        case YUV420P:
+        case YUV420P: // < planar YUV 4:2:0, 12bpp, (1 Cr & Cb sample per 2x2 Y samples)
           return
-              "vec4 "+textureLookupFunctionName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
+              "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
               "  vec2 u_off = vec2("+tc_w_1+", 0.0);\n"+
               "  vec2 v_off = vec2("+tc_w_1+", 0.5);\n"+
               "  vec2 tc_half = texCoord*0.5;\n"+
@@ -536,8 +552,30 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
               "  return vec4(r, g, b, 1);\n"+
               "}\n"
           ;
+        case YUYV422: // < packed YUV 4:2:2, 2 x 16bpp, [Y0 Cb] [Y1 Cr]
+                      // Stuffed into RGBA half width texture
+          return
+              "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
+              "  "+
+              "  float y1,u,y2,v,y,r,g,b;\n"+
+              "  vec2 tc_halfw = vec2(texCoord.x*0.5, texCoord.y);\n"+
+              "  vec4 yuyv = texture2D(image, tc_halfw).rgba;\n"+
+              "  y1 = yuyv.r;\n"+
+              "  u  = yuyv.g;\n"+
+              "  y2 = yuyv.b;\n"+
+              "  v  = yuyv.a;\n"+
+              "  y = mix( y1, y2, mod(gl_FragCoord.x, 2) ); /* avoid branching! */\n"+
+              "  y = 1.1643*(y-0.0625);\n"+
+              "  u = u-0.5;\n"+
+              "  v = v-0.5;\n"+
+              "  r = y+1.5958*v;\n"+
+              "  g = y-0.39173*u-0.81290*v;\n"+
+              "  b = y+2.017*u;\n"+
+              "  return vec4(r, g, b, 1);\n"+
+              "}\n"
+          ;
         default: // FIXME: Add more formats !
-          return super.getTextureLookupFragmentShaderImpl();
+          throw new InternalError("Add proper mapping of: vPixelFmt "+vPixelFmt+", usesTexLookupShader "+usesTexLookupShader);
       }        
     }
     

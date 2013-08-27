@@ -28,6 +28,7 @@
 package jogamp.opengl.android.av;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLES2;
@@ -45,6 +46,7 @@ import jogamp.opengl.util.av.GLMediaPlayerImpl;
 
 import android.graphics.SurfaceTexture;
 import android.graphics.SurfaceTexture.OnFrameAvailableListener;
+import android.hardware.Camera;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.net.Uri;
@@ -85,6 +87,8 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     public static final boolean isAvailable() { return available; }
     
     private MediaPlayer mp;
+    private Camera cam;
+    private long playStart = 0;
     private volatile boolean updateSurface = false;
     private Object updateSurfaceLock = new Object();
     private SurfaceTextureFrame singleSTexFrame = null;
@@ -104,7 +108,6 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             throw new RuntimeException("AndroidGLMediaPlayerAPI14 not available");
         }
         this.setTextureTarget(GLES2.GL_TEXTURE_EXTERNAL_OES);
-        mp = new MediaPlayer();
     }
 
     @Override
@@ -130,11 +133,23 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
 
     @Override
     protected final boolean playImpl() {
+        playStart = Platform.currentTimeMillis();
         if(null != mp) {        
             try {
                 mp.start();
-                eos = false;
+                eos = false;                
                 mp.setOnCompletionListener(onCompletionListener);
+                return true;
+            } catch (IllegalStateException ise) {
+                if(DEBUG) {
+                    ise.printStackTrace();
+                }
+            }
+        } else if( null != cam ) {
+            try {
+                if( sTexFrameAttached ) {
+                    cam.startPreview();
+                }
                 return true;
             } catch (IllegalStateException ise) {
                 if(DEBUG) {
@@ -151,6 +166,16 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             wakeUp(false);
             try {
                 mp.pause();
+                return true;
+            } catch (IllegalStateException ise) {
+                if(DEBUG) {
+                    ise.printStackTrace();
+                }
+            }
+        } else if( null != cam ) {
+            wakeUp(false);
+            try {
+                cam.stopPreview();
                 return true;
             } catch (IllegalStateException ise) {
                 if(DEBUG) {
@@ -196,6 +221,18 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             mp.release();
             mp = null;
         }
+        if( null != cam ) {
+            wakeUp(false);
+            try {
+                cam.stopPreview();
+            } catch (IllegalStateException ise) {
+                if(DEBUG) {
+                    ise.printStackTrace();
+                }
+            }
+            cam.release();
+            cam = null;
+        }
     }
     
     public static class SurfaceTextureFrame extends TextureSequence.TextureFrame {        
@@ -212,7 +249,27 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     
     @Override
     protected final void initStreamImpl(int vid, int aid) throws IOException {
-        if(null!=mp && null!=streamLoc) {
+
+        if( null == streamLoc ) {
+            return;
+        }
+        if( null == mp && null == cam ) {
+            if( null == cameraHostPart ) {
+                mp = new MediaPlayer();
+            } else {
+                int cameraId = 0;
+                try {                    
+                    cameraId = Integer.valueOf(cameraHostPart);
+                } catch (NumberFormatException nfe) {}
+                if( 0 <= cameraId && cameraId < Camera.getNumberOfCameras() ) {
+                    cam = Camera.open(cameraId);
+                } else {
+                    cam = Camera.open();
+                }
+            }
+        }
+
+        if(null!=mp) {
             if( GLMediaPlayer.STREAM_ID_NONE == aid ) {
                 mp.setVolume(0f, 0f);
                 // FIXME: Disable audio handling
@@ -240,7 +297,30 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                              mp.getVideoWidth(), mp.getVideoHeight(), 0, 
                              0, 0, 0f, 
                              0, 0, mp.getDuration(), icodec, icodec);
+        } else if( null != cam ) {
+            final String icodec = "android";
+            final int[] fpsRange = { 0, 0 };
+            final Camera.Parameters p = cam.getParameters();
+            p.getPreviewFpsRange(fpsRange);
+            final Camera.Size size = p.getPreviewSize();
+            if( DEBUG ) {
+                final int picFmt = p.getPictureFormat();
+                final Camera.Size prefSize = p.getPreferredPreviewSizeForVideo();
+                System.err.println("MediaPlayer.Camera: fps "+fpsRange[0]+".."+fpsRange[1]+", size[pref "+camSz2Str(prefSize)+", cur "+camSz2Str(size)+"], fmt "+picFmt);
+                List<Camera.Size> supSizes = p.getSupportedVideoSizes();
+                for(int i=0; i<supSizes.size(); i++) {
+                    System.err.println("size #"+i+": "+camSz2Str(supSizes.get(i)));
+                }
+            }
+            updateAttributes(0 /* fake */, GLMediaPlayer.STREAM_ID_NONE, 
+                             size.width, size.height, 
+                             0, 0, 0, 
+                             fpsRange[1]/1000f, 
+                             0, 0, 0, icodec, icodec);
         }
+    }
+    private static String camSz2Str(Camera.Size csize) {
+        return csize.width+"x"+csize.height;
     }
     @Override
     protected final void initGLImpl(GL gl) throws IOException, GLException {
@@ -261,7 +341,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     @Override
     protected final int getNextTextureImpl(GL gl, TextureFrame nextFrame) {
         int pts = TimeFrameI.INVALID_PTS;
-        if(null != mp) {
+        if(null != mp || null != cam) {
             final SurfaceTextureFrame sTexFrame = (SurfaceTextureFrame) nextFrame;
             final SurfaceTexture surfTex = sTexFrame.surfaceTex;
             if( sTexFrame != singleSTexFrame ) {
@@ -269,12 +349,25 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             }
             if( !sTexFrameAttached ) {
                 sTexFrameAttached = true;
-                final Surface surface = new Surface(sTexFrame.surfaceTex);
-                mp.setSurface(surface);
-                surface.release();
+                final Surface surface;
+                if( null != mp ) {
+                    surface = new Surface(sTexFrame.surfaceTex);
+                    mp.setSurface(surface);
+                } else {
+                    surface = null;
+                    try {
+                        cam.setPreviewTexture(sTexFrame.surfaceTex);
+                        cam.startPreview();
+                    } catch (IOException ioe) {
+                        throw new RuntimeException("MediaPlayer failed to process stream <"+streamLoc.toString()+">: "+ioe.getMessage(), ioe);
+                    }
+                }
+                if( null != surface ) {
+                    surface.release();
+                }
                 surfTex.setOnFrameAvailableListener(onFrameAvailableListener);
             }
-            if( eos || !mp.isPlaying() ) {
+            if( eos || (null != mp && !mp.isPlaying() ) ) {
                 eos = true;
                 pts = TimeFrameI.END_OF_STREAM_PTS;
             } else {
@@ -297,7 +390,11 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                 if(update) {
                     surfTex.updateTexImage();
                     // nextFrame.setPTS( (int) ( nextSTex.getTimestamp() / 1000000L ) ); // nano -9 -> milli -3
-                    pts = mp.getCurrentPosition();
+                    if( null != mp ) {
+                        pts = mp.getCurrentPosition();
+                    } else {
+                        pts = (int) ( Platform.currentTimeMillis() - playStart );
+                    }
                     // stex.getTransformMatrix(atex.getSTMatrix());
                 }
             }

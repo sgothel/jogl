@@ -1479,6 +1479,7 @@
         <outofdate>
           <sourcefiles>
             <fileset dir="${project.root}"><patternset refid="@{c.compiler.src.files}"/></fileset>
+            <fileset dir="${project.root}" includes="${rootrel.src.c.libav}/jogamp_opengl_util_av_impl_FFMPEGvXXNatives.c"/>
           </sourcefiles>
           <targetfiles>
             <fileset dir="${obj.jogl}" includes="lib@{output.lib.name}.so"/>

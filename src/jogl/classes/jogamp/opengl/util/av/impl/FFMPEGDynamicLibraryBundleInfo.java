@@ -60,7 +60,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     
     private static final List<String> glueLibNames = new ArrayList<String>(); // none
     
-    private static final int symbolCount = 51;
+    private static final int symbolCount = 54;
     private static final String[] symbolNames = {
          "avcodec_version",
          "avformat_version",
@@ -68,6 +68,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
 /* 4 */  "avresample_version",
 
          // libavcodec
+         "avcodec_register_all",
          "avcodec_close", 
          "avcodec_string", 
          "avcodec_find_decoder", 
@@ -85,16 +86,17 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "av_free_packet", 
          "avcodec_decode_audio4",     // 53.25.0   (opt)
          "avcodec_decode_audio3",     // 52.23.0
-/* 22 */ "avcodec_decode_video2",     // 52.23.0
+/* 23 */ "avcodec_decode_video2",     // 52.23.0
         
          // libavutil
          "av_pix_fmt_descriptors",
          "av_frame_unref",            // 55.0.0 (opt)
+         "av_realloc",
          "av_free",
          "av_get_bits_per_pixel",
          "av_samples_get_buffer_size",
          "av_get_bytes_per_sample",   // 51.4.0
-/* 29 */ "av_opt_set_int",            // 51.12.0
+/* 31 */ "av_opt_set_int",            // 51.12.0
          
          // libavformat
          "avformat_alloc_context",
@@ -113,14 +115,17 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "avformat_network_init",     // 53.13.0   (opt)
          "avformat_network_deinit",   // 53.13.0   (opt)
          "avformat_find_stream_info", // 53.3.0    (opt)
-/* 46 */ "av_find_stream_info",
+/* 48 */ "av_find_stream_info",
 
+         // libavdevice
+/* 49 */ "avdevice_register_all",     // ??? 
+         
          // libavresample
          "avresample_alloc_context",  //  1.0.1
          "avresample_open",
          "avresample_close",
          "avresample_free",
-/* 51 */ "avresample_convert"
+/* 54 */ "avresample_convert"
     };
     
     // alternate symbol names
@@ -139,7 +144,8 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "avformat_seek_file",        // ???       (opt)
          "avcodec_free_frame",        // 54.28.0   (opt)
          "av_frame_unref",            // 55.0.0 (opt)
-         
+         // libavdevice
+         "avdevice_register_all",     // 53.0.0 (opt)
          // libavresample
          "avresample_version",        //  1.0.1
          "avresample_alloc_context",  //  1.0.1
@@ -153,6 +159,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     private static final boolean ready;
     private static final boolean libsLoaded;
     private static final boolean avresampleLoaded;  // optional
+    private static final boolean avdeviceLoaded; // optional
     static final VersionNumber avCodecVersion;    
     static final VersionNumber avFormatVersion;
     static final VersionNumber avUtilVersion;
@@ -164,14 +171,16 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         GLProfile.initSingleton();
         boolean _ready = false;
         boolean[] _libsLoaded= { false };
+        boolean[] _avdeviceLoaded= { false };
         boolean[] _avresampleLoaded= { false };
         VersionNumber[] _versions = new VersionNumber[4];
         try {
-            _ready = initSymbols(_libsLoaded, _avresampleLoaded, _versions);
+            _ready = initSymbols(_libsLoaded, _avdeviceLoaded, _avresampleLoaded, _versions);
         } catch (Throwable t) {
             t.printStackTrace();
         }
         libsLoaded = _libsLoaded[0];
+        avdeviceLoaded = _avdeviceLoaded[0];
         avresampleLoaded = _avresampleLoaded[0];
         avCodecVersion = _versions[0];    
         avFormatVersion = _versions[1];
@@ -205,11 +214,13 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     }
     
     static boolean libsLoaded() { return libsLoaded; }
+    static boolean avDeviceLoaded() { return avdeviceLoaded; }
     static boolean avResampleLoaded() { return avresampleLoaded; }
     static FFMPEGNatives getNatives() { return natives; }
     static boolean initSingleton() { return ready; }
     
-    private static final boolean initSymbols(boolean[] libsLoaded, boolean[] avresampleLoaded, VersionNumber[] versions) {
+    private static final boolean initSymbols(boolean[] libsLoaded, boolean[] avdeviceLoaded, boolean[] avresampleLoaded,
+                                             VersionNumber[] versions) {
         libsLoaded[0] = false;
         final DynamicLibraryBundle dl = AccessController.doPrivileged(new PrivilegedAction<DynamicLibraryBundle>() {
                                           public DynamicLibraryBundle run() {
@@ -221,7 +232,8 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         if(!avutilLoaded || !avformatLoaded || !avcodecLoaded) {
             throw new RuntimeException("FFMPEG Tool library incomplete: [ avutil "+avutilLoaded+", avformat "+avformatLoaded+", avcodec "+avcodecLoaded+"]");
         }
-        avresampleLoaded[0] = dl.isToolLibLoaded(3);
+        avdeviceLoaded[0] = dl.isToolLibLoaded(3);
+        avresampleLoaded[0] = dl.isToolLibLoaded(4);
         libsLoaded[0] = true;
         
         if(symbolNames.length != symbolCount) {
@@ -360,6 +372,16 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         avcodec.add("avcodec-53");   // 0.8
         avcodec.add("avcodec-52");   // 0.7
         libsList.add(avcodec);
+        
+        final List<String> avdevice = new ArrayList<String>();
+        avdevice.add("avdevice");        // default
+
+        avdevice.add("libavdevice.so.54");     // dummy future proof
+        avdevice.add("libavdevice.so.53");     // 8 && 9
+        
+        avdevice.add("avdevice-54");     // dummy future proof
+        avdevice.add("avdevice-53");     // 8 && 9
+        libsList.add(avdevice);
         
         final List<String> avresample = new ArrayList<String>();
         avresample.add("avresample");        // default

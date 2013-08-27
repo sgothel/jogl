@@ -59,7 +59,7 @@ interface FFMPEGNatives {
      * @param aPrefChannelCount
      * @param aPrefSampleRate
      */
-    void setStream0(long moviePtr, String url, String inFormat, int vid, int aid, int aMaxChannelCount, int aPrefSampleRate);
+    void setStream0(long moviePtr, String url, boolean isCameraInput, int vid, int aid, int aMaxChannelCount, int aPrefSampleRate);
     void setGLFuncs0(long moviePtr, long procAddrGLTexSubImage2D, long procAddrGLGetError, long procAddrGLFlush, long procAddrGLFinish);
 
     int getVideoPTS0(long moviePtr);    
