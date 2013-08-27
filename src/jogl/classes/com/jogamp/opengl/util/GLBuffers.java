@@ -99,7 +99,7 @@ public class GLBuffers extends Buffers {
     }
     
     /**
-     * @param glType shall be one of (29) <br/>
+     * @param glType shall be one of (31) <br/>
      *              GL_BYTE, GL_UNSIGNED_BYTE, <br/>
      *              GL_UNSIGNED_BYTE_3_3_2, GL_UNSIGNED_BYTE_2_3_3_REV, <br/>
      *              <br/>
@@ -107,6 +107,7 @@ public class GLBuffers extends Buffers {
      *              GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_5_6_5_REV, <br/> 
      *              GL_UNSIGNED_SHORT_4_4_4_4, GL_UNSIGNED_SHORT_4_4_4_4_REV, <br/>
      *              GL_UNSIGNED_SHORT_5_5_5_1, GL_UNSIGNED_SHORT_1_5_5_5_REV, <br/>
+     *              GL_UNSIGNED_SHORT_8_8_APPLE, GL_UNSIGNED_SHORT_8_8_REV_APPLE, <br/>
      *              GL.GL_HALF_FLOAT, GLES2.GL_HALF_FLOAT_OES: <br/>
      *              <br/>
      *              GL_FIXED, GL_INT <br/>
@@ -139,6 +140,8 @@ public class GLBuffers extends Buffers {
             case GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV:
             case GL2GL3.GL_UNSIGNED_SHORT_5_5_5_1:
             case GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV:
+            case GL2.GL_UNSIGNED_SHORT_8_8_APPLE:
+            case GL2.GL_UNSIGNED_SHORT_8_8_REV_APPLE:
             case GL.GL_HALF_FLOAT:
             case GLES2.GL_HALF_FLOAT_OES:
                 return SIZEOF_SHORT;
@@ -170,7 +173,7 @@ public class GLBuffers extends Buffers {
     }
     
     /**
-     * @param glType shall be one of (29) <br/>
+     * @param glType shall be one of (31) <br/>
      *              GL_BYTE, GL_UNSIGNED_BYTE, <br/>
      *              GL_UNSIGNED_BYTE_3_3_2, GL_UNSIGNED_BYTE_2_3_3_REV, <br/>
      *              <br/>
@@ -178,6 +181,7 @@ public class GLBuffers extends Buffers {
      *              GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_5_6_5_REV, <br/> 
      *              GL_UNSIGNED_SHORT_4_4_4_4, GL_UNSIGNED_SHORT_4_4_4_4_REV, <br/>
      *              GL_UNSIGNED_SHORT_5_5_5_1, GL_UNSIGNED_SHORT_1_5_5_5_REV, <br/>
+     *              GL_UNSIGNED_SHORT_8_8_APPLE, GL_UNSIGNED_SHORT_8_8_REV_APPLE, <br/>
      *              GL_HALF_FLOAT, GL_HALF_FLOAT_OES <br/>
      *              <br/>
      *              GL_FIXED, GL_INT <br/>
@@ -209,6 +213,8 @@ public class GLBuffers extends Buffers {
             case GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV:
             case GL2GL3.GL_UNSIGNED_SHORT_5_5_5_1:
             case GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV:
+            case GL2.GL_UNSIGNED_SHORT_8_8_APPLE:
+            case GL2.GL_UNSIGNED_SHORT_8_8_REV_APPLE:
             case GL.GL_HALF_FLOAT:
             case GLES2.GL_HALF_FLOAT_OES:
                 return newDirectShortBuffer(numElements);
@@ -240,7 +246,7 @@ public class GLBuffers extends Buffers {
     }
 
     /**
-     * @param glType shall be one of (29) <br/>
+     * @param glType shall be one of (31) <br/>
      *              GL_BYTE, GL_UNSIGNED_BYTE, <br/>
      *              GL_UNSIGNED_BYTE_3_3_2, GL_UNSIGNED_BYTE_2_3_3_REV, <br/>
      *              <br/>
@@ -248,6 +254,7 @@ public class GLBuffers extends Buffers {
      *              GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_5_6_5_REV, <br/> 
      *              GL_UNSIGNED_SHORT_4_4_4_4, GL_UNSIGNED_SHORT_4_4_4_4_REV, <br/>
      *              GL_UNSIGNED_SHORT_5_5_5_1, GL_UNSIGNED_SHORT_1_5_5_5_REV, <br/>
+     *              GL_UNSIGNED_SHORT_8_8_APPLE, GL_UNSIGNED_SHORT_8_8_REV_APPLE, <br/>
      *              GL_HALF_FLOAT, GL_HALF_FLOAT_OES <br/>
      *              <br/>
      *              GL_FIXED, GL_INT <br/>
@@ -289,6 +296,8 @@ public class GLBuffers extends Buffers {
             case GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV:
             case GL2GL3.GL_UNSIGNED_SHORT_5_5_5_1:
             case GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV:
+            case GL2.GL_UNSIGNED_SHORT_8_8_APPLE:
+            case GL2.GL_UNSIGNED_SHORT_8_8_REV_APPLE:
             case GL.GL_HALF_FLOAT:
             case GLES2.GL_HALF_FLOAT_OES:
                 res = parent.slice().order(parent.order()).asShortBuffer(); // slice and duplicate may change byte order
@@ -451,7 +460,7 @@ public class GLBuffers extends Buffers {
      * 
      * @param tmp a pass through integer array of size >= 1 used to store temp data (performance)
      * 
-     * @param format must be one of (26) <br/> 
+     * @param format must be one of (27) <br/> 
      *              GL_COLOR_INDEX GL_STENCIL_INDEX <br/> 
      *              GL_DEPTH_COMPONENT GL_DEPTH_STENCIL <br/> 
      *              GL_RED GL_RED_INTEGER <br/> 
@@ -463,6 +472,8 @@ public class GLBuffers extends Buffers {
      *              GL_RG_INTEGER GL_HILO_NV <br/> 
      *              GL_SIGNED_HILO_NV (5) <br/> 
      *              <br/> 
+     *              GL_YCBCR_422_APPLE <br/> 
+     *              <br/> 
      *              GL_RGB GL_RGB_INTEGER <br/> 
      *              GL_BGR GL_BGR_INTEGER (4)<br/>  
      *              <br/> 
@@ -470,7 +481,7 @@ public class GLBuffers extends Buffers {
      *              GL_BGRA GL_BGRA_INTEGER <br/>
      *              GL_ABGR_EXT (5)<br/> 
      *           
-     * @param type must be one of (30) <br/>  
+     * @param type must be one of (32) <br/>  
      *              GL_BITMAP, <br/> 
      *              GL_BYTE, GL_UNSIGNED_BYTE, <br/>
      *              GL_UNSIGNED_BYTE_3_3_2, GL_UNSIGNED_BYTE_2_3_3_REV, <br/>
@@ -479,6 +490,7 @@ public class GLBuffers extends Buffers {
      *              GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_5_6_5_REV, <br/> 
      *              GL_UNSIGNED_SHORT_4_4_4_4, GL_UNSIGNED_SHORT_4_4_4_4_REV, <br/>
      *              GL_UNSIGNED_SHORT_5_5_5_1, GL_UNSIGNED_SHORT_1_5_5_5_REV, <br/>
+     *              GL_UNSIGNED_SHORT_8_8_APPLE, GL_UNSIGNED_SHORT_8_8_REV_APPLE, <br/>
      *              GL_HALF_FLOAT, GL_HALF_FLOAT_OES <br/>
      *              <br/>
      *              GL_FIXED, GL_INT <br/>
@@ -519,7 +531,7 @@ public class GLBuffers extends Buffers {
      * 
      * <p> See {@link #componentCount(int)}. </p>
      * 
-     * @param format must be one of (26) <br/> 
+     * @param format must be one of (27) <br/> 
      *              GL_COLOR_INDEX GL_STENCIL_INDEX <br/> 
      *              GL_DEPTH_COMPONENT GL_DEPTH_STENCIL <br/> 
      *              GL_RED GL_RED_INTEGER <br/> 
@@ -531,6 +543,8 @@ public class GLBuffers extends Buffers {
      *              GL_RG_INTEGER GL_HILO_NV <br/> 
      *              GL_SIGNED_HILO_NV (5) <br/> 
      *              <br/> 
+     *              GL_YCBCR_422_APPLE <br/> 
+     *              <br/> 
      *              GL_RGB GL_RGB_INTEGER <br/> 
      *              GL_BGR GL_BGR_INTEGER (4)<br/>  
      *              <br/> 
@@ -538,7 +552,7 @@ public class GLBuffers extends Buffers {
      *              GL_BGRA GL_BGRA_INTEGER <br/>
      *              GL_ABGR_EXT (5)<br/> 
      *           
-     * @param type must be one of (30) <br/>  
+     * @param type must be one of (32) <br/>  
      *              GL_BITMAP, <br/> 
      *              GL_BYTE, GL_UNSIGNED_BYTE, <br/>
      *              GL_UNSIGNED_BYTE_3_3_2, GL_UNSIGNED_BYTE_2_3_3_REV, <br/>
@@ -547,6 +561,7 @@ public class GLBuffers extends Buffers {
      *              GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_5_6_5_REV, <br/> 
      *              GL_UNSIGNED_SHORT_4_4_4_4, GL_UNSIGNED_SHORT_4_4_4_4_REV, <br/>
      *              GL_UNSIGNED_SHORT_5_5_5_1, GL_UNSIGNED_SHORT_1_5_5_5_REV, <br/>
+     *              GL_UNSIGNED_SHORT_8_8_APPLE, GL_UNSIGNED_SHORT_8_8_REV_APPLE, <br/>
      *              GL_HALF_FLOAT, GL_HALF_FLOAT_OES <br/>
      *              <br/>
      *              GL_FIXED, GL_INT <br/>
@@ -606,6 +621,10 @@ public class GLBuffers extends Buffers {
             case GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV:
               compSize = 2;
               compCount = 1;
+            case GL2.GL_UNSIGNED_SHORT_8_8_APPLE:
+            case GL2.GL_UNSIGNED_SHORT_8_8_REV_APPLE:
+              compSize = 2;
+              compCount = 1;
               break;
             case GL2.GL_HILO16_NV:
             case GL2.GL_SIGNED_HILO16_NV:
@@ -640,7 +659,7 @@ public class GLBuffers extends Buffers {
      * in case either the format, type or alignment is unhandled. In case we forgot to handle 
      * proper values, please contact the maintainer.</p> 
      *   
-     * @param format must be one of (26) <br/> 
+     * @param format must be one of (27) <br/> 
      *              GL_COLOR_INDEX GL_STENCIL_INDEX <br/> 
      *              GL_DEPTH_COMPONENT GL_DEPTH_STENCIL <br/> 
      *              GL_RED GL_RED_INTEGER <br/> 
@@ -651,6 +670,8 @@ public class GLBuffers extends Buffers {
      *              GL_LUMINANCE_ALPHA GL_RG <br/>
      *              GL_RG_INTEGER GL_HILO_NV <br/> 
      *              GL_SIGNED_HILO_NV (5) <br/> 
+     *              <br/> 
+     *              GL_YCBCR_422_APPLE <br/> 
      *              <br/> 
      *              GL_RGB GL_RGB_INTEGER <br/> 
      *              GL_BGR GL_BGR_INTEGER (4)<br/>  
@@ -691,6 +712,9 @@ public class GLBuffers extends Buffers {
             case GL2GL3.GL_RGB_INTEGER:
             case GL2GL3.GL_BGR:
             case GL2GL3.GL_BGR_INTEGER: 
+              compCount = 3;
+              break;
+            case GL2.GL_YCBCR_422_APPLE: 
               compCount = 3;
               break;
             case GL.GL_RGBA:
