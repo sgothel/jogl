@@ -42,7 +42,7 @@
 
 #include "JoglCommon.h"
 
-#include <GL/gl.h>
+#include <GL/gl-platform.h>
 
 typedef unsigned (APIENTRYP AV_GET_VERSION)(void);
 

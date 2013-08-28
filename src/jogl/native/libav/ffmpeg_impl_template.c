@@ -30,14 +30,14 @@
 
 #include "JoglCommon.h"
 #include "ffmpeg_tool.h"
-/**
+
 #include "libavutil/pixdesc.h"
 #include "libavutil/samplefmt.h"
 #if LIBAVUTIL_VERSION_MAJOR < 53
     #include "libavutil/audioconvert.h"
     // 52: #include "libavutil/channel_layout.h"
 #endif
-*/
+
 #include <GL/gl.h>
 
 static const char * const ClazzNameFFMPEGMediaPlayer = "jogamp/opengl/util/av/impl/FFMPEGMediaPlayer";
@@ -501,17 +501,6 @@ JNIEXPORT jlong JNICALL FF_FUNC(createInstance0)
         pAV->useRefCountedFrames = 0;
     #endif
 
-    // Register all formats and codecs
-    sp_avcodec_register_all();
-    if(HAS_FUNC(sp_avdevice_register_all)) {
-        sp_avdevice_register_all();
-    }
-    sp_av_register_all();
-    // Network too ..
-    if(HAS_FUNC(sp_avformat_network_init)) {
-        sp_avformat_network_init();
-    }
-
     pAV->ffmpegMediaPlayer = (*env)->NewGlobalRef(env, ffmpegMediaPlayer);
     pAV->verbose = verbose;
     pAV->vid=AV_STREAM_ID_AUTO;
@@ -597,6 +586,17 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
     if (pAV == NULL) {
         JoglCommon_throwNewRuntimeException(env, "NULL AV ptr");
         return;
+    }
+
+    // Register all formats and codecs
+    sp_avcodec_register_all();
+    if( jIsCameraInput && HAS_FUNC(sp_avdevice_register_all) ) {
+        sp_avdevice_register_all();
+    }
+    sp_av_register_all();
+    // Network too ..
+    if(HAS_FUNC(sp_avformat_network_init)) {
+        sp_avformat_network_init();
     }
 
     pAV->pFormatCtx = sp_avformat_alloc_context();
