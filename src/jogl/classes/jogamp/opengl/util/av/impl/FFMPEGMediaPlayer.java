@@ -38,6 +38,7 @@ import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLException;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.VersionNumber;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.opengl.util.TimeFrameI;
 import com.jogamp.opengl.util.GLPixelStorageModes;
@@ -55,54 +56,87 @@ import jogamp.opengl.util.av.impl.FFMPEGNatives.SampleFormat;
 /***
  * Implementation utilizes <a href="http://libav.org/">Libav</a>
  * or  <a href="http://ffmpeg.org/">FFmpeg</a> which is ubiquitous
- * available and usually pre-installed on Unix platforms. Due to legal 
- * reasons we cannot deploy binaries of it, which contains patented codecs.
- * Besides the default BSD/Linux/.. repositories and installations,
- * precompiled binaries can be found at the listed location below. 
+ * available and usually pre-installed on Unix platforms.
  * <p>
- * Implements YUV420P to RGB fragment shader conversion 
- * and the usual packed RGB formats.
+ * Due to legal reasons we cannot deploy binaries of it, which contains patented codecs.
+ * </p>
+ * <p>
+ * Besides the default BSD/Linux/.. repositories and installations,
+ * precompiled binaries can be found at the
+ * <a href="#libavavail">listed location below</a>.
+ * </p> 
+ * 
+ * <a name="implspecifics"><h5>Implementation specifics</h5></a>
+ * <p>
  * The decoded video frame is written directly into an OpenGL texture 
  * on the GPU in it's native format. A custom fragment shader converts 
- * the native pixelformat to a usable RGB format if required. 
+ * the native pixelformat to a usable <i>RGB</i> format if required. 
  * Hence only 1 copy is required before bloating the picture 
- * from YUV to RGB, for example.
+ * from <i>YUV*</i> to <i>RGB</i>, for example.
  * </p> 
+ * <p>
+ * Implements pixel format conversion to <i>RGB</i> via  
+ * fragment shader texture-lookup functions:
+ * <ul>
+ *   <li>{@link PixelFormat#YUV420P}</li>
+ *   <li>{@link PixelFormat#YUVJ420P}</li>
+ *   <li>{@link PixelFormat#YUV422P}</li>
+ *   <li>{@link PixelFormat#YUVJ422P}</li>
+ *   <li>{@link PixelFormat#YUYV422}</li>
+ * </ul>
+ * </p>
+ * <p>
+ * 
+ * <a name="libavspecifics"><h5>Libav Specifics</h5></a>
  * <p>
  * Utilizes a slim dynamic and native binding to the Lib_av 
  * libraries:
  * <ul>
- *   <li>libavutil</li>
- *   <li>libavformat</li>
  *   <li>libavcodec</li>
+ *   <li>libavformat</li>
+ *   <li>libavutil</li>
+ *   <li>libavresample (opt)</li>
+ *   <li>libavdevice (opt)</li>
  * </ul> 
  * </p>
+ * 
+ * <a name="compatibility"><h5>LibAV Compatibility</h5></a>
  * <p>
- * http://libav.org/
+ * Currently we are binary compatible w/:
+ * <table border="1">
+ * <tr><th>release</th><th>lavc</th><th>lavf</th><th>lavu</th><th>lavr</th> <th>FFMPEG* class</th></tr>
+ * <tr><td>0.8</td>    <td>53</td><td>53</td><td>51</td><td></td>           <td>FFMPEGv08</td></tr>
+ * <tr><td>9.0</td>    <td>54</td><td>54</td><td>52</td><td>01</td>         <td>FFMPEGv09</td></tr>
+ * </table>
+ * </p>
+ * <p>
+ * See http://upstream-tracker.org/versions/libav.html
  * </p>
  * <p> 
  * Check tag 'FIXME: Add more planar formats !' 
  * here and in the corresponding native code
- * <code>jogl/src/jogl/native/ffmpeg/jogamp_opengl_util_av_impl_FFMPEGMediaPlayer.c</code>
+ * <code>jogl/src/jogl/native/libav/ffmpeg_impl_template.c</code>
  * </p>
+ * 
+ * 
+ * <a name="todo"><h5>TODO:</h5></a>
  * <p>
- * TODO:
  * <ul>
- *   <li>Audio Output</li>
- *   <li>Off thread <i>next frame</i> processing using multiple target textures</li>
  *   <li>better pts sync handling</li>
- *   <li>fix seek</li>   
  * </ul> 
  * </p>
- * Pre-compiled Libav / FFmpeg packages:
+ * 
+ * <a name="libavavail"><h5>LibAV Availability</h5></a>
+ * <p>
  * <ul>
- *   <li>Windows: http://ffmpeg.zeranoe.com/builds/</li>
- *   <li>MacOSX: http://www.ffmpegx.com/</li>
+ *   <li>Windows: http://win32.libav.org/releases/</li>
+ *   <li>MacOSX: http://ffmpegmac.net/</li>
  *   <li>OpenIndiana/Solaris:<pre>
  *       pkg set-publisher -p http://pkg.openindiana.org/sfe-encumbered.
  *       pkt install pkg:/video/ffmpeg
  *       </pre></li>
- * </ul> 
+ * </ul>
+ * </p> 
  */
 public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
 
@@ -122,19 +156,24 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         final boolean libAVVersionGood;
         if( FFMPEGDynamicLibraryBundleInfo.libsLoaded() ) {
             natives = FFMPEGDynamicLibraryBundleInfo.getNatives();
-            avUtilMajorVersionCC = natives.getAvUtilMajorVersionCC0();
-            avFormatMajorVersionCC = natives.getAvFormatMajorVersionCC0();
             avCodecMajorVersionCC = natives.getAvCodecMajorVersionCC0();
+            avFormatMajorVersionCC = natives.getAvFormatMajorVersionCC0();
+            avUtilMajorVersionCC = natives.getAvUtilMajorVersionCC0();
             avResampleMajorVersionCC = natives.getAvResampleMajorVersionCC0();
-            System.err.println("LIB_AV Util    : "+FFMPEGDynamicLibraryBundleInfo.avUtilVersion+" [cc "+avUtilMajorVersionCC+"]");
-            System.err.println("LIB_AV Format  : "+FFMPEGDynamicLibraryBundleInfo.avFormatVersion+" [cc "+avFormatMajorVersionCC+"]");
-            System.err.println("LIB_AV Codec   : "+FFMPEGDynamicLibraryBundleInfo.avCodecVersion+" [cc "+avCodecMajorVersionCC+"]");
-            System.err.println("LIB_AV Device  : [loaded "+FFMPEGDynamicLibraryBundleInfo.avDeviceLoaded()+"]");
+            final VersionNumber avCodecVersion = FFMPEGDynamicLibraryBundleInfo.avCodecVersion;
+            final VersionNumber avFormatVersion = FFMPEGDynamicLibraryBundleInfo.avFormatVersion;
+            final VersionNumber avUtilVersion = FFMPEGDynamicLibraryBundleInfo.avUtilVersion;
+            final VersionNumber avResampleVersion = FFMPEGDynamicLibraryBundleInfo.avResampleVersion;            
+            System.err.println("LIB_AV Codec   : "+avCodecVersion+" [cc "+avCodecMajorVersionCC+"]");
+            System.err.println("LIB_AV Format  : "+avFormatVersion+" [cc "+avFormatMajorVersionCC+"]");
+            System.err.println("LIB_AV Util    : "+avUtilVersion+" [cc "+avUtilMajorVersionCC+"]");
             System.err.println("LIB_AV Resample: "+FFMPEGDynamicLibraryBundleInfo.avResampleVersion+" [cc "+avResampleMajorVersionCC+", loaded "+FFMPEGDynamicLibraryBundleInfo.avResampleLoaded()+"]");
-            libAVVersionGood = avUtilMajorVersionCC   == FFMPEGDynamicLibraryBundleInfo.avUtilVersion.getMajor() &&
-                               avFormatMajorVersionCC == FFMPEGDynamicLibraryBundleInfo.avFormatVersion.getMajor() &&
-                               avCodecMajorVersionCC  == FFMPEGDynamicLibraryBundleInfo.avCodecVersion.getMajor() &&
-                               avResampleMajorVersionCC  == FFMPEGDynamicLibraryBundleInfo.avResampleVersion.getMajor();
+            System.err.println("LIB_AV Device  : [loaded "+FFMPEGDynamicLibraryBundleInfo.avDeviceLoaded()+"]");
+            System.err.println("LIB_AV Class   : "+natives.getClass().getSimpleName());
+            libAVVersionGood = avCodecMajorVersionCC  == avCodecVersion.getMajor() &&
+                               avFormatMajorVersionCC == avFormatVersion.getMajor() &&
+                               avUtilMajorVersionCC   == avUtilVersion.getMajor() &&
+                               avResampleMajorVersionCC  == avResampleVersion.getMajor();
             if( !libAVVersionGood ) {
                 System.err.println("LIB_AV Not Matching Compile-Time / Runtime Major-Version");
             }
@@ -167,8 +206,6 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     private int vPlanes = 0;
     private int vBitsPerPixel = 0;
     private int vBytesPerPixelPerPlane = 0;    
-    private int[] vLinesize = { 0, 0, 0 }; // per plane
-    private int[] vTexWidth = { 0, 0, 0 }; // per plane
     private int texWidth, texHeight; // overall (stuffing planes in one texture)
     private String singleTexComp = "r";
     private GLPixelStorageModes psm;
@@ -270,7 +307,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             throw new GLException("AudioSink null");
         }
         final int audioQueueLimit;
-        if( null != gl ) {
+        if( null != gl && STREAM_ID_NONE != vid ) {
             final GLContextImpl ctx = (GLContextImpl)gl.getContext();
             AccessController.doPrivileged(new PrivilegedAction<Object>() {
                 public Object run() {
@@ -286,12 +323,6 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         } else {
             audioQueueLimit = AudioSink.DefaultQueueLimitAudioOnly;
         }
-        final float frameDuration;
-        if( audioSamplesPerFrameAndChannel > 0 ) {
-            frameDuration= avChosenAudioFormat.getSamplesDuration(audioSamplesPerFrameAndChannel);
-        } else {
-            frameDuration = AudioSink.DefaultFrameDuration;
-        }
         if(DEBUG) {
             System.err.println("initGL: p3 avChosen "+avChosenAudioFormat);
         }
@@ -299,20 +330,28 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         if( STREAM_ID_NONE == aid ) {
             audioSink.destroy();
             audioSink = AudioSinkFactory.createNull();
-        }
-        final boolean audioSinkOK = audioSink.init(avChosenAudioFormat, frameDuration, AudioSink.DefaultInitialQueueSize, AudioSink.DefaultQueueGrowAmount, audioQueueLimit);
-        if( !audioSinkOK ) {
-            System.err.println("AudioSink "+audioSink.getClass().getName()+" does not support "+avChosenAudioFormat+", using Null");
-            audioSink.destroy();
-            audioSink = AudioSinkFactory.createNull();
-            audioSink.init(avChosenAudioFormat, 0, AudioSink.DefaultInitialQueueSize, AudioSink.DefaultQueueGrowAmount, audioQueueLimit);
+            audioSink.init(AudioSink.DefaultFormat, 0, AudioSink.DefaultInitialQueueSize, AudioSink.DefaultQueueGrowAmount, audioQueueLimit);
+        } else {
+            final float frameDuration;
+            if( audioSamplesPerFrameAndChannel > 0 ) {
+                frameDuration= avChosenAudioFormat.getSamplesDuration(audioSamplesPerFrameAndChannel);
+            } else {
+                frameDuration = AudioSink.DefaultFrameDuration;
+            }
+            final boolean audioSinkOK = audioSink.init(avChosenAudioFormat, frameDuration, AudioSink.DefaultInitialQueueSize, AudioSink.DefaultQueueGrowAmount, audioQueueLimit);
+            if( !audioSinkOK ) {
+                System.err.println("AudioSink "+audioSink.getClass().getName()+" does not support "+avChosenAudioFormat+", using Null");
+                audioSink.destroy();
+                audioSink = AudioSinkFactory.createNull();
+                audioSink.init(avChosenAudioFormat, 0, AudioSink.DefaultInitialQueueSize, AudioSink.DefaultQueueGrowAmount, audioQueueLimit);
+            }
         }
         if(DEBUG) {
             System.err.println("initGL: p4 chosen "+avChosenAudioFormat);
             System.err.println("initGL: p4 chosen "+audioSink);
         }
         
-        if( null != gl ) {
+        if( null != gl && STREAM_ID_NONE != vid ) {
             int tf, tif=GL.GL_RGBA; // texture format and internal format
             int tt = GL.GL_UNSIGNED_BYTE;
             switch(vBytesPerPixelPerPlane) {
@@ -325,7 +364,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                         tf = GL2ES2.GL_ALPHA; tif=GL2ES2.GL_ALPHA; singleTexComp = "a";
                     }
                     break;
-                
+
                 case 2: if( vPixelFmt == PixelFormat.YUYV422 ) {
                             // YUYV422: // < packed YUV 4:2:2, 2x 16bpp, Y0 Cb Y1 Cr
                             // Stuffed into RGBA half width texture
@@ -426,6 +465,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     
     /**
      * Native callback
+     * @param vid
      * @param pixFmt
      * @param planes
      * @param bitsPerPixel
@@ -436,58 +476,96 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * @param tWd0
      * @param tWd1
      * @param tWd2
+     * @param aid
      * @param audioSampleFmt
      * @param audioSampleRate
      * @param audioChannels
      * @param audioSamplesPerFrameAndChannel in audio samples per frame and channel
      */
-    void updateAttributes2(int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,
+    void updateAttributes2(int vid, int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,
                            int lSz0, int lSz1, int lSz2,
                            int tWd0, int tWd1, int tWd2, int vW, int vH,
-                           int audioSampleFmt, int audioSampleRate, 
+                           int aid, int audioSampleFmt, int audioSampleRate, 
                            int audioChannels, int audioSamplesPerFrameAndChannel) {
-        vPixelFmt = PixelFormat.valueOf(pixFmt);
-        vPlanes = planes;
-        vBitsPerPixel = bitsPerPixel;
-        vBytesPerPixelPerPlane = bytesPerPixelPerPlane;
-        vLinesize[0] = lSz0; vLinesize[1] = lSz1; vLinesize[2] = lSz2;
-        vTexWidth[0] = tWd0; vTexWidth[1] = tWd1; vTexWidth[2] = tWd2;
+        // defaults ..
+        vPixelFmt = null;
+        vPlanes = 0;
+        vBitsPerPixel = 0;
+        vBytesPerPixelPerPlane = 0;
+        usesTexLookupShader = false;
+        texWidth = 0; texHeight = 0;
         
-        switch(vPixelFmt) {
-            case YUV420P: // < planar YUV 4:2:0, 12bpp, (1 Cr & Cb sample per 2x2 Y samples)
-                usesTexLookupShader = true;
-                // YUV420P: Adding U+V on right side of fixed height texture,
-                //          since width is already aligned by decoder.
-                // Y=w*h, Y=w/2*h/2, U=w/2*h/2
-                // w*h + 2 ( w/2 * h/2 ) 
-                // w*h + w*h/2
-                // 2*w/2 * h 
-                texWidth = vTexWidth[0] + vTexWidth[1]; texHeight = vH;
-                break;
-            case YUYV422: // < packed YUV 4:2:2, 2x 16bpp, Y0 Cb Y1 Cr - stuffed into RGBA half width texture
-                usesTexLookupShader = true;
-                texWidth = vTexWidth[0]; texHeight = vH; 
-                break;
-            case RGB24:
-            case BGR24:
-            case ARGB:
-            case RGBA:
-            case ABGR:
-            case BGRA:
-                usesTexLookupShader = false;
-                texWidth = vTexWidth[0]; texHeight = vH; 
-                break;
-            default: // FIXME: Add more formats !
-                throw new RuntimeException("Unsupported pixelformat: "+vPixelFmt);
+        final int[] vLinesize = { 0, 0, 0 }; // per plane
+        final int[] vTexWidth = { 0, 0, 0 }; // per plane
+        
+        if( STREAM_ID_NONE != vid ) {
+            vPixelFmt = PixelFormat.valueOf(pixFmt);
+            vPlanes = planes;
+            vBitsPerPixel = bitsPerPixel;
+            vBytesPerPixelPerPlane = bytesPerPixelPerPlane;                        
+            vLinesize[0] = lSz0; vLinesize[1] = lSz1; vLinesize[2] = lSz2;
+            vTexWidth[0] = tWd0; vTexWidth[1] = tWd1; vTexWidth[2] = tWd2;
+            
+            switch(vPixelFmt) {
+                case YUVJ420P:
+                case YUV420P: // < planar YUV 4:2:0, 12bpp, (1 Cr & Cb sample per 2x2 Y samples)
+                    usesTexLookupShader = true;
+                    // YUV420P: Adding U+V on right side of fixed height texture,
+                    //          since width is already aligned by decoder.
+                    //          Splitting texture to 4 quadrants: 
+                    //            Y covers left top/low quadrant
+                    //            U on top-right quadrant.
+                    //            V on low-right quadrant.
+                    // Y=w*h, U=w/2*h/2, V=w/2*h/2
+                    //   w*h + 2 ( w/2 * h/2 ) 
+                    //   w*h + w*h/2
+                    texWidth = vTexWidth[0] + vTexWidth[1]; texHeight = vH;
+                    break;
+                case YUVJ422P:
+                case YUV422P:
+                    usesTexLookupShader = true;
+                    // YUV422P: Adding U+V on right side of fixed height texture,
+                    //          since width is already aligned by decoder.
+                    //          Splitting texture to 4 columns
+                    //            Y covers columns 1+2
+                    //            U covers columns 3
+                    //            V covers columns 4
+                    texWidth = vTexWidth[0] + vTexWidth[1] + vTexWidth[2]; texHeight = vH;
+                    break;
+                case YUYV422: // < packed YUV 4:2:2, 2x 16bpp, Y0 Cb Y1 Cr - stuffed into RGBA half width texture
+                    usesTexLookupShader = true;
+                    texWidth = vTexWidth[0]; texHeight = vH; 
+                    break;
+                case RGB24:
+                case BGR24:
+                case ARGB:
+                case RGBA:
+                case ABGR:
+                case BGRA:
+                    usesTexLookupShader = false;
+                    texWidth = vTexWidth[0]; texHeight = vH; 
+                    break;
+                default: // FIXME: Add more formats !
+                    throw new RuntimeException("Unsupported pixelformat: "+vPixelFmt);
+            }
         }
-        final SampleFormat aSampleFmt = SampleFormat.valueOf(audioSampleFmt);
-        avChosenAudioFormat = avAudioFormat2Local(aSampleFmt, audioSampleRate, audioChannels);
-
-        this.audioSamplesPerFrameAndChannel = audioSamplesPerFrameAndChannel;
+        
+        // defaults ..
+        final SampleFormat aSampleFmt;
+        avChosenAudioFormat = null;;
+        this.audioSamplesPerFrameAndChannel = 0;
+        
+        if( STREAM_ID_NONE != aid ) {
+            aSampleFmt = SampleFormat.valueOf(audioSampleFmt);
+            avChosenAudioFormat = avAudioFormat2Local(aSampleFmt, audioSampleRate, audioChannels);
+            this.audioSamplesPerFrameAndChannel = audioSamplesPerFrameAndChannel;
+        } else {
+            aSampleFmt = null;
+        }
         
         if(DEBUG) {
-            System.err.println("audio: fmt "+aSampleFmt+", "+avChosenAudioFormat+", aFrameSize/fc "+audioSamplesPerFrameAndChannel);
-            System.err.println("video: fmt "+vW+"x"+vH+", "+vPixelFmt+", planes "+vPlanes+", bpp "+vBitsPerPixel+"/"+vBytesPerPixelPerPlane+", usesTexLookupShader "+usesTexLookupShader);
+            System.err.println("audio: id "+aid+", fmt "+aSampleFmt+", "+avChosenAudioFormat+", aFrameSize/fc "+audioSamplesPerFrameAndChannel);
+            System.err.println("video: id "+vid+", fmt "+vW+"x"+vH+", "+vPixelFmt+", planes "+vPlanes+", bpp "+vBitsPerPixel+"/"+vBytesPerPixelPerPlane+", usesTexLookupShader "+usesTexLookupShader);
             for(int i=0; i<3; i++) {
                 System.err.println("video: "+i+": "+vTexWidth[i]+"/"+vLinesize[i]);
             }
@@ -532,6 +610,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
       }
       final float tc_w_1 = (float)getWidth() / (float)texWidth;
       switch(vPixelFmt) {
+        case YUVJ420P:
         case YUV420P: // < planar YUV 4:2:0, 12bpp, (1 Cr & Cb sample per 2x2 Y samples)
           return
               "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
@@ -551,6 +630,28 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
               "  return vec4(r, g, b, 1);\n"+
               "}\n"
           ;
+          
+        case YUVJ422P:
+        case YUV422P: ///< planar YUV 4:2:2, 16bpp, (1 Cr & Cb sample per 2x1 Y samples)
+          return
+              "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
+              "  vec2 u_off = vec2("+tc_w_1+"      , 0.0);\n"+
+              "  vec2 v_off = vec2("+tc_w_1+" * 1.5, 0.0);\n"+
+              "  vec2 tc_halfw = vec2(texCoord.x*0.5, texCoord.y);\n"+
+              "  float y,u,v,r,g,b;\n"+
+              "  y = texture2D(image, texCoord)."+singleTexComp+";\n"+
+              "  u = texture2D(image, u_off+tc_halfw)."+singleTexComp+";\n"+
+              "  v = texture2D(image, v_off+tc_halfw)."+singleTexComp+";\n"+
+              "  y = 1.1643*(y-0.0625);\n"+
+              "  u = u-0.5;\n"+
+              "  v = v-0.5;\n"+
+              "  r = y+1.5958*v;\n"+
+              "  g = y-0.39173*u-0.81290*v;\n"+
+              "  b = y+2.017*u;\n"+
+              "  return vec4(r, g, b, 1);\n"+
+              "}\n"
+          ;
+            
         case YUYV422: // < packed YUV 4:2:2, 2 x 16bpp, [Y0 Cb] [Y1 Cr]
                       // Stuffed into RGBA half width texture
           return

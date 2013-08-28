@@ -46,14 +46,7 @@ import com.jogamp.common.util.RunnableExecutor;
 import com.jogamp.common.util.VersionNumber;
 
 /**
- * FIXME: We need native structure access methods to deal with API changes
- *        in the libav headers, which break binary compatibility!
- *        Currently we are binary compatible w/ [0.6 ?, ] 0.7 and 0.8 but not w/ trunk.
- *        
- *        ChangeList for trunk:
- *          Thu Jan 12 11:21:02 2012 a17479dfce67fbea2d0a1bf303010dce1e79059f major 53 -> 54
- *          Mon Feb 27 22:40:11 2012 ee42df8a35c2b795f524c856834d0823dbd4e75d reorder AVStream and AVFormatContext
- *          Tue Feb 28 12:07:53 2012 322537478b63c6bc01e640643550ff539864d790 minor  1 ->  2
+ * See {@link FFMPEGMediaPlayer#compatibility}.
  */
 class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     private static final boolean DEBUG = FFMPEGMediaPlayer.DEBUG || DynamicLibraryBundleInfo.DEBUG;
@@ -73,7 +66,6 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "avcodec_string", 
          "avcodec_find_decoder", 
          "avcodec_open2",             // 53.6.0    (opt) 
-         "avcodec_open", 
          "avcodec_alloc_frame",
          "avcodec_get_frame_defaults",
          "avcodec_free_frame",        // 54.28.0   (opt)
@@ -85,8 +77,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "av_destruct_packet",
          "av_free_packet", 
          "avcodec_decode_audio4",     // 53.25.0   (opt)
-         "avcodec_decode_audio3",     // 52.23.0
-/* 23 */ "avcodec_decode_video2",     // 52.23.0
+/* 21 */ "avcodec_decode_video2",     // 52.23.0
         
          // libavutil
          "av_pix_fmt_descriptors",
@@ -96,13 +87,16 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "av_get_bits_per_pixel",
          "av_samples_get_buffer_size",
          "av_get_bytes_per_sample",   // 51.4.0
-/* 31 */ "av_opt_set_int",            // 51.12.0
-         
+         "av_opt_set_int",            // 51.12.0
+         "av_dict_get",
+         "av_dict_count",             // 54.*      (opt)
+         "av_dict_set",
+/* 33 */ "av_dict_free",
+
          // libavformat
          "avformat_alloc_context",
          "avformat_free_context",     // 52.96.0   (opt)
          "avformat_close_input",      // 53.17.0   (opt)
-         "av_close_input_file",
          "av_register_all", 
          "av_find_input_format",
          "avformat_open_input", 
@@ -114,8 +108,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "av_read_pause",
          "avformat_network_init",     // 53.13.0   (opt)
          "avformat_network_deinit",   // 53.13.0   (opt)
-         "avformat_find_stream_info", // 53.3.0    (opt)
-/* 48 */ "av_find_stream_info",
+/* 48 */ "avformat_find_stream_info", // 53.3.0    (opt)
 
          // libavdevice
 /* 49 */ "avdevice_register_all",     // ??? 
@@ -130,20 +123,15 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     
     // alternate symbol names
     private static final String[][] altSymbolNames = {
-        { "avcodec_open",          "avcodec_open2" },              // old, 53.6.0
-        { "avcodec_decode_audio3", "avcodec_decode_audio4" },      // old, 53.25.0
-        { "av_close_input_file",   "avformat_close_input" },       // old, 53.17.0
-        { "av_find_stream_info",   "avformat_find_stream_info" },  // old, 53.3.0       
+        // { "av_find_stream_info",   "avformat_find_stream_info" },  // old, 53.3.0       
     };
     
     // optional symbol names
     private static final String[] optionalSymbolNames = {
-         "avformat_free_context",     // 52.96.0   (opt)
-         "avformat_network_init",     // 53.13.0   (opt)
-         "avformat_network_deinit",   // 53.13.0   (opt)
          "avformat_seek_file",        // ???       (opt)
          "avcodec_free_frame",        // 54.28.0   (opt)
          "av_frame_unref",            // 55.0.0 (opt)
+         "av_dict_count",             // 54.*   (opt)
          // libavdevice
          "avdevice_register_all",     // 53.0.0 (opt)
          // libavresample
@@ -377,10 +365,10 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         avdevice.add("avdevice");        // default
 
         avdevice.add("libavdevice.so.54");     // dummy future proof
-        avdevice.add("libavdevice.so.53");     // 8 && 9
+        avdevice.add("libavdevice.so.53");     // 0.8 && 9
         
         avdevice.add("avdevice-54");     // dummy future proof
-        avdevice.add("avdevice-53");     // 8 && 9
+        avdevice.add("avdevice-53");     // 0.8 && 9
         libsList.add(avdevice);
         
         final List<String> avresample = new ArrayList<String>();

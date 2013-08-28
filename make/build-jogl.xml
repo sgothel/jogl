@@ -1424,6 +1424,7 @@
         <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
 
         <patternset id="c.src.files.@{version.lav}">
+          <include name="${rootrel.src.c}/JoglCommon.c"/>
           <include name="${rootrel.src.c.libav}/ffmpeg_@{version.lav}.c"/>
         </patternset>
 
@@ -1495,6 +1496,7 @@
 
         <patternset id="c.src.files.jogl.desktop">
           <include name="${rootrel.src.c}/JoglCommon.c"/>
+          <include name="${rootrel.src.c}/GLContext.c"/>
           <include name="${rootrel.src.c}/GLDebugMessageHandler.c"/>
           <include name="${rootrel.src.c}/timespec.c" if="isOSX"/> <!-- currently only used for OSX -->
           <include name="${rootrel.src.c}/macosx/MacOSXCustomCGLCode.c" if="isOSX"/>
@@ -1519,6 +1521,7 @@
 
         <patternset id="c.src.files.jogl.mobile">
           <include name="${rootrel.src.c}/JoglCommon.c"/>
+          <include name="${rootrel.src.c}/GLContext.c"/>
           <include name="${rootrel.src.c}/GLDebugMessageHandler.c"/>
           <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
           <include name="${rootrel.src.c.libav}/ffmpeg_static.c"/>
