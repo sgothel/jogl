@@ -365,10 +365,11 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * @param audioChannels number of channels
      */
     final boolean isAudioFormatSupported(int audioSampleFmt, int audioSampleRate, int audioChannels) {
-        final AudioFormat audioFormat = avAudioFormat2Local(SampleFormat.valueOf(audioSampleFmt), audioSampleRate, audioChannels);
+        final SampleFormat avFmt = SampleFormat.valueOf(audioSampleFmt);
+        final AudioFormat audioFormat = avAudioFormat2Local(avFmt, audioSampleRate, audioChannels);
         final boolean res = audioSink.isSupported(audioFormat);
         if( DEBUG ) {
-            System.err.println("AudioSink.isSupported: "+res+": "+audioFormat);
+            System.err.println("AudioSink.isSupported: "+res+": av[fmt "+avFmt+", rate "+audioSampleRate+", chan "+audioChannels+"] -> "+audioFormat);
         }
         return res;
     }
@@ -382,42 +383,40 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     private final AudioFormat avAudioFormat2Local(SampleFormat audioSampleFmt, int audioSampleRate, int audioChannels) {
         final int sampleSize;
         boolean planar = true;
-        final boolean signed, fixedP;
+        boolean fixedP = true;
+        final boolean signed;
         switch( audioSampleFmt ) {
             case S32:
                 planar = false;
             case S32P:
                 sampleSize = 32;
                 signed = true;
-                fixedP = true;
                 break;
             case S16:
                 planar = false;
             case S16P:
                 sampleSize = 16;
                 signed = true;
-                fixedP = true;
                 break;
             case U8:
                 planar = false;
             case U8P:
                 sampleSize = 8;
                 signed = false;
-                fixedP = true;
                 break;
             case DBL:
                 planar = false;
             case DBLP:
                 sampleSize = 64;
                 signed = true;
-                fixedP = true;
+                fixedP = false;
                 break;
             case FLT:
                 planar = false;
             case FLTP:
                 sampleSize = 32;
                 signed = true;
-                fixedP = true;
+                fixedP = false;
                 break;
             default: // FIXME: Add more formats !
                 throw new IllegalArgumentException("Unsupported sampleformat: "+audioSampleFmt);
