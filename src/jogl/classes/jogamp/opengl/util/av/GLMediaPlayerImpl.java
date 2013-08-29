@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Map;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.opengl.GL;
@@ -44,6 +45,7 @@ import javax.media.opengl.GLProfile;
 
 import jogamp.opengl.Debug;
 
+import com.jogamp.common.net.URIQueryProps;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.LFRingbuffer;
 import com.jogamp.common.util.Ringbuffer;
@@ -89,10 +91,13 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected URI streamLoc = null;
     /** 
      * In case {@link #streamLoc} is a {@link GLMediaPlayer#CameraInputScheme},
-     * {@link #cameraHostPart} holds the URI's path portion
+     * {@link #cameraPath} holds the URI's path portion
      * as parsed in {@link #initStream(URI, int, int, int)}.
+     * @see #cameraProps
      */
-    protected String cameraHostPart = null;
+    protected String cameraPath = null;
+    /** Optional camera properties, see {@link #cameraPath}. */
+    protected Map<String, String> cameraProps = null;
     
     protected volatile float playSpeed = 1.0f;
     protected float audioVolume = 1.0f;
@@ -472,11 +477,19 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             this.streamLoc = streamLoc;
 
             // Pre-parse for camera-input scheme
+            cameraPath = null;
+            cameraProps = null;
             final String streamLocScheme = streamLoc.getScheme();
             if( null != streamLocScheme && streamLocScheme.equals(CameraInputScheme) ) {
-                cameraHostPart = streamLoc.getHost();
-            } else {
-                cameraHostPart = null; 
+                final String rawPath = streamLoc.getRawPath();
+                if( null != rawPath && rawPath.length() > 0 ) {
+                    // cut-off root fwd-slash 
+                    cameraPath = rawPath.substring(1);
+                    final URIQueryProps props = URIQueryProps.create(streamLoc);
+                    cameraProps = props.getProperties();
+                } else {
+                    throw new IllegalArgumentException("Camera path is empty: "+streamLoc.toString());
+                }
             }
             
             this.vid = vid;
@@ -526,6 +539,9 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 if( STREAM_ID_NONE != vid ) {
                     removeAllTextureFrames(gl);
                     initGLImpl(gl);
+                    if(DEBUG) {
+                        System.err.println("initGLImpl.X "+this);
+                    }                    
                     videoFramesOrig = createTexFrames(gl, textureCount);
                     videoFramesFree = new LFRingbuffer<TextureFrame>(videoFramesOrig);
                     videoFramesDecoded = new LFRingbuffer<TextureFrame>(TextureFrame[].class, textureCount);
@@ -615,13 +631,13 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 final int err = gl.glGetError();
                 if( GL.GL_NO_ERROR != err ) {
                     throw new RuntimeException("Couldn't create TexImage2D RGBA "+tWidth+"x"+tHeight+", target "+toHexString(textureTarget)+
-                                   ", ifmt "+toHexString(GL.GL_RGBA)+", fmt "+toHexString(textureFormat)+", type "+toHexString(textureType)+
+                                   ", ifmt "+toHexString(textureInternalFormat)+", fmt "+toHexString(textureFormat)+", type "+toHexString(textureType)+
                                    ", err "+toHexString(err));
                 }
             }
             if(DEBUG) {
                 System.err.println("Created TexImage2D RGBA "+tWidth+"x"+tHeight+", target "+toHexString(textureTarget)+
-                                   ", ifmt "+toHexString(GL.GL_RGBA)+", fmt "+toHexString(textureFormat)+", type "+toHexString(textureType));
+                                   ", ifmt "+toHexString(textureInternalFormat)+", fmt "+toHexString(textureFormat)+", type "+toHexString(textureType));
             }
         }
         gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_MIN_FILTER, texMinMagFilter[0]);
@@ -1322,10 +1338,10 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         final int freeVideoFrames = null != videoFramesFree ? videoFramesFree.size() : 0;
         final int decVideoFrames = null != videoFramesDecoded ? videoFramesDecoded.size() : 0;
         final int video_scr = video_scr_pts + (int) ( ( Platform.currentTimeMillis() - video_scr_t0 ) * playSpeed );
-        final String camPath = null != cameraHostPart ? ", camera: "+cameraHostPart : "";
+        final String camPath = null != cameraPath ? ", camera: "+cameraPath : "";
         return "GLMediaPlayer["+state+", vSCR "+video_scr+", frames[p "+presentedFrameCount+", d "+decodedFrameCount+", t "+videoFrames+" ("+tt+" s)], "+
                "speed "+playSpeed+", "+bps_stream+" bps, "+
-               "Texture[count "+textureCount+", free "+freeVideoFrames+", dec "+decVideoFrames+", target "+toHexString(textureTarget)+", format "+toHexString(textureFormat)+", type "+toHexString(textureType)+"], "+               
+               "Texture[count "+textureCount+", free "+freeVideoFrames+", dec "+decVideoFrames+", tagt "+toHexString(textureTarget)+", ifmt "+toHexString(textureInternalFormat)+", fmt "+toHexString(textureFormat)+", type "+toHexString(textureType)+"], "+
                "Video[id "+vid+", <"+vcodec+">, "+width+"x"+height+", "+fps+" fps, "+frame_duration+" fdur, "+bps_video+" bps], "+
                "Audio[id "+aid+", <"+acodec+">, "+bps_audio+" bps, "+audioFrames+" frames], uri "+loc+camPath+"]";
     }
@@ -1393,5 +1409,16 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
     protected static final String toHexString(int v) {
         return "0x"+Integer.toHexString(v);
+    }
+    protected static final int getPropIntVal(Map<String, String> props, String key) {
+        final String val = props.get(key);
+        try {
+            return Integer.valueOf(val).intValue();
+        } catch (NumberFormatException nfe) {
+            if(DEBUG) {
+                System.err.println("Not a valid integer for <"+key+">: <"+val+">");
+            }
+        }
+        return 0;
     }
 }

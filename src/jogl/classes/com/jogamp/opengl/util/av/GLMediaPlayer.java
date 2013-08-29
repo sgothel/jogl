@@ -197,13 +197,33 @@ public interface GLMediaPlayer extends TextureSequence {
      * {@link URI#getScheme() URI scheme} name {@value} for camera input. E.g. <code>camera://0</code>
      * for the 1st camera device.
      * <p>
-     * Note: the {@link URI#getHost() URI host} is being used to identify the camera:
+     * The {@link URI#getRawPath() URI path} is being used to identify the camera,
+     * where the root fwd-slash is being cut-off.
+     * </p>
+     * <p>
+     * The {@link URI#getRawQuery() URI query} is used to pass options to the camera.
+     * </p>
      * <pre>
-     *    camera://<id>
+     *    camera:/<id>
+     *    camera://somewhere/<id>
+     *    camera://somewhere/<id>?width=640&height=480&rate=15
+     * </pre>
+     * <pre>
+     *  URI: [scheme:][//authority][path][?query][#fragment]
+     *  w/ authority: [user-info@]host[:port]
+     *  Note: 'path' starts w/ fwd slash
      * </pre>
      * </p> 
      */
     public static final String CameraInputScheme = "camera";
+    /** Camera property {@value}, size as string, e.g. <code>1280x720</code>, <code>hd720</code>. May not be supported on all platforms. See {@link #CameraInputScheme}. */
+    public static final String CameraPropSizeS = "size";
+    /** Camera property {@value}. See {@link #CameraInputScheme}. */
+    public static final String CameraPropWidth = "width";
+    /** Camera property {@value}. See {@link #CameraInputScheme}. */
+    public static final String CameraPropHeight = "height";
+    /** Camera property {@value}. See {@link #CameraInputScheme}. */
+    public static final String CameraPropRate = "rate";
     
     /** Maximum video frame async of {@value} milliseconds. */
     public static final int MAXIMUM_VIDEO_ASYNC = 22;

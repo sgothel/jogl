@@ -27,7 +27,6 @@
  */
 package jogamp.opengl.util.av.impl;
 
-import com.jogamp.opengl.util.av.AudioSink;
 import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 interface FFMPEGNatives {
@@ -37,6 +36,7 @@ interface FFMPEGNatives {
     int getAvFormatMajorVersionCC0();
     int getAvCodecMajorVersionCC0();
     int getAvResampleMajorVersionCC0();
+    int getSwResampleMajorVersionCC0();
     boolean initIDs0();
     
     long createInstance0(FFMPEGMediaPlayer upstream, boolean verbose);
@@ -45,21 +45,22 @@ interface FFMPEGNatives {
     /**
      * Issues {@link #updateAttributes(int, int, int, int, int, int, int, float, int, int, String, String)}
      * and {@link #updateAttributes2(int, int, int, int, int, int, int, int, int, int)}.
-     * <p>
-     * Always uses {@link AudioSink.AudioFormat}:
-     * <pre>
-     *   [type PCM, sampleRate [10000(?)..44100..48000], sampleSize 16, channelCount 1-2, signed, littleEndian]
-     * </pre>
-     * </p>
      * 
      * @param moviePtr
      * @param url
      * @param vid
+     * @param sizes requested video size as string, i.e. 'hd720'. May be null to favor vWidth and vHeight.
+     * @param vWidth requested video width (for camera mode)
+     * @param vHeight requested video width (for camera mode)
+     * @param vRate requested video framerate (for camera mode)
      * @param aid
-     * @param aPrefChannelCount
      * @param aPrefSampleRate
+     * @param aPrefChannelCount
      */
-    void setStream0(long moviePtr, String url, boolean isCameraInput, int vid, int aid, int aMaxChannelCount, int aPrefSampleRate);
+    void setStream0(long moviePtr, String url, boolean isCameraInput, 
+                    int vid, String sizes, int vWidth, int vHeight, 
+                    int vRate, int aid, int aMaxChannelCount, int aPrefSampleRate);
+    
     void setGLFuncs0(long moviePtr, long procAddrGLTexSubImage2D, long procAddrGLGetError, long procAddrGLFlush, long procAddrGLFinish);
 
     int getVideoPTS0(long moviePtr);    

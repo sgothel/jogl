@@ -1225,12 +1225,12 @@
 
       <linker id="linker.cfg.win32.mingw.jogl" extends="linker.cfg.win32.mingw">
         <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names -->
-        <syslibset libs="gdi32, kernel32"/>
+        <syslibset libs="gdi32, kernel32, strmiids, uuid, ole32, oleaut32"/> <!-- last 4 for dshow video input query! -->
       </linker>
 
       <linker id="linker.cfg.win64.mingw.jogl" extends="linker.cfg.win64.mingw">
         <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names -->
-        <syslibset libs="gdi32, kernel32"/>
+        <syslibset libs="gdi32, kernel32, strmiids, uuid, ole32, oleaut32"/> <!-- last 4 for dshow video input query! -->
       </linker>
 
       <linker id="linker.cfg.win32.msvc.jogl" extends="linker.cfg.win32.msvc">
@@ -1425,6 +1425,7 @@
 
         <patternset id="c.src.files.@{version.lav}">
           <include name="${rootrel.src.c}/JoglCommon.c"/>
+          <include name="${rootrel.src.c.libav}/ffmpeg_dshow.c"/>
           <include name="${rootrel.src.c.libav}/ffmpeg_@{version.lav}.c"/>
         </patternset>
 
@@ -1469,6 +1470,9 @@
                 <!-- This must come last to not override real include paths -->
                 <!-- includepath path="stub_includes/macosx" if="isOSX" / -->
               </compiler>
+
+              <linker extends="@{linker.cfg.id}">
+              </linker>
             </cc>
           </sequential>
         </outofdate>
@@ -1492,6 +1496,7 @@
         <patternset id="c.obj.files.ffmpeg.inject">
           <include name="${rootrel.obj.joglsub}/ffmpeg_lavc53_lavf53_lavu51.*"/>
           <include name="${rootrel.obj.joglsub}/ffmpeg_lavc54_lavf54_lavu52_lavr01.*"/>
+          <include name="${rootrel.obj.joglsub}/ffmpeg_lavc55_lavf55_lavu52_lavr01.*"/>
         </patternset>
 
         <patternset id="c.src.files.jogl.desktop">
@@ -1507,6 +1512,7 @@
           <!-- FIXME: the Mixer should be moved to another library -->
           <!--include name="${rootrel.src.c}/Mixer.cpp" if="isWindows"/-->
           <include name="${rootrel.src.c.libav}/ffmpeg_static.c"/>
+          <include name="${rootrel.src.c.libav}/ffmpeg_dshow.c"/>
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="setup.addNativeOpenMAX"/>
           <include name="${rootrel.src.c.openmax}/jogamp_opengl_util_av_impl_OMXGLMediaPlayer.c"  if="setup.addNativeOpenMAX"/>
 
@@ -1525,6 +1531,7 @@
           <include name="${rootrel.src.c}/GLDebugMessageHandler.c"/>
           <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
           <include name="${rootrel.src.c.libav}/ffmpeg_static.c"/>
+          <include name="${rootrel.src.c.libav}/ffmpeg_dshow.c"/>
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="setup.addNativeOpenMAX"/>
           <include name="${rootrel.src.c.openmax}/jogamp_opengl_util_av_impl_OMXGLMediaPlayer.c"  if="setup.addNativeOpenMAX"/>
 
@@ -1548,7 +1555,7 @@
         <outofdate>
           <sourcefiles>
             <fileset dir="${project.root}"><patternset refid="@{c.compiler.src.files}"/></fileset>
-            <fileset dir="${obj.joglsub}" includes="*jogl_ffmpegv08*, *jogl_ffmpegv09*"/> <!-- requires linkage -->
+            <fileset dir="${obj.joglsub}" includes="*jogl_ffmpegv08*, *jogl_ffmpegv09*, *jogl_ffmpegv10*"/> <!-- requires linkage -->
           </sourcefiles>
           <targetfiles>
             <fileset dir="${obj.jogl}" includes="lib@{output.lib.name}.so"/>
@@ -1629,9 +1636,7 @@
     <target name="c.build.jogl.prepare">
       <javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${javah.classpath}" class="jogamp.opengl.GLDebugMessageHandler" />
       <javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${javah.classpath}" class="jogamp.opengl.GLContextImpl" />
-      <javah destdir="${src.generated.c.libav}" classpath="${javah.classpath}" class="jogamp.opengl.util.av.impl.FFMPEGStaticNatives" />
-      <javah destdir="${src.generated.c.libav}" classpath="${javah.classpath}" class="jogamp.opengl.util.av.impl.FFMPEGv08Natives" />
-      <javah destdir="${src.generated.c.libav}" classpath="${javah.classpath}" class="jogamp.opengl.util.av.impl.FFMPEGv09Natives" />
+      <javah destdir="${src.generated.c.libav}" classpath="${javah.classpath}" class="jogamp.opengl.util.av.impl.FFMPEGStaticNatives,jogamp.opengl.util.av.impl.FFMPEGv08Natives,jogamp.opengl.util.av.impl.FFMPEGv09Natives,jogamp.opengl.util.av.impl.FFMPEGv10Natives" />
       <javah destdir="${src.generated.c.openmax}" classpath="${javah.classpath}" class="jogamp.opengl.util.av.impl.OMXGLMediaPlayer" />
       <!-- Generate the waveout Mixer header -->
       <!-- FIXME: this is temporary until we move this to another workspace -->
@@ -1644,6 +1649,11 @@
 
       <c.build.ffmpeg version.lav="lavc54_lavf54_lavu52_lavr01"
                output.lib.name="jogl_ffmpegv09"
+               compiler.cfg.id="${compiler.cfg.id}"
+               linker.cfg.id="${linker.cfg.id.os}"/>
+
+      <c.build.ffmpeg version.lav="lavc55_lavf55_lavu52_lavr01"
+               output.lib.name="jogl_ffmpegv10"
                compiler.cfg.id="${compiler.cfg.id}"
                linker.cfg.id="${linker.cfg.id.os}"/>
     </target>

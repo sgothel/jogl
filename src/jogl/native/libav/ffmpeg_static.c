@@ -28,9 +28,6 @@
  
 #ifdef _WIN32
     #include <windows.h>
-    // __declspec(dllimport) void __stdcall Sleep(unsigned long dwMilliseconds);
-
-    #define usleep(t)    Sleep((t) / 1000)
 #endif
 
 #include <gluegen_stdint.h>
@@ -46,34 +43,7 @@
 
 typedef unsigned (APIENTRYP AV_GET_VERSION)(void);
 
-JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGStaticNatives_getAvUtilVersion0
-  (JNIEnv *env, jclass clazz, jlong func) {
-    if( 0 != func ) {
-        return (jint) ((AV_GET_VERSION)func)();
-    } else {
-        return 0;
-    }
-}
-
-JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGStaticNatives_getAvFormatVersion0
-  (JNIEnv *env, jclass clazz, jlong func) {
-    if( 0 != func ) {
-        return (jint) ((AV_GET_VERSION)func)();
-    } else {
-        return 0;
-    }
-}
-
-JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGStaticNatives_getAvCodecVersion0
-  (JNIEnv *env, jclass clazz, jlong func) {
-    if( 0 != func ) {
-        return (jint) ((AV_GET_VERSION)func)();
-    } else {
-        return 0;
-    }
-}
-
-JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGStaticNatives_getAvResampleVersion0
+JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGStaticNatives_getAvVersion0
   (JNIEnv *env, jclass clazz, jlong func) {
     if( 0 != func ) {
         return (jint) ((AV_GET_VERSION)func)();

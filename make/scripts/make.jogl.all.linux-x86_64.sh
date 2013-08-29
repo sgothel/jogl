@@ -54,7 +54,6 @@ export JOGAMP_JAR_CODEBASE="Codebase: *.goethel.localnet"
 
 # BUILD_ARCHIVE=true \
 ant  \
-    -Dc.compiler.debug=true \
     $CUSTOMLIBDIR \
     -Drootrel.build=build-x86_64 \
     $* 2>&1 | tee -a $LOGF

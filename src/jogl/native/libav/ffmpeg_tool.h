@@ -45,12 +45,19 @@
 #include "libavformat/avformat.h"
 #include "libavutil/avutil.h"
 #if LIBAVCODEC_VERSION_MAJOR >= 54
-#include "libavresample/avresample.h"
+    #include "libavresample/avresample.h"
+    #include "libswresample/swresample.h"
 #endif
 
 #ifndef LIBAVRESAMPLE_VERSION_MAJOR
-#define LIBAVRESAMPLE_VERSION_MAJOR 0
+#define LIBAVRESAMPLE_VERSION_MAJOR -1
+// Opaque
 typedef void* AVAudioResampleContext;
+#endif
+#ifndef LIBSWRESAMPLE_VERSION_MAJOR
+#define LIBSWRESAMPLE_VERSION_MAJOR -1
+// Opaque
+typedef struct SwrContext SwrContext;
 #endif
 
 #include <stdarg.h>
@@ -88,23 +95,26 @@ typedef void (APIENTRYP PFNGLFINISH) (void);
 /** Constant PTS marking the end of the stream, i.e. Integer.MIN_VALUE - 1 == 0x7FFFFFFF == {@value}. Sync w/ TimeFrameI.END_OF_STREAM_PTS */
 #define END_OF_STREAM_PTS 0x7FFFFFFF
 
-/** Until 55.0.0, but stopped working w/ 54 already :( */
-#define AV_HAS_API_REQUEST_CHANNELS(pAV) (AV_VERSION_MAJOR(pAV->avcodecVersion) < 54)
-
-/** Since 55.0.0 */
-#define AV_HAS_API_REFCOUNTED_FRAMES(pAV) (AV_VERSION_MAJOR(pAV->avcodecVersion) >= 55)
-
 /** Since 54.0.0.1 */
-#define AV_HAS_API_AVRESAMPLE(pAV) (AV_VERSION_MAJOR(pAV->avresampleVersion) >= 1)
+#define AV_HAS_API_AVRESAMPLE(pAV) ( pAV->avresampleVersion != 0 )
+
+/** Since 55.0.0.1 */
+#define AV_HAS_API_SWRESAMPLE(pAV) ( pAV->swresampleVersion != 0 )
 
 #define MAX_INT(a,b) ( (a >= b) ? a : b )
 #define MIN_INT(a,b) ( (a <= b) ? a : b )
 
 static inline float my_av_q2f(AVRational a){
-    return a.num / (float) a.den;
+    return (float)a.num / (float)a.den;
+}
+static inline float my_av_q2f_r(AVRational a){
+    return (float)a.den / (float)a.num;
 }
 static inline int32_t my_av_q2i32(int64_t snum, AVRational a){
     return (int32_t) ( ( snum * (int64_t) a.num ) / (int64_t)a.den );
+}
+static inline int my_align(int v, int a){
+    return ( v + a - 1 ) & ~( a - 1 );
 }
 
 typedef struct {
@@ -129,6 +139,7 @@ typedef struct {
     uint32_t         avformatVersion;
     uint32_t         avutilVersion;
     uint32_t         avresampleVersion;
+    uint32_t         swresampleVersion;
 
     int32_t          useRefCountedFrames;
 
@@ -149,8 +160,7 @@ typedef struct {
     enum PixelFormat vPixFmt;    // native decoder fmt
     int32_t          vPTS;       // msec - overall last video PTS
     PTSStats         vPTSStats;
-    int32_t          vLinesize[3];  // decoded video linesize in bytes for each plane
-    int32_t          vTexWidth[3];  // decoded video tex width in bytes for each plane
+    int32_t          vTexWidth[AV_NUM_DATA_POINTERS];  // decoded video tex width in bytes for each plane
     int32_t          vWidth;
     int32_t          vHeight;
 
@@ -167,7 +177,8 @@ typedef struct {
     int32_t          aSampleRate;
     int32_t          aChannels;
     int32_t          aSinkSupport; // supported by AudioSink
-    AVAudioResampleContext *aResampleCtx;
+    AVAudioResampleContext* avResampleCtx;
+    struct SwrContext*      swResampleCtx;
     uint8_t*         aResampleBuffer;
     enum AVSampleFormat aSampleFmtOut; // out fmt
     int32_t          aChannelsOut;

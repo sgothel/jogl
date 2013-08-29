@@ -55,7 +55,7 @@ import jogamp.opengl.util.av.impl.FFMPEGNatives.SampleFormat;
 
 /***
  * Implementation utilizes <a href="http://libav.org/">Libav</a>
- * or  <a href="http://ffmpeg.org/">FFmpeg</a> which is ubiquitous
+ * or  <a href="http://ffmpeg.org/">FFmpeg</a> which are ubiquitous
  * available and usually pre-installed on Unix platforms.
  * <p>
  * Due to legal reasons we cannot deploy binaries of it, which contains patented codecs.
@@ -83,6 +83,7 @@ import jogamp.opengl.util.av.impl.FFMPEGNatives.SampleFormat;
  *   <li>{@link PixelFormat#YUV422P}</li>
  *   <li>{@link PixelFormat#YUVJ422P}</li>
  *   <li>{@link PixelFormat#YUYV422}</li>
+ *   <li>{@link PixelFormat#BGR24}</li>
  * </ul>
  * </p>
  * <p>
@@ -104,9 +105,10 @@ import jogamp.opengl.util.av.impl.FFMPEGNatives.SampleFormat;
  * <p>
  * Currently we are binary compatible w/:
  * <table border="1">
- * <tr><th>release</th><th>lavc</th><th>lavf</th><th>lavu</th><th>lavr</th> <th>FFMPEG* class</th></tr>
- * <tr><td>0.8</td>    <td>53</td><td>53</td><td>51</td><td></td>           <td>FFMPEGv08</td></tr>
- * <tr><td>9.0</td>    <td>54</td><td>54</td><td>52</td><td>01</td>         <td>FFMPEGv09</td></tr>
+ * <tr><th>libav / ffmpeg</th><th>lavc</th><th>lavf</th><th>lavu</th><th>lavr</th>    <th>FFMPEG* class</th></tr>
+ * <tr><td>0.8</td>           <td>53</td>  <td>53</td>  <td>51</td>  <td></td>        <td>FFMPEGv08</td></tr>
+ * <tr><td>9.0 / 1.2</td>     <td>54</td>  <td>54</td>  <td>52</td>  <td>01/00</td>   <td>FFMPEGv09</td></tr>
+ * <tr><td>10 / 2</td>        <td>55</td>  <td>55</td>  <td>52</td>  <td>01/00</td>   <td>FFMPEGv10</td></tr>
  * </table>
  * </p>
  * <p>
@@ -122,14 +124,19 @@ import jogamp.opengl.util.av.impl.FFMPEGNatives.SampleFormat;
  * <a name="todo"><h5>TODO:</h5></a>
  * <p>
  * <ul>
- *   <li>better pts sync handling</li>
+ *   <li>better audio synchronization handling? (video is synchronized)</li>
  * </ul> 
  * </p>
  * 
- * <a name="libavavail"><h5>LibAV Availability</h5></a>
+ * <a name="libavavail"><h5>FFMPEG / LibAV Availability</h5></a>
  * <p>
  * <ul>
- *   <li>Windows: http://win32.libav.org/releases/</li>
+ *   <li>GNU/Linux: ffmpeg or libav are deployed in most distributions.</li>
+ *   <li>Windows: 
+ *   <ul>
+ *     <li>http://ffmpeg.zeranoe.com/builds/ (ffmpeg)</li>
+ *     <li>http://win32.libav.org/releases/  (libav)</li>
+ *   </ul></li>
  *   <li>MacOSX: http://ffmpegmac.net/</li>
  *   <li>OpenIndiana/Solaris:<pre>
  *       pkg set-publisher -p http://pkg.openindiana.org/sfe-encumbered.
@@ -148,7 +155,8 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     private static final int avUtilMajorVersionCC;
     private static final int avFormatMajorVersionCC;
     private static final int avCodecMajorVersionCC;    
-    private static final int avResampleMajorVersionCC;    
+    private static final int avResampleMajorVersionCC;
+    private static final int swResampleMajorVersionCC;
     private static final boolean available;
     
     static {
@@ -156,24 +164,38 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         final boolean libAVVersionGood;
         if( FFMPEGDynamicLibraryBundleInfo.libsLoaded() ) {
             natives = FFMPEGDynamicLibraryBundleInfo.getNatives();
-            avCodecMajorVersionCC = natives.getAvCodecMajorVersionCC0();
-            avFormatMajorVersionCC = natives.getAvFormatMajorVersionCC0();
-            avUtilMajorVersionCC = natives.getAvUtilMajorVersionCC0();
-            avResampleMajorVersionCC = natives.getAvResampleMajorVersionCC0();
+            if( null != natives ) {
+                avCodecMajorVersionCC = natives.getAvCodecMajorVersionCC0();
+                avFormatMajorVersionCC = natives.getAvFormatMajorVersionCC0();
+                avUtilMajorVersionCC = natives.getAvUtilMajorVersionCC0();
+                avResampleMajorVersionCC = natives.getAvResampleMajorVersionCC0();
+                swResampleMajorVersionCC = natives.getSwResampleMajorVersionCC0();
+            } else {            
+                avUtilMajorVersionCC = 0;
+                avFormatMajorVersionCC = 0;
+                avCodecMajorVersionCC = 0;
+                avResampleMajorVersionCC = 0;
+                swResampleMajorVersionCC = 0;
+            }
             final VersionNumber avCodecVersion = FFMPEGDynamicLibraryBundleInfo.avCodecVersion;
             final VersionNumber avFormatVersion = FFMPEGDynamicLibraryBundleInfo.avFormatVersion;
             final VersionNumber avUtilVersion = FFMPEGDynamicLibraryBundleInfo.avUtilVersion;
-            final VersionNumber avResampleVersion = FFMPEGDynamicLibraryBundleInfo.avResampleVersion;            
+            final VersionNumber avResampleVersion = FFMPEGDynamicLibraryBundleInfo.avResampleVersion;
+            final boolean avResampleLoaded = FFMPEGDynamicLibraryBundleInfo.avResampleLoaded();
+            final VersionNumber swResampleVersion = FFMPEGDynamicLibraryBundleInfo.swResampleVersion;
+            final boolean swResampleLoaded = FFMPEGDynamicLibraryBundleInfo.swResampleLoaded();
             System.err.println("LIB_AV Codec   : "+avCodecVersion+" [cc "+avCodecMajorVersionCC+"]");
             System.err.println("LIB_AV Format  : "+avFormatVersion+" [cc "+avFormatMajorVersionCC+"]");
             System.err.println("LIB_AV Util    : "+avUtilVersion+" [cc "+avUtilMajorVersionCC+"]");
-            System.err.println("LIB_AV Resample: "+FFMPEGDynamicLibraryBundleInfo.avResampleVersion+" [cc "+avResampleMajorVersionCC+", loaded "+FFMPEGDynamicLibraryBundleInfo.avResampleLoaded()+"]");
+            System.err.println("LIB_AV Resample: "+avResampleVersion+" [cc "+avResampleMajorVersionCC+", loaded "+avResampleLoaded+"]");
+            System.err.println("LIB_SW Resample: "+swResampleVersion+" [cc "+swResampleMajorVersionCC+", loaded "+swResampleLoaded+"]");
             System.err.println("LIB_AV Device  : [loaded "+FFMPEGDynamicLibraryBundleInfo.avDeviceLoaded()+"]");
-            System.err.println("LIB_AV Class   : "+natives.getClass().getSimpleName());
+            System.err.println("LIB_AV Class   : "+(null!= natives ? natives.getClass().getSimpleName() : "n/a"));
             libAVVersionGood = avCodecMajorVersionCC  == avCodecVersion.getMajor() &&
                                avFormatMajorVersionCC == avFormatVersion.getMajor() &&
                                avUtilMajorVersionCC   == avUtilVersion.getMajor() &&
-                               avResampleMajorVersionCC  == avResampleVersion.getMajor();
+                               ( !avResampleLoaded || avResampleMajorVersionCC  == avResampleVersion.getMajor() ) &&
+                               ( !swResampleLoaded || swResampleMajorVersionCC  == swResampleVersion.getMajor() ) ;
             if( !libAVVersionGood ) {
                 System.err.println("LIB_AV Not Matching Compile-Time / Runtime Major-Version");
             }
@@ -183,6 +205,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             avFormatMajorVersionCC = 0;
             avCodecMajorVersionCC = 0;
             avResampleMajorVersionCC = 0;
+            swResampleMajorVersionCC = 0;
             libAVVersionGood = false;
         }
         available = libAVGood && libAVVersionGood && null != natives ? natives.initIDs0() : false;
@@ -268,8 +291,10 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             System.err.println("initStream: p2 preferred "+preferredAudioFormat+", "+this);
         }
         
-        final boolean isCameraInput = null != cameraHostPart;
+        final boolean isCameraInput = null != cameraPath;
         final String resStreamLocS;
+        int rw=640, rh=480, rr=15;
+        String sizes = null;
         if( isCameraInput ) {
             switch(Platform.OS_TYPE) {
                 case ANDROID:
@@ -278,10 +303,10 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                 case HPUX:
                 case LINUX:
                 case SUNOS:
-                    resStreamLocS = dev_video_linux + cameraHostPart;
+                    resStreamLocS = dev_video_linux + cameraPath;
                     break;
                 case WINDOWS:
-                    resStreamLocS = cameraHostPart;
+                    resStreamLocS = cameraPath;
                     break;
                 case MACOS:
                 case OPENKODE:
@@ -289,13 +314,22 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                     resStreamLocS = streamLocS; // FIXME: ??
                     break;            
             }
+            if( null != cameraProps ) {
+                sizes = cameraProps.get(CameraPropSizeS);
+                int v = getPropIntVal(cameraProps, CameraPropWidth);
+                if( v > 0 ) { rw = v; }
+                v = getPropIntVal(cameraProps, CameraPropHeight);
+                if( v > 0 ) { rh = v; }
+                v = getPropIntVal(cameraProps, CameraPropRate);
+                if( v > 0 ) { rr = v; }
+            }
         } else {
             resStreamLocS = streamLocS;
         }
         final int aMaxChannelCount = audioSink.getMaxSupportedChannels();
         final int aPrefSampleRate = preferredAudioFormat.sampleRate;
          // setStream(..) issues updateAttributes*(..), and defines avChosenAudioFormat, vid, aid, .. etc
-        natives.setStream0(moviePtr, resStreamLocS, isCameraInput, vid, aid, aMaxChannelCount, aPrefSampleRate);
+        natives.setStream0(moviePtr, resStreamLocS, isCameraInput, vid, sizes, rw, rh, rr, aid, aMaxChannelCount, aPrefSampleRate);
     }
 
     @Override
@@ -373,11 +407,19 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                             tf = GL2ES2.GL_RG;   tif=GL2ES2.GL_RG; break;
                         }
                 case 3: tf = GL2ES2.GL_RGB;   tif=GL.GL_RGB;   break;
-                case 4: tf = GL2ES2.GL_RGBA;  tif=GL.GL_RGBA;  break;
+                case 4: if( vPixelFmt == PixelFormat.BGRA ) {
+                            tf = GL2ES2.GL_BGRA;  tif=GL.GL_RGBA;  break;
+                        } else {
+                            tf = GL2ES2.GL_RGBA;  tif=GL.GL_RGBA;  break;
+                        }                    
                 default: throw new RuntimeException("Unsupported bytes-per-pixel / plane "+vBytesPerPixelPerPlane);
             }        
             setTextureFormat(tif, tf);
             setTextureType(tt);
+            if(DEBUG) {
+                System.err.println("initGL: p5: video "+vPixelFmt+", planes "+vPlanes+", bpp "+vBitsPerPixel+"/"+vBytesPerPixelPerPlane+
+                                   ", tex "+texWidth+"x"+texHeight+", usesTexLookupShader "+usesTexLookupShader);
+            }
         }
     }    
     @Override
@@ -470,9 +512,6 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * @param planes
      * @param bitsPerPixel
      * @param bytesPerPixelPerPlane
-     * @param lSz0
-     * @param lSz1
-     * @param lSz2
      * @param tWd0
      * @param tWd1
      * @param tWd2
@@ -483,7 +522,6 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * @param audioSamplesPerFrameAndChannel in audio samples per frame and channel
      */
     void updateAttributes2(int vid, int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,
-                           int lSz0, int lSz1, int lSz2,
                            int tWd0, int tWd1, int tWd2, int vW, int vH,
                            int aid, int audioSampleFmt, int audioSampleRate, 
                            int audioChannels, int audioSamplesPerFrameAndChannel) {
@@ -495,7 +533,6 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         usesTexLookupShader = false;
         texWidth = 0; texHeight = 0;
         
-        final int[] vLinesize = { 0, 0, 0 }; // per plane
         final int[] vTexWidth = { 0, 0, 0 }; // per plane
         
         if( STREAM_ID_NONE != vid ) {
@@ -503,7 +540,6 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             vPlanes = planes;
             vBitsPerPixel = bitsPerPixel;
             vBytesPerPixelPerPlane = bytesPerPixelPerPlane;                        
-            vLinesize[0] = lSz0; vLinesize[1] = lSz1; vLinesize[2] = lSz2;
             vTexWidth[0] = tWd0; vTexWidth[1] = tWd1; vTexWidth[2] = tWd2;
             
             switch(vPixelFmt) {
@@ -533,11 +569,12 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                     texWidth = vTexWidth[0] + vTexWidth[1] + vTexWidth[2]; texHeight = vH;
                     break;
                 case YUYV422: // < packed YUV 4:2:2, 2x 16bpp, Y0 Cb Y1 Cr - stuffed into RGBA half width texture
+                case BGR24:
                     usesTexLookupShader = true;
                     texWidth = vTexWidth[0]; texHeight = vH; 
                     break;
+                    
                 case RGB24:
-                case BGR24:
                 case ARGB:
                 case RGBA:
                 case ABGR:
@@ -567,9 +604,10 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             System.err.println("audio: id "+aid+", fmt "+aSampleFmt+", "+avChosenAudioFormat+", aFrameSize/fc "+audioSamplesPerFrameAndChannel);
             System.err.println("video: id "+vid+", fmt "+vW+"x"+vH+", "+vPixelFmt+", planes "+vPlanes+", bpp "+vBitsPerPixel+"/"+vBytesPerPixelPerPlane+", usesTexLookupShader "+usesTexLookupShader);
             for(int i=0; i<3; i++) {
-                System.err.println("video: "+i+": "+vTexWidth[i]+"/"+vLinesize[i]);
+                System.err.println("video: p["+i+"]: "+vTexWidth[i]);
             }
             System.err.println("video: total tex "+texWidth+"x"+texHeight);
+            System.err.println(this.toString());
         }
     }
     
@@ -674,6 +712,15 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
               "  return vec4(r, g, b, 1);\n"+
               "}\n"
           ;
+        case BGR24:
+          return
+              "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
+              "  "+
+              "  vec3 bgr = texture2D(image, texCoord).rgb;\n"+
+              "  return vec4(bgr.b, bgr.g, bgr.r, 1);\n"+ /* just swizzle */
+              "}\n"
+          ;
+
         default: // FIXME: Add more formats !
           throw new InternalError("Add proper mapping of: vPixelFmt "+vPixelFmt+", usesTexLookupShader "+usesTexLookupShader);
       }        

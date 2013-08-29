@@ -44,6 +44,9 @@ class FFMPEGv08Natives implements FFMPEGNatives {
     public native int getAvResampleMajorVersionCC0();
 
     @Override
+    public native int getSwResampleMajorVersionCC0();
+    
+    @Override
     public native boolean initIDs0();
 
     @Override
@@ -53,7 +56,7 @@ class FFMPEGv08Natives implements FFMPEGNatives {
     public native void destroyInstance0(long moviePtr);
 
     @Override
-    public native void setStream0(long moviePtr, String url, boolean isCameraInput, int vid, int aid, int aMaxChannelCount, int aPrefSampleRate);
+    public native void setStream0(long moviePtr, String url, boolean isCameraInput, int vid, String sizes, int vWidth, int vHeight, int vRate, int aid, int aMaxChannelCount, int aPrefSampleRate);
 
     @Override
     public native void setGLFuncs0(long moviePtr, long procAddrGLTexSubImage2D, long procAddrGLGetError, long procAddrGLFlush, long procAddrGLFinish);

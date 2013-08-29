@@ -35,8 +35,5 @@ class FFMPEGStaticNatives {
                                   ( vers >>  8 ) & 0xFF,
                                   ( vers >>  0 ) & 0xFF );
     }
-    static native int getAvUtilVersion0(long func);
-    static native int getAvFormatVersion0(long func);
-    static native int getAvCodecVersion0(long func);
-    static native int getAvResampleVersion0(long func);
+    static native int getAvVersion0(long func);
 }
