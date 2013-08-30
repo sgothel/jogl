@@ -123,11 +123,11 @@ static int GetDeviceInformation(IEnumMoniker *pEnum, int verbose, int devIdx,
                 getBSTRChars(var.bstrVal, pName, nameSize);
             }
             if( verbose ) {
-                fprintf(stderr, "DShowParser: Dev[%d]: FName %S\n", i, var.bstrVal);
+                fprintf(stderr, "DShowParser: Dev[%d]: Name %S\n", i, var.bstrVal);
             }
             VariantClear(&var); 
         } else if( verbose ) {
-            fprintf(stderr, "DShowParser: Dev[%d]: cannot read FName..\n", i);
+            fprintf(stderr, "DShowParser: Dev[%d]: cannot read Name..\n", i);
         }
 
         hr = pPropBag->lpVtbl->Write(pPropBag, L"FriendlyName", &var);

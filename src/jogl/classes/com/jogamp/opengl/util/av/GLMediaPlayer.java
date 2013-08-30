@@ -197,8 +197,12 @@ public interface GLMediaPlayer extends TextureSequence {
      * {@link URI#getScheme() URI scheme} name {@value} for camera input. E.g. <code>camera://0</code>
      * for the 1st camera device.
      * <p>
-     * The {@link URI#getRawPath() URI path} is being used to identify the camera,
+     * The {@link URI#getRawPath() URI path} is being used to identify the camera (<i>ID</i>),
      * where the root fwd-slash is being cut-off.
+     * </p>
+     * <p>
+     * The <i>ID</i> is usually an integer value indexing the camera
+     * ranging from [0..<i>max-number</i>]. 
      * </p>
      * <p>
      * The {@link URI#getRawQuery() URI query} is used to pass options to the camera.
@@ -359,11 +363,10 @@ public interface GLMediaPlayer extends TextureSequence {
      * 
      * @param gl current GL object. Maybe <code>null</code>, for audio only.
      * @throws IllegalStateException if not invoked in {@link State#Initialized}. 
-     * @throws IllegalArgumentException if arguments are invalid
      * @throws StreamException forwarded from the off-thread stream initialization
      * @throws GLException in case of difficulties to initialize the GL resources
      */
-    public void initGL(GL gl) throws IllegalStateException, IllegalArgumentException, StreamException, GLException;
+    public void initGL(GL gl) throws IllegalStateException, StreamException, GLException;
     
     /** 
      * If implementation uses a {@link AudioSink}, it's instance will be returned.

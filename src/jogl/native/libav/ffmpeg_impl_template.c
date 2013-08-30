@@ -1092,6 +1092,19 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
             JoglCommon_throwNewRuntimeException(env, "Couldn't alloc video frame");
             return;
         }
+        // Min. requirement for 'get_buffer2' !
+        pAV->pVFrame->width = pAV->pVCodecCtx->width;
+        pAV->pVFrame->height = pAV->pVCodecCtx->height;
+        pAV->pVFrame->format = pAV->pVCodecCtx->pix_fmt;
+        #if LIBAVCODEC_VERSION_MAJOR >= 55
+            res = sp_avcodec_default_get_buffer2(pAV->pVCodecCtx, pAV->pVFrame, 0);
+        #else
+            res = sp_avcodec_default_get_buffer(pAV->pVCodecCtx, pAV->pVFrame);
+        #endif
+        if(0!=res) {
+            JoglCommon_throwNewRuntimeException(env, "Couldn't peek video buffer dimension");
+            return;
+        }
         {
             const int32_t bytesPerPixel = ( pAV->vBitsPerPixel + 7 ) / 8 ;
             if(1 == pAV->vBufferPlanes) {
@@ -1108,32 +1121,14 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
                         pAV->vTexWidth[i] = vLinesize[i] / pAV->vBytesPerPixelPerPlane ;
                     }
                 #else
-                    // Min. requirement for 'get_buffer2' !
-                    pAV->pVFrame->width = pAV->pVCodecCtx->width;
-                    pAV->pVFrame->height = pAV->pVCodecCtx->height;
-                    pAV->pVFrame->format = pAV->pVCodecCtx->pix_fmt;
-                    #if LIBAVCODEC_VERSION_MAJOR >= 55
-                        res = sp_avcodec_default_get_buffer2(pAV->pVCodecCtx, pAV->pVFrame, 0);
-                    #else
-                        res = sp_avcodec_default_get_buffer(pAV->pVCodecCtx, pAV->pVFrame);
-                    #endif
-                    if(0!=res) {
-                        JoglCommon_throwNewRuntimeException(env, "Couldn't peek video buffer dimension");
-                        return;
-                    }
                     for(i=0; i<pAV->vBufferPlanes; i++) {
                         // FIXME: Libav Binary compatibility! JAU01
                         vLinesize[i] = pAV->pVFrame->linesize[i];
                         pAV->vTexWidth[i] = vLinesize[i] / pAV->vBytesPerPixelPerPlane ;
                     }
-                    #if LIBAVCODEC_VERSION_MAJOR >= 55
-                        sp_av_frame_unref(pAV->pVFrame);
-                    #else
-                        sp_avcodec_default_release_buffer(pAV->pVCodecCtx, pAV->pVFrame);
-                    #endif
                 #endif
             } else {
-                vLinesize[0] = pAV->pVCodecCtx->width * pAV->vBytesPerPixelPerPlane;
+                vLinesize[0] = pAV->pVFrame->linesize[0];
                 if( pAV->vPixFmt == PIX_FMT_YUYV422 ) {
                     // Stuff 2x 16bpp (YUYV) into one RGBA pixel!
                     pAV->vTexWidth[0] = pAV->pVCodecCtx->width / 2;
@@ -1143,10 +1138,15 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
             }
             if( pAV->verbose ) {
                 for(i=0; i<pAV->vBufferPlanes; i++) {
-                    fprintf(stderr, "P[%d]: %d texw * %d bytesPP -> %d line\n", i, pAV->vTexWidth[i], pAV->vBytesPerPixelPerPlane, vLinesize[i]);
+                    fprintf(stderr, "Video: P[%d]: %d texw * %d bytesPP -> %d line\n", i, pAV->vTexWidth[i], pAV->vBytesPerPixelPerPlane, vLinesize[i]);
                 }
             }
         }
+        #if LIBAVCODEC_VERSION_MAJOR >= 55
+            sp_av_frame_unref(pAV->pVFrame);
+        #else
+            sp_avcodec_default_release_buffer(pAV->pVCodecCtx, pAV->pVFrame);
+        #endif
     }
     pAV->vPTS=0;
     pAV->aPTS=0;
@@ -1380,27 +1380,45 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                     const int32_t frame_repeat_i = pAV->pVFrame->repeat_pict * (frame_delay_i / 2);
 
                     const char * warn = frame_repeat_i > 0 ? "REPEAT" : "NORMAL" ;
-                    const char * oopsLsz = pAV->pVFrame->linesize[0] <= 0 ? "Ooops LSZ" : "OK" ;
 
-                    fprintf(stderr, "V fix_pts %d, pts %d [pkt_pts %ld], dts %d [pkt_dts %ld], time d(%lf s + r %lf = %lf s), i(%d ms + r %d = %d ms) - %s - f# %d, data %p, lsz %d (%s)\n", 
+                    fprintf(stderr, "V fix_pts %d, pts %d [pkt_pts %ld], dts %d [pkt_dts %ld], time d(%lf s + r %lf = %lf s), i(%d ms + r %d = %d ms) - %s - f# %d, dec %d, data %p, lsz %d\n",
                             pAV->vPTS, vPTS, pkt_pts, vDTS, pkt_dts, 
                             frame_delay_d, frame_repeat_d, (frame_delay_d + frame_repeat_d),
                             frame_delay_i, frame_repeat_i, (frame_delay_i + frame_repeat_i), warn, frameCount,
-                                        pAV->pVFrame->data[0], pAV->pVFrame->linesize[0], oopsLsz);
+                            len1, pAV->pVFrame->data[0], pAV->pVFrame->linesize[0]);
+                    // fflush(NULL);
                 }
-                if( pAV->pVFrame->linesize[0] <= 0 ) {
-                    // Ooops !
+                if( 0 == pAV->pVFrame->linesize[0] ) {
+                    if( pAV->useRefCountedFrames ) {
+                        sp_av_frame_unref(pAV->pVFrame);
+                    }
                     continue;
                 }
                 resPTS = pAV->vPTS; // Video Frame!
 
+                int p_offset[] = { 0, 0, 0, 0 };
+                if( pAV->pVFrame->linesize[0] < 0 ) {
+                    // image bottom-up
+                    int h_1 = pAV->pVCodecCtx->height - 1;
+                    p_offset[0] = pAV->pVFrame->linesize[0] * h_1;
+                    if( pAV->vBufferPlanes > 1 ) {
+                        p_offset[1] = pAV->pVFrame->linesize[1] * h_1;
+                    }
+                    if( pAV->vBufferPlanes > 2 ) {
+                        p_offset[2] = pAV->pVFrame->linesize[2] * h_1;
+                    }
+                    /**
+                    if( pAV->vBufferPlanes > 3 ) {
+                        p_offset[3] = pAV->pVFrame->linesize[3] * h_1;
+                    } */
+                }
                 // 1st plane or complete packed frame
                 // FIXME: Libav Binary compatibility! JAU01
                 DBG_TEXSUBIMG2D_a('Y',pAV,1,1,1,0);
                 pAV->procAddrGLTexSubImage2D(texTarget, 0, 
                                         0,                 0, 
                                         pAV->vTexWidth[0], pAV->pVCodecCtx->height, 
-                                        texFmt, texType, pAV->pVFrame->data[0]);
+                                        texFmt, texType, pAV->pVFrame->data[0] + p_offset[0]);
                 DBG_TEXSUBIMG2D_b(pAV);
 
                 if( pAV->vPixFmt == PIX_FMT_YUV420P || pAV->vPixFmt == PIX_FMT_YUVJ420P ) {
@@ -1410,7 +1428,7 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                     pAV->procAddrGLTexSubImage2D(texTarget, 0, 
                                             pAV->pVCodecCtx->width, 0,
                                             pAV->vTexWidth[1],      pAV->pVCodecCtx->height/2, 
-                                            texFmt, texType, pAV->pVFrame->data[1]);
+                                            texFmt, texType, pAV->pVFrame->data[1] + p_offset[1]);
                     DBG_TEXSUBIMG2D_b(pAV);
                     // V plane
                     // FIXME: Libav Binary compatibility! JAU01
@@ -1418,7 +1436,7 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                     pAV->procAddrGLTexSubImage2D(texTarget, 0, 
                                             pAV->pVCodecCtx->width, pAV->pVCodecCtx->height/2,
                                             pAV->vTexWidth[2],      pAV->pVCodecCtx->height/2, 
-                                            texFmt, texType, pAV->pVFrame->data[2]);
+                                            texFmt, texType, pAV->pVFrame->data[2] + p_offset[2]);
                     DBG_TEXSUBIMG2D_b(pAV);
                 } else if( pAV->vPixFmt == PIX_FMT_YUV422P || pAV->vPixFmt == PIX_FMT_YUVJ422P ) {
                     // U plane
@@ -1427,7 +1445,7 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                     pAV->procAddrGLTexSubImage2D(texTarget, 0, 
                                             pAV->pVCodecCtx->width, 0,
                                             pAV->vTexWidth[1],      pAV->pVCodecCtx->height, 
-                                            texFmt, texType, pAV->pVFrame->data[1]);
+                                            texFmt, texType, pAV->pVFrame->data[1] + p_offset[1]);
                     DBG_TEXSUBIMG2D_b(pAV);
                     // V plane
                     // FIXME: Libav Binary compatibility! JAU01
@@ -1435,9 +1453,10 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                     pAV->procAddrGLTexSubImage2D(texTarget, 0, 
                                             pAV->pVCodecCtx->width+pAV->pVCodecCtx->width/2, 0,
                                             pAV->vTexWidth[2],      pAV->pVCodecCtx->height, 
-                                            texFmt, texType, pAV->pVFrame->data[2]);
+                                            texFmt, texType, pAV->pVFrame->data[2] + p_offset[2]);
                     DBG_TEXSUBIMG2D_b(pAV);
                 } // FIXME: Add more planar formats !
+
                 pAV->procAddrGLFinish();
                 //pAV->procAddrGLFlush();
                 if( pAV->useRefCountedFrames ) {

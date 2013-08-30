@@ -160,7 +160,7 @@ typedef struct {
     enum PixelFormat vPixFmt;    // native decoder fmt
     int32_t          vPTS;       // msec - overall last video PTS
     PTSStats         vPTSStats;
-    int32_t          vTexWidth[AV_NUM_DATA_POINTERS];  // decoded video tex width in bytes for each plane
+    int32_t          vTexWidth[4];  // decoded video tex width in bytes for each plane (max 4)
     int32_t          vWidth;
     int32_t          vHeight;
 

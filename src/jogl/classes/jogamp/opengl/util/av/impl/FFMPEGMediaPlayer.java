@@ -134,7 +134,7 @@ import jogamp.opengl.util.av.impl.FFMPEGNatives.SampleFormat;
  *   <li>GNU/Linux: ffmpeg or libav are deployed in most distributions.</li>
  *   <li>Windows: 
  *   <ul>
- *     <li>http://ffmpeg.zeranoe.com/builds/ (ffmpeg)</li>
+ *     <li>http://ffmpeg.zeranoe.com/builds/ (ffmpeg) <i>recommended, works w/ dshow</i></li>
  *     <li>http://win32.libav.org/releases/  (libav)</li>
  *   </ul></li>
  *   <li>MacOSX: http://ffmpegmac.net/</li>
