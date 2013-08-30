@@ -119,6 +119,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     @Override
     protected final void initGLImpl(GL gl) throws IOException, GLException {
         // NOP
+        isInGLOrientation = true;
     }
     
     @Override

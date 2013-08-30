@@ -163,6 +163,7 @@ typedef struct {
     int32_t          vTexWidth[4];  // decoded video tex width in bytes for each plane (max 4)
     int32_t          vWidth;
     int32_t          vHeight;
+    jboolean         vFlipped;      // false: !GL-Orientation, true: GL-Orientation
 
     int32_t          aid;
     AVStream*        pAStream;

@@ -67,6 +67,7 @@ public class MovieCube implements GLEventListener {
     private GLMediaPlayer mPlayer=null;
     private int swapInterval = 1;
     private long lastPerfPos = 0;
+    private volatile boolean resetGLState = false;
     
     /** Blender's Big Buck Bunny Trailer: 24f 640p VP8, Vorbis 44100Hz mono, WebM/Matroska Stream. */
     public static final URI defURI;
@@ -99,6 +100,10 @@ public class MovieCube implements GLEventListener {
     public void setSwapInterval(int v) { this.swapInterval = v; }
     
     public GLMediaPlayer getGLMediaPlayer() { return mPlayer; }
+    
+    public void resetGLState() {
+        resetGLState = true;
+    }
     
     private final KeyListener keyAction = new KeyAdapter() {
         public void keyReleased(KeyEvent e)  {
@@ -172,12 +177,14 @@ public class MovieCube implements GLEventListener {
         if(null == mPlayer) {
             throw new InternalError("mPlayer null");
         }
-        if( GLMediaPlayer.State.Initialized != mPlayer.getState() ) {
-            throw new IllegalStateException("mPlayer not in state initialized: "+mPlayer);
+        if( GLMediaPlayer.State.Uninitialized == mPlayer.getState() ) {
+            throw new IllegalStateException("mPlayer in uninitialized state: "+mPlayer);
         }
         if( GLMediaPlayer.STREAM_ID_NONE == mPlayer.getVID() ) {
             // throw new IllegalStateException("mPlayer has no VID/stream selected: "+mPlayer);
         }
+        resetGLState = false;
+        
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         System.err.println(JoglVersion.getGLInfo(gl, null));
 
@@ -186,16 +193,18 @@ public class MovieCube implements GLEventListener {
         if(waitForKey) {
             UITestCase.waitForKey("Init>");
         }
-        
-        try {
-            mPlayer.initGL(gl);
-        } catch (Exception e) {
-            e.printStackTrace();
-            if(null != mPlayer) {
-                mPlayer.destroy(gl);
-                mPlayer = null;
+    
+        if( GLMediaPlayer.State.Initialized == mPlayer.getState() ) {
+            try {
+                mPlayer.initGL(gl);
+            } catch (Exception e) {
+                e.printStackTrace();
+                if(null != mPlayer) {
+                    mPlayer.destroy(gl);
+                    mPlayer = null;
+                }
+                throw new GLException(e);
             }
-            throw new GLException(e);
         }
         cube.init(drawable);
         mPlayer.play();
@@ -224,17 +233,37 @@ public class MovieCube implements GLEventListener {
     @Override
     public void dispose(GLAutoDrawable drawable) {
         System.err.println(Thread.currentThread()+" MovieCube.dispose ... ");
-        if(null == mPlayer) { return; }
-        final GL2ES2 gl = drawable.getGL().getGL2ES2();
-        mPlayer.destroy(gl);
-        mPlayer=null;
-        cube.dispose(drawable);
-        cube=null;
+        disposeImpl(drawable, true);
     }
+    
+    private void disposeImpl(GLAutoDrawable drawable, boolean disposePlayer) {
+        if(null == mPlayer) { return; }
+        final Object upstreamWidget = drawable.getUpstreamWidget();
+        if (upstreamWidget instanceof Window) {            
+            final Window window = (Window) upstreamWidget;
+            window.removeKeyListener(keyAction);
+        }
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
+        if( disposePlayer ) {
+            mPlayer.destroy(gl);
+            mPlayer=null;
+        }
+        cube.dispose(drawable);
+        cube=null;        
+    }
+    
 
     @Override
     public void display(GLAutoDrawable drawable) {
         if(null == mPlayer) { return; }
+        
+        if( resetGLState ) {
+            resetGLState = false;
+            System.err.println("XXX resetGLState");
+            disposeImpl(drawable, false);
+            init(drawable);
+            reshape(drawable, 0, 0, drawable.getWidth(), drawable.getHeight());
+        }
         
         final long currentPos = System.currentTimeMillis();
         if( currentPos - lastPerfPos > 2000 ) {
@@ -350,8 +379,12 @@ public class MovieCube implements GLEventListener {
             public void attributesChanged(final GLMediaPlayer mp, int event_mask, long when) {
                 System.err.println("MovieCube AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
                 System.err.println("MovieCube State: "+mp);
-                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_SIZE & event_mask ) && origSize ) {
-                    window.setSize(mp.getWidth(), mp.getHeight());
+                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_SIZE & event_mask ) ) {
+                    if( origSize ) {
+                        window.setSize(mp.getWidth(), mp.getHeight());
+                    }
+                    // window.disposeGLEventListener(ms, false /* remove */ );
+                    mc.resetGLState();
                 }
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
                     window.addGLEventListener(mc);

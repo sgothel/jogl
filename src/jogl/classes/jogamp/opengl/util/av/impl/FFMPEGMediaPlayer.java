@@ -293,7 +293,8 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         
         final boolean isCameraInput = null != cameraPath;
         final String resStreamLocS;
-        int rw=640, rh=480, rr=15;
+        // int rw=640, rh=480, rr=15;
+        int rw=-1, rh=-1, rr=-1;
         String sizes = null;
         if( isCameraInput ) {
             switch(Platform.OS_TYPE) {
@@ -424,7 +425,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     }    
     @Override
     protected final TextureFrame createTexImage(GL gl, int texName) {
-        return new TextureFrame( createTexImageImpl(gl, texName, texWidth, texHeight, true) );
+        return new TextureFrame( createTexImageImpl(gl, texName, texWidth, texHeight) );
     }
     
     /**
@@ -521,10 +522,10 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * @param audioChannels
      * @param audioSamplesPerFrameAndChannel in audio samples per frame and channel
      */
-    void updateAttributes2(int vid, int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,
-                           int tWd0, int tWd1, int tWd2, int vW, int vH,
-                           int aid, int audioSampleFmt, int audioSampleRate, 
-                           int audioChannels, int audioSamplesPerFrameAndChannel) {
+    void setupFFAttributes(int vid, int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,              
+                          int tWd0, int tWd1, int tWd2, int vW, int vH,
+                          int aid, int audioSampleFmt, int audioSampleRate, 
+                          int audioChannels, int audioSamplesPerFrameAndChannel) {
         // defaults ..
         vPixelFmt = null;
         vPlanes = 0;
@@ -609,6 +610,21 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             System.err.println("video: total tex "+texWidth+"x"+texHeight);
             System.err.println(this.toString());
         }
+    }
+    
+    /**
+     * Native callback
+     * @param isInGLOrientation
+     * @param pixFmt
+     * @param planes
+     * @param bitsPerPixel
+     * @param bytesPerPixelPerPlane
+     * @param tWd0
+     * @param tWd1
+     * @param tWd2
+     */
+    void updateVidAttributes(boolean isInGLOrientation, int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,              
+                             int tWd0, int tWd1, int tWd2, int vW, int vH) {
     }
     
     /**

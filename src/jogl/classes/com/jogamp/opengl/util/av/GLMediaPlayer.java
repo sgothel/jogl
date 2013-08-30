@@ -34,6 +34,7 @@ import javax.media.opengl.GLException;
 
 import jogamp.opengl.Debug;
 
+import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
 import com.jogamp.opengl.util.TimeFrameI;
 
@@ -81,8 +82,8 @@ import com.jogamp.opengl.util.TimeFrameI;
  * <p>
  * <table border="1">
  *   <tr><th>Action</th>                                               <th>{@link State} Before</th>                                        <th>{@link State} After</th>                                                                                                       <th>{@link GLMediaEventListener Event}</th></tr>
- *   <tr><td>{@link #initStream(URI, int, int, int)}</td>              <td>{@link State#Uninitialized Uninitialized}</td>                   <td>{@link State#Initialized Initialized}<sup><a href="#streamworker">1</a></sup>, {@link State#Uninitialized Uninitialized}</td> <td>{@link GLMediaEventListener#EVENT_CHANGE_INIT EVENT_CHANGE_INIT} or ( {@link GLMediaEventListener#EVENT_CHANGE_ERR EVENT_CHANGE_ERR} + {@link GLMediaEventListener#EVENT_CHANGE_UNINIT EVENT_CHANGE_UNINIT} )</td></tr>
- *   <tr><td>{@link #initGL(GL)}</td>                                  <td>{@link State#Initialized Initialized}</td>                       <td>{@link State#Paused Paused}, {@link State#Initialized Initialized}</td>                                                        <td>{@link GLMediaEventListener#EVENT_CHANGE_PAUSE EVENT_CHANGE_PAUSE}</td></tr>
+ *   <tr><td>{@link #initStream(URI, int, int, int)}</td>              <td>{@link State#Uninitialized Uninitialized}</td>                   <td>{@link State#Initialized Initialized}<sup><a href="#streamworker">1</a></sup>, {@link State#Uninitialized Uninitialized}</td>  <td>{@link GLMediaEventListener#EVENT_CHANGE_INIT EVENT_CHANGE_INIT} or ( {@link GLMediaEventListener#EVENT_CHANGE_ERR EVENT_CHANGE_ERR} + {@link GLMediaEventListener#EVENT_CHANGE_UNINIT EVENT_CHANGE_UNINIT} )</td></tr>
+ *   <tr><td>{@link #initGL(GL)}</td>                                  <td>{@link State#Initialized Initialized}</td>                       <td>{@link State#Paused Paused}, , {@link State#Uninitialized Uninitialized}</td>                                                  <td>{@link GLMediaEventListener#EVENT_CHANGE_PAUSE EVENT_CHANGE_PAUSE} or ( {@link GLMediaEventListener#EVENT_CHANGE_ERR EVENT_CHANGE_ERR} + {@link GLMediaEventListener#EVENT_CHANGE_UNINIT EVENT_CHANGE_UNINIT} )</td></tr>
  *   <tr><td>{@link #play()}</td>                                      <td>{@link State#Paused Paused}</td>                                 <td>{@link State#Playing Playing}</td>                                                                                             <td>{@link GLMediaEventListener#EVENT_CHANGE_PLAY EVENT_CHANGE_PLAY}</td></tr>
  *   <tr><td>{@link #pause()}</td>                                     <td>{@link State#Playing Playing}</td>                               <td>{@link State#Paused Paused}</td>                                                                                               <td>{@link GLMediaEventListener#EVENT_CHANGE_PAUSE EVENT_CHANGE_PAUSE}</td></tr>
  *   <tr><td>{@link #seek(int)}</td>                                   <td>{@link State#Paused Paused}, {@link State#Playing Playing}</td>  <td>{@link State#Paused Paused}, {@link State#Playing Playing}</td>                                                                <td>none</td></tr>
@@ -205,12 +206,14 @@ public interface GLMediaPlayer extends TextureSequence {
      * ranging from [0..<i>max-number</i>]. 
      * </p>
      * <p>
-     * The {@link URI#getRawQuery() URI query} is used to pass options to the camera.
+     * The {@link URI#getRawQuery() URI query} is used to pass options to the camera
+     * using <i>;</i> as the separator. The latter avoids trouble w/ escaping.
      * </p>
      * <pre>
      *    camera:/<id>
      *    camera://somewhere/<id>
-     *    camera://somewhere/<id>?width=640&height=480&rate=15
+     *    camera://somewhere/<id>?width=640;height=480;rate=15
+     *    camera://somewhere/<id>?size=640x480;rate=15
      * </pre>
      * <pre>
      *  URI: [scheme:][//authority][path][?query][#fragment]
@@ -245,6 +248,13 @@ public interface GLMediaPlayer extends TextureSequence {
             super(message, cause);
         }
     }
+    
+    /**
+     * {@inheritDoc}
+     * <p>
+     * See {@link TexSeqEventListener} for semantics and usage.
+     * </p>
+     */    
     public interface GLMediaEventListener extends TexSeqEventListener<GLMediaPlayer> {
     
         /** State changed to {@link State#Initialized}. See <a href="#lifecycle">Lifecycle</a>.*/
@@ -264,7 +274,7 @@ public interface GLMediaPlayer extends TextureSequence {
         static final int EVENT_CHANGE_VID    = 1<<16;
         /** Stream audio id change. */
         static final int EVENT_CHANGE_AID    = 1<<17;
-        /** TextureFrame size change. */
+        /** TextureFrame size or vertical flip change. */
         static final int EVENT_CHANGE_SIZE   = 1<<18;
         /** Stream fps change. */
         static final int EVENT_CHANGE_FPS    = 1<<19;
@@ -556,18 +566,44 @@ public interface GLMediaPlayer extends TextureSequence {
      */
     public float getFramerate();
 
+    /**
+     * Returns <code>true</code> if the video frame is oriented in 
+     * OpenGL's coordinate system, <i>origin at bottom left</i>.
+     * <p>
+     * Otherwise returns <code>false</code>, i.e. 
+     * video frame is oriented <i>origin at top left</i>.
+     * </p>
+     * <p>
+     * <code>false</code> is the default assumption for videos,
+     * but user shall not rely on.
+     * </p>
+     * <p>
+     * <code>false</code> GL orientation leads to 
+     * {@link Texture#getMustFlipVertically()} == <code>true</code>,
+     * as reflected by all {@link TextureFrame}'s {@link Texture}s
+     * retrieved via {@link #getLastTexture()} or {@link #getNextTexture(GL)}. 
+     * </p>
+     */
+    public boolean isGLOriented();
+    
+    /** Returns the width of the video. */
     public int getWidth();
 
+    /** Returns the height of the video. */
     public int getHeight();
 
+    /** Returns a string represantation of this player, incl. state and audio/video details. */
     public String toString();
 
+    /** Returns a string represantation of this player's performance values. */
     public String getPerfString();
     
+    /** Adds a {@link GLMediaEventListener} to this player. */
     public void addEventListener(GLMediaEventListener l);
 
+    /** Removes a {@link GLMediaEventListener} to this player. */
     public void removeEventListener(GLMediaEventListener l);
 
-    public GLMediaEventListener[] getEventListeners();    
-
+    /** Return all {@link GLMediaEventListener} of this player. */
+    public GLMediaEventListener[] getEventListeners();
 }

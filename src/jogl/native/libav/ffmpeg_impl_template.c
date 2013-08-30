@@ -45,8 +45,9 @@ static const char * const ClazzNameFFMPEGMediaPlayer = "jogamp/opengl/util/av/im
 
 static jclass ffmpegMediaPlayerClazz = NULL;
 static jmethodID jni_mid_pushSound = NULL;
-static jmethodID jni_mid_updateAttributes1 = NULL;
-static jmethodID jni_mid_updateAttributes2 = NULL;
+static jmethodID jni_mid_updateAttributes = NULL;
+static jmethodID jni_mid_setIsGLOriented = NULL;
+static jmethodID jni_mid_setupFFAttributes = NULL;
 static jmethodID jni_mid_isAudioFormatSupported = NULL;
 
 #define HAS_FUNC(f) (NULL!=(f))
@@ -309,28 +310,29 @@ JNIEXPORT jboolean JNICALL FF_FUNC(initSymbols0)
     return JNI_TRUE;
 }
 
-static int _isAudioFormatSupported(JNIEnv *env, jobject ffmpegMediaPlayer, enum AVSampleFormat aSampleFmt, int32_t aSampleRate, int32_t aChannels)
-{
+static int _isAudioFormatSupported(JNIEnv *env, jobject ffmpegMediaPlayer, enum AVSampleFormat aSampleFmt, int32_t aSampleRate, int32_t aChannels) {
     return JNI_TRUE == (*env)->CallBooleanMethod(env, ffmpegMediaPlayer, jni_mid_isAudioFormatSupported, aSampleFmt, aSampleRate, aChannels);
 }
-static void _updateJavaAttributes(JNIEnv *env, jobject instance, FFMPEGToolBasicAV_t* pAV)
-{
-    // int shallBeDetached = 0;
-    // JNIEnv  * env = JoglCommon_GetJNIEnv (&shallBeDetached); 
+static void _updateJavaAttributes(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
     if(NULL!=env) {
-        (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, jni_mid_updateAttributes2,
+        (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, jni_mid_setupFFAttributes,
                                pAV->vid, pAV->vPixFmt, pAV->vBufferPlanes, 
                                pAV->vBitsPerPixel, pAV->vBytesPerPixelPerPlane,
                                pAV->vTexWidth[0], pAV->vTexWidth[1], pAV->vTexWidth[2],
                                pAV->vWidth, pAV->vHeight,
                                pAV->aid, pAV->aSampleFmtOut, pAV->aSampleRateOut, pAV->aChannelsOut, pAV->aFrameSize);
-        (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, jni_mid_updateAttributes1,
+        (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, jni_mid_updateAttributes,
                                pAV->vid, pAV->aid,
                                pAV->vWidth, pAV->vHeight,
                                pAV->bps_stream, pAV->bps_video, pAV->bps_audio,
                                pAV->fps, pAV->frames_video, pAV->frames_audio, pAV->duration,
                                (*env)->NewStringUTF(env, pAV->vcodec),
                                (*env)->NewStringUTF(env, pAV->acodec) );
+    }
+}
+static void _setIsGLOriented(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
+    if(NULL!=env) {
+        (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, jni_mid_setIsGLOriented, pAV->vFlipped);
     }
 }
 
@@ -499,13 +501,15 @@ JNIEXPORT jboolean JNICALL FF_FUNC(initIDs0)
     }
 
     jni_mid_pushSound = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "pushSound", "(Ljava/nio/ByteBuffer;II)V");
-    jni_mid_updateAttributes1 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes", "(IIIIIIIFIIILjava/lang/String;Ljava/lang/String;)V");
-    jni_mid_updateAttributes2 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes2", "(IIIIIIIIIIIIIII)V");
+    jni_mid_updateAttributes = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes", "(IIIIIIIFIIILjava/lang/String;Ljava/lang/String;)V");
+    jni_mid_setIsGLOriented = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "setIsGLOriented", "(Z)V");
+    jni_mid_setupFFAttributes = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "setupFFAttributes", "(IIIIIIIIIIIIIII)V");
     jni_mid_isAudioFormatSupported = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "isAudioFormatSupported", "(III)Z");
 
     if(jni_mid_pushSound == NULL ||
-       jni_mid_updateAttributes1 == NULL ||
-       jni_mid_updateAttributes2 == NULL ||
+       jni_mid_updateAttributes == NULL ||
+       jni_mid_setIsGLOriented == NULL ||
+       jni_mid_setupFFAttributes == NULL ||
        jni_mid_isAudioFormatSupported == NULL) {
         return JNI_FALSE;
     }
@@ -726,21 +730,28 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
         }
 
         const char *sizeS = NULL != jSizeS ? (*env)->GetStringUTFChars(env, jSizeS, &iscopy) : NULL;
+        int hasSize = 0;
         if( NULL != sizeS ) {
             snprintf(buffer, sizeof(buffer), "%s", sizeS);
             (*env)->ReleaseStringChars(env, jSizeS, (const jchar *)sizeS);
-        } else {
+            hasSize = 1;
+        } else if( vWidth > 0 && vHeight > 0 ) {
             snprintf(buffer, sizeof(buffer), "%dx%d", vWidth, vHeight);
+            hasSize = 1;
         }
-        if(pAV->verbose) {
-            fprintf(stderr, "Camera: Size: %s\n", buffer);
+        if( hasSize ) {
+            if(pAV->verbose) {
+                fprintf(stderr, "Camera: Size: %s\n", buffer);
+            }
+            sp_av_dict_set(&inOpts, "video_size", buffer, 0);
         }
-        sp_av_dict_set(&inOpts, "video_size", buffer, 0);
-        snprintf(buffer, sizeof(buffer), "%d", vRate);
-        if(pAV->verbose) {
-            fprintf(stderr, "Camera: FPS: %s\n", buffer);
+        if( vRate > 0 ) {
+            snprintf(buffer, sizeof(buffer), "%d", vRate);
+            if(pAV->verbose) {
+                fprintf(stderr, "Camera: FPS: %s\n", buffer);
+            }
+            sp_av_dict_set(&inOpts, "framerate", buffer, 0);
         }
-        sp_av_dict_set(&inOpts, "framerate", buffer, 0); // not setting a framerate causes some drivers to crash!
     }
     res = sp_avformat_open_input(&pAV->pFormatCtx, filename, inFmt, NULL != inOpts ? &inOpts : NULL);
     if( NULL != inOpts ) {
@@ -1055,6 +1066,7 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
         pAV->vWidth = pAV->pVCodecCtx->width;
         pAV->vHeight = pAV->pVCodecCtx->height;
         pAV->vPixFmt = pAV->pVCodecCtx->pix_fmt;
+        pAV->vFlipped = JNI_FALSE;
         {   
             AVPixFmtDescriptor pixDesc = sp_av_pix_fmt_descriptors[pAV->vPixFmt];
             pAV->vBitsPerPixel = sp_av_get_bits_per_pixel(&pixDesc);
@@ -1076,16 +1088,6 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
                 pAV->pVStream->nb_frames,
                 pAV->vWidth, pAV->vHeight, pAV->vPixFmt, pAV->vBitsPerPixel, pAV->vBufferPlanes, pAV->pVCodecCtx->codec->capabilities);
         }
-        #if 0
-        // Check CODEC_CAP_DR1, i.e. codec must handle get_buffer(), i.e. allocs 'em.
-        {
-            int codecHandlesBuffers = 0 != ( pAV->pVCodecCtx->codec->capabilities & CODEC_CAP_DR1 );
-            if( !codecHandlesBuffers ) {
-                JoglCommon_throwNewRuntimeException(env, "Codec does not handle buffers (!CODEC_CAP_DR1)");
-                return;
-            }
-        }
-        #endif
 
         pAV->pVFrame=sp_avcodec_alloc_frame();
         if( pAV->pVFrame == NULL ) {
@@ -1152,7 +1154,7 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
     pAV->aPTS=0;
     initPTSStats(&pAV->vPTSStats);
     initPTSStats(&pAV->aPTSStats);
-    _updateJavaAttributes(env, instance, pAV);
+    _updateJavaAttributes(env, pAV);
 }
 
 JNIEXPORT void JNICALL FF_FUNC(setGLFuncs0)
@@ -1179,7 +1181,6 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
     FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
 
     AVPacket packet;
-    int frameDecoded;
     jint resPTS = INVALID_PTS;
     uint8_t * pkt_odata;
     int pkt_osize;
@@ -1206,6 +1207,7 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
             int frameCount;
             int flush_complete = 0;
             for ( frameCount=0; 0 < packet.size || 0 == frameCount; frameCount++ ) {
+                int frameDecoded;
                 int len1;
                 NIOBuffer_t * pNIOBufferCurrent = &pAV->pANIOBuffers[pAV->aFrameCurrent];
                 AVFrame* pAFrameCurrent = pAV->pAFrames[pAV->aFrameCurrent];
@@ -1339,6 +1341,7 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
             int frameCount;
             int flush_complete = 0;
             for ( frameCount=0; 0 < packet.size || 0 == frameCount; frameCount++ ) {
+                int frameDecoded;
                 int len1;
                 sp_avcodec_get_frame_defaults(pAV->pVFrame);
                 if (flush_complete) {
@@ -1398,6 +1401,11 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
 
                 int p_offset[] = { 0, 0, 0, 0 };
                 if( pAV->pVFrame->linesize[0] < 0 ) {
+                    if( JNI_FALSE == pAV->vFlipped ) {
+                        pAV->vFlipped = JNI_TRUE;
+                        _setIsGLOriented(env, pAV);
+                    }
+
                     // image bottom-up
                     int h_1 = pAV->pVCodecCtx->height - 1;
                     p_offset[0] = pAV->pVFrame->linesize[0] * h_1;
@@ -1411,7 +1419,11 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                     if( pAV->vBufferPlanes > 3 ) {
                         p_offset[3] = pAV->pVFrame->linesize[3] * h_1;
                     } */
+                } else if( JNI_TRUE == pAV->vFlipped ) {
+                    pAV->vFlipped = JNI_FALSE;
+                    _setIsGLOriented(env, pAV);
                 }
+
                 // 1st plane or complete packed frame
                 // FIXME: Libav Binary compatibility! JAU01
                 DBG_TEXSUBIMG2D_a('Y',pAV,1,1,1,0);

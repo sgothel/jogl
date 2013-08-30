@@ -165,6 +165,10 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected Ringbuffer<TextureFrame> videoFramesFree =  null;
     protected Ringbuffer<TextureFrame> videoFramesDecoded =  null;
     protected volatile TextureFrame lastFrame = null;
+    /**
+     * @see #isGLOriented()
+     */
+    protected boolean isInGLOrientation = false;
 
     private ArrayList<GLMediaEventListener> eventListeners = new ArrayList<GLMediaEventListener>();
 
@@ -202,12 +206,6 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     
     public final void setTextureWrapST(int[] wrapST) { texWrapST[0] = wrapST[0]; texWrapST[1] = wrapST[1];}
     public final int[] getTextureWrapST() { return texWrapST; }    
-    
-    private final void checkStreamInit() {
-        if(State.Uninitialized == state ) {
-            throw new IllegalStateException("Stream not initialized: "+this);
-        }        
-    }
     
     private final void checkGLInit() {
         if(State.Uninitialized == state || State.Initialized == state ) {
@@ -339,6 +337,23 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected abstract boolean pauseImpl();
     
     @Override
+    public final State destroy(GL gl) {
+        return destroyImpl(gl, 0);
+    }
+    private final State destroyImpl(GL gl, int event_mask) {
+        synchronized( stateLock ) {
+            streamWorker.doStop();
+            streamWorker = null;
+            destroyImpl(gl);
+            removeAllTextureFrames(gl);
+            textureCount=0;
+            changeState(event_mask, State.Uninitialized);
+            return state;
+        }
+    }
+    protected abstract void destroyImpl(GL gl);
+    
+    @Override
     public final int seek(int msec) {
         synchronized( stateLock ) {
             final State preState = state;
@@ -458,7 +473,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     public final void initStream(URI streamLoc, int vid, int aid, int reqTextureCount) throws IllegalStateException, IllegalArgumentException {
         synchronized( stateLock ) {
             if(State.Uninitialized != state) {
-                throw new IllegalStateException("Instance not unintialized: "+this);
+                throw new IllegalStateException("Instance not in state unintialized: "+this);
             }
             if(null == streamLoc) {
                 throw new IllegalArgumentException("streamLock is null");
@@ -485,7 +500,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 if( null != rawPath && rawPath.length() > 0 ) {
                     // cut-off root fwd-slash 
                     cameraPath = rawPath.substring(1);
-                    final URIQueryProps props = URIQueryProps.create(streamLoc);
+                    final URIQueryProps props = URIQueryProps.create(streamLoc, ';');
                     cameraProps = props.getProperties();
                 } else {
                     throw new IllegalArgumentException("Camera path is empty: "+streamLoc.toString());
@@ -528,10 +543,12 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     @Override
     public final void initGL(GL gl) throws IllegalStateException, StreamException, GLException {
         synchronized( stateLock ) {
-            checkStreamInit();
+            if(State.Initialized != state ) {
+                throw new IllegalStateException("Stream not in state initialized: "+this);
+            }        
             final StreamException streamInitErr = streamWorker.getStreamErr();
             if( null != streamInitErr ) {
-                streamWorker = null;
+                streamWorker = null; // already terminated!
                 destroy(null);
                 throw streamInitErr;
             }
@@ -559,6 +576,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 }
                 changeState(0, State.Paused);
             } catch (Throwable t) {
+                destroyImpl(gl, GLMediaEventListener.EVENT_CHANGE_ERR); // -> GLMediaPlayer.State.Uninitialized
                 throw new GLException("Error initializing GL resources", t);
             }
         }
@@ -602,7 +620,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
     protected abstract TextureFrame createTexImage(GL gl, int texName);
     
-    protected final Texture createTexImageImpl(GL gl, int texName, int tWidth, int tHeight, boolean mustFlipVertically) {
+    protected final Texture createTexImageImpl(GL gl, int texName, int tWidth, int tHeight) {
         if( 0 > texName ) {
             throw new RuntimeException("TextureName "+toHexString(texName)+" invalid.");
         }
@@ -649,7 +667,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                      texName, textureTarget,
                      tWidth, tHeight,
                      width,  height,
-                     mustFlipVertically);        
+                     !isInGLOrientation);        
     }
         
     protected void destroyTexFrame(GL gl, TextureFrame frame) {
@@ -1251,20 +1269,19 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         attributesUpdated(event_mask);
     }
 
-    @Override
-    public final State destroy(GL gl) {
-        synchronized( stateLock ) {
-            streamWorker.doStop();
-            streamWorker = null;
-            destroyImpl(gl);
-            removeAllTextureFrames(gl);
-            textureCount=0;
-            changeState(0, State.Uninitialized);
-            return state;
+    protected void setIsGLOriented(boolean isGLOriented) {
+        if( isInGLOrientation != isGLOriented ) {
+            if( DEBUG ) {
+                System.err.println("XXX gl-orient "+isInGLOrientation+" -> "+isGLOriented);
+            }
+            isInGLOrientation = isGLOriented;
+            for(int i=0; i<videoFramesOrig.length; i++) {
+                videoFramesOrig[i].getTexture().setMustFlipVertically(!isGLOriented);
+            }
+            attributesUpdated(GLMediaEventListener.EVENT_CHANGE_SIZE);
         }
     }
-    protected abstract void destroyImpl(GL gl);
-
+    
     @Override
     public final URI getURI() {
         return streamLoc;
@@ -1322,6 +1339,11 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
 
     @Override
+    public final boolean isGLOriented() {
+        return isInGLOrientation;
+    }
+    
+    @Override
     public final int getWidth() {
         return width;
     }
@@ -1342,7 +1364,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         return "GLMediaPlayer["+state+", vSCR "+video_scr+", frames[p "+presentedFrameCount+", d "+decodedFrameCount+", t "+videoFrames+" ("+tt+" s)], "+
                "speed "+playSpeed+", "+bps_stream+" bps, "+
                "Texture[count "+textureCount+", free "+freeVideoFrames+", dec "+decVideoFrames+", tagt "+toHexString(textureTarget)+", ifmt "+toHexString(textureInternalFormat)+", fmt "+toHexString(textureFormat)+", type "+toHexString(textureType)+"], "+
-               "Video[id "+vid+", <"+vcodec+">, "+width+"x"+height+", "+fps+" fps, "+frame_duration+" fdur, "+bps_video+" bps], "+
+               "Video[id "+vid+", <"+vcodec+">, "+width+"x"+height+", glOrient "+isInGLOrientation+", "+fps+" fps, "+frame_duration+" fdur, "+bps_video+" bps], "+
                "Audio[id "+aid+", <"+acodec+">, "+bps_audio+" bps, "+audioFrames+" frames], uri "+loc+camPath+"]";
     }
     

@@ -433,7 +433,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     protected final TextureSequence.TextureFrame createTexImage(GL gl, int texName) {
         sTexFrameCount++;
         if( 1 == sTexFrameCount ) {
-            singleSTexFrame = new SurfaceTextureFrame( createTexImageImpl(gl, texName, width, height, true), new SurfaceTexture(texName) );
+            singleSTexFrame = new SurfaceTextureFrame( createTexImageImpl(gl, texName, width, height), new SurfaceTexture(texName) );
         }
         return singleSTexFrame;
     }

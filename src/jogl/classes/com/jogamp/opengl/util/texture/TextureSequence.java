@@ -28,7 +28,9 @@
 package com.jogamp.opengl.util.texture;
 
 import javax.media.opengl.GL;
-
+import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLRunnable;
+import javax.media.opengl.GLEventListener;
 import com.jogamp.opengl.util.TimeFrameI;
 
 /**
@@ -128,6 +130,25 @@ public interface TextureSequence {
         protected final Texture texture;
     }
 
+    /**
+     * Event listener to notify users of updates regarding the {@link TextureSequence}.
+     * <p>
+     * The implementation sending the events, and hence calling down to all listeners,
+     * does not necessarily make the user's OpenGL context current.
+     * </p>
+     * <p>
+     * Further more, the call may happen off-thread, possibly holding another, possibly shared, OpenGL context current.
+     * </p>
+     * Hence a user shall not issue <i>any</i> OpenGL, time consuming 
+     * or {@link TextureSequence} lifecycle operations directly.<br>
+     * Instead, the user shall:
+     * <ul>
+     *   <li>issue commands off-thread via spawning off another thread, or</li>
+     *   <li>injecting {@link GLRunnable} objects via {@link GLAutoDrawable#invoke(boolean, GLRunnable)}, or</li>
+     *   <li>simply changing a volatile state of their {@link GLEventListener} implementation.</li>
+     * </ul> 
+     * </p>
+     * */
     public interface TexSeqEventListener<T extends TextureSequence> {
         /** 
          * Signaling listeners that a new {@link TextureFrame} is available.
