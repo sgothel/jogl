@@ -431,8 +431,8 @@ public class Texture {
     }
 
     /**
-     * Updates the entire content area of this texture using the data in
-     * the given image.
+     * Updates the entire content area incl. {@link TextureCoords} 
+     * of this texture using the data in the given image.
      * 
      * @throws GLException if any OpenGL-related errors occurred
      */
@@ -453,7 +453,21 @@ public class Texture {
     }
 
     /**
-     * Updates the content area of the specified target of this texture
+     * Change whether the TextureData requires a vertical flip of
+     * the texture coords.
+     * <p>
+     * No-op if no change, otherwise generates new {@link TextureCoords}.
+     * </p>
+     */
+    public void setMustFlipVertically(boolean v) {
+        if( v != mustFlipVertically ) {
+            mustFlipVertically = v;
+            updateTexCoords();
+        }
+    }
+    
+    /**
+     * Updates the content area incl. {@link TextureCoords} of the specified target of this texture
      * using the data in the given image. In general this is intended
      * for construction of cube maps.
      * 
@@ -942,6 +956,9 @@ public class Texture {
     private void setImageSize(int width, int height, int target) {
         imgWidth = width;
         imgHeight = height;
+        updateTexCoords();
+    }
+    private void updateTexCoords() {
         if (target == GL2.GL_TEXTURE_RECTANGLE_ARB) {
             if (mustFlipVertically) {
                 coords = new TextureCoords(0, imgHeight, imgWidth, 0);
@@ -962,7 +979,7 @@ public class Texture {
                                            (float) imgHeight / (float) texHeight   // t
                                           );
             }
-        }
+        }        
     }
 
     private void updateSubImageImpl(GL gl, TextureData data, int newTarget, int mipmapLevel,
