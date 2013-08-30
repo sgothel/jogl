@@ -63,6 +63,7 @@ import javax.media.opengl.GLES3;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
+import javax.media.opengl.GLRunnable;
 
 import jogamp.newt.WindowImpl;
 import jogamp.opengl.GLAutoDrawableBase;
@@ -80,6 +81,7 @@ import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.event.NEWTEvent;
 import com.jogamp.newt.event.NEWTEventConsumer;
+import com.jogamp.newt.event.NEWTEventListener;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowListener;
@@ -96,12 +98,12 @@ import com.jogamp.opengl.GLStateKeeper;
  * </P>
  * <P>
  * This implementation does not make the OpenGL context current<br>
- * before calling the various input EventListener callbacks, ie {@link com.jogamp.newt.event.MouseListener} etc.<br>
+ * before calling the various input EventListener callbacks, ie {@link MouseListener} etc.<br>
  * This design decision is made in favor of a more performant and simplified
  * implementation. Also the event dispatcher shall be implemented OpenGL agnostic.<br>
- * To be able to use OpenGL commands from within such input {@link com.jogamp.newt.event.NEWTEventListener},<br>
- * you can inject {@link javax.media.opengl.GLRunnable} objects
- * via {@link #invoke(boolean, javax.media.opengl.GLRunnable)} to the OpenGL command stream.<br>
+ * To be able to use OpenGL commands from within such input {@link NEWTEventListener},<br>
+ * you can inject {@link GLRunnable} objects
+ * via {@link #invoke(boolean, GLRunnable)} to the OpenGL command stream.<br>
  * </p>
  */
 public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Window, NEWTEventConsumer, FPSCounter {
