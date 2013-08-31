@@ -729,6 +729,7 @@ public abstract class GLContext {
   public final VersionNumberString getGLVendorVersionNumber() { return ctxVendorVersion; }
   public final boolean isGLCompatibilityProfile() { return ( 0 != ( CTX_PROFILE_COMPAT & ctxOptions ) ); }
   public final boolean isGLCoreProfile()          { return ( 0 != ( CTX_PROFILE_CORE   & ctxOptions ) ); }
+  public final boolean isGLESProfile()            { return ( 0 != ( CTX_PROFILE_ES     & ctxOptions ) ); }
   public final boolean isGLForwardCompatible()    { return ( 0 != ( CTX_OPTION_FORWARD & ctxOptions ) ); }
   public final boolean isGLDebugEnabled()         { return ( 0 != ( CTX_OPTION_DEBUG   & ctxOptions ) ); }
   public final boolean isCreatedWithARBMethod()   { return ( 0 != ( CTX_IS_ARB_CREATED & ctxOptions ) ); }
@@ -994,7 +995,7 @@ public abstract class GLContext {
   }
   
   /** 
-   * Indicates whether this GLContext uses a GL core profile. <p>Includes [ GL4, GL3, GLES3, GL2ES2 ].</p>
+   * Indicates whether this GLContext uses a GL core profile. <p>Includes [ GL4, GL3, GLES3, GLES2 ].</p>
    */
   public final boolean isGLcore() {
       return ( 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() >= 2 ) ||
