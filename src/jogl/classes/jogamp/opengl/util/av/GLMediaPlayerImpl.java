@@ -296,7 +296,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             switch( state ) {
                 case Paused:
                     if( playImpl() ) {
-                        resetAudioVideoPTS();
+                        resetAVPTS();
                         if( null != audioSink ) {
                             audioSink.play(); // cont. w/ new data
                         }
@@ -312,17 +312,19 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected abstract boolean playImpl();
     
     @Override
-    public final State pause() {
-        return pauseImpl(0);
+    public final State pause(boolean flush) {
+        return pauseImpl(flush, 0);
     }
-    private final State pauseImpl(int event_mask) {
+    private final State pauseImpl(boolean flush, int event_mask) {
         synchronized( stateLock ) {
             final State preState = state;
             if( State.Playing == state ) {
                 event_mask = addStateEventMask(event_mask, GLMediaPlayer.State.Paused);
                 state = State.Paused;
                 streamWorker.doPause();
-                if( null != audioSink ) {
+                if( flush ) {
+                    resetAVPTSAndFlush();
+                } else if( null != audioSink ) {
                     audioSink.pause();
                 }
                 attributesUpdated( event_mask );
@@ -365,7 +367,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     state = State.Paused;
                     streamWorker.doPause();
                     pts1 = seekImpl(msec);
-                    resetAllAudioVideoSync();
+                    resetAVPTSAndFlush();
                     if( null != audioSink && State.Playing == _state ) {
                         audioSink.play(); // cont. w/ new data
                     }
@@ -398,7 +400,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                         rate = 1.0f;
                     }
                     if( setPlaySpeedImpl(rate) ) {
-                        resetAudioVideoPTS();
+                        resetAVPTS();
                         playSpeed = rate;
                         res = true;
                     }
@@ -738,7 +740,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                             presentedFrameCount++;
                             final int video_pts = nextFrame.getPTS();
                             if( video_pts == TimeFrameI.END_OF_STREAM_PTS ) {
-                                pauseImpl(GLMediaEventListener.EVENT_CHANGE_EOS);
+                                pauseImpl(true, GLMediaEventListener.EVENT_CHANGE_EOS);
                             } else if( video_pts != TimeFrameI.INVALID_PTS ) {
                                 final int audio_pts = getAudioPTSImpl();
                                 final int audio_scr = (int) ( ( currentTimeMillis - audio_scr_t0 ) * playSpeed );
@@ -855,7 +857,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
      * {@inheritDoc}
      * <p>
      * Note: All {@link AudioSink} operations are performed from {@link GLMediaPlayerImpl},
-     * i.e. {@link #play()}, {@link #pause()}, {@link #seek(int)}, {@link #setPlaySpeed(float)}, {@link #getAudioPTS()}.
+     * i.e. {@link #play()}, {@link #pause(boolean)}, {@link #seek(int)}, {@link #setPlaySpeed(float)}, {@link #getAudioPTS()}.
      * </p>
      * <p>
      * Implementations using an {@link AudioSink} shall write it's instance to {@link #audioSink}
@@ -887,16 +889,16 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         }
         cachedFrame = null;
     }
-    private void resetAllAudioVideoSync() {
+    private void resetAVPTSAndFlush() {
         video_dpts_cum = 0;
         video_dpts_count = 0;
-        resetAudioVideoPTS();
+        resetAVPTS();
         flushAllVideoFrames();
         if( null != audioSink ) {
             audioSink.flush();
         }
     }
-    private void resetAudioVideoPTS() {
+    private void resetAVPTS() {
         presentedFrameCount = 0;
         displayedFrameCount = 0;
         decodedFrameCount = 0;
@@ -1129,7 +1131,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                     // state transition incl. notification
                                     shallPause = true;
                                     isActive = false;
-                                    pauseImpl(GLMediaEventListener.EVENT_CHANGE_EOS);
+                                    pauseImpl(true, GLMediaEventListener.EVENT_CHANGE_EOS);
                                 }
                             }
                         }
@@ -1153,7 +1155,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                             // state transition incl. notification
                             shallPause = true;
                             isActive = false;
-                            pauseImpl(GLMediaEventListener.EVENT_CHANGE_ERR);
+                            pauseImpl(true, GLMediaEventListener.EVENT_CHANGE_ERR);
                         }
                     }
                 }

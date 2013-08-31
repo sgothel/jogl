@@ -85,7 +85,7 @@ import com.jogamp.opengl.util.TimeFrameI;
  *   <tr><td>{@link #initStream(URI, int, int, int)}</td>              <td>{@link State#Uninitialized Uninitialized}</td>                   <td>{@link State#Initialized Initialized}<sup><a href="#streamworker">1</a></sup>, {@link State#Uninitialized Uninitialized}</td>  <td>{@link GLMediaEventListener#EVENT_CHANGE_INIT EVENT_CHANGE_INIT} or ( {@link GLMediaEventListener#EVENT_CHANGE_ERR EVENT_CHANGE_ERR} + {@link GLMediaEventListener#EVENT_CHANGE_UNINIT EVENT_CHANGE_UNINIT} )</td></tr>
  *   <tr><td>{@link #initGL(GL)}</td>                                  <td>{@link State#Initialized Initialized}</td>                       <td>{@link State#Paused Paused}, , {@link State#Uninitialized Uninitialized}</td>                                                  <td>{@link GLMediaEventListener#EVENT_CHANGE_PAUSE EVENT_CHANGE_PAUSE} or ( {@link GLMediaEventListener#EVENT_CHANGE_ERR EVENT_CHANGE_ERR} + {@link GLMediaEventListener#EVENT_CHANGE_UNINIT EVENT_CHANGE_UNINIT} )</td></tr>
  *   <tr><td>{@link #play()}</td>                                      <td>{@link State#Paused Paused}</td>                                 <td>{@link State#Playing Playing}</td>                                                                                             <td>{@link GLMediaEventListener#EVENT_CHANGE_PLAY EVENT_CHANGE_PLAY}</td></tr>
- *   <tr><td>{@link #pause()}</td>                                     <td>{@link State#Playing Playing}</td>                               <td>{@link State#Paused Paused}</td>                                                                                               <td>{@link GLMediaEventListener#EVENT_CHANGE_PAUSE EVENT_CHANGE_PAUSE}</td></tr>
+ *   <tr><td>{@link #pause(boolean)}</td>                              <td>{@link State#Playing Playing}</td>                               <td>{@link State#Paused Paused}</td>                                                                                               <td>{@link GLMediaEventListener#EVENT_CHANGE_PAUSE EVENT_CHANGE_PAUSE}</td></tr>
  *   <tr><td>{@link #seek(int)}</td>                                   <td>{@link State#Paused Paused}, {@link State#Playing Playing}</td>  <td>{@link State#Paused Paused}, {@link State#Playing Playing}</td>                                                                <td>none</td></tr>
  *   <tr><td>{@link #getNextTexture(GL)}</td>                          <td>{@link State#Paused Paused}, {@link State#Playing Playing}</td>  <td>{@link State#Paused Paused}, {@link State#Playing Playing}</td>                                                                <td>none</td></tr>
  *   <tr><td>{@link #getLastTexture()}</td>                            <td>{@link State#Paused Paused}, {@link State#Playing Playing}</td>  <td>{@link State#Paused Paused}, {@link State#Playing Playing}</td>                                                                <td>none</td></tr>
@@ -427,18 +427,34 @@ public interface GLMediaPlayer extends TextureSequence {
     public float getAudioVolume();
     
     /**
+     * Starts or resumes the <i>StreamWorker</i> decoding thread.
+     * <p>
      * <a href="#lifecycle">Lifecycle</a>: {@link State#Paused} -> {@link State#Playing}
+     * </p>
      */
     public State play();
 
     /**
+     * Pauses the <i>StreamWorker</i> decoding thread.
+     * <p>
      * <a href="#lifecycle">Lifecycle</a>: {@link State#Playing} -> {@link State#Paused}
+     * </p>
+     * <p>
+     * If a <i>new</i> frame is desired after the next {@link #play()} call,
+     * e.g. to make a snapshot of a camera input stream, 
+     * <code>flush</code> shall be set to <code>true</code>.
+     * </p> 
+     * @param flush if <code>true</code> flushes the video and audio buffers, otherwise keep them intact.
      */
-    public State pause();
+    public State pause(boolean flush);
 
     /**
+     * Seeks to the new absolute position. The <i>StreamWorker</i> decoding thread
+     * is paused while doing so and the A/V buffers are flushed.
+     * <p>
      * Allowed in state {@link State#Playing} and {@link State#Paused}, otherwise ignored,
-     * see <a href="#lifecycle">Lifecycle</a>. 
+     * see <a href="#lifecycle">Lifecycle</a>.
+     * </p> 
      * 
      * @param msec absolute desired time position in milliseconds 
      * @return time current position in milliseconds, after seeking to the desired position  

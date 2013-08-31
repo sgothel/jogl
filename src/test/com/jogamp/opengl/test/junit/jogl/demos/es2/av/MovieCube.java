@@ -130,7 +130,7 @@ public class MovieCube implements GLEventListener {
                     if(GLMediaPlayer.State.Paused == mPlayer.getState()) {
                         mPlayer.play();
                     } else {
-                        mPlayer.pause();
+                        mPlayer.pause(false);
                     }
                     break;
                 }

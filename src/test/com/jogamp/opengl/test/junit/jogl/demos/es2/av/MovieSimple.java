@@ -124,7 +124,7 @@ public class MovieSimple implements GLEventListener {
         public void mousePressed(MouseEvent e) {
             if(e.getY()<=winHeight/2 && null!=mPlayer && 1 == e.getClickCount()) {
                 if(GLMediaPlayer.State.Playing == mPlayer.getState()) {
-                    mPlayer.pause();
+                    mPlayer.pause(false);
                 } else {
                     mPlayer.play();
                 }
@@ -190,7 +190,7 @@ public class MovieSimple implements GLEventListener {
                     if(GLMediaPlayer.State.Paused == mPlayer.getState()) {
                         mPlayer.play();
                     } else {
-                        mPlayer.pause();
+                        mPlayer.pause(false);
                     }
                     break;
                 }
