@@ -32,8 +32,12 @@
 
 #include <stdio.h>
 #include <string.h>
+
+// dshow includes strsafe.h, hence tchar.h cannot be used
+// include strsafe.h here for documentation
+// #include <tchar.h>
+#include <strsafe.h>
 #include <dshow.h>
-#include <tchar.h>
 
 static HRESULT EnumerateDevices(REFGUID category, IEnumMoniker **ppEnum)
 {
@@ -58,9 +62,11 @@ static HRESULT EnumerateDevices(REFGUID category, IEnumMoniker **ppEnum)
 static void getBSTRChars(BSTR bstr, char *pDest, int destLen) {
 
  #ifdef UNICODE
-     _sntprintf(pDest, destLen, _T("%s"), bstr);
+    // _sntprintf(pDest, destLen, _T("%s"), bstr);
+    StringCbPrintfW(pDest, destLen, L"%s", bstr);
  #else
-     _sntprintf(pDest, destLen, _T("%S"), bstr);
+    // _sntprintf(pDest, destLen, _T("%S"), bstr);
+    StringCchPrintfA(pDest, destLen, "%S", bstr);
  #endif 
 }
 

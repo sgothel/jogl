@@ -46,7 +46,7 @@ typedef unsigned (APIENTRYP AV_GET_VERSION)(void);
 JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGStaticNatives_getAvVersion0
   (JNIEnv *env, jclass clazz, jlong func) {
     if( 0 != func ) {
-        return (jint) ((AV_GET_VERSION)func)();
+        return (jint) ((AV_GET_VERSION) (intptr_t) func)();
     } else {
         return 0;
     }
