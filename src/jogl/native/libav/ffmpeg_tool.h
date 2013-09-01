@@ -96,10 +96,10 @@ typedef void (APIENTRYP PFNGLFINISH) (void);
 #define END_OF_STREAM_PTS 0x7FFFFFFF
 
 /** Since 54.0.0.1 */
-#define AV_HAS_API_AVRESAMPLE(pAV) ( pAV->avresampleVersion != 0 )
+#define AV_HAS_API_AVRESAMPLE(pAV) ( ( LIBAVRESAMPLE_VERSION_MAJOR >= 0 ) && ( pAV->avresampleVersion != 0 ) )
 
 /** Since 55.0.0.1 */
-#define AV_HAS_API_SWRESAMPLE(pAV) ( pAV->swresampleVersion != 0 )
+#define AV_HAS_API_SWRESAMPLE(pAV) ( ( LIBSWRESAMPLE_VERSION_MAJOR >= 0 ) && ( pAV->swresampleVersion != 0 ) )
 
 #define MAX_INT(a,b) ( (a >= b) ? a : b )
 #define MIN_INT(a,b) ( (a <= b) ? a : b )

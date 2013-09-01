@@ -194,8 +194,8 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             libAVVersionGood = avCodecMajorVersionCC  == avCodecVersion.getMajor() &&
                                avFormatMajorVersionCC == avFormatVersion.getMajor() &&
                                avUtilMajorVersionCC   == avUtilVersion.getMajor() &&
-                               ( !avResampleLoaded || avResampleMajorVersionCC  == avResampleVersion.getMajor() ) &&
-                               ( !swResampleLoaded || swResampleMajorVersionCC  == swResampleVersion.getMajor() ) ;
+                               ( !avResampleLoaded || avResampleMajorVersionCC < 0 || avResampleMajorVersionCC  == avResampleVersion.getMajor() ) &&
+                               ( !swResampleLoaded || swResampleMajorVersionCC < 0 || swResampleMajorVersionCC  == swResampleVersion.getMajor() ) ;
             if( !libAVVersionGood ) {
                 System.err.println("LIB_AV Not Matching Compile-Time / Runtime Major-Version");
             }
