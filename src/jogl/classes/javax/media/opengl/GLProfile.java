@@ -143,16 +143,12 @@ public class GLProfile {
                         
                         if(TempJarCache.isInitialized()) {
                            final ClassLoader cl = GLProfile.class.getClassLoader();
-                           // either: [jogl-all.jar, jogl-all-noawt.jar, jogl-all-mobile.jar] -> jogl-all-natives-<os.and.arch>.jar
-                           // or:     nativewindow-core.jar                                   -> nativewindow-natives-<os.and.arch>.jar,
-                           //         jogl-core.jar                                           -> jogl-natives-<os.and.arch>.jar,
-                           //        (newt-core.jar                                           -> newt-natives-<os.and.arch>.jar)? (if available)
                            final String newtFactoryClassName = "com.jogamp.newt.NewtFactory";
                            final Class<?>[] classesFromJavaJars = new Class<?>[] { NWJNILibLoader.class, GLProfile.class, null };
                            if( ReflectionUtil.isClassAvailable(newtFactoryClassName, cl) ) {
                                classesFromJavaJars[2] = ReflectionUtil.getClass(newtFactoryClassName, false, cl);
                            }
-                           JNILibLoaderBase.addNativeJarLibs(classesFromJavaJars, "-all", new String[] { "-noawt", "-mobile", "-core" } );
+                           JNILibLoaderBase.addNativeJarLibsJoglCfg(classesFromJavaJars);
                         }
                         initProfilesForDefaultDevices();
                         return null;
@@ -170,7 +166,7 @@ public class GLProfile {
             }
         }        
     }
-    
+
     /**
      * Trigger eager initialization of GLProfiles for the given device,
      * in case it isn't done yet.

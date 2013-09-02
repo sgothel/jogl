@@ -48,23 +48,17 @@ import com.jogamp.common.jvm.JNILibLoaderBase;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.cache.TempJarCache;
 
-public class NEWTJNILibLoader extends JNILibLoaderBase {
-  
-  public static void loadNEWT() {
-    AccessController.doPrivileged(new PrivilegedAction<Object>() {
-      public Object run() {
-        Platform.initSingleton();
-        final String libName = "newt";
-        if(TempJarCache.isInitialized() && null == TempJarCache.findLibrary(libName)) {
-           // either: [jogl-all.jar, jogl-all-noawt.jar, jogl-all-mobile.jar] -> jogl-all-natives-<os.and.arch>.jar
-           // or:     nativewindow-core.jar                                   -> nativewindow-natives-<os.and.arch>.jar,
-           //         newt-core.jar                                           -> newt-natives-<os.and.arch>.jar
-           JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { NWJNILibLoader.class, NEWTJNILibLoader.class }, "-all", new String[] { "-noawt", "-mobile", "-core" } );
-        }
-        loadLibrary(libName, false, NEWTJNILibLoader.class.getClassLoader());
-        return null;
-      }
-    });
-  }
-
+public class NEWTJNILibLoader extends JNILibLoaderBase {  
+    public static boolean loadNEWT() {
+        return AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+            public Boolean run() {
+                Platform.initSingleton();
+                final String libName = "newt";
+                if(TempJarCache.isInitialized() && null == TempJarCache.findLibrary(libName)) {
+                    JNILibLoaderBase.addNativeJarLibsJoglCfg(new Class<?>[] { NWJNILibLoader.class, NEWTJNILibLoader.class });
+                }
+                return Boolean.valueOf(loadLibrary(libName, false, NEWTJNILibLoader.class.getClassLoader()));
+            }
+        }).booleanValue();
+    }
 }
