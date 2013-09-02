@@ -44,7 +44,10 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestSharedContextListNEWT2 extends UITestCase {
     static GLProfile glp;
     static GLCapabilities caps;

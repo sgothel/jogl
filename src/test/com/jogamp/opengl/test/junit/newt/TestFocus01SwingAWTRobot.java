@@ -48,6 +48,8 @@ import java.io.IOException;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
@@ -65,6 +67,7 @@ import com.jogamp.opengl.test.junit.util.*;
  * <i>+ Container is the JFrame's implicit root content pane</i><br/> 
  * </p>
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestFocus01SwingAWTRobot extends UITestCase {
     static int width, height;
     static long durationPerTest = 10;

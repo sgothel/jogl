@@ -29,6 +29,8 @@
 package com.jogamp.opengl.test.junit.newt;
 
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 import org.junit.Assert;
 
 import java.lang.reflect.InvocationTargetException;
@@ -47,6 +49,7 @@ import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil.WindowClosingListener;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestCloseNewtAWT extends UITestCase {
 
     GLWindow newtWindow = null;

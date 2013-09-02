@@ -3,6 +3,8 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 import jogamp.nativewindow.x11.X11Util;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.opengl.GLWindow;
 
@@ -19,6 +21,7 @@ import javax.media.opengl.GLProfile;
  * Tests the closing the device of GLWindow and GLPBuffer in JOGL
  */
 @SuppressWarnings("deprecation")
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestNEWTCloseX11DisplayBug565 {
 
   @Test

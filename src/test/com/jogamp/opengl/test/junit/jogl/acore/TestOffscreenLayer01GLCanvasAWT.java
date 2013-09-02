@@ -47,6 +47,8 @@ import jogamp.nativewindow.jawt.JAWTUtil;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.newt.Window;
@@ -57,6 +59,7 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestOffscreenLayer01GLCanvasAWT extends UITestCase {
     static boolean singleBuffer = false;
     static boolean useMSAA = false;

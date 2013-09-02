@@ -34,6 +34,8 @@ import javax.media.nativewindow.NativeWindowFactory;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.util.ArrayHashSet;
 import com.jogamp.newt.Display;
@@ -62,6 +64,7 @@ import jogamp.newt.MonitorModeProps;
  * Also validates the descending order of the given MonitorMode lists.
  * </p>
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestScreenMode00aNEWT extends UITestCase {
     static int screenIdx = 0;
     static int width, height;

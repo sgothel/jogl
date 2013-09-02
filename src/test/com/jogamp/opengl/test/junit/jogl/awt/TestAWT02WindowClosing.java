@@ -36,7 +36,10 @@ import java.awt.event.*;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestAWT02WindowClosing extends UITestCase {
 
     static long durationPerTest = 200; // ms

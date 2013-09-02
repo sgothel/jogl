@@ -36,6 +36,8 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import java.awt.AWTException;
 import java.awt.AWTKeyStroke;
@@ -62,6 +64,7 @@ import jogamp.newt.driver.DriverClearFocus;
 import com.jogamp.opengl.test.junit.util.*;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestParentingFocusTraversal01AWT extends UITestCase {
     static Dimension glSize, fSize;
     static int numFocus = 8;

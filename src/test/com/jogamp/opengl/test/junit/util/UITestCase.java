@@ -56,12 +56,14 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.FixMethodOrder;
 import org.junit.Rule;
 import org.junit.rules.TestName;
+import org.junit.runners.MethodSorters;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.TestClass;
 
-
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public abstract class UITestCase {
     @Rule public TestName _unitTestName = new TestName();
 

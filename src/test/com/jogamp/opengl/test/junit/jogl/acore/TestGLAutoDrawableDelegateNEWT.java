@@ -40,6 +40,8 @@ import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Window;
@@ -66,6 +68,7 @@ import com.jogamp.opengl.util.Animator;
  * It is being used to run the {@link GLEventListener}.  
  * </p> 
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLAutoDrawableDelegateNEWT extends UITestCase {
     static long duration = 500; // ms
     

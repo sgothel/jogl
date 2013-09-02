@@ -32,6 +32,8 @@ import java.io.IOException;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import javax.media.opengl.*;
 
@@ -44,6 +46,7 @@ import com.jogamp.opengl.JoglVersion;
 import com.jogamp.newt.opengl.*;
 import com.jogamp.newt.*;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLProfile01NEWT extends UITestCase {
 
     @Test

@@ -44,6 +44,8 @@ import com.jogamp.opengl.test.junit.util.GLEventListenerCounter;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  * Tests Bug 722
@@ -51,6 +53,7 @@ import org.junit.Test;
  * See Bug 722 - https://jogamp.org/bugzilla/show_bug.cgi?id=722.
  * </p>
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBug722GLContextDrawableSwitchNewt2AWT extends GLContextDrawableSwitchBase {
 
     static int loops = 10;

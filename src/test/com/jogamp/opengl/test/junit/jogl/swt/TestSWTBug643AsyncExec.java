@@ -39,6 +39,8 @@ import org.eclipse.swt.widgets.Display ;
 import org.eclipse.swt.widgets.Shell ;
 import org.junit.Assume;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities ;
@@ -62,6 +64,7 @@ import com.jogamp.opengl.util.Animator;
 ////////////////////////////////////////////////////////////////////////////////
 
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestSWTBug643AsyncExec extends UITestCase {
     
     static int duration = 500;

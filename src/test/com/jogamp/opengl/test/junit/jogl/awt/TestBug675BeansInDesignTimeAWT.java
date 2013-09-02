@@ -43,11 +43,14 @@ import javax.swing.SwingUtilities;
 import junit.framework.Assert;
 
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBug675BeansInDesignTimeAWT extends UITestCase {
     static boolean waitForKey = false;
     static long durationPerTest = 200;

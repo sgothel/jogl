@@ -32,6 +32,8 @@ package com.jogamp.opengl.test.junit.newt.parenting;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
@@ -48,6 +50,7 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 // import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquareES1;
 // import com.jogamp.opengl.test.junit.jogl.demos.es1.GearsES1;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestParenting02NEWT extends UITestCase {
     static int width, height;
     static long durationPerTest = 500;

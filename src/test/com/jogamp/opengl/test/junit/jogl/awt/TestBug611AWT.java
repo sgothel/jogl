@@ -7,6 +7,8 @@ import java.io.File;
 import javax.media.opengl.GLProfile;
 
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -24,6 +26,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  * Since Windows XP is out of life .. we may not care ..
  * </p> 
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBug611AWT extends UITestCase {
     
     @Test

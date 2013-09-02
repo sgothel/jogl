@@ -39,10 +39,13 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  * ExclusiveContextThread base implementation to test performance impact of the ExclusiveContext feature with AnimatorBase and NEWT. 
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public abstract class ExclusiveContextBase10NEWT extends ExclusiveContextBase10 {
 
     static Display dpy;

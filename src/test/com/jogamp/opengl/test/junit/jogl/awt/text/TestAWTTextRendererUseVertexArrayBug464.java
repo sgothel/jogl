@@ -44,6 +44,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /*
  * Unit tests for Bug464
@@ -61,6 +63,7 @@ import org.junit.Test;
  *   TestTextRendererTraceGL2Mock01
  */
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestAWTTextRendererUseVertexArrayBug464 extends UITestCase {
     static GLProfile glp;
     static GLCapabilities caps;

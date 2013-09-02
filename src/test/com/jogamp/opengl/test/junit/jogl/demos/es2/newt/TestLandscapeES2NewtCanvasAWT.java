@@ -59,7 +59,10 @@ import javax.media.opengl.GLProfile;
 import javax.swing.SwingUtilities;
 
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestLandscapeES2NewtCanvasAWT extends UITestCase {    
     static DimensionImmutable wsize = new Dimension(500, 290);
     

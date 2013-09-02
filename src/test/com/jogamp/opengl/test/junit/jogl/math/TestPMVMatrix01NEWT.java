@@ -42,6 +42,8 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.opengl.math.FloatUtil;
@@ -50,6 +52,7 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.PMVMatrix;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestPMVMatrix01NEWT extends UITestCase {
     
     static final float epsilon = 0.00001f;

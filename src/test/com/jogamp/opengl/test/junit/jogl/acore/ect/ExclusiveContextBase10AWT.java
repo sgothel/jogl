@@ -42,6 +42,8 @@ import javax.media.opengl.awt.GLCanvas;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionNumber;
@@ -49,6 +51,7 @@ import com.jogamp.common.util.VersionNumber;
 /**
  * ExclusiveContextThread base implementation to test performance impact of the ExclusiveContext feature with AnimatorBase and AWT. 
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public abstract class ExclusiveContextBase10AWT extends ExclusiveContextBase10 {
 
     static Thread awtEDT;

@@ -52,6 +52,8 @@ import javax.media.opengl.awt.GLCanvas;
 
 import org.junit.Assume;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionNumber;
@@ -82,6 +84,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  * Users shall make sure all mutable AWT calls are performed on the EDT, even before 1st setVisible(true) ! 
  * </p>
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
   static int framesPerTest = 240; // frames
 

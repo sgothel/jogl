@@ -34,11 +34,14 @@ import java.net.URLConnection;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.texture.spi.PNGImage;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestPNGImage00NEWT extends UITestCase {
     @Test
     public void testPNGReadWriteAndCompare() throws InterruptedException, IOException, MalformedURLException {

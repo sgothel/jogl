@@ -49,6 +49,8 @@ import javax.swing.JLabel;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -60,6 +62,7 @@ import com.jogamp.opengl.util.awt.AWTGLReadBufferUtil;
  *
  * @author Wade Walker (from code sample provided by Owen Dimond)
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GLEventListener {
     static long durationPerTest = 500;
     JFrame jframe;

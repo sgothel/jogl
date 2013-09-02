@@ -62,6 +62,8 @@ import javax.media.opengl.GLProfile;
 import org.junit.Assert;
 import org.junit.AfterClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  * Toolkit agnostic {@link GLOffscreenAutoDrawable.FBO} tests using the 
@@ -91,6 +93,7 @@ import org.junit.Test;
  * </ul> 
  * </p> 
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestFBOOnThreadSharedContext1DemoES2NEWT extends UITestCase {    
     static long duration = 500; // ms
     static int swapInterval = 1;

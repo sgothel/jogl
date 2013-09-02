@@ -41,6 +41,8 @@ import javax.media.opengl.glu.GLU;
 
 import org.junit.Assume;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -51,6 +53,7 @@ import com.jogamp.opengl.util.GLPixelStorageModes;
  * Demonstrates how to use {@link GLBuffers#sizeof(GL, int[], int, int, int, int, int, boolean)}
  * to determine the unpack buffer size for {@link GLU#gluScaleImage(int, int, int, int, java.nio.Buffer, int, int, int, java.nio.Buffer)}.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBug694ScaleImageUnpackBufferSizeAWT extends UITestCase implements GLEventListener {
 
     /* @Override */

@@ -36,6 +36,8 @@ import com.jogamp.newt.Window;
 import com.jogamp.newt.opengl.GLWindow;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import javax.media.opengl.*;
 
@@ -47,6 +49,7 @@ import java.io.IOException;
  * Using ES1 GL demo, since pixmap might not be hw accelerated, 
  * hence it is possible to not have GLSL. 
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestOffscreen02BitmapNEWT extends UITestCase {
     static final int width = 640, height = 480;
 

@@ -30,6 +30,8 @@ package com.jogamp.opengl.test.junit.jogl.math;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.util.PMVMatrix;
 
@@ -41,6 +43,7 @@ import static org.junit.Assert.assertArrayEquals;
 /**
  * @author Thomas De Bodt
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestPMVMatrix02NOUI {
 
   private PMVMatrix fMat;

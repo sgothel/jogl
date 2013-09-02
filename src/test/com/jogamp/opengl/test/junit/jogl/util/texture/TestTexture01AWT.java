@@ -61,6 +61,8 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  * Demonstrates TextureData w/ AWT usage in both directions,
@@ -68,6 +70,7 @@ import org.junit.Test;
  * as well as reading out GL framebuffer and displaying it 
  * as an BufferedImage. 
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestTexture01AWT extends UITestCase {
     static long durationPerTest = 500;
     static GLProfile glp;

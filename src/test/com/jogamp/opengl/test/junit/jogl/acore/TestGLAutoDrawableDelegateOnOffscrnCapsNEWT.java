@@ -43,6 +43,8 @@ import jogamp.opengl.GLGraphicsConfigurationUtil;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Window;
@@ -68,6 +70,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  * It is being used to run the {@link GLEventListener}.  
  * </p> 
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLAutoDrawableDelegateOnOffscrnCapsNEWT extends UITestCase {
     static final int widthStep = 800/4;
     static final int heightStep = 600/4;

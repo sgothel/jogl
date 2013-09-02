@@ -25,6 +25,8 @@ import javax.swing.WindowConstants;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
@@ -42,6 +44,7 @@ import com.jogamp.opengl.util.FPSAnimator;
  * See Bug 586
  * See git commit '8df12ca151dfc577c90b485d4ebfe491b88e55aa'.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBug642JSplitPaneMixHwLw01AWT extends UITestCase {
     static long durationPerTest = 500;
     

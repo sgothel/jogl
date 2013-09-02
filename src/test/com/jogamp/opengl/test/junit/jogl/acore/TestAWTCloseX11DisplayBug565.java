@@ -3,6 +3,8 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 import jogamp.nativewindow.x11.X11Util;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GLCapabilities;
@@ -14,6 +16,7 @@ import java.awt.Frame;
 /**
  * Tests the closing the device of GLCanvas in JOGL
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestAWTCloseX11DisplayBug565 {
 
   @Test

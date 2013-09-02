@@ -62,6 +62,8 @@ import javax.swing.event.ChangeListener;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.newt.awt.NewtCanvasAWT;
@@ -96,6 +98,7 @@ import com.jogamp.opengl.util.GLBuffers;
  * {@link TestSharedContextVBOES2NEWT} and {@link TestSharedContextVBOES1NEWT}.
  * 
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestSharedContextNewtAWTBug523 extends UITestCase {
 
     static long durationPerTest = 1000;

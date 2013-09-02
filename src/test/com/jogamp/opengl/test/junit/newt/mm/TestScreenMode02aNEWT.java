@@ -37,6 +37,8 @@ import com.jogamp.opengl.util.Animator;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.newt.Display;
@@ -60,6 +62,7 @@ import javax.media.nativewindow.util.Dimension;
  * MonitorMode change does not use highest resolution. 
  * </p>
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestScreenMode02aNEWT extends UITestCase {
     static GLProfile glp;
     static int width, height;

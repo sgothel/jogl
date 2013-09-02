@@ -56,7 +56,10 @@ import org.junit.Assert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestPNGTextureFromFileNEWT extends UITestCase {
     static boolean showFPS = false;
     static long duration = 100; // ms

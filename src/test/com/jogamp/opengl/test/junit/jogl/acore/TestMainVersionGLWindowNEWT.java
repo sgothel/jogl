@@ -30,11 +30,14 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.io.IOException;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestMainVersionGLWindowNEWT extends UITestCase {
     private static String[] args = null;
 

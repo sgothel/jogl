@@ -49,11 +49,14 @@ import javax.media.opengl.GLProfile;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 /**
  * ExclusiveContextThread base implementation to test performance impact of the ExclusiveContext feature with AnimatorBase. 
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public abstract class ExclusiveContextBase10 extends UITestCase {
     static boolean testExclusiveWithAWT = false;
     static long duration = 1400;

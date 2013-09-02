@@ -42,11 +42,14 @@ import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  *
  * @author Luz, et.al.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestMapBufferRead01NEWT extends UITestCase {
     static final boolean DEBUG = false;
     

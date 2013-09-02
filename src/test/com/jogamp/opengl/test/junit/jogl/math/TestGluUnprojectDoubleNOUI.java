@@ -32,10 +32,13 @@ import javax.media.opengl.glu.GLU;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  * @author Julien Gouesse
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGluUnprojectDoubleNOUI {
 
     @Test

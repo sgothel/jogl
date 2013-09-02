@@ -41,6 +41,8 @@ import org.eclipse.swt.widgets.Display ;
 import org.eclipse.swt.widgets.Shell ;
 import org.junit.Assume;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import javax.media.opengl.GL ;
 import javax.media.opengl.GL2 ;
@@ -64,6 +66,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 ////////////////////////////////////////////////////////////////////////////////
 
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
     
     static int duration = 500;

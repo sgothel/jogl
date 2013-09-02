@@ -41,10 +41,13 @@ import javax.media.opengl.GLProfile;
 import junit.framework.Assert;
 
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBug605FlippedImageNEWT extends UITestCase {
     static class FlippedImageTest implements GLEventListener {
         public void display(GLAutoDrawable drawable) {

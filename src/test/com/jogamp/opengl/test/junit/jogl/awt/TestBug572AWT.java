@@ -42,6 +42,8 @@ import junit.framework.Assert;
 
 import org.junit.Assume;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
@@ -50,6 +52,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 /**
  * Test realize GLCanvas and setVisible(true) AWT-Frames on AWT-EDT and on current thread (non AWT-EDT)
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBug572AWT extends UITestCase {
      static long durationPerTest = 150; // ms
      

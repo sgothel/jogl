@@ -36,6 +36,8 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.Display;
 import com.jogamp.newt.MonitorDevice;
@@ -58,6 +60,7 @@ import javax.media.nativewindow.util.Dimension;
 /**
  * Tests X11 XRandR MonitorMode reset via {@link UITestCase#resetXRandRIfX11()}.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestScreenMode00cNEWT extends UITestCase {
     static boolean manualTest = false;
     static GLProfile glp;

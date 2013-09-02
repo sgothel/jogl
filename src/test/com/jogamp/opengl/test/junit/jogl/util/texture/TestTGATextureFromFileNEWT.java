@@ -41,6 +41,8 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.newt.opengl.GLWindow;
@@ -55,6 +57,7 @@ import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.texture.TextureData;
 import com.jogamp.opengl.util.texture.TextureIO;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestTGATextureFromFileNEWT extends UITestCase {
     static boolean showFPS = false;
     static long duration = 100; // ms

@@ -36,6 +36,8 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.newt.Display;
@@ -70,6 +72,7 @@ import javax.media.nativewindow.util.Dimension;
  * 
  * @see TestScreenMode01NEWT#cleanupGL()
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestScreenMode02bNEWT extends UITestCase {
     static GLProfile glp;
     

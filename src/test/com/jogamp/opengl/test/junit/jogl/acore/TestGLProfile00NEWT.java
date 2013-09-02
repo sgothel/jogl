@@ -31,11 +31,14 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 import java.io.IOException;
 
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import javax.media.opengl.*;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLProfile00NEWT extends UITestCase {
 
     @Test

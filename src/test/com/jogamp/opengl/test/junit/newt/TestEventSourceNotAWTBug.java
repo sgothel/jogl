@@ -30,6 +30,8 @@ package com.jogamp.opengl.test.junit.newt;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -48,6 +50,7 @@ import com.jogamp.opengl.test.junit.util.*;
 /**
  * This simple program will throw a {@link RuntimeException} when the application is closed.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestEventSourceNotAWTBug extends UITestCase {
 
     @BeforeClass

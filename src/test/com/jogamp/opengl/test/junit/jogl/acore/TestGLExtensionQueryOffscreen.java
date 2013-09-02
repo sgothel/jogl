@@ -42,7 +42,10 @@ import javax.media.opengl.GLProfile;
 import jogamp.opengl.GLDrawableFactoryImpl;
 
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLExtensionQueryOffscreen {
     
     public static void main(String[] args) {

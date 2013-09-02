@@ -48,9 +48,12 @@ import java.awt.image.BufferedImage;
 import junit.framework.Assert;
 
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBug605FlippedImageAWT extends UITestCase {
     class FlippedImageTest implements GLEventListener {
         public void display(GLAutoDrawable drawable) {

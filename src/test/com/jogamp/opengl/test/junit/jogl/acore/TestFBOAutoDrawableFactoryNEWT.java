@@ -41,6 +41,8 @@ import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.FBOMix2DemosES2;
@@ -59,6 +61,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  * Extensive FBO reconfiguration (size and sample buffer count) and validation are performed.
  * </p> 
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
     
     static final int widthStep = 800/4;

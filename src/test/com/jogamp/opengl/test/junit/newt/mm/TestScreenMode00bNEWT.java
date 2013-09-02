@@ -34,6 +34,8 @@ import javax.media.nativewindow.NativeWindowFactory;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.Display;
 import com.jogamp.newt.MonitorDevice;
@@ -55,6 +57,7 @@ import javax.media.opengl.GLCapabilitiesImmutable;
  * Queries the current MonitorMode 50 times,
  * stressing a possible race condition. 
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestScreenMode00bNEWT extends UITestCase {
     static int width, height;
     

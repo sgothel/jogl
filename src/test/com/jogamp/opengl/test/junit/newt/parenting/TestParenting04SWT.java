@@ -45,6 +45,8 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.newt.NewtFactory;
@@ -60,6 +62,7 @@ import com.jogamp.opengl.util.Animator;
 /**
  * Using {@link NewtCanvasSWT#setNEWTChild(Window)} for reparenting, i.e. NEWT/AWT hopping
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestParenting04SWT extends UITestCase {
     static int width, height;
     static long durationPerTest = 800;

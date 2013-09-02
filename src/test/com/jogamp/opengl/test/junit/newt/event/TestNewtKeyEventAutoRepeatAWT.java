@@ -50,6 +50,8 @@ import java.io.IOException;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.event.InputEvent;
@@ -82,6 +84,7 @@ import com.jogamp.opengl.test.junit.util.*;
  * The idea is if you mask out auto-repeat in your event listener
  * you just get one long pressed key D/U tuple.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
     static int width, height;
     static long durationPerTest = 100;

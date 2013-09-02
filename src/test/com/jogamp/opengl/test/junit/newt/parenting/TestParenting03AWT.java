@@ -33,6 +33,8 @@ import java.lang.reflect.*;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import java.awt.BorderLayout;
 import java.awt.Button;
@@ -52,6 +54,7 @@ import java.io.IOException;
 import com.jogamp.opengl.test.junit.util.*;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestParenting03AWT extends UITestCase {
     static Dimension glSize, fSize;
     static long durationPerTest = 1100;

@@ -58,6 +58,8 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  * Test re-association of GLContext/GLDrawables,
@@ -75,6 +77,7 @@ import org.junit.Test;
  * See Bug 665 - https://jogamp.org/bugzilla/show_bug.cgi?id=665.
  * </p>
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLContextDrawableSwitch10NEWT extends UITestCase {
     // default period for 1 GLAD cycle
     static long duration = 1000; // ms

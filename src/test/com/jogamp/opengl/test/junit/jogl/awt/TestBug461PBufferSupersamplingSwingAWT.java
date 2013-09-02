@@ -48,6 +48,8 @@ import javax.swing.JLabel;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
@@ -58,6 +60,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  * @author Wade Walker (from code sample provided by Owen Dimond)
  */
 @SuppressWarnings("deprecation")
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBug461PBufferSupersamplingSwingAWT extends UITestCase implements GLEventListener {
     JFrame jframe;
     GLPbuffer offScreenBuffer;

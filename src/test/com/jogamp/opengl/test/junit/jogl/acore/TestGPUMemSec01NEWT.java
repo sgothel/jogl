@@ -44,7 +44,10 @@ import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGPUMemSec01NEWT extends UITestCase {
     static String hexString(int i) {
         return "0x"+Integer.toHexString(i);

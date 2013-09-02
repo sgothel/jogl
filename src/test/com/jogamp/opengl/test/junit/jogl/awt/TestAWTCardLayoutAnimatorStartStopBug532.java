@@ -19,6 +19,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
@@ -26,6 +28,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.FPSAnimator;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestAWTCardLayoutAnimatorStartStopBug532 extends UITestCase {
     static final String LABEL = "Label"; 
     static final String CANVAS = "GLCanvas";

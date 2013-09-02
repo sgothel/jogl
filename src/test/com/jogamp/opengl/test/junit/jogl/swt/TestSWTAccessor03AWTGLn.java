@@ -51,6 +51,8 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.nativewindow.swt.SWTAccessor;
@@ -63,6 +65,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  * the SWT_AWT bridge.
  * @author Wade Walker, et.al.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestSWTAccessor03AWTGLn extends UITestCase {
 
     static int duration = 250;

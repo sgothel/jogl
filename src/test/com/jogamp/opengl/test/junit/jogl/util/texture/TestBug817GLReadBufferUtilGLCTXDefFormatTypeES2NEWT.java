@@ -34,6 +34,8 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
@@ -44,6 +46,7 @@ import com.jogamp.opengl.util.GLPixelBuffer.GLPixelBufferProvider;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.texture.TextureIO;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBug817GLReadBufferUtilGLCTXDefFormatTypeES2NEWT extends UITestCase {
   static long durationPerTest = 60; // ms
 

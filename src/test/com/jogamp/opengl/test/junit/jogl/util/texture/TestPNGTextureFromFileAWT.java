@@ -62,6 +62,8 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  * Unit test for bug 417, which shows a GLException when reading a grayscale texture.
@@ -69,6 +71,7 @@ import org.junit.Test;
  * after the bug was submitted.
  * @author Wade Walker, et.al.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestPNGTextureFromFileAWT extends UITestCase {
     static boolean showFPS = false;
     static long duration = 100; // ms

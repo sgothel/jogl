@@ -50,10 +50,13 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  * ExclusiveContextThread base implementation to test correctness of the ExclusiveContext feature _and_ AnimatorBase. 
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public abstract class ExclusiveContextBase00 extends UITestCase {
     static boolean testExclusiveWithAWT = false;
     static final int durationParts = 9;         

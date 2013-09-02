@@ -58,8 +58,11 @@ import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.texture.TextureIO;
 
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestMultisampleES1AWT extends UITestCase {
   static long durationPerTest = 60; // ms
   private GLCanvas canvas;

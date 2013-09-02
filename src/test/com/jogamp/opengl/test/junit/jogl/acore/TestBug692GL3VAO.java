@@ -44,6 +44,8 @@ import javax.media.opengl.GLProfile;
 import junit.framework.Assert;
 
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.newt.opengl.GLWindow;
@@ -62,6 +64,7 @@ import com.jogamp.opengl.util.GLBuffers;
  * testGL3bc() tests VAO and VBO while alternating between both methods.
  * </p>
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBug692GL3VAO extends UITestCase {
     static long duration = 500; // ms
     

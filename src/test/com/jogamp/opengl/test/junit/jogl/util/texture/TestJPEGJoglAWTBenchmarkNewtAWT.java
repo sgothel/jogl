@@ -48,7 +48,10 @@ import java.net.URLConnection;
 import java.nio.Buffer;
 
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestJPEGJoglAWTBenchmarkNewtAWT extends UITestCase {
     static boolean showFPS = false;
     static String fname = "j1-baseline.jpg";

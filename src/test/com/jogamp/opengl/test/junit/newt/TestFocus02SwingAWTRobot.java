@@ -34,6 +34,8 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import java.awt.AWTException;
 import java.awt.Button;
@@ -65,6 +67,7 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
  * <i>+ JPanel is set as JFrame's root content pane</i><br/> 
  * </p>
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestFocus02SwingAWTRobot extends UITestCase {
     static int width, height;
     static long durationPerTest = 10;

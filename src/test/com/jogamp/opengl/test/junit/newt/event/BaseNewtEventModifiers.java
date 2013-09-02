@@ -35,7 +35,9 @@ import javax.media.opengl.GLProfile ;
 
 import org.junit.Assert ;
 import org.junit.BeforeClass ;
+import org.junit.FixMethodOrder;
 import org.junit.Test ;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.util.RunnableTask;
 import com.jogamp.newt.event.MouseEvent;
@@ -47,7 +49,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase ;
  * class defines most of the tests, but leaves the type of window
  * and canvas up to subclasses.
  */
-
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public abstract class BaseNewtEventModifiers extends UITestCase {
 
     ////////////////////////////////////////////////////////////////////////////

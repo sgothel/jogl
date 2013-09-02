@@ -46,6 +46,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.newt.NewtFactory;
@@ -73,6 +75,7 @@ import com.jogamp.opengl.util.texture.TextureIO;
  * SWT running on Mac OSX, i.e. to enforce UI action on the main thread.
  * </p>
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestNewtCanvasSWTGLn extends UITestCase {
 
     static int duration = 250;

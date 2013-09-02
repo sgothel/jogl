@@ -52,6 +52,8 @@ import jogamp.nativewindow.jawt.JAWTUtil;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.event.KeyEvent;
@@ -65,6 +67,7 @@ import com.jogamp.opengl.test.junit.util.NEWTKeyUtil.CodeSeg;
 /**
  * Testing key code of key events.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestNewtKeyCodesAWT extends UITestCase {
     static int width, height;
     static long durationPerTest = 100;

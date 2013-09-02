@@ -38,6 +38,8 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.Display;
 import com.jogamp.newt.MonitorDevice;
@@ -66,6 +68,7 @@ import javax.media.nativewindow.util.RectangleImmutable;
  * <p>
  * Also documents NV RANDR/GL bug, see {@link TestScreenMode01dNEWT#cleanupGL()}.</p> 
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestScreenMode01dNEWT extends UITestCase {
     static GLProfile glp;
     static int width, height;

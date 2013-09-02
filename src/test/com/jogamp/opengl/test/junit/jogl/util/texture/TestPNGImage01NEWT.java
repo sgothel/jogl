@@ -40,6 +40,8 @@ import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.newt.opengl.GLWindow;
@@ -61,6 +63,7 @@ import com.jogamp.opengl.util.texture.spi.PNGImage;
  * Main function accepts arbitrary PNG file name for manual tests.
  * </p>
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestPNGImage01NEWT extends UITestCase {
     
     static boolean showFPS = false;

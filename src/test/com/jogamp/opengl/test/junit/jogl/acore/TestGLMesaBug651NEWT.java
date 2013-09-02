@@ -44,6 +44,8 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  * Some GL state values are broken w/ Mesa 9.0 w/ multiple different context.
@@ -57,6 +59,7 @@ import org.junit.Test;
  * </p>
  * <https://jogamp.org/bugzilla/show_bug.cgi?id=651>
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLMesaBug651NEWT extends UITestCase {
     static int width, height;
 

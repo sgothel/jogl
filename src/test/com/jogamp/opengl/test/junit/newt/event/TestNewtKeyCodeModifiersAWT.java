@@ -51,6 +51,8 @@ import jogamp.nativewindow.jawt.JAWTUtil;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.event.InputEvent;
@@ -69,6 +71,7 @@ import com.jogamp.opengl.test.junit.util.*;
  * even though we do unify VK codes to US keyboard across all layouts.
  * </p>
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestNewtKeyCodeModifiersAWT extends UITestCase {
     static int width, height;
     static long durationPerTest = 100;

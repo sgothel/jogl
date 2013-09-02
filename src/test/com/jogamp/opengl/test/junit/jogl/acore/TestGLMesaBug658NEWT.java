@@ -10,6 +10,8 @@ import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.JoglVersion;
@@ -27,6 +29,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  * </p>
  * <https://jogamp.org/bugzilla/show_bug.cgi?id=658>
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLMesaBug658NEWT extends UITestCase {
 
   @Test

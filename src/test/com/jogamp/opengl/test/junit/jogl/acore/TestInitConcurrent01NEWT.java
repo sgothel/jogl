@@ -31,6 +31,8 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 import java.io.IOException;
 
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.os.Platform;
 
@@ -41,6 +43,7 @@ import com.jogamp.common.os.Platform;
  * perform lifecycle actions (window creation etc) with locking.
  * </p>
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestInitConcurrent01NEWT extends InitConcurrentBaseNEWT {
     
     @Test(timeout=180000) // TO 3 min

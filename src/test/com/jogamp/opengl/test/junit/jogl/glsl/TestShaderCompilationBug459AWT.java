@@ -44,11 +44,14 @@ import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  * Duplicates bug 459, where a vertex shader won't compile when 8 bits of stencil are requested.
  * This bug is Windows-only; it works on Mac OS X and CentOS.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestShaderCompilationBug459AWT extends UITestCase {
     static int width, height;
     static long duration = 500; // ms

@@ -27,11 +27,11 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/gluegen"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Ant"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/SWT"/>
 	<classpathentry kind="lib" path="/gluegen/make/lib/android-sdk/15/android.jar" sourcepath="/gluegen/make/lib/android-sdk/15/android-java-src.zip"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/joal"/>
+	<classpathentry kind="lib" path="/gluegen/make/lib/junit.jar" sourcepath="/gluegen/make/lib/junit-sources.jar"/>
 	<classpathentry kind="output" path="build/eclipse-classes"/>
 </classpath>
