@@ -118,12 +118,13 @@ public class TestSharedContextListNEWT2 extends UITestCase {
     @Test(timeout=10000)
     public void test01() throws InterruptedException {
         initShared();
-        GLWindow f1 = runTestGL(new Animator(), 0, 0, true, false);
-        InsetsImmutable insets = f1.getInsets();
-        GLWindow f2 = runTestGL(new Animator(), f1.getX()+width+insets.getTotalWidth(), 
-                                f1.getY()+0, true, false);
-        GLWindow f3 = runTestGL(new Animator(), f1.getX()+0, 
-                                f1.getY()+height+insets.getTotalHeight(), true, false);
+        
+        final GLWindow f1 = runTestGL(new Animator(), 0, 0, true, false);
+        final InsetsImmutable insets = f1.getInsets();
+        final GLWindow f2 = runTestGL(new Animator(), f1.getX()+width+insets.getTotalWidth(), 
+                                      f1.getY()+0, true, false);
+        final GLWindow f3 = runTestGL(new Animator(), f1.getX()+0, 
+                                      f1.getY()+height+insets.getTotalHeight(), true, false);
 
         try {
 			Thread.sleep(duration);
@@ -134,6 +135,10 @@ public class TestSharedContextListNEWT2 extends UITestCase {
         f1.destroy();
         f2.destroy();
         f3.destroy();
+        
+        f1.getAnimator().stop();
+        f2.getAnimator().stop();
+        f3.getAnimator().stop();
 
         releaseShared();
     }

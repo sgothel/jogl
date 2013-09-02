@@ -553,6 +553,10 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                                 try {
                                     animThread.stop();
                                 } catch(Throwable t) {
+                                    if( DEBUG ) {
+                                        System.err.println("Catched "+t.getClass().getName()+": "+t.getMessage());
+                                        t.printStackTrace();
+                                    }
                                 }
                             }
                             return null;

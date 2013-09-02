@@ -337,7 +337,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
 
             if (null != sr.context) {
                 // may cause JVM SIGSEGV:
-                sr.context.destroy(); // will also pull the dummy MutuableSurface
+                sr.context.destroy(); // will also pull the dummy MutableSurface
                 sr.context = null;
             }
 

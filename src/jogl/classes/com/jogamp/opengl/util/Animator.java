@@ -201,6 +201,11 @@ public class Animator extends AnimatorBase {
                         Thread.yield();
                     }
                 }
+            } catch( ThreadDeath td) {
+                if(DEBUG) {
+                    System.err.println("Animator Catched: "+td.getClass().getName()+": "+td.getMessage());
+                    td.printStackTrace();
+                }
             } finally {
                 if( exclusiveContext && !drawablesEmpty ) {
                     setDrawablesExclCtxState(false);
