@@ -1891,19 +1891,9 @@ public class GLProfile {
             final boolean gles2Available = hasGLES3Impl && ( esCtxUndef || GLContext.isGLES2Available(device, es2HardwareRasterizer) );
             final boolean gles2HWAvailable = gles2Available && es2HardwareRasterizer[0] ;
             if(hasGL234Impl) {
-                if(GLContext.isGL4Available(device, isHardwareRasterizer)) {
-                    if(!gles2HWAvailable || isHardwareRasterizer[0]) {
-                        return GL4;
-                    }
-                }
                 if(GLContext.isGL4bcAvailable(device, isHardwareRasterizer)) {
                     if(!gles2HWAvailable || isHardwareRasterizer[0]) {
                         return GL4bc;
-                    }
-                }
-                if(GLContext.isGL3Available(device, isHardwareRasterizer)) {
-                    if(!gles2HWAvailable || isHardwareRasterizer[0]) {
-                        return GL3;
                     }
                 }
                 if(GLContext.isGL3bcAvailable(device, isHardwareRasterizer)) {
