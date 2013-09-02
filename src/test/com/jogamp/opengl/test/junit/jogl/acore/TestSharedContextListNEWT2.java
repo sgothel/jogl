@@ -136,9 +136,9 @@ public class TestSharedContextListNEWT2 extends UITestCase {
         f2.destroy();
         f3.destroy();
         
-        f1.getAnimator().stop();
-        f2.getAnimator().stop();
-        f3.getAnimator().stop();
+        // f1.getAnimator().stop();
+        // f2.getAnimator().stop();
+        // f3.getAnimator().stop();
 
         releaseShared();
     }
