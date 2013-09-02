@@ -336,8 +336,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
             }
 
             if (null != sr.context) {
-                // may cause JVM SIGSEGV, or freeze (ATI fglrx 32on64 shared ctx):
-                //    sr.context.destroy(); // will also pull the dummy MutableSurface
+                // may cause JVM SIGSEGV, or freeze (ATI fglrx 3-6-beta2 32on64 shared ctx):
+                sr.context.destroy(); // will also pull the dummy MutableSurface
                 sr.context = null;
             }
 
