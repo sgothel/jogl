@@ -168,6 +168,12 @@ public interface GLBase {
   public boolean isGL2ES2();
 
   /**
+   * Indicates whether this GL object conforms to a either a GL2GL3 or GL3ES3 compatible profile.
+   * @see GLContext#isGL2ES3()
+   */
+  public boolean isGL2ES3();
+
+  /**
    * Indicates whether this GL object conforms to a GL3ES3 compatible profile.
    * @see GLContext#isGL3ES3()
    */
@@ -316,6 +322,12 @@ public interface GLBase {
    * @throws GLException if this object is not a GL2ES2 implementation
    */
   public GL2ES2 getGL2ES2() throws GLException;
+
+  /**
+   * Casts this object to the GL2ES3 interface.
+   * @throws GLException if this object is not a GL2ES3 implementation
+   */
+  public GL2ES3 getGL2ES3() throws GLException;
 
   /**
    * Casts this object to the GL3ES3 interface.

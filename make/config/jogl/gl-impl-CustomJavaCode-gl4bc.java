@@ -90,6 +90,11 @@ public final boolean isGL2ES2() {
 }
 
 @Override
+public final boolean isGL2ES3() {
+    return _context.isGL2ES3();
+}
+
+@Override
 public final boolean isGL3ES3() {
     return _context.isGL3ES3();
 }
@@ -186,6 +191,14 @@ public final GL2ES1 getGL2ES1() throws GLException {
 public final GL2ES2 getGL2ES2() throws GLException {
     if(!isGL2ES2()) {
         throw new GLException("Not a GL2ES2 implementation");
+    }
+    return this;
+}
+
+@Override
+public final GL2ES3 getGL2ES3() throws GLException {
+    if(!isGL2ES3()) {
+        throw new GLException("Not a GL2ES3 implementation");
     }
     return this;
 }

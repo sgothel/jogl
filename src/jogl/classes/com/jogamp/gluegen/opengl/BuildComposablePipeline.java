@@ -657,6 +657,7 @@ public class BuildComposablePipeline {
             emitGLIsMethod(output, "GLES3");
             emitGLIsMethod(output, "GL2ES1");
             emitGLIsMethod(output, "GL2ES2");
+            emitGLIsMethod(output, "GL2ES3");
             emitGLIsMethod(output, "GL3ES3");
             emitGLIsMethod(output, "GL4ES3");
             emitGLIsMethod(output, "GL2GL3");
@@ -724,6 +725,7 @@ public class BuildComposablePipeline {
             emitGLGetMethod(output, "GLES3");
             emitGLGetMethod(output, "GL2ES1");
             emitGLGetMethod(output, "GL2ES2");
+            emitGLGetMethod(output, "GL2ES3");
             emitGLGetMethod(output, "GL3ES3");
             emitGLGetMethod(output, "GL4ES3");
             emitGLGetMethod(output, "GL2GL3");

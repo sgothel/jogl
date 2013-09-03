@@ -72,6 +72,11 @@ public final boolean isGL2ES2() {
 }
 
 @Override
+public final boolean isGL2ES3() {
+    return _isES3;
+}
+
+@Override
 public final boolean isGL3ES3() {
     return _isES3;
 }
@@ -169,6 +174,14 @@ public final GL2ES1 getGL2ES1() throws GLException {
 
 @Override
 public final GL2ES2 getGL2ES2() throws GLException {
+    return this;
+}
+
+@Override
+public final GL2ES3 getGL2ES3() throws GLException {
+    if(!_isES3) {
+        throw new GLException("Not a GL2ES3 implementation");
+    }
     return this;
 }
 
