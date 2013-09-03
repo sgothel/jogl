@@ -62,9 +62,7 @@ public class AWTGLReadBufferUtil extends GLReadBufferUtil {
         return null;
     }
     public BufferedImage readPixelsToBufferedImage(GL gl, int inX, int inY, int inWidth, int inHeight, boolean awtOrientation) {
-        final int[] ioWidth = new int[] { inWidth };
-        final int[] ioHeight= new int[] { inHeight };
-        if( readPixels(gl, inX, inY, ioWidth, ioHeight, awtOrientation) ) {
+        if( readPixels(gl, inX, inY, inWidth, inHeight, awtOrientation) ) {
             final BufferedImage image = getAWTGLPixelBuffer().image;
             if( getTextureData().getMustFlipVertically()  ) {
                 ImageUtil.flipImageVertically(image);

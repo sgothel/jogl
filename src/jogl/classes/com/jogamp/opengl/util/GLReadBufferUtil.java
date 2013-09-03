@@ -132,7 +132,7 @@ public class GLReadBufferUtil {
      * @see #GLReadBufferUtil(boolean, boolean)
      */
     public boolean readPixels(GL gl, boolean mustFlipVertically) {
-        return readPixels(gl, 0, 0, null, null, mustFlipVertically);
+        return readPixels(gl, 0, 0, 0, 0, mustFlipVertically);
     }
     
     /**
@@ -141,17 +141,16 @@ public class GLReadBufferUtil {
      * @param gl the current GL context object. It's read drawable is being used as the pixel source.
      * @param inX readPixel x offset
      * @param inY readPixel y offset
-     * @param ioWidth readPixel width
-     * @param ioHeight readPixel height
+     * @param inWidth optional readPixel width value, used if [1 .. drawable.width], otherwise using drawable.width  
+     * @param inHeight optional readPixel height, used if [1 .. drawable.height], otherwise using drawable.height
      * @param mustFlipVertically indicates whether to flip the data vertically or not.
      *                           The context's drawable {@link GLDrawable#isGLOriented()} state
      *                           is taken into account.
      *                           Vertical flipping is propagated to TextureData
      *                           and handled in a efficient manner there (TextureCoordinates and TextureIO writer).
-     * 
      * @see #GLReadBufferUtil(boolean, boolean)
      */
-    public boolean readPixels(GL gl, int inX, int inY, int ioWidth[], int ioHeight[], boolean mustFlipVertically) {
+    public boolean readPixels(GL gl, int inX, int inY, int inWidth, int inHeight, boolean mustFlipVertically) {
         final int glerr0 = gl.glGetError();
         if(GL.GL_NO_ERROR != glerr0) {
             System.err.println("Info: GLReadBufferUtil.readPixels: pre-exisiting GL error 0x"+Integer.toHexString(glerr0));
@@ -165,15 +164,15 @@ public class GLReadBufferUtil {
         }
         final GLDrawable drawable = gl.getContext().getGLReadDrawable();
         final int width, height;
-        if( null == ioWidth || drawable.getWidth() < ioWidth[0] ) {
+        if( 0 >= inWidth || drawable.getWidth() < inWidth ) {
             width = drawable.getWidth();
         } else {
-            width = ioWidth[0];
+            width = inWidth;
         }
-        if( null == ioHeight || drawable.getHeight() < ioHeight[0] ) {
+        if( 0 >= inHeight || drawable.getHeight() < inHeight ) {
             height = drawable.getHeight();
         } else {
-            height= ioHeight[0];
+            height= inHeight;
         }
         
         final boolean flipVertically;
