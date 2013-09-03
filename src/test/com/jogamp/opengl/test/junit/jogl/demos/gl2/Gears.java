@@ -29,6 +29,7 @@ public class Gears implements GLEventListener {
   private float view_rotx = 20.0f, view_roty = 30.0f, view_rotz = 0.0f;
   private int gear1=0, gear2=0, gear3=0;
   private float angle = 0.0f;
+  private boolean doRotate = true;
   private int swapInterval;
   private MouseListener gearsMouse = new GearsMouseAdapter();    
   private KeyListener gearsKeys = new GearsKeyAdapter();
@@ -43,6 +44,8 @@ public class Gears implements GLEventListener {
   public Gears() {
     this.swapInterval = 1;
   }
+  
+  public void setDoRotation(boolean rotate) { this.doRotate = rotate; }
   
   public void setGears(int g1, int g2, int g3) {
       gear1 = g1;
@@ -167,8 +170,10 @@ public class Gears implements GLEventListener {
   }
 
   public void display(GLAutoDrawable drawable) {
-    // Turn the gears' teeth
-    angle += 2.0f;
+    if( doRotate ) {
+        // Turn the gears' teeth
+        angle += 2.0f;
+    }
 
     // Get the GL corresponding to the drawable we are animating
     GL2 gl = drawable.getGL().getGL2();
