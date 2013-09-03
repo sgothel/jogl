@@ -315,6 +315,9 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestTeapotNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl3.newt.TestGeomShader01TextureGL3NEWT $*
 
+testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.TestTiledRendering1GL2 $*
+#testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.TestTiledRendering2GL2 $*
+
 #
 # av demos
 #
@@ -619,10 +622,8 @@ function testawtswt() {
 # ATI/Linux XCB Unknown request in queue while dequeuing
 #           Most likely this is a multi-threaded client and XInitThreads has not been called
 #           ../../src/xcb_io.c:178: dequeue_pending_request: Assertion `!xcb_xlib_unknown_req_in_deq' failed.
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting04AWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT2 $*
-#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentChildWindowBug632NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02aNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02bNEWT $*
 
 # NEW
 
