@@ -443,7 +443,7 @@ public class GLBuffers extends Buffers {
             skipBytes +                                                  // aligned skipPixels * bpp
           ( skipImages + depth  - 1 ) * imageHeight * rowLengthInBytes + // aligned whole images 
           ( skipRows   + height - 1 ) * rowLengthInBytes +               // aligned lines
-            width                     * bytesPerPixel;                 // last line        
+            width                     * bytesPerPixel;                   // last line        
     }
   
     /** 
