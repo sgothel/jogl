@@ -87,6 +87,10 @@ public class PNGImage {
     
     /** Reverse read and store, implicitly flip image to GL orientation, see {@link #isGLOriented()}. */
     private static final int getPixelRGBA8(ByteBuffer d, int dOff, int[] scanline, int lineOff, boolean hasAlpha) {
+        final int b = hasAlpha ? 4-1 : 3-1;
+        if( d.limit() <= dOff || dOff - b < 0 ) {
+            throw new IndexOutOfBoundsException("Buffer has unsufficient bytes left, needs ["+(dOff-b)+".."+dOff+"]: "+d);
+        }
     	if(hasAlpha) {
             d.put(dOff--, (byte)scanline[lineOff + 3]); // A
         }
@@ -98,6 +102,10 @@ public class PNGImage {
     
     /** Reverse write and store, implicitly flip image from current orientation, see {@link #isGLOriented()}. Handle reversed channels (BGR[A]). */
     private int setPixelRGBA8(ImageLine line, int lineOff, ByteBuffer d, int dOff, boolean hasAlpha) {
+        final int b = hasAlpha ? 4-1 : 3-1;
+        if( d.limit() <= dOff + b ) {
+            throw new IndexOutOfBoundsException("Buffer has unsufficient bytes left, needs ["+dOff+".."+(dOff+b)+"]: "+d);
+        }
         if( reversedChannels ) {
             if(hasAlpha) {
                 line.scanline[lineOff + 3] = d.get(dOff++); // A
