@@ -37,7 +37,6 @@
 package com.jogamp.opengl.util;
 
 import javax.media.nativewindow.util.Dimension;
-import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
@@ -60,103 +59,69 @@ import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
  * 
  * @author ryanm, sgothel
  */
-public class TileRenderer {
+public class TileRenderer extends TileRendererBase {
     /**
      * The width of a tile
      */
-    public static final int TR_TILE_WIDTH = 0;
+    public static final int TR_TILE_WIDTH = 7;
     /**
      * The height of a tile
      */
-    public static final int TR_TILE_HEIGHT = 1;
+    public static final int TR_TILE_HEIGHT = 8;
     /**
      * The width of the border around the tiles
      */
-    public static final int TR_TILE_BORDER = 2;
-    /**
-     * The width of the final image
-     */
-    public static final int TR_IMAGE_WIDTH = 3;
-    /**
-     * The height of the final image
-     */
-    public static final int TR_IMAGE_HEIGHT = 4;
+    public static final int TR_TILE_BORDER = 9;
     /**
      * The number of rows of tiles
      */
-    public static final int TR_ROWS = 5;
+    public static final int TR_ROWS = 10;
     /**
      * The number of columns of tiles
      */
-    public static final int TR_COLUMNS = 6;
+    public static final int TR_COLUMNS = 11;
     /**
      * The current row number
      */
-    public static final int TR_CURRENT_ROW = 7;
+    public static final int TR_CURRENT_ROW = 12;
     /**
      * The current column number
      */
-    public static final int TR_CURRENT_COLUMN = 8;
-    /**
-     * The width of the current tile
-     */
-    public static final int TR_CURRENT_TILE_WIDTH = 9;
-    /**
-     * The height of the current tile
-     */
-    public static final int TR_CURRENT_TILE_HEIGHT = 10;
+    public static final int TR_CURRENT_COLUMN = 13;
     /**
      * The order that the rows are traversed
      */
-    public static final int TR_ROW_ORDER = 11;
+    public static final int TR_ROW_ORDER = 14;
     /**
      * Indicates we are traversing rows from the top to the bottom
      */
-    public static final int TR_TOP_TO_BOTTOM = 1;
+    public static final int TR_TOP_TO_BOTTOM = 15;
     /**
      * Indicates we are traversing rows from the bottom to the top
      */
-    public static final int TR_BOTTOM_TO_TOP = 2;
+    public static final int TR_BOTTOM_TO_TOP = 16;
 
     private static final boolean DEBUG = true;
     private static final int DEFAULT_TILE_WIDTH = 256;
     private static final int DEFAULT_TILE_HEIGHT = 256;
     private static final int DEFAULT_TILE_BORDER = 0;
 
-    private final Dimension imageSize = new Dimension(0, 0);
     private final Dimension tileSize = new Dimension(DEFAULT_TILE_WIDTH, DEFAULT_TILE_HEIGHT);
     private final Dimension tileSizeNB = new Dimension(DEFAULT_TILE_WIDTH - 2 * DEFAULT_TILE_BORDER, DEFAULT_TILE_HEIGHT - 2 * DEFAULT_TILE_BORDER);
-    private final int[] userViewport = new int[ 4 ];
-    private final GLPixelStorageModes psm = new GLPixelStorageModes();
 
     private int tileBorder = DEFAULT_TILE_BORDER;
-    private GLPixelBuffer imageBuffer;
-    private GLPixelBuffer tileBuffer;
     private int rowOrder = TR_BOTTOM_TO_TOP;
     private int rows;
     private int columns;
     private int currentTile = -1;
-    private int currentTileWidth;
-    private int currentTileHeight;
     private int currentRow;
     private int currentColumn;
-    private PMVMatrixCallback pmvMatrixCB = null;
-    private boolean beginCalled = false;
-
-    private GLAutoDrawable glad;
-    private GLEventListener[] listeners;
-    private boolean[] listenersInit;
-    private GLEventListener glEventListenerPre = null;
-    private GLEventListener glEventListenerPost = null;
-    
-    public static interface PMVMatrixCallback {
-        void reshapePMVMatrix(GL gl, int tileNum, int tileColumn, int tileRow, int tileX, int tileY, int tileWidth, int tileHeight, int imageWidth, int imageHeight);      
-    }
 
     /**
      * Creates a new TileRenderer object
      */
     public TileRenderer() {
+        super();
     }
 
     /**
@@ -190,11 +155,6 @@ public class TileRenderer {
         setup();
     }
 
-    public final void setPMVMatrixCallback(PMVMatrixCallback pmvMatrixCB) {
-        assert ( null != pmvMatrixCB );
-        this.pmvMatrixCB = pmvMatrixCB; 
-    }
-
     /**
      * Sets up the number of rows and columns needed
      */
@@ -202,6 +162,8 @@ public class TileRenderer {
         columns = ( imageSize.getWidth() + tileSizeNB.getWidth() - 1 ) / tileSizeNB.getWidth();
         rows = ( imageSize.getHeight() + tileSizeNB.getHeight() - 1 ) / tileSizeNB.getHeight();
         currentTile = 0;
+        currentTileXPos = 0;
+        currentTileYPos = 0;
         currentTileWidth = 0;
         currentTileHeight = 0;
         currentRow = 0;
@@ -217,56 +179,7 @@ public class TileRenderer {
      */
     public final boolean eot() { return 0 > currentTile; }
 
-    /**
-     * Specify a buffer the tiles to be copied to. This is not
-     * necessary for the creation of the final image, but useful if you
-     * want to inspect each tile in turn.
-     * 
-     * @param buffer The buffer itself. Must be large enough to contain a tile, minus any borders
-     */
-    public final void setTileBuffer(GLPixelBuffer buffer) {
-        tileBuffer = buffer;
-    }
-
-    /** @see #setTileBuffer(GLPixelBuffer) */
-    public final GLPixelBuffer getTileBuffer() { return tileBuffer; }
-
-    /**
-     * Sets the desired size of the final image
-     * 
-     * @param width
-     *           The width of the final image
-     * @param height
-     *           The height of the final image
-     */
-    public final void setImageSize(int width, int height) {
-        imageSize.setWidth(width);
-        imageSize.setHeight(height);
-        setup();
-    }
-
-    /** @see #setImageSize(int, int) */
-    public final Dimension getImageSize() { return imageSize; }
-    
-    /**
-     * Sets the buffer in which to store the final image
-     * 
-     * @param image the buffer itself, must be large enough to hold the final image
-     */
-    public final void setImageBuffer(GLPixelBuffer buffer) {
-        imageBuffer = buffer;
-    }
-
-    /** @see #setImageBuffer(GLPixelBuffer) */
-    public final GLPixelBuffer getImageBuffer() { return imageBuffer; }
-    
-    /**
-     * Gets the parameters of this TileRenderer object
-     * 
-     * @param param
-     *           The parameter that is to be retrieved
-     * @return the value of the parameter
-     */
+    @Override
     public final int getParam(int param) {
         switch (param) {
         case TR_TILE_WIDTH:
@@ -284,15 +197,21 @@ public class TileRenderer {
         case TR_COLUMNS:
             return columns;
         case TR_CURRENT_ROW:
-            if( currentTile < 0 )
+            if( currentTile < 0 ) {
                 return -1;
-            else
+            } else {
                 return currentRow;
+            }
         case TR_CURRENT_COLUMN:
-            if( currentTile < 0 )
+            if( currentTile < 0 ) {
                 return -1;
-            else
+            } else {
                 return currentColumn;
+            }
+        case TR_CURRENT_TILE_X_POS:
+            return currentTileXPos;
+        case TR_CURRENT_TILE_Y_POS:
+            return currentTileYPos;
         case TR_CURRENT_TILE_WIDTH:
             return currentTileWidth;
         case TR_CURRENT_TILE_HEIGHT:
@@ -319,16 +238,7 @@ public class TileRenderer {
         }
     }
 
-    /**
-     * Begins rendering a tile.
-     * <p> 
-     * The projection matrix stack should be
-     * left alone after calling this method!
-     * </p>
-     * 
-     * @param gl The gl context
-     * @throws IllegalStateException
-     */
+    @Override
     public final void beginTile( GL2ES3 gl ) throws IllegalStateException {
         if( 0 >= imageSize.getWidth() || 0 >= imageSize.getHeight() ) {
             throw new IllegalStateException("Image size has not been set");        
@@ -338,11 +248,6 @@ public class TileRenderer {
         }
         if (currentTile <= 0) {
             setup();
-            /*
-             * Save user's viewport, will be restored after last tile
-             * rendered
-             */
-            gl.glGetIntegerv( GL.GL_VIEWPORT, userViewport, 0 );
         }
 
         final int preRow = currentRow;
@@ -376,8 +281,8 @@ public class TileRenderer {
             tW = imageSize.getWidth() - ( columns - 1 ) * ( tileSizeNB.getWidth()  ) + 2 * border;
         }
 
-        final int tX = currentColumn * tileSizeNB.getWidth();
-        final int tY = currentRow * tileSizeNB.getHeight();
+        currentTileXPos = currentColumn * tileSizeNB.getWidth();
+        currentTileYPos = currentRow * tileSizeNB.getHeight();
 
         final int preTileWidth = currentTileWidth;
         final int preTileHeight = currentTileHeight;
@@ -388,24 +293,16 @@ public class TileRenderer {
 
         if( DEBUG ) {
             System.err.println("Tile["+currentTile+"]: ["+preColumn+"]["+preRow+"] "+preTileWidth+"x"+preTileHeight+
-                    " -> ["+currentColumn+"]["+currentRow+"] "+tX+"/"+tY+", "+tW+"x"+tH+", image "+imageSize.getWidth()+"x"+imageSize.getHeight());
+                    " -> ["+currentColumn+"]["+currentRow+"] "+currentTileXPos+"/"+currentTileYPos+", "+tW+"x"+tH+", image "+imageSize.getWidth()+"x"+imageSize.getHeight());
         }
 
         gl.glViewport( 0, 0, tW, tH );
-        pmvMatrixCB.reshapePMVMatrix(gl, currentTile, currentColumn, currentRow, tX, tY, tW, tH, imageSize.getWidth(), imageSize.getHeight());
+        pmvMatrixCB.reshapePMVMatrix(gl, currentTileXPos, currentTileYPos, tW, tH, imageSize.getWidth(), imageSize.getHeight());
         beginCalled = true;
     }
 
-    /**
-     * Must be called after rendering the scene
-     * 
-     * @param gl
-     *           the gl context
-     * @return true if there are more tiles to be rendered, false if
-     *         the final image is complete
-     * @throws IllegalStateException
-     */
-    public boolean endTile( GL2ES3 gl ) throws IllegalStateException {
+    @Override
+    public void endTile( GL2ES3 gl ) throws IllegalStateException {
         if( !beginCalled ) {
             throw new IllegalStateException("beginTile(..) has not been called");
         }
@@ -476,91 +373,24 @@ public class TileRenderer {
         /* increment tile counter, return 1 if more tiles left to render */
         currentTile++;
         if( currentTile >= rows * columns ) {
-            /* restore user's viewport */
-            gl.glViewport( userViewport[ 0 ], userViewport[ 1 ], userViewport[ 2 ], userViewport[ 3 ] );
             currentTile = -1; /* all done */
-            return false;
-        } else {
-            return true;
         }
     }
     
     /**
-     * 
+     * {@inheritDoc}
      * <p>
-     * Sets the size of the tiles to use in rendering. The actual
-     * effective size of the tile depends on the border size, ie (
-     * width - 2*border ) * ( height - 2 * border )
+     * Sets the tile size of this renderer to the given {@link GLAutoDrawable} size
+     * with zero tile border. 
      * </p>
-     * @param glad
-     * @param border
-     *           The width of the borders on each tile. This is needed
-     *           to avoid artifacts when rendering lines or points with
-     *           thickness > 1.
-     * @throws IllegalStateException if an {@link GLAutoDrawable} is already attached
      */
-    public void attachAutoDrawable(GLAutoDrawable glad, int border, PMVMatrixCallback pmvMatrixCB) throws IllegalStateException {
-        if( null != this.glad ) {
-            throw new IllegalStateException("GLAutoDrawable already attached");
-        }
-        this.glad = glad;
-        setTileSize(glad.getWidth(), glad.getHeight(), border);
-        setPMVMatrixCallback(pmvMatrixCB);
-        
-        final int aSz = glad.getGLEventListenerCount();
-        listeners = new GLEventListener[aSz];
-        listenersInit = new boolean[aSz];
-        for(int i=0; i<aSz; i++) {
-            final GLEventListener l = glad.getGLEventListener(0);
-            listenersInit[i] = glad.getGLEventListenerInitState(l);
-            listeners[i] = glad.removeGLEventListener( l );
-        }
-        glad.addGLEventListener(tiledGLEL);
-    }
-
-    public void detachAutoDrawable() {
-        if( null != glad ) {
-            glad.removeGLEventListener(tiledGLEL);
-            final int aSz = listenersInit.length;
-            for(int i=0; i<aSz; i++) {
-                final GLEventListener l = listeners[i];
-                glad.addGLEventListener(l);
-                glad.setGLEventListenerInitState(l, listenersInit[i]);
-            }
-            listeners = null;
-            listenersInit = null;
-            glad = null;
-            pmvMatrixCB = null;
-        }
-    }
-
-    /**
-     * Set {@link GLEventListener} for pre- and post operations when used w/ 
-     * {@link #attachAutoDrawable(GLAutoDrawable, int, PMVMatrixCallback)}
-     * for each {@link GLEventListener} callback.
-     * @param preTile the pre operations
-     * @param postTile the post operations
-     */
-    public void setGLEventListener(GLEventListener preTile, GLEventListener postTile) {
-        glEventListenerPre = preTile;
-        glEventListenerPost = postTile;
+    @Override
+    public void attachToAutoDrawable(GLAutoDrawable glad, PMVMatrixCallback pmvMatrixCB) throws IllegalStateException {
+        super.attachToAutoDrawable(glad, pmvMatrixCB);
+        setTileSize(glad.getWidth(), glad.getHeight(), 0);
     }
     
-    /**
-     * Rendering one tile, by simply calling {@link GLAutoDrawable#display()}.
-     * 
-     * @return true if there are more tiles to be rendered, false if the final image is complete
-     * @throws IllegalStateException if no {@link GLAutoDrawable} is {@link #attachAutoDrawable(GLAutoDrawable, int) attached}
-     *                               or imageSize is not set
-     */
-    public boolean display() throws IllegalStateException {
-        if( null == glad ) {
-            throw new IllegalStateException("No GLAutoDrawable attached");
-        }
-        glad.display();
-        return !eot();
-    }
-
+    protected final GLEventListener getTiledGLEL() { return tiledGLEL; }
     private final GLEventListener tiledGLEL = new GLEventListener() {
         @Override
         public void init(GLAutoDrawable drawable) {

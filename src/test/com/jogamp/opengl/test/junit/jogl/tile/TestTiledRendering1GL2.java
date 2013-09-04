@@ -52,7 +52,7 @@ public class TestTiledRendering1GL2 extends UITestCase {
         // Initialize the tile rendering library
         final TileRenderer renderer = new com.jogamp.opengl.util.TileRenderer();
         final TileRenderer.PMVMatrixCallback pmvMatrixCallback = new TileRenderer.PMVMatrixCallback() { 
-          public void reshapePMVMatrix(GL _gl, int tileNum, int tileColumn, int tileRow, int tileX, int tileY, int tileWidth, int tileHeight, int imageWidth, int imageHeight) {
+          public void reshapePMVMatrix(GL _gl, int tileX, int tileY, int tileWidth, int tileHeight, int imageWidth, int imageHeight) {
             final GL2 gl = _gl.getGL2();
             gl.glMatrixMode( GL2.GL_PROJECTION );
             gl.glLoadIdentity();

@@ -90,7 +90,7 @@ public class TestRandomTiledRendering2GL2 extends UITestCase {
                 gl.glMatrixMode(GL2.GL_MODELVIEW);        
             }
         };
-        renderer.attachAutoDrawable(glad, pmvMatrixCallback);
+        renderer.attachToAutoDrawable(glad, pmvMatrixCallback);
         renderer.setImageSize(imageWidth, imageHeight);
 
         final GLPixelBuffer.GLPixelBufferProvider pixelBufferProvider = GLPixelBuffer.defaultProviderWithRowStride;
@@ -101,9 +101,7 @@ public class TestRandomTiledRendering2GL2 extends UITestCase {
             public void init(GLAutoDrawable drawable) {
                 final GL gl = drawable.getGL();
                 GLPixelAttributes pixelAttribs = pixelBufferProvider.getAttributes(gl, 3);
-                System.err.println("XXX: "+pixelAttribs+", gl2gl3 "+gl.isGL2GL3()+", "+gl.getContext().getGLVersion());
                 GLPixelBuffer pixelBuffer = pixelBufferProvider.allocate(gl, pixelAttribs, imageWidth, imageHeight, 1, true, 0);
-                System.err.println("XXX: "+pixelBuffer);
                 renderer.setImageBuffer(pixelBuffer);
                 if( drawable.isGLOriented() ) {
                     flipVertically[0] = false;
@@ -131,7 +129,7 @@ public class TestRandomTiledRendering2GL2 extends UITestCase {
             }
         }
 
-        renderer.detachAutoDrawable();
+        renderer.detachFromAutoDrawable();
 
         glad.destroy();
 

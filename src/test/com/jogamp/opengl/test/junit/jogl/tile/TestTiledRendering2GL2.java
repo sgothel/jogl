@@ -55,7 +55,7 @@ public class TestTiledRendering2GL2 extends UITestCase {
         // Initialize the tile rendering library
         final TileRenderer renderer = new TileRenderer();
         final TileRenderer.PMVMatrixCallback pmvMatrixCallback = new TileRenderer.PMVMatrixCallback() { 
-            public void reshapePMVMatrix(GL _gl, int tileNum, int tileColumn, int tileRow, int tileX, int tileY, int tileWidth, int tileHeight, int imageWidth, int imageHeight) {
+            public void reshapePMVMatrix(GL _gl, int tileX, int tileY, int tileWidth, int tileHeight, int imageWidth, int imageHeight) {
                 final GL2 gl = _gl.getGL2();
                 gl.glMatrixMode( GL2.GL_PROJECTION );
                 gl.glLoadIdentity();
@@ -91,7 +91,7 @@ public class TestTiledRendering2GL2 extends UITestCase {
             }
         };
 
-        renderer.attachAutoDrawable(glad, 0, pmvMatrixCallback);
+        renderer.attachToAutoDrawable(glad, pmvMatrixCallback);
         renderer.setImageSize(imageWidth, imageHeight);
 
         final GLPixelBuffer.GLPixelBufferProvider pixelBufferProvider = GLPixelBuffer.defaultProviderWithRowStride;
@@ -119,9 +119,11 @@ public class TestTiledRendering2GL2 extends UITestCase {
         };
         renderer.setGLEventListener(preTileGLEL, null);
 
-        while ( renderer.display() );
+        do {
+            renderer.display();
+        } while ( !renderer.eot() );
 
-        renderer.detachAutoDrawable();
+        renderer.detachFromAutoDrawable();
 
         glad.destroy();
 
