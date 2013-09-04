@@ -60,6 +60,7 @@ import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
+import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
@@ -1048,8 +1049,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
     OffscreenBackend(GLProfile glp, AWTGLPixelBufferProvider custom) {
         if(null == custom) {
-            pixelBufferProvider = glp.isGL2GL3() ? getSingleAWTGLPixelBufferProvider() :
-                                                   new AWTGLPixelBufferProvider( false /* allowRowStride */ ) ;
+            pixelBufferProvider = ( glp.isGL2GL3() || glp.isGL3ES3() ) ? getSingleAWTGLPixelBufferProvider() :
+                                                                         new AWTGLPixelBufferProvider( false /* allowRowStride */ ) ;
         } else {
             pixelBufferProvider = custom;
         }
@@ -1248,10 +1249,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         
         // Save current modes
         psm.setAlignment(gl, alignment, alignment);
-        if(gl.isGL2GL3()) {
-            final GL2GL3 gl2gl3 = gl.getGL2GL3();
-            gl2gl3.glPixelStorei(GL2GL3.GL_PACK_ROW_LENGTH, pixelBuffer.width);
-            gl2gl3.glReadBuffer(gl2gl3.getDefaultReadBuffer());
+        if(gl.isGL2ES3()) {
+            final GL2ES3 gl2es3 = gl.getGL2ES3();
+            gl2es3.glPixelStorei(GL2ES3.GL_PACK_ROW_LENGTH, pixelBuffer.width);
+            gl2es3.glReadBuffer(gl2es3.getDefaultReadBuffer());
         }
 
         if(null != glslTextureRaster) { // implies flippedVertical

@@ -33,7 +33,6 @@ import java.nio.Buffer;
 import java.nio.IntBuffer;
 
 import javax.media.opengl.GL;
-import javax.media.opengl.GL2GL3;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.GLPixelBuffer;
@@ -57,8 +56,6 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
     public static final GLPixelAttributes awtPixelAttributesIntRGBA4 = new GLPixelAttributes(4, GL.GL_BGRA, GL.GL_UNSIGNED_BYTE);
     public static final GLPixelAttributes awtPixelAttributesIntRGB3 = new GLPixelAttributes(3, GL.GL_BGRA, GL.GL_UNSIGNED_BYTE);
 
-    /** Allow {@link GL2GL3#GL_PACK_ROW_LENGTH}, or {@link GL2GL3#GL_UNPACK_ROW_LENGTH}. See {@link #requiresNewBuffer(GL, int, int, int)}. */
-    public final boolean allowRowStride;
     /** The underlying {@link BufferedImage}. */
     public final BufferedImage image;
     
@@ -74,33 +71,8 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
      */
     public AWTGLPixelBuffer(GLPixelAttributes pixelAttributes, int width, int height, int depth, boolean pack, BufferedImage image, 
                             Buffer buffer, boolean allowRowStride) {
-        super(pixelAttributes, width, height, depth, pack, buffer);
-        this.allowRowStride = allowRowStride;
+        super(pixelAttributes, width, height, depth, pack, buffer, allowRowStride);
         this.image = image;
-    }
-    
-    /**
-     * {@inheritDoc}
-     * <p>
-     * If <code>{@link #allowRowStride} = false</code>,
-     * method returns <code>true</code> if the new size &ne; current size.
-     * </p> 
-     * <p>
-     * If <code>{@link #allowRowStride} = true</code>, see {@link AWTGLPixelBufferProvider#AWTGLPixelBufferProvider(boolean)},
-     * method returns <code>true</code> only if the new size &gt; current size. Assuming user utilizes the row-stride
-     * when dealing w/ the data, i.e. {@link GL2GL3#GL_PACK_ROW_LENGTH}.
-     * </p>
-     */
-    @Override
-    public boolean requiresNewBuffer(GL gl, int newWidth, int newHeight, int minByteSize) {
-        if( !isValid() ) {
-            return true;
-        }
-        if( allowRowStride && gl.isGL2GL3() ) {
-            return width < newWidth || height < newHeight;
-        } else {
-            return width != newWidth || height != newHeight;
-        }
     }
     
     @Override
@@ -121,16 +93,19 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
     /**
      * Provider for {@link AWTGLPixelBuffer} instances.
      */
-    public static class AWTGLPixelBufferProvider implements GLPixelBufferProvider {    
-        /** Allow {@link GL2GL3#GL_PACK_ROW_LENGTH}, or {@link GL2GL3#GL_UNPACK_ROW_LENGTH}. */
-        public final boolean allowRowStride;
+    public static class AWTGLPixelBufferProvider implements GLPixelBufferProvider {
+        private final boolean allowRowStride;
         
         /**
-         * @param allowRowStride If <code>true</code>, allow row-stride, otherwise not. See {@link AWTGLPixelBuffer#requiresNewBuffer(GL, int, int, int)}.
+         * @param allowRowStride If <code>true</code>, allow row-stride, otherwise not. 
+         * See {@link #getAllowRowStride()} and {@link AWTGLPixelBuffer#requiresNewBuffer(GL, int, int, int)}.
          */
         public AWTGLPixelBufferProvider(boolean allowRowStride) {
-            this.allowRowStride = allowRowStride;
+            this.allowRowStride = allowRowStride; 
         }
+        @Override
+        public boolean getAllowRowStride() { return allowRowStride; }
+        
         @Override
         public GLPixelAttributes getAttributes(GL gl, int componentCount) {
             return 4 == componentCount ? awtPixelAttributesIntRGBA4 : awtPixelAttributesIntRGB3;
@@ -197,7 +172,7 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
             final BufferedImage image = new BufferedImage(width, height, 4 == pixelAttributes.componentCount ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB);
             final int[] readBackIntBuffer = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
             final Buffer ibuffer = IntBuffer.wrap( readBackIntBuffer );
-            return new AWTGLPixelBuffer(pixelAttributes, width, height, depth, pack, image, ibuffer, allowRowStride);
+            return new AWTGLPixelBuffer(pixelAttributes, width, height, depth, pack, image, ibuffer, getAllowRowStride());
         }
         
         /** Return the last {@link #allocate(GL, GLPixelAttributes, int, int, int, boolean, int) allocated} {@link AWTGLPixelBuffer} w/ {@link GLPixelAttributes#componentCount}. */ 

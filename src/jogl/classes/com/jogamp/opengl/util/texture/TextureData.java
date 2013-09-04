@@ -353,11 +353,11 @@ public class TextureData {
     public GLPixelAttributes getPixelAttributes() {
         return pixelAttributes;
     }
-    /** Returns the intended OpenGL pixel format of the texture data. */
+    /** Returns the intended OpenGL pixel format of the texture data using {@link #getPixelAttributes()}. */
     public int getPixelFormat() {
         return pixelAttributes.format;
     }
-    /** Returns the intended OpenGL pixel type of the texture data. */
+    /** Returns the intended OpenGL pixel type of the texture data using {@link #getPixelAttributes()}. */
     public int getPixelType() {
         return pixelAttributes.type;
     }

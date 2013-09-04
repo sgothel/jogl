@@ -31,6 +31,8 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 
@@ -43,13 +45,16 @@ import com.jogamp.opengl.util.texture.TextureData;
  * {@link GLPixelBufferProvider} produces a {@link GLPixelBuffer}.
  * </p> 
  * <p>
- * You may use {@link #defaultProvider}.
+ * You may use {@link #defaultProviderNoRowStride}.
  * </p>
  */
 public class GLPixelBuffer {
     
     /** Allows user to interface with another toolkit to define {@link GLPixelAttributes} and memory buffer to produce {@link TextureData}. */ 
     public static interface GLPixelBufferProvider {
+        /** Allow {@link GL2ES3#GL_PACK_ROW_LENGTH}, or {@link GL2ES2#GL_UNPACK_ROW_LENGTH}. */
+        boolean getAllowRowStride();
+        
         /** Called first to determine {@link GLPixelAttributes}. */
         GLPixelAttributes getAttributes(GL gl, int componentCount);
         
@@ -87,23 +92,49 @@ public class GLPixelBuffer {
         GLPixelBuffer initSingleton(int componentCount, int width, int height, int depth, boolean pack);        
     }
 
-    /** 
-     * Default {@link GLPixelBufferProvider} utilizing best match for {@link GLPixelAttributes}
-     * and {@link GLPixelBufferProvider#allocate(GL, GLPixelAttributes, int, int, int, boolean, int) allocating} a {@link ByteBuffer}.
-     */
-    public static GLPixelBufferProvider defaultProvider = new GLPixelBufferProvider() {
+    public static class DefaultGLPixelBufferProvider implements GLPixelBufferProvider {
+        private final boolean allowRowStride;
+        
+        /**
+         * @param allowRowStride If <code>true</code>, allow row-stride, otherwise not. 
+         * See {@link #getAllowRowStride()} and {@link GLPixelBuffer#requiresNewBuffer(GL, int, int, int)}.
+         */
+        public DefaultGLPixelBufferProvider(boolean allowRowStride) {
+            this.allowRowStride = allowRowStride; 
+        }
+        
+        @Override
+        public boolean getAllowRowStride() { return allowRowStride; }
         
         @Override
         public GLPixelAttributes getAttributes(GL gl, int componentCount) {
             final GLContext ctx = gl.getContext();
             final int dFormat, dType;
             
-            if(gl.isGL2GL3() && 3 == componentCount) {
+            if( 1 == componentCount ) {
+                if( gl.isGL3ES3() ) {
+                    // RED is supported on ES3 and >= GL3 [core]; ALPHA is deprecated on core
+                    dFormat = GL2ES2.GL_RED;
+                } else {
+                    // ALPHA is supported on ES2 and GL2, i.e. <= GL3 [core] or compatibility
+                    dFormat = GL2ES2.GL_ALPHA;
+                }
+                dType   = GL.GL_UNSIGNED_BYTE;
+            } else if( 3 == componentCount ) {
                 dFormat = GL.GL_RGB;
                 dType   = GL.GL_UNSIGNED_BYTE;            
+            } else if( 4 == componentCount ) {
+                int _dFormat = ctx.getDefaultPixelDataFormat();
+                final int dComps = GLBuffers.componentCount(_dFormat);
+                if( dComps == componentCount ) {
+                    dFormat = _dFormat;
+                    dType   = ctx.getDefaultPixelDataType();
+                } else {
+                    dFormat = GL.GL_RGBA;
+                    dType   = GL.GL_UNSIGNED_BYTE;                                
+                }
             } else {
-                dFormat = ctx.getDefaultPixelDataFormat();
-                dType   = ctx.getDefaultPixelDataType();
+                throw new GLException("Unsupported componentCount "+componentCount+", contact maintainer to enhance");
             }
             return new GLPixelAttributes(componentCount, dFormat, dType);
         }
@@ -117,15 +148,29 @@ public class GLPixelBuffer {
         @Override
         public GLPixelBuffer allocate(GL gl, GLPixelAttributes pixelAttributes, int width, int height, int depth, boolean pack, int minByteSize) {
             if( minByteSize > 0 ) {
-                return new GLPixelBuffer(pixelAttributes, width, height, depth, pack, Buffers.newDirectByteBuffer(minByteSize));                
+                return new GLPixelBuffer(pixelAttributes, width, height, depth, pack, Buffers.newDirectByteBuffer(minByteSize), getAllowRowStride());                
             } else {
                 int[] tmp = { 0 };
                 final int byteSize = GLBuffers.sizeof(gl, tmp, pixelAttributes.bytesPerPixel, width, height, depth, pack);
-                return new GLPixelBuffer(pixelAttributes, width, height, depth, pack, Buffers.newDirectByteBuffer(byteSize));
+                return new GLPixelBuffer(pixelAttributes, width, height, depth, pack, Buffers.newDirectByteBuffer(byteSize), getAllowRowStride());
             }
         }
-    };
+    }
+    
+    /** 
+     * Default {@link GLPixelBufferProvider} with {@link GLPixelBufferProvider#getAllowRowStride()} == <code>false</code>,
+     * utilizing best match for {@link GLPixelAttributes}
+     * and {@link GLPixelBufferProvider#allocate(GL, GLPixelAttributes, int, int, int, boolean, int) allocating} a {@link ByteBuffer}.
+     */
+    public static GLPixelBufferProvider defaultProviderNoRowStride = new DefaultGLPixelBufferProvider(false);
         
+    /** 
+     * Default {@link GLPixelBufferProvider} with {@link GLPixelBufferProvider#getAllowRowStride()} == <code>true</code>,
+     * utilizing best match for {@link GLPixelAttributes}
+     * and {@link GLPixelBufferProvider#allocate(GL, GLPixelAttributes, int, int, int, boolean, int) allocating} a {@link ByteBuffer}.
+     */
+    public static GLPixelBufferProvider defaultProviderWithRowStride = new DefaultGLPixelBufferProvider(true);
+    
     /** Pixel attributes. */ 
     public static class GLPixelAttributes {
         /** Undefined instance of {@link GLPixelAttributes}, having componentCount:=0, format:=0 and type:= 0. */ 
@@ -199,6 +244,9 @@ public class GLPixelBuffer {
     /** Buffer element size in bytes. */
     public final int bufferElemSize;
     
+    /** Allow {@link GL2ES3#GL_PACK_ROW_LENGTH}, or {@link GL2ES2#GL_UNPACK_ROW_LENGTH}. See {@link #requiresNewBuffer(GL, int, int, int)}. */
+    public final boolean allowRowStride;
+    
     private boolean disposed = false;
     
     public StringBuilder toString(StringBuilder sb) {
@@ -212,8 +260,17 @@ public class GLPixelBuffer {
     public String toString() {
         return "GLPixelBuffer["+toString(null).toString()+"]";
     }
-    
-    public GLPixelBuffer(GLPixelAttributes pixelAttributes, int width, int height, int depth, boolean pack, Buffer buffer) {
+
+    /**
+     * @param pixelAttributes the desired {@link GLPixelAttributes}
+     * @param width in pixels
+     * @param height in pixels
+     * @param depth in pixels
+     * @param pack true for read mode GPU -> CPU, otherwise false for write mode CPU -> GPU
+     * @param buffer the backing array
+     * @param allowRowStride If <code>true</code>, allow row-stride, otherwise not. See {@link #requiresNewBuffer(GL, int, int, int)}.
+     */
+    public GLPixelBuffer(GLPixelAttributes pixelAttributes, int width, int height, int depth, boolean pack, Buffer buffer, boolean allowRowStride) {
         this.pixelAttributes = pixelAttributes; 
         this.width = width;
         this.height = height;
@@ -222,13 +279,18 @@ public class GLPixelBuffer {
         this.buffer = buffer;
         this.byteSize = Buffers.remainingBytes(buffer);
         this.bufferElemSize = Buffers.sizeOfBufferElem(buffer);
+        this.allowRowStride = allowRowStride;
     }
+    
+    /** Allow {@link GL2ES3#GL_PACK_ROW_LENGTH}, or {@link GL2ES2#GL_UNPACK_ROW_LENGTH}. */
+    public final boolean getAllowRowStride() { return allowRowStride; }
     
     /** Is not {@link #dispose() disposed} and has {@link #byteSize} &gt; 0. */
     public boolean isValid() {
         return !disposed && 0 < byteSize;
     }
     
+    /** See {@link Buffer#rewind()}. */
     public Buffer rewind() {
         return buffer.rewind();
     }
@@ -243,10 +305,22 @@ public class GLPixelBuffer {
         return buffer.position( bytePos / bufferElemSize );
     }
     
+    /** Returns the byte capacity of the {@link #buffer}. */
+    public int capacity() {
+        return buffer.capacity() * bufferElemSize;
+    }
+    
+    /** Returns the byte limit of the {@link #buffer}. */
+    public int limit() {
+        return buffer.limit() * bufferElemSize;
+    }
+    
+    /** See {@link Buffer#flip()}. */
     public Buffer flip() {
         return buffer.flip();        
     }
     
+    /** See {@link Buffer#clear()}. */
     public Buffer clear() {
         return buffer.clear();        
     }
@@ -259,17 +333,37 @@ public class GLPixelBuffer {
      * </p>
      * <p>
      * The minimum required byte size equals to <code>minByteSize</code>, if &gt; 0, 
-     * otherwise utilize {@link GLBuffers#sizeof(GL, int[], int, int, int, int, int, boolean) GLBuffers.sizeof(..)}
-     * to calculate it.
+     * otherwise {@link GLBuffers#sizeof(GL, int[], int, int, int, int, int, boolean) GLBuffers.sizeof(..)}
+     * is being used to calculate it. This value is referred to <i>newByteSize</i>.
+     * </p>
+     * <p>
+     * If <code>{@link #allowRowStride} = false</code>,
+     * method returns <code>true</code> if the <i>newByteSize</i> &gt; <i>currentByteSize</i>
+     * or the <code>newWidth</code> != <code>currentWidth</code>.
+     * </p> 
+     * <p>
+     * If <code>{@link #allowRowStride} = true</code>, see {@link GLPixelBufferProvider#getAllowRowStride()},
+     * method returns <code>true</code> only if the <i>newByteSize</i> &gt; <i>currentByteSize</i>. 
+     * Assuming user utilizes the row-stride when dealing w/ the data, i.e. {@link GL2ES3#GL_PACK_ROW_LENGTH}.
      * </p>
      * @param gl the corresponding current GL context object
      * @param newWidth new width in pixels
      * @param newHeight new height in pixels
-     * @param minByteSize if &gt; 0, the pre-calculated minimum byte-size for the resulting buffer, otherwise ignore.   
+     * @param newByteSize if &gt; 0, the pre-calculated minimum byte-size for the resulting buffer, otherwise ignore.   
      * @see GLPixelBufferProvider#allocate(GL, GLPixelAttributes, int, int, int, boolean, int)
      */
-    public boolean requiresNewBuffer(GL gl, int newWidth, int newHeight, int minByteSize) {
-        return !isValid() || byteSize < minByteSize;
+    public boolean requiresNewBuffer(GL gl, int newWidth, int newHeight, int newByteSize) {
+        if( !isValid() ) {
+            return true;
+        }
+        if( 0 >= newByteSize ) {
+            final int[] tmp = { 0 };
+            newByteSize = GLBuffers.sizeof(gl, tmp, pixelAttributes.bytesPerPixel, newWidth, newHeight, 1, true);
+        }
+        if( allowRowStride ) {
+            return byteSize < newByteSize;
+        }
+        return byteSize < newByteSize || width != newWidth;
     }
     
     /** Dispose resources. See {@link #isValid()}. */

@@ -46,7 +46,7 @@ public class AWTGLReadBufferUtil extends GLReadBufferUtil {
      * @param alpha
      */
     public AWTGLReadBufferUtil(GLProfile glp, boolean alpha) {
-        super(new AWTGLPixelBuffer.AWTGLPixelBufferProvider( glp.isGL2GL3() /* allowRowStride */ ), alpha, false);
+        super(new AWTGLPixelBuffer.AWTGLPixelBufferProvider( glp.isGL2GL3() || glp.isGL3ES3() /* allowRowStride */ ), alpha, false);
     }
 
     public AWTGLPixelBuffer getAWTGLPixelBuffer() { return (AWTGLPixelBuffer)this.getPixelBuffer(); }

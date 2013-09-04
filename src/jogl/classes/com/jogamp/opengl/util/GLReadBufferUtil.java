@@ -63,7 +63,7 @@ public class GLReadBufferUtil {
      * @param write2Texture true if readPixel's TextureData shall be written to a 2d Texture
      */
     public GLReadBufferUtil(boolean alpha, boolean write2Texture) {
-        this(GLPixelBuffer.defaultProvider, alpha, write2Texture);
+        this(GLPixelBuffer.defaultProviderNoRowStride, alpha, write2Texture);
     }
     
     public GLReadBufferUtil(GLPixelBufferProvider pixelBufferProvider, boolean alpha, boolean write2Texture) {

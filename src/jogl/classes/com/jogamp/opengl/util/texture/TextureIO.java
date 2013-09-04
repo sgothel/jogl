@@ -54,6 +54,7 @@ import java.util.List;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
+import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
@@ -62,6 +63,7 @@ import javax.media.opengl.GLProfile;
 import jogamp.opengl.Debug;
 
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
 import com.jogamp.opengl.util.texture.spi.DDSImage;
 import com.jogamp.opengl.util.texture.spi.JPEGImage;
 import com.jogamp.opengl.util.texture.spi.NetPbmTextureWriter;
@@ -1228,8 +1230,9 @@ public class TextureIO {
                              TextureData data) throws IOException {
             if (DDS.equals(IOUtil.getFileSuffix(file))) {
                 // See whether the DDS writer can handle this TextureData
-                int pixelFormat = data.getPixelFormat();
-                int pixelType   = data.getPixelType();
+                final GLPixelAttributes pixelAttribs = data.getPixelAttributes();
+                final int pixelFormat = pixelAttribs.format;
+                final int pixelType   = pixelAttribs.type;
                 if (pixelType != GL.GL_BYTE &&
                     pixelType != GL.GL_UNSIGNED_BYTE) {
                     throw new IOException("DDS writer only supports byte / unsigned byte textures");
@@ -1279,8 +1282,9 @@ public class TextureIO {
             if (SGI.equals(fileSuffix) ||
                 SGI_RGB.equals(fileSuffix)) {
                 // See whether the SGI writer can handle this TextureData
-                int pixelFormat = data.getPixelFormat();
-                int pixelType   = data.getPixelType();
+                final GLPixelAttributes pixelAttribs = data.getPixelAttributes();
+                final int pixelFormat = pixelAttribs.format;
+                final int pixelType   = pixelAttribs.type;
                 if ((pixelFormat == GL.GL_RGB ||
                      pixelFormat == GL.GL_RGBA) &&
                     (pixelType == GL.GL_BYTE ||
@@ -1321,8 +1325,9 @@ public class TextureIO {
                              TextureData data) throws IOException {
             if (TGA.equals(IOUtil.getFileSuffix(file))) {
                 // See whether the TGA writer can handle this TextureData
-                int pixelFormat = data.getPixelFormat();
-                int pixelType   = data.getPixelType();
+                final GLPixelAttributes pixelAttribs = data.getPixelAttributes();
+                final int pixelFormat = pixelAttribs.format;
+                final int pixelType   = pixelAttribs.type;
                 if ((pixelFormat == GL.GL_RGB ||
                      pixelFormat == GL.GL_RGBA || 
                      pixelFormat == GL2.GL_BGR ||
@@ -1369,34 +1374,31 @@ public class TextureIO {
         public boolean write(File file, TextureData data) throws IOException {
             if (PNG.equals(IOUtil.getFileSuffix(file))) {
                 // See whether the PNG writer can handle this TextureData
-                int pixelFormat = data.getPixelFormat();
-                int pixelType   = data.getPixelType();
-                boolean reversedChannels;
-                int bytesPerPixel;
+                final GLPixelAttributes pixelAttribs = data.getPixelAttributes();
+                final int pixelFormat = pixelAttribs.format;
+                final int pixelType   = pixelAttribs.type;
+                final int bytesPerPixel = pixelAttribs.bytesPerPixel;
+                final boolean reversedChannels;
                 switch(pixelFormat) {
+                    case GL.GL_ALPHA:
                     case GL.GL_LUMINANCE:
+                    case GL2ES2.GL_RED:
                         reversedChannels=false;
-                        bytesPerPixel=1;
                         break;
                     case GL.GL_RGB:
                         reversedChannels=false;
-                        bytesPerPixel=3;
                         break;
                     case GL.GL_RGBA:
                         reversedChannels=false;
-                        bytesPerPixel=4;
                         break;
                     case GL2.GL_BGR:
                         reversedChannels=true;
-                        bytesPerPixel=3;
                         break;
                     case GL.GL_BGRA:
                         reversedChannels=true;
-                        bytesPerPixel=4;
                         break;
                     default:
                         reversedChannels=false;
-                        bytesPerPixel=-1;
                         break;
                 }
                 if ( ( 1 == bytesPerPixel || 3 == bytesPerPixel || 4 == bytesPerPixel) &&
