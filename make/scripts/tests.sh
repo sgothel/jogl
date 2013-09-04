@@ -315,15 +315,19 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestTeapotNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl3.newt.TestGeomShader01TextureGL3NEWT $*
 
-testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.TestTiledRendering1GL2 $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.TestTiledRendering2GL2 $*
-
 #
 # av demos
 #
 #testnoawt jogamp.opengl.openal.av.ALDummyUsage $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
+
+#
+# tile rendring / printing w/ & w/o AWT
+#
+testnoawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledRendering1GL2 $*
+testnoawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledRendering2GL2 $*
+testnoawt com.jogamp.opengl.test.junit.jogl.tile.TestRandomTiledRendering2GL2 $*
 
 #
 # core/newt (testnoawt and testawt)
