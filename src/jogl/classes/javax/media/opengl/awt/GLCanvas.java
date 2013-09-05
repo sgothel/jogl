@@ -704,7 +704,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
             System.err.println("GLCanvas.sizeChanged: ("+getThreadName()+"): "+width+"x"+height+" - surfaceHandle 0x"+Long.toHexString(nsH));
             // Thread.dumpStack();
         }            
-        if( validateGLDrawable() ) {
+        if( validateGLDrawable() && !printActive ) {
             final GLDrawableImpl _drawable = drawable;
             if( ! _drawable.getChosenGLCapabilities().isOnscreen() ) {
                 final RecursiveLock _lock = lock;
@@ -740,20 +740,23 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       }
       return singleAWTGLPixelBufferProvider;
   }
-  private boolean animatorPaused = false;
-  private RandomTileRenderer tileRenderer;
+  private boolean printActive = false;
+  private boolean printAnimatorPaused = false;
+  private RandomTileRenderer printRenderer;
   private Graphics2D printGraphics;
   private int printWidth = 0;
   private int printHeight = 0;
-  public void setupPrint (final int printWidth, final int printHeight) {
-      this.printWidth = printWidth;
-      this.printHeight = printHeight;      
+  public void setupPrint (final double scaleX, final double scaleY) {
+      printActive = true;
+      // this.printWidth = scaleX;
+      // this.printHeight = scaleY;      
   }  
   private void initPrint() {
+      printActive = true;
       final GLAnimatorControl animator =  helper.getAnimator();
       if( animator.isAnimating() ) {
           animator.pause();
-          animatorPaused = true;
+          printAnimatorPaused = true;
       }
       if( 0 >= printWidth ) {
           printWidth = getWidth();
@@ -761,7 +764,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       if( 0 >= printHeight ) {
           printHeight = getHeight();
       }
-      System.err.println("AWT print.init: "+printWidth+"x"+printHeight+", animatorPaused "+animatorPaused);
+      System.err.println("AWT print.init: printSize "+printWidth+"x"+printHeight+", canvasSize "+getWidth()+"x"+getWidth()+
+                         ", drawableSize "+drawable.getWidth()+"x"+drawable.getHeight()+
+                         ", animatorPaused "+printAnimatorPaused);
       {
           final RenderingHints rHints = printGraphics.getRenderingHints();
           final Set<Entry<Object, Object>> rEntries = rHints.entrySet();
@@ -777,9 +782,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       System.err.println(" move "+aTrans.getTranslateX()+" x "+aTrans.getTranslateY());
       
       final SingleAWTGLPixelBufferProvider printBufferProvider = getSingleAWTGLPixelBufferProvider();     
-      tileRenderer = new RandomTileRenderer();
-      tileRenderer.setImageSize(printWidth, printHeight);
-      tileRenderer.attachToAutoDrawable(this);      
+      printRenderer = new RandomTileRenderer();
+      printRenderer.setImageSize(printWidth, printHeight);
+      printRenderer.attachToAutoDrawable(this);      
       final int componentCount;
       if( isOpaque() ) {
           // w/o alpha
@@ -799,8 +804,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
           public void display(GLAutoDrawable drawable) {
               final GL gl = drawable.getGL();
               final GLPixelAttributes pixelAttribs = printBufferProvider.getAttributes(gl, componentCount);
-              final int tileWidth = tileRenderer.getParam(TileRendererBase.TR_CURRENT_TILE_WIDTH);
-              final int tileHeight = tileRenderer.getParam(TileRendererBase.TR_CURRENT_TILE_HEIGHT);
+              final int tileWidth = printRenderer.getParam(TileRendererBase.TR_CURRENT_TILE_WIDTH);
+              final int tileHeight = printRenderer.getParam(TileRendererBase.TR_CURRENT_TILE_HEIGHT);
               AWTGLPixelBuffer pixelBuffer = printBufferProvider.getSingleBuffer(pixelAttribs);
               if( null != pixelBuffer && pixelBuffer.requiresNewBuffer(gl, tileWidth, tileHeight, 0) ) {
                   pixelBuffer.dispose();
@@ -808,14 +813,14 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
               }
               if ( null == pixelBuffer ) {
                   pixelBuffer = printBufferProvider.allocate(gl, pixelAttribs, tileWidth, tileHeight, 1, true, 0);
-                  tileRenderer.setTileBuffer(pixelBuffer);
+                  printRenderer.setTileBuffer(pixelBuffer);
               }
                             
               final BufferedImage cpuVFlipImage = cpuVFlipImageStore[0];
               if( null == cpuVFlipImage || pixelBuffer.width > cpuVFlipImage.getWidth() || pixelBuffer.height > cpuVFlipImage.getHeight() ) {
                   cpuVFlipImageStore[0] = new BufferedImage(pixelBuffer.width, pixelBuffer.height, pixelBuffer.image.getType());
               }
-              System.err.println("XXX tile-pre "+tileRenderer); // FIXME
+              System.err.println("XXX tile-pre "+printRenderer); // FIXME
           }
           @Override
           public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
@@ -832,8 +837,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
               // blitting Note that we could avoid this copy in the cases
               // where !offscreenDrawable.isGLOriented(),
               // but that's the software rendering path which is very slow anyway.
-              final int tileHeight = tileRenderer.getParam(TileRendererBase.TR_CURRENT_TILE_HEIGHT);
-              final AWTGLPixelBuffer pixelBuffer = (AWTGLPixelBuffer) tileRenderer.getTileBuffer();
+              final int tileHeight = printRenderer.getParam(TileRendererBase.TR_CURRENT_TILE_HEIGHT);
+              final AWTGLPixelBuffer pixelBuffer = (AWTGLPixelBuffer) printRenderer.getTileBuffer();
               final BufferedImage srcImage = pixelBuffer.image;
               final BufferedImage dstImage = cpuVFlipImageStore[0];
               final int[] src = ((DataBufferInt) srcImage.getRaster().getDataBuffer()).getData();
@@ -852,37 +857,38 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
           @Override
           public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
       };      
-      tileRenderer.setGLEventListener(preTileGLEL, postTileGLEL);
-      System.err.println("AWT print.init: "+tileRenderer);
+      printRenderer.setGLEventListener(preTileGLEL, postTileGLEL);
+      System.err.println("AWT print.init: "+printRenderer);
   }
   public void releasePrint() {
-      System.err.println("AWT print.release: "+tileRenderer);
-      tileRenderer.detachFromAutoDrawable();
-      tileRenderer = null;
+      System.err.println("AWT print.release: "+printRenderer);
+      printRenderer.detachFromAutoDrawable();
+      printRenderer = null;
       this.printGraphics = null;
       singleAWTGLPixelBufferProvider = null;
-      final GLAnimatorControl animator =  animatorPaused ? helper.getAnimator() : null;
+      final GLAnimatorControl animator =  printAnimatorPaused ? helper.getAnimator() : null;
       if( null != animator ) {
           animator.resume();
       }
-      animatorPaused = false;
+      printAnimatorPaused = false;
+      printActive = false;
   }
   
   @Override
   public void print(Graphics graphics) {
       this.printGraphics = (Graphics2D)graphics;
-      if( null == tileRenderer ) {
+      if( null == printRenderer ) {
         initPrint();
       }
-      if( null != tileRenderer ) {
+      if( null != printRenderer ) {
           final Rectangle clip = graphics.getClipBounds();
-          System.err.println("AWT print0.1: "+clip+", "+tileRenderer);
-          tileRenderer.setTileRect(clip.x, clip.y, clip.width, clip.height);
+          System.err.println("AWT print0.1: "+clip+", "+printRenderer);
+          printRenderer.setTileRect(clip.x, clip.y, clip.width, clip.height);
       }
-      System.err.println("AWT print0.2: "+tileRenderer);      
+      System.err.println("AWT print0.2: "+printRenderer);      
       // super.print(graphics);
       display();
-      System.err.println("AWT print0.X: "+tileRenderer);
+      System.err.println("AWT print0.X: "+printRenderer);
   }
     
   @Override
