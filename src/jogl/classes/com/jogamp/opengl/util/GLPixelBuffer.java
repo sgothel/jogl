@@ -254,7 +254,8 @@ public class GLPixelBuffer {
             sb = new StringBuilder();
         }
         sb.append(pixelAttributes).append(", dim ").append(width).append("x").append(height).append("x").append(depth).append(", pack ").append(pack)
-        .append(", disposed ").append(disposed).append(", valid ").append(isValid()).append(", buffer[sz [bytes ").append(byteSize).append(", elemSize ").append(bufferElemSize).append(", ").append(buffer).append("]");
+        .append(", disposed ").append(disposed).append(", valid ").append(isValid())
+        .append(", buffer[bytes ").append(byteSize).append(", elemSize ").append(bufferElemSize).append(", ").append(buffer).append("]");
         return sb;
     }
     public String toString() {

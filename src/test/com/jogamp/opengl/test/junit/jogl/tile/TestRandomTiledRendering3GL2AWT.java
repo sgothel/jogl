@@ -139,13 +139,13 @@ public class TestRandomTiledRendering3GL2AWT extends UITestCase {
                 } else {
                     flipVertically[0] = true;
                 }
+                System.err.println("XXX pre-init: "+renderer);
             }
             @Override
             public void dispose(GLAutoDrawable drawable) {}
             @Override
             public void display(GLAutoDrawable drawable) {
                 if( dx+w <= imageWidth && dy+h <= imageHeight ) {
-                    System.err.println("XXX setTileRect["+dx+"/"+dy+" "+w+"x"+h+"]");
                     renderer.setTileRect(dx, dy, w, h);
                     dx+=w+w/2;
                     if( dx + w > imageWidth ) {
@@ -153,9 +153,9 @@ public class TestRandomTiledRendering3GL2AWT extends UITestCase {
                         dy+=h+h/2;
                     }
                 } else if( rendererActive[0] ) {
-                    System.err.println("XXX active -> false");
                     rendererActive[0] = false;
                 }
+                System.err.println("XXX pre-display: "+renderer);
             }
             @Override
             public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
@@ -171,7 +171,7 @@ public class TestRandomTiledRendering3GL2AWT extends UITestCase {
                     final GLPixelBuffer imageBuffer = renderer.getImageBuffer();
                     imageBuffer.clear(); // full size available
                     System.err.println("XXX !active -> save");
-                    System.err.println("XXX2: "+imageBuffer);
+                    System.err.println("XXX post-display: "+renderer);
                     final TextureData textureData = new TextureData(
                             caps.getGLProfile(),
                             0 /* internalFormat */,
@@ -182,7 +182,6 @@ public class TestRandomTiledRendering3GL2AWT extends UITestCase {
                             flipVertically[0],
                             imageBuffer.buffer,
                             null /* Flusher */);
-                    System.err.println("XXX3: "+textureData.getPixelFormat()+", "+textureData.getPixelAttributes());            
                     try {
                         final String filename = getSnapshotFilename(0, "-tile", glad.getChosenGLCapabilities(), imageWidth, imageHeight, false, TextureIO.PNG, null);
                         final File file = new File(filename);                
@@ -192,8 +191,7 @@ public class TestRandomTiledRendering3GL2AWT extends UITestCase {
                     }
                     gears.setTileRenderer(null);
                     renderer.detachFromAutoDrawable();
-                    System.err.println("XXX detach: glel "+glad.getGLEventListener(0));
-                    System.err.println("XXX detach: "+animator);
+                    System.err.println("XXX post-display detached: "+renderer);
                     drawable.getGL().glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
                     glad.getGLEventListener(0).reshape(drawable, 0, 0, drawable.getWidth(), drawable.getHeight());
                     gears.setDoRotation(true);
@@ -223,8 +221,6 @@ public class TestRandomTiledRendering3GL2AWT extends UITestCase {
                 System.err.println("XXX START TILE RENDERING");
                 gears.setTileRenderer(renderer);
                 renderer.attachToAutoDrawable(glad);
-                System.err.println("XXX attach: glel "+glad.getGLEventListener(0));
-                System.err.println("XXX attach: "+animator);
             }
             Thread.sleep(100);
         }

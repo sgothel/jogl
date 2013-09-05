@@ -37,6 +37,7 @@
 package com.jogamp.opengl.util;
 
 import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
@@ -109,6 +110,14 @@ public abstract class TileRendererBase {
     protected GLEventListener glEventListenerPre = null;
     protected GLEventListener glEventListenerPost = null;
 
+    public String toString() {
+        final int gladListenerCount = null != listeners ? listeners.length : 0;
+        return getClass().getSimpleName()+
+                "[tile["+currentTileXPos+"/"+currentTileYPos+" "+currentTileWidth+"x"+currentTileHeight+", buffer "+tileBuffer+"], "+
+                ", image[size "+imageSize+", buffer "+imageBuffer+"], glad["+
+                gladListenerCount+" listener, pre "+(null!=glEventListenerPre)+", post "+(null!=glEventListenerPost)+"]]";
+    }
+    
     protected TileRendererBase() {
     }
 
@@ -147,7 +156,7 @@ public abstract class TileRendererBase {
     }
 
     /** @see #setImageSize(int, int) */
-    public final Dimension getImageSize() { return imageSize; }
+    public final DimensionImmutable getImageSize() { return imageSize; }
 
     /**
      * Sets the buffer in which to store the final image

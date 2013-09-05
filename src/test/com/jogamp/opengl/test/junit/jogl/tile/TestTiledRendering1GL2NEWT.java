@@ -64,7 +64,7 @@ import org.junit.runners.MethodSorters;
  * </p>
 */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestTiledRendering1GL2 extends UITestCase {
+public class TestTiledRendering1GL2NEWT extends UITestCase {
     static long duration = 500; // ms
 
     @Test
@@ -169,6 +169,6 @@ public class TestTiledRendering1GL2 extends UITestCase {
                 } catch (Exception ex) { ex.printStackTrace(); }
             }
         }
-        org.junit.runner.JUnitCore.main(TestTiledRendering1GL2.class.getName());
+        org.junit.runner.JUnitCore.main(TestTiledRendering1GL2NEWT.class.getName());
     }    
 }

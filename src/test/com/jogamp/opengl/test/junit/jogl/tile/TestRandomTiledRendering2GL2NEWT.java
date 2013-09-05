@@ -30,7 +30,7 @@ package com.jogamp.opengl.test.junit.jogl.tile;
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.GLPixelBuffer;
-import com.jogamp.opengl.util.TileRenderer;
+import com.jogamp.opengl.util.RandomTileRenderer;
 import com.jogamp.opengl.util.TileRendererBase;
 import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
 import com.jogamp.opengl.util.texture.TextureData;
@@ -52,12 +52,12 @@ import org.junit.runners.MethodSorters;
 
 /**
  * Demos offscreen {@link GLAutoDrawable} being used for
- * {@link TileRenderer} rendering to produce a PNG file.
+ * {@link RandomTileRenderer} rendering to produce a PNG file.
  * <p>
- * {@link TileRenderer} is being kicked off from the main thread.
+ * {@link RandomTileRenderer} is being kicked off from the main thread.
  * </p>
  * <p>
- * {@link TileRenderer} buffer allocation is performed
+ * {@link RandomTileRenderer} buffer allocation is performed
  * within the pre {@link GLEventListener} 
  * set via {@link TileRendererBase#setGLEventListener(GLEventListener, GLEventListener)}
  * on the main thread. 
@@ -69,7 +69,7 @@ import org.junit.runners.MethodSorters;
  * </p>
 */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestTiledRendering2GL2 extends UITestCase {
+public class TestRandomTiledRendering2GL2NEWT extends UITestCase {
     static long duration = 500; // ms
 
     @Test
@@ -96,7 +96,7 @@ public class TestTiledRendering2GL2 extends UITestCase {
         final File file = new File(filename);
 
         // Initialize the tile rendering library
-        final TileRenderer renderer = new TileRenderer();
+        final RandomTileRenderer renderer = new RandomTileRenderer();
         gears.setTileRenderer(renderer);
         renderer.attachToAutoDrawable(glad);
         renderer.setImageSize(imageWidth, imageHeight);
@@ -126,13 +126,20 @@ public class TestTiledRendering2GL2 extends UITestCase {
         };
         renderer.setGLEventListener(preTileGLEL, null);
 
-        do {
-            renderer.display();
-        } while ( !renderer.eot() );
+        final int w = 50, h = 50;
+        int dx = 0, dy = 0;
+        while( dx+w <= imageWidth && dy+h <= imageHeight ) {
+            renderer.display(dx, dy, w, h);
+            dx+=w+w/2;
+            if( dx + w > imageWidth ) {
+                dx = 0;
+                dy+=h+h/2;
+            }
+        }
 
         renderer.detachFromAutoDrawable();
         gears.setTileRenderer(null);
-        
+
         // Restore viewport and Gear's PMV matrix
         // .. even though we close the demo, this is for documentation!
         glad.invoke(true, new GLRunnable() {
@@ -147,6 +154,8 @@ public class TestTiledRendering2GL2 extends UITestCase {
         glad.destroy();
 
         final GLPixelBuffer imageBuffer = renderer.getImageBuffer();
+        imageBuffer.clear(); // full size available
+        System.err.println("XXX2: "+imageBuffer);
         final TextureData textureData = new TextureData(
                 caps.getGLProfile(),
                 0 /* internalFormat */,
@@ -157,6 +166,7 @@ public class TestTiledRendering2GL2 extends UITestCase {
                 flipVertically[0],
                 imageBuffer.buffer,
                 null /* Flusher */);
+        System.err.println("XXX3: "+textureData.getPixelFormat()+", "+textureData.getPixelAttributes());
 
         TextureIO.write(textureData, file);
     }
@@ -170,6 +180,6 @@ public class TestTiledRendering2GL2 extends UITestCase {
                 } catch (Exception ex) { ex.printStackTrace(); }
             }
         }
-        org.junit.runner.JUnitCore.main(TestTiledRendering2GL2.class.getName());
+        org.junit.runner.JUnitCore.main(TestRandomTiledRendering2GL2NEWT.class.getName());
     }    
 }
