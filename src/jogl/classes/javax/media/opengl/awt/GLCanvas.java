@@ -50,18 +50,23 @@ import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Frame;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 
 import java.awt.EventQueue;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.OffscreenLayerOption;
@@ -99,9 +104,9 @@ import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
 import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
 import com.jogamp.nativewindow.awt.JAWTWindow;
 import com.jogamp.opengl.JoglVersion;
-import com.jogamp.opengl.util.GLPixelBuffer;
 import com.jogamp.opengl.util.RandomTileRenderer;
 import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
+import com.jogamp.opengl.util.TileRendererBase;
 import com.jogamp.opengl.util.awt.AWTGLPixelBuffer;
 import com.jogamp.opengl.util.awt.AWTGLPixelBuffer.SingleAWTGLPixelBufferProvider;
 
@@ -737,40 +742,124 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }
   private boolean animatorPaused = false;
   private RandomTileRenderer tileRenderer;
-  private SingleAWTGLPixelBufferProvider printBufferProvider;
-  private IntBuffer cpuVFlipIntBbuffer;
-  
-  public void setupPrint(final int printWidth, final int printHeight, RandomTileRenderer.PMVMatrixCallback pmvMatrixCB) {
+  private Graphics2D printGraphics;
+  private int printWidth = 0;
+  private int printHeight = 0;
+  public void setupPrint (final int printWidth, final int printHeight) {
+      this.printWidth = printWidth;
+      this.printHeight = printHeight;      
+  }  
+  private void initPrint() {
       final GLAnimatorControl animator =  helper.getAnimator();
       if( animator.isAnimating() ) {
           animator.pause();
           animatorPaused = true;
       }
-      printBufferProvider = getSingleAWTGLPixelBufferProvider();     
+      if( 0 >= printWidth ) {
+          printWidth = getWidth();
+      }
+      if( 0 >= printHeight ) {
+          printHeight = getHeight();
+      }
+      System.err.println("AWT print.init: "+printWidth+"x"+printHeight+", animatorPaused "+animatorPaused);
+      {
+          final RenderingHints rHints = printGraphics.getRenderingHints();
+          final Set<Entry<Object, Object>> rEntries = rHints.entrySet();
+          int count = 0;
+          for(Iterator<Entry<Object, Object>> rEntryIter = rEntries.iterator(); rEntryIter.hasNext(); count++) {
+              final Entry<Object, Object> rEntry = rEntryIter.next();
+              System.err.println("Hint["+count+"]: "+rEntry.getKey()+" -> "+rEntry.getValue());
+          }
+      }
+      // final GraphicsConfiguration gc = printGraphics.getDeviceConfiguration();
+      final AffineTransform aTrans = printGraphics.getTransform();
+      System.err.println(" scale "+aTrans.getScaleX()+" x "+aTrans.getScaleY());
+      System.err.println(" move "+aTrans.getTranslateX()+" x "+aTrans.getTranslateY());
+      
+      final SingleAWTGLPixelBufferProvider printBufferProvider = getSingleAWTGLPixelBufferProvider();     
       tileRenderer = new RandomTileRenderer();
       tileRenderer.setImageSize(printWidth, printHeight);
       tileRenderer.attachToAutoDrawable(this);      
-        final GLEventListener preTileGLEL = new GLEventListener() {
-            @Override
-            public void init(GLAutoDrawable drawable) {
-                final GL gl = drawable.getGL();
-                GLPixelAttributes pixelAttribs = printBufferProvider.getAttributes(gl, 3);
-                GLPixelBuffer pixelBuffer = printBufferProvider.allocate(gl, pixelAttribs, drawable.getWidth(), drawable.getHeight(), 1, true, 0);
-                tileRenderer.setTileBuffer(pixelBuffer);
-            }
-            @Override
-            public void dispose(GLAutoDrawable drawable) {}
-            @Override
-            public void display(GLAutoDrawable drawable) {}
-            @Override
-            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
-        };
-        tileRenderer.setGLEventListener(preTileGLEL, null);
+      final int componentCount;
+      if( isOpaque() ) {
+          // w/o alpha
+          componentCount = 3;
+      } else {
+          // with alpha
+          componentCount = 4;
+      }
+      final BufferedImage[] cpuVFlipImageStore = { null };
+      final GLEventListener preTileGLEL = new GLEventListener() {
+          @Override
+          public void init(GLAutoDrawable drawable) {
+          }
+          @Override
+          public void dispose(GLAutoDrawable drawable) {}
+          @Override
+          public void display(GLAutoDrawable drawable) {
+              final GL gl = drawable.getGL();
+              final GLPixelAttributes pixelAttribs = printBufferProvider.getAttributes(gl, componentCount);
+              final int tileWidth = tileRenderer.getParam(TileRendererBase.TR_CURRENT_TILE_WIDTH);
+              final int tileHeight = tileRenderer.getParam(TileRendererBase.TR_CURRENT_TILE_HEIGHT);
+              AWTGLPixelBuffer pixelBuffer = printBufferProvider.getSingleBuffer(pixelAttribs);
+              if( null != pixelBuffer && pixelBuffer.requiresNewBuffer(gl, tileWidth, tileHeight, 0) ) {
+                  pixelBuffer.dispose();
+                  pixelBuffer = null;
+              }
+              if ( null == pixelBuffer ) {
+                  pixelBuffer = printBufferProvider.allocate(gl, pixelAttribs, tileWidth, tileHeight, 1, true, 0);
+                  tileRenderer.setTileBuffer(pixelBuffer);
+              }
+                            
+              final BufferedImage cpuVFlipImage = cpuVFlipImageStore[0];
+              if( null == cpuVFlipImage || pixelBuffer.width > cpuVFlipImage.getWidth() || pixelBuffer.height > cpuVFlipImage.getHeight() ) {
+                  cpuVFlipImageStore[0] = new BufferedImage(pixelBuffer.width, pixelBuffer.height, pixelBuffer.image.getType());
+              }
+              System.err.println("XXX tile-pre "+tileRenderer); // FIXME
+          }
+          @Override
+          public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
+      };
+      final GLEventListener postTileGLEL = new GLEventListener() {
+          @Override
+          public void init(GLAutoDrawable drawable) {
+          }
+          @Override
+          public void dispose(GLAutoDrawable drawable) {}
+          @Override
+          public void display(GLAutoDrawable drawable) {              
+              // Copy temporary data into raster of BufferedImage for faster
+              // blitting Note that we could avoid this copy in the cases
+              // where !offscreenDrawable.isGLOriented(),
+              // but that's the software rendering path which is very slow anyway.
+              final int tileHeight = tileRenderer.getParam(TileRendererBase.TR_CURRENT_TILE_HEIGHT);
+              final AWTGLPixelBuffer pixelBuffer = (AWTGLPixelBuffer) tileRenderer.getTileBuffer();
+              final BufferedImage srcImage = pixelBuffer.image;
+              final BufferedImage dstImage = cpuVFlipImageStore[0];
+              final int[] src = ((DataBufferInt) srcImage.getRaster().getDataBuffer()).getData();
+              final int[] dst = ((DataBufferInt) dstImage.getRaster().getDataBuffer()).getData();
+              final int incr = pixelBuffer.width;
+              int srcPos = 0;
+              int destPos = (tileHeight - 1) * pixelBuffer.width;
+              for (; destPos >= 0; srcPos += incr, destPos -= incr) {
+                  System.arraycopy(src, srcPos, dst, destPos, incr);
+              }
+              System.err.println("XXX tile-post dst-img "+dstImage); // FIXME
+              // Draw resulting image in one shot
+              printGraphics.drawImage(dstImage, 0, 0, dstImage.getWidth(), dstImage.getHeight(), null); // Null ImageObserver since image data is ready.
+              System.err.println("XXX tile-post.X"); // FIXME
+          }
+          @Override
+          public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
+      };      
+      tileRenderer.setGLEventListener(preTileGLEL, postTileGLEL);
+      System.err.println("AWT print.init: "+tileRenderer);
   }
   public void releasePrint() {
+      System.err.println("AWT print.release: "+tileRenderer);
       tileRenderer.detachFromAutoDrawable();
       tileRenderer = null;
-      printBufferProvider = null;
+      this.printGraphics = null;
       singleAWTGLPixelBufferProvider = null;
       final GLAnimatorControl animator =  animatorPaused ? helper.getAnimator() : null;
       if( null != animator ) {
@@ -781,52 +870,19 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   
   @Override
   public void print(Graphics graphics) {
+      this.printGraphics = (Graphics2D)graphics;
+      if( null == tileRenderer ) {
+        initPrint();
+      }
       if( null != tileRenderer ) {
           final Rectangle clip = graphics.getClipBounds();
-          System.err.println("AWT print clip: "+clip);
+          System.err.println("AWT print0.1: "+clip+", "+tileRenderer);
           tileRenderer.setTileRect(clip.x, clip.y, clip.width, clip.height);
       }
-      super.print(graphics);
-  }
-  private void print(GL gl) {
-      final int componentCount;
-      if( isOpaque() ) {
-          // w/o alpha
-          componentCount = 3;
-      } else {
-          // with alpha
-          componentCount = 4;
-      }
-      final GLPixelAttributes pixelAttribs = printBufferProvider.getAttributes(gl, componentCount);
-      final int imageWidth = tileRenderer.getImageSize().getWidth();
-      final int imageHeight = tileRenderer.getImageSize().getHeight();
-      AWTGLPixelBuffer pixelBuffer = printBufferProvider.getSingleBuffer(pixelAttribs);
-      if( null != pixelBuffer && pixelBuffer.requiresNewBuffer(gl, imageWidth, imageHeight, 0) ) {
-          pixelBuffer.dispose();
-          pixelBuffer = null;
-      }
-      if ( null == pixelBuffer ) {
-          pixelBuffer = printBufferProvider.allocate(gl, pixelAttribs, imageWidth, imageHeight, 1, true, 0);
-      }
-      if( null == cpuVFlipIntBbuffer || pixelBuffer.width * pixelBuffer.height > cpuVFlipIntBbuffer.remaining() ) {
-          cpuVFlipIntBbuffer = IntBuffer.allocate(pixelBuffer.width * pixelBuffer.height);
-      }
-
-      tileRenderer.setImageBuffer(pixelBuffer);
-
-      // Copy temporary data into raster of BufferedImage for faster
-      // blitting Note that we could avoid this copy in the cases
-      // where !offscreenDrawable.isGLOriented(),
-      // but that's the software rendering path which is very slow anyway.
-      final BufferedImage image = pixelBuffer.image;
-      final int[] src = cpuVFlipIntBbuffer.array();
-      final int[] dest = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
-      final int incr = pixelBuffer.width;
-      int srcPos = 0;
-      int destPos = (imageHeight - 1) * pixelBuffer.width;
-      for (; destPos >= 0; srcPos += incr, destPos -= incr) {
-          System.arraycopy(src, srcPos, dest, destPos, incr);
-      }
+      System.err.println("AWT print0.2: "+tileRenderer);      
+      // super.print(graphics);
+      display();
+      System.err.println("AWT print0.X: "+tileRenderer);
   }
     
   @Override

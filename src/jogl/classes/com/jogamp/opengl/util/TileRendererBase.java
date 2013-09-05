@@ -322,8 +322,8 @@ public abstract class TileRendererBase {
     }
     
     /**
-     * Set {@link GLEventListener} for pre- and post operations when used w/ 
-     * {@link #attachAutoDrawable(GLAutoDrawable, int, PMVMatrixCallback)}
+     * Set {@link GLEventListener} for pre- and post operations when used w/
+     * {@link #attachToAutoDrawable(GLAutoDrawable)} 
      * for each {@link GLEventListener} callback.
      * @param preTile the pre operations
      * @param postTile the post operations
