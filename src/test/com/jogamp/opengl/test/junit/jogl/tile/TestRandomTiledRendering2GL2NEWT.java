@@ -85,7 +85,6 @@ public class TestRandomTiledRendering2GL2NEWT extends UITestCase {
         final GLOffscreenAutoDrawable glad = factory.createOffscreenAutoDrawable(null, caps, null, 256, 256, null);
 
         final Gears gears = new Gears();
-        gears.setDoRotation(false);
         glad.addGLEventListener( gears );
 
         // Fix the image size for now
@@ -97,7 +96,6 @@ public class TestRandomTiledRendering2GL2NEWT extends UITestCase {
 
         // Initialize the tile rendering library
         final RandomTileRenderer renderer = new RandomTileRenderer();
-        gears.setTileRenderer(renderer);
         renderer.attachToAutoDrawable(glad);
         renderer.setImageSize(imageWidth, imageHeight);
 
@@ -138,7 +136,6 @@ public class TestRandomTiledRendering2GL2NEWT extends UITestCase {
         }
 
         renderer.detachFromAutoDrawable();
-        gears.setTileRenderer(null);
 
         // Restore viewport and Gear's PMV matrix
         // .. even though we close the demo, this is for documentation!

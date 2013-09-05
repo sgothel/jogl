@@ -131,17 +131,16 @@ public class TestTiledRendering1GL2NEWT extends UITestCase {
         flipVertically[0] = false;
         
         final Gears gears = new Gears();
-        gears.setDoRotation(false);
         gears.init(gl);
 
-        gears.setTileRenderer(renderer);
+        gears.addTileRendererNotify(renderer);
         do { 
             renderer.beginTile(dc.glc.getGL().getGL2ES3());
             gears.reshape(gl, 0, 0, renderer.getParam(TileRendererBase.TR_CURRENT_TILE_WIDTH), renderer.getParam(TileRendererBase.TR_CURRENT_TILE_HEIGHT));
             gears.display(gl);
             renderer.endTile(dc.glc.getGL().getGL2ES3());
         } while ( !renderer.eot() );
-        gears.setTileRenderer(null);
+        gears.removeTileRendererNotify(renderer);
 
         destroyDrawableContext(dc);
         

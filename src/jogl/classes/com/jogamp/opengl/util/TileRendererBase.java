@@ -95,6 +95,18 @@ public abstract class TileRendererBase {
      */
     public static final int TR_CURRENT_TILE_HEIGHT = 6;
     
+    /** 
+     * Notifies {@link GLEventListener} implementing this interface
+     * that the owning {@link GLAutoDrawable} is {@link TileRendererBase#attachToAutoDrawable(GLAutoDrawable) attached} 
+     * to a tile renderer or {@link TileRendererBase#detachFromAutoDrawable() detached} from it.
+     */
+    public static interface TileRendererNotify {
+        /** The owning {@link GLAutoDrawable} is {@link TileRendererBase#attachToAutoDrawable(GLAutoDrawable) attached} to a {@link TileRendererBase}. */
+        public void addTileRendererNotify(TileRendererBase tr);
+        /** The owning {@link GLAutoDrawable} is {@link TileRendererBase#detachFromAutoDrawable() detached} from a {@link TileRendererBase}. */
+        public void removeTileRendererNotify(TileRendererBase tr);
+    }
+    
     protected final Dimension imageSize = new Dimension(0, 0);
     protected final GLPixelStorageModes psm = new GLPixelStorageModes();
     protected GLPixelBuffer imageBuffer;
@@ -216,8 +228,13 @@ public abstract class TileRendererBase {
     /**
      * Attaches this renderer to the {@link GLAutoDrawable}.
      * <p>
-     * The {@link GLAutoDrawable}'s original {@link GLEventListener} are moved to local storage.
-     * This renderer {@link GLEventListener} is then added to handle the tile rendering
+     * The {@link GLAutoDrawable}'s original {@link GLEventListener} are moved to this tile renderer.<br>
+     * It is <i>highly recommended</i> that the original {@link GLEventListener} implement 
+     * {@link TileRendererNotify}, so they get {@link TileRendererNotify#addTileRendererNotify(TileRendererBase) notified}
+     * about this event.
+     * </p>
+     * <p>
+     * This tile renderer's {@link GLEventListener} is then added to handle the tile rendering
      * for the original {@link GLEventListener}, i.e. it's {@link GLEventListener#display(GLAutoDrawable) display} issues:
      * <ul>
      *   <li>Optional {@link #setGLEventListener(GLEventListener, GLEventListener) pre-glel}.{@link GLEventListener#display(GLAutoDrawable) display(..)}</li>
@@ -232,6 +249,16 @@ public abstract class TileRendererBase {
      * </ul>
      * </p>
      * <p>
+     * The <a href="#pmvmatrix">PMV Matrix</a> shall be reshaped in the 
+     * original {@link GLEventListener}'s {@link GLEventListener#reshape(GLAutoDrawable, int, int, int, int) reshape} method
+     * according to the tile-position, -size and image-size<br>
+     * The {@link GLEventListener#reshape(GLAutoDrawable, int, int, int, int) reshape} method is called for each tile 
+     * w/ the current viewport of tile-size, where the tile-position and image-size can be retrieved by this tile renderer,
+     * see  details in {@link #beginTile(GL2ES3)}.<br>
+     * The original {@link GLEventListener} implementing {@link TileRendererNotify} is aware of this
+     * tile renderer instance.
+     * </p>
+     * <p>
      * Consider using {@link #setGLEventListener(GLEventListener, GLEventListener)} to add pre- and post
      * hooks to be performed on this renderer {@link GLEventListener}.<br>
      * The pre-hook is able to allocate memory and setup parameters, since it's called before {@link #beginTile(GL2ES3)}.<br>
@@ -241,12 +268,6 @@ public abstract class TileRendererBase {
      * <p>
      * Call {@link #detachFromAutoDrawable()} to remove this renderer from the {@link GLAutoDrawable} 
      * and to restore it's original {@link GLEventListener}.
-     * </p>
-     * <p>
-     * The <a href="#pmvmatrix">PMV Matrix</a> shall be reshaped in the 
-     * original {@link GLEventListener}'s {@link GLEventListener#reshape(GLAutoDrawable, int, int, int, int) reshape}
-     * method. The latter is called for each tile w/ the current viewport.
-     * The tile's position and image size can be utilized. See details in {@link #beginTile(GL2ES3)}.
      * </p>
      * @param glad
      * @throws IllegalStateException if an {@link GLAutoDrawable} is already attached
@@ -264,12 +285,20 @@ public abstract class TileRendererBase {
             final GLEventListener l = glad.getGLEventListener(0);
             listenersInit[i] = glad.getGLEventListenerInitState(l);
             listeners[i] = glad.removeGLEventListener( l );
+            if( listeners[i] instanceof TileRendererNotify ) {
+                ((TileRendererNotify)listeners[i]).addTileRendererNotify(this);
+            }
         }
         glad.addGLEventListener(tiledGLEL);
     }
 
     /**
      * Detaches this renderer from the {@link GLAutoDrawable}.
+     * <p>
+     * It is <i>highly recommended</i> that the original {@link GLEventListener} implement 
+     * {@link TileRendererNotify}, so they get {@link TileRendererNotify#removeTileRendererNotify(TileRendererBase) notified}
+     * about this event.
+     * </p>
      * <p>
      * See {@link #attachToAutoDrawable(GLAutoDrawable)}.
      * </p>
@@ -280,6 +309,9 @@ public abstract class TileRendererBase {
             final int aSz = listenersInit.length;
             for(int i=0; i<aSz; i++) {
                 final GLEventListener l = listeners[i];
+                if( l instanceof TileRendererNotify ) {
+                    ((TileRendererNotify)l).removeTileRendererNotify(this);
+                }
                 glad.addGLEventListener(l);
                 glad.setGLEventListenerInitState(l, listenersInit[i]);
             }

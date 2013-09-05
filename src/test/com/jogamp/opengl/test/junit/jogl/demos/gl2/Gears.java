@@ -25,8 +25,7 @@ import com.jogamp.opengl.util.TileRendererBase;
  *
  * This version is equal to Brian Paul's version 1.2 1999/10/21
  */
-
-public class Gears implements GLEventListener {
+public class Gears implements GLEventListener, TileRendererBase.TileRendererNotify {
   private float view_rotx = 20.0f, view_roty = 30.0f, view_rotz = 0.0f;
   private int gear1=0, gear2=0, gear3=0;
   private float angle = 0.0f;
@@ -47,11 +46,18 @@ public class Gears implements GLEventListener {
     this.swapInterval = 1;
   }
   
-  public void setTileRenderer(TileRendererBase tileRenderer) {
-      tileRendererInUse = tileRenderer;
+  private boolean doRotateBeforePrinting;
+  public void addTileRendererNotify(TileRendererBase tr) {
+      tileRendererInUse = tr;
+      doRotateBeforePrinting = doRotate;
+      setDoRotation(false);      
+  }
+  public void removeTileRendererNotify(TileRendererBase tr) {
+      tileRendererInUse = null;
+      setDoRotation(doRotateBeforePrinting);      
   }
   
-  public void setDoRotation(boolean rotate) { this.doRotate = rotate; }
+  public void setDoRotation(boolean rotate) { doRotate = rotate; }
   
   public void setGears(int g1, int g2, int g3) {
       gear1 = g1;

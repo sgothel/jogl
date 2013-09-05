@@ -325,10 +325,11 @@ function testawtswt() {
 #
 # tile rendring / printing w/ & w/o AWT
 #
-#testnoawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledRendering1GL2NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledRendering2GL2NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.tile.TestRandomTiledRendering2GL2NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledRendering1GL2NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledRendering2GL2NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.tile.TestRandomTiledRendering2GL2NEWT $*
 testawt com.jogamp.opengl.test.junit.jogl.tile.TestRandomTiledRendering3GL2AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsAWT $*
 
 #
 # core/newt (testnoawt and testawt)

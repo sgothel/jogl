@@ -129,7 +129,6 @@ public class TestRandomTiledRendering3GL2AWT extends UITestCase {
             
             @Override
             public void init(GLAutoDrawable drawable) {
-                gears.setDoRotation(false);                
                 final GL gl = drawable.getGL();
                 GLPixelAttributes pixelAttribs = pixelBufferProvider.getAttributes(gl, 3);
                 GLPixelBuffer pixelBuffer = pixelBufferProvider.allocate(gl, pixelAttribs, imageWidth, imageHeight, 1, true, 0);
@@ -189,12 +188,10 @@ public class TestRandomTiledRendering3GL2AWT extends UITestCase {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    gears.setTileRenderer(null);
                     renderer.detachFromAutoDrawable();
                     System.err.println("XXX post-display detached: "+renderer);
                     drawable.getGL().glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
                     glad.getGLEventListener(0).reshape(drawable, 0, 0, drawable.getWidth(), drawable.getHeight());
-                    gears.setDoRotation(true);
                 }
             }
             @Override
@@ -219,7 +216,6 @@ public class TestRandomTiledRendering3GL2AWT extends UITestCase {
                 signalTileRenderer = false;
                 // tile rendering !
                 System.err.println("XXX START TILE RENDERING");
-                gears.setTileRenderer(renderer);
                 renderer.attachToAutoDrawable(glad);
             }
             Thread.sleep(100);
