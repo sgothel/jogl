@@ -39,7 +39,6 @@ package com.jogamp.opengl.util;
 import javax.media.nativewindow.util.Dimension;
 import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLEventListener;
 
 import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
 
@@ -56,48 +55,51 @@ import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
  * <p>
  * Enhanced for {@link GL2ES3}.
  * </p>
+ * <p>
+ * See {@link TileRendererBase} for details.
+ * </p>
  * 
  * @author ryanm, sgothel
  */
 public class TileRenderer extends TileRendererBase {
     /**
-     * The width of a tile
+     * The width of a tile. See {@link #getParam(int)}.
      */
     public static final int TR_TILE_WIDTH = 7;
     /**
-     * The height of a tile
+     * The height of a tile. See {@link #getParam(int)}.
      */
     public static final int TR_TILE_HEIGHT = 8;
     /**
-     * The width of the border around the tiles
+     * The width of the border around the tiles. See {@link #getParam(int)}.
      */
     public static final int TR_TILE_BORDER = 9;
     /**
-     * The number of rows of tiles
+     * The number of rows of tiles. See {@link #getParam(int)}.
      */
     public static final int TR_ROWS = 10;
     /**
-     * The number of columns of tiles
+     * The number of columns of tiles. See {@link #getParam(int)}.
      */
     public static final int TR_COLUMNS = 11;
     /**
-     * The current row number
+     * The current row number. See {@link #getParam(int)}.
      */
     public static final int TR_CURRENT_ROW = 12;
     /**
-     * The current column number
+     * The current column number. See {@link #getParam(int)}.
      */
     public static final int TR_CURRENT_COLUMN = 13;
     /**
-     * The order that the rows are traversed
+     * The order that the rows are traversed. See {@link #getParam(int)}.
      */
     public static final int TR_ROW_ORDER = 14;
     /**
-     * Indicates we are traversing rows from the top to the bottom
+     * Indicates we are traversing rows from the top to the bottom. See {@link #getParam(int)}.
      */
     public static final int TR_TOP_TO_BOTTOM = 15;
     /**
-     * Indicates we are traversing rows from the bottom to the top
+     * Indicates we are traversing rows from the bottom to the top. See {@link #getParam(int)}.
      */
     public static final int TR_BOTTOM_TO_TOP = 16;
 
@@ -180,8 +182,8 @@ public class TileRenderer extends TileRendererBase {
     public final boolean eot() { return 0 > currentTile; }
 
     @Override
-    public final int getParam(int param) {
-        switch (param) {
+    public final int getParam(int pname) {
+        switch (pname) {
         case TR_TILE_WIDTH:
             return tileSize.getWidth();
         case TR_TILE_HEIGHT:
@@ -219,7 +221,7 @@ public class TileRenderer extends TileRendererBase {
         case TR_ROW_ORDER:
             return rowOrder;
         default:
-            throw new IllegalArgumentException("Invalid enumerant as argument");
+            throw new IllegalArgumentException("Invalid pname: "+pname);
         }
     }
 
@@ -242,9 +244,6 @@ public class TileRenderer extends TileRendererBase {
     public final void beginTile( GL2ES3 gl ) throws IllegalStateException {
         if( 0 >= imageSize.getWidth() || 0 >= imageSize.getHeight() ) {
             throw new IllegalStateException("Image size has not been set");        
-        }
-        if( null == this.pmvMatrixCB ) {
-            throw new IllegalStateException("pmvMatrixCB has not been set");        
         }
         if (currentTile <= 0) {
             setup();
@@ -297,7 +296,9 @@ public class TileRenderer extends TileRendererBase {
         }
 
         gl.glViewport( 0, 0, tW, tH );
-        pmvMatrixCB.reshapePMVMatrix(gl, currentTileXPos, currentTileYPos, tW, tH, imageSize.getWidth(), imageSize.getHeight());
+        // Do not forget to issue:
+        //    reshape( 0, 0, tW, tH );
+        // which shall reflect tile renderer fileds: currentTileXPos, currentTileYPos and imageSize
         beginCalled = true;
     }
 
@@ -385,72 +386,8 @@ public class TileRenderer extends TileRendererBase {
      * </p>
      */
     @Override
-    public void attachToAutoDrawable(GLAutoDrawable glad, PMVMatrixCallback pmvMatrixCB) throws IllegalStateException {
-        super.attachToAutoDrawable(glad, pmvMatrixCB);
+    public void attachToAutoDrawable(GLAutoDrawable glad) throws IllegalStateException {
+        super.attachToAutoDrawable(glad);
         setTileSize(glad.getWidth(), glad.getHeight(), 0);
     }
-    
-    protected final GLEventListener getTiledGLEL() { return tiledGLEL; }
-    private final GLEventListener tiledGLEL = new GLEventListener() {
-        @Override
-        public void init(GLAutoDrawable drawable) {
-            if( null != glEventListenerPre ) {
-                glEventListenerPre.init(drawable);
-            }
-            final int aSz = listenersInit.length;
-            for(int i=0; i<aSz; i++) {
-                final GLEventListener l = listeners[i];
-                l.init(drawable);
-                listenersInit[i] = true;
-            }
-            if( null != glEventListenerPost ) {
-                glEventListenerPost.init(drawable);
-            }
-        }
-        @Override
-        public void dispose(GLAutoDrawable drawable) {
-            if( null != glEventListenerPre ) {
-                glEventListenerPre.dispose(drawable);
-            }
-            final int aSz = listenersInit.length;
-            for(int i=0; i<aSz; i++) {
-                listeners[i].dispose(drawable);
-            }
-            if( null != glEventListenerPost ) {
-                glEventListenerPost.dispose(drawable);
-            }
-        }
-        @Override
-        public void display(GLAutoDrawable drawable) {
-            if( null != glEventListenerPre ) {
-                glEventListenerPre.display(drawable);
-            }
-            final GL2ES3 gl = drawable.getGL().getGL2ES3();
-
-            beginTile(gl);
-
-            final int aSz = listenersInit.length;
-            for(int i=0; i<aSz; i++) {
-                listeners[i].display(drawable);
-            }
-
-            endTile(gl);
-            if( null != glEventListenerPost ) {
-                glEventListenerPost.display(drawable);
-            }
-        }
-        @Override
-        public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-            if( null != glEventListenerPre ) {
-                glEventListenerPre.reshape(drawable, x, y, width, height);
-            }
-            final int aSz = listenersInit.length;
-            for(int i=0; i<aSz; i++) {
-                listeners[i].reshape(drawable, x, y, width, height);
-            }
-            if( null != glEventListenerPost ) {
-                glEventListenerPost.reshape(drawable, x, y, width, height);
-            }
-        }
-    };    
 }

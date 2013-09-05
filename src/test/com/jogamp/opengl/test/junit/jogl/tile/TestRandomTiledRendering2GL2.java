@@ -1,9 +1,37 @@
+/**
+ * Copyright 2013 JogAmp Community. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ * 
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ * 
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
+ */
 package com.jogamp.opengl.test.junit.jogl.tile;
 
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.GLPixelBuffer;
 import com.jogamp.opengl.util.RandomTileRenderer;
+import com.jogamp.opengl.util.TileRendererBase;
 import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
 import com.jogamp.opengl.util.texture.TextureData;
 import com.jogamp.opengl.util.texture.TextureIO;
@@ -11,19 +39,35 @@ import com.jogamp.opengl.util.texture.TextureIO;
 import java.io.File;
 import java.io.IOException;
 import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLOffscreenAutoDrawable;
+import javax.media.opengl.GLRunnable;
 
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-/** Demonstrates the RandomTileRenderer class by rendering a large version
-    of the Gears demo to the specified file. */
+/**
+ * Demos offscreen {@link GLAutoDrawable} being used for
+ * {@link RandomTileRenderer} rendering to produce a PNG file.
+ * <p>
+ * {@link RandomTileRenderer} is being kicked off from the main thread.
+ * </p>
+ * <p>
+ * {@link RandomTileRenderer} buffer allocation is performed
+ * within the pre {@link GLEventListener} 
+ * set via {@link TileRendererBase#setGLEventListener(GLEventListener, GLEventListener)}
+ * on the main thread. 
+ * </p>
+  * <p>
+ * At tile rendering finish, the viewport and
+ * and the original {@link GLEventListener}'s PMV matrix as well.
+ * The latter is done by calling it's {@link GLEventListener#reshape(GLAutoDrawable, int, int, int, int) reshape} method. 
+ * </p>
+*/
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestRandomTiledRendering2GL2 extends UITestCase {
     static long duration = 500; // ms
@@ -37,7 +81,6 @@ public class TestRandomTiledRendering2GL2 extends UITestCase {
         GLCapabilities caps = new GLCapabilities(null);
         caps.setDoubleBuffered(false);
 
-        // Use a pbuffer for rendering
         final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
         final GLOffscreenAutoDrawable glad = factory.createOffscreenAutoDrawable(null, caps, null, 256, 256, null);
 
@@ -54,43 +97,8 @@ public class TestRandomTiledRendering2GL2 extends UITestCase {
 
         // Initialize the tile rendering library
         final RandomTileRenderer renderer = new RandomTileRenderer();
-        final RandomTileRenderer.PMVMatrixCallback pmvMatrixCallback = new RandomTileRenderer.PMVMatrixCallback() { 
-            public void reshapePMVMatrix(GL _gl, int tileX, int tileY, int tileWidth, int tileHeight, int imageWidth, int imageHeight) {
-                final GL2 gl = _gl.getGL2();
-                gl.glMatrixMode( GL2.GL_PROJECTION );
-                gl.glLoadIdentity();
-
-                /* compute projection parameters */
-                float left, right, bottom, top; 
-                if( imageHeight > imageWidth ) {
-                    float a = (float)imageHeight / (float)imageWidth;
-                    left = -1.0f;
-                    right = 1.0f;
-                    bottom = -a;
-                    top = a;
-                } else {
-                    float a = (float)imageWidth / (float)imageHeight;
-                    left = -a;
-                    right = a;
-                    bottom = -1.0f;
-                    top = 1.0f;
-                }
-                final float w = right - left;
-                final float h = top - bottom;
-                final float l = left + w * tileX / imageWidth;
-                final float r = l + w * tileWidth / imageWidth;
-                final float b = bottom + h * tileY / imageHeight;
-                final float t = b + h * tileHeight / imageHeight;
-
-                final float _w = r - l;
-                final float _h = t - b;
-                System.err.println(">> [l "+left+", r "+right+", b "+bottom+", t "+top+"] "+w+"x"+h+" -> [l "+l+", r "+r+", b "+b+", t "+t+"] "+_w+"x"+_h);
-                gl.glFrustum(l, r, b, t, 5.0f, 60.0f);
-
-                gl.glMatrixMode(GL2.GL_MODELVIEW);        
-            }
-        };
-        renderer.attachToAutoDrawable(glad, pmvMatrixCallback);
+        gears.setTileRenderer(renderer);
+        renderer.attachToAutoDrawable(glad);
         renderer.setImageSize(imageWidth, imageHeight);
 
         final GLPixelBuffer.GLPixelBufferProvider pixelBufferProvider = GLPixelBuffer.defaultProviderWithRowStride;
@@ -130,6 +138,18 @@ public class TestRandomTiledRendering2GL2 extends UITestCase {
         }
 
         renderer.detachFromAutoDrawable();
+        gears.setTileRenderer(null);
+
+        // Restore viewport and Gear's PMV matrix
+        // .. even though we close the demo, this is for documentation!
+        glad.invoke(true, new GLRunnable() {
+            @Override
+            public boolean run(GLAutoDrawable drawable) {
+                drawable.getGL().glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
+                gears.reshape(drawable, 0, 0, drawable.getWidth(), drawable.getHeight());
+                return false;
+            }            
+        });
 
         glad.destroy();
 

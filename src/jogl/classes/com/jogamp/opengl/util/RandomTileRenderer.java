@@ -29,12 +29,14 @@ package com.jogamp.opengl.util;
 
 import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLEventListener;
 
 import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
 
 /**
  * Variation of {@link TileRenderer} w/o using fixed tiles but arbitrary rectangular regions. 
+ * <p>
+ * See {@link TileRendererBase} for details.
+ * </p>
  */
 public class RandomTileRenderer extends TileRendererBase {
     private boolean tileRectSet = false;
@@ -47,8 +49,8 @@ public class RandomTileRenderer extends TileRendererBase {
     }
 
     @Override
-    public final int getParam(int param) {
-        switch (param) {
+    public final int getParam(int pname) {
+        switch (pname) {
         case TR_IMAGE_WIDTH:
             return imageSize.getWidth();
         case TR_IMAGE_HEIGHT:
@@ -62,7 +64,7 @@ public class RandomTileRenderer extends TileRendererBase {
         case TR_CURRENT_TILE_HEIGHT:
             return currentTileHeight;
         default:
-            throw new IllegalArgumentException("Invalid enumerant as argument");
+            throw new IllegalArgumentException("Invalid pname: "+pname);
         }
     }
 
@@ -94,15 +96,14 @@ public class RandomTileRenderer extends TileRendererBase {
         if( 0 >= imageSize.getWidth() || 0 >= imageSize.getHeight() ) {
             throw new IllegalStateException("Image size has not been set");        
         }
-        if( null == this.pmvMatrixCB ) {
-            throw new IllegalStateException("pmvMatrixCB has not been set");        
-        }
         if( !tileRectSet ) {
             throw new IllegalStateException("tileRect has not been set");
         }
         
         gl.glViewport( 0, 0, currentTileWidth, currentTileHeight );
-        pmvMatrixCB.reshapePMVMatrix(gl, currentTileXPos, currentTileYPos, currentTileWidth, currentTileHeight, imageSize.getWidth(), imageSize.getHeight());
+        // Do not forget to issue:
+        //    reshape( 0, 0, tW, tH );
+        // which shall reflect tile renderer fileds: currentTileXPos, currentTileYPos and imageSize
         
         beginCalled = true;
     }
@@ -178,75 +179,11 @@ public class RandomTileRenderer extends TileRendererBase {
     /**
      * Rendering one tile, by simply calling {@link GLAutoDrawable#display()}.
      * 
-     * @throws IllegalStateException if no {@link GLAutoDrawable} is {@link #attachToAutoDrawable(GLAutoDrawable, int) attached}
+     * @throws IllegalStateException if no {@link GLAutoDrawable} is {@link #attachToAutoDrawable(GLAutoDrawable) attached}
      *                               or imageSize is not set
      */
     public void display(int tX, int tY, int tWidth, int tHeight) throws IllegalStateException {
         setTileRect(tX, tY, tWidth, tHeight);
         display();
     }
-
-    protected final GLEventListener getTiledGLEL() { return tiledGLEL; }
-    private final GLEventListener tiledGLEL = new GLEventListener() {
-        @Override
-        public void init(GLAutoDrawable drawable) {
-            if( null != glEventListenerPre ) {
-                glEventListenerPre.init(drawable);
-            }
-            final int aSz = listenersInit.length;
-            for(int i=0; i<aSz; i++) {
-                final GLEventListener l = listeners[i];
-                l.init(drawable);
-                listenersInit[i] = true;
-            }
-            if( null != glEventListenerPost ) {
-                glEventListenerPost.init(drawable);
-            }
-        }
-        @Override
-        public void dispose(GLAutoDrawable drawable) {
-            if( null != glEventListenerPre ) {
-                glEventListenerPre.dispose(drawable);
-            }
-            final int aSz = listenersInit.length;
-            for(int i=0; i<aSz; i++) {
-                listeners[i].dispose(drawable);
-            }
-            if( null != glEventListenerPost ) {
-                glEventListenerPost.dispose(drawable);
-            }
-        }
-        @Override
-        public void display(GLAutoDrawable drawable) {
-            if( null != glEventListenerPre ) {
-                glEventListenerPre.display(drawable);
-            }
-            final GL2ES3 gl = drawable.getGL().getGL2ES3();
-
-            beginTile(gl);
-
-            final int aSz = listenersInit.length;
-            for(int i=0; i<aSz; i++) {
-                listeners[i].display(drawable);
-            }
-
-            endTile(gl);
-            if( null != glEventListenerPost ) {
-                glEventListenerPost.display(drawable);
-            }
-        }
-        @Override
-        public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-            if( null != glEventListenerPre ) {
-                glEventListenerPre.reshape(drawable, x, y, width, height);
-            }
-            final int aSz = listenersInit.length;
-            for(int i=0; i<aSz; i++) {
-                listeners[i].reshape(drawable, x, y, width, height);
-            }
-            if( null != glEventListenerPost ) {
-                glEventListenerPost.reshape(drawable, x, y, width, height);
-            }
-        }
-    };    
 }

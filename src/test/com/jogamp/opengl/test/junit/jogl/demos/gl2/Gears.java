@@ -17,6 +17,7 @@ import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
 import com.jogamp.newt.event.awt.AWTMouseAdapter;
 import com.jogamp.opengl.JoglVersion;
+import com.jogamp.opengl.util.TileRendererBase;
 
 /**
  * Gears.java <BR>
@@ -33,7 +34,8 @@ public class Gears implements GLEventListener {
   private int swapInterval;
   private MouseListener gearsMouse = new GearsMouseAdapter();    
   private KeyListener gearsKeys = new GearsKeyAdapter();
-
+  private TileRendererBase tileRendererInUse = null;
+  
   // private boolean mouseRButtonDown = false;
   private int prevMouseX, prevMouseY;
 
@@ -43,6 +45,10 @@ public class Gears implements GLEventListener {
 
   public Gears() {
     this.swapInterval = 1;
+  }
+  
+  public void setTileRenderer(TileRendererBase tileRenderer) {
+      tileRendererInUse = tileRenderer;
   }
   
   public void setDoRotation(boolean rotate) { this.doRotate = rotate; }
@@ -75,7 +81,22 @@ public class Gears implements GLEventListener {
     System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
     System.err.println("INIT GL IS: " + gl.getClass().getName());
     System.err.println(JoglVersion.getGLStrings(gl, null, false).toString());
+
+    init(gl);
     
+    final Object upstreamWidget = drawable.getUpstreamWidget();
+    if (upstreamWidget instanceof Window) {            
+        final Window window = (Window) upstreamWidget;
+        window.addMouseListener(gearsMouse);
+        window.addKeyListener(gearsKeys);
+    } else if (GLProfile.isAWTAvailable() && upstreamWidget instanceof java.awt.Component) {
+        final java.awt.Component comp = (java.awt.Component) upstreamWidget;
+        new AWTMouseAdapter(gearsMouse).addTo(comp);
+        new AWTKeyAdapter(gearsKeys).addTo(comp);    
+    }
+  }
+    
+  public void init(GL2 gl) {
     float pos[] = { 5.0f, 5.0f, 10.0f, 0.0f };
     float red[] = { 0.8f, 0.1f, 0.0f, 0.7f };
     float green[] = { 0.0f, 0.8f, 0.2f, 0.7f };
@@ -122,36 +143,64 @@ public class Gears implements GLEventListener {
     }
             
     gl.glEnable(GL2.GL_NORMALIZE);
-                
-    final Object upstreamWidget = drawable.getUpstreamWidget();
-    if (upstreamWidget instanceof Window) {            
-        final Window window = (Window) upstreamWidget;
-        window.addMouseListener(gearsMouse);
-        window.addKeyListener(gearsKeys);
-    } else if (GLProfile.isAWTAvailable() && upstreamWidget instanceof java.awt.Component) {
-        final java.awt.Component comp = (java.awt.Component) upstreamWidget;
-        new AWTMouseAdapter(gearsMouse).addTo(comp);
-        new AWTKeyAdapter(gearsKeys).addTo(comp);    
-    }
   }
-    
+  
   public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-    System.err.println("Gears: Reshape "+x+"/"+y+" "+width+"x"+height);
-    GL2 gl = drawable.getGL().getGL2();
-
-    gl.setSwapInterval(swapInterval);
+      GL2 gl = drawable.getGL().getGL2();
+      this.reshape(gl, x, y, width, height);
+  }
+  
+  public void reshape(GL2 gl, int x, int y, int width, int height) {
+    System.err.println("Gears: Reshape "+x+"/"+y+" "+width+"x"+height+", tileRendererInUse "+tileRendererInUse);
 
     gl.glMatrixMode(GL2.GL_PROJECTION);
 
     gl.glLoadIdentity();
-    if(height>width) {
-        float h = (float)height / (float)width;
-        gl.glFrustum(-1.0f, 1.0f, -h, h, 5.0f, 60.0f);
+    
+    final int tileWidth = width;
+    final int tileHeight = height;
+    final int tileX, tileY, imageWidth, imageHeight;
+    if( null == tileRendererInUse ) {
+        gl.setSwapInterval(swapInterval);
+        tileX = 0;
+        tileY = 0;
+        imageWidth = width;
+        imageHeight = height;
     } else {
-        float h = (float)width / (float)height;
-        gl.glFrustum(-h, h, -1.0f, 1.0f, 5.0f, 60.0f);
+        gl.setSwapInterval(0);
+        tileX = tileRendererInUse.getParam(TileRendererBase.TR_CURRENT_TILE_X_POS);
+        tileY = tileRendererInUse.getParam(TileRendererBase.TR_CURRENT_TILE_Y_POS);
+        imageWidth = tileRendererInUse.getParam(TileRendererBase.TR_IMAGE_WIDTH);
+        imageHeight = tileRendererInUse.getParam(TileRendererBase.TR_IMAGE_HEIGHT);
     }
-    gl.glMatrixMode(GL2.GL_MODELVIEW);
+    /* compute projection parameters */
+    float left, right, bottom, top; 
+    if( imageHeight > imageWidth ) {
+        float a = (float)imageHeight / (float)imageWidth;
+        left = -1.0f;
+        right = 1.0f;
+        bottom = -a;
+        top = a;
+    } else {
+        float a = (float)imageWidth / (float)imageHeight;
+        left = -a;
+        right = a;
+        bottom = -1.0f;
+        top = 1.0f;
+    }
+    final float w = right - left;
+    final float h = top - bottom;
+    final float l = left + w * tileX / imageWidth;
+    final float r = l + w * tileWidth / imageWidth;
+    final float b = bottom + h * tileY / imageHeight;
+    final float t = b + h * tileHeight / imageHeight;
+
+    final float _w = r - l;
+    final float _h = t - b;
+    System.err.println(">> angle "+angle+", [l "+left+", r "+right+", b "+bottom+", t "+top+"] "+w+"x"+h+" -> [l "+l+", r "+r+", b "+b+", t "+t+"] "+_w+"x"+_h);
+    gl.glFrustum(l, r, b, t, 5.0f, 60.0f);
+
+    gl.glMatrixMode(GL2.GL_MODELVIEW);        
     gl.glLoadIdentity();
     gl.glTranslatef(0.0f, 0.0f, -40.0f);
   }
@@ -170,11 +219,6 @@ public class Gears implements GLEventListener {
   }
 
   public void display(GLAutoDrawable drawable) {
-    if( doRotate ) {
-        // Turn the gears' teeth
-        angle += 2.0f;
-    }
-
     // Get the GL corresponding to the drawable we are animating
     GL2 gl = drawable.getGL().getGL2();
 
@@ -190,7 +234,18 @@ public class Gears implements GLEventListener {
     } else {
       gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
     }
-            
+    displayImpl(gl);
+  }
+  public void display(GL2 gl) {
+      gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+      gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
+      displayImpl(gl);
+  }
+  private void displayImpl(GL2 gl) {
+    if( doRotate ) {
+        // Turn the gears' teeth
+        angle += 2.0f;
+    }
     // Rotate the entire assembly of gears based on how the user
     // dragged the mouse around
     gl.glPushMatrix();
@@ -221,7 +276,7 @@ public class Gears implements GLEventListener {
             
     // Remember that every push needs a pop; this one is paired with
     // rotating the entire gear assembly
-    gl.glPopMatrix();
+    gl.glPopMatrix();      
   }
 
   public static void gear(GL2 gl,
