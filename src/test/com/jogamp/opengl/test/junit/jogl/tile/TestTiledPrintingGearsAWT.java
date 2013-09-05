@@ -153,15 +153,20 @@ public class TestTiledPrintingGearsAWT extends UITestCase implements Printable {
             final int frameWidthS = frameWidth*xScaleComp;
             final int frameHeightS = frameHeight*yScaleComp;
             
-            System.err.println("DPI: "+printDPI+", scale "+xScale+"/"+yScale+", frame: "+frameWidth+"x"+frameHeight+" -> "+frameWidthS+"x"+frameHeightS);
+            double xMargin = (pf.getImageableWidth() - frameWidthS*xScale)/2;
+            double yMargin = (pf.getImageableHeight() - frameHeightS*yScale)/2;
+            final double moveX, moveY;
+            moveX = pf.getImageableX() + xMargin;
+            moveY = pf.getImageableY() + yMargin;
+            System.err.println("DPI: "+printDPI+", scale "+xScale+"/"+yScale+", margin "+xMargin+"/"+yMargin+", move "+moveX+"/"+moveY+
+                               ", frame: "+frameWidth+"x"+frameHeight+" -> "+frameWidthS+"x"+frameHeightS);
+                        
             frame.setSize(frameWidthS, frameHeightS);            
-            
-            // double xMargin = (pf.getImageableWidth() - img.getWidth()*xScale)/2;
-            // double yMargin = (pf.getImageableHeight() - img.getHeight()*yScale)/2;
-            // g2d.translate(pf.getImageableX() + xMargin, pf.getImageableY() + yMargin);        
+            g2d.translate(moveX, moveY);
             g2d.scale(xScale , yScale );            
+        } else {
+            g2d.translate(pf.getImageableX(), pf.getImageableY());
         }
-        g2d.translate(pf.getImageableX(), pf.getImageableY());
         
         frame.printAll(g);
         
