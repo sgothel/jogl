@@ -113,6 +113,10 @@ public class GLDrawableUtil {
   /**
    * Swaps the {@link GLContext} and all {@link GLEventListener} between {@link GLAutoDrawable} <code>a</code> and <code>b</code>,
    * while preserving it's initialized state, resets the GL-Viewport and issuing {@link GLEventListener#reshape(GLAutoDrawable, int, int, int, int) reshape(..)}.
+   * <p> 
+   * The {@link GLAutoDrawable} to {@link GLAnimatorControl} association 
+   * is also swapped. 
+   * </p>
    * <p>
    * If an {@link GLAnimatorControl} is being attached to {@link GLAutoDrawable} <code>a</code> or <code>b</code> 
    * and the current thread is different than {@link GLAnimatorControl#getThread() the animator's thread}, it is paused during the operation.
