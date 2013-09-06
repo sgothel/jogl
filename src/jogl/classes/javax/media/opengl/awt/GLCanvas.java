@@ -167,7 +167,7 @@ import jogamp.opengl.GLDrawableImpl;
  */
 
 @SuppressWarnings("serial")
-public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosingProtocol, OffscreenLayerOption {
+public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosingProtocol, OffscreenLayerOption, AWTPrintLifecycle {
 
   private static final boolean DEBUG = Debug.debug("GLCanvas");
 
@@ -745,6 +745,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   private BufferedImage printVFlipImage = null;
   private Graphics2D printGraphics = null;
   
+  @Override
   public void setupPrint() {
       if( !validateGLDrawable() ) {
           if(DEBUG) {
@@ -868,6 +869,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       }
   };
   
+  @Override
   public void releasePrint() {
       if( !printActive || null == printGLAD ) {
           throw new IllegalStateException("setupPrint() not called");
