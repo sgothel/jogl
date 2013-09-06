@@ -196,9 +196,9 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererNoti
     }
     final float w = right - left;
     final float h = top - bottom;
-    final float l = left + w * tileX / imageWidth;
+    final float l = left + tileX * w / imageWidth;
     final float r = l + w * tileWidth / imageWidth;
-    final float b = bottom + h * tileY / imageHeight;
+    final float b = bottom + tileY * h / imageHeight;
     final float t = b + h * tileHeight / imageHeight;
 
     final float _w = r - l;
@@ -228,7 +228,11 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererNoti
     // Get the GL corresponding to the drawable we are animating
     GL2 gl = drawable.getGL().getGL2();
 
-    gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    if( null == tileRendererInUse ) {
+        gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    } else {
+        gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+    }
 
     // Special handling for the case where the GLJPanel is translucent
     // and wants to be composited with other Java 2D content
@@ -243,9 +247,13 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererNoti
     displayImpl(gl);
   }
   public void display(GL2 gl) {
-      gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-      gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
-      displayImpl(gl);
+    if( null == tileRendererInUse ) {
+        gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    } else {
+        gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+    }
+    gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
+    displayImpl(gl);
   }
   private void displayImpl(GL2 gl) {
     if( doRotate ) {
