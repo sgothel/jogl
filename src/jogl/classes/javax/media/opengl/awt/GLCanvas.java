@@ -89,6 +89,7 @@ import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
+import javax.media.opengl.GLOffscreenAutoDrawable;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
 import javax.media.opengl.Threading;
@@ -104,11 +105,12 @@ import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
 import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
 import com.jogamp.nativewindow.awt.JAWTWindow;
 import com.jogamp.opengl.JoglVersion;
-import com.jogamp.opengl.util.RandomTileRenderer;
+import com.jogamp.opengl.util.GLDrawableUtil;
 import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
+import com.jogamp.opengl.util.TileRenderer;
 import com.jogamp.opengl.util.TileRendererBase;
 import com.jogamp.opengl.util.awt.AWTGLPixelBuffer;
-import com.jogamp.opengl.util.awt.AWTGLPixelBuffer.SingleAWTGLPixelBufferProvider;
+import com.jogamp.opengl.util.awt.AWTGLPixelBuffer.AWTGLPixelBufferProvider;
 
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
@@ -631,7 +633,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }  
 
   private boolean validateGLDrawable() {
-      if( Beans.isDesignTime() || !isDisplayable() ) {
+      if( Beans.isDesignTime() || !isDisplayable() || printActive ) {
           return false; // early out!
       }
       final GLDrawable _drawable = drawable;
@@ -733,40 +735,150 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     paint(g);
   }
 
-  private static SingleAWTGLPixelBufferProvider singleAWTGLPixelBufferProvider = null;
-  private static synchronized SingleAWTGLPixelBufferProvider getSingleAWTGLPixelBufferProvider() {
-      if( null == singleAWTGLPixelBufferProvider ) {
-          singleAWTGLPixelBufferProvider = new SingleAWTGLPixelBufferProvider( true /* allowRowStride */ );
+  private static final int PRINT_TILE_SIZE = 256;
+  private volatile boolean printActive = false;
+  private GLOffscreenAutoDrawable printGLAD = null;
+  private TileRenderer printRenderer = null;
+  private GLAnimatorControl printAnimator = null; 
+  private AWTGLPixelBuffer printBuffer = null;
+  private BufferedImage printVFlipImage = null;
+  private Graphics2D printGraphics = null;
+  
+  public void setupPrint() {
+      printActive = true; 
+      sendReshape = false; // clear reshape flag
+      printAnimator =  helper.getAnimator();
+      if( null != printAnimator ) {
+          printAnimator.remove(this);
       }
-      return singleAWTGLPixelBufferProvider;
+      final GLCapabilities caps = (GLCapabilities)getChosenGLCapabilities().cloneMutable();
+      caps.setOnscreen(false);
+      final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
+      printGLAD = factory.createOffscreenAutoDrawable(null, caps, null, PRINT_TILE_SIZE, PRINT_TILE_SIZE, null);
+      GLDrawableUtil.swapGLContextAndAllGLEventListener(this, printGLAD);
+      destroyOnEDTAction.run();
+      printRenderer = new TileRenderer();
+      printRenderer.setRowOrder(TileRenderer.TR_TOP_TO_BOTTOM);
+      printRenderer.setTileSize(printGLAD.getWidth(), printGLAD.getHeight(), 0);
+      printRenderer.attachToAutoDrawable(printGLAD);
+      
+      final GLEventListener preTileGLEL = new GLEventListener() {
+          @Override
+          public void init(GLAutoDrawable drawable) {
+          }
+          @Override
+          public void dispose(GLAutoDrawable drawable) {}
+          @Override
+          public void display(GLAutoDrawable drawable) {
+              final GL gl = drawable.getGL();
+              if( null == printBuffer ) {
+                  final int componentCount = isOpaque() ? 3 : 4;
+                  final AWTGLPixelBufferProvider printBufferProvider = new AWTGLPixelBufferProvider( true /* allowRowStride */ );      
+                  final GLPixelAttributes pixelAttribs = printBufferProvider.getAttributes(gl, componentCount);
+                  printBuffer = printBufferProvider.allocate(gl, pixelAttribs, printGLAD.getWidth(), printGLAD.getHeight(), 1, true, 0);
+                  printRenderer.setTileBuffer(printBuffer);
+                  printVFlipImage = new BufferedImage(printBuffer.width, printBuffer.height, printBuffer.image.getType());
+              }
+              System.err.println("XXX tile-pre "+printRenderer); // FIXME
+          }
+          @Override
+          public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
+      };
+      final GLEventListener postTileGLEL = new GLEventListener() {
+          int tTopRowHeight = 0;
+          @Override
+          public void init(GLAutoDrawable drawable) {
+              tTopRowHeight = 0;
+          }
+          @Override
+          public void dispose(GLAutoDrawable drawable) {}
+          @Override
+          public void display(GLAutoDrawable drawable) {              
+              // Copy temporary data into raster of BufferedImage for faster
+              // blitting Note that we could avoid this copy in the cases
+              // where !offscreenDrawable.isGLOriented(),
+              // but that's the software rendering path which is very slow anyway.
+              final int tHeight = printRenderer.getParam(TileRendererBase.TR_CURRENT_TILE_HEIGHT);
+              final int tWidth = printRenderer.getParam(TileRendererBase.TR_CURRENT_TILE_WIDTH);
+              // final BufferedImage dstImage = printBuffer.image;
+              final BufferedImage srcImage = printBuffer.image;
+              final BufferedImage dstImage = printVFlipImage;
+              final int[] src = ((DataBufferInt) srcImage.getRaster().getDataBuffer()).getData();
+              final int[] dst = ((DataBufferInt) dstImage.getRaster().getDataBuffer()).getData();
+              final int incr = printBuffer.width;
+              int srcPos = 0;
+              int destPos = (tHeight - 1) * printBuffer.width;
+              for (; destPos >= 0; srcPos += incr, destPos -= incr) {
+                  System.arraycopy(src, srcPos, dst, destPos, incr);
+              }
+              // Draw resulting image in one shot
+              final int tCols = printRenderer.getParam(TileRenderer.TR_COLUMNS);
+              final int tRows = printRenderer.getParam(TileRenderer.TR_ROWS);
+              final int tCol = printRenderer.getParam(TileRenderer.TR_CURRENT_COLUMN);
+              final int tRow = printRenderer.getParam(TileRenderer.TR_CURRENT_ROW);
+              final int pX = printRenderer.getParam(TileRendererBase.TR_CURRENT_TILE_X_POS); 
+              final int pY = printRenderer.getParam(TileRendererBase.TR_CURRENT_TILE_Y_POS);
+              final int pYf;
+              if( tRow == tRows - 1 ) {
+                  tTopRowHeight = tHeight;
+                  pYf = 0;
+              } else if( tRow == tRows - 2 ){
+                  pYf = tTopRowHeight;
+              } else {
+                  pYf = ( tRows - 2 - tRow ) * tHeight + tTopRowHeight;
+              }
+              printGraphics.drawImage(dstImage, pX, pYf, dstImage.getWidth(), dstImage.getHeight(), null); // Null ImageObserver since image data is ready.
+              printGraphics.setColor(Color.BLACK);
+              printGraphics.drawRect(pX, pYf, tWidth, tHeight);
+              System.err.println("XXX tile-post.X "+tCols+"x"+tRows+" ["+tCol+"]["+tRow+"] "+pX+"/"+pY+" "+tWidth+"x"+tHeight+" dst-img "+dstImage.getWidth()+"x"+dstImage.getHeight()+" -> "+pX+"/"+pYf); // +", "+dstImage); // FIXME
+          }
+          @Override
+          public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
+      };      
+      printRenderer.setGLEventListener(preTileGLEL, postTileGLEL);
+      
+      System.err.println("AWT print.setup "+printRenderer); // FIXME
+      System.err.println("AWT print.setup "+printGLAD); // FIXME
   }
-  private boolean printActive = false;
-  private boolean printAnimatorPaused = false;
-  private RandomTileRenderer printRenderer;
-  private Graphics2D printGraphics;
-  private int printWidth = 0;
-  private int printHeight = 0;
-  public void setupPrint (final double scaleX, final double scaleY) {
-      printActive = true;
-      // this.printWidth = scaleX;
-      // this.printHeight = scaleY;      
-  }  
-  private void initPrint() {
-      printActive = true;
-      final GLAnimatorControl animator =  helper.getAnimator();
-      if( animator.isAnimating() ) {
-          animator.pause();
-          printAnimatorPaused = true;
+  
+  public void releasePrint() {
+      if( !printActive || null == printGLAD ) {
+          throw new IllegalStateException("setupPrint() not called");
       }
-      if( 0 >= printWidth ) {
-          printWidth = getWidth();
+      printRenderer.detachFromAutoDrawable(); // tile-renderer -> printGLAD
+      createDrawableAndContext( false );
+      GLDrawableUtil.swapGLContextAndAllGLEventListener(printGLAD, this);      
+      printGLAD.destroy();
+      if( null != printAnimator ) {
+          printAnimator.add(this);
       }
-      if( 0 >= printHeight ) {
-          printHeight = getHeight();
+      printGLAD = null;
+      printRenderer = null;
+      printAnimator = null;
+      if( null != printBuffer ) {
+          printBuffer.dispose();
+          printBuffer = null;
       }
-      System.err.println("AWT print.init: printSize "+printWidth+"x"+printHeight+", canvasSize "+getWidth()+"x"+getWidth()+
-                         ", drawableSize "+drawable.getWidth()+"x"+drawable.getHeight()+
-                         ", animatorPaused "+printAnimatorPaused);
+      if( null != printVFlipImage ) {
+          printVFlipImage.flush();
+          printVFlipImage = null;
+      }
+      printGraphics = null;
+      System.err.println("AWT print.release "+printRenderer); // FIXME
+      System.err.println("AWT print.release "+this); // FIXME
+      printActive = false;
+  }
+  
+  @Override
+  public void print(Graphics graphics) {
+      if( !printActive || null == printGLAD ) {
+          throw new IllegalStateException("setupPrint() not called");
+      }
+      sendReshape = false; // clear reshape flag
+
+      printGraphics = (Graphics2D)graphics;
+      
+      System.err.println("AWT print.0: canvasSize "+getWidth()+"x"+getWidth()+", printAnimator "+printAnimator);
       {
           final RenderingHints rHints = printGraphics.getRenderingHints();
           final Set<Entry<Object, Object>> rEntries = rHints.entrySet();
@@ -781,114 +893,24 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       System.err.println(" scale "+aTrans.getScaleX()+" x "+aTrans.getScaleY());
       System.err.println(" move "+aTrans.getTranslateX()+" x "+aTrans.getTranslateY());
       
-      final SingleAWTGLPixelBufferProvider printBufferProvider = getSingleAWTGLPixelBufferProvider();     
-      printRenderer = new RandomTileRenderer();
-      printRenderer.setImageSize(printWidth, printHeight);
-      printRenderer.attachToAutoDrawable(this);      
-      final int componentCount;
-      if( isOpaque() ) {
-          // w/o alpha
-          componentCount = 3;
-      } else {
-          // with alpha
-          componentCount = 4;
+      final Rectangle gClipOrig = graphics.getClipBounds();
+      final Rectangle gClip = new Rectangle(gClipOrig);
+      if( 0 > gClip.x ) {
+          gClip.width += gClip.x;
+          gClip.x = 0;
       }
-      final BufferedImage[] cpuVFlipImageStore = { null };
-      final GLEventListener preTileGLEL = new GLEventListener() {
-          @Override
-          public void init(GLAutoDrawable drawable) {
-          }
-          @Override
-          public void dispose(GLAutoDrawable drawable) {}
-          @Override
-          public void display(GLAutoDrawable drawable) {
-              final GL gl = drawable.getGL();
-              final GLPixelAttributes pixelAttribs = printBufferProvider.getAttributes(gl, componentCount);
-              final int tileWidth = printRenderer.getParam(TileRendererBase.TR_CURRENT_TILE_WIDTH);
-              final int tileHeight = printRenderer.getParam(TileRendererBase.TR_CURRENT_TILE_HEIGHT);
-              AWTGLPixelBuffer pixelBuffer = printBufferProvider.getSingleBuffer(pixelAttribs);
-              if( null != pixelBuffer && pixelBuffer.requiresNewBuffer(gl, tileWidth, tileHeight, 0) ) {
-                  pixelBuffer.dispose();
-                  pixelBuffer = null;
-              }
-              if ( null == pixelBuffer ) {
-                  pixelBuffer = printBufferProvider.allocate(gl, pixelAttribs, tileWidth, tileHeight, 1, true, 0);
-                  printRenderer.setTileBuffer(pixelBuffer);
-              }
-                            
-              final BufferedImage cpuVFlipImage = cpuVFlipImageStore[0];
-              if( null == cpuVFlipImage || pixelBuffer.width > cpuVFlipImage.getWidth() || pixelBuffer.height > cpuVFlipImage.getHeight() ) {
-                  cpuVFlipImageStore[0] = new BufferedImage(pixelBuffer.width, pixelBuffer.height, pixelBuffer.image.getType());
-              }
-              System.err.println("XXX tile-pre "+printRenderer); // FIXME
-          }
-          @Override
-          public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
-      };
-      final GLEventListener postTileGLEL = new GLEventListener() {
-          @Override
-          public void init(GLAutoDrawable drawable) {
-          }
-          @Override
-          public void dispose(GLAutoDrawable drawable) {}
-          @Override
-          public void display(GLAutoDrawable drawable) {              
-              // Copy temporary data into raster of BufferedImage for faster
-              // blitting Note that we could avoid this copy in the cases
-              // where !offscreenDrawable.isGLOriented(),
-              // but that's the software rendering path which is very slow anyway.
-              final int tileHeight = printRenderer.getParam(TileRendererBase.TR_CURRENT_TILE_HEIGHT);
-              final AWTGLPixelBuffer pixelBuffer = (AWTGLPixelBuffer) printRenderer.getTileBuffer();
-              final BufferedImage srcImage = pixelBuffer.image;
-              final BufferedImage dstImage = cpuVFlipImageStore[0];
-              final int[] src = ((DataBufferInt) srcImage.getRaster().getDataBuffer()).getData();
-              final int[] dst = ((DataBufferInt) dstImage.getRaster().getDataBuffer()).getData();
-              final int incr = pixelBuffer.width;
-              int srcPos = 0;
-              int destPos = (tileHeight - 1) * pixelBuffer.width;
-              for (; destPos >= 0; srcPos += incr, destPos -= incr) {
-                  System.arraycopy(src, srcPos, dst, destPos, incr);
-              }
-              System.err.println("XXX tile-post dst-img "+dstImage); // FIXME
-              // Draw resulting image in one shot
-              printGraphics.drawImage(dstImage, 0, 0, dstImage.getWidth(), dstImage.getHeight(), null); // Null ImageObserver since image data is ready.
-              System.err.println("XXX tile-post.X"); // FIXME
-          }
-          @Override
-          public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
-      };      
-      printRenderer.setGLEventListener(preTileGLEL, postTileGLEL);
-      System.err.println("AWT print.init: "+printRenderer);
-  }
-  public void releasePrint() {
-      System.err.println("AWT print.release: "+printRenderer);
-      printRenderer.detachFromAutoDrawable();
-      printRenderer = null;
-      this.printGraphics = null;
-      singleAWTGLPixelBufferProvider = null;
-      final GLAnimatorControl animator =  printAnimatorPaused ? helper.getAnimator() : null;
-      if( null != animator ) {
-          animator.resume();
+      if( 0 > gClip.y ) {
+          gClip.height += gClip.y;
+          gClip.y = 0;
       }
-      printAnimatorPaused = false;
-      printActive = false;
-  }
-  
-  @Override
-  public void print(Graphics graphics) {
-      this.printGraphics = (Graphics2D)graphics;
-      if( null == printRenderer ) {
-        initPrint();
-      }
-      if( null != printRenderer ) {
-          final Rectangle clip = graphics.getClipBounds();
-          System.err.println("AWT print0.1: "+clip+", "+printRenderer);
-          printRenderer.setTileRect(clip.x, clip.y, clip.width, clip.height);
-      }
-      System.err.println("AWT print0.2: "+printRenderer);      
-      // super.print(graphics);
-      display();
-      System.err.println("AWT print0.X: "+printRenderer);
+      printRenderer.setImageSize(gClip.width, gClip.height);      
+      printRenderer.setTileOffset(gClip.x, gClip.y);
+      System.err.println("AWT print.0: "+gClipOrig+" -> "+gClip);
+      System.err.println("AWT print.0: "+printRenderer);
+      do {
+          printRenderer.display();
+      } while ( !printRenderer.eot() );
+      System.err.println("AWT print.X: "+printRenderer);
   }
     
   @Override

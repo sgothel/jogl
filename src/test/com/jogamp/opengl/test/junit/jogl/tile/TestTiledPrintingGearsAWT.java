@@ -28,19 +28,6 @@
  
 package com.jogamp.opengl.test.junit.jogl.tile;
 
-import javax.media.opengl.*;
-
-import com.jogamp.opengl.util.Animator;
-import javax.media.opengl.awt.GLCanvas;
-import com.jogamp.newt.event.awt.AWTKeyAdapter;
-import com.jogamp.newt.event.awt.AWTWindowAdapter;
-import com.jogamp.newt.event.TraceKeyAdapter;
-import com.jogamp.newt.event.TraceWindowAdapter;
-
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
-import com.jogamp.opengl.test.junit.util.UITestCase;
-import com.jogamp.opengl.test.junit.util.QuitAdapter;
-
 import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.Dimension;
@@ -56,16 +43,36 @@ import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLProfile;
+import javax.media.opengl.awt.GLCanvas;
+import javax.print.StreamPrintService;
+import javax.print.StreamPrintServiceFactory;
+import javax.print.attribute.HashPrintRequestAttributeSet;
+import javax.print.attribute.PrintRequestAttributeSet;
+import javax.print.attribute.standard.MediaSizeName;
+
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.AfterClass;
-import org.junit.Test;
 import org.junit.FixMethodOrder;
+import org.junit.Test;
 import org.junit.runners.MethodSorters;
+
+import com.jogamp.newt.event.TraceKeyAdapter;
+import com.jogamp.newt.event.TraceWindowAdapter;
+import com.jogamp.newt.event.awt.AWTKeyAdapter;
+import com.jogamp.newt.event.awt.AWTWindowAdapter;
+import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.util.QuitAdapter;
+import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.util.Animator;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestTiledPrintingGearsAWT extends UITestCase implements Printable {
@@ -137,44 +144,57 @@ public class TestTiledPrintingGearsAWT extends UITestCase implements Printable {
          */
         Graphics2D g2d = (Graphics2D)g;
         
-        final int xScaleComp = (int) Math.round(printDPI/72.0);
-        final int yScaleComp = (int) Math.round(printDPI/72.0);
+        final int scaleComp;
+        {
+            final int xScaleComp = (int) Math.round(printDPI/72.0);
+            final int yScaleComp = (int) Math.round(printDPI/72.0);
+            scaleComp = Math.min(xScaleComp, yScaleComp);
+        }
+        final double scale;
+        {
+            final double xScale = 72.0/printDPI;
+            final double yScale = 72.0/printDPI;
+            scale = Math.min(xScale, yScale);
+        }
 
-        System.err.println("DPI: "+printDPI+", scaleComp "+xScaleComp+"/"+xScaleComp);
-        glCanvas.setupPrint(xScaleComp, yScaleComp);
+        System.err.println("DPI: "+printDPI+", scaleComp "+scaleComp);
+        glCanvas.setupPrint();
         
         final int frameWidth = frame.getWidth();
         final int frameHeight= frame.getHeight();
         
-        if( xScaleComp != 1 || yScaleComp != 1 ) {
-            final double xScale = 72.0/printDPI;
-            final double yScale = 72.0/printDPI;
+        final double moveX, moveY;
+        
+        if( scaleComp != 1 ) {            
+            final int frameWidthS = frameWidth*(scaleComp-1);
+            final int frameHeightS = frameHeight*(scaleComp-1);
             
-            final int frameWidthS = frameWidth*xScaleComp;
-            final int frameHeightS = frameHeight*yScaleComp;
-            
-            double xMargin = (pf.getImageableWidth() - frameWidthS*xScale)/2;
-            double yMargin = (pf.getImageableHeight() - frameHeightS*yScale)/2;
-            final double moveX, moveY;
+            double xMargin = (pf.getImageableWidth() - frameWidthS*scale)/2;
+            double yMargin = (pf.getImageableHeight() - frameHeightS*scale)/2;
             moveX = pf.getImageableX() + xMargin;
             moveY = pf.getImageableY() + yMargin;
-            System.err.println("DPI: "+printDPI+", scale "+xScale+"/"+yScale+", margin "+xMargin+"/"+yMargin+", move "+moveX+"/"+moveY+
+            System.err.println("DPI: "+printDPI+", scale "+scale+", margin "+xMargin+"/"+yMargin+", move "+moveX+"/"+moveY+
                                ", frame: "+frameWidth+"x"+frameHeight+" -> "+frameWidthS+"x"+frameHeightS);
                         
-            frame.setSize(frameWidthS, frameHeightS);            
-            g2d.translate(moveX, moveY);
-            g2d.scale(xScale , yScale );            
+            frame.setSize(frameWidthS, frameHeightS);
         } else {
-            g2d.translate(pf.getImageableX(), pf.getImageableY());
+            moveX = pf.getImageableX();
+            moveY = pf.getImageableY();
+            System.err.println("DPI: "+printDPI+", scale "+scale+", move "+moveX+"/"+moveY+
+                               ", frame: "+frameWidth+"x"+frameHeight);
+        }
+        g2d.translate(moveX, moveY);
+        if( scaleComp != 1 ) {
+            g2d.scale(scale , scale );
         }
         
         frame.printAll(g);
+        glCanvas.releasePrint();
         
-        if( xScaleComp != 1 || yScaleComp != 1 ) {
+        if( scaleComp != 1 ) {
             System.err.println("DPI: reset frame size "+frameWidth+"x"+frameHeight);
             frame.setSize(frameWidth, frameHeight);
         }
-        glCanvas.releasePrint();
 
         /* tell the caller that this page is part of the printed document */
         return PAGE_EXISTS;
@@ -182,7 +202,88 @@ public class TestTiledPrintingGearsAWT extends UITestCase implements Printable {
 
     private Frame frame;
     private GLCanvas glCanvas;
+    
+    protected void doPrintAuto(int dpi, int pOrientation, Paper paper) {
+        final PrintRequestAttributeSet aset = new HashPrintRequestAttributeSet();
+        aset.add(MediaSizeName.ISO_A1); // 594 × 841 mm
+        aset.add(MediaSizeName.ISO_A2); // 420 × 594 mm
+        aset.add(MediaSizeName.ISO_A3); // 297 × 420 mm
+        aset.add(MediaSizeName.ISO_A4); // 210 × 297 mm
+        
+        printCount++;
+        final int maxSimpleTestNameLen = getMaxTestNameLen()+getClass().getSimpleName().length()+1;
+        final String simpleTestName = getSimpleTestName(".");
+        
+        final String psMimeType = "application/postscript";
+        final String pdfMimeType = "application/pdf";
+        final PrinterJob pj = PrinterJob.getPrinterJob();
 
+        StreamPrintServiceFactory[] factories = PrinterJob.lookupStreamPrintServices(pdfMimeType);
+        if (factories.length > 0) {
+            final String fname = String.format("%-"+maxSimpleTestNameLen+"s-n%04d-dpi%03d.%s", simpleTestName, printCount, dpi, "pdf");
+            System.err.println("doPrint: dpi "+dpi+", "+fname);
+            FileOutputStream outstream;
+            try {
+                outstream = new FileOutputStream(fname);
+                Assert.assertTrue(doPrintAutoImpl(pj, factories[0].getPrintService(outstream), dpi, pOrientation, paper));
+            } catch (FileNotFoundException e) {
+                Assert.assertNull("Unexpected exception", e);
+            }
+            return;
+        }        
+        System.err.println("No PDF");
+        
+        factories = PrinterJob.lookupStreamPrintServices(psMimeType);
+        if (factories.length > 0) {
+            final String fname = String.format("%-"+maxSimpleTestNameLen+"s-n%04d-dpi%03d.%s", simpleTestName, printCount, dpi, "ps");
+            System.err.println("doPrint: dpi "+dpi+", "+fname);
+            FileOutputStream outstream;
+            try {
+                outstream = new FileOutputStream(fname);
+                Assert.assertTrue(doPrintAutoImpl(pj, factories[0].getPrintService(outstream), dpi, pOrientation, paper));
+            } catch (FileNotFoundException e) {
+                Assert.assertNull("Unexpected exception", e);
+            }
+        }        
+        System.err.println("No PS");
+    }
+    private int printCount = 0;
+    private boolean doPrintAutoImpl(PrinterJob job, StreamPrintService ps, int dpi, int pOrientation, Paper paper) {
+        printDPI = dpi;
+        boolean ok = true;
+        try {            
+            PageFormat pageFormat = job.defaultPage();
+            if( null != paper ) {
+                /**
+                Paper paper = new Paper();
+                paper.setSize(500,500); // Large Address Dimension
+                paper.setImageableArea(20, 20, 450, 420); */
+                pageFormat.setPaper(paper);
+            }
+            pageFormat.setOrientation(pOrientation); // PageFormat.LANDSCAPE or PageFormat.PORTRAIT
+            job.setPrintService(ps);
+            job.setPrintable(TestTiledPrintingGearsAWT.this, pageFormat);
+            job.print();
+        } catch (PrinterException pe) {
+            pe.printStackTrace();
+            ok = false;
+        }        
+        return ok;
+    }    
+    protected void doPrintManual(int dpi) {
+        printDPI = dpi;
+        PrinterJob job = PrinterJob.getPrinterJob();
+        job.setPrintable(TestTiledPrintingGearsAWT.this);
+        boolean ok = job.printDialog();
+        if (ok) {
+            try {
+                job.print();
+            } catch (PrinterException ex) {
+                ex.printStackTrace();
+            }
+        }        
+    }
+    
     protected void runTestGL(GLCapabilities caps) throws InterruptedException, InvocationTargetException {
         glCanvas = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas);        
@@ -196,31 +297,11 @@ public class TestTiledPrintingGearsAWT extends UITestCase implements Printable {
         
         final ActionListener print72DPIAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                 PrinterJob job = PrinterJob.getPrinterJob();
-                 job.setPrintable(TestTiledPrintingGearsAWT.this);
-                 boolean ok = job.printDialog();
-                 if (ok) {
-                     try {
-                         printDPI = 72; // default
-                         job.print();
-                     } catch (PrinterException ex) {
-                         ex.printStackTrace();
-                     }
-                 }
+                doPrintAuto(72, PageFormat.PORTRAIT, null); // PageFormat.LANDSCAPE or PageFormat.PORTRAIT
             } };
         final ActionListener print300DPIAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                 PrinterJob job = PrinterJob.getPrinterJob();
-                 job.setPrintable(TestTiledPrintingGearsAWT.this);
-                 boolean ok = job.printDialog();
-                 if (ok) {
-                     try {
-                         printDPI = 300;
-                         job.print();
-                     } catch (PrinterException ex) {
-                         ex.printStackTrace();
-                     }
-                 }
+                doPrintAuto(300, PageFormat.PORTRAIT, null);
             } };
         final Button print72DPIButton = new Button("72dpi");
         print72DPIButton.addActionListener(print72DPIAction);
@@ -251,8 +332,17 @@ public class TestTiledPrintingGearsAWT extends UITestCase implements Printable {
         animator.setUpdateFPSFrames(60, System.err);        
         animator.start();
 
+        boolean dpi72Done = false;
+        boolean dpi300Done = false;
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && ( 0 == duration || animator.getTotalFPSDuration()<duration )) {
             Thread.sleep(100);
+            if( !dpi72Done ) {
+                dpi72Done = true;
+                doPrintAuto(72, PageFormat.PORTRAIT, null);
+            } else if( !dpi300Done ) {
+                dpi300Done = true;
+                doPrintAuto(300, PageFormat.PORTRAIT, null);
+            }
         }
 
         Assert.assertNotNull(frame);
