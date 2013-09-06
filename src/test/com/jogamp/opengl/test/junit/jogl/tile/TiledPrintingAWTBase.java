@@ -248,6 +248,7 @@ public abstract class TiledPrintingAWTBase extends UITestCase implements Printab
             } catch (FileNotFoundException e) {
                 Assert.assertNull("Unexpected exception", e);
             }
+            return;
         }        
         System.err.println("No PS");
     }

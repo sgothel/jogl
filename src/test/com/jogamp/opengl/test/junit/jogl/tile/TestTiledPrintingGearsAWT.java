@@ -160,10 +160,8 @@ public class TestTiledPrintingGearsAWT extends TiledPrintingAWTBase  {
                 doPrintAuto(frame, glCanvas, TestTiledPrintingGearsAWT.this, PageFormat.LANDSCAPE, null, offscreenPrinting, 300);
             }
         }
-
-        try {
-            Thread.sleep(1000); // time to flush .. 
-        } catch (InterruptedException e) { }
+        try { Thread.sleep(4000);  } catch (InterruptedException e) { } // time to finish print jobs .. FIXME ??
+        
         Assert.assertNotNull(frame);
         Assert.assertNotNull(glCanvas);
         Assert.assertNotNull(animator);

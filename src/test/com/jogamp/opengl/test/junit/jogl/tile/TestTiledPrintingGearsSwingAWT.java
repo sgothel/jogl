@@ -160,17 +160,14 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
             Thread.sleep(200);
             if( !dpi72Done ) {
                 dpi72Done = true;
-                System.err.println("XXX "+glJPanel);
                 doPrintAuto(frame, glJPanel, TestTiledPrintingGearsSwingAWT.this, PageFormat.LANDSCAPE, null, offscreenPrinting, 72);
             } else if( !dpi300Done ) {
                 dpi300Done = true;
                 doPrintAuto(frame, glJPanel, TestTiledPrintingGearsSwingAWT.this, PageFormat.LANDSCAPE, null, offscreenPrinting, 300);
             }
         }
-
-        try {
-            Thread.sleep(1000); // time to flush .. 
-        } catch (InterruptedException e) { }    
+        try { Thread.sleep(4000);  } catch (InterruptedException e) { } // time to finish print jobs .. FIXME ??
+        
         Assert.assertNotNull(frame);
         Assert.assertNotNull(glJPanel);
         Assert.assertNotNull(animator);
