@@ -122,12 +122,25 @@ public abstract class TileRendererBase {
     protected GLEventListener glEventListenerPre = null;
     protected GLEventListener glEventListenerPost = null;
 
-    public String toString() {
+    private final String hashStr(Object o) {
+        final int h = null != o ? o.hashCode() : 0;
+        return "0x"+Integer.toHexString(h);
+    }
+    protected StringBuilder tileDetails(StringBuilder sb) {
+        return sb.append("cur "+currentTileXPos+"/"+currentTileYPos+" "+currentTileWidth+"x"+currentTileHeight+", buffer "+hashStr(tileBuffer));
+    }
+    public StringBuilder toString(StringBuilder sb) {
         final int gladListenerCount = null != listeners ? listeners.length : 0;
+        sb.append("tile[");
+        tileDetails(sb);
+        sb.append("], image[size "+imageSize+", buffer "+hashStr(imageBuffer)+"], glad["+
+                gladListenerCount+" listener, pre "+(null!=glEventListenerPre)+", post "+(null!=glEventListenerPost)+"]");
+        return sb;
+    }
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
         return getClass().getSimpleName()+
-                "[tile["+currentTileXPos+"/"+currentTileYPos+" "+currentTileWidth+"x"+currentTileHeight+", buffer "+tileBuffer+"], "+
-                ", image[size "+imageSize+", buffer "+imageBuffer+"], glad["+
-                gladListenerCount+" listener, pre "+(null!=glEventListenerPre)+", post "+(null!=glEventListenerPost)+"]]";
+                "["+toString(sb).toString()+"]";
     }
     
     protected TileRendererBase() {

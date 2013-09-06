@@ -120,6 +120,13 @@ public class TileRenderer extends TileRendererBase {
     private int offsetX;
     private int offsetY;
 
+    @Override
+    protected StringBuilder tileDetails(StringBuilder sb) {
+        sb.append("# "+currentTile+": ["+currentColumn+"]["+currentRow+"] / "+columns+"x"+rows+", ")
+        .append("rowOrder "+rowOrder+", offset/size "+offsetX+"/"+offsetY+" "+tileSize.getWidth()+"x"+tileSize.getHeight()+" brd "+tileBorder+", ");
+        return super.tileDetails(sb);
+    }
+    
     /**
      * Creates a new TileRenderer object
      */
