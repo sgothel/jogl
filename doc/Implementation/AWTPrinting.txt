@@ -1,0 +1,53 @@
+Screenshots of unit tests: 
+<http://jogamp.org/files/screenshots/printing/test01-awt/>
+
+Unit test producing the results: 
+<http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/jogl/tile/TestTiledPrintingGearsAWT.java;h=71b4a958b1b0b34fb6c07585773ec3653c861e88;hb=de538efc92346cada023a6045d8aec3cbdd47e08>
+
+GLCanvas Print code: 
+ <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/jogl/classes/javax/media/opengl/awt/GLCanvas.java;h=02e6e8121f2f6b6043d9513b5547ecd0e8787db8;hb=de538efc92346cada023a6045d8aec3cbdd47e08#l739>
+
++++
+
+Enhance lifecycle for AWT printing via AWTPrintLifecycle:
+
+Low-res print at 72dpi leaves the frame untouched,
+where high-res print at 300dpi increases the frame size
+to the reverse scale-factor.
+
+Before printing and optional resize, we setup the GLCanvas:
+  - move GLContext and GLEventListener -> offscreen
+  - destroy onscreen component w/ size equals of tile-size
+    This steps allows us to ensure we use limited GPU resources.
+this is done w/ setupPrint().
+Impl. in GLCanvas, etc.
+
+After printing, releasePrint() shall be called. Impl. in GLCanvas .. etc.
+
++++
+
+Tiled rendering is used, i.e. at print(Graphics g),
+the clip bounds is used to setup the TiledRenderer's
+image size and the impl. renders all tiles.
+
+For the tiled reshape, a user component, 
+i.e. GLEventListener reshape(x, y, width, height),
+needs to know about the current tile's position and image size.
+The tile size itself is passed as width and height
+as this is being used to set the current viewport.
+
+Hence the GLEventListener shall implement the 
+TileRendererBase.TileRendererNotify interface!
+
++++
+
+Screenshots/Bugs:
+
+You see the black raster, which shows each rendered tile.
+
+As you can see, we have different results w/ onscreen and offscreen
+AWT printing. Both expose bugs regarding layout/scale of the AWT components.
+
+It would be interesting to learn what I am doing wrong w/ the printing setup
+or GLCanvas rendering at print.
+
