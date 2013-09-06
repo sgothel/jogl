@@ -96,8 +96,9 @@ public class TestTiledRendering2GL2NEWT extends UITestCase {
 
         // Initialize the tile rendering library
         final TileRenderer renderer = new TileRenderer();
-        renderer.attachToAutoDrawable(glad);
         renderer.setImageSize(imageWidth, imageHeight);
+        renderer.setTileSize(glad.getWidth(), glad.getHeight(), 0);
+        renderer.attachToAutoDrawable(glad);
 
         final GLPixelBuffer.GLPixelBufferProvider pixelBufferProvider = GLPixelBuffer.defaultProviderWithRowStride;
         final boolean[] flipVertically = { false };

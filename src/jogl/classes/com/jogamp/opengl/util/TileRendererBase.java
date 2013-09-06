@@ -79,11 +79,11 @@ public abstract class TileRendererBase {
      */
     public static final int TR_IMAGE_HEIGHT = 2;
     /**
-     * The width of the current tile. See {@link #getParam(int)}.
+     * The x-pos of the current tile. See {@link #getParam(int)}.
      */
     public static final int TR_CURRENT_TILE_X_POS = 3;
     /**
-     * The height of the current tile. See {@link #getParam(int)}.
+     * The y-pos of the current tile. See {@link #getParam(int)}.
      */
     public static final int TR_CURRENT_TILE_Y_POS = 4;
     /**

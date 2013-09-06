@@ -38,7 +38,6 @@ package com.jogamp.opengl.util;
 
 import javax.media.nativewindow.util.Dimension;
 import javax.media.opengl.GL2ES3;
-import javax.media.opengl.GLAutoDrawable;
 
 import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
 
@@ -118,6 +117,8 @@ public class TileRenderer extends TileRendererBase {
     private int currentTile = -1;
     private int currentRow;
     private int currentColumn;
+    private int offsetX;
+    private int offsetY;
 
     /**
      * Creates a new TileRenderer object
@@ -157,6 +158,15 @@ public class TileRenderer extends TileRendererBase {
         setup();
     }
 
+    /** 
+     * Sets an xy offset for the resulting tile
+     * {@link TileRendererBase#TR_CURRENT_TILE_X_POS x-pos} and {@link TileRendererBase#TR_CURRENT_TILE_Y_POS y-pos}.  
+     **/
+    public void setTileOffset(int xoff, int yoff) {
+        offsetX = xoff;
+        offsetY = yoff;
+    }
+    
     /**
      * Sets up the number of rows and columns needed
      */
@@ -199,17 +209,9 @@ public class TileRenderer extends TileRendererBase {
         case TR_COLUMNS:
             return columns;
         case TR_CURRENT_ROW:
-            if( currentTile < 0 ) {
-                return -1;
-            } else {
-                return currentRow;
-            }
+            return currentRow;
         case TR_CURRENT_COLUMN:
-            if( currentTile < 0 ) {
-                return -1;
-            } else {
-                return currentColumn;
-            }
+            return currentColumn;
         case TR_CURRENT_TILE_X_POS:
             return currentTileXPos;
         case TR_CURRENT_TILE_Y_POS:
@@ -226,11 +228,9 @@ public class TileRenderer extends TileRendererBase {
     }
 
     /**
-     * Sets the order of row traversal
+     * Sets the order of row traversal, default is {@link #TR_BOTTOM_TO_TOP}.
      * 
-     * @param order
-     *           The row traversal order, must be
-     *           eitherTR_TOP_TO_BOTTOM or TR_BOTTOM_TO_TOP
+     * @param order The row traversal order, must be either {@link #TR_TOP_TO_BOTTOM} or {@link #TR_BOTTOM_TO_TOP}.
      */
     public final void setRowOrder(int order) {
         if (order == TR_TOP_TO_BOTTOM || order == TR_BOTTOM_TO_TOP) {
@@ -280,8 +280,8 @@ public class TileRenderer extends TileRendererBase {
             tW = imageSize.getWidth() - ( columns - 1 ) * ( tileSizeNB.getWidth()  ) + 2 * border;
         }
 
-        currentTileXPos = currentColumn * tileSizeNB.getWidth();
-        currentTileYPos = currentRow * tileSizeNB.getHeight();
+        currentTileXPos = currentColumn * tileSizeNB.getWidth() + offsetX;
+        currentTileYPos = currentRow * tileSizeNB.getHeight() + offsetY;
 
         final int preTileWidth = currentTileWidth;
         final int preTileHeight = currentTileHeight;
@@ -291,8 +291,9 @@ public class TileRenderer extends TileRendererBase {
         currentTileHeight = tH;
 
         if( DEBUG ) {
-            System.err.println("Tile["+currentTile+"]: ["+preColumn+"]["+preRow+"] "+preTileWidth+"x"+preTileHeight+
-                    " -> ["+currentColumn+"]["+currentRow+"] "+currentTileXPos+"/"+currentTileYPos+", "+tW+"x"+tH+", image "+imageSize.getWidth()+"x"+imageSize.getHeight());
+            System.err.println("Tile["+currentTile+"]: off "+offsetX+"/"+offsetX+", ["+preColumn+"]["+preRow+"] "+preTileWidth+"x"+preTileHeight+
+                    " -> ["+currentColumn+"]["+currentRow+"] "+currentTileXPos+"/"+currentTileYPos+", "+tW+"x"+tH+
+                    ", image "+imageSize.getWidth()+"x"+imageSize.getHeight());
         }
 
         gl.glViewport( 0, 0, tW, tH );
@@ -376,18 +377,5 @@ public class TileRenderer extends TileRendererBase {
         if( currentTile >= rows * columns ) {
             currentTile = -1; /* all done */
         }
-    }
-    
-    /**
-     * {@inheritDoc}
-     * <p>
-     * Sets the tile size of this renderer to the given {@link GLAutoDrawable} size
-     * with zero tile border. 
-     * </p>
-     */
-    @Override
-    public void attachToAutoDrawable(GLAutoDrawable glad) throws IllegalStateException {
-        super.attachToAutoDrawable(glad);
-        setTileSize(glad.getWidth(), glad.getHeight(), 0);
     }
 }

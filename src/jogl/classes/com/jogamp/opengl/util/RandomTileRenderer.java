@@ -74,10 +74,9 @@ public class RandomTileRenderer extends TileRendererBase {
      * @throws IllegalArgumentException is tile x/y are < 0 or tile size is <= 0x0                              
      */
     public void setTileRect(int tX, int tY, int tWidth, int tHeight) throws IllegalStateException, IllegalArgumentException {
-        /** FIXME 
         if( 0 > tX || 0 > tX ) {
             throw new IllegalArgumentException("Tile pos must be >= 0/0");        
-        } */
+        }
         if( 0 >= tWidth || 0 >= tHeight ) {
             throw new IllegalArgumentException("Tile size must be > 0x0");        
         }
