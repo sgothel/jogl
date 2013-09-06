@@ -67,6 +67,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.newt.event.TraceKeyAdapter;
 import com.jogamp.newt.event.TraceWindowAdapter;
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
@@ -160,7 +161,7 @@ public class TestTiledPrintingGearsAWT extends UITestCase implements Printable {
             scale = Math.min(xScale, yScale);
         }
 
-        System.err.println("PRINT offscreen: "+printOffscreen);
+        System.err.println("PRINT offscreen: "+printOffscreen+", thread "+Thread.currentThread().getName());
         System.err.println("PRINT DPI: "+printDPI+", scaleComp "+scaleComp);
         glCanvas.setupPrint();
         
@@ -180,7 +181,13 @@ public class TestTiledPrintingGearsAWT extends UITestCase implements Printable {
             System.err.println("PRINT DPI: "+printDPI+", scale "+scale+", margin "+xMargin+"/"+yMargin+", move "+moveX+"/"+moveY+
                                ", frame: "+frameWidth+"x"+frameHeight+" -> "+frameWidthS+"x"+frameHeightS);
                         
-            frame.setSize(frameWidthS, frameHeightS);
+            AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+               public void run() {
+                   frame.setSize(frameWidthS, frameHeightS);
+                   frame.invalidate();
+                   frame.validate();
+               }
+            });
         } else {
             moveX = pf.getImageableX();
             moveY = pf.getImageableY();
@@ -207,9 +214,7 @@ public class TestTiledPrintingGearsAWT extends UITestCase implements Printable {
               
         if( g2d != offscreenG2D ) {
             g2d.translate(moveX, moveY);
-            if( scaleComp != 1 ) {
-                g2d.scale(scale , scale );
-            }
+            g2d.scale(scale , scale );
         }
         
         frame.printAll(g2d);
@@ -217,14 +222,18 @@ public class TestTiledPrintingGearsAWT extends UITestCase implements Printable {
         
         if( scaleComp != 1 ) {
             System.err.println("PRINT DPI: reset frame size "+frameWidth+"x"+frameHeight);
-            frame.setSize(frameWidth, frameHeight);
+            AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+               public void run() {
+                   frame.setSize(frameWidth, frameHeight);
+                   frame.invalidate();
+                   frame.validate();
+               }
+            });
         }
         
         if( g2d == offscreenG2D ) {
             printG2D.translate(moveX, moveY);
-            if( scaleComp != 1 ) {
-                printG2D.scale(scale , scale );
-            }
+            printG2D.scale(scale , scale );
             printG2D.drawImage(offscreenImage, 0, 0, offscreenImage.getWidth(), offscreenImage.getHeight(), null); // Null ImageObserver since image data is ready.
         }
 
@@ -306,7 +315,8 @@ public class TestTiledPrintingGearsAWT extends UITestCase implements Printable {
         }        
         return ok;
     }    
-    protected void doPrintManual(int dpi) {
+    protected void doPrintManual(boolean offscreen, int dpi) {
+        printOffscreen = offscreen;
         printDPI = dpi;
         PrinterJob job = PrinterJob.getPrinterJob();
         job.setPrintable(TestTiledPrintingGearsAWT.this);
@@ -320,7 +330,7 @@ public class TestTiledPrintingGearsAWT extends UITestCase implements Printable {
         }        
     }
     
-    protected void runTestGL(GLCapabilities caps, boolean offscreenPrinting) throws InterruptedException, InvocationTargetException {
+    protected void runTestGL(GLCapabilities caps, final boolean offscreenPrinting) throws InterruptedException, InvocationTargetException {
         glCanvas = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas);        
         Dimension glc_sz = new Dimension(width, height);
@@ -333,11 +343,11 @@ public class TestTiledPrintingGearsAWT extends UITestCase implements Printable {
         
         final ActionListener print72DPIAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                doPrintManual(72);
+                doPrintManual(offscreenPrinting, 72);
             } };
         final ActionListener print300DPIAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                doPrintManual(300);
+                doPrintManual(offscreenPrinting, 300);
             } };
         final Button print72DPIButton = new Button("72dpi");
         print72DPIButton.addActionListener(print72DPIAction);
