@@ -39,8 +39,8 @@ import java.awt.Robot;
 
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLDrawable;
-import javax.media.opengl.awt.GLCanvas;
 
 import org.junit.Assert;
 
@@ -702,21 +702,21 @@ public class AWTRobotUtil {
                 Thread.sleep(TIME_SLICE);
             }
             // if GLCanvas, ensure it got also painted -> drawable.setRealized(true);
-            if(wait<POLL_DIVIDER && comp instanceof GLCanvas) {
-                GLCanvas glcanvas = (GLCanvas) comp;
-                for (wait=0; wait<POLL_DIVIDER && realized != glcanvas.isRealized(); wait++) {
+            if(wait<POLL_DIVIDER && comp instanceof GLAutoDrawable) {
+                GLAutoDrawable glad = (GLAutoDrawable) comp;
+                for (wait=0; wait<POLL_DIVIDER && realized != glad.isRealized(); wait++) {
                     Thread.sleep(TIME_SLICE);
                 }
                 if(wait>=POLL_DIVIDER) {
                     // for some reason GLCanvas hasn't been painted yet, force it!
-                    System.err.println("XXX: FORCE REPAINT PRE - canvas: "+glcanvas);
-                    glcanvas.repaint();
-                    for (wait=0; wait<POLL_DIVIDER && realized != glcanvas.isRealized(); wait++) {
+                    System.err.println("XXX: FORCE REPAINT PRE - glad: "+glad);
+                    comp.repaint();
+                    for (wait=0; wait<POLL_DIVIDER && realized != glad.isRealized(); wait++) {
                         Thread.sleep(TIME_SLICE);
                     }
-                    System.err.println("XXX: FORCE REPAINT POST - canvas: "+glcanvas);
+                    System.err.println("XXX: FORCE REPAINT POST - glad: "+glad);
                 }
-                for (wait=0; wait<POLL_DIVIDER && realized != glcanvas.isRealized(); wait++) {
+                for (wait=0; wait<POLL_DIVIDER && realized != glad.isRealized(); wait++) {
                     Thread.sleep(TIME_SLICE);
                 }
             }            

@@ -30,10 +30,10 @@ package com.jogamp.opengl.test.junit.jogl.tile;
 
 import java.awt.BorderLayout;
 import java.awt.Button;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Label;
-import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.print.PageFormat;
@@ -44,7 +44,10 @@ import java.lang.reflect.InvocationTargetException;
 
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
-import javax.media.opengl.awt.GLCanvas;
+import javax.media.opengl.awt.GLJPanel;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -63,7 +66,7 @@ import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.util.Animator;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestTiledPrintingGearsAWT extends TiledPrintingAWTBase  {
+public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
 
     static boolean waitForKey = false;
     static GLProfile glp;
@@ -88,84 +91,88 @@ public class TestTiledPrintingGearsAWT extends TiledPrintingAWTBase  {
     }
     
     protected void runTestGL(GLCapabilities caps, final boolean offscreenPrinting) throws InterruptedException, InvocationTargetException {
-        final GLCanvas glCanvas = new GLCanvas(caps);
-        Assert.assertNotNull(glCanvas);        
+        final GLJPanel glJPanel = new GLJPanel(caps);
+        Assert.assertNotNull(glJPanel);        
         Dimension glc_sz = new Dimension(width, height);
-        glCanvas.setMinimumSize(glc_sz);
-        glCanvas.setPreferredSize(glc_sz);
-        glCanvas.setSize(glc_sz);
+        glJPanel.setMinimumSize(glc_sz);
+        glJPanel.setPreferredSize(glc_sz);
+        glJPanel.setSize(glc_sz);
         
         final Gears gears = new Gears();
-        glCanvas.addGLEventListener(gears);
+        glJPanel.addGLEventListener(gears);
         
-        final Frame frame = new Frame("AWT Print (offscr "+offscreenPrinting+")");
+        final JFrame frame = new JFrame("Swing Print (offscr "+offscreenPrinting+")");
         Assert.assertNotNull(frame);
         
         final ActionListener print72DPIAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                doPrintManual(frame, glCanvas, TestTiledPrintingGearsAWT.this, offscreenPrinting, 72);
+                doPrintManual(frame, glJPanel, TestTiledPrintingGearsSwingAWT.this, offscreenPrinting, 72);
             } };
         final ActionListener print300DPIAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                doPrintManual(frame, glCanvas, TestTiledPrintingGearsAWT.this, offscreenPrinting, 300);
+                doPrintManual(frame, glJPanel, TestTiledPrintingGearsSwingAWT.this, offscreenPrinting, 300);
             } };
         final Button print72DPIButton = new Button("72dpi");
         print72DPIButton.addActionListener(print72DPIAction);
         final Button print300DPIButton = new Button("300dpi");
         print300DPIButton.addActionListener(print300DPIAction);
             
-        frame.setLayout(new BorderLayout());
-        Panel printPanel = new Panel();
+        final JPanel printPanel = new JPanel();
         printPanel.add(print72DPIButton);
         printPanel.add(print300DPIButton);
-        Panel southPanel = new Panel();
+        final JPanel southPanel = new JPanel();
         southPanel.add(new Label("South"));
-        Panel eastPanel = new Panel();
+        final JPanel eastPanel = new JPanel();
         eastPanel.add(new Label("East"));
-        Panel westPanel = new Panel();
+        final JPanel westPanel = new JPanel();
         westPanel.add(new Label("West"));
-        frame.add(printPanel, BorderLayout.NORTH);
-        frame.add(glCanvas, BorderLayout.CENTER);
-        frame.add(southPanel, BorderLayout.SOUTH);
-        frame.add(eastPanel, BorderLayout.EAST);
-        frame.add(westPanel, BorderLayout.WEST);
-        frame.setTitle("Tiles AWT Print Test");
         
-        Animator animator = new Animator(glCanvas);
+        Animator animator = new Animator(glJPanel);
         QuitAdapter quitAdapter = new QuitAdapter();
 
-        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glCanvas);
+        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glJPanel);
         new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
 
-        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-            public void run() {
-                frame.pack();
-                frame.setVisible(true);
-            }});
+        SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    final Container fcont = frame.getContentPane();
+                    fcont.setLayout(new BorderLayout());
+                    fcont.add(printPanel, BorderLayout.NORTH);
+                    fcont.add(glJPanel, BorderLayout.CENTER);
+                    fcont.add(southPanel, BorderLayout.SOUTH);
+                    fcont.add(eastPanel, BorderLayout.EAST);
+                    fcont.add(westPanel, BorderLayout.WEST);
+                    fcont.validate();
+                    frame.pack();
+                    frame.setVisible(true);
+                } } ) ;
+        
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel, true));
         
         animator.setUpdateFPSFrames(60, System.err);        
         animator.start();
+        Assert.assertEquals(true, animator.isAnimating());
 
         boolean dpi72Done = false;
         boolean dpi300Done = false;
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && ( 0 == duration || animator.getTotalFPSDuration()<duration )) {
-            Thread.sleep(100);
+            Thread.sleep(200);
             if( !dpi72Done ) {
                 dpi72Done = true;
-                doPrintAuto(frame, glCanvas, TestTiledPrintingGearsAWT.this, PageFormat.LANDSCAPE, null, offscreenPrinting, 72);
+                System.err.println("XXX "+glJPanel);
+                doPrintAuto(frame, glJPanel, TestTiledPrintingGearsSwingAWT.this, PageFormat.LANDSCAPE, null, offscreenPrinting, 72);
             } else if( !dpi300Done ) {
                 dpi300Done = true;
-                doPrintAuto(frame, glCanvas, TestTiledPrintingGearsAWT.this, PageFormat.LANDSCAPE, null, offscreenPrinting, 300);
+                doPrintAuto(frame, glJPanel, TestTiledPrintingGearsSwingAWT.this, PageFormat.LANDSCAPE, null, offscreenPrinting, 300);
             }
         }
 
         try {
             Thread.sleep(1000); // time to flush .. 
-        } catch (InterruptedException e) { }
+        } catch (InterruptedException e) { }    
         Assert.assertNotNull(frame);
-        Assert.assertNotNull(glCanvas);
+        Assert.assertNotNull(glJPanel);
         Assert.assertNotNull(animator);
 
         animator.stop();
@@ -178,7 +185,7 @@ public class TestTiledPrintingGearsAWT extends TiledPrintingAWTBase  {
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 final Frame _frame = frame;
-                _frame.remove(glCanvas);
+                _frame.remove(glJPanel);
                 _frame.dispose();
             }});
     }
@@ -214,6 +221,6 @@ public class TestTiledPrintingGearsAWT extends TiledPrintingAWTBase  {
                 System.err.println(stdin.readLine());
             } catch (IOException e) { }
         }
-        org.junit.runner.JUnitCore.main(TestTiledPrintingGearsAWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestTiledPrintingGearsSwingAWT.class.getName());
     }
 }

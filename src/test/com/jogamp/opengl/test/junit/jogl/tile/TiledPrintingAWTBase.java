@@ -175,8 +175,10 @@ public abstract class TiledPrintingAWTBase extends UITestCase implements Printab
                     g2d.scale(scale , scale );
                 }
                 
-                frame.printAll(g2d);
-                awtPrintObject.releasePrint();
+                AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+                   public void run() {
+                       frame.printAll(g2d);
+                   } } );
                 
                 if( scaleComp != 1 ) {
                     System.err.println("PRINT DPI: reset frame size "+frameWidth+"x"+frameHeight);
@@ -188,13 +190,14 @@ public abstract class TiledPrintingAWTBase extends UITestCase implements Printab
                        }
                     });
                 }
+                awtPrintObject.releasePrint();
                 
                 if( g2d == offscreenG2D ) {
                     printG2D.translate(moveX, moveY);
                     printG2D.scale(scale , scale );
                     printG2D.drawImage(offscreenImage, 0, 0, offscreenImage.getWidth(), offscreenImage.getHeight(), null); // Null ImageObserver since image data is ready.
                 }
-            
+                
                 /* tell the caller that this page is part of the printed document */
                 return PAGE_EXISTS;
             }

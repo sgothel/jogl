@@ -736,7 +736,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     paint(g);
   }
 
-  private static final int PRINT_TILE_SIZE = 256;
+  private static final int PRINT_TILE_SIZE = 512;
   private volatile boolean printActive = false;
   private GLOffscreenAutoDrawable printGLAD = null;
   private TileRenderer printRenderer = null;
@@ -874,7 +874,10 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       if( !printActive || null == printGLAD ) {
           throw new IllegalStateException("setupPrint() not called");
       }
+      sendReshape = false; // clear reshape flag
       AWTEDTExecutor.singleton.invoke(getTreeLock(), true /* allowOnNonEDT */, true /* wait */, releasePrintOnEDT);
+      sendReshape = true; // trigger reshape, i.e. gl-viewport and -listener - this component might got resized!
+      display();
   }
   private final Runnable releasePrintOnEDT = new Runnable() {
       @Override
@@ -908,49 +911,46 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       if( !printActive || null == printGLAD ) {
           throw new IllegalStateException("setupPrint() not called");
       }
+      if(DEBUG && !EventQueue.isDispatchThread()) {
+          System.err.println(getThreadName()+": Warning: GLCanvas print - not called from AWT-EDT");
+          // we cannot dispatch print on AWT-EDT due to printing internal locking ..
+      }
       sendReshape = false; // clear reshape flag
       printGraphics = (Graphics2D)graphics;
-      AWTEDTExecutor.singleton.invoke(getTreeLock(), true /* allowOnNonEDT */, true /* wait */, printOnEDT);
-  }
-  private final Runnable printOnEDT = new Runnable() {
-      @Override
-      public void run() {
-          sendReshape = false; // clear reshape flag
-          System.err.println("AWT print.0: canvasSize "+getWidth()+"x"+getWidth()+", printAnimator "+printAnimator);
-          {
-              final RenderingHints rHints = printGraphics.getRenderingHints();
-              final Set<Entry<Object, Object>> rEntries = rHints.entrySet();
-              int count = 0;
-              for(Iterator<Entry<Object, Object>> rEntryIter = rEntries.iterator(); rEntryIter.hasNext(); count++) {
-                  final Entry<Object, Object> rEntry = rEntryIter.next();
-                  System.err.println("Hint["+count+"]: "+rEntry.getKey()+" -> "+rEntry.getValue());
-              }
+      System.err.println("AWT print.0: canvasSize "+getWidth()+"x"+getWidth()+", printAnimator "+printAnimator);
+      {
+          final RenderingHints rHints = printGraphics.getRenderingHints();
+          final Set<Entry<Object, Object>> rEntries = rHints.entrySet();
+          int count = 0;
+          for(Iterator<Entry<Object, Object>> rEntryIter = rEntries.iterator(); rEntryIter.hasNext(); count++) {
+              final Entry<Object, Object> rEntry = rEntryIter.next();
+              System.err.println("Hint["+count+"]: "+rEntry.getKey()+" -> "+rEntry.getValue());
           }
-          // final GraphicsConfiguration gc = printGraphics.getDeviceConfiguration();
-          final AffineTransform aTrans = printGraphics.getTransform();
-          System.err.println(" scale "+aTrans.getScaleX()+" x "+aTrans.getScaleY());
-          System.err.println(" move "+aTrans.getTranslateX()+" x "+aTrans.getTranslateY());
-          
-          final Rectangle gClipOrig = printGraphics.getClipBounds();
-          final Rectangle gClip = new Rectangle(gClipOrig);
-          if( 0 > gClip.x ) {
-              gClip.width += gClip.x;
-              gClip.x = 0;
-          }
-          if( 0 > gClip.y ) {
-              gClip.height += gClip.y;
-              gClip.y = 0;
-          }
-          printRenderer.setImageSize(gClip.width, gClip.height);      
-          printRenderer.setTileOffset(gClip.x, gClip.y);
-          System.err.println("AWT print.0: "+gClipOrig+" -> "+gClip);
-          System.err.println("AWT print.0: "+printRenderer);
-          do {
-              printRenderer.display();
-          } while ( !printRenderer.eot() );
-          System.err.println("AWT print.X: "+printRenderer);
       }
-  };
+      // final GraphicsConfiguration gc = printGraphics.getDeviceConfiguration();
+      final AffineTransform aTrans = printGraphics.getTransform();
+      System.err.println(" scale "+aTrans.getScaleX()+" x "+aTrans.getScaleY());
+      System.err.println(" move "+aTrans.getTranslateX()+" x "+aTrans.getTranslateY());
+      
+      final Rectangle gClipOrig = printGraphics.getClipBounds();
+      final Rectangle gClip = new Rectangle(gClipOrig);
+      if( 0 > gClip.x ) {
+          gClip.width += gClip.x;
+          gClip.x = 0;
+      }
+      if( 0 > gClip.y ) {
+          gClip.height += gClip.y;
+          gClip.y = 0;
+      }
+      printRenderer.setImageSize(gClip.width, gClip.height);      
+      printRenderer.setTileOffset(gClip.x, gClip.y);
+      System.err.println("AWT print.0: "+gClipOrig+" -> "+gClip);
+      System.err.println("AWT print.0: "+printRenderer);
+      do {
+          printRenderer.display();
+      } while ( !printRenderer.eot() );
+      System.err.println("AWT print.X: "+printRenderer);
+  }
     
   @Override
   public void addGLEventListener(GLEventListener listener) {

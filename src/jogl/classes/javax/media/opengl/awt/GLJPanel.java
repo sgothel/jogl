@@ -44,15 +44,22 @@ import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.beans.Beans;
 import java.nio.IntBuffer;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.Map.Entry;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
@@ -85,11 +92,15 @@ import jogamp.opengl.GLDrawableHelper;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.awt.Java2D;
 import jogamp.opengl.util.glsl.GLSLTextureRaster;
+
+import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
 import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
 import com.jogamp.opengl.util.GLPixelBuffer.SingletonGLPixelBufferProvider;
 import com.jogamp.opengl.util.GLPixelStorageModes;
+import com.jogamp.opengl.util.TileRenderer;
+import com.jogamp.opengl.util.TileRendererBase;
 import com.jogamp.opengl.util.awt.AWTGLPixelBuffer;
 import com.jogamp.opengl.util.awt.AWTGLPixelBuffer.AWTGLPixelBufferProvider;
 import com.jogamp.opengl.util.awt.AWTGLPixelBuffer.SingleAWTGLPixelBufferProvider;
@@ -138,7 +149,7 @@ import com.jogamp.opengl.util.awt.AWTGLPixelBuffer.SingleAWTGLPixelBufferProvide
 */
 
 @SuppressWarnings("serial")
-public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosingProtocol {
+public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosingProtocol, AWTPrintLifecycle {
   private static final boolean DEBUG;
   private static final boolean DEBUG_VIEWPORT;
   private static final boolean USE_GLSL_TEXTURE_RASTERIZER;    
@@ -430,9 +441,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       sendReshape = handleReshape();
     }
 
-    if( isVisible() ) {
+    if( isVisible() && !printActive ) {
         updater.setGraphics(g);
-    
         backend.doPaintComponent(g);
     }
   }
@@ -481,14 +491,237 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
     if (DEBUG) {
         System.err.println(getThreadName()+": GLJPanel.reshape: " +reshapeWidth+"x"+reshapeHeight + " -> " + width+"x"+height);
-    }    
-    // reshapeX = x;
-    // reshapeY = y;
-    reshapeWidth = width;
-    reshapeHeight = height;
-    handleReshape = true;
+    }
+    if( !printActive ) {
+        // reshapeX = x;
+        // reshapeY = y;
+        reshapeWidth = width;
+        reshapeHeight = height;
+        handleReshape = true;
+    }
   }
 
+  private volatile boolean printActive = false;
+  private TileRenderer printRenderer = null;
+  private GLAnimatorControl printAnimator = null; 
+  private AWTGLPixelBuffer printBuffer = null;
+  private BufferedImage printVFlipImage = null;
+  private Graphics2D printGraphics = null;
+  
+  @Override
+  public void setupPrint() {
+      if (!isInitialized) {
+          if(DEBUG) {
+              System.err.println(getThreadName()+": Info: GLJPanel setupPrint - skipped GL render, drawable not valid yet");
+          }
+          return; // not yet available ..
+      }
+      if( !isVisible() ) {
+          if(DEBUG) {
+              System.err.println(getThreadName()+": Info: GLJPanel setupPrint - skipped GL render, drawable visible");
+          }
+          return; // not yet available ..
+      }
+      printActive = true; 
+      sendReshape = false; // clear reshape flag
+      handleReshape = false; // ditto
+      AWTEDTExecutor.singleton.invoke(getTreeLock(), true /* allowOnNonEDT */, true /* wait */, setupPrintOnEDT);
+  }
+  private final Runnable setupPrintOnEDT = new Runnable() {
+      @Override
+      public void run() {
+          sendReshape = false; // clear reshape flag
+          handleReshape = false; // ditto
+          printAnimator =  helper.getAnimator();
+          if( null != printAnimator ) {
+              printAnimator.remove(GLJPanel.this);
+          }
+          final int tileWidth = getWidth();
+          final int tileHeight = getHeight();
+          
+          // FIXME final OffscreenBackend offscrBacken = (OffscreenBackend)backend;
+          final GLCapabilities caps = (GLCapabilities)getChosenGLCapabilities().cloneMutable();
+          caps.setOnscreen(false);
+          printRenderer = new TileRenderer();
+          printRenderer.setRowOrder(TileRenderer.TR_TOP_TO_BOTTOM);
+          printRenderer.setTileSize(tileWidth, tileHeight, 0);
+          printRenderer.attachToAutoDrawable(GLJPanel.this);
+
+          final GLEventListener preTileGLEL = new GLEventListener() {
+              @Override
+              public void init(GLAutoDrawable drawable) {
+              }
+              @Override
+              public void dispose(GLAutoDrawable drawable) {}
+              @Override
+              public void display(GLAutoDrawable drawable) {
+                  final GL gl = drawable.getGL();
+                  if( null == printBuffer ) {
+                      final int componentCount = isOpaque() ? 3 : 4;
+                      final AWTGLPixelBufferProvider printBufferProvider = new AWTGLPixelBufferProvider( true /* allowRowStride */ );      
+                      final GLPixelAttributes pixelAttribs = printBufferProvider.getAttributes(gl, componentCount);
+                      printBuffer = printBufferProvider.allocate(gl, pixelAttribs, tileWidth, tileHeight, 1, true, 0);
+                      printRenderer.setTileBuffer(printBuffer);
+                      printVFlipImage = new BufferedImage(printBuffer.width, printBuffer.height, printBuffer.image.getType());
+                  }
+                  System.err.println("XXX tile-pre "+printRenderer); // FIXME
+              }
+              @Override
+              public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
+          };
+          final GLEventListener postTileGLEL = new GLEventListener() {
+              int tTopRowHeight = 0;
+              @Override
+              public void init(GLAutoDrawable drawable) {
+                  tTopRowHeight = 0;
+              }
+              @Override
+              public void dispose(GLAutoDrawable drawable) {}
+              @Override
+              public void display(GLAutoDrawable drawable) {              
+                  // Copy temporary data into raster of BufferedImage for faster
+                  // blitting Note that we could avoid this copy in the cases
+                  // where !offscreenDrawable.isGLOriented(),
+                  // but that's the software rendering path which is very slow anyway.
+                  final int tHeight = printRenderer.getParam(TileRendererBase.TR_CURRENT_TILE_HEIGHT);
+                  final int tWidth = printRenderer.getParam(TileRendererBase.TR_CURRENT_TILE_WIDTH);
+                  // final BufferedImage dstImage = printBuffer.image;
+                  final BufferedImage srcImage = printBuffer.image;
+                  final BufferedImage dstImage = printVFlipImage;
+                  final int[] src = ((DataBufferInt) srcImage.getRaster().getDataBuffer()).getData();
+                  final int[] dst = ((DataBufferInt) dstImage.getRaster().getDataBuffer()).getData();
+                  final int incr = printBuffer.width;
+                  int srcPos = 0;
+                  int destPos = (tHeight - 1) * printBuffer.width;
+                  for (; destPos >= 0; srcPos += incr, destPos -= incr) {
+                      System.arraycopy(src, srcPos, dst, destPos, incr);
+                  }
+                  // Draw resulting image in one shot
+                  final int tRows = printRenderer.getParam(TileRenderer.TR_ROWS);
+                  final int tRow = printRenderer.getParam(TileRenderer.TR_CURRENT_ROW);
+                  final int pX = printRenderer.getParam(TileRendererBase.TR_CURRENT_TILE_X_POS); 
+                  final int pYf;
+                  if( tRow == tRows - 1 ) {
+                      tTopRowHeight = tHeight;
+                      pYf = 0;
+                  } else if( tRow == tRows - 2 ){
+                      pYf = tTopRowHeight;
+                  } else {
+                      pYf = ( tRows - 2 - tRow ) * tHeight + tTopRowHeight;
+                  }
+                  final Shape oClip = printGraphics.getClip();
+                  printGraphics.clipRect(pX, pYf, tWidth, tHeight);
+                  final Shape clip = printGraphics.getClip();
+                  printGraphics.drawImage(dstImage, pX, pYf, dstImage.getWidth(), dstImage.getHeight(), null); // Null ImageObserver since image data is ready.
+                  printGraphics.setColor(Color.BLACK);
+                  printGraphics.drawRect(pX, pYf, tWidth, tHeight);
+                  {
+                      final Rectangle r = oClip.getBounds();
+                      printGraphics.setColor(Color.YELLOW);
+                      printGraphics.drawRect(r.x, r.y, r.width, r.height);
+                  }
+                  printGraphics.setClip(oClip);
+                  System.err.println("XXX tile-post.X clip "+oClip+" -> "+clip);
+                  System.err.println("XXX tile-post.X "+printRenderer);
+                  System.err.println("XXX tile-post.X dst-img "+dstImage.getWidth()+"x"+dstImage.getHeight()+" -> "+pX+"/"+pYf); // +", "+dstImage); // FIXME
+              }
+              @Override
+              public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
+          };      
+          printRenderer.setGLEventListener(preTileGLEL, postTileGLEL);
+
+          System.err.println("AWT print.setup "+printRenderer); // FIXME
+      }
+  };
+  
+  @Override
+  public void releasePrint() {
+      if( !printActive ) {
+          throw new IllegalStateException("setupPrint() not called");
+      }
+      sendReshape = false; // clear reshape flag
+      handleReshape = false; // ditto
+      AWTEDTExecutor.singleton.invoke(getTreeLock(), true /* allowOnNonEDT */, true /* wait */, releasePrintOnEDT);
+      sendReshape = true; // trigger reshape, i.e. gl-viewport and -listener - this component might got resized!
+      handleReshape = true; // ditto
+      display();
+  }
+  private final Runnable releasePrintOnEDT = new Runnable() {
+      @Override
+      public void run() {
+          printRenderer.detachFromAutoDrawable(); // tile-renderer -> printGLAD
+          if( null != printAnimator ) {
+              printAnimator.add(GLJPanel.this);
+          }
+          System.err.println("AWT print.release "+printRenderer); // FIXME
+          printRenderer = null;
+          printAnimator = null;
+          if( null != printBuffer ) {
+              printBuffer.dispose();
+              printBuffer = null;
+          }
+          if( null != printVFlipImage ) {
+              printVFlipImage.flush();
+              printVFlipImage = null;
+          }
+          printGraphics = null;
+          printActive = false;
+      }
+  };
+  
+  @Override
+  public void print(Graphics graphics) {
+      if( !printActive ) {
+          throw new IllegalStateException("setupPrint() not called");
+      }
+      if(DEBUG && !EventQueue.isDispatchThread()) {
+          System.err.println(getThreadName()+": Warning: GLCanvas print - not called from AWT-EDT");
+          // we cannot dispatch print on AWT-EDT due to printing internal locking ..
+      }
+      sendReshape = false; // clear reshape flag
+      handleReshape = false; // ditto
+      printGraphics = (Graphics2D)graphics;
+      System.err.println("AWT print.0: canvasSize "+getWidth()+"x"+getWidth()+", printAnimator "+printAnimator);
+      {
+          final RenderingHints rHints = printGraphics.getRenderingHints();
+          final Set<Entry<Object, Object>> rEntries = rHints.entrySet();
+          int count = 0;
+          for(Iterator<Entry<Object, Object>> rEntryIter = rEntries.iterator(); rEntryIter.hasNext(); count++) {
+              final Entry<Object, Object> rEntry = rEntryIter.next();
+              System.err.println("Hint["+count+"]: "+rEntry.getKey()+" -> "+rEntry.getValue());
+          }
+      }
+      // final GraphicsConfiguration gc = printGraphics.getDeviceConfiguration();
+      final AffineTransform aTrans = printGraphics.getTransform();
+      System.err.println(" scale "+aTrans.getScaleX()+" x "+aTrans.getScaleY());
+      System.err.println(" move "+aTrans.getTranslateX()+" x "+aTrans.getTranslateY());
+      
+      final Rectangle gClipOrig = printGraphics.getClipBounds();
+      final Rectangle gClip = new Rectangle(gClipOrig);
+      if( 0 > gClip.x ) {
+          gClip.width += gClip.x;
+          gClip.x = 0;
+      }
+      if( 0 > gClip.y ) {
+          gClip.height += gClip.y;
+          gClip.y = 0;
+      }
+      printRenderer.setImageSize(gClip.width, gClip.height);      
+      printRenderer.setTileOffset(gClip.x, gClip.y);
+      System.err.println("AWT print.0: "+gClipOrig+" -> "+gClip);
+      System.err.println("AWT print.0: "+printRenderer);
+      do {
+          // printRenderer.display();
+          backend.doPlainPaint();
+      } while ( !printRenderer.eot() );
+      System.err.println("AWT print.X: "+printRenderer);
+  }
+  @Override
+  protected void printComponent(Graphics g) {
+      System.err.println("AWT printComponent.X: "+printRenderer);
+      print(g);
+  }
+      
   @Override
   public void setOpaque(boolean opaque) {
     if (backend != null) {
@@ -877,12 +1110,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       backend.postGL(g, true);
     }
 
+    public void print(GLAutoDrawable drawable) {
+      helper.display(GLJPanel.this);
+    }
+    
     @Override
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
       // This is handled above and dispatched directly to the appropriate context
-    }
-
-    public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged) {
     }
   }
 
@@ -932,6 +1166,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
   };
 
+  private final Runnable updaterPlainDisplayAction = new Runnable() {
+    @Override
+    public void run() {
+      updater.print(GLJPanel.this);
+    }
+  };
+  
   private final Runnable paintImmediatelyAction = new Runnable() {
     @Override
     public void run() {
@@ -968,60 +1209,73 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   // Implementations of the various backends
   //
 
-  // Abstraction of the different rendering backends: i.e., pure
-  // software / pixmap rendering, pbuffer-based acceleration, Java 2D
-  // / JOGL bridge
+  /**
+   * Abstraction of the different rendering backends: i.e., pure
+   * software / pixmap rendering, pbuffer-based acceleration, Java 2D
+   * JOGL bridge
+   */
   static interface Backend {
-    // Create, Destroy, ..
+    /** Create, Destroy, .. */
     public boolean isUsingOwnLifecycle();
 
-    // Called each time the backend needs to initialize itself
+    /** Called each time the backend needs to initialize itself */
     public void initialize();
 
-    // Called when the backend should clean up its resources
+    /** Called when the backend should clean up its resources */
     public void destroy();
 
-    // Called when the opacity of the GLJPanel is changed
+    /** Called when the opacity of the GLJPanel is changed */
     public void setOpaque(boolean opaque);
 
-    // Called to manually create an additional OpenGL context against
-    // this GLJPanel
+    /** 
+     * Called to manually create an additional OpenGL context against
+     * this GLJPanel
+     */
     public GLContext createContext(GLContext shareWith);
 
-    // Called to set the current backend's GLContext
+    /** Called to set the current backend's GLContext */
     public void setContext(GLContext ctx);
 
-    // Called to get the current backend's GLContext
+    /** Called to get the current backend's GLContext */
     public GLContext getContext();
 
-    // Called to get the current backend's GLDrawable
+    /** Called to get the current backend's GLDrawable */
     public GLDrawable getDrawable();
 
     /** Returns the used texture unit, i.e. a value of [0..n], or -1 if non used. */
     public int getTextureUnit();
     
-    // Called to fetch the "real" GLCapabilities for the backend
+    /** Called to fetch the "real" GLCapabilities for the backend */
     public GLCapabilitiesImmutable getChosenGLCapabilities();
 
-    // Called to fetch the "real" GLProfile for the backend
+    /** Called to fetch the "real" GLProfile for the backend */
     public GLProfile getGLProfile();
 
-    // Called to handle a reshape event. When this is called, the
-    // OpenGL context associated with the backend is not current, to
-    // make it easier to destroy and re-create pbuffers if necessary.
+    /**
+     * Called to handle a reshape event. When this is called, the
+     * OpenGL context associated with the backend is not current, to
+     * make it easier to destroy and re-create pbuffers if necessary.
+     */
     public boolean handleReshape();
 
-    // Called before the OpenGL work is done in init() and display().
-    // If false is returned, this render is aborted.
+    /**
+     * Called before the OpenGL work is done in init() and display().
+     * If false is returned, this render is aborted.
+     */
     public boolean preGL(Graphics g);
 
-    // Called after the OpenGL work is done in init() and display().
-    // The isDisplay argument indicates whether this was called on
-    // behalf of a call to display() rather than init().
+    /** 
+     * Called after the OpenGL work is done in init() and display().
+     * The isDisplay argument indicates whether this was called on
+     * behalf of a call to display() rather than init().
+     */
     public void postGL(Graphics g, boolean isDisplay);
 
-    // Called from within paintComponent() to initiate the render
+    /** Called from within paintComponent() to initiate the render */
     public void doPaintComponent(Graphics g);
+
+    /** Called from print .. no backend update desired onscreen */
+    public void doPlainPaint();
   }
 
   // Base class used by both the software (pixmap) and pbuffer
@@ -1315,6 +1569,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         // Draw resulting image in one shot
         g.drawImage(image, 0, 0, image.getWidth(), image.getHeight(), null); // Null ImageObserver since image data is ready.
       }
+    }
+    
+    @Override
+    public void doPlainPaint() {
+      helper.invokeGL(offscreenDrawable, offscreenContext, updaterPlainDisplayAction, updaterInitAction);        
     }
 
     @Override
@@ -1830,6 +2089,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         });
     }
 
+    @Override
+    public void doPlainPaint() {
+      helper.invokeGL(joglDrawable, joglContext, updaterPlainDisplayAction, updaterInitAction);        
+    }
+    
     private void captureJ2DState(GL gl, Graphics g) {
       gl.glGetIntegerv(GL2.GL_DRAW_BUFFER, drawBuffer, 0);
       gl.glGetIntegerv(GL2.GL_READ_BUFFER, readBuffer, 0);
