@@ -375,7 +375,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
             System.err.println("Created Config (n): HAVE    CF "+awtConfig);
             System.err.println("Created Config (n): Choosen CF "+config);
             System.err.println("Created Config (n): EQUALS CAPS "+equalCaps);
-            Thread.dumpStack();
+            // Thread.dumpStack();
         }
 
         if (compatible != null) {
@@ -565,7 +565,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         
         if(DEBUG) {
             System.err.println(getThreadName()+": Info: addNotify - start, bounds: "+this.getBounds()+", isBeansDesignTime "+isBeansDesignTime);
-            Thread.dumpStack();
+            // Thread.dumpStack();
         }
     
         if( isBeansDesignTime ) {
@@ -642,7 +642,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
           final boolean res = _drawable.isRealized();
           if(DEBUG) {
               System.err.println(getThreadName()+": Realized Drawable: isRealized "+res+", "+_drawable.toString());
-              Thread.dumpStack();
+              // Thread.dumpStack();
           }
           return res;
       }
@@ -662,7 +662,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   public void removeNotify() {
     if(DEBUG) {
         System.err.println(getThreadName()+": Info: removeNotify - start");
-        Thread.dumpStack();
+        // Thread.dumpStack();
     }
 
     awtWindowClosingProtocol.removeClosingListener();
@@ -731,12 +731,13 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
   private static final int PRINT_TILE_SIZE = 512;
   private volatile boolean printActive = false;
+  private boolean printUseAA = false;
   private GLAnimatorControl printAnimator = null; 
   private GLOffscreenAutoDrawable printGLAD = null;
   private AWTTilePainter printAWTTiles = null;
   
   @Override
-  public void setupPrint() {
+  public void setupPrint(Graphics2D g2d) {
       if( !validateGLDrawable() ) {
           if(DEBUG) {
               System.err.println(getThreadName()+": Info: GLCanvas setupPrint - skipped GL render, drawable not valid yet");
@@ -751,6 +752,25 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       }
       printActive = true; 
       sendReshape = false; // clear reshape flag
+      final RenderingHints rHints = g2d.getRenderingHints();
+      {
+          final Object _useAA = rHints.get(RenderingHints.KEY_ANTIALIASING);
+          printUseAA = null != _useAA && ( _useAA == RenderingHints.VALUE_ANTIALIAS_DEFAULT || _useAA == RenderingHints.VALUE_ANTIALIAS_ON );
+      }
+      if( DEBUG ) {
+          System.err.println("AWT print.setup: canvasSize "+getWidth()+"x"+getWidth()+", useAA "+printUseAA+", printAnimator "+printAnimator);
+          {
+              final Set<Entry<Object, Object>> rEntries = rHints.entrySet();
+              int count = 0;
+              for(Iterator<Entry<Object, Object>> rEntryIter = rEntries.iterator(); rEntryIter.hasNext(); count++) {
+                  final Entry<Object, Object> rEntry = rEntryIter.next();
+                  System.err.println("Hint["+count+"]: "+rEntry.getKey()+" -> "+rEntry.getValue());
+              }
+          }
+          final AffineTransform aTrans = g2d.getTransform();
+          System.err.println(" scale "+aTrans.getScaleX()+" x "+aTrans.getScaleY());
+          System.err.println(" move "+aTrans.getTranslateX()+" x "+aTrans.getTranslateY());
+      }      
       AWTEDTExecutor.singleton.invoke(getTreeLock(), true /* allowOnNonEDT */, true /* wait */, setupPrintOnEDT);
   }
   private final Runnable setupPrintOnEDT = new Runnable() {
@@ -762,6 +782,19 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
               printAnimator.remove(GLCanvas.this);
           }
           final GLCapabilities caps = (GLCapabilities)getChosenGLCapabilities().cloneMutable();
+          caps.setDoubleBuffered(false);
+          final GLProfile glp = caps.getGLProfile();
+          if( printUseAA && !caps.getSampleBuffers() ) {
+              if ( !glp.isGL2ES3() ) {
+                  if( DEBUG ) {
+                      System.err.println("Ignore MSAA due to gl-profile < GL2ES3");
+                  }
+                  printUseAA = false;
+              } else {
+                  caps.setSampleBuffers(true);
+                  caps.setNumSamples(8); // FIXME
+              }
+          }
           caps.setOnscreen(false);
           final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
           printGLAD = factory.createOffscreenAutoDrawable(null, caps, null, PRINT_TILE_SIZE, PRINT_TILE_SIZE, null);
@@ -775,6 +808,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
           printAWTTiles = new AWTTilePainter(printRenderer, componentCount, DEBUG);
           if( DEBUG ) {
               System.err.println("AWT print.setup "+printAWTTiles);
+              System.err.println("AWT print.setup AA "+printUseAA+", "+caps);
+              System.err.println("AWT print.setup "+printGLAD);
           }
       }
   };
@@ -820,21 +855,6 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       }
       sendReshape = false; // clear reshape flag
       final Graphics2D printGraphics = (Graphics2D)graphics;
-      if( DEBUG ) {
-          System.err.println("AWT print.0: canvasSize "+getWidth()+"x"+getWidth()+", printAnimator "+printAnimator);
-          {
-              final RenderingHints rHints = printGraphics.getRenderingHints();
-              final Set<Entry<Object, Object>> rEntries = rHints.entrySet();
-              int count = 0;
-              for(Iterator<Entry<Object, Object>> rEntryIter = rEntries.iterator(); rEntryIter.hasNext(); count++) {
-                  final Entry<Object, Object> rEntry = rEntryIter.next();
-                  System.err.println("Hint["+count+"]: "+rEntry.getKey()+" -> "+rEntry.getValue());
-              }
-          }
-          final AffineTransform aTrans = printGraphics.getTransform();
-          System.err.println(" scale "+aTrans.getScaleX()+" x "+aTrans.getScaleY());
-          System.err.println(" move "+aTrans.getTranslateX()+" x "+aTrans.getTranslateY());
-      }      
       printAWTTiles.updateGraphics2DAndClipBounds(printGraphics);
       final TileRenderer tileRenderer = printAWTTiles.getTileRenderer(); 
       if( DEBUG ) {
@@ -1070,7 +1090,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
             if(DEBUG) {
                 System.err.println(getThreadName()+": Info: destroyOnEDTAction() - START, hasContext " +
                         (null!=context) + ", hasDrawable " + (null!=drawable)+", "+animator);
-                Thread.dumpStack();
+                // Thread.dumpStack();
             }
                     
             final boolean animatorPaused;

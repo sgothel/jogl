@@ -103,20 +103,27 @@ public class TestTiledPrintingGearsAWT extends TiledPrintingAWTBase  {
         
         final ActionListener print72DPIAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                doPrintManual(frame, glCanvas, TestTiledPrintingGearsAWT.this, offscreenPrinting, 72);
+                doPrintManual(frame, glCanvas, TestTiledPrintingGearsAWT.this, offscreenPrinting, 72, false);
+            } };
+        final ActionListener print150DPIAction = new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                doPrintManual(frame, glCanvas, TestTiledPrintingGearsAWT.this, offscreenPrinting, 150, false);
             } };
         final ActionListener print300DPIAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                doPrintManual(frame, glCanvas, TestTiledPrintingGearsAWT.this, offscreenPrinting, 300);
+                doPrintManual(frame, glCanvas, TestTiledPrintingGearsAWT.this, offscreenPrinting, 300, false);
             } };
         final Button print72DPIButton = new Button("72dpi");
         print72DPIButton.addActionListener(print72DPIAction);
+        final Button print150DPIButton = new Button("150dpi");
+        print150DPIButton.addActionListener(print150DPIAction);
         final Button print300DPIButton = new Button("300dpi");
         print300DPIButton.addActionListener(print300DPIAction);
             
         frame.setLayout(new BorderLayout());
         Panel printPanel = new Panel();
         printPanel.add(print72DPIButton);
+        printPanel.add(print150DPIButton);
         printPanel.add(print300DPIButton);
         Panel southPanel = new Panel();
         southPanel.add(new Label("South"));
@@ -149,18 +156,24 @@ public class TestTiledPrintingGearsAWT extends TiledPrintingAWTBase  {
         animator.start();
 
         boolean dpi72Done = false;
-        boolean dpi300Done = false;
+        boolean dpi150Done = false;
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && ( 0 == duration || animator.getTotalFPSDuration()<duration )) {
             Thread.sleep(100);
             if( !dpi72Done ) {
                 dpi72Done = true;
-                doPrintAuto(frame, glCanvas, TestTiledPrintingGearsAWT.this, PageFormat.LANDSCAPE, null, offscreenPrinting, 72);
-            } else if( !dpi300Done ) {
-                dpi300Done = true;
-                doPrintAuto(frame, glCanvas, TestTiledPrintingGearsAWT.this, PageFormat.LANDSCAPE, null, offscreenPrinting, 300);
+                doPrintAuto(frame, glCanvas, TestTiledPrintingGearsAWT.this, PageFormat.LANDSCAPE, null, offscreenPrinting, 72, false);
+                waitUntilPrintJobsIdle();
+                doPrintAuto(frame, glCanvas, TestTiledPrintingGearsAWT.this, PageFormat.LANDSCAPE, null, offscreenPrinting, 72, true);
+                waitUntilPrintJobsIdle();
+            } else if( !dpi150Done ) {
+                dpi150Done = true;
+                doPrintAuto(frame, glCanvas, TestTiledPrintingGearsAWT.this, PageFormat.LANDSCAPE, null, offscreenPrinting, 150, false);
+                waitUntilPrintJobsIdle();
+                doPrintAuto(frame, glCanvas, TestTiledPrintingGearsAWT.this, PageFormat.LANDSCAPE, null, offscreenPrinting, 150, true);
+                waitUntilPrintJobsIdle();
             }
         }
-        try { Thread.sleep(4000);  } catch (InterruptedException e) { } // time to finish print jobs .. FIXME ??
+        // try { Thread.sleep(4000);  } catch (InterruptedException e) { } // time to finish print jobs .. FIXME ??
         
         Assert.assertNotNull(frame);
         Assert.assertNotNull(glCanvas);
@@ -182,12 +195,21 @@ public class TestTiledPrintingGearsAWT extends TiledPrintingAWTBase  {
     }
 
     @Test
-    public void test01_Onscreen() throws InterruptedException, InvocationTargetException {
+    public void test01_Onscreen_aa0() throws InterruptedException, InvocationTargetException {
         GLCapabilities caps = new GLCapabilities(glp);
         runTestGL(caps, false);
     }
+    
+    // @Test
+    public void test02_Onscreen_aa8() throws InterruptedException, InvocationTargetException {
+        GLCapabilities caps = new GLCapabilities(glp);
+        caps.setSampleBuffers(true);
+        caps.setNumSamples(8); // FIXME
+        runTestGL(caps, false);
+    }
+
     @Test
-    public void test02_Offscreen() throws InterruptedException, InvocationTargetException {
+    public void test03_Offscreen_aa0() throws InterruptedException, InvocationTargetException {
         GLCapabilities caps = new GLCapabilities(glp);
         runTestGL(caps, true);
     }

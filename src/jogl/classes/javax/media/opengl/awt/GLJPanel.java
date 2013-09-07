@@ -505,7 +505,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private AWTTilePainter printAWTTiles = null;
   
   @Override
-  public void setupPrint() {
+  public void setupPrint(Graphics2D g2d) {
       if (!isInitialized) {
           if(DEBUG) {
               System.err.println(getThreadName()+": Info: GLJPanel setupPrint - skipped GL render, drawable not valid yet");
@@ -1200,8 +1200,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
     OffscreenBackend(GLProfile glp, AWTGLPixelBufferProvider custom) {
         if(null == custom) {
-            pixelBufferProvider = ( glp.isGL2GL3() || glp.isGL3ES3() ) ? getSingleAWTGLPixelBufferProvider() :
-                                                                         new AWTGLPixelBufferProvider( false /* allowRowStride */ ) ;
+            pixelBufferProvider = glp.isGL2ES3() ? getSingleAWTGLPixelBufferProvider() :
+                                                   new AWTGLPixelBufferProvider( false /* allowRowStride */ ) ;
         } else {
             pixelBufferProvider = custom;
         }

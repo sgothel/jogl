@@ -60,6 +60,7 @@ public class TestGearsAWT extends UITestCase {
     static GLProfile glp;
     static int width, height;
     static boolean waitForKey = false;
+    static int msaaCount = 0;
 
     @BeforeClass
     public static void initClass() {
@@ -132,6 +133,10 @@ public class TestGearsAWT extends UITestCase {
     @Test
     public void test01() throws InterruptedException, InvocationTargetException {
         GLCapabilities caps = new GLCapabilities(glp);
+        if( msaaCount > 0 ) {
+            caps.setSampleBuffers(true);
+            caps.setNumSamples(msaaCount);
+        }
         runTestGL(caps);
     }
 
@@ -144,9 +149,14 @@ public class TestGearsAWT extends UITestCase {
                 try {
                     duration = Integer.parseInt(args[i]);
                 } catch (Exception ex) { ex.printStackTrace(); }
+            } else if(args[i].equals("-msaa")) {
+                i++;
+                try {
+                    msaaCount = Integer.parseInt(args[i]);
+                } catch (Exception ex) { ex.printStackTrace(); }
             } else if(args[i].equals("-wait")) {
                 waitForKey = true;
-            }
+            }            
         }
         if(waitForKey) {
             BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));

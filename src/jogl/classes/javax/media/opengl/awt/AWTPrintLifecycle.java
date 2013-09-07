@@ -1,5 +1,3 @@
-package javax.media.opengl.awt;
-
 /**
  * Copyright 2013 JogAmp Community. All rights reserved.
  *
@@ -27,9 +25,12 @@ package javax.media.opengl.awt;
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
+package javax.media.opengl.awt;
 
 import javax.media.opengl.GLAutoDrawable;
 import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 
 /**
  * Interface describing print lifecycle to support AWT printing
@@ -38,12 +39,13 @@ import java.awt.Component;
 public interface AWTPrintLifecycle {
 
     /**
-     * Shall be called before {@link Component#print(java.awt.Graphics)}.
+     * Shall be called before {@link Component#print(Graphics)}.
+     * @param g2d the {@link Graphics2D} instance, which will be used for printing.
      */
-    void setupPrint();
+    void setupPrint(Graphics2D g2d);
     
     /**
-     * Shall be called after very last {@link Component#print(java.awt.Graphics)}.
+     * Shall be called after very last {@link Component#print(Graphics)}.
      */
     void releasePrint();
 }

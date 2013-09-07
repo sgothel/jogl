@@ -43,7 +43,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     static {
         Debug.initSingleton();
         DEBUG = GLDrawableImpl.DEBUG || Debug.debug("FBObject");
-        DEBUG_SWAP = Debug.isPropertyDefined("jogl.debug.FBObject.Swap", true);
+        DEBUG_SWAP = DEBUG || Debug.isPropertyDefined("jogl.debug.FBObject.Swap", true);
     }
     
     private final GLDrawableImpl parent;

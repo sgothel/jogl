@@ -106,19 +106,26 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
         
         final ActionListener print72DPIAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                doPrintManual(frame, glJPanel, TestTiledPrintingGearsSwingAWT.this, offscreenPrinting, 72);
+                doPrintManual(frame, glJPanel, TestTiledPrintingGearsSwingAWT.this, offscreenPrinting, 72, false);
+            } };
+        final ActionListener print150DPIAction = new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                doPrintManual(frame, glJPanel, TestTiledPrintingGearsSwingAWT.this, offscreenPrinting, 150, false);
             } };
         final ActionListener print300DPIAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                doPrintManual(frame, glJPanel, TestTiledPrintingGearsSwingAWT.this, offscreenPrinting, 300);
+                doPrintManual(frame, glJPanel, TestTiledPrintingGearsSwingAWT.this, offscreenPrinting, 300, false);
             } };
         final Button print72DPIButton = new Button("72dpi");
         print72DPIButton.addActionListener(print72DPIAction);
+        final Button print150DPIButton = new Button("150dpi");
+        print150DPIButton.addActionListener(print150DPIAction);
         final Button print300DPIButton = new Button("300dpi");
         print300DPIButton.addActionListener(print300DPIAction);
             
         final JPanel printPanel = new JPanel();
         printPanel.add(print72DPIButton);
+        printPanel.add(print150DPIButton);
         printPanel.add(print300DPIButton);
         final JPanel southPanel = new JPanel();
         southPanel.add(new Label("South"));
@@ -155,18 +162,24 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
         Assert.assertEquals(true, animator.isAnimating());
 
         boolean dpi72Done = false;
-        boolean dpi300Done = false;
+        boolean dpi150Done = false;
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && ( 0 == duration || animator.getTotalFPSDuration()<duration )) {
             Thread.sleep(200);
             if( !dpi72Done ) {
                 dpi72Done = true;
-                doPrintAuto(frame, glJPanel, TestTiledPrintingGearsSwingAWT.this, PageFormat.LANDSCAPE, null, offscreenPrinting, 72);
-            } else if( !dpi300Done ) {
-                dpi300Done = true;
-                doPrintAuto(frame, glJPanel, TestTiledPrintingGearsSwingAWT.this, PageFormat.LANDSCAPE, null, offscreenPrinting, 300);
+                doPrintAuto(frame, glJPanel, TestTiledPrintingGearsSwingAWT.this, PageFormat.LANDSCAPE, null, offscreenPrinting, 72, false);
+                waitUntilPrintJobsIdle();
+                doPrintAuto(frame, glJPanel, TestTiledPrintingGearsSwingAWT.this, PageFormat.LANDSCAPE, null, offscreenPrinting, 72, true);
+                waitUntilPrintJobsIdle();
+            } else if( !dpi150Done ) {
+                dpi150Done = true;
+                doPrintAuto(frame, glJPanel, TestTiledPrintingGearsSwingAWT.this, PageFormat.LANDSCAPE, null, offscreenPrinting, 150, false);
+                waitUntilPrintJobsIdle();
+                doPrintAuto(frame, glJPanel, TestTiledPrintingGearsSwingAWT.this, PageFormat.LANDSCAPE, null, offscreenPrinting, 150, true);
+                waitUntilPrintJobsIdle();
             }
         }
-        try { Thread.sleep(4000);  } catch (InterruptedException e) { } // time to finish print jobs .. FIXME ??
+        // try { Thread.sleep(4000);  } catch (InterruptedException e) { } // time to finish print jobs .. FIXME ??
         
         Assert.assertNotNull(frame);
         Assert.assertNotNull(glJPanel);
