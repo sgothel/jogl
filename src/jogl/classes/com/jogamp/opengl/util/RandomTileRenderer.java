@@ -104,6 +104,11 @@ public class RandomTileRenderer extends TileRendererBase {
         validateGL(gl);
         
         gl.glViewport( 0, 0, currentTileWidth, currentTileHeight );
+        
+        if( DEBUG ) {
+            System.err.println("TileRenderer.begin.X: "+this.toString());
+        }
+                
         // Do not forget to issue:
         //    reshape( 0, 0, tW, tH );
         // which shall reflect tile renderer fileds: currentTileXPos, currentTileYPos and imageSize
@@ -121,6 +126,10 @@ public class RandomTileRenderer extends TileRendererBase {
         // be sure OpenGL rendering is finished
         gl.glFlush();
 
+        if( DEBUG ) {
+            System.err.println("TileRenderer.end.0: "+this.toString());
+        }
+        
         // save current glPixelStore values
         psm.save(gl);
         psm.setPackAlignment(gl, 1);

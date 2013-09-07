@@ -38,6 +38,8 @@ import com.jogamp.opengl.util.texture.TextureIO;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
@@ -73,23 +75,32 @@ public class TestRandomTiledRendering2GL2NEWT extends UITestCase {
     static long duration = 500; // ms
 
     @Test
-    public void test01() throws IOException {
-        doTest();
+    public void test01_aa0() throws IOException, InterruptedException, InvocationTargetException {
+        doTest(0);
+    }
+    @Test
+    public void test02_aa8() throws IOException, InterruptedException, InvocationTargetException {
+        doTest(8);
     }
 
-    void doTest() throws IOException {      
-        GLCapabilities caps = new GLCapabilities(null);
-        caps.setDoubleBuffered(false);
+    void doTest(int msaaCount) throws IOException, InterruptedException, InvocationTargetException {      
+        final GLCapabilities caps = new GLCapabilities(null);
+        caps.setDoubleBuffered(true);
+        if( msaaCount > 0 ) {
+            caps.setSampleBuffers(true);
+            caps.setNumSamples(msaaCount);
+        }
 
+        final int maxTileSize = 64;
         final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
-        final GLOffscreenAutoDrawable glad = factory.createOffscreenAutoDrawable(null, caps, null, 256, 256, null);
+        final GLOffscreenAutoDrawable glad = factory.createOffscreenAutoDrawable(null, caps, null, maxTileSize, maxTileSize, null);
 
         final Gears gears = new Gears();
         glad.addGLEventListener( gears );
 
         // Fix the image size for now
-        final int imageWidth = glad.getWidth() * 6;
-        final int imageHeight = glad.getHeight() * 4;
+        final int imageWidth = 256 * 6;
+        final int imageHeight = 256 * 4;
 
         final String filename = this.getSnapshotFilename(0, "-tile", glad.getChosenGLCapabilities(), imageWidth, imageHeight, false, TextureIO.PNG, null);
         final File file = new File(filename);
@@ -124,7 +135,7 @@ public class TestRandomTiledRendering2GL2NEWT extends UITestCase {
         };
         renderer.setGLEventListener(preTileGLEL, null);
 
-        final int w = 50, h = 50;
+        final int w = maxTileSize, h = maxTileSize;
         int dx = 0, dy = 0;
         while( dx+w <= imageWidth && dy+h <= imageHeight ) {
             renderer.display(dx, dy, w, h);

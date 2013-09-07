@@ -80,17 +80,24 @@ import org.junit.runners.MethodSorters;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestRandomTiledRendering3GL2AWT extends UITestCase {
     static long duration = 3500; // ms
-    static int width  = 640;
-    static int height = 480;
+    static int width  = 512;
+    static int height = 512;
     
     @Test
-    public void test01() throws IOException, InterruptedException, InvocationTargetException {
-        doTest();
+    public void test01_aa0() throws IOException, InterruptedException, InvocationTargetException {
+        doTest(0);
+    }
+    @Test
+    public void test02_aa8() throws IOException, InterruptedException, InvocationTargetException {
+        doTest(8);
     }
 
-    void doTest() throws IOException, InterruptedException, InvocationTargetException {      
+    void doTest(int msaaCount) throws IOException, InterruptedException, InvocationTargetException {      
         final GLCapabilities caps = new GLCapabilities(null);
-        caps.setDoubleBuffered(false);
+        if( msaaCount > 0 ) {
+            caps.setSampleBuffers(true);
+            caps.setNumSamples(msaaCount);
+        }
 
         final Frame frame = new Frame("Gears AWT Test");
         Assert.assertNotNull(frame);
@@ -113,8 +120,9 @@ public class TestRandomTiledRendering3GL2AWT extends UITestCase {
         new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
 
         // Fix the image size for now
-        final int imageWidth = glad.getWidth() * 3;
-        final int imageHeight = glad.getHeight() * 2;
+        final int maxTileSize = 64;
+        final int imageWidth = 256 * 6;
+        final int imageHeight = 256 * 4;
 
         // Initialize the tile rendering library
         final RandomTileRenderer renderer = new RandomTileRenderer();
@@ -124,7 +132,7 @@ public class TestRandomTiledRendering3GL2AWT extends UITestCase {
         final boolean[] rendererActive = { true };
 
         final GLEventListener preTileGLEL = new GLEventListener() {
-            final int w = 50, h = 50;
+            final int w = maxTileSize, h = maxTileSize;
             int dx = 0, dy = 0;
             
             @Override

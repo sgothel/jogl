@@ -107,7 +107,8 @@ public class TestTiledRendering1GL2NEWT extends UITestCase {
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setOnscreen(false);
         
-        DrawableContext dc = createDrawableAndCurrentCtx(caps, 256, 256);
+        final int maxTileSize = 256;
+        DrawableContext dc = createDrawableAndCurrentCtx(caps, maxTileSize, maxTileSize);
         final GL2 gl = dc.glc.getGL().getGL2();
         
         // Fix the image size for now

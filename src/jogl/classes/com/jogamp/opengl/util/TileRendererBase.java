@@ -41,8 +41,11 @@ import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
+
+import jogamp.opengl.Debug;
 
 /**
  * A fairly direct port of Brian Paul's tile rendering library, found
@@ -111,6 +114,8 @@ public abstract class TileRendererBase {
      */
     public static final int TR_CURRENT_TILE_HEIGHT = 6;
     
+    /* pp */ static final boolean DEBUG = Debug.debug("TileRenderer");
+    
     /** 
      * Notifies {@link GLEventListener} implementing this interface
      * that the owning {@link GLAutoDrawable} is {@link TileRendererBase#attachToAutoDrawable(GLAutoDrawable) attached} 
@@ -133,6 +138,7 @@ public abstract class TileRendererBase {
     protected int currentTileWidth;
     protected int currentTileHeight;
     protected GLAutoDrawable glad;
+    protected boolean gladAutoSwapBufferMode = true;
     protected GLEventListener[] listeners;
     protected boolean[] listenersInit;
     protected GLEventListener glEventListenerPre = null;
@@ -180,6 +186,9 @@ public abstract class TileRendererBase {
      */
     public final void setTileBuffer(GLPixelBuffer buffer) {
         tileBuffer = buffer;
+        if( DEBUG ) {
+            System.err.println("TileRenderer: tile-buffer "+tileBuffer);
+        }
     }
 
     /** @see #setTileBuffer(GLPixelBuffer) */
@@ -206,6 +215,9 @@ public abstract class TileRendererBase {
      */
     public final void setImageBuffer(GLPixelBuffer buffer) {
         imageBuffer = buffer;
+        if( DEBUG ) {
+            System.err.println("TileRenderer: image-buffer "+imageBuffer);
+        }
     }
 
     /** @see #setImageBuffer(GLPixelBuffer) */
@@ -259,6 +271,11 @@ public abstract class TileRendererBase {
      * Must be called after rendering the scene,
      * see {@link #beginTile(GL)}.
      * <p>
+     * Is is highly recommended to perform {@link GLDrawable#swapBuffers() swapBuffers()} before calling this method.<br>
+     * This is especially true in regards to multisampling offscreen FBO drawables, 
+     * where {@link GLDrawable#swapBuffers() swapBuffers()} triggers the <i>downsampling</i> to the readable sampling sink.
+     * </p>
+     * <p>
      * User has to comply with the <a href="#glprequirement">GL profile requirement</a>.
      * </p>
      * 
@@ -277,8 +294,13 @@ public abstract class TileRendererBase {
      * about this event.
      * </p>
      * <p>
-     * This tile renderer's {@link GLEventListener} is then added to handle the tile rendering
-     * for the original {@link GLEventListener}, i.e. it's {@link GLEventListener#display(GLAutoDrawable) display} issues:
+     * The {@link GLAutoDrawable}'s {@link GLAutoDrawable#getAutoSwapBufferMode() auto-swap mode} is cached
+     * and set to <code>false</code>, since {@link GLAutoDrawable#swapBuffers() swapBuffers()} must be issued before {@link #endTile(GL)}.  
+     * </p>
+     * <p>
+     * This tile renderer's {@link GLEventListener} is then added to handle the tile rendering,
+     * replacing the original {@link GLEventListener}.<br>
+     * This {@link GLEventListener#display(GLAutoDrawable) display} implementations issues:
      * <ul>
      *   <li>Optional {@link #setGLEventListener(GLEventListener, GLEventListener) pre-glel}.{@link GLEventListener#display(GLAutoDrawable) display(..)}</li>
      *   <li>{@link #beginTile(GL)}</li>
@@ -287,6 +309,7 @@ public abstract class TileRendererBase {
      *     <li>{@link GLEventListener#reshape(GLAutoDrawable, int, int, int, int) reshape(0, 0, tile-width, tile-height)}</li>
      *     <li>{@link GLEventListener#display(GLAutoDrawable) display(autoDrawable)}</li>
      *   </ul></li>
+     *   <li>{@link GLAutoDrawable#swapBuffers() swapBuffers()}</li>
      *   <li>{@link #endTile(GL)}</li>
      *   <li>Optional {@link #setGLEventListener(GLEventListener, GLEventListener) post-glel}.{@link GLEventListener#display(GLAutoDrawable) display(..)}</li>
      * </ul>
@@ -333,6 +356,8 @@ public abstract class TileRendererBase {
             }
         }
         glad.addGLEventListener(tiledGLEL);
+        gladAutoSwapBufferMode = glad.getAutoSwapBufferMode();
+        glad.setAutoSwapBufferMode(false);
     }
 
     /**
@@ -358,6 +383,8 @@ public abstract class TileRendererBase {
                 glad.addGLEventListener(l);
                 glad.setGLEventListenerInitState(l, listenersInit[i]);
             }
+            glad.setAutoSwapBufferMode(gladAutoSwapBufferMode);
+            
             listeners = null;
             listenersInit = null;
             glad = null;
@@ -432,6 +459,7 @@ public abstract class TileRendererBase {
                 listeners[i].reshape(drawable, 0, 0, currentTileWidth, currentTileHeight);
                 listeners[i].display(drawable);
             }
+            glad.swapBuffers();
 
             endTile(gl);
             if( null != glEventListenerPost ) {

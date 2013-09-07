@@ -104,7 +104,6 @@ public class TileRenderer extends TileRendererBase {
      */
     public static final int TR_BOTTOM_TO_TOP = 16;
 
-    private static final boolean DEBUG = true;
     private static final int DEFAULT_TILE_WIDTH = 256;
     private static final int DEFAULT_TILE_HEIGHT = 256;
     private static final int DEFAULT_TILE_BORDER = 0;
@@ -259,9 +258,6 @@ public class TileRenderer extends TileRendererBase {
             setup();
         }
 
-        final int preRow = currentRow;
-        final int preColumn = currentColumn;
-
         /* which tile (by row and column) we're about to render */
         if (rowOrder == TR_BOTTOM_TO_TOP) {
             currentRow = currentTile / columns;
@@ -293,20 +289,16 @@ public class TileRenderer extends TileRendererBase {
         currentTileXPos = currentColumn * tileSizeNB.getWidth() + offsetX;
         currentTileYPos = currentRow * tileSizeNB.getHeight() + offsetY;
 
-        final int preTileWidth = currentTileWidth;
-        final int preTileHeight = currentTileHeight;
-
         /* Save tile size, with border */
         currentTileWidth = tW;
         currentTileHeight = tH;
 
-        if( DEBUG ) {
-            System.err.println("Tile["+currentTile+"]: off "+offsetX+"/"+offsetX+", ["+preColumn+"]["+preRow+"] "+preTileWidth+"x"+preTileHeight+
-                    " -> ["+currentColumn+"]["+currentRow+"] "+currentTileXPos+"/"+currentTileYPos+", "+tW+"x"+tH+
-                    ", image "+imageSize.getWidth()+"x"+imageSize.getHeight());
-        }
-
         gl.glViewport( 0, 0, tW, tH );
+        
+        if( DEBUG ) {
+            System.err.println("TileRenderer.begin.X: "+this.toString());
+        }
+        
         // Do not forget to issue:
         //    reshape( 0, 0, tW, tH );
         // which shall reflect tile renderer fileds: currentTileXPos, currentTileYPos and imageSize
@@ -323,6 +315,10 @@ public class TileRenderer extends TileRendererBase {
         // be sure OpenGL rendering is finished
         gl.glFlush();
 
+        if( DEBUG ) {
+            System.err.println("TileRenderer.end.0: "+this.toString());
+        }
+        
         // save current glPixelStore values
         psm.save(gl);
         psm.setPackAlignment(gl, 1);

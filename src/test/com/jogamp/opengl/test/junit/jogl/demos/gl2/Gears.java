@@ -1,6 +1,7 @@
 
 package com.jogamp.opengl.test.junit.jogl.demos.gl2;
 
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
@@ -34,6 +35,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererNoti
   private MouseListener gearsMouse = new GearsMouseAdapter();    
   private KeyListener gearsKeys = new GearsKeyAdapter();
   private TileRendererBase tileRendererInUse = null;
+  private boolean doRotateBeforePrinting;
   
   // private boolean mouseRButtonDown = false;
   private int prevMouseX, prevMouseY;
@@ -46,7 +48,6 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererNoti
     this.swapInterval = 1;
   }
   
-  private boolean doRotateBeforePrinting;
   public void addTileRendererNotify(TileRendererBase tr) {
       tileRendererInUse = tr;
       doRotateBeforePrinting = doRotate;
@@ -157,8 +158,13 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererNoti
   }
   
   public void reshape(GL2 gl, int x, int y, int width, int height) {
-    System.err.println("Gears: Reshape "+x+"/"+y+" "+width+"x"+height+", tileRendererInUse "+tileRendererInUse);
+    final boolean msaa = gl.getContext().getGLDrawable().getChosenGLCapabilities().getSampleBuffers();
+    System.err.println("Gears: Reshape "+x+"/"+y+" "+width+"x"+height+", msaa "+msaa+", tileRendererInUse "+tileRendererInUse);
 
+    if( msaa ) {
+        gl.glEnable(GL.GL_MULTISAMPLE);
+    }
+    
     gl.glMatrixMode(GL2.GL_PROJECTION);
 
     gl.glLoadIdentity();
@@ -209,6 +215,10 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererNoti
     gl.glMatrixMode(GL2.GL_MODELVIEW);        
     gl.glLoadIdentity();
     gl.glTranslatef(0.0f, 0.0f, -40.0f);
+    
+    if( msaa ) {
+        gl.glDisable(GL.GL_MULTISAMPLE);
+    }
   }
 
   public void dispose(GLAutoDrawable drawable) {
@@ -227,7 +237,12 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererNoti
   public void display(GLAutoDrawable drawable) {
     // Get the GL corresponding to the drawable we are animating
     GL2 gl = drawable.getGL().getGL2();
+    final boolean msaa = gl.getContext().getGLDrawable().getChosenGLCapabilities().getSampleBuffers();
 
+    if( msaa ) {
+        gl.glEnable(GL.GL_MULTISAMPLE);
+    }
+    
     if( null == tileRendererInUse ) {
         gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     } else {
@@ -245,8 +260,15 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererNoti
       gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
     }
     displayImpl(gl);
+    if( msaa ) {
+        gl.glDisable(GL.GL_MULTISAMPLE);
+    }
   }
   public void display(GL2 gl) {
+    final boolean msaa = gl.getContext().getGLDrawable().getChosenGLCapabilities().getSampleBuffers();
+    if( msaa ) {
+        gl.glEnable(GL.GL_MULTISAMPLE);
+    }
     if( null == tileRendererInUse ) {
         gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     } else {
@@ -254,6 +276,9 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererNoti
     }
     gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
     displayImpl(gl);
+    if( msaa ) {
+        gl.glDisable(GL.GL_MULTISAMPLE);
+    }
   }
   private void displayImpl(GL2 gl) {
     if( doRotate ) {

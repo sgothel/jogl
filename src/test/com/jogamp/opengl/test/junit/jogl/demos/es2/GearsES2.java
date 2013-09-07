@@ -30,6 +30,7 @@ import com.jogamp.newt.event.MouseListener;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.jogl.demos.GearsObject;
 import com.jogamp.opengl.util.PMVMatrix;
+import com.jogamp.opengl.util.TileRendererBase;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
@@ -48,7 +49,7 @@ import javax.media.opengl.GLUniformData;
  * GearsES2.java <BR>
  * @author Brian Paul (converted to Java by Ron Cemer and Sven Gothel) <P>
  */
-public class GearsES2 implements GLEventListener {
+public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererNotify {
     private final FloatBuffer lightPos = Buffers.newDirectFloatBuffer( new float[] { 5.0f, 5.0f, 10.0f } );
     
     private ShaderState st = null;
@@ -66,6 +67,8 @@ public class GearsES2 implements GLEventListener {
     // private MouseListener gearsMouse = new TraceMouseAdapter(new GearsMouseAdapter());
     public MouseListener gearsMouse = new GearsMouseAdapter();    
     public KeyListener gearsKeys = new GearsKeyAdapter();
+    private TileRendererBase tileRendererInUse = null;
+    private boolean doRotateBeforePrinting;
 
     private boolean doRotate = true;
     private boolean ignoreFocus = false;
@@ -81,6 +84,16 @@ public class GearsES2 implements GLEventListener {
         this.swapInterval = 1;
     }
 
+    public void addTileRendererNotify(TileRendererBase tr) {
+        tileRendererInUse = tr;
+        doRotateBeforePrinting = doRotate;
+        setDoRotation(false);      
+    }
+    public void removeTileRendererNotify(TileRendererBase tr) {
+        tileRendererInUse = null;
+        setDoRotation(doRotateBeforePrinting);      
+    }
+  
     public void setIgnoreFocus(boolean v) { ignoreFocus = v; }
     public void setDoRotation(boolean rotate) { this.doRotate = rotate; }
     public void setClearBuffers(boolean v) { clearBuffers = v; }
@@ -221,12 +234,13 @@ public class GearsES2 implements GLEventListener {
     }
 
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-        System.err.println(Thread.currentThread()+" GearsES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(drawable.getHandle()));
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final boolean msaa = gl.getContext().getGLDrawable().getChosenGLCapabilities().getSampleBuffers();
+        System.err.println(Thread.currentThread()+" GearsES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(drawable.getHandle())+", msaa "+msaa+", tileRendererInUse "+tileRendererInUse);
         
         drawableHeight = height;
         
         // Thread.dumpStack();
-        final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         if(-1 != swapInterval) {
             gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
@@ -239,14 +253,49 @@ public class GearsES2 implements GLEventListener {
         pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
         
-        if(height>width) {
-            float h = (float)height / (float)width;
-            pmvMatrix.glFrustumf(-1.0f, 1.0f, -h, h, 5.0f, 200.0f);
+        final int tileWidth = width;
+        final int tileHeight = height;
+        final int tileX, tileY, imageWidth, imageHeight;
+        if( null == tileRendererInUse ) {
+            gl.setSwapInterval(swapInterval);
+            tileX = 0;
+            tileY = 0;
+            imageWidth = width;
+            imageHeight = height;
         } else {
-            float h = (float)width / (float)height;
-            pmvMatrix.glFrustumf(-h, h, -1.0f, 1.0f, 5.0f, 200.0f);
+            gl.setSwapInterval(0);
+            tileX = tileRendererInUse.getParam(TileRendererBase.TR_CURRENT_TILE_X_POS);
+            tileY = tileRendererInUse.getParam(TileRendererBase.TR_CURRENT_TILE_Y_POS);
+            imageWidth = tileRendererInUse.getParam(TileRendererBase.TR_IMAGE_WIDTH);
+            imageHeight = tileRendererInUse.getParam(TileRendererBase.TR_IMAGE_HEIGHT);
         }
-
+        /* compute projection parameters */
+        float left, right, bottom, top; 
+        if( imageHeight > imageWidth ) {
+            float a = (float)imageHeight / (float)imageWidth;
+            left = -1.0f;
+            right = 1.0f;
+            bottom = -a;
+            top = a;
+        } else {
+            float a = (float)imageWidth / (float)imageHeight;
+            left = -a;
+            right = a;
+            bottom = -1.0f;
+            top = 1.0f;
+        }
+        final float w = right - left;
+        final float h = top - bottom;
+        final float l = left + tileX * w / imageWidth;
+        final float r = l + w * tileWidth / imageWidth;
+        final float b = bottom + tileY * h / imageHeight;
+        final float t = b + h * tileHeight / imageHeight;
+    
+        final float _w = r - l;
+        final float _h = t - b;
+        System.err.println(">> angle "+angle+", [l "+left+", r "+right+", b "+bottom+", t "+top+"] "+w+"x"+h+" -> [l "+l+", r "+r+", b "+b+", t "+t+"] "+_w+"x"+_h);
+        pmvMatrix.glFrustumf(l, r, b, t, 5.0f, 200.0f);
+        
         pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0.0f, 0.0f, -40.0f);
@@ -308,6 +357,8 @@ public class GearsES2 implements GLEventListener {
         if( clearBuffers ) {
             if( null != clearColor ) {
               gl.glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+            } else if( null != tileRendererInUse ) {
+              gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
             } else if( ignoreFocus || hasFocus ) {
               gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
             } else {

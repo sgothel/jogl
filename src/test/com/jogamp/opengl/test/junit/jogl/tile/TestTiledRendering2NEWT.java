@@ -27,6 +27,7 @@
  */
 package com.jogamp.opengl.test.junit.jogl.tile;
 
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.GLPixelBuffer;
@@ -44,6 +45,7 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLOffscreenAutoDrawable;
+import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
 
 import org.junit.FixMethodOrder;
@@ -69,23 +71,71 @@ import org.junit.runners.MethodSorters;
  * </p>
 */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestTiledRendering2GL2NEWT extends UITestCase {
+public class TestTiledRendering2NEWT extends UITestCase {
     static long duration = 500; // ms
 
+    static GLProfile getGLProfile(String profile) {
+        if( !GLProfile.isAvailable(profile) )  {
+            System.err.println("Profile "+profile+" n/a");
+            return null;
+        }
+        return GLProfile.get(profile);
+    }
+    static GLProfile getGL2ES3() {
+        final GLProfile glp = GLProfile.getMaxProgrammableCore(true);
+        if( null == glp || !glp.isGL2ES3() ) {
+            System.err.println("GL2ES3 n/a, has max-core "+glp);
+            return null;
+        }
+        return glp;
+    }    
+    
     @Test
-    public void test01() throws IOException {
-        doTest();
+    public void test01_gl2___aa0() throws IOException {
+        GLProfile glp = getGLProfile(GLProfile.GL2);
+        if( null == glp ) {
+            return;
+        }
+        doTest(new Gears(), glp, 0);
+    }
+    @Test
+    public void test02_gl2___aa8() throws IOException {
+        GLProfile glp = getGLProfile(GLProfile.GL2);
+        if( null == glp ) {
+            return;
+        }
+        doTest(new Gears(), glp, 8);
+    }
+    @Test
+    public void test11_gl2es3_aa0() throws IOException {
+        GLProfile glp = getGL2ES3();
+        if( null == glp ) {
+            return;
+        }
+        doTest(new GearsES2(), glp, 0);
+    }
+    @Test
+    public void test12_gl2es3_aa8() throws IOException {
+        GLProfile glp = getGL2ES3();
+        if( null == glp ) {
+            return;
+        }
+        doTest(new GearsES2(), glp, 8);
     }
 
-    void doTest() throws IOException {      
-        GLCapabilities caps = new GLCapabilities(null);
+    void doTest(final GLEventListener demo, GLProfile glp, final int msaaCount) throws IOException {      
+        GLCapabilities caps = new GLCapabilities(glp);
         caps.setDoubleBuffered(false);
+        if( msaaCount > 0 ) {
+            caps.setSampleBuffers(true);
+            caps.setNumSamples(msaaCount);
+        }
 
-        final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
-        final GLOffscreenAutoDrawable glad = factory.createOffscreenAutoDrawable(null, caps, null, 256, 256, null);
+        final int maxTileSize = 256;
+        final GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
+        final GLOffscreenAutoDrawable glad = factory.createOffscreenAutoDrawable(null, caps, null, maxTileSize, maxTileSize, null);
 
-        final Gears gears = new Gears();
-        glad.addGLEventListener( gears );
+        glad.addGLEventListener( demo );
 
         // Fix the image size for now
         final int imageWidth = glad.getWidth() * 6;
@@ -137,7 +187,7 @@ public class TestTiledRendering2GL2NEWT extends UITestCase {
             @Override
             public boolean run(GLAutoDrawable drawable) {
                 drawable.getGL().glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
-                gears.reshape(drawable, 0, 0, drawable.getWidth(), drawable.getHeight());
+                demo.reshape(drawable, 0, 0, drawable.getWidth(), drawable.getHeight());
                 return false;
             }            
         });
@@ -168,6 +218,6 @@ public class TestTiledRendering2GL2NEWT extends UITestCase {
                 } catch (Exception ex) { ex.printStackTrace(); }
             }
         }
-        org.junit.runner.JUnitCore.main(TestTiledRendering2GL2NEWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestTiledRendering2NEWT.class.getName());
     }    
 }
