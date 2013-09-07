@@ -70,8 +70,8 @@ public class TestElektronenMultipliziererNEWT extends UITestCase {
     @BeforeClass
     public static void initClass() {
         GLProfile glp = GLProfile.getDefault();
-        if( ! ( glp.isHardwareRasterizer() && glp.isGL2GL3() ) ) {
-            // Sorry .. mobile is too slow for this one.
+        if( ! ( glp.isHardwareRasterizer() && glp.isGL2ES3() ) ) {
+            // Sorry .. mobile ES2 is too slow for this one.
             setTestSupported(false);
             return;
         }

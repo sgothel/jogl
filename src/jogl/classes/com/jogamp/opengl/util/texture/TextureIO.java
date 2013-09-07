@@ -1125,7 +1125,7 @@ public class TextureIO {
                     pixelFormat = image.getGLFormat();
                 }
                 if (internalFormat == 0) {
-                    if(glp.isGL2GL3()) {
+                    if(glp.isGL2ES3()) {
                         internalFormat = (image.getBytesPerPixel()==4)?GL.GL_RGBA8:GL.GL_RGB8;
                     } else {
                         internalFormat = (image.getBytesPerPixel()==4)?GL.GL_RGBA:GL.GL_RGB;
@@ -1162,7 +1162,7 @@ public class TextureIO {
                     pixelFormat = image.getGLFormat();
                 }
                 if (internalFormat == 0) {
-                    if(glp.isGL2GL3()) {
+                    if(glp.isGL2ES3()) {
                         internalFormat = (image.getBytesPerPixel()==4)?GL.GL_RGBA8:GL.GL_RGB8;
                     } else {
                         internalFormat = (image.getBytesPerPixel()==4)?GL.GL_RGBA:GL.GL_RGB;
@@ -1199,7 +1199,7 @@ public class TextureIO {
                     pixelFormat = image.getGLFormat();
                 }
                 if (internalFormat == 0) {
-                    if(glp.isGL2GL3()) {
+                    if(glp.isGL2ES3()) {
                         internalFormat = (image.getBytesPerPixel()==4)?GL.GL_RGBA8:GL.GL_RGB8;
                     } else {
                         internalFormat = (image.getBytesPerPixel()==4)?GL.GL_RGBA:GL.GL_RGB;

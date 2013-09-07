@@ -46,20 +46,13 @@ public class AWTGLReadBufferUtil extends GLReadBufferUtil {
      * @param alpha
      */
     public AWTGLReadBufferUtil(GLProfile glp, boolean alpha) {
-        super(new AWTGLPixelBuffer.AWTGLPixelBufferProvider( glp.isGL2GL3() || glp.isGL3ES3() /* allowRowStride */ ), alpha, false);
+        super(new AWTGLPixelBuffer.AWTGLPixelBufferProvider( glp.isGL2ES3() /* allowRowStride */ ), alpha, false);
     }
 
     public AWTGLPixelBuffer getAWTGLPixelBuffer() { return (AWTGLPixelBuffer)this.getPixelBuffer(); }
     
     public BufferedImage readPixelsToBufferedImage(GL gl, boolean awtOrientation) {
-        if( readPixels(gl, awtOrientation) ) {
-            final BufferedImage image = getAWTGLPixelBuffer().image;
-            if( getTextureData().getMustFlipVertically()  ) {
-                ImageUtil.flipImageVertically(image);
-            }
-            return image;
-        }
-        return null;
+        return readPixelsToBufferedImage(gl, 0, 0, 0, 0, awtOrientation);
     }
     public BufferedImage readPixelsToBufferedImage(GL gl, int inX, int inY, int inWidth, int inHeight, boolean awtOrientation) {
         if( readPixels(gl, inX, inY, inWidth, inHeight, awtOrientation) ) {

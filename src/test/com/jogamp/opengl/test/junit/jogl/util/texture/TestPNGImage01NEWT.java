@@ -83,7 +83,7 @@ public class TestPNGImage01NEWT extends UITestCase {
         }
         
         final int internalFormat;
-        if(glp.isGL2GL3()) {
+        if(glp.isGL2ES3()) {
             internalFormat = hasAlpha ? GL.GL_RGBA8 : GL.GL_RGB8;
         } else {
             internalFormat = hasAlpha ? GL.GL_RGBA : GL.GL_RGB;

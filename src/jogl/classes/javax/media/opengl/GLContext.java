@@ -1115,8 +1115,7 @@ public abstract class GLContext {
 
   /** 
    * Indicates whether this GLContext is capable of GL2ES3. <p>Includes [ GL4bc, GL4, GL3bc, GL3, GLES3, GL3ES3, GL2, GL2GL3 ].</p>
-   * @see GLProfile#isGL3ES3() 
-   * @see GLProfile#isGL2GL3() 
+   * @see GLProfile#isGL2ES3() 
    */
   public final boolean isGL2ES3() {
       return isGL3ES3() || isGL2GL3();
