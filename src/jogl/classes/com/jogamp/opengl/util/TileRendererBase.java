@@ -38,9 +38,11 @@ package com.jogamp.opengl.util;
 
 import javax.media.nativewindow.util.Dimension;
 import javax.media.nativewindow.util.DimensionImmutable;
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
+import javax.media.opengl.GLException;
 
 /**
  * A fairly direct port of Brian Paul's tile rendering library, found
@@ -53,18 +55,32 @@ import javax.media.opengl.GLEventListener;
  * for license information.
  * </p>
  * <p>
- * Enhanced for {@link GL2ES3}, abstracted to suit {@link TileRenderer} and {@link RandomTileRenderer}.
+ * Enhanced for {@link GL} and {@link GL2ES3}, abstracted to suit {@link TileRenderer} and {@link RandomTileRenderer}.
  * </p>
  * <a name="pmvmatrix"><h5>PMV Matrix Considerations</h5></a>
  * <p>
  * The PMV matrix needs to be reshaped in user code
- * after calling {@link #beginTile(GL2ES3)}, See {@link #beginTile(GL2ES3)}.
+ * after calling {@link #beginTile(GL)}, See {@link #beginTile(GL)}.
  * </p>
  * <p> 
  * If {@link #attachToAutoDrawable(GLAutoDrawable) attaching to} an {@link GLAutoDrawable},
  * the {@link GLEventListener#reshape(GLAutoDrawable, int, int, int, int)} method
- * is being called after {@link #beginTile(GL2ES3)}.
- * It's implementation shall reshape the PMV matrix according to {@link #beginTile(GL2ES3)}. 
+ * is being called after {@link #beginTile(GL)}.
+ * It's implementation shall reshape the PMV matrix according to {@link #beginTile(GL)}. 
+ * </p>
+ * <a name="glprequirement"><h5>GL Profile Requirement</h5></a>
+ * <p>
+ * Note that {@link #setImageBuffer(GLPixelBuffer) image buffer} can only be used 
+ * in conjunction w/ a {@link GL} instance &ge; {@link GL2ES3} passed to {@link #beginTile(GL)} and {@link #endTile(GL)}.<br>
+ * This is due to setting up the {@link GL2ES3#GL_PACK_ROW_LENGTH pack row length} 
+ * for an {@link #setImageSize(int, int) image width} != tile-width, which usually is the case.<br>
+ * Hence a {@link GLException} is thrown in both methods,
+ * if using an {@link #setImageBuffer(GLPixelBuffer) image buffer}
+ * and passing a {@link GL} instance &lt; {@link GL2ES3}.
+ * </p>
+ * <p>
+ * Further more, reading back of MSAA buffers is only supported since {@link GL2ES3}
+ * since it requires to set the {@link GL2ES3#glReadBuffer(int) read-buffer}.
  * </p>
  * 
  * @author ryanm, sgothel
@@ -195,12 +211,18 @@ public abstract class TileRendererBase {
     /** @see #setImageBuffer(GLPixelBuffer) */
     public final GLPixelBuffer getImageBuffer() { return imageBuffer; }
 
+    /* pp */ final void validateGL(GL gl) throws GLException {
+        if( imageBuffer != null && !gl.isGL2ES3()) {
+            throw new GLException("Using image-buffer w/ inssufficient GL context: "+gl.getContext().getGLVersion()+", "+gl.getGLProfile());
+        }        
+    }
+    
     /**
      * Begins rendering a tile.
      * <p>
      * Methods modifies the viewport, see below.
      * User shall reset the viewport when finishing all tile rendering,
-     * i.e. after very last call of {@link #endTile(GL2ES3)}!
+     * i.e. after very last call of {@link #endTile(GL)}!
      * </p>
      * <p>
      * The <a href="#pmvmatrix">PMV Matrix</a>
@@ -221,22 +243,30 @@ public abstract class TileRendererBase {
      * </p>
      * <p>
      * Use shall render the scene afterwards, concluded with a call to
-     * this renderer {@link #endTile(GL2ES3)}. 
+     * this renderer {@link #endTile(GL)}. 
+     * </p>
+     * <p>
+     * User has to comply with the <a href="#glprequirement">GL profile requirement</a>.
      * </p>
      * 
      * @param gl The gl context
      * @throws IllegalStateException if image-size or pmvMatrixCB has not been set
+     * @throws GLException if {@link #setImageBuffer(GLPixelBuffer) image buffer} is used but <code>gl</code> instance is &lt; {@link GL2ES3}
      */
-    public abstract void beginTile(GL2ES3 gl) throws IllegalStateException;
+    public abstract void beginTile(GL gl) throws IllegalStateException, GLException;
     
     /**
      * Must be called after rendering the scene,
-     * see {@link #beginTile(GL2ES3)}.
+     * see {@link #beginTile(GL)}.
+     * <p>
+     * User has to comply with the <a href="#glprequirement">GL profile requirement</a>.
+     * </p>
      * 
      * @param gl the gl context
      * @throws IllegalStateException if beginTile(gl) has not been called
+     * @throws GLException if {@link #setImageBuffer(GLPixelBuffer) image buffer} is used but <code>gl</code> instance is &lt; {@link GL2ES3}
      */
-    public abstract void endTile( GL2ES3 gl ) throws IllegalStateException;
+    public abstract void endTile( GL gl ) throws IllegalStateException, GLException;
     
     /**
      * Attaches this renderer to the {@link GLAutoDrawable}.
@@ -251,13 +281,13 @@ public abstract class TileRendererBase {
      * for the original {@link GLEventListener}, i.e. it's {@link GLEventListener#display(GLAutoDrawable) display} issues:
      * <ul>
      *   <li>Optional {@link #setGLEventListener(GLEventListener, GLEventListener) pre-glel}.{@link GLEventListener#display(GLAutoDrawable) display(..)}</li>
-     *   <li>{@link #beginTile(GL2ES3)}</li>
+     *   <li>{@link #beginTile(GL)}</li>
      *   <li>for all original {@link GLEventListener}:
      *   <ul> 
      *     <li>{@link GLEventListener#reshape(GLAutoDrawable, int, int, int, int) reshape(0, 0, tile-width, tile-height)}</li>
      *     <li>{@link GLEventListener#display(GLAutoDrawable) display(autoDrawable)}</li>
      *   </ul></li>
-     *   <li>{@link #endTile(GL2ES3)}</li>
+     *   <li>{@link #endTile(GL)}</li>
      *   <li>Optional {@link #setGLEventListener(GLEventListener, GLEventListener) post-glel}.{@link GLEventListener#display(GLAutoDrawable) display(..)}</li>
      * </ul>
      * </p>
@@ -267,16 +297,16 @@ public abstract class TileRendererBase {
      * according to the tile-position, -size and image-size<br>
      * The {@link GLEventListener#reshape(GLAutoDrawable, int, int, int, int) reshape} method is called for each tile 
      * w/ the current viewport of tile-size, where the tile-position and image-size can be retrieved by this tile renderer,
-     * see  details in {@link #beginTile(GL2ES3)}.<br>
+     * see  details in {@link #beginTile(GL)}.<br>
      * The original {@link GLEventListener} implementing {@link TileRendererNotify} is aware of this
      * tile renderer instance.
      * </p>
      * <p>
      * Consider using {@link #setGLEventListener(GLEventListener, GLEventListener)} to add pre- and post
      * hooks to be performed on this renderer {@link GLEventListener}.<br>
-     * The pre-hook is able to allocate memory and setup parameters, since it's called before {@link #beginTile(GL2ES3)}.<br>
+     * The pre-hook is able to allocate memory and setup parameters, since it's called before {@link #beginTile(GL)}.<br>
      * The post-hook is able to use the rendering result and can even shutdown tile-rendering,
-     * since it's called after {@link #endTile(GL2ES3)}.
+     * since it's called after {@link #endTile(GL)}.
      * </p>
      * <p>
      * Call {@link #detachFromAutoDrawable()} to remove this renderer from the {@link GLAutoDrawable} 
@@ -393,7 +423,7 @@ public abstract class TileRendererBase {
             if( null != glEventListenerPre ) {
                 glEventListenerPre.display(drawable);
             }
-            final GL2ES3 gl = drawable.getGL().getGL2ES3();
+            final GL gl = drawable.getGL();
 
             beginTile(gl);
 

@@ -27,8 +27,10 @@
  */
 package com.jogamp.opengl.util;
 
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLException;
 
 import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
 
@@ -92,13 +94,14 @@ public class RandomTileRenderer extends TileRendererBase {
      * @throws IllegalStateException if image-size, pmvMatrixCB or tileRect has not been set
      */
     @Override
-    public final void beginTile(GL2ES3 gl) throws IllegalStateException {
+    public final void beginTile(GL gl) throws IllegalStateException, GLException {
         if( 0 >= imageSize.getWidth() || 0 >= imageSize.getHeight() ) {
             throw new IllegalStateException("Image size has not been set");        
         }
         if( !tileRectSet ) {
             throw new IllegalStateException("tileRect has not been set");
         }
+        validateGL(gl);
         
         gl.glViewport( 0, 0, currentTileWidth, currentTileHeight );
         // Do not forget to issue:
@@ -109,16 +112,25 @@ public class RandomTileRenderer extends TileRendererBase {
     }
 
     @Override
-    public void endTile( GL2ES3 gl ) throws IllegalStateException {
+    public void endTile( GL gl ) throws IllegalStateException, GLException {
         if( !beginCalled ) {
             throw new IllegalStateException("beginTile(..) has not been called");
         }
+        validateGL(gl);
         
         // be sure OpenGL rendering is finished
         gl.glFlush();
 
         // save current glPixelStore values
         psm.save(gl);
+        psm.setPackAlignment(gl, 1);
+        final GL2ES3 gl2es3;
+        if( gl.isGL2ES3() ) {
+            gl2es3 = gl.getGL2ES3();
+            gl2es3.glReadBuffer(gl2es3.getDefaultReadBuffer());
+        } else {
+            gl2es3 = null;
+        }
 
         final int tmp[] = new int[1];
 
@@ -149,8 +161,7 @@ public class RandomTileRenderer extends TileRendererBase {
 
             /* setup pixel store for glReadPixels */
             final int rowLength = imageSize.getWidth();
-            psm.setPackRowLength(gl, rowLength);
-            psm.setPackAlignment(gl, 1);
+            psm.setPackRowLength(gl2es3, rowLength);
 
             /* read the tile into the final image */
             final int readPixelSize = GLBuffers.sizeof(gl, tmp, pixelAttribs.bytesPerPixel, srcWidth, srcHeight, 1, true);
