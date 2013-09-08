@@ -27,6 +27,7 @@
  */
 package com.jogamp.opengl.test.junit.jogl.tile;
 
+import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -44,7 +45,6 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLOffscreenAutoDrawable;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
 
@@ -91,49 +91,89 @@ public class TestTiledRendering2NEWT extends UITestCase {
     }    
     
     @Test
-    public void test01_gl2___aa0() throws IOException {
+    public void test001_off_gl2___aa0() throws IOException {
         GLProfile glp = getGLProfile(GLProfile.GL2);
         if( null == glp ) {
             return;
         }
-        doTest(new Gears(), glp, 0);
+        doTest(false, new Gears(), glp, 0);
     }
     @Test
-    public void test02_gl2___aa8() throws IOException {
+    public void test002_off_gl2___aa8() throws IOException {
         GLProfile glp = getGLProfile(GLProfile.GL2);
         if( null == glp ) {
             return;
         }
-        doTest(new Gears(), glp, 8);
+        doTest(false, new Gears(), glp, 8);
     }
     @Test
-    public void test11_gl2es3_aa0() throws IOException {
+    public void test011_off_gl2es3_aa0() throws IOException {
         GLProfile glp = getGL2ES3();
         if( null == glp ) {
             return;
         }
-        doTest(new GearsES2(), glp, 0);
+        doTest(false, new GearsES2(), glp, 0);
     }
     @Test
-    public void test12_gl2es3_aa8() throws IOException {
+    public void test012_off_gl2es3_aa8() throws IOException {
         GLProfile glp = getGL2ES3();
         if( null == glp ) {
             return;
         }
-        doTest(new GearsES2(), glp, 8);
+        doTest(false, new GearsES2(), glp, 8);
+    }
+    @Test
+    public void test101_on__gl2___aa0() throws IOException {
+        GLProfile glp = getGLProfile(GLProfile.GL2);
+        if( null == glp ) {
+            return;
+        }
+        doTest(true, new Gears(), glp, 0);
+    }
+    @Test
+    public void test102_on__gl2___aa8() throws IOException {
+        GLProfile glp = getGLProfile(GLProfile.GL2);
+        if( null == glp ) {
+            return;
+        }
+        doTest(true, new Gears(), glp, 8);
+    }
+    @Test
+    public void test111_on__gl2es3_aa0() throws IOException {
+        GLProfile glp = getGL2ES3();
+        if( null == glp ) {
+            return;
+        }
+        doTest(true, new GearsES2(), glp, 0);
+    }
+    @Test
+    public void test112_on__gl2es3_aa8() throws IOException {
+        GLProfile glp = getGL2ES3();
+        if( null == glp ) {
+            return;
+        }
+        doTest(true, new GearsES2(), glp, 8);
     }
 
-    void doTest(final GLEventListener demo, GLProfile glp, final int msaaCount) throws IOException {      
-        GLCapabilities caps = new GLCapabilities(glp);
-        caps.setDoubleBuffered(false);
+    void doTest(boolean onscreen, final GLEventListener demo, GLProfile glp, final int msaaCount) throws IOException {      
+        GLCapabilities caps = new GLCapabilities(glp);        
+        caps.setDoubleBuffered(onscreen);
         if( msaaCount > 0 ) {
             caps.setSampleBuffers(true);
             caps.setNumSamples(msaaCount);
         }
 
         final int maxTileSize = 256;
-        final GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
-        final GLOffscreenAutoDrawable glad = factory.createOffscreenAutoDrawable(null, caps, null, maxTileSize, maxTileSize, null);
+        final GLAutoDrawable glad;
+        if( onscreen ) {
+            final GLWindow glWin = GLWindow.create(caps);
+            glWin.setSize(maxTileSize, maxTileSize);
+            glWin.setVisible(true);
+            glad = glWin;
+        } else {
+            final GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
+            glad = factory.createOffscreenAutoDrawable(null, caps, null, maxTileSize, maxTileSize, null);
+        }
 
         glad.addGLEventListener( demo );
 
@@ -192,8 +232,6 @@ public class TestTiledRendering2NEWT extends UITestCase {
             }            
         });
 
-        glad.destroy();
-
         final GLPixelBuffer imageBuffer = renderer.getImageBuffer();
         final TextureData textureData = new TextureData(
                 caps.getGLProfile(),
@@ -207,6 +245,8 @@ public class TestTiledRendering2NEWT extends UITestCase {
                 null /* Flusher */);
 
         TextureIO.write(textureData, file);
+        
+        glad.destroy();
     }
 
     public static void main(String args[]) {

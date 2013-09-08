@@ -126,19 +126,21 @@ public class RandomTileRenderer extends TileRendererBase {
         // be sure OpenGL rendering is finished
         gl.glFlush();
 
-        if( DEBUG ) {
-            System.err.println("TileRenderer.end.0: "+this.toString());
-        }
-        
         // save current glPixelStore values
         psm.save(gl);
         psm.setPackAlignment(gl, 1);
         final GL2ES3 gl2es3;
+        final int readBuffer;
         if( gl.isGL2ES3() ) {
             gl2es3 = gl.getGL2ES3();
-            gl2es3.glReadBuffer(gl2es3.getDefaultReadBuffer());
+            readBuffer = gl2es3.getDefaultReadBuffer();
+            gl2es3.glReadBuffer(readBuffer);
         } else {
             gl2es3 = null;
+            readBuffer = 0; // undef. probably default: GL_FRONT (single buffering) GL_BACK (double buffering)
+        }
+        if( DEBUG ) {
+            System.err.println("TileRenderer.end.0: readBuffer 0x"+Integer.toHexString(readBuffer)+", "+this.toString());
         }
 
         final int tmp[] = new int[1];

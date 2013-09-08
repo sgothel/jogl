@@ -41,10 +41,11 @@ import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
-
+import javax.media.opengl.GLFBODrawable;
 import jogamp.opengl.Debug;
 
 /**
@@ -138,6 +139,7 @@ public abstract class TileRendererBase {
     protected int currentTileWidth;
     protected int currentTileHeight;
     protected GLAutoDrawable glad;
+    protected boolean gladRequiresPreSwap;
     protected boolean gladAutoSwapBufferMode = true;
     protected GLEventListener[] listeners;
     protected boolean[] listenersInit;
@@ -156,7 +158,7 @@ public abstract class TileRendererBase {
         sb.append("tile[");
         tileDetails(sb);
         sb.append("], image[size "+imageSize+", buffer "+hashStr(imageBuffer)+"], glad["+
-                gladListenerCount+" listener, pre "+(null!=glEventListenerPre)+", post "+(null!=glEventListenerPost)+"]");
+                gladListenerCount+" listener, pre "+(null!=glEventListenerPre)+", post "+(null!=glEventListenerPost)+", preSwap "+gladRequiresPreSwap+"]");
         return sb;
     }
     public String toString() {
@@ -271,9 +273,9 @@ public abstract class TileRendererBase {
      * Must be called after rendering the scene,
      * see {@link #beginTile(GL)}.
      * <p>
-     * Is is highly recommended to perform {@link GLDrawable#swapBuffers() swapBuffers()} before calling this method.<br>
-     * This is especially true in regards to multisampling offscreen FBO drawables, 
-     * where {@link GLDrawable#swapBuffers() swapBuffers()} triggers the <i>downsampling</i> to the readable sampling sink.
+     * Please consider {@link #reqPreSwapBuffers(GLCapabilitiesImmutable)} to determine
+     * whether you need to perform {@link GLDrawable#swapBuffers() swap-buffers} before or after
+     * calling this method!
      * </p>
      * <p>
      * User has to comply with the <a href="#glprequirement">GL profile requirement</a>.
@@ -286,6 +288,29 @@ public abstract class TileRendererBase {
     public abstract void endTile( GL gl ) throws IllegalStateException, GLException;
     
     /**
+     * Determines whether the chosen {@link GLCapabilitiesImmutable}
+     * requires a <i>pre-{@link GLDrawable#swapBuffers() swap-buffers}</i>
+     * before accessing the results, i.e. before {@link #endTile(GL)}.
+     * <p>
+     * Usually one uses the {@link GL#getDefaultReadBuffer() default-read-buffer}, i.e.
+     * {@link GL#GL_FRONT} for single-buffer and {@link GL#GL_BACK} for double-buffer {@link GLDrawable}s
+     * and {@link GL#GL_COLOR_ATTACHMENT0} for offscreen framebuffer objects.<br>
+     * Here {@link GLDrawable#swapBuffers() swap-buffers} shall happen <b>after</b> calling {@link #endTile(GL)}, the default.
+     * </p>
+     * <p>
+     * However, <i>multisampling</i> offscreen {@link GLFBODrawable}s 
+     * utilize {@link GLDrawable#swapBuffers() swap-buffers} to <i>downsample</i>
+     * the multisamples into the readable sampling sink.
+     * In this case, we require a {@link GLDrawable#swapBuffers() swap-buffers} <b>before</b> calling {@link #endTile(GL)}. 
+     * </p> 
+     * @param chosenCaps the chosen {@link GLCapabilitiesImmutable} 
+     * @return chosenCaps.isFBO() && chosenCaps.getSampleBuffers()
+     */
+    public final boolean reqPreSwapBuffers(GLCapabilitiesImmutable chosenCaps) {
+        return chosenCaps.isFBO() && chosenCaps.getSampleBuffers();
+    }
+    
+    /**
      * Attaches this renderer to the {@link GLAutoDrawable}.
      * <p>
      * The {@link GLAutoDrawable}'s original {@link GLEventListener} are moved to this tile renderer.<br>
@@ -295,7 +320,8 @@ public abstract class TileRendererBase {
      * </p>
      * <p>
      * The {@link GLAutoDrawable}'s {@link GLAutoDrawable#getAutoSwapBufferMode() auto-swap mode} is cached
-     * and set to <code>false</code>, since {@link GLAutoDrawable#swapBuffers() swapBuffers()} must be issued before {@link #endTile(GL)}.  
+     * and set to <code>false</code>, since {@link GLAutoDrawable#swapBuffers() swapBuffers()} maybe issued before {@link #endTile(GL)},
+     * see {@link #reqPreSwapBuffers(GLCapabilitiesImmutable)}.  
      * </p>
      * <p>
      * This tile renderer's {@link GLEventListener} is then added to handle the tile rendering,
@@ -309,8 +335,9 @@ public abstract class TileRendererBase {
      *     <li>{@link GLEventListener#reshape(GLAutoDrawable, int, int, int, int) reshape(0, 0, tile-width, tile-height)}</li>
      *     <li>{@link GLEventListener#display(GLAutoDrawable) display(autoDrawable)}</li>
      *   </ul></li>
-     *   <li>{@link GLAutoDrawable#swapBuffers() swapBuffers()}</li>
+     *   <li>if ( {@link #reqPreSwapBuffers(GLCapabilitiesImmutable) pre-swap} ) { {@link GLAutoDrawable#swapBuffers() swapBuffers()} }</li>
      *   <li>{@link #endTile(GL)}</li>
+     *   <li>if ( !{@link #reqPreSwapBuffers(GLCapabilitiesImmutable) pre-swap} ) { {@link GLAutoDrawable#swapBuffers() swapBuffers()} }</li>
      *   <li>Optional {@link #setGLEventListener(GLEventListener, GLEventListener) post-glel}.{@link GLEventListener#display(GLAutoDrawable) display(..)}</li>
      * </ul>
      * </p>
@@ -357,7 +384,12 @@ public abstract class TileRendererBase {
         }
         glad.addGLEventListener(tiledGLEL);
         gladAutoSwapBufferMode = glad.getAutoSwapBufferMode();
+        gladRequiresPreSwap = this.reqPreSwapBuffers(glad.getChosenGLCapabilities());
         glad.setAutoSwapBufferMode(false);
+        if( DEBUG ) {
+            System.err.println("TileRenderer: attached: "+glad);
+            System.err.println("TileRenderer: preSwap "+gladRequiresPreSwap+", "+glad.getChosenGLCapabilities()+", cached "+listeners.length+" listener");
+        }
     }
 
     /**
@@ -384,6 +416,10 @@ public abstract class TileRendererBase {
                 glad.setGLEventListenerInitState(l, listenersInit[i]);
             }
             glad.setAutoSwapBufferMode(gladAutoSwapBufferMode);
+            if( DEBUG ) {
+                System.err.println("TileRenderer: detached: "+glad);
+                System.err.println("TileRenderer: "+glad.getChosenGLCapabilities());
+            }
             
             listeners = null;
             listenersInit = null;
@@ -459,9 +495,15 @@ public abstract class TileRendererBase {
                 listeners[i].reshape(drawable, 0, 0, currentTileWidth, currentTileHeight);
                 listeners[i].display(drawable);
             }
-            glad.swapBuffers();
-
-            endTile(gl);
+            
+            if( gladRequiresPreSwap ) {
+                glad.swapBuffers();
+                endTile(gl);
+            } else {
+                endTile(gl);
+                glad.swapBuffers();
+            }
+            
             if( null != glEventListenerPost ) {
                 glEventListenerPost.display(drawable);
             }
