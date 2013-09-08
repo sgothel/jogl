@@ -1,28 +1,57 @@
 Screenshots of unit tests: 
-<http://jogamp.org/files/screenshots/printing/test01-awt/>
+  <http://jogamp.org/files/screenshots/printing/test01-awt/>
 
 Unit test producing the results: 
-<http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/jogl/tile/TestTiledPrintingGearsAWT.java;h=71b4a958b1b0b34fb6c07585773ec3653c861e88;hb=de538efc92346cada023a6045d8aec3cbdd47e08>
+  Base Test Class:
+    <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/jogl/tile/TiledPrintingAWTBase.java;hb=HEAD>
+  AWT:
+    <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/jogl/tile/TestTiledPrintingGearsAWT.java;hb=HEAD>
+  Swing:
+    <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/jogl/tile/TestTiledPrintingGearsSwingAWT.java;hb=HEAD>
 
-GLCanvas Print code: 
- <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/jogl/classes/javax/media/opengl/awt/GLCanvas.java;h=02e6e8121f2f6b6043d9513b5547ecd0e8787db8;hb=de538efc92346cada023a6045d8aec3cbdd47e08#l739>
+Print code: 
+  AWTTilePainter (common code): 
+    <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/jogl/classes/jogamp/opengl/awt/AWTTilePainter.java;hb=HEAD>
+  GLCanvas:
+    <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/jogl/classes/javax/media/opengl/awt/GLCanvas.java;hb=HEAD#l731>
+  ...
 
 +++
 
 Enhance lifecycle for AWT printing via AWTPrintLifecycle:
 
-Low-res print at 72dpi leaves the frame untouched,
-where high-res print at 300dpi increases the frame size
-to the reverse scale-factor.
+We fit the frame into the imageable area with for 72 dpi,
+assuming that is the default AWT painting density.
+The frame borders are considered.
 
-Before printing and optional resize, we setup the GLCanvas:
+The frame's scale factor 'scaleComp72' is used for the graphics print matrix
+of the overall print-job, hence no frame resize is required.
+
+The GL scale factor 'scaleGLMatXY', 72dpi/glDPI, is passed to the GL object
+which locally scales the print matrix and renders the scene with 1/scaleGLMatXY pixels.
+
+Before printing, we setup the GLCanvas, ..:
   - move GLContext and GLEventListener -> offscreen
-  - destroy onscreen component w/ size equals of tile-size
-    This steps allows us to ensure we use limited GPU resources.
-this is done w/ setupPrint().
+  - offscreen is of tile-size
+
+this is performed w/ AWTPrintLifecycle.setupPrint(..).
 Impl. in GLCanvas, etc.
 
-After printing, releasePrint() shall be called. Impl. in GLCanvas .. etc.
+After printing, AWTPrintLifecycle.releasePrint() shall be called. Impl. in GLCanvas .. etc.
+
+To perform AWTPrintLifecycle on all component in one container,
+one may use:
+
+    final AWTPrintLifecycle.Context ctx = AWTPrintLifecycle.Context.setupPrint(frame, g2d, scaleGLMatXY, scaleGLMatXY);
+    try {
+       AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+            public void run() {
+                frame.printAll(g2d);
+           } });
+    } finally {
+       ctx.releasePrint();
+    }
+
 
 +++
 
@@ -41,13 +70,9 @@ TileRendererBase.TileRendererNotify interface!
 
 +++
 
-Screenshots/Bugs:
+Bugs:
+  - None in results
 
-You see the black raster, which shows each rendered tile.
-
-As you can see, we have different results w/ onscreen and offscreen
-AWT printing. Both expose bugs regarding layout/scale of the AWT components.
-
-It would be interesting to learn what I am doing wrong w/ the printing setup
-or GLCanvas rendering at print.
+  - GLCanvas: Workaround bug where onscreen MSAA cannot switch to offscreen FBO,
+              i.e. stay 'onscreen'
 
