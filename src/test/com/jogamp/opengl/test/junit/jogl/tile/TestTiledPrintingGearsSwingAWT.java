@@ -69,6 +69,8 @@ import com.jogamp.opengl.util.Animator;
 public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
 
     static boolean waitForKey = false;
+    /** only when run manually .. */
+    static boolean allow600dpi = false;
     static GLProfile glp;
     static int width, height;
     
@@ -90,7 +92,7 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
     public static void releaseClass() {
     }
     
-    protected void runTestGL(GLCapabilities caps, final boolean offscreenPrinting) throws InterruptedException, InvocationTargetException {
+    protected void runTestGL(GLCapabilities caps) throws InterruptedException, InvocationTargetException {
         final GLJPanel glJPanel = new GLJPanel(caps);
         Assert.assertNotNull(glJPanel);        
         Dimension glc_sz = new Dimension(width, height);
@@ -101,32 +103,32 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
         final Gears gears = new Gears();
         glJPanel.addGLEventListener(gears);
         
-        final JFrame frame = new JFrame("Swing Print (offscr "+offscreenPrinting+")");
+        final JFrame frame = new JFrame("Swing Print");
         Assert.assertNotNull(frame);
         
         final ActionListener print72DPIAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                doPrintManual(frame, glJPanel, TestTiledPrintingGearsSwingAWT.this, offscreenPrinting, 72, false);
-            } };
-        final ActionListener print150DPIAction = new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                doPrintManual(frame, glJPanel, TestTiledPrintingGearsSwingAWT.this, offscreenPrinting, 150, false);
+                doPrintManual(frame, 72, false);
             } };
         final ActionListener print300DPIAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                doPrintManual(frame, glJPanel, TestTiledPrintingGearsSwingAWT.this, offscreenPrinting, 300, false);
+                doPrintManual(frame, 300, false);
+            } };
+        final ActionListener print600DPIAction = new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                doPrintManual(frame, 600, false);
             } };
         final Button print72DPIButton = new Button("72dpi");
         print72DPIButton.addActionListener(print72DPIAction);
-        final Button print150DPIButton = new Button("150dpi");
-        print150DPIButton.addActionListener(print150DPIAction);
         final Button print300DPIButton = new Button("300dpi");
         print300DPIButton.addActionListener(print300DPIAction);
+        final Button print600DPIButton = new Button("600dpi");
+        print600DPIButton.addActionListener(print600DPIAction);
             
         final JPanel printPanel = new JPanel();
         printPanel.add(print72DPIButton);
-        printPanel.add(print150DPIButton);
         printPanel.add(print300DPIButton);
+        printPanel.add(print600DPIButton);
         final JPanel southPanel = new JPanel();
         southPanel.add(new Label("South"));
         final JPanel eastPanel = new JPanel();
@@ -161,22 +163,22 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
         animator.start();
         Assert.assertEquals(true, animator.isAnimating());
 
-        boolean dpi72Done = false;
-        boolean dpi150Done = false;
+        boolean printDone = false;
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && ( 0 == duration || animator.getTotalFPSDuration()<duration )) {
             Thread.sleep(200);
-            if( !dpi72Done ) {
-                dpi72Done = true;
-                doPrintAuto(frame, glJPanel, TestTiledPrintingGearsSwingAWT.this, PageFormat.LANDSCAPE, null, offscreenPrinting, 72, false);
+            if( !printDone ) {
+                printDone = true;
+                doPrintAuto(frame, PageFormat.LANDSCAPE, null, 72, false);
                 waitUntilPrintJobsIdle();
-                doPrintAuto(frame, glJPanel, TestTiledPrintingGearsSwingAWT.this, PageFormat.LANDSCAPE, null, offscreenPrinting, 72, true);
+                doPrintAuto(frame, PageFormat.LANDSCAPE, null, 72, true);
                 waitUntilPrintJobsIdle();
-            } else if( !dpi150Done ) {
-                dpi150Done = true;
-                doPrintAuto(frame, glJPanel, TestTiledPrintingGearsSwingAWT.this, PageFormat.LANDSCAPE, null, offscreenPrinting, 150, false);
+                // No AA needed for 300 dpi and greater :) 
+                doPrintAuto(frame, PageFormat.LANDSCAPE, null, 300, false);
                 waitUntilPrintJobsIdle();
-                doPrintAuto(frame, glJPanel, TestTiledPrintingGearsSwingAWT.this, PageFormat.LANDSCAPE, null, offscreenPrinting, 150, true);
-                waitUntilPrintJobsIdle();
+                if( allow600dpi ) {
+                    doPrintAuto(frame, PageFormat.LANDSCAPE, null, 600, false);
+                    waitUntilPrintJobsIdle();
+                }
             }
         }
         // try { Thread.sleep(4000);  } catch (InterruptedException e) { } // time to finish print jobs .. FIXME ??
@@ -201,19 +203,23 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
     }
 
     @Test
-    public void test01_Onscreen() throws InterruptedException, InvocationTargetException {
+    public void test01_Onscreen_aa0() throws InterruptedException, InvocationTargetException {
         GLCapabilities caps = new GLCapabilities(glp);
-        runTestGL(caps, false);
+        runTestGL(caps);
     }
+    
     @Test
-    public void test02_Offscreen() throws InterruptedException, InvocationTargetException {
+    public void test02_Onscreen_aa8() throws InterruptedException, InvocationTargetException {
         GLCapabilities caps = new GLCapabilities(glp);
-        runTestGL(caps, true);
+        caps.setSampleBuffers(true);
+        caps.setNumSamples(8); // FIXME
+        runTestGL(caps);
     }
-
+    
     static long duration = 500; // ms
 
     public static void main(String args[]) {
+        allow600dpi = true;
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;

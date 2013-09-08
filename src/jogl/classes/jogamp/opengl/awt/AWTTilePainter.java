@@ -31,6 +31,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 
@@ -51,13 +52,15 @@ import com.jogamp.opengl.util.awt.AWTGLPixelBuffer.AWTGLPixelBufferProvider;
  * </p>
  */
 public class AWTTilePainter {
-    final private TileRenderer renderer;
-    final private int componentCount;
-    final private boolean verbose;
+    public final TileRenderer renderer;
+    public final int componentCount;
+    public final double scaleMatX, scaleMatY;
+    public final boolean verbose;
     
     private AWTGLPixelBuffer tBuffer = null;
     private BufferedImage vFlipImage = null;
     private Graphics2D g2d = null;
+    private AffineTransform saveAT = null;    
     
     /** 
      * Assumes a configured {@link TileRenderer}, i.e.
@@ -69,21 +72,31 @@ public class AWTTilePainter {
      * <p>
      * <code>componentCount</code> reflects opaque, i.e. 4 if non opaque.
      * </p>
+     * @param renderer
+     * @param componentCount
+     * @param scaleMatX {@link Graphics2D} {@link Graphics2D#scale(double, double) scaling factor}, i.e. rendering 1/scaleMatX * width pixels
+     * @param scaleMatY {@link Graphics2D} {@link Graphics2D#scale(double, double) scaling factor}, i.e. rendering 1/scaleMatY * height pixels
+     * @param verbose
      */
-    public AWTTilePainter(TileRenderer renderer, int componentCount, boolean verbose) {
+    public AWTTilePainter(TileRenderer renderer, int componentCount, double scaleMatX, double scaleMatY, boolean verbose) {
         this.renderer = renderer;
         this.renderer.setGLEventListener(preTileGLEL, postTileGLEL);
         this.componentCount = componentCount;
+        this.scaleMatX = scaleMatX;
+        this.scaleMatY = scaleMatY;
         this.verbose = verbose;
         this.renderer.setRowOrder(TileRenderer.TR_TOP_TO_BOTTOM);
     }
     
     public String toString() { return renderer.toString(); }
     
-    public TileRenderer getTileRenderer() { return renderer; }
-    
     /**
      * Caches the {@link Graphics2D} instance for rendering.
+     * <p>
+     * Copies the current {@link Graphics2D} {@link AffineTransform}
+     * and scales {@link Graphics2D} w/ <code>scaleMatX</code> x <code>scaleMatY</code>.<br>
+     * After rendering, the {@link AffineTransform} should be reset via {@link #resetGraphics2D()}.
+     * </p>
      * <p>
      * Sets the {@link TileRenderer}'s {@link TileRenderer#setImageSize(int, int) image size}
      * and {@link TileRenderer#setTileOffset(int, int) tile offset} according the
@@ -91,8 +104,11 @@ public class AWTTilePainter {
      * </p>
      * @param g2d
      */
-    public void updateGraphics2DAndClipBounds(Graphics2D g2d) {
+    public void setupGraphics2DAndClipBounds(Graphics2D g2d) {
         this.g2d = g2d;
+        saveAT = g2d.getTransform();
+        g2d.scale(scaleMatX, scaleMatY);
+        
         final Rectangle gClipOrig = g2d.getClipBounds();
         final Rectangle gClip = new Rectangle(gClipOrig);
         if( 0 > gClip.x ) {
@@ -106,8 +122,13 @@ public class AWTTilePainter {
         if( verbose ) {
             System.err.println("AWT print.0: "+gClipOrig+" -> "+gClip);
         }
-        renderer.setImageSize(gClip.width, gClip.height);      
+        renderer.setImageSize(gClip.width, gClip.height);
         renderer.setTileOffset(gClip.x, gClip.y);
+    }
+    
+    /** See {@ #setupGraphics2DAndClipBounds(Graphics2D)}. */
+    public void resetGraphics2D() {        
+        g2d.setTransform(saveAT);
     }
     
     /**
@@ -194,24 +215,20 @@ public class AWTTilePainter {
             }
             final Shape oClip = g2d.getClip();
             g2d.clipRect(pX, pYf, tWidth, tHeight);
-            final Shape clip = g2d.getClip();
             g2d.drawImage(dstImage, pX, pYf, dstImage.getWidth(), dstImage.getHeight(), null); // Null ImageObserver since image data is ready.
-            g2d.setColor(Color.BLACK);
-            g2d.drawRect(pX, pYf, tWidth, tHeight);
-            {
+            if( verbose ) {
+                System.err.println("XXX tile-post.X clip "+oClip+" -> "+g2d.getClip());
+                g2d.setColor(Color.BLACK);
+                g2d.drawRect(pX, pYf, tWidth, tHeight);
                 final Rectangle r = oClip.getBounds();
                 g2d.setColor(Color.YELLOW);
                 g2d.drawRect(r.x, r.y, r.width, r.height);
-            }
-            g2d.setClip(oClip);
-            if( verbose ) {
-                System.err.println("XXX tile-post.X clip "+oClip+" -> "+clip);
                 System.err.println("XXX tile-post.X "+renderer);
                 System.err.println("XXX tile-post.X dst-img "+dstImage.getWidth()+"x"+dstImage.getHeight()+" -> "+pX+"/"+pYf);
             }
+            g2d.setClip(oClip);
         }
         @Override
         public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
-    };      
-
+    };
 }

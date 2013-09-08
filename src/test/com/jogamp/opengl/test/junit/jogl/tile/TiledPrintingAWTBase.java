@@ -33,7 +33,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Paper;
 import java.awt.print.Printable;
@@ -65,14 +64,10 @@ public abstract class TiledPrintingAWTBase extends UITestCase implements Printab
     public static final double A0_WIDTH_INCH = A0_WIDTH_MM / MM_PER_INCH;
     public static final double A0_HEIGHT_INCH = A0_WIDTH_MM / MM_PER_INCH; */
     
-    /** Helper to pass desired AWTPrintLifecycle ! **/
-    private AWTPrintLifecycle awtPrintObject = null;    
     /** Helper to pass desired Frame to print! **/    
     private Frame frame;
-    /** Helper to pass desired on- and offscreen mode ! **/
-    private boolean printOffscreen = false;
     /** Helper to pass desired DPI value ! **/
-    private int printDPI = 72;
+    private int glDPI = 72;
     /** Helper to pass desired AA hint ! **/
     private boolean printAA = false;
     
@@ -126,94 +121,56 @@ public abstract class TiledPrintingAWTBase extends UITestCase implements Printab
             System.err.println("PF: Page orientation "+pf.getOrientation());
             
             /**
-             * We fit the frame into the imageable area with the desired DPI.
-             * <p>
-             * We assume AWT painting happens w/ 72 dpi!
-             * </p> 
+             * We fit the frame into the imageable area with for 72 dpi,
+             * assuming that is the default AWT painting density.
              * <p>
              * The frame borders are considered.
+             * </p>
+             * <p>
+             * The frame's scale factor is used for the graphics print matrix
+             * of the overall print-job, hence no frame resize is required.
+             * </p>
+             * <p>
+             * The GL scale factor 'scaleGLMatXY', 72dpi/glDPI, is passed to the GL object
+             * which locally scales the print matrix and renders the scene with 1/scaleGLMatXY pixels.
              * </p>
              */                
             final Insets frameInsets = frame.getInsets();
             final int frameWidth = frame.getWidth();
             final int frameHeight= frame.getHeight();
-            final int frameWidthS;
-            final int frameHeightS;
-            final double scaleComp;
+            final double scaleComp72;
             {
                 final int frameBorderW = frameInsets.left + frameInsets.right;
                 final int frameBorderH = frameInsets.top + frameInsets.bottom;
                 final double sx = pf.getImageableWidth() / ( frameWidth + frameBorderW ); 
                 final double sy = pf.getImageableHeight() / ( frameHeight + frameBorderH );
-                scaleComp = Math.min(sx, sy) * ( printDPI/72.0 );
-                if( 0f < scaleComp ) {            
-                    frameWidthS = (int) ( frameWidth*scaleComp ); // cut off FIXME
-                    frameHeightS = (int) ( frameHeight*scaleComp ); // cut off FIXME
-                } else {
-                    frameWidthS = frameWidth;
-                    frameHeightS = frameHeight;                        
-                }
+                scaleComp72 = Math.min(sx, sy);
             }
-            // Since we fit the frame size into the imageable size respecting the DPI,
-            // we simply can scale the print graphics matrix to the DPI 
-            // w/o the need to fiddle w/ the margins (matrix translation).
-            final double scaleGraphics = 72.0 / printDPI;
+            final double scaleGLMatXY = 72.0 / glDPI;
             
-            System.err.println("PRINT offscreen: "+printOffscreen+", thread "+Thread.currentThread().getName());
-            System.err.println("PRINT DPI: "+printDPI+", AA "+printAA+", scaleGraphics "+scaleGraphics+", scaleComp "+scaleComp+
-                               ", frame: border "+frameInsets+", size "+frameWidth+"x"+frameHeight+" -> "+frameWidthS+"x"+frameHeightS);
-            
+            System.err.println("PRINT thread "+Thread.currentThread().getName());
+            System.err.println("PRINT DPI: "+glDPI+", AA "+printAA+", scaleGL "+scaleGLMatXY+", scaleComp72 "+scaleComp72+
+                               ", frame: border "+frameInsets+", size "+frameWidth+"x"+frameHeight);
             final Graphics2D printG2D = (Graphics2D)g;
-            final Graphics2D offscreenG2D;
-            final BufferedImage offscreenImage;
-            final Graphics2D g2d;
-            if( printOffscreen ) {
-                offscreenImage = new BufferedImage(frameWidthS, frameHeightS, BufferedImage.TYPE_4BYTE_ABGR);
-                offscreenG2D = (Graphics2D) offscreenImage.getGraphics();
-                offscreenG2D.setClip(0, 0, frameWidthS, frameHeightS);
-                g2d = offscreenG2D;
-            } else {
-                offscreenG2D = null;
-                offscreenImage = null;
-                g2d = printG2D;
+            final Graphics2D g2d = printG2D;
                 
-                g2d.translate(pf.getImageableX(), pf.getImageableY());
-                g2d.scale(scaleGraphics, scaleGraphics);
-            }
+            g2d.translate(pf.getImageableX(), pf.getImageableY());
+            g2d.scale(scaleComp72, scaleComp72);
+            
             if( printAA ) {
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             }
-            awtPrintObject.setupPrint(g2d);
+            final AWTPrintLifecycle.Context ctx = AWTPrintLifecycle.Context.setupPrint(frame, g2d, scaleGLMatXY, scaleGLMatXY);
             try {
+                System.err.println("PRINT AWTPrintLifecycle.setup.count "+ctx.getCount());
                 AWTEDTExecutor.singleton.invoke(true, new Runnable() {
-                   public void run() {
-                       frame.setSize(frameWidthS, frameHeightS);
-                       frame.invalidate();
-                       frame.validate();
-                   }
-                });
-                                      
-                AWTEDTExecutor.singleton.invoke(true, new Runnable() {
-                   public void run() {
-                       frame.printAll(g2d);
-                   } } );
-                
-                System.err.println("PRINT DPI: reset frame size "+frameWidth+"x"+frameHeight);
-                AWTEDTExecutor.singleton.invoke(true, new Runnable() {
-                   public void run() {
-                       frame.setSize(frameWidth, frameHeight);
-                       frame.invalidate();
-                       frame.validate();
+                    public void run() {
+                        frame.printAll(g2d);
                    }
                 });
             } finally {
-                awtPrintObject.releasePrint();
-            }
-            
-            if( printOffscreen ) {
-                printG2D.translate(pf.getImageableX(), pf.getImageableY());
-                printG2D.scale(scaleGraphics, scaleGraphics);
-                printG2D.drawImage(offscreenImage, 0, 0, offscreenImage.getWidth(), offscreenImage.getHeight(), null); // Null ImageObserver since image data is ready.
+                ctx.releasePrint();
+                System.err.println("PRINT AWTPrintLifecycle.release.count "+ctx.getCount());
             }
             
             /* tell the caller that this page is part of the printed document */
@@ -230,8 +187,7 @@ public abstract class TiledPrintingAWTBase extends UITestCase implements Printab
         super();
     }
 
-    public void doPrintAuto(Frame frame, AWTPrintLifecycle awtPrintObject, 
-                            Printable printable, int pOrientation, Paper paper, boolean offscreen, int dpi, boolean antialiasing) {
+    public void doPrintAuto(Frame frame, int pOrientation, Paper paper, int dpi, boolean antialiasing) {
         lock.lock();
         try {
             final PrintRequestAttributeSet aset = new HashPrintRequestAttributeSet();
@@ -253,7 +209,7 @@ public abstract class TiledPrintingAWTBase extends UITestCase implements Printab
                 FileOutputStream outstream;
                 try {
                     outstream = new FileOutputStream(fname);
-                    Assert.assertTrue(doPrintAutoImpl(frame, awtPrintObject, printable, pj, factories[0].getPrintService(outstream), pOrientation, paper, offscreen, dpi, antialiasing));
+                    Assert.assertTrue(doPrintAutoImpl(frame, pj, factories[0].getPrintService(outstream), pOrientation, paper, dpi, antialiasing));
                 } catch (FileNotFoundException e) {
                     Assert.assertNull("Unexpected exception", e);
                 }
@@ -268,7 +224,7 @@ public abstract class TiledPrintingAWTBase extends UITestCase implements Printab
                 FileOutputStream outstream;
                 try {
                     outstream = new FileOutputStream(fname);
-                    Assert.assertTrue(doPrintAutoImpl(frame, awtPrintObject, printable, pj, factories[0].getPrintService(outstream), pOrientation, paper, offscreen, dpi, antialiasing));
+                    Assert.assertTrue(doPrintAutoImpl(frame, pj, factories[0].getPrintService(outstream), pOrientation, paper, dpi, antialiasing));
                 } catch (FileNotFoundException e) {
                     Assert.assertNull("Unexpected exception", e);
                 }
@@ -285,13 +241,11 @@ public abstract class TiledPrintingAWTBase extends UITestCase implements Printab
         final String sAA = antialiasing ? "aa_" : "raw";
         return String.format("%-"+maxSimpleTestNameLen+"s-n%04d-dpi%03d-%s.%s", simpleTestName, printCount, dpi, sAA, suffix).replace(' ', '_');
     }
-    private boolean doPrintAutoImpl(Frame frame, AWTPrintLifecycle awtPrintObject, 
-                                    Printable printable, PrinterJob job, StreamPrintService ps, int pOrientation,
-                                    Paper paper, boolean offscreen, int dpi, boolean antialiasing) {
-        this.awtPrintObject = awtPrintObject; 
+    private boolean doPrintAutoImpl(Frame frame, PrinterJob job, 
+                                    StreamPrintService ps, int pOrientation, Paper paper, int dpi,
+                                    boolean antialiasing) {
         this.frame = frame;
-        printOffscreen = offscreen;
-        printDPI = dpi;
+        glDPI = dpi;
         printAA = antialiasing;
         boolean ok = true;
         try {            
@@ -305,7 +259,7 @@ public abstract class TiledPrintingAWTBase extends UITestCase implements Printab
             }
             pageFormat.setOrientation(pOrientation); // PageFormat.LANDSCAPE or PageFormat.PORTRAIT
             job.setPrintService(ps);
-            job.setPrintable(printable, pageFormat);
+            job.setPrintable(this, pageFormat);
             job.print();
         } catch (PrinterException pe) {
             pe.printStackTrace();
@@ -314,16 +268,14 @@ public abstract class TiledPrintingAWTBase extends UITestCase implements Printab
         return ok;
     }
 
-    public void doPrintManual(Frame frame, AWTPrintLifecycle awtPrintObject, Printable printable, boolean offscreen, int dpi, boolean antialiasing) {
+    public void doPrintManual(Frame frame, int dpi, boolean antialiasing) {
         lock.lock();
         try {
-            this.awtPrintObject = awtPrintObject; 
             this.frame = frame;
-            printOffscreen = offscreen;
-            printDPI = dpi;
+            glDPI = dpi;
             printAA = antialiasing;
             PrinterJob job = PrinterJob.getPrinterJob();
-            job.setPrintable(printable);
+            job.setPrintable(this);
             boolean ok = job.printDialog();
             if (ok) {
                 try {

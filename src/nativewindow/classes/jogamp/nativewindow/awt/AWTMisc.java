@@ -69,6 +69,33 @@ public class AWTMisc {
         return (Container) c;
     }
 
+    public static interface ComponentAction {
+        /**
+         * @param c the component to perform the action on
+         */
+        public void run(Component c);
+    }
+    
+    public static int performAction(Container c, Class<?> cType, ComponentAction action) {
+        int count = 0;
+        final int cc = c.getComponentCount();
+        for(int i=0; i<cc; i++) {
+            final Component e = c.getComponent(i);
+            if( e instanceof Container ) {
+                count += performAction((Container)e, cType, action);
+            } else if( cType.isInstance(e) ) {
+                action.run(e);
+                count++;
+            }
+        }
+        // we come at last ..
+        if( cType.isInstance(c) ) {
+            action.run(c);
+            count++;
+        }
+        return count;
+    }
+    
     /**
      * Traverse to the next forward or backward component using the
      * container's FocusTraversalPolicy.

@@ -86,7 +86,6 @@ import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
-import javax.media.opengl.GLOffscreenAutoDrawable;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
 import javax.media.opengl.Threading;
@@ -733,11 +732,11 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   private volatile boolean printActive = false;
   private boolean printUseAA = false;
   private GLAnimatorControl printAnimator = null; 
-  private GLOffscreenAutoDrawable printGLAD = null;
+  private GLAutoDrawable printGLAD = null;
   private AWTTilePainter printAWTTiles = null;
   
   @Override
-  public void setupPrint(Graphics2D g2d) {
+  public void setupPrint(Graphics2D g2d, double scaleMatX, double scaleMatY) {
       if( !validateGLDrawable() ) {
           if(DEBUG) {
               System.err.println(getThreadName()+": Info: GLCanvas setupPrint - skipped GL render, drawable not valid yet");
@@ -758,7 +757,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
           printUseAA = null != _useAA && ( _useAA == RenderingHints.VALUE_ANTIALIAS_DEFAULT || _useAA == RenderingHints.VALUE_ANTIALIAS_ON );
       }
       if( DEBUG ) {
-          System.err.println("AWT print.setup: canvasSize "+getWidth()+"x"+getWidth()+", useAA "+printUseAA+", printAnimator "+printAnimator);
+          System.err.println("AWT print.setup: canvasSize "+getWidth()+"x"+getWidth()+", scaleMat "+scaleMatX+" x "+scaleMatY+", useAA "+printUseAA+", printAnimator "+printAnimator);
           {
               final Set<Entry<Object, Object>> rEntries = rHints.entrySet();
               int count = 0;
@@ -770,7 +769,10 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
           final AffineTransform aTrans = g2d.getTransform();
           System.err.println(" scale "+aTrans.getScaleX()+" x "+aTrans.getScaleY());
           System.err.println(" move "+aTrans.getTranslateX()+" x "+aTrans.getTranslateY());
-      }      
+      }
+      final int componentCount = isOpaque() ? 3 : 4;
+      final TileRenderer printRenderer = new TileRenderer();
+      printAWTTiles = new AWTTilePainter(printRenderer, componentCount, scaleMatX, scaleMatY, DEBUG);
       AWTEDTExecutor.singleton.invoke(getTreeLock(), true /* allowOnNonEDT */, true /* wait */, setupPrintOnEDT);
   }
   private final Runnable setupPrintOnEDT = new Runnable() {
@@ -782,30 +784,31 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
               printAnimator.remove(GLCanvas.this);
           }
           final GLCapabilities caps = (GLCapabilities)getChosenGLCapabilities().cloneMutable();
-          caps.setDoubleBuffered(false);
           final GLProfile glp = caps.getGLProfile();
-          if( printUseAA && !caps.getSampleBuffers() ) {
-              if ( !glp.isGL2ES3() ) {
-                  if( DEBUG ) {
-                      System.err.println("Ignore MSAA due to gl-profile < GL2ES3");
+          if( caps.getSampleBuffers() ) {
+              // bug / issue w/ swapGLContextAndAllGLEventListener and onscreen MSAA w/ NV/GLX
+              printGLAD = GLCanvas.this;
+          } else {
+              caps.setDoubleBuffered(false);
+              caps.setOnscreen(false);
+              if( printUseAA && !caps.getSampleBuffers() ) {
+                  if ( !glp.isGL2ES3() ) {
+                      if( DEBUG ) {
+                          System.err.println("Ignore MSAA due to gl-profile < GL2ES3");
+                      }
+                      printUseAA = false;
+                  } else {
+                      caps.setSampleBuffers(true);
+                      caps.setNumSamples(8);
                   }
-                  printUseAA = false;
-              } else {
-                  caps.setSampleBuffers(true);
-                  caps.setNumSamples(8); // FIXME
               }
+              final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
+              printGLAD = factory.createOffscreenAutoDrawable(null, caps, null, PRINT_TILE_SIZE, PRINT_TILE_SIZE, null);
+              GLDrawableUtil.swapGLContextAndAllGLEventListener(GLCanvas.this, printGLAD);
           }
-          caps.setOnscreen(false);
-          final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
-          printGLAD = factory.createOffscreenAutoDrawable(null, caps, null, PRINT_TILE_SIZE, PRINT_TILE_SIZE, null);
-          GLDrawableUtil.swapGLContextAndAllGLEventListener(GLCanvas.this, printGLAD);
-          destroyOnEDTAction.run();
           
-          final int componentCount = isOpaque() ? 3 : 4;
-          final TileRenderer printRenderer = new TileRenderer();
-          printRenderer.setTileSize(printGLAD.getWidth(), printGLAD.getHeight(), 0);
-          printRenderer.attachToAutoDrawable(printGLAD);
-          printAWTTiles = new AWTTilePainter(printRenderer, componentCount, DEBUG);
+          printAWTTiles.renderer.setTileSize(printGLAD.getWidth(), printGLAD.getHeight(), 0);
+          printAWTTiles.renderer.attachToAutoDrawable(printGLAD);
           if( DEBUG ) {
               System.err.println("AWT print.setup "+printAWTTiles);
               System.err.println("AWT print.setup AA "+printUseAA+", "+caps);
@@ -832,9 +835,10 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
           }
           printAWTTiles.dispose();
           printAWTTiles= null;
-          createDrawableAndContext( false );
-          GLDrawableUtil.swapGLContextAndAllGLEventListener(printGLAD, GLCanvas.this);
-          printGLAD.destroy();
+          if( printGLAD != GLCanvas.this ) {
+              GLDrawableUtil.swapGLContextAndAllGLEventListener(printGLAD, GLCanvas.this);
+              printGLAD.destroy();
+          }
           printGLAD = null;
           if( null != printAnimator ) {
               printAnimator.add(GLCanvas.this);
@@ -854,17 +858,26 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
           // we cannot dispatch print on AWT-EDT due to printing internal locking ..
       }
       sendReshape = false; // clear reshape flag
-      final Graphics2D printGraphics = (Graphics2D)graphics;
-      printAWTTiles.updateGraphics2DAndClipBounds(printGraphics);
-      final TileRenderer tileRenderer = printAWTTiles.getTileRenderer(); 
-      if( DEBUG ) {
-          System.err.println("AWT print.0: "+tileRenderer);
+      
+      final Graphics2D g2d = (Graphics2D)graphics;
+      printAWTTiles.setupGraphics2DAndClipBounds(g2d);
+      try {
+          final TileRenderer tileRenderer = printAWTTiles.renderer;
+          if( DEBUG ) {
+              System.err.println("AWT print.0: "+tileRenderer);
+          }
+          do {
+              if( printGLAD != GLCanvas.this ) {
+                  tileRenderer.display();
+              } else {
+                  Threading.invoke(true, displayOnEDTAction, getTreeLock());
+              }
+          } while ( !tileRenderer.eot() );
+      } finally {
+          printAWTTiles.resetGraphics2D();
       }
-      do {
-          tileRenderer.display();
-      } while ( !tileRenderer.eot() );
       if( DEBUG ) {
-          System.err.println("AWT print.X: "+tileRenderer);
+          System.err.println("AWT print.X: "+printAWTTiles);
       }
   }
     

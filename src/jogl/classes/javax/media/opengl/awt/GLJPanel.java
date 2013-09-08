@@ -98,6 +98,7 @@ import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
 import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
 import com.jogamp.opengl.util.GLPixelBuffer.SingletonGLPixelBufferProvider;
+import com.jogamp.opengl.util.GLDrawableUtil;
 import com.jogamp.opengl.util.GLPixelStorageModes;
 import com.jogamp.opengl.util.TileRenderer;
 import com.jogamp.opengl.util.awt.AWTGLPixelBuffer;
@@ -500,12 +501,15 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
   }
 
+  private static final int PRINT_TILE_SIZE = 512;
   private volatile boolean printActive = false;
+  private boolean printUseAA = false;
   private GLAnimatorControl printAnimator = null; 
+  private GLAutoDrawable printGLAD = null;
   private AWTTilePainter printAWTTiles = null;
   
   @Override
-  public void setupPrint(Graphics2D g2d) {
+  public void setupPrint(Graphics2D g2d, double scaleMatX, double scaleMatY) {
       if (!isInitialized) {
           if(DEBUG) {
               System.err.println(getThreadName()+": Info: GLJPanel setupPrint - skipped GL render, drawable not valid yet");
@@ -521,6 +525,28 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       printActive = true; 
       sendReshape = false; // clear reshape flag
       handleReshape = false; // ditto
+      final RenderingHints rHints = g2d.getRenderingHints();
+      {
+          final Object _useAA = rHints.get(RenderingHints.KEY_ANTIALIASING);
+          printUseAA = null != _useAA && ( _useAA == RenderingHints.VALUE_ANTIALIAS_DEFAULT || _useAA == RenderingHints.VALUE_ANTIALIAS_ON );
+      }
+      if( DEBUG ) {
+          System.err.println("AWT print.setup: canvasSize "+getWidth()+"x"+getWidth()+", scaleMat "+scaleMatX+" x "+scaleMatY+", useAA "+printUseAA+", printAnimator "+printAnimator);
+          {
+              final Set<Entry<Object, Object>> rEntries = rHints.entrySet();
+              int count = 0;
+              for(Iterator<Entry<Object, Object>> rEntryIter = rEntries.iterator(); rEntryIter.hasNext(); count++) {
+                  final Entry<Object, Object> rEntry = rEntryIter.next();
+                  System.err.println("Hint["+count+"]: "+rEntry.getKey()+" -> "+rEntry.getValue());
+              }
+          }
+          final AffineTransform aTrans = g2d.getTransform();
+          System.err.println(" scale "+aTrans.getScaleX()+" x "+aTrans.getScaleY());
+          System.err.println(" move "+aTrans.getTranslateX()+" x "+aTrans.getTranslateY());
+      }
+      final int componentCount = isOpaque() ? 3 : 4;
+      final TileRenderer printRenderer = new TileRenderer();
+      printAWTTiles = new AWTTilePainter(printRenderer, componentCount, scaleMatX, scaleMatY, DEBUG);
       AWTEDTExecutor.singleton.invoke(getTreeLock(), true /* allowOnNonEDT */, true /* wait */, setupPrintOnEDT);
   }
   private final Runnable setupPrintOnEDT = new Runnable() {
@@ -531,14 +557,34 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           printAnimator =  helper.getAnimator();
           if( null != printAnimator ) {
               printAnimator.remove(GLJPanel.this);
-          }          
-          final int componentCount = isOpaque() ? 3 : 4;
-          final TileRenderer printRenderer = new TileRenderer();
-          printRenderer.setTileSize(getWidth(), getHeight(), 0);
-          printRenderer.attachToAutoDrawable(GLJPanel.this);
-          printAWTTiles = new AWTTilePainter(printRenderer, componentCount, DEBUG);
+          }
+          
+          printGLAD = GLJPanel.this; // default: re-use 
+          final GLCapabilities caps = (GLCapabilities)getChosenGLCapabilities().cloneMutable();
+          final GLProfile glp = caps.getGLProfile();
+          if( printUseAA && !caps.getSampleBuffers() ) {
+              if ( !glp.isGL2ES3() ) {
+                  if( DEBUG ) {
+                      System.err.println("Ignore MSAA due to gl-profile < GL2ES3");
+                  }
+                  printUseAA = false;
+              } else {
+                  // MSAA FBO ..
+                  caps.setDoubleBuffered(false);
+                  caps.setOnscreen(false);
+                  caps.setSampleBuffers(true);
+                  caps.setNumSamples(8);
+                  final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
+                  printGLAD = factory.createOffscreenAutoDrawable(null, caps, null, PRINT_TILE_SIZE, PRINT_TILE_SIZE, null);
+                  GLDrawableUtil.swapGLContextAndAllGLEventListener(GLJPanel.this, printGLAD);
+              }
+          }
+          printAWTTiles.renderer.setTileSize(printGLAD.getWidth(), printGLAD.getHeight(), 0);
+          printAWTTiles.renderer.attachToAutoDrawable(printGLAD);
           if( DEBUG ) {
               System.err.println("AWT print.setup "+printAWTTiles);
+              System.err.println("AWT print.setup AA "+printUseAA+", "+caps);
+              System.err.println("AWT print.setup "+printGLAD);
           }
       }
   };
@@ -563,6 +609,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           }
           printAWTTiles.dispose();
           printAWTTiles= null;
+          if( printGLAD != GLJPanel.this ) {
+              GLDrawableUtil.swapGLContextAndAllGLEventListener(printGLAD, GLJPanel.this);
+              printGLAD.destroy();
+          }
+          printGLAD = null;
           if( null != printAnimator ) {
               printAnimator.add(GLJPanel.this);
               printAnimator = null;
@@ -582,33 +633,26 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       }
       sendReshape = false; // clear reshape flag
       handleReshape = false; // ditto
-      final Graphics2D printGraphics = (Graphics2D)graphics;
-      if( DEBUG ) {
-          System.err.println("AWT print.0: canvasSize "+getWidth()+"x"+getWidth()+", printAnimator "+printAnimator);
-          {
-              final RenderingHints rHints = printGraphics.getRenderingHints();
-              final Set<Entry<Object, Object>> rEntries = rHints.entrySet();
-              int count = 0;
-              for(Iterator<Entry<Object, Object>> rEntryIter = rEntries.iterator(); rEntryIter.hasNext(); count++) {
-                  final Entry<Object, Object> rEntry = rEntryIter.next();
-                  System.err.println("Hint["+count+"]: "+rEntry.getKey()+" -> "+rEntry.getValue());
-              }
+      
+      final Graphics2D g2d = (Graphics2D)graphics;
+      printAWTTiles.setupGraphics2DAndClipBounds(g2d);
+      try {
+          final TileRenderer tileRenderer = printAWTTiles.renderer; 
+          if( DEBUG ) {
+              System.err.println("AWT print.0: "+tileRenderer);
           }
-          final AffineTransform aTrans = printGraphics.getTransform();
-          System.err.println(" scale "+aTrans.getScaleX()+" x "+aTrans.getScaleY());
-          System.err.println(" move "+aTrans.getTranslateX()+" x "+aTrans.getTranslateY());
-      }      
-      printAWTTiles.updateGraphics2DAndClipBounds(printGraphics);
-      final TileRenderer tileRenderer = printAWTTiles.getTileRenderer(); 
-      if( DEBUG ) {
-          System.err.println("AWT print.0: "+tileRenderer);
+          do {
+              if( printGLAD != GLJPanel.this ) {
+                  tileRenderer.display();
+              } else {
+                  backend.doPlainPaint();
+              }
+          } while ( !tileRenderer.eot() );
+      } finally {
+          printAWTTiles.resetGraphics2D();
       }
-      do {
-          // printRenderer.display();
-          backend.doPlainPaint();
-      } while ( !tileRenderer.eot() );
       if( DEBUG ) {
-          System.err.println("AWT print.X: "+tileRenderer);
+          System.err.println("AWT print.X: "+printAWTTiles);
       }
   }
   @Override
@@ -803,6 +847,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     // so swapping the buffers doesn't do anything. We also don't
     // currently have the provision to skip copying the data to the
     // Swing portion of the GLJPanel in any of the rendering paths.
+    if( printActive && isInitialized) {
+        final Backend b = backend;
+        if ( null != b ) {
+            b.getDrawable().swapBuffers();
+        }
+    }
   }
 
   @Override
@@ -1007,7 +1057,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       backend.postGL(g, true);
     }
 
-    public void print(GLAutoDrawable drawable) {
+    public void plainPaint(GLAutoDrawable drawable) {
       helper.display(GLJPanel.this);
     }
     
@@ -1066,7 +1116,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private final Runnable updaterPlainDisplayAction = new Runnable() {
     @Override
     public void run() {
-      updater.print(GLJPanel.this);
+      updater.plainPaint(GLJPanel.this);
     }
   };
   
@@ -1405,13 +1455,14 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             gl2es3.glPixelStorei(GL2ES3.GL_PACK_ROW_LENGTH, pixelBuffer.width);
             gl2es3.glReadBuffer(gl2es3.getDefaultReadBuffer());
         }
-
+        
+        offscreenDrawable.swapBuffers();
+        
         if(null != glslTextureRaster) { // implies flippedVertical
             // perform vert-flipping via OpenGL/FBO        
             final GLFBODrawable fboDrawable = (GLFBODrawable)offscreenDrawable;
             final FBObject.TextureAttachment fboTex = fboDrawable.getTextureBuffer(GL.GL_FRONT);
             
-            fboDrawable.swapBuffers();
             fboFlipped.bind(gl);
             
             // gl.glActiveTexture(GL.GL_TEXTURE0 + fboDrawable.getTextureUnit()); // implicit by GLFBODrawableImpl: swapBuffers/contextMadeCurent -> swapFBOImpl
