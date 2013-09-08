@@ -78,3 +78,14 @@ Bugs:
   - GLCanvas: Workaround bug where onscreen MSAA cannot switch to offscreen FBO,
               i.e. stay 'onscreen'
 
++++
+
+OSX local 'virtual' printer installation,
+i.e. print-to-file printer using cups:
+
+cupsctl FileDevice=Yes
+killall -HUP cupsd
+mkdir /data/lp
+chown jogamp /data/lp
+chmod ugo+rwx /data/lp
+lpadmin -p lprint -E -v file:/data/lp/out.ps -P /Library/Printers/PPDs/Contents/Resources/HP\ LaserJet\ 4\ Plus.gz

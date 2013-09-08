@@ -55,6 +55,38 @@ import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
+/**
+ * Base unit test class implementing {@link Printable}.
+ * 
+ * <h5>Scaling of Frame and GL content</h5>
+ * <p>
+ * We fit the frame into the imageable area with for 72 dpi,
+ * assuming that is the default AWT painting density.
+ * </p>
+ * <p>
+ * The frame borders are considered.
+ * </p>
+ * <p>
+ * The frame's scale factor is used for the graphics print matrix
+ * of the overall print-job, hence no frame resize is required.
+ * </p>
+ * <p>
+ * The GL scale factor 'scaleGLMatXY', 72dpi/glDPI, is passed to the GL object
+ * which locally scales the print matrix and renders the scene with 1/scaleGLMatXY pixels.
+ * </p>
+ * <h5>Virtual printer driver</h5>
+ * <p>
+ * Note, on OSX you might need to setup a dummy printer, i.e. <i>print to file</i>.<br>
+ * As root:
+ * <pre>
+   cupsctl FileDevice=Yes
+   killall -HUP cupsd
+   mkdir /data/lp
+   chown USER /data/lp
+   chmod ugo+rwx /data/lp
+   lpadmin -p lprint -E -v file:/data/lp/out.ps -P /Library/Printers/PPDs/Contents/Resources/HP\ LaserJet\ 4\ Plus.gz
+ * </pre>
+ */
 public abstract class TiledPrintingAWTBase extends UITestCase implements Printable {
 
     public static final double MM_PER_INCH = 25.4;
@@ -121,19 +153,7 @@ public abstract class TiledPrintingAWTBase extends UITestCase implements Printab
             System.err.println("PF: Page orientation "+pf.getOrientation());
             
             /**
-             * We fit the frame into the imageable area with for 72 dpi,
-             * assuming that is the default AWT painting density.
-             * <p>
-             * The frame borders are considered.
-             * </p>
-             * <p>
-             * The frame's scale factor is used for the graphics print matrix
-             * of the overall print-job, hence no frame resize is required.
-             * </p>
-             * <p>
-             * The GL scale factor 'scaleGLMatXY', 72dpi/glDPI, is passed to the GL object
-             * which locally scales the print matrix and renders the scene with 1/scaleGLMatXY pixels.
-             * </p>
+             * See: 'Scaling of Frame and GL content' in Class description!
              */                
             final Insets frameInsets = frame.getInsets();
             final int frameWidth = frame.getWidth();
