@@ -10,11 +10,13 @@ Unit test producing the results:
     <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/test/com/jogamp/opengl/test/junit/jogl/tile/TestTiledPrintingGearsSwingAWT.java;hb=HEAD>
 
 Print code: 
-  AWTTilePainter (common code): 
-    <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/jogl/classes/jogamp/opengl/awt/AWTTilePainter.java;hb=HEAD>
+  AWTPrintLifecycle:
+    <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/jogl/classes/javax/media/opengl/awt/AWTPrintLifecycle.java;hb=HEAD>
   GLCanvas:
     <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/jogl/classes/javax/media/opengl/awt/GLCanvas.java;hb=HEAD#l731>
   ...
+  AWTTilePainter (common code): 
+    <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/jogl/classes/jogamp/opengl/awt/AWTTilePainter.java;hb=HEAD>
 
 +++
 
