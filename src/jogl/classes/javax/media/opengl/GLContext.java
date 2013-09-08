@@ -283,8 +283,9 @@ public abstract class GLContext {
    *                     this context is made current on another thread.
    *
    * @see #isGLReadDrawableAvailable()
+   * @see #setGLReadDrawable(GLDrawable)
    * @see #getGLReadDrawable()
-   * @see #setGLReadDrawable()
+   * @see #setGLDrawable(GLDrawable, boolean)
    * @see #getGLDrawable()
    */
   public abstract GLDrawable setGLDrawable(GLDrawable readWrite, boolean setWriteOnly);
@@ -334,8 +335,8 @@ public abstract class GLContext {
    * it equals to the write-drawable (default).
    * </p> 
    * @see #isGLReadDrawableAvailable()
-   * @see #setGLReadDrawable(javax.media.opengl.GLDrawable)
-   * @see #getGLDrawable()
+   * @see #setGLReadDrawable(GLDrawable)
+   * @see #getGLReadDrawable() 
    */
   public abstract GLDrawable getGLReadDrawable();
 
@@ -407,7 +408,7 @@ public abstract class GLContext {
    * parameter indicates which groups of state variables are to be
    * copied. <code>mask</code> contains the bitwise OR of the same
    * symbolic names that are passed to the GL command {@link
-   * GL#glPushAttrib glPushAttrib}. The single symbolic constant
+   * GL2#glPushAttrib glPushAttrib}. The single symbolic constant
    * {@link GL2#GL_ALL_ATTRIB_BITS GL_ALL_ATTRIB_BITS} can be used to
    * copy the maximum possible portion of rendering state. <P>
    *
@@ -1115,7 +1116,9 @@ public abstract class GLContext {
 
   /** 
    * Indicates whether this GLContext is capable of GL2ES3. <p>Includes [ GL4bc, GL4, GL3bc, GL3, GLES3, GL3ES3, GL2, GL2GL3 ].</p>
-   * @see GLProfile#isGL2ES3() 
+   * @see GLProfile#isGL2ES3()
+   * @see #isGL3ES3()
+   * @see #isGL2GL3()
    */
   public final boolean isGL2ES3() {
       return isGL3ES3() || isGL2GL3();
@@ -1216,7 +1219,7 @@ public abstract class GLContext {
    * Return the default draw framebuffer name.
    * <p> 
    * May differ from it's default <code>zero</code>
-   * in case an framebuffer object ({@link FBObject}) based drawable
+   * in case an framebuffer object ({@link com.jogamp.opengl.FBObject}) based drawable
    * is being used.
    * </p> 
    */
@@ -1226,7 +1229,7 @@ public abstract class GLContext {
    * Return the default read framebuffer name.
    * <p> 
    * May differ from it's default <code>zero</code>
-   * in case an framebuffer object ({@link FBObject}) based drawable
+   * in case an framebuffer object ({@link com.jogamp.opengl.FBObject}) based drawable
    * is being used.
    * </p> 
    */
@@ -1253,23 +1256,23 @@ public abstract class GLContext {
   
   /**
    * @return The extension implementing the GLDebugOutput feature,
-   *         either <i>GL_ARB_debug_output</i> or <i>GL_AMD_debug_output</i>.
+   *         either {@link GLExtensions#ARB_debug_output} or {@link GLExtensions#AMD_debug_output}.
    *         If unavailable or called before initialized via {@link #makeCurrent()}, <i>null</i> is returned.
    */
   public abstract String getGLDebugMessageExtension();
 
   /**
-   * @return the current synchronous debug behavior via
-   * @see #setSynchronous(boolean)
+   * @return the current synchronous debug behavior, set via {@link #setGLDebugSynchronous(boolean)}.
    */
   public abstract boolean isGLDebugSynchronous();
 
   /**
    * Enables or disables the synchronous debug behavior via
-   * {@link GL2GL3#GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB glEnable/glDisable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB)},
-   * if extension is {@link #GL_ARB_debug_output}.
-   * There is no equivalent for {@link #GL_AMD_debug_output}.
-   * <p> The default is <code>true</code>, ie {@link GL2GL3#GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB}.</p>
+   * {@link GL2GL3#GL_DEBUG_OUTPUT_SYNCHRONOUS glEnable/glDisable(GL_DEBUG_OUTPUT_SYNCHRONOUS)},
+   * if extension is {@link GLExtensions#ARB_debug_output}.
+   * There is no equivalent for {@link GLExtensions#AMD_debug_output}.
+   * <p> The default is <code>true</code>, ie {@link GL2GL3#GL_DEBUG_OUTPUT_SYNCHRONOUS}.</p>
+   * @link {@link #isGLDebugSynchronous()}
    */
   public abstract void setGLDebugSynchronous(boolean synchronous);
 
@@ -1279,8 +1282,8 @@ public abstract class GLContext {
   public abstract boolean isGLDebugMessageEnabled();
 
   /**
-   * Enables or disables the GLDebugOutput feature of extension <i>GL_ARB_debug_output</i>
-   * or <i>GL_AMD_debug_output</i>, if available.
+   * Enables or disables the GLDebugOutput feature of extension {@link GLExtensions#ARB_debug_output}
+   * or {@link GLExtensions#AMD_debug_output}, if available.
    *
    * <p>To enable the GLDebugOutput feature {@link #enableGLDebugMessage(boolean) enableGLDebugMessage(true)}
    * or {@link #setContextCreationFlags(int) setContextCreationFlags}({@link GLContext#CTX_OPTION_DEBUG})
@@ -1305,7 +1308,7 @@ public abstract class GLContext {
   /**
    * Add {@link GLDebugListener}.<br>
    *
-   * @param listener {@link GLDebugListener} handling {@GLDebugMessage}s
+   * @param listener {@link GLDebugListener} handling {@link GLDebugMessage}s
    * @see #enableGLDebugMessage(boolean)
    * @see #removeGLDebugListener(GLDebugListener)
    */
@@ -1314,28 +1317,28 @@ public abstract class GLContext {
   /**
    * Remove {@link GLDebugListener}.<br>
    *
-   * @param listener {@link GLDebugListener} handling {@GLDebugMessage}s
+   * @param listener {@link GLDebugListener} handling {@link GLDebugMessage}s
    * @see #enableGLDebugMessage(boolean)
    * @see #addGLDebugListener(GLDebugListener)
    */
   public abstract void removeGLDebugListener(GLDebugListener listener);
 
   /**
-   * Generic entry for {@link GL2GL3#glDebugMessageControlARB(int, int, int, int, IntBuffer, boolean)}
+   * Generic entry for {@link GL2GL3#glDebugMessageControl(int, int, int, int, IntBuffer, boolean)}
    * and {@link GL2GL3#glDebugMessageEnableAMD(int, int, int, IntBuffer, boolean)} of the GLDebugOutput feature.
    * @see #enableGLDebugMessage(boolean)
    */
   public abstract void glDebugMessageControl(int source, int type, int severity, int count, IntBuffer ids, boolean enabled);
 
   /**
-   * Generic entry for {@link GL2GL3#glDebugMessageControlARB(int, int, int, int, int[], int, boolean)}
+   * Generic entry for {@link GL2GL3#glDebugMessageControl(int, int, int, int, int[], int, boolean)}
    * and {@link GL2GL3#glDebugMessageEnableAMD(int, int, int, int[], int, boolean)} of the GLDebugOutput feature.
    * @see #enableGLDebugMessage(boolean)
    */
   public abstract void glDebugMessageControl(int source, int type, int severity, int count, int[] ids, int ids_offset, boolean enabled);
 
   /**
-   * Generic entry for {@link GL2GL3#glDebugMessageInsertARB(int, int, int, int, int, String)}
+   * Generic entry for {@link GL2GL3#glDebugMessageInsert(int, int, int, int, int, String)}
    * and {@link GL2GL3#glDebugMessageInsertAMD(int, int, int, int, String)} of the GLDebugOutput feature.
    * @see #enableGLDebugMessage(boolean)
    */
@@ -1485,8 +1488,8 @@ public abstract class GLContext {
   }
 
   /**
-   * Called by {@link jogamp.opengl.GLContextImpl#createContextARBMapVersionsAvailable} not intended to be used by
-   * implementations. However, if {@link #createContextARB} is not being used within
+   * Called by {@link jogamp.opengl.GLContextImpl#createContextARBMapVersionsAvailable(int,int)} not intended to be used by
+   * implementations. However, if {@link jogamp.opengl.GLContextImpl#createContextARB(long, boolean)} is not being used within
    * {@link javax.media.opengl.GLDrawableFactory#getOrCreateSharedContext(javax.media.nativewindow.AbstractGraphicsDevice)},
    * GLProfile has to map the available versions.
    *

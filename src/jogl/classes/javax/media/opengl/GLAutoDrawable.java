@@ -48,12 +48,14 @@ import jogamp.opengl.Debug;
     an event based mechanism ({@link GLEventListener}) for performing
     OpenGL rendering. A GLAutoDrawable automatically creates a primary
     rendering context which is associated with the GLAutoDrawable for
-    the lifetime of the object. This context has the {@link
-    GLContext#setSynchronized synchronized} property enabled so that
-    calls to {@link GLContext#makeCurrent makeCurrent} will block if
-    the context is current on another thread. This allows the internal
-    GLContext for the GLAutoDrawable to be used both by the event
-    based rendering mechanism as well by end users directly.
+    the lifetime of the object.
+    <p>
+    Since the {@link GLContext} {@link GLContext#makeCurrent makeCurrent} 
+    implementation is synchronized, i.e. blocks if the context 
+    is current on another thread, the internal
+    {@link GLContext} for the GLAutoDrawable can be used for the event
+    based rendering mechanism and by end users directly.
+    </p>
     <p>
     The implementation shall initialize itself as soon as possible,
     ie if the attached {@link javax.media.nativewindow.NativeSurface NativeSurface} becomes visible/realized.
@@ -310,9 +312,9 @@ public interface GLAutoDrawable extends GLDrawable {
    * <p>
    * Impacts {@link #display()} and {@link #invoke(boolean, GLRunnable)} semantics.</p><br>
    *
-   * @param animator <code>null</code> reference indicates no animator is using
-   *                 this <code>GLAutoDrawable</code>,<br>
-   *                 a valid reference indicates an animator is using this <code>GLAutoDrawable</code>.
+   * @param animatorControl <code>null</code> reference indicates no animator is using
+   *                        this <code>GLAutoDrawable</code>,<br>
+   *                        a valid reference indicates an animator is using this <code>GLAutoDrawable</code>.
    *
    * @throws GLException if an animator is already registered.
    * @see #display()
@@ -406,7 +408,7 @@ public interface GLAutoDrawable extends GLDrawable {
    * @see #setAnimator(GLAnimatorControl)
    * @see #display()
    * @see GLRunnable
-   * @see #enqueue(GLRunnable)
+   * @see #invoke(boolean, List)
    */
   public boolean invoke(boolean wait, GLRunnable glRunnable);
   
@@ -416,6 +418,7 @@ public interface GLAutoDrawable extends GLDrawable {
    * @param wait if <code>true</code> block until execution of the last <code>glRunnable</code> is finished, otherwise return immediately w/o waiting
    * @param glRunnables the {@link GLRunnable}s to execute within {@link #display()}
    * @return <code>true</code> if the {@link GLRunnable}s has been processed or queued, otherwise <code>false</code>.
+   * @see #invoke(boolean, GLRunnable)
    */
   public boolean invoke(boolean wait, List<GLRunnable> glRunnables);
 
@@ -540,7 +543,6 @@ public interface GLAutoDrawable extends GLDrawable {
    * This method may also return <code>null</code> if no UI toolkit is being used,
    * as common for offscreen rendering.
    * </p>
-   * @return
    */
   public Object getUpstreamWidget();
 

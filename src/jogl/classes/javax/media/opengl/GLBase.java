@@ -436,7 +436,6 @@ public interface GLBase {
     * NPOT textures are supported in OpenGL >= 3, GLES2 or if the
     * 'GL_ARB_texture_non_power_of_two' extension is available.
     * </p>
-    * @return
     */
    public boolean isNPOTTextureAvailable();
 
@@ -518,12 +517,12 @@ public interface GLBase {
    public long glGetBufferSize(int buffer);
 
    /**
-    * @return true if a VBO is bound to {@link GL.GL_ARRAY_BUFFER} via {@link GL#glBindBuffer(int, int)}, otherwise false
+    * @return true if a VBO is bound to {@link GL#GL_ARRAY_BUFFER} via {@link GL#glBindBuffer(int, int)}, otherwise false
     */
    public boolean glIsVBOArrayBound();
 
    /**
-    * @return true if a VBO is bound to {@link GL.GL_ELEMENT_ARRAY_BUFFER} via {@link GL#glBindBuffer(int, int)}, otherwise false
+    * @return true if a VBO is bound to {@link GL#GL_ELEMENT_ARRAY_BUFFER} via {@link GL#glBindBuffer(int, int)}, otherwise false
     */
    public boolean glIsVBOElementArrayBound();
 
@@ -537,7 +536,7 @@ public interface GLBase {
     * Return the default draw framebuffer name.
     * <p> 
     * May differ from it's default <code>zero</code>
-    * in case an framebuffer object ({@link FBObject}) based drawable
+    * in case an framebuffer object ({@link com.jogamp.opengl.FBObject}) based drawable
     * is being used.
     * </p> 
     */
@@ -547,7 +546,7 @@ public interface GLBase {
     * Return the default read framebuffer name.
     * <p> 
     * May differ from it's default <code>zero</code>
-    * in case an framebuffer object ({@link FBObject}) based drawable
+    * in case an framebuffer object ({@link com.jogamp.opengl.FBObject}) based drawable
     * is being used.
     * </p> 
     */

@@ -62,14 +62,14 @@ import com.jogamp.opengl.FBObject.TextureAttachment;
  * </p>
  * <p>
  * It would be possible to implement double buffering simply using 
- * {@link FBObject.TextureAttachment texture attachment}s with one {@link FBObject framebuffer}.
+ * {@link TextureAttachment}s with one {@link FBObject framebuffer}.
  * This would require mode selection and hence complicate the API. Besides, it would
  * not support differentiation of read and write framebuffer and hence not be spec compliant.
  * </p>
  * <p>
- * Actual swapping of the {@link FBObject.TextureAttachment texture}s or {@link FBObject framebuffer}
- * is performed either in the {@link #contextMadeCurrent(boolean) context current hook}
- * or when {@link #swapBuffersImpl(boolean) swapping buffers}, whatever comes first.<br/>
+ * Actual swapping of the {@link TextureAttachment texture}s and/or {@link FBObject framebuffer}
+ * is performed either in the {@link jogamp.opengl.GLContextImpl#contextMadeCurrent(boolean) context current hook}
+ * or when {@link jogamp.opengl.GLDrawableImpl#swapBuffersImpl(boolean) swapping buffers}, whatever comes first.
  * </p>
  */ 
 public interface GLFBODrawable extends GLDrawable {

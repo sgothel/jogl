@@ -202,7 +202,7 @@ public interface GLDrawable {
    * <p>
    * On EGL it is represented by the EGLSurface.<br>
    * On X11/GLX it is represented by either the Window XID, GLXPixmap, or GLXPbuffer.<br>
-   * On Windows it is represented by the HDC, which may change with each {@link #lockSurface()}.<br>
+   * On Windows it is represented by the HDC, which may change with each {@link NativeSurface#lockSurface()}.<br>
    * </p>
    * @see #setRealized(boolean)
    * @see NativeSurface#lockSurface()

@@ -336,7 +336,7 @@ public abstract class GLDrawableFactory {
    * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
    * @param quirk the quirk to be tested, e.g. {@link GLRendererQuirks#NoDoubleBufferedPBuffer}.
    * @throws IllegalArgumentException if the quirk is out of range
-   * @see #getRendererQuirks()
+   * @see #getRendererQuirks(AbstractGraphicsDevice)
    * @see GLRendererQuirks
    */
   public final boolean hasRendererQuirk(AbstractGraphicsDevice device, int quirk) {
@@ -459,7 +459,7 @@ public abstract class GLDrawableFactory {
    * @see javax.media.opengl.GLCapabilities#isOnscreen()
    * @see javax.media.opengl.GLCapabilities#isFBO()
    * @see javax.media.opengl.GLCapabilities#isPBuffer()
-   * @see javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
+   * @see javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(CapabilitiesImmutable, CapabilitiesImmutable, javax.media.nativewindow.CapabilitiesChooser, AbstractGraphicsScreen, int)
    */
   public abstract GLDrawable createGLDrawable(NativeSurface target)
     throws IllegalArgumentException, GLException;
@@ -560,7 +560,8 @@ public abstract class GLDrawableFactory {
   public abstract GLDrawable createDummyDrawable(AbstractGraphicsDevice deviceReq, boolean createNewDevice, GLProfile glp);
   
   /**
-   * Creates a proxy {@link NativeSurface} w/ defined surface handle, i.e. a {@link WrappedSurface} or {@link GDISurface} instance. 
+   * Creates a proxy {@link NativeSurface} w/ defined surface handle, 
+   * i.e. a {@link jogamp.nativewindow.WrappedSurface} or {@link jogamp.nativewindow.windows.GDISurface} instance. 
    * <p>
    * It's {@link AbstractGraphicsConfiguration} is properly set according to the given 
    * <code>windowHandle</code>'s native visualID if set or the given {@link GLCapabilitiesImmutable}.
@@ -571,7 +572,8 @@ public abstract class GLDrawableFactory {
    * </p>
    * <p>
    * Such surface can be used to instantiate a GLDrawable. With the help of {@link GLAutoDrawableDelegate}
-   * you will be able to implement a new native windowing system  binding almost on-the-fly, see {@link com.jogamp.opengl.swt.GLCanvas}. 
+   * you will be able to implement a new native windowing system  binding almost on-the-fly, 
+   * see {@link com.jogamp.opengl.swt.GLCanvas}. 
    * </p>
    * 
    * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
@@ -580,7 +582,7 @@ public abstract class GLDrawableFactory {
    * @param windowHandle the native window handle
    * @param caps the requested GLCapabilties
    * @param chooser the custom chooser, may be null for default
-   * @param upstream optional {@link ProxySurface.UpstreamSurfaceHook} allowing control of the {@link ProxySurface}'s lifecycle and data it presents.
+   * @param upstream optional {@link UpstreamSurfaceHook} allowing control of the {@link ProxySurface}'s lifecycle and data it presents.
    * @return the created {@link ProxySurface} instance w/ defined surface handle.
    */
   public abstract ProxySurface createProxySurface(AbstractGraphicsDevice device,

@@ -43,6 +43,8 @@ import jogamp.nativewindow.windows.GDI;
  * allowing the use of HDC via lockSurface()/unlockSurface() protocol.
  * The latter will get and release the HDC.
  * The size via getWidth()/getHeight() is invalid.
+ * 
+ * @see ProxySurface
  */
 public class GDISurface extends ProxySurfaceImpl {
   protected long windowHandle;

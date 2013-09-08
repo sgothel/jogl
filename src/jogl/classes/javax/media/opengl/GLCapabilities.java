@@ -50,7 +50,8 @@ import javax.media.nativewindow.CapabilitiesImmutable;
     must support, such as the OpenGL profile, color depth and whether stereo is enabled.<br>
 
     The actual capabilites of created {@link GLDrawable}s are then reflected by their own
-    GLCapabilites instance, which can be queried with {@link GLDrawable#getGLCapabilities()}.<br>
+    GLCapabilites instance, which can be queried with {@link GLDrawable#getChosenGLCapabilities()}.
+    <br>
 
     It currently contains the minimal number of routines which allow
     configuration on all supported window systems. */
@@ -246,7 +247,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   /**
    * Requesting offscreen pbuffer mode.
    * <p>
-   * If enabled this method also invokes {@link #setOnscreen(int) setOnscreen(false)}.
+   * If enabled this method also invokes {@link #setOnscreen(boolean) setOnscreen(false)}.
    * </p>
    * <p>
    * Defaults to false.
@@ -270,7 +271,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   /**
    * Requesting offscreen FBO mode.
    * <p>
-   * If enabled this method also invokes {@link #setOnscreen(int) setOnscreen(false)}.
+   * If enabled this method also invokes {@link #setOnscreen(boolean) setOnscreen(false)}.
    * </p>
    * <p>
    * Defaults to false.
