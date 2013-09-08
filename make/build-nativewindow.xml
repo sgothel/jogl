@@ -741,8 +741,7 @@
     </target>
 
     <target name="c.build.nativewindow.windowlib.x11" if="isX11">
-      <javah destdir="${src.generated.c}/X11" classpath="${javah.classpath}" class="jogamp.nativewindow.x11.X11Lib" />
-      <javah destdir="${src.generated.c}/X11" classpath="${javah.classpath}" class="jogamp.nativewindow.x11.X11Util" />
+      <javah destdir="${src.generated.c}/X11" classpath="${javah.classpath}" class="jogamp.nativewindow.x11.X11Lib, jogamp.nativewindow.x11.X11Util" />
 
       <c.build c.compiler.src.files="c.src.files.x11"
                output.lib.name="nativewindow_x11"
@@ -751,8 +750,7 @@
     </target>
 
     <target name="c.build.nativewindow.windowlib.windows" if="isWindows">
-      <javah destdir="${src.generated.c}/Windows" classpath="${javah.classpath}" class="jogamp.nativewindow.windows.GDI" />
-      <javah destdir="${src.generated.c}/Windows" classpath="${javah.classpath}" class="jogamp.nativewindow.windows.GDIUtil" />
+      <javah destdir="${src.generated.c}/Windows" classpath="${javah.classpath}" class="jogamp.nativewindow.windows.GDI, jogamp.nativewindow.windows.GDIUtil" />
 
       <c.build c.compiler.src.files="c.src.files.windows"
                output.lib.name="nativewindow_win32"
@@ -761,8 +759,7 @@
     </target>
 
     <target name="c.build.nativewindow.windowlib.macosx" if="isOSX">
-      <javah destdir="${src.generated.c}/MacOSX" classpath="${javah.classpath}" class="jogamp.nativewindow.macosx.OSXUtil" />
-      <javah destdir="${src.generated.c}/MacOSX" classpath="${javah.classpath}" class="jogamp.nativewindow.jawt.macosx.MacOSXJAWTWindow" />
+      <javah destdir="${src.generated.c}/MacOSX" classpath="${javah.classpath}" class="jogamp.nativewindow.macosx.OSXUtil, jogamp.nativewindow.jawt.macosx.MacOSXJAWTWindow" />
 
       <c.build c.compiler.src.files="c.src.files.macosx"
                output.lib.name="nativewindow_macosx"

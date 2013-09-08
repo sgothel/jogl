@@ -1634,8 +1634,7 @@
     </macrodef>  
 
     <target name="c.build.jogl.prepare">
-      <javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${javah.classpath}" class="jogamp.opengl.GLDebugMessageHandler" />
-      <javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${javah.classpath}" class="jogamp.opengl.GLContextImpl" />
+      <javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${javah.classpath}" class="jogamp.opengl.GLDebugMessageHandler, jogamp.opengl.GLContextImpl" />
       <javah destdir="${src.generated.c.libav}" classpath="${javah.classpath}" class="jogamp.opengl.util.av.impl.FFMPEGStaticNatives,jogamp.opengl.util.av.impl.FFMPEGv08Natives,jogamp.opengl.util.av.impl.FFMPEGv09Natives,jogamp.opengl.util.av.impl.FFMPEGv10Natives" />
       <javah destdir="${src.generated.c.openmax}" classpath="${javah.classpath}" class="jogamp.opengl.util.av.impl.OMXGLMediaPlayer" />
       <!-- Generate the waveout Mixer header -->

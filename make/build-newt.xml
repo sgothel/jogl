@@ -685,26 +685,14 @@
     <target name="c.build.newt.prepare">
       <javah destdir="${src.generated.c}/KD"          classpath="${javah.classpath}" class="jogamp.newt.driver.kd.WindowDriver" />
 
-      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${javah.classpath}" class="jogamp.newt.driver.intel.gdl.DisplayDriver" />
-      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${javah.classpath}" class="jogamp.newt.driver.intel.gdl.ScreenDriver" />
-      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${javah.classpath}" class="jogamp.newt.driver.intel.gdl.WindowDriver" />
+      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${javah.classpath}" class="jogamp.newt.driver.intel.gdl.DisplayDriver, jogamp.newt.driver.intel.gdl.ScreenDriver, jogamp.newt.driver.intel.gdl.WindowDriver" />
 
       <javah destdir="${src.generated.c}/bcm/egl"     classpath="${javah.classpath}" class="jogamp.newt.driver.bcm.egl.WindowDriver" />
-      <javah destdir="${src.generated.c}/bcm/vc/iv"   classpath="${javah.classpath}" class="jogamp.newt.driver.bcm.vc.iv.DisplayDriver" />
-      <javah destdir="${src.generated.c}/bcm/vc/iv"   classpath="${javah.classpath}" class="jogamp.newt.driver.bcm.vc.iv.ScreenDriver" />
-      <javah destdir="${src.generated.c}/bcm/vc/iv"   classpath="${javah.classpath}" class="jogamp.newt.driver.bcm.vc.iv.WindowDriver" />
+      <javah destdir="${src.generated.c}/bcm/vc/iv"   classpath="${javah.classpath}" class="jogamp.newt.driver.bcm.vc.iv.DisplayDriver, jogamp.newt.driver.bcm.vc.iv.ScreenDriver, jogamp.newt.driver.bcm.vc.iv.WindowDriver" />
 
-      <javah destdir="${src.generated.c}/Windows"     classpath="${javah.classpath}" class="jogamp.newt.driver.windows.WindowDriver" />
-      <javah destdir="${src.generated.c}/Windows"     classpath="${javah.classpath}" class="jogamp.newt.driver.windows.ScreenDriver" />
-      <javah destdir="${src.generated.c}/Windows"     classpath="${javah.classpath}" class="jogamp.newt.driver.windows.DisplayDriver" />
-      <javah destdir="${src.generated.c}/MacOSX"      classpath="${javah.classpath}" class="jogamp.newt.driver.macosx.WindowDriver" />
-      <javah destdir="${src.generated.c}/MacOSX"      classpath="${javah.classpath}" class="jogamp.newt.driver.macosx.ScreenDriver" />
-      <javah destdir="${src.generated.c}/MacOSX"      classpath="${javah.classpath}" class="jogamp.newt.driver.macosx.DisplayDriver" />
-      <javah destdir="${src.generated.c}/X11"         classpath="${javah.classpath}" class="jogamp.newt.driver.x11.WindowDriver" />
-      <javah destdir="${src.generated.c}/X11"         classpath="${javah.classpath}" class="jogamp.newt.driver.x11.ScreenDriver" />
-      <javah destdir="${src.generated.c}/X11"         classpath="${javah.classpath}" class="jogamp.newt.driver.x11.RandR11" />
-      <javah destdir="${src.generated.c}/X11"         classpath="${javah.classpath}" class="jogamp.newt.driver.x11.RandR13" />
-      <javah destdir="${src.generated.c}/X11"         classpath="${javah.classpath}" class="jogamp.newt.driver.x11.DisplayDriver" />
+      <javah destdir="${src.generated.c}/Windows"     classpath="${javah.classpath}" class="jogamp.newt.driver.windows.WindowDriver, jogamp.newt.driver.windows.ScreenDriver, jogamp.newt.driver.windows.DisplayDriver" />
+      <javah destdir="${src.generated.c}/MacOSX"      classpath="${javah.classpath}" class="jogamp.newt.driver.macosx.WindowDriver, jogamp.newt.driver.macosx.ScreenDriver, jogamp.newt.driver.macosx.DisplayDriver" />
+      <javah destdir="${src.generated.c}/X11"         classpath="${javah.classpath}" class="jogamp.newt.driver.x11.WindowDriver, jogamp.newt.driver.x11.ScreenDriver, jogamp.newt.driver.x11.RandR11, jogamp.newt.driver.x11.RandR13, jogamp.newt.driver.x11.DisplayDriver" />
     </target>
 
     <target name="c.build.newt.prepare.android" if="isAndroid">
