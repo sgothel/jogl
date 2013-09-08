@@ -91,7 +91,7 @@ public class RandomTileRenderer extends TileRendererBase {
     
     /**
      * {@inheritDoc}
-     * @throws IllegalStateException if image-size, pmvMatrixCB or tileRect has not been set
+     * @throws IllegalStateException if image-size or tileRect has not been set
      */
     @Override
     public final void beginTile(GL gl) throws IllegalStateException, GLException {

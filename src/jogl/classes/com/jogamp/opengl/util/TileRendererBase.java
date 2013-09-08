@@ -234,7 +234,7 @@ public abstract class TileRendererBase {
     /**
      * Begins rendering a tile.
      * <p>
-     * Methods modifies the viewport, see below.
+     * This method modifies the viewport, see below.
      * User shall reset the viewport when finishing all tile rendering,
      * i.e. after very last call of {@link #endTile(GL)}!
      * </p>
@@ -264,7 +264,7 @@ public abstract class TileRendererBase {
      * </p>
      * 
      * @param gl The gl context
-     * @throws IllegalStateException if image-size or pmvMatrixCB has not been set
+     * @throws IllegalStateException if image-size has not been set
      * @throws GLException if {@link #setImageBuffer(GLPixelBuffer) image buffer} is used but <code>gl</code> instance is &lt; {@link GL2ES3}
      */
     public abstract void beginTile(GL gl) throws IllegalStateException, GLException;
