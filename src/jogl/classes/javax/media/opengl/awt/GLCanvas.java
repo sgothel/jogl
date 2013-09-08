@@ -758,17 +758,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       }
       if( DEBUG ) {
           System.err.println("AWT print.setup: canvasSize "+getWidth()+"x"+getWidth()+", scaleMat "+scaleMatX+" x "+scaleMatY+", useAA "+printUseAA+", printAnimator "+printAnimator);
-          {
-              final Set<Entry<Object, Object>> rEntries = rHints.entrySet();
-              int count = 0;
-              for(Iterator<Entry<Object, Object>> rEntryIter = rEntries.iterator(); rEntryIter.hasNext(); count++) {
-                  final Entry<Object, Object> rEntry = rEntryIter.next();
-                  System.err.println("Hint["+count+"]: "+rEntry.getKey()+" -> "+rEntry.getValue());
-              }
-          }
-          final AffineTransform aTrans = g2d.getTransform();
-          System.err.println(" scale "+aTrans.getScaleX()+" x "+aTrans.getScaleY());
-          System.err.println(" move "+aTrans.getTranslateX()+" x "+aTrans.getTranslateY());
+          AWTTilePainter.dumpHintsAndScale(g2d);
       }
       final int componentCount = isOpaque() ? 3 : 4;
       final TileRenderer printRenderer = new TileRenderer();

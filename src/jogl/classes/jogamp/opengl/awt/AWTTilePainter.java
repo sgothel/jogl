@@ -30,10 +30,14 @@ package jogamp.opengl.awt;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.Map.Entry;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
@@ -61,6 +65,19 @@ public class AWTTilePainter {
     private BufferedImage vFlipImage = null;
     private Graphics2D g2d = null;
     private AffineTransform saveAT = null;    
+    
+    public static void dumpHintsAndScale(Graphics2D g2d) {
+          final RenderingHints rHints = g2d.getRenderingHints();
+          final Set<Entry<Object, Object>> rEntries = rHints.entrySet();
+          int count = 0;
+          for(Iterator<Entry<Object, Object>> rEntryIter = rEntries.iterator(); rEntryIter.hasNext(); count++) {
+              final Entry<Object, Object> rEntry = rEntryIter.next();
+              System.err.println("Hint["+count+"]: "+rEntry.getKey()+" -> "+rEntry.getValue());
+          }
+          final AffineTransform aTrans = g2d.getTransform();
+          System.err.println(" scale "+aTrans.getScaleX()+" x "+aTrans.getScaleY());
+          System.err.println(" move "+aTrans.getTranslateX()+" x "+aTrans.getTranslateY());        
+    }
     
     /** 
      * Assumes a configured {@link TileRenderer}, i.e.
