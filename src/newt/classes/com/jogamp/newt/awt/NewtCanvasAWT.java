@@ -454,7 +454,6 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         }
     }
      
-    private static final int PRINT_TILE_SIZE = 512;
     private volatile boolean printActive = false;
     private boolean printUseAA = false;
     private GLAnimatorControl printAnimator = null; 
@@ -528,7 +527,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                     }
                 }
                 final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
-                printGLAD = factory.createOffscreenAutoDrawable(null, caps, null, PRINT_TILE_SIZE, PRINT_TILE_SIZE, null);
+                printGLAD = factory.createOffscreenAutoDrawable(null, caps, null, DEFAULT_PRINT_TILE_SIZE, DEFAULT_PRINT_TILE_SIZE, null);
                 GLDrawableUtil.swapGLContextAndAllGLEventListener(glad, printGLAD);
             }
 

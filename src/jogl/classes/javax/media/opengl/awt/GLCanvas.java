@@ -54,16 +54,12 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.RenderingHints;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 
 import java.awt.EventQueue;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.OffscreenLayerOption;
@@ -728,7 +724,6 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     paint(g);
   }
 
-  private static final int PRINT_TILE_SIZE = 512;
   private volatile boolean printActive = false;
   private boolean printUseAA = false;
   private GLAnimatorControl printAnimator = null; 
@@ -793,7 +788,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                   }
               }
               final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
-              printGLAD = factory.createOffscreenAutoDrawable(null, caps, null, PRINT_TILE_SIZE, PRINT_TILE_SIZE, null);
+              printGLAD = factory.createOffscreenAutoDrawable(null, caps, null, DEFAULT_PRINT_TILE_SIZE, DEFAULT_PRINT_TILE_SIZE, null);
               GLDrawableUtil.swapGLContextAndAllGLEventListener(GLCanvas.this, printGLAD);
           }
           

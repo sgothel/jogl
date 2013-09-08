@@ -70,6 +70,9 @@ import jogamp.nativewindow.awt.AWTMisc;
  */
 public interface AWTPrintLifecycle {
 
+    public static final int DEFAULT_PRINT_TILE_SIZE = 512;
+    
+    
     /**
      * Shall be called before {@link Component#print(Graphics)}.
      * <p>
