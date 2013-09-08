@@ -32,9 +32,12 @@ package com.jogamp.newt.awt;
 import java.awt.AWTKeyStroke;
 import java.awt.Canvas;
 import java.awt.Component;
+import java.awt.EventQueue;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.KeyboardFocusManager;
+import java.awt.RenderingHints;
 import java.beans.Beans;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -46,6 +49,12 @@ import java.util.Set;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.OffscreenLayerOption;
 import javax.media.nativewindow.WindowClosingProtocol;
+import javax.media.opengl.GLAnimatorControl;
+import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLProfile;
+import javax.media.opengl.awt.AWTPrintLifecycle;
 import javax.swing.MenuSelectionManager;
 
 import jogamp.nativewindow.awt.AWTMisc;
@@ -54,6 +63,7 @@ import jogamp.newt.WindowImpl;
 import jogamp.newt.awt.NewtFactoryAWT;
 import jogamp.newt.awt.event.AWTParentWindowAdapter;
 import jogamp.newt.driver.DriverClearFocus;
+import jogamp.opengl.awt.AWTTilePainter;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.awt.AWTEDTExecutor;
@@ -69,6 +79,8 @@ import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.event.awt.AWTAdapter;
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
 import com.jogamp.newt.event.awt.AWTMouseAdapter;
+import com.jogamp.opengl.util.GLDrawableUtil;
+import com.jogamp.opengl.util.TileRenderer;
 
 /**
  * AWT {@link java.awt.Canvas Canvas} containing a NEWT {@link Window} using native parenting.
@@ -80,7 +92,7 @@ import com.jogamp.newt.event.awt.AWTMouseAdapter;
  * the underlying JAWT mechanism to composite the image, if supported.
  */
 @SuppressWarnings("serial")
-public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProtocol, OffscreenLayerOption {
+public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProtocol, OffscreenLayerOption, AWTPrintLifecycle {
     public static final boolean DEBUG = Debug.debug("Window");
 
     private JAWTWindow jawtWindow = null;
@@ -419,7 +431,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     
     @Override
     public void paint(Graphics g) {
-        if( validateComponent(true) ) {
+        if( validateComponent(true) && !printActive ) {
             newtChild.windowRepaint(0, 0, getWidth(), getHeight());
         }
     }
@@ -441,7 +453,155 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
             }
         }
     }
+     
+    private static final int PRINT_TILE_SIZE = 512;
+    private volatile boolean printActive = false;
+    private boolean printUseAA = false;
+    private GLAnimatorControl printAnimator = null; 
+    private GLAutoDrawable printGLAD = null;
+    private AWTTilePainter printAWTTiles = null;
+
+    @Override
+    public void setupPrint(Graphics2D g2d, double scaleMatX, double scaleMatY) {
+        if( !validateComponent(true) ) {
+            if(DEBUG) {
+                System.err.println(getThreadName()+": Info: NewtCanvasAWT setupPrint - skipped GL render, drawable not valid yet");
+            }
+            return; // not yet available ..
+        }
+        if( !isVisible() ) {
+            if(DEBUG) {
+                System.err.println(getThreadName()+": Info: NewtCanvasAWT setupPrint - skipped GL render, drawable visible");
+            }
+            return; // not yet available ..
+        }
+        printActive = true; 
+        final RenderingHints rHints = g2d.getRenderingHints();
+        {
+            final Object _useAA = rHints.get(RenderingHints.KEY_ANTIALIASING);
+            printUseAA = null != _useAA && ( _useAA == RenderingHints.VALUE_ANTIALIAS_DEFAULT || _useAA == RenderingHints.VALUE_ANTIALIAS_ON );
+        }
+        if( DEBUG ) {
+            System.err.println("AWT print.setup: canvasSize "+getWidth()+"x"+getWidth()+", scaleMat "+scaleMatX+" x "+scaleMatY+", useAA "+printUseAA+", printAnimator "+printAnimator);
+            AWTTilePainter.dumpHintsAndScale(g2d);
+        }
+        final int componentCount = isOpaque() ? 3 : 4;
+        final TileRenderer printRenderer = new TileRenderer();
+        printAWTTiles = new AWTTilePainter(printRenderer, componentCount, scaleMatX, scaleMatY, DEBUG);
+        AWTEDTExecutor.singleton.invoke(getTreeLock(), true /* allowOnNonEDT */, true /* wait */, setupPrintOnEDT);
+    }  
+    private final Runnable setupPrintOnEDT = new Runnable() {
+        @Override
+        public void run() {
+            final GLAutoDrawable glad;
+            if( null != newtChild && newtChild instanceof GLAutoDrawable ) {
+                glad = (GLAutoDrawable)newtChild;
+            } else {
+                if( DEBUG ) {
+                    System.err.println("AWT print.setup exit, newtChild not a GLAutoDrawable: "+newtChild);
+                }
+                printAWTTiles = null;
+                printActive = false;
+                return;
+            }
+            printAnimator =  glad.getAnimator();
+            if( null != printAnimator ) {
+                printAnimator.remove(glad);
+            }
+            final GLCapabilities caps = (GLCapabilities)glad.getChosenGLCapabilities().cloneMutable();
+            final GLProfile glp = caps.getGLProfile();
+            if( caps.getSampleBuffers() ) {
+                // bug / issue w/ swapGLContextAndAllGLEventListener and onscreen MSAA w/ NV/GLX
+                printGLAD = glad;
+            } else {
+                caps.setDoubleBuffered(false);
+                caps.setOnscreen(false);
+                if( printUseAA && !caps.getSampleBuffers() ) {
+                    if ( !glp.isGL2ES3() ) {
+                        if( DEBUG ) {
+                            System.err.println("Ignore MSAA due to gl-profile < GL2ES3");
+                        }
+                        printUseAA = false;
+                    } else {
+                        caps.setSampleBuffers(true);
+                        caps.setNumSamples(8);
+                    }
+                }
+                final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
+                printGLAD = factory.createOffscreenAutoDrawable(null, caps, null, PRINT_TILE_SIZE, PRINT_TILE_SIZE, null);
+                GLDrawableUtil.swapGLContextAndAllGLEventListener(glad, printGLAD);
+            }
+
+            printAWTTiles.renderer.setTileSize(printGLAD.getWidth(), printGLAD.getHeight(), 0);
+            printAWTTiles.renderer.attachToAutoDrawable(printGLAD);
+            if( DEBUG ) {
+                System.err.println("AWT print.setup "+printAWTTiles);
+                System.err.println("AWT print.setup AA "+printUseAA+", "+caps);
+                System.err.println("AWT print.setup "+printGLAD);
+            }
+        }
+    };
+
+    @Override
+    public void releasePrint() {
+        if( !printActive || null == printGLAD ) {
+            throw new IllegalStateException("setupPrint() not called");
+        }
+        // sendReshape = false; // clear reshape flag
+        AWTEDTExecutor.singleton.invoke(getTreeLock(), true /* allowOnNonEDT */, true /* wait */, releasePrintOnEDT);
+        newtChild.sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
         
+    }
+    private final Runnable releasePrintOnEDT = new Runnable() {
+        @Override
+        public void run() {
+            if( DEBUG ) {
+                System.err.println("AWT print.release "+printAWTTiles);
+            }
+            final GLAutoDrawable glad = (GLAutoDrawable)newtChild;
+            printAWTTiles.dispose();
+            printAWTTiles= null;
+            if( printGLAD != glad ) {
+                GLDrawableUtil.swapGLContextAndAllGLEventListener(printGLAD, glad);
+                printGLAD.destroy();
+            }
+            printGLAD = null;
+            if( null != printAnimator ) {
+                printAnimator.add(glad);
+                printAnimator = null;
+            }
+            printActive = false;
+        }
+    };
+
+    @Override
+    public void print(Graphics graphics) {
+        if( !printActive || null == printGLAD ) {
+            throw new IllegalStateException("setupPrint() not called");
+        }
+        if(DEBUG && !EventQueue.isDispatchThread()) {
+            System.err.println(getThreadName()+": Warning: GLCanvas print - not called from AWT-EDT");
+            // we cannot dispatch print on AWT-EDT due to printing internal locking ..
+        }
+
+        final Graphics2D g2d = (Graphics2D)graphics;
+        printAWTTiles.setupGraphics2DAndClipBounds(g2d);
+        try {
+            final TileRenderer tileRenderer = printAWTTiles.renderer;
+            if( DEBUG ) {
+                System.err.println("AWT print.0: "+tileRenderer);
+            }
+            do {
+                tileRenderer.display();
+            } while ( !tileRenderer.eot() );
+        } finally {
+            printAWTTiles.resetGraphics2D();
+        }
+        if( DEBUG ) {
+            System.err.println("AWT print.X: "+printAWTTiles);
+        }
+    }
+    
     private final void requestFocusNEWTChild() {
         if(null!=newtChild) {
             newtChild.setFocusAction(null);
@@ -685,6 +845,8 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
       }
     }
   }
+
+  protected static String getThreadName() { return Thread.currentThread().getName(); }
   
   static String newtWinHandleToHexString(Window w) {
       return null != w ? toHexString(w.getWindowHandle()) : "nil";

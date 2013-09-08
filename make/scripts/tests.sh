@@ -329,8 +329,9 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledRendering2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.tile.TestRandomTiledRendering2GL2NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.tile.TestRandomTiledRendering3GL2AWT $*
-testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsAWT $*
-testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsSwingAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsSwingAWT $*
+testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsNewtAWT $*
 
 #
 # core/newt (testnoawt and testawt)
