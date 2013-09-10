@@ -203,9 +203,9 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererNoti
     final float w = right - left;
     final float h = top - bottom;
     final float l = left + tileX * w / imageWidth;
-    final float r = l + w * tileWidth / imageWidth;
+    final float r = l + tileWidth * w / imageWidth;
     final float b = bottom + tileY * h / imageHeight;
-    final float t = b + h * tileHeight / imageHeight;
+    final float t = b + tileHeight * h / imageHeight;
 
     final float _w = r - l;
     final float _h = t - b;
