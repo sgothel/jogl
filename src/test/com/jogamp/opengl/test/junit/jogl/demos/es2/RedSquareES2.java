@@ -30,6 +30,7 @@ package com.jogamp.opengl.test.junit.jogl.demos.es2;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
+import com.jogamp.opengl.util.TileRendererBase;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
@@ -39,7 +40,7 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLUniformData;
 
-public class RedSquareES2 implements GLEventListener {
+public class RedSquareES2 implements GLEventListener, TileRendererBase.TileRendererNotify {
     private ShaderState st;
     private PMVMatrix pmvMatrix;
     private GLUniformData pmvMatrixUniform;
@@ -50,6 +51,8 @@ public class RedSquareES2 implements GLEventListener {
     private float aspect = 1.0f;
     private boolean doRotate = true;
     private boolean clearBuffers = true;
+    private TileRendererBase tileRendererInUse = null;
+    private boolean doRotateBeforePrinting;
 
     public RedSquareES2(int swapInterval) {
         this.swapInterval = swapInterval;
@@ -59,6 +62,15 @@ public class RedSquareES2 implements GLEventListener {
         this.swapInterval = 1;
     }
         
+    public void addTileRendererNotify(TileRendererBase tr) {
+        tileRendererInUse = tr;
+        doRotateBeforePrinting = doRotate;
+        setDoRotation(false);      
+    }
+    public void removeTileRendererNotify(TileRendererBase tr) {
+        tileRendererInUse = null;
+        setDoRotation(doRotateBeforePrinting);      
+    }
     public void setAspect(float aspect) { this.aspect = aspect; }
     public void setDoRotation(boolean rotate) { this.doRotate = rotate; }
     public void setClearBuffers(boolean v) { clearBuffers = v; }
@@ -131,7 +143,11 @@ public class RedSquareES2 implements GLEventListener {
 
         final GL2ES2 gl = glad.getGL().getGL2ES2();
         if( clearBuffers ) {
-            gl.glClearColor(0, 0, 0, 0);
+            if( null != tileRendererInUse ) {
+              gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+            } else {
+                gl.glClearColor(0, 0, 0, 0);
+            }
             gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         }
         if( !gl.hasGLSL() ) {
@@ -166,15 +182,50 @@ public class RedSquareES2 implements GLEventListener {
             return;
         }
         
-        if(-1 != swapInterval) {        
-            gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
-        }
-        
         st.useProgram(gl, true);
         // Set location in front of camera
         pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
-        pmvMatrix.gluPerspective(45.0F, ( (float) width / (float) height ) / aspect, 1.0F, 100.0F);
+        
+        final int tileWidth = width;
+        final int tileHeight = height;
+        final int tileX, tileY, imageWidth, imageHeight;
+        if( null == tileRendererInUse ) {
+            if(-1 != swapInterval) {        
+                gl.setSwapInterval(swapInterval);
+            }
+            tileX = 0;
+            tileY = 0;
+            imageWidth = width;
+            imageHeight = height;
+        } else {
+            gl.setSwapInterval(0);
+            tileX = tileRendererInUse.getParam(TileRendererBase.TR_CURRENT_TILE_X_POS);
+            tileY = tileRendererInUse.getParam(TileRendererBase.TR_CURRENT_TILE_Y_POS);
+            imageWidth = tileRendererInUse.getParam(TileRendererBase.TR_IMAGE_WIDTH);
+            imageHeight = tileRendererInUse.getParam(TileRendererBase.TR_IMAGE_HEIGHT);
+        }
+        // compute projection parameters 'normal' perspective
+        final float fovy=45f;
+        final float aspect2 = ( (float) width / (float) height ) / aspect;
+        final float zNear=1f;
+        final float zFar=100f;
+        
+        // compute projection parameters 'normal' frustum
+        final float top=(float)Math.tan(fovy*((float)Math.PI)/360.0f)*zNear;
+        final float bottom=-1.0f*top;
+        final float left=aspect2*bottom;
+        final float right=aspect2*top;
+        final float w = right - left;
+        final float h = top - bottom;
+        
+        // compute projection parameters 'tiled'
+        final float l = left + tileX * w / imageWidth;
+        final float r = l + tileWidth * w / imageWidth;
+        final float b = bottom + tileY * h / imageHeight;
+        final float t = b + tileHeight * h / imageHeight;
+        
+        pmvMatrix.glFrustumf(l, r, b, t, zNear, zFar);
         //pmvMatrix.glOrthof(-4.0f, 4.0f, -4.0f, 4.0f, 1.0f, 100.0f);
         st.uniform(gl, pmvMatrixUniform);
         st.useProgram(gl, false);

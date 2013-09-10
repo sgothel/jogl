@@ -36,6 +36,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererNoti
   private KeyListener gearsKeys = new GearsKeyAdapter();
   private TileRendererBase tileRendererInUse = null;
   private boolean doRotateBeforePrinting;
+  private boolean verbose = true;
   
   // private boolean mouseRButtonDown = false;
   private int prevMouseX, prevMouseY;
@@ -59,6 +60,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererNoti
   }
   
   public void setDoRotation(boolean rotate) { doRotate = rotate; }
+  public void setVerbose(boolean v) { verbose = v; }
   
   public void setGears(int g1, int g2, int g3) {
       gear1 = g1;
@@ -185,7 +187,8 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererNoti
         imageWidth = tileRendererInUse.getParam(TileRendererBase.TR_IMAGE_WIDTH);
         imageHeight = tileRendererInUse.getParam(TileRendererBase.TR_IMAGE_HEIGHT);
     }
-    /* compute projection parameters */
+    
+    // compute projection parameters 'normal'
     float left, right, bottom, top; 
     if( imageHeight > imageWidth ) {
         float a = (float)imageHeight / (float)imageWidth;
@@ -202,6 +205,8 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererNoti
     }
     final float w = right - left;
     final float h = top - bottom;
+    
+    // compute projection parameters 'tiled'
     final float l = left + tileX * w / imageWidth;
     final float r = l + tileWidth * w / imageWidth;
     final float b = bottom + tileY * h / imageHeight;
@@ -209,7 +214,9 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererNoti
 
     final float _w = r - l;
     final float _h = t - b;
-    System.err.println(">> angle "+angle+", [l "+left+", r "+right+", b "+bottom+", t "+top+"] "+w+"x"+h+" -> [l "+l+", r "+r+", b "+b+", t "+t+"] "+_w+"x"+_h);
+    if(verbose) {
+        System.err.println(">> angle "+angle+", [l "+left+", r "+right+", b "+bottom+", t "+top+"] "+w+"x"+h+" -> [l "+l+", r "+r+", b "+b+", t "+t+"] "+_w+"x"+_h);
+    }
     gl.glFrustum(l, r, b, t, 5.0f, 60.0f);
 
     gl.glMatrixMode(GL2.GL_MODELVIEW);        

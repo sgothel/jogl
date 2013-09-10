@@ -60,6 +60,7 @@ import com.jogamp.newt.event.TraceKeyAdapter;
 import com.jogamp.newt.event.TraceWindowAdapter;
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
@@ -93,15 +94,24 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
     }
     
     protected void runTestGL(GLCapabilities caps) throws InterruptedException, InvocationTargetException {
-        final GLJPanel glJPanel = new GLJPanel(caps);
-        Assert.assertNotNull(glJPanel);        
-        Dimension glc_sz = new Dimension(width, height);
-        glJPanel.setMinimumSize(glc_sz);
-        glJPanel.setPreferredSize(glc_sz);
-        glJPanel.setSize(glc_sz);
+        final Dimension glc_sz = new Dimension(width/2, height);
+        final GLJPanel glJPanel1 = new GLJPanel(caps);
+        Assert.assertNotNull(glJPanel1);        
+        glJPanel1.setMinimumSize(glc_sz);
+        glJPanel1.setPreferredSize(glc_sz);
+        glJPanel1.setSize(glc_sz);        
+        glJPanel1.addGLEventListener(new Gears());
         
-        final Gears gears = new Gears();
-        glJPanel.addGLEventListener(gears);
+        final GLJPanel glJPanel2 = new GLJPanel(caps);
+        Assert.assertNotNull(glJPanel2);        
+        glJPanel2.setMinimumSize(glc_sz);
+        glJPanel2.setPreferredSize(glc_sz);
+        glJPanel2.setSize(glc_sz);        
+        glJPanel2.addGLEventListener(new RedSquareES2());
+        
+        final JPanel demoPanel = new JPanel();
+        demoPanel.add(glJPanel1);
+        demoPanel.add(glJPanel2);
         
         final JFrame frame = new JFrame("Swing Print");
         Assert.assertNotNull(frame);
@@ -136,10 +146,13 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
         final JPanel westPanel = new JPanel();
         westPanel.add(new Label("West"));
         
-        Animator animator = new Animator(glJPanel);
+        Animator animator = new Animator();
+        animator.add(glJPanel1);
+        animator.add(glJPanel2);
         QuitAdapter quitAdapter = new QuitAdapter();
 
-        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glJPanel);
+        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glJPanel1);
+        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glJPanel2);
         new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
 
         SwingUtilities.invokeAndWait(new Runnable() {
@@ -147,7 +160,7 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
                     final Container fcont = frame.getContentPane();
                     fcont.setLayout(new BorderLayout());
                     fcont.add(printPanel, BorderLayout.NORTH);
-                    fcont.add(glJPanel, BorderLayout.CENTER);
+                    fcont.add(demoPanel, BorderLayout.CENTER);
                     fcont.add(southPanel, BorderLayout.SOUTH);
                     fcont.add(eastPanel, BorderLayout.EAST);
                     fcont.add(westPanel, BorderLayout.WEST);
@@ -157,7 +170,8 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
                 } } ) ;
         
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel1, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel2, true));
         
         animator.setUpdateFPSFrames(60, System.err);        
         animator.start();
@@ -184,7 +198,8 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
         // try { Thread.sleep(4000);  } catch (InterruptedException e) { } // time to finish print jobs .. FIXME ??
         
         Assert.assertNotNull(frame);
-        Assert.assertNotNull(glJPanel);
+        Assert.assertNotNull(glJPanel1);
+        Assert.assertNotNull(glJPanel2);
         Assert.assertNotNull(animator);
 
         animator.stop();
@@ -197,7 +212,7 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 final Frame _frame = frame;
-                _frame.remove(glJPanel);
+                _frame.remove(demoPanel);
                 _frame.dispose();
             }});
     }

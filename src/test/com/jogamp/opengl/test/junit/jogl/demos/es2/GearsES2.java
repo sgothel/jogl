@@ -269,7 +269,8 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererN
             imageWidth = tileRendererInUse.getParam(TileRendererBase.TR_IMAGE_WIDTH);
             imageHeight = tileRendererInUse.getParam(TileRendererBase.TR_IMAGE_HEIGHT);
         }
-        /* compute projection parameters */
+        
+        // compute projection parameters 'normal'
         float left, right, bottom, top; 
         if( imageHeight > imageWidth ) {
             float a = (float)imageHeight / (float)imageWidth;
@@ -286,6 +287,8 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererN
         }
         final float w = right - left;
         final float h = top - bottom;
+        
+        // compute projection parameters 'tiled'
         final float l = left + tileX * w / imageWidth;
         final float r = l + tileWidth * w / imageWidth;
         final float b = bottom + tileY * h / imageHeight;
@@ -293,7 +296,10 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererN
     
         final float _w = r - l;
         final float _h = t - b;
-        System.err.println(">> angle "+angle+", [l "+left+", r "+right+", b "+bottom+", t "+top+"] "+w+"x"+h+" -> [l "+l+", r "+r+", b "+b+", t "+t+"] "+_w+"x"+_h);
+        if(verbose) {
+            System.err.println(">> angle "+angle+", [l "+left+", r "+right+", b "+bottom+", t "+top+"] "+w+"x"+h+" -> [l "+l+", r "+r+", b "+b+", t "+t+"] "+_w+"x"+_h);
+        }
+        
         pmvMatrix.glFrustumf(l, r, b, t, 5.0f, 200.0f);
         
         pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
