@@ -845,7 +845,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       sendReshape = false; // clear reshape flag
       
       final Graphics2D g2d = (Graphics2D)graphics;
-      printAWTTiles.setupGraphics2DAndClipBounds(g2d);
+      printAWTTiles.setupGraphics2DAndClipBounds(g2d, getWidth(), getHeight());
       try {
           final TileRenderer tileRenderer = printAWTTiles.renderer;
           if( DEBUG ) {

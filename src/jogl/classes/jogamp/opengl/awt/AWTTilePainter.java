@@ -119,15 +119,17 @@ public class AWTTilePainter {
      * and {@link TileRenderer#setTileOffset(int, int) tile offset} according the
      * the {@link Graphics2D#getClipBounds() graphics clip bounds}.
      * </p>
-     * @param g2d
+     * @param g2d Graphics2D instance used for transform and clipping
+     * @param width width of the AWT component in case clipping is null
+     * @param height height of the AWT component in case clipping is null
      */
-    public void setupGraphics2DAndClipBounds(Graphics2D g2d) {
+    public void setupGraphics2DAndClipBounds(Graphics2D g2d, int width, int height) {
         this.g2d = g2d;
         saveAT = g2d.getTransform();
         g2d.scale(scaleMatX, scaleMatY);
         
         final Rectangle gClipOrig = g2d.getClipBounds();
-        final Rectangle gClip = new Rectangle(gClipOrig);
+        final Rectangle gClip = null == gClipOrig ? new Rectangle(0, 0, width, height) : new Rectangle(gClipOrig);
         if( 0 > gClip.x ) {
             gClip.width += gClip.x;
             gClip.x = 0;
@@ -237,9 +239,11 @@ public class AWTTilePainter {
                 System.err.println("XXX tile-post.X clip "+oClip+" -> "+g2d.getClip());
                 g2d.setColor(Color.BLACK);
                 g2d.drawRect(pX, pYf, tWidth, tHeight);
-                final Rectangle r = oClip.getBounds();
-                g2d.setColor(Color.YELLOW);
-                g2d.drawRect(r.x, r.y, r.width, r.height);
+                if( null != oClip ) {
+                    final Rectangle r = oClip.getBounds();
+                    g2d.setColor(Color.YELLOW);
+                    g2d.drawRect(r.x, r.y, r.width, r.height);
+                }
                 System.err.println("XXX tile-post.X "+renderer);
                 System.err.println("XXX tile-post.X dst-img "+dstImage.getWidth()+"x"+dstImage.getHeight()+" -> "+pX+"/"+pYf);
             }
