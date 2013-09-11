@@ -58,6 +58,7 @@ import com.jogamp.newt.event.TraceWindowAdapter;
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
@@ -91,18 +92,28 @@ public class TestTiledPrintingGearsNewtAWT extends TiledPrintingAWTBase  {
     }
     
     protected void runTestGL(GLCapabilities caps) throws InterruptedException, InvocationTargetException {
-        final GLWindow glad = GLWindow.create(caps);
-        Assert.assertNotNull(glad);
+        final Dimension glc_sz = new Dimension(width/2, height);
+        final GLWindow glad1 = GLWindow.create(caps);
+        Assert.assertNotNull(glad1);        
+        final NewtCanvasAWT canvas1 = new NewtCanvasAWT(glad1);
+        Assert.assertNotNull(canvas1);
+        canvas1.setMinimumSize(glc_sz);
+        canvas1.setPreferredSize(glc_sz);
+        canvas1.setSize(glc_sz);
+        glad1.addGLEventListener(new Gears());
         
-        final NewtCanvasAWT canvas = new NewtCanvasAWT(glad);
-        Assert.assertNotNull(canvas);
-        Dimension glc_sz = new Dimension(width, height);
-        canvas.setMinimumSize(glc_sz);
-        canvas.setPreferredSize(glc_sz);
-        canvas.setSize(glc_sz);
+        final GLWindow glad2 = GLWindow.create(caps);
+        Assert.assertNotNull(glad2);        
+        final NewtCanvasAWT canvas2 = new NewtCanvasAWT(glad2);
+        Assert.assertNotNull(canvas2);
+        canvas2.setMinimumSize(glc_sz);
+        canvas2.setPreferredSize(glc_sz);
+        canvas2.setSize(glc_sz);
+        glad2.addGLEventListener(new RedSquareES2());
         
-        final Gears gears = new Gears();
-        glad.addGLEventListener(gears);
+        final Panel demoPanel = new Panel();
+        demoPanel.add(canvas1);
+        demoPanel.add(canvas2);
         
         final Frame frame = new Frame("Newt/AWT Print");
         Assert.assertNotNull(frame);
@@ -138,16 +149,19 @@ public class TestTiledPrintingGearsNewtAWT extends TiledPrintingAWTBase  {
         Panel westPanel = new Panel();
         westPanel.add(new Label("West"));
         frame.add(printPanel, BorderLayout.NORTH);
-        frame.add(canvas, BorderLayout.CENTER);
+        frame.add(demoPanel, BorderLayout.CENTER);
         frame.add(southPanel, BorderLayout.SOUTH);
         frame.add(eastPanel, BorderLayout.EAST);
         frame.add(westPanel, BorderLayout.WEST);
         frame.setTitle("Tiles Newt/AWT Print Test");
         
-        Animator animator = new Animator(glad);
+        Animator animator = new Animator();
+        animator.add(glad1);
+        animator.add(glad2);
         QuitAdapter quitAdapter = new QuitAdapter();
 
-        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(canvas);
+        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(canvas1);
+        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(canvas2);
         new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
@@ -156,7 +170,8 @@ public class TestTiledPrintingGearsNewtAWT extends TiledPrintingAWTBase  {
                 frame.setVisible(true);
             }});
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(canvas, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(canvas1, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(canvas2, true));
         
         animator.setUpdateFPSFrames(60, System.err);        
         animator.start();
@@ -182,7 +197,8 @@ public class TestTiledPrintingGearsNewtAWT extends TiledPrintingAWTBase  {
         // try { Thread.sleep(4000);  } catch (InterruptedException e) { } // time to finish print jobs .. FIXME ??
         
         Assert.assertNotNull(frame);
-        Assert.assertNotNull(canvas);
+        Assert.assertNotNull(canvas1);
+        Assert.assertNotNull(canvas2);
         Assert.assertNotNull(animator);
 
         animator.stop();
@@ -195,10 +211,11 @@ public class TestTiledPrintingGearsNewtAWT extends TiledPrintingAWTBase  {
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 final Frame _frame = frame;
-                _frame.remove(canvas);
+                _frame.remove(demoPanel);
                 _frame.dispose();
             }});
-        glad.destroy();
+        glad1.destroy();
+        glad2.destroy();
     }
 
     @Test

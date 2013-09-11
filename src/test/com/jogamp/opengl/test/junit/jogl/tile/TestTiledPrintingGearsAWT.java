@@ -57,6 +57,7 @@ import com.jogamp.newt.event.TraceKeyAdapter;
 import com.jogamp.newt.event.TraceWindowAdapter;
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
@@ -90,15 +91,24 @@ public class TestTiledPrintingGearsAWT extends TiledPrintingAWTBase  {
     }
     
     protected void runTestGL(GLCapabilities caps) throws InterruptedException, InvocationTargetException {
-        final GLCanvas glCanvas = new GLCanvas(caps);
-        Assert.assertNotNull(glCanvas);        
-        Dimension glc_sz = new Dimension(width, height);
-        glCanvas.setMinimumSize(glc_sz);
-        glCanvas.setPreferredSize(glc_sz);
-        glCanvas.setSize(glc_sz);
+        final Dimension glc_sz = new Dimension(width/2, height);
+        final GLCanvas glCanvas1 = new GLCanvas(caps);
+        Assert.assertNotNull(glCanvas1);        
+        glCanvas1.setMinimumSize(glc_sz);
+        glCanvas1.setPreferredSize(glc_sz);
+        glCanvas1.setSize(glc_sz);
+        glCanvas1.addGLEventListener(new Gears());
         
-        final Gears gears = new Gears();
-        glCanvas.addGLEventListener(gears);
+        final GLCanvas glCanvas2 = new GLCanvas(caps);
+        Assert.assertNotNull(glCanvas2);        
+        glCanvas2.setMinimumSize(glc_sz);
+        glCanvas2.setPreferredSize(glc_sz);
+        glCanvas2.setSize(glc_sz);
+        glCanvas2.addGLEventListener(new RedSquareES2());
+        
+        final Panel demoPanel = new Panel();
+        demoPanel.add(glCanvas1);
+        demoPanel.add(glCanvas2);
         
         final Frame frame = new Frame("AWT Print");
         Assert.assertNotNull(frame);
@@ -134,16 +144,19 @@ public class TestTiledPrintingGearsAWT extends TiledPrintingAWTBase  {
         Panel westPanel = new Panel();
         westPanel.add(new Label("West"));
         frame.add(printPanel, BorderLayout.NORTH);
-        frame.add(glCanvas, BorderLayout.CENTER);
+        frame.add(demoPanel, BorderLayout.CENTER);
         frame.add(southPanel, BorderLayout.SOUTH);
         frame.add(eastPanel, BorderLayout.EAST);
         frame.add(westPanel, BorderLayout.WEST);
         frame.setTitle("Tiles AWT Print Test");
         
-        Animator animator = new Animator(glCanvas);
+        Animator animator = new Animator();
+        animator.add(glCanvas1);
+        animator.add(glCanvas2);
         QuitAdapter quitAdapter = new QuitAdapter();
 
-        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glCanvas);
+        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glCanvas1);
+        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glCanvas2);
         new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
@@ -152,7 +165,8 @@ public class TestTiledPrintingGearsAWT extends TiledPrintingAWTBase  {
                 frame.setVisible(true);
             }});
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas1, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas2, true));
         
         animator.setUpdateFPSFrames(60, System.err);        
         animator.start();
@@ -178,7 +192,8 @@ public class TestTiledPrintingGearsAWT extends TiledPrintingAWTBase  {
         // try { Thread.sleep(4000);  } catch (InterruptedException e) { } // time to finish print jobs .. FIXME ??
         
         Assert.assertNotNull(frame);
-        Assert.assertNotNull(glCanvas);
+        Assert.assertNotNull(glCanvas1);
+        Assert.assertNotNull(glCanvas2);
         Assert.assertNotNull(animator);
 
         animator.stop();
@@ -191,7 +206,7 @@ public class TestTiledPrintingGearsAWT extends TiledPrintingAWTBase  {
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 final Frame _frame = frame;
-                _frame.remove(glCanvas);
+                _frame.remove(demoPanel);
                 _frame.dispose();
             }});
     }
