@@ -207,7 +207,7 @@ public class RedSquareES2 implements GLEventListener, TileRendererBase.TileRende
         }
         // compute projection parameters 'normal' perspective
         final float fovy=45f;
-        final float aspect2 = ( (float) width / (float) height ) / aspect;
+        final float aspect2 = ( (float) imageWidth / (float) imageHeight ) / aspect;
         final float zNear=1f;
         final float zFar=100f;
         
