@@ -30,6 +30,7 @@
 
 #include "JoglCommon.h"
 #include "ffmpeg_tool.h"
+#include "ffmpeg_static.h"
 #include "ffmpeg_dshow.h"
 
 #include "libavutil/pixdesc.h"
@@ -40,15 +41,6 @@
 #endif
 
 #include <GL/gl.h>
-
-static const char * const ClazzNameFFMPEGMediaPlayer = "jogamp/opengl/util/av/impl/FFMPEGMediaPlayer";
-
-static jclass ffmpegMediaPlayerClazz = NULL;
-static jmethodID jni_mid_pushSound = NULL;
-static jmethodID jni_mid_updateAttributes = NULL;
-static jmethodID jni_mid_setIsGLOriented = NULL;
-static jmethodID jni_mid_setupFFAttributes = NULL;
-static jmethodID jni_mid_isAudioFormatSupported = NULL;
 
 #define HAS_FUNC(f) (NULL!=(f))
 
@@ -307,21 +299,37 @@ JNIEXPORT jboolean JNICALL FF_FUNC(initSymbols0)
         return JNI_FALSE;
     }
 
+    #if LIBAVCODEC_VERSION_MAJOR >= 55
+        if(!HAS_FUNC(sp_avcodec_default_get_buffer2) || 
+           !HAS_FUNC(sp_av_frame_unref) ) {
+            fprintf(stderr, "avcodec >= 55: avcodec_default_get_buffer2 %p, av_frame_unref %p\n", 
+                sp_avcodec_default_get_buffer2, sp_av_frame_unref);
+            return JNI_FALSE;
+        }
+    #else
+        if(!HAS_FUNC(sp_avcodec_default_get_buffer) || 
+           !HAS_FUNC(sp_avcodec_default_release_buffer)) {
+            fprintf(stderr, "avcodec < 55: avcodec_default_get_buffer %p, sp_avcodec_default_release_buffer %p\n", 
+                sp_avcodec_default_get_buffer2, sp_avcodec_default_release_buffer);
+            return JNI_FALSE;
+        }
+    #endif
+
     return JNI_TRUE;
 }
 
 static int _isAudioFormatSupported(JNIEnv *env, jobject ffmpegMediaPlayer, enum AVSampleFormat aSampleFmt, int32_t aSampleRate, int32_t aChannels) {
-    return JNI_TRUE == (*env)->CallBooleanMethod(env, ffmpegMediaPlayer, jni_mid_isAudioFormatSupported, aSampleFmt, aSampleRate, aChannels);
+    return JNI_TRUE == (*env)->CallBooleanMethod(env, ffmpegMediaPlayer, ffmpeg_jni_mid_isAudioFormatSupported, aSampleFmt, aSampleRate, aChannels);
 }
 static void _updateJavaAttributes(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
     if(NULL!=env) {
-        (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, jni_mid_setupFFAttributes,
+        (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, ffmpeg_jni_mid_setupFFAttributes,
                                pAV->vid, pAV->vPixFmt, pAV->vBufferPlanes, 
                                pAV->vBitsPerPixel, pAV->vBytesPerPixelPerPlane,
                                pAV->vTexWidth[0], pAV->vTexWidth[1], pAV->vTexWidth[2],
                                pAV->vWidth, pAV->vHeight,
                                pAV->aid, pAV->aSampleFmtOut, pAV->aSampleRateOut, pAV->aChannelsOut, pAV->aFrameSize);
-        (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, jni_mid_updateAttributes,
+        (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, ffmpeg_jni_mid_updateAttributes,
                                pAV->vid, pAV->aid,
                                pAV->vWidth, pAV->vHeight,
                                pAV->bps_stream, pAV->bps_video, pAV->bps_audio,
@@ -332,7 +340,7 @@ static void _updateJavaAttributes(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
 }
 static void _setIsGLOriented(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
     if(NULL!=env) {
-        (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, jni_mid_setIsGLOriented, pAV->vFlipped);
+        (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, ffmpeg_jni_mid_setIsGLOriented, pAV->vFlipped);
     }
 }
 
@@ -428,11 +436,11 @@ static int my_getPlaneCount(AVPixFmtDescriptor *pDesc) {
     return p+1;
 }
 
+#if 0
 static int my_is_hwaccel_pix_fmt(enum PixelFormat pix_fmt) {
     return sp_av_pix_fmt_descriptors[pix_fmt].flags & PIX_FMT_HWACCEL;
 }
 
-#if 0
 static enum PixelFormat my_get_format(struct AVCodecContext *s, const enum PixelFormat * fmt) {
     int i=0;
     enum PixelFormat f0, fR = PIX_FMT_NONE;
@@ -477,58 +485,6 @@ JNIEXPORT jint JNICALL FF_FUNC(getAvResampleMajorVersionCC0)
 JNIEXPORT jint JNICALL FF_FUNC(getSwResampleMajorVersionCC0)
   (JNIEnv *env, jobject instance) {
     return (jint) LIBSWRESAMPLE_VERSION_MAJOR;
-}
-
-JNIEXPORT jboolean JNICALL FF_FUNC(initIDs0)
-  (JNIEnv *env, jobject instance)
-{
-    jboolean res = JNI_TRUE;
-    JoglCommon_init(env);
-
-    jclass c;
-    if (ffmpegMediaPlayerClazz != NULL) {
-        return;
-    }
-
-    c = (*env)->FindClass(env, ClazzNameFFMPEGMediaPlayer);
-    if(NULL==c) {
-        JoglCommon_FatalError(env, "JOGL FFMPEG: can't find %s", ClazzNameFFMPEGMediaPlayer);
-    }
-    ffmpegMediaPlayerClazz = (jclass)(*env)->NewGlobalRef(env, c);
-    (*env)->DeleteLocalRef(env, c);
-    if(NULL==ffmpegMediaPlayerClazz) {
-        JoglCommon_FatalError(env, "JOGL FFMPEG: can't use %s", ClazzNameFFMPEGMediaPlayer);
-    }
-
-    jni_mid_pushSound = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "pushSound", "(Ljava/nio/ByteBuffer;II)V");
-    jni_mid_updateAttributes = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes", "(IIIIIIIFIIILjava/lang/String;Ljava/lang/String;)V");
-    jni_mid_setIsGLOriented = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "setIsGLOriented", "(Z)V");
-    jni_mid_setupFFAttributes = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "setupFFAttributes", "(IIIIIIIIIIIIIII)V");
-    jni_mid_isAudioFormatSupported = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "isAudioFormatSupported", "(III)Z");
-
-    if(jni_mid_pushSound == NULL ||
-       jni_mid_updateAttributes == NULL ||
-       jni_mid_setIsGLOriented == NULL ||
-       jni_mid_setupFFAttributes == NULL ||
-       jni_mid_isAudioFormatSupported == NULL) {
-        return JNI_FALSE;
-    }
-    #if LIBAVCODEC_VERSION_MAJOR >= 55
-        if(!HAS_FUNC(sp_avcodec_default_get_buffer2) || 
-           !HAS_FUNC(sp_av_frame_unref) ) {
-            fprintf(stderr, "avcodec >= 55: avcodec_default_get_buffer2 %p, av_frame_unref %p\n", 
-                sp_avcodec_default_get_buffer2, sp_av_frame_unref);
-            res = JNI_FALSE;
-        }
-    #else
-        if(!HAS_FUNC(sp_avcodec_default_get_buffer) || 
-           !HAS_FUNC(sp_avcodec_default_release_buffer)) {
-            fprintf(stderr, "avcodec < 55: avcodec_default_get_buffer %p, sp_avcodec_default_release_buffer %p\n", 
-                sp_avcodec_default_get_buffer2, sp_avcodec_default_release_buffer);
-            res = JNI_FALSE;
-        }
-    #endif
-    return res;
 }
 
 JNIEXPORT jlong JNICALL FF_FUNC(createInstance0)
@@ -890,7 +846,7 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
         pAV->frames_audio = pAV->pAStream->nb_frames;
         pAV->aSinkSupport = _isAudioFormatSupported(env, pAV->ffmpegMediaPlayer, pAV->aSampleFmt, pAV->aSampleRate, pAV->aChannels);
         if( pAV->verbose ) {
-            fprintf(stderr, "A channels %d [l %d], sample_rate %d, frame_size %d, frame_number %d, [afps %f, rfps %f, cfps %f, sfps %f], nb_frames %d, [maxChan %d, prefRate %d, req_chan_layout %d, req_chan %d], sink-support %d \n", 
+            fprintf(stderr, "A channels %d [l %"PRId64"], sample_rate %d, frame_size %d, frame_number %d, [afps %f, rfps %f, cfps %f, sfps %f], nb_frames %"PRId64", [maxChan %d, prefRate %d, req_chan_layout %"PRId64", req_chan %d], sink-support %d \n", 
                 pAV->aChannels, pAV->pACodecCtx->channel_layout, pAV->aSampleRate, pAV->aFrameSize, pAV->pACodecCtx->frame_number,
                 my_av_q2f(pAV->pAStream->avg_frame_rate),
                 #if LIBAVCODEC_VERSION_MAJOR < 55
@@ -1074,7 +1030,7 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
         }
 
         if( pAV->verbose ) {
-            fprintf(stderr, "V frame_size %d, frame_number %d, [afps %f, rfps %f, cfps %f, sfps %f] -> %f fps, nb_frames %d, size %dx%d, fmt 0x%X, bpp %d, planes %d, codecCaps 0x%X\n", 
+            fprintf(stderr, "V frame_size %d, frame_number %d, [afps %f, rfps %f, cfps %f, sfps %f] -> %f fps, nb_frames %"PRId64", size %dx%d, fmt 0x%X, bpp %d, planes %d, codecCaps 0x%X\n", 
                 pAV->pVCodecCtx->frame_size, pAV->pVCodecCtx->frame_number, 
                 my_av_q2f(pAV->pVStream->avg_frame_rate),
                 #if LIBAVCODEC_VERSION_MAJOR < 55
@@ -1202,14 +1158,13 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
             // Decode audio frame
             if(NULL == pAV->pAFrames) { // no audio registered
                 sp_av_free_packet(&packet);
-                return 0;
+                return INVALID_PTS;
             }
             int frameCount;
             int flush_complete = 0;
             for ( frameCount=0; 0 < packet.size || 0 == frameCount; frameCount++ ) {
                 int frameDecoded;
                 int len1;
-                NIOBuffer_t * pNIOBufferCurrent = &pAV->pANIOBuffers[pAV->aFrameCurrent];
                 AVFrame* pAFrameCurrent = pAV->pAFrames[pAV->aFrameCurrent];
                 if( pAV->useRefCountedFrames ) {
                     sp_av_frame_unref(pAFrameCurrent);
@@ -1261,7 +1216,7 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                 if( pAV->verbose ) {
                     int32_t aDTS = my_av_q2i32( pAFrameCurrent->pkt_dts * 1000, time_base);
 
-                    fprintf(stderr, "A pts %d [pkt_pts %ld], dts %d [pkt_dts %ld], f# %d, aFrame %d/%d %p, dataPtr %p, dataSize %d\n", 
+                    fprintf(stderr, "A pts %d [pkt_pts %"PRId64"], dts %d [pkt_dts %"PRId64"], f# %d, aFrame %d/%d %p, dataPtr %p, dataSize %d\n", 
                         pAV->aPTS, pkt_pts, aDTS, pAFrameCurrent->pkt_dts, frameCount,
                         pAV->aFrameCurrent, pAV->aFrameCount, pAFrameCurrent, pAFrameCurrent->data[0], data_size);
                 }
@@ -1269,12 +1224,8 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                     void* data_ptr = pAFrameCurrent->data[0]; // default
 
                     if( NULL != pAV->avResampleCtx || NULL != pAV->swResampleCtx ) {
-                        enum AVSampleFormat aSampleFmtOut; // out fmt
-                        int32_t          aChannelsOut;
-                        int32_t          aSampleRateOut;
-
                         uint8_t *tmp_out;
-                        int out_samples, out_size, out_linesize;
+                        int out_samples=-1, out_size, out_linesize;
                         int osize      = sp_av_get_bytes_per_sample( pAV->aSampleFmtOut );
                         int nb_samples = pAFrameCurrent->nb_samples;
 
@@ -1286,7 +1237,7 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                         tmp_out = sp_av_realloc(pAV->aResampleBuffer, out_size);
                         if (!tmp_out) {
                             JoglCommon_throwNewRuntimeException(env, "Couldn't alloc resample buffer of size %d", out_size);
-                            return;
+                            return INVALID_PTS;
                         }
                         pAV->aResampleBuffer = tmp_out;
 
@@ -1304,7 +1255,7 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                         }
                         if (out_samples < 0) {
                             JoglCommon_throwNewRuntimeException(env, "avresample_convert() failed");
-                            return;
+                            return INVALID_PTS;
                         }
                         data_size = out_samples * osize * pAV->aChannelsOut;
                         data_ptr = tmp_out;
@@ -1329,14 +1280,14 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                                 pNIOBufferCurrent->origPtr, pNIOBufferCurrent->nioRef, pNIOBufferCurrent->size);
                         }
                     }
-                    (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, jni_mid_pushSound, pNIOBufferCurrent->nioRef, data_size, pAV->aPTS);
+                    (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, ffmpeg_jni_mid_pushSound, pNIOBufferCurrent->nioRef, data_size, pAV->aPTS);
                 }
             }
         } else if(packet.stream_index==pAV->vid) {
             // Decode video frame
             if(NULL == pAV->pVFrame) {
                 sp_av_free_packet(&packet);
-                return 0;
+                return INVALID_PTS;
             }
             int frameCount;
             int flush_complete = 0;
@@ -1384,7 +1335,7 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
 
                     const char * warn = frame_repeat_i > 0 ? "REPEAT" : "NORMAL" ;
 
-                    fprintf(stderr, "V fix_pts %d, pts %d [pkt_pts %ld], dts %d [pkt_dts %ld], time d(%lf s + r %lf = %lf s), i(%d ms + r %d = %d ms) - %s - f# %d, dec %d, data %p, lsz %d\n",
+                    fprintf(stderr, "V fix_pts %d, pts %d [pkt_pts %"PRId64"], dts %d [pkt_dts %"PRId64"], time d(%lf s + r %lf = %lf s), i(%d ms + r %d = %d ms) - %s - f# %d, dec %d, data %p, lsz %d\n",
                             pAV->vPTS, vPTS, pkt_pts, vDTS, pkt_dts, 
                             frame_delay_d, frame_repeat_d, (frame_delay_d + frame_repeat_d),
                             frame_delay_i, frame_repeat_i, (frame_delay_i + frame_repeat_i), warn, frameCount,
@@ -1546,7 +1497,7 @@ JNIEXPORT jint JNICALL FF_FUNC(seek0)
     int64_t pts1 = (int64_t) (pos1 * (int64_t) time_base.den)
                            / (1000 * (int64_t) time_base.num);
     if(pAV->verbose) {
-        fprintf(stderr, "SEEK: vid %d, aid %d, pos1 %d, pts: %ld -> %ld\n", pAV->vid, pAV->aid, pos1, pts0, pts1);
+        fprintf(stderr, "SEEK: vid %d, aid %d, pos1 %d, pts: %"PRId64" -> %"PRId64"\n", pAV->vid, pAV->aid, pos1, pts0, pts1);
     }
     int flags = 0;
     if(pos1 < pos0) {
@@ -1555,7 +1506,7 @@ JNIEXPORT jint JNICALL FF_FUNC(seek0)
     int res;
     if(HAS_FUNC(sp_av_seek_frame)) {
         if(pAV->verbose) {
-            fprintf(stderr, "SEEK.0: pre  : s %ld / %ld -> t %d / %ld\n", pos0, pts0, pos1, pts1);
+            fprintf(stderr, "SEEK.0: pre  : s %"PRId64" / %"PRId64" -> t %d / %"PRId64"\n", pos0, pts0, pos1, pts1);
         }
         sp_av_seek_frame(pAV->pFormatCtx, streamID, pts1, flags);
     } else if(HAS_FUNC(sp_avformat_seek_file)) {
@@ -1563,7 +1514,7 @@ JNIEXPORT jint JNICALL FF_FUNC(seek0)
         int64_t seek_min    = ptsD > 0 ? pts1 - ptsD : INT64_MIN;
         int64_t seek_max    = ptsD < 0 ? pts1 - ptsD : INT64_MAX;
         if(pAV->verbose) {
-            fprintf(stderr, "SEEK.1: pre  : s %ld / %ld -> t %d / %ld [%ld .. %ld]\n", 
+            fprintf(stderr, "SEEK.1: pre  : s %"PRId64" / %"PRId64" -> t %d / %"PRId64" [%"PRId64" .. %"PRId64"]\n", 
                 pos0, pts0, pos1, pts1, seek_min, seek_max);
         }
         res = sp_avformat_seek_file(pAV->pFormatCtx, -1, seek_min, pts1, seek_max, flags);
@@ -1576,7 +1527,7 @@ JNIEXPORT jint JNICALL FF_FUNC(seek0)
     }
     const jint rPTS =  my_av_q2i32( ( pAV->vid >= 0 ? pAV->pVFrame->pkt_pts : pAV->pAFrames[pAV->aFrameCurrent]->pkt_pts ) * 1000, time_base);
     if(pAV->verbose) {
-        fprintf(stderr, "SEEK: post : res %d, u %ld\n", res, rPTS);
+        fprintf(stderr, "SEEK: post : res %d, u %d\n", res, rPTS);
     }
     return rPTS;
 }

@@ -208,7 +208,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             swResampleMajorVersionCC = 0;
             libAVVersionGood = false;
         }
-        available = libAVGood && libAVVersionGood && null != natives ? natives.initIDs0() : false;
+        available = libAVGood && libAVVersionGood && null != natives;
     }
     
     public static final boolean isAvailable() { return available; }

@@ -26,8 +26,8 @@
  * or implied, of JogAmp Community.
  */
  
-#ifndef _FFMPEG_TOOL_H
-#define _FFMPEG_TOOL_H
+#ifndef _FFMPEG_DSHOW_H
+#define _FFMPEG_DSHOW_H
 
 #ifdef _WIN32
 
@@ -43,5 +43,5 @@
 extern int findDShowVideoDevice(char * dest, int destSize, int devIdx, int verbose);
 
 
-#endif // _FFMPEG_TOOL_H
+#endif // _FFMPEG_DSHOW_H
 

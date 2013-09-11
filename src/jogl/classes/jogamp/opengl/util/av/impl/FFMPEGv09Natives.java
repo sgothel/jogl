@@ -47,9 +47,6 @@ class FFMPEGv09Natives implements FFMPEGNatives {
     public native int getSwResampleMajorVersionCC0();
     
     @Override
-    public native boolean initIDs0();
-
-    @Override
     public native long createInstance0(FFMPEGMediaPlayer upstream, boolean verbose);
 
     @Override

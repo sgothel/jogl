@@ -26,22 +26,59 @@
  * or implied, of JogAmp Community.
  */
  
-#ifdef _WIN32
-    #include <windows.h>
-#endif
-
-#include <gluegen_stdint.h>
-#include <gluegen_inttypes.h>
-#include <gluegen_stddef.h>
-#include <gluegen_stdint.h>
-
-#include "jogamp_opengl_util_av_impl_FFMPEGStaticNatives.h"
+#include "ffmpeg_static.h"
 
 #include "JoglCommon.h"
 
 #include <GL/gl-platform.h>
 
+static const char * const ClazzNameFFMPEGMediaPlayer = "jogamp/opengl/util/av/impl/FFMPEGMediaPlayer";
+
+static jclass ffmpegMediaPlayerClazz = NULL;
+jmethodID ffmpeg_jni_mid_pushSound = NULL;
+jmethodID ffmpeg_jni_mid_updateAttributes = NULL;
+jmethodID ffmpeg_jni_mid_setIsGLOriented = NULL;
+jmethodID ffmpeg_jni_mid_setupFFAttributes = NULL;
+jmethodID ffmpeg_jni_mid_isAudioFormatSupported = NULL;
+
 typedef unsigned (APIENTRYP AV_GET_VERSION)(void);
+
+JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGStaticNatives_initIDs0
+  (JNIEnv *env, jclass clazz)
+{
+    jboolean res = JNI_TRUE;
+    JoglCommon_init(env);
+
+    jclass c;
+    if (ffmpegMediaPlayerClazz != NULL) {
+        return JNI_FALSE;
+    }
+
+    c = (*env)->FindClass(env, ClazzNameFFMPEGMediaPlayer);
+    if(NULL==c) {
+        JoglCommon_FatalError(env, "JOGL FFMPEG: can't find %s", ClazzNameFFMPEGMediaPlayer);
+    }
+    ffmpegMediaPlayerClazz = (jclass)(*env)->NewGlobalRef(env, c);
+    (*env)->DeleteLocalRef(env, c);
+    if(NULL==ffmpegMediaPlayerClazz) {
+        JoglCommon_FatalError(env, "JOGL FFMPEG: can't use %s", ClazzNameFFMPEGMediaPlayer);
+    }
+
+    ffmpeg_jni_mid_pushSound = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "pushSound", "(Ljava/nio/ByteBuffer;II)V");
+    ffmpeg_jni_mid_updateAttributes = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes", "(IIIIIIIFIIILjava/lang/String;Ljava/lang/String;)V");
+    ffmpeg_jni_mid_setIsGLOriented = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "setIsGLOriented", "(Z)V");
+    ffmpeg_jni_mid_setupFFAttributes = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "setupFFAttributes", "(IIIIIIIIIIIIIII)V");
+    ffmpeg_jni_mid_isAudioFormatSupported = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "isAudioFormatSupported", "(III)Z");
+
+    if(ffmpeg_jni_mid_pushSound == NULL ||
+       ffmpeg_jni_mid_updateAttributes == NULL ||
+       ffmpeg_jni_mid_setIsGLOriented == NULL ||
+       ffmpeg_jni_mid_setupFFAttributes == NULL ||
+       ffmpeg_jni_mid_isAudioFormatSupported == NULL) {
+        return JNI_FALSE;
+    }
+    return res;
+}
 
 JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGStaticNatives_getAvVersion0
   (JNIEnv *env, jclass clazz, jlong func) {

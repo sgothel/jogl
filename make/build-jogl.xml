@@ -1426,6 +1426,7 @@
         <patternset id="c.src.files.@{version.lav}">
           <include name="${rootrel.src.c}/JoglCommon.c"/>
           <include name="${rootrel.src.c.libav}/ffmpeg_dshow.c"/>
+          <include name="${rootrel.src.c.libav}/ffmpeg_static.c"/>
           <include name="${rootrel.src.c.libav}/ffmpeg_@{version.lav}.c"/>
         </patternset>
 

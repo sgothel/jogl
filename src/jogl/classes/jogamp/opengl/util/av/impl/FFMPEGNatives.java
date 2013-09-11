@@ -37,7 +37,6 @@ interface FFMPEGNatives {
     int getAvCodecMajorVersionCC0();
     int getAvResampleMajorVersionCC0();
     int getSwResampleMajorVersionCC0();
-    boolean initIDs0();
     
     long createInstance0(FFMPEGMediaPlayer upstream, boolean verbose);
     void destroyInstance0(long moviePtr);

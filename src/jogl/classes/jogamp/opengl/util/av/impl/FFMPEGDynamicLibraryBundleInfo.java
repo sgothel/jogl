@@ -226,8 +226,8 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
             } else {
                 System.err.println("LIB_AV No Version/Native-Impl Match");
                 natives = null;
-            }
-            if( null != natives ) {
+            }            
+            if( null != natives && FFMPEGStaticNatives.initIDs0() ) {
                 ready = natives.initSymbols0(symbolAddr, symbolCount);
             } else {
                 ready = false;

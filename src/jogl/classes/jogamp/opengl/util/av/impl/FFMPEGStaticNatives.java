@@ -35,5 +35,7 @@ class FFMPEGStaticNatives {
                                   ( vers >>  8 ) & 0xFF,
                                   ( vers >>  0 ) & 0xFF );
     }
+    static native boolean initIDs0();
+
     static native int getAvVersion0(long func);
 }
