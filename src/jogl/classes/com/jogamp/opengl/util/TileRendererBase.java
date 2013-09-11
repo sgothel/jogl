@@ -378,8 +378,15 @@ public abstract class TileRendererBase {
             final GLEventListener l = glad.getGLEventListener(0);
             listenersInit[i] = glad.getGLEventListenerInitState(l);
             listeners[i] = glad.removeGLEventListener( l );
+            final boolean trn;
             if( listeners[i] instanceof TileRendererNotify ) {
+                trn = true;
                 ((TileRendererNotify)listeners[i]).addTileRendererNotify(this);
+            } else {
+                trn = false;
+            }
+            if( DEBUG ) {
+                System.err.println("TileRenderer.attach["+i+"]: isInit "+listenersInit[i]+", isTRN "+trn+", "+listeners[i].getClass().getName());
             }
         }
         glad.addGLEventListener(tiledGLEL);
@@ -461,8 +468,10 @@ public abstract class TileRendererBase {
             final int aSz = listenersInit.length;
             for(int i=0; i<aSz; i++) {
                 final GLEventListener l = listeners[i];
-                l.init(drawable);
-                listenersInit[i] = true;
+                if( !listenersInit[i] ) {
+                    l.init(drawable);
+                    listenersInit[i] = true;
+                }
             }
             if( null != glEventListenerPost ) {
                 glEventListenerPost.init(drawable);
