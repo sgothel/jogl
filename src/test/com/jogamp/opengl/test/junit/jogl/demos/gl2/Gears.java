@@ -86,7 +86,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererNoti
   public void init(GLAutoDrawable drawable) {
     GL2 gl = drawable.getGL().getGL2();
 
-    System.err.println("GearsGL2 init on "+Thread.currentThread());
+    System.err.println(Thread.currentThread()+" Gears.init: tileRendererInUse "+tileRendererInUse);
     System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
     System.err.println("INIT GL IS: " + gl.getClass().getName());
     System.err.println(JoglVersion.getGLStrings(gl, null, false).toString());
@@ -229,7 +229,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererNoti
   }
 
   public void dispose(GLAutoDrawable drawable) {
-    System.err.println("Gears: Dispose");
+    System.err.println(Thread.currentThread()+" Gears.dispose: tileRendererInUse "+tileRendererInUse);
     try {
         final Object upstreamWidget = drawable.getUpstreamWidget();
         if (upstreamWidget instanceof Window) {            

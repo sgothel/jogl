@@ -137,7 +137,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererN
 
 
     public void init(GLAutoDrawable drawable) {
-        System.err.println(Thread.currentThread()+" GearsES2.init ...");
+        System.err.println(Thread.currentThread()+" GearsES2.init: tileRendererInUse "+tileRendererInUse);
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         if(verbose) {
@@ -313,7 +313,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererN
     // private boolean useAndroidDebug = false;
 
     public void dispose(GLAutoDrawable drawable) {
-        System.err.println(Thread.currentThread()+" GearsES2.dispose ... ");
+        System.err.println(Thread.currentThread()+" GearsES2.dispose: tileRendererInUse "+tileRendererInUse);
         final Object upstreamWidget = drawable.getUpstreamWidget();
         if (upstreamWidget instanceof Window) {            
             final Window window = (Window) upstreamWidget;

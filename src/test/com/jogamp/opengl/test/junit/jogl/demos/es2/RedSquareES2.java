@@ -76,7 +76,7 @@ public class RedSquareES2 implements GLEventListener, TileRendererBase.TileRende
     public void setClearBuffers(boolean v) { clearBuffers = v; }
     
     public void init(GLAutoDrawable glad) {
-        System.err.println(Thread.currentThread()+" RedSquareES2.init ...");
+        System.err.println(Thread.currentThread()+" RedSquareES2.init: tileRendererInUse "+tileRendererInUse);
         final GL2ES2 gl = glad.getGL().getGL2ES2();
         
         System.err.println("RedSquareES2 init on "+Thread.currentThread());
@@ -175,7 +175,7 @@ public class RedSquareES2 implements GLEventListener, TileRendererBase.TileRende
     }
 
     public void reshape(GLAutoDrawable glad, int x, int y, int width, int height) {
-        System.err.println(Thread.currentThread()+" RedSquareES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(glad.getHandle()));
+        System.err.println(Thread.currentThread()+" RedSquareES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(glad.getHandle())+", tileRendererInUse "+tileRendererInUse);
         // Thread.dumpStack();
         final GL2ES2 gl = glad.getGL().getGL2ES2();
         if( !gl.hasGLSL() ) {
@@ -234,7 +234,7 @@ public class RedSquareES2 implements GLEventListener, TileRendererBase.TileRende
     }
 
     public void dispose(GLAutoDrawable glad) {
-        System.err.println(Thread.currentThread()+" RedSquareES2.dispose ... ");
+        System.err.println(Thread.currentThread()+" RedSquareES2.dispose: tileRendererInUse "+tileRendererInUse);
         final GL2ES2 gl = glad.getGL().getGL2ES2();
         if( !gl.hasGLSL() ) {
             return;
