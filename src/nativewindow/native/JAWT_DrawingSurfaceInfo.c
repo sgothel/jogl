@@ -43,7 +43,7 @@
   #define PLATFORM_DSI_SIZE sizeof(JAWT_Win32DrawingSurfaceInfo)
 #elif defined(linux) || defined(__sun) || defined(__FreeBSD__) || defined(_HPUX)
   #define PLATFORM_DSI_SIZE sizeof(JAWT_X11DrawingSurfaceInfo)
-#elif defined(macosx)
+#elif defined(__APPLE__)
   #define PLATFORM_DSI_SIZE sizeof(JAWT_MacOSXDrawingSurfaceInfo)
 #else
   ERROR: port JAWT_DrawingSurfaceInfo.c to your platform
