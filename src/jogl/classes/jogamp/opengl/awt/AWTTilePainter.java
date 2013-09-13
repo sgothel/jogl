@@ -61,6 +61,7 @@ public class AWTTilePainter {
     public final double scaleMatX, scaleMatY;
     public final boolean verbose;
     
+    public boolean flipVertical;
     private AWTGLPixelBuffer tBuffer = null;
     private BufferedImage vFlipImage = null;
     private Graphics2D g2d = null;
@@ -102,10 +103,15 @@ public class AWTTilePainter {
         this.scaleMatX = scaleMatX;
         this.scaleMatY = scaleMatY;
         this.verbose = verbose;
+        this.flipVertical = true;
         this.renderer.setRowOrder(TileRenderer.TR_TOP_TO_BOTTOM);
     }
     
     public String toString() { return renderer.toString(); }
+    
+    public void setIsGLOriented(boolean v) {
+        flipVertical = v;
+    }
     
     /**
      * Caches the {@link Graphics2D} instance for rendering.
@@ -126,23 +132,30 @@ public class AWTTilePainter {
     public void setupGraphics2DAndClipBounds(Graphics2D g2d, int width, int height) {
         this.g2d = g2d;
         saveAT = g2d.getTransform();
+        final Rectangle gClipOrig = g2d.getClipBounds();
+        if( null == gClipOrig ) {
+            g2d.setClip(0, 0, width, height);
+        }
         g2d.scale(scaleMatX, scaleMatY);
         
-        final Rectangle gClipOrig = g2d.getClipBounds();
-        final Rectangle gClip = null == gClipOrig ? new Rectangle(0, 0, width, height) : new Rectangle(gClipOrig);
-        if( 0 > gClip.x ) {
-            gClip.width += gClip.x;
-            gClip.x = 0;
+        final Rectangle gClipScaled = g2d.getClipBounds();
+        if( 0 > gClipScaled.x ) {
+            gClipScaled.width += gClipScaled.x;
+            gClipScaled.x = 0;
         }
-        if( 0 > gClip.y ) {
-            gClip.height += gClip.y;
-            gClip.y = 0;
+        if( 0 > gClipScaled.y ) {
+            gClipScaled.height += gClipScaled.y;
+            gClipScaled.y = 0;
         }
         if( verbose ) {
-            System.err.println("AWT print.0: "+gClipOrig+" -> "+gClip);
+            System.err.println("AWT print.0: "+gClipOrig+" -> "+gClipScaled);
         }
-        renderer.setImageSize(gClip.width, gClip.height);
-        renderer.setTileOffset(gClip.x, gClip.y);
+        renderer.setImageSize(gClipScaled.width, gClipScaled.height);
+        renderer.setTileOffset(gClipScaled.x, gClipScaled.y);
+        if( null == gClipOrig ) {
+            // reset
+            g2d.setClip(null);
+        }
     }
     
     /** See {@ #setupGraphics2DAndClipBounds(Graphics2D)}. */
@@ -169,8 +182,7 @@ public class AWTTilePainter {
     
     final GLEventListener preTileGLEL = new GLEventListener() {
         @Override
-        public void init(GLAutoDrawable drawable) {
-        }
+        public void init(GLAutoDrawable drawable) {}
         @Override
         public void dispose(GLAutoDrawable drawable) {}
         @Override
@@ -183,7 +195,11 @@ public class AWTTilePainter {
                 final GLPixelAttributes pixelAttribs = printBufferProvider.getAttributes(gl, componentCount);
                 tBuffer = printBufferProvider.allocate(gl, pixelAttribs, tWidth, tHeight, 1, true, 0);
                 renderer.setTileBuffer(tBuffer);
-                vFlipImage = new BufferedImage(tBuffer.width, tBuffer.height, tBuffer.image.getType());
+                if( flipVertical ) {
+                    vFlipImage = new BufferedImage(tBuffer.width, tBuffer.height, tBuffer.image.getType());
+                } else {
+                    vFlipImage = null;
+                }
             }
             if( verbose ) {
                 System.err.println("XXX tile-pre "+renderer);
@@ -208,29 +224,37 @@ public class AWTTilePainter {
             // but that's the software rendering path which is very slow anyway.
             final int tWidth = renderer.getParam(TileRendererBase.TR_CURRENT_TILE_WIDTH);
             final int tHeight = renderer.getParam(TileRendererBase.TR_CURRENT_TILE_HEIGHT);
-            // final BufferedImage dstImage = printBuffer.image;
-            final BufferedImage srcImage = tBuffer.image;
-            final BufferedImage dstImage = vFlipImage;
-            final int[] src = ((DataBufferInt) srcImage.getRaster().getDataBuffer()).getData();
-            final int[] dst = ((DataBufferInt) dstImage.getRaster().getDataBuffer()).getData();
-            final int incr = tBuffer.width;
-            int srcPos = 0;
-            int destPos = (tHeight - 1) * tBuffer.width;
-            for (; destPos >= 0; srcPos += incr, destPos -= incr) {
-                System.arraycopy(src, srcPos, dst, destPos, incr);
+            final BufferedImage dstImage;
+            if( flipVertical ) {
+                final BufferedImage srcImage = tBuffer.image;
+                dstImage = vFlipImage;
+                final int[] src = ((DataBufferInt) srcImage.getRaster().getDataBuffer()).getData();
+                final int[] dst = ((DataBufferInt) dstImage.getRaster().getDataBuffer()).getData();
+                final int incr = tBuffer.width;
+                int srcPos = 0;
+                int destPos = (tHeight - 1) * tBuffer.width;
+                for (; destPos >= 0; srcPos += incr, destPos -= incr) {
+                    System.arraycopy(src, srcPos, dst, destPos, incr);
+                }
+            } else {
+                dstImage = tBuffer.image;
             }
             // Draw resulting image in one shot
             final int tRows = renderer.getParam(TileRenderer.TR_ROWS);
             final int tRow = renderer.getParam(TileRenderer.TR_CURRENT_ROW);
             final int pX = renderer.getParam(TileRendererBase.TR_CURRENT_TILE_X_POS); 
             final int pYf;
-            if( tRow == tRows - 1 ) {
-                tTopRowHeight = tHeight;
-                pYf = 0;
-            } else if( tRow == tRows - 2 ){
-                pYf = tTopRowHeight;
+            if( flipVertical ) {
+                if( tRow == tRows - 1 ) {
+                    tTopRowHeight = tHeight;
+                    pYf = 0;
+                } else if( tRow == tRows - 2 ){
+                    pYf = tTopRowHeight;
+                } else {
+                    pYf = ( tRows - 2 - tRow ) * tHeight + tTopRowHeight;
+                }
             } else {
-                pYf = ( tRows - 2 - tRow ) * tHeight + tTopRowHeight;
+                pYf = renderer.getParam(TileRendererBase.TR_CURRENT_TILE_Y_POS);
             }
             final Shape oClip = g2d.getClip();
             g2d.clipRect(pX, pYf, tWidth, tHeight);
@@ -245,7 +269,7 @@ public class AWTTilePainter {
                     g2d.drawRect(r.x, r.y, r.width, r.height);
                 }
                 System.err.println("XXX tile-post.X "+renderer);
-                System.err.println("XXX tile-post.X dst-img "+dstImage.getWidth()+"x"+dstImage.getHeight()+" -> "+pX+"/"+pYf);
+                System.err.println("XXX tile-post.X dst-img "+dstImage.getWidth()+"x"+dstImage.getHeight()+", y-flip "+flipVertical+" -> "+pX+"/"+pYf);
             }
             g2d.setClip(oClip);
         }

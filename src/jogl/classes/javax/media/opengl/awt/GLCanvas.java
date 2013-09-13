@@ -791,7 +791,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
               printGLAD = factory.createOffscreenAutoDrawable(null, caps, null, DEFAULT_PRINT_TILE_SIZE, DEFAULT_PRINT_TILE_SIZE, null);
               GLDrawableUtil.swapGLContextAndAllGLEventListener(GLCanvas.this, printGLAD);
           }
-          
+          printAWTTiles.setIsGLOriented(printGLAD.isGLOriented());
           printAWTTiles.renderer.setTileSize(printGLAD.getWidth(), printGLAD.getHeight(), 0);
           printAWTTiles.renderer.attachToAutoDrawable(printGLAD);
           if( DEBUG ) {
