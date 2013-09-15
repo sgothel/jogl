@@ -37,6 +37,7 @@
 package com.jogamp.opengl.util;
 
 import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GLException;
@@ -64,45 +65,65 @@ import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
  */
 public class TileRenderer extends TileRendererBase {
     /**
-     * The width of a tile. See {@link #getParam(int)}.
+     * The width of the final clipped image. See {@link #getParam(int)}.
      */
-    public static final int TR_TILE_WIDTH = 7;
+    public static final int TR_IMAGE_CLIPPING_WIDTH = 7;
     /**
-     * The height of a tile. See {@link #getParam(int)}.
+     * The height of the final clipped image. See {@link #getParam(int)}.
      */
-    public static final int TR_TILE_HEIGHT = 8;
+    public static final int TR_IMAGE_CLIPPING_HEIGHT = 8;
+    /**
+     * The width of the tiles. See {@link #getParam(int)}.
+     */
+    public static final int TR_TILE_WIDTH = 9;
+    /**
+     * The height of the tiles. See {@link #getParam(int)}.
+     */
+    public static final int TR_TILE_HEIGHT = 10;
     /**
      * The width of the border around the tiles. See {@link #getParam(int)}.
      */
-    public static final int TR_TILE_BORDER = 9;
+    public static final int TR_TILE_BORDER = 11;
+    /**
+     * The tiles x-offset. See {@link #getParam(int)}.
+     */
+    public static final int TR_TILE_X_OFFSET = 12;
+    /**
+     * The tiles y-offset. See {@link #getParam(int)}.
+     */
+    public static final int TR_TILE_Y_OFFSET = 13;
     /**
      * The number of rows of tiles. See {@link #getParam(int)}.
      */
-    public static final int TR_ROWS = 10;
+    public static final int TR_ROWS = 14;
     /**
      * The number of columns of tiles. See {@link #getParam(int)}.
      */
-    public static final int TR_COLUMNS = 11;
+    public static final int TR_COLUMNS = 15;
+    /**
+     * The current tile number. See {@link #getParam(int)}.
+     */
+    public static final int TR_CURRENT_TILE_NUM = 16;
     /**
      * The current row number. See {@link #getParam(int)}.
      */
-    public static final int TR_CURRENT_ROW = 12;
+    public static final int TR_CURRENT_ROW = 17;
     /**
      * The current column number. See {@link #getParam(int)}.
      */
-    public static final int TR_CURRENT_COLUMN = 13;
+    public static final int TR_CURRENT_COLUMN = 18;
     /**
      * The order that the rows are traversed. See {@link #getParam(int)}.
      */
-    public static final int TR_ROW_ORDER = 14;
+    public static final int TR_ROW_ORDER = 19;
     /**
      * Indicates we are traversing rows from the top to the bottom. See {@link #getParam(int)}.
      */
-    public static final int TR_TOP_TO_BOTTOM = 15;
+    public static final int TR_TOP_TO_BOTTOM = 20;
     /**
-     * Indicates we are traversing rows from the bottom to the top. See {@link #getParam(int)}.
+     * Indicates we are traversing rows from the bottom to the top (default). See {@link #getParam(int)}.
      */
-    public static final int TR_BOTTOM_TO_TOP = 16;
+    public static final int TR_BOTTOM_TO_TOP = 21;
 
     private static final int DEFAULT_TILE_WIDTH = 256;
     private static final int DEFAULT_TILE_HEIGHT = 256;
@@ -111,6 +132,7 @@ public class TileRenderer extends TileRendererBase {
     private final Dimension tileSize = new Dimension(DEFAULT_TILE_WIDTH, DEFAULT_TILE_HEIGHT);
     private final Dimension tileSizeNB = new Dimension(DEFAULT_TILE_WIDTH - 2 * DEFAULT_TILE_BORDER, DEFAULT_TILE_HEIGHT - 2 * DEFAULT_TILE_BORDER);
 
+    protected Dimension imageClippingDim = null; // not set - default
     private int tileBorder = DEFAULT_TILE_BORDER;
     private int rowOrder = TR_BOTTOM_TO_TOP;
     private int rows;
@@ -136,9 +158,60 @@ public class TileRenderer extends TileRendererBase {
     }
 
     /**
+     * Clips the image-size this tile-renderer iterates through,
+     * which can be retrieved via {@link #getClippedImageSize()}.
+     * <p>
+     * Original image-size stored in this tile-renderer is unmodified.
+     * </p>
+     * <p>
+     * Method resets internal state and {@link #TR_ROWS} {@link #TR_COLUMNS} count.
+     * </p>
+     * 
+     * @param width The image-clipping.width
+     * @param height The image-clipping.height
+     * @see #getClippedImageSize()
+     */
+    public final void clipImageSize(int width, int height) {
+        if( null == imageClippingDim ) {
+            imageClippingDim = new Dimension(width, height);
+        } else {
+            imageClippingDim.setWidth(width);
+            imageClippingDim.setHeight(height);
+        }
+        setup();
+    }
+
+    /**
+     * Returns the clipped image-size.
+     * <p>
+     * If a image-size is clipped via {@link #clipImageSize(int, int)},
+     * method returns:
+     * <ul>
+     *   <li><code>min( image-clipping, image-size )</code>, otherwise</li>
+     *   <li><code> image-size </code></li>
+     * </ul>
+     * </p>
+     * <p>
+     * The clipping width and height can be retrieved via {@link #TR_IMAGE_CLIPPING_WIDTH}
+     * {@link #TR_IMAGE_CLIPPING_HEIGHT}.
+     * </p>
+     */
+    public final DimensionImmutable getClippedImageSize() { 
+        if( null != imageClippingDim ) {
+            return new Dimension(Math.min(imageClippingDim.getWidth(), imageSize.getWidth()),
+                                 Math.min(imageClippingDim.getHeight(), imageSize.getHeight()) );
+        } else {
+            return imageSize;
+        }
+    }
+
+    /**
      * Sets the size of the tiles to use in rendering. The actual
      * effective size of the tile depends on the border size, ie (
      * width - 2*border ) * ( height - 2 * border )
+     * <p>
+     * Method resets internal state and {@link #TR_ROWS} {@link #TR_COLUMNS} count.
+     * </p>
      * 
      * @param width
      *           The width of the tiles. Must not be larger than the GL
@@ -167,8 +240,10 @@ public class TileRenderer extends TileRendererBase {
     }
 
     /** 
-     * Sets an xy offset for the resulting tile
-     * {@link TileRendererBase#TR_CURRENT_TILE_X_POS x-pos} and {@link TileRendererBase#TR_CURRENT_TILE_Y_POS y-pos}.  
+     * Sets an xy offset for the resulting tiles
+     * {@link TileRendererBase#TR_CURRENT_TILE_X_POS x-pos} and {@link TileRendererBase#TR_CURRENT_TILE_Y_POS y-pos}.
+     * @see #TR_TILE_X_OFFSET
+     * @see #TR_TILE_Y_OFFSET
      **/
     public void setTileOffset(int xoff, int yoff) {
         offsetX = xoff;
@@ -179,8 +254,9 @@ public class TileRenderer extends TileRendererBase {
      * Sets up the number of rows and columns needed
      */
     private final void setup() throws IllegalStateException {
-        columns = ( imageSize.getWidth() + tileSizeNB.getWidth() - 1 ) / tileSizeNB.getWidth();
-        rows = ( imageSize.getHeight() + tileSizeNB.getHeight() - 1 ) / tileSizeNB.getHeight();
+        final DimensionImmutable clippedImageSize = getClippedImageSize();
+        columns = ( clippedImageSize.getWidth() + tileSizeNB.getWidth() - 1 ) / tileSizeNB.getWidth();
+        rows = ( clippedImageSize.getHeight() + tileSizeNB.getHeight() - 1 ) / tileSizeNB.getHeight();
         currentTile = 0;
         currentTileXPos = 0;
         currentTileYPos = 0;
@@ -202,24 +278,10 @@ public class TileRenderer extends TileRendererBase {
     @Override
     public final int getParam(int pname) {
         switch (pname) {
-        case TR_TILE_WIDTH:
-            return tileSize.getWidth();
-        case TR_TILE_HEIGHT:
-            return tileSize.getHeight();
-        case TR_TILE_BORDER:
-            return tileBorder;
         case TR_IMAGE_WIDTH:
             return imageSize.getWidth();
         case TR_IMAGE_HEIGHT:
             return imageSize.getHeight();
-        case TR_ROWS:
-            return rows;
-        case TR_COLUMNS:
-            return columns;
-        case TR_CURRENT_ROW:
-            return currentRow;
-        case TR_CURRENT_COLUMN:
-            return currentColumn;
         case TR_CURRENT_TILE_X_POS:
             return currentTileXPos;
         case TR_CURRENT_TILE_Y_POS:
@@ -228,6 +290,30 @@ public class TileRenderer extends TileRendererBase {
             return currentTileWidth;
         case TR_CURRENT_TILE_HEIGHT:
             return currentTileHeight;
+        case TR_IMAGE_CLIPPING_WIDTH:
+            return null != imageClippingDim ? imageClippingDim.getWidth() : 0;
+        case TR_IMAGE_CLIPPING_HEIGHT:
+            return null != imageClippingDim ? imageClippingDim.getHeight() : 0;
+        case TR_TILE_WIDTH:
+            return tileSize.getWidth();
+        case TR_TILE_HEIGHT:
+            return tileSize.getHeight();
+        case TR_TILE_BORDER:
+            return tileBorder;
+        case TR_TILE_X_OFFSET:
+            return offsetX;
+        case TR_TILE_Y_OFFSET:
+            return offsetY;
+        case TR_ROWS:
+            return rows;
+        case TR_COLUMNS:
+            return columns;
+        case TR_CURRENT_TILE_NUM:
+            return currentTile;
+        case TR_CURRENT_ROW:
+            return currentRow;
+        case TR_CURRENT_COLUMN:
+            return currentColumn;
         case TR_ROW_ORDER:
             return rowOrder;
         default:
@@ -271,19 +357,20 @@ public class TileRenderer extends TileRendererBase {
 
         int border = tileBorder;
 
+        final DimensionImmutable clippedImageSize = getClippedImageSize();
         int tH, tW;
 
         /* Compute actual size of this tile with border */
         if (currentRow < rows - 1) {
             tH = tileSize.getHeight();
         } else {
-            tH = imageSize.getHeight() - ( rows - 1 ) * ( tileSizeNB.getHeight() ) + 2 * border;
+            tH = clippedImageSize.getHeight() - ( rows - 1 ) * ( tileSizeNB.getHeight() ) + 2 * border;
         }
 
         if (currentColumn < columns - 1) {
             tW = tileSize.getWidth();
         } else {
-            tW = imageSize.getWidth() - ( columns - 1 ) * ( tileSizeNB.getWidth()  ) + 2 * border;
+            tW = clippedImageSize.getWidth() - ( columns - 1 ) * ( tileSizeNB.getWidth()  ) + 2 * border;
         }
 
         currentTileXPos = currentColumn * tileSizeNB.getWidth() + offsetX;
@@ -301,7 +388,7 @@ public class TileRenderer extends TileRendererBase {
         
         // Do not forget to issue:
         //    reshape( 0, 0, tW, tH );
-        // which shall reflect tile renderer fileds: currentTileXPos, currentTileYPos and imageSize
+        // which shall reflect tile renderer tiles: currentTileXPos, currentTileYPos and imageSize
         beginCalled = true;
     }
 
