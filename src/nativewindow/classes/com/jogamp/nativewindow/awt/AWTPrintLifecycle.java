@@ -51,7 +51,6 @@ import jogamp.nativewindow.awt.AWTMisc;
  * on all {@link AWTPrintLifecycle} elements in the {@link Container}.<br>
  * To minimize this burden, a user can use {@link Context#setupPrint(Container, double, double, int) Context.setupPrint(..)}:
  * <pre>
- *  Graphics2D g2d;
  *  Container cont;
  *  double scaleGLMatXY = 72.0/glDPI;
  *  int numSamples = 0; // leave multisampling as-is

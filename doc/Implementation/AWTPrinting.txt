@@ -11,7 +11,7 @@ Unit test producing the results:
 
 Print code: 
   AWTPrintLifecycle:
-    <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/jogl/classes/javax/media/opengl/awt/AWTPrintLifecycle.java;hb=HEAD>
+    <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/nativewindow/classes/com/jogamp/nativewindow/awt/AWTPrintLifecycle.java;hb=HEAD>
   GLCanvas:
     <http://jogamp.org/git/?p=jogl.git;a=blob;f=src/jogl/classes/javax/media/opengl/awt/GLCanvas.java;hb=HEAD#l731>
   ...
@@ -41,19 +41,27 @@ Impl. in GLCanvas, etc.
 
 After printing, AWTPrintLifecycle.releasePrint() shall be called. Impl. in GLCanvas .. etc.
 
-To perform AWTPrintLifecycle on all component in one container,
+To perform AWTPrintLifecycle on all components in one container decorating PrinterJob.job(),
 one may use:
 
-    final AWTPrintLifecycle.Context ctx = AWTPrintLifecycle.Context.setupPrint(frame, g2d, scaleGLMatXY, scaleGLMatXY);
+    Container cont;
+    double scaleGLMatXY = 72.0/glDPI;
+    int numSamples = 0; // leave multisampling as-is
+    PrinterJob job;
+    ...
+    final AWTPrintLifecycle.Context ctx = AWTPrintLifecycle.Context.setupPrint(cont, scaleGLMatXY, scaleGLMatXY, numSamples);
     try {
        AWTEDTExecutor.singleton.invoke(true, new Runnable() {
             public void run() {
-                frame.printAll(g2d);
+                try {
+                    job.print();
+                } catch (PrinterException ex) {
+                    ex.printStackTrace();
+                }
            } });
     } finally {
        ctx.releasePrint();
     }
-
 
 +++
 
@@ -75,7 +83,7 @@ TileRendererBase.TileRendererNotify interface!
 Bugs:
   - None in results
 
-  - GLCanvas: Workaround bug where onscreen MSAA cannot switch to offscreen FBO,
+  - GLCanvas: Workaround Bug 830 where onscreen MSAA cannot switch to offscreen FBO,
               i.e. stay 'onscreen'
 
 +++
