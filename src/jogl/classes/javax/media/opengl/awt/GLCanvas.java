@@ -53,7 +53,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
-import java.awt.RenderingHints;
 import java.awt.geom.Rectangle2D;
 
 import java.awt.EventQueue;
@@ -94,6 +93,7 @@ import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.nativewindow.awt.AWTGraphicsConfiguration;
 import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
 import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
+import com.jogamp.nativewindow.awt.AWTPrintLifecycle;
 import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
 import com.jogamp.nativewindow.awt.JAWTWindow;
 import com.jogamp.opengl.JoglVersion;
@@ -725,13 +725,13 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }
 
   private volatile boolean printActive = false;
-  private boolean printUseAA = false;
+  private int printNumSamples = 0;
   private GLAnimatorControl printAnimator = null; 
   private GLAutoDrawable printGLAD = null;
   private AWTTilePainter printAWTTiles = null;
   
   @Override
-  public void setupPrint(Graphics2D g2d, double scaleMatX, double scaleMatY) {
+  public void setupPrint(double scaleMatX, double scaleMatY, int numSamples) {
       if( !validateGLDrawable() ) {
           if(DEBUG) {
               System.err.println(getThreadName()+": Info: GLCanvas setupPrint - skipped GL render, drawable not valid yet");
@@ -746,14 +746,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       }
       printActive = true; 
       sendReshape = false; // clear reshape flag
-      final RenderingHints rHints = g2d.getRenderingHints();
-      {
-          final Object _useAA = rHints.get(RenderingHints.KEY_ANTIALIASING);
-          printUseAA = null != _useAA && ( _useAA == RenderingHints.VALUE_ANTIALIAS_DEFAULT || _useAA == RenderingHints.VALUE_ANTIALIAS_ON );
-      }
+      printNumSamples = AWTTilePainter.getNumSamples(numSamples, getChosenGLCapabilities());
       if( DEBUG ) {
-          System.err.println("AWT print.setup: canvasSize "+getWidth()+"x"+getWidth()+", scaleMat "+scaleMatX+" x "+scaleMatY+", useAA "+printUseAA+", printAnimator "+printAnimator);
-          AWTTilePainter.dumpHintsAndScale(g2d);
+          System.err.println("AWT print.setup: canvasSize "+getWidth()+"x"+getWidth()+", scaleMat "+scaleMatX+" x "+scaleMatY+", numSamples "+numSamples+" -> "+printNumSamples+", printAnimator "+printAnimator);
       }
       final int componentCount = isOpaque() ? 3 : 4;
       final TileRenderer printRenderer = new TileRenderer();
@@ -769,23 +764,15 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
               printAnimator.remove(GLCanvas.this);
           }
           final GLCapabilities caps = (GLCapabilities)getChosenGLCapabilities().cloneMutable();
-          final GLProfile glp = caps.getGLProfile();
           if( caps.getSampleBuffers() ) {
-              // bug / issue w/ swapGLContextAndAllGLEventListener and onscreen MSAA w/ NV/GLX
+              // Bug 830: swapGLContextAndAllGLEventListener and onscreen MSAA w/ NV/GLX
               printGLAD = GLCanvas.this;
           } else {
               caps.setDoubleBuffered(false);
               caps.setOnscreen(false);
-              if( printUseAA && !caps.getSampleBuffers() ) {
-                  if ( !glp.isGL2ES3() ) {
-                      if( DEBUG ) {
-                          System.err.println("Ignore MSAA due to gl-profile < GL2ES3");
-                      }
-                      printUseAA = false;
-                  } else {
-                      caps.setSampleBuffers(true);
-                      caps.setNumSamples(8);
-                  }
+              if( printNumSamples != caps.getNumSamples() ) {
+                  caps.setSampleBuffers(0 < printNumSamples);
+                  caps.setNumSamples(printNumSamples);
               }
               final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
               printGLAD = factory.createOffscreenAutoDrawable(null, caps, null, DEFAULT_PRINT_TILE_SIZE, DEFAULT_PRINT_TILE_SIZE, null);
@@ -796,7 +783,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
           printAWTTiles.renderer.attachToAutoDrawable(printGLAD);
           if( DEBUG ) {
               System.err.println("AWT print.setup "+printAWTTiles);
-              System.err.println("AWT print.setup AA "+printUseAA+", "+caps);
+              System.err.println("AWT print.setup AA "+printNumSamples+", "+caps);
               System.err.println("AWT print.setup "+printGLAD);
           }
       }

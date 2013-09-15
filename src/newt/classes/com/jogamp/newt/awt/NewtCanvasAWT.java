@@ -37,7 +37,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.KeyboardFocusManager;
-import java.awt.RenderingHints;
 import java.beans.Beans;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -53,8 +52,6 @@ import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.awt.AWTPrintLifecycle;
 import javax.swing.MenuSelectionManager;
 
 import jogamp.nativewindow.awt.AWTMisc;
@@ -67,6 +64,7 @@ import jogamp.opengl.awt.AWTTilePainter;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.awt.AWTEDTExecutor;
+import com.jogamp.nativewindow.awt.AWTPrintLifecycle;
 import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
 import com.jogamp.nativewindow.awt.JAWTWindow;
 import com.jogamp.newt.Display;
@@ -455,13 +453,20 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     }
      
     private volatile boolean printActive = false;
-    private boolean printUseAA = false;
+    private int printNumSamples = 0;
     private GLAnimatorControl printAnimator = null; 
     private GLAutoDrawable printGLAD = null;
     private AWTTilePainter printAWTTiles = null;
 
+    private final GLAutoDrawable getGLAD() {
+        if( null != newtChild && newtChild instanceof GLAutoDrawable ) {
+            return (GLAutoDrawable)newtChild;
+        }
+        return null;
+    }
+    
     @Override
-    public void setupPrint(Graphics2D g2d, double scaleMatX, double scaleMatY) {
+    public void setupPrint(double scaleMatX, double scaleMatY, int numSamples) {
         if( !validateComponent(true) ) {
             if(DEBUG) {
                 System.err.println(getThreadName()+": Info: NewtCanvasAWT setupPrint - skipped GL render, drawable not valid yet");
@@ -474,15 +479,17 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
             }
             return; // not yet available ..
         }
-        printActive = true; 
-        final RenderingHints rHints = g2d.getRenderingHints();
-        {
-            final Object _useAA = rHints.get(RenderingHints.KEY_ANTIALIASING);
-            printUseAA = null != _useAA && ( _useAA == RenderingHints.VALUE_ANTIALIAS_DEFAULT || _useAA == RenderingHints.VALUE_ANTIALIAS_ON );
+        final GLAutoDrawable glad = getGLAD();
+        if( null == glad ) {
+            if( DEBUG ) {
+                System.err.println("AWT print.setup exit, newtChild not a GLAutoDrawable: "+newtChild);
+            }
+            return;
         }
+        printActive = true; 
+        printNumSamples = AWTTilePainter.getNumSamples(numSamples, glad.getChosenGLCapabilities());
         if( DEBUG ) {
-            System.err.println("AWT print.setup: canvasSize "+getWidth()+"x"+getWidth()+", scaleMat "+scaleMatX+" x "+scaleMatY+", useAA "+printUseAA+", printAnimator "+printAnimator);
-            AWTTilePainter.dumpHintsAndScale(g2d);
+            System.err.println("AWT print.setup: canvasSize "+getWidth()+"x"+getWidth()+", scaleMat "+scaleMatX+" x "+scaleMatY+", numSamples "+numSamples+" -> "+printNumSamples+", printAnimator "+printAnimator);
         }
         final int componentCount = isOpaque() ? 3 : 4;
         final TileRenderer printRenderer = new TileRenderer();
@@ -492,39 +499,21 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     private final Runnable setupPrintOnEDT = new Runnable() {
         @Override
         public void run() {
-            final GLAutoDrawable glad;
-            if( null != newtChild && newtChild instanceof GLAutoDrawable ) {
-                glad = (GLAutoDrawable)newtChild;
-            } else {
-                if( DEBUG ) {
-                    System.err.println("AWT print.setup exit, newtChild not a GLAutoDrawable: "+newtChild);
-                }
-                printAWTTiles = null;
-                printActive = false;
-                return;
-            }
+            final GLAutoDrawable glad = getGLAD();
             printAnimator =  glad.getAnimator();
             if( null != printAnimator ) {
                 printAnimator.remove(glad);
             }
             final GLCapabilities caps = (GLCapabilities)glad.getChosenGLCapabilities().cloneMutable();
-            final GLProfile glp = caps.getGLProfile();
             if( caps.getSampleBuffers() ) {
-                // bug / issue w/ swapGLContextAndAllGLEventListener and onscreen MSAA w/ NV/GLX
+                // Bug 830: swapGLContextAndAllGLEventListener and onscreen MSAA w/ NV/GLX
                 printGLAD = glad;
             } else {
                 caps.setDoubleBuffered(false);
                 caps.setOnscreen(false);
-                if( printUseAA && !caps.getSampleBuffers() ) {
-                    if ( !glp.isGL2ES3() ) {
-                        if( DEBUG ) {
-                            System.err.println("Ignore MSAA due to gl-profile < GL2ES3");
-                        }
-                        printUseAA = false;
-                    } else {
-                        caps.setSampleBuffers(true);
-                        caps.setNumSamples(8);
-                    }
+                if( printNumSamples != caps.getNumSamples() ) {
+                    caps.setSampleBuffers(0 < printNumSamples);
+                    caps.setNumSamples(printNumSamples);
                 }
                 final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
                 printGLAD = factory.createOffscreenAutoDrawable(null, caps, null, DEFAULT_PRINT_TILE_SIZE, DEFAULT_PRINT_TILE_SIZE, null);
@@ -535,7 +524,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
             printAWTTiles.renderer.attachToAutoDrawable(printGLAD);
             if( DEBUG ) {
                 System.err.println("AWT print.setup "+printAWTTiles);
-                System.err.println("AWT print.setup AA "+printUseAA+", "+caps);
+                System.err.println("AWT print.setup AA "+printNumSamples+", "+caps);
                 System.err.println("AWT print.setup "+printGLAD);
             }
         }
@@ -557,7 +546,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
             if( DEBUG ) {
                 System.err.println("AWT print.release "+printAWTTiles);
             }
-            final GLAutoDrawable glad = (GLAutoDrawable)newtChild;
+            final GLAutoDrawable glad = getGLAD();
             printAWTTiles.dispose();
             printAWTTiles= null;
             if( printGLAD != glad ) {

@@ -120,15 +120,15 @@ public class TestTiledPrintingGearsNewtAWT extends TiledPrintingAWTBase  {
         
         final ActionListener print72DPIAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                doPrintManual(frame, 72, false);
+                doPrintManual(frame, 72, 0);
             } };
         final ActionListener print300DPIAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                doPrintManual(frame, 300, false);
+                doPrintManual(frame, 300, -1);
             } };
         final ActionListener print600DPIAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                doPrintManual(frame, 600, false);
+                doPrintManual(frame, 600, -1);
             } };
         final Button print72DPIButton = new Button("72dpi");
         print72DPIButton.addActionListener(print72DPIAction);
@@ -181,15 +181,15 @@ public class TestTiledPrintingGearsNewtAWT extends TiledPrintingAWTBase  {
             Thread.sleep(200);
             if( !printDone ) {
                 printDone = true;
-                doPrintAuto(frame, PageFormat.LANDSCAPE, null, 72, false);
+                doPrintAuto(frame, PageFormat.LANDSCAPE, null, 72, 0);
                 waitUntilPrintJobsIdle();
-                doPrintAuto(frame, PageFormat.LANDSCAPE, null, 72, true);
+                doPrintAuto(frame, PageFormat.LANDSCAPE, null, 72, 8);
                 waitUntilPrintJobsIdle();
                 // No AA needed for 300 dpi and greater :) 
-                doPrintAuto(frame, PageFormat.LANDSCAPE, null, 300, false);
+                doPrintAuto(frame, PageFormat.LANDSCAPE, null, 300, -1);
                 waitUntilPrintJobsIdle();
                 if( allow600dpi ) {
-                    doPrintAuto(frame, PageFormat.LANDSCAPE, null, 600, false);
+                    doPrintAuto(frame, PageFormat.LANDSCAPE, null, 600, -1);
                     waitUntilPrintJobsIdle();
                 }
             }

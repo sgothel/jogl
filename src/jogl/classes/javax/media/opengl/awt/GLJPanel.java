@@ -48,7 +48,6 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
-import java.awt.RenderingHints;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
@@ -90,6 +89,7 @@ import jogamp.opengl.awt.Java2D;
 import jogamp.opengl.util.glsl.GLSLTextureRaster;
 
 import com.jogamp.common.util.awt.AWTEDTExecutor;
+import com.jogamp.nativewindow.awt.AWTPrintLifecycle;
 import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
 import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
@@ -424,7 +424,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       createAndInitializeBackend();
     }
 
-    if (!isInitialized) {
+    if (!isInitialized || printActive) {
       return;
     }
 
@@ -498,13 +498,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   private volatile boolean printActive = false;
-  private boolean printUseAA = false;
+  private int printNumSamples = 0;
   private GLAnimatorControl printAnimator = null; 
   private GLAutoDrawable printGLAD = null;
   private AWTTilePainter printAWTTiles = null;
   
   @Override
-  public void setupPrint(Graphics2D g2d, double scaleMatX, double scaleMatY) {
+  public void setupPrint(double scaleMatX, double scaleMatY, int numSamples) {
       if (!isInitialized) {
           if(DEBUG) {
               System.err.println(getThreadName()+": Info: GLJPanel setupPrint - skipped GL render, drawable not valid yet");
@@ -520,14 +520,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       printActive = true; 
       sendReshape = false; // clear reshape flag
       handleReshape = false; // ditto
-      final RenderingHints rHints = g2d.getRenderingHints();
-      {
-          final Object _useAA = rHints.get(RenderingHints.KEY_ANTIALIASING);
-          printUseAA = null != _useAA && ( _useAA == RenderingHints.VALUE_ANTIALIAS_DEFAULT || _useAA == RenderingHints.VALUE_ANTIALIAS_ON );
-      }
+      printNumSamples = AWTTilePainter.getNumSamples(numSamples, getChosenGLCapabilities());
       if( DEBUG ) {
-          System.err.println("AWT print.setup: canvasSize "+getWidth()+"x"+getWidth()+", scaleMat "+scaleMatX+" x "+scaleMatY+", useAA "+printUseAA+", printAnimator "+printAnimator);
-          AWTTilePainter.dumpHintsAndScale(g2d);
+          System.err.println("AWT print.setup: canvasSize "+getWidth()+"x"+getWidth()+", scaleMat "+scaleMatX+" x "+scaleMatY+", numSamples "+numSamples+" -> "+printNumSamples+", printAnimator "+printAnimator);
       }
       final int componentCount = isOpaque() ? 3 : 4;
       final TileRenderer printRenderer = new TileRenderer();
@@ -546,30 +541,21 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           
           printGLAD = GLJPanel.this; // default: re-use 
           final GLCapabilities caps = (GLCapabilities)getChosenGLCapabilities().cloneMutable();
-          final GLProfile glp = caps.getGLProfile();
-          if( printUseAA && !caps.getSampleBuffers() ) {
-              if ( !glp.isGL2ES3() ) {
-                  if( DEBUG ) {
-                      System.err.println("Ignore MSAA due to gl-profile < GL2ES3");
-                  }
-                  printUseAA = false;
-              } else {
-                  // MSAA FBO ..
-                  caps.setDoubleBuffered(false);
-                  caps.setOnscreen(false);
-                  caps.setSampleBuffers(true);
-                  caps.setNumSamples(8);
-                  final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
-                  printGLAD = factory.createOffscreenAutoDrawable(null, caps, null, DEFAULT_PRINT_TILE_SIZE, DEFAULT_PRINT_TILE_SIZE, null);
-                  GLDrawableUtil.swapGLContextAndAllGLEventListener(GLJPanel.this, printGLAD);
-              }
+          if( printNumSamples != caps.getNumSamples() ) {
+              caps.setDoubleBuffered(false);
+              caps.setOnscreen(false);
+              caps.setSampleBuffers(0 < printNumSamples);
+              caps.setNumSamples(printNumSamples);
+              final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
+              printGLAD = factory.createOffscreenAutoDrawable(null, caps, null, DEFAULT_PRINT_TILE_SIZE, DEFAULT_PRINT_TILE_SIZE, null);
+              GLDrawableUtil.swapGLContextAndAllGLEventListener(GLJPanel.this, printGLAD);
           }
           printAWTTiles.setIsGLOriented(printGLAD.isGLOriented());
           printAWTTiles.renderer.setTileSize(printGLAD.getWidth(), printGLAD.getHeight(), 0);
           printAWTTiles.renderer.attachToAutoDrawable(printGLAD);
           if( DEBUG ) {
               System.err.println("AWT print.setup "+printAWTTiles);
-              System.err.println("AWT print.setup AA "+printUseAA+", "+caps);
+              System.err.println("AWT print.setup AA "+printNumSamples+", "+caps);
               System.err.println("AWT print.setup "+printGLAD);
           }
       }
@@ -624,9 +610,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       printAWTTiles.setupGraphics2DAndClipBounds(g2d, getWidth(), getHeight());
       try {
           final TileRenderer tileRenderer = printAWTTiles.renderer; 
-          if( DEBUG ) {
-              System.err.println("AWT print.0: "+tileRenderer);
-          }
           do {
               if( printGLAD != GLJPanel.this ) {
                   tileRenderer.display();

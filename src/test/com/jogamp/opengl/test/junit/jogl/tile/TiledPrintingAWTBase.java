@@ -28,11 +28,10 @@
 
 package com.jogamp.opengl.test.junit.jogl.tile;
 
-import java.awt.Frame;
+import java.awt.Container;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
-import java.awt.RenderingHints;
 import java.awt.print.PageFormat;
 import java.awt.print.Paper;
 import java.awt.print.Printable;
@@ -41,7 +40,6 @@ import java.awt.print.PrinterJob;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
-import javax.media.opengl.awt.AWTPrintLifecycle;
 import javax.print.StreamPrintService;
 import javax.print.StreamPrintServiceFactory;
 import javax.print.attribute.HashPrintRequestAttributeSet;
@@ -53,6 +51,7 @@ import org.junit.Assert;
 import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
+import com.jogamp.nativewindow.awt.AWTPrintLifecycle;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 /**
@@ -97,11 +96,7 @@ public abstract class TiledPrintingAWTBase extends UITestCase implements Printab
     public static final double A0_HEIGHT_INCH = A0_WIDTH_MM / MM_PER_INCH; */
     
     /** Helper to pass desired Frame to print! **/    
-    private Frame frame;
-    /** Helper to pass desired DPI value ! **/
-    private int glDPI = 72;
-    /** Helper to pass desired AA hint ! **/
-    private boolean printAA = false;
+    private Container printContainer;
     
     private RecursiveLock lockPrinting = LockFactory.createRecursiveLock();
 
@@ -155,9 +150,9 @@ public abstract class TiledPrintingAWTBase extends UITestCase implements Printab
             /**
              * See: 'Scaling of Frame and GL content' in Class description!
              */                
-            final Insets frameInsets = frame.getInsets();
-            final int frameWidth = frame.getWidth();
-            final int frameHeight= frame.getHeight();
+            final Insets frameInsets = printContainer.getInsets();
+            final int frameWidth = printContainer.getWidth();
+            final int frameHeight= printContainer.getHeight();
             final double scaleComp72;
             {
                 final int frameBorderW = frameInsets.left + frameInsets.right;
@@ -166,32 +161,21 @@ public abstract class TiledPrintingAWTBase extends UITestCase implements Printab
                 final double sy = pf.getImageableHeight() / ( frameHeight + frameBorderH );
                 scaleComp72 = Math.min(sx, sy);
             }
-            final double scaleGLMatXY = 72.0 / glDPI;
             
             System.err.println("PRINT thread "+Thread.currentThread().getName());
-            System.err.println("PRINT DPI: "+glDPI+", AA "+printAA+", scaleGL "+scaleGLMatXY+", scaleComp72 "+scaleComp72+
+            System.err.println("PRINT DPI: scaleComp72 "+scaleComp72+
                                ", frame: border "+frameInsets+", size "+frameWidth+"x"+frameHeight);
-            final Graphics2D printG2D = (Graphics2D)g;
-            final Graphics2D g2d = printG2D;
-                
+            final Graphics2D g2d = (Graphics2D)g;
+            System.err.println("PRINT at.pre: "+g2d.getTransform());
             g2d.translate(pf.getImageableX(), pf.getImageableY());
             g2d.scale(scaleComp72, scaleComp72);
-            
-            if( printAA ) {
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            }
-            final AWTPrintLifecycle.Context ctx = AWTPrintLifecycle.Context.setupPrint(frame, g2d, scaleGLMatXY, scaleGLMatXY);
-            try {
-                System.err.println("PRINT AWTPrintLifecycle.setup.count "+ctx.getCount());
-                AWTEDTExecutor.singleton.invoke(true, new Runnable() {
-                    public void run() {
-                        frame.printAll(g2d);
-                   }
-                });
-            } finally {
-                ctx.releasePrint();
-                System.err.println("PRINT AWTPrintLifecycle.release.count "+ctx.getCount());
-            }
+            System.err.println("PRINT at.post: "+g2d.getTransform());
+
+            AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+                public void run() {
+                    printContainer.printAll(g2d);
+               }
+            });
             
             /* tell the caller that this page is part of the printed document */
             return PAGE_EXISTS;
@@ -207,7 +191,15 @@ public abstract class TiledPrintingAWTBase extends UITestCase implements Printab
         super();
     }
 
-    public void doPrintAuto(Frame frame, int pOrientation, Paper paper, int dpi, boolean antialiasing) {
+    /**
+     * 
+     * @param cont
+     * @param pOrientation
+     * @param paper
+     * @param dpi
+     * @param numSamples multisampling value: < 0 turns off, == 0 leaves as-is, > 0 enables using given num samples 
+     */
+    public void doPrintAuto(Container cont, int pOrientation, Paper paper, int dpi, int numSamples) {
         lock.lock();
         try {
             final PrintRequestAttributeSet aset = new HashPrintRequestAttributeSet();
@@ -224,12 +216,12 @@ public abstract class TiledPrintingAWTBase extends UITestCase implements Printab
         
             StreamPrintServiceFactory[] factories = PrinterJob.lookupStreamPrintServices(pdfMimeType);
             if (factories.length > 0) {
-                final String fname = getPrintFilename(dpi, antialiasing, "pdf");
+                final String fname = getPrintFilename(dpi, numSamples, "pdf");
                 System.err.println("doPrint: dpi "+dpi+", "+fname);
                 FileOutputStream outstream;
                 try {
                     outstream = new FileOutputStream(fname);
-                    Assert.assertTrue(doPrintAutoImpl(frame, pj, factories[0].getPrintService(outstream), pOrientation, paper, dpi, antialiasing));
+                    Assert.assertTrue(doPrintAutoImpl(cont, pj, factories[0].getPrintService(outstream), pOrientation, paper, dpi, numSamples));
                 } catch (FileNotFoundException e) {
                     Assert.assertNull("Unexpected exception", e);
                 }
@@ -239,12 +231,12 @@ public abstract class TiledPrintingAWTBase extends UITestCase implements Printab
             
             factories = PrinterJob.lookupStreamPrintServices(psMimeType);
             if (factories.length > 0) {
-                final String fname = getPrintFilename(dpi, antialiasing, "ps");
+                final String fname = getPrintFilename(dpi, numSamples, "ps");
                 System.err.println("doPrint: dpi "+dpi+", "+fname);
                 FileOutputStream outstream;
                 try {
                     outstream = new FileOutputStream(fname);
-                    Assert.assertTrue(doPrintAutoImpl(frame, pj, factories[0].getPrintService(outstream), pOrientation, paper, dpi, antialiasing));
+                    Assert.assertTrue(doPrintAutoImpl(cont, pj, factories[0].getPrintService(outstream), pOrientation, paper, dpi, numSamples));
                 } catch (FileNotFoundException e) {
                     Assert.assertNull("Unexpected exception", e);
                 }
@@ -255,18 +247,14 @@ public abstract class TiledPrintingAWTBase extends UITestCase implements Printab
             lock.unlock();
         }
     }
-    private String getPrintFilename(int dpi, boolean antialiasing, String suffix) {
+    private String getPrintFilename(int dpi, int numSamples, String suffix) {
         final int maxSimpleTestNameLen = getMaxTestNameLen()+getClass().getSimpleName().length()+1;
         final String simpleTestName = getSimpleTestName(".");
-        final String sAA = antialiasing ? "aa_" : "raw";
-        return String.format("%-"+maxSimpleTestNameLen+"s-n%04d-dpi%03d-%s.%s", simpleTestName, printCount, dpi, sAA, suffix).replace(' ', '_');
+        return String.format("%-"+maxSimpleTestNameLen+"s-n%04d-dpi%03d-aa%d.%s", simpleTestName, printCount, dpi, numSamples, suffix).replace(' ', '_');
     }
-    private boolean doPrintAutoImpl(Frame frame, PrinterJob job, 
+    private boolean doPrintAutoImpl(Container cont, PrinterJob job, 
                                     StreamPrintService ps, int pOrientation, Paper paper, int dpi,
-                                    boolean antialiasing) {
-        this.frame = frame;
-        glDPI = dpi;
-        printAA = antialiasing;
+                                    int numSamples) {
         boolean ok = true;
         try {            
             PageFormat pageFormat = job.defaultPage();
@@ -280,7 +268,7 @@ public abstract class TiledPrintingAWTBase extends UITestCase implements Printab
             pageFormat.setOrientation(pOrientation); // PageFormat.LANDSCAPE or PageFormat.PORTRAIT
             job.setPrintService(ps);
             job.setPrintable(this, pageFormat);
-            job.print();
+            doPrintImpl(cont, job, dpi, numSamples);
         } catch (PrinterException pe) {
             pe.printStackTrace();
             ok = false;
@@ -288,25 +276,52 @@ public abstract class TiledPrintingAWTBase extends UITestCase implements Printab
         return ok;
     }
 
-    public void doPrintManual(Frame frame, int dpi, boolean antialiasing) {
+    /**
+     * 
+     * @param cont
+     * @param dpi
+     * @param numSamples multisampling value: < 0 turns off, == 0 leaves as-is, > 0 enables using given num samples 
+     */
+    public void doPrintManual(Container cont, int dpi, int numSamples) {
         lock.lock();
         try {
-            this.frame = frame;
-            glDPI = dpi;
-            printAA = antialiasing;
             PrinterJob job = PrinterJob.getPrinterJob();
             job.setPrintable(this);
             boolean ok = job.printDialog();
             if (ok) {
+               doPrintImpl(cont, job, dpi, numSamples);
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+    
+    /**
+     * 
+     * @param cont
+     * @param job
+     * @param dpi
+     * @param numSamples multisampling value: < 0 turns off, == 0 leaves as-is, > 0 enables using given num samples 
+     */
+    private void doPrintImpl(final Container cont, final PrinterJob job, final int dpi, final int numSamples) {
+       printContainer = cont;
+       final double scaleGLMatXY = 72.0 / dpi;
+       System.err.println("PRINT DPI: "+dpi+", AA "+numSamples+", scaleGL "+scaleGLMatXY);
+       final AWTPrintLifecycle.Context ctx = AWTPrintLifecycle.Context.setupPrint(printContainer, scaleGLMatXY, scaleGLMatXY, numSamples);
+       System.err.println("PRINT AWTPrintLifecycle.setup.count "+ctx.getCount());
+       try {
+           AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+            public void run() {
                 try {
                     job.print();
                 } catch (PrinterException ex) {
                     ex.printStackTrace();
                 }
-            }
-        } finally {
-            lock.unlock();
-        }
+           } });
+       } finally {
+           ctx.releasePrint();
+           System.err.println("PRINT AWTPrintLifecycle.release.count "+ctx.getCount());
+       }
     }
 
     /** Wait for idle .. simply acquiring all locks and releasing them. */
