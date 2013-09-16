@@ -155,8 +155,8 @@ public abstract class TiledPrintingAWTBase extends UITestCase implements Printab
             final int frameHeight= printContainer.getHeight();
             final double scaleComp72;
             {
-                final int frameBorderW = frameInsets.left + frameInsets.right;
-                final int frameBorderH = frameInsets.top + frameInsets.bottom;
+                final double frameBorderW = frameInsets.left + frameInsets.right;
+                final double frameBorderH = frameInsets.top + frameInsets.bottom;
                 final double sx = pf.getImageableWidth() / ( frameWidth + frameBorderW ); 
                 final double sy = pf.getImageableHeight() / ( frameHeight + frameBorderH );
                 scaleComp72 = Math.min(sx, sy);
