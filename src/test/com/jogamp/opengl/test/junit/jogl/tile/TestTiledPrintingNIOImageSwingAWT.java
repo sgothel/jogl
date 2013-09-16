@@ -240,11 +240,11 @@ public class TestTiledPrintingNIOImageSwingAWT extends UITestCase  {
             final BufferedImage image = DirectDataBufferInt.createBufferedImage(frame.getWidth(), frame.getHeight(), 4, null /* location */);
             printOffscreenToFile(image, frame, caps, 1, "newio_072dpi");
         }
-        // paint offscreen: NIO 600dpi
+        // paint offscreen: NIO 300dpi
         {
-            final int scale = (int) ( 600.0 / 72.0 + 0.5 ); 
+            final int scale = (int) ( 300.0 / 72.0 + 0.5 ); 
             final BufferedImage image = DirectDataBufferInt.createBufferedImage(frame.getWidth()*scale, frame.getHeight()*scale, 4, null /* location */);
-            printOffscreenToFile(image, frame, caps, 2, "newio_600dpi");
+            printOffscreenToFile(image, frame, caps, 2, "newio_300dpi");
         }
         
         Assert.assertNotNull(frame);
@@ -268,6 +268,12 @@ public class TestTiledPrintingNIOImageSwingAWT extends UITestCase  {
     public void test01_Offscreen_aa0() throws InterruptedException, InvocationTargetException {
         GLCapabilities caps = new GLCapabilities(glp);
         runTestGL(caps, false);
+    }
+    
+    @Test
+    public void test01_Offscreen_aa0_layered() throws InterruptedException, InvocationTargetException {
+        GLCapabilities caps = new GLCapabilities(glp);
+        runTestGL(caps, true);
     }
     
     static long duration = 500; // ms
