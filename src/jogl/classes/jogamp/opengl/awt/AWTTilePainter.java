@@ -65,7 +65,7 @@ import com.jogamp.opengl.util.awt.AWTGLPixelBuffer.AWTGLPixelBufferProvider;
  * </p>
  */
 public class AWTTilePainter {
-    private static final boolean DEBUG_TILES = Debug.debug("TileRenderer");
+    private static final boolean DEBUG_TILES = Debug.debug("TileRenderer.PNG");
     
     public final TileRenderer renderer;
     public final int componentCount;

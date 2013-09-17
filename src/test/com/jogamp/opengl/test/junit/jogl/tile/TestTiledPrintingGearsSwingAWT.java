@@ -213,16 +213,28 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
             Thread.sleep(200);
             if( !printDone ) {
                 printDone = true;
-                doPrintAuto(frame, PageFormat.LANDSCAPE, null, 72, 0);
-                waitUntilPrintJobsIdle();
-                doPrintAuto(frame, PageFormat.LANDSCAPE, null, 72, 8);
-                waitUntilPrintJobsIdle();
-                // No AA needed for 300 dpi and greater :) 
-                doPrintAuto(frame, PageFormat.LANDSCAPE, null, 300, -1);
-                waitUntilPrintJobsIdle();
+                {
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, false, 72, 0);
+                    waitUntilPrintJobsIdle(p);
+                }
+                {
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, false, 72, 8);
+                    waitUntilPrintJobsIdle(p);
+                }
+                {
+                    // No AA needed for 300 dpi and greater :)
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, false, 300, -1);
+                    waitUntilPrintJobsIdle(p);
+                }
+                {
+                    // No AA needed for 300 dpi and greater :)
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, true, 300, -1);
+                    waitUntilPrintJobsIdle(p);
+                }
                 if( allow600dpi ) {
-                    doPrintAuto(frame, PageFormat.LANDSCAPE, null, 600, -1);
-                    waitUntilPrintJobsIdle();
+                    // No AA needed for 300 dpi and greater :)
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, false, 600, -1);
+                    waitUntilPrintJobsIdle(p);
                 }
             }
         }
@@ -248,20 +260,20 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
     }
 
     @Test
-    public void test01_Onscreen_aa0() throws InterruptedException, InvocationTargetException {
+    public void test01_aa0() throws InterruptedException, InvocationTargetException {
         GLCapabilities caps = new GLCapabilities(glp);
         runTestGL(caps, false);
     }
     
     @Test
-    public void test01_Onscreen_aa0_layered() throws InterruptedException, InvocationTargetException {
+    public void test01_aa0_layered() throws InterruptedException, InvocationTargetException {
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(8);
         runTestGL(caps, true);
     }
     
     @Test
-    public void test02_Onscreen_aa8() throws InterruptedException, InvocationTargetException {
+    public void test02_aa8() throws InterruptedException, InvocationTargetException {
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setSampleBuffers(true);
         caps.setNumSamples(8);
