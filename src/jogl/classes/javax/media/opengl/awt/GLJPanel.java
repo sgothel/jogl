@@ -505,25 +505,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   
   @Override
   public void setupPrint(double scaleMatX, double scaleMatY, int numSamples) {
-      if (!isInitialized) {
-          if(DEBUG) {
-              System.err.println(getThreadName()+": Info: GLJPanel setupPrint - skipped GL render, drawable not valid yet");
-          }
-          return; // not yet available ..
-      }
-      if( !isVisible() ) {
-          if(DEBUG) {
-              System.err.println(getThreadName()+": Info: GLJPanel setupPrint - skipped GL render, drawable visible");
-          }
-          return; // not yet available ..
-      }
       printActive = true; 
-      sendReshape = false; // clear reshape flag
-      handleReshape = false; // ditto
-      printNumSamples = AWTTilePainter.getNumSamples(numSamples, getChosenGLCapabilities());
-      if( DEBUG ) {
-          System.err.println("AWT print.setup: canvasSize "+getWidth()+"x"+getWidth()+", scaleMat "+scaleMatX+" x "+scaleMatY+", numSamples "+numSamples+" -> "+printNumSamples+", printAnimator "+printAnimator);
-      }
+      printNumSamples = numSamples;
       final int componentCount = isOpaque() ? 3 : 4;
       final TileRenderer printRenderer = new TileRenderer();
       printAWTTiles = new AWTTilePainter(printRenderer, componentCount, scaleMatX, scaleMatY, DEBUG);
@@ -532,6 +515,23 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private final Runnable setupPrintOnEDT = new Runnable() {
       @Override
       public void run() {
+          if (backend == null || !isInitialized) {
+              createAndInitializeBackend();
+          }
+          if (!isInitialized) {
+              if(DEBUG) {
+                  System.err.println(getThreadName()+": Info: GLJPanel setupPrint - skipped GL render, drawable not valid yet");
+              }
+              printActive = false; 
+              return; // not yet available ..
+          }
+          if( !isVisible() ) {
+              if(DEBUG) {
+                  System.err.println(getThreadName()+": Info: GLJPanel setupPrint - skipped GL render, drawable visible");
+              }
+              printActive = false; 
+              return; // not yet available ..
+          }
           sendReshape = false; // clear reshape flag
           handleReshape = false; // ditto
           printAnimator =  helper.getAnimator();
@@ -541,6 +541,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           
           printGLAD = GLJPanel.this; // default: re-use 
           final GLCapabilities caps = (GLCapabilities)getChosenGLCapabilities().cloneMutable();
+          final int reqNumSamples = printNumSamples; 
+          printNumSamples = AWTTilePainter.getNumSamples(reqNumSamples, caps);
+          if( DEBUG ) {
+              System.err.println("AWT print.setup: canvasSize "+getWidth()+"x"+getWidth()+", scaleMat "+printAWTTiles.scaleMatX+" x "+printAWTTiles.scaleMatY+", numSamples "+reqNumSamples+" -> "+printNumSamples+", printAnimator "+printAnimator);
+          }
           if( printNumSamples != caps.getNumSamples() ) {
               caps.setDoubleBuffered(false);
               caps.setOnscreen(false);

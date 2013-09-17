@@ -467,30 +467,8 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     
     @Override
     public void setupPrint(double scaleMatX, double scaleMatY, int numSamples) {
-        if( !validateComponent(true) ) {
-            if(DEBUG) {
-                System.err.println(getThreadName()+": Info: NewtCanvasAWT setupPrint - skipped GL render, drawable not valid yet");
-            }
-            return; // not yet available ..
-        }
-        if( !isVisible() ) {
-            if(DEBUG) {
-                System.err.println(getThreadName()+": Info: NewtCanvasAWT setupPrint - skipped GL render, drawable visible");
-            }
-            return; // not yet available ..
-        }
-        final GLAutoDrawable glad = getGLAD();
-        if( null == glad ) {
-            if( DEBUG ) {
-                System.err.println("AWT print.setup exit, newtChild not a GLAutoDrawable: "+newtChild);
-            }
-            return;
-        }
         printActive = true; 
-        printNumSamples = AWTTilePainter.getNumSamples(numSamples, glad.getChosenGLCapabilities());
-        if( DEBUG ) {
-            System.err.println("AWT print.setup: canvasSize "+getWidth()+"x"+getWidth()+", scaleMat "+scaleMatX+" x "+scaleMatY+", numSamples "+numSamples+" -> "+printNumSamples+", printAnimator "+printAnimator);
-        }
+        printNumSamples = numSamples;
         final int componentCount = isOpaque() ? 3 : 4;
         final TileRenderer printRenderer = new TileRenderer();
         printAWTTiles = new AWTTilePainter(printRenderer, componentCount, scaleMatX, scaleMatY, DEBUG);
@@ -499,12 +477,38 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     private final Runnable setupPrintOnEDT = new Runnable() {
         @Override
         public void run() {
+            if( !validateComponent(true) ) {
+                if(DEBUG) {
+                    System.err.println(getThreadName()+": Info: NewtCanvasAWT setupPrint - skipped GL render, drawable not valid yet");
+                }
+                printActive = false; 
+                return; // not yet available ..
+            }
+            if( !isVisible() ) {
+                if(DEBUG) {
+                    System.err.println(getThreadName()+": Info: NewtCanvasAWT setupPrint - skipped GL render, drawable visible");
+                }
+                printActive = false; 
+                return; // not yet available ..
+            }
             final GLAutoDrawable glad = getGLAD();
+            if( null == glad ) {
+                if( DEBUG ) {
+                    System.err.println("AWT print.setup exit, newtChild not a GLAutoDrawable: "+newtChild);
+                }
+                printActive = false; 
+                return;
+            }
             printAnimator =  glad.getAnimator();
             if( null != printAnimator ) {
                 printAnimator.remove(glad);
             }
             final GLCapabilities caps = (GLCapabilities)glad.getChosenGLCapabilities().cloneMutable();
+            final int reqNumSamples = printNumSamples; 
+            printNumSamples = AWTTilePainter.getNumSamples(reqNumSamples, caps);
+            if( DEBUG ) {
+                System.err.println("AWT print.setup: canvasSize "+getWidth()+"x"+getWidth()+", scaleMat "+printAWTTiles.scaleMatX+" x "+printAWTTiles.scaleMatY+", numSamples "+reqNumSamples+" -> "+printNumSamples+", printAnimator "+printAnimator);
+            }
             if( caps.getSampleBuffers() ) {
                 // Bug 830: swapGLContextAndAllGLEventListener and onscreen MSAA w/ NV/GLX
                 printGLAD = glad;
