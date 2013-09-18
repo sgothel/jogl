@@ -367,7 +367,7 @@ public class AWTTilePainter {
                 }
                 System.err.println("XXX tile-post.X "+renderer);
                 System.err.println("XXX tile-post.X dst-img "+dstImage.getWidth()+"x"+dstImage.getHeight());
-                System.err.println("XXX tile-post.X out-img "+outImage.getWidth()+"x"+dstImage.getHeight());
+                System.err.println("XXX tile-post.X out-img "+outImage.getWidth()+"x"+outImage.getHeight());
                 System.err.println("XXX tile-post.X y-flip "+flipVertical+" -> "+pX+"/"+pYf+", drawDone "+drawDone);
             }
             // g2d.setClip(oClip);
