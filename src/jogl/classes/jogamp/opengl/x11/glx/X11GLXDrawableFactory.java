@@ -220,27 +220,19 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   class SharedResourceImplementation implements SharedResourceRunner.Implementation {
         @Override
         public void clear() {
-            synchronized(sharedMap) {
-                sharedMap.clear();
-            }
+            sharedMap.clear();
         }
         @Override
         public SharedResourceRunner.Resource mapPut(String connection, SharedResourceRunner.Resource resource) {
-            synchronized(sharedMap) {
-                return sharedMap.put(connection, resource);
-            }
+            return sharedMap.put(connection, resource);
         }
         @Override
         public SharedResourceRunner.Resource mapGet(String connection) {
-            synchronized(sharedMap) {
-                return sharedMap.get(connection);
-            }
+            return sharedMap.get(connection);
         }
         @Override
         public Collection<SharedResourceRunner.Resource> mapValues() {
-            synchronized(sharedMap) {
-                return sharedMap.values();
-            }
+            return sharedMap.values();
         }
 
         @Override
