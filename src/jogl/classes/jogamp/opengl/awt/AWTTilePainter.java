@@ -212,11 +212,7 @@ public class AWTTilePainter {
         renderer.setImageSize(iImageSizeScaled.width, iImageSizeScaled.height);
         renderer.clipImageSize(iClipScaled.width, iClipScaled.height);
         final int clipH = Math.min(iImageSizeScaled.height, iClipScaled.height);
-        if( flipVertical ) {
-            renderer.setTileOffset(iClipScaled.x, iImageSizeScaled.height - ( iClipScaled.y + clipH ));
-        } else {
-            renderer.setTileOffset(iClipScaled.x, iClipScaled.y);
-        }
+        renderer.setTileOffset(iClipScaled.x, iImageSizeScaled.height - ( iClipScaled.y + clipH ));
         if( verbose ) {
             System.err.println("AWT print.0: image "+dImageSizeOrig + " -> " + dImageSizeScaled + " -> " + iImageSizeScaled);
             System.err.println("AWT print.0: clip  "+gClipOrigR + " -> " + dClipOrig + " -> " + dClipScaled + " -> " + iClipScaled);
@@ -290,12 +286,7 @@ public class AWTTilePainter {
             final int pX = renderer.getParam(TileRendererBase.TR_CURRENT_TILE_X_POS);
             final int pY = renderer.getParam(TileRendererBase.TR_CURRENT_TILE_Y_POS);
             final int pYOff = renderer.getParam(TileRenderer.TR_TILE_Y_OFFSET);
-            final int pYf;
-            if( flipVertical ) {
-                pYf = cis.getHeight() - ( pY - pYOff + tHeight ) + scaledYOffset;
-            } else {
-                pYf = pY;
-            }
+            final int pYf = cis.getHeight() - ( pY - pYOff + tHeight ) + scaledYOffset;
             
             // Copy temporary data into raster of BufferedImage for faster
             // blitting Note that we could avoid this copy in the cases

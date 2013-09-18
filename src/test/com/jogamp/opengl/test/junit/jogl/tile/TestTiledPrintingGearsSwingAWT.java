@@ -64,7 +64,7 @@ import com.jogamp.newt.event.TraceKeyAdapter;
 import com.jogamp.newt.event.TraceWindowAdapter;
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;
-import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
+import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquareES1;
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
@@ -120,7 +120,7 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
         } else {
             glJPanel2.setBounds(0, 0, glc_sz.width, glc_sz.height);
         }
-        glJPanel2.addGLEventListener(new RedSquareES2());
+        glJPanel2.addGLEventListener(new RedSquareES1());
         // glJPanel2.addGLEventListener(new Gears());
         
         final JComponent demoPanel;
@@ -268,6 +268,21 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
     @Test
     public void test01_aa0_layered() throws InterruptedException, InvocationTargetException {
         GLCapabilities caps = new GLCapabilities(glp);
+        caps.setAlphaBits(8);
+        runTestGL(caps, true);
+    }
+    
+    @Test
+    public void test01_aa0_bitmap() throws InterruptedException, InvocationTargetException {
+        GLCapabilities caps = new GLCapabilities(glp);
+        caps.setBitmap(true);
+        runTestGL(caps, false);
+    }
+    
+    @Test
+    public void test01_aa0_bitmap_layered() throws InterruptedException, InvocationTargetException {
+        GLCapabilities caps = new GLCapabilities(glp);
+        caps.setBitmap(true);
         caps.setAlphaBits(8);
         runTestGL(caps, true);
     }

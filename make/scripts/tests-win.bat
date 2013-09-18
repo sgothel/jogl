@@ -52,6 +52,15 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestJScrollPaneMi
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestBug642JSplitPaneMixHwLw01AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestIsRealizedConcurrency01AWT %*
 
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledRendering1GL2NEWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledRendering2NEWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestRandomTiledRendering2GL2NEWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestRandomTiledRendering3GL2AWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsAWT %*
+scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsSwingAWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsNewtAWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingNIOImageSwingAWT %*
+
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNewtAWTWrapper %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT -time 30000
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT %*
