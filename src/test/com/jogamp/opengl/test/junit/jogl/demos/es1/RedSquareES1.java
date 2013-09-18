@@ -7,9 +7,10 @@ import javax.media.opengl.fixedfunc.GLMatrixFunc;
 import javax.media.opengl.fixedfunc.GLPointerFunc;
 
 import com.jogamp.opengl.JoglVersion;
+import com.jogamp.opengl.util.TileRendererBase;
 import com.jogamp.opengl.util.glsl.fixedfunc.*;
 
-public class RedSquareES1 implements GLEventListener {
+public class RedSquareES1 implements GLEventListener, TileRendererBase.TileRendererNotify {
 
     public static boolean oneThread = false;
     public static boolean useAnimator = false;
@@ -20,6 +21,10 @@ public class RedSquareES1 implements GLEventListener {
     private boolean debug = false ;
     private boolean trace = false ;
     private int swapInterval = 0;
+    private float aspect = 1.0f;
+    private boolean doRotate = true;
+    private TileRendererBase tileRendererInUse = null;
+    private boolean doRotateBeforePrinting;
 
     long startTime = 0;
     long curTime = 0;
@@ -32,6 +37,16 @@ public class RedSquareES1 implements GLEventListener {
         this.swapInterval = 1;
     }
     
+    public void addTileRendererNotify(TileRendererBase tr) {
+        tileRendererInUse = tr;
+        doRotateBeforePrinting = doRotate;
+        setDoRotation(false);      
+    }
+    public void removeTileRendererNotify(TileRendererBase tr) {
+        tileRendererInUse = null;
+        setDoRotation(doRotateBeforePrinting);      
+    }
+    public void setDoRotation(boolean rotate) { this.doRotate = rotate; }
     public void setForceFFPEmu(boolean forceFFPEmu, boolean verboseFFPEmu, boolean debugFFPEmu, boolean traceFFPEmu) {
         this.forceFFPEmu = forceFFPEmu;
         this.verboseFFPEmu = verboseFFPEmu;
@@ -100,7 +115,6 @@ public class RedSquareES1 implements GLEventListener {
         gl.glColorPointer(4, GL.GL_FLOAT, 0, colors);
 
         // OpenGL Render Settings
-        gl.glClearColor(0, 0, 0, 1);
         gl.glEnable(GL.GL_DEPTH_TEST);
 
         startTime = System.currentTimeMillis();
@@ -108,39 +122,77 @@ public class RedSquareES1 implements GLEventListener {
         System.err.println(Thread.currentThread()+" RedSquareES1.init FIN");
     }
 
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-        System.err.println(Thread.currentThread()+" RedSquareES1.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);
-        GL2ES1 gl = drawable.getGL().getGL2ES1();
+    public void reshape(GLAutoDrawable glad, int x, int y, int width, int height) {
+        System.err.println(Thread.currentThread()+" RedSquareES1.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(glad.getHandle())+", tileRendererInUse "+tileRendererInUse);
+        GL2ES1 gl = glad.getGL().getGL2ES1();
         gl.setSwapInterval(swapInterval);
         
         // Set location in front of camera
         gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         gl.glLoadIdentity();
-        gluPerspective(gl, 45.0f, (float)width / (float)height, 1.0f, 100.0f);
+        
+        final int tileWidth = width;
+        final int tileHeight = height;
+        final int tileX, tileY, imageWidth, imageHeight;
+        if( null == tileRendererInUse ) {
+            if(-1 != swapInterval) {        
+                gl.setSwapInterval(swapInterval);
+            }
+            tileX = 0;
+            tileY = 0;
+            imageWidth = width;
+            imageHeight = height;
+        } else {
+            gl.setSwapInterval(0);
+            tileX = tileRendererInUse.getParam(TileRendererBase.TR_CURRENT_TILE_X_POS);
+            tileY = tileRendererInUse.getParam(TileRendererBase.TR_CURRENT_TILE_Y_POS);
+            imageWidth = tileRendererInUse.getParam(TileRendererBase.TR_IMAGE_WIDTH);
+            imageHeight = tileRendererInUse.getParam(TileRendererBase.TR_IMAGE_HEIGHT);
+        }
+        // compute projection parameters 'normal' perspective
+        final float fovy=45f;
+        final float aspect2 = ( (float) imageWidth / (float) imageHeight ) / aspect;
+        final float zNear=1f;
+        final float zFar=100f;
+        
+        // compute projection parameters 'normal' frustum
+        final float top=(float)Math.tan(fovy*((float)Math.PI)/360.0f)*zNear;
+        final float bottom=-1.0f*top;
+        final float left=aspect2*bottom;
+        final float right=aspect2*top;
+        final float w = right - left;
+        final float h = top - bottom;
+        
+        // compute projection parameters 'tiled'
+        final float l = left + tileX * w / imageWidth;
+        final float r = l + tileWidth * w / imageWidth;
+        final float b = bottom + tileY * h / imageHeight;
+        final float t = b + tileHeight * h / imageHeight;
+        
+        gl.glFrustumf(l, r, b, t, zNear, zFar);
         // gl.glOrthof(-4.0f, 4.0f, -4.0f, 4.0f, 1.0f, 100.0f);
         System.err.println(Thread.currentThread()+" RedSquareES1.reshape FIN");
     }
     
-    void gluPerspective(GL2ES1 gl, final float fovy, final float aspect, final float zNear, final float zFar) {
-      float top=(float)Math.tan(fovy*((float)Math.PI)/360.0f)*zNear;
-      float bottom=-1.0f*top;
-      float left=aspect*bottom;
-      float right=aspect*top;
-      gl.glFrustumf(left, right, bottom, top, zNear, zFar);        
-    }
-
     public void display(GLAutoDrawable drawable) {
         curTime = System.currentTimeMillis();
         GL2ES1 gl = drawable.getGL().getGL2ES1();
+        if( null != tileRendererInUse ) {
+            gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+        } else {
+            gl.glClearColor(0, 0, 0, 0);
+        }
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
         // One rotation every four seconds
         gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         gl.glLoadIdentity();
         gl.glTranslatef(0, 0, -10);
-        float ang = ((float) (curTime - startTime) * 360.0f) / 4000.0f;
-        gl.glRotatef(ang, 0, 0, 1);
-        gl.glRotatef(ang, 0, 1, 0);
+        if(doRotate) {
+            float ang = ((float) (curTime - startTime) * 360.0f) / 4000.0f;
+            gl.glRotatef(ang, 0, 0, 1);
+            gl.glRotatef(ang, 0, 1, 0);
+        }
 
         // Draw a square
         gl.glEnableClientState(GLPointerFunc.GL_VERTEX_ARRAY);
