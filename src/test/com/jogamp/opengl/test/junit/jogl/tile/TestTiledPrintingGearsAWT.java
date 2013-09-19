@@ -239,13 +239,14 @@ public class TestTiledPrintingGearsAWT extends TiledPrintingAWTBase  {
     static long duration = 500; // ms
 
     public static void main(String args[]) {
-        allow600dpi = true;
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
                 } catch (Exception ex) { ex.printStackTrace(); }
+            } else if(args[i].equals("-600dpi")) {
+                allow600dpi = true;
             } else if(args[i].equals("-wait")) {
                 waitForKey = true;
             }
