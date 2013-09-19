@@ -59,7 +59,9 @@
                includeAntRuntime="true"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               source="${host.sourcelevel}">
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}" 
+               bootclasspath="${target.rt.jar}">
             <src path="${src.java}" />
             <classpath refid="classpath" />
         </javac>

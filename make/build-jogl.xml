@@ -796,9 +796,9 @@
                includeAntRuntime="true"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               source="${host.sourcelevel}" 
-               target="${host.targetlevel}" 
-               bootclasspath="${host.rt.jar}"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}" 
+               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="gluegen-gl.classpath"/>
             <src path="${src.java}" />
