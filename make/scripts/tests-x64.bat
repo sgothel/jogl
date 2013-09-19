@@ -1,7 +1,7 @@
 
 set BLD_SUB=build-win64
-set J2RE_HOME=c:\jre1.7.0_25_x64
-set JAVA_HOME=c:\jdk1.7.0_25_x64
+set J2RE_HOME=c:\jre1.7.0_40_x64
+set JAVA_HOME=c:\jdk1.7.0_40_x64
 set ANT_PATH=C:\apache-ant-1.8.2
 
 REM set FFMPEG_LIB=C:\ffmpeg_libav\lavc53_lavf53_lavu51-ffmpeg\x64
