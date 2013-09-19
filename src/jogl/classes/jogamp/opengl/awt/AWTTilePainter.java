@@ -33,6 +33,7 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
@@ -148,18 +149,22 @@ public class AWTTilePainter {
         return new Rectangle((int)Math.round(r.getX()), (int)Math.round(r.getY()), 
                              (int)Math.round(r.getWidth()), (int)Math.round(r.getHeight()));
     }
-    private static Rectangle clipNegative(Rectangle in) {
+    private static Rectangle2D getClipBounds2D(Graphics2D g) {
+        final Shape shape = g.getClip();
+        return null != shape ? shape.getBounds2D() : null;
+    }
+    private static Rectangle2D clipNegative(Rectangle2D in) {
         if( null == in ) { return null; }
-        final Rectangle out = new Rectangle(in);
-        if( 0 > out.x ) {
-            out.width += out.x;
-            out.x = 0;
+        double x=in.getX(), y=in.getY(), width=in.getWidth(), height=in.getHeight();
+        if( 0 > x ) {
+            width += x;
+            x = 0;
         }
-        if( 0 > out.y ) {
-            out.height += out.y;
-            out.y = 0;
+        if( 0 > y ) {
+            height += y;
+            y = 0;
         }
-        return out;
+        return new Rectangle2D.Double(x, y, width, height);
     }
     
     /**
@@ -177,35 +182,37 @@ public class AWTTilePainter {
      * @param g2d Graphics2D instance used for transform and clipping
      * @param width width of the AWT component in case clipping is null
      * @param height height of the AWT component in case clipping is null
+     * @throws NoninvertibleTransformException if the {@link Graphics2D}'s {@link AffineTransform} {@link AffineTransform#invert() inversion} fails.
+     *                                         Since inversion is tested before scaling the given {@link Graphics2D}, caller shall ignore the whole <i>term</i>.
      */
-    public void setupGraphics2DAndClipBounds(Graphics2D g2d, int width, int height) {
+    public void setupGraphics2DAndClipBounds(Graphics2D g2d, int width, int height) throws NoninvertibleTransformException {
         this.g2d = g2d;
         saveAT = g2d.getTransform();
-        final Rectangle gClipOrigR;
-        final Rectangle2D dClipOrig, dImageSizeOrig; // double precision for scaling
-        // setup original rectangles
+        // We use double precision for scaling
+        //
+        // Setup original rectangles
+        final Rectangle2D dClipOrigR = getClipBounds2D(g2d);
+        final Rectangle2D dClipOrig = clipNegative(dClipOrigR);
+        final Rectangle2D dImageSizeOrig = new Rectangle2D.Double(0, 0, width, height);
+        
+        // Retrieve scaled image-size and clip-bounds
+        final Rectangle2D dImageSizeScaled, dClipScaled;
         {
-            gClipOrigR = g2d.getClipBounds();
-            final Rectangle gClipOrig = clipNegative(gClipOrigR);
-            dClipOrig = null != gClipOrig ? new Rectangle2D.Double(gClipOrig.getX(), gClipOrig.getY(), gClipOrig.getWidth(), gClipOrig.getHeight()) : null;
-            dImageSizeOrig = new Rectangle2D.Double(0, 0, width, height);
-        }
-        final Rectangle2D dClipScaled, dImageSizeScaled; // double precision for scaling
-        // retrieve scaled image-size and clip-bounds
-        {
-            g2d.setClip(dImageSizeOrig);
-            g2d.scale(scaleMatX, scaleMatY);
-            dImageSizeScaled = (Rectangle2D) g2d.getClip();
+            final AffineTransform scaledATI;
+            {
+                final AffineTransform scaledAT = g2d.getTransform();
+                scaledAT.scale(scaleMatX, scaleMatY);
+                scaledATI = scaledAT.createInverse(); // -> NoninvertibleTransformException
+            }
+            Shape s0 = saveAT.createTransformedShape(dImageSizeOrig); // user in
+            dImageSizeScaled = scaledATI.createTransformedShape(s0).getBounds2D(); // scaled out
             if( null == dClipOrig ) {
-                g2d.setClip(null);
                 dClipScaled = (Rectangle2D) dImageSizeScaled.clone();
             } else {
-                g2d.setTransform(saveAT); // reset
-                g2d.setClip(dClipOrig);
-                g2d.scale(scaleMatX, scaleMatY);
-                dClipScaled = (Rectangle2D) g2d.getClip();
+                s0 = saveAT.createTransformedShape(dClipOrig); // user in
+                dClipScaled = scaledATI.createTransformedShape(s0).getBounds2D(); // scaled out
             }
-        }
+        }        
         final Rectangle iClipScaled = getRoundedRect(dClipScaled);
         final Rectangle iImageSizeScaled = getRoundedRect(dImageSizeScaled);
         scaledYOffset = iClipScaled.y;
@@ -213,9 +220,13 @@ public class AWTTilePainter {
         renderer.clipImageSize(iClipScaled.width, iClipScaled.height);
         final int clipH = Math.min(iImageSizeScaled.height, iClipScaled.height);
         renderer.setTileOffset(iClipScaled.x, iImageSizeScaled.height - ( iClipScaled.y + clipH ));
+        
+        // Scale actual Grahics2D matrix
+        g2d.scale(scaleMatX, scaleMatY);
+        
         if( verbose ) {
             System.err.println("AWT print.0: image "+dImageSizeOrig + " -> " + dImageSizeScaled + " -> " + iImageSizeScaled);
-            System.err.println("AWT print.0: clip  "+gClipOrigR + " -> " + dClipOrig + " -> " + dClipScaled + " -> " + iClipScaled);
+            System.err.println("AWT print.0: clip  "+dClipOrigR + " -> " + dClipOrig + " -> " + dClipScaled + " -> " + iClipScaled);
             System.err.println("AWT print.0: "+renderer);
         }
     }

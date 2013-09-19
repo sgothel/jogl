@@ -48,6 +48,7 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
+import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
@@ -612,18 +613,23 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       handleReshape = false; // ditto
       
       final Graphics2D g2d = (Graphics2D)graphics;
-      printAWTTiles.setupGraphics2DAndClipBounds(g2d, getWidth(), getHeight());
       try {
-          final TileRenderer tileRenderer = printAWTTiles.renderer; 
-          do {
-              if( printGLAD != GLJPanel.this ) {
-                  tileRenderer.display();
-              } else {
-                  backend.doPlainPaint();
-              }
-          } while ( !tileRenderer.eot() );
-      } finally {
-          printAWTTiles.resetGraphics2D();
+          printAWTTiles.setupGraphics2DAndClipBounds(g2d, getWidth(), getHeight());
+          try {
+              final TileRenderer tileRenderer = printAWTTiles.renderer; 
+              do {
+                  if( printGLAD != GLJPanel.this ) {
+                      tileRenderer.display();
+                  } else {
+                      backend.doPlainPaint();
+                  }
+              } while ( !tileRenderer.eot() );
+          } finally {
+              printAWTTiles.resetGraphics2D();
+          }
+      } catch (NoninvertibleTransformException nte) {
+          System.err.println("Catched: Inversion failed of: "+g2d.getTransform());
+          nte.printStackTrace();
       }
       if( DEBUG ) {
           System.err.println("AWT print.X: "+printAWTTiles);

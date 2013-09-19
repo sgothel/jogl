@@ -37,6 +37,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.KeyboardFocusManager;
+import java.awt.geom.NoninvertibleTransformException;
 import java.beans.Beans;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -577,17 +578,22 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         }
 
         final Graphics2D g2d = (Graphics2D)graphics;
-        printAWTTiles.setupGraphics2DAndClipBounds(g2d, getWidth(), getHeight());
         try {
-            final TileRenderer tileRenderer = printAWTTiles.renderer;
-            if( DEBUG ) {
-                System.err.println("AWT print.0: "+tileRenderer);
+            printAWTTiles.setupGraphics2DAndClipBounds(g2d, getWidth(), getHeight());
+            try {
+                final TileRenderer tileRenderer = printAWTTiles.renderer;
+                if( DEBUG ) {
+                    System.err.println("AWT print.0: "+tileRenderer);
+                }
+                do {
+                    tileRenderer.display();
+                } while ( !tileRenderer.eot() );
+            } finally {
+                printAWTTiles.resetGraphics2D();
             }
-            do {
-                tileRenderer.display();
-            } while ( !tileRenderer.eot() );
-        } finally {
-            printAWTTiles.resetGraphics2D();
+        } catch (NoninvertibleTransformException nte) {
+            System.err.println("Catched: Inversion failed of: "+g2d.getTransform());
+            nte.printStackTrace();
         }
         if( DEBUG ) {
             System.err.println("AWT print.X: "+printAWTTiles);

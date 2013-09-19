@@ -53,6 +53,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
+import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Rectangle2D;
 
 import java.awt.EventQueue;
@@ -835,21 +836,26 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       sendReshape = false; // clear reshape flag
       
       final Graphics2D g2d = (Graphics2D)graphics;
-      printAWTTiles.setupGraphics2DAndClipBounds(g2d, getWidth(), getHeight());
       try {
-          final TileRenderer tileRenderer = printAWTTiles.renderer;
-          if( DEBUG ) {
-              System.err.println("AWT print.0: "+tileRenderer);
-          }
-          do {
-              if( printGLAD != GLCanvas.this ) {
-                  tileRenderer.display();
-              } else {
-                  Threading.invoke(true, displayOnEDTAction, getTreeLock());
+          printAWTTiles.setupGraphics2DAndClipBounds(g2d, getWidth(), getHeight());
+          try {
+              final TileRenderer tileRenderer = printAWTTiles.renderer;
+              if( DEBUG ) {
+                  System.err.println("AWT print.0: "+tileRenderer);
               }
-          } while ( !tileRenderer.eot() );
-      } finally {
-          printAWTTiles.resetGraphics2D();
+              do {
+                  if( printGLAD != GLCanvas.this ) {
+                      tileRenderer.display();
+                  } else {
+                      Threading.invoke(true, displayOnEDTAction, getTreeLock());
+                  }
+              } while ( !tileRenderer.eot() );
+          } finally {
+              printAWTTiles.resetGraphics2D();
+          }
+      } catch (NoninvertibleTransformException nte) {
+          System.err.println("Catched: Inversion failed of: "+g2d.getTransform());
+          nte.printStackTrace();
       }
       if( DEBUG ) {
           System.err.println("AWT print.X: "+printAWTTiles);
