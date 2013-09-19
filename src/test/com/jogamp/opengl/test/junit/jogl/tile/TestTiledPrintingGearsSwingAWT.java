@@ -60,6 +60,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.newt.event.TraceKeyAdapter;
 import com.jogamp.newt.event.TraceWindowAdapter;
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
@@ -274,17 +275,21 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
     
     @Test
     public void test01_aa0_bitmap() throws InterruptedException, InvocationTargetException {
-        GLCapabilities caps = new GLCapabilities(glp);
-        caps.setBitmap(true);
-        runTestGL(caps, false);
+        if( Platform.OSType.WINDOWS == Platform.getOSType() ) {
+            GLCapabilities caps = new GLCapabilities(glp);
+            caps.setBitmap(true);
+            runTestGL(caps, false);
+        } // issues w/ AMD catalyst driver and pixmap surface ..
     }
     
     @Test
     public void test01_aa0_bitmap_layered() throws InterruptedException, InvocationTargetException {
-        GLCapabilities caps = new GLCapabilities(glp);
-        caps.setBitmap(true);
-        caps.setAlphaBits(8);
-        runTestGL(caps, true);
+        if( Platform.OSType.WINDOWS == Platform.getOSType() ) {
+            GLCapabilities caps = new GLCapabilities(glp);
+            caps.setBitmap(true);
+            caps.setAlphaBits(8);
+            runTestGL(caps, true);
+        } // issues w/ AMD catalyst driver and pixmap surface ..
     }
     
     @Test
