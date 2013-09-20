@@ -137,7 +137,7 @@ public class TestJPEGJoglAWTCompareNewtAWT extends UITestCase {
         
         // load texture from file inside current GL context to match the way
         // the bug submitter was doing it
-        final GLEventListener gle = new TextureDraw01ES2Listener( texData ) ;
+        final GLEventListener gle = new TextureDraw01ES2Listener( texData, 0 ) ;
         glad1.addGLEventListener(gle);
         glad1.addGLEventListener(new GLEventListener() {                    
             boolean shot = false;
@@ -193,7 +193,7 @@ public class TestJPEGJoglAWTCompareNewtAWT extends UITestCase {
         // the bug submitter was doing it
         final GLEventListener gle;
         if( texData != null ) {
-            gle = new TextureDraw01ES2Listener( texData ) ;
+            gle = new TextureDraw01ES2Listener( texData, 0 ) ;
             glad1.addGLEventListener(gle);
         } else {
             gle = null;

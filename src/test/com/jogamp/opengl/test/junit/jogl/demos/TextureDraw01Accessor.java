@@ -31,5 +31,6 @@ package com.jogamp.opengl.test.junit.jogl.demos;
 import com.jogamp.opengl.util.texture.Texture;
 
 public interface TextureDraw01Accessor {
+    public void setKeepTextureBound(boolean v);    
     public Texture getTexture();
 }

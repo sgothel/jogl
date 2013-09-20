@@ -105,7 +105,7 @@ public class TestTGATextureFromFileNEWT extends UITestCase {
         
         // load texture from file inside current GL context to match the way
         // the bug submitter was doing it
-        final GLEventListener gle = useFFP ? new TextureDraw01GL2Listener( texData ) : new TextureDraw01ES2Listener( texData ) ;
+        final GLEventListener gle = useFFP ? new TextureDraw01GL2Listener( texData ) : new TextureDraw01ES2Listener( texData, 0 ) ;
         glad.addGLEventListener(gle);
         glad.addGLEventListener(new GLEventListener() {                    
             boolean shot = false;

@@ -101,6 +101,7 @@ import com.jogamp.opengl.util.TileRenderer;
 import com.jogamp.opengl.util.awt.AWTGLPixelBuffer;
 import com.jogamp.opengl.util.awt.AWTGLPixelBuffer.AWTGLPixelBufferProvider;
 import com.jogamp.opengl.util.awt.AWTGLPixelBuffer.SingleAWTGLPixelBufferProvider;
+import com.jogamp.opengl.util.texture.TextureState;
 
 /** A lightweight Swing component which provides OpenGL rendering
     support. Provided for compatibility with Swing user interfaces
@@ -1219,6 +1220,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
     // Implementation using software rendering
     private GLDrawableImpl offscreenDrawable;
+    private boolean offscreenIsFBO;
     private FBObject fboFlipped;
     private GLSLTextureRaster glslTextureRaster;
     
@@ -1264,7 +1266,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
               final GL gl = offscreenContext.getGL();
               flipVertical = offscreenDrawable.isGLOriented();
               final GLCapabilitiesImmutable chosenCaps = offscreenDrawable.getChosenGLCapabilities();
-              if( USE_GLSL_TEXTURE_RASTERIZER && chosenCaps.isFBO() && flipVertical && gl.isGL2ES2() ) {
+              offscreenIsFBO = chosenCaps.isFBO();
+              if( USE_GLSL_TEXTURE_RASTERIZER && offscreenIsFBO && flipVertical && gl.isGL2ES2() ) {
                   final boolean _autoSwapBufferMode = helper.getAutoSwapBufferMode();
                   helper.setAutoSwapBufferMode(false);
                   final GLFBODrawable fboDrawable = (GLFBODrawable) offscreenDrawable;
@@ -1344,6 +1347,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             adevice.close();
         }
       }
+      offscreenIsFBO = false;
       
       if( null != readBackIntsForCPUVFlip ) { 
           readBackIntsForCPUVFlip.clear();
@@ -1420,10 +1424,23 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
            readBackInts = readBackIntsForCPUVFlip;
         }
 
-        if( DEBUG_VIEWPORT ) {
-            int[] vp = new int[] { 0, 0, 0, 0 };
-            gl.glGetIntegerv(GL.GL_VIEWPORT, vp, 0);
-            System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL: Viewport: "+vp[0]+"/"+vp[1]+" "+vp[2]+"x"+vp[3]);
+        final TextureState usrTexState, fboTexState;
+        final int fboTexUnit = GL.GL_TEXTURE0 + ( offscreenIsFBO ? ((GLFBODrawable)offscreenDrawable).getTextureUnit() : 0 );
+        
+        if( offscreenIsFBO ) {
+            usrTexState = new TextureState(gl, GL.GL_TEXTURE_2D);
+            if( fboTexUnit != usrTexState.getUnit() ) {
+                // glActiveTexture(..) + glBindTexture(..) are implicit performed in GLFBODrawableImpl's
+                // swapBuffers/contextMadeCurent -> swapFBOImpl.
+                // We need to cache the texture unit's bound texture-id before it's overwritten.
+                gl.glActiveTexture(fboTexUnit);
+                fboTexState = new TextureState(gl, fboTexUnit, GL.GL_TEXTURE_2D);
+            } else {
+                fboTexState = usrTexState;
+            }
+        } else {
+            usrTexState = null;
+            fboTexState = null;
         }
         
         // Must now copy pixels from offscreen context into surface
@@ -1439,6 +1456,20 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         offscreenDrawable.swapBuffers();
         
         if(null != glslTextureRaster) { // implies flippedVertical
+            final boolean viewportChange;
+            final int[] usrViewport = new int[] { 0, 0, 0, 0 };
+            gl.glGetIntegerv(GL.GL_VIEWPORT, usrViewport, 0);
+            viewportChange = 0 != usrViewport[0] || 0 != usrViewport[1] || 
+                             offscreenDrawable.getWidth() != usrViewport[2] || offscreenDrawable.getHeight() != usrViewport[3];
+            if( DEBUG_VIEWPORT ) {
+                System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL: Viewport: change "+viewportChange+
+                         ", "+usrViewport[0]+"/"+usrViewport[1]+" "+usrViewport[2]+"x"+usrViewport[3]+
+                         " -> 0/0 "+offscreenDrawable.getWidth()+"x"+offscreenDrawable.getHeight());
+            }
+            if( viewportChange ) {
+                gl.glViewport(0, 0, offscreenDrawable.getWidth(), offscreenDrawable.getHeight());
+            }            
+                        
             // perform vert-flipping via OpenGL/FBO        
             final GLFBODrawable fboDrawable = (GLFBODrawable)offscreenDrawable;
             final FBObject.TextureAttachment fboTex = fboDrawable.getTextureBuffer(GL.GL_FRONT);
@@ -1446,12 +1477,17 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             fboFlipped.bind(gl);
             
             // gl.glActiveTexture(GL.GL_TEXTURE0 + fboDrawable.getTextureUnit()); // implicit by GLFBODrawableImpl: swapBuffers/contextMadeCurent -> swapFBOImpl
-            gl.glBindTexture(GL.GL_TEXTURE_2D, fboTex.getName());
+            gl.glBindTexture(GL.GL_TEXTURE_2D, fboTex.getName());            
             // gl.glClear(GL.GL_DEPTH_BUFFER_BIT); // fboFlipped runs w/o DEPTH!
+            
             glslTextureRaster.display(gl.getGL2ES2());
             gl.glReadPixels(0, 0, panelWidth, panelHeight, pixelAttribs.format, pixelAttribs.type, readBackInts);
-
+            
             fboFlipped.unbind(gl);
+            if( viewportChange ) {
+                gl.glViewport(usrViewport[0], usrViewport[1], usrViewport[2], usrViewport[3]);
+            }
+            fboTexState.restore(gl);
         } else {
             gl.glReadPixels(0, 0, panelWidth, panelHeight, pixelAttribs.format, pixelAttribs.type, readBackInts);
             
@@ -1470,6 +1506,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                   System.arraycopy(src, srcPos, dest, destPos, incr);
                 }
             }
+        }
+        if( offscreenIsFBO && fboTexUnit != usrTexState.getUnit() ) {
+            usrTexState.restore(gl);
         }
 
         // Restore saved modes.

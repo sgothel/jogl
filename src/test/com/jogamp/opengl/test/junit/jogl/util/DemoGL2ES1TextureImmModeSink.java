@@ -58,9 +58,11 @@ public class DemoGL2ES1TextureImmModeSink implements GLEventListener, TextureDra
     private GLU      glu = new GLU();
     private TextureData textureData;
     private Texture  texture;
+    boolean keepTextureBound;
 
     public DemoGL2ES1TextureImmModeSink() {
         this.ims = ImmModeSink.createFixed(32, 3, GL.GL_FLOAT, 4, GL.GL_FLOAT, 0, GL.GL_FLOAT, 2, GL.GL_FLOAT, GL.GL_STATIC_DRAW);
+        this.keepTextureBound = false;
     }
 
     public void setForceFFPEmu(boolean forceFFPEmu, boolean verboseFFPEmu, boolean debugFFPEmu, boolean traceFFPEmu) {
@@ -70,6 +72,17 @@ public class DemoGL2ES1TextureImmModeSink implements GLEventListener, TextureDra
         this.traceFFPEmu = traceFFPEmu;
     }
 
+
+    @Override
+    public void setKeepTextureBound(boolean v) {
+        this.keepTextureBound = v;
+    }
+    @Override
+    public Texture getTexture( ) {
+        return this.texture;
+    }
+    
+    @Override
     public void init(GLAutoDrawable drawable) {
         GL _gl = drawable.getGL();
         if(debugFFPEmu) {
@@ -87,15 +100,16 @@ public class DemoGL2ES1TextureImmModeSink implements GLEventListener, TextureDra
             InputStream  testTextureStream = testTextureUrlConn.getInputStream();
             textureData = TextureIO.newTextureData(gl.getGLProfile(), testTextureStream , false /* mipmap */, TextureIO.PNG);
             texture = TextureIO.newTexture(gl, textureData);
+            if( keepTextureBound && null != texture ) {
+                texture.enable(gl);
+                texture.bind(gl);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public Texture getTexture( ) {
-        return this.texture;
-    }
-
+    @Override
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
         GL2ES1 gl = drawable.getGL().getGL2ES1();
         gl.glMatrixMode(GL2ES1.GL_PROJECTION);
@@ -105,6 +119,7 @@ public class DemoGL2ES1TextureImmModeSink implements GLEventListener, TextureDra
         gl.glLoadIdentity();
     }
 
+    @Override
     public void dispose(GLAutoDrawable drawable) {
         GL2ES1 gl = drawable.getGL().getGL2ES1();
         if(null!=texture) {
@@ -116,13 +131,16 @@ public class DemoGL2ES1TextureImmModeSink implements GLEventListener, TextureDra
         }
     }
 
+    @Override
     public void display(GLAutoDrawable drawable) {
         GL2ES1 gl = drawable.getGL().getGL2ES1();
 
         // draw one quad with the texture
         if(null!=texture) {
-            texture.enable(gl);
-            texture.bind(gl);
+            if( !keepTextureBound ) {
+                texture.enable(gl);
+                texture.bind(gl);
+            }
             // gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_REPLACE);
             TextureCoords coords = texture.getImageTexCoords();
             ims.glBegin(ImmModeSink.GL_QUADS);
@@ -135,7 +153,9 @@ public class DemoGL2ES1TextureImmModeSink implements GLEventListener, TextureDra
             ims.glTexCoord2f(coords.left(), coords.top());
             ims.glVertex3f(0, 1, 0);
             ims.glEnd(gl);
-            texture.disable(gl);
+            if( !keepTextureBound ) {
+                texture.disable(gl);
+            }
         }
     }
 }

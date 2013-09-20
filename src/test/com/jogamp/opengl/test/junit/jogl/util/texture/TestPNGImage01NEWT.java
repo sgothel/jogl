@@ -109,7 +109,7 @@ public class TestPNGImage01NEWT extends UITestCase {
         
         // load texture from file inside current GL context to match the way
         // the bug submitter was doing it
-        final TextureDraw01ES2Listener gle = new TextureDraw01ES2Listener( texData ) ;
+        final TextureDraw01ES2Listener gle = new TextureDraw01ES2Listener( texData, 0 ) ;
         // gle.setClearColor(new float[] { 1.0f, 0.0f, 0.0f, 1.0f } );
 
         glad.addGLEventListener(gle);
