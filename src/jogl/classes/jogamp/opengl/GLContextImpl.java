@@ -148,8 +148,7 @@ public abstract class GLContextImpl extends GLContext {
     this.glDebugHandler = new GLDebugMessageHandler(this);
   }
 
-  @Override
-  protected void resetStates() {
+  private final void clearStates() {
       // Because we don't know how many other contexts we might be
       // sharing with (and it seems too complicated to implement the
       // GLObjectTracker's ref/unref scheme for the buffer-related
@@ -158,14 +157,18 @@ public abstract class GLContextImpl extends GLContext {
       if (bufferSizeTracker != null) {
           bufferSizeTracker.clearCachedBufferSizes();
       }
-
       if (bufferStateTracker != null) { // <init>
           bufferStateTracker.clearBufferObjectState();
       }
-
       if (glStateTracker != null) { // <init>
-          glStateTracker.clearStates(false);
+          glStateTracker.setEnabled(false);
+          glStateTracker.clearStates();
       }
+  }
+  
+  @Override
+  protected void resetStates() {
+      clearStates();
 
       extensionAvailability = null;
       glProcAddressTable = null;

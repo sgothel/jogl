@@ -40,6 +40,7 @@
 package jogamp.opengl;
 
 import javax.media.opengl.*;
+
 import com.jogamp.common.util.IntIntHashMap;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
@@ -95,8 +96,7 @@ public class GLStateTracker {
     stack = new ArrayList<SavedState>(MIN_CLIENT_ATTRIB_STACK_DEPTH);
   }
 
-  public final void clearStates(boolean enable) {
-    enabled = enable;    
+  public final void clearStates() {
     pixelStateMap.clear();
   }
 
@@ -112,7 +112,7 @@ public class GLStateTracker {
    *  which forces the caller to query GL. */
   public final boolean getInt(int pname, int[] params, int params_offset) {
     if(enabled) {
-        int value = pixelStateMap.get(pname);
+        final int value = pixelStateMap.get(pname);        
         if(0xFFFFFFFF != value) {
             params[params_offset] = value;
             return true;
@@ -125,7 +125,7 @@ public class GLStateTracker {
    *  which forces the caller to query GL. */
   public final boolean getInt(int pname, IntBuffer params, int dummy) {
     if(enabled) {
-        int value = pixelStateMap.get(pname);
+        final int value = pixelStateMap.get(pname);
         if(0xFFFFFFFF != value) {
             params.put(params.position(), value);
             return true;
