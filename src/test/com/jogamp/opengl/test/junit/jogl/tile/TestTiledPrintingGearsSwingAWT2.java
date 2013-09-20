@@ -65,7 +65,6 @@ import com.jogamp.newt.event.TraceKeyAdapter;
 import com.jogamp.newt.event.TraceWindowAdapter;
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;
-import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquareES1;
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
@@ -73,11 +72,9 @@ import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.util.Animator;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
+public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
 
     static boolean waitForKey = false;
-    /** only when run manually .. */
-    static boolean allow600dpi = false;
     static GLProfile glp;
     static int width, height;
     
@@ -86,8 +83,8 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
         if(GLProfile.isAvailable(GLProfile.GL2)) {
             glp = GLProfile.get(GLProfile.GL2);
             Assert.assertNotNull(glp);
-            width  = 640;
-            height = 480;
+            width  = 560; // 640;
+            height = 420; // 480;
         } else {
             setTestSupported(false);
         }
@@ -99,51 +96,45 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
     public static void releaseClass() {
     }
     
-    protected void runTestGL(GLCapabilities caps, boolean layered) throws InterruptedException, InvocationTargetException {
-        final int layerStepX = width/6, layerStepY = height/6;
-        final Dimension glc_sz = new Dimension(layered ? width - 2*layerStepX : width/2, layered ? height - 2*layerStepY : height);
+    protected void runTestGL(GLCapabilities caps, final boolean addLayout, boolean layered, boolean useAnim) throws InterruptedException, InvocationTargetException {
+        final Dimension glc_sz = new Dimension(width, height);
         final GLJPanel glJPanel1 = new GLJPanel(caps);
         Assert.assertNotNull(glJPanel1);        
         glJPanel1.setMinimumSize(glc_sz);
         glJPanel1.setPreferredSize(glc_sz);
-        if( layered ) {
-            glJPanel1.setBounds(layerStepX/2, layerStepY/2, glc_sz.width, glc_sz.height);
-        } else {
-            glJPanel1.setBounds(0, 0, glc_sz.width, glc_sz.height);
-        }
+        glJPanel1.setBounds(0, 0, glc_sz.width, glc_sz.height);
         glJPanel1.addGLEventListener(new Gears());
         
-        final GLJPanel glJPanel2 = new GLJPanel(caps);
-        Assert.assertNotNull(glJPanel2);        
-        glJPanel2.setMinimumSize(glc_sz);
-        glJPanel2.setPreferredSize(glc_sz);
-        if( layered ) {
-            glJPanel2.setBounds(3*layerStepY, 2*layerStepY, glc_sz.width, glc_sz.height);
-        } else {
-            glJPanel2.setBounds(0, 0, glc_sz.width, glc_sz.height);
-        }
-        glJPanel2.addGLEventListener(new RedSquareES1());
-        // glJPanel2.addGLEventListener(new Gears());
-        
-        final JComponent demoPanel;
+        final JComponent tPanel, demoPanel;
         if( layered ) {
             glJPanel1.setOpaque(true);
-            glJPanel2.setOpaque(false);
-            final Dimension lsz = new Dimension(width, height);
-            demoPanel = new JLayeredPane();
-            demoPanel.setMinimumSize(lsz);
-            demoPanel.setPreferredSize(lsz);
-            demoPanel.setBounds(0, 0, lsz.width, lsz.height);
-            demoPanel.setBorder(BorderFactory.createTitledBorder("Layered Pane"));
-            demoPanel.add(glJPanel1, JLayeredPane.DEFAULT_LAYER);
-            demoPanel.add(glJPanel2, Integer.valueOf(1));
             final JButton tb = new JButton("On Top");
-            tb.setBounds(4*layerStepY, 3*layerStepY, 100, 50);
-            demoPanel.add(tb, Integer.valueOf(2));
+            tb.setBounds(width/2, height/2, 200, 50);
+            if( addLayout ) {
+                tPanel = null;
+                final Dimension lsz = new Dimension(width, height);
+                demoPanel = new JLayeredPane();
+                demoPanel.setMinimumSize(lsz);
+                demoPanel.setPreferredSize(lsz);
+                demoPanel.setBounds(0, 0, lsz.width, lsz.height);
+                demoPanel.setBorder(BorderFactory.createTitledBorder("Layered Pane"));
+                demoPanel.add(glJPanel1, JLayeredPane.DEFAULT_LAYER);
+                demoPanel.add(tb, Integer.valueOf(2));
+            } else {
+                tPanel = new TransparentPanel();
+                tPanel.setBounds(0, 0, width, height);
+                tPanel.setLayout(null);
+                tPanel.add(tb);
+                demoPanel = glJPanel1;
+            }
         } else {
-            demoPanel = new JPanel();
-            demoPanel.add(glJPanel1);
-            demoPanel.add(glJPanel2);
+            tPanel = null;
+            if( addLayout ) {
+                demoPanel = new JPanel();
+                demoPanel.add(glJPanel1);
+            } else {
+                demoPanel = glJPanel1;                
+            }
         }
         
         final JFrame frame = new JFrame("Swing Print");
@@ -153,25 +144,25 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
             public void actionPerformed(ActionEvent e) {
                 doPrintManual(frame, 72, 0);
             } };
+        final ActionListener print150DPIAction = new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                doPrintManual(frame, 150, -1);
+            } };
         final ActionListener print300DPIAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 doPrintManual(frame, 300, -1);
             } };
-        final ActionListener print600DPIAction = new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                doPrintManual(frame, 600, -1);
-            } };
         final Button print72DPIButton = new Button("72dpi");
         print72DPIButton.addActionListener(print72DPIAction);
+        final Button print150DPIButton = new Button("150dpi");
+        print150DPIButton.addActionListener(print150DPIAction);
         final Button print300DPIButton = new Button("300dpi");
         print300DPIButton.addActionListener(print300DPIAction);
-        final Button print600DPIButton = new Button("600dpi");
-        print600DPIButton.addActionListener(print600DPIAction);
             
         final JPanel printPanel = new JPanel();
         printPanel.add(print72DPIButton);
+        printPanel.add(print150DPIButton);
         printPanel.add(print300DPIButton);
-        printPanel.add(print600DPIButton);
         final JPanel southPanel = new JPanel();
         southPanel.add(new Label("South"));
         final JPanel eastPanel = new JPanel();
@@ -179,75 +170,70 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
         final JPanel westPanel = new JPanel();
         westPanel.add(new Label("West"));
         
-        Animator animator = new Animator();
-        animator.add(glJPanel1);
-        animator.add(glJPanel2);
+        final Animator animator = useAnim ? new Animator() : null;
+        if( null != animator ) {
+            animator.add(glJPanel1);
+        }
         QuitAdapter quitAdapter = new QuitAdapter();
 
         new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glJPanel1);
-        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glJPanel2);
         new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    final Container fcont = frame.getContentPane();
-                    fcont.setLayout(new BorderLayout());
-                    fcont.add(printPanel, BorderLayout.NORTH);
-                    fcont.add(demoPanel, BorderLayout.CENTER);
-                    fcont.add(southPanel, BorderLayout.SOUTH);
-                    fcont.add(eastPanel, BorderLayout.EAST);
-                    fcont.add(westPanel, BorderLayout.WEST);
-                    fcont.validate();
-                    frame.pack();
+                    final Container fcont = frame.getContentPane();        
+                    if( addLayout ) {
+                        fcont.setLayout(new BorderLayout());
+                        fcont.add(printPanel, BorderLayout.NORTH);
+                        fcont.add(demoPanel, BorderLayout.CENTER);
+                        fcont.add(southPanel, BorderLayout.SOUTH);
+                        fcont.add(eastPanel, BorderLayout.EAST);
+                        fcont.add(westPanel, BorderLayout.WEST);
+                        fcont.validate();
+                        frame.pack();
+                    } else {
+                        frame.setSize(glc_sz);
+                        fcont.setLayout(null);
+                        if( null != tPanel ) {
+                            fcont.add(tPanel);
+                        }
+                        fcont.add(demoPanel);
+                    }
                     frame.setVisible(true);
                 } } ) ;
         
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel1, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel2, true));
         
-        animator.setUpdateFPSFrames(60, System.err);        
-        animator.start();
-        Assert.assertEquals(true, animator.isAnimating());
+        if( null != animator ) {
+            animator.setUpdateFPSFrames(60, System.err);        
+            animator.start();
+            Assert.assertEquals(true, animator.isAnimating());
+        }
 
+        final long t0 = System.currentTimeMillis();
+        long t1 = t0;
         boolean printDone = false;
-        while(!quitAdapter.shouldQuit() && animator.isAnimating() && ( 0 == duration || animator.getTotalFPSDuration()<duration )) {
+        while( !quitAdapter.shouldQuit() && ( 0 == duration || ( t1 - t0 ) < duration ) ) {
             Thread.sleep(200);
             if( !printDone ) {
                 printDone = true;
                 {
-                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, false, 72, 0);
-                    waitUntilPrintJobsIdle(p);
-                }
-                {
-                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, false, 72, 8);
-                    waitUntilPrintJobsIdle(p);
-                }
-                {
-                    // No AA needed for 300 dpi and greater :)
-                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, false, 300, -1);
-                    waitUntilPrintJobsIdle(p);
-                }
-                {
-                    // No AA needed for 300 dpi and greater :)
-                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, true, 300, -1);
-                    waitUntilPrintJobsIdle(p);
-                }
-                if( allow600dpi ) {
-                    // No AA needed for 300 dpi and greater :)
-                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, false, 600, -1);
+                    // No AA needed for 150 dpi and greater :)
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.PORTRAIT, null, false, 150, -1);
                     waitUntilPrintJobsIdle(p);
                 }
             }
+            t1 = System.currentTimeMillis();
         }
         
         Assert.assertNotNull(frame);
         Assert.assertNotNull(glJPanel1);
-        Assert.assertNotNull(glJPanel2);
-        Assert.assertNotNull(animator);
 
-        animator.stop();
-        Assert.assertEquals(false, animator.isAnimating());
+        if( null != animator ) {        
+            animator.stop();
+            Assert.assertEquals(false, animator.isAnimating());
+        }
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 frame.setVisible(false);
@@ -262,43 +248,67 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
     }
 
     @Test
-    public void test01_aa0() throws InterruptedException, InvocationTargetException {
+    public void test01_norm_layout0_layered0() throws InterruptedException, InvocationTargetException {
         GLCapabilities caps = new GLCapabilities(glp);
-        runTestGL(caps, false);
+        runTestGL(caps, false /* addLayout */, false /* layered */, false /* useAnim */);
     }
     
     @Test
-    public void test01_aa0_layered() throws InterruptedException, InvocationTargetException {
+    public void test02_norm_layout1_layered0() throws InterruptedException, InvocationTargetException {
         GLCapabilities caps = new GLCapabilities(glp);
-        caps.setAlphaBits(8);
-        runTestGL(caps, true);
+        runTestGL(caps, true /* addLayout */, false /* layered */, false /* useAnim */);
     }
     
     @Test
-    public void test01_aa0_bitmap() throws InterruptedException, InvocationTargetException {
-        if( Platform.OSType.WINDOWS == Platform.getOSType() ) {
-            GLCapabilities caps = new GLCapabilities(glp);
-            caps.setBitmap(true);
-            runTestGL(caps, false);
-        } // issues w/ AMD catalyst driver and pixmap surface ..
-    }
-    
-    @Test
-    public void test01_aa0_bitmap_layered() throws InterruptedException, InvocationTargetException {
-        if( Platform.OSType.WINDOWS == Platform.getOSType() ) {
-            GLCapabilities caps = new GLCapabilities(glp);
-            caps.setBitmap(true);
-            caps.setAlphaBits(8);
-            runTestGL(caps, true);
-        } // issues w/ AMD catalyst driver and pixmap surface ..
-    }
-    
-    @Test
-    public void test02_aa8() throws InterruptedException, InvocationTargetException {
+    public void test03_norm_layout0_layered1() throws InterruptedException, InvocationTargetException {
         GLCapabilities caps = new GLCapabilities(glp);
-        caps.setSampleBuffers(true);
-        caps.setNumSamples(8);
-        runTestGL(caps, false);
+        runTestGL(caps, false /* addLayout */, true /* layered */, false /* useAnim */);
+    }
+    
+    @Test
+    public void test04_norm_layout1_layered1() throws InterruptedException, InvocationTargetException {
+        GLCapabilities caps = new GLCapabilities(glp);
+        runTestGL(caps, true /* addLayout */, true /* layered */, false /* useAnim */);
+    }
+    
+    @Test
+    public void test11_bitm_layout0_layered0() throws InterruptedException, InvocationTargetException {
+        if( Platform.OSType.WINDOWS != Platform.getOSType() ) {
+            return;
+        }
+        GLCapabilities caps = new GLCapabilities(glp);
+        caps.setBitmap(true);
+        runTestGL(caps, false /* addLayout */, false /* layered */, false /* useAnim */);
+    }
+    
+    @Test
+    public void test12_bitm_layout1_layered0() throws InterruptedException, InvocationTargetException {
+        if( Platform.OSType.WINDOWS != Platform.getOSType() ) {
+            return;
+        }
+        GLCapabilities caps = new GLCapabilities(glp);
+        caps.setBitmap(true);
+        runTestGL(caps, true /* addLayout */, false /* layered */, false /* useAnim */);
+    }
+    
+    @Test
+    public void test13_bitm_layout0_layered1() throws InterruptedException, InvocationTargetException {
+        if( Platform.OSType.WINDOWS != Platform.getOSType() ) {
+            return;
+        }
+        GLCapabilities caps = new GLCapabilities(glp);
+        caps.setBitmap(true);
+        runTestGL(caps, false /* addLayout */, true /* layered */, false /* useAnim */);
+    }
+    
+    @Test
+    public void test14_bitm_layout1_layered1() throws InterruptedException, InvocationTargetException {
+        if( Platform.OSType.WINDOWS != Platform.getOSType() ) {
+            return;
+        }
+        GLCapabilities caps = new GLCapabilities(glp);
+        caps.setBitmap(true);
+        runTestGL(caps, true /* addLayout */, true /* layered */, false /* useAnim */);
     }
     
     static long duration = 500; // ms
@@ -314,8 +324,6 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
             } else if(args[i].equals("-height")) {
                 i++;
                 height = MiscUtils.atoi(args[i], height);
-            } else if(args[i].equals("-600dpi")) {
-                allow600dpi = true;
             } else if(args[i].equals("-wait")) {
                 waitForKey = true;
             }
@@ -327,6 +335,6 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
                 System.err.println(stdin.readLine());
             } catch (IOException e) { }
         }
-        org.junit.runner.JUnitCore.main(TestTiledPrintingGearsSwingAWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestTiledPrintingGearsSwingAWT2.class.getName());
     }
 }

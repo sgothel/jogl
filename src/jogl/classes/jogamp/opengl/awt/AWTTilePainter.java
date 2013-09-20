@@ -196,6 +196,7 @@ public class AWTTilePainter {
         final Rectangle2D dImageSizeOrig = new Rectangle2D.Double(0, 0, width, height);
         
         // Retrieve scaled image-size and clip-bounds
+        // Note: Clip bounds lie within image-size! 
         final Rectangle2D dImageSizeScaled, dClipScaled;
         {
             final AffineTransform scaledATI;
@@ -212,13 +213,15 @@ public class AWTTilePainter {
                 s0 = saveAT.createTransformedShape(dClipOrig); // user in
                 dClipScaled = scaledATI.createTransformedShape(s0).getBounds2D(); // scaled out
             }
-        }        
+        }
         final Rectangle iClipScaled = getRoundedRect(dClipScaled);
         final Rectangle iImageSizeScaled = getRoundedRect(dImageSizeScaled);
-        scaledYOffset = iClipScaled.y;
         renderer.setImageSize(iImageSizeScaled.width, iImageSizeScaled.height);
         renderer.clipImageSize(iClipScaled.width, iClipScaled.height);
         final int clipH = Math.min(iImageSizeScaled.height, iClipScaled.height);
+        // Clip bounds lie within image-size!
+        // GL y-offset is lower-left origin, AWT y-offset upper-left.
+        scaledYOffset = iClipScaled.y;
         renderer.setTileOffset(iClipScaled.x, iImageSizeScaled.height - ( iClipScaled.y + clipH ));
         
         // Scale actual Grahics2D matrix
@@ -294,10 +297,11 @@ public class AWTTilePainter {
             final DimensionImmutable cis = renderer.getClippedImageSize();
             final int tWidth = renderer.getParam(TileRendererBase.TR_CURRENT_TILE_WIDTH);
             final int tHeight = renderer.getParam(TileRendererBase.TR_CURRENT_TILE_HEIGHT);
-            final int pX = renderer.getParam(TileRendererBase.TR_CURRENT_TILE_X_POS);
-            final int pY = renderer.getParam(TileRendererBase.TR_CURRENT_TILE_Y_POS);
-            final int pYOff = renderer.getParam(TileRenderer.TR_TILE_Y_OFFSET);
-            final int pYf = cis.getHeight() - ( pY - pYOff + tHeight ) + scaledYOffset;
+            final int tY = renderer.getParam(TileRendererBase.TR_CURRENT_TILE_Y_POS);
+            final int tYOff = renderer.getParam(TileRenderer.TR_TILE_Y_OFFSET);
+            final int imgYOff = flipVertical ? 0 : renderer.getParam(TileRenderer.TR_TILE_HEIGHT) - tHeight; // imgYOff will be cut-off via sub-image
+            final int pX = renderer.getParam(TileRendererBase.TR_CURRENT_TILE_X_POS); // tileX == pX
+            final int pY = cis.getHeight() - ( tY - tYOff + tHeight ) + scaledYOffset;
             
             // Copy temporary data into raster of BufferedImage for faster
             // blitting Note that we could avoid this copy in the cases
@@ -309,7 +313,7 @@ public class AWTTilePainter {
                         _counter, 
                         renderer.getParam(TileRenderer.TR_CURRENT_COLUMN), renderer.getParam(TileRenderer.TR_CURRENT_ROW),
                         tWidth, tHeight,
-                        pX, pY, pYOff, pX, pYf).replace(' ', '_');
+                        pX, tY, tYOff, pX, pY).replace(' ', '_');
                 System.err.println("XXX file "+fname);
                 final File fout = new File(fname); 
                 try {
@@ -340,7 +344,7 @@ public class AWTTilePainter {
                         _counter, 
                         renderer.getParam(TileRenderer.TR_CURRENT_COLUMN), renderer.getParam(TileRenderer.TR_CURRENT_ROW),
                         tWidth, tHeight,
-                        pX, pY, pYOff, pX, pYf).replace(' ', '_');
+                        pX, tY, tYOff, pX, pY).replace(' ', '_');
                 System.err.println("XXX file "+fname);
                 final File fout = new File(fname); 
                 try {
@@ -351,17 +355,15 @@ public class AWTTilePainter {
                 _counter++;
             }            
             // Draw resulting image in one shot
-            final Shape oClip = g2d.getClip();
-            // g2d.clipRect(pX, pYf, tWidth, tHeight);
-            final BufferedImage outImage = dstImage.getSubimage(0, 0, tWidth, tHeight); // instead of clipping
-            final boolean drawDone = g2d.drawImage(outImage, pX, pYf, null); // Null ImageObserver since image data is ready.
-            // final boolean drawDone = g2d.drawImage(dstImage, pX, pYf, dstImage.getWidth(), dstImage.getHeight(), null); // Null ImageObserver since image data is ready.
+            final BufferedImage outImage = dstImage.getSubimage(0, imgYOff, tWidth, tHeight);
+            final boolean drawDone = g2d.drawImage(outImage, pX, pY, null); // Null ImageObserver since image data is ready.
             if( verbose ) {
-                System.err.println("XXX tile-post.X clippedImageSize "+cis);
-                System.err.println("XXX tile-post.X pYf "+cis.getHeight()+" - ( "+pY+" - "+pYOff+" + "+tHeight+" ) "+scaledYOffset+" = "+ pYf);
-                System.err.println("XXX tile-post.X clip "+oClip+" + "+pX+" / [pY "+pY+", pYOff "+pYOff+", pYf "+pYf+"] "+tWidth+"x"+tHeight+" -> "+g2d.getClip());
+                final Shape oClip = g2d.getClip();
+                System.err.println("XXX tile-post.X tile 0 / "+imgYOff+" "+tWidth+"x"+tHeight+", clippedImgSize "+cis);
+                System.err.println("XXX tile-post.X pYf "+cis.getHeight()+" - ( "+tY+" - "+tYOff+" + "+tHeight+" ) "+scaledYOffset+" = "+ pY);
+                System.err.println("XXX tile-post.X clip "+oClip+" + "+pX+" / [pY "+tY+", pYOff "+tYOff+", pYf "+pY+"] -> "+g2d.getClip());
                 g2d.setColor(Color.BLACK);
-                g2d.drawRect(pX, pYf, tWidth, tHeight);
+                g2d.drawRect(pX, pY, tWidth, tHeight);
                 if( null != oClip ) {
                     final Rectangle r = oClip.getBounds();
                     g2d.setColor(Color.YELLOW);
@@ -370,9 +372,8 @@ public class AWTTilePainter {
                 System.err.println("XXX tile-post.X "+renderer);
                 System.err.println("XXX tile-post.X dst-img "+dstImage.getWidth()+"x"+dstImage.getHeight());
                 System.err.println("XXX tile-post.X out-img "+outImage.getWidth()+"x"+outImage.getHeight());
-                System.err.println("XXX tile-post.X y-flip "+flipVertical+" -> "+pX+"/"+pYf+", drawDone "+drawDone);
+                System.err.println("XXX tile-post.X y-flip "+flipVertical+" -> "+pX+"/"+pY+", drawDone "+drawDone);
             }
-            // g2d.setClip(oClip);
         }
         @Override
         public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
