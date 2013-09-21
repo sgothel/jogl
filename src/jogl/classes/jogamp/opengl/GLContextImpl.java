@@ -157,19 +157,16 @@ public abstract class GLContextImpl extends GLContext {
       if (bufferSizeTracker != null) {
           bufferSizeTracker.clearCachedBufferSizes();
       }
-      if (bufferStateTracker != null) { // <init>
-          bufferStateTracker.clearBufferObjectState();
-      }
-      if (glStateTracker != null) { // <init>
-          glStateTracker.setEnabled(false);
-          glStateTracker.clearStates();
-      }
+      bufferStateTracker.clearBufferObjectState();
+      glStateTracker.setEnabled(false);
+      glStateTracker.clearStates();
   }
   
   @Override
-  protected void resetStates() {
-      clearStates();
-
+  protected void resetStates(boolean isInit) {
+      if( !isInit ) {
+          clearStates();
+      }
       extensionAvailability = null;
       glProcAddressTable = null;
       gl = null;
@@ -188,7 +185,7 @@ public abstract class GLContextImpl extends GLContext {
       
       pixelDataEvaluated = false;
 
-      super.resetStates();
+      super.resetStates(isInit);
   }
 
   @Override
@@ -435,6 +432,7 @@ public abstract class GLContextImpl extends GLContext {
                   if(GLContextShareSet.contextDestroyed(this) && !GLContextShareSet.hasCreatedSharedLeft(this)) {
                       GLContextShareSet.unregisterSharing(this);
                   }
+                  resetStates(false);
               } finally {
                   lock.unlock();
                   if ( DEBUG_TRACE_SWITCH ) {
@@ -448,8 +446,9 @@ public abstract class GLContextImpl extends GLContext {
           if( null != associateDrawableException ) {
               throw new GLException("Exception @ destroy's associateDrawable(false)", associateDrawableException);
           }
+      } else {
+          resetStates(false);
       }
-      resetStates();
   }
   protected abstract void destroyImpl() throws GLException;
 
@@ -629,7 +628,7 @@ public abstract class GLContextImpl extends GLContext {
       */
     }
     if( TRACE_SWITCH ) {
-        System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.X3]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - switch - "+makeCurrentResultToString(res)+" - "+lock);
+        System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.X3]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - switch - "+makeCurrentResultToString(res)+" - stateTracker.on "+glStateTracker.isEnabled()+" - "+lock);
     }      
     return res;
   }
@@ -868,14 +867,14 @@ public abstract class GLContextImpl extends GLContext {
                 if(PROFILE_ALIASING) {
                     hasGL3   = true;
                 }
-                resetStates(); // clean context states, since creation was temporary
+                resetStates(false); // clean context states, since creation was temporary
             }
         }
         if(!hasGL3) {
             hasGL3   = createContextARBMapVersionsAvailable(3, CTX_PROFILE_CORE);    // GL3
             success |= hasGL3;
             if(hasGL3) {
-                resetStates(); // clean this context states, since creation was temporary                
+                resetStates(false); // clean this context states, since creation was temporary                
             }
         }
         if(!hasGL4bc) {
@@ -897,7 +896,7 @@ public abstract class GLContextImpl extends GLContext {
                     hasGL4   = true;
                     hasGL3   = true;
                 }
-                resetStates(); // clean this context states, since creation was temporary
+                resetStates(false); // clean this context states, since creation was temporary
             }
         }
         if(!hasGL3bc) {
@@ -913,21 +912,21 @@ public abstract class GLContextImpl extends GLContext {
                     hasGL2   = true;
                     hasGL3   = true;
                 }
-                resetStates(); // clean this context states, since creation was temporary
+                resetStates(false); // clean this context states, since creation was temporary
             }
         }
         if(!hasGL2) {
             hasGL2   = createContextARBMapVersionsAvailable(2, CTX_PROFILE_COMPAT);  // GL2
             success |= hasGL2;
             if(hasGL2) {
-                resetStates(); // clean this context states, since creation was temporary                
+                resetStates(false); // clean this context states, since creation was temporary                
             }
         }
         if(!hasES3) {
             hasES3   = createContextARBMapVersionsAvailable(3, CTX_PROFILE_ES);  // ES3
             success |= hasES3;
             if(hasES3) {
-                resetStates(); // clean this context states, since creation was temporary                
+                resetStates(false); // clean this context states, since creation was temporary                
             }
         }
         if(success) {
@@ -946,7 +945,7 @@ public abstract class GLContextImpl extends GLContext {
   }
 
   /** 
-   * Note: Since context creation is temporary, caller need to issue {@link #resetStates()}, if creation was successful, i.e. returns true.
+   * Note: Since context creation is temporary, caller need to issue {@link #resetStates(boolean)}, if creation was successful, i.e. returns true.
    * This method does not reset the states, allowing the caller to utilize the state variables. 
    **/
   private final boolean createContextARBMapVersionsAvailable(int reqMajor, int reqProfile) {

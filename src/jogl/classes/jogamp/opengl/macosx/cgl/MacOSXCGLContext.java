@@ -193,10 +193,10 @@ public class MacOSXCGLContext extends GLContextImpl
   }
 
   @Override
-  protected void resetStates() {
+  protected void resetStates(boolean isInit) {
     // no inner state _cglExt = null;
     cglExtProcAddressTable = null;
-    super.resetStates();
+    super.resetStates(isInit);
   }
 
   @Override

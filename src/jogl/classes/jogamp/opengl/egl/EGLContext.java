@@ -70,12 +70,12 @@ public class EGLContext extends GLContextImpl {
     }
 
     @Override
-    protected void resetStates() {
+    protected void resetStates(boolean isInit) {
         eglQueryStringInitialized = false;
         eglQueryStringAvailable = false;
         eglExtProcAddressTable = null;
         // no inner state _eglExt = null;
-        super.resetStates();
+        super.resetStates(isInit);
     }
 
     @Override

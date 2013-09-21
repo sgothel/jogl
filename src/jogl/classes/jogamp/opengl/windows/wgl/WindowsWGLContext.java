@@ -93,7 +93,7 @@ public class WindowsWGLContext extends GLContextImpl {
   }
 
   @Override
-  protected void resetStates() {
+  protected void resetStates(boolean isInit) {
     wglGetExtensionsStringEXTInitialized=false;
     wglGetExtensionsStringEXTAvailable=false;
     wglGLReadDrawableAvailableSet=false;
@@ -102,7 +102,7 @@ public class WindowsWGLContext extends GLContextImpl {
     wglExtProcAddressTable=null;
     hasSwapIntervalSGI = 0;
     hasSwapGroupNV = 0;
-    super.resetStates();
+    super.resetStates(isInit);
   }
 
   @Override

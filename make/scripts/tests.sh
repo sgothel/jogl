@@ -217,7 +217,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLContext -Dnewt.debug=all"
     #D_ARGS="-Dnewt.debug=all"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.GLJPanel -Djogl.debug.TileRenderer -Djogl.debug.TileRenderer.PNG"
-    D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.GLJPanel -Djogl.debug.TileRenderer"
+    #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.GLJPanel -Djogl.debug.TileRenderer"
     #D_ARGS="-Djogl.debug.PNGImage"
     #D_ARGS="-Djogl.debug.JPEGImage"
     #D_ARGS="-Djogl.debug.GLDrawable -Dnativewindow.debug.GraphicsConfiguration -Djogl.debug.CapabilitiesChooser"
@@ -303,7 +303,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NEWT $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestRedSquareES2NEWT $*
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT $*
@@ -332,7 +332,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.tile.TestRandomTiledRendering3GL2AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsSwingAWT $*
-testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsSwingAWT2 $*
+#testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsSwingAWT2 $*
 #testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsNewtAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingNIOImageSwingAWT $*
 

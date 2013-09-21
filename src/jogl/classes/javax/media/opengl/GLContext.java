@@ -208,7 +208,7 @@ public abstract class GLContext {
   protected long contextHandle;
 
   protected GLContext() {
-      resetStates();
+      resetStates(true);
   }
 
   protected VersionNumber ctxVersion;
@@ -222,9 +222,12 @@ public abstract class GLContext {
   /** Did the drawable association changed ? see {@link GLRendererQuirks#NoSetSwapIntervalPostRetarget} */ 
   protected boolean drawableRetargeted; 
     
-  protected void resetStates() {
+  /**
+   * @param isInit true if called for class initialization, otherwise false (re-init or destruction).
+   */
+  protected void resetStates(boolean isInit) {
       if (DEBUG) {
-        System.err.println(getThreadName() + ": GLContext.resetStates()");
+        System.err.println(getThreadName() + ": GLContext.resetStates(isInit "+isInit+")");
         // Thread.dumpStack();
       }
       ctxVersion = VersionNumberString.zeroVersion;

@@ -100,7 +100,7 @@ public class X11GLXContext extends GLContextImpl {
   }
 
   @Override
-  protected void resetStates() {
+  protected void resetStates(boolean isInit) {
     // no inner state _glXExt=null;
     glXExtProcAddressTable = null;
     hasSwapInterval = 0;
@@ -108,7 +108,7 @@ public class X11GLXContext extends GLContextImpl {
     isDirect = false;
     glXServerVersion = null;
     isGLXVersionGreaterEqualOneThree = false;
-    super.resetStates();
+    super.resetStates(isInit);
   }
 
   @Override
