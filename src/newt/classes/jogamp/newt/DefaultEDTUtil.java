@@ -38,6 +38,7 @@
 package jogamp.newt;
 
 import java.util.ArrayList;
+
 import javax.media.nativewindow.NativeWindowException;
 
 import jogamp.common.util.locks.LockDebugUtil;
@@ -50,7 +51,7 @@ public class DefaultEDTUtil implements EDTUtil {
     public static final boolean DEBUG = Debug.debug("EDT");
 
     private final Object edtLock = new Object(); // locking the EDT start/stop state
-    private final ThreadGroup threadGroup; 
+    private /* final */ ThreadGroup threadGroup; 
     private final String name;
     private final Runnable dispatchMessages;
     private NEDT edt = null;
@@ -88,6 +89,10 @@ public class DefaultEDTUtil implements EDTUtil {
                 System.err.println(Thread.currentThread()+": Default-EDT reset - edt: "+edt);
             }
             if( edt.getState() != Thread.State.NEW ) {
+                if( null != threadGroup && threadGroup.isDestroyed() ) {
+                    // best thing we can do is to use this thread's TG
+                    threadGroup = Thread.currentThread().getThreadGroup();
+                }
                 edt = new NEDT(threadGroup, name);
                 edt.setDaemon(true); // don't stop JVM from shutdown ..
             }
