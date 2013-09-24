@@ -68,7 +68,7 @@ public class JAWTUtil {
   public static final VersionNumber JAWT_MacOSXCALayerMinVersion = new VersionNumber(10,6,4);
   
   /** OSX JAWT CALayer required with Java >= 1.7.0 (implies OS X >= 10.7  */
-  public static final VersionNumber JAWT_MacOSXCALayerRequiredForJavaVersion = new VersionNumber(1,7,0);
+  public static final VersionNumber JAWT_MacOSXCALayerRequiredForJavaVersion = Platform.Version17;
   
   // See whether we're running in headless mode
   private static final boolean headlessMode;
@@ -98,18 +98,84 @@ public class JAWTUtil {
    * Returns true if this platform's JAWT implementation supports offscreen layer.
    */
   public static boolean isOffscreenLayerSupported() {
-       return Platform.OS_TYPE == Platform.OSType.MACOS &&
-              Platform.OS_VERSION_NUMBER.compareTo(JAWTUtil.JAWT_MacOSXCALayerMinVersion) >= 0;      
+    return Platform.OS_TYPE == Platform.OSType.MACOS &&
+           Platform.OS_VERSION_NUMBER.compareTo(JAWTUtil.JAWT_MacOSXCALayerMinVersion) >= 0;      
   }
  
   /**
    * Returns true if this platform's JAWT implementation requires using offscreen layer.
    */
   public static boolean isOffscreenLayerRequired() {
-       return Platform.OS_TYPE == Platform.OSType.MACOS &&
-              Platform.JAVA_VERSION_NUMBER.compareTo(JAWT_MacOSXCALayerRequiredForJavaVersion)>=0;
+    return Platform.OS_TYPE == Platform.OSType.MACOS &&
+           Platform.JAVA_VERSION_NUMBER.compareTo(JAWT_MacOSXCALayerRequiredForJavaVersion)>=0;
   }
  
+  /** 
+   * CALayer size needs to be set using the AWT component size.
+   * <p>
+   * As of today, we have to overwrite the CALayer size
+   * w/ the AWT component one since programmatic resize leads to differences.
+   * </p>
+   * <p>
+   * Hence this flag is always enabled. 
+   * </p>
+   * <p> 
+   * Sync w/ NativeWindowProtocols.h
+   * </p> 
+   */
+  public static final int JAWT_OSX_CALAYER_QUIRK_SIZE     = 1 << 0;
+  
+  /** 
+   * CALayer position needs to be set to zero.
+   * <p>
+   * Normally we have to set the root-calayer's position to 0/0
+   * and leave client-calayer's position in it's desired place.
+   * With pre AWT 1.7.0_40, the client-calayer's position has to
+   * be set to zero as well. 
+   * </p>
+   * <p>
+   * Further more a re-layout seems to be required in this case,
+   * i.e. a programmatic forced resize +1 and it's inverted resize -1. 
+   * </p>
+   * <p>
+   * Hence this flag is enabled w/ AWT < 1.7.0_40. 
+   * </p>
+   * <p> 
+   * Sync w/ NativeWindowProtocols.h
+   * </p> 
+   */
+  public static final int JAWT_OSX_CALAYER_QUIRK_POSITION = 1 << 1;
+  
+  /**
+   * Returns bitfield of required JAWT OSX CALayer quirks to mediate AWT impl. bugs.
+   * <p>
+   * Returns zero, if platform is not {@link Platform.OSType#MACOS}
+   * or not supporting CALayer, i.e. OSX < 10.6.4.
+   * </p>
+   * <p>
+   * Otherwise includes
+   * <ul>
+   *    <li>{@link #JAWT_OSX_CALAYER_QUIRK_SIZE} (always)</li>
+   *    <li>{@link #JAWT_OSX_CALAYER_QUIRK_POSITION} if JVM < 1.7.0_40</li>
+   * </ul>
+   * </p>
+   */
+  public static int getOSXCALayerQuirks() {
+    int res = 0;
+    if( Platform.OS_TYPE == Platform.OSType.MACOS && 
+        Platform.OS_VERSION_NUMBER.compareTo(JAWTUtil.JAWT_MacOSXCALayerMinVersion) >= 0 ) {
+        
+        /** Knowing impl. all expose the SIZE bug */
+        res |= JAWT_OSX_CALAYER_QUIRK_SIZE;
+        
+        final int c = Platform.JAVA_VERSION_NUMBER.compareTo(Platform.Version17);
+        if( c < 0 || c == 0 && Platform.JAVA_VERSION_UPDATE < 40 ) {
+            res |= JAWT_OSX_CALAYER_QUIRK_POSITION;
+        }
+    }
+    return res;
+  }
+  
   /**
    * @param useOffscreenLayerIfAvailable
    * @return

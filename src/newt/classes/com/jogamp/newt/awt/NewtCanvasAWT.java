@@ -56,6 +56,7 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.swing.MenuSelectionManager;
 
 import jogamp.nativewindow.awt.AWTMisc;
+import jogamp.nativewindow.jawt.JAWTUtil;
 import jogamp.newt.Debug;
 import jogamp.newt.WindowImpl;
 import jogamp.newt.awt.NewtFactoryAWT;
@@ -63,7 +64,6 @@ import jogamp.newt.awt.event.AWTParentWindowAdapter;
 import jogamp.newt.driver.DriverClearFocus;
 import jogamp.opengl.awt.AWTTilePainter;
 
-import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.nativewindow.awt.AWTPrintLifecycle;
 import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
@@ -741,7 +741,8 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
       newtChild.setSize(w, h);
       newtChild.reparentWindow(jawtWindow);
       newtChild.addSurfaceUpdatedListener(jawtWindow);
-      if( Platform.OSType.MACOS == Platform.getOSType() && jawtWindow.isOffscreenLayerSurfaceEnabled() ) {
+      if( jawtWindow.isOffscreenLayerSurfaceEnabled() &&
+          0 != ( JAWTUtil.JAWT_OSX_CALAYER_QUIRK_POSITION & JAWTUtil.getOSXCALayerQuirks() ) ) {          
           AWTEDTExecutor.singleton.invoke(false, forceRelayout);
       }
       newtChild.setVisible(true);

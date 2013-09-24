@@ -36,6 +36,7 @@ import javax.media.opengl.awt.GLCanvas;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 
+import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;
 import com.jogamp.newt.event.TraceWindowAdapter;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
@@ -71,7 +72,7 @@ import org.junit.runners.MethodSorters;
 public class TestBug816OSXCALayerPosAWT extends UITestCase {
     public enum FrameLayout { None, Flow, DoubleBorderCenterSurrounded, Box };
     
-    static long duration = 500; // ms    
+    static long duration = 1600; // ms    
     static int width, height;
     
     static boolean forceES2 = false;
@@ -102,7 +103,7 @@ public class TestBug816OSXCALayerPosAWT extends UITestCase {
 
     static void setComponentSize(final Frame frame, final Component comp1, final java.awt.Dimension new_sz1, final Component comp2, final java.awt.Dimension new_sz2) {
         try {
-            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            AWTEDTExecutor.singleton.invoke(true /* wait */, new Runnable() {
                 public void run() {
                     comp1.setMinimumSize(new_sz1);
                     comp1.setPreferredSize(new_sz1);
@@ -121,9 +122,23 @@ public class TestBug816OSXCALayerPosAWT extends UITestCase {
             Assume.assumeNoException( throwable );
         }       
     }
+    static void setFrameSize(final Frame frame, final boolean frameLayout, final java.awt.Dimension new_sz) {
+        try {
+            AWTEDTExecutor.singleton.invoke(true /* wait */, new Runnable() {
+                public void run() {
+                    frame.setSize(new_sz);
+                    if( frameLayout ) {
+                        frame.validate();
+                    }
+                } } );
+        } catch( Throwable throwable ) {
+            throwable.printStackTrace();
+            Assume.assumeNoException( throwable );
+        }       
+    }
     
-    protected void runTestGL(GLCapabilities caps, FrameLayout frameLayout, final boolean twoCanvas) throws InterruptedException, InvocationTargetException {
-        final JFrame frame = new JFrame("Bug861 AWT Test");
+    protected void runTestGL(GLCapabilities caps, FrameLayout frameLayout, final boolean twoCanvas, final boolean resizeByComp) throws InterruptedException, InvocationTargetException {
+        final JFrame frame = new JFrame("Bug861: "+this.getTestMethodName());
         Assert.assertNotNull(frame);
         final Container framePane = frame.getContentPane();
 
@@ -138,6 +153,7 @@ public class TestBug816OSXCALayerPosAWT extends UITestCase {
         }
         
         final Dimension glcDim = new Dimension(width/2, height);
+        final Dimension frameDim = new Dimension(twoCanvas ? width + 64: width/2 + 64, height + 64);
         
         setComponentSize(null, glCanvas1, glcDim, glCanvas2, glcDim);
         
@@ -148,7 +164,7 @@ public class TestBug816OSXCALayerPosAWT extends UITestCase {
                 break;
             case Flow: {
                     final Container c = new Container();
-                    c.setLayout(new FlowLayout());
+                    c.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
                     c.add(glCanvas1);
                     if( twoCanvas ) {
                         c.add(glCanvas2);
@@ -209,8 +225,12 @@ public class TestBug816OSXCALayerPosAWT extends UITestCase {
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
-               frame.pack();                   
-               frame.setVisible(true);
+               if( resizeByComp ) {
+                   frame.pack();
+                } else {
+                   setFrameSize(frame, true, frameDim);
+                }
+                frame.setVisible(true);
             }});        
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas1, true)); 
@@ -229,8 +249,13 @@ public class TestBug816OSXCALayerPosAWT extends UITestCase {
         }
 
         Thread.sleep(Math.max(1000, duration/2));
-        final Dimension rwsizeHalf = new Dimension(rwsize.width/2, rwsize.height);
-        setComponentSize(frame, glCanvas1, rwsizeHalf, glCanvas2, rwsizeHalf);
+        final Dimension compRSizeHalf = new Dimension(rwsize.width/2, rwsize.height);
+        final Dimension frameRSizeHalf = new Dimension(twoCanvas ? rwsize.width + 64: rwsize.width/2 + 64, rwsize.height + 64);
+        if( resizeByComp ) {
+           setComponentSize(frame, glCanvas1, compRSizeHalf, glCanvas2, compRSizeHalf);
+        } else {
+           setFrameSize(frame, true, frameRSizeHalf);
+        }
         System.err.println("resize canvas1 pos/siz: "+glCanvas1.getX()+"/"+glCanvas1.getY()+" "+glCanvas1.getWidth()+"x"+glCanvas1.getHeight());
         if( twoCanvas ) {
             System.err.println("resize canvas2 pos/siz: "+glCanvas2.getX()+"/"+glCanvas2.getY()+" "+glCanvas2.getWidth()+"x"+glCanvas2.getHeight());
@@ -276,52 +301,101 @@ public class TestBug816OSXCALayerPosAWT extends UITestCase {
     }
     
     @Test
-    public void test00_None_One() throws InterruptedException, InvocationTargetException {
+    public void test00_Compo_None_One() throws InterruptedException, InvocationTargetException {
         if( testNum != -1 && testNum != 0 ) { return ; }
         final GLCapabilities caps = new GLCapabilities(getGLP());
-        runTestGL(caps, FrameLayout.None, false);
+        runTestGL(caps, FrameLayout.None, false /* twoCanvas */, true /* resizeByComp */);
     }
     
     @Test
-    public void test01_Flow_One() throws InterruptedException, InvocationTargetException {
+    public void test01_Compo_Flow_One() throws InterruptedException, InvocationTargetException {
         if( testNum != -1 && testNum != 1 ) { return ; }
         final GLCapabilities caps = new GLCapabilities(getGLP());
-        runTestGL(caps, FrameLayout.Flow, false);
+        runTestGL(caps, FrameLayout.Flow, false /* twoCanvas */, true /* resizeByComp */);
     }
 
     @Test
-    public void test02_DblBrd_One() throws InterruptedException, InvocationTargetException {
+    public void test02_Compo_DblBrd_One() throws InterruptedException, InvocationTargetException {
         if( testNum != -1 && testNum != 2 ) { return ; }
         final GLCapabilities caps = new GLCapabilities(getGLP());
-        runTestGL(caps, FrameLayout.DoubleBorderCenterSurrounded, false);
+        runTestGL(caps, FrameLayout.DoubleBorderCenterSurrounded, false /* twoCanvas */, true /* resizeByComp */);
     }
     
     @Test
-    public void test03_Box_One() throws InterruptedException, InvocationTargetException {
+    public void test03_Compo_Box_One() throws InterruptedException, InvocationTargetException {
         if( testNum != -1 && testNum != 3 ) { return ; }
         final GLCapabilities caps = new GLCapabilities(getGLP());
-        runTestGL(caps, FrameLayout.Box, false);
+        runTestGL(caps, FrameLayout.Box, false /* twoCanvas */, true /* resizeByComp */);
     }
     
     @Test
-    public void test04_Flow_Two() throws InterruptedException, InvocationTargetException {
+    public void test04_Compo_Flow_Two() throws InterruptedException, InvocationTargetException {
         if( testNum != -1 && testNum != 4 ) { return ; }
         final GLCapabilities caps = new GLCapabilities(getGLP());
-        runTestGL(caps, FrameLayout.Flow, true);
+        runTestGL(caps, FrameLayout.Flow, true/* twoCanvas */, true /* resizeByComp */);
     }
 
     @Test
-    public void test05_DblBrd_Two() throws InterruptedException, InvocationTargetException {
+    public void test05_Compo_DblBrd_Two() throws InterruptedException, InvocationTargetException {
         if( testNum != -1 && testNum != 5 ) { return ; }
         final GLCapabilities caps = new GLCapabilities(getGLP());
-        runTestGL(caps, FrameLayout.DoubleBorderCenterSurrounded, true);
+        runTestGL(caps, FrameLayout.DoubleBorderCenterSurrounded, true/* twoCanvas */, true /* resizeByComp */);
     }
     
     @Test
-    public void test06_Box_Two() throws InterruptedException, InvocationTargetException {
+    public void test06_Compo_Box_Two() throws InterruptedException, InvocationTargetException {
         if( testNum != -1 && testNum != 6 ) { return ; }
         final GLCapabilities caps = new GLCapabilities(getGLP());
-        runTestGL(caps, FrameLayout.Box, true);
+        runTestGL(caps, FrameLayout.Box, true/* twoCanvas */, true /* resizeByComp */);
+    }
+    
+    @Test
+    public void test10_Frame_None_One() throws InterruptedException, InvocationTargetException {
+        if( testNum != -1 && testNum != 10 ) { return ; }
+        final GLCapabilities caps = new GLCapabilities(getGLP());
+        runTestGL(caps, FrameLayout.None, false /* twoCanvas */, false /* resizeByComp */);
+    }
+    
+    @Test
+    public void test11_Frame_Flow_One() throws InterruptedException, InvocationTargetException {
+        if( testNum != -1 && testNum != 11 ) { return ; }
+        final GLCapabilities caps = new GLCapabilities(getGLP());
+        runTestGL(caps, FrameLayout.Flow, false /* twoCanvas */, false /* resizeByComp */);
+    }
+
+    @Test
+    public void test12_Frame_DblBrd_One() throws InterruptedException, InvocationTargetException {
+        if( testNum != -1 && testNum != 12 ) { return ; }
+        final GLCapabilities caps = new GLCapabilities(getGLP());
+        runTestGL(caps, FrameLayout.DoubleBorderCenterSurrounded, false /* twoCanvas */, false /* resizeByComp */);
+    }
+    
+    @Test
+    public void test13_Frame_Box_One() throws InterruptedException, InvocationTargetException {
+        if( testNum != -1 && testNum != 13 ) { return ; }
+        final GLCapabilities caps = new GLCapabilities(getGLP());
+        runTestGL(caps, FrameLayout.Box, false /* twoCanvas */, false /* resizeByComp */);
+    }
+    
+    @Test
+    public void test14_Frame_Flow_Two() throws InterruptedException, InvocationTargetException {
+        if( testNum != -1 && testNum != 14 ) { return ; }
+        final GLCapabilities caps = new GLCapabilities(getGLP());
+        runTestGL(caps, FrameLayout.Flow, true/* twoCanvas */, false /* resizeByComp */);
+    }
+
+    @Test
+    public void test15_Frame_DblBrd_Two() throws InterruptedException, InvocationTargetException {
+        if( testNum != -1 && testNum != 15 ) { return ; }
+        final GLCapabilities caps = new GLCapabilities(getGLP());
+        runTestGL(caps, FrameLayout.DoubleBorderCenterSurrounded, true/* twoCanvas */, false /* resizeByComp */);
+    }
+    
+    @Test
+    public void test16_Frame_Box_Two() throws InterruptedException, InvocationTargetException {
+        if( testNum != -1 && testNum != 16 ) { return ; }
+        final GLCapabilities caps = new GLCapabilities(getGLP());
+        runTestGL(caps, FrameLayout.Box, true/* twoCanvas */, false /* resizeByComp */);
     }
     
     static int testNum = -1;

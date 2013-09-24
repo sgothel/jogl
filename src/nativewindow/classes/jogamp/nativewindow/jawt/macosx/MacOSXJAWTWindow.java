@@ -49,6 +49,7 @@ import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.MutableSurface;
+import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.util.Point;
 
 import com.jogamp.nativewindow.awt.JAWTWindow;
@@ -105,16 +106,19 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
   protected void attachSurfaceLayerImpl(final long layerHandle) {
       OSXUtil.RunOnMainThread(false, new Runnable() {
           public void run() {      
-              OSXUtil.AddCASublayer(rootSurfaceLayer, layerHandle, getWidth(), getHeight());
+              OSXUtil.AddCASublayer(rootSurfaceLayer, layerHandle, getWidth(), getHeight(), JAWTUtil.getOSXCALayerQuirks());
           } } );
   }
   
   @Override
   protected void layoutSurfaceLayerImpl(long layerHandle, int width, int height) {
-      if(DEBUG) {
-        System.err.println("JAWTWindow.layoutSurfaceLayerImpl: "+toHexString(layerHandle) + ", "+width+"x"+height+"; "+this);
+      final int caLayerQuirks = JAWTUtil.getOSXCALayerQuirks();
+      if( 0 != caLayerQuirks ) {
+          if(DEBUG) {
+            System.err.println("JAWTWindow.layoutSurfaceLayerImpl: "+toHexString(layerHandle) + ", "+width+"x"+height+", caLayerQuirks "+caLayerQuirks+"; "+this);
+          }
+          OSXUtil.FixCALayerLayout(rootSurfaceLayer, layerHandle, width, height, caLayerQuirks);
       }
-      OSXUtil.FixCALayerLayout(rootSurfaceLayer, layerHandle, width, height);
   }
   
   @Override
@@ -240,7 +244,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
                 public void run() {
                     String errMsg = null;
                     if(0 == rootSurfaceLayer && 0 != jawtSurfaceLayersHandle) {        
-                        rootSurfaceLayer = OSXUtil.CreateCALayer(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+                        rootSurfaceLayer = OSXUtil.CreateCALayer(bounds.getWidth(), bounds.getHeight());
                         if(0 == rootSurfaceLayer) {
                           errMsg = "Could not create root CALayer";                
                         } else {

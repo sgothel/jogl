@@ -25,10 +25,27 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
+
+#ifndef NATIVEWINDOWPROTOCOLS_H
+#define NATIVEWINDOWPROTOCOLS_H 1
  
+/** 
+ * CALayer size needs to be set using the AWT component size. 
+ * See detailed description in JAWTUtil.java and sync w/ changed. 
+ */
+#define NW_DEDICATEDFRAME_QUIRK_SIZE      ( 1 << 0 )
+
+/** 
+ * CALayer position needs to be set to zero.
+ * See detailed description in JAWTUtil.java and sync w/ changed. 
+ */
+#define NW_DEDICATEDFRAME_QUIRK_POSITION  ( 1 << 1 )
+
 #import <Foundation/NSGeometry.h>
 
-@protocol NWDedicatedSize
-- (void)setDedicatedSize:(CGSize)size;
+@protocol NWDedicatedFrame
+- (void)setDedicatedFrame:(CGRect)dFrame quirks:(int)quirks;
 @end
+
+#endif /* NATIVEWINDOWPROTOCOLS_H_ */
 
