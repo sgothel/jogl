@@ -493,6 +493,7 @@ public abstract class TileRendererBase {
         @Override
         public void display(GLAutoDrawable drawable) {
             if( null != glEventListenerPre ) {
+                glEventListenerPre.reshape(drawable, 0, 0, currentTileWidth, currentTileHeight);
                 glEventListenerPre.display(drawable);
             }
             final GL gl = drawable.getGL();
@@ -514,21 +515,11 @@ public abstract class TileRendererBase {
             }
             
             if( null != glEventListenerPost ) {
+                glEventListenerPost.reshape(drawable, 0, 0, currentTileWidth, currentTileHeight);
                 glEventListenerPost.display(drawable);
             }
         }
         @Override
-        public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-            if( null != glEventListenerPre ) {
-                glEventListenerPre.reshape(drawable, x, y, width, height);
-            }
-            final int aSz = listenersInit.length;
-            for(int i=0; i<aSz; i++) {
-                listeners[i].reshape(drawable, x, y, width, height);
-            }
-            if( null != glEventListenerPost ) {
-                glEventListenerPost.reshape(drawable, x, y, width, height);
-            }
-        }
+        public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
     };
 }
