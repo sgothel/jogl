@@ -95,7 +95,6 @@ public class MovieSimple implements GLEventListener {
     private int swapInterval = 1;
 
     private GLMediaPlayer mPlayer;
-    private boolean mPlayerExternal;
     private boolean mPlayerShared;
     private boolean mPlayerScaleOrig;
     private float[] verts = null;    
@@ -232,20 +231,58 @@ public class MovieSimple implements GLEventListener {
         }        
     };
     
+    /** 
+     * Default constructor which also issues {@link #initStream(URI, int, int, int)} w/ default values 
+     * and polls until the {@link GLMediaPlayer} is {@link GLMediaPlayer.State#Initialized}.
+     * If {@link GLMediaEventListener#EVENT_CHANGE_EOS} is reached, the stream is started over again.
+     * <p>
+     * This default constructor is merely useful for some <i>drop-in</i> test, e.g. using an applet.
+     * </p> 
+     */
     public MovieSimple() {
-        mPlayerScaleOrig = false;
-        mPlayerShared = false;
-        mPlayerExternal = false;
-        mPlayer = GLMediaPlayerFactory.createDefault();
-        System.out.println("pC.1a "+mPlayer);
+        this(null);
+        
+        mPlayer.addEventListener(new GLMediaEventListener() {
+            @Override
+            public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) { }
+
+            @Override
+            public void attributesChanged(final GLMediaPlayer mp, int event_mask, long when) {
+                System.err.println("MovieCube AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
+                System.err.println("MovieCube State: "+mp);
+                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_SIZE & event_mask ) ) {
+                    resetGLState();
+                }
+                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_EOS & event_mask ) ) {
+                    // loop for-ever ..
+                    mPlayer.seek(0);
+                    mPlayer.play();
+                }
+            }            
+        });
+        initStream(defURI, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, 3 /* textureCount */);
+        StreamException se = null;
+        while( null == se && GLMediaPlayer.State.Initialized != mPlayer.getState() ) {
+            try {
+                Thread.sleep(16);
+            } catch (InterruptedException e) { }
+            se = mPlayer.getStreamException();
+        }
+        if( null != se ) {
+            se.printStackTrace();
+            throw new RuntimeException(se);
+        }
     }
 
+    /** Custom constructor, user needs to issue {@link #initStream(URI, int, int, int)} afterwards. */
     public MovieSimple(GLMediaPlayer sharedMediaPlayer) throws IllegalStateException {
-        mPlayerScaleOrig = false;
-        mPlayerShared = true;
-        mPlayerExternal = true;
         mPlayer = sharedMediaPlayer;
-        System.out.println("pC.2 shared "+mPlayerShared+", "+mPlayer);
+        mPlayerScaleOrig = false;
+        mPlayerShared = null != mPlayer;
+        if( !mPlayerShared ) {
+            mPlayer = GLMediaPlayerFactory.createDefault();
+        }
+        System.out.println("pC.1a shared "+mPlayerShared+", "+mPlayer);
     }
     
     public void initStream(URI streamLoc, int vid, int aid, int textureCount) {
@@ -560,7 +597,7 @@ public class MovieSimple implements GLEventListener {
         System.out.println("pD.1 "+mPlayer+", disposePlayer "+disposePlayer);        
         GL2ES2 gl = drawable.getGL().getGL2ES2();        
         if( disposePlayer ) {
-            if(!mPlayerExternal) {
+            if(!mPlayerShared) {
                 mPlayer.destroy(gl);
             }
             System.out.println("pD.X "+mPlayer);
@@ -717,7 +754,7 @@ public class MovieSimple implements GLEventListener {
         System.err.println("forceGLDef "+forceGLDef);
         System.err.println("swapInterval "+swapInterval);
         
-        final MovieSimple ms = new MovieSimple();
+        final MovieSimple ms = new MovieSimple(null);
         ms.setSwapInterval(swapInterval);
         ms.setScaleOrig(!zoom);
         ms.setOrthoProjection(ortho);

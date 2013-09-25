@@ -128,7 +128,7 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
        anim.add(glWindowMain);
        glWindowMain.setVisible(true);
        
-       final MovieSimple demoMain = new MovieSimple();
+       final MovieSimple demoMain = new MovieSimple(null);
        final GLMediaPlayer mPlayerMain = demoMain.getGLMediaPlayer();       
        if(mPlayerHUD) {
            demoMain.setEffects(MovieSimple.EFFECT_GRADIENT_BOTTOM2TOP);
@@ -183,7 +183,7 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
                        demoHUD = new MovieSimple(mPlayerShared);
                        mPlayerSub = mPlayerShared;
                     } else {
-                       demoHUD = new MovieSimple();
+                       demoHUD = new MovieSimple(null);
                        mPlayerSub = demoHUD.getGLMediaPlayer();
                     }
                     mPlayerSub.addEventListener( new GLMediaPlayer.GLMediaEventListener() {            

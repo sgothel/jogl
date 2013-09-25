@@ -81,10 +81,50 @@ public class MovieCube implements GLEventListener {
         defURI = _defURI;
     }
         
+    /** 
+     * Default constructor which also issues {@link #initStream(URI, int, int, int)} w/ default values 
+     * and polls until the {@link GLMediaPlayer} is {@link GLMediaPlayer.State#Initialized}.
+     * If {@link GLMediaEventListener#EVENT_CHANGE_EOS} is reached, the stream is started over again.
+     * <p>
+     * This default constructor is merely useful for some <i>drop-in</i> test, e.g. using an applet.
+     * </p> 
+     */
     public MovieCube() throws IOException, URISyntaxException {
-        this(-2.3f, 0f, 0f);        
+        this(-2.3f, 0f, 0f);
+        
+        mPlayer.addEventListener(new GLMediaEventListener() {
+            @Override
+            public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) { }
+
+            @Override
+            public void attributesChanged(final GLMediaPlayer mp, int event_mask, long when) {
+                System.err.println("MovieCube AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
+                System.err.println("MovieCube State: "+mp);
+                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_SIZE & event_mask ) ) {
+                    resetGLState();
+                }
+                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_EOS & event_mask ) ) {
+                    // loop for-ever ..
+                    mPlayer.seek(0);
+                    mPlayer.play();
+                }
+            }            
+        });
+        initStream(defURI, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, 3 /* textureCount */);
+        StreamException se = null;
+        while( null == se && GLMediaPlayer.State.Initialized != mPlayer.getState() ) {
+            try {
+                Thread.sleep(16);
+            } catch (InterruptedException e) { }
+            se = mPlayer.getStreamException();
+        }
+        if( null != se ) {
+            se.printStackTrace();
+            throw new RuntimeException(se);
+        }
     }
     
+    /** Custom constructor, user needs to issue {@link #initStream(URI, int, int, int)} afterwards. */
     public MovieCube(float zoom0, float rotx, float roty) throws IOException {
         this.zoom0 = zoom0;
         this.rotx = rotx;
