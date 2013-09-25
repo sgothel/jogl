@@ -558,10 +558,10 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    FixCALayerLayout0
- * Signature: (JJIIIII)V
+ * Signature: (JJIII)V
  */
 JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_FixCALayerLayout0
-  (JNIEnv *env, jclass unused, jlong rootCALayer, jlong subCALayer, jint width, jint height, int caLayerQuirks)
+  (JNIEnv *env, jclass unused, jlong rootCALayer, jlong subCALayer, jint width, jint height, jint caLayerQuirks)
 {
     if( 0 != caLayerQuirks ) {
         NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
