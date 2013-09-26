@@ -28,6 +28,7 @@
 package com.jogamp.nativewindow.awt;
 
 import java.awt.Point;
+import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.DataBuffer;
@@ -36,6 +37,7 @@ import java.awt.image.SampleModel;
 import java.awt.image.SinglePixelPackedSampleModel;
 import java.awt.image.WritableRaster;
 import java.nio.IntBuffer;
+import java.util.Hashtable;
 
 import com.jogamp.common.nio.Buffers;
 
@@ -50,40 +52,97 @@ public final class DirectDataBufferInt extends DataBuffer {
         }
     }
     
+    public static class BufferedImageInt extends BufferedImage {
+        final int customImageType;
+        public BufferedImageInt (int customImageType, ColorModel cm, WritableRaster raster, Hashtable<?,?> properties) {
+            super(cm, raster, false /* isRasterPremultiplied */, properties);
+            this.customImageType = customImageType; 
+        }
+        
+        /**
+         * @return one of the custom image-type values {@link BufferedImage#TYPE_INT_ARGB TYPE_INT_ARGB}, 
+         *         {@link BufferedImage#TYPE_INT_ARGB_PRE TYPE_INT_ARGB_PRE}, 
+         *         {@link BufferedImage#TYPE_INT_RGB TYPE_INT_RGB} or {@link BufferedImage#TYPE_INT_BGR TYPE_INT_BGR}.
+         */
+        public int getCustomType() {
+            return customImageType;
+        }
+        
+        @Override
+        public String toString() {
+            return new String("BufferedImageInt@"+Integer.toHexString(hashCode())
+                              +": custum/internal type = "+customImageType+"/"+getType()
+                              +" "+getColorModel()+" "+getRaster());
+        }
+    }
+    
     /**
-     * Creates a {@link BufferedImage} using an RGB[A] {@link DirectColorModel} 
-     * with an {@link DirectWritableRaster} utilizing a {@link DirectDataBufferInt} as storage.
+     * Creates a {@link BufferedImageInt} using a {@link DirectColorModel direct color model} in {@link ColorSpace#CS_sRGB sRGB color space}.<br> 
+     * It uses a {@link DirectWritableRaster} utilizing {@link DirectDataBufferInt} storage.
+     * <p>
+     * Note that due to using the custom storage type {@link DirectDataBufferInt}, the resulting 
+     * {@link BufferedImage}'s {@link BufferedImage#getType() image-type} is of {@link BufferedImage#TYPE_CUSTOM TYPE_CUSTOM}.
+     * We are not able to change this detail, since the AWT image implementation associates the {@link BufferedImage#getType() image-type}
+     * with a build-in storage-type.
+     * Use {@link BufferedImageInt#getCustomType()} to retrieve the custom image-type, which will return the <code>imageType</code>
+     * value passed here.   
+     * </p>
      *  
      * @param width
      * @param height
-     * @param numComponents 3 or 4 components, i.e. {@link BufferedImage#TYPE_INT_RGB} or {@link BufferedImage#TYPE_INT_RGBA}.
+     * @param imageType one of {@link BufferedImage#TYPE_INT_ARGB TYPE_INT_ARGB}, {@link BufferedImage#TYPE_INT_ARGB_PRE TYPE_INT_ARGB_PRE}, 
+     *                         {@link BufferedImage#TYPE_INT_RGB TYPE_INT_RGB} or {@link BufferedImage#TYPE_INT_BGR TYPE_INT_BGR}.
      * @param location origin, if <code>null</code> 0/0 is assumed.
+     * @param properties <code>Hashtable</code> of
+     *                  <code>String</code>/<code>Object</code> pairs. Used for {@link BufferedImage#getProperty(String)} etc. 
      * @return
      */
-    public static BufferedImage createBufferedImage(int width, int height, int numComponents, Point location) {
-        final int[] bandOffsets = new int[numComponents];
-        for (int i=0; i < numComponents; i++) {
+    public static BufferedImageInt createBufferedImage(int width, int height, int imageType, Point location, Hashtable<?,?> properties) {
+        final int[] bandOffsets = new int[imageType];
+        for (int i=0; i < imageType; i++) {
             bandOffsets[i] = i;
         }
+        final ColorSpace colorSpace = ColorSpace.getInstance(ColorSpace.CS_sRGB);
+        final int transferType = DataBuffer.TYPE_INT;
         final int bpp, rmask, gmask, bmask, amask;
-        final ColorModel cm;
-        if( 4 == numComponents ) {
-            bpp = 32;
-            rmask = 0x00ff0000;
-            gmask = 0x0000ff00;
-            bmask = 0x000000ff;
-            amask = 0xff000000;
-            cm = ColorModel.getRGBdefault();
-        } else if( 3 == numComponents ) {
-            bpp = 24;
-            rmask = 0x00ff0000;
-            gmask = 0x0000ff00;
-            bmask = 0x000000ff;
-            amask = 0x0;
-            cm = new DirectColorModel(bpp, rmask, gmask, bmask, amask);
-        } else {
-            throw new IllegalArgumentException("numComponents must be [3..4], has "+numComponents);
+        final boolean alphaPreMul;
+        switch( imageType ) {
+            case BufferedImage.TYPE_INT_ARGB:
+                bpp = 32;
+                rmask = 0x00ff0000;
+                gmask = 0x0000ff00;
+                bmask = 0x000000ff;
+                amask = 0xff000000;
+                alphaPreMul = false;
+                break;
+            case BufferedImage.TYPE_INT_ARGB_PRE:
+                bpp = 32;
+                rmask = 0x00ff0000;
+                gmask = 0x0000ff00;
+                bmask = 0x000000ff;
+                amask = 0xff000000;
+                alphaPreMul = true;
+                break;
+            case BufferedImage.TYPE_INT_RGB:
+                bpp = 24;
+                rmask = 0x00ff0000;
+                gmask = 0x0000ff00;
+                bmask = 0x000000ff;
+                amask = 0x0;
+                alphaPreMul = false;
+                break;
+            case BufferedImage.TYPE_INT_BGR:
+                bpp = 24;
+                rmask = 0x000000ff;
+                gmask = 0x0000ff00;
+                bmask = 0x00ff0000;
+                amask = 0x0;
+                alphaPreMul = false;
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported imageType, must be [INT_ARGB, INT_ARGB_PRE, INT_RGB, INT_BGR], has "+imageType);
         }
+        final ColorModel colorModel = new DirectColorModel(colorSpace, bpp, rmask, gmask, bmask, amask, alphaPreMul, transferType);
         final int[] bandMasks;
         if ( 0 != amask ) {
             bandMasks = new int[4];
@@ -108,7 +167,7 @@ public final class DirectDataBufferInt extends DataBuffer {
         //    final WritableRaster raster = new SunWritableRaster(sppsm, dataBuffer, location);
         final WritableRaster raster = new DirectWritableRaster(sppsm, dataBuffer, location);
         
-        return new BufferedImage (cm, raster, false /* isRasterPremultiplied */, null /* properties */);
+        return new BufferedImageInt(imageType, colorModel, raster, properties);
     }
     
     /** Default data bank. */

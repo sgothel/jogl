@@ -145,8 +145,8 @@ public class OnscreenPrintable extends PrintableBase implements Printable {
             System.err.println("PRINT at.pre: "+g2d.getTransform());
             g2d.translate(pf.getImageableX(), pf.getImageableY());
             g2d.scale(scaleComp72, scaleComp72); // WARNING: Produces rounding artifacts due to diff scale-factor of AWT/GL comps !!!
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            // g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            // g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             
             AWTEDTExecutor.singleton.invoke(true, new Runnable() {
                 public void run() {

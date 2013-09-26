@@ -31,7 +31,6 @@ import java.awt.Container;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
-import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Paper;
@@ -55,6 +54,7 @@ import com.jogamp.nativewindow.awt.DirectDataBufferInt;
  */
 public class OffscreenPrintable extends PrintableBase implements Printable {
 
+    public final int imageType;
     public final String pngFilename;
     
     /**
@@ -62,11 +62,13 @@ public class OffscreenPrintable extends PrintableBase implements Printable {
      * @param job
      * @param printContainer
      * @param printDPI
-     * @param numSamples multisampling value: < 0 turns off, == 0 leaves as-is, > 0 enables using given num samples 
+     * @param numSamples multisampling value: < 0 turns off, == 0 leaves as-is, > 0 enables using given num samples
+     * @param imageType AWT BufferedImage type (must be one of the integer types) 
      * @param pngFilename TODO
      */
-    public OffscreenPrintable(PrinterJob job, Container printContainer, int printDPI, int numSamples, String pngFilename) {
+    public OffscreenPrintable(PrinterJob job, Container printContainer, int printDPI, int numSamples, int imageType, String pngFilename) {
         super(job, printContainer, printDPI, numSamples);
+        this.imageType = imageType;
         this.pngFilename = pngFilename;
     }
     
@@ -141,13 +143,14 @@ public class OffscreenPrintable extends PrintableBase implements Printable {
                     " -> total "+frameWidthT+ "x" + frameHeightT+
                     " -> scaled "+frameSWidthT+ "x" + frameSHeightT);
                         
-            final BufferedImage image = DirectDataBufferInt.createBufferedImage(frameSWidthT, frameSHeightT, 4, null /* location */);
+            final BufferedImage image = DirectDataBufferInt.createBufferedImage(frameSWidthT, frameSHeightT, imageType, null /* location */, null /* properties */);
             {
+                System.err.println("PRINT.offscrn image "+image);
                 final Graphics2D g2d = (Graphics2D) image.getGraphics();
                 g2d.setClip(0, 0, frameSWidthT, frameSHeightT);
                 g2d.scale(scaleGraphics, scaleGraphics);
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                // g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                // g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
                 AWTEDTExecutor.singleton.invoke(true, new Runnable() {
                     public void run() {
                         cont.printAll(g2d);

@@ -70,11 +70,11 @@ public abstract class TiledPrintingAWTBase extends UITestCase {
      * @param cont
      * @param pOrientation
      * @param paper
-     * @param offscrn TODO
+     * @param offscrnImageType if < 0 onscreen, otherwise integer BufferedImage type
      * @param dpi
      * @param numSamples multisampling value: < 0 turns off, == 0 leaves as-is, > 0 enables using given num samples 
      */
-    public PrintableBase doPrintAuto(Container cont, int pOrientation, Paper paper, boolean offscrn, int dpi, int numSamples) {
+    public PrintableBase doPrintAuto(Container cont, int pOrientation, Paper paper, int offscrnImageType, int dpi, int numSamples) {
         lock.lock();
         try {
             final PrintRequestAttributeSet aset = new HashPrintRequestAttributeSet();
@@ -91,31 +91,29 @@ public abstract class TiledPrintingAWTBase extends UITestCase {
         
             StreamPrintServiceFactory[] factories = PrinterJob.lookupStreamPrintServices(pdfMimeType);
             if (factories.length > 0) {
-                final String fname = getPrintFilename(offscrn, dpi, numSamples, "pdf");
+                final String fname = getPrintFilename(offscrnImageType, dpi, numSamples, "pdf");
                 System.err.println("doPrint: dpi "+dpi+", "+fname);
                 FileOutputStream outstream;
                 try {
                     outstream = new FileOutputStream(fname);
-                    return doPrintAutoImpl(cont, pj, factories[0].getPrintService(outstream), pOrientation, paper, offscrn, dpi, numSamples);
+                    return doPrintAutoImpl(cont, pj, factories[0].getPrintService(outstream), pOrientation, paper, offscrnImageType, dpi, numSamples);
                 } catch (FileNotFoundException e) {
                     Assert.assertNull("Unexpected exception", e);
                 }
-                return null;
             }        
             System.err.println("No PDF");
             
             factories = PrinterJob.lookupStreamPrintServices(psMimeType);
             if (factories.length > 0) {
-                final String fname = getPrintFilename(offscrn, dpi, numSamples, "ps");
+                final String fname = getPrintFilename(offscrnImageType, dpi, numSamples, "ps");
                 System.err.println("doPrint: dpi "+dpi+", "+fname);
                 FileOutputStream outstream;
                 try {
                     outstream = new FileOutputStream(fname);
-                    return doPrintAutoImpl(cont, pj, factories[0].getPrintService(outstream), pOrientation, paper, offscrn, dpi, numSamples);
+                    return doPrintAutoImpl(cont, pj, factories[0].getPrintService(outstream), pOrientation, paper, offscrnImageType, dpi, numSamples);
                 } catch (FileNotFoundException e) {
                     Assert.assertNull("Unexpected exception", e);
                 }
-                return null;
             }        
             System.err.println("No PS");
             return null;
@@ -123,15 +121,15 @@ public abstract class TiledPrintingAWTBase extends UITestCase {
             lock.unlock();
         }
     }
-    private String getPrintFilename(boolean offscrn, int dpi, int numSamples, String suffix) {
+    private String getPrintFilename(int offscrnImageType, int dpi, int numSamples, String suffix) {
         final int maxSimpleTestNameLen = getMaxTestNameLen()+getClass().getSimpleName().length()+1;
         final String simpleTestName = getSimpleTestName(".");
-        final String onoffscrn = offscrn ? "offscrn" : "on_scrn";
+        final String onoffscrn = 0 > offscrnImageType ? "on_screen" : "offscrn_"+offscrnImageType;
         return String.format("%-"+maxSimpleTestNameLen+"s-n%04d-%s-dpi%03d-aa%d.%s", simpleTestName, printCount, onoffscrn, dpi, numSamples, suffix).replace(' ', '_');
     }
     private PrintableBase doPrintAutoImpl(Container cont, PrinterJob job, 
                                           StreamPrintService ps, int pOrientation, Paper paper, 
-                                          boolean offscrn, int dpi, int numSamples) {
+                                          int offscrnImageType, int dpi, int numSamples) {
         try {            
             PageFormat pageFormat = job.defaultPage();
             if( null != paper ) {
@@ -143,8 +141,12 @@ public abstract class TiledPrintingAWTBase extends UITestCase {
             }
             pageFormat.setOrientation(pOrientation); // PageFormat.LANDSCAPE or PageFormat.PORTRAIT
             job.setPrintService(ps);
-            final PrintableBase printable = offscrn ? new OffscreenPrintable(job, cont, dpi, numSamples, getPrintFilename(offscrn, dpi, numSamples, "png")) : 
-                                                      new OnscreenPrintable(job, cont, dpi, numSamples);             
+            final PrintableBase printable;
+            if( 0 < offscrnImageType ) {
+                printable = new OffscreenPrintable(job, cont, dpi, numSamples, offscrnImageType, getPrintFilename(offscrnImageType, dpi, numSamples, "png"));
+            } else {
+                printable = new OnscreenPrintable(job, cont, dpi, numSamples);
+            }
             printable.job.setPrintable(printable, pageFormat);
             doPrintImpl(printable);
             return printable;

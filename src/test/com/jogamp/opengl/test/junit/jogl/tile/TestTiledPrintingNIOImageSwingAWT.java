@@ -36,7 +36,6 @@ import java.awt.Frame;
 import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Label;
-import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
@@ -125,8 +124,8 @@ public class TestTiledPrintingNIOImageSwingAWT extends UITestCase  {
                 final Graphics2D g2d = (Graphics2D) image.getGraphics();
                 g2d.setClip(0, 0, image.getWidth(), image.getHeight());
                 g2d.scale(scaleComp72, scaleComp72);
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                // g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                // g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
                 
                 // frame.paintAll(g2d);
                 final AWTPrintLifecycle.Context ctx = AWTPrintLifecycle.Context.setupPrint(frame, 1.0/scaleComp72, 1.0/scaleComp72, 0);
@@ -230,21 +229,39 @@ public class TestTiledPrintingNIOImageSwingAWT extends UITestCase  {
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel1, true));
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel2, true));
         
-        // paint offscreen: array 72dpi
+        // paint offscreen: array 72dpi ARGB
         {
             final BufferedImage image = new BufferedImage(frame.getWidth(), frame.getHeight(), BufferedImage.TYPE_INT_ARGB);
-            printOffscreenToFile(image, frame, caps, 0, "array_072dpi");
+            printOffscreenToFile(image, frame, caps, 0, "array_072dpi_argb");
         }
-        // paint offscreen: NIO 72dpi
+        // paint offscreen: NIO 72dpi ARGB
         {
-            final BufferedImage image = DirectDataBufferInt.createBufferedImage(frame.getWidth(), frame.getHeight(), 4, null /* location */);
-            printOffscreenToFile(image, frame, caps, 1, "newio_072dpi");
+            final BufferedImage image = DirectDataBufferInt.createBufferedImage(frame.getWidth(), frame.getHeight(), BufferedImage.TYPE_INT_ARGB, null /* location */, null /* properties */);
+            printOffscreenToFile(image, frame, caps, 1, "newio_072dpi_argb");
         }
-        // paint offscreen: NIO 300dpi
+        // paint offscreen: NIO 150dpi ARGB
         {
-            final int scale = (int) ( 300.0 / 72.0 + 0.5 ); 
-            final BufferedImage image = DirectDataBufferInt.createBufferedImage(frame.getWidth()*scale, frame.getHeight()*scale, 4, null /* location */);
-            printOffscreenToFile(image, frame, caps, 2, "newio_300dpi");
+            final int scale = (int) ( 150.0 / 72.0 + 0.5 ); 
+            final BufferedImage image = DirectDataBufferInt.createBufferedImage(frame.getWidth()*scale, frame.getHeight()*scale, BufferedImage.TYPE_INT_ARGB, null /* location */, null /* properties */);
+            printOffscreenToFile(image, frame, caps, 2, "newio_150dpi_argb");
+        }
+        // paint offscreen: NIO 150dpi ARGB_PRE
+        {
+            final int scale = (int) ( 150.0 / 72.0 + 0.5 ); 
+            final BufferedImage image = DirectDataBufferInt.createBufferedImage(frame.getWidth()*scale, frame.getHeight()*scale, BufferedImage.TYPE_INT_ARGB_PRE, null /* location */, null /* properties */);
+            printOffscreenToFile(image, frame, caps, 2, "newio_150dpi_argbp");
+        }
+        // paint offscreen: NIO 150dpi RGB
+        {
+            final int scale = (int) ( 150.0 / 72.0 + 0.5 ); 
+            final BufferedImage image = DirectDataBufferInt.createBufferedImage(frame.getWidth()*scale, frame.getHeight()*scale, BufferedImage.TYPE_INT_RGB, null /* location */, null /* properties */);
+            printOffscreenToFile(image, frame, caps, 2, "newio_150dpi_rgb");
+        }
+        // paint offscreen: NIO 150dpi BGR
+        {
+            final int scale = (int) ( 150.0 / 72.0 + 0.5 ); 
+            final BufferedImage image = DirectDataBufferInt.createBufferedImage(frame.getWidth()*scale, frame.getHeight()*scale, BufferedImage.TYPE_INT_BGR, null /* location */, null /* properties */);
+            printOffscreenToFile(image, frame, caps, 2, "newio_150dpi_bgr");
         }
         
         Assert.assertNotNull(frame);

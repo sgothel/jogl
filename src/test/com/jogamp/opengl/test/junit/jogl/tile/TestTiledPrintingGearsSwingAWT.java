@@ -36,6 +36,7 @@ import java.awt.Frame;
 import java.awt.Label;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -216,26 +217,41 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
             if( !printDone ) {
                 printDone = true;
                 {
-                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, false, 72, 0);
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, -1 /* offscreen-type */, 72, 0);
                     waitUntilPrintJobsIdle(p);
                 }
                 {
-                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, false, 72, 8);
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, -1 /* offscreen-type */, 72, 8);
                     waitUntilPrintJobsIdle(p);
                 }
                 {
-                    // No AA needed for 300 dpi and greater :)
-                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, false, 300, -1);
+                    // No AA needed for 150 dpi and greater :)
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, -1 /* offscreen-type */, 150, -1);
                     waitUntilPrintJobsIdle(p);
                 }
                 {
-                    // No AA needed for 300 dpi and greater :)
-                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, true, 300, -1);
+                    // No AA needed for 150 dpi and greater :)
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, BufferedImage.TYPE_INT_ARGB_PRE /* offscreen-type */, 150, -1);
+                    waitUntilPrintJobsIdle(p);
+                }
+                {
+                    // No AA needed for 150 dpi and greater :)
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, BufferedImage.TYPE_INT_ARGB /* offscreen-type */, 150, -1);
+                    waitUntilPrintJobsIdle(p);
+                }
+                {
+                    // No AA needed for 150 dpi and greater :)
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, BufferedImage.TYPE_INT_RGB /* offscreen-type */, 150, -1);
+                    waitUntilPrintJobsIdle(p);
+                }
+                {
+                    // No AA needed for 150 dpi and greater :)
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, BufferedImage.TYPE_INT_BGR /* offscreen-type */, 150, -1);
                     waitUntilPrintJobsIdle(p);
                 }
                 if( allow600dpi ) {
                     // No AA needed for 300 dpi and greater :)
-                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, false, 600, -1);
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, -1 /* offscreen-type */, 600, -1);
                     waitUntilPrintJobsIdle(p);
                 }
             }
