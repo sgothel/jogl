@@ -44,7 +44,6 @@ import java.beans.Beans;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.FontMetrics;
@@ -55,7 +54,6 @@ import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Rectangle2D;
-
 import java.awt.EventQueue;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -70,7 +68,6 @@ import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
-
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
@@ -782,13 +779,15 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
               printGLAD = factory.createOffscreenAutoDrawable(null, caps, null, DEFAULT_PRINT_TILE_SIZE, DEFAULT_PRINT_TILE_SIZE, null);
               GLDrawableUtil.swapGLContextAndAllGLEventListener(GLCanvas.this, printGLAD);
           }
+          final GLDrawable printDrawable = printGLAD.getDelegatedDrawable();
           printAWTTiles.setIsGLOriented(printGLAD.isGLOriented());
-          printAWTTiles.renderer.setTileSize(printGLAD.getWidth(), printGLAD.getHeight(), 0);
+          printAWTTiles.renderer.setTileSize(printDrawable.getWidth(), printDrawable.getHeight(), 0);
           printAWTTiles.renderer.attachAutoDrawable(printGLAD);
           if( DEBUG ) {
               System.err.println("AWT print.setup "+printAWTTiles);
               System.err.println("AWT print.setup AA "+printNumSamples+", "+caps);
-              System.err.println("AWT print.setup "+printGLAD);
+              System.err.println("AWT print.setup printGLAD: "+printGLAD.getWidth()+"x"+printGLAD.getHeight()+", "+printGLAD);
+              System.err.println("AWT print.setup printDraw: "+printDrawable.getWidth()+"x"+printDrawable.getHeight()+", "+printDrawable);
           }
       }
   };

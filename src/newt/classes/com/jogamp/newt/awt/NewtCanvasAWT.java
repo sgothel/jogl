@@ -52,6 +52,7 @@ import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLDrawableFactory;
 import javax.swing.MenuSelectionManager;
 
@@ -524,13 +525,15 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 printGLAD = factory.createOffscreenAutoDrawable(null, caps, null, DEFAULT_PRINT_TILE_SIZE, DEFAULT_PRINT_TILE_SIZE, null);
                 GLDrawableUtil.swapGLContextAndAllGLEventListener(glad, printGLAD);
             }
+            final GLDrawable printDrawable = printGLAD.getDelegatedDrawable();
             printAWTTiles.setIsGLOriented(printGLAD.isGLOriented());
-            printAWTTiles.renderer.setTileSize(printGLAD.getWidth(), printGLAD.getHeight(), 0);
+            printAWTTiles.renderer.setTileSize(printDrawable.getWidth(), printDrawable.getHeight(), 0);
             printAWTTiles.renderer.attachAutoDrawable(printGLAD);
             if( DEBUG ) {
                 System.err.println("AWT print.setup "+printAWTTiles);
                 System.err.println("AWT print.setup AA "+printNumSamples+", "+caps);
-                System.err.println("AWT print.setup "+printGLAD);
+                System.err.println("AWT print.setup printGLAD: "+printGLAD.getWidth()+"x"+printGLAD.getHeight()+", "+printGLAD);
+                System.err.println("AWT print.setup printDraw: "+printDrawable.getWidth()+"x"+printDrawable.getHeight()+", "+printDrawable);
             }
         }
     };
