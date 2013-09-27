@@ -313,6 +313,13 @@ public abstract class TileRendererBase {
         }        
     }
     
+    /** 
+     * Returns true if this instance is setup properly, i.e. {@link #setImageSize(int, int)} ..,
+     * and ready for {@link #beginTile(GL)}.
+     * Otherwise returns false.
+     */
+    public abstract boolean isSetup();
+    
     /**
      * Begins rendering a tile.
      * <p>
@@ -577,6 +584,12 @@ public abstract class TileRendererBase {
         }
         @Override
         public void display(GLAutoDrawable drawable) {
+            if( !isSetup() ) {
+                if( DEBUG ) {
+                    System.err.println("TileRenderer.glel.display: !setup: "+TileRendererBase.this);
+                }
+                return;
+            }
             if( null != glEventListenerPre ) {
                 glEventListenerPre.reshape(drawable, 0, 0, currentTileWidth, currentTileHeight);
                 glEventListenerPre.display(drawable);

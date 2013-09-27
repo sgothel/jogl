@@ -337,8 +337,13 @@ public class TileRenderer extends TileRendererBase {
     }
 
     @Override
+    public final boolean isSetup() {
+        return 0 < imageSize.getWidth() && 0 < imageSize.getHeight();
+    }
+    
+    @Override
     public final void beginTile( GL gl ) throws IllegalStateException, GLException {
-        if( 0 >= imageSize.getWidth() || 0 >= imageSize.getHeight() ) {
+        if( !isSetup() ) {
             throw new IllegalStateException("Image size has not been set");        
         }
         validateGL(gl);

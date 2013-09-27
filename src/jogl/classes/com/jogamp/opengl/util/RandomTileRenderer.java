@@ -89,6 +89,11 @@ public class RandomTileRenderer extends TileRendererBase {
         tileRectSet = true;
     }
     
+    @Override
+    public final boolean isSetup() {
+        return 0 < imageSize.getWidth() && 0 < imageSize.getHeight() && tileRectSet;
+    }
+    
     /**
      * {@inheritDoc}
      * @throws IllegalStateException if image-size or tileRect has not been set
