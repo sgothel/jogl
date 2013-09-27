@@ -31,6 +31,7 @@ import java.awt.Container;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Paper;
@@ -121,36 +122,34 @@ public class OffscreenPrintable extends PrintableBase implements Printable {
             
             /**
              * See: 'Scaling of Frame and GL content' in Class description!
+             * Note: Frame size contains the frame border (i.e. insets)!
              */                
             final Insets frameInsets = cont.getInsets();
             final int frameWidth = cont.getWidth();
             final int frameHeight= cont.getHeight();
-            final int frameWidthT = frameWidth + frameInsets.left + frameInsets.right;
-            final int frameHeightT = frameHeight + frameInsets.top + frameInsets.bottom;
             final double scaleGraphics = dpi / 72.0;
-            final int frameSWidthT = (int) ( frameWidthT * scaleGraphics ); 
-            final int frameSHeightT = (int) ( frameHeightT * scaleGraphics );
+            final int frameSWidth = (int) ( frameWidth * scaleGraphics ); 
+            final int frameSHeight = (int) ( frameHeight * scaleGraphics );
             final double scaleComp72;
             {
-                final double sx = pf.getImageableWidth() / (double)frameSWidthT; 
-                final double sy = pf.getImageableHeight() / (double)frameSHeightT;
+                final double sx = pf.getImageableWidth() / (double)frameSWidth; 
+                final double sy = pf.getImageableHeight() / (double)frameSHeight;
                 scaleComp72 = Math.min(sx, sy);
             }
             
             System.err.println("PRINT.offscrn thread "+Thread.currentThread().getName());
             System.err.println("PRINT.offscrn DPI: scaleGraphics "+scaleGraphics+", scaleComp72 "+scaleComp72);
             System.err.println("PRINT.offscrn DPI: frame: border "+frameInsets+", size "+frameWidth+"x"+frameHeight+
-                    " -> total "+frameWidthT+ "x" + frameHeightT+
-                    " -> scaled "+frameSWidthT+ "x" + frameSHeightT);
+                    " -> scaled "+frameSWidth+ "x" + frameSHeight);
                         
-            final BufferedImage image = DirectDataBufferInt.createBufferedImage(frameSWidthT, frameSHeightT, imageType, null /* location */, null /* properties */);
+            final BufferedImage image = DirectDataBufferInt.createBufferedImage(frameSWidth, frameSHeight, imageType, null /* location */, null /* properties */);
             {
                 System.err.println("PRINT.offscrn image "+image);
                 final Graphics2D g2d = (Graphics2D) image.getGraphics();
-                g2d.setClip(0, 0, frameSWidthT, frameSHeightT);
+                g2d.setClip(0, 0, frameSWidth, frameSHeight);
                 g2d.scale(scaleGraphics, scaleGraphics);
                 // g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                // g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
                 AWTEDTExecutor.singleton.invoke(true, new Runnable() {
                     public void run() {
                         cont.printAll(g2d);

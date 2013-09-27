@@ -120,33 +120,31 @@ public class OnscreenPrintable extends PrintableBase implements Printable {
             
             /**
              * See: 'Scaling of Frame and GL content' in Class description!
+             * Note: Frame size contains the frame border (i.e. insets)!
              */                
             final Insets frameInsets = cont.getInsets();
             final int frameWidth = cont.getWidth();
             final int frameHeight= cont.getHeight();
-            final int frameWidthT = frameWidth + frameInsets.left + frameInsets.right;
-            final int frameHeightT = frameHeight + frameInsets.top + frameInsets.bottom;
             final double scaleGraphics = dpi / 72.0;
-            final int frameSWidthT = (int) ( frameWidthT * scaleGraphics ); 
-            final int frameSHeightT = (int) ( frameHeightT * scaleGraphics );
+            final int frameSWidth = (int) ( frameWidth * scaleGraphics ); 
+            final int frameSHeight = (int) ( frameHeight * scaleGraphics );
             final double scaleComp72;
             {
-                final double sx = pf.getImageableWidth() / (double)frameWidthT; 
-                final double sy = pf.getImageableHeight() / (double)frameHeightT;
+                final double sx = pf.getImageableWidth() / (double)frameWidth; 
+                final double sy = pf.getImageableHeight() / (double)frameHeight;
                 scaleComp72 = Math.min(sx, sy);
             }            
             System.err.println("PRINT.onscrn thread "+Thread.currentThread().getName());
             System.err.println("PRINT.onscrn DPI: scaleGraphics "+scaleGraphics+", scaleComp72 "+scaleComp72);
             System.err.println("PRINT.onscrn DPI: frame: border "+frameInsets+", size "+frameWidth+"x"+frameHeight+
-                    " -> total "+frameWidthT+ "x" + frameHeightT+
-                    " -> scaled "+frameSWidthT+ "x" + frameSHeightT);
+                    " -> scaled "+frameSWidth+ "x" + frameSHeight);
                         
             final Graphics2D g2d = (Graphics2D)g;
             System.err.println("PRINT at.pre: "+g2d.getTransform());
             g2d.translate(pf.getImageableX(), pf.getImageableY());
             g2d.scale(scaleComp72, scaleComp72); // WARNING: Produces rounding artifacts due to diff scale-factor of AWT/GL comps !!!
             // g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            // g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             
             AWTEDTExecutor.singleton.invoke(true, new Runnable() {
                 public void run() {

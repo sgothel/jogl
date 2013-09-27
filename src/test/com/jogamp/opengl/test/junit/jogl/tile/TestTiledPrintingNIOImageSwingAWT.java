@@ -36,6 +36,7 @@ import java.awt.Frame;
 import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Label;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
@@ -105,11 +106,10 @@ public class TestTiledPrintingNIOImageSwingAWT extends UITestCase  {
         final int imageWidth = image.getWidth();
         final int imageHeight= image.getHeight();
         final double scaleComp72;
+        // Note: Frame size contains the frame border (i.e. insets)!
         {
-            final double frameBorderW = frameInsets.left + frameInsets.right;
-            final double frameBorderH = frameInsets.top + frameInsets.bottom;
-            final double sx = (double)imageWidth / ( frameWidth + frameBorderW ); 
-            final double sy = (double)imageHeight / ( frameHeight + frameBorderH );
+            final double sx = (double)imageWidth / frameWidth; 
+            final double sy = (double)imageHeight / frameHeight;
             scaleComp72 = Math.min(sx, sy);
         }
         System.err.println("PRINT DPI: scaleComp72 "+scaleComp72+", image-size "+imageWidth+"x"+imageHeight+", frame[border "+frameInsets+", size "+frameWidth+"x"+frameHeight+"]");
@@ -125,7 +125,7 @@ public class TestTiledPrintingNIOImageSwingAWT extends UITestCase  {
                 g2d.setClip(0, 0, image.getWidth(), image.getHeight());
                 g2d.scale(scaleComp72, scaleComp72);
                 // g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                // g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
                 
                 // frame.paintAll(g2d);
                 final AWTPrintLifecycle.Context ctx = AWTPrintLifecycle.Context.setupPrint(frame, 1.0/scaleComp72, 1.0/scaleComp72, 0);
