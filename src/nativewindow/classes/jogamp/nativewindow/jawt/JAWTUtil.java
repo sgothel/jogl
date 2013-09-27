@@ -113,11 +113,12 @@ public class JAWTUtil {
   /** 
    * CALayer size needs to be set using the AWT component size.
    * <p>
-   * As of today, we have to overwrite the CALayer size
-   * w/ the AWT component one since programmatic resize leads to differences.
+   * AWT's super-calayer, i.e. the AWT's own component CALayer,
+   * does not layout our root-calayer in respect to this component's
+   * position and size, at least when resizing programmatically.
    * </p>
    * <p>
-   * Hence this flag is always enabled. 
+   * As of today, this flag is enabled for all known AWT versions.
    * </p>
    * <p> 
    * Sync w/ NativeWindowProtocols.h
@@ -128,23 +129,52 @@ public class JAWTUtil {
   /** 
    * CALayer position needs to be set to zero.
    * <p>
-   * Normally we have to set the root-calayer's position to 0/0
-   * and leave client-calayer's position in it's desired place.
-   * With pre AWT 1.7.0_40, the client-calayer's position has to
-   * be set to zero as well. 
+   * AWT's super-calayer, i.e. the AWT's own component CALayer,
+   * has a broken layout and needs it's sub-layers to be located at position 0/0.
+   * </p>
+   * <p>
+   * See <code>http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=7172187</code>.
    * </p>
    * <p>
    * Further more a re-layout seems to be required in this case,
    * i.e. a programmatic forced resize +1 and it's inverted resize -1. 
    * </p>
    * <p>
-   * Hence this flag is enabled w/ AWT < 1.7.0_40. 
+   * This flag is enabled w/ AWT < 1.7.0_40. 
    * </p>
    * <p> 
    * Sync w/ NativeWindowProtocols.h
    * </p> 
    */
   public static final int JAWT_OSX_CALAYER_QUIRK_POSITION = 1 << 1;
+  
+  /** 
+   * CALayer position needs to be derived from AWT position 
+   * in relation to super CALayer.
+   * <p>
+   * AWT's super-calayer, i.e. the AWT's own component CALayer,
+   * does not layout our root-calayer in respect to this component's
+   * position and size, at least when resizing programmatically.
+   * </p>
+   * <p>
+   * CALayer position has origin 0/0 at bottom/left,
+   * where AWT component has origin 0/0 at top/left.
+   * </p>
+   * <p>
+   * The super-calayer bounds exclude the frame's heavyweight border/insets.
+   * </p>
+   * <p>
+   * This flags also sets {@link #JAWT_OSX_CALAYER_QUIRK_SIZE},
+   * i.e. they are related.
+   * </p>
+   * <p>
+   * As of today, this flag is enabled for w/ AWT >= 1.7.0_40.
+   * </p>
+   * <p> 
+   * Sync w/ NativeWindowProtocols.h
+   * </p> 
+   */
+  public static final int JAWT_OSX_CALAYER_QUIRK_LAYOUT = 1 << 2;
   
   /**
    * Returns bitfield of required JAWT OSX CALayer quirks to mediate AWT impl. bugs.
@@ -157,6 +187,7 @@ public class JAWTUtil {
    * <ul>
    *    <li>{@link #JAWT_OSX_CALAYER_QUIRK_SIZE} (always)</li>
    *    <li>{@link #JAWT_OSX_CALAYER_QUIRK_POSITION} if JVM < 1.7.0_40</li>
+   *    <li>{@link #JAWT_OSX_CALAYER_QUIRK_LAYOUT} if JVM >= 1.7.0_40</li>
    * </ul>
    * </p>
    */
@@ -171,6 +202,8 @@ public class JAWTUtil {
         final int c = Platform.JAVA_VERSION_NUMBER.compareTo(Platform.Version17);
         if( c < 0 || c == 0 && Platform.JAVA_VERSION_UPDATE < 40 ) {
             res |= JAWT_OSX_CALAYER_QUIRK_POSITION;
+        } else {
+            res |= JAWT_OSX_CALAYER_QUIRK_LAYOUT;
         }
     }
     return res;

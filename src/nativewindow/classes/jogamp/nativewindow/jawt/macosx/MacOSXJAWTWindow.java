@@ -110,6 +110,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
               // AWT position is top-left w/ insets, where CALayer position is bottom/left from root CALayer w/o insets.
               // Determine p0: components location on screen w/o insets.
               // CALayer position will be determined in native code.
+              // See: {@link JAWTWindow#JAWT_OSX_CALAYER_QUIRK_LAYOUT}
               final Point p0 = new Point();
               final Component outterComp = getLocationOnScreenNonBlocking(p0, component);
               final java.awt.Insets ins = AWTMisc.getInsets(outterComp);
@@ -131,6 +132,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
           // AWT position is top-left w/ insets, where CALayer position is bottom/left from root CALayer w/o insets.
           // Determine p0: components location on screen w/o insets.
           // CALayer position will be determined in native code.
+          // See: {@link JAWTWindow#JAWT_OSX_CALAYER_QUIRK_LAYOUT}
           final Point p0 = new Point();
           final Component outterComp = getLocationOnScreenNonBlocking(p0, component);
           final java.awt.Insets ins = AWTMisc.getInsets(outterComp);

@@ -41,6 +41,13 @@
  */
 #define NW_DEDICATEDFRAME_QUIRK_POSITION  ( 1 << 1 )
 
+/** 
+ * CALayer position needs to be derived from AWT position.
+ * in relation to super CALayer.
+ * See detailed description in JAWTUtil.java and sync w/ changed.
+ */
+#define NW_DEDICATEDFRAME_QUIRK_LAYOUT ( 1 << 2 )
+
 #import <Foundation/NSGeometry.h>
 
 @protocol NWDedicatedFrame

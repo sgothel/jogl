@@ -451,13 +451,14 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetNSWindow0
 
 - (void)fixCALayerLayout: (CALayer*) subLayer  x:(jint)x y:(jint)y width:(jint)width height:(jint)height caLayerQuirks:(jint)caLayerQuirks force:(jboolean) force
 {
+    int loutQuirk = 0 != ( NW_DEDICATEDFRAME_QUIRK_LAYOUT & caLayerQuirks );
     {
         CALayer* superLayer = [self superlayer];
         CGRect superFrame = [superLayer frame];
         CGRect lFrame = [self frame];
         int posQuirk  = 0 != ( NW_DEDICATEDFRAME_QUIRK_POSITION & caLayerQuirks ) && ( lFrame.origin.x!=0 || lFrame.origin.y!=0 );
         int sizeQuirk = 0 != ( NW_DEDICATEDFRAME_QUIRK_SIZE & caLayerQuirks ) && ( lFrame.size.width!=width || lFrame.size.height!=height );
-        if( !posQuirk ) {
+        if( !posQuirk || loutQuirk ) {
             // Use root layer position, sub-layer will be on 0/0,
             // Given AWT position is location on screen w/o insets and top/left origin!
             fixedFrame.origin.x = x;
@@ -475,12 +476,12 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetNSWindow0
             fixedFrame.size.width = width;
             fixedFrame.size.height = height;
         }
-        DBG_PRINT("CALayer::FixCALayerLayout0.0: Quirks [%d, pos %d, size %d], Super %p frame %lf/%lf %lfx%lf, Root %p frame %lf/%lf %lfx%lf, usr %d/%d %dx%d -> %lf/%lf %lfx%lf\n",
-            caLayerQuirks, posQuirk, sizeQuirk, 
+        DBG_PRINT("CALayer::FixCALayerLayout0.0: Quirks [%d, pos %d, size %d, lout %d], Super %p frame %lf/%lf %lfx%lf, Root %p frame %lf/%lf %lfx%lf, usr %d/%d %dx%d -> %lf/%lf %lfx%lf\n",
+            caLayerQuirks, posQuirk, sizeQuirk, loutQuirk,
             superLayer, superFrame.origin.x, superFrame.origin.y, superFrame.size.width, superFrame.size.height, 
             self, lFrame.origin.x, lFrame.origin.y, lFrame.size.width, lFrame.size.height, 
             x, y, width, height, fixedFrame.origin.x, fixedFrame.origin.y, fixedFrame.size.width, fixedFrame.size.height);
-        if( posQuirk || sizeQuirk ) {
+        if( posQuirk || sizeQuirk || loutQuirk ) {
             fixedFrameSet = 1;
             [super setFrame: fixedFrame];
         }
@@ -501,10 +502,10 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetNSWindow0
             _w = width;
             _h = height;
         }
-        DBG_PRINT("CALayer::FixCALayerLayout1.0: Quirks [%d, pos %d, size %d], SubL %p frame %lf/%lf %lfx%lf, usr %dx%d -> %lf/%lf %lfx%lf\n",
-            caLayerQuirks, posQuirk, sizeQuirk, subLayer, lFrame.origin.x, lFrame.origin.y, lFrame.size.width, lFrame.size.height,
+        DBG_PRINT("CALayer::FixCALayerLayout1.0: Quirks [%d, pos %d, size %d, lout %d], SubL %p frame %lf/%lf %lfx%lf, usr %dx%d -> %lf/%lf %lfx%lf\n",
+            caLayerQuirks, posQuirk, sizeQuirk, loutQuirk, subLayer, lFrame.origin.x, lFrame.origin.y, lFrame.size.width, lFrame.size.height,
             width, height, _x, _y, _w, _h);
-        if( force || posQuirk || sizeQuirk ) {
+        if( force || posQuirk || sizeQuirk || loutQuirk ) {
             lFrame.origin.x = _x;
             lFrame.origin.y = _y;
             lFrame.size.width = _w;
