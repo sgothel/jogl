@@ -188,7 +188,7 @@ public class TestTiledRendering2NEWT extends UITestCase {
         final TileRenderer renderer = new TileRenderer();
         renderer.setImageSize(imageWidth, imageHeight);
         renderer.setTileSize(glad.getWidth(), glad.getHeight(), 0);
-        renderer.attachToAutoDrawable(glad);
+        renderer.attachAutoDrawable(glad);
 
         final GLPixelBuffer.GLPixelBufferProvider pixelBufferProvider = GLPixelBuffer.defaultProviderWithRowStride;
         final boolean[] flipVertically = { false };
@@ -219,7 +219,7 @@ public class TestTiledRendering2NEWT extends UITestCase {
             renderer.display();
         } while ( !renderer.eot() );
 
-        renderer.detachFromAutoDrawable();
+        renderer.detachAutoDrawable();
         
         // Restore viewport and Gear's PMV matrix
         // .. even though we close the demo, this is for documentation!

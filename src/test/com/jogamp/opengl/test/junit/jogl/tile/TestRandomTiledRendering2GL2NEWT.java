@@ -107,7 +107,7 @@ public class TestRandomTiledRendering2GL2NEWT extends UITestCase {
 
         // Initialize the tile rendering library
         final RandomTileRenderer renderer = new RandomTileRenderer();
-        renderer.attachToAutoDrawable(glad);
+        renderer.attachAutoDrawable(glad);
         renderer.setImageSize(imageWidth, imageHeight);
 
         final GLPixelBuffer.GLPixelBufferProvider pixelBufferProvider = GLPixelBuffer.defaultProviderWithRowStride;
@@ -146,7 +146,7 @@ public class TestRandomTiledRendering2GL2NEWT extends UITestCase {
             }
         }
 
-        renderer.detachFromAutoDrawable();
+        renderer.detachAutoDrawable();
 
         // Restore viewport and Gear's PMV matrix
         // .. even though we close the demo, this is for documentation!

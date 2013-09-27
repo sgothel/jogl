@@ -34,6 +34,7 @@ import com.jogamp.opengl.util.TileRendererBase;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
+
 import java.nio.FloatBuffer;
 
 import javax.media.nativewindow.NativeWindow;
@@ -49,7 +50,7 @@ import javax.media.opengl.GLUniformData;
  * GearsES2.java <BR>
  * @author Brian Paul (converted to Java by Ron Cemer and Sven Gothel) <P>
  */
-public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererNotify {
+public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererListener {
     private final FloatBuffer lightPos = Buffers.newDirectFloatBuffer( new float[] { 5.0f, 5.0f, 10.0f } );
     
     private ShaderState st = null;
@@ -84,14 +85,24 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererN
         this.swapInterval = 1;
     }
 
+    @Override
     public void addTileRendererNotify(TileRendererBase tr) {
         tileRendererInUse = tr;
         doRotateBeforePrinting = doRotate;
         setDoRotation(false);      
     }
+    @Override
     public void removeTileRendererNotify(TileRendererBase tr) {
         tileRendererInUse = null;
         setDoRotation(doRotateBeforePrinting);      
+    }
+    @Override
+    public void startTileRendering(TileRendererBase tr) {
+        System.err.println("GearsES2.startTileRendering: "+tr);
+    }
+    @Override
+    public void endTileRendering(TileRendererBase tr) {
+        System.err.println("GearsES2.endTileRendering: "+tr);
     }
   
     public void setIgnoreFocus(boolean v) { ignoreFocus = v; }
@@ -136,6 +147,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererN
     public GearsObjectES2 getGear3() { return gear3; }
 
 
+    @Override
     public void init(GLAutoDrawable drawable) {
         System.err.println(Thread.currentThread()+" GearsES2.init: tileRendererInUse "+tileRendererInUse);
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
@@ -233,18 +245,29 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererN
         System.err.println(Thread.currentThread()+" GearsES2.init FIN");
     }
 
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-        final GL2ES2 gl = drawable.getGL().getGL2ES2();
-        final boolean msaa = gl.getContext().getGLDrawable().getChosenGLCapabilities().getSampleBuffers();
-        System.err.println(Thread.currentThread()+" GearsES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(drawable.getHandle())+", msaa "+msaa+", tileRendererInUse "+tileRendererInUse);
-        
-        drawableHeight = height;
-        
-        // Thread.dumpStack();
-
-        if(-1 != swapInterval) {
-            gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
+    @Override
+    public void reshape(GLAutoDrawable glad, int x, int y, int width, int height) {
+        final GL2ES2 gl = glad.getGL().getGL2ES2();
+        if(-1 != swapInterval) {        
+            gl.setSwapInterval(swapInterval);
         }
+        reshapeImpl(gl, x, y, width, height, width, height);
+    }
+    
+    @Override
+    public void reshapeTile(TileRendererBase tr,
+                            int tileX, int tileY, int tileWidth, int tileHeight, 
+                            int imageWidth, int imageHeight) {
+        final GL2ES2 gl = tr.getAttachedDrawable().getGL().getGL2ES2();
+        gl.setSwapInterval(0);
+        reshapeImpl(gl, tileX, tileY, tileWidth, tileHeight, imageWidth, imageHeight);
+    }
+    
+    void reshapeImpl(GL2ES2 gl, int tileX, int tileY, int tileWidth, int tileHeight, int imageWidth, int imageHeight) {
+        final boolean msaa = gl.getContext().getGLDrawable().getChosenGLCapabilities().getSampleBuffers();
+        System.err.println(Thread.currentThread()+" GearsES2.reshape "+tileX+"/"+tileY+" "+tileWidth+"x"+tileHeight+" of "+imageWidth+"x"+imageHeight+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(gl.getContext().getGLDrawable().getHandle())+", msaa "+msaa+", tileRendererInUse "+tileRendererInUse);
+        drawableHeight = imageHeight;
+        
         if( !gl.hasGLSL() ) {
             return;
         }
@@ -252,23 +275,6 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererN
         st.useProgram(gl, true);
         pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
-        
-        final int tileWidth = width;
-        final int tileHeight = height;
-        final int tileX, tileY, imageWidth, imageHeight;
-        if( null == tileRendererInUse ) {
-            gl.setSwapInterval(swapInterval);
-            tileX = 0;
-            tileY = 0;
-            imageWidth = width;
-            imageHeight = height;
-        } else {
-            gl.setSwapInterval(0);
-            tileX = tileRendererInUse.getParam(TileRendererBase.TR_CURRENT_TILE_X_POS);
-            tileY = tileRendererInUse.getParam(TileRendererBase.TR_CURRENT_TILE_Y_POS);
-            imageWidth = tileRendererInUse.getParam(TileRendererBase.TR_IMAGE_WIDTH);
-            imageHeight = tileRendererInUse.getParam(TileRendererBase.TR_IMAGE_HEIGHT);
-        }
         
         // compute projection parameters 'normal'
         float left, right, bottom, top; 
@@ -312,6 +318,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererN
     }
     // private boolean useAndroidDebug = false;
 
+    @Override
     public void dispose(GLAutoDrawable drawable) {
         System.err.println(Thread.currentThread()+" GearsES2.dispose: tileRendererInUse "+tileRendererInUse);
         final Object upstreamWidget = drawable.getUpstreamWidget();
@@ -339,6 +346,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererN
         System.err.println(Thread.currentThread()+" GearsES2.dispose FIN");
     }
 
+    @Override
     public void display(GLAutoDrawable drawable) {
         GLAnimatorControl anim = drawable.getAnimator();
         if( verbose && ( null == anim || !anim.isAnimating() ) ) {

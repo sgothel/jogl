@@ -26,7 +26,7 @@ import com.jogamp.opengl.util.TileRendererBase;
  *
  * This version is equal to Brian Paul's version 1.2 1999/10/21
  */
-public class Gears implements GLEventListener, TileRendererBase.TileRendererNotify {
+public class Gears implements GLEventListener, TileRendererBase.TileRendererListener {
   private float view_rotx = 20.0f, view_roty = 30.0f, view_rotz = 0.0f;
   private int gear1=0, gear2=0, gear3=0;
   private float angle = 0.0f;
@@ -49,14 +49,24 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererNoti
     this.swapInterval = 1;
   }
   
+  @Override
   public void addTileRendererNotify(TileRendererBase tr) {
       tileRendererInUse = tr;
       doRotateBeforePrinting = doRotate;
       setDoRotation(false);      
   }
+  @Override
   public void removeTileRendererNotify(TileRendererBase tr) {
       tileRendererInUse = null;
       setDoRotation(doRotateBeforePrinting);      
+  }
+  @Override
+  public void startTileRendering(TileRendererBase tr) {
+      System.err.println("Gears.startTileRendering: "+tr);
+  }
+  @Override
+  public void endTileRendering(TileRendererBase tr) {
+      System.err.println("Gears.endTileRendering: "+tr);
   }
   
   public void setDoRotation(boolean rotate) { doRotate = rotate; }
@@ -83,6 +93,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererNoti
    */
   public int getGear3() { return gear3; }
 
+  @Override
   public void init(GLAutoDrawable drawable) {
     GL2 gl = drawable.getGL().getGL2();
 
@@ -154,14 +165,31 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererNoti
     gl.glEnable(GL2.GL_NORMALIZE);
   }
   
-  public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-      GL2 gl = drawable.getGL().getGL2();
-      this.reshape(gl, x, y, width, height);
+  @Override
+  public void reshape(GLAutoDrawable glad, int x, int y, int width, int height) {
+      final GL2 gl = glad.getGL().getGL2();
+      if(-1 != swapInterval) {        
+          gl.setSwapInterval(swapInterval);
+      }
+      reshapeImpl(gl, x, y, width, height, width, height);
   }
-  
+
   public void reshape(GL2 gl, int x, int y, int width, int height) {
+      reshapeImpl(gl, x, y, width, height, width, height);
+  }
+
+  @Override
+  public void reshapeTile(TileRendererBase tr,
+          int tileX, int tileY, int tileWidth, int tileHeight, 
+          int imageWidth, int imageHeight) {
+      final GL2 gl = tr.getAttachedDrawable().getGL().getGL2();
+      gl.setSwapInterval(0);
+      reshapeImpl(gl, tileX, tileY, tileWidth, tileHeight, imageWidth, imageHeight);
+  }
+
+  void reshapeImpl(GL2 gl, int tileX, int tileY, int tileWidth, int tileHeight, int imageWidth, int imageHeight) {
     final boolean msaa = gl.getContext().getGLDrawable().getChosenGLCapabilities().getSampleBuffers();
-    System.err.println("Gears: Reshape "+x+"/"+y+" "+width+"x"+height+", msaa "+msaa+", tileRendererInUse "+tileRendererInUse);
+    System.err.println(Thread.currentThread()+" Gears.reshape "+tileX+"/"+tileY+" "+tileWidth+"x"+tileHeight+" of "+imageWidth+"x"+imageHeight+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(gl.getContext().getGLDrawable().getHandle())+", msaa "+msaa+", tileRendererInUse "+tileRendererInUse);
 
     if( msaa ) {
         gl.glEnable(GL.GL_MULTISAMPLE);
@@ -170,23 +198,6 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererNoti
     gl.glMatrixMode(GL2.GL_PROJECTION);
 
     gl.glLoadIdentity();
-    
-    final int tileWidth = width;
-    final int tileHeight = height;
-    final int tileX, tileY, imageWidth, imageHeight;
-    if( null == tileRendererInUse ) {
-        gl.setSwapInterval(swapInterval);
-        tileX = 0;
-        tileY = 0;
-        imageWidth = width;
-        imageHeight = height;
-    } else {
-        gl.setSwapInterval(0);
-        tileX = tileRendererInUse.getParam(TileRendererBase.TR_CURRENT_TILE_X_POS);
-        tileY = tileRendererInUse.getParam(TileRendererBase.TR_CURRENT_TILE_Y_POS);
-        imageWidth = tileRendererInUse.getParam(TileRendererBase.TR_IMAGE_WIDTH);
-        imageHeight = tileRendererInUse.getParam(TileRendererBase.TR_IMAGE_HEIGHT);
-    }
     
     // compute projection parameters 'normal'
     float left, right, bottom, top; 
@@ -228,6 +239,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererNoti
     }
   }
 
+  @Override
   public void dispose(GLAutoDrawable drawable) {
     System.err.println(Thread.currentThread()+" Gears.dispose: tileRendererInUse "+tileRendererInUse);
     try {
@@ -241,6 +253,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererNoti
     setGears(0, 0, 0);
   }
 
+  @Override
   public void display(GLAutoDrawable drawable) {
     // Get the GL corresponding to the drawable we are animating
     GL2 gl = drawable.getGL().getGL2();

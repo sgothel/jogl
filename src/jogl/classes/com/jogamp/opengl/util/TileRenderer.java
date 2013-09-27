@@ -137,7 +137,7 @@ public class TileRenderer extends TileRendererBase {
     private int rowOrder = TR_BOTTOM_TO_TOP;
     private int rows;
     private int columns;
-    private int currentTile = -1;
+    private int currentTile = -1; 
     private int currentRow;
     private int currentColumn;
     private int offsetX;
@@ -269,6 +269,8 @@ public class TileRenderer extends TileRendererBase {
         assert rows >= 0;
     }
 
+    /* pp */ final int getCurrentTile() { return currentTile; }
+    
     /** 
      * Returns <code>true</code> if all tiles have been rendered or {@link #setup()}
      * has not been called, otherwise <code>false</code>.

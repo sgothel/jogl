@@ -1,7 +1,9 @@
 package com.jogamp.opengl.test.junit.jogl.demos.es1;
 
 import com.jogamp.common.nio.Buffers;
+
 import java.nio.*;
+
 import javax.media.opengl.*;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 import javax.media.opengl.fixedfunc.GLPointerFunc;
@@ -10,7 +12,7 @@ import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.util.TileRendererBase;
 import com.jogamp.opengl.util.glsl.fixedfunc.*;
 
-public class RedSquareES1 implements GLEventListener, TileRendererBase.TileRendererNotify {
+public class RedSquareES1 implements GLEventListener, TileRendererBase.TileRendererListener {
 
     public static boolean oneThread = false;
     public static boolean useAnimator = false;
@@ -37,15 +39,26 @@ public class RedSquareES1 implements GLEventListener, TileRendererBase.TileRende
         this.swapInterval = 1;
     }
     
+    @Override
     public void addTileRendererNotify(TileRendererBase tr) {
         tileRendererInUse = tr;
         doRotateBeforePrinting = doRotate;
         setDoRotation(false);      
     }
+    @Override
     public void removeTileRendererNotify(TileRendererBase tr) {
         tileRendererInUse = null;
         setDoRotation(doRotateBeforePrinting);      
     }
+    @Override
+    public void startTileRendering(TileRendererBase tr) {
+        System.err.println("RedSquareES1.startTileRendering: "+tr);
+    }
+    @Override
+    public void endTileRendering(TileRendererBase tr) {
+        System.err.println("RedSquareES1.endTileRendering: "+tr);
+    }
+    
     public void setDoRotation(boolean rotate) { this.doRotate = rotate; }
     public void setForceFFPEmu(boolean forceFFPEmu, boolean verboseFFPEmu, boolean debugFFPEmu, boolean traceFFPEmu) {
         this.forceFFPEmu = forceFFPEmu;
@@ -64,6 +77,7 @@ public class RedSquareES1 implements GLEventListener, TileRendererBase.TileRende
     private FloatBuffer colors;
     private FloatBuffer vertices;
 
+    @Override
     public void init(GLAutoDrawable drawable) {
         System.err.println(Thread.currentThread()+" RedSquareES1.init ...");
         GL _gl = drawable.getGL();
@@ -122,33 +136,31 @@ public class RedSquareES1 implements GLEventListener, TileRendererBase.TileRende
         System.err.println(Thread.currentThread()+" RedSquareES1.init FIN");
     }
 
+    @Override
     public void reshape(GLAutoDrawable glad, int x, int y, int width, int height) {
-        System.err.println(Thread.currentThread()+" RedSquareES1.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(glad.getHandle())+", tileRendererInUse "+tileRendererInUse);
-        GL2ES1 gl = glad.getGL().getGL2ES1();
-        gl.setSwapInterval(swapInterval);
+        final GL2ES1 gl = glad.getGL().getGL2ES1();
+        if(-1 != swapInterval) {        
+            gl.setSwapInterval(swapInterval);
+        }
+        reshapeImpl(gl, x, y, width, height, width, height);
+    }
+    
+    @Override
+    public void reshapeTile(TileRendererBase tr,
+                            int tileX, int tileY, int tileWidth, int tileHeight, 
+                            int imageWidth, int imageHeight) {
+        final GL2ES1 gl = tr.getAttachedDrawable().getGL().getGL2ES1();
+        gl.setSwapInterval(0);
+        reshapeImpl(gl, tileX, tileY, tileWidth, tileHeight, imageWidth, imageHeight);
+    }
+    
+    void reshapeImpl(GL2ES1 gl, int tileX, int tileY, int tileWidth, int tileHeight, int imageWidth, int imageHeight) {
+        System.err.println(Thread.currentThread()+" RedSquareES1.reshape "+tileX+"/"+tileY+" "+tileWidth+"x"+tileHeight+" of "+imageWidth+"x"+imageHeight+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(gl.getContext().getGLDrawable().getHandle())+", tileRendererInUse "+tileRendererInUse);
         
         // Set location in front of camera
         gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         gl.glLoadIdentity();
         
-        final int tileWidth = width;
-        final int tileHeight = height;
-        final int tileX, tileY, imageWidth, imageHeight;
-        if( null == tileRendererInUse ) {
-            if(-1 != swapInterval) {        
-                gl.setSwapInterval(swapInterval);
-            }
-            tileX = 0;
-            tileY = 0;
-            imageWidth = width;
-            imageHeight = height;
-        } else {
-            gl.setSwapInterval(0);
-            tileX = tileRendererInUse.getParam(TileRendererBase.TR_CURRENT_TILE_X_POS);
-            tileY = tileRendererInUse.getParam(TileRendererBase.TR_CURRENT_TILE_Y_POS);
-            imageWidth = tileRendererInUse.getParam(TileRendererBase.TR_IMAGE_WIDTH);
-            imageHeight = tileRendererInUse.getParam(TileRendererBase.TR_IMAGE_HEIGHT);
-        }
         // compute projection parameters 'normal' perspective
         final float fovy=45f;
         final float aspect2 = ( (float) imageWidth / (float) imageHeight ) / aspect;
@@ -174,6 +186,7 @@ public class RedSquareES1 implements GLEventListener, TileRendererBase.TileRende
         System.err.println(Thread.currentThread()+" RedSquareES1.reshape FIN");
     }
     
+    @Override
     public void display(GLAutoDrawable drawable) {
         curTime = System.currentTimeMillis();
         GL2ES1 gl = drawable.getGL().getGL2ES1();
@@ -202,6 +215,7 @@ public class RedSquareES1 implements GLEventListener, TileRendererBase.TileRende
         gl.glDisableClientState(GLPointerFunc.GL_COLOR_ARRAY);
     }
 
+    @Override
     public void dispose(GLAutoDrawable drawable) {
         System.err.println(Thread.currentThread()+" RedSquareES1.dispose ... ");
         GL2ES1 gl = drawable.getGL().getGL2ES1();

@@ -201,7 +201,7 @@ public class RandomTileRenderer extends TileRendererBase {
     /**
      * Rendering one tile, by simply calling {@link GLAutoDrawable#display()}.
      * 
-     * @throws IllegalStateException if no {@link GLAutoDrawable} is {@link #attachToAutoDrawable(GLAutoDrawable) attached}
+     * @throws IllegalStateException if no {@link GLAutoDrawable} is {@link #attachAutoDrawable(GLAutoDrawable) attached}
      *                               or imageSize is not set
      */
     public void display(int tX, int tY, int tWidth, int tHeight) throws IllegalStateException {

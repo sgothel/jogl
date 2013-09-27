@@ -114,7 +114,7 @@ public class AWTTilePainter {
     
     /** 
      * Assumes a configured {@link TileRenderer}, i.e.
-     * an {@link TileRenderer#attachToAutoDrawable(GLAutoDrawable) attached}
+     * an {@link TileRenderer#attachAutoDrawable(GLAutoDrawable) attached}
      * {@link GLAutoDrawable} with {@link TileRenderer#setTileSize(int, int, int) set tile size}.
      * <p> 
      * Sets the renderer to {@link TileRenderer#TR_TOP_TO_BOTTOM} row order.
@@ -241,11 +241,11 @@ public class AWTTilePainter {
     }
     
     /**
-     * Disposes resources and {@link TileRenderer#detachFromAutoDrawable() detaches}
+     * Disposes resources and {@link TileRenderer#detachAutoDrawable() detaches}
      * the {@link TileRenderer}'s {@link GLAutoDrawable}.
      */
     public void dispose() {
-        renderer.detachFromAutoDrawable(); // tile-renderer -> printGLAD
+        renderer.detachAutoDrawable(); // tile-renderer -> printGLAD
         g2d = null;
         if( null != tBuffer ) {
             tBuffer.dispose();

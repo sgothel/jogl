@@ -196,7 +196,7 @@ public class TestRandomTiledRendering3GL2AWT extends UITestCase {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    renderer.detachFromAutoDrawable();
+                    renderer.detachAutoDrawable();
                     System.err.println("XXX post-display detached: "+renderer);
                     drawable.getGL().glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
                     glad.getGLEventListener(0).reshape(drawable, 0, 0, drawable.getWidth(), drawable.getHeight());
@@ -224,7 +224,7 @@ public class TestRandomTiledRendering3GL2AWT extends UITestCase {
                 signalTileRenderer = false;
                 // tile rendering !
                 System.err.println("XXX START TILE RENDERING");
-                renderer.attachToAutoDrawable(glad);
+                renderer.attachAutoDrawable(glad);
             }
             Thread.sleep(100);
         }
