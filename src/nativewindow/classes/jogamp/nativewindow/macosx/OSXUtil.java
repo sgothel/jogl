@@ -163,14 +163,14 @@ public class OSXUtil implements ToolkitProperties {
      * @see #CreateCALayer(int, int)
      * @see #RemoveCASublayer(long, long, boolean)
      */
-    public static void AddCASublayer(final long rootCALayer, final long subCALayer, final int width, final int height, final int caLayerQuirks) {
+    public static void AddCASublayer(final long rootCALayer, final long subCALayer, final int x, final int y, final int width, final int height, final int caLayerQuirks) {
         if(0==rootCALayer || 0==subCALayer) {
             throw new IllegalArgumentException("rootCALayer 0x"+Long.toHexString(rootCALayer)+", subCALayer 0x"+Long.toHexString(subCALayer));
         }
         if(DEBUG) {
             System.err.println("OSXUtil.AttachCALayer: caLayerQuirks "+caLayerQuirks+", 0x"+Long.toHexString(subCALayer)+" - "+Thread.currentThread().getName());
         }
-        AddCASublayer0(rootCALayer, subCALayer, width, height, caLayerQuirks);
+        AddCASublayer0(rootCALayer, subCALayer, x, y, width, height, caLayerQuirks);
     }
     
     /** 
@@ -190,11 +190,11 @@ public class OSXUtil implements ToolkitProperties {
      * @param height the expected height
      * @param caLayerQuirks TODO
      */
-    public static void FixCALayerLayout(final long rootCALayer, final long subCALayer, final int width, final int height, final int caLayerQuirks) {
+    public static void FixCALayerLayout(final long rootCALayer, final long subCALayer, final int x, final int y, final int width, final int height, final int caLayerQuirks) {
         if( 0==rootCALayer && 0==subCALayer ) {
             return;
         }
-        FixCALayerLayout0(rootCALayer, subCALayer, width, height, caLayerQuirks);
+        FixCALayerLayout0(rootCALayer, subCALayer, x, y, width, height, caLayerQuirks);
     }
     
     /** 
@@ -357,8 +357,8 @@ public class OSXUtil implements ToolkitProperties {
     private static native long GetNSView0(long nsWindow);
     private static native long GetNSWindow0(long nsView);
     private static native long CreateCALayer0(int width, int height);
-    private static native void AddCASublayer0(long rootCALayer, long subCALayer, int width, int height, int caLayerQuirks);
-    private static native void FixCALayerLayout0(long rootCALayer, long subCALayer, int width, int height, int caLayerQuirks);
+    private static native void AddCASublayer0(long rootCALayer, long subCALayer, int x, int y, int width, int height, int caLayerQuirks);
+    private static native void FixCALayerLayout0(long rootCALayer, long subCALayer, int x, int y, int width, int height, int caLayerQuirks);
     private static native void RemoveCASublayer0(long rootCALayer, long subCALayer);
     private static native void DestroyCALayer0(long caLayer);
     private static native void RunOnMainThread0(Runnable runnable);

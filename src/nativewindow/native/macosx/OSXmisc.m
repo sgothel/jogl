@@ -333,6 +333,9 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetNSWindow0
  */
 @interface MyCALayer: CALayer
 {
+@private
+  BOOL fixedFrameSet;
+  CGRect fixedFrame;
 }
 - (id)init;
 #ifdef DBG_LIFECYCLE
@@ -341,6 +344,9 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetNSWindow0
 - (void)dealloc;
 #endif
 - (id<CAAction>)actionForKey:(NSString *)key ;
+- (void)layoutSublayers;
+- (void)setFrame:(CGRect) frame;
+- (void)fixCALayerLayout: (CALayer*) subLayer  x:(jint)x y:(jint)y width:(jint)width height:(jint)height caLayerQuirks:(jint)caLayerQuirks force:(jboolean) force;
 
 @end
 
@@ -350,6 +356,8 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetNSWindow0
 {
     DBG_PRINT("MyCALayer::init.0\n");
     MyCALayer * o = [super init];
+    o->fixedFrameSet = 0;
+    o->fixedFrame = CGRectMake(0, 0, 0, 0);
     DBG_PRINT("MyCALayer::init.X: new %p\n", o);
     return o;
 }
@@ -390,6 +398,127 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetNSWindow0
     // return [super actionForKey: key];
 }
 
+- (void)layoutSublayers
+{
+    if( fixedFrameSet ) {
+        NSArray* subs = [self sublayers];
+        if( NULL != subs ) {
+            CGRect rFrame = [self frame];
+            if( !CGRectEqualToRect(fixedFrame, rFrame) ) {
+                #ifdef VERBOSE
+                DBG_PRINT("CALayer::layoutSublayers.0: Root %p frame %lf/%lf %lfx%lf -> %lf/%lf %lfx%lf\n",
+                    self,
+                    rFrame.origin.x, rFrame.origin.y, rFrame.size.width, rFrame.size.height,
+                    fixedFrame.origin.x, fixedFrame.origin.y, fixedFrame.size.width, fixedFrame.size.height);
+                #endif
+                [super setFrame: fixedFrame];
+            }
+            NSUInteger i = 0;
+            for(i=0; i<[subs count]; i++) {
+                CALayer* sub = [subs objectAtIndex: i];
+                CGRect sFrame = [sub frame];
+                CGRect sFrame2 = CGRectMake(0, 0, fixedFrame.size.width, fixedFrame.size.height);
+                if( !CGRectEqualToRect(sFrame2, sFrame) ) {
+                    #ifdef VERBOSE
+                    DBG_PRINT("CALayer::layoutSublayers.1: Sub[%d] %p frame %lf/%lf %lfx%lf -> %lf/%lf %lfx%lf\n",
+                        (int)i, sub,
+                        sFrame.origin.x, sFrame.origin.y, sFrame.size.width, sFrame.size.height,
+                        sFrame2.origin.x, sFrame2.origin.y, sFrame2.size.width, sFrame2.size.height);
+                    #endif
+                    [sub setFrame: sFrame2];
+                }
+                #ifdef VERBOSE
+                DBG_PRINT("CALayer::layoutSublayers.X: Root %p . Sub[%d] %p : frame r: %lf/%lf %lfx%lf . s: %lf/%lf %lfx%lf\n",
+                    self, (int)i, sub,
+                    rFrame.origin.x, rFrame.origin.y, rFrame.size.width, rFrame.size.height,
+                    sFrame.origin.x, sFrame.origin.y, sFrame.size.width, sFrame.size.height);
+                #endif
+            }
+        }
+    } else {
+        [super layoutSublayers];
+    }
+}
+
+- (void) setFrame:(CGRect) frame
+{
+    if( fixedFrameSet ) {
+        [super setFrame: fixedFrame];
+    } else {
+        [super setFrame: frame];
+    }
+}
+
+- (void)fixCALayerLayout: (CALayer*) subLayer  x:(jint)x y:(jint)y width:(jint)width height:(jint)height caLayerQuirks:(jint)caLayerQuirks force:(jboolean) force
+{
+    {
+        CALayer* superLayer = [self superlayer];
+        CGRect superFrame = [superLayer frame];
+        CGRect lFrame = [self frame];
+        int posQuirk  = 0 != ( NW_DEDICATEDFRAME_QUIRK_POSITION & caLayerQuirks ) && ( lFrame.origin.x!=0 || lFrame.origin.y!=0 );
+        int sizeQuirk = 0 != ( NW_DEDICATEDFRAME_QUIRK_SIZE & caLayerQuirks ) && ( lFrame.size.width!=width || lFrame.size.height!=height );
+        if( !posQuirk ) {
+            // Use root layer position, sub-layer will be on 0/0,
+            // Given AWT position is location on screen w/o insets and top/left origin!
+            fixedFrame.origin.x = x;
+            fixedFrame.origin.y = superFrame.size.height - height - y; // AWT's position top/left -> bottom/left
+            posQuirk |= 8;
+        } else {
+            // Buggy super layer position, always use 0/0
+            fixedFrame.origin.x = 0;
+            fixedFrame.origin.y = 0;
+        }
+        if( !sizeQuirk ) {
+            fixedFrame.size.width = lFrame.size.width;
+            fixedFrame.size.height = lFrame.size.height;
+        } else {
+            fixedFrame.size.width = width;
+            fixedFrame.size.height = height;
+        }
+        DBG_PRINT("CALayer::FixCALayerLayout0.0: Quirks [%d, pos %d, size %d], Super %p frame %lf/%lf %lfx%lf, Root %p frame %lf/%lf %lfx%lf, usr %d/%d %dx%d -> %lf/%lf %lfx%lf\n",
+            caLayerQuirks, posQuirk, sizeQuirk, 
+            superLayer, superFrame.origin.x, superFrame.origin.y, superFrame.size.width, superFrame.size.height, 
+            self, lFrame.origin.x, lFrame.origin.y, lFrame.size.width, lFrame.size.height, 
+            x, y, width, height, fixedFrame.origin.x, fixedFrame.origin.y, fixedFrame.size.width, fixedFrame.size.height);
+        if( posQuirk || sizeQuirk ) {
+            fixedFrameSet = 1;
+            [super setFrame: fixedFrame];
+        }
+    }
+    if( NULL != subLayer ) {
+        CGRect lFrame = [subLayer frame];
+        int sizeQuirk = 0 != ( NW_DEDICATEDFRAME_QUIRK_SIZE & caLayerQuirks ) && ( lFrame.size.width!=width || lFrame.size.height!=height );
+        CGFloat _x, _y, _w, _h;
+        int posQuirk  = 0 != ( NW_DEDICATEDFRAME_QUIRK_POSITION & caLayerQuirks ) && ( lFrame.origin.x!=0 || lFrame.origin.y!=0 );
+        // Sub rel. to used root layer
+        _x = 0;
+        _y = 0;
+        posQuirk |= 8;
+        if( !sizeQuirk ) {
+            _w = lFrame.size.width;
+            _h = lFrame.size.height;
+        } else {
+            _w = width;
+            _h = height;
+        }
+        DBG_PRINT("CALayer::FixCALayerLayout1.0: Quirks [%d, pos %d, size %d], SubL %p frame %lf/%lf %lfx%lf, usr %dx%d -> %lf/%lf %lfx%lf\n",
+            caLayerQuirks, posQuirk, sizeQuirk, subLayer, lFrame.origin.x, lFrame.origin.y, lFrame.size.width, lFrame.size.height,
+            width, height, _x, _y, _w, _h);
+        if( force || posQuirk || sizeQuirk ) {
+            lFrame.origin.x = _x;
+            lFrame.origin.y = _y;
+            lFrame.size.width = _w;
+            lFrame.size.height = _h;
+            if( [subLayer conformsToProtocol:@protocol(NWDedicatedFrame)] ) {
+                CALayer <NWDedicatedFrame> * subLayerDS = (CALayer <NWDedicatedFrame> *) subLayer;
+                [subLayerDS setDedicatedFrame: lFrame quirks: caLayerQuirks];
+            } else {
+                [subLayer setFrame: lFrame];
+            }
+        }
+    }
+}
+
 @end
 
 /*
@@ -409,89 +538,23 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateCALayer0
     if(0 == height) { height = 32; }
 
     // initial dummy size !
-    CGRect lRect = [layer frame];
-    lRect.origin.x = 0;
-    lRect.origin.y = 0;
-    lRect.size.width = width;
-    lRect.size.height = height;
-    [layer setFrame: lRect];
+    CGRect lFrame = [layer frame];
+    lFrame.origin.x = 0;
+    lFrame.origin.y = 0;
+    lFrame.size.width = width;
+    lFrame.size.height = height;
+    [layer setFrame: lFrame];
     // no animations for add/remove/swap sublayers etc 
     // doesn't work: [layer removeAnimationForKey: kCAOnOrderIn, kCAOnOrderOut, kCATransition]
     [layer removeAllAnimations];
     // [layer addAnimation:nil forKey:kCATransition];
     [layer setAutoresizingMask: (kCALayerWidthSizable|kCALayerHeightSizable)];
     [layer setNeedsDisplayOnBoundsChange: YES];
-    DBG_PRINT("CALayer::CreateCALayer.1: root %p %lf/%lf %lfx%lf\n", layer, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
+    DBG_PRINT("CALayer::CreateCALayer.1: root %p %lf/%lf %lfx%lf\n", layer, lFrame.origin.x, lFrame.origin.y, lFrame.size.width, lFrame.size.height);
     [pool release];
     DBG_PRINT("CALayer::CreateCALayer.X: root %p (refcnt %d)\n", layer, (int)[layer retainCount]);
 
     return (jlong) ((intptr_t) layer);
-}
-
-static void FixCALayerLayout0(MyCALayer* rootLayer, CALayer* subLayer, jint width, jint height, jint caLayerQuirks, jboolean force) {
-    if( NULL != rootLayer ) {
-        CGRect lRect = [rootLayer frame];
-        int posQuirk  = 0 != ( NW_DEDICATEDFRAME_QUIRK_POSITION & caLayerQuirks ) && ( lRect.origin.x!=0 || lRect.origin.y!=0 );
-        int sizeQuirk = 0 != ( NW_DEDICATEDFRAME_QUIRK_SIZE & caLayerQuirks ) && ( lRect.size.width!=width || lRect.size.height!=height );
-        CGFloat _x, _y, _w, _h;
-        // force root -> 0/0
-        _x = 0;
-        _y = 0;
-        posQuirk |= 8;
-        if( sizeQuirk ) {
-            _w = width;
-            _h = height;
-        } else {
-            _w = lRect.size.width;
-            _h = lRect.size.height;
-        }
-        DBG_PRINT("CALayer::FixCALayerLayout0.0: Quirks [%d, pos %d, size %d], Root %p frame %lf/%lf %lfx%lf, usr %dx%d -> %lf/%lf %lfx%lf\n",
-            caLayerQuirks, posQuirk, sizeQuirk, rootLayer, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height, 
-            width, height, _x, _y, _w, _h);
-        if( posQuirk || sizeQuirk ) {
-            lRect.origin.x = _x;
-            lRect.origin.y = _y;
-            lRect.size.width = _w;
-            lRect.size.height = _h;
-            [rootLayer setFrame: lRect];
-        }
-    }
-    if( NULL != subLayer ) {
-        CGRect lRect = [subLayer frame];
-        int sizeQuirk = 0 != ( NW_DEDICATEDFRAME_QUIRK_SIZE & caLayerQuirks ) && ( lRect.size.width!=width || lRect.size.height!=height );
-        CGFloat _x, _y, _w, _h;
-        int posQuirk  = 0 != ( NW_DEDICATEDFRAME_QUIRK_POSITION & caLayerQuirks ) && ( lRect.origin.x!=0 || lRect.origin.y!=0 );
-        if( posQuirk ) {
-            _x = 0;
-            _y = 0;
-        } else {
-            // sub always rel to root
-            _x = lRect.origin.x;
-            _y = lRect.origin.y;
-        }
-        if( sizeQuirk ) {
-            _w = width;
-            _h = height;
-        } else {
-            _w = lRect.size.width;
-            _h = lRect.size.height;
-        }
-        DBG_PRINT("CALayer::FixCALayerLayout1.0: Quirks [%d, pos %d, size %d], SubL %p frame %lf/%lf %lfx%lf, usr %dx%d -> %lf/%lf %lfx%lf\n",
-            caLayerQuirks, posQuirk, sizeQuirk, subLayer, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height,
-            width, height, _x, _y, _w, _h);
-        if( force || posQuirk || sizeQuirk ) {
-            lRect.origin.x = _x;
-            lRect.origin.y = _y;
-            lRect.size.width = _w;
-            lRect.size.height = _h;
-            if( [subLayer conformsToProtocol:@protocol(NWDedicatedFrame)] ) {
-                CALayer <NWDedicatedFrame> * subLayerDS = (CALayer <NWDedicatedFrame> *) subLayer;
-                [subLayerDS setDedicatedFrame: lRect quirks: caLayerQuirks];
-            } else {
-                [subLayer setFrame: lRect];
-            }
-        }
-    }
 }
 
 /*
@@ -500,7 +563,7 @@ static void FixCALayerLayout0(MyCALayer* rootLayer, CALayer* subLayer, jint widt
  * Signature: (JJIIIII)V
  */
 JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
-  (JNIEnv *env, jclass unused, jlong rootCALayer, jlong subCALayer, jint width, jint height, jint caLayerQuirks)
+  (JNIEnv *env, jclass unused, jlong rootCALayer, jlong subCALayer, jint x, jint y, jint width, jint height, jint caLayerQuirks)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     MyCALayer* rootLayer = (MyCALayer*) ((intptr_t) rootCALayer);
@@ -513,23 +576,10 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
     [subLayer retain]; // Pairs w/ RemoveCASublayer
 
     CGRect lRectRoot = [rootLayer frame];
-    int posQuirk  = 0 != ( NW_DEDICATEDFRAME_QUIRK_POSITION & caLayerQuirks );
-    int sizeQuirk = 0 != ( NW_DEDICATEDFRAME_QUIRK_SIZE & caLayerQuirks );
-
-    DBG_PRINT("CALayer::AddCASublayer0.0: Quirks [%d, pos %d, size %d], Root %p (refcnt %d), Sub %p (refcnt %d), frame0: %lf/%lf %lfx%lf\n",
-        caLayerQuirks, posQuirk, sizeQuirk, rootLayer, (int)[rootLayer retainCount], subLayer, (int)[subLayer retainCount],
+    DBG_PRINT("CALayer::AddCASublayer0.0: Quirks %d, Root %p (refcnt %d), Sub %p (refcnt %d), frame0: %lf/%lf %lfx%lf\n",
+        caLayerQuirks, rootLayer, (int)[rootLayer retainCount], subLayer, (int)[subLayer retainCount],
         lRectRoot.origin.x, lRectRoot.origin.y, lRectRoot.size.width, lRectRoot.size.height);
 
-    CGPoint origin = lRectRoot.origin; // save
-    // force root to 0/0
-    lRectRoot.origin.x = 0;
-    lRectRoot.origin.y = 0;
-    [rootLayer setFrame: lRectRoot];
-
-    // simple 1:1 layout rel. to root-layer !
-    if( !posQuirk ) {
-        lRectRoot.origin = origin;
-    }
     [subLayer setFrame:lRectRoot];
     [rootLayer addSublayer:subLayer];
 
@@ -545,7 +595,7 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
     [subLayer setNeedsDisplayOnBoundsChange: YES];
 
     if( 0 != caLayerQuirks ) {
-        FixCALayerLayout0(rootLayer, subLayer, width, height, caLayerQuirks, JNI_TRUE);
+        [rootLayer fixCALayerLayout: subLayer x:x y:y width:width height:height caLayerQuirks:caLayerQuirks force:JNI_TRUE];
     }
 
     [CATransaction commit];
@@ -561,17 +611,20 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
  * Signature: (JJIII)V
  */
 JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_FixCALayerLayout0
-  (JNIEnv *env, jclass unused, jlong rootCALayer, jlong subCALayer, jint width, jint height, jint caLayerQuirks)
+  (JNIEnv *env, jclass unused, jlong rootCALayer, jlong subCALayer, jint x, jint y, jint width, jint height, jint caLayerQuirks)
 {
     if( 0 != caLayerQuirks ) {
         NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
         MyCALayer* rootLayer = (MyCALayer*) ((intptr_t) rootCALayer);
+        if( NULL == rootLayer ) {
+            NativewindowCommon_throwNewRuntimeException(env, "Argument \"rootLayer\" is null");
+        }
         CALayer* subLayer = (CALayer*) ((intptr_t) subCALayer);
 
         [CATransaction begin];
         [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
 
-        FixCALayerLayout0(rootLayer, subLayer, width, height, caLayerQuirks, JNI_FALSE);
+        [rootLayer fixCALayerLayout: subLayer x:x y:y width:width height:height caLayerQuirks:caLayerQuirks force:JNI_FALSE];
 
         [CATransaction commit];
 

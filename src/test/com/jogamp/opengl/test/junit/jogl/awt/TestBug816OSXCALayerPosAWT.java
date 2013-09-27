@@ -33,8 +33,13 @@ import javax.media.opengl.*;
 import com.jogamp.opengl.util.Animator;
 
 import javax.media.opengl.awt.GLCanvas;
+import javax.swing.BoundedRangeModel;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
+import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.ScrollPaneConstants;
 
 import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;
@@ -68,9 +73,15 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+/**
+ * Bug 816: OSX CALayer Positioning Bug.
+ * <p>
+ * Diff. OSX CALayer positioning w/ java6, [7uxx..7u40[, and >= 7u40
+ * </p>
+ */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBug816OSXCALayerPosAWT extends UITestCase {
-    public enum FrameLayout { None, Flow, DoubleBorderCenterSurrounded, Box };
+    public enum FrameLayout { None, Flow, DoubleBorderCenterSurrounded, Box, Split };
     
     static long duration = 1600; // ms    
     static int width, height;
@@ -113,7 +124,7 @@ public class TestBug816OSXCALayerPosAWT extends UITestCase {
                         comp2.setPreferredSize(new_sz2);
                         comp2.setSize(new_sz2);
                     }
-                    if( null != frame ) {
+                    if( null != frame ) {                        
                         frame.pack();
                     }
                 } } );
@@ -204,6 +215,39 @@ public class TestBug816OSXCALayerPosAWT extends UITestCase {
                         c.add(glCanvas2);
                     }
                     framePane.add(c);
+                }
+                break;
+            case Split: {
+                    Dimension sbDim = new Dimension(16, 16);
+                    JScrollPane vsp = new JScrollPane(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+                    {
+                        JScrollBar vsb = vsp.getVerticalScrollBar();
+                        vsb.setPreferredSize(sbDim);
+                        BoundedRangeModel model = vsb.getModel();
+                        model.setMinimum(0);
+                        model.setMaximum(100);
+                        model.setValue(50);
+                        model.setExtent(1);
+                        vsb.setEnabled(true);
+                    }
+                    JScrollPane hsp = new JScrollPane(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+                    {
+                        JScrollBar hsb = hsp.getHorizontalScrollBar();
+                        hsb.setPreferredSize(sbDim);
+                        BoundedRangeModel model = hsb.getModel();
+                        model.setMinimum(0);
+                        model.setMaximum(100);
+                        model.setValue(50);
+                        model.setExtent(1);
+                        hsb.setEnabled(true);
+                    }
+                    JSplitPane horizontalSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, 
+                            twoCanvas ? glCanvas2 : vsp, glCanvas1 );
+                    horizontalSplitPane.setResizeWeight(0.5);
+                    JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, 
+                        true, horizontalSplitPane, hsp);    
+                    verticalSplitPane.setResizeWeight(0.5);
+                    framePane.add(verticalSplitPane);
                 }
                 break;
         }
@@ -329,24 +373,38 @@ public class TestBug816OSXCALayerPosAWT extends UITestCase {
     }
     
     @Test
-    public void test04_Compo_Flow_Two() throws InterruptedException, InvocationTargetException {
+    public void test04_Compo_Split_One() throws InterruptedException, InvocationTargetException {
         if( testNum != -1 && testNum != 4 ) { return ; }
+        final GLCapabilities caps = new GLCapabilities(getGLP());
+        runTestGL(caps, FrameLayout.Split, false /* twoCanvas */, true /* resizeByComp */);
+    }
+    
+    @Test
+    public void test05_Compo_Flow_Two() throws InterruptedException, InvocationTargetException {
+        if( testNum != -1 && testNum != 5 ) { return ; }
         final GLCapabilities caps = new GLCapabilities(getGLP());
         runTestGL(caps, FrameLayout.Flow, true/* twoCanvas */, true /* resizeByComp */);
     }
 
     @Test
-    public void test05_Compo_DblBrd_Two() throws InterruptedException, InvocationTargetException {
-        if( testNum != -1 && testNum != 5 ) { return ; }
+    public void test06_Compo_DblBrd_Two() throws InterruptedException, InvocationTargetException {
+        if( testNum != -1 && testNum != 6 ) { return ; }
         final GLCapabilities caps = new GLCapabilities(getGLP());
         runTestGL(caps, FrameLayout.DoubleBorderCenterSurrounded, true/* twoCanvas */, true /* resizeByComp */);
     }
     
     @Test
-    public void test06_Compo_Box_Two() throws InterruptedException, InvocationTargetException {
-        if( testNum != -1 && testNum != 6 ) { return ; }
+    public void test07_Compo_Box_Two() throws InterruptedException, InvocationTargetException {
+        if( testNum != -1 && testNum != 7 ) { return ; }
         final GLCapabilities caps = new GLCapabilities(getGLP());
         runTestGL(caps, FrameLayout.Box, true/* twoCanvas */, true /* resizeByComp */);
+    }
+    
+    @Test
+    public void test08_Compo_Split_Two() throws InterruptedException, InvocationTargetException {
+        if( testNum != -1 && testNum != 8 ) { return ; }
+        final GLCapabilities caps = new GLCapabilities(getGLP());
+        runTestGL(caps, FrameLayout.Split, true/* twoCanvas */, true /* resizeByComp */);
     }
     
     @Test
@@ -378,24 +436,38 @@ public class TestBug816OSXCALayerPosAWT extends UITestCase {
     }
     
     @Test
-    public void test14_Frame_Flow_Two() throws InterruptedException, InvocationTargetException {
-        if( testNum != -1 && testNum != 14 ) { return ; }
+    public void test14_Frame_Split_One() throws InterruptedException, InvocationTargetException {
+        if( testNum != -1 && testNum != 14) { return ; }
+        final GLCapabilities caps = new GLCapabilities(getGLP());
+        runTestGL(caps, FrameLayout.Split, false /* twoCanvas */, false /* resizeByComp */);
+    }
+    
+    @Test
+    public void test15_Frame_Flow_Two() throws InterruptedException, InvocationTargetException {
+        if( testNum != -1 && testNum != 15 ) { return ; }
         final GLCapabilities caps = new GLCapabilities(getGLP());
         runTestGL(caps, FrameLayout.Flow, true/* twoCanvas */, false /* resizeByComp */);
     }
 
     @Test
-    public void test15_Frame_DblBrd_Two() throws InterruptedException, InvocationTargetException {
-        if( testNum != -1 && testNum != 15 ) { return ; }
+    public void test16_Frame_DblBrd_Two() throws InterruptedException, InvocationTargetException {
+        if( testNum != -1 && testNum != 16 ) { return ; }
         final GLCapabilities caps = new GLCapabilities(getGLP());
         runTestGL(caps, FrameLayout.DoubleBorderCenterSurrounded, true/* twoCanvas */, false /* resizeByComp */);
     }
     
     @Test
-    public void test16_Frame_Box_Two() throws InterruptedException, InvocationTargetException {
-        if( testNum != -1 && testNum != 16 ) { return ; }
+    public void test17_Frame_Box_Two() throws InterruptedException, InvocationTargetException {
+        if( testNum != -1 && testNum != 17 ) { return ; }
         final GLCapabilities caps = new GLCapabilities(getGLP());
         runTestGL(caps, FrameLayout.Box, true/* twoCanvas */, false /* resizeByComp */);
+    }
+    
+    @Test
+    public void test18_Frame_Split_Two() throws InterruptedException, InvocationTargetException {
+        if( testNum != -1 && testNum != 18 ) { return ; }
+        final GLCapabilities caps = new GLCapabilities(getGLP());
+        runTestGL(caps, FrameLayout.Split, true/* twoCanvas */, false /* resizeByComp */);
     }
     
     static int testNum = -1;

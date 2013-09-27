@@ -28,13 +28,16 @@
 package jogamp.nativewindow.awt;
 
 import java.awt.FocusTraversalPolicy;
+import java.awt.Insets;
 import java.awt.Window;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Frame;
-import javax.swing.JFrame;
-import javax.swing.WindowConstants;
 
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JRootPane;
+import javax.swing.WindowConstants;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.swing.MenuSelectionManager;
@@ -67,6 +70,16 @@ public class AWTMisc {
             c = c.getParent();
         }
         return (Container) c;
+    }
+    
+    public static Insets getInsets(Component c) {
+        if( c instanceof Window ) {
+            return ((Window)c).getInsets();
+        }
+        if( c instanceof JComponent ) {
+            return ((JComponent)c).getInsets();
+        }
+        return null;
     }
 
     public static interface ComponentAction {

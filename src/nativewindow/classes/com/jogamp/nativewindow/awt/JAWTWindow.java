@@ -46,6 +46,7 @@ import java.awt.Container;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.applet.Applet;
+
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.CapabilitiesImmutable;
@@ -60,6 +61,7 @@ import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
+import javax.swing.JRootPane;
 
 import jogamp.nativewindow.SurfaceUpdatedHelper;
 import jogamp.nativewindow.jawt.JAWT;
@@ -227,9 +229,6 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       if( !isOffscreenLayerSurfaceEnabled() ) {
           throw new NativeWindowException("Not an offscreen layer surface");
       }
-      if(DEBUG) {
-        System.err.println("JAWTWindow.attachSurfaceHandle: "+toHexString(layerHandle) + ", bounds "+bounds);
-      }
       attachSurfaceLayerImpl(layerHandle);
       offscreenSurfaceLayer = layerHandle;
       component.repaint();
@@ -248,14 +247,14 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
    * Call this method if any parent or ancestor's layout has been changed,
    * which could affects the layout of this surface.
    * </p>
-   * @see #isOffscreenLayerSurfaceEnabled()
+ * @see #isOffscreenLayerSurfaceEnabled()
    * @throws NativeWindowException if {@link #isOffscreenLayerSurfaceEnabled()} == false
    */
-  protected void layoutSurfaceLayerImpl(long layerHandle, int width, int height) {}
+  protected void layoutSurfaceLayerImpl(long layerHandle) {}
   
   private final void layoutSurfaceLayerIfEnabled() throws NativeWindowException {
       if( isOffscreenLayerSurfaceEnabled() && 0 != offscreenSurfaceLayer ) {
-          layoutSurfaceLayerImpl(offscreenSurfaceLayer, getWidth(), getHeight());
+          layoutSurfaceLayerImpl(offscreenSurfaceLayer);
       }
   }
   
@@ -533,7 +532,11 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
                   System.err.println("Warning: JAWT Lock hold, but not the AWT tree lock: "+this);
                   Thread.dumpStack();
               }
-              return getLocationOnScreenNonBlocking(storage, component);
+              if( null == storage ) {
+                  storage = new Point();
+              }
+              getLocationOnScreenNonBlocking(storage, component);
+              return storage;
           }
           java.awt.Point awtLOS = component.getLocationOnScreen();
           if(null!=storage) {
@@ -569,21 +572,28 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   }
   protected abstract Point getLocationOnScreenNativeImpl(int x, int y);
 
-  protected static Point getLocationOnScreenNonBlocking(Point storage, Component comp) {
-      int x = 0;
-      int y = 0;
+  protected static Component getLocationOnScreenNonBlocking(Point storage, Component comp) {
+      Component last = null;
       while(null != comp) {
-          x += comp.getX();
-          y += comp.getY();
+          final int dx = comp.getX(); 
+          final int dy = comp.getY();
+          if( ! ( comp instanceof JRootPane ) ) {
+              if( DEBUG ) {
+                  System.err.print("LOS: "+storage+" + "+comp.getClass().getSimpleName()+"["+dx+"/"+dy+"] -> ");
+              }
+              storage.translate(dx, dy);
+              if( DEBUG ) {
+                  System.err.println(storage);
+              }
+              last = comp;
+          } else if( DEBUG ) {
+              System.err.println("LOS: ignore "+comp.getClass().getSimpleName()+"["+dx+"/"+dy+"]");
+          }
           comp = comp.getParent();
       }
-      if(null!=storage) {
-          storage.translate(x, y);
-          return storage;
-      }
-      return new Point(x, y);
+      return last;
   }
-
+  
   @Override
   public boolean hasFocus() {
       return component.hasFocus();

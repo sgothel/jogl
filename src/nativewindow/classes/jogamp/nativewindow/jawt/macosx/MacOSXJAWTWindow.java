@@ -40,6 +40,7 @@
 
 package jogamp.nativewindow.jawt.macosx;
 
+import java.awt.Component;
 import java.nio.Buffer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -49,11 +50,11 @@ import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.MutableSurface;
-import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.util.Point;
 
 import com.jogamp.nativewindow.awt.JAWTWindow;
 
+import jogamp.nativewindow.awt.AWTMisc;
 import jogamp.nativewindow.jawt.JAWT;
 import jogamp.nativewindow.jawt.JAWTFactory;
 import jogamp.nativewindow.jawt.JAWTUtil;
@@ -105,19 +106,42 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
   @Override
   protected void attachSurfaceLayerImpl(final long layerHandle) {
       OSXUtil.RunOnMainThread(false, new Runnable() {
-          public void run() {      
-              OSXUtil.AddCASublayer(rootSurfaceLayer, layerHandle, getWidth(), getHeight(), JAWTUtil.getOSXCALayerQuirks());
+          public void run() {
+              // AWT position is top-left w/ insets, where CALayer position is bottom/left from root CALayer w/o insets.
+              // Determine p0: components location on screen w/o insets.
+              // CALayer position will be determined in native code.
+              final Point p0 = new Point();
+              final Component outterComp = getLocationOnScreenNonBlocking(p0, component);
+              final java.awt.Insets ins = AWTMisc.getInsets(outterComp);
+              if(null != ins) {
+                  p0.translate(-ins.left, -ins.top);
+              }
+              if( DEBUG ) {
+                  final java.awt.Point wP0 = outterComp.getLocationOnScreen();
+                  System.err.println("JAWTWindow.attachSurfaceHandleImpl: "+toHexString(layerHandle) + ", wP0 "+wP0+"[ins "+ins+"], p0 "+p0+", bounds "+bounds);
+              }
+              OSXUtil.AddCASublayer(rootSurfaceLayer, layerHandle, p0.getX(), p0.getY(), getWidth(), getHeight(), JAWTUtil.getOSXCALayerQuirks());
           } } );
   }
   
   @Override
-  protected void layoutSurfaceLayerImpl(long layerHandle, int width, int height) {
+  protected void layoutSurfaceLayerImpl(long layerHandle) {
       final int caLayerQuirks = JAWTUtil.getOSXCALayerQuirks();
       if( 0 != caLayerQuirks ) {
-          if(DEBUG) {
-            System.err.println("JAWTWindow.layoutSurfaceLayerImpl: "+toHexString(layerHandle) + ", "+width+"x"+height+", caLayerQuirks "+caLayerQuirks+"; "+this);
+          // AWT position is top-left w/ insets, where CALayer position is bottom/left from root CALayer w/o insets.
+          // Determine p0: components location on screen w/o insets.
+          // CALayer position will be determined in native code.
+          final Point p0 = new Point();
+          final Component outterComp = getLocationOnScreenNonBlocking(p0, component);
+          final java.awt.Insets ins = AWTMisc.getInsets(outterComp);
+          if( null != ins ) {
+              p0.translate(-ins.left, -ins.top);
           }
-          OSXUtil.FixCALayerLayout(rootSurfaceLayer, layerHandle, width, height, caLayerQuirks);
+          if( DEBUG ) {
+              final java.awt.Point wP0 = outterComp.getLocationOnScreen();
+              System.err.println("JAWTWindow.layoutSurfaceLayerImpl: "+toHexString(layerHandle) + ", wP0 "+wP0+"[ins "+ins+"], p0 "+p0+", bounds "+bounds);
+          }
+          OSXUtil.FixCALayerLayout(rootSurfaceLayer, layerHandle, p0.getX(), p0.getY(), getWidth(), getHeight(), caLayerQuirks);
       }
   }
   
@@ -312,8 +336,12 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
    * </p>      
    */
   @Override
-  public Point getLocationOnScreen(Point storage) {     
-      return getLocationOnScreenNonBlocking(storage, component);     
+  public Point getLocationOnScreen(Point storage) {
+      if( null == storage ) {
+          storage = new Point();
+      }
+      getLocationOnScreenNonBlocking(storage, component);
+      return storage;
   }  
   protected Point getLocationOnScreenNativeImpl(final int x0, final int y0) { return null; }
   
