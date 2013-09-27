@@ -64,6 +64,7 @@ import javax.media.nativewindow.util.RectangleImmutable;
 import javax.swing.JRootPane;
 
 import jogamp.nativewindow.SurfaceUpdatedHelper;
+import jogamp.nativewindow.awt.AWTMisc;
 import jogamp.nativewindow.jawt.JAWT;
 import jogamp.nativewindow.jawt.JAWTUtil;
 import jogamp.nativewindow.jawt.JAWT_Rectangle;
@@ -577,17 +578,18 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       while(null != comp) {
           final int dx = comp.getX(); 
           final int dy = comp.getY();
-          if( ! ( comp instanceof JRootPane ) ) {
-              if( DEBUG ) {
-                  System.err.print("LOS: "+storage+" + "+comp.getClass().getSimpleName()+"["+dx+"/"+dy+"] -> ");
-              }
-              storage.translate(dx, dy);
-              if( DEBUG ) {
-                  System.err.println(storage);
-              }
-              last = comp;
-          } else if( DEBUG ) {
-              System.err.println("LOS: ignore "+comp.getClass().getSimpleName()+"["+dx+"/"+dy+"]");
+          if( DEBUG ) {
+              final java.awt.Insets ins = AWTMisc.getInsets(comp);
+              System.err.print("LOS: "+storage+" + "+comp.getClass().getName()+"["+dx+"/"+dy+", vis "+comp.isVisible()+", ins "+ins+"] -> ");
+          }
+          storage.translate(dx, dy);
+          if( DEBUG ) {
+              System.err.println(storage);
+          }
+          last = comp;
+          if( comp instanceof JRootPane ) {
+              // LW JRootPane is considered a top-level component!
+              break;
           }
           comp = comp.getParent();
       }

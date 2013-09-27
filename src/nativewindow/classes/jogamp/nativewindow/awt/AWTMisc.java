@@ -72,9 +72,27 @@ public class AWTMisc {
         return (Container) c;
     }
     
+    /**
+     * Return insets of the component w/o traversing up to parent,
+     * i.e. trying Window and JComponent.
+     * <p>
+     * Exception is JRootPane. 
+     * Return it's parent's Window component's insets if available,
+     * otherwise return JRootPane's insets.<br>
+     * This is due to <i>experience</i> that <i>some</i> JRootPane's 
+     * do not expose valid insets value.
+     * </p>
+     */
     public static Insets getInsets(Component c) {
         if( c instanceof Window ) {
             return ((Window)c).getInsets();
+        }
+        if( c instanceof JRootPane ) {
+            final Window w = getWindow(c);
+            if( null != w ) {
+                return w.getInsets();
+            }
+            return ((JRootPane)c).getInsets();
         }
         if( c instanceof JComponent ) {
             return ((JComponent)c).getInsets();
