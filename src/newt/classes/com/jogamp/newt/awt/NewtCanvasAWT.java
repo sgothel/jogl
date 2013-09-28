@@ -546,7 +546,6 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         // sendReshape = false; // clear reshape flag
         AWTEDTExecutor.singleton.invoke(getTreeLock(), true /* allowOnNonEDT */, true /* wait */, releasePrintOnEDT);
         newtChild.sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
-        
     }
     private final Runnable releasePrintOnEDT = new Runnable() {
         @Override

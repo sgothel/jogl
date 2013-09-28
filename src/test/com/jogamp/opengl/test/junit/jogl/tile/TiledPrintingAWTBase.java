@@ -177,6 +177,8 @@ public abstract class TiledPrintingAWTBase extends UITestCase {
         }
     }
     
+    static final boolean resizeAfterSetupPrint = false;
+    
     private void doPrintImpl(final PrintableBase printable) {
        final double scaleGLMatXY = 72.0 / printable.dpi;
        System.err.println("PRINTable: "+printable.getClass().getSimpleName());
@@ -187,7 +189,18 @@ public abstract class TiledPrintingAWTBase extends UITestCase {
            AWTEDTExecutor.singleton.invoke(true, new Runnable() {
             public void run() {
                 try {
+                    final int w = printable.cont.getWidth();
+                    final int h = printable.cont.getHeight();
+                    if( resizeAfterSetupPrint ) {
+                        printable.cont.setSize(w+64, h+64);
+                        printable.cont.validate();
+                    }
                     printable.job.print();
+                    if( resizeAfterSetupPrint ) {
+                        printable.cont.repaint();
+                        printable.cont.setSize(w, h);
+                        printable.cont.validate();
+                    }
                 } catch (PrinterException ex) {
                     ex.printStackTrace();
                 }

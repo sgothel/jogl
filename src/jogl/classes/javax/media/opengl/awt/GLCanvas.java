@@ -799,8 +799,6 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       }
       sendReshape = false; // clear reshape flag
       AWTEDTExecutor.singleton.invoke(getTreeLock(), true /* allowOnNonEDT */, true /* wait */, releasePrintOnEDT);
-      sendReshape = true; // trigger reshape, i.e. gl-viewport and -listener - this component might got resized!
-      display();
   }
   private final Runnable releasePrintOnEDT = new Runnable() {
       @Override
@@ -819,7 +817,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
               printAnimator.add(GLCanvas.this);
               printAnimator = null;
           }
+          sendReshape = true; // trigger reshape, i.e. gl-viewport and -listener - this component might got resized!
           printActive = false;
+          display();
       }
   };
   

@@ -434,14 +434,16 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     // involve destroying the pbuffer (current context) and
     // re-creating it -- tricky to do properly while the context is
     // current
-    if (handleReshape) {
-      handleReshape = false;
-      sendReshape = handleReshape();
-    }
-
-    if( isVisible() && !printActive ) {
-        updater.setGraphics(g);
-        backend.doPaintComponent(g);
+    if( !printActive ) {
+        if (handleReshape) {
+          handleReshape = false;
+          sendReshape = handleReshape();
+        }
+    
+        if( isVisible() ) {
+            updater.setGraphics(g);
+            backend.doPaintComponent(g);
+        }
     }
   }
 
@@ -578,10 +580,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       sendReshape = false; // clear reshape flag
       handleReshape = false; // ditto
       AWTEDTExecutor.singleton.invoke(getTreeLock(), true /* allowOnNonEDT */, true /* wait */, releasePrintOnEDT);
-      sendReshape = true; // trigger reshape, i.e. gl-viewport and -listener - this component might got resized!
-      handleReshape = true; // ditto
-      display();
   }
+  
   private final Runnable releasePrintOnEDT = new Runnable() {
       @Override
       public void run() {
@@ -599,7 +599,22 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
               printAnimator.add(GLJPanel.this);
               printAnimator = null;
           }
+          
+          // trigger reshape, i.e. gl-viewport and -listener - this component might got resized!
+          final int awtWidth = GLJPanel.this.getWidth();
+          final int awtHeight= GLJPanel.this.getHeight();
+          if( panelWidth != awtWidth || panelHeight != awtHeight ) {
+              if ( true || DEBUG ) {
+                  System.err.println(getThreadName()+": GLJPanel.releasePrintOnEDT.0: reshape " +panelWidth+"x"+panelHeight + " -> " + awtWidth+"x"+awtHeight);
+              }    
+              reshapeWidth = awtWidth;
+              reshapeHeight = awtHeight;
+              handleReshape = true; // complete resize, sendReshape will be set later
+          } else {
+              sendReshape = true; // only GL reshape
+          }
           printActive = false;
+          display();
       }
   };
   
@@ -1414,6 +1429,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
               System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: flippedVertical "+flipVertical+", glslTextureRaster "+(null!=glslTextureRaster));
               System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: panelSize "+panelWidth+"x"+panelHeight);
           }
+        }
+        if( offscreenDrawable.getWidth() != panelWidth || offscreenDrawable.getHeight() != panelHeight ) {
+            throw new InternalError("OffscreenDrawable panelSize mismatch (reshape missed): panelSize "+panelWidth+"x"+panelHeight+" != drawable "+offscreenDrawable.getWidth()+"x"+offscreenDrawable.getHeight()+", on thread "+getThreadName());
         }
         final IntBuffer readBackInts;
         
