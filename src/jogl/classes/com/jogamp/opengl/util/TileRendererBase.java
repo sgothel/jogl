@@ -584,15 +584,15 @@ public abstract class TileRendererBase {
         }
         @Override
         public void display(GLAutoDrawable drawable) {
+            if( null != glEventListenerPre ) {
+                glEventListenerPre.reshape(drawable, 0, 0, currentTileWidth, currentTileHeight);
+                glEventListenerPre.display(drawable);
+            }
             if( !isSetup() ) {
                 if( DEBUG ) {
                     System.err.println("TileRenderer.glel.display: !setup: "+TileRendererBase.this);
                 }
                 return;
-            }
-            if( null != glEventListenerPre ) {
-                glEventListenerPre.reshape(drawable, 0, 0, currentTileWidth, currentTileHeight);
-                glEventListenerPre.display(drawable);
             }
             final GL gl = drawable.getGL();
 
