@@ -604,7 +604,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           final int awtWidth = GLJPanel.this.getWidth();
           final int awtHeight= GLJPanel.this.getHeight();
           if( panelWidth != awtWidth || panelHeight != awtHeight ) {
-              if ( true || DEBUG ) {
+              if ( DEBUG ) {
                   System.err.println(getThreadName()+": GLJPanel.releasePrintOnEDT.0: reshape " +panelWidth+"x"+panelHeight + " -> " + awtWidth+"x"+awtHeight);
               }    
               reshapeWidth = awtWidth;
