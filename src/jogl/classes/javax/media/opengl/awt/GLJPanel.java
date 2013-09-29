@@ -489,12 +489,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   public void reshape(int x, int y, int width, int height) {
     super.reshape(x, y, width, height);
 
-    if (DEBUG) {
-        System.err.println(getThreadName()+": GLJPanel.reshape: " +reshapeWidth+"x"+reshapeHeight + " -> " + width+"x"+height);
+    if( DEBUG ) {
+        System.err.println(getThreadName()+": GLJPanel.reshape resize"+(printActive?"WithinPrint":"")+" [ panel "+
+                panelWidth+"x"+panelHeight +
+                ", reshape: " +reshapeWidth+"x"+reshapeHeight +
+                "] -> "+(printActive?"skipped":"") + width+"x"+height);            
     }
     if( !printActive ) {
-        // reshapeX = x;
-        // reshapeY = y;
         reshapeWidth = width;
         reshapeHeight = height;
         handleReshape = true;
@@ -586,7 +587,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       @Override
       public void run() {
           if( DEBUG ) {
-              System.err.println("AWT print.release "+printAWTTiles);
+              System.err.println(getThreadName()+": GLJPanel.releasePrintOnEDT.0 "+printAWTTiles);
           }
           printAWTTiles.dispose();
           printAWTTiles= null;
@@ -603,13 +604,18 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           // trigger reshape, i.e. gl-viewport and -listener - this component might got resized!
           final int awtWidth = GLJPanel.this.getWidth();
           final int awtHeight= GLJPanel.this.getHeight();
-          if( panelWidth != awtWidth || panelHeight != awtHeight ) {
+          final GLDrawable drawable = GLJPanel.this.getDelegatedDrawable();
+          if( awtWidth != panelWidth || awtHeight != panelHeight ||
+              drawable.getWidth() != panelWidth || drawable.getHeight() != panelHeight ) {
+              // -> !( awtSize == panelSize == drawableSize )
               if ( DEBUG ) {
-                  System.err.println(getThreadName()+": GLJPanel.releasePrintOnEDT.0: reshape " +panelWidth+"x"+panelHeight + " -> " + awtWidth+"x"+awtHeight);
-              }    
+                  System.err.println(getThreadName()+": GLJPanel.releasePrintOnEDT.0: resizeWithinPrint panel " +panelWidth+"x"+panelHeight +
+                          ", draw "+drawable.getWidth()+"x"+drawable.getHeight()+
+                          " -> " + awtWidth+"x"+awtHeight);
+              }
               reshapeWidth = awtWidth;
               reshapeHeight = awtHeight;
-              handleReshape = true; // complete resize, sendReshape will be set later
+              sendReshape = handleReshape(); // reshapeSize -> panelSize, backend reshape w/ GL reshape
           } else {
               sendReshape = true; // only GL reshape
           }

@@ -220,7 +220,7 @@ public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
                 printDone = true;
                 {
                     // No AA needed for 150 dpi and greater :)
-                    final PrintableBase p = doPrintAuto(frame, PageFormat.PORTRAIT, null, -1 /* offscreen-type */, 150, -1);
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.PORTRAIT, null, -1 /* offscreen-type */, 150, -1, false);
                     waitUntilPrintJobsIdle(p);
                 }
             }
