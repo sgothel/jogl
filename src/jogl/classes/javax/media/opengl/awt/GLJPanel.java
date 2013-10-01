@@ -1236,6 +1236,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     private final AWTGLPixelBufferProvider pixelBufferProvider;
     private final boolean useSingletonBuffer;
     private AWTGLPixelBuffer pixelBuffer;
+    private BufferedImage alignedImage;
     
     // One of these is used to store the read back pixels before storing
     // in the BufferedImage
@@ -1255,8 +1256,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
     OffscreenBackend(GLProfile glp, AWTGLPixelBufferProvider custom) {
         if(null == custom) {
-            pixelBufferProvider = glp.isGL2ES3() ? getSingleAWTGLPixelBufferProvider() :
-                                                   new AWTGLPixelBufferProvider( false /* allowRowStride */ ) ;
+            pixelBufferProvider = getSingleAWTGLPixelBufferProvider();
         } else {
             pixelBufferProvider = custom;
         }
@@ -1382,6 +1382,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           }
           pixelBuffer = null;
       }
+      alignedImage = null;
     }
 
     @Override
@@ -1389,6 +1390,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       if ( opaque != isOpaque() && !useSingletonBuffer ) {
           pixelBuffer.dispose();
           pixelBuffer = null;
+          alignedImage = null;
       }
     }
 
@@ -1423,6 +1425,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         if( null != pixelBuffer && pixelBuffer.requiresNewBuffer(gl, panelWidth, panelHeight, 0) ) {
             pixelBuffer.dispose();
             pixelBuffer = null;
+            alignedImage = null;
         }
         if ( null == pixelBuffer ) {
           if (0 >= panelWidth || 0 >= panelHeight ) {
@@ -1438,6 +1441,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         }
         if( offscreenDrawable.getWidth() != panelWidth || offscreenDrawable.getHeight() != panelHeight ) {
             throw new InternalError("OffscreenDrawable panelSize mismatch (reshape missed): panelSize "+panelWidth+"x"+panelHeight+" != drawable "+offscreenDrawable.getWidth()+"x"+offscreenDrawable.getHeight()+", on thread "+getThreadName());
+        }
+        if( null == alignedImage || panelWidth != alignedImage.getWidth() || panelHeight != alignedImage.getHeight() ) {
+            alignedImage = pixelBuffer.getAlignedImage(panelWidth, panelHeight);
+            if(DEBUG) {
+                System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: alignedImage "+alignedImage.getWidth()+"x"+alignedImage.getHeight()+", pixelBuffer "+pixelBuffer.width+"x"+pixelBuffer.height);
+            }
         }
         final IntBuffer readBackInts;
         
@@ -1475,7 +1484,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         psm.setAlignment(gl, alignment, alignment);
         if(gl.isGL2ES3()) {
             final GL2ES3 gl2es3 = gl.getGL2ES3();
-            gl2es3.glPixelStorei(GL2ES3.GL_PACK_ROW_LENGTH, pixelBuffer.width);
+            gl2es3.glPixelStorei(GL2ES3.GL_PACK_ROW_LENGTH, panelWidth);
             gl2es3.glReadBuffer(gl2es3.getDefaultReadBuffer());
         }
         
@@ -1522,12 +1531,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                 // blitting Note that we could avoid this copy in the cases
                 // where !offscreenDrawable.isGLOriented(),
                 // but that's the software rendering path which is very slow anyway.
-                final BufferedImage image = pixelBuffer.image;
+                final BufferedImage image = alignedImage;
                 final int[] src = readBackInts.array();
                 final int[] dest = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
-                final int incr = pixelBuffer.width;
+                final int incr = panelWidth;
                 int srcPos = 0;
-                int destPos = (panelHeight - 1) * pixelBuffer.width;
+                int destPos = (panelHeight - 1) * panelWidth;
                 for (; destPos >= 0; srcPos += incr, destPos -= incr) {
                   System.arraycopy(src, srcPos, dest, destPos, incr);
                 }
@@ -1557,10 +1566,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     public void doPaintComponent(Graphics g) {
       helper.invokeGL(offscreenDrawable, offscreenContext, updaterDisplayAction, updaterInitAction);
       
-      if ( null != pixelBuffer ) {
-        final BufferedImage image = pixelBuffer.image;
+      if ( null != alignedImage ) {
         // Draw resulting image in one shot
-        g.drawImage(image, 0, 0, image.getWidth(), image.getHeight(), null); // Null ImageObserver since image data is ready.
+        g.drawImage(alignedImage, 0, 0, alignedImage.getWidth(), alignedImage.getHeight(), null); // Null ImageObserver since image data is ready.
       }
     }
     

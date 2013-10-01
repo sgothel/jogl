@@ -28,7 +28,11 @@
 package com.jogamp.opengl.util.awt;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
+import java.awt.image.SinglePixelPackedSampleModel;
+import java.awt.image.WritableRaster;
 import java.nio.Buffer;
 import java.nio.IntBuffer;
 
@@ -36,7 +40,6 @@ import javax.media.opengl.GL;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.GLPixelBuffer;
-import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
 
 /** 
  * AWT {@link GLPixelBuffer} backed by an {@link BufferedImage} of type 
@@ -51,6 +54,10 @@ import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
  * <p>
  * See {@link AWTGLPixelBuffer#requiresNewBuffer(GL, int, int, int)} for {@link #allowRowStride} details.
  * </p>
+ * <p>
+ * If using <code>allowRowStride == true</code>, user may needs to get the {@link #getAlignedImage(int, int) aligned image}
+ * since {@link #requiresNewBuffer(GL, int, int, int)} will allow different width in this case.  
+ * </p>
  */
 public class AWTGLPixelBuffer extends GLPixelBuffer {
     public static final GLPixelAttributes awtPixelAttributesIntRGBA4 = new GLPixelAttributes(4, GL.GL_BGRA, GL.GL_UNSIGNED_BYTE);
@@ -60,6 +67,7 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
     public final BufferedImage image;
     
     /**
+     * 
      * @param pixelAttributes the desired {@link GLPixelAttributes}
      * @param width in pixels
      * @param height in pixels
@@ -68,6 +76,7 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
      * @param image the AWT image
      * @param buffer the backing array
      * @param allowRowStride If <code>true</code>, allow row-stride, otherwise not. See {@link #requiresNewBuffer(GL, int, int, int)}.
+     *                       If <code>true</code>, user shall decide whether to use a {@link #getAlignedImage(int, int) width-aligned image}. 
      */
     public AWTGLPixelBuffer(GLPixelAttributes pixelAttributes, int width, int height, int depth, boolean pack, BufferedImage image, 
                             Buffer buffer, boolean allowRowStride) {
@@ -79,6 +88,33 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
     public void dispose() {
         image.flush();
         super.dispose();
+    }
+    
+    /**
+     * Returns a width- and height-aligned image representation sharing data w/ {@link #image}.
+     * @param width
+     * @param height
+     * @return
+     * @throws IllegalArgumentException if requested size exceeds image size 
+     */
+    public BufferedImage getAlignedImage(int width, int height) throws IllegalArgumentException {
+        if( width * height > image.getWidth() * image.getHeight() ) {
+            throw new IllegalArgumentException("Requested size exceeds image size: "+width+"x"+height+" > "+image.getWidth()+"x"+image.getHeight());
+        }
+        if( width == image.getWidth() ) {
+            if( height == image.getHeight() ) {
+                return image;
+            }
+            return image.getSubimage(0, 0, width, height);
+        }
+        final ColorModel cm = image.getColorModel();
+        final WritableRaster raster = image.getRaster();
+        final DataBuffer dataBuffer = raster.getDataBuffer();
+        final SinglePixelPackedSampleModel sppsm0 = (SinglePixelPackedSampleModel) raster.getSampleModel();
+        final SinglePixelPackedSampleModel sppsm1 = new SinglePixelPackedSampleModel(dataBuffer.getDataType(), 
+                    width, height, width /* scanLineStride */, sppsm0.getBitMasks());
+        final WritableRaster raster1 = WritableRaster.createWritableRaster(sppsm1, dataBuffer, null);
+        return new BufferedImage (cm, raster1, cm.isAlphaPremultiplied(), null);
     }
     
     public StringBuilder toString(StringBuilder sb) {
@@ -99,6 +135,7 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
         /**
          * @param allowRowStride If <code>true</code>, allow row-stride, otherwise not. 
          * See {@link #getAllowRowStride()} and {@link AWTGLPixelBuffer#requiresNewBuffer(GL, int, int, int)}.
+         * If <code>true</code>, user shall decide whether to use a {@link AWTGLPixelBuffer#getAlignedImage(int, int) width-aligned image}. 
          */
         public AWTGLPixelBufferProvider(boolean allowRowStride) {
             this.allowRowStride = allowRowStride; 
