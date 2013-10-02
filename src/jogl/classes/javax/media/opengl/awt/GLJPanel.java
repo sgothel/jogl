@@ -178,12 +178,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       DEBUG_VIEWPORT = Debug.isPropertyDefined("jogl.debug.GLJPanel.Viewport", true);
       USE_GLSL_TEXTURE_RASTERIZER = !Debug.isPropertyDefined("jogl.gljpanel.noglsl", true);
       
-      boolean enabled = false;
-      final String sVal = System.getProperty("sun.java2d.opengl");
-      if( null != sVal ) {
-          enabled = Boolean.valueOf(sVal);
-      }
-      Debug.initSingleton();
+      boolean enabled = Debug.getBooleanProperty("sun.java2d.opengl", false);
       java2dOGLEnabledByProp = enabled && !Debug.isPropertyDefined("jogl.gljpanel.noogl", true);
 
       enabled = false;
