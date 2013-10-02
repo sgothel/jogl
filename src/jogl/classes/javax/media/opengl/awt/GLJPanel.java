@@ -142,8 +142,19 @@ import com.jogamp.opengl.util.texture.TextureState;
     <a name="fboGLSLVerticalFlip"><h5>FBO / GLSL Vertical Flip</h5></a>     
     The FBO / GLSL code path uses one texture-unit and binds the FBO texture to it's active texture-target,
     see {@link #setTextureUnit(int)} and {@link #getTextureUnit()}.
-    If the application uses the same texture-unit, ensure it setup their texture properly, i.e. texture-unit bind, enable and then it's parameters,
-    see {@link Texture#textureCallOrder Order of Texture Commands}.
+    <p>
+    The active and dedicated texture-unit's {@link GL#GL_TEXTURE_2D} state is preserved via {@link TextureState}.
+    See also {@link Texture#textureCallOrder Order of Texture Commands}.
+    </p>
+    <p>
+    The current gl-viewport is preserved.
+    </p>
+    <p>
+    <i>Warning (Bug 842)</i>: Certain GL states other than viewport and texture (see above)
+    influencing rendering, will also influence the GLSL vertical flip, e.g. {@link GL#glFrontFace(int) glFrontFace}({@link GL#GL_CCW}).
+    It is recommended to reset those states to default when leaving the {@link GLEventListener#display(GLAutoDrawable)} method!
+    We may change this behavior in the future, i.e. preserve all influencing states.   
+    </p>
 */
 
 @SuppressWarnings("serial")
