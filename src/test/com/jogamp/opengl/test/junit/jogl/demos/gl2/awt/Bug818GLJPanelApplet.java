@@ -48,8 +48,6 @@ import javax.swing.JApplet;
 import javax.swing.JPanel;
 import javax.swing.JFrame;
 
-import com.jogamp.common.GlueGenVersion;
-import com.jogamp.common.util.JogampVersion;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.util.Animator;
