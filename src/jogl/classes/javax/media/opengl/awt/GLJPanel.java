@@ -93,6 +93,7 @@ import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.nativewindow.awt.AWTPrintLifecycle;
 import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
 import com.jogamp.opengl.FBObject;
+import com.jogamp.opengl.GLRendererQuirks;
 import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
 import com.jogamp.opengl.util.GLPixelBuffer.SingletonGLPixelBufferProvider;
 import com.jogamp.opengl.util.GLDrawableUtil;
@@ -1296,7 +1297,15 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
               flipVertical = offscreenDrawable.isGLOriented();
               final GLCapabilitiesImmutable chosenCaps = offscreenDrawable.getChosenGLCapabilities();
               offscreenIsFBO = chosenCaps.isFBO();
-              if( USE_GLSL_TEXTURE_RASTERIZER && offscreenIsFBO && flipVertical && gl.isGL2ES2() ) {
+              final boolean glslCompliant = !offscreenContext.hasRendererQuirk(GLRendererQuirks.GLSLNonCompliant);
+              final boolean useGLSLFlip = flipVertical && offscreenIsFBO && gl.isGL2ES2() && USE_GLSL_TEXTURE_RASTERIZER && glslCompliant;
+              if( DEBUG ) {
+                  System.err.println(getThreadName()+": OffscreenBackend.initialize: useGLSLFlip "+useGLSLFlip+
+                          " [flip "+flipVertical+", isFBO "+offscreenIsFBO+", isGL2ES2 "+gl.isGL2ES2()+
+                          ", noglsl "+!USE_GLSL_TEXTURE_RASTERIZER+", glslNonCompliant "+!glslCompliant+
+                          ", isGL2ES2 " + gl.isGL2ES2()+"]");
+              }
+              if( useGLSLFlip ) {
                   final boolean _autoSwapBufferMode = helper.getAutoSwapBufferMode();
                   helper.setAutoSwapBufferMode(false);
                   final GLFBODrawable fboDrawable = (GLFBODrawable) offscreenDrawable;

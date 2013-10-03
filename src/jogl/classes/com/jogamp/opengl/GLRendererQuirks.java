@@ -181,15 +181,22 @@ public class GLRendererQuirks {
      */
     public static final int NoFullFBOSupport = 11;
     
-    
+    /**
+     * GLSL is not compliant or even not stable (crash)
+     * <ul>
+     *   <li>OSX < 10.7.0 (?) - NVidia Driver. Bug 818 @ https://jogamp.org/bugzilla/.</li>
+     * </ul>  
+     */
+    public static final int GLSLNonCompliant = 12;
+        
     /** Number of quirks known. */
-    public static final int COUNT = 12;
+    public static final int COUNT = 13;
     
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
                                                           "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard",
                                                           "GLNonCompliant", "GLFlushBeforeRelease", "DontCloseX11Display",
                                                           "NeedCurrCtx4ARBPixFmtQueries", "NeedCurrCtx4ARBCreateContext",
-                                                          "NoFullFBOSupport"
+                                                          "NoFullFBOSupport", "GLSLNonCompliant"
                                                         };
 
     private final int _bitmask;

@@ -1604,13 +1604,23 @@ public abstract class GLContextImpl extends GLContext {
             quirks[i++] = quirk;
         }
         
-        final VersionNumber osxVersionNVFlushClean = new VersionNumber(10,7,3); // < OSX 10.7.3 w/ NV needs glFlush
-        if( Platform.getOSVersionNumber().compareTo(osxVersionNVFlushClean) < 0 && isDriverNVIDIAGeForce ) {
-            final int quirk = GLRendererQuirks.GLFlushBeforeRelease;
-            if(DEBUG) {
-                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType()+", OS Version "+Platform.getOSVersionNumber()+", Renderer "+glRenderer);
+        if( isDriverNVIDIAGeForce ) {
+            final VersionNumber osxVersionNVFlushClean = new VersionNumber(10,7,3); // < OSX 10.7.3 w/ NV needs glFlush
+            if( Platform.getOSVersionNumber().compareTo(osxVersionNVFlushClean) < 0 ) {
+                final int quirk = GLRendererQuirks.GLFlushBeforeRelease;
+                if(DEBUG) {
+                    System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType()+", OS Version "+Platform.getOSVersionNumber()+", Renderer "+glRenderer);
+                }
+                quirks[i++] = quirk;
             }
-            quirks[i++] = quirk;
+            final VersionNumber osxVersionNVGLSLGood = new VersionNumber(10,7,0); // < OSX 10.7.0 w/ NV has instable GLSL
+            if( Platform.getOSVersionNumber().compareTo(osxVersionNVGLSLGood) < 0 ) {
+                final int quirk = GLRendererQuirks.GLSLNonCompliant;
+                if(DEBUG) {
+                    System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType()+", OS Version "+Platform.getOSVersionNumber()+", Renderer "+glRenderer);
+                }
+                quirks[i++] = quirk;
+            }
         }
     } else if( Platform.getOSType() == Platform.OSType.WINDOWS ) {        
         //
