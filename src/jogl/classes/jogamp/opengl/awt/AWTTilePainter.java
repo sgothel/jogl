@@ -88,10 +88,14 @@ public class AWTTilePainter {
               System.err.println("Hint["+count+"]: "+rEntry.getKey()+" -> "+rEntry.getValue());
           }
           final AffineTransform aTrans = g2d.getTransform();
-          System.err.println(" type "+aTrans.getType());
-          System.err.println(" scale "+aTrans.getScaleX()+" x "+aTrans.getScaleY());
-          System.err.println(" move "+aTrans.getTranslateX()+" x "+aTrans.getTranslateY());        
-          System.err.println(" mat  "+aTrans);
+          if( null != aTrans ) {
+              System.err.println(" type "+aTrans.getType());
+              System.err.println(" scale "+aTrans.getScaleX()+" x "+aTrans.getScaleY());
+              System.err.println(" move "+aTrans.getTranslateX()+" x "+aTrans.getTranslateY());        
+              System.err.println(" mat  "+aTrans);
+          } else {
+              System.err.println(" null transform");
+          }
     }
     
     /**
@@ -188,6 +192,9 @@ public class AWTTilePainter {
     public void setupGraphics2DAndClipBounds(Graphics2D g2d, int width, int height) throws NoninvertibleTransformException {
         this.g2d = g2d;
         saveAT = g2d.getTransform();
+        if( null == saveAT ) {
+            saveAT = new AffineTransform(); // use identity
+        }
         // We use double precision for scaling
         //
         // Setup original rectangles
@@ -201,7 +208,7 @@ public class AWTTilePainter {
         {
             final AffineTransform scaledATI;
             {
-                final AffineTransform scaledAT = g2d.getTransform();
+                final AffineTransform scaledAT = new AffineTransform(saveAT);
                 scaledAT.scale(scaleMatX, scaleMatY);
                 scaledATI = scaledAT.createInverse(); // -> NoninvertibleTransformException
             }
