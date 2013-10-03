@@ -113,15 +113,24 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
               // See: {@link JAWTWindow#JAWT_OSX_CALAYER_QUIRK_LAYOUT}
               final Point p0 = new Point();
               final Component outterComp = getLocationOnScreenNonBlocking(p0, component);
-              final java.awt.Insets ins = AWTMisc.getInsets(outterComp);
-              if(null != ins) {
-                  p0.translate(-ins.left, -ins.top);
+              final java.awt.Insets outterInsets = AWTMisc.getInsets(outterComp, true);
+              final Point p1 = (Point)p0.cloneMutable();
+              p1.translate(-outterComp.getX(), -outterComp.getY());
+              if( null != outterInsets ) {
+                  p1.translate(-outterInsets.left, -outterInsets.top);
               }
+              
               if( DEBUG ) {
-                  final java.awt.Point wP0 = outterComp.getLocationOnScreen();
-                  System.err.println("JAWTWindow.attachSurfaceHandleImpl: "+toHexString(layerHandle) + ", wP0 "+wP0+"[ins "+ins+"], p0 "+p0+", bounds "+bounds);
+                  final java.awt.Point pA0 = component.getLocationOnScreen();
+                  final Point pA1 = new Point(pA0.x, pA0.y);
+                  pA1.translate(-outterComp.getX(), -outterComp.getY());
+                  if( null != outterInsets ) {
+                      pA1.translate(-outterInsets.left, -outterInsets.top);
+                  }
+                  System.err.println("JAWTWindow.attachSurfaceLayerImpl: "+toHexString(layerHandle) + ", [ins "+outterInsets+"], pA "+pA0+" -> "+pA1+
+                          ", p0 "+p0+" -> "+p1+", bounds "+bounds);
               }
-              OSXUtil.AddCASublayer(rootSurfaceLayer, layerHandle, p0.getX(), p0.getY(), getWidth(), getHeight(), JAWTUtil.getOSXCALayerQuirks());
+              OSXUtil.AddCASublayer(rootSurfaceLayer, layerHandle, p1.getX(), p1.getY(), getWidth(), getHeight(), JAWTUtil.getOSXCALayerQuirks());
           } } );
   }
   
@@ -135,15 +144,24 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
           // See: {@link JAWTWindow#JAWT_OSX_CALAYER_QUIRK_LAYOUT}
           final Point p0 = new Point();
           final Component outterComp = getLocationOnScreenNonBlocking(p0, component);
-          final java.awt.Insets ins = AWTMisc.getInsets(outterComp);
-          if( null != ins ) {
-              p0.translate(-ins.left, -ins.top);
+          final java.awt.Insets outterInsets = AWTMisc.getInsets(outterComp, true);
+          final Point p1 = (Point)p0.cloneMutable();
+          p1.translate(-outterComp.getX(), -outterComp.getY());
+          if( null != outterInsets ) {
+              p1.translate(-outterInsets.left, -outterInsets.top);
           }
+          
           if( DEBUG ) {
-              final java.awt.Point wP0 = outterComp.getLocationOnScreen();
-              System.err.println("JAWTWindow.layoutSurfaceLayerImpl: "+toHexString(layerHandle) + ", wP0 "+wP0+"[ins "+ins+"], p0 "+p0+", bounds "+bounds);
+              final java.awt.Point pA0 = component.getLocationOnScreen();
+              final Point pA1 = new Point(pA0.x, pA0.y);
+              pA1.translate(-outterComp.getX(), -outterComp.getY());
+              if( null != outterInsets ) {
+                  pA1.translate(-outterInsets.left, -outterInsets.top);
+              }
+              System.err.println("JAWTWindow.layoutSurfaceLayerImpl: "+toHexString(layerHandle) + ", [ins "+outterInsets+"], pA "+pA0+" -> "+pA1+
+                      ", p0 "+p0+" -> "+p1+", bounds "+bounds);
           }
-          OSXUtil.FixCALayerLayout(rootSurfaceLayer, layerHandle, p0.getX(), p0.getY(), getWidth(), getHeight(), caLayerQuirks);
+          OSXUtil.FixCALayerLayout(rootSurfaceLayer, layerHandle, p1.getX(), p1.getY(), getWidth(), getHeight(), caLayerQuirks);
       }
   }
   

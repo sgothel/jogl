@@ -82,8 +82,10 @@ public class AWTMisc {
      * This is due to <i>experience</i> that <i>some</i> JRootPane's 
      * do not expose valid insets value.
      * </p>
+     * @param topLevelOnly if true only returns insets of top-level components, i.e. Window and JRootPanel,
+     * otherwise for JComponent as well. 
      */
-    public static Insets getInsets(Component c) {
+    public static Insets getInsets(Component c, boolean topLevelOnly) {
         if( c instanceof Window ) {
             return ((Window)c).getInsets();
         }
@@ -94,7 +96,7 @@ public class AWTMisc {
             }
             return ((JRootPane)c).getInsets();
         }
-        if( c instanceof JComponent ) {
+        if( !topLevelOnly && c instanceof JComponent ) {
             return ((JComponent)c).getInsets();
         }
         return null;

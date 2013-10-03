@@ -61,7 +61,6 @@ import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
-import javax.swing.JRootPane;
 
 import jogamp.nativewindow.SurfaceUpdatedHelper;
 import jogamp.nativewindow.awt.AWTMisc;
@@ -574,23 +573,26 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   protected abstract Point getLocationOnScreenNativeImpl(int x, int y);
 
   protected static Component getLocationOnScreenNonBlocking(Point storage, Component comp) {
+      final java.awt.Insets insets = new java.awt.Insets(0, 0, 0, 0); // DEBUG 
       Component last = null;
       while(null != comp) {
           final int dx = comp.getX(); 
           final int dy = comp.getY();
           if( DEBUG ) {
-              final java.awt.Insets ins = AWTMisc.getInsets(comp);
-              System.err.print("LOS: "+storage+" + "+comp.getClass().getName()+"["+dx+"/"+dy+", vis "+comp.isVisible()+", ins "+ins+"] -> ");
+              final java.awt.Insets ins = AWTMisc.getInsets(comp, false);
+              if( null != ins ) {
+                  insets.bottom += ins.bottom;
+                  insets.top += ins.top;
+                  insets.left += ins.left;
+                  insets.right += ins.right;
+              }
+              System.err.print("LOS: "+storage+" + "+comp.getClass().getName()+"["+dx+"/"+dy+", vis "+comp.isVisible()+", ins "+ins+" -> "+insets+"] -> ");
           }
           storage.translate(dx, dy);
           if( DEBUG ) {
               System.err.println(storage);
           }
           last = comp;
-          if( comp instanceof JRootPane ) {
-              // LW JRootPane is considered a top-level component!
-              break;
-          }
           comp = comp.getParent();
       }
       return last;
