@@ -152,7 +152,7 @@ public class JAWTUtil {
    * CALayer position needs to be derived from AWT position 
    * in relation to super CALayer.
    * <p>
-   * AWT's super-calayer, i.e. the AWT's own component CALayer,
+   * AWT's super-calayer, i.e. the AWT top-container's CALayer,
    * does not layout our root-calayer in respect to this component's
    * position and size, at least when resizing programmatically.
    * </p>
@@ -162,6 +162,24 @@ public class JAWTUtil {
    * </p>
    * <p>
    * The super-calayer bounds exclude the frame's heavyweight border/insets.
+   * </p>
+   * <p>
+   * The super-calayer lies within the AWT top-container client space (content).
+   * </p>    
+   * <p>
+   * Component's location in super-calayer:
+   * <pre>
+      p0 = c.locationOnScreen();
+      p0 -= c.getOutterComp.getPos();
+      p0 -= c.getOutterComp.getInsets();
+   * </pre>
+   * Where 'locationOnScreen()' is:
+   * <pre>
+     p0 = 0/0;
+     while( null != c ) {
+       p0 += c.getPos();
+     }
+   * </pre>
    * </p>
    * <p>
    * This flags also sets {@link #JAWT_OSX_CALAYER_QUIRK_SIZE},
