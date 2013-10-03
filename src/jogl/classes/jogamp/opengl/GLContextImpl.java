@@ -1604,8 +1604,8 @@ public abstract class GLContextImpl extends GLContext {
             quirks[i++] = quirk;
         }
         
-        final VersionNumber OSXVersion173 = new VersionNumber(1,7,3);
-        if( Platform.getOSVersionNumber().compareTo(OSXVersion173) < 0 && isDriverNVIDIAGeForce ) {
+        final VersionNumber osxVersionNVFlushClean = new VersionNumber(10,7,3); // < OSX 10.7.3 w/ NV needs glFlush
+        if( Platform.getOSVersionNumber().compareTo(osxVersionNVFlushClean) < 0 && isDriverNVIDIAGeForce ) {
             final int quirk = GLRendererQuirks.GLFlushBeforeRelease;
             if(DEBUG) {
                 System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType()+", OS Version "+Platform.getOSVersionNumber()+", Renderer "+glRenderer);
