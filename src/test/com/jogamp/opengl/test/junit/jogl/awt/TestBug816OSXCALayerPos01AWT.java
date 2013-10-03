@@ -56,13 +56,9 @@ import java.awt.Button;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.GridLayout;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Assert;
@@ -80,7 +76,7 @@ import org.junit.runners.MethodSorters;
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestBug816OSXCALayerPosAWT extends UITestCase {
+public class TestBug816OSXCALayerPos01AWT extends UITestCase {
     public enum FrameLayout { None, Flow, DoubleBorderCenterSurrounded, Box, Split };
     
     static long duration = 1600; // ms    
@@ -89,7 +85,6 @@ public class TestBug816OSXCALayerPosAWT extends UITestCase {
     static boolean forceES2 = false;
     static boolean forceGL3 = false;
     static int swapInterval = 1;
-    static Thread awtEDT;
     static java.awt.Dimension rwsize;
 
     @BeforeClass
@@ -97,15 +92,6 @@ public class TestBug816OSXCALayerPosAWT extends UITestCase {
         width  = 640;
         height = 480;
         rwsize = new Dimension(800, 600);
-        try {
-            EventQueue.invokeAndWait(new Runnable() {
-                public void run() {
-                    awtEDT = Thread.currentThread();
-                } } );
-        } catch (Exception e) {
-            e.printStackTrace();
-            Assert.assertNull(e);
-        }
     }
 
     @AfterClass
@@ -473,8 +459,6 @@ public class TestBug816OSXCALayerPosAWT extends UITestCase {
     static int testNum = -1;
     
     public static void main(String args[]) {
-        boolean waitForKey = false;
-        
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
@@ -497,13 +481,6 @@ public class TestBug816OSXCALayerPosAWT extends UITestCase {
         System.err.println("forceGL3 "+forceGL3);
         System.err.println("swapInterval "+swapInterval);
         
-        if(waitForKey) {
-            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
-            System.err.println("Press enter to continue");
-            try {
-                System.err.println(stdin.readLine());
-            } catch (IOException e) { }
-        }
-        org.junit.runner.JUnitCore.main(TestBug816OSXCALayerPosAWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestBug816OSXCALayerPos01AWT.class.getName());
     }
 }
