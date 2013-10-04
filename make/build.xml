@@ -292,6 +292,7 @@
 
     <target name="tag.build" depends="init">
         <copy file="${build.gluegen}/artifact.properties" todir="${build}" overwrite="true"/>
+        <echo message='jogl.build.version=${jogamp.version}${line.separator}'   file="${build}/artifact.properties" append="true"/>
         <echo message='jogl.build.number=${jogl.build.number}${line.separator}' file="${build}/artifact.properties" append="true"/>
         <echo message='jogl.build.id=${jogl.build.id}${line.separator}'         file="${build}/artifact.properties" append="true"/>
         <echo message='jogl.build.branch=${jogl.build.branch}${line.separator}' file="${build}/artifact.properties" append="true"/>
