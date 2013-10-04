@@ -28,6 +28,8 @@
 package com.jogamp.opengl.test.junit.jogl.demos.es2.awt;
 
 import java.applet.Applet;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.awt.GLCanvas;
@@ -37,24 +39,24 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.util.Animator;
 
 /**
- * Bug 816: OSX CALayer Positioning Bug.
+ * Bug 848: Applet on OSX w/ CALayer and 2 or more GLCanvas may 'crash'.
  * <p>
- * Diff. OSX CALayer positioning w/ java6, [7uxx..7u40[, and >= 7u40
- * </p>
- * <p>
- * Test uses a box layout within the Applet.
+ * Test uses 2x3 GLCanvas in a box layout within the Applet.
  * </p>
  */
 @SuppressWarnings("serial")
-public class Bug816AppletGLCanvas02 extends Applet {
-    GLAnimatorControl animator;
+public class Bug848AppletGLCanvas01 extends Applet {
+    private List<GLAnimatorControl> animators = new ArrayList<GLAnimatorControl>(2);
 
     @Override
     public void init() {
         System.err.println("GearsApplet: init() - begin");
-        animator = new Animator();
         new BoxLayout(this, BoxLayout.X_AXIS);
-        setSize(600, 300);
+        setSize(900, 600);
+        add(createCanvas());
+        add(createCanvas());
+        add(createCanvas());
+        add(createCanvas());
         add(createCanvas());
         add(createCanvas());
         System.err.println("GearsApplet: init() - end");
@@ -64,17 +66,21 @@ public class Bug816AppletGLCanvas02 extends Applet {
         GLCanvas canvas = new GLCanvas();
         canvas.addGLEventListener(new GearsES2(1));
         canvas.setSize(300, 300);
-        animator.add(canvas);
+        animators.add(new Animator(canvas));
         return canvas;
     }
 
     @Override
     public void start() {
-        animator.start();
+        for (GLAnimatorControl control : animators) {
+            control.start();
+        }
     }
 
     @Override
     public void stop() {
-        animator.stop();
+        for (GLAnimatorControl control : animators) {
+            control.stop();
+        }
     }
 }

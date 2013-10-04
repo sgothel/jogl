@@ -54,81 +54,81 @@ import javax.swing.JPanel;
 @SuppressWarnings("serial")
 public class Bug816AppletGLCanvas01 extends Applet implements GLEventListener {
 
-  public Bug816AppletGLCanvas01() {
-  }
-
-  public static JFrame frame;
-  public static JPanel appletHolder;
-  public static boolean isApplet = true;
-
-  static public void main(String args[]) {
-    Applet myApplet = null;
-    isApplet = false;
-
-    myApplet = new Bug816AppletGLCanvas01();
-    appletStarter(myApplet, "Bug861AppletGLCanvasTest01", 800, 600);
-  }
-
-  static public void appletStarter(final Applet des, String frameName, int width, int height) {
-    appletHolder = new JPanel();
-    if (frame != null) {
-      frame.dispose();
-      frame = null;
+    public Bug816AppletGLCanvas01() {
     }
-    frame = new JFrame(frameName);
-    frame.setVisible(false);
-    frame.getContentPane().add(appletHolder);
 
-    appletHolder.setLayout(null);
-    des.setBounds(0, 0, width, height);
-    appletHolder.add(des);
+    public static JFrame frame;
+    public static JPanel appletHolder;
+    public static boolean isApplet = true;
 
-    frame.setVisible(true);
-    int frameBorderSize = appletHolder.getLocationOnScreen().x - frame.getLocationOnScreen().x;
-    int titleBarHeight = appletHolder.getLocationOnScreen().y - frame.getLocationOnScreen().y;
-    int frameWidth = width + 2 * frameBorderSize;
-    int frameHeight = height + titleBarHeight + frameBorderSize;
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.setSize(frameWidth, frameHeight);
-    frame.setVisible(true);
-    des.init();
-    frame.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {
-        System.exit(0);
-      }
-    });
-  }
+    static public void main(String args[]) {
+        Applet myApplet = null;
+        isApplet = false;
 
-  public void init() {
-    initOpenGLAWT();
-  }
+        myApplet = new Bug816AppletGLCanvas01();
+        appletStarter(myApplet, "Bug861AppletGLCanvasTest01", 800, 600);
+    }
 
-  public void initOpenGLAWT() {
-    setBackground(Color.gray);
-    setLayout(null);
+    static public void appletStarter(final Applet des, String frameName, int width, int height) {
+        appletHolder = new JPanel();
+        if (frame != null) {
+            frame.dispose();
+            frame = null;
+        }
+        frame = new JFrame(frameName);
+        frame.setVisible(false);
+        frame.getContentPane().add(appletHolder);
 
-    GLProfile glp = GLProfile.getDefault();
-    GLCapabilities caps = new GLCapabilities(glp);
-    GLCanvas canvas = new GLCanvas((GLCapabilitiesImmutable) caps);
-    canvas.setBounds(50, 50, 200, 450);
-    canvas.addGLEventListener(this);
-    add(canvas);
-  }
+        appletHolder.setLayout(null);
+        des.setBounds(0, 0, width, height);
+        appletHolder.add(des);
 
-  public void init(GLAutoDrawable gLAutoDrawable) {
-    GL gl = gLAutoDrawable.getGL();
-    gl.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-    gl.glClear(GL.GL_COLOR_BUFFER_BIT);
-    gLAutoDrawable.swapBuffers();
-  }
+        frame.setVisible(true);
+        int frameBorderSize = appletHolder.getLocationOnScreen().x - frame.getLocationOnScreen().x;
+        int titleBarHeight = appletHolder.getLocationOnScreen().y - frame.getLocationOnScreen().y;
+        int frameWidth = width + 2 * frameBorderSize;
+        int frameHeight = height + titleBarHeight + frameBorderSize;
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(frameWidth, frameHeight);
+        frame.setVisible(true);
+        des.init();
+        frame.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                System.exit(0);
+            }
+        });
+    }
 
-  public void dispose(GLAutoDrawable glad) {
-  }
+    public void init() {
+        initOpenGLAWT();
+    }
 
-  public void display(GLAutoDrawable glad) {
-  }
+    public void initOpenGLAWT() {
+        setBackground(Color.gray);
+        setLayout(null);
 
-  public void reshape(GLAutoDrawable glad, int i, int i1, int i2, int i3) {
-  }
+        GLProfile glp = GLProfile.getDefault();
+        GLCapabilities caps = new GLCapabilities(glp);
+        GLCanvas canvas = new GLCanvas((GLCapabilitiesImmutable) caps);
+        canvas.setBounds(50, 50, 200, 450);
+        canvas.addGLEventListener(this);
+        add(canvas);
+    }
+
+    public void init(GLAutoDrawable gLAutoDrawable) {
+        GL gl = gLAutoDrawable.getGL();
+        gl.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+        gl.glClear(GL.GL_COLOR_BUFFER_BIT);
+        gLAutoDrawable.swapBuffers();
+    }
+
+    public void dispose(GLAutoDrawable glad) {
+    }
+
+    public void display(GLAutoDrawable glad) {
+    }
+
+    public void reshape(GLAutoDrawable glad, int i, int i1, int i2, int i3) {
+    }
 
 }

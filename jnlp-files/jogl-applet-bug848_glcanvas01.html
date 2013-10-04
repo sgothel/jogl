@@ -1,30 +1,28 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
 <head>
-<title>Bug818 OSX GLJPanel NV GT330 Crash</title>
+<title>Bug 848: Applet on OSX w/ CALayer and 2 or more GLCanvas may crash</title>
 </head>
 <body  BGCOLOR="#ffffff">
 
 <P>
-Bug818 OSX GLJPanel NV GT330 Crash
+Bug 848: Applet on OSX w/ CALayer and 2 or more GLCanvas may 'crash'.
 </P>
 
 <P>
 <object classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93"
-      width="750" height="350">
-   <param name="code" value="com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.Bug818GLJPanelApplet">
+      width="900" height="600">
+   <param name="code" value="com.jogamp.opengl.test.junit.jogl.demos.es2.awt.Bug848AppletGLCanvas01">
    <param name="archive" value="jar/lib/gluegen-rt.jar,
                                 jar/lib/jogl-all.jar,
                                 jar/jogl-test.jar">
-   <param name="java_arguments" value="-Xms128M -Xmx512M -Dsun.java2d.noddraw=true"/>
    <comment>
-     <embed code="com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.Bug818GLJPanelApplet"
-          width="750" height="350"
+     <embed code="com.jogamp.opengl.test.junit.jogl.demos.es2.awt.Bug848AppletGLCanvas01"
+          width="900" height="600"
           type="application/x-java-applet;version=1.6"
           archive="jar/gluegen-rt.jar,
                    jar/jogl-all.jar,
-                   jar/jogl-test.jar"
-          java_arguments="-Xms128M -Xmx512M -Dsun.java2d.noddraw=true">
+                   jar/jogl-test.jar">
         <noembed>Sorry, no Java support detected.</noembed>
      </embed>
    </comment>
