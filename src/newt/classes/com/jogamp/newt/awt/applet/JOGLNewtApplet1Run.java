@@ -252,9 +252,9 @@ public class JOGLNewtApplet1Run extends Applet {
             System.err.println("GLWindow: "+glWindow);
         }
         base.start();
-          if( null != newtCanvasAWT && 
-              newtCanvasAWT.isOffscreenLayerSurfaceEnabled() &&
-              0 != ( JAWTUtil.JAWT_OSX_CALAYER_QUIRK_POSITION & JAWTUtil.getOSXCALayerQuirks() ) ) {          
+        if( null != newtCanvasAWT && 
+            newtCanvasAWT.isOffscreenLayerSurfaceEnabled() &&
+            0 != ( JAWTUtil.JAWT_OSX_CALAYER_QUIRK_POSITION & JAWTUtil.getOSXCALayerQuirks() ) ) {          
             // force relayout
             final int cW = newtCanvasAWT.getWidth();
             final int cH = newtCanvasAWT.getHeight();

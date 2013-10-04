@@ -28,35 +28,34 @@
 package com.jogamp.opengl.test.junit.jogl.demos.es2.awt;
 
 import java.applet.Applet;
-import java.util.ArrayList;
-import java.util.List;
+import java.awt.GridLayout;
 
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.awt.GLCanvas;
-import javax.swing.BoxLayout;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.util.Animator;
 
 /**
- * Bug 848: Applet on OSX w/ CALayer and 2 or more GLCanvas may 'crash'.
+ * Bug 816: OSX CALayer Positioning Bug.
  * <p>
- * Test uses 2x3 GLCanvas in a box layout within the Applet.
+ * Diff. OSX CALayer positioning w/ java6, [7uxx..7u40[, and >= 7u40
+ * </p>
+ * <p>
+ * Test uses a grid layout within the Applet.
  * </p>
  */
 @SuppressWarnings("serial")
-public class Bug848AppletGLCanvas01 extends Applet {
-    private List<GLAnimatorControl> animators = new ArrayList<GLAnimatorControl>(2);
+public class Bug816AppletGLCanvas02b extends Applet {
+    GLAnimatorControl animator;
+    boolean added = false;
 
     @Override
     public void init() {
         System.err.println("GearsApplet: init() - begin [visible "+isVisible()+", displayable "+isDisplayable()+"] - "+currentThreadName());
-        new BoxLayout(this, BoxLayout.X_AXIS);
-        setSize(1024, 664);
-        add(createCanvas());
-        add(createCanvas());
-        add(createCanvas());
-        add(createCanvas());
+        animator = new Animator();
+        this.setLayout(new GridLayout(1, 2));
+        setSize(664, 364);
         add(createCanvas());
         add(createCanvas());
         System.err.println("GearsApplet: init() - end [visible "+isVisible()+", displayable "+isDisplayable()+"] - "+currentThreadName());
@@ -66,7 +65,7 @@ public class Bug848AppletGLCanvas01 extends Applet {
         GLCanvas canvas = new GLCanvas();
         canvas.addGLEventListener(new GearsES2(1));
         canvas.setSize(300, 300);
-        animators.add(new Animator(canvas));
+        animator.add(canvas);
         return canvas;
     }
 
@@ -77,18 +76,14 @@ public class Bug848AppletGLCanvas01 extends Applet {
     @Override
     public void start() {
         System.err.println("GearsApplet: start() - begin [visible "+isVisible()+", displayable "+isDisplayable()+"] - "+currentThreadName());
-        for (GLAnimatorControl control : animators) {
-            control.start();
-            control.setUpdateFPSFrames(60, System.err);
-        }
+        animator.start();
+        animator.setUpdateFPSFrames(60, System.err);
         System.err.println("GearsApplet: start() - end [visible "+isVisible()+", displayable "+isDisplayable()+"] - "+currentThreadName());
     }
 
     @Override
     public void stop() {
         System.err.println("GearsApplet: stop() - [visible "+isVisible()+", displayable "+isDisplayable()+"] - "+currentThreadName());
-        for (GLAnimatorControl control : animators) {
-            control.stop();
-        }
+        animator.stop();
     }
 }

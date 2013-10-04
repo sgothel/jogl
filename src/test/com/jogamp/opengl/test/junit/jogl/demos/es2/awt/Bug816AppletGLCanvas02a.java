@@ -46,18 +46,19 @@ import com.jogamp.opengl.util.Animator;
  * </p>
  */
 @SuppressWarnings("serial")
-public class Bug816AppletGLCanvas02 extends Applet {
+public class Bug816AppletGLCanvas02a extends Applet {
     GLAnimatorControl animator;
+    boolean added = false;
 
     @Override
     public void init() {
-        System.err.println("GearsApplet: init() - begin");
+        System.err.println("GearsApplet: init() - begin [visible "+isVisible()+", displayable "+isDisplayable()+"] - "+currentThreadName());
         animator = new Animator();
         new BoxLayout(this, BoxLayout.X_AXIS);
-        setSize(600, 300);
+        setSize(664, 364);
         add(createCanvas());
         add(createCanvas());
-        System.err.println("GearsApplet: init() - end");
+        System.err.println("GearsApplet: init() - end [visible "+isVisible()+", displayable "+isDisplayable()+"] - "+currentThreadName());
     }
 
     private GLCanvas createCanvas() {
@@ -68,13 +69,21 @@ public class Bug816AppletGLCanvas02 extends Applet {
         return canvas;
     }
 
+    String currentThreadName() {
+        return Thread.currentThread().getName();
+    }
+    
     @Override
     public void start() {
+        System.err.println("GearsApplet: start() - begin [visible "+isVisible()+", displayable "+isDisplayable()+"] - "+currentThreadName());
         animator.start();
+        animator.setUpdateFPSFrames(60, System.err);
+        System.err.println("GearsApplet: start() - end [visible "+isVisible()+", displayable "+isDisplayable()+"] - "+currentThreadName());
     }
 
     @Override
     public void stop() {
+        System.err.println("GearsApplet: stop() - [visible "+isVisible()+", displayable "+isDisplayable()+"] - "+currentThreadName());
         animator.stop();
     }
 }
