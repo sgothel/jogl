@@ -332,7 +332,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.tile.TestRandomTiledRendering2GL2NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.tile.TestRandomTiledRendering3GL2AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsAWT $*
-testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsSwingAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsSwingAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsSwingAWT2 $*
 #testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsNewtAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingNIOImageSwingAWT $*
@@ -474,7 +474,7 @@ testawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsSwingAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461PBufferSupersamplingSwingAWT
 #testawt com.jogamp.opengl.test.junit.jogl.glu.TestBug463ScaleImageMemoryAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.glu.TestBug694ScaleImageUnpackBufferSizeAWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWTCardLayoutAnimatorStartStopBug532 $*
+testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWTCardLayoutAnimatorStartStopBug532 $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAWTActionDeadlock00AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAWTActionDeadlock01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAWTActionDeadlock02AWT $*
