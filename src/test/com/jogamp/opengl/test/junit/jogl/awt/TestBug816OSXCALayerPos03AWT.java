@@ -68,7 +68,7 @@ public class TestBug816OSXCALayerPos03AWT extends UITestCase {
     public void test() throws InterruptedException, InvocationTargetException {
         final GLCapabilities caps = new GLCapabilities(getGLP());
         
-        final Frame frame = new Frame("Bug861: "+this.getTestMethodName());
+        final Frame frame = new Frame("TestBug816OSXCALayerPos03AWT");
         Assert.assertNotNull(frame);
 
         final GLCanvas glCanvas1 = new GLCanvas(caps);

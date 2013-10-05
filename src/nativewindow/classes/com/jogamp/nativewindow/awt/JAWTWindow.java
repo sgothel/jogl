@@ -43,6 +43,7 @@ import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Window;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.applet.Applet;
@@ -598,6 +599,9 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
               System.err.println(storage);
           }
           last = comp;
+          if( comp instanceof Window ) { // top-level heavy-weight ?
+              break;
+          }
           comp = comp.getParent();
       }
       return last;

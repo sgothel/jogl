@@ -135,7 +135,7 @@ public class TestBug816OSXCALayerPos01AWT extends UITestCase {
     }
     
     protected void runTestGL(GLCapabilities caps, FrameLayout frameLayout, final boolean twoCanvas, final boolean resizeByComp) throws InterruptedException, InvocationTargetException {
-        final JFrame frame = new JFrame("Bug861: "+this.getTestMethodName());
+        final JFrame frame = new JFrame("Bug816: "+this.getTestMethodName());
         Assert.assertNotNull(frame);
         final Container framePane = frame.getContentPane();
 

@@ -28,39 +28,37 @@
  
 package com.jogamp.opengl.test.junit.jogl.awt;
 
-import javax.media.opengl.*;
+import java.awt.BorderLayout;
+import java.lang.reflect.InvocationTargetException;
 
-import com.jogamp.opengl.util.Animator;
-
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JRootPane;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 
-import com.jogamp.newt.event.awt.AWTWindowAdapter;
+import org.junit.Assert;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+
 import com.jogamp.newt.event.TraceWindowAdapter;
+import com.jogamp.newt.event.awt.AWTWindowAdapter;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
-import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
-
-import java.lang.reflect.InvocationTargetException;
-
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.FixMethodOrder;
-import org.junit.runners.MethodSorters;
+import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.util.Animator;
 
 /**
- * Bug 816: OSX CALayer Positioning Bug - Swing JFrame w/ 2 JRootPanes
+ * Bug 816: OSX CALayer Positioning Bug - AWT JFrame w/ JDialog child containing the GLCanvas
  * <p>
  * Diff. OSX CALayer positioning w/ java6, [7uxx..7u40[, and >= 7u40
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestBug816OSXCALayerPos02AWT extends UITestCase {
+public class TestBug816OSXCALayerPos04bAWT extends UITestCase {
     static long duration = 1600; // ms    
     static int width=640, height=480;
     
@@ -68,7 +66,7 @@ public class TestBug816OSXCALayerPos02AWT extends UITestCase {
     public void test() throws InterruptedException, InvocationTargetException {
         final GLCapabilities caps = new GLCapabilities(getGLP());
         
-        final JFrame frame = new JFrame("TestBug816OSXCALayerPos02AWT");
+        final JFrame frame = new JFrame("TestBug816OSXCALayerPos04bAWT");
         Assert.assertNotNull(frame);
 
         final GLCanvas glCanvas1 = new GLCanvas(caps);
@@ -81,25 +79,29 @@ public class TestBug816OSXCALayerPos02AWT extends UITestCase {
         
         new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
 
-        // Build a GUI where the canvas 3D is located at top right of the frame 
-        // and can be resized with split panes dividers
-        JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, 
-            true, new JScrollPane(), glCanvas1);    
-        verticalSplitPane.setResizeWeight(0.5);
-        JSplitPane horizontalSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, 
-            true, new JScrollPane(), verticalSplitPane);
-        horizontalSplitPane.setResizeWeight(0.5);
-        JRootPane intermediateRootPane = new JRootPane();
-        intermediateRootPane.setContentPane(horizontalSplitPane);
-        frame.add(intermediateRootPane);
-
+        // Display the canvas 3D in a dialog child of a frame
+        frame.setSize(400, 400);
+        
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
+                frame.setLocation(100, 100);
                 frame.setSize(width, height);
                 frame.setVisible(true);
             }});        
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas1, true)); 
+        
+        final JDialog dialog = new JDialog(frame, "Bug 816 AWT Top-Level JDialog");        
+        dialog.setLayout(new BorderLayout());
+        dialog.add(glCanvas1, BorderLayout.CENTER);
+        
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                dialog.setLocation(200, 200);
+                dialog.setSize(width/2, height/2);
+                dialog.setVisible(true);
+            }});        
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(dialog, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas1, true));
         
         animator.start();
         Assert.assertTrue(animator.isStarted());
@@ -145,6 +147,6 @@ public class TestBug816OSXCALayerPos02AWT extends UITestCase {
             }
         }
         
-        org.junit.runner.JUnitCore.main(TestBug816OSXCALayerPos02AWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestBug816OSXCALayerPos04bAWT.class.getName());
     }
 }
