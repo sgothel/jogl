@@ -115,23 +115,28 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     this.isApplet = false;
     this.offscreenSurfaceLayer = 0;
     this.component.addComponentListener(new ComponentListener() {
+        private boolean visible = component.isVisible();
         @Override
         public void componentResized(ComponentEvent e) {
-            layoutSurfaceLayerIfEnabled();
+            layoutSurfaceLayerIfEnabled(visible);
         }
 
         @Override
         public void componentMoved(ComponentEvent e) {
-            layoutSurfaceLayerIfEnabled();
+            layoutSurfaceLayerIfEnabled(visible);
         }
 
         @Override
         public void componentShown(ComponentEvent e) {
-            layoutSurfaceLayerIfEnabled();
+            visible = true;
+            layoutSurfaceLayerIfEnabled(visible);
         }
 
         @Override
-        public void componentHidden(ComponentEvent e) { }       
+        public void componentHidden(ComponentEvent e) { 
+            visible = false;
+            layoutSurfaceLayerIfEnabled(visible);
+        }       
     });
   }
 
@@ -247,14 +252,14 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
    * Call this method if any parent or ancestor's layout has been changed,
    * which could affects the layout of this surface.
    * </p>
- * @see #isOffscreenLayerSurfaceEnabled()
+   * @see #isOffscreenLayerSurfaceEnabled()
    * @throws NativeWindowException if {@link #isOffscreenLayerSurfaceEnabled()} == false
    */
-  protected void layoutSurfaceLayerImpl(long layerHandle) {}
+  protected void layoutSurfaceLayerImpl(long layerHandle, boolean visible) {}
   
-  private final void layoutSurfaceLayerIfEnabled() throws NativeWindowException {
+  private final void layoutSurfaceLayerIfEnabled(boolean visible) throws NativeWindowException {
       if( isOffscreenLayerSurfaceEnabled() && 0 != offscreenSurfaceLayer ) {
-          layoutSurfaceLayerImpl(offscreenSurfaceLayer);
+          layoutSurfaceLayerImpl(offscreenSurfaceLayer, visible);
       }
   }
   

@@ -346,7 +346,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetNSWindow0
 - (id<CAAction>)actionForKey:(NSString *)key ;
 - (void)layoutSublayers;
 - (void)setFrame:(CGRect) frame;
-- (void)fixCALayerLayout: (CALayer*) subLayer  x:(jint)x y:(jint)y width:(jint)width height:(jint)height caLayerQuirks:(jint)caLayerQuirks force:(jboolean) force;
+- (void)fixCALayerLayout: (CALayer*) subLayer visible:(BOOL)visible x:(jint)x y:(jint)y width:(jint)width height:(jint)height caLayerQuirks:(jint)caLayerQuirks force:(jboolean) force;
 
 @end
 
@@ -449,13 +449,25 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetNSWindow0
     }
 }
 
-- (void)fixCALayerLayout: (CALayer*) subLayer  x:(jint)x y:(jint)y width:(jint)width height:(jint)height caLayerQuirks:(jint)caLayerQuirks force:(jboolean) force
+- (void)fixCALayerLayout: (CALayer*) subLayer visible:(BOOL)visible x:(jint)x y:(jint)y width:(jint)width height:(jint)height caLayerQuirks:(jint)caLayerQuirks force:(jboolean) force
 {
     int loutQuirk = 0 != ( NW_DEDICATEDFRAME_QUIRK_LAYOUT & caLayerQuirks );
     {
         CALayer* superLayer = [self superlayer];
         CGRect superFrame = [superLayer frame];
         CGRect lFrame = [self frame];
+        if( visible ) {
+            // Setting opacity should not be required, otherwise we should save the opacity value.
+            // [subLayer setOpacity: 1.0];
+            // [self setOpacity: 1.0];
+            [self setHidden: NO];
+            [subLayer setHidden: NO];
+        } else {
+            [subLayer setHidden: YES];
+            [self setHidden: YES];
+            // [subLayer setOpacity: 0.0];
+            // [self setOpacity: 0.0];
+        }
         int posQuirk  = 0 != ( NW_DEDICATEDFRAME_QUIRK_POSITION & caLayerQuirks ) && ( lFrame.origin.x!=0 || lFrame.origin.y!=0 );
         int sizeQuirk = 0 != ( NW_DEDICATEDFRAME_QUIRK_SIZE & caLayerQuirks ) && ( lFrame.size.width!=width || lFrame.size.height!=height );
         if( !posQuirk || loutQuirk ) {
@@ -596,7 +608,7 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
     [subLayer setNeedsDisplayOnBoundsChange: YES];
 
     if( 0 != caLayerQuirks ) {
-        [rootLayer fixCALayerLayout: subLayer x:x y:y width:width height:height caLayerQuirks:caLayerQuirks force:JNI_TRUE];
+        [rootLayer fixCALayerLayout: subLayer visible:1 x:x y:y width:width height:height caLayerQuirks:caLayerQuirks force:JNI_TRUE];
     }
 
     [CATransaction commit];
@@ -612,7 +624,7 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
  * Signature: (JJIII)V
  */
 JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_FixCALayerLayout0
-  (JNIEnv *env, jclass unused, jlong rootCALayer, jlong subCALayer, jint x, jint y, jint width, jint height, jint caLayerQuirks)
+  (JNIEnv *env, jclass unused, jlong rootCALayer, jlong subCALayer, jboolean visible, jint x, jint y, jint width, jint height, jint caLayerQuirks)
 {
     if( 0 != caLayerQuirks ) {
         NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -625,7 +637,7 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_FixCALayerLayout0
         [CATransaction begin];
         [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
 
-        [rootLayer fixCALayerLayout: subLayer x:x y:y width:width height:height caLayerQuirks:caLayerQuirks force:JNI_FALSE];
+        [rootLayer fixCALayerLayout: subLayer visible:(BOOL)visible x:x y:y width:width height:height caLayerQuirks:caLayerQuirks force:JNI_FALSE];
 
         [CATransaction commit];
 

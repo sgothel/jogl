@@ -135,34 +135,33 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
   }
   
   @Override
-  protected void layoutSurfaceLayerImpl(long layerHandle) {
+  protected void layoutSurfaceLayerImpl(long layerHandle, boolean visible) {
       final int caLayerQuirks = JAWTUtil.getOSXCALayerQuirks();
-      if( 0 != caLayerQuirks ) {
-          // AWT position is top-left w/ insets, where CALayer position is bottom/left from root CALayer w/o insets.
-          // Determine p0: components location on screen w/o insets.
-          // CALayer position will be determined in native code.
-          // See detailed description in {@link JAWTUtil#JAWT_OSX_CALAYER_QUIRK_LAYOUT}
-          final Point p0 = new Point();
-          final Component outterComp = getLocationOnScreenNonBlocking(p0, component);
-          final java.awt.Insets outterInsets = AWTMisc.getInsets(outterComp, true);
-          final Point p1 = (Point)p0.cloneMutable();
-          p1.translate(-outterComp.getX(), -outterComp.getY());
-          if( null != outterInsets ) {
-              p1.translate(-outterInsets.left, -outterInsets.top);
-          }
-          
-          if( DEBUG ) {
-              final java.awt.Point pA0 = component.getLocationOnScreen();
-              final Point pA1 = new Point(pA0.x, pA0.y);
-              pA1.translate(-outterComp.getX(), -outterComp.getY());
-              if( null != outterInsets ) {
-                  pA1.translate(-outterInsets.left, -outterInsets.top);
-              }
-              System.err.println("JAWTWindow.layoutSurfaceLayerImpl: "+toHexString(layerHandle) + ", [ins "+outterInsets+"], pA "+pA0+" -> "+pA1+
-                      ", p0 "+p0+" -> "+p1+", bounds "+bounds);
-          }
-          OSXUtil.FixCALayerLayout(rootSurfaceLayer, layerHandle, p1.getX(), p1.getY(), getWidth(), getHeight(), caLayerQuirks);
+      // AWT position is top-left w/ insets, where CALayer position is bottom/left from root CALayer w/o insets.
+      // Determine p0: components location on screen w/o insets.
+      // CALayer position will be determined in native code.
+      // See detailed description in {@link JAWTUtil#JAWT_OSX_CALAYER_QUIRK_LAYOUT}
+      final Point p0 = new Point();
+      final Component outterComp = getLocationOnScreenNonBlocking(p0, component);
+      final java.awt.Insets outterInsets = AWTMisc.getInsets(outterComp, true);
+      final Point p1 = (Point)p0.cloneMutable();
+      p1.translate(-outterComp.getX(), -outterComp.getY());
+      if( null != outterInsets ) {
+          p1.translate(-outterInsets.left, -outterInsets.top);
       }
+      
+      if( DEBUG ) {
+          final java.awt.Point pA0 = component.getLocationOnScreen();
+          final Point pA1 = new Point(pA0.x, pA0.y);
+          pA1.translate(-outterComp.getX(), -outterComp.getY());
+          if( null != outterInsets ) {
+              pA1.translate(-outterInsets.left, -outterInsets.top);
+          }
+          System.err.println("JAWTWindow.layoutSurfaceLayerImpl: "+toHexString(layerHandle) + ", quirks "+caLayerQuirks+", visible "+visible+
+                  ", [ins "+outterInsets+"], pA "+pA0+" -> "+pA1+
+                  ", p0 "+p0+" -> "+p1+", bounds "+bounds);
+      }
+      OSXUtil.FixCALayerLayout(rootSurfaceLayer, layerHandle, visible, p1.getX(), p1.getY(), getWidth(), getHeight(), caLayerQuirks);
   }
   
   @Override

@@ -186,15 +186,16 @@ public class OSXUtil implements ToolkitProperties {
      * 
      * @param rootCALayer the root surface layer, maybe null.
      * @param subCALayer the client surface layer, maybe null.
+     * @param visible TODO
      * @param width the expected width
      * @param height the expected height
      * @param caLayerQuirks TODO
      */
-    public static void FixCALayerLayout(final long rootCALayer, final long subCALayer, final int x, final int y, final int width, final int height, final int caLayerQuirks) {
+    public static void FixCALayerLayout(final long rootCALayer, final long subCALayer, final boolean visible, final int x, final int y, final int width, final int height, final int caLayerQuirks) {
         if( 0==rootCALayer && 0==subCALayer ) {
             return;
         }
-        FixCALayerLayout0(rootCALayer, subCALayer, x, y, width, height, caLayerQuirks);
+        FixCALayerLayout0(rootCALayer, subCALayer, visible, x, y, width, height, caLayerQuirks);
     }
     
     /** 
@@ -358,7 +359,7 @@ public class OSXUtil implements ToolkitProperties {
     private static native long GetNSWindow0(long nsView);
     private static native long CreateCALayer0(int width, int height);
     private static native void AddCASublayer0(long rootCALayer, long subCALayer, int x, int y, int width, int height, int caLayerQuirks);
-    private static native void FixCALayerLayout0(long rootCALayer, long subCALayer, int x, int y, int width, int height, int caLayerQuirks);
+    private static native void FixCALayerLayout0(long rootCALayer, long subCALayer, boolean visible, int x, int y, int width, int height, int caLayerQuirks);
     private static native void RemoveCASublayer0(long rootCALayer, long subCALayer);
     private static native void DestroyCALayer0(long caLayer);
     private static native void RunOnMainThread0(Runnable runnable);
