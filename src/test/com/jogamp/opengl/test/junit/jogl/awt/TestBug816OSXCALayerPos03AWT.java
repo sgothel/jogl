@@ -86,7 +86,10 @@ public class TestBug816OSXCALayerPos03AWT extends UITestCase {
         checkbox.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent ev) {
                 glCanvas1.setVisible(checkbox.getState());
-                System.out.println(glCanvas1.isVisible());
+                System.out.println("Canvas visible: "+glCanvas1.isVisible());
+                if( glCanvas1.isVisible() ) {
+                    frame.validate(); // take care of resized frame while hidden
+                }
             }
         });
 

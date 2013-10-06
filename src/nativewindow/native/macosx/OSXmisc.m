@@ -336,6 +336,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetNSWindow0
 @private
   BOOL fixedFrameSet;
   CGRect fixedFrame;
+  float visibleOpacity;
 }
 - (id)init;
 #ifdef DBG_LIFECYCLE
@@ -358,6 +359,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetNSWindow0
     MyCALayer * o = [super init];
     o->fixedFrameSet = 0;
     o->fixedFrame = CGRectMake(0, 0, 0, 0);
+    o->visibleOpacity = 1.0;
     DBG_PRINT("MyCALayer::init.X: new %p\n", o);
     return o;
 }
@@ -457,16 +459,17 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetNSWindow0
         CGRect superFrame = [superLayer frame];
         CGRect lFrame = [self frame];
         if( visible ) {
-            // Setting opacity should not be required, otherwise we should save the opacity value.
-            // [subLayer setOpacity: 1.0];
-            // [self setOpacity: 1.0];
+            // Opacity must be 0 to see through the disabled CALayer
+            [subLayer setOpacity: visibleOpacity];
+            [self setOpacity: visibleOpacity];
             [self setHidden: NO];
             [subLayer setHidden: NO];
         } else {
             [subLayer setHidden: YES];
             [self setHidden: YES];
-            // [subLayer setOpacity: 0.0];
-            // [self setOpacity: 0.0];
+            visibleOpacity = [self opacity];
+            [subLayer setOpacity: 0.0];
+            [self setOpacity: 0.0];
         }
         int posQuirk  = 0 != ( NW_DEDICATEDFRAME_QUIRK_POSITION & caLayerQuirks ) && ( lFrame.origin.x!=0 || lFrame.origin.y!=0 );
         int sizeQuirk = 0 != ( NW_DEDICATEDFRAME_QUIRK_SIZE & caLayerQuirks ) && ( lFrame.size.width!=width || lFrame.size.height!=height );
