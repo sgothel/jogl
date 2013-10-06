@@ -38,6 +38,7 @@ import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLException;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.opengl.util.TimeFrameI;
@@ -279,7 +280,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             System.err.println("initStream: p1 "+this);
         }
         
-        final String streamLocS=streamLoc.toString().replaceAll("%20", " ");
+        final String streamLocS=IOUtil.decodeFromURI(streamLoc.toString());
         destroyAudioSink();
         if( GLMediaPlayer.STREAM_ID_NONE == aid ) {
             audioSink = AudioSinkFactory.createNull();
