@@ -54,13 +54,23 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
 /**
- * Bug 816: OSX CALayer Positioning Bug - AWT Frame BorderLayout w/ Checkbox North, GLCanvas Center
+ * AWT Frame BorderLayout w/ Checkbox North, GLCanvas Center.
+ * <p>
+ * Checkbox toggles GLCanvas visibility state.
+ * </p>
+ * <p>
+ * Validates bugs:
+ * <ul>
+ *   <li>Bug 816: OSX CALayer Positioning Bug</li>
+ *   <li>Bug 729: OSX CALayer shall honor the Component's visibility state</li>
+ * </ul>
+ * </p>
  * <p>
  * Diff. OSX CALayer positioning w/ java6, [7uxx..7u40[, and >= 7u40
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestBug816OSXCALayerPos03AWT extends UITestCase {
+public class TestBug816OSXCALayerPos03aAWT extends UITestCase {
     static long duration = 1600; // ms    
     static int width=640, height=480;
     
@@ -68,7 +78,7 @@ public class TestBug816OSXCALayerPos03AWT extends UITestCase {
     public void test() throws InterruptedException, InvocationTargetException {
         final GLCapabilities caps = new GLCapabilities(getGLP());
         
-        final Frame frame = new Frame("TestBug816OSXCALayerPos03AWT");
+        final Frame frame = new Frame("TestBug816OSXCALayerPos03aAWT");
         Assert.assertNotNull(frame);
 
         final GLCanvas glCanvas1 = new GLCanvas(caps);
@@ -150,6 +160,6 @@ public class TestBug816OSXCALayerPos03AWT extends UITestCase {
             }
         }
         
-        org.junit.runner.JUnitCore.main(TestBug816OSXCALayerPos03AWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestBug816OSXCALayerPos03aAWT.class.getName());
     }
 }

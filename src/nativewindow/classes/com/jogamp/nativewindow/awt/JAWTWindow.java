@@ -37,6 +37,7 @@
 
 package com.jogamp.nativewindow.awt;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
@@ -46,6 +47,8 @@ import java.awt.Container;
 import java.awt.Window;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
 import java.applet.Applet;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
@@ -76,10 +79,11 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   protected boolean shallUseOffscreenLayer = false;
 
   // lifetime: forever
-  protected Component component;
-  private AWTGraphicsConfiguration config; // control access due to delegation
-  private SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
-  private RecursiveLock surfaceLock = LockFactory.createRecursiveLock();
+  protected final Component component;
+  private final AWTGraphicsConfiguration config; // control access due to delegation
+  private final SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
+  private final RecursiveLock surfaceLock = LockFactory.createRecursiveLock();
+  private final JAWTComponentListener jawtComponentListener;
 
   // lifetime: valid after lock but may change with each 1st lock, purges after invalidate
   private boolean isApplet;
@@ -106,39 +110,110 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     if(! ( config instanceof AWTGraphicsConfiguration ) ) {
         throw new NativeWindowException("Error: AbstractGraphicsConfiguration is not an AWTGraphicsConfiguration: "+config);
     }
+    this.component = (Component)comp;
     this.config = (AWTGraphicsConfiguration) config;
-    init((Component)comp);
-  }
-
-  private void init(Component windowObject) throws NativeWindowException {
+    this.jawtComponentListener = new JAWTComponentListener();
+    this.component.addComponentListener(jawtComponentListener);
+    this.component.addHierarchyListener(jawtComponentListener);
     invalidate();
-    this.component = windowObject;
     this.isApplet = false;
     this.offscreenSurfaceLayer = 0;
-    this.component.addComponentListener(new ComponentListener() {
-        private boolean visible = component.isVisible();
+  }
+  private class JAWTComponentListener implements ComponentListener, HierarchyListener {
+        private boolean localVisibility = component.isVisible();
+        private boolean globalVisibility = localVisibility;
+        private boolean visibilityPropagation = false;
+        
+        private String s(ComponentEvent e) {
+            return "visible[local "+localVisibility+", global "+globalVisibility+", propag. "+visibilityPropagation+"],"+Platform.getNewline()+
+                   "    ** COMP "+e.getComponent()+Platform.getNewline()+
+                   "    ** SOURCE "+e.getSource()+Platform.getNewline()+
+                   "    ** THIS "+component;
+        }
+        private String s(HierarchyEvent e) {
+            return "visible[local "+localVisibility+", global "+globalVisibility+", propag. "+visibilityPropagation+"], changeBits 0x"+Long.toHexString(e.getChangeFlags())+Platform.getNewline()+
+                   "    ** COMP "+e.getComponent()+Platform.getNewline()+
+                   "    ** SOURCE "+e.getSource()+Platform.getNewline()+
+                   "    ** CHANGED "+e.getChanged()+Platform.getNewline()+
+                   "    ** CHANGEDPARENT "+e.getChangedParent()+Platform.getNewline()+
+                   "    ** THIS "+component;
+        }
+
         @Override
         public void componentResized(ComponentEvent e) {
-            layoutSurfaceLayerIfEnabled(visible);
+            if(DEBUG) {
+                System.err.println("JAWTWindow.componentResized: "+s(e));
+            }
+            layoutSurfaceLayerIfEnabled(globalVisibility && localVisibility);
         }
 
         @Override
         public void componentMoved(ComponentEvent e) {
-            layoutSurfaceLayerIfEnabled(visible);
+            if(DEBUG) {
+                System.err.println("JAWTWindow.componentMoved: "+s(e));
+            }
+            layoutSurfaceLayerIfEnabled(globalVisibility && localVisibility);
         }
 
         @Override
         public void componentShown(ComponentEvent e) {
-            visible = true;
-            layoutSurfaceLayerIfEnabled(visible);
+            if(DEBUG) {
+                System.err.println("JAWTWindow.componentShown: "+s(e));
+            }
+            layoutSurfaceLayerIfEnabled(globalVisibility && localVisibility);
         }
 
         @Override
         public void componentHidden(ComponentEvent e) { 
-            visible = false;
-            layoutSurfaceLayerIfEnabled(visible);
-        }       
-    });
+            if(DEBUG) {
+                System.err.println("JAWTWindow.componentHidden: "+s(e));
+            }
+            layoutSurfaceLayerIfEnabled(globalVisibility && localVisibility);
+        }
+
+        @Override
+        public void hierarchyChanged(HierarchyEvent e) {
+            final long bits = e.getChangeFlags();
+            final java.awt.Component changed = e.getChanged();            
+            if( 0 != ( java.awt.event.HierarchyEvent.DISPLAYABILITY_CHANGED & bits ) ) {
+                final boolean displayable = changed.isDisplayable();
+                final boolean resetLocalVisibility = changed == component && !displayable && localVisibility != component.isVisible();
+                if( resetLocalVisibility ) {
+                    // Reset components local state if detached from parent, i.e. 'removeNotify()'
+                    visibilityPropagation = true;
+                    if(DEBUG) {
+                        System.err.println("JAWTWindow.hierarchyChanged DISPLAYABILITY_CHANGED (1): displayable "+displayable+", "+s(e));
+                    }
+                    component.setVisible(localVisibility);
+                } else if(DEBUG) {
+                    System.err.println("JAWTWindow.hierarchyChanged DISPLAYABILITY_CHANGED (x): displayable "+displayable+", "+s(e));
+                }
+            } else if( 0 != ( java.awt.event.HierarchyEvent.SHOWING_CHANGED & bits ) ) {
+                final boolean showing = changed.isShowing();
+                final boolean propagateVisibility = changed != component && ( showing && localVisibility ) != component.isVisible();
+                if( propagateVisibility ) {
+                    // Propagate parent's visibility
+                    final boolean _visible = showing && localVisibility;
+                    visibilityPropagation = true;
+                    globalVisibility = showing;
+                    if(DEBUG) {
+                        System.err.println("JAWTWindow.hierarchyChanged SHOWING_CHANGED (1): showing "+showing+" -> visible "+_visible+", "+s(e));
+                    }
+                    component.setVisible(_visible);
+                } else if( changed == component ) {
+                    // Update component's local visibility state
+                    if(!visibilityPropagation) {
+                        localVisibility = showing;
+                    }
+                    visibilityPropagation = false;
+                    if(DEBUG) {
+                        System.err.println("JAWTWindow.hierarchyChanged SHOWING_CHANGED (0): showing "+showing+" -> visible "+(showing && localVisibility)+", "+s(e));
+                    }
+                } else if(DEBUG) {
+                    System.err.println("JAWTWindow.hierarchyChanged SHOWING_CHANGED (x): showing "+showing+" -> visible "+(showing && localVisibility)+", "+s(e));
+                }
+            }
+        }
   }
 
   protected synchronized void invalidate() {
@@ -488,7 +563,6 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     surfaceLock.lock();
     try {
         invalidate();
-        component = null; // don't dispose the AWT component, since we are merely an immutable uplink
     } finally {
         surfaceLock.unlock();
     }
@@ -638,12 +712,8 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
                 ", surfaceHandle "+toHexString(getSurfaceHandle())+
                 ", bounds "+bounds+", insets "+insets
                 );
-    if(null!=component) {
-      sb.append(", pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
-                ", visible "+component.isVisible());
-    } else {
-      sb.append(", component NULL");
-    }
+    sb.append(", pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
+              ", visible "+component.isVisible());
     sb.append(", lockedExt "+isSurfaceLockedByOtherThread()+
               ",\n\tconfig "+getPrivateGraphicsConfiguration()+
               ",\n\tawtComponent "+getAWTComponent()+
