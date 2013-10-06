@@ -74,7 +74,7 @@ public class GLEmitter extends ProcAddressEmitter {
     // Buffer Object variants. Used as a Set rather than a Map.
     private Map<MethodBinding, MethodBinding> bufferObjectMethodBindings = new IdentityHashMap<MethodBinding, MethodBinding>();
 
-    enum BufferObjectKind { UNPACK_PIXEL, PACK_PIXEL, ARRAY, ELEMENT}
+    enum BufferObjectKind { UNPACK_PIXEL, PACK_PIXEL, ARRAY, ELEMENT, INDIRECT}
 
     @Override
     public void beginEmission(GlueEmitterControls controls) throws IOException {

@@ -366,6 +366,22 @@ private final boolean checkElementVBOBound(boolean throwException) {
                            "element vertex_buffer_object", throwException);
 }
 
+private final boolean checkIndirectVBOUnbound(boolean throwException) { 
+  return checkBufferObject(haveGL15 || haveARBVertexBufferObject,
+                           haveARBVertexArrayObject, // allowVAO
+                           false, // bound
+                           GL4.GL_DRAW_INDIRECT_BUFFER,
+                           "indirect vertex_buffer_object", throwException);
+}
+
+private final boolean checkIndirectVBOBound(boolean throwException) { 
+  return checkBufferObject(haveGL15 || haveARBVertexBufferObject,
+                           haveARBVertexArrayObject, // allowVAO
+                           true, // bound
+                           GL4.GL_DRAW_INDIRECT_BUFFER,
+                           "indirect vertex_buffer_object", throwException);
+}
+
 private final boolean checkUnpackPBOUnbound(boolean throwException) { 
   return checkBufferObject(haveGL21 || haveARBPixelBufferObject || haveEXTPixelBufferObject,
                            false, // allowVAO

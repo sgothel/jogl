@@ -102,6 +102,7 @@ public class GLBufferStateTracker {
     setBoundBufferObject(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
     setBoundBufferObject(GL2.GL_PIXEL_PACK_BUFFER,   0);
     setBoundBufferObject(GL2.GL_PIXEL_UNPACK_BUFFER, 0);
+    setBoundBufferObject(GL4.GL_DRAW_INDIRECT_BUFFER, 0);
   }
 
   public final void setBoundBufferObject(int target, int value) {
@@ -132,6 +133,7 @@ public class GLBufferStateTracker {
         case GL.GL_ELEMENT_ARRAY_BUFFER:  queryTarget = GL.GL_ELEMENT_ARRAY_BUFFER_BINDING; break;
         case GL2.GL_PIXEL_PACK_BUFFER:    queryTarget = GL2.GL_PIXEL_PACK_BUFFER_BINDING;    break;
         case GL2.GL_PIXEL_UNPACK_BUFFER:  queryTarget = GL2.GL_PIXEL_UNPACK_BUFFER_BINDING;  break;
+        case GL4.GL_DRAW_INDIRECT_BUFFER: queryTarget = GL4.GL_DRAW_INDIRECT_BUFFER_BINDING;  break;
         default:                          gotQueryTarget = false; break;
       }
       if (gotQueryTarget) {

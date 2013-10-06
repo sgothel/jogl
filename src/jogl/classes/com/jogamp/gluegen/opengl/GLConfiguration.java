@@ -127,10 +127,12 @@ public class GLConfiguration extends ProcAddressConfiguration {
                 kind = GLEmitter.BufferObjectKind.ARRAY;
             } else if (kindString.equalsIgnoreCase("Element")) {
                 kind = GLEmitter.BufferObjectKind.ELEMENT;
+            } else if (kindString.equalsIgnoreCase("Indirect")) {
+                kind = GLEmitter.BufferObjectKind.INDIRECT;
             } else {
                 throw new RuntimeException("Error parsing \"BufferObjectKind\" command at line " + lineNo
                         + " in file \"" + filename + "\": illegal BufferObjectKind \""
-                        + kindString + "\", expected one of UnpackPixel, PackPixel, Array, or Element");
+                        + kindString + "\", expected one of UnpackPixel, PackPixel, Array, Element or Indirect");
             }
 
             bufferObjectKinds.put(target, kind);
@@ -171,6 +173,8 @@ public class GLConfiguration extends ProcAddressConfiguration {
                 prologue = prologue + "ArrayVBO";
             } else if (kind == GLEmitter.BufferObjectKind.ELEMENT) {
                 prologue = prologue + "ElementVBO";
+            } else if (kind == GLEmitter.BufferObjectKind.INDIRECT) {
+                prologue = prologue + "IndirectVBO";
             } else {
                 throw new RuntimeException("Unknown BufferObjectKind " + kind);
             }
