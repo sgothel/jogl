@@ -195,8 +195,15 @@ public class ScaleInternal {
         highy_int = heightin - 1;
       lowx_int = 0;
       lowx_float = 0.0f;
-      highx_int = convx_int;
-      highx_float = convx_float;
+      // If we have a single column, fix the max width values
+      // to prevent buffer overflow
+      if (widthin == 1 && widthout == 1) {
+        highx_int = 0;
+        highx_float = 0.0f;
+      } else {
+        highx_int = convx_int;
+        highx_float = convx_float;
+      }
       
       for( j = 0; j < widthout; j++ ) {
         
@@ -270,6 +277,10 @@ public class ScaleInternal {
           }
         } else if( highy_int > lowy_int ) {
           x_percent = highx_float - lowx_float;
+          // If we are on the last column fix x_percent to be 1.0f
+          if (x_percent == 0.0f) {
+            x_percent = 1.0f;
+          }
           percent = ( 1 - lowy_float) * x_percent;
           temp = xindex + (lowy_int * ysize);
           for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
@@ -291,6 +302,10 @@ public class ScaleInternal {
           }
         } else if( highx_int > lowx_int ) {
           y_percent = highy_float - lowy_float;
+          // If we are on the last row fix y_percent to be 1.0f
+          if (y_percent == 0.0f) {
+            y_percent = 1.0f;
+          }
           percent = ( 1 - lowx_float ) * y_percent;
           temp = xindex + (lowy_int * ysize);
           for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
@@ -311,7 +326,17 @@ public class ScaleInternal {
             totals[k] += ( 0x000000FF & datain.get() ) * percent;
           }
         } else {
-          percent = ( highy_float - lowy_float ) * ( highx_float - lowx_float );
+          // If we are on the last row fix y_percent to be 1.0f
+          y_percent = highy_float - lowy_float;
+          if (y_percent == 0.0f) {
+            y_percent = 1.0f;
+          }
+          // If we are on the last column fix x_percent to be 1.0f
+          x_percent = highx_float - lowx_float;
+          if (x_percent == 0.0f) {
+            x_percent = 1.0f;
+          }
+          percent = y_percent * x_percent;
           temp = xindex + (lowy_int * ysize);
           for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
             datain.position( temp_index );
@@ -414,8 +439,15 @@ public class ScaleInternal {
         highy_int = heightin - 1;
       lowx_int = 0;
       lowx_float = 0.0f;
-      highx_int = convx_int;
-      highx_float = convx_float;
+      // If we have a single column, fix the max width values
+      // to prevent buffer overflow
+      if (widthin == 1 && widthout == 1) {
+        highx_int = 0;
+        highx_float = 0.0f;
+      } else {
+        highx_int = convx_int;
+        highx_float = convx_float;
+      }
       
       for( j = 0; j < widthout; j++ ) {
         
@@ -488,6 +520,10 @@ public class ScaleInternal {
           }
         } else if( highy_int > lowy_int ) {
           x_percent = highx_float - lowx_float;
+          // If we are on the last column fix x_percent to be 1.0f
+          if (x_percent == 0.0f) {
+            x_percent = 1.0f;
+          }
           percent = ( 1 - lowy_float) * x_percent;
           temp = xindex + (lowy_int * ysize);
           for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
@@ -509,6 +545,10 @@ public class ScaleInternal {
           }
         } else if( highx_int > lowx_int ) {
           y_percent = highy_float - lowy_float;
+          // If we are on the last row fix y_percent to be 1.0f
+          if (y_percent == 0.0f) {
+            y_percent = 1.0f;
+          }
           percent = ( 1 - lowx_float ) * y_percent;
           temp = xindex + (lowy_int * ysize);
           for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
@@ -529,7 +569,17 @@ public class ScaleInternal {
             totals[k] += datain.get() * percent;
           }
         } else {
-          percent = ( highy_float - lowy_float ) * ( highx_float - lowx_float );
+          // If we are on the last row fix y_percent to be 1.0f
+          y_percent = highy_float - lowy_float;
+          if (y_percent == 0.0f) {
+            y_percent = 1.0f;
+          }
+          // If we are on the last column fix x_percent to be 1.0f
+          x_percent = highx_float - lowx_float;
+          if (x_percent == 0.0f) {
+            x_percent = 1.0f;
+          }
+          percent = y_percent * x_percent;
           temp = xindex + (lowy_int * ysize);
           for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
             datain.position( temp_index );
@@ -632,8 +682,15 @@ public class ScaleInternal {
         highy_int = heightin - 1;
       lowx_int = 0;
       lowx_float = 0.0f;
-      highx_int = convx_int;
-      highx_float = convx_float;
+      // If we have a single column, fix the max width values
+      // to prevent buffer overflow
+      if (widthin == 1 && widthout == 1) {
+        highx_int = 0;
+        highx_float = 0.0f;
+      } else {
+        highx_int = convx_int;
+        highx_float = convx_float;
+      }
       
       for( j = 0; j < widthout; j++ ) {
         
@@ -737,6 +794,10 @@ public class ScaleInternal {
           }
         } else if( highy_int > lowy_int ) {
           x_percent = highx_float - lowx_float;
+          // If we are on the last column fix x_percent to be 1.0f
+          if (x_percent == 0.0f) {
+            x_percent = 1.0f;
+          }
           percent = ( 1 - lowy_float) * x_percent;
           temp = xindex + (lowy_int * ysize);
           for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
@@ -770,6 +831,10 @@ public class ScaleInternal {
           }
         } else if( highx_int > lowx_int ) {
           y_percent = highy_float - lowy_float;
+          // If we are on the last row fix y_percent to be 1.0f
+          if (y_percent == 0.0f) {
+            y_percent = 1.0f;
+          }
           percent = ( 1 - lowx_float ) * y_percent;
           temp = xindex + (lowy_int * ysize);
           for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
@@ -802,7 +867,17 @@ public class ScaleInternal {
             }
           }
         } else {
-          percent = ( highy_float - lowy_float ) * ( highx_float - lowx_float );
+          // If we are on the last row fix y_percent to be 1.0f
+          y_percent = highy_float - lowy_float;
+          if (y_percent == 0.0f) {
+            y_percent = 1.0f;
+          }
+          // If we are on the last column fix x_percent to be 1.0f
+          x_percent = highx_float - lowx_float;
+          if (x_percent == 0.0f) {
+            x_percent = 1.0f;
+          }
+          percent = y_percent * x_percent;
           temp = xindex + (lowy_int * ysize);
           for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
             datain.position( temp_index );
@@ -915,8 +990,15 @@ public class ScaleInternal {
         highy_int = heightin - 1;
       lowx_int = 0;
       lowx_float = 0.0f;
-      highx_int = convx_int;
-      highx_float = convx_float;
+      // If we have a single column, fix the max width values
+      // to prevent buffer overflow
+      if (widthin == 1 && widthout == 1) {
+        highx_int = 0;
+        highx_float = 0.0f;
+      } else {
+        highx_int = convx_int;
+        highx_float = convx_float;
+      }
       
       for( j = 0; j < widthout; j++ ) {
         
@@ -1026,6 +1108,10 @@ public class ScaleInternal {
           }
         } else if( highy_int > lowy_int ) {
           x_percent = highx_float - lowx_float;
+          // If we are on the last column fix x_percent to be 1.0f
+          if (x_percent == 0.0f) {
+            x_percent = 1.0f;
+          }
           percent = ( 1 - lowy_float) * x_percent;
           temp = xindex + (lowy_int * ysize);
           for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
@@ -1062,6 +1148,10 @@ public class ScaleInternal {
           }
         } else if( highx_int > lowx_int ) {
           y_percent = highy_float - lowy_float;
+          // If we are on the last row fix y_percent to be 1.0f
+          if (y_percent == 0.0f) {
+            y_percent = 1.0f;
+          }
           percent = ( 1 - lowx_float ) * y_percent;
           temp = xindex + (lowy_int * ysize);
           for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
@@ -1097,7 +1187,17 @@ public class ScaleInternal {
             }
           }
         } else {
-          percent = ( highy_float - lowy_float ) * ( highx_float - lowx_float );
+          // If we are on the last row fix y_percent to be 1.0f
+          y_percent = highy_float - lowy_float;
+          if (y_percent == 0.0f) {
+            y_percent = 1.0f;
+          }
+          // If we are on the last column fix x_percent to be 1.0f
+          x_percent = highx_float - lowx_float;
+          if (x_percent == 0.0f) {
+            x_percent = 1.0f;
+          }
+          percent = y_percent * x_percent;
           temp = xindex + (lowy_int * ysize);
           for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
             datain.position( temp_index );
@@ -1210,8 +1310,15 @@ public class ScaleInternal {
         highy_int = heightin - 1;
       lowx_int = 0;
       lowx_float = 0.0f;
-      highx_int = convx_int;
-      highx_float = convx_float;
+      // If we have a single column, fix the max width values
+      // to prevent buffer overflow
+      if (widthin == 1 && widthout == 1) {
+        highx_int = 0;
+        highx_float = 0.0f;
+      } else {
+        highx_int = convx_int;
+        highx_float = convx_float;
+      }
       
       for( j = 0; j < widthout; j++ ) {
         
@@ -1313,6 +1420,10 @@ public class ScaleInternal {
           }
         } else if( highy_int > lowy_int ) {
           x_percent = highx_float - lowx_float;
+          // If we are on the last column fix x_percent to be 1.0f
+          if (x_percent == 0.0f) {
+            x_percent = 1.0f;
+          }
           percent = ( 1 - lowy_float) * x_percent;
           temp = xindex + (lowy_int * ysize);
           for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
@@ -1346,6 +1457,10 @@ public class ScaleInternal {
           }
         } else if( highx_int > lowx_int ) {
           y_percent = highy_float - lowy_float;
+          // If we are on the last row fix y_percent to be 1.0f
+          if (y_percent == 0.0f) {
+            y_percent = 1.0f;
+          }
           percent = ( 1 - lowx_float ) * y_percent;
           temp = xindex + (lowy_int * ysize);
           for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
@@ -1378,7 +1493,17 @@ public class ScaleInternal {
             }
           }
         } else {
-          percent = ( highy_float - lowy_float ) * ( highx_float - lowx_float );
+          // If we are on the last row fix y_percent to be 1.0f
+          y_percent = highy_float - lowy_float;
+          if (y_percent == 0.0f) {
+            y_percent = 1.0f;
+          }
+          // If we are on the last column fix x_percent to be 1.0f
+          x_percent = highx_float - lowx_float;
+          if (x_percent == 0.0f) {
+            x_percent = 1.0f;
+          }
+          percent = y_percent * x_percent;
           temp = xindex + (lowy_int * ysize);
           for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
             long tempInt0 = ( 0xFFFFFFFFL & datain.getInt( temp_index ) );
@@ -1500,8 +1625,15 @@ public class ScaleInternal {
         highy_int = heightin - 1;
       lowx_int = 0;
       lowx_float = 0.0f;
-      highx_int = convx_int;
-      highx_float = convx_float;
+      // If we have a single column, fix the max width values
+      // to prevent buffer overflow
+      if (widthin == 1 && widthout == 1) {
+        highx_int = 0;
+        highx_float = 0.0f;
+      } else {
+        highx_int = convx_int;
+        highx_float = convx_float;
+      }
       
       for( j = 0; j < widthout; j++ ) {
         
@@ -1611,6 +1743,10 @@ public class ScaleInternal {
           }
         } else if( highy_int > lowy_int ) {
           x_percent = highx_float - lowx_float;
+          // If we are on the last column fix x_percent to be 1.0f
+          if (x_percent == 0.0f) {
+            x_percent = 1.0f;
+          }
           percent = ( 1 - lowy_float) * x_percent;
           temp = xindex + (lowy_int * ysize);
           for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
@@ -1647,6 +1783,10 @@ public class ScaleInternal {
           }
         } else if( highx_int > lowx_int ) {
           y_percent = highy_float - lowy_float;
+          // If we are on the last row fix y_percent to be 1.0f
+          if (y_percent == 0.0f) {
+            y_percent = 1.0f;
+          }
           percent = ( 1 - lowx_float ) * y_percent;
           temp = xindex + (lowy_int * ysize);
           for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
@@ -1682,7 +1822,17 @@ public class ScaleInternal {
             }
           }
         } else {
-          percent = ( highy_float - lowy_float ) * ( highx_float - lowx_float );
+          // If we are on the last row fix y_percent to be 1.0f
+          y_percent = highy_float - lowy_float;
+          if (y_percent == 0.0f) {
+            y_percent = 1.0f;
+          }
+          // If we are on the last column fix x_percent to be 1.0f
+          x_percent = highx_float - lowx_float;
+          if (x_percent == 0.0f) {
+            x_percent = 1.0f;
+          }
+          percent = y_percent * x_percent;
           temp = xindex + (lowy_int * ysize);
           for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
             datain.position( temp_index );
@@ -1797,8 +1947,15 @@ public class ScaleInternal {
         highy_int = heightin - 1;
       lowx_int = 0;
       lowx_float = 0.0f;
-      highx_int = convx_int;
-      highx_float = convx_float;
+      // If we have a single column, fix the max width values
+      // to prevent buffer overflow
+      if (widthin == 1 && widthout == 1) {
+        highx_int = 0;
+        highx_float = 0.0f;
+      } else {
+        highx_int = convx_int;
+        highx_float = convx_float;
+      }
       
       for( j = 0; j < widthout; j++ ) {
         
@@ -1908,6 +2065,10 @@ public class ScaleInternal {
           }
         } else if( highy_int > lowy_int ) {
           x_percent = highx_float - lowx_float;
+          // If we are on the last column fix x_percent to be 1.0f
+          if (x_percent == 0.0f) {
+            x_percent = 1.0f;
+          }
           percent = ( 1 - lowy_float) * x_percent;
           temp = xindex + (lowy_int * ysize);
           for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
@@ -1944,6 +2105,10 @@ public class ScaleInternal {
           }
         } else if( highx_int > lowx_int ) {
           y_percent = highy_float - lowy_float;
+          // If we are on the last row fix y_percent to be 1.0f
+          if (y_percent == 0.0f) {
+            y_percent = 1.0f;
+          }
           percent = ( 1 - lowx_float ) * y_percent;
           temp = xindex + (lowy_int * ysize);
           for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
@@ -1979,7 +2144,17 @@ public class ScaleInternal {
             }
           }
         } else {
-          percent = ( highy_float - lowy_float ) * ( highx_float - lowx_float );
+          // If we are on the last row fix y_percent to be 1.0f
+          y_percent = highy_float - lowy_float;
+          if (y_percent == 0.0f) {
+            y_percent = 1.0f;
+          }
+          // If we are on the last column fix x_percent to be 1.0f
+          x_percent = highx_float - lowx_float;
+          if (x_percent == 0.0f) {
+            x_percent = 1.0f;
+          }
+          percent = y_percent * x_percent;
           temp = xindex + (lowy_int * ysize);
           for( k = 0, temp_index = temp; k < components; k++, temp_index += element_size ) {
             datain.position( temp_index );
