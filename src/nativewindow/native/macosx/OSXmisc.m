@@ -852,10 +852,13 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_Uns
 
 static void RunOnThread (JNIEnv *env, jobject runnable, BOOL onMain, jint delayInMS)
 {
-    DBG_PRINT2( "RunOnThread0: isMainThread %d, NSApp %d, NSApp-isRunning %d, onMain %d, delay %dms\n", 
-        (int)([NSThread isMainThread]), (int)(NULL!=NSApp), (int)([NSApp isRunning]), (int)onMain, (int)delayInMS);
+    BOOL isMainThread = [NSThread isMainThread];
+    BOOL forkOnMain = onMain && ( NO == isMainThread || 0 < delayInMS );
 
-    if ( !onMain || NO == [NSThread isMainThread] ) {
+    DBG_PRINT2( "RunOnThread0: forkOnMain %d [onMain %d, delay %dms, isMainThread %d], NSApp %d, NSApp-isRunning %d\n", 
+        (int)forkOnMain, (int)onMain, (int)delayInMS, (int)isMainThread, (int)(NULL!=NSApp), (int)([NSApp isRunning]));
+
+    if ( forkOnMain ) {
         jobject runnableObj = (*env)->NewGlobalRef(env, runnable);
 
         JavaVM *jvmHandle = NULL;
@@ -907,10 +910,10 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RunOnMainThread0
  * Signature: (ZLjava/lang/Runnable;I)V
  */
 JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RunLater0
-  (JNIEnv *env, jclass unused, jobject runnable, jint delay)
+  (JNIEnv *env, jclass unused, jboolean onMain, jobject runnable, jint delay)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    RunOnThread (env, runnable, NO, delay);
+    RunOnThread (env, runnable, onMain ? YES : NO, delay);
     [pool release];
 }
 

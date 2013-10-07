@@ -745,7 +745,7 @@ public class MacOSXCGLContext extends GLContextImpl
                           if (DEBUG) {
                               System.err.println("NSOpenGLLayer.Attach: Re-Queue, drawableHandle "+toHexString(drawable.getHandle())+" - "+getThreadName());
                           }
-                          OSXUtil.RunLater(this, 1);
+                          OSXUtil.RunLater(true /* onMain */, this, 1);
                       }
                   }
               }

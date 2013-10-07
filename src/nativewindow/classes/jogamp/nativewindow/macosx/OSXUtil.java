@@ -263,13 +263,13 @@ public class OSXUtil implements ToolkitProperties {
     }
     
     /**
-     * Run later on current OSX thread.
-     * 
+     * Run later on ..
+     * @param onMain if true, run on main-thread, otherwise on the current OSX thread.
      * @param runnable
      * @param delay delay to run the runnable in milliseconds
      */
-    public static void RunLater(Runnable runnable, int delay) {
-        RunLater0(new RunnableTask( runnable, null, true, System.err ), delay);
+    public static void RunLater(boolean onMain, Runnable runnable, int delay) {
+        RunLater0(onMain, new RunnableTask( runnable, null, true, System.err ), delay);
     }
     
     private static Runnable _nop = new Runnable() { public void run() {}; };
@@ -363,7 +363,7 @@ public class OSXUtil implements ToolkitProperties {
     private static native void RemoveCASublayer0(long rootCALayer, long subCALayer);
     private static native void DestroyCALayer0(long caLayer);
     private static native void RunOnMainThread0(Runnable runnable);
-    private static native void RunLater0(Runnable runnable, int delay);
+    private static native void RunLater0(boolean onMain, Runnable runnable, int delay);
     private static native boolean IsMainThread0();
     private static native int GetScreenRefreshRate0(int scrn_idx);
 }
