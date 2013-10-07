@@ -86,7 +86,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             sscSurfaceHandle = 0;
             isOffscreenInstance = false;
             if (0 != handle) {
-                OSXUtil.RunOnMainThread(false, new Runnable() {
+                OSXUtil.RunOnMainThread(true, new Runnable() {
                    public void run() {
                        close0( handle );
                    } } );
@@ -452,27 +452,28 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                               final PointImmutable pS, final int width, final int height, 
                               final boolean fullscreen, final boolean visible, final boolean alwaysOnTop) {
 
+        final long parentWinHandle = getParentWindowHandle();
+        final long preWinHandle = getWindowHandle();
+        
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("MacWindow.createWindow on thread "+Thread.currentThread().getName()+
                                ": offscreen "+offscreenInstance+", recreate "+recreate+
                                ", pS "+pS+", "+width+"x"+height+", fullscreen "+fullscreen+", visible "+visible+
-                               ", alwaysOnTop "+alwaysOnTop);
+                               ", alwaysOnTop "+alwaysOnTop+", preWinHandle "+toHexString(preWinHandle)+", parentWin "+toHexString(parentWinHandle)+
+                               ", surfaceHandle "+toHexString(surfaceHandle));
             // Thread.dumpStack();
         }
 
         try {
-            final long parentWin = getParentWindowHandle();
-            if( 0 != getWindowHandle() ) {                
-                final long thisWin = getWindowHandle();
+            if( 0 != preWinHandle ) {
                 setWindowHandle(0);
-                
                 if( 0 == surfaceHandle ) {
                     throw new NativeWindowException("Internal Error - create w/ window, but no Newt NSView");
                 }                
-                OSXUtil.RunOnMainThread(false, new Runnable() {
+                OSXUtil.RunOnMainThread(true, new Runnable() {
                     public void run() {
-                        changeContentView0(parentWin, thisWin, 0);
-                        close0( thisWin );
+                        changeContentView0(parentWinHandle, preWinHandle, 0);
+                        close0( preWinHandle );
                     } } );
             } else {
                 if( 0 != surfaceHandle ) {
@@ -494,13 +495,13 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             setWindowHandle( newWin );
             
             final boolean isOpaque = getGraphicsConfiguration().getChosenCapabilities().isBackgroundOpaque() && !offscreenInstance;
-            // Non blocking initialization on main-thread!                
-            OSXUtil.RunOnMainThread(false, new Runnable() {
+            // Blocking initialization on main-thread!                
+            OSXUtil.RunOnMainThread(true, new Runnable() {
                 public void run() {
-                    initWindow0( parentWin, newWin, pS.getX(), pS.getY(), width, height,
+                    initWindow0( parentWinHandle, newWin, pS.getX(), pS.getY(), width, height,
                                  isOpaque, fullscreen, visible && !offscreenInstance, surfaceHandle);
                     if( offscreenInstance ) {
-                        orderOut0(0!=parentWin ? parentWin : newWin);
+                        orderOut0(0!=parentWinHandle ? parentWinHandle : newWin);
                     } else {
                         setTitle0(newWin, getTitle());
                         setAlwaysOnTop0(getWindowHandle(), alwaysOnTop);

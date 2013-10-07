@@ -764,27 +764,27 @@ NS_ENDHANDLER
     // specify we want mouse-moved events
     [myWindow setAcceptsMouseMovedEvents:YES];
 
-    DBG_PRINT( "initWindow0.%d - %p,%d view %p,%d, isVisible %d\n", 
-        dbgIdx++, myWindow, getRetainCount(myWindow), myView, getRetainCount(myView), [myWindow isVisible]);
+    DBG_PRINT( "initWindow0.%d - %p view %p, isVisible %d\n", 
+        dbgIdx++, myWindow, myView, [myWindow isVisible]);
 
     // Set the content view
     changeContentView(env, jthis, parentView, myWindow, myView, NO);
 
-    DBG_PRINT( "initWindow0.%d - %p,%d view %p,%d, isVisible %d\n", 
-        dbgIdx++, myWindow, getRetainCount(myWindow), myView, getRetainCount(myView), [myWindow isVisible]);
+    DBG_PRINT( "initWindow0.%d - %p view %p, isVisible %d\n", 
+        dbgIdx++, myWindow, myView, [myWindow isVisible]);
 
     if(NULL!=parentWindow) {
         [myWindow attachToParent: parentWindow];
     }
 
-    DBG_PRINT( "initWindow0.%d - %p,%d view %p,%d, isVisible %d, visible %d\n", 
-        dbgIdx++, myWindow, getRetainCount(myWindow), myView, getRetainCount(myView), [myWindow isVisible], visible);
+    DBG_PRINT( "initWindow0.%d - %p view %p, isVisible %d, visible %d\n", 
+        dbgIdx++, myWindow, myView, [myWindow isVisible], visible);
 
     // Immediately re-position this window based on an upper-left coordinate system
     setWindowClientTopLeftPointAndSize(myWindow, x, y, w, h, NO);
 
-    DBG_PRINT( "initWindow0.%d - %p,%d view %p,%d, isVisible %d\n", 
-        dbgIdx++, myWindow, getRetainCount(myWindow), myView, getRetainCount(myView), [myWindow isVisible]);
+    DBG_PRINT( "initWindow0.%d - %p view %p, isVisible %d\n", 
+        dbgIdx++, myWindow, myView, [myWindow isVisible]);
 
 NS_DURING
     // concurrent view rendering
@@ -793,8 +793,8 @@ NS_DURING
         [myWindow setAllowsConcurrentViewDrawing: YES];
     }
 
-    DBG_PRINT( "initWindow0.%d - %p,%d view %p,%d, isVisible %d\n", 
-        dbgIdx++, myWindow, getRetainCount(myWindow), myView, getRetainCount(myView), [myWindow isVisible]);
+    DBG_PRINT( "initWindow0.%d - %p view %p, isVisible %d\n", 
+        dbgIdx++, myWindow, myView, [myWindow isVisible]);
 
     if ( [myView respondsToSelector:@selector(setCanDrawConcurrently:)] ) {
         [myView setCanDrawConcurrently: YES];
@@ -802,16 +802,16 @@ NS_DURING
 NS_HANDLER
 NS_ENDHANDLER
 
-    DBG_PRINT( "initWindow0.%d - %p,%d view %p,%d, isVisible %d\n", 
-        dbgIdx++, myWindow, getRetainCount(myWindow), myView, getRetainCount(myView), [myWindow isVisible]);
+    DBG_PRINT( "initWindow0.%d - %p view %p, isVisible %d\n", 
+        dbgIdx++, myWindow, myView, [myWindow isVisible]);
 
     // visible on front
     if( visible ) {
         [myWindow orderFront: myWindow];
     }
 
-    DBG_PRINT( "initWindow0.%d - %p,%d view %p,%d, isVisible %d\n", 
-        dbgIdx++, myWindow, getRetainCount(myWindow), myView, getRetainCount(myView), [myWindow isVisible]);
+    DBG_PRINT( "initWindow0.%d - %p view %p, isVisible %d\n", 
+        dbgIdx++, myWindow, myView, [myWindow isVisible]);
 
     // force surface creation
     // [myView lockFocus];
@@ -831,16 +831,18 @@ NS_ENDHANDLER
     // right mouse button down events
     [myView setNextResponder: myWindow];
 
-    DBG_PRINT( "initWindow0.X - %p (this), %p (parent): new window: %p, view %p,%d\n",
-        (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, myView, getRetainCount(myView));
+    DBG_PRINT( "initWindow0.%d - %p (this), %p (parent): new window: %p, view %p\n",
+        dbgIdx++, (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, myView);
 
     [myView setDestroyNotifySent: false];
     setJavaWindowObject(env, jthis, myView, YES);
 
-    DBG_PRINT( "initWindow0.X - %p (this), %p (parent): new window: %p, view %p,%d\n",
-        (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, myView, getRetainCount(myView));
+    DBG_PRINT( "initWindow0.%d - %p (this), %p (parent): new window: %p, view %p\n",
+        dbgIdx++, (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, myView);
 
     [pool release];
+    DBG_PRINT( "initWindow0.X - %p (this), %p (parent): new window: %p, view %p\n",
+        (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, myView);
 }
 
 /**
@@ -857,14 +859,23 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_close0
     NewtMacWindow* mWin = (NewtMacWindow*) ((intptr_t) window);
     NewtView* mView = (NewtView *)[mWin contentView];
     NSWindow* pWin = [mWin parentWindow];
-    BOOL destroyNotifySent = (NULL != mView) ? [mView getDestroyNotifySent] : false;
+    BOOL destroyNotifySent, isNSView, isNewtView;
+    if( NULL != mView ) {
+        isNSView = [mView isKindOfClass:[NSView class]];
+        isNewtView = [mView isKindOfClass:[NewtView class]];
+        destroyNotifySent = isNewtView ? [mView getDestroyNotifySent] : false;
+    } else {
+        isNSView = false;
+        isNewtView = false;
+        destroyNotifySent = false;
+    }
 
-    DBG_PRINT( "windowClose.0 - %p,%d, destroyNotifySent %d, view %p,%d, parent %p\n", 
-        mWin, getRetainCount(mWin), destroyNotifySent, mView, getRetainCount(mView), pWin);
+    DBG_PRINT( "windowClose.0 - %p, destroyNotifySent %d, view %p [isNSView %d, isNewtView %d], parent %p\n", 
+        mWin, destroyNotifySent, mView, isNSView, isNewtView, pWin);
 
     [mWin setRealized: NO];
 
-    if(NULL!=mView) {
+    if( isNewtView ) {
         // cleanup view
         [mView setDestroyNotifySent: true];
         setJavaWindowObject(env, NULL, mView, NO);
@@ -892,8 +903,7 @@ NS_ENDHANDLER
     }
     [mWin orderOut: mWin];
 
-    DBG_PRINT( "windowClose.1 - %p,%d view %p,%d, parent %p\n", 
-        mWin, getRetainCount(mWin), mView, getRetainCount(mView), pWin);
+    DBG_PRINT( "windowClose.1 - %p view %p, parent %p\n", mWin, mView, pWin);
 
     // Only release window, if release is not yet in process.
     // E.g. destroyNotifySent:=true set by NewtMacWindow::windowWillClose(), i.e. window-close was clicked.
@@ -953,7 +963,6 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_requestFocus0
 #ifdef VERBOSE_ON
     BOOL hasFocus = [mWin isKeyWindow];
 #endif
-
     DBG_PRINT( "requestFocus - window: %p, force %d, hasFocus %d (START)\n", mWin, force, hasFocus);
 
     [mWin makeFirstResponder: nil];
