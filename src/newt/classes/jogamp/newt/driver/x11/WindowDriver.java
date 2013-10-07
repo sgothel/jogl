@@ -163,7 +163,7 @@ public class WindowDriver extends WindowImpl {
             _y = y;
         }
         if( 0 != ( FLAG_CHANGE_FULLSCREEN & flags ) ) {
-            if( 0 != ( FLAG_IS_FULLSCREEN & flags) && 0 != ( FLAG_IS_FULLSCREEN_SPAN & flags) && 0 == ( FLAG_IS_ALWAYSONTOP & flags) ) {
+            if( 0 != ( FLAG_IS_FULLSCREEN & flags) && 0 == ( FLAG_IS_ALWAYSONTOP & flags) ) {
                 tempFSAlwaysOnTop = true;
                 flags |= FLAG_IS_ALWAYSONTOP;
                 if(DEBUG_IMPLEMENTATION) {
