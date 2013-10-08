@@ -86,7 +86,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             sscSurfaceHandle = 0;
             isOffscreenInstance = false;
             if (0 != handle) {
-                OSXUtil.RunOnMainThread(true, new Runnable() {
+                OSXUtil.RunOnMainThread(false, new Runnable() {
                    public void run() {
                        close0( handle );
                    } } );
@@ -159,14 +159,17 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
 
     @Override
     protected void setTitleImpl(final String title) {
-            OSXUtil.RunOnMainThread(false, new Runnable() {
-                public void run() {
-                    setTitle0(getWindowHandle(), title);
-                } } );
+        OSXUtil.RunOnMainThread(false, new Runnable() {
+            public void run() {
+                setTitle0(getWindowHandle(), title);
+            } } );
     }
 
     @Override
     protected void requestFocusImpl(final boolean force) {
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("MacWindow: requestFocusImpl(), isOffscreenInstance "+isOffscreenInstance);
+        }
         if(!isOffscreenInstance) {
             OSXUtil.RunOnMainThread(false, new Runnable() {
                 public void run() {
@@ -414,13 +417,15 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             short _keySym = KeyEvent.NULL_CHAR != keySymChar ? KeyEvent.utf16ToVKey(keySymChar) : KeyEvent.VK_UNDEFINED;
             keySym = KeyEvent.VK_UNDEFINED != _keySym ? _keySym : keyCode;
         }
-        /* {
+        /**
+        {
             final boolean isModifierKeyCode = KeyEvent.isModifierKey(keyCode);
             System.err.println("*** handleKeyEvent: event "+KeyEvent.getEventTypeString(eventType)+
                                ", keyCode 0x"+Integer.toHexString(_keyCode)+" -> 0x"+Integer.toHexString(keyCode)+
                                ", keySymChar '"+keySymChar+"', 0x"+Integer.toHexString(keySymChar)+" -> 0x"+Integer.toHexString(keySym)+
                                ", mods "+toHexString(modifiers)+
-                               ", was: pressed "+isKeyPressed(keyCode)+", isModifierKeyCode "+isModifierKeyCode);
+                               ", was: pressed "+isKeyPressed(keyCode)+", isModifierKeyCode "+isModifierKeyCode+
+                               ", nativeValid "+isNativeValid()+", isOffscreen "+isOffscreenInstance);
         } */
             
         // OSX delivery order is PRESSED (t0), RELEASED (t1) and TYPED (t2) -> NEWT order: PRESSED (t0) and RELEASED (t1)
@@ -470,7 +475,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 if( 0 == surfaceHandle ) {
                     throw new NativeWindowException("Internal Error - create w/ window, but no Newt NSView");
                 }                
-                OSXUtil.RunOnMainThread(true, new Runnable() {
+                OSXUtil.RunOnMainThread(false, new Runnable() {
                     public void run() {
                         changeContentView0(parentWinHandle, preWinHandle, 0);
                         close0( preWinHandle );
