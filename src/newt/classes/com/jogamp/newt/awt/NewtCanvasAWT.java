@@ -272,10 +272,15 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 System.err.println("NewtCanvasAWT.FocusProperty: "+evt.getPropertyName()+", src "+evt.getSource()+", "+oldF+" -> "+newF+", isParent "+isParent+", isFS "+isFullscreen);
             }
             if(isParent && !isFullscreen) {
-                if(oldF == NewtCanvasAWT.this && newF == null) {
+                if(newF == NewtCanvasAWT.this) {
+                    if(DEBUG) {                    
+                        System.err.println("NewtCanvasAWT.FocusProperty: AWT focus -> NEWT focus traversal");
+                    }
+                    requestFocusNEWTChild();
+                } else if(oldF == NewtCanvasAWT.this && newF == null) {
                     // focus traversal to NEWT - NOP
                     if(DEBUG) {                    
-                        System.err.println("NewtCanvasAWT.FocusProperty: NEWT focus traversal");
+                        System.err.println("NewtCanvasAWT.FocusProperty: NEWT focus");
                     }
                 } else if(null != newF && newF != NewtCanvasAWT.this) {
                     // focus traversal to another AWT component
@@ -291,6 +296,17 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     }
     private final FocusPropertyChangeListener focusPropertyChangeListener = new FocusPropertyChangeListener();
     private volatile KeyboardFocusManager keyboardFocusManager = null;
+
+    private final void requestFocusNEWTChild() {
+        if(null!=newtChild) {
+            newtChild.setFocusAction(null);
+            if(isOnscreen) {                    
+                KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+            }
+            newtChild.requestFocus();
+            newtChild.setFocusAction(focusAction);
+        }
+    }
 
     /** 
      * Sets a new NEWT child, provoking reparenting.
@@ -602,50 +618,6 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         }
     }
     
-    private final void requestFocusNEWTChild() {
-        if(null!=newtChild) {
-            newtChild.setFocusAction(null);
-            if(isOnscreen) {                    
-                KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
-            }
-            newtChild.requestFocus();
-            newtChild.setFocusAction(focusAction);
-        }
-    }
-
-    @Override
-    public void requestFocus() {
-        super.requestFocus();
-        requestFocusNEWTChild();
-    }
-
-    @Override
-    public boolean requestFocus(boolean temporary) {
-        final boolean res = super.requestFocus(temporary);
-        if(res) {
-            requestFocusNEWTChild();
-        }
-        return res;
-    }
-
-    @Override
-    public boolean requestFocusInWindow() {
-        final boolean res = super.requestFocusInWindow();
-        if(res) {
-            requestFocusNEWTChild();
-        }
-        return res;
-    }
-
-    @Override
-    public boolean requestFocusInWindow(boolean temporary) {
-        final boolean res = super.requestFocusInWindow(temporary);
-        if(res) {
-            requestFocusNEWTChild();
-        }
-        return res;
-    }
-
     private final boolean validateComponent(boolean attachNewtChild) {
         if( Beans.isDesignTime() || !isDisplayable() ) {
             return false;

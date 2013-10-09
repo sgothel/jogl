@@ -249,7 +249,7 @@ public class TestParentingFocusTraversal01AWT extends UITestCase {
             Assert.assertEquals(true,  glWindow1FA.focusLost());
             Thread.sleep(durationPerTest/numFocus);  
             
-            // direct AWT request focus
+            System.err.println("Test: Direct NewtCanvasAWT focus");
             try {
                 java.awt.EventQueue.invokeAndWait(new Runnable() {
                    public void run() {
@@ -262,7 +262,7 @@ public class TestParentingFocusTraversal01AWT extends UITestCase {
             Assert.assertEquals(true,  bWestFA.focusLost());
             Thread.sleep(durationPerTest/numFocus);
             
-            // direct AWT request focus
+            System.err.println("Test: Direct AWT Button-West focus");
             try {
                 java.awt.EventQueue.invokeAndWait(new Runnable() {
                    public void run() {
@@ -275,7 +275,7 @@ public class TestParentingFocusTraversal01AWT extends UITestCase {
             Assert.assertEquals(true,  glWindow1FA.focusLost());
             Thread.sleep(durationPerTest/numFocus);
             
-            // direct NEWT request focus
+            System.err.println("Test: Direct NEWT-Child request focus");
             glWindow1.requestFocus();
             Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(glWindow1, glWindow1FA, bWestFA)); 
             Assert.assertEquals(true,  glWindow1FA.focusGained());
