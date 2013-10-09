@@ -88,7 +88,7 @@ public class TestParenting03AWT extends UITestCase {
         GLEventListener demo1 = new GearsES2(1);
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
-        glWindow1.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT1, glWindow1));
+        glWindow1.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT1, glWindow1, null));
         GLAnimatorControl animator1 = new Animator(glWindow1);
         animator1.start();
 
@@ -104,7 +104,7 @@ public class TestParenting03AWT extends UITestCase {
             GLEventListener demo2 = new GearsES2(1);
             setDemoFields(demo2, glWindow2, false);
             glWindow2.addGLEventListener(demo2);
-            glWindow2.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT2, glWindow2));
+            glWindow2.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT2, glWindow2, null));
             animator2 = new Animator(glWindow2);
             animator2.start();
         }

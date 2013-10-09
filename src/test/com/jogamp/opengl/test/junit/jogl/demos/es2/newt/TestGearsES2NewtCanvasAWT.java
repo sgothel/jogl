@@ -42,8 +42,6 @@ import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.awt.NewtCanvasAWT;
-import com.jogamp.newt.event.KeyAdapter;
-import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.opengl.GLWindow;
@@ -51,17 +49,14 @@ import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
-
 import com.jogamp.opengl.util.Animator;
-
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import com.jogamp.opengl.test.junit.newt.parenting.NewtAWTReparentingKeyAdapter;
 
 import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.PointImmutable;
 import javax.media.nativewindow.util.DimensionImmutable;
-
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLProfile;
@@ -271,50 +266,8 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
             }            
         });
         
-        glWindow.addKeyListener(new KeyAdapter() {
-            public void keyReleased(KeyEvent e) {
-                if( !e.isPrintableKey() || e.isAutoRepeat() ) {
-                    return;
-                }            
-                if(e.getKeyChar()=='f') {
-                    quitAdapter.enable(false);
-                    new Thread() {
-                        public void run() {
-                            final Thread t = glWindow.setExclusiveContextThread(null);
-                            System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
-                            glWindow.setFullscreen(!glWindow.isFullscreen());
-                            System.err.println("[set fullscreen post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
-                            glWindow.setExclusiveContextThread(t);
-                            quitAdapter.clear();
-                            quitAdapter.enable(true);
-                    } }.start();
-                } else if(e.getKeyChar()=='r') {
-                    quitAdapter.enable(false);
-                    if(glWindow.getParent()==null) {
-                        System.err.println("XXX glWin to home");
-                        glWindow.reparentWindow(newtCanvasAWT.getNativeWindow());
-                    } else {
-                        final InsetsImmutable nInsets = glWindow.getInsets();
-                        java.awt.Insets aInsets = frame.getInsets();
-                        System.err.println("XXX glWin to TOP - insets " + nInsets + ", " + aInsets);
-                        glWindow.reparentWindow(null);
-                        int dx, dy;
-                        if(nInsets.getTotalHeight()==0) {
-                            dx = aInsets.left;
-                            dy = aInsets.top;
-                        } else {
-                            dx = nInsets.getLeftWidth();
-                            dy = nInsets.getTopHeight();
-                        }
-                        glWindow.setPosition(frame.getX()+frame.getWidth()+dx, frame.getY()+dy);
-                    }
-                    glWindow.requestFocus();
-                    quitAdapter.clear();
-                    quitAdapter.enable(true);
-                }
-            }
-        });
-
+        glWindow.addKeyListener(new NewtAWTReparentingKeyAdapter(frame, newtCanvasAWT, glWindow, quitAdapter));
+        
         if( useAnimator ) {
             animator.add(glWindow);
             animator.start();

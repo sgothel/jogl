@@ -414,7 +414,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
         if(postParentlockFocus) {
             // harmonize focus behavior for all platforms: focus on creation
-            requestFocusInt(isFullscreen() /* skipFocusAction */);
+            requestFocusInt(isFullscreen() /* skipFocusAction if fullscreen */);
             ((DisplayImpl) screen.getDisplay()).dispatchMessagesNative(); // status up2date
         }
         if(DEBUG_IMPLEMENTATION) {
@@ -1033,7 +1033,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 removeScreenReference();
                 Display dpy = screen.getDisplay();
                 if(null != dpy) {
-                    dpy.validateEDT();
+                    dpy.validateEDTStopped();
                 }
 
                 // send synced destroyed notification
@@ -1112,12 +1112,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
     
     private class ReparentAction implements Runnable {
-        NativeWindow newParentWindow;
+        final NativeWindow newParentWindow;
+        final int topLevelX, topLevelY;
         boolean forceDestroyCreate;
         ReparentOperation operation;
 
-        private ReparentAction(NativeWindow newParentWindow, boolean forceDestroyCreate) {
+        private ReparentAction(NativeWindow newParentWindow, int topLevelX, int topLevelY, boolean forceDestroyCreate) {
             this.newParentWindow = newParentWindow;
+            this.topLevelX = topLevelX;
+            this.topLevelY = topLevelY;
             this.forceDestroyCreate = forceDestroyCreate | DEBUG_TEST_REPARENT_INCOMPATIBLE;
             this.operation = ReparentOperation.ACTION_INVALID; // ensure it's set
         }
@@ -1144,10 +1147,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         
         private void reparent() {
             // mirror pos/size so native change notification can get overwritten
-            int x = getX();
-            int y = getY();
-            int width = getWidth();
-            int height = getHeight();
+            final int oldX = getX();
+            final int oldY = getY();
+            final int oldWidth = getWidth();
+            final int oldHeight = getHeight();
+            final int x, y;
+            int width = oldWidth;
+            int height = oldHeight;
             boolean wasVisible;
             
             final RecursiveLock _lock = windowLock;
@@ -1168,10 +1174,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 long newParentWindowHandle = 0 ;
 
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.reparent: START ("+getThreadName()+") valid "+isNativeValid()+", windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle)+", visible "+wasVisible+", old parentWindow: "+Display.hashCodeNullSafe(parentWindow)+", new parentWindow: "+Display.hashCodeNullSafe(newParentWindow)+", forceDestroyCreate "+forceDestroyCreate+", "+x+"/"+y+" "+width+"x"+height);
+                    System.err.println("Window.reparent: START ("+getThreadName()+") valid "+isNativeValid()+", windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle)+", visible "+wasVisible+", old parentWindow: "+Display.hashCodeNullSafe(parentWindow)+", new parentWindow: "+Display.hashCodeNullSafe(newParentWindow)+", forceDestroyCreate "+forceDestroyCreate);
                 }
 
                 if(null!=newParentWindow) {
+                    // REPARENT TO CHILD WINDOW
+                    
                     // reset position to 0/0 within parent space
                     x = 0;
                     y = 0;
@@ -1233,12 +1241,19 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         operation = ReparentOperation.ACTION_NOP;
                     }
                 } else {
-                    if( null != parentWindow ) {
+                    // REPARENT TO TOP-LEVEL WINDOW
+                    if( 0 <= topLevelX && 0 <= topLevelY ) {
+                        x = topLevelX;
+                        y = topLevelY;
+                    } else if( null != parentWindow ) {
                         // child -> top
                         // put client to current parent+child position
                         final Point p = getLocationOnScreen(null);
                         x = p.getX();
                         y = p.getY();
+                    } else {
+                        x = oldX;
+                        y = oldY;
                     }
 
                     // Case: Top Window
@@ -1264,16 +1279,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 if ( ReparentOperation.ACTION_INVALID == operation ) {
                     throw new NativeWindowException("Internal Error: reparentAction not set");
                 }
-
-                if( ReparentOperation.ACTION_NOP == operation ) {
-                    if(DEBUG_IMPLEMENTATION) {
-                        System.err.println("Window.reparent: NO CHANGE ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+" new parentWindowHandle "+toHexString(newParentWindowHandle)+", visible "+wasVisible);
-                    }
-                    return;
-                }
-
+                
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.reparent: ACTION ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+" new parentWindowHandle "+toHexString(newParentWindowHandle)+", reparentAction "+operation+", visible "+wasVisible);
+                    System.err.println("Window.reparent: ACTION ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+" new parentWindowHandle "+toHexString(newParentWindowHandle)+", reparentAction "+operation+", pos/size "+x+"/"+y+" "+width+"x"+height+", visible "+wasVisible);
+                }
+                
+                if( ReparentOperation.ACTION_NOP == operation ) {
+                    return;
                 }
 
                 // rearrange window tree
@@ -1285,19 +1297,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     ((Window)parentWindow).addChild(WindowImpl.this);
                 }
 
-                if( ReparentOperation.ACTION_NATIVE_CREATION_PENDING == operation ) {
-                    // make size and position persistent for proper recreation
-                    definePosition(x, y);
-                    defineSize(width, height);
-                    return;
-                }
-
                 if( ReparentOperation.ACTION_NATIVE_REPARENTING == operation ) {
                     final DisplayImpl display = (DisplayImpl) screen.getDisplay();
                     display.dispatchMessagesNative(); // status up2date
 
-                    if(wasVisible) {
-                        setVisibleImpl(false, x, y, width, height);
+                    // TOP -> CLIENT: !visible first (fixes X11 unsuccessful return to parent window)
+                    if( null != parentWindow && wasVisible && NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true) ) {
+                        setVisibleImpl(false, oldX, oldY, oldWidth, oldHeight);
                         WindowImpl.this.waitForVisible(false, false);
                         // FIXME: Some composite WM behave slacky .. give 'em chance to change state -> invisible,
                         // even though we do exactly that (KDE+Composite)
@@ -1337,7 +1343,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                 ok = WindowImpl.this.waitForSize(width, height, false, TIMEOUT_NATIVEWINDOW);
                             }
                             if(ok) {
-                                requestFocusInt(false /* skipFocusAction */);
+                                requestFocusInt( 0 == parentWindowHandle /* skipFocusAction if top-level */);
                                 display.dispatchMessagesNative(); // status up2date                                
                             }
                         }
@@ -1358,6 +1364,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         destroy( wasVisible );
                         operation = ReparentOperation.ACTION_NATIVE_CREATION ;
                     }
+                } else {
+                    // Case
+                    //   ACTION_NATIVE_CREATION
+                    //   ACTION_NATIVE_CREATION_PENDING;
+
+                    // make size and position persistent for proper [re]creation
+                    definePosition(x, y);
+                    defineSize(width, height);
                 }
                 
                 if(DEBUG_IMPLEMENTATION) {
@@ -1398,7 +1412,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("Window.reparentWindow: ReparentActionRecreate ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+Display.hashCodeNullSafe(parentWindow));
                 }
-                setVisible(true); // native creation
+                setVisibleActionImpl(true); // native creation
+                requestFocusInt( 0 == parentWindowHandle /* skipFocusAction if top-level */);
             } finally {
                 _lock.unlock();
             }
@@ -1408,11 +1423,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public final ReparentOperation reparentWindow(NativeWindow newParent) {
-        return reparentWindow(newParent, false);
+        return reparentWindow(newParent, -1, -1, false);
     }
 
-    public ReparentOperation reparentWindow(NativeWindow newParent, boolean forceDestroyCreate) {
-        final ReparentAction reparentAction = new ReparentAction(newParent, forceDestroyCreate);
+    @Override
+    public ReparentOperation reparentWindow(NativeWindow newParent, int x, int y, boolean forceDestroyCreate) {
+        final ReparentAction reparentAction = new ReparentAction(newParent, x, y, forceDestroyCreate);
         runOnEDTIfAvail(true, reparentAction);
         return reparentAction.getOp();
     }
@@ -1800,7 +1816,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private void requestFocusInt(boolean skipFocusAction) {
         if( skipFocusAction || !focusAction() ) {
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.RequestFocusInt: forcing - ("+getThreadName()+"): "+hasFocus+" -> true - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+                System.err.println("Window.RequestFocusInt: forcing - ("+getThreadName()+"): skipFocusAction "+skipFocusAction+", focus "+hasFocus+" -> true - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
             }
             requestFocusImpl(true);
         }        
@@ -1971,7 +1987,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 // Lock parentWindow only during reparenting (attempt)
                 final NativeWindow parentWindowLocked;
                 if( null != parentWindow ) {
-                    if(wasVisible && !fullscreen) { // fullscreen-off -> !visible first (fixes unsuccessful return to parent window)
+                    // fullscreen off: !visible first (fixes X11 unsuccessful return to parent window)
+                    if( !fullscreen && wasVisible && NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true) ) {
                         setVisibleImpl(false, oldX, oldY, oldWidth, oldHeight);
                         WindowImpl.this.waitForVisible(false, false);
                         // FIXME: Some composite WM behave slacky .. give 'em chance to change state -> invisible,
@@ -2004,7 +2021,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         ok = WindowImpl.this.waitForSize(w, h, false, TIMEOUT_NATIVEWINDOW);
                     }
                     if(ok) {
-                        requestFocusInt(fullscreen /* skipFocusAction */);
+                        requestFocusInt(fullscreen /* skipFocusAction if fullscreen */);
                         display.dispatchMessagesNative(); // status up2date                                
                     }
                     if(DEBUG_IMPLEMENTATION) {
@@ -2038,7 +2055,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     // enable fullscreen on offscreen instance
                     if(null != parentWindow) {
                         nfs_parent = parentWindow;
-                        reparentWindow(null, true /* forceDestroyCreate */);
+                        reparentWindow(null, -1, -1, true /* forceDestroyCreate */);
                     } else {
                         throw new InternalError("Offscreen instance w/o parent unhandled");
                     }
@@ -2048,12 +2065,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 
                 if(!fullScreenAction.fsOn() && null != nfs_parent) {
                     // disable fullscreen on offscreen instance
-                    reparentWindow(nfs_parent, true /* forceDestroyCreate */);
+                    reparentWindow(nfs_parent, -1, -1, true /* forceDestroyCreate */);
                     nfs_parent = null;
-                }
-                
-                if( isVisible() ) { // force focus
-                    requestFocus(true /* wait */, true /* skipFocusAction */, true /* force */);
                 }
             }
             return this.fullscreen;                

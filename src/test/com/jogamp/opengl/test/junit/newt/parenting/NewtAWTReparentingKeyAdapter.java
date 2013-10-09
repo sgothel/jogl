@@ -35,33 +35,58 @@ import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.test.junit.util.QuitAdapter;
 
 public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
-    Frame frame;
-    NewtCanvasAWT newtCanvasAWT;
-    GLWindow glWindow;
+    final Frame frame;
+    final NewtCanvasAWT newtCanvasAWT;
+    final GLWindow glWindow;
+    final QuitAdapter quitAdapter;
     
-    public NewtAWTReparentingKeyAdapter(Frame frame, NewtCanvasAWT newtCanvasAWT, GLWindow glWindow) {
+    public NewtAWTReparentingKeyAdapter(Frame frame, NewtCanvasAWT newtCanvasAWT, GLWindow glWindow, QuitAdapter quitAdapter) {
         this.frame = frame;
         this.newtCanvasAWT = newtCanvasAWT;
         this.glWindow = glWindow;
+        this.quitAdapter = quitAdapter;
     }
     
     public void keyReleased(KeyEvent e) {
         if( !e.isPrintableKey() || e.isAutoRepeat() ) {
             return;
         }            
-        if(e.getKeyChar()=='i') {
+        if( e.getKeySymbol() == KeyEvent.VK_I ) {
             System.err.println(glWindow);
-        } else if(e.getKeyChar()=='d') {
-            glWindow.setUndecorated(!glWindow.isUndecorated());
-        } else if(e.getKeyChar()=='f') {
-            glWindow.setFullscreen(!glWindow.isFullscreen());
-        } else if(e.getKeyChar()=='l') {
+        } else if( e.getKeySymbol() == KeyEvent.VK_L ) {
             javax.media.nativewindow.util.Point p0 = newtCanvasAWT.getNativeWindow().getLocationOnScreen(null);
             javax.media.nativewindow.util.Point p1 = glWindow.getLocationOnScreen(null);
             System.err.println("NewtCanvasAWT position: "+p0+", "+p1);                                    
-        } else if(e.getKeyChar()=='p') {
+        } else if( e.getKeySymbol() == KeyEvent.VK_D ) {
+            glWindow.setUndecorated(!glWindow.isUndecorated());
+        } else if( e.getKeySymbol() == KeyEvent.VK_S ) {
+            if(glWindow.getParent()==null) {
+                System.err.println("XXX glWin to 100/100");
+                glWindow.setPosition(100, 100);
+            } else {
+                System.err.println("XXX glWin to 0/0");
+                glWindow.setPosition(0, 0);                
+            }
+        } else if( e.getKeySymbol() == KeyEvent.VK_F ) {
+            if( null != quitAdapter ) {
+                quitAdapter.enable(false);
+            }
+            new Thread() {
+                public void run() {
+                    final Thread t = glWindow.setExclusiveContextThread(null);
+                    System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
+                    glWindow.setFullscreen(!glWindow.isFullscreen());
+                    System.err.println("[set fullscreen post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
+                    glWindow.setExclusiveContextThread(t);
+                    if( null != quitAdapter ) {
+                        quitAdapter.clear();
+                        quitAdapter.enable(true);
+                    }
+            } }.start();
+        } else if( e.getKeySymbol() == KeyEvent.VK_P ) {
             new Thread() {
                 public void run() {
                     if(glWindow.getAnimator().isPaused()) {
@@ -71,34 +96,44 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
                     }                                
                 }
             }.run();
-        } else if(e.getKeyChar()=='r') {
-            if(glWindow.getParent()==null) {
-                System.err.println("XXX glWin to home");
-                glWindow.reparentWindow(newtCanvasAWT.getNativeWindow());
-            } else {
-                final InsetsImmutable nInsets = glWindow.getInsets();
-                java.awt.Insets aInsets = frame.getInsets();
-                System.err.println("XXX glWin to TOP - insets " + nInsets + ", " + aInsets);
-                glWindow.reparentWindow(null);
-                int dx, dy;
-                if(nInsets.getTotalHeight()==0) {
-                    dx = aInsets.left;
-                    dy = aInsets.top;
-                } else {
-                    dx = nInsets.getLeftWidth();
-                    dy = nInsets.getTopHeight();
-                }
-                glWindow.setPosition(frame.getX()+frame.getWidth()+dx, frame.getY()+dy);
+        } else if( e.getKeySymbol() == KeyEvent.VK_R ) {
+            if( null != quitAdapter ) {
+                quitAdapter.enable(false);
             }
-            glWindow.requestFocus();
-        } else if(e.getKeyChar()=='s') {
-            if(glWindow.getParent()==null) {
-                System.err.println("XXX glWin to 100/100");
-                glWindow.setPosition(100, 100);
-            } else {
-                System.err.println("XXX glWin to 0/0");
-                glWindow.setPosition(0, 0);                
-            }
+            new Thread() {
+                public void run() {
+                    final Thread t = glWindow.setExclusiveContextThread(null);
+                    if(glWindow.getParent()==null) {
+                        System.err.println("XXX glWin to HOME");
+                        glWindow.reparentWindow(newtCanvasAWT.getNativeWindow());
+                    } else {
+                        if( null != frame ) {
+                            final InsetsImmutable nInsets = glWindow.getInsets();
+                            final java.awt.Insets aInsets = frame.getInsets();
+                            int dx, dy;
+                            if( nInsets.getTotalHeight()==0 ) {
+                                dx = aInsets.left;
+                                dy = aInsets.top;
+                            } else {
+                                dx = nInsets.getLeftWidth();
+                                dy = nInsets.getTopHeight();
+                            }
+                            final int topLevelX = frame.getX()+frame.getWidth()+dx;
+                            final int topLevelY = frame.getY()+dy;
+                            System.err.println("XXX glWin to TOP.1 "+topLevelX+"/"+topLevelY+" - insets " + nInsets + ", " + aInsets);
+                            glWindow.reparentWindow(null, topLevelX, topLevelY, false);
+                        } else {
+                            System.err.println("XXX glWin to TOP.0");
+                            glWindow.reparentWindow(null);
+                        }
+                    }
+                    glWindow.requestFocus();
+                    glWindow.setExclusiveContextThread(t);
+                    if( null != quitAdapter ) {
+                        quitAdapter.clear();
+                        quitAdapter.enable(true);
+                    }
+            } }.start();
         }
     }
 }

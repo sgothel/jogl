@@ -351,10 +351,27 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * @param newParent The new parent NativeWindow. If null, this Window becomes a top level window.
      *
      * @return The issued reparent action type (strategy) as defined in Window.ReparentAction
+     * @see #reparentWindow(NativeWindow, int, int, boolean)
      */
     ReparentOperation reparentWindow(NativeWindow newParent);
 
-    ReparentOperation reparentWindow(NativeWindow newParent, boolean forceDestroyCreate);
+    /**
+     * Change this window's parent window.<br>
+     * <P>
+     * In case the old parent is not null and a Window,
+     * this window is removed from it's list of children.<br>
+     * In case the new parent is not null and a Window,
+     * this window is added to it's list of children.<br></P>
+     *
+     * @param newParent The new parent NativeWindow. If null, this Window becomes a top level window.
+     * @param x new top-level position, use -1 for default position.
+     * @param y new top-level position, use -1 for default position.
+     * @param forceDestroyCreate if true, uses re-creation strategy for reparenting, default is <code>false</code>.
+     * 
+     * @return The issued reparent action type (strategy) as defined in Window.ReparentAction
+     * @see #reparentWindow(NativeWindow)
+     */
+    ReparentOperation reparentWindow(NativeWindow newParent, int x, int y, boolean forceDestroyCreate);
 
     /**
      * Enable or disable fullscreen mode for this window.

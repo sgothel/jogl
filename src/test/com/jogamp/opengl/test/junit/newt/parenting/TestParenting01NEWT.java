@@ -379,7 +379,7 @@ public class TestParenting01NEWT extends UITestCase {
                     // glWindow2 -- child --> glWindow1: compatible
                     Assert.assertEquals(true, glWindow2.isVisible());
                     System.err.println("Frames(1) "+glWindow2.getTotalFPSFrames());
-                    reparentAction = glWindow2.reparentWindow(glWindow1, reparentRecreate);
+                    reparentAction = glWindow2.reparentWindow(glWindow1, -1, -1, reparentRecreate);
                     System.err.println("Frames(2) "+glWindow2.getTotalFPSFrames());
                     Assert.assertTrue(Window.ReparentOperation.ACTION_INVALID != reparentAction);
                     Assert.assertEquals(true, glWindow2.isVisible());
@@ -405,7 +405,7 @@ public class TestParenting01NEWT extends UITestCase {
                     // glWindow2 --> top
                     Assert.assertEquals(true, glWindow2.isVisible());
 
-                    reparentAction = glWindow2.reparentWindow(null, reparentRecreate);
+                    reparentAction = glWindow2.reparentWindow(null, -1, -1, reparentRecreate);
                     Assert.assertTrue(Window.ReparentOperation.ACTION_INVALID != reparentAction);
                     Assert.assertEquals(true, glWindow2.isVisible());
                     Assert.assertEquals(true, glWindow2.isNativeValid());
@@ -567,7 +567,7 @@ public class TestParenting01NEWT extends UITestCase {
             switch(state) {
                 case 0:
                     Assert.assertEquals(true, glWindow2.isVisible());
-                    reparentAction = glWindow2.reparentWindow(null, reparentRecreate);
+                    reparentAction = glWindow2.reparentWindow(null, -1, -1, reparentRecreate);
                     Assert.assertTrue(Window.ReparentOperation.ACTION_INVALID != reparentAction);
                     Assert.assertEquals(true, glWindow2.isVisible());
                     Assert.assertEquals(true, glWindow2.isNativeValid());
@@ -582,7 +582,7 @@ public class TestParenting01NEWT extends UITestCase {
                     break;
                 case 1:
                     Assert.assertEquals(true, glWindow2.isVisible());
-                    reparentAction = glWindow2.reparentWindow(glWindow1, reparentRecreate);
+                    reparentAction = glWindow2.reparentWindow(glWindow1, -1, -1, reparentRecreate);
                     Assert.assertTrue(Window.ReparentOperation.ACTION_INVALID != reparentAction);
                     Assert.assertEquals(true, glWindow2.isVisible());
                     Assert.assertEquals(true, glWindow2.isNativeValid());

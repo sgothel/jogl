@@ -817,11 +817,15 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         if( TST_FLAG_IS_VISIBLE(flags) ) {
             DBG_PRINT( "X11: reconfigureWindow0 VISIBLE ON\n");
             XMapRaised(dpy, w);
+            XSync(dpy, False);
+            // WM may disregard pos/size XConfigureWindow requests for invisible windows!
+            DBG_PRINT( "X11: reconfigureWindow0 setPosSize.2 %d/%d %dx%d\n", x, y, width, height);
+            NewtWindows_setPosSize(dpy, w, x, y, width, height);
         } else {
             DBG_PRINT( "X11: reconfigureWindow0 VISIBLE OFF\n");
             XUnmapWindow(dpy, w);
+            XSync(dpy, False);
         }
-        XSync(dpy, False);
     }
 
     if( fsEWMHFlags && ( ( TST_FLAG_CHANGE_FULLSCREEN(flags)  && TST_FLAG_IS_FULLSCREEN(flags) ) || 

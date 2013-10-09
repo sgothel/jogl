@@ -390,8 +390,8 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
-    public final ReparentOperation reparentWindow(NativeWindow newParent, boolean forceDestroyCreate) {
-        return window.reparentWindow(newParent, forceDestroyCreate);
+    public final ReparentOperation reparentWindow(NativeWindow newParent, int x, int y, boolean forceDestroyCreate) {
+        return window.reparentWindow(newParent, x, y, forceDestroyCreate);
     }
 
     @Override

@@ -162,7 +162,7 @@ public class TestOffscreenLayer02NewtCanvasAWT extends UITestCase {
         }
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
-        glWindow1.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT1, glWindow1));
+        glWindow1.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT1, glWindow1, null));
         
         frame1.setSize(frameSize0);
         setupFrameAndShow(frame1, newtCanvasAWT1);
