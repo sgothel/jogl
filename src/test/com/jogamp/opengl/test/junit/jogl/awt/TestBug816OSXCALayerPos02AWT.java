@@ -54,9 +54,12 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 /**
- * Bug 816: OSX CALayer Positioning Bug - Swing JFrame w/ 2 JRootPanes
+ * Bug 816: OSX CALayer Positioning Bug - Swing JFrame w/ 2 JRootPanes and 2 JSplitPanes
  * <p>
  * Diff. OSX CALayer positioning w/ java6, [7uxx..7u40[, and >= 7u40
+ * </p>
+ * <p>
+ * See also {@link com.jogamp.opengl.test.junit.jogl.demos.es2.awt.Bug816AppletOSXCALayerPos03b}
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)

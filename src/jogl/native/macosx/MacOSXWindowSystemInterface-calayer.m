@@ -570,11 +570,12 @@ static const GLfloat gl_verts[] = {
     CGRect lRect = [self frame];
     Bool dedicatedFramePosSet  = 0 != ( NW_DEDICATEDFRAME_QUIRK_POSITION & quirks );
     Bool dedicatedFrameSizeSet = 0 != ( NW_DEDICATEDFRAME_QUIRK_SIZE & quirks );
-    dedicatedFrameSet  = dedicatedFramePosSet || dedicatedFrameSizeSet;
+    Bool dedicatedLayoutSet = 0 != ( NW_DEDICATEDFRAME_QUIRK_LAYOUT & quirks );
+    dedicatedFrameSet  = dedicatedFramePosSet || dedicatedFrameSizeSet || dedicatedLayoutSet;
     dedicatedFrame = dFrame;
 
-    DBG_PRINT("MyNSOpenGLLayer::setDedicatedFrame: Quirks [%d, pos %d, size %d], %p, texSize %dx%d, %lf/%lf %lfx%lf -> %lf/%lf %lfx%lf\n",
-        quirks, dedicatedFramePosSet, dedicatedFrameSizeSet, self, texWidth, texHeight,
+    DBG_PRINT("MyNSOpenGLLayer::setDedicatedFrame: Quirks [%d, pos %d, size %d, lout %d], %p, texSize %dx%d, %lf/%lf %lfx%lf -> %lf/%lf %lfx%lf\n",
+        quirks, dedicatedFramePosSet, dedicatedFrameSizeSet, dedicatedLayoutSet, self, texWidth, texHeight,
         lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height,
         dFrame.origin.x, dFrame.origin.y, dFrame.size.width, dFrame.size.height);
     
