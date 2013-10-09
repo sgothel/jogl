@@ -1343,6 +1343,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                 ok = WindowImpl.this.waitForSize(width, height, false, TIMEOUT_NATIVEWINDOW);
                             }
                             if(ok) {
+                                ok = WindowImpl.this.waitForPosition(true, x, y, TIMEOUT_NATIVEWINDOW);
+                            }
+                            if(ok) {
                                 requestFocusInt( 0 == parentWindowHandle /* skipFocusAction if top-level */);
                                 display.dispatchMessagesNative(); // status up2date                                
                             }
@@ -1375,7 +1378,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
                 
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.reparentWindow: END-1 ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+ Display.hashCodeNullSafe(parentWindow)+" "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight());
+                    System.err.println("Window.reparent: END-1 ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+ Display.hashCodeNullSafe(parentWindow)+" "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight());
                 }
             } finally {
                 if(null!=lifecycleHook) {
@@ -1399,7 +1402,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
             }
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.reparentWindow: END-X ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+ Display.hashCodeNullSafe(parentWindow)+" "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight());
+                System.err.println("Window.reparent: END-X ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+ Display.hashCodeNullSafe(parentWindow)+" "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight());
             }
         }
     }
@@ -1410,7 +1413,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             _lock.lock();
             try {
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.reparentWindow: ReparentActionRecreate ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+Display.hashCodeNullSafe(parentWindow));
+                    System.err.println("Window.reparent: ReparentActionRecreate ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+Display.hashCodeNullSafe(parentWindow));
                 }
                 setVisibleActionImpl(true); // native creation
                 requestFocusInt( 0 == parentWindowHandle /* skipFocusAction if top-level */);
@@ -2019,6 +2022,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     boolean ok = 0 <= WindowImpl.this.waitForVisible(true, false);
                     if(ok) {
                         ok = WindowImpl.this.waitForSize(w, h, false, TIMEOUT_NATIVEWINDOW);
+                    }
+                    if(ok && !fullscreen) {
+                        ok = WindowImpl.this.waitForPosition(true, x, y, TIMEOUT_NATIVEWINDOW);
                     }
                     if(ok) {
                         requestFocusInt(fullscreen /* skipFocusAction if fullscreen */);

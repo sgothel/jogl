@@ -33,6 +33,7 @@ import java.security.PrivilegedAction;
 
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
+import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
@@ -301,7 +302,17 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
             if(null == glWindow.getParent()) {
                 glWindow.reparentWindow(awtParent);
             } else {
-                glWindow.reparentWindow(null);
+                final InsetsImmutable insets = glWindow.getInsets();
+                final int x, y;
+                if ( 0 >= insets.getTopHeight() ) {
+                    // fail safe ..
+                    x = 32;
+                    y = 32;
+                } else {
+                    x = insets.getLeftWidth();
+                    y = insets.getTopHeight();
+                }
+                glWindow.reparentWindow(null, x, y, false /* forceDestroyCreate */);
                 glWindow.setDefaultCloseOperation( glClosable ? WindowClosingMode.DISPOSE_ON_CLOSE : WindowClosingMode.DO_NOTHING_ON_CLOSE );
             }
        }

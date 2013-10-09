@@ -29,7 +29,6 @@ package com.jogamp.opengl.test.junit.jogl.demos.es2.awt;
 
 import java.applet.Applet;
 import java.awt.BorderLayout;
-import java.awt.Button;
 
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLCapabilities;

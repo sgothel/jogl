@@ -5,6 +5,7 @@ if [ -e /opt-share/etc/profile.ant ] ; then
 fi
 
 JAVA_HOME=`/usr/libexec/java_home -version 1.7`
+#JAVA_HOME=`/usr/libexec/java_home -version 1.6`
 PATH=$JAVA_HOME/bin:$PATH
 export JAVA_HOME PATH
 
