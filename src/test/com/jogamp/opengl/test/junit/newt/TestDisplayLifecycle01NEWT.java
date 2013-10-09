@@ -208,7 +208,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
             final EDTUtil edtUtil = display.getEDTUtil();
             Assert.assertNotNull(edtUtil);
             Assert.assertEquals(false,edtUtil.isRunning());
-            edtUtil.restart();
+            edtUtil.start();
             edtUtil.invoke(true, null);
             Assert.assertEquals(true,edtUtil.isRunning());
             edtUtil.invokeStop(true, null);

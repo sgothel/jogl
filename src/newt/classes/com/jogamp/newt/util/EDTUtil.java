@@ -65,10 +65,10 @@ public interface EDTUtil {
     public void setPollPeriod(long ms);
     
     /**
-     * Starts or restarts the EDT.
+     * Starts the EDT after it's creation or after {@link #invokeStop(boolean, Runnable) stopping}.
      * <p>
-     * If the EDT is running, it must be stopped first via {@link #invokeStop(boolean, Runnable)}
-     * and the caller should wait until it's stopped via {@link #waitUntilStopped()}.
+     * If the EDT is running, it must be {@link #invokeStop(boolean, Runnable) stopped} first
+     * and the caller should wait {@link #waitUntilStopped() until it's stopped}.
      * </p>
      * 
      * @return true if EDT has been successfully restarted, otherwise false
@@ -77,7 +77,7 @@ public interface EDTUtil {
      * @see #invokeStop(boolean, java.lang.Runnable)
      * @see #waitUntilStopped()
      */
-    public boolean restart() throws IllegalStateException;
+    public boolean start() throws IllegalStateException;
 
     /**
      * Returns true if the current thread is the event dispatch thread (EDT).
@@ -130,7 +130,7 @@ public interface EDTUtil {
      *   <li>All previous queued tasks will be finished.</li>
      *   <li>No new tasks are allowed, an Exception is thrown.</li>
      *   <li>Can be issued from within EDT, ie from within an enqueued task.</li>
-     *   <li>{@link #restart()} may follow immediately, ie creating a new EDT</li>
+     *   <li>{@link #start()} may follow immediately, ie creating a new EDT</li>
      * </ul>
      * </p>
      * @return true if <code>task</code> has been executed or queued for later execution, otherwise false 

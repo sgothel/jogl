@@ -170,7 +170,7 @@ public abstract class DisplayImpl extends Display {
         if(NewtFactory.useEDT()) {
             def = new DefaultEDTUtil(Thread.currentThread().getThreadGroup(), "Display-"+getFQName(), dispatchMessagesRunnable);            
             if(DEBUG) {
-                System.err.println("Display.createNative("+getFQName()+") Create EDTUtil: "+def.getClass().getName());
+                System.err.println("Display.createEDTUtil("+getFQName()+"): "+def.getClass().getName());
             }
         } else {
             def = null;
@@ -181,21 +181,18 @@ public abstract class DisplayImpl extends Display {
     @Override
     public synchronized EDTUtil setEDTUtil(final EDTUtil usrEDTUtil) {
         final EDTUtil oldEDTUtil = edtUtil;
-        final EDTUtil newEDTUtil;
         if( null != usrEDTUtil && usrEDTUtil == oldEDTUtil ) {
             if( DEBUG ) {
                 System.err.println("Display.setEDTUtil: "+usrEDTUtil+" - keep!");
             }
-            newEDTUtil = oldEDTUtil;
-        } else {
-            if(DEBUG) {
-                final String msg = ( null == usrEDTUtil ) ? "default" : "custom";
-                System.err.println("Display.setEDTUtil("+msg+"): "+oldEDTUtil+" -> "+usrEDTUtil);
-            }
-            stopEDT( oldEDTUtil, null );
-            newEDTUtil = ( null == usrEDTUtil ) ? createEDTUtil() : usrEDTUtil;
+            return oldEDTUtil;
         }
-        edtUtil = newEDTUtil;
+        if(DEBUG) {
+            final String msg = ( null == usrEDTUtil ) ? "default" : "custom";
+            System.err.println("Display.setEDTUtil("+msg+"): "+oldEDTUtil+" -> "+usrEDTUtil);
+        }
+        stopEDT( oldEDTUtil, null );
+        edtUtil = ( null == usrEDTUtil ) ? createEDTUtil() : usrEDTUtil;
         return oldEDTUtil;
     }
 
@@ -224,31 +221,30 @@ public abstract class DisplayImpl extends Display {
 
     public void runOnEDTIfAvail(boolean wait, final Runnable task) {
         final EDTUtil _edtUtil = edtUtil;
-        if( null != _edtUtil && !_edtUtil.isCurrentThreadEDT() ) {
-            if( !_edtUtil.isRunning() ) { // start EDT if not running yet
-                synchronized( this ) {
-                    if( !_edtUtil.isRunning() ) { // // volatile dbl-checked-locking OK
-                        _edtUtil.restart();
-                        if( DEBUG ) {
-                            System.err.println("Info: EDT started "+Thread.currentThread().getName()+", "+this);
-                            Thread.dumpStack();
-                        }
+        if( !_edtUtil.isRunning() ) { // start EDT if not running yet
+            synchronized( this ) {
+                if( !_edtUtil.isRunning() ) { // // volatile dbl-checked-locking OK
+                    if( DEBUG ) {
+                        System.err.println("Info: EDT start "+Thread.currentThread().getName()+", "+this);
+                        Thread.dumpStack();
                     }
+                    _edtUtil.start();
                 }
             }
-            if( !_edtUtil.invoke(wait, task) ) {
-                if( DEBUG ) {
-                    System.err.println("Warning: invoke(wait "+wait+", ..) on EDT failed .. invoke on current thread "+Thread.currentThread().getName());
-                    Thread.dumpStack();
-                }
-                task.run();
-            }
-        } else {
-            task.run();
         }
+        if( !_edtUtil.isCurrentThreadEDT() ) {
+            if( _edtUtil.invoke(wait, task) ) {
+                return; // done
+            }
+            if( DEBUG ) {
+                System.err.println("Warning: invoke(wait "+wait+", ..) on EDT failed .. invoke on current thread "+Thread.currentThread().getName());
+                Thread.dumpStack();
+            }
+        }
+        task.run();
     }
 
-    public boolean validateEDT() {
+    public boolean validateEDTStopped() {
         if( 0==refCount && null == aDevice ) {
             final EDTUtil _edtUtil = edtUtil;
             if( null != _edtUtil && _edtUtil.isRunning() ) {

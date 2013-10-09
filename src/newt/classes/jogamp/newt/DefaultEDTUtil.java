@@ -77,7 +77,7 @@ public class DefaultEDTUtil implements EDTUtil {
     }
     
     @Override
-    public final boolean restart() throws IllegalStateException {
+    public final boolean start() throws IllegalStateException {
         synchronized(edtLock) {
             if( edt.isRunning() ) {
                 throw new IllegalStateException("EDT still running and not subject to stop. Curr "+Thread.currentThread().getName()+", EDT "+edt.getName()+", isRunning "+edt.isRunning+", shouldStop "+edt.shouldStop);
@@ -135,6 +135,10 @@ public class DefaultEDTUtil implements EDTUtil {
 
     @Override
     public final boolean invokeStop(boolean wait, Runnable task) {
+        if(DEBUG) {
+            System.err.println(Thread.currentThread()+": Default-EDT.invokeStop wait "+wait);
+            Thread.dumpStack();
+        }
         return invokeImpl(wait, task, true);
     }
 

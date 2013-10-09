@@ -78,7 +78,7 @@ public abstract class Display {
      * Stop the running EDT in case this display is destroyed already.<br>
      * @return true if EDT has been stopped (destroyed but running), otherwise false.
      */
-    public abstract boolean validateEDT();
+    public abstract boolean validateEDTStopped();
 
     /**
      * @return true if the native display handle is valid and ready to operate,

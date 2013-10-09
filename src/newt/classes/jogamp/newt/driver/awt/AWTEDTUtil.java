@@ -68,7 +68,7 @@ public class AWTEDTUtil implements EDTUtil {
     }
     
     @Override
-    public final boolean restart() throws IllegalStateException {
+    public final boolean start() throws IllegalStateException {
         synchronized(edtLock) {
             if( nedt.isRunning() ) {
                 throw new IllegalStateException("EDT still running and not subject to stop. Curr "+Thread.currentThread().getName()+", NEDT "+nedt.getName()+", isRunning "+nedt.isRunning+", shouldStop "+nedt.shouldStop+", on AWT-EDT "+EventQueue.isDispatchThread());

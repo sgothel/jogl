@@ -77,7 +77,7 @@ public class SWTEDTUtil implements EDTUtil {
     }
 
     @Override
-    public final boolean restart() throws IllegalStateException {
+    public final boolean start() throws IllegalStateException {
         final boolean swtDisposed = swtDisplay.isDisposed();
         synchronized(edtLock) {
             if( nedt.isRunning() ) {
