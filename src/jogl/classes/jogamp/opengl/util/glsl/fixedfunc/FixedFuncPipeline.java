@@ -744,8 +744,8 @@ public class FixedFuncPipeline {
             }
         } else {
             // FIXME: Impl. VBO usage .. or unroll (see above)!
-            if( !gl.getContext().isCPUSourcedAvail() ) {                    
-                throw new GLException("CPU sourcing n/a w/ "+gl.getContext());
+            if( !gl.getContext().isCPUDataSourcingAvail() ) {                    
+                throw new GLException("CPU data sourcing n/a w/ "+gl.getContext());
             }
             if( GL2ES1.GL_POINTS != mode ) {
                 ((GLES2)gl).glDrawElements(mode, count, type, indices);

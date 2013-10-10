@@ -334,7 +334,16 @@ private final boolean checkBufferObject(boolean extensionAvail,
   }
 }  
 
+private final void validateCPUSourcedAvail() {
+    if(!_context.isCPUDataSourcingAvail()) {
+        throw new GLException("CPU data sourcing n/a w/ "+_context);
+    }
+}
+
 private final boolean checkArrayVBOUnbound(boolean throwException) { 
+  if(throwException) {
+      validateCPUSourcedAvail();
+  }
   return checkBufferObject(haveGL15 || haveARBVertexBufferObject,
                            haveARBVertexArrayObject, // allowVAO
                            false, // bound
@@ -351,6 +360,9 @@ private final boolean checkArrayVBOBound(boolean throwException) {
 }
 
 private final boolean checkElementVBOUnbound(boolean throwException) { 
+  if(throwException) {
+      validateCPUSourcedAvail();
+  }
   return checkBufferObject(haveGL15 || haveARBVertexBufferObject,
                            haveARBVertexArrayObject, // allowVAO
                            false, // bound
@@ -367,6 +379,9 @@ private final boolean checkElementVBOBound(boolean throwException) {
 }
 
 private final boolean checkIndirectVBOUnbound(boolean throwException) { 
+  if(throwException) {
+      validateCPUSourcedAvail();
+  }
   return checkBufferObject(haveGL15 || haveARBVertexBufferObject,
                            haveARBVertexArrayObject, // allowVAO
                            false, // bound

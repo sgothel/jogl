@@ -255,7 +255,16 @@ private final boolean checkBufferObject(boolean extensionAvail,
   }
 }  
 
+private final void validateCPUSourcedAvail() {
+    if(!_context.isCPUDataSourcingAvail()) {
+        throw new GLException("CPU data sourcing n/a w/ "+_context);
+    }
+}
+
 private final boolean checkArrayVBOUnbound(boolean throwException) { 
+  if(throwException) {
+      validateCPUSourcedAvail();
+  }
   return checkBufferObject(true,
                            _isES3, // allowVAO
                            false, // bound
@@ -272,6 +281,9 @@ private final boolean checkArrayVBOBound(boolean throwException) {
 }
 
 private final boolean checkElementVBOUnbound(boolean throwException) { 
+  if(throwException) {
+      validateCPUSourcedAvail();
+  }
   return checkBufferObject(true,
                            _isES3, // allowVAO
                            false, // bound

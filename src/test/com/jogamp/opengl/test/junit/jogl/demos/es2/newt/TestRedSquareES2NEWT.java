@@ -35,7 +35,6 @@ import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
-import com.jogamp.opengl.test.junit.util.UITestCase.SnapshotGLEventListener;
 
 import com.jogamp.opengl.util.Animator;
 

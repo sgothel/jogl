@@ -522,9 +522,9 @@ public class ImmModeSink {
                     gl.glDrawArrays(mode, 0, vElems);
                 }
             } else {
-                // FIXME: Impl. VBO usage .. or unroll (see above)!
-                if( !gl.getContext().isCPUSourcedAvail() ) {                    
-                    throw new GLException("CPU sourcing n/a w/ "+gl.getContext());
+                // FIXME: Impl. VBO usage .. or unroll.
+                if( !gl.getContext().isCPUDataSourcingAvail() ) {                    
+                    throw new GLException("CPU data sourcing n/a w/ "+gl.getContext());
                 }
                 final int type;
                 if(indices instanceof ByteBuffer) {

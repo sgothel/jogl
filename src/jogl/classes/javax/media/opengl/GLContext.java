@@ -1010,12 +1010,12 @@ public abstract class GLContext {
   }
   
   /**
-   * Indicates whether this GLContext allows CPU sourced data (indices, vertices ..) as opposed to a GPU buffer source (VBO),
+   * Indicates whether this GLContext allows CPU data sourcing (indices, vertices ..) as opposed to using a GPU buffer source (VBO),
    * e.g. {@link GL2#glDrawElements(int, int, int, java.nio.Buffer)}. 
    * <p>Includes [GL2ES1, GLES2] == [ GL4bc, GL3bc, GL2, GLES1, GL2ES1, GLES2 ].</p>
    * <p>See Bug 852 - https://jogamp.org/bugzilla/show_bug.cgi?id=852 </p>
    */
-  public final boolean isCPUSourcedAvail() {
+  public final boolean isCPUDataSourcingAvail() {
       return isGL2ES1() || isGLES2();
   }
   
