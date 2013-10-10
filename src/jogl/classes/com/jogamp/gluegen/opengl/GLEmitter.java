@@ -262,25 +262,31 @@ public class GLEmitter extends ProcAddressEmitter {
     case (though we default to true currently). */
     @Override
     protected List<MethodBinding> expandMethodBinding(MethodBinding binding) {
-        List<MethodBinding> bindings = super.expandMethodBinding(binding);
+        final GLConfiguration glConfig = getGLConfig();
+        final List<MethodBinding> bindings = super.expandMethodBinding(binding);
 
-        if (!getGLConfig().isBufferObjectFunction(binding.getName())) {
+        if ( !glConfig.isBufferObjectFunction(binding.getName()) ) {
             return bindings;
         }
+        final boolean bufferObjectOnly = glConfig.isBufferObjectOnly(binding.getName());
 
-        List<MethodBinding> newBindings = new ArrayList<MethodBinding>(bindings);
+        final List<MethodBinding> newBindings = new ArrayList<MethodBinding>();
 
         // Need to expand each one of the generated bindings to take a
         // Java long instead of a Buffer for each void* argument
 
-        for (MethodBinding cur : bindings) {
-
+        // for (MethodBinding cur : bindings) {
+        int j=0;
+        while( j < bindings.size() ) {
+            final MethodBinding cur = bindings.get(j);
+            
             // Some of these routines (glBitmap) take strongly-typed
             // primitive pointers as arguments which are expanded into
             // non-void* arguments
             // This test (rather than !signatureUsesNIO) is used to catch
             // more unexpected situations
             if (cur.signatureUsesJavaPrimitiveArrays()) {
+                j++;
                 continue;
             }
 
@@ -300,9 +306,16 @@ public class GLEmitter extends ProcAddressEmitter {
             // Now need to flag this MethodBinding so that we generate the
             // correct flags in the emitters later
             bufferObjectMethodBindings.put(result, result);
+            
+            if( bufferObjectOnly ) {
+                bindings.remove(j);
+            } else {
+                j++;
+            }
         }
+        bindings.addAll(newBindings);
 
-        return newBindings;
+        return bindings;
     }
 
     @Override

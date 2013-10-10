@@ -522,6 +522,10 @@ public class ImmModeSink {
                     gl.glDrawArrays(mode, 0, vElems);
                 }
             } else {
+                // FIXME: Impl. VBO usage .. or unroll (see above)!
+                if( !gl.getContext().isCPUSourcedAvail() ) {                    
+                    throw new GLException("CPU sourcing n/a w/ "+gl.getContext());
+                }
                 final int type;
                 if(indices instanceof ByteBuffer) {
                     type =  GL.GL_UNSIGNED_BYTE;
@@ -553,7 +557,7 @@ public class ImmModeSink {
                         }                                                
                     }
                 } else {
-                    gl.glDrawElements(mode, idxLen, type, indices);
+                    ((GL2ES1)gl).glDrawElements(mode, idxLen, type, indices);
                     // GL2: gl.glDrawRangeElements(mode, 0, idxLen-1, idxLen, type, indices);
                 }
             }

@@ -602,11 +602,24 @@
     </target>
 
     <target name="java.generate.gles3">
-        <echo message="Generating GLES3 interface and implementation" />
+        <echo message="Generating GLES3 interface" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.opengl}/gles3.c" 
                  outputRootDir="${build.jogl}"
-                 config="${config.jogl}/gl-es3.cfg"
+                 config="${config.jogl}/gl-if-es3.cfg"
+                 includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen-gl.classpath" />
+        </gluegen>
+    </target>
+
+    <target name="java.generate.gles3impl">
+        <echo message="Generating GLES3 implementation" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
+        <gluegen src="${stub.includes.opengl}/gles3.c" 
+                 outputRootDir="${build.jogl}"
+                 config="${config.jogl}/gl-es3-impl.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
                  literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter">
@@ -641,7 +654,7 @@
         </gluegen>
     </target>
 
-    <target name="java.generate.gl.all" depends="build.gluegen-gl.jar, java.generate.gl_if, java.generate.gl2_es1_if, java.generate.gles1, java.generate.gl2_es2_if, java.generate.gles2, java.generate.gl2_es3_if, java.generate.gl3_es3_if, java.generate.gl2_gl3_if, java.generate.gl2, java.generate.gl3, java.generate.gl3bc, java.generate.gl4_es3_if, java.generate.gles3, java.generate.gl4, java.generate.gl4bc"/>
+    <target name="java.generate.gl.all" depends="build.gluegen-gl.jar, java.generate.gl_if, java.generate.gl2_es1_if, java.generate.gles1, java.generate.gl2_es2_if, java.generate.gles2, java.generate.gl2_es3_if, java.generate.gl3_es3_if, java.generate.gl2_gl3_if, java.generate.gl2, java.generate.gl3, java.generate.gl3bc, java.generate.gl4_es3_if, java.generate.gles3, java.generate.gles3impl, java.generate.gl4, java.generate.gl4bc"/>
 
     <!-- target name="java.generate.gl.nsig" if="gluegen.nsig">
         <echo message="Generating GL interface and implementation" />

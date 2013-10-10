@@ -67,6 +67,7 @@ public class GLConfiguration extends ProcAddressConfiguration {
 
     // Maps function names to the kind of buffer object it deals with
     private Map<String, GLEmitter.BufferObjectKind> bufferObjectKinds = new HashMap<String, GLEmitter.BufferObjectKind>();
+    private Set<String> bufferObjectOnly = new HashSet<String>();
     private GLEmitter emitter;
     private Set<String> dropUniqVendorExtensions = new HashSet<String>();
 
@@ -106,6 +107,9 @@ public class GLConfiguration extends ProcAddressConfiguration {
             glHeaders.add(sym);
         } else if (cmd.equalsIgnoreCase("BufferObjectKind")) {
             readBufferObjectKind(tok, filename, lineNo);
+        } else if (cmd.equalsIgnoreCase("BufferObjectOnly")) {
+            String sym = readString("BufferObjectOnly", tok, filename, lineNo);
+            bufferObjectOnly.add(sym);
         } else if (cmd.equalsIgnoreCase("DropUniqVendorExtensions")) {
             String sym = readString("DropUniqVendorExtensions", tok, filename, lineNo);
             dropUniqVendorExtensions.add(sym);
@@ -338,6 +342,10 @@ public class GLConfiguration extends ProcAddressConfiguration {
 
     public boolean isBufferObjectFunction(String name) {
         return (getBufferObjectKind(name) != null);
+    }
+    
+    public boolean isBufferObjectOnly(String name) { 
+        return bufferObjectOnly.contains(name); 
     }
 
     /** Parses any GL headers specified in the configuration file for

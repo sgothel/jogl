@@ -40,6 +40,7 @@ import javax.media.opengl.GL2ES1;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLArrayData;
+import javax.media.opengl.GLES2;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLRunnable2;
 import javax.media.opengl.GLUniformData;
@@ -741,11 +742,17 @@ public class FixedFuncPipeline {
                     gl.glDrawArrays(GL.GL_TRIANGLE_FAN, (int)(0xffffffff & b.get(idx0+j)), 4);
                 }                                                
             }
-        } else if( GL2ES1.GL_POINTS != mode ) {            
-            gl.glDrawElements(mode, count, type, indices);
         } else {
-            // FIXME GL_POINTS !
-            gl.glDrawElements(mode, count, type, indices);
+            // FIXME: Impl. VBO usage .. or unroll (see above)!
+            if( !gl.getContext().isCPUSourcedAvail() ) {                    
+                throw new GLException("CPU sourcing n/a w/ "+gl.getContext());
+            }
+            if( GL2ES1.GL_POINTS != mode ) {
+                ((GLES2)gl).glDrawElements(mode, count, type, indices);
+            } else {
+                // FIXME GL_POINTS !
+                ((GLES2)gl).glDrawElements(mode, count, type, indices);
+            }
         }
     }
     public void glDrawElements(GL2ES2 gl, int mode, int count, int type, long indices_buffer_offset) {

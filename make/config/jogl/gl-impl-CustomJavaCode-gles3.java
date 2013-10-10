@@ -48,7 +48,7 @@ public final boolean isGLES1() {
 
 @Override
 public final boolean isGLES2() {
-    return true;
+    return !_isES3;
 }
 
 @Override

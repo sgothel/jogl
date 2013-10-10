@@ -1009,6 +1009,16 @@ public abstract class GLContext {
              ) ;
   }
   
+  /**
+   * Indicates whether this GLContext allows CPU sourced data (indices, vertices ..) as opposed to a GPU buffer source (VBO),
+   * e.g. {@link GL2#glDrawElements(int, int, int, java.nio.Buffer)}. 
+   * <p>Includes [GL2ES1, GLES2] == [ GL4bc, GL3bc, GL2, GLES1, GL2ES1, GLES2 ].</p>
+   * <p>See Bug 852 - https://jogamp.org/bugzilla/show_bug.cgi?id=852 </p>
+   */
+  public final boolean isCPUSourcedAvail() {
+      return isGL2ES1() || isGLES2();
+  }
+  
   /** 
    * Indicates whether this GLContext's native profile does not implement a default <i>vertex array object</i> (VAO), 
    * starting w/ OpenGL 3.1 core and GLES3.
@@ -1078,11 +1088,11 @@ public abstract class GLContext {
   }
 
   /**
-   * Indicates whether this GLContext is capable of GLES2.  <p>Includes [ GLES3, GLES2 ].</p> 
+   * Indicates whether this GLContext is capable of GLES2.  <p>Includes [ GLES2 ].</p> 
    * @see GLProfile#isGLES2() 
    */
   public final boolean isGLES2() {
-      return 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() >= 2 ;
+      return 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() == 2 ;
   }
 
   /** 
