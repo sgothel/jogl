@@ -195,8 +195,15 @@ public class ScaleInternal {
         highy_int = heightin - 1;
       lowx_int = 0;
       lowx_float = 0.0f;
-      highx_int = convx_int;
-      highx_float = convx_float;
+      // If we have a single column, fix the max width values
+      // to prevent buffer overflow
+      if (widthin == 1 && widthout == 1) {
+        highx_int = 0;
+        highx_float = 0.0f;
+      } else {
+        highx_int = convx_int;
+        highx_float = convx_float;
+      }
       
       for( j = 0; j < widthout; j++ ) {
         
@@ -414,8 +421,15 @@ public class ScaleInternal {
         highy_int = heightin - 1;
       lowx_int = 0;
       lowx_float = 0.0f;
-      highx_int = convx_int;
-      highx_float = convx_float;
+      // If we have a single column, fix the max width values
+      // to prevent buffer overflow
+      if (widthin == 1 && widthout == 1) {
+        highx_int = 0;
+        highx_float = 0.0f;
+      } else {
+        highx_int = convx_int;
+        highx_float = convx_float;
+      }
       
       for( j = 0; j < widthout; j++ ) {
         
@@ -632,8 +646,15 @@ public class ScaleInternal {
         highy_int = heightin - 1;
       lowx_int = 0;
       lowx_float = 0.0f;
-      highx_int = convx_int;
-      highx_float = convx_float;
+      // If we have a single column, fix the max width values
+      // to prevent buffer overflow
+      if (widthin == 1 && widthout == 1) {
+        highx_int = 0;
+        highx_float = 0.0f;
+      } else {
+        highx_int = convx_int;
+        highx_float = convx_float;
+      }
       
       for( j = 0; j < widthout; j++ ) {
         
@@ -915,8 +936,15 @@ public class ScaleInternal {
         highy_int = heightin - 1;
       lowx_int = 0;
       lowx_float = 0.0f;
-      highx_int = convx_int;
-      highx_float = convx_float;
+      // If we have a single column, fix the max width values
+      // to prevent buffer overflow
+      if (widthin == 1 && widthout == 1) {
+        highx_int = 0;
+        highx_float = 0.0f;
+      } else {
+        highx_int = convx_int;
+        highx_float = convx_float;
+      }
       
       for( j = 0; j < widthout; j++ ) {
         
@@ -1210,8 +1238,15 @@ public class ScaleInternal {
         highy_int = heightin - 1;
       lowx_int = 0;
       lowx_float = 0.0f;
-      highx_int = convx_int;
-      highx_float = convx_float;
+      // If we have a single column, fix the max width values
+      // to prevent buffer overflow
+      if (widthin == 1 && widthout == 1) {
+        highx_int = 0;
+        highx_float = 0.0f;
+      } else {
+        highx_int = convx_int;
+        highx_float = convx_float;
+      }
       
       for( j = 0; j < widthout; j++ ) {
         
@@ -1500,8 +1535,15 @@ public class ScaleInternal {
         highy_int = heightin - 1;
       lowx_int = 0;
       lowx_float = 0.0f;
-      highx_int = convx_int;
-      highx_float = convx_float;
+      // If we have a single column, fix the max width values
+      // to prevent buffer overflow
+      if (widthin == 1 && widthout == 1) {
+        highx_int = 0;
+        highx_float = 0.0f;
+      } else {
+        highx_int = convx_int;
+        highx_float = convx_float;
+      }
       
       for( j = 0; j < widthout; j++ ) {
         
@@ -1797,8 +1839,15 @@ public class ScaleInternal {
         highy_int = heightin - 1;
       lowx_int = 0;
       lowx_float = 0.0f;
-      highx_int = convx_int;
-      highx_float = convx_float;
+      // If we have a single column, fix the max width values
+      // to prevent buffer overflow
+      if (widthin == 1 && widthout == 1) {
+        highx_int = 0;
+        highx_float = 0.0f;
+      } else {
+        highx_int = convx_int;
+        highx_float = convx_float;
+      }
       
       for( j = 0; j < widthout; j++ ) {
         
