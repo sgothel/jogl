@@ -148,11 +148,6 @@ public class AWTTilePainter {
         flipVertical = v;
     }
     
-    private static Rectangle getRoundedRect(Rectangle2D r) {
-        if( null == r ) { return null; }
-        return new Rectangle((int)Math.round(r.getX()), (int)Math.round(r.getY()), 
-                             (int)Math.round(r.getWidth()), (int)Math.round(r.getHeight()));
-    }
     private static Rectangle2D getClipBounds2D(Graphics2D g) {
         final Shape shape = g.getClip();
         return null != shape ? shape.getBounds2D() : null;
@@ -221,8 +216,8 @@ public class AWTTilePainter {
                 dClipScaled = scaledATI.createTransformedShape(s0).getBounds2D(); // scaled out
             }
         }
-        final Rectangle iClipScaled = getRoundedRect(dClipScaled);
-        final Rectangle iImageSizeScaled = getRoundedRect(dImageSizeScaled);
+        final Rectangle iClipScaled = dClipScaled.getBounds();
+        final Rectangle iImageSizeScaled = dImageSizeScaled.getBounds();
         renderer.setImageSize(iImageSizeScaled.width, iImageSizeScaled.height);
         renderer.clipImageSize(iClipScaled.width, iClipScaled.height);
         final int clipH = Math.min(iImageSizeScaled.height, iClipScaled.height);
