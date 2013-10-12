@@ -101,7 +101,7 @@ public class TileRenderer extends TileRendererBase {
      */
     public static final int TR_COLUMNS = 15;
     /**
-     * The current tile number. See {@link #getParam(int)}.
+     * The current tile number. Has value -1 if {@link #eot()}. See {@link #getParam(int)}.
      */
     public static final int TR_CURRENT_TILE_NUM = 16;
     /**
@@ -132,12 +132,13 @@ public class TileRenderer extends TileRendererBase {
     private final Dimension tileSize = new Dimension(DEFAULT_TILE_WIDTH, DEFAULT_TILE_HEIGHT);
     private final Dimension tileSizeNB = new Dimension(DEFAULT_TILE_WIDTH - 2 * DEFAULT_TILE_BORDER, DEFAULT_TILE_HEIGHT - 2 * DEFAULT_TILE_BORDER);
 
-    protected Dimension imageClippingDim = null; // not set - default
+    private boolean isInit = false;
+    private Dimension imageClippingDim = null; // not set - default
     private int tileBorder = DEFAULT_TILE_BORDER;
     private int rowOrder = TR_BOTTOM_TO_TOP;
     private int rows;
     private int columns;
-    private int currentTile = -1; 
+    private int currentTile = 0;
     private int currentRow;
     private int currentColumn;
     private int offsetX;
@@ -158,13 +159,25 @@ public class TileRenderer extends TileRendererBase {
     }
 
     /**
+     * {@inheritDoc}
+     * <p>
+     * Implementation {@link #reset()} internal states.
+     * </p>
+     */
+    @Override
+    public final void setImageSize(int width, int height) {
+        super.setImageSize(width, height);
+        reset();
+    }
+    
+    /**
      * Clips the image-size this tile-renderer iterates through,
      * which can be retrieved via {@link #getClippedImageSize()}.
      * <p>
      * Original image-size stored in this tile-renderer is unmodified.
      * </p>
      * <p>
-     * Method resets internal state and {@link #TR_ROWS} {@link #TR_COLUMNS} count.
+     * Implementation {@link #reset()} internal states.
      * </p>
      * 
      * @param width The image-clipping.width
@@ -178,7 +191,7 @@ public class TileRenderer extends TileRendererBase {
             imageClippingDim.setWidth(width);
             imageClippingDim.setHeight(height);
         }
-        setup();
+        reset();
     }
 
     /**
@@ -210,7 +223,7 @@ public class TileRenderer extends TileRendererBase {
      * effective size of the tile depends on the border size, ie (
      * width - 2*border ) * ( height - 2 * border )
      * <p>
-     * Method resets internal state and {@link #TR_ROWS} {@link #TR_COLUMNS} count.
+     * Implementation {@link #reset()} internal states.
      * </p>
      * 
      * @param width
@@ -236,7 +249,7 @@ public class TileRenderer extends TileRendererBase {
         tileSize.setHeight( height );
         tileSizeNB.setWidth( width - 2 * border );
         tileSizeNB.setHeight( height - 2 * border );
-        setup();
+        reset();
     }
 
     /** 
@@ -251,32 +264,43 @@ public class TileRenderer extends TileRendererBase {
     }
     
     /**
-     * Sets up the number of rows and columns needed
+     * {@inheritDoc}
+     * 
+     * Reset internal states of {@link TileRenderer} are:
+     * <ul> 
+     *  <li>{@link #TR_ROWS}</li>
+     *  <li>{@link #TR_COLUMNS}</li>
+     *  <li>{@link #TR_CURRENT_COLUMN}</li>
+     *  <li>{@link #TR_CURRENT_ROW}</li>
+     *  <li>{@link #TR_CURRENT_TILE_NUM}</li>
+     *  <li>{@link #TR_CURRENT_TILE_X_POS}</li>
+     *  <li>{@link #TR_CURRENT_TILE_Y_POS}</li>
+     *  <li>{@link #TR_CURRENT_TILE_WIDTH}</li>
+     *  <li>{@link #TR_CURRENT_TILE_HEIGHT}</li>
+     *</ul>
      */
-    private final void setup() throws IllegalStateException {
+    @Override
+    public final void reset() {
         final DimensionImmutable clippedImageSize = getClippedImageSize();
         columns = ( clippedImageSize.getWidth() + tileSizeNB.getWidth() - 1 ) / tileSizeNB.getWidth();
         rows = ( clippedImageSize.getHeight() + tileSizeNB.getHeight() - 1 ) / tileSizeNB.getHeight();
+        currentRow = 0;
+        currentColumn = 0;
         currentTile = 0;
         currentTileXPos = 0;
         currentTileYPos = 0;
         currentTileWidth = 0;
         currentTileHeight = 0;
-        currentRow = 0;
-        currentColumn = 0;
 
         assert columns >= 0;
         assert rows >= 0;
+        
+        beginCalled = false;
+        isInit = true;
     }
 
     /* pp */ final int getCurrentTile() { return currentTile; }
     
-    /** 
-     * Returns <code>true</code> if all tiles have been rendered or {@link #setup()}
-     * has not been called, otherwise <code>false</code>.
-     */
-    public final boolean eot() { return 0 > currentTile; }
-
     @Override
     public final int getParam(int pname) {
         switch (pname) {
@@ -341,16 +365,41 @@ public class TileRenderer extends TileRendererBase {
         return 0 < imageSize.getWidth() && 0 < imageSize.getHeight();
     }
     
+    /**
+     * {@inheritDoc}
+     * 
+     * <p> 
+     * <i>end of tiling</i> is reached w/ {@link TileRenderer}, if at least one of the following is true:
+     * <ul>
+     *   <li>all tiles have been rendered, i.e. {@link #TR_CURRENT_TILE_NUM} is -1</li>
+     *   <li>no tiles to render, i.e. {@link #TR_COLUMNS} or {@link #TR_ROWS} is 0</li>
+     * </ul>
+     * </p>
+     */
+    @Override
+    public final boolean eot() {
+        if ( !isInit ) { // ensure at least one reset-call
+            reset();
+        }
+        return 0 > currentTile || 0 >= columns*rows; 
+    }
+    
+    /**
+     * {@inheritDoc}
+     * 
+     * @throws IllegalStateException if {@link #setImageSize(int, int) image-size} has not been set or 
+     *         {@link #eot() end-of-tiling} has been reached.
+     */
     @Override
     public final void beginTile( GL gl ) throws IllegalStateException, GLException {
         if( !isSetup() ) {
-            throw new IllegalStateException("Image size has not been set");        
+            throw new IllegalStateException("Image size has not been set: "+this);
+        }
+        if ( eot() ) {
+            throw new IllegalStateException("EOT reached: "+this);
         }
         validateGL(gl);
-        if (currentTile <= 0) {
-            setup();
-        }
-
+        
         /* which tile (by row and column) we're about to render */
         if (rowOrder == TR_BOTTOM_TO_TOP) {
             currentRow = currentTile / columns;
@@ -390,7 +439,7 @@ public class TileRenderer extends TileRendererBase {
         gl.glViewport( 0, 0, tW, tH );
         
         if( DEBUG ) {
-            System.err.println("TileRenderer.begin.X: "+this.toString());
+            System.err.println("TileRenderer.begin: "+this.toString());
         }
         
         // Do not forget to issue:

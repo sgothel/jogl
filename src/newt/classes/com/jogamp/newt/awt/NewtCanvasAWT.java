@@ -598,16 +598,22 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         final Graphics2D g2d = (Graphics2D)graphics;
         try {
             printAWTTiles.setupGraphics2DAndClipBounds(g2d, getWidth(), getHeight());
-            try {
-                final TileRenderer tileRenderer = printAWTTiles.renderer;
-                if( DEBUG ) {
-                    System.err.println("AWT print.0: "+tileRenderer);
+            final TileRenderer tileRenderer = printAWTTiles.renderer;
+            if( DEBUG ) {
+                System.err.println("AWT print.0: "+tileRenderer);
+            }
+            if( !tileRenderer.eot() ) {
+                try {
+                    do {
+                        tileRenderer.display();
+                    } while ( !tileRenderer.eot() );
+                    if( DEBUG ) {
+                        System.err.println("AWT print.1: "+printAWTTiles);
+                    }
+                    tileRenderer.reset();
+                } finally {
+                    printAWTTiles.resetGraphics2D();
                 }
-                do {
-                    tileRenderer.display();
-                } while ( !tileRenderer.eot() );
-            } finally {
-                printAWTTiles.resetGraphics2D();
             }
         } catch (NoninvertibleTransformException nte) {
             System.err.println("Catched: Inversion failed of: "+g2d.getTransform());

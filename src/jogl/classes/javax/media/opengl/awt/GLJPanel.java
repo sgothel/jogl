@@ -646,17 +646,26 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       final Graphics2D g2d = (Graphics2D)graphics;
       try {
           printAWTTiles.setupGraphics2DAndClipBounds(g2d, getWidth(), getHeight());
-          try {
-              final TileRenderer tileRenderer = printAWTTiles.renderer; 
-              do {
-                  if( printGLAD != GLJPanel.this ) {
-                      tileRenderer.display();
-                  } else {
-                      backend.doPlainPaint();
+          final TileRenderer tileRenderer = printAWTTiles.renderer;
+          if( DEBUG ) {
+              System.err.println("AWT print.0: "+tileRenderer);
+          }
+          if( !tileRenderer.eot() ) {
+              try {
+                  do {
+                      if( printGLAD != GLJPanel.this ) {
+                          tileRenderer.display();
+                      } else {
+                          backend.doPlainPaint();
+                      }
+                  } while ( !tileRenderer.eot() );
+                  if( DEBUG ) {
+                      System.err.println("AWT print.1: "+printAWTTiles);
                   }
-              } while ( !tileRenderer.eot() );
-          } finally {
-              printAWTTiles.resetGraphics2D();
+              } finally {
+                  tileRenderer.reset();
+                  printAWTTiles.resetGraphics2D();
+              }
           }
       } catch (NoninvertibleTransformException nte) {
           System.err.println("Catched: Inversion failed of: "+g2d.getTransform());

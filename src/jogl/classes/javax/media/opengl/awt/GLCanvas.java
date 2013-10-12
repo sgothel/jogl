@@ -837,20 +837,26 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       final Graphics2D g2d = (Graphics2D)graphics;
       try {
           printAWTTiles.setupGraphics2DAndClipBounds(g2d, getWidth(), getHeight());
-          try {
-              final TileRenderer tileRenderer = printAWTTiles.renderer;
-              if( DEBUG ) {
-                  System.err.println("AWT print.0: "+tileRenderer);
-              }
-              do {
-                  if( printGLAD != GLCanvas.this ) {
-                      tileRenderer.display();
-                  } else {
-                      Threading.invoke(true, displayOnEDTAction, getTreeLock());
+          final TileRenderer tileRenderer = printAWTTiles.renderer;
+          if( DEBUG ) {
+              System.err.println("AWT print.0: "+tileRenderer);
+          }
+          if( !tileRenderer.eot() ) {
+              try {
+                  do {
+                      if( printGLAD != GLCanvas.this ) {
+                          tileRenderer.display();
+                      } else {
+                          Threading.invoke(true, displayOnEDTAction, getTreeLock());
+                      }
+                  } while ( !tileRenderer.eot() );
+                  if( DEBUG ) {
+                      System.err.println("AWT print.1: "+printAWTTiles);
                   }
-              } while ( !tileRenderer.eot() );
-          } finally {
-              printAWTTiles.resetGraphics2D();
+              } finally {
+                  tileRenderer.reset();
+                  printAWTTiles.resetGraphics2D();
+              }
           }
       } catch (NoninvertibleTransformException nte) {
           System.err.println("Catched: Inversion failed of: "+g2d.getTransform());

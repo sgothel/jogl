@@ -46,7 +46,6 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
@@ -67,11 +66,6 @@ import org.junit.runners.MethodSorters;
 public class TestTiledRendering1GL2NEWT extends UITestCase {
     static long duration = 500; // ms
 
-    @Test
-    public void test01() throws IOException {
-        doTest();
-    }
-    
     static class DrawableContext {
         DrawableContext(GLDrawable d, GLContext glc) {
             this.d = d;
@@ -102,7 +96,8 @@ public class TestTiledRendering1GL2NEWT extends UITestCase {
         }
     }
     
-    void doTest() throws GLException, IOException {
+    @Test
+    public void test01() throws IOException {
         GLProfile glp = GLProfile.getMaxFixedFunc(true);
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setOnscreen(false);
@@ -132,15 +127,19 @@ public class TestTiledRendering1GL2NEWT extends UITestCase {
         flipVertically[0] = false;
         
         final Gears gears = new Gears();
+        gears.setVerbose(false);
         gears.init(gl);
 
         gears.addTileRendererNotify(renderer);
-        do { 
-            renderer.beginTile(dc.glc.getGL().getGL2ES3());
-            gears.reshape(gl, 0, 0, renderer.getParam(TileRendererBase.TR_CURRENT_TILE_WIDTH), renderer.getParam(TileRendererBase.TR_CURRENT_TILE_HEIGHT));
+        while( !renderer.eot() ) { 
+            renderer.beginTile(gl);
+            gears.reshape(gl,
+                    renderer.getParam(TileRendererBase.TR_CURRENT_TILE_X_POS), renderer.getParam(TileRendererBase.TR_CURRENT_TILE_Y_POS),
+                    renderer.getParam(TileRendererBase.TR_CURRENT_TILE_WIDTH), renderer.getParam(TileRendererBase.TR_CURRENT_TILE_HEIGHT),
+                    renderer.getParam(TileRendererBase.TR_IMAGE_WIDTH), renderer.getParam(TileRendererBase.TR_IMAGE_HEIGHT));
             gears.display(gl);
-            renderer.endTile(dc.glc.getGL().getGL2ES3());
-        } while ( !renderer.eot() );
+            renderer.endTile(gl);
+        }
         gears.removeTileRendererNotify(renderer);
 
         destroyDrawableContext(dc);
@@ -158,6 +157,76 @@ public class TestTiledRendering1GL2NEWT extends UITestCase {
                                null /* Flusher */);
         
         TextureIO.write(textureData, file);
+    }
+    
+    @Test
+    public void test02_EOT_01() throws IOException {
+        GLProfile glp = GLProfile.getMaxFixedFunc(true);
+        GLCapabilities caps = new GLCapabilities(glp);
+        caps.setOnscreen(false);
+        
+        final int maxTileSize = 256;
+        DrawableContext dc = createDrawableAndCurrentCtx(caps, maxTileSize, maxTileSize);
+        final GL2 gl = dc.glc.getGL().getGL2();
+        
+        // Fix the image size for now
+        final int imageWidth = dc.d.getWidth() * 6;
+        final int imageHeight = dc.d.getHeight() * 4;
+        
+        // Initialize the tile rendering library
+        final TileRenderer renderer = new com.jogamp.opengl.util.TileRenderer();
+        renderer.setTileSize(dc.d.getWidth(), dc.d.getHeight(), 0);
+        
+        IllegalStateException ise = null;
+        try {
+            renderer.beginTile(gl); // Image size has not been set
+        } catch (IllegalStateException _ise) {
+            ise = _ise;
+            System.err.println("Expected "+ise.getClass().getSimpleName()+": "+ise.getMessage());
+        }
+        Assert.assertNotNull("TileRenderer.beginTile: Image-size exception missing", ise);
+        
+        renderer.setImageSize(imageWidth, imageHeight);
+        
+        renderer.clipImageSize(0, 0);
+        try {
+            renderer.beginTile(gl); // EOT reached (1)
+        } catch (IllegalStateException _ise) {
+            ise = _ise;
+            System.err.println("Expected "+ise.getClass().getSimpleName()+": "+ise.getMessage());
+        }
+        Assert.assertNotNull("TileRenderer.beginTile: EOT (1) exception missing", ise);
+        
+        renderer.clipImageSize(imageWidth, imageHeight); // back to full size
+        
+        final Gears gears = new Gears();
+        gears.setVerbose(false);
+        gears.init(gl);
+
+        gears.addTileRendererNotify(renderer);
+        int numTiles = 0;
+        while( !renderer.eot() ) { 
+            renderer.beginTile(gl);
+            gears.reshape(gl,
+                    renderer.getParam(TileRendererBase.TR_CURRENT_TILE_X_POS), renderer.getParam(TileRendererBase.TR_CURRENT_TILE_Y_POS),
+                    renderer.getParam(TileRendererBase.TR_CURRENT_TILE_WIDTH), renderer.getParam(TileRendererBase.TR_CURRENT_TILE_HEIGHT),
+                    renderer.getParam(TileRendererBase.TR_IMAGE_WIDTH), renderer.getParam(TileRendererBase.TR_IMAGE_HEIGHT));
+            gears.display(gl);
+            renderer.endTile(gl);
+            numTiles++;
+        }
+        try {
+            renderer.beginTile(gl); // EOT reached (2)
+        } catch (IllegalStateException _ise) {
+            ise = _ise;
+            System.err.println("Expected "+ise.getClass().getSimpleName()+": "+ise.getMessage());
+        }
+        Assert.assertNotNull("TileRenderer.beginTile: EOT (2) exception missing", ise);
+        gears.removeTileRendererNotify(renderer);
+        
+        Assert.assertTrue("TileRenderer not rendered more than one tile but "+numTiles, numTiles > 1);
+
+        destroyDrawableContext(dc);
     }
     
     public static void main(String args[]) {

@@ -241,6 +241,7 @@ public abstract class TileRendererBase {
         tileDetails(sb);
         sb.append("], image[size "+imageSize+", buffer "+hashStr(imageBuffer)+"], glad["+
                 gladListenerCount+" listener, pre "+(null!=glEventListenerPre)+", post "+(null!=glEventListenerPost)+", preSwap "+gladRequiresPreSwap+"]");
+        sb.append(", isSetup "+isSetup());
         return sb;
     }
     public String toString() {
@@ -284,7 +285,7 @@ public abstract class TileRendererBase {
      * @param width The width of the final image
      * @param height The height of the final image
      */
-    public final void setImageSize(int width, int height) {
+    public void setImageSize(int width, int height) {
         imageSize.setWidth(width);
         imageSize.setHeight(height);
     }
@@ -321,6 +322,27 @@ public abstract class TileRendererBase {
     public abstract boolean isSetup();
     
     /**
+     * Returns true if <i>end of tiling</i> has been reached, otherwise false.
+     * <p>
+     * <i>end of tiling</i> criteria is implementation specific and may never be reached.
+     * </p>
+     * <p>
+     * User needs to {@link #reset()} tiling after reaching <i>end of tiling</i>
+     * before calling {@link #beginTile(GL)} again.
+     * </p>
+     */
+    public abstract boolean eot();
+    
+    /**
+     * Method resets implementation's internal state to <i>start of tiling</i>
+     * as required for {@link #beginTile(GL)} if {@link #eot() end of tiling} has been reached.
+     * <p>
+     * Implementation is a <i>nop</i> where {@link #eot() end of tiling} is never reached.
+     * </p>
+     */
+    public abstract void reset();
+    
+    /**
      * Begins rendering a tile.
      * <p>
      * This method modifies the viewport, see below.
@@ -351,10 +373,19 @@ public abstract class TileRendererBase {
      * <p>
      * User has to comply with the <a href="#glprequirement">GL profile requirement</a>.
      * </p>
+     * <p>
+     * If {@link #eot() end of tiling} has been reached,
+     * user needs to {@link #reset()} tiling before calling this method.
+     * </p>
      * 
      * @param gl The gl context
-     * @throws IllegalStateException if image-size has not been set
+     * @throws IllegalStateException if {@link #setImageSize(int, int) image-size} is undefined,
+     *         an {@link #isSetup() implementation related setup} has not be performed 
+     *         or {@ link #eot()} has been reached. See implementing classes.
      * @throws GLException if {@link #setImageBuffer(GLPixelBuffer) image buffer} is used but <code>gl</code> instance is &lt; {@link GL2ES3}
+     * @see #isSetup()
+     * @see #eot()
+     * @see #reset()
      */
     public abstract void beginTile(GL gl) throws IllegalStateException, GLException;
     
@@ -591,6 +622,12 @@ public abstract class TileRendererBase {
             if( !isSetup() ) {
                 if( DEBUG ) {
                     System.err.println("TileRenderer.glel.display: !setup: "+TileRendererBase.this);
+                }
+                return;
+            }
+            if( eot() ) {
+                if( DEBUG ) {
+                    System.err.println("TileRenderer.glel.display: EOT: "+TileRendererBase.this);
                 }
                 return;
             }

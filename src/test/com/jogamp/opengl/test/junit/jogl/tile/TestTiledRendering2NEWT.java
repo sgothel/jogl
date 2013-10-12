@@ -215,9 +215,9 @@ public class TestTiledRendering2NEWT extends UITestCase {
         };
         renderer.setGLEventListener(preTileGLEL, null);
 
-        do {
+        while ( !renderer.eot() ) {
             renderer.display();
-        } while ( !renderer.eot() );
+        }
 
         renderer.detachAutoDrawable();
         

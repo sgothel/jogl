@@ -96,7 +96,28 @@ public class RandomTileRenderer extends TileRendererBase {
     
     /**
      * {@inheritDoc}
-     * @throws IllegalStateException if image-size or tileRect has not been set
+     * 
+     * <p> 
+     * <i>end of tiling</i> is never reached w/ {@link RandomRileRenderer},
+     * i.e. method always returns false.
+     * </p>
+     */
+    @Override
+    public final boolean eot() { return false; }
+    
+    /**
+     * {@inheritDoc}
+     * 
+     * Reset internal states of {@link RandomTileRenderer} are: <i>none</i>.
+     */
+    @Override
+    public final void reset() { }
+    
+    /**
+     * {@inheritDoc}
+     * 
+     * @throws IllegalStateException if {@link #setImageSize(int, int) image-size} has not been set or 
+     *         {@link #setTileRect(int, int, int, int) tile-rect} has not been set.
      */
     @Override
     public final void beginTile(GL gl) throws IllegalStateException, GLException {

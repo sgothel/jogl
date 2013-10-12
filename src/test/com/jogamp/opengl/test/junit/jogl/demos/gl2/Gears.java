@@ -97,11 +97,6 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
   public void init(GLAutoDrawable drawable) {
     GL2 gl = drawable.getGL().getGL2();
 
-    System.err.println(Thread.currentThread()+" Gears.init: tileRendererInUse "+tileRendererInUse);
-    System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
-    System.err.println("INIT GL IS: " + gl.getClass().getName());
-    System.err.println(JoglVersion.getGLStrings(gl, null, false).toString());
-
     init(gl);
     
     final Object upstreamWidget = drawable.getUpstreamWidget();
@@ -122,6 +117,14 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
     float green[] = { 0.0f, 0.8f, 0.2f, 0.7f };
     float blue[] = { 0.2f, 0.2f, 1.0f, 0.7f };
 
+    System.err.println(Thread.currentThread()+" Gears.init: tileRendererInUse "+tileRendererInUse);
+    if(verbose) {
+        System.err.println("GearsES2 init on "+Thread.currentThread());
+        System.err.println("Chosen GLCapabilities: " + gl.getContext().getGLDrawable().getChosenGLCapabilities());
+        System.err.println("INIT GL IS: " + gl.getClass().getName());
+        System.err.println(JoglVersion.getGLStrings(gl, null, false).toString());
+    }
+    
     gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, pos, 0);
     gl.glEnable(GL2.GL_CULL_FACE);
     gl.glEnable(GL2.GL_LIGHTING);
@@ -171,11 +174,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
       if(-1 != swapInterval) {        
           gl.setSwapInterval(swapInterval);
       }
-      reshapeImpl(gl, x, y, width, height, width, height);
-  }
-
-  public void reshape(GL2 gl, int x, int y, int width, int height) {
-      reshapeImpl(gl, x, y, width, height, width, height);
+      reshape(gl, x, y, width, height, width, height);
   }
 
   @Override
@@ -184,10 +183,10 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
           int imageWidth, int imageHeight) {
       final GL2 gl = tr.getAttachedDrawable().getGL().getGL2();
       gl.setSwapInterval(0);
-      reshapeImpl(gl, tileX, tileY, tileWidth, tileHeight, imageWidth, imageHeight);
+      reshape(gl, tileX, tileY, tileWidth, tileHeight, imageWidth, imageHeight);
   }
 
-  void reshapeImpl(GL2 gl, int tileX, int tileY, int tileWidth, int tileHeight, int imageWidth, int imageHeight) {
+  public void reshape(GL2 gl, int tileX, int tileY, int tileWidth, int tileHeight, int imageWidth, int imageHeight) {
     final boolean msaa = gl.getContext().getGLDrawable().getChosenGLCapabilities().getSampleBuffers();
     System.err.println(Thread.currentThread()+" Gears.reshape "+tileX+"/"+tileY+" "+tileWidth+"x"+tileHeight+" of "+imageWidth+"x"+imageHeight+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(gl.getContext().getGLDrawable().getHandle())+", msaa "+msaa+", tileRendererInUse "+tileRendererInUse);
 
