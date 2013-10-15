@@ -44,8 +44,8 @@ public class MovieSimpleActivityLauncher00c extends LauncherUtil.BaseActivityLau
        props.setProperty("jnlp.mplayer.nozoom",     "false");
        props.setProperty("jnlp.mplayer.hud",        "false");
        props.setProperty("jnlp.mplayer.hud.shared", "false");
-       props.setProperty("jnlp.media0_url2", "camera://0");
-       props.setProperty("jnlp.media0_url1", "http://video.webmfiles.org/big-buck-bunny_trailer.webm");
+       props.setProperty("jnlp.media0_url2", "camera:/0");
+       props.setProperty("jnlp.media0_url1", "http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4");
        props.setProperty("jnlp.media0_url0", "file:///mnt/sdcard/Movies/BigBuckBunny_320x180.mp4");
        // props.setProperty("jogamp.debug.JNILibLoader", "true");
        // props.setProperty("jogamp.debug.NativeLibrary", "true");

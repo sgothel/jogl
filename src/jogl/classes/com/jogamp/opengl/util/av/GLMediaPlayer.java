@@ -195,7 +195,7 @@ public interface GLMediaPlayer extends TextureSequence {
     public static final int STREAM_ID_AUTO = -1;
     
     /** 
-     * {@link URI#getScheme() URI scheme} name {@value} for camera input. E.g. <code>camera://0</code>
+     * {@link URI#getScheme() URI scheme} name {@value} for camera input. E.g. <code>camera:/0</code>
      * for the 1st camera device.
      * <p>
      * The {@link URI#getRawPath() URI path} is being used to identify the camera (<i>ID</i>),
