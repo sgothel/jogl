@@ -48,6 +48,8 @@ import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
+import com.jogamp.newt.event.DoubleTapScrollGesture;
+import com.jogamp.newt.event.GestureHandler;
 import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
@@ -60,6 +62,7 @@ import com.jogamp.newt.event.MonitorModeListener;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.event.WindowUpdateEvent;
+import com.jogamp.newt.event.MouseEvent.PointerType;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -71,6 +74,7 @@ import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.SurfaceUpdatedListener;
 import javax.media.nativewindow.WindowClosingProtocol;
+import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
@@ -176,13 +180,41 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private ArrayList<NativeWindow> childWindows = new ArrayList<NativeWindow>();
 
     private ArrayList<MouseListener> mouseListeners = new ArrayList<MouseListener>();
-    private short mouseButtonPressed = (short)0;  // current pressed mouse button number
-    private int mouseButtonModMask = 0;  // current pressed mouse button modifier mask
-    private long lastMousePressed = 0;    // last time when a mouse button was pressed
-    private short lastMouseClickCount = (short)0; // last mouse button click count
-    private boolean mouseInWindow = false;// mouse entered window - is inside the window (may be synthetic)
-    private Point lastMousePosition = new Point();
-
+    
+    private static class PointerState0 {
+        /** current pressed mouse button number */
+        private short buttonPressed = (short)0;
+        /** current pressed mouse button modifier mask */
+        private int buttonModMask = 0;
+        /** last time when a mouse button was pressed */
+        private long lastButtonPressTime = 0;
+        /** last mouse button click count */
+        private short lastButtonClickCount = (short)0;
+        /** mouse entered window - is inside the window (may be synthetic) */
+        private boolean insideWindow = false;
+        /** last mouse-move position */
+        private Point lastMovePosition = new Point();
+    }
+    private static class PointerState1 {
+        /** current pressed mouse button number */
+        private short buttonPressed = (short)0;
+        /** last time when a mouse button was pressed */
+        private long lastButtonPressTime = 0;
+        /** mouse entered window - is inside the window (may be synthetic) */
+        private boolean insideWindow = false;
+        /** last mouse-move position */
+        private Point lastMovePosition = new Point();
+    }
+    /** doMouseEvent */
+    private PointerState0 pState0 = new PointerState0();
+    /** consumeMouseEvent */
+    private PointerState1 pState1 = new PointerState1();
+    private boolean defaultGestureHandlerEnabled = true;
+    private DoubleTapScrollGesture gesture2PtrTouchScroll = null;
+    private ArrayList<GestureHandler> pointerGestureHandler = new ArrayList<GestureHandler>();
+    
+    private ArrayList<GestureHandler.GestureListener> gestureListeners = new ArrayList<GestureHandler.GestureListener>();
+    
     private ArrayList<KeyListener> keyListeners = new ArrayList<KeyListener>();
 
     private ArrayList<WindowListener> windowListeners  = new ArrayList<WindowListener>();
@@ -1754,6 +1786,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         for (int i = 0; i < mouseListeners.size(); i++ ) {
           sb.append(mouseListeners.get(i)+", ");
         }
+        sb.append("], PointerGestures default "+defaultGestureHandlerEnabled+", custom "+pointerGestureHandler.size()+" [");
+        for (int i = 0; i < pointerGestureHandler.size(); i++ ) {
+          sb.append(pointerGestureHandler.get(i)+", ");
+        }
         sb.append("], KeyListeners num "+keyListeners.size()+" [");
         for (int i = 0; i < keyListeners.size(); i++ ) {
           sb.append(keyListeners.get(i)+", ");
@@ -2166,7 +2202,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private final MonitorModeListenerImpl monitorModeListenerImpl = new MonitorModeListenerImpl();
 
 
-
     //----------------------------------------------------------------------
     // Child Window Management
     // 
@@ -2286,17 +2321,22 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     //
     // MouseListener/Event Support
     //
+    
+    //
+    // Native MouseEvents pre-processed to be enqueued or consumed directly
+    //
+    
     public final void sendMouseEvent(short eventType, int modifiers,
                                      int x, int y, short button, float rotation) {
-        doMouseEvent(false, false, eventType, modifiers, x, y, button, rotation);
+        doMouseEvent(false, false, eventType, modifiers, x, y, button, MouseEvent.getRotationXYZ(rotation, modifiers), 1f);
     }
     public final void enqueueMouseEvent(boolean wait, short eventType, int modifiers,
                                         int x, int y, short button, float rotation) {
-        doMouseEvent(true, wait, eventType, modifiers, x, y, button, rotation);
+        doMouseEvent(true, wait, eventType, modifiers, x, y, button, MouseEvent.getRotationXYZ(rotation, modifiers), 1f);
     }
     protected final void doMouseEvent(boolean enqueue, boolean wait, short eventType, int modifiers,
                                       int x, int y, short button, float rotation) {
-        this.doMouseEvent(enqueue, wait, eventType, modifiers, x, y, button, MouseEvent.getRotationXYZ(rotation, modifiers), 1f);
+        doMouseEvent(enqueue, wait, eventType, modifiers, x, y, button, MouseEvent.getRotationXYZ(rotation, modifiers), 1f);
     }
     /**
     public final void sendMouseEvent(short eventType, int modifiers,
@@ -2309,57 +2349,73 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     } */
     protected void doMouseEvent(boolean enqueue, boolean wait, short eventType, int modifiers,
                                 int x, int y, short button, float[] rotationXYZ, float rotationScale) {
-        if( eventType == MouseEvent.EVENT_MOUSE_ENTERED || eventType == MouseEvent.EVENT_MOUSE_EXITED ) {
-            if( eventType == MouseEvent.EVENT_MOUSE_EXITED && x==-1 && y==-1 ) {
-                x = lastMousePosition.getX();
-                y = lastMousePosition.getY();
-            }
-            // clip coordinates to window dimension
-            x = Math.min(Math.max(x,  0), getWidth()-1);
-            y = Math.min(Math.max(y,  0), getHeight()-1);
-            mouseInWindow = eventType == MouseEvent.EVENT_MOUSE_ENTERED;
-            // clear states
-            lastMousePressed = 0;
-            lastMouseClickCount = (short)0; 
-            mouseButtonPressed = 0;
-            mouseButtonModMask = 0;
+        if( 0 > button || button > MouseEvent.BUTTON_NUMBER ) {
+            throw new NativeWindowException("Invalid mouse button number" + button);
         }
+        
+        //
+        // Remove redundant events, determine ENTERED state and reset states if applicable 
+        //
+        final long when = System.currentTimeMillis();
+        switch( eventType ) {
+            case MouseEvent.EVENT_MOUSE_EXITED:
+                if( x==-1 && y==-1 ) {
+                    x = pState0.lastMovePosition.getX();
+                    y = pState0.lastMovePosition.getY();
+                }
+                // Fall through intended!
+                
+            case MouseEvent.EVENT_MOUSE_ENTERED:
+                // clip coordinates to window dimension
+                x = Math.min(Math.max(x,  0), getWidth()-1);
+                y = Math.min(Math.max(y,  0), getHeight()-1);
+                pState0.insideWindow = eventType == MouseEvent.EVENT_MOUSE_ENTERED;
+                // clear states
+                pState0.lastButtonPressTime = 0;
+                pState0.lastButtonClickCount = (short)0; 
+                pState0.buttonPressed = 0;
+                pState0.buttonModMask = 0;
+                break;
+                
+            case MouseEvent.EVENT_MOUSE_MOVED:
+            case MouseEvent.EVENT_MOUSE_DRAGGED:
+                if( pState0.insideWindow && pState0.lastMovePosition.getX() == x && pState0.lastMovePosition.getY() == y ) { 
+                    if(DEBUG_MOUSE_EVENT) {
+                        System.err.println("doMouseEvent: skip EVENT_MOUSE_MOVED w/ same position: "+pState0.lastMovePosition);
+                    }
+                    return; // skip same position
+                }
+                pState0.lastMovePosition.setX(x);
+                pState0.lastMovePosition.setY(y);
+                
+                // Fall through intended !
+                
+            default:
+                if(!pState0.insideWindow) {
+                    pState0.insideWindow = true;
+                    
+                    // clear states
+                    pState0.lastButtonPressTime = 0;
+                    pState0.lastButtonClickCount = (short)0; 
+                    pState0.buttonPressed = 0;
+                    pState0.buttonModMask = 0;
+                }
+        }
+        
         if( x < 0 || y < 0 || x >= getWidth() || y >= getHeight() ) {
+            if(DEBUG_MOUSE_EVENT) {
+                System.err.println("doMouseEvent: drop: "+MouseEvent.getEventTypeString(eventType)+
+                                   ", mod "+modifiers+", pos "+x+"/"+y+", button "+button+", lastMousePosition: "+pState0.lastMovePosition);
+            }
             return; // .. invalid ..
         }
         if(DEBUG_MOUSE_EVENT) {
             System.err.println("doMouseEvent: enqueue "+enqueue+", wait "+wait+", "+MouseEvent.getEventTypeString(eventType)+
-                               ", mod "+modifiers+", pos "+x+"/"+y+", button "+button+", lastMousePosition: "+lastMousePosition);
+                               ", mod "+modifiers+", pos "+x+"/"+y+", button "+button+", lastMousePosition: "+pState0.lastMovePosition);
         }
-        final long when = System.currentTimeMillis();
-        MouseEvent eEntered = null;
-        if(eventType == MouseEvent.EVENT_MOUSE_MOVED) {
-            if(!mouseInWindow) {
-                mouseInWindow = true;
-                eEntered = new MouseEvent(MouseEvent.EVENT_MOUSE_ENTERED, this, when,
-                                          modifiers, x, y, (short)0, (short)0, rotationXYZ, rotationScale);
-                // clear states
-                lastMousePressed = 0;
-                lastMouseClickCount = (short)0; 
-                mouseButtonPressed = 0;
-                mouseButtonModMask = 0;
-            } else if( lastMousePosition.getX() == x && lastMousePosition.getY()==y ) { 
-                if(DEBUG_MOUSE_EVENT) {
-                    System.err.println("doMouseEvent: skip EVENT_MOUSE_MOVED w/ same position: "+lastMousePosition);
-                }
-                return; // skip same position
-            }
-            lastMousePosition.setX(x);
-            lastMousePosition.setY(y);
-        }
-        if( 0 > button || button > MouseEvent.BUTTON_NUMBER ) {
-            throw new NativeWindowException("Invalid mouse button number" + button);
-        }
+        
         modifiers |= InputEvent.getButtonMask(button); // Always add current button to modifier mask (Bug 571)
-        modifiers |= mouseButtonModMask; // Always add currently pressed mouse buttons to modifier mask
-
-        MouseEvent eClicked = null;
-        MouseEvent e = null;
+        modifiers |= pState0.buttonModMask; // Always add currently pressed mouse buttons to modifier mask
 
         if( isPointerConfined() ) {
             modifiers |= InputEvent.CONFINED_MASK;
@@ -2368,64 +2424,86 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             modifiers |= InputEvent.INVISIBLE_MASK;
         }
         
-        if( MouseEvent.EVENT_MOUSE_PRESSED == eventType ) {
-            if( when - lastMousePressed < MouseEvent.getClickTimeout() ) {
-                lastMouseClickCount++;
-            } else {
-                lastMouseClickCount=(short)1;
-            }
-            lastMousePressed = when;
-            mouseButtonPressed = button;
-            mouseButtonModMask |= MouseEvent.getButtonMask(button);
-            e = new MouseEvent(eventType, this, when,
-                               modifiers, x, y, lastMouseClickCount, button, rotationXYZ, rotationScale);
-        } else if( MouseEvent.EVENT_MOUSE_RELEASED == eventType ) {
-            e = new MouseEvent(eventType, this, when,
-                               modifiers, x, y, lastMouseClickCount, button, rotationXYZ, rotationScale);
-            if( when - lastMousePressed < MouseEvent.getClickTimeout() ) {
-                eClicked = new MouseEvent(MouseEvent.EVENT_MOUSE_CLICKED, this, when,
-                                          modifiers, x, y, lastMouseClickCount, button, rotationXYZ, rotationScale);
-            } else {
-                lastMouseClickCount = (short)0;
-                lastMousePressed = 0;
-            }
-            mouseButtonPressed = 0;
-            mouseButtonModMask &= ~MouseEvent.getButtonMask(button);
-        } else if( MouseEvent.EVENT_MOUSE_MOVED == eventType ) {
-            if ( mouseButtonPressed > 0 ) {
-                e = new MouseEvent(MouseEvent.EVENT_MOUSE_DRAGGED, this, when,
-                                   modifiers, x, y, (short)1, mouseButtonPressed, rotationXYZ, rotationScale);
-            } else {
+        final MouseEvent e;
+
+        switch( eventType ) {
+            case MouseEvent.EVENT_MOUSE_PRESSED:
+                if( when - pState0.lastButtonPressTime < MouseEvent.getClickTimeout() ) {
+                    pState0.lastButtonClickCount++;
+                } else {
+                    pState0.lastButtonClickCount=(short)1;
+                }
+                pState0.lastButtonPressTime = when;
+                pState0.buttonPressed = button;
+                pState0.buttonModMask |= MouseEvent.getButtonMask(button);
                 e = new MouseEvent(eventType, this, when,
-                                   modifiers, x, y, (short)0, button, rotationXYZ, rotationScale);
-            }
-        } else if( MouseEvent.EVENT_MOUSE_WHEEL_MOVED == eventType ) {
-            e = new MouseEvent(eventType, this, when, modifiers, x, y, (short)0, button, rotationXYZ, rotationScale);
-        } else {
-            e = new MouseEvent(eventType, this, when, modifiers, x, y, (short)0, button, rotationXYZ, rotationScale);
-        }
-        if( null != eEntered ) {
-            if(DEBUG_MOUSE_EVENT) {
-                System.err.println("doMouseEvent: synthesized MOUSE_ENTERED event: "+eEntered);
-            }
-            doEvent(enqueue, wait, eEntered);
+                                   modifiers, x, y, pState0.lastButtonClickCount, button, rotationXYZ, rotationScale);
+                break;
+            case MouseEvent.EVENT_MOUSE_RELEASED:
+                e = new MouseEvent(eventType, this, when,
+                                   modifiers, x, y, pState0.lastButtonClickCount, button, rotationXYZ, rotationScale);
+                if( when - pState0.lastButtonPressTime >= MouseEvent.getClickTimeout() ) {
+                    pState0.lastButtonClickCount = (short)0;
+                    pState0.lastButtonPressTime = 0;
+                }
+                pState0.buttonPressed = 0;
+                pState0.buttonModMask &= ~MouseEvent.getButtonMask(button);
+                break;
+            case MouseEvent.EVENT_MOUSE_MOVED:
+                if ( pState0.buttonPressed > 0 ) {
+                    e = new MouseEvent(MouseEvent.EVENT_MOUSE_DRAGGED, this, when,
+                                       modifiers, x, y, (short)1, pState0.buttonPressed, rotationXYZ, rotationScale);
+                } else {
+                    e = new MouseEvent(eventType, this, when,
+                                       modifiers, x, y, (short)0, button, rotationXYZ, rotationScale);
+                }
+                break;
+            default:
+                e = new MouseEvent(eventType, this, when, modifiers, x, y, (short)0, button, rotationXYZ, rotationScale);
         }
         doEvent(enqueue, wait, e); // actual mouse event
-        if( null != eClicked ) {
-            if(DEBUG_MOUSE_EVENT) {
-                System.err.println("doMouseEvent: synthesized MOUSE_CLICKED event: "+eClicked);
-            }
-            doEvent(enqueue, wait, eClicked);
-        }
     }
 
+    /**
+     * Send multiple-pointer event directly to be consumed
+     * <p>
+     * The index for the element of multiple-pointer arrays represents the pointer which triggered the event
+     * is passed via <i>actionIdx</i>.
+     * </p>  
+     * 
+     * @param eventType
+     * @param source
+     * @param when
+     * @param modifiers
+     * @param actionIdx index of multiple-pointer arrays representing the pointer which triggered the event
+     * @param pointerType PointerType for each pointer (multiple pointer)
+     * @param pointerID Pointer ID for each pointer (multiple pointer)
+     * @param x X-axis for each pointer (multiple pointer)
+     * @param y Y-axis for each pointer (multiple pointer)
+     * @param pressure Pressure for each pointer (multiple pointer)
+     * @param maxPressure Maximum pointer pressure for all pointer
+     * @param button Corresponding mouse-button
+     * @param clickCount Mouse-button click-count
+     * @param rotationXYZ Rotation of all axis
+     * @param rotationScale Rotation scale
+     */
+    public void sendMouseEvent(short eventType, Object source, long when, int modifiers, 
+                               int actionIdx, PointerType pointerType[], short[] pointerID,
+                               int[] x, int[] y, float[] pressure, float maxPressure, 
+                               short button, short clickCount, float[] rotationXYZ, float rotationScale) {
+        final MouseEvent pe = MouseEvent.create(eventType, source, when, modifiers, actionIdx, 
+                                                pointerType, pointerID, x, y, pressure, maxPressure, button, clickCount, 
+                                                rotationXYZ, rotationScale);
+        consumeMouseEvent(pe);
+    }
+    
     @Override
-    public void addMouseListener(MouseListener l) {
+    public final void addMouseListener(MouseListener l) {
         addMouseListener(-1, l);
     }
 
     @Override
-    public void addMouseListener(int index, MouseListener l) {
+    public final void addMouseListener(int index, MouseListener l) {
         if(l == null) {
             return;
         }
@@ -2439,7 +2517,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public void removeMouseListener(MouseListener l) {
+    public final void removeMouseListener(MouseListener l) {
         if (l == null) {
             return;
         }
@@ -2450,7 +2528,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public MouseListener getMouseListener(int index) {
+    public final MouseListener getMouseListener(int index) {
         @SuppressWarnings("unchecked")
         ArrayList<MouseListener> clonedListeners = (ArrayList<MouseListener>) mouseListeners.clone();
         if(0>index) { 
@@ -2460,14 +2538,273 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public MouseListener[] getMouseListeners() {
+    public final MouseListener[] getMouseListeners() {
         return mouseListeners.toArray(new MouseListener[mouseListeners.size()]);
     }
 
-    protected void consumeMouseEvent(MouseEvent e) {
-        if(DEBUG_MOUSE_EVENT) {
-            System.err.println("consumeMouseEvent: event:         "+e);
+    @Override
+    public final void setDefaultGesturesEnabled(boolean enable) {
+        defaultGestureHandlerEnabled = enable;
+    }
+    @Override
+    public final boolean areDefaultGesturesEnabled() {
+        return defaultGestureHandlerEnabled;
+    }
+    
+    @Override
+    public final void addGestureHandler(GestureHandler gh) {
+        addGestureHandler(-1, gh);
+    }
+    @Override
+    public final void addGestureHandler(int index, GestureHandler gh) {
+        if(gh == null) {
+            return;
         }
+        @SuppressWarnings("unchecked")
+        ArrayList<GestureHandler> cloned = (ArrayList<GestureHandler>) pointerGestureHandler.clone();
+        if(0>index) { 
+            index = cloned.size();
+        }
+        cloned.add(index, gh);
+        pointerGestureHandler = cloned;
+    }
+    @Override
+    public final void removeGestureHandler(GestureHandler gh) {
+        if (gh == null) {
+            return;
+        }
+        @SuppressWarnings("unchecked")
+        ArrayList<GestureHandler> cloned = (ArrayList<GestureHandler>) pointerGestureHandler.clone();
+        cloned.remove(gh);
+        pointerGestureHandler = cloned;
+    }
+    @Override
+    public final void addGestureListener(GestureHandler.GestureListener gl) {
+        addGestureListener(-1, gl);
+    }
+    @Override
+    public final void addGestureListener(int index, GestureHandler.GestureListener gl) {
+        if(gl == null) {
+            return;
+        }
+        @SuppressWarnings("unchecked")
+        ArrayList<GestureHandler.GestureListener> cloned = (ArrayList<GestureHandler.GestureListener>) gestureListeners.clone();
+        if(0>index) { 
+            index = cloned.size();
+        }
+        cloned.add(index, gl);
+        gestureListeners = cloned;
+    }
+    @Override
+    public final void removeGestureListener(GestureHandler.GestureListener gl) {
+        if (gl == null) {
+            return;
+        }
+        @SuppressWarnings("unchecked")
+        ArrayList<GestureHandler.GestureListener> cloned = (ArrayList<GestureHandler.GestureListener>) gestureListeners.clone();
+        cloned.remove(gl);
+        gestureListeners= cloned;
+    }
+    
+    private static int step(int lower, int edge, int value) {
+        return value < edge ? lower : value;
+    }
+    
+    /**
+     * Consume the {@link MouseEvent}, i.e.
+     * <pre>
+     *   - validate
+     *   - handle gestures
+     *   - synthesize events if applicable (like gestures)
+     *   - dispatch event to listener
+     * </pre>
+     */
+    protected void consumeMouseEvent(MouseEvent pe) {        
+        final int x = pe.getX();
+        final int y = pe.getY();
+        
+        if( x < 0 || y < 0 || x >= getWidth() || y >= getHeight() ) {
+            if(DEBUG_MOUSE_EVENT) {
+                System.err.println("consumeMouseEvent.drop: "+pe);
+            }
+            return; // .. invalid ..
+        }
+        if(DEBUG_MOUSE_EVENT) {
+            System.err.println("consumeMouseEvent.in: "+pe);
+        }
+        
+        //
+        // - Remove redundant events
+        // - Determine ENTERED/EXITED state
+        // - synthesize ENTERED event
+        // - fix MOVED/DRAGGED event
+        // - Reset states if applicable 
+        //
+        final long when = pe.getWhen();
+        int eventType = pe.getEventType();
+        final MouseEvent eEntered;
+        switch( eventType ) {
+            case MouseEvent.EVENT_MOUSE_EXITED:
+            case MouseEvent.EVENT_MOUSE_ENTERED:
+                pState1.insideWindow = eventType == MouseEvent.EVENT_MOUSE_ENTERED;
+                // clear states
+                pState1.lastButtonPressTime = 0;
+                pState1.buttonPressed = 0;
+                eEntered = null;
+                break;
+                
+            case MouseEvent.EVENT_MOUSE_MOVED:
+                if ( pState1.buttonPressed > 0 ) {
+                    pe = pe.createVariant(MouseEvent.EVENT_MOUSE_DRAGGED);
+                    eventType = pe.getEventType();
+                }
+                // Fall through intended !
+            case MouseEvent.EVENT_MOUSE_DRAGGED:
+                if( pState1.insideWindow && pState1.lastMovePosition.getX() == x && pState1.lastMovePosition.getY() == y ) { 
+                    if(DEBUG_MOUSE_EVENT) {
+                        System.err.println("consumeMouseEvent: skip EVENT_MOUSE_MOVED w/ same position: "+pState1.lastMovePosition);
+                    }
+                    return; // skip same position
+                }
+                pState1.lastMovePosition.setX(x);
+                pState1.lastMovePosition.setY(y);
+                // Fall through intended !                
+            default:
+                if(!pState1.insideWindow) {
+                    pState1.insideWindow = true;
+                    eEntered = pe.createVariant(MouseEvent.EVENT_MOUSE_ENTERED);
+                    // clear states
+                    pState1.lastButtonPressTime = 0;
+                    pState1.buttonPressed = 0;
+                } else {
+                    eEntered = null;
+                }
+        }
+        if( null != eEntered ) {
+            if(DEBUG_MOUSE_EVENT) {
+                System.err.println("consumeMouseEvent.send.0: "+eEntered);
+            }
+            dispatchMouseEvent(eEntered);
+        }
+        
+        //
+        // Handle Default Gestures
+        //
+        if( defaultGestureHandlerEnabled &&
+            pe.getPointerType(0).getPointerClass() == MouseEvent.PointerClass.Onscreen ) 
+        {
+            if( null == gesture2PtrTouchScroll ) {
+                final int scaledScrollSlop;
+                final int scaledDoubleTapSlop;
+                final MonitorDevice monitor = getMainMonitor();
+                if ( null != monitor ) {
+                    final DimensionImmutable mm = monitor.getSizeMM();
+                    final float pixWPerMM = (float)monitor.getCurrentMode().getRotatedWidth() / (float)mm.getWidth();
+                    final float pixHPerMM = (float)monitor.getCurrentMode().getRotatedHeight() / (float)mm.getHeight();
+                    final float pixPerMM = Math.min(pixHPerMM, pixWPerMM);
+                    scaledScrollSlop = Math.round(DoubleTapScrollGesture.SCROLL_SLOP_MM * pixPerMM);  
+                    scaledDoubleTapSlop = Math.round(DoubleTapScrollGesture.DOUBLE_TAP_SLOP_MM * pixPerMM);                         
+                    if(DEBUG_MOUSE_EVENT) {
+                        System.err.println("consumeMouseEvent.gscroll: scrollSlop "+scaledScrollSlop+", doubleTapSlop "+scaledDoubleTapSlop+", pixPerMM "+pixPerMM+", "+monitor);
+                    }
+                } else {
+                    scaledScrollSlop = DoubleTapScrollGesture.SCROLL_SLOP_PIXEL;
+                    scaledDoubleTapSlop = DoubleTapScrollGesture.DOUBLE_TAP_SLOP_PIXEL;                        
+                }
+                gesture2PtrTouchScroll = new DoubleTapScrollGesture(step(DoubleTapScrollGesture.SCROLL_SLOP_PIXEL, DoubleTapScrollGesture.SCROLL_SLOP_PIXEL/2, scaledScrollSlop), 
+                                                                    step(DoubleTapScrollGesture.DOUBLE_TAP_SLOP_PIXEL, DoubleTapScrollGesture.DOUBLE_TAP_SLOP_PIXEL/2, scaledDoubleTapSlop));
+            }
+            if( gesture2PtrTouchScroll.process(pe) ) {
+                pe = (MouseEvent) gesture2PtrTouchScroll.getGestureEvent();
+                gesture2PtrTouchScroll.clear(false);
+                if(DEBUG_MOUSE_EVENT) {
+                    System.err.println("consumeMouseEvent.gscroll: "+pe);
+                }
+                dispatchMouseEvent(pe);
+                return;
+            }
+            if( gesture2PtrTouchScroll.isWithinGesture() ) {
+                return; // within gesture .. need more input ..
+            }
+        }
+        //
+        // Handle Custom Gestures
+        //
+        {
+            final int pointerGestureHandlerCount = pointerGestureHandler.size();
+            if( pointerGestureHandlerCount > 0 ) {
+                boolean withinGesture = false;
+                for(int i = 0; !pe.isConsumed() && i < pointerGestureHandlerCount; i++ ) {
+                    final GestureHandler gh = pointerGestureHandler.get(i);
+                    if( gh.process(pe) ) {
+                        final InputEvent ieG = gh.getGestureEvent();
+                        gh.clear(false);
+                        if( ieG instanceof MouseEvent ) {
+                            dispatchMouseEvent((MouseEvent)ieG);
+                        } else if( ieG instanceof GestureHandler.GestureEvent) {
+                            final GestureHandler.GestureEvent ge = (GestureHandler.GestureEvent) ieG;
+                            for(int j = 0; !ge.isConsumed() && j < gestureListeners.size(); j++ ) {
+                                gestureListeners.get(j).gestureDetected(ge);
+                            }
+                        }
+                        return;
+                    }
+                    withinGesture |= gh.isWithinGesture();
+                }
+                if( withinGesture ) {
+                    return;
+                }
+            }
+        }
+        
+        //
+        // Synthesize mouse click
+        //
+        final MouseEvent eClicked;
+        switch( eventType ) {
+            case MouseEvent.EVENT_MOUSE_PRESSED:
+                if( 1 == pe.getPointerCount() ) {
+                    pState1.lastButtonPressTime = when;
+                }
+                pState1.buttonPressed = pe.getButton();
+                eClicked = null;
+                break;
+            case MouseEvent.EVENT_MOUSE_RELEASED:
+                if( 1 == pe.getPointerCount() && when - pState1.lastButtonPressTime < MouseEvent.getClickTimeout() ) {
+                    eClicked = pe.createVariant(MouseEvent.EVENT_MOUSE_CLICKED);
+                } else {
+                    eClicked = null;
+                    pState1.lastButtonPressTime = 0;                    
+                }
+                pState1.buttonPressed = 0;
+                break;
+            case MouseEvent.EVENT_MOUSE_CLICKED:
+                // ignore - synthesized here ..
+                if(DEBUG_MOUSE_EVENT) {
+                    System.err.println("consumeMouseEvent: drop recv'ed (synth here) "+pe);
+                }
+                pe = null;
+                eClicked = null;
+                break;
+            default:
+                eClicked = null;
+        }
+        
+        if( null != pe ) {
+            if(DEBUG_MOUSE_EVENT) {
+                System.err.println("consumeMouseEvent.send.1: "+pe);
+            }
+            dispatchMouseEvent(pe); // actual mouse event
+        }
+        if( null != eClicked ) {
+            if(DEBUG_MOUSE_EVENT) {
+                System.err.println("consumeMouseEvent.send.2: "+eClicked);
+            }
+            dispatchMouseEvent(eClicked);
+        }
+    }
+    
+    private final void dispatchMouseEvent(MouseEvent e) {
         for(int i = 0; !e.isConsumed() && i < mouseListeners.size(); i++ ) {
             MouseListener l = mouseListeners.get(i);
             switch(e.getEventType()) {
@@ -2537,12 +2874,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         
     public void sendKeyEvent(short eventType, int modifiers, short keyCode, short keySym, char keyChar) {
         // Always add currently pressed mouse buttons to modifier mask
-        consumeKeyEvent( KeyEvent.create(eventType, this, System.currentTimeMillis(), modifiers | mouseButtonModMask, keyCode, keySym, keyChar) );
+        consumeKeyEvent( KeyEvent.create(eventType, this, System.currentTimeMillis(), modifiers | pState0.buttonModMask, keyCode, keySym, keyChar) );
     }
 
     public void enqueueKeyEvent(boolean wait, short eventType, int modifiers, short keyCode, short keySym, char keyChar) {
         // Always add currently pressed mouse buttons to modifier mask
-        enqueueEvent(wait, KeyEvent.create(eventType, this, System.currentTimeMillis(), modifiers | mouseButtonModMask, keyCode, keySym, keyChar) );
+        enqueueEvent(wait, KeyEvent.create(eventType, this, System.currentTimeMillis(), modifiers | pState0.buttonModMask, keyCode, keySym, keyChar) );
     }
     
     @Override

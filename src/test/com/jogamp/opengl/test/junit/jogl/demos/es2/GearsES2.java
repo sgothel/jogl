@@ -22,11 +22,14 @@ package com.jogamp.opengl.test.junit.jogl.demos.es2;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.newt.Window;
+import com.jogamp.newt.event.GestureHandler;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
+import com.jogamp.newt.event.PinchToZoomGesture;
+import com.jogamp.newt.event.GestureHandler.GestureEvent;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.jogl.demos.GearsObject;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -59,7 +62,6 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
     private GLUniformData colorU = null;
     private float view_rotx = 20.0f, view_roty = 30.0f, view_rotz = 0.0f;
     private float panX = 0.0f, panY = 0.0f, panZ=0.0f;
-    private int drawableHeight = 1;
     private GearsObjectES2 gear1=null, gear2=null, gear3=null;
     private FloatBuffer gear1Color=GearsObject.red, gear2Color=GearsObject.green, gear3Color=GearsObject.blue;
     private float angle = 0.0f;
@@ -76,6 +78,9 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
     private float[] clearColor = null;
     private boolean clearBuffers = true;
     private boolean verbose = true;
+    
+    private PinchToZoomGesture pinchToZoomGesture = null;
+
 
     public GearsES2(int swapInterval) {
         this.swapInterval = swapInterval;
@@ -235,15 +240,28 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
             final Window window = (Window) upstreamWidget;
             window.addMouseListener(gearsMouse);
             window.addKeyListener(gearsKeys);
+            window.addGestureListener(pinchToZoomListener);
+            pinchToZoomGesture = new PinchToZoomGesture(drawable.getNativeSurface());
+            window.addGestureHandler(pinchToZoomGesture);
         } else if (GLProfile.isAWTAvailable() && upstreamWidget instanceof java.awt.Component) {
             final java.awt.Component comp = (java.awt.Component) upstreamWidget;
             new com.jogamp.newt.event.awt.AWTMouseAdapter(gearsMouse).addTo(comp);
             new com.jogamp.newt.event.awt.AWTKeyAdapter(gearsKeys).addTo(comp);
         }
+                
         st.useProgram(gl, false);
         
         System.err.println(Thread.currentThread()+" GearsES2.init FIN");
     }
+    
+    private final GestureHandler.GestureListener pinchToZoomListener = new GestureHandler.GestureListener() {        
+        @Override
+        public void gestureDetected(GestureEvent gh) {
+            final PinchToZoomGesture.ZoomEvent ze = (PinchToZoomGesture.ZoomEvent) gh;
+            final float zoom = ze.getZoom() * ( ze.getTrigger().getPointerCount() - 1 );
+            panZ = zoom * 30f - 30f; // [0 .. 2] -> [-30f .. 30f]
+        }
+    };
 
     @Override
     public void reshape(GLAutoDrawable glad, int x, int y, int width, int height) {
@@ -266,7 +284,6 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
     void reshapeImpl(GL2ES2 gl, int tileX, int tileY, int tileWidth, int tileHeight, int imageWidth, int imageHeight) {
         final boolean msaa = gl.getContext().getGLDrawable().getChosenGLCapabilities().getSampleBuffers();
         System.err.println(Thread.currentThread()+" GearsES2.reshape "+tileX+"/"+tileY+" "+tileWidth+"x"+tileHeight+" of "+imageWidth+"x"+imageHeight+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(gl.getContext().getGLDrawable().getHandle())+", msaa "+msaa+", tileRendererInUse "+tileRendererInUse);
-        drawableHeight = imageHeight;
         
         if( !gl.hasGLSL() ) {
             return;
@@ -326,6 +343,9 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
             final Window window = (Window) upstreamWidget;
             window.removeMouseListener(gearsMouse);
             window.removeKeyListener(gearsKeys);
+            window.removeGestureHandler(pinchToZoomGesture);
+            pinchToZoomGesture = null;
+            window.removeGestureListener(pinchToZoomListener);
         }
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         if( !gl.hasGLSL() ) {
@@ -432,69 +452,6 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
         }
     }
 
-    interface GestureHandler {
-        /** Returns true if within the gesture */ 
-        public boolean isWithinGesture();
-        /** Returns true if within the gesture */
-        public boolean onReleased(MouseEvent e);
-        /** Returns true if within the gesture */
-        public boolean onDragged(MouseEvent e);
-    }
-    final GestureHandler gesture2PtrZoom = new GestureHandler() {
-        private int zoomLastYDist;
-        private boolean zoomFirstTouch = true;
-        private boolean zoomMode = false;
-        
-        @Override
-        public boolean isWithinGesture() {
-            return zoomMode;
-        }
-
-        @Override
-        public boolean onReleased(MouseEvent e) {
-            if( zoomMode && e.getPointerCount()==1 ) {
-                zoomFirstTouch = true;
-                zoomMode = false;
-                System.err.println("panZ.X: "+e);
-            }
-            return zoomMode;
-        }
-
-        @Override
-        public boolean onDragged(MouseEvent e) {
-            if( e.getPointerCount() >=2 ) {
-                // 2 pointers zoom .. [ -15 .. 15 ], range 30
-                /** 
-                // Simple 1:1 Zoom: finger-distance to screen-coord
-                final int dy = Math.abs(e.getY(0)-e.getY(1));
-                float scale =  (float)dy / (float)drawableHeight;
-                panZ = 30f * scale - 15f; 
-                System.err.println("panZ: scale "+scale+" ["+dy+"/"+drawableHeight+"] -> "+panZ);
-                 */
-                // Diff. 1:1 Zoom: finger-distance to screen-coord
-                if(zoomFirstTouch) {
-                    zoomLastYDist = Math.abs(e.getY(0)-e.getY(1));
-                    zoomFirstTouch=false;
-                    zoomMode = true;
-                    System.err.println("panZ: 1st pinch "+zoomLastYDist+", "+e);
-                } else if( zoomMode ) {
-                    final int dy = Math.abs(e.getY(0)-e.getY(1));
-                    final int ddy = dy - zoomLastYDist;
-                    
-                    final float incr =  ( (float)ddy / (float)drawableHeight ) * 15.0f;                    
-                    panZ += incr; 
-                    if( e.getPointerCount() > 2 ) {
-                        panZ += incr;
-                    }
-                    System.err.println("panZ.1: ddy "+ddy+", incr "+incr+" ["+dy+"/"+drawableHeight+"], dblZoom "+(e.getPointerCount() > 2)+" -> "+panZ);
-                    
-                    zoomLastYDist = dy;
-                }
-            }
-            return zoomMode;
-        }        
-    };
-    
     class GearsMouseAdapter implements MouseListener{
         private int prevMouseX, prevMouseY;
         
@@ -526,40 +483,33 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
         }
         
         public void mousePressed(MouseEvent e) {
-            if( !gesture2PtrZoom.isWithinGesture() ) {
-                if( e.getPointerCount()==1 ) {
-                    prevMouseX = e.getX();
-                    prevMouseY = e.getY();
-                } else if( e.getPointerCount() == 4 ) {
-                    final Object src = e.getSource();
-                    if( e.getPressure(true) > 0.7f && src instanceof Window) { // show Keyboard
-                       ((Window) src).setKeyboardVisible(true);
-                    }
+            if( e.getPointerCount()==1 ) {
+                prevMouseX = e.getX();
+                prevMouseY = e.getY();
+            } else if( e.getPointerCount() == 4 ) {
+                final Object src = e.getSource();
+                if( e.getPressure(true) > 0.7f && src instanceof Window) { // show Keyboard
+                   ((Window) src).setKeyboardVisible(true);
                 }
             }
         }
 
         public void mouseReleased(MouseEvent e) {
-            gesture2PtrZoom.onReleased(e);
         }
 
         public void mouseMoved(MouseEvent e) {
-            if( !gesture2PtrZoom.isWithinGesture() && e.getPointerCount()==1 ) {
-                if( e.isConfined() ) {
-                    navigate(e);
-                } else {
-                    // track prev. position so we don't have 'jumps'
-                    // in case we move to confined navigation.
-                    prevMouseX = e.getX();
-                    prevMouseY = e.getY();
-                }
+            if( e.isConfined() ) {
+                navigate(e);
+            } else {
+                // track prev. position so we don't have 'jumps'
+                // in case we move to confined navigation.
+                prevMouseX = e.getX();
+                prevMouseY = e.getY();
             }
         }
         
         public void mouseDragged(MouseEvent e) {
-            if( !gesture2PtrZoom.onDragged(e) && e.getPointerCount()==1 ) {
-                navigate(e);
-            }
+            navigate(e);
         }
         
         private void navigate(MouseEvent e) {

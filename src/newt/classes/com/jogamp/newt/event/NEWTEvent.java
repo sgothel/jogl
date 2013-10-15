@@ -44,6 +44,7 @@ package com.jogamp.newt.event;
  *   <li> WindowEvent  <code>100..10x</code></li>
  *   <li> MouseEvent   <code>200..20x</code></li>
  *   <li> KeyEvent     <code>300..30x</code></li>
+ *   <li> GestureEvent <code>400..5xx</code></li>
  *   <li> MonitorEvent <code>600..60x</code></li>
  * </ul><br>
  */

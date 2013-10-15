@@ -77,6 +77,7 @@ import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
+import com.jogamp.newt.event.GestureHandler;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.event.NEWTEvent;
@@ -774,6 +775,39 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         return window.getMouseListeners();
     }
 
+    @Override
+    public void setDefaultGesturesEnabled(boolean enable) {
+        window.setDefaultGesturesEnabled(enable);
+    }
+    @Override
+    public boolean areDefaultGesturesEnabled() {
+        return window.areDefaultGesturesEnabled();
+    }
+    @Override
+    public final void addGestureHandler(GestureHandler gh) {
+        window.addGestureHandler(gh);
+    }
+    @Override
+    public final void addGestureHandler(int index, GestureHandler gh) {
+        window.addGestureHandler(index, gh);
+    }
+    @Override
+    public final void removeGestureHandler(GestureHandler gh) {
+        window.removeGestureHandler(gh);
+    }
+    @Override
+    public final void addGestureListener(GestureHandler.GestureListener gl) {
+        window.addGestureListener(-1, gl);
+    }
+    @Override
+    public final void addGestureListener(int index, GestureHandler.GestureListener gl) {
+        window.addGestureListener(index, gl);
+    }
+    @Override
+    public final void removeGestureListener(GestureHandler.GestureListener gl) {
+        window.removeGestureListener(gl);
+    }
+    
     //----------------------------------------------------------------------
     // NativeWindow completion
     //

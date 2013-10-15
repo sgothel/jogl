@@ -187,7 +187,7 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Window -Djogl.debug.Animator -Dnewt.debug.Screen"
     #D_ARGS="-Dnativewindow.debug.JAWT -Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Window.KeyEvent"
-    #D_ARGS="-Dnewt.debug.Window.MouseEvent"
+    D_ARGS="-Dnewt.debug.Window.MouseEvent"
     #D_ARGS="-Dnewt.debug.Window.MouseEvent -Dnewt.debug.Window.KeyEvent"
     #D_ARGS="-Dnewt.debug.Window -Dnativewindow.debug=all"
     #D_ARGS="-Dnewt.debug.Window -Dnativewindow.debug.JAWT -Djogl.debug.Animator"
@@ -299,7 +299,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelsAWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
+testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NewtCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NEWT $*
@@ -479,7 +479,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461PBufferSupersamplingSwingAWT
 #testawt com.jogamp.opengl.test.junit.jogl.glu.TestBug463ScaleImageMemoryAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.glu.TestBug694ScaleImageUnpackBufferSizeAWT $*
-testawt com.jogamp.opengl.test.junit.jogl.glu.TestBug365TextureGenerateMipMaps $*
+#testawt com.jogamp.opengl.test.junit.jogl.glu.TestBug365TextureGenerateMipMaps $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWTCardLayoutAnimatorStartStopBug532 $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAWTActionDeadlock00AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAWTActionDeadlock01AWT $*

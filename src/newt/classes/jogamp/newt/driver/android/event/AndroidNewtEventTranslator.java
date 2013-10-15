@@ -13,13 +13,16 @@ public class AndroidNewtEventTranslator implements View.OnKeyListener, View.OnTo
         }
         
         private final boolean processTouchMotionEvents(View v, android.view.MotionEvent event, boolean isOnTouchEvent) {
-            final com.jogamp.newt.event.MouseEvent[] newtEvents = factory.createMouseEvents(isOnTouchEvent, event, newtWindow);
-            if(null != newtEvents) {
-                newtWindow.focusChanged(false, true);
-                for(int i=0; i<newtEvents.length; i++) {
-                    newtWindow.enqueueEvent(false, newtEvents[i]);
+            final com.jogamp.newt.event.MouseEvent newtEvent = factory.createMouseEvents(isOnTouchEvent, event, newtWindow);
+            if(null != newtEvent) {
+                switch( event.getActionMasked() ) {
+                    case android.view.MotionEvent.ACTION_DOWN: 
+                    case android.view.MotionEvent.ACTION_POINTER_DOWN: 
+                        newtWindow.focusChanged(false, true);
+                        break;
                 }
-                try { Thread.sleep((long) (1000.0F/30.0F)); }
+                newtWindow.enqueueEvent(false, newtEvent);
+                try { Thread.sleep((long) (100.0F/3.0F)); } // 33 ms
                 catch(InterruptedException e) { }
                 return true; // consumed/handled, further interest in events
             }

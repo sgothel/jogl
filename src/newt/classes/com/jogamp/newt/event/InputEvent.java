@@ -39,6 +39,14 @@ import com.jogamp.newt.Window;
 @SuppressWarnings("serial")
 public abstract class InputEvent extends NEWTEvent
 {
+ /** Interface marking class of input types */
+ public static interface InputClass {
+ }
+    
+ /** Interface marking type of input devices */
+ public static interface InputType {
+ }
+    
  public static final int  SHIFT_MASK       = 1 <<  0;
  public static final int  CTRL_MASK        = 1 <<  1;
  public static final int  META_MASK        = 1 <<  2;

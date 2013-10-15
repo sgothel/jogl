@@ -266,8 +266,10 @@ public class TestGearsES2NEWT extends UITestCase {
         });
         glWindow.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
-                glWindow.setFullscreen(!glWindow.isFullscreen());
-                System.err.println("setFullscreen: "+glWindow.isFullscreen());
+                if(e.getClickCount() == 2 && e.getPointerCount() == 1) {
+                    glWindow.setFullscreen(!glWindow.isFullscreen());
+                    System.err.println("setFullscreen: "+glWindow.isFullscreen());
+                }
             }
          });
 

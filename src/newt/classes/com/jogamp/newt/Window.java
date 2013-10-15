@@ -30,12 +30,14 @@ package com.jogamp.newt;
 
 import java.util.List;
 
+import com.jogamp.newt.event.GestureHandler;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.MouseListener;
+
 import jogamp.newt.Debug;
 import jogamp.newt.WindowImpl;
 
@@ -553,15 +555,12 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     //
 
     /**
-     *
-     * Appends the given {@link com.jogamp.newt.event.MouseListener} to the end of
-     * the list.
+     * Appends the given {@link MouseListener} to the end of the list.
      */
     void addMouseListener(MouseListener l);
 
     /**
-     *
-     * Inserts the given {@link com.jogamp.newt.event.MouseListener} at the
+     * Inserts the given {@link MouseListener} at the
      * specified position in the list.<br>
      *
      * @param index Position where the listener will be inserted.
@@ -572,10 +571,61 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      */
     void addMouseListener(int index, MouseListener l);
 
+    /**
+     * Removes the given {@link MouseListener} from the list.
+     */
     void removeMouseListener(MouseListener l);
 
+    /**
+     * Returns the {@link MouseListener} from the list at the given index.
+     */
     MouseListener getMouseListener(int index);
 
+    /**
+     * Returns all {@link MouseListener}
+     */
     MouseListener[] getMouseListeners();
-
+    
+    /** Enable or disable default {@link GestureHandler}. Default is enabled. */  
+    void setDefaultGesturesEnabled(boolean enable);
+    /** Return true if default {@link GestureHandler} are enabled. */
+    boolean areDefaultGesturesEnabled();
+    /**
+     * Appends the given {@link GestureHandler} to the end of the list.
+     */
+    void addGestureHandler(GestureHandler gh);
+    /**
+     * Inserts the given {@link GestureHandler} at the
+     * specified position in the list.<br>
+     *
+     * @param index Position where the listener will be inserted.
+     * Should be within (0 <= index && index <= size()).
+     * An index value of -1 is interpreted as the end of the list, size().
+     * @param l The listener object to be inserted
+     * @throws IndexOutOfBoundsException If the index is not within (0 <= index && index <= size()), or -1
+     */
+    void addGestureHandler(int index, GestureHandler gh);
+    /**
+     * Removes the given {@link GestureHandler} from the list.
+     */
+    void removeGestureHandler(GestureHandler gh);
+    /**
+     * Appends the given {@link GestureHandler.GestureListener} to the end of the list.
+     */
+    void addGestureListener(GestureHandler.GestureListener gl);
+    /**
+     * Inserts the given {@link GestureHandler.GestureListener} at the
+     * specified position in the list.<br>
+     *
+     * @param index Position where the listener will be inserted.
+     * Should be within (0 <= index && index <= size()).
+     * An index value of -1 is interpreted as the end of the list, size().
+     * @param l The listener object to be inserted
+     * @throws IndexOutOfBoundsException If the index is not within (0 <= index && index <= size()), or -1
+     */
+    void addGestureListener(int index, GestureHandler.GestureListener gl);
+    /**
+     * Removes the given {@link GestureHandler.GestureListener} from the list.
+     */
+    void removeGestureListener(GestureHandler.GestureListener gl);    
 }
