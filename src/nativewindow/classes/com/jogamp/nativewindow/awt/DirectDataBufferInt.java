@@ -71,7 +71,7 @@ public final class DirectDataBufferInt extends DataBuffer {
         @Override
         public String toString() {
             return new String("BufferedImageInt@"+Integer.toHexString(hashCode())
-                              +": custum/internal type = "+customImageType+"/"+getType()
+                              +": custom/internal type = "+customImageType+"/"+getType()
                               +" "+getColorModel()+" "+getRaster());
         }
     }
@@ -98,10 +98,6 @@ public final class DirectDataBufferInt extends DataBuffer {
      * @return
      */
     public static BufferedImageInt createBufferedImage(int width, int height, int imageType, Point location, Hashtable<?,?> properties) {
-        final int[] bandOffsets = new int[imageType];
-        for (int i=0; i < imageType; i++) {
-            bandOffsets[i] = i;
-        }
         final ColorSpace colorSpace = ColorSpace.getInstance(ColorSpace.CS_sRGB);
         final int transferType = DataBuffer.TYPE_INT;
         final int bpp, rmask, gmask, bmask, amask;
