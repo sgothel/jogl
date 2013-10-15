@@ -47,9 +47,9 @@ import jogamp.nativewindow.awt.AWTMisc;
  * <p>
  * Users attempting to print an AWT {@link Container} containing {@link AWTPrintLifecycle} elements
  * shall consider decorating the {@link Container#printAll(Graphics)} call with<br>
- * {@link #setupPrint(double, double, int) setupPrint(..)} and {@link #releasePrint()}
+ * {@link #setupPrint(double, double, int, int, int) setupPrint(..)} and {@link #releasePrint()}
  * on all {@link AWTPrintLifecycle} elements in the {@link Container}.<br>
- * To minimize this burden, a user can use {@link Context#setupPrint(Container, double, double, int) Context.setupPrint(..)}:
+ * To minimize this burden, a user can use {@link Context#setupPrint(Container, double, double, int, int, int) Context.setupPrint(..)}:
  * <pre>
  *  Container cont;
  *  double scaleGLMatXY = 72.0/glDPI;
@@ -75,7 +75,7 @@ import jogamp.nativewindow.awt.AWTMisc;
  */
 public interface AWTPrintLifecycle {
 
-    public static final int DEFAULT_PRINT_TILE_SIZE = 512;
+    public static final int DEFAULT_PRINT_TILE_SIZE = 1024;
     
     
     /**
@@ -86,8 +86,10 @@ public interface AWTPrintLifecycle {
      * @param scaleMatX {@link Graphics2D} {@link Graphics2D#scale(double, double) scaling factor}, i.e. rendering 1/scaleMatX * width pixels
      * @param scaleMatY {@link Graphics2D} {@link Graphics2D#scale(double, double) scaling factor}, i.e. rendering 1/scaleMatY * height pixels
      * @param numSamples multisampling value: < 0 turns off, == 0 leaves as-is, > 0 enables using given num samples 
+     * @param tileWidth custom tile width for {@link com.jogamp.opengl.util.TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
+     * @param tileHeight custom tile height for {@link com.jogamp.opengl.util.TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
      */
-    void setupPrint(double scaleMatX, double scaleMatY, int numSamples);
+    void setupPrint(double scaleMatX, double scaleMatY, int numSamples, int tileWidth, int tileHeight);
     
     /**
      * Shall be called after {@link PrinterJob#print()}.
@@ -98,7 +100,7 @@ public interface AWTPrintLifecycle {
     void releasePrint();
 
     /**
-     * Convenient {@link AWTPrintLifecycle} context simplifying calling {@link AWTPrintLifecycle#setupPrint(double, double, int) setupPrint(..)}
+     * Convenient {@link AWTPrintLifecycle} context simplifying calling {@link AWTPrintLifecycle#setupPrint(double, double, int, int, int) setupPrint(..)}
      * and {@link AWTPrintLifecycle#releasePrint()} on all {@link AWTPrintLifecycle} elements of a {@link Container}.
      * <p>
      * See <a href="#usage">Usage</a>.
@@ -110,14 +112,16 @@ public interface AWTPrintLifecycle {
          * See <a href="#usage">Usage</a>.
          * </p>
          * 
-         * @param c container to be traversed through to perform {@link AWTPrintLifecycle#setupPrint(double, double, int) setupPrint(..)} on all {@link AWTPrintLifecycle} elements.
+         * @param c container to be traversed through to perform {@link AWTPrintLifecycle#setupPrint(double, double, int, int, int) setupPrint(..)} on all {@link AWTPrintLifecycle} elements.
          * @param scaleMatX {@link Graphics2D} {@link Graphics2D#scale(double, double) scaling factor}, i.e. rendering 1/scaleMatX * width pixels
          * @param scaleMatY {@link Graphics2D} {@link Graphics2D#scale(double, double) scaling factor}, i.e. rendering 1/scaleMatY * height pixels
          * @param numSamples multisampling value: < 0 turns off, == 0 leaves as-is, > 0 enables using given num samples 
+         * @param tileWidth custom tile width for {@link TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
+         * @param tileHeight custom tile height for {@link TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
          * @return the context
          */
-        public static Context setupPrint(Container c, double scaleMatX, double scaleMatY, int numSamples) {
-            final Context t = new Context(c, scaleMatX, scaleMatY, numSamples);
+        public static Context setupPrint(Container c, double scaleMatX, double scaleMatY, int numSamples, int tileWidth, int tileHeight) {
+            final Context t = new Context(c, scaleMatX, scaleMatY, numSamples, tileWidth, tileHeight);
             t.setupPrint(c);
             return t;
         }
@@ -132,7 +136,7 @@ public interface AWTPrintLifecycle {
         }
 
         /**
-         * @return count of performed actions of last {@link #setupPrint(Container, double, double, int) setupPrint(..)} or {@link #releasePrint()}.
+         * @return count of performed actions of last {@link #setupPrint(Container, double, double, int, int, int) setupPrint(..)} or {@link #releasePrint()}.
          */
         public int getCount() { return count; }
         
@@ -140,12 +144,14 @@ public interface AWTPrintLifecycle {
         private final double scaleMatX;
         private final double scaleMatY;
         private final int numSamples;
+        private final int tileWidth;
+        private final int tileHeight;
         private int count;
         
         private final AWTMisc.ComponentAction setupAction = new AWTMisc.ComponentAction() {
             @Override
             public void run(Component c) {
-                ((AWTPrintLifecycle)c).setupPrint(scaleMatX, scaleMatY, numSamples);
+                ((AWTPrintLifecycle)c).setupPrint(scaleMatX, scaleMatY, numSamples, tileWidth, tileHeight);
             } };
         private final AWTMisc.ComponentAction releaseAction = new AWTMisc.ComponentAction() {
             @Override
@@ -153,11 +159,13 @@ public interface AWTPrintLifecycle {
                 ((AWTPrintLifecycle)c).releasePrint();
             } };
 
-        private Context(Container c, double scaleMatX, double scaleMatY, int numSamples) {
+        private Context(Container c, double scaleMatX, double scaleMatY, int numSamples, int tileWidth, int tileHeight) {
             this.cont = c;
             this.scaleMatX = scaleMatX;
             this.scaleMatY = scaleMatY;
             this.numSamples = numSamples;
+            this.tileWidth = tileWidth;
+            this.tileHeight = tileHeight;
             this.count = 0;
         }
         private void setupPrint(Container c) {

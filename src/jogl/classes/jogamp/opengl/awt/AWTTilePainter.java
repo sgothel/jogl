@@ -71,6 +71,7 @@ public class AWTTilePainter {
     public final TileRenderer renderer;
     public final int componentCount;
     public final double scaleMatX, scaleMatY;
+    public final int customTileWidth, customTileHeight, customNumSamples;
     public final boolean verbose;
     
     public boolean flipVertical;
@@ -99,18 +100,16 @@ public class AWTTilePainter {
     }
     
     /**
-     * @param numSamples multisampling value: < 0 turns off, == 0 leaves as-is, > 0 enables using given num samples 
-     * @param caps used capabilties
-     * @return resulting number of samples, 0 if disabled
+     * @return resulting number of samples by comparing w/ {@link #customNumSamples} and the caps-config, 0 if disabled
      */
-    public static int getNumSamples(int numSamples, GLCapabilitiesImmutable caps) {
-          if( 0 > numSamples ) {
+    public int getNumSamples(GLCapabilitiesImmutable caps) {
+          if( 0 > customNumSamples ) {
               return 0;
-          } else if( 0 < numSamples ) {
+          } else if( 0 < customNumSamples ) {
               if ( !caps.getGLProfile().isGL2ES3() ) {
                   return 0;
               }
-              return Math.max(caps.getNumSamples(), numSamples);
+              return Math.max(caps.getNumSamples(), customNumSamples);
           } else {
               return caps.getNumSamples();
           }
@@ -130,14 +129,20 @@ public class AWTTilePainter {
      * @param componentCount
      * @param scaleMatX {@link Graphics2D} {@link Graphics2D#scale(double, double) scaling factor}, i.e. rendering 1/scaleMatX * width pixels
      * @param scaleMatY {@link Graphics2D} {@link Graphics2D#scale(double, double) scaling factor}, i.e. rendering 1/scaleMatY * height pixels
+     * @param numSamples custom multisampling value: < 0 turns off, == 0 leaves as-is, > 0 enables using given num samples 
+     * @param tileWidth custom tile width for {@link TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
+     * @param tileHeight custom tile height for {@link TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
      * @param verbose
      */
-    public AWTTilePainter(TileRenderer renderer, int componentCount, double scaleMatX, double scaleMatY, boolean verbose) {
+    public AWTTilePainter(TileRenderer renderer, int componentCount, double scaleMatX, double scaleMatY, int numSamples, int tileWidth, int tileHeight, boolean verbose) {
         this.renderer = renderer;
         this.renderer.setGLEventListener(preTileGLEL, postTileGLEL);
         this.componentCount = componentCount;
         this.scaleMatX = scaleMatX;
         this.scaleMatY = scaleMatY;
+        this.customNumSamples = numSamples;
+        this.customTileWidth= tileWidth;
+        this.customTileHeight = tileHeight;
         this.verbose = verbose;
         this.flipVertical = true;
     }

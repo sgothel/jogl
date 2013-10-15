@@ -471,7 +471,6 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     }
      
     private volatile boolean printActive = false;
-    private int printNumSamples = 0;
     private GLAnimatorControl printAnimator = null; 
     private GLAutoDrawable printGLAD = null;
     private AWTTilePainter printAWTTiles = null;
@@ -484,12 +483,11 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     }
     
     @Override
-    public void setupPrint(double scaleMatX, double scaleMatY, int numSamples) {
+    public void setupPrint(double scaleMatX, double scaleMatY, int numSamples, int tileWidth, int tileHeight) {
         printActive = true; 
-        printNumSamples = numSamples;
         final int componentCount = isOpaque() ? 3 : 4;
         final TileRenderer printRenderer = new TileRenderer();
-        printAWTTiles = new AWTTilePainter(printRenderer, componentCount, scaleMatX, scaleMatY, DEBUG);
+        printAWTTiles = new AWTTilePainter(printRenderer, componentCount, scaleMatX, scaleMatY, numSamples, tileWidth, tileHeight, DEBUG);
         AWTEDTExecutor.singleton.invoke(getTreeLock(), true /* allowOnNonEDT */, true /* wait */, setupPrintOnEDT);
     }  
     private final Runnable setupPrintOnEDT = new Runnable() {
@@ -522,10 +520,18 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 printAnimator.remove(glad);
             }
             final GLCapabilities caps = (GLCapabilities)glad.getChosenGLCapabilities().cloneMutable();
-            final int reqNumSamples = printNumSamples; 
-            printNumSamples = AWTTilePainter.getNumSamples(reqNumSamples, caps);
+            final int printNumSamples = printAWTTiles.getNumSamples(caps);
+            GLDrawable printDrawable = printGLAD.getDelegatedDrawable();
+            final boolean reqNewGLADSamples = printNumSamples != caps.getNumSamples();
+            final boolean reqNewGLADSize = printAWTTiles.customTileWidth != -1 && printAWTTiles.customTileWidth != printDrawable.getWidth() ||
+                                           printAWTTiles.customTileHeight != -1 && printAWTTiles.customTileHeight != printDrawable.getHeight();
+            final boolean reqNewGLAD = !caps.getSampleBuffers(); // reqNewGLADSamples || reqNewGLADSize ;
             if( DEBUG ) {
-                System.err.println("AWT print.setup: canvasSize "+getWidth()+"x"+getWidth()+", scaleMat "+printAWTTiles.scaleMatX+" x "+printAWTTiles.scaleMatY+", numSamples "+reqNumSamples+" -> "+printNumSamples+", printAnimator "+printAnimator);
+                System.err.println("AWT print.setup: reqNewGLAD "+reqNewGLAD+"[ samples "+reqNewGLADSamples+", size "+reqNewGLADSize+"], "+
+                        ", drawableSize "+printDrawable.getWidth()+"x"+printDrawable.getHeight()+
+                        ", customTileSize "+printAWTTiles.customTileWidth+"x"+printAWTTiles.customTileHeight+
+                        ", scaleMat "+printAWTTiles.scaleMatX+" x "+printAWTTiles.scaleMatY+
+                        ", numSamples "+printAWTTiles.customNumSamples+" -> "+printNumSamples+", printAnimator "+printAnimator);
             }
             if( caps.getSampleBuffers() ) {
                 // Bug 830: swapGLContextAndAllGLEventListener and onscreen MSAA w/ NV/GLX
@@ -538,10 +544,13 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                     caps.setNumSamples(printNumSamples);
                 }
                 final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
-                printGLAD = factory.createOffscreenAutoDrawable(null, caps, null, DEFAULT_PRINT_TILE_SIZE, DEFAULT_PRINT_TILE_SIZE, null);
+                printGLAD = factory.createOffscreenAutoDrawable(null, caps, null, 
+                        printAWTTiles.customTileWidth != -1 ? printAWTTiles.customTileWidth : DEFAULT_PRINT_TILE_SIZE, 
+                        printAWTTiles.customTileHeight != -1 ? printAWTTiles.customTileHeight : DEFAULT_PRINT_TILE_SIZE,
+                        null);
                 GLDrawableUtil.swapGLContextAndAllGLEventListener(glad, printGLAD);
+                printDrawable = printGLAD.getDelegatedDrawable();
             }
-            final GLDrawable printDrawable = printGLAD.getDelegatedDrawable();
             printAWTTiles.setIsGLOriented(printGLAD.isGLOriented());
             printAWTTiles.renderer.setTileSize(printDrawable.getWidth(), printDrawable.getHeight(), 0);
             printAWTTiles.renderer.attachAutoDrawable(printGLAD);

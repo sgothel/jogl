@@ -33,6 +33,7 @@ import java.awt.print.PrinterJob;
 
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
+import com.jogamp.opengl.util.TileRenderer;
 
 /**
  * Base {@link Printable} implementation class.
@@ -58,6 +59,7 @@ public abstract class PrintableBase implements Printable {
     public final Container cont;
     public final int dpi;
     public final int numSamples;
+    public final int tileWidth, tileHeight;
     protected final RecursiveLock lockPrinting = LockFactory.createRecursiveLock();
 
     /**
@@ -66,12 +68,16 @@ public abstract class PrintableBase implements Printable {
      * @param printContainer
      * @param printDPI
      * @param numSamples multisampling value: < 0 turns off, == 0 leaves as-is, > 0 enables using given num samples 
+     * @param tileWidth custom tile width for {@link TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
+     * @param tileHeight custom tile height for {@link TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
      */
-    public PrintableBase(PrinterJob job, Container printContainer, int printDPI, int numSamples) {
+    public PrintableBase(PrinterJob job, Container printContainer, int printDPI, int numSamples, int tileWidth, int tileHeight) {
         this.job = job;
         this.cont = printContainer;
         this.dpi = printDPI;
         this.numSamples = numSamples;
+        this.tileWidth = tileWidth;
+        this.tileHeight = tileHeight;
     }
     
     /** Wait for idle .. simply acquiring all locks and releasing them. */

@@ -152,15 +152,15 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
         
         final ActionListener print72DPIAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                doPrintManual(frame, 72, 0);
+                doPrintManual(frame, 72, 0, -1, -1);
             } };
         final ActionListener print300DPIAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                doPrintManual(frame, 300, -1);
+                doPrintManual(frame, 300, -1, -1, -1);
             } };
         final ActionListener print600DPIAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                doPrintManual(frame, 600, -1);
+                doPrintManual(frame, 600, -1, -1, -1);
             } };
         final Button print72DPIButton = new Button("72dpi");
         print72DPIButton.addActionListener(print72DPIAction);
@@ -217,51 +217,56 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
             if( !printDone ) {
                 printDone = true;
                 {
-                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, -1 /* offscreen-type */, 72, 0, false /* resizeWithinPrint */);
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, -1 /* offscreen-type */, 72, 0, -1, -1, false /* resizeWithinPrint */);
                     waitUntilPrintJobsIdle(p);
                 }
                 {
-                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, -1 /* offscreen-type */, 72, 8, false /* resizeWithinPrint */);
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, -1 /* offscreen-type */, 72, 8, -1, -1, false /* resizeWithinPrint */);
                     waitUntilPrintJobsIdle(p);
                 } 
                 {
                     // No AA needed for 150 dpi and greater :)
-                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, -1 /* offscreen-type */, 150, -1, false /* resizeWithinPrint */);
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, -1 /* offscreen-type */, 150, -1, -1, -1, false /* resizeWithinPrint */);
                     waitUntilPrintJobsIdle(p);
                 }
                 {
                     // No AA needed for 150 dpi and greater :)
-                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, -1 /* offscreen-type */, 150, -1, true /* resizeWithinPrint */);
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, -1 /* offscreen-type */, 150, -1, 2048, 2048, false /* resizeWithinPrint */);
                     waitUntilPrintJobsIdle(p);
                 }
                 {
                     // No AA needed for 150 dpi and greater :)
-                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, BufferedImage.TYPE_INT_ARGB_PRE /* offscreen-type */, 150, -1, false /* resizeWithinPrint */);
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, -1 /* offscreen-type */, 150, -1, -1, -1, true /* resizeWithinPrint */);
                     waitUntilPrintJobsIdle(p);
                 }
                 {
                     // No AA needed for 150 dpi and greater :)
-                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, BufferedImage.TYPE_INT_ARGB /* offscreen-type */, 150, -1, false /* resizeWithinPrint */);
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, BufferedImage.TYPE_INT_ARGB_PRE /* offscreen-type */, 150, -1, -1, -1, false /* resizeWithinPrint */);
                     waitUntilPrintJobsIdle(p);
                 }
                 {
                     // No AA needed for 150 dpi and greater :)
-                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, BufferedImage.TYPE_INT_RGB /* offscreen-type */, 150, -1, false /* resizeWithinPrint */);
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, BufferedImage.TYPE_INT_ARGB /* offscreen-type */, 150, -1, -1, -1, false /* resizeWithinPrint */);
                     waitUntilPrintJobsIdle(p);
                 }
                 {
                     // No AA needed for 150 dpi and greater :)
-                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, BufferedImage.TYPE_INT_BGR /* offscreen-type */, 150, -1, false /* resizeWithinPrint */);
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, BufferedImage.TYPE_INT_RGB /* offscreen-type */, 150, -1, -1, -1, false /* resizeWithinPrint */);
+                    waitUntilPrintJobsIdle(p);
+                }
+                {
+                    // No AA needed for 150 dpi and greater :)
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, BufferedImage.TYPE_INT_BGR /* offscreen-type */, 150, -1, -1, -1, false /* resizeWithinPrint */);
                     waitUntilPrintJobsIdle(p);
                 } 
                 {
                     // No AA needed for 150 dpi and greater :)
-                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, BufferedImage.TYPE_INT_ARGB_PRE /* offscreen-type */, 150, -1, true /* resizeWithinPrint */);
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, BufferedImage.TYPE_INT_ARGB_PRE /* offscreen-type */, 150, -1, -1, -1, true /* resizeWithinPrint */);
                     waitUntilPrintJobsIdle(p);
                 }
                 if( allow600dpi ) {
                     // No AA needed for 300 dpi and greater :)
-                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, -1 /* offscreen-type */, 600, -1, false /* resizeWithinPrint */);
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, -1 /* offscreen-type */, 600, -1, -1, -1, false /* resizeWithinPrint */);
                     waitUntilPrintJobsIdle(p);
                 }
             }

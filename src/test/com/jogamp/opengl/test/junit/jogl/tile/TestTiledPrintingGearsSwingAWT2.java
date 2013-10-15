@@ -142,15 +142,15 @@ public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
         
         final ActionListener print72DPIAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                doPrintManual(frame, 72, 0);
+                doPrintManual(frame, 72, 0, -1, -1);
             } };
         final ActionListener print150DPIAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                doPrintManual(frame, 150, -1);
+                doPrintManual(frame, 150, -1, -1, -1);
             } };
         final ActionListener print300DPIAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                doPrintManual(frame, 300, -1);
+                doPrintManual(frame, 300, -1, -1, -1);
             } };
         final Button print72DPIButton = new Button("72dpi");
         print72DPIButton.addActionListener(print72DPIAction);
@@ -220,7 +220,7 @@ public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
                 printDone = true;
                 {
                     // No AA needed for 150 dpi and greater :)
-                    final PrintableBase p = doPrintAuto(frame, PageFormat.PORTRAIT, null, -1 /* offscreen-type */, 150, -1, false);
+                    final PrintableBase p = doPrintAuto(frame, PageFormat.PORTRAIT, null, -1 /* offscreen-type */, 150, -1, -1, -1, false);
                     waitUntilPrintJobsIdle(p);
                 }
             }

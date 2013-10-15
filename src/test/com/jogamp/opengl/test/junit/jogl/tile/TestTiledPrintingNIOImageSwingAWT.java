@@ -128,7 +128,7 @@ public class TestTiledPrintingNIOImageSwingAWT extends UITestCase  {
                 g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
                 
                 // frame.paintAll(g2d);
-                final AWTPrintLifecycle.Context ctx = AWTPrintLifecycle.Context.setupPrint(frame, 1.0/scaleComp72, 1.0/scaleComp72, 0);
+                final AWTPrintLifecycle.Context ctx = AWTPrintLifecycle.Context.setupPrint(frame, 1.0/scaleComp72, 1.0/scaleComp72, 0, -1, -1);
                 try {
                     frame.printAll(g2d);
                 } finally {

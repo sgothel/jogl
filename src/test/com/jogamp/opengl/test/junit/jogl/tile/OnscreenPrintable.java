@@ -39,6 +39,7 @@ import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 
 import com.jogamp.common.util.awt.AWTEDTExecutor;
+import com.jogamp.opengl.util.TileRenderer;
 
 /**
  * <h5>Scaling of Frame and GL content</h5>
@@ -66,10 +67,13 @@ public class OnscreenPrintable extends PrintableBase implements Printable {
      * @param printContainer
      * @param printDPI
      * @param numSamples multisampling value: < 0 turns off, == 0 leaves as-is, > 0 enables using given num samples 
+     * @param tileWidth custom tile width for {@link TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
+     * @param tileHeight custom tile height for {@link TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
      */
-    public OnscreenPrintable(PrinterJob job, Container printContainer, int printDPI, int numSamples) {
-        super(job, printContainer, printDPI, numSamples);
+    public OnscreenPrintable(PrinterJob job, Container printContainer, int printDPI, int numSamples, int tileWidth, int tileHeight) {
+        super(job, printContainer, printDPI, numSamples, tileWidth, tileHeight);
     }
+    
     
     @Override
     public int print(Graphics g, PageFormat pf, int page) throws PrinterException {

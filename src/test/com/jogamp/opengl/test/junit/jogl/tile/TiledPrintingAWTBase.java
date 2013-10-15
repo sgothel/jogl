@@ -51,11 +51,13 @@ import jogamp.nativewindow.awt.AWTMisc;
 
 import org.junit.Assert;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.nativewindow.awt.AWTPrintLifecycle;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.util.TileRenderer;
 
 /**
  * Base unit test class implementing 
@@ -79,9 +81,12 @@ public abstract class TiledPrintingAWTBase extends UITestCase {
      * @param offscrnImageType if < 0 onscreen, otherwise integer BufferedImage type
      * @param dpi
      * @param numSamples multisampling value: < 0 turns off, == 0 leaves as-is, > 0 enables using given num samples 
+     * @param tileWidth custom tile width for {@link TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
+     * @param tileHeight custom tile height for {@link TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
      * @param resizeWithinPrintTest TODO
      */
-    public PrintableBase doPrintAuto(Container cont, int pOrientation, Paper paper, int offscrnImageType, int dpi, int numSamples, boolean resizeWithinPrintTest) {
+    public PrintableBase doPrintAuto(Container cont, int pOrientation, Paper paper, 
+                                     int offscrnImageType, int dpi, int numSamples, int tileWidth, int tileHeight, boolean resizeWithinPrintTest) {
         lock.lock();
         try {
             final PrintRequestAttributeSet aset = new HashPrintRequestAttributeSet();
@@ -98,12 +103,13 @@ public abstract class TiledPrintingAWTBase extends UITestCase {
         
             StreamPrintServiceFactory[] factories = PrinterJob.lookupStreamPrintServices(pdfMimeType);
             if (factories.length > 0) {
-                final String fname = getPrintFilename(offscrnImageType, dpi, numSamples, "pdf", resizeWithinPrintTest);
+                final String fname = getPrintFilename(offscrnImageType, dpi, numSamples, tileWidth, tileHeight, "pdf", resizeWithinPrintTest);
                 System.err.println("doPrint: dpi "+dpi+", "+fname);
                 FileOutputStream outstream;
                 try {
                     outstream = new FileOutputStream(fname);
-                    return doPrintAutoImpl(cont, pj, factories[0].getPrintService(outstream), pOrientation, paper, offscrnImageType, dpi, numSamples, resizeWithinPrintTest);
+                    return doPrintAutoImpl(cont, pj, factories[0].getPrintService(outstream), pOrientation, paper, 
+                            offscrnImageType, dpi, numSamples, tileWidth, tileHeight, resizeWithinPrintTest);
                 } catch (FileNotFoundException e) {
                     Assert.assertNull("Unexpected exception", e);
                 }
@@ -112,12 +118,12 @@ public abstract class TiledPrintingAWTBase extends UITestCase {
             
             factories = PrinterJob.lookupStreamPrintServices(psMimeType);
             if (factories.length > 0) {
-                final String fname = getPrintFilename(offscrnImageType, dpi, numSamples, "ps", resizeWithinPrintTest);
+                final String fname = getPrintFilename(offscrnImageType, dpi, numSamples, tileWidth, tileHeight, "ps", resizeWithinPrintTest);
                 System.err.println("doPrint: dpi "+dpi+", "+fname);
                 FileOutputStream outstream;
                 try {
                     outstream = new FileOutputStream(fname);
-                    return doPrintAutoImpl(cont, pj, factories[0].getPrintService(outstream), pOrientation, paper, offscrnImageType, dpi, numSamples, resizeWithinPrintTest);
+                    return doPrintAutoImpl(cont, pj, factories[0].getPrintService(outstream), pOrientation, paper, offscrnImageType, dpi, numSamples, tileWidth, tileHeight, resizeWithinPrintTest);
                 } catch (FileNotFoundException e) {
                     Assert.assertNull("Unexpected exception", e);
                 }
@@ -128,17 +134,17 @@ public abstract class TiledPrintingAWTBase extends UITestCase {
             lock.unlock();
         }
     }
-    private String getPrintFilename(int offscrnImageType, int dpi, int numSamples, String suffix, boolean resizeWithinPrintTest) {
+    private String getPrintFilename(int offscrnImageType, int dpi, int numSamples, int tileWidth, int tileHeight, String suffix, boolean resizeWithinPrintTest) {
         final int maxSimpleTestNameLen = getMaxTestNameLen()+getClass().getSimpleName().length()+1;
         final String simpleTestName = getSimpleTestName(".");
         final String onoffscrn = 0 > offscrnImageType ? "on_screen" : "offscrn_"+offscrnImageType;
         final String aa = 0 <= numSamples ? "aa"+numSamples : "aaN";
-        return String.format("%-"+maxSimpleTestNameLen+"s-n%04d-%s-dpi%03d-%s-resize%d.%s", 
-                simpleTestName, printCount, onoffscrn, dpi, aa, resizeWithinPrintTest?1:0, suffix).replace(' ', '_');
+        return String.format("%-"+maxSimpleTestNameLen+"s-n%04d-%s-dpi%03d-%s-tSz%04dx%04d-resize%d.%s", 
+                simpleTestName, printCount, onoffscrn, dpi, aa, tileWidth, tileHeight, resizeWithinPrintTest?1:0, suffix).replace(' ', '_');
     }
     private PrintableBase doPrintAutoImpl(Container cont, PrinterJob job, 
                                           StreamPrintService ps, int pOrientation, Paper paper, 
-                                          int offscrnImageType, int dpi, int numSamples, boolean resizeWithinPrintTest) {
+                                          int offscrnImageType, int dpi, int numSamples, int tileWidth, int tileHeight, boolean resizeWithinPrintTest) {
         try {            
             PageFormat pageFormat = job.defaultPage();
             if( null != paper ) {
@@ -152,9 +158,9 @@ public abstract class TiledPrintingAWTBase extends UITestCase {
             job.setPrintService(ps);
             final PrintableBase printable;
             if( 0 < offscrnImageType ) {
-                printable = new OffscreenPrintable(job, cont, dpi, numSamples, offscrnImageType, getPrintFilename(offscrnImageType, dpi, numSamples, "png", resizeWithinPrintTest));
+                printable = new OffscreenPrintable(job, cont, dpi, numSamples, tileWidth, tileHeight, offscrnImageType, getPrintFilename(offscrnImageType, dpi, numSamples, tileWidth, tileHeight, "png", resizeWithinPrintTest));
             } else {
-                printable = new OnscreenPrintable(job, cont, dpi, numSamples);
+                printable = new OnscreenPrintable(job, cont, dpi, numSamples, tileWidth, tileHeight);
             }
             printable.job.setPrintable(printable, pageFormat);
             doPrintImpl(printable, resizeWithinPrintTest);
@@ -166,15 +172,16 @@ public abstract class TiledPrintingAWTBase extends UITestCase {
     }
 
     /**
-     * 
      * @param cont
      * @param dpi
      * @param numSamples multisampling value: < 0 turns off, == 0 leaves as-is, > 0 enables using given num samples 
+     * @param tileWidth custom tile width for {@link TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
+     * @param tileHeight custom tile height for {@link TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
      */
-    public PrintableBase doPrintManual(Container cont, int dpi, int numSamples) {
+    public PrintableBase doPrintManual(Container cont, int dpi, int numSamples, int tileWidth, int tileHeight) {
         lock.lock();
         try {
-            final OnscreenPrintable printable = new OnscreenPrintable(PrinterJob.getPrinterJob(), cont, dpi, numSamples);
+            final OnscreenPrintable printable = new OnscreenPrintable(PrinterJob.getPrinterJob(), cont, dpi, numSamples, tileWidth, tileHeight);
             printable.job.setPrintable(printable);
             boolean ok = printable.job.printDialog();
             if (ok) {
@@ -207,10 +214,13 @@ public abstract class TiledPrintingAWTBase extends UITestCase {
        final double scaleGLMatXY = 72.0 / printable.dpi;
        System.err.println("PRINTable: "+printable.getClass().getSimpleName());
        System.err.println("PRINT DPI: "+printable.dpi+", AA "+printable.numSamples+", scaleGL "+scaleGLMatXY);
-       final AWTPrintLifecycle.Context ctx = AWTPrintLifecycle.Context.setupPrint(printable.cont, scaleGLMatXY, scaleGLMatXY, printable.numSamples);
+       final AWTPrintLifecycle.Context ctx = 
+               AWTPrintLifecycle.Context.setupPrint(printable.cont, scaleGLMatXY, scaleGLMatXY, 
+                                                    printable.numSamples, printable.tileWidth, printable.tileHeight);
        System.err.println("PRINT AWTPrintLifecycle.setup.count "+ctx.getCount());
        final int w = printable.cont.getWidth();
        final int h = printable.cont.getHeight();
+       final long t0 = Platform.currentTimeMillis();
        try {
            AWTEDTExecutor.singleton.invoke(true, new Runnable() {
             public void run() {
@@ -230,6 +240,8 @@ public abstract class TiledPrintingAWTBase extends UITestCase {
            } });
        } finally {
            ctx.releasePrint();
+           final long td = Platform.currentTimeMillis() - t0;
+           System.err.println("PRINT Duration "+td+" ms");
            if( resizeWithinPrintTest ) {
                AWTEDTExecutor.singleton.invoke(true, new Runnable() {
                 public void run() {

@@ -45,6 +45,7 @@ import javax.imageio.ImageIO;
 
 import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.nativewindow.awt.DirectDataBufferInt;
+import com.jogamp.opengl.util.TileRenderer;
 
 /**
  * {@link Printable} implementation using NIO {@link DirectDataBufferInt} {@link BufferedImage}
@@ -64,11 +65,13 @@ public class OffscreenPrintable extends PrintableBase implements Printable {
      * @param printContainer
      * @param printDPI
      * @param numSamples multisampling value: < 0 turns off, == 0 leaves as-is, > 0 enables using given num samples
+     * @param tileWidth custom tile width for {@link TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
+     * @param tileHeight custom tile height for {@link TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
      * @param imageType AWT BufferedImage type (must be one of the integer types) 
      * @param pngFilename TODO
      */
-    public OffscreenPrintable(PrinterJob job, Container printContainer, int printDPI, int numSamples, int imageType, String pngFilename) {
-        super(job, printContainer, printDPI, numSamples);
+    public OffscreenPrintable(PrinterJob job, Container printContainer, int printDPI, int numSamples, int tileWidth, int tileHeight, int imageType, String pngFilename) {
+        super(job, printContainer, printDPI, numSamples, tileWidth, tileHeight);
         this.imageType = imageType;
         this.pngFilename = pngFilename;
     }
