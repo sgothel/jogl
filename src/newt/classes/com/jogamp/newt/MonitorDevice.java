@@ -183,10 +183,7 @@ public abstract class MonitorDevice {
             y1 = Math.min(y1, vp.getY());
             y2 = Math.max(y2, vp.getY() + vp.getHeight());
         }
-        result.setX(x1);
-        result.setY(y1);
-        result.setWidth(x2 - x1);
-        result.setHeight(y2 - y1);
+        result.set(x1, y1, x2 - x1, y2 - y1);
         return result;
     }
     

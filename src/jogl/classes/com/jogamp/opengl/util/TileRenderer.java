@@ -188,8 +188,7 @@ public class TileRenderer extends TileRendererBase {
         if( null == imageClippingDim ) {
             imageClippingDim = new Dimension(width, height);
         } else {
-            imageClippingDim.setWidth(width);
-            imageClippingDim.setHeight(height);
+            imageClippingDim.set(width, height);
         }
         reset();
     }
@@ -245,10 +244,8 @@ public class TileRenderer extends TileRendererBase {
             throw new IllegalArgumentException("Tile size must be > 0x0 minus 2*border");        
         }
         tileBorder = border;
-        tileSize.setWidth( width );
-        tileSize.setHeight( height );
-        tileSizeNB.setWidth( width - 2 * border );
-        tileSizeNB.setHeight( height - 2 * border );
+        tileSize.set( width, height );
+        tileSizeNB.set( width - 2 * border, height - 2 * border );
         reset();
     }
 

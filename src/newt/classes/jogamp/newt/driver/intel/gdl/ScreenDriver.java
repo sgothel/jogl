@@ -103,10 +103,7 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
     }
     
     protected void calcVirtualScreenOriginAndSize(Rectangle vOriginSize) {
-        vOriginSize.setX(0);
-        vOriginSize.setY(0);
-        vOriginSize.setWidth(cachedWidth);
-        vOriginSize.setHeight(cachedHeight);
+        vOriginSize.set(0, 0, cachedWidth, cachedHeight);
     }
     
     //----------------------------------------------------------------------

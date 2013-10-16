@@ -58,22 +58,26 @@ public class Dimension implements Cloneable, DimensionImmutable {
     }
 
     @Override
-    public int getWidth() { return width; }
+    public final int getWidth() { return width; }
     @Override
-    public int getHeight() { return height; }
+    public final int getHeight() { return height; }
 
-    public void setWidth(int width) {
+    public final void set(int width, int height) {
         this.width = width;
-    }
-    public void setHeight(int height) {
         this.height = height;
     }
-    public Dimension scale(int s) {
+    public final void setWidth(int width) {
+        this.width = width;
+    }
+    public final void setHeight(int height) {
+        this.height = height;
+    }
+    public final Dimension scale(int s) {
         width *= s;
         height *= s;
         return this;
     }
-    public Dimension add(Dimension pd) {
+    public final Dimension add(Dimension pd) {
         width += pd.width ;
         height += pd.height ;
         return this;

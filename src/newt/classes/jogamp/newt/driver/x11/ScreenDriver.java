@@ -237,10 +237,7 @@ public class ScreenDriver extends ScreenImpl {
         } else */ {
             runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
                 public Object run(long dpy) {
-                    vOriginSize.setX(0);
-                    vOriginSize.setY(0);
-                    vOriginSize.setWidth(getWidth0(dpy, screen_idx));
-                    vOriginSize.setHeight(getHeight0(dpy, screen_idx));
+                    vOriginSize.set(0, 0, getWidth0(dpy, screen_idx), getHeight0(dpy, screen_idx));
                     return null;
                 } } );
             if( DEBUG ) {

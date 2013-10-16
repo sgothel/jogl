@@ -285,10 +285,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
      */
     protected void updateVirtualScreenOriginAndSize() {
         if(null != usrSize ) {
-            vOriginSize.setX(0);
-            vOriginSize.setY(0);
-            vOriginSize.setWidth(usrSize.getWidth());
-            vOriginSize.setHeight(usrSize.getHeight());
+            vOriginSize.set(0, 0, usrSize.getWidth(), usrSize.getHeight());
             if(DEBUG) {
                 System.err.println("Update user virtual screen viewport @ "+Thread.currentThread().getName()+": "+vOriginSize);
             }

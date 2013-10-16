@@ -243,17 +243,11 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
             System.err.println("JAWTWindow.updateBounds: "+bounds+" -> "+jb);
             // Thread.dumpStack();
         }
-        bounds.setX(jawtBounds.getX());
-        bounds.setY(jawtBounds.getY());
-        bounds.setWidth(jawtBounds.getWidth());
-        bounds.setHeight(jawtBounds.getHeight());
+        bounds.set(jawtBounds.getX(), jawtBounds.getY(), jawtBounds.getWidth(), jawtBounds.getHeight());
     
         if(component instanceof Container) {
-            java.awt.Insets contInsets = ((Container)component).getInsets();
-            insets.setLeftWidth(contInsets.left);
-            insets.setRightWidth(contInsets.right);
-            insets.setTopHeight(contInsets.top);
-            insets.setBottomHeight(contInsets.bottom);
+            final java.awt.Insets contInsets = ((Container)component).getInsets();
+            insets.set(contInsets.left, contInsets.right, contInsets.top, contInsets.bottom);
         }
     }
     return changed;

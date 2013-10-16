@@ -155,10 +155,7 @@ public class ScreenDriver extends ScreenImpl {
         
     @Override
     protected void calcVirtualScreenOriginAndSize(Rectangle vOriginSize) {
-        vOriginSize.setX(getVirtualOriginX0());
-        vOriginSize.setY(getVirtualOriginY0());
-        vOriginSize.setWidth(getVirtualWidthImpl0());
-        vOriginSize.setHeight(getVirtualHeightImpl0());
+        vOriginSize.set(getVirtualOriginX0(), getVirtualOriginY0(), getVirtualWidthImpl0(), getVirtualHeightImpl0());
     }
     
     // Native calls

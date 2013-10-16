@@ -99,22 +99,23 @@ public class Point implements Cloneable, PointImmutable {
         return new String( x + " / " + y );
     }
 
-    public void setX(int x) { this.x = x; }
-    public void setY(int y) { this.y = y; }
+    public final void set(int x, int y) { this.x = x; this.y = y; }
+    public final void setX(int x) { this.x = x; }
+    public final void setY(int y) { this.y = y; }
 
-    public Point translate(Point pd) {
+    public final Point translate(Point pd) {
         x += pd.x ;
         y += pd.y ;
         return this;
     }
 
-    public Point translate(int dx, int dy) {
+    public final Point translate(int dx, int dy) {
         x += dx ;
         y += dy ;
         return this;
     }
 
-    public Point scale(int sx, int sy) {
+    public final Point scale(int sx, int sy) {
         x *= sx ;
         y *= sy ;
         return this;

@@ -497,8 +497,7 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
             if( isOSX ) {
                 final Point los = OSXUtil.GetLocationOnScreen(nativeWindowHandle, false, 0, 0);
                 // top-level position -> client window position
-                los.setX(los.getX() + insets.getLeftWidth());
-                los.setY(los.getY() + insets.getTopHeight());                
+                los.set(los.getX() + insets.getLeftWidth(), los.getY() + insets.getTopHeight());                
                 if(null!=point) {
                   return point.translate(los);
                 } else {

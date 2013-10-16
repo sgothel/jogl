@@ -99,10 +99,7 @@ public class ScreenDriver extends ScreenImpl {
     }
     
     protected void calcVirtualScreenOriginAndSize(Rectangle vOriginSize) {
-        vOriginSize.setX(0);
-        vOriginSize.setY(0);
-        vOriginSize.setWidth(cachedWidth);
-        vOriginSize.setHeight(cachedHeight);
+        vOriginSize.set(0, 0, cachedWidth, cachedHeight);
     }
     
     protected void sizeChanged(int w, int h) {

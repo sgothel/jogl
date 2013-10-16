@@ -286,8 +286,7 @@ public abstract class TileRendererBase {
      * @param height The height of the final image
      */
     public void setImageSize(int width, int height) {
-        imageSize.setWidth(width);
-        imageSize.setHeight(height);
+        imageSize.set(width, height);
     }
 
     /** @see #setImageSize(int, int) */

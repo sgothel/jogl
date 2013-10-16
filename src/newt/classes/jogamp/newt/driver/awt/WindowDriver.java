@@ -177,11 +177,8 @@ public class WindowDriver extends WindowImpl {
     }
 
     protected void updateInsetsImpl(javax.media.nativewindow.util.Insets insets) {
-        Insets contInsets = awtContainer.getInsets();
-        insets.setLeftWidth(contInsets.left);
-        insets.setRightWidth(contInsets.right);
-        insets.setTopHeight(contInsets.top);
-        insets.setBottomHeight(contInsets.bottom);
+        final Insets contInsets = awtContainer.getInsets();
+        insets.set(contInsets.left, contInsets.right, contInsets.top, contInsets.bottom);
     }
 
     private void setCanvasSizeImpl(int width, int height) {

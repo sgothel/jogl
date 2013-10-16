@@ -132,8 +132,7 @@ public class OffscreenWindow extends WindowImpl implements MutableSurface {
     @Override
     public Point getLocationOnScreen(Point storage) {
      if(null!=storage) {
-        storage.setX(0);
-        storage.setY(0);
+        storage.set(0, 0);
         return storage;
      }
      return new Point(0,0);

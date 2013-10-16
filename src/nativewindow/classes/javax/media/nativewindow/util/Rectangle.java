@@ -68,6 +68,12 @@ public class Rectangle implements Cloneable, RectangleImmutable {
     @Override
     public final int getHeight() { return height; }
     
+    public final void set(int x, int y, int width, int height) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+    }
     public final void setX(int x) { this.x = x; }
     public final void setY(int y) { this.y = y; }
     public final void setWidth(int width) { this.width = width; }
@@ -100,10 +106,7 @@ public class Rectangle implements Cloneable, RectangleImmutable {
             y1 = Math.min(y1, vp.getY());
             y2 = Math.max(y2, vp.getY() + vp.getHeight());
         }
-        setX(x1);
-        setY(y1);
-        setWidth(x2 - x1);
-        setHeight(y2 - y1);
+        set(x1, y1, x2 - x1, y2 - y1);
         return this;
     }
         

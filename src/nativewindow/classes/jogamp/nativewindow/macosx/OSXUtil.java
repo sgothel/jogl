@@ -113,8 +113,7 @@ public class OSXUtil implements ToolkitProperties {
       if(topLevel) {
           // top-level position -> client window position
           final Insets insets = GetInsets(windowOrView);
-          los.setX(los.getX() + insets.getLeftWidth());
-          los.setY(los.getY() + insets.getTopHeight());
+          los.set(los.getX() + insets.getLeftWidth(), los.getY() + insets.getTopHeight());
       }
       return los;
     }

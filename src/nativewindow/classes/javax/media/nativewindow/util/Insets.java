@@ -70,10 +70,13 @@ public class Insets implements Cloneable, InsetsImmutable {
     @Override
     public final int getTotalHeight() { return t + b; }
 
-    public void setLeftWidth(int left) { l = left; }
-    public void setRightWidth(int right) { r = right; }
-    public void setTopHeight(int top) { t = top; }
-    public void setBottomHeight(int bottom) { b = bottom; }
+    public final void set(int left, int right, int top, int bottom) {
+        l = left; r = right; t = top; b = bottom;
+    }
+    public final void setLeftWidth(int left) { l = left; }
+    public final void setRightWidth(int right) { r = right; }
+    public final void setTopHeight(int top) { t = top; }
+    public final void setBottomHeight(int bottom) { b = bottom; }
     
     @Override
     public boolean equals(Object obj) {
