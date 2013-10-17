@@ -2552,7 +2552,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 if( null != movePositionP0 ) {
                     if( pState1.insideWindow && movePositionP0.getX() == x && movePositionP0.getY() == y ) { 
                         if(DEBUG_MOUSE_EVENT) {
-                            System.err.println("doMouseEvent: skip "+MouseEvent.getEventTypeString(eventType)+" w/ same position: "+movePositionP0);
+                            System.err.println("doPointerEvent: skip "+MouseEvent.getEventTypeString(eventType)+" w/ same position: "+movePositionP0);
                         }
                         return; // skip same position
                     }
@@ -2570,13 +2570,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         
         if( x < 0 || y < 0 || x >= getWidth() || y >= getHeight() ) {
             if(DEBUG_MOUSE_EVENT) {
-                System.err.println("doMouseEvent: drop: "+MouseEvent.getEventTypeString(eventType)+
+                System.err.println("doPointerEvent: drop: "+MouseEvent.getEventTypeString(eventType)+
                                    ", mod "+modifiers+", pos "+x+"/"+y+", button "+button+", lastMousePosition: "+movePositionP0);
             }
             return; // .. invalid ..
         }
         if(DEBUG_MOUSE_EVENT) {
-            System.err.println("doMouseEvent: enqueue "+enqueue+", wait "+wait+", "+MouseEvent.getEventTypeString(eventType)+
+            System.err.println("doPointerEvent: enqueue "+enqueue+", wait "+wait+", "+MouseEvent.getEventTypeString(eventType)+
                                ", mod "+modifiers+", pos "+x+"/"+y+", button "+button+", lastMousePosition: "+movePositionP0);
         }
 
@@ -2791,7 +2791,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         int y = pe.getY();
         
         if(DEBUG_MOUSE_EVENT) {
-            System.err.println("consumeMouseEvent.in: "+pe);
+            System.err.println("consumePointerEvent.in: "+pe);
         }
         
         //
@@ -2824,12 +2824,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
         if( null != eEntered ) {
             if(DEBUG_MOUSE_EVENT) {
-                System.err.println("consumeMouseEvent.send.0: "+eEntered);
+                System.err.println("consumePointerEvent.send.0: "+eEntered);
             }
             dispatchMouseEvent(eEntered);
         } else if( x < 0 || y < 0 || x >= getWidth() || y >= getHeight() ) {
             if(DEBUG_MOUSE_EVENT) {
-                System.err.println("consumeMouseEvent.drop: "+pe);
+                System.err.println("consumePointerEvent.drop: "+pe);
             }
             return; // .. invalid ..
         }
@@ -2852,7 +2852,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     scaledScrollSlop = Math.round(DoubleTapScrollGesture.SCROLL_SLOP_MM * pixPerMM);  
                     scaledDoubleTapSlop = Math.round(DoubleTapScrollGesture.DOUBLE_TAP_SLOP_MM * pixPerMM);                         
                     if(DEBUG_MOUSE_EVENT) {
-                        System.err.println("consumeMouseEvent.gscroll: scrollSlop "+scaledScrollSlop+", doubleTapSlop "+scaledDoubleTapSlop+", pixPerMM "+pixPerMM+", "+monitor);
+                        System.err.println("consumePointerEvent.gscroll: scrollSlop "+scaledScrollSlop+", doubleTapSlop "+scaledDoubleTapSlop+", pixPerMM "+pixPerMM+", "+monitor);
                     }
                 } else {
                     scaledScrollSlop = DoubleTapScrollGesture.SCROLL_SLOP_PIXEL;
@@ -2865,7 +2865,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 pe = (MouseEvent) gesture2PtrTouchScroll.getGestureEvent();
                 gesture2PtrTouchScroll.clear(false);
                 if(DEBUG_MOUSE_EVENT) {
-                    System.err.println("consumeMouseEvent.gscroll: "+pe);
+                    System.err.println("consumePointerEvent.gscroll: "+pe);
                 }
                 dispatchMouseEvent(pe);
                 return;
@@ -2927,7 +2927,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             case MouseEvent.EVENT_MOUSE_CLICKED:
                 // ignore - synthesized here ..
                 if(DEBUG_MOUSE_EVENT) {
-                    System.err.println("consumeMouseEvent: drop recv'ed (synth here) "+pe);
+                    System.err.println("consumePointerEvent: drop recv'ed (synth here) "+pe);
                 }
                 pe = null;
                 eClicked = null;
@@ -2938,13 +2938,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         
         if( null != pe ) {
             if(DEBUG_MOUSE_EVENT) {
-                System.err.println("consumeMouseEvent.send.1: "+pe);
+                System.err.println("consumePointerEvent.send.1: "+pe);
             }
             dispatchMouseEvent(pe); // actual mouse event
         }
         if( null != eClicked ) {
             if(DEBUG_MOUSE_EVENT) {
-                System.err.println("consumeMouseEvent.send.2: "+eClicked);
+                System.err.println("consumePointerEvent.send.2: "+eClicked);
             }
             dispatchMouseEvent(eClicked);
         }
