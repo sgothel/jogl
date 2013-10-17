@@ -177,31 +177,33 @@ public class PinchToZoomGesture implements GestureHandler {
                         // same pointers
                         final int p0Idx = pe.getPointerIdx(pIds[0]);
                         final int p1Idx = pe.getPointerIdx(pIds[1]);
-                        final int edge0 = useY ? pe.getY(p0Idx) : pe.getX(p0Idx);
-                        final int edge1 = useY ? pe.getY(p1Idx) : pe.getX(p1Idx);
-                        // Diff. 1:1 Zoom: finger-distance to screen-coord
-                        if(zoomFirstTouch) {
-                            zoomLastEdgeDist = Math.abs(edge0-edge1);
-                            zoomFirstTouch=false;
-                            zoomMode = true;
-                        } else if( zoomMode ) {
-                            final int d = Math.abs(edge0-edge1);
-                            final int dd = d - zoomLastEdgeDist;                        
-                            final float screenEdge = useY ? surface.getHeight() : surface.getWidth();
-                            final float incr = (float)dd / screenEdge; // [-1..1]
-                            if(DEBUG) {
-                                System.err.println("XXX2: id0 "+pIds[0]+" -> idx0 "+p0Idx+", id1 "+pIds[1]+" -> idx1 "+p1Idx);
-                                System.err.println("XXX3: d "+d+", ld "+zoomLastEdgeDist+", dd "+dd+", screen "+screenEdge+" -> incr "+incr+", zoom "+zoom+" -> "+(zoom+incr));
-                            }        
-                            zoom += incr;
-                            // clip value
-                            if( 2f < zoom ) {
-                                zoom = 2f;
-                            } else if( 0 > zoom ) {
-                                zoom = 0;
+                        if( 0 <= p0Idx && 0 <= p1Idx ) {
+                            final int edge0 = useY ? pe.getY(p0Idx) : pe.getX(p0Idx);
+                            final int edge1 = useY ? pe.getY(p1Idx) : pe.getX(p1Idx);
+                            // Diff. 1:1 Zoom: finger-distance to screen-coord
+                            if(zoomFirstTouch) {
+                                zoomLastEdgeDist = Math.abs(edge0-edge1);
+                                zoomFirstTouch=false;
+                                zoomMode = true;
+                            } else if( zoomMode ) {
+                                final int d = Math.abs(edge0-edge1);
+                                final int dd = d - zoomLastEdgeDist;                        
+                                final float screenEdge = useY ? surface.getHeight() : surface.getWidth();
+                                final float incr = (float)dd / screenEdge; // [-1..1]
+                                if(DEBUG) {
+                                    System.err.println("XXX2: id0 "+pIds[0]+" -> idx0 "+p0Idx+", id1 "+pIds[1]+" -> idx1 "+p1Idx);
+                                    System.err.println("XXX3: d "+d+", ld "+zoomLastEdgeDist+", dd "+dd+", screen "+screenEdge+" -> incr "+incr+", zoom "+zoom+" -> "+(zoom+incr));
+                                }        
+                                zoom += incr;
+                                // clip value
+                                if( 2f < zoom ) {
+                                    zoom = 2f;
+                                } else if( 0 > zoom ) {
+                                    zoom = 0;
+                                }
+                                zoomLastEdgeDist = d;
+                                zoomEvent = new ZoomEvent(pe.getSource(), pe.getWhen(), pe.getModifiers(), this, pe, zoom);
                             }
-                            zoomLastEdgeDist = d;
-                            zoomEvent = new ZoomEvent(pe.getSource(), pe.getWhen(), pe.getModifiers(), this, pe, zoom);
                         }
                     }
                     if(DEBUG) {
