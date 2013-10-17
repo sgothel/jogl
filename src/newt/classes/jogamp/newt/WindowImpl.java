@@ -2428,18 +2428,20 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         for(int i=0; i<pCount; i++) {
             if( !normalPNames ) {
                 // hash map int name -> short idx
-                final Integer pNameI0 = new Integer(pNames[i]);
-                final Integer pNameI1 =  pName2pID.getOrAdd(pNameI0);
+                final int sz0 = pName2pID.size();
+                final Integer pNameI1 = pName2pID.getOrAdd(Integer.valueOf(pNames[i]));
                 final short pID = (short)pName2pID.indexOf(pNameI1);
                 pIDs[i] = pID;
                 if(DEBUG_MOUSE_EVENT) {
-                    final boolean reuse = pNameI0 == pNameI1;
-                    System.err.println("PointerName2ID[sz "+pName2pID.size()+"]: "+(reuse?"Reused":"Added")+" "+pNameI0+" : "+pID);
+                    final int sz1 = pName2pID.size();
+                    if( sz0 != sz1 ) {
+                        System.err.println("PointerName2ID[sz "+sz1+"]: Map "+pNameI1+" == "+pID);
+                    }
                 }
                 if( MouseEvent.EVENT_MOUSE_RELEASED == eventType ) {
                     pName2pID.remove(pNameI1);
                     if(DEBUG_MOUSE_EVENT) {
-                        System.err.println("PointerName2ID[sz "+pName2pID.size()+"]: Removed "+pNameI1+" : "+pID);
+                        System.err.println("PointerName2ID[sz "+pName2pID.size()+"]: Unmap "+pNameI1+" == "+pID);
                     }
                 }
             } else {
