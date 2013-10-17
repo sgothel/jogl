@@ -79,13 +79,38 @@ public class MouseEvent extends InputEvent
         
         public PointerClass getPointerClass() { return pc; }
         
-        public static PointerType valueOf(int i) {
-            // ordinal = enumValue.ordinal(), reverse: enumValue = EnumClass.values()[ordinal]
+        /** 
+         * Returns the matching PointerType value corresponding to the given PointerType's integer ordinal.
+         * <pre>
+         *   given:
+         *     ordinal = enumValue.ordinal()
+         *   reverse:
+         *     enumValue = EnumClass.values()[ordinal]
+         * </pre>
+         * @throws IllegalArgumentException if the given ordinal is out of range, i.e. not within [ 0 .. PointerType.values().length-1 ]
+         */
+        public static PointerType valueOf(int ordinal) throws IllegalArgumentException {
             final PointerType[] all = PointerType.values();
-            if( 0 <= i && i < all.length ) {
-                return all[i];
+            if( 0 <= ordinal && ordinal < all.length ) {
+                return all[ordinal];
             }
-            return null;            
+            throw new IllegalArgumentException("Ordinal "+ordinal+" out of range of PointerType.values()[0.."+(all.length-1)+"]");
+        }
+        
+        /** 
+         * Returns the PointerType array of matching PointerType values corresponding to the given PointerType's integer ordinal values.
+         * <p>
+         * See {@link #valueOf(int)}.
+         * </p>
+         * @throws IllegalArgumentException if one of the given ordinal values is out of range, i.e. not within [ 0 .. PointerType.values().length-1 ]
+         */
+        public static PointerType[] valuesOf(int[] ordinals) throws IllegalArgumentException {
+            final int count = ordinals.length;
+            final PointerType[] types = new PointerType[count];
+            for(int i=count-1; i>=0; i--) {
+                types[i] = PointerType.valueOf(ordinals[i]);
+            }
+            return types;
         }
         
         private PointerType(PointerClass pc) {

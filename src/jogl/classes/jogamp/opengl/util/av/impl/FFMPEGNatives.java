@@ -92,13 +92,22 @@ interface FFMPEGNatives {
         
         COUNT;       ///< Number of sample formats.
         
-        public static SampleFormat valueOf(int i) {
-            // ordinal = enumValue.ordinal(), reverse: enumValue = EnumClass.values()[ordinal]
+        /** 
+         * Returns the matching SampleFormat value corresponding to the given SampleFormat's integer ordinal.
+         * <pre>
+         *   given:
+         *     ordinal = enumValue.ordinal()
+         *   reverse:
+         *     enumValue = EnumClass.values()[ordinal]
+         * </pre>
+         * @throws IllegalArgumentException if the given ordinal is out of range, i.e. not within [ 0 .. SampleFormat.values().length-1 ]
+         */
+        public static SampleFormat valueOf(int ordinal) throws IllegalArgumentException {
             final SampleFormat[] all = SampleFormat.values();
-            if( 0 <= i && i < all.length ) {
-                return all[i];
+            if( 0 <= ordinal && ordinal < all.length ) {
+                return all[ordinal];
             }
-            return null;            
+            throw new IllegalArgumentException("Ordinal "+ordinal+" out of range of SampleFormat.values()[0.."+(all.length-1)+"]");
         }
     };
 
@@ -246,13 +255,22 @@ interface FFMPEGNatives {
         GBRP16LE,  ///< planar GBR 4:4:4 48bpp, little endian
         COUNT      ///< number of pixel formats in this list
         ;
-        public static PixelFormat valueOf(int i) {
-            // ordinal = enumValue.ordinal(), reverse: enumValue = EnumClass.values()[ordinal]
+        /** 
+         * Returns the matching PixelFormat value corresponding to the given PixelFormat's integer ordinal.
+         * <pre>
+         *   given:
+         *     ordinal = enumValue.ordinal()
+         *   reverse:
+         *     enumValue = EnumClass.values()[ordinal]
+         * </pre>
+         * @throws IllegalArgumentException if the given ordinal is out of range, i.e. not within [ 0 .. PixelFormat.values().length-1 ]
+         */
+        public static PixelFormat valueOf(int ordinal) throws IllegalArgumentException {
             final PixelFormat[] all = PixelFormat.values();
-            if( 0 <= i && i < all.length ) {
-                return all[i];
+            if( 0 <= ordinal && ordinal < all.length ) {
+                return all[ordinal];
             }
-            return null;            
+            throw new IllegalArgumentException("Ordinal "+ordinal+" out of range of PixelFormat.values()[0.."+(all.length-1)+"]");
         }
     }
 }
