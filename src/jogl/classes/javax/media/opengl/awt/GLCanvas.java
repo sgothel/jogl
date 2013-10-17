@@ -757,24 +757,25 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
           if( null != printAnimator ) {
               printAnimator.remove(GLCanvas.this);
           }
+          printGLAD = GLCanvas.this; // _not_ default, shall be replaced by offscreen GLAD          
           final GLCapabilities caps = (GLCapabilities)getChosenGLCapabilities().cloneMutable();
           final int printNumSamples = printAWTTiles.getNumSamples(caps);
           GLDrawable printDrawable = printGLAD.getDelegatedDrawable();
           final boolean reqNewGLADSamples = printNumSamples != caps.getNumSamples();
           final boolean reqNewGLADSize = printAWTTiles.customTileWidth != -1 && printAWTTiles.customTileWidth != printDrawable.getWidth() ||
                                          printAWTTiles.customTileHeight != -1 && printAWTTiles.customTileHeight != printDrawable.getHeight();
-          final boolean reqNewGLAD = !caps.getSampleBuffers(); // reqNewGLADSamples || reqNewGLADSize ;
+          final boolean reqNewGLADOnscrn = caps.isOnscreen();
+          // It is desired to use a new offscreen GLAD, however Bug 830 forbids this for AA onscreen context.
+          // Bug 830: swapGLContextAndAllGLEventListener and onscreen MSAA w/ NV/GLX
+          final boolean reqNewGLAD = !caps.getSampleBuffers() && ( reqNewGLADOnscrn || reqNewGLADSamples || reqNewGLADSize );
           if( DEBUG ) {
-              System.err.println("AWT print.setup: reqNewGLAD "+reqNewGLAD+"[ samples "+reqNewGLADSamples+", size "+reqNewGLADSize+"], "+
+              System.err.println("AWT print.setup: reqNewGLAD "+reqNewGLAD+"[ onscreen "+reqNewGLADOnscrn+", samples "+reqNewGLADSamples+", size "+reqNewGLADSize+"], "+
                                  ", drawableSize "+printDrawable.getWidth()+"x"+printDrawable.getHeight()+
                                  ", customTileSize "+printAWTTiles.customTileWidth+"x"+printAWTTiles.customTileHeight+
                                  ", scaleMat "+printAWTTiles.scaleMatX+" x "+printAWTTiles.scaleMatY+
                                  ", numSamples "+printAWTTiles.customNumSamples+" -> "+printNumSamples+", printAnimator "+printAnimator);
           }
-          if( caps.getSampleBuffers() ) {
-              // Bug 830: swapGLContextAndAllGLEventListener and onscreen MSAA w/ NV/GLX
-              printGLAD = GLCanvas.this;
-          } else {
+          if( reqNewGLAD ) {
               caps.setDoubleBuffered(false);
               caps.setOnscreen(false);
               if( printNumSamples != caps.getNumSamples() ) {
