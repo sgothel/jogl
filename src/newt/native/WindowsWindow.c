@@ -32,6 +32,16 @@
  * 
  */
 
+//
+// Min. required version Windows 7 (For WM_TOUCH)
+//
+#if WINVER < 0x0601
+#error WINVER must be >= 0x0601
+#endif
+#if _WIN32_WINNT < 0x0601
+#error _WIN32_WINNT must be >= 0x0601
+#endif
+
 #include <Windows.h>
 #include <Windowsx.h>
 #include <tchar.h>
@@ -86,6 +96,13 @@
 #define WH_MOUSE_LL 14
 #endif
 
+#ifndef WM_TOUCH
+#define WM_TOUCH 0x0240
+#endif
+#ifndef TOUCH_COORD_TO_PIXEL
+#define TOUCH_COORD_TO_PIXEL(l) (l/100)
+#endif
+
 #ifndef MONITOR_DEFAULTTONULL
 #define MONITOR_DEFAULTTONULL 0
 #endif
@@ -136,6 +153,7 @@ static jmethodID visibleChangedID = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
 static jmethodID windowRepaintID = NULL;
 static jmethodID sendMouseEventID = NULL;
+static jmethodID sendTouchScreenEventID = NULL;
 static jmethodID sendKeyEventID = NULL;
 static jmethodID requestFocusID = NULL;
 
@@ -144,8 +162,15 @@ static RECT* UpdateInsets(JNIEnv *env, jobject window, HWND hwnd);
 typedef struct {
     JNIEnv* jenv;
     jobject jinstance;
+    /* client size width */
+    int width;
+    /* client size height */
+    int height;
     /** Tristate: -1 HIDE, 0 NOP, 1 SHOW */
     int setPointerVisible;
+    int mouseInside;
+    int touchDownCount;
+    int supportsMTouch;
 } WindowUserData;
     
 typedef struct {
@@ -544,14 +569,22 @@ static void NewtWindows_requestFocus (JNIEnv *env, jobject window, HWND hwnd, jb
     DBG_PRINT("*** WindowsWindow: requestFocus.XX\n");
 }
 
-static BOOL NewtWindows_trackPointerLeave(HWND hwnd) {
+static void NewtWindows_trackPointerLeave(HWND hwnd) {
     TRACKMOUSEEVENT tme;
     memset(&tme, 0, sizeof(TRACKMOUSEEVENT));
     tme.cbSize = sizeof(TRACKMOUSEEVENT);
     tme.dwFlags = TME_LEAVE;
     tme.hwndTrack = hwnd;
     tme.dwHoverTime = 0; // we don't use TME_HOVER
-    return TrackMouseEvent(&tme);
+    BOOL ok = TrackMouseEvent(&tme);
+    DBG_PRINT( "*** WindowsWindow: trackPointerLeave: %d\n", ok);
+    #ifdef VERBOSE_ON
+    if(!ok) {
+        int lastError = (int) GetLastError();
+        DBG_PRINT( "*** WindowsWindow: trackPointerLeave: lastError 0x%X %d\n", lastError, lastError);
+    }
+    #endif
+    (void)ok;
 }
 
 #if 0
@@ -676,11 +709,11 @@ static RECT* UpdateInsets(JNIEnv *env, jobject window, HWND hwnd)
 
 #endif
 
-static void WmSize(JNIEnv *env, jobject window, HWND wnd, UINT type)
+static void WmSize(JNIEnv *env, WindowUserData * wud, HWND wnd, UINT type)
 {
     RECT rc;
-    int w, h;
     BOOL isVisible = IsWindowVisible(wnd);
+    jobject window = wud->jinstance;
 
     if (type == SIZE_MINIMIZED) {
         // TODO: deal with minimized window sizing
@@ -693,12 +726,12 @@ static void WmSize(JNIEnv *env, jobject window, HWND wnd, UINT type)
     GetClientRect(wnd, &rc);
     
     // we report back the dimensions of the client area
-    w = (int) ( rc.right  - rc.left );
-    h = (int) ( rc.bottom - rc.top );
+    wud->width = (int) ( rc.right  - rc.left );
+    wud->height = (int) ( rc.bottom - rc.top );
 
-    DBG_PRINT("*** WindowsWindow: WmSize window %p, %dx%d, visible %d\n", (void*)wnd, w, h, isVisible);
+    DBG_PRINT("*** WindowsWindow: WmSize window %p, %dx%d, visible %d\n", (void*)wnd, wud->width, wud->height, isVisible);
 
-    (*env)->CallVoidMethod(env, window, sizeChangedID, JNI_FALSE, w, h, JNI_FALSE);
+    (*env)->CallVoidMethod(env, window, sizeChangedID, JNI_FALSE, wud->width, wud->height, JNI_FALSE);
 }
 
 #ifdef TEST_MOUSE_HOOKS
@@ -791,6 +824,39 @@ static BOOL SafeShowCursor(BOOL show) {
     }
     return b;
 }
+
+static void sendTouchScreenEvent(JNIEnv *env, jobject window, 
+                                 short eventType, int modifiers, int actionIdx, 
+                                 int count, jint* pointerNames, jint* x, jint* y, jfloat* pressure, float maxPressure) {
+    jintArray jNames = (*env)->NewIntArray(env, count);
+    if (jNames == NULL) {
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array (names) of size %d", count);
+    }
+    (*env)->SetIntArrayRegion(env, jNames, 0, count, pointerNames);
+
+    jintArray jX = (*env)->NewIntArray(env, count);
+    if (jX == NULL) {
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array (x) of size %d", count);
+    }
+    (*env)->SetIntArrayRegion(env, jX, 0, count, x);
+
+    jintArray jY = (*env)->NewIntArray(env, count);
+    if (jY == NULL) {
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array (y) of size %d", count);
+    }
+    (*env)->SetIntArrayRegion(env, jY, 0, count, y);
+
+    jfloatArray jPressure = (*env)->NewFloatArray(env, count);
+    if (jPressure == NULL) {
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate float array (pressure) of size %d", count);
+    }
+    (*env)->SetFloatArrayRegion(env, jPressure, 0, count, pressure);
+
+    (*env)->CallVoidMethod(env, window, sendTouchScreenEventID,
+                           (jshort)eventType, (jint)modifiers, (jint)actionIdx,
+                           jNames, jX, jY, jPressure, (jfloat)maxPressure);
+}
+    
 
 static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam) {
     LRESULT res = 0;
@@ -885,7 +951,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
         break;
 
     case WM_SIZE:
-        WmSize(env, window, wnd, (UINT)wParam);
+        WmSize(env, wud, wnd, (UINT)wParam);
         break;
 
     case WM_SETTINGCHANGE:
@@ -899,83 +965,139 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
         break;
 
 
-    case WM_LBUTTONDOWN:
-        DBG_PRINT("*** WindowsWindow: LBUTTONDOWN\n");
-        (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
-        (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                               (jshort) EVENT_MOUSE_PRESSED,
-                               GetModifiers( 0 ),
-                               (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                               (jshort) 1, (jfloat) 0.0f);
-        useDefWindowProc = 1;
+    case WM_LBUTTONDOWN: {
+            BOOL isMouse = 0 == GetMessageExtraInfo();
+            DBG_PRINT("*** WindowsWindow: WM_LBUTTONDOWN %d/%d [%dx%d] inside %d, isMouse %d, tDown %d\n", 
+                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
+                wud->width, wud->height, wud->mouseInside, isMouse, wud->touchDownCount);
+            if( isMouse ) {
+                wud->mouseInside = 1;
+                (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
+                (*env)->CallVoidMethod(env, window, sendMouseEventID,
+                                       (jshort) EVENT_MOUSE_PRESSED,
+                                       GetModifiers( 0 ),
+                                       (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
+                                       (jshort) 1, (jfloat) 0.0f);
+                useDefWindowProc = 1;
+            }
+        }
         break;
 
-    case WM_LBUTTONUP:
-        (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                               (jshort) EVENT_MOUSE_RELEASED,
-                               GetModifiers( 0 ),
-                               (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                               (jshort) 1, (jfloat) 0.0f);
-        useDefWindowProc = 1;
+    case WM_LBUTTONUP: {
+            BOOL isMouse = 0 == GetMessageExtraInfo();
+            DBG_PRINT("*** WindowsWindow: WM_LBUTTONUP %d/%d [%dx%d] inside %d, isMouse %d, tDown %d\n", 
+                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
+                wud->width, wud->height, wud->mouseInside, isMouse, wud->touchDownCount);
+            if( isMouse ) {
+                wud->mouseInside = 1;
+                (*env)->CallVoidMethod(env, window, sendMouseEventID,
+                                       (jshort) EVENT_MOUSE_RELEASED,
+                                       GetModifiers( 0 ),
+                                       (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
+                                       (jshort) 1, (jfloat) 0.0f);
+                useDefWindowProc = 1;
+            }
+        }
         break;
 
-    case WM_MBUTTONDOWN:
-        DBG_PRINT("*** WindowsWindow: MBUTTONDOWN\n");
-        (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
-        (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                               (jshort) EVENT_MOUSE_PRESSED,
-                               GetModifiers( 0 ),
-                               (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                               (jshort) 2, (jfloat) 0.0f);
-        useDefWindowProc = 1;
+    case WM_MBUTTONDOWN: {
+            BOOL isMouse = 0 == GetMessageExtraInfo();
+            DBG_PRINT("*** WindowsWindow: WM_MBUTTONDOWN %d/%d [%dx%d] inside %d, isMouse %d, tDown %d\n", 
+                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
+                wud->width, wud->height, wud->mouseInside, isMouse, wud->touchDownCount);
+            if( isMouse ) {
+                wud->mouseInside = 1;
+                (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
+                (*env)->CallVoidMethod(env, window, sendMouseEventID,
+                                       (jshort) EVENT_MOUSE_PRESSED,
+                                       GetModifiers( 0 ),
+                                       (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
+                                       (jshort) 2, (jfloat) 0.0f);
+                useDefWindowProc = 1;
+            }
+        }
         break;
 
-    case WM_MBUTTONUP:
-        (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                               (jshort) EVENT_MOUSE_RELEASED,
-                               GetModifiers( 0 ),
-                               (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                               (jshort) 2, (jfloat) 0.0f);
-        useDefWindowProc = 1;
+    case WM_MBUTTONUP: {
+            BOOL isMouse = 0 == GetMessageExtraInfo();
+            DBG_PRINT("*** WindowsWindow: WM_MBUTTONUP %d/%d [%dx%d] inside %d, isMouse %d, tDown %d\n", 
+                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
+                wud->width, wud->height, wud->mouseInside, isMouse, wud->touchDownCount);
+            if( isMouse ) {
+                wud->mouseInside = 1;
+                (*env)->CallVoidMethod(env, window, sendMouseEventID,
+                                       (jshort) EVENT_MOUSE_RELEASED,
+                                       GetModifiers( 0 ),
+                                       (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
+                                       (jshort) 2, (jfloat) 0.0f);
+                useDefWindowProc = 1;
+            }
+        }
         break;
 
-    case WM_RBUTTONDOWN:
-        DBG_PRINT("*** WindowsWindow: RBUTTONDOWN\n");
-        (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
-        (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                               (jshort) EVENT_MOUSE_PRESSED,
-                               GetModifiers( 0 ),
-                               (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                               (jshort) 3, (jfloat) 0.0f);
-        useDefWindowProc = 1;
+    case WM_RBUTTONDOWN: {
+            BOOL isMouse = 0 == GetMessageExtraInfo();
+            DBG_PRINT("*** WindowsWindow: WM_RBUTTONDOWN: %d/%d [%dx%d] inside %d, isMouse %d, tDown %d\n", 
+                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
+                wud->width, wud->height, wud->mouseInside, isMouse, wud->touchDownCount);
+            if( isMouse ) {
+                wud->mouseInside = 1;
+                (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
+                (*env)->CallVoidMethod(env, window, sendMouseEventID,
+                                       (jshort) EVENT_MOUSE_PRESSED,
+                                       GetModifiers( 0 ),
+                                       (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
+                                       (jshort) 3, (jfloat) 0.0f);
+                useDefWindowProc = 1;
+            }
+        }
         break;
 
-    case WM_RBUTTONUP:
-        (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                               (jshort) EVENT_MOUSE_RELEASED,
-                               GetModifiers( 0 ),
-                               (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                               (jshort) 3,  (jfloat) 0.0f);
-        useDefWindowProc = 1;
+    case WM_RBUTTONUP: {
+            BOOL isMouse = 0 == GetMessageExtraInfo();
+            DBG_PRINT("*** WindowsWindow: WM_RBUTTONUP %d/%d [%dx%d] inside %d, isMouse %d, tDown %d\n", 
+                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
+                wud->width, wud->height, wud->mouseInside, isMouse, wud->touchDownCount);
+            if( isMouse ) {
+                wud->mouseInside = 1;
+                (*env)->CallVoidMethod(env, window, sendMouseEventID,
+                                       (jshort) EVENT_MOUSE_RELEASED,
+                                       GetModifiers( 0 ),
+                                       (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
+                                       (jshort) 3,  (jfloat) 0.0f);
+                useDefWindowProc = 1;
+            }
+        }
         break;
 
-    case WM_MOUSEMOVE:
-        // DBG_PRINT("*** WindowsWindow: WM_MOUSEMOVE %d/%d\n", (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam));
-        (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                               (jshort) EVENT_MOUSE_MOVED,
-                               GetModifiers( 0 ),
-                               (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                               (jshort) 0,  (jfloat) 0.0f);
-        useDefWindowProc = 1;
+    case WM_MOUSEMOVE: {
+            wud->mouseInside = 1;
+            DBG_PRINT("*** WindowsWindow: WM_MOUSEMOVE %d/%d [%dx%d] inside %d, tDown %d\n", 
+                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
+                wud->width, wud->height, wud->mouseInside, wud->touchDownCount);
+            if( wud->touchDownCount == 0 ) {
+                NewtWindows_trackPointerLeave(wnd);
+                (*env)->CallVoidMethod(env, window, sendMouseEventID,
+                                       (jshort) EVENT_MOUSE_MOVED,
+                                       GetModifiers( 0 ),
+                                       (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
+                                       (jshort) 0,  (jfloat) 0.0f);
+            }
+            useDefWindowProc = 1;
+        }
         break;
-    case WM_MOUSELEAVE:
-        DBG_PRINT("*** WindowsWindow: WM_MOUSELEAVE\n");
-        (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                               (jshort) EVENT_MOUSE_EXITED,
-                               0,
-                               (jint) -1, (jint) -1, // fake
-                               (jshort) 0,  (jfloat) 0.0f);
-        useDefWindowProc = 1;
+    case WM_MOUSELEAVE: {
+            wud->mouseInside = 0;
+            DBG_PRINT("*** WindowsWindow: WM_MOUSELEAVE %d/%d [%dx%d] inside %d, tDown %d\n", 
+                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
+                wud->width, wud->height, wud->mouseInside, wud->touchDownCount);
+            (*env)->CallVoidMethod(env, window, sendMouseEventID,
+                                   (jshort) EVENT_MOUSE_EXITED,
+                                   0,
+                                   (jint) -1, (jint) -1, // fake
+                                   (jshort) 0,  (jfloat) 0.0f);
+            useDefWindowProc = 1;
+        }
         break;
     // Java synthesizes EVENT_MOUSE_ENTERED
 
@@ -1036,6 +1158,116 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
         break;
     }
 
+    case WM_TOUCH: if( wud->supportsMTouch ) {
+        UINT cInputs = LOWORD(wParam);
+        // DBG_PRINT("*** WindowsWindow: WM_TOUCH window %p, cInputs %d\n", wnd, cInputs);
+        HTOUCHINPUT hTouch = (HTOUCHINPUT)lParam;
+        PTOUCHINPUT pInputs = (PTOUCHINPUT) calloc(cInputs, sizeof(TOUCHINPUT));
+        if (NULL != pInputs) {
+            if (GetTouchInputInfo(hTouch, cInputs, pInputs, sizeof(TOUCHINPUT))) {
+                UINT i;
+                short eventType[cInputs];
+                jint modifiers = GetModifiers( 0 );
+                jint actionIdx = -1;
+                jint pointerNames[cInputs];
+                jint x[cInputs], y[cInputs];
+                jfloat pressure[cInputs];
+                jfloat maxPressure = 1.0F; // FIXME: n/a on windows ?
+
+                for (i=0; i < cInputs; i++) {
+                    PTOUCHINPUT pTi = & pInputs[i];
+                    int inside;
+                    POINT eventPt;
+                    int isDown = pTi->dwFlags & TOUCHEVENTF_DOWN;
+                    int isUp = pTi->dwFlags & TOUCHEVENTF_UP;
+                    int isMove = pTi->dwFlags & TOUCHEVENTF_MOVE;
+
+                    int isPrim = pTi->dwFlags & TOUCHEVENTF_PRIMARY;
+                    int isNoCoalesc = pTi->dwFlags & TOUCHEVENTF_NOCOALESCE;
+
+                    #ifdef VERBOSE_ON
+                    const char * touchAction;
+                    if( isDown ) {
+                        touchAction = "down";
+                    } else if( isUp ) {
+                        touchAction = "_up_";
+                    } else if( isMove ) {
+                        touchAction = "move";
+                    } else {
+                        touchAction = "undf";
+                    }
+                    #endif
+
+                    pointerNames[i] = (jint)pTi->dwID;
+                    eventPt.x = TOUCH_COORD_TO_PIXEL(pTi->x);
+                    eventPt.y = TOUCH_COORD_TO_PIXEL(pTi->y);
+                    ScreenToClient(wnd, &eventPt);
+                    x[i] = (jint)eventPt.x;
+                    y[i] = (jint)eventPt.y;
+                    pressure[i] = 1.0F; // FIXME: n/a on windows ?
+                    if(isDown) {
+                        eventType[i] = (jshort) EVENT_MOUSE_PRESSED;
+                    } else if(isUp) {
+                        eventType[i] = (jshort) EVENT_MOUSE_RELEASED;
+                    } else if(isMove) {
+                        eventType[i] = (jshort) EVENT_MOUSE_MOVED;
+                    } else {
+                        eventType[i] = (jshort) 0;
+                    }
+                    if(isPrim) {
+                        actionIdx = (jint)i;
+                    }
+                    inside = 0 <= x[i] && 0 <= y[i] && x[i] < wud->width && y[i] < wud->height;
+
+                    #ifdef VERBOSE_ON
+                    DBG_PRINT("*** WindowsWindow: WM_TOUCH[%d/%d].%s name 0x%x, prim %d, nocoalsc %d, %d/%d [%dx%d] inside %d/%d, tDown %d\n", 
+                        (i+1), cInputs, touchAction, (int)(pTi->dwID), isPrim, isNoCoalesc, x[i], y[i], wud->width, wud->height, inside, wud->mouseInside, wud->touchDownCount);
+                    #endif
+                }
+                int sentCount = 0, updownCount=0, moveCount=0;
+                // Primary first, if available!
+                if( 0 <= actionIdx ) {
+                    sendTouchScreenEvent(env, window, eventType[actionIdx], modifiers, actionIdx, 
+                                         cInputs, pointerNames, x, y, pressure, maxPressure);
+                    sentCount++;
+                }
+                // 1 Move second ..
+                for (i=0; i < cInputs; i++) {
+                    short et = eventType[i];
+                    if( (jshort) EVENT_MOUSE_MOVED == et ) {
+                        if( i != actionIdx && 0 == moveCount ) {
+                            sendTouchScreenEvent(env, window, et, modifiers, i, 
+                                                 cInputs, pointerNames, x, y, pressure, maxPressure);
+                            sentCount++;
+                        }
+                        moveCount++;
+                    }
+                }
+                // Up and downs last
+                for (i=0; i < cInputs; i++) {
+                    short et = eventType[i];
+                    if( (jshort) EVENT_MOUSE_MOVED != et ) {
+                        if( i != actionIdx ) {
+                            sendTouchScreenEvent(env, window, et, modifiers, i, 
+                                                 cInputs, pointerNames, x, y, pressure, maxPressure);
+                            sentCount++;
+                        }
+                        updownCount++;
+                    }
+                }
+                DBG_PRINT("*** WindowsWindow: WM_TOUCH.summary pCount %d, prim %d, updown %d, move %d, sent %d\n", 
+                    cInputs, actionIdx, updownCount, moveCount, sentCount);
+
+                // Message processed - close it
+                CloseTouchInputHandle(hTouch);
+            } else {
+                useDefWindowProc = 1;
+            }
+            free(pInputs);
+        }
+        break;
+    }
+
     case WM_SETFOCUS:
         DBG_PRINT("*** WindowsWindow: WM_SETFOCUS window %p, lost %p\n", wnd, (HWND)wParam);
         (*env)->CallVoidMethod(env, window, focusChangedID, JNI_FALSE, JNI_TRUE);
@@ -1044,6 +1276,8 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
 
     case WM_KILLFOCUS:
         DBG_PRINT("*** WindowsWindow: WM_KILLFOCUS window %p, received %p\n", wnd, (HWND)wParam);
+        wud->touchDownCount=0;
+        wud->mouseInside=0;
         (*env)->CallVoidMethod(env, window, focusChangedID, JNI_FALSE, JNI_FALSE);
         useDefWindowProc = 1;
         break;
@@ -1060,7 +1294,6 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
 
     case WM_PAINT: {
         RECT r;
-        useDefWindowProc = 0;
         if (GetUpdateRect(wnd, &r, FALSE /* do not erase background */)) {
             // clear the whole client area and issue repaint for it, w/o looping through erase background
             ValidateRect(wnd, NULL); // clear all!
@@ -1075,7 +1308,6 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
     case WM_ERASEBKGND:
         // ignore erase background
         (*env)->CallVoidMethod(env, window, windowRepaintID, JNI_FALSE, 0, 0, -1, -1);
-        useDefWindowProc = 0;
         res = 1; // return 1 == done, OpenGL, etc .. erases the background, hence we claim to have just done this
         break;
     case WM_SETCURSOR :
@@ -1089,7 +1321,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
             useDefWindowProc = visibilityChangeSuccessful ? 1 : 0;
             DBG_PRINT("*** WindowsWindow: WM_SETCURSOR requested visibility: %d success: %d\n", wud->setPointerVisible, visibilityChangeSuccessful);
             wud->setPointerVisible = 0;
-            useDefWindowProc = 0; // own signal, consumed
+            // own signal, consumed
         } else {
             useDefWindowProc = 1; // NOP for us, allow parent to act
         }
@@ -1545,6 +1777,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowDriver_initIDs0
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
     windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(SIIISF)V");
+    sendTouchScreenEventID = (*env)->GetMethodID(env, clazz, "sendTouchScreenEvent", "(SII[I[I[I[FF)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(SISSC)V");
     requestFocusID = (*env)->GetMethodID(env, clazz, "requestFocus", "(Z)V");
 
@@ -1556,6 +1789,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowDriver_initIDs0
         windowDestroyNotifyID == NULL ||
         windowRepaintID == NULL ||
         sendMouseEventID == NULL ||
+        sendTouchScreenEventID == NULL ||
         sendKeyEventID == NULL ||
         requestFocusID == NULL) {
         return JNI_FALSE;
@@ -1615,9 +1849,8 @@ static void NewtWindow_setVisiblePosSize(HWND hwnd, BOOL atop, BOOL visible,
  */
 JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindow0
   (JNIEnv *env, jobject obj, 
-   jlong hInstance, jstring jWndClassName, jstring jWndName, 
-   jlong parent,
-   jint jx, jint jy, jint defaultWidth, jint defaultHeight, jboolean autoPosition, jint flags)
+   jlong hInstance, jstring jWndClassName, jstring jWndName, jint winMajor, jint winMinor,
+   jlong parent, jint jx, jint jy, jint defaultWidth, jint defaultHeight, jboolean autoPosition, jint flags)
 {
     HWND parentWindow = (HWND) (intptr_t) parent;
     const TCHAR* wndClassName = NULL;
@@ -1659,8 +1892,8 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
                           (HINSTANCE) (intptr_t) hInstance,
                           NULL);
 
-    DBG_PRINT("*** WindowsWindow: CreateWindow thread 0x%X, parent %p, window %p, %d/%d %dx%d, undeco %d, alwaysOnTop %d, autoPosition %d\n", 
-        (int)GetCurrentThreadId(), parentWindow, window, x, y, width, height,
+    DBG_PRINT("*** WindowsWindow: CreateWindow thread 0x%X, win %d.%d parent %p, window %p, %d/%d %dx%d, undeco %d, alwaysOnTop %d, autoPosition %d\n", 
+        (int)GetCurrentThreadId(), winMajor, winMinor, parentWindow, window, x, y, width, height,
         TST_FLAG_IS_UNDECORATED(flags), TST_FLAG_IS_ALWAYSONTOP(flags), autoPosition);
 
     if (NULL == window) {
@@ -1671,7 +1904,24 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
         WindowUserData * wud = (WindowUserData *) malloc(sizeof(WindowUserData));
         wud->jinstance = (*env)->NewGlobalRef(env, obj);
         wud->jenv = env;
+        wud->width = width;
+        wud->height = height;
         wud->setPointerVisible = 0;
+        wud->mouseInside = 0;
+        wud->touchDownCount = 0;
+        wud->supportsMTouch = 0;
+        if ( winMajor > 6 || ( winMajor == 6 && winMinor >= 1 ) ) {
+            int value = GetSystemMetrics(SM_DIGITIZER);
+            if (value & NID_READY) { /* ready */
+                if (value  & NID_MULTI_INPUT) { /* multitouch */
+                    wud->supportsMTouch = 1;
+                }
+                if (value & NID_INTEGRATED_TOUCH) { /* Integrated touch */
+                }
+            }
+        }
+        DBG_PRINT("*** WindowsWindow: CreateWindow supportsMTouch %d\n", wud->supportsMTouch);
+
 #if !defined(__MINGW64__) && ( defined(UNDER_CE) || _MSC_VER <= 1200 )
         SetWindowLong(window, GWL_USERDATA, (intptr_t) wud);
 #else
@@ -1703,6 +1953,9 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
             DBG_PRINT("*** WindowsWindow: CreateWindow top-level %d/%d %dx%d\n", x, y, width, height);
 
             NewtWindow_setVisiblePosSize(window, TST_FLAG_IS_ALWAYSONTOP(flags), TRUE, x, y, width, height);
+        }
+        if( wud->supportsMTouch ) {
+            RegisterTouchWindow(window, 0);
         }
     }
 
@@ -1928,25 +2181,5 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_warpPointer0
 {
     DBG_PRINT( "*** WindowsWindow: warpPointer0: %d/%d\n", x, y);
     SetCursorPos(x, y);
-}
-
-/*
- * Class:     Java_jogamp_newt_driver_windows_WindowDriver
- * Method:    trackPointerLeave0
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_trackPointerLeave0
-  (JNIEnv *env, jclass clazz, jlong window)
-{
-    HWND hwnd = (HWND) (intptr_t) window;
-    BOOL ok = NewtWindows_trackPointerLeave(hwnd);
-    DBG_PRINT( "*** WindowsWindow: trackMouseLeave0: %d\n", ok);
-    #ifdef VERBOSE_ON
-    if(!ok) {
-        int lastError = (int) GetLastError();
-        DBG_PRINT( "*** WindowsWindow: trackMouseLeave0: lastError 0x%X %d\n", lastError, lastError);
-    }
-    #endif
-    (void)ok;
 }
 

@@ -46,10 +46,12 @@ import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 
+import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.VersionNumber;
 import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.KeyEvent;
-import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
+import com.jogamp.newt.event.MouseEvent.PointerType;
 
 public class WindowDriver extends WindowImpl {
 
@@ -134,16 +136,17 @@ public class WindowDriver extends WindowImpl {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
         setGraphicsConfiguration(cfg);
+        final VersionNumber winVer = Platform.getOSVersionNumber();
         final int flags = getReconfigureFlags(0, true) & 
                           ( FLAG_IS_ALWAYSONTOP | FLAG_IS_UNDECORATED ) ;
         final long _windowHandle = CreateWindow0(DisplayDriver.getHInstance(), display.getWindowClassName(), display.getWindowClassName(),
+                                                 winVer.getMajor(), winVer.getMinor(),
                                                  getParentWindowHandle(), getX(), getY(), getWidth(), getHeight(), autoPosition(), flags); 
         if ( 0 == _windowHandle ) {
             throw new NativeWindowException("Error creating window");
         }
         setWindowHandle(_windowHandle);
         windowHandleClose = _windowHandle;
-        addMouseListener(mouseTracker);
         
         if(DEBUG_IMPLEMENTATION) {
             Exception e = new Exception("Info: Window new window handle "+Thread.currentThread().getName()+
@@ -152,11 +155,6 @@ public class WindowDriver extends WindowImpl {
             e.printStackTrace();
         }
     }    
-    private MouseAdapter mouseTracker = new MouseAdapter() {
-        public void mouseEntered(MouseEvent e) {
-            WindowDriver.trackPointerLeave0(WindowDriver.this.getWindowHandle());
-        }
-    };
 
     protected void closeNativeImpl() {
         if(windowHandleClose != 0) {
@@ -266,6 +264,33 @@ public class WindowDriver extends WindowImpl {
         // nop - using event driven insetsChange(..)         
     }
     
+    //
+    // PointerEvent Handling
+    //
+    /**
+     * Send multiple-pointer {@link MouseEvent.PointerType#TouchScreen} event to be directly consumed
+     * <p>
+     * Assumes non normal pointer names and rotation/scroll will be determined by a gesture handler. 
+     * </p>
+     * <p>
+     * See {@link #doPointerEvent(boolean, boolean, PointerType[], short, int, int, boolean, int[], int[], int[], float[], float, float[], float)}
+     * for details.
+     * </p>
+     */
+    public final void sendTouchScreenEvent(short eventType, int modifiers, 
+                                           int pActionIdx, int[] pNames,
+                                           int[] pX, int[] pY, float[] pPressure, float maxPressure) {
+        final int pCount = pNames.length;
+        final MouseEvent.PointerType[] pTypes = new MouseEvent.PointerType[pCount];
+        for(int i=pCount-1; i>=0; i--) { pTypes[i] = PointerType.TouchScreen; }
+        doPointerEvent(false /*enqueue*/, false /*wait*/, 
+                       pTypes, eventType, modifiers, pActionIdx, false /*normalPNames*/, pNames, 
+                       pX, pY, pPressure, maxPressure, new float[] { 0f, 0f, 0f} /*rotationXYZ*/, 1f/*rotationScale*/);
+    }
+    
+    //
+    // KeyEvent Handling
+    //
     private short repeatedKey = KeyEvent.VK_UNDEFINED;
     
     private final boolean handlePressTypedAutoRepeat(boolean isModifierKey, int modifiers, short keyCode, short keySym, char keyChar) {
@@ -326,9 +351,8 @@ public class WindowDriver extends WindowImpl {
     protected static native long getNewtWndProc0();
     protected static native boolean initIDs0(long hInstance);
 
-    private native long CreateWindow0(long hInstance, String wndClassName, String wndName,
-                                      long parentWindowHandle,
-                                      int x, int y, int width, int height, boolean autoPosition, int flags);
+    private native long CreateWindow0(long hInstance, String wndClassName, String wndName, int winMajor, int winMinor,
+                                      long parentWindowHandle, int x, int y, int width, int height, boolean autoPosition, int flags);
     private native long MonitorFromWindow0(long windowHandle);
     private native void reconfigureWindow0(long parentWindowHandle, long windowHandle,
                                            int x, int y, int width, int height, int flags);
@@ -338,5 +362,4 @@ public class WindowDriver extends WindowImpl {
     private static native boolean setPointerVisible0(long windowHandle, boolean visible);
     private static native boolean confinePointer0(long windowHandle, boolean grab, int l, int t, int r, int b);
     private static native void warpPointer0(long windowHandle, int x, int y);    
-    private static native void trackPointerLeave0(long windowHandle);    
 }
