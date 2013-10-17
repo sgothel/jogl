@@ -39,6 +39,7 @@ import java.util.List;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 
+import com.jogamp.common.util.ArrayHashSet;
 import com.jogamp.common.util.IntBitfield;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.newt.MonitorDevice;
@@ -135,7 +136,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     /** Timeout of queued events (repaint and resize) */
     static final long QUEUED_EVENT_TO = 1200; // ms    
 
-    private static final int[] constMousePointerTypes = new int[] { PointerType.Mouse.ordinal() };
+    private static final PointerType[] constMousePointerTypes = new PointerType[] { PointerType.Mouse };
     
     //
     // Volatile: Multithread Mutable Access
@@ -197,7 +198,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
     private PointerState0 pState0 = new PointerState0();
     
-    /** from direct input: {@link WindowImpl#doPointerEvent(boolean, boolean, int[], short, int, int, short[], int[], int[], float[], float, float[], float)}. */
+    /** from direct input: {@link WindowImpl#doPointerEvent(boolean, boolean, int[], short, int, int, boolean, short[], int[], int[], float[], float, float[], float)}. */
     private static class PointerState1 extends PointerState0 {
         /** current pressed mouse button number */
         short buttonPressed = (short)0;
@@ -227,6 +228,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
     private PointerState1 pState1 = new PointerState1();
         
+    /** pointer names -> pointer ID (consecutive index, starting w/ 0) */
+    private final ArrayHashSet<Integer> pName2pID = new ArrayHashSet<Integer>();
+    
     private boolean defaultGestureHandlerEnabled = true;
     private DoubleTapScrollGesture gesture2PtrTouchScroll = null;
     private ArrayList<GestureHandler> pointerGestureHandler = new ArrayList<GestureHandler>();
@@ -2374,18 +2378,79 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @param wait if true wait until {@link #consumeEvent(NEWTEvent) consumed}.
      */
     protected void doMouseEvent(boolean enqueue, boolean wait, short eventType, int modifiers,
-                                int x, int y, short button, float[] rotationXYZ, float rotationScale) {
+                                int x, int y, short button, final float[] rotationXYZ, float rotationScale) {
         if( 0 > button || button > MouseEvent.BUTTON_COUNT ) {
             throw new NativeWindowException("Invalid mouse button number" + button);
         } else if( 0 == button ) {
             button = 1;
         }
         doPointerEvent(enqueue, wait, constMousePointerTypes, eventType, modifiers,
-                       0 /*actionIdx*/, new short[] { (short)(button-1) },
-                       new int[]{x}, new int[]{y}, new float[]{0f} /*pressure*/, 1f /*maxPressure*/,
-                       rotationXYZ, rotationScale);
+                       0 /*actionIdx*/, new short[] { (short)(button-1) }, 
+                       new int[]{x}, new int[]{y}, new float[]{0f} /*pressure*/,
+                       1f /*maxPressure*/, rotationXYZ, rotationScale);
     }
 
+    /**
+     * Send multiple-pointer event either to be directly consumed or to be enqueued
+     * <p>
+     * The index for the element of multiple-pointer arrays represents the pointer which triggered the event
+     * is passed via <i>actionIdx</i>.
+     * </p>
+     * <p>
+     * The given pointer names, <code>pNames</code>, are mapped to consecutive pointer IDs starting w/ 0
+     * using a hash-map if <code>normalPNames</code> is <code>false</code>. 
+     * Otherwise a simple <code>int</code> to <code>short</code> type cast is performed. 
+     * </p>
+     * 
+     * @param enqueue if true, event will be {@link #enqueueEvent(boolean, NEWTEvent) enqueued}, 
+     *                otherwise {@link #consumeEvent(NEWTEvent) consumed} directly.
+     * @param wait if true wait until {@link #consumeEvent(NEWTEvent) consumed}.
+     * @param pTypes {@link MouseEvent.PointerType} for each pointer (multiple pointer)
+     * @param eventType
+     * @param modifiers
+     * @param actionIdx index of multiple-pointer arrays representing the pointer which triggered the event
+     * @param normalPNames see pName below.
+     * @param pNames Pointer name for each pointer (multiple pointer).
+     *        We assume consecutive pointer names starting w/ 0 if <code>normalPIDs</code> is <code>true</code>.
+     *        Otherwise we hash-map the values during state pressed to retrieve the normal ID. 
+     * @param pX X-axis for each pointer (multiple pointer)
+     * @param pY Y-axis for each pointer (multiple pointer)
+     * @param pPressure Pressure for each pointer (multiple pointer)
+     * @param maxPressure Maximum pointer pressure for all pointer
+     */
+    public final void doPointerEvent(boolean enqueue, boolean wait,
+                                     final PointerType[] pTypes, short eventType, int modifiers, 
+                                     int actionIdx, boolean normalPNames, final int[] pNames,
+                                     final int[] pX, final int[] pY, float[] pPressure,
+                                     float maxPressure, final float[] rotationXYZ, final float rotationScale) {
+        final int pCount = pNames.length;
+        final short[] pIDs = new short[pCount];
+        for(int i=0; i<pCount; i++) {
+            if( !normalPNames ) {
+                // hash map int name -> short idx
+                final Integer pNameI0 = new Integer(pNames[i]);
+                final Integer pNameI1 =  pName2pID.getOrAdd(pNameI0);
+                final short pID = (short)pName2pID.indexOf(pNameI1);
+                pIDs[i] = pID;
+                if(DEBUG_MOUSE_EVENT) {
+                    final boolean reuse = pNameI0 == pNameI1;
+                    System.err.println("PointerName2ID[sz "+pName2pID.size()+"]: "+(reuse?"Reused":"Added")+" "+pNameI0+" : "+pID);
+                }
+                if( MouseEvent.EVENT_MOUSE_RELEASED == eventType ) {
+                    pName2pID.remove(pNameI1);
+                    if(DEBUG_MOUSE_EVENT) {
+                        System.err.println("PointerName2ID[sz "+pName2pID.size()+"]: Removed "+pNameI1+" : "+pID);
+                    }
+                }
+            } else {
+                // simple type cast
+                pIDs[i] = (short)pNames[i];
+            }
+        }
+        doPointerEvent(enqueue, wait, pTypes, eventType, modifiers, actionIdx, pIDs, 
+                       pX, pY, pPressure, maxPressure, rotationXYZ, rotationScale);
+    }
+    
     /**
      * Send multiple-pointer event either to be directly consumed or to be enqueued
      * <p>
@@ -2396,56 +2461,51 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @param enqueue if true, event will be {@link #enqueueEvent(boolean, NEWTEvent) enqueued}, 
      *                otherwise {@link #consumeEvent(NEWTEvent) consumed} directly.
      * @param wait if true wait until {@link #consumeEvent(NEWTEvent) consumed}.
-     * @param pTypesOrdinal {@link MouseEvent.PointerType#ordinal()} for each pointer (multiple pointer)
+     * @param pTypes {@link MouseEvent.PointerType} for each pointer (multiple pointer)
      * @param eventType
      * @param modifiers
-     * @param actionIdx index of multiple-pointer arrays representing the pointer which triggered the event
-     * @param pID Pointer ID for each pointer (multiple pointer), we assume pointerID's starts w/ 0
+     * @param pActionIdx index of multiple-pointer arrays representing the pointer which triggered the event
+     * @param pID Pointer ID for each pointer (multiple pointer). We assume consecutive pointerIDs starting w/ 0.
      * @param pX X-axis for each pointer (multiple pointer)
      * @param pY Y-axis for each pointer (multiple pointer)
      * @param pPressure Pressure for each pointer (multiple pointer)
      * @param maxPressure Maximum pointer pressure for all pointer
      */
-    public void doPointerEvent(boolean enqueue, boolean wait,
-                               int[] pTypesOrdinal, short eventType, int modifiers, 
-                               int actionIdx, short[] pID,
-                               int[] pX, int[] pY, float[] pPressure, float maxPressure,
-                               float[] rotationXYZ, float rotationScale) {
+    public final void doPointerEvent(boolean enqueue, boolean wait,
+                                     final PointerType[] pTypes, short eventType, int modifiers, 
+                                     int pActionIdx, final short[] pID, final int[] pX, final int[] pY, final float[] pPressure,
+                                     float maxPressure, final float[] rotationXYZ, float rotationScale) {
         final long when = System.currentTimeMillis();
-        final int pointerCount = pTypesOrdinal.length;
+        final int pCount = pTypes.length;
         
-        if( 0 > actionIdx || actionIdx >= pointerCount) {
-            throw new IllegalArgumentException("actionIdx out of bounds [0.."+(pointerCount-1)+"]");            
+        if( 0 > pActionIdx || pActionIdx >= pCount) {
+            throw new IllegalArgumentException("actionIdx out of bounds [0.."+(pCount-1)+"]");            
         }
-        if( 0 < actionIdx ) {
+        if( 0 < pActionIdx ) {
             // swap values to make idx 0 the triggering pointer
             {
-                final int aType = pTypesOrdinal[actionIdx];
-                pTypesOrdinal[actionIdx] = pTypesOrdinal[0];
-                pTypesOrdinal[0] = aType;
+                final PointerType aType = pTypes[pActionIdx];
+                pTypes[pActionIdx] = pTypes[0];
+                pTypes[0] = aType;
             }
             {
-                final short s = pID[actionIdx];
-                pID[actionIdx] = pID[0];
+                final short s = pID[pActionIdx];
+                pID[pActionIdx] = pID[0];
                 pID[0] = s;
             }
             {
-                int s = pX[actionIdx];
-                pX[actionIdx] = pX[0];
+                int s = pX[pActionIdx];
+                pX[pActionIdx] = pX[0];
                 pX[0] = s;
-                s = pY[actionIdx];
-                pY[actionIdx] = pY[0];
+                s = pY[pActionIdx];
+                pY[pActionIdx] = pY[0];
                 pY[0] = s;
             }
             {
-                final float aPress = pPressure[actionIdx];
-                pPressure[actionIdx] = pPressure[0];
+                final float aPress = pPressure[pActionIdx];
+                pPressure[pActionIdx] = pPressure[0];
                 pPressure[0] = aPress;
             }
-        }
-        final PointerType[] pointerType = new PointerType[pointerCount];
-        for(int i=pointerCount-1; i>=0; i--) {
-            pointerType[i] = PointerType.valueOf(pTypesOrdinal[i]);
         }
         final short id = pID[0];
         final short button;
@@ -2548,7 +2608,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     pPressure[0] = maxPressure;
                 }
                 pState1.buttonPressedMask |= InputEvent.getButtonMask(button);
-                if( 1 == pointerCount ) {
+                if( 1 == pCount ) {
                     if( when - pState1.lastButtonPressTime < MouseEvent.getClickTimeout() ) {
                         pState1.lastButtonClickCount++;
                     } else {
@@ -2556,16 +2616,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     }
                     pState1.lastButtonPressTime = when;
                     pState1.buttonPressed = button;
-                    e = new MouseEvent(eventType, this, when, modifiers, pointerType, pID, 
+                    e = new MouseEvent(eventType, this, when, modifiers, pTypes, pID, 
                                        pX, pY, pPressure, maxPressure, button, pState1.lastButtonClickCount, rotationXYZ, rotationScale);
                 } else {
-                    e = new MouseEvent(eventType, this, when, modifiers, pointerType, pID, 
+                    e = new MouseEvent(eventType, this, when, modifiers, pTypes, pID, 
                                        pX, pY, pPressure, maxPressure, button, (short)1, rotationXYZ, rotationScale);
                 }
                 break;
             case MouseEvent.EVENT_MOUSE_RELEASED:
-                if( 1 == pointerCount ) {
-                    e = new MouseEvent(eventType, this, when, modifiers, pointerType, pID, 
+                if( 1 == pCount ) {
+                    e = new MouseEvent(eventType, this, when, modifiers, pTypes, pID, 
                                        pX, pY, pPressure, maxPressure, button, pState1.lastButtonClickCount, rotationXYZ, rotationScale);
                     if( when - pState1.lastButtonPressTime >= MouseEvent.getClickTimeout() ) {
                         pState1.lastButtonClickCount = (short)0;
@@ -2573,7 +2633,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     }
                     pState1.buttonPressed = 0;
                 } else {
-                    e = new MouseEvent(eventType, this, when, modifiers, pointerType, pID, 
+                    e = new MouseEvent(eventType, this, when, modifiers, pTypes, pID, 
                                        pX, pY, pPressure, maxPressure, button, (short)1, rotationXYZ, rotationScale);
                 }
                 pState1.buttonPressedMask &= ~InputEvent.getButtonMask(button);
@@ -2583,10 +2643,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 break;
             case MouseEvent.EVENT_MOUSE_MOVED:
                 if ( 0 != pState1.buttonPressedMask ) { // any button or pointer move -> drag
-                    e = new MouseEvent(MouseEvent.EVENT_MOUSE_DRAGGED, this, when, modifiers, pointerType, pID, 
+                    e = new MouseEvent(MouseEvent.EVENT_MOUSE_DRAGGED, this, when, modifiers, pTypes, pID, 
                                        pX, pY, pPressure, maxPressure, pState1.buttonPressed, (short)1, rotationXYZ, rotationScale);
                 } else {
-                    e = new MouseEvent(eventType, this, when, modifiers, pointerType, pID, 
+                    e = new MouseEvent(eventType, this, when, modifiers, pTypes, pID, 
                                        pX, pY, pPressure, maxPressure, button, (short)0, rotationXYZ, rotationScale);
                 }
                 break;
@@ -2596,7 +2656,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
                 // Fall through intended!
             default:
-                e = new MouseEvent(eventType, this, when, modifiers, pointerType, pID, 
+                e = new MouseEvent(eventType, this, when, modifiers, pTypes, pID, 
                                    pX, pY, pPressure, maxPressure, button, (short)0, rotationXYZ, rotationScale);
         }
         doEvent(enqueue, wait, e); // actual mouse event

@@ -33,6 +33,7 @@ import android.view.MotionEvent;
 
 import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.newt.event.InputEvent;
+import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.NEWTEvent;
 
 public class AndroidNewtEventFactory {
@@ -252,7 +253,8 @@ public class AndroidNewtEventFactory {
         }        
     }
             
-    private static void collectPointerData(MotionEvent e, int idx, final int[] x, final int[] y, final float[] pressure, short[] pointerIds, final int[] pointerTypes) {
+    private static void collectPointerData(MotionEvent e, int idx, final int[] x, final int[] y, final float[] pressure, 
+                                           final short[] pointerIds, final MouseEvent.PointerType[] pointerTypes) {
         x[idx] = (int)e.getX(idx);
         y[idx] = (int)e.getY(idx);
         pressure[idx] = e.getPressure(idx);
@@ -260,14 +262,14 @@ public class AndroidNewtEventFactory {
         if( pressure[idx] > maxPressure ) {
             maxPressure = pressure[idx];
         }
-        pointerTypes[idx] = aToolType2PointerType( e.getToolType(idx) ).ordinal();   
+        pointerTypes[idx] = aToolType2PointerType( e.getToolType(idx) );   
         if(DEBUG_MOUSE_EVENT) {
             System.err.println("createMouseEvent: ptr-data["+idx+"] "+x[idx]+"/"+y[idx]+", pressure "+pressure[idx]+", id "+pointerIds[idx]+", type "+pointerTypes[idx]);
         }
     }
     
     public boolean sendPointerEvent(boolean enqueue, boolean wait, boolean setFocusOnDown, boolean isOnTouchEvent, 
-                                     android.view.MotionEvent event, jogamp.newt.driver.android.WindowDriver newtSource) {
+                                    android.view.MotionEvent event, jogamp.newt.driver.android.WindowDriver newtSource) {
         if(DEBUG_MOUSE_EVENT) {
             System.err.println("createMouseEvent: isOnTouchEvent "+isOnTouchEvent+", "+event);                               
         }
@@ -343,7 +345,7 @@ public class AndroidNewtEventFactory {
             final int[] y = new int[pCount];
             final float[] pressure = new float[pCount];
             final short[] pointerIds = new short[pCount];
-            final int[] pointerTypes = new int[pCount];
+            final MouseEvent.PointerType[] pointerTypes = new MouseEvent.PointerType[pCount];
             if( 0 < pCount ) {
                 if(DEBUG_MOUSE_EVENT) {
                     System.err.println("createMouseEvent: collect ptr-data [0.."+(pCount-1)+", count "+pCount+", action "+pIndex+"], aType "+aType+", button "+button);
