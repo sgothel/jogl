@@ -252,22 +252,22 @@ public class AndroidNewtEventFactory {
         }        
     }
             
-    private static void collectPointerData(MotionEvent e, int eIdx, int dIdx, final int[] x, final int[] y, final float[] pressure, short[] pointerIds, final com.jogamp.newt.event.MouseEvent.PointerType[] pointerTypes) {
-        x[dIdx] = (int)e.getX(eIdx);
-        y[dIdx] = (int)e.getY(eIdx);
-        pressure[dIdx] = e.getPressure(eIdx);
-        pointerIds[dIdx] = (short)e.getPointerId(eIdx);
-        if( pressure[dIdx] > maxPressure ) {
-            maxPressure = pressure[dIdx];
+    private static void collectPointerData(MotionEvent e, int idx, final int[] x, final int[] y, final float[] pressure, short[] pointerIds, final int[] pointerTypes) {
+        x[idx] = (int)e.getX(idx);
+        y[idx] = (int)e.getY(idx);
+        pressure[idx] = e.getPressure(idx);
+        pointerIds[idx] = (short)e.getPointerId(idx);
+        if( pressure[idx] > maxPressure ) {
+            maxPressure = pressure[idx];
         }
-        pointerTypes[dIdx] = aToolType2PointerType( e.getToolType(eIdx) );   
+        pointerTypes[idx] = aToolType2PointerType( e.getToolType(idx) ).ordinal();   
         if(DEBUG_MOUSE_EVENT) {
-            System.err.println("createMouseEvent: ptr-data["+eIdx+" -> "+dIdx+"] "+x[dIdx]+"/"+y[dIdx]+", pressure "+pressure[dIdx]+", id "+pointerIds[dIdx]+", type "+pointerTypes[dIdx]);
+            System.err.println("createMouseEvent: ptr-data["+idx+"] "+x[idx]+"/"+y[idx]+", pressure "+pressure[idx]+", id "+pointerIds[idx]+", type "+pointerTypes[idx]);
         }
     }
     
-    public com.jogamp.newt.event.MouseEvent createMouseEvents(boolean isOnTouchEvent, 
-                                                              android.view.MotionEvent event, com.jogamp.newt.Window newtSource) {
+    public boolean sendPointerEvent(boolean enqueue, boolean wait, boolean setFocusOnDown, boolean isOnTouchEvent, 
+                                     android.view.MotionEvent event, jogamp.newt.driver.android.WindowDriver newtSource) {
         if(DEBUG_MOUSE_EVENT) {
             System.err.println("createMouseEvent: isOnTouchEvent "+isOnTouchEvent+", "+event);                               
         }
@@ -285,7 +285,6 @@ public class AndroidNewtEventFactory {
         final float[] rotationXYZ = new float[] { 0f, 0f, 0f };
         
         if( (short)0 != nType ) {            
-            final short clickCount = 1;
             int modifiers = 0;
             
             //
@@ -298,7 +297,7 @@ public class AndroidNewtEventFactory {
                 case android.view.MotionEvent.ACTION_POINTER_UP: {
                         pIndex = event.getActionIndex();
                         final int b = event.getPointerId(pIndex) + 1; // FIXME: Assumption that Pointer-ID starts w/ 0 !
-                        if( com.jogamp.newt.event.MouseEvent.BUTTON1 <= b && b <= com.jogamp.newt.event.MouseEvent.BUTTON_NUMBER ) {
+                        if( com.jogamp.newt.event.MouseEvent.BUTTON1 <= b && b <= com.jogamp.newt.event.MouseEvent.BUTTON_COUNT ) {
                             button = (short)b;
                         } else {
                             button = com.jogamp.newt.event.MouseEvent.BUTTON1;
@@ -328,6 +327,15 @@ public class AndroidNewtEventFactory {
             }
             final int pCount = event.getPointerCount(); // all
             
+            switch( aType ) {
+                case android.view.MotionEvent.ACTION_DOWN:
+                case android.view.MotionEvent.ACTION_POINTER_DOWN:            
+                    modifiers |= InputEvent.getButtonMask(button);
+                    if( setFocusOnDown ) {
+                        newtSource.focusChanged(false, true);
+                    }
+            }
+
             //
             // Collect common data
             //
@@ -335,38 +343,20 @@ public class AndroidNewtEventFactory {
             final int[] y = new int[pCount];
             final float[] pressure = new float[pCount];
             final short[] pointerIds = new short[pCount];
-            final com.jogamp.newt.event.MouseEvent.PointerType[] pointerTypes = new com.jogamp.newt.event.MouseEvent.PointerType[pCount];
+            final int[] pointerTypes = new int[pCount];
             if( 0 < pCount ) {
                 if(DEBUG_MOUSE_EVENT) {
                     System.err.println("createMouseEvent: collect ptr-data [0.."+(pCount-1)+", count "+pCount+", action "+pIndex+"], aType "+aType+", button "+button);
                 }
-                int j = 0;
-                // Always put action-pointer data at index 0
-                collectPointerData(event, pIndex, j++, x, y, pressure, pointerIds, pointerTypes);
                 for(int i=0; i < pCount; i++) {
-                    if( pIndex != i ) {
-                        collectPointerData(event, i, j++, x, y, pressure, pointerIds, pointerTypes);
-                    }
+                    collectPointerData(event, i, x, y, pressure, pointerIds, pointerTypes);
                 }
             }
-            
-            if(null!=newtSource) {
-                if(newtSource.isPointerConfined()) {
-                    modifiers |= InputEvent.CONFINED_MASK;
-                }
-                if(!newtSource.isPointerVisible()) {
-                    modifiers |= InputEvent.INVISIBLE_MASK;
-                }
-            }
-                                
-            final Object src = (null==newtSource)?null:(Object)newtSource;
-            final long unixTime = System.currentTimeMillis() + ( event.getEventTime() - android.os.SystemClock.uptimeMillis() );
-            
-            return new com.jogamp.newt.event.MouseEvent(nType,  src, unixTime,
-                           modifiers, pointerTypes, pointerIds, x, y, pressure, maxPressure, 
-                           button, clickCount, rotationXYZ, rotationScale);
+            newtSource.doPointerEvent(enqueue, wait, pointerTypes, nType, modifiers,
+                                      pIndex, pointerIds, x, y, pressure, maxPressure, rotationXYZ, rotationScale);
+            return true;
         }
-        return null; // no mapping ..
+        return false; // no mapping ..
     }
 }
 

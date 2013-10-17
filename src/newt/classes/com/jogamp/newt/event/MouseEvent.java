@@ -145,9 +145,17 @@ public class MouseEvent extends InputEvent
         super(eventType, source, when, modifiers); 
         this.x = new int[]{x};
         this.y = new int[]{y};
-        this.pressure = constMousePressure;
+        switch(eventType) {
+            case EVENT_MOUSE_CLICKED:
+            case EVENT_MOUSE_PRESSED:
+            case EVENT_MOUSE_DRAGGED:
+                this.pressure = constMousePressure1;
+                break;
+            default:
+                this.pressure = constMousePressure0;
+        }
         this.maxPressure= 1.0f;
-        this.pointerID = constMousePointerIDs;
+        this.pointerID = new short[] { (short)(button - 1) };
         this.clickCount=clickCount;
         this.button=button;
         this.rotationXYZ = rotationXYZ;
@@ -210,70 +218,6 @@ public class MouseEvent extends InputEvent
     public MouseEvent createVariant(short newEventType) {
         return new MouseEvent(newEventType, source, getWhen(), getModifiers(), pointerType, pointerID,
                               x, y, pressure, maxPressure, button, clickCount, rotationXYZ, rotationScale);
-    }
-    
-    /**
-     * Factory for a multiple-pointer event.
-     * <p>
-     * The index for the multiple-pointer fields representing the triggering pointer is passed via <i>actionIdx</i>.
-     * If <i>actionIdx</i> is not <code>0</code>, all multiple-pointer fields values of index <code>0</code>
-     * and <i>actionIdx</i> are swapped so that the pointer-index 0 will represent the triggering pointer.
-     * </p>  
-     * <p>  
-     * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
-     * </p>
-     * 
-     * @param eventType
-     * @param source
-     * @param when
-     * @param modifiers
-     * @param actionIdx index of multiple-pointer arrays representing the pointer which triggered the event
-     * @param pointerType PointerType for each pointer (multiple pointer)
-     * @param pointerID Pointer ID for each pointer (multiple pointer). IDs start w/ 0 and are consecutive numbers.
-     * @param x X-axis for each pointer (multiple pointer)
-     * @param y Y-axis for each pointer (multiple pointer)
-     * @param pressure Pressure for each pointer (multiple pointer)
-     * @param maxPressure Maximum pointer pressure for all pointer
-     * @param button Corresponding mouse-button
-     * @param clickCount Mouse-button click-count
-     * @param rotationXYZ Rotation of all axis
-     * @param rotationScale Rotation scale
-     */
-    public static MouseEvent create(short eventType, Object source, long when, int modifiers, 
-                                    int actionIdx, PointerType pointerType[], short[] pointerID,
-                                    int[] x, int[] y, float[] pressure, float maxPressure, 
-                                    short button, short clickCount, float[] rotationXYZ, float rotationScale) {
-        if( 0 <= actionIdx && actionIdx < pointerType.length) {
-            if( 0 < actionIdx ) {
-                {
-                    final PointerType aType = pointerType[actionIdx];
-                    pointerType[actionIdx] = pointerType[0];
-                    pointerType[0] = aType;
-                }
-                {
-                    final short s = pointerID[actionIdx];
-                    pointerID[actionIdx] = pointerID[0];
-                    pointerID[0] = s;
-                }
-                {
-                    int s = x[actionIdx];
-                    x[actionIdx] = x[0];
-                    x[0] = s;
-                    s = y[actionIdx];
-                    y[actionIdx] = y[0];
-                    y[0] = s;
-                }
-                {
-                    final float aPress = pressure[actionIdx];
-                    pressure[actionIdx] = pressure[0];
-                    pressure[0] = aPress;
-                }
-            }
-            return new MouseEvent(eventType, source, when, modifiers, 
-                                  pointerType, pointerID, x, y, pressure, maxPressure, 
-                                  button, clickCount, rotationXYZ, rotationScale);
-        }
-        throw new IllegalArgumentException("actionIdx out of bounds [0.."+(pointerType.length-1)+"]");
     }
     
     /**
@@ -528,15 +472,15 @@ public class MouseEvent extends InputEvent
 
     public static String getEventTypeString(short type) {
         switch(type) {
-        case EVENT_MOUSE_CLICKED: return "EVENT_MOUSE_CLICKED";
-        case EVENT_MOUSE_ENTERED: return "EVENT_MOUSE_ENTERED";
-        case EVENT_MOUSE_EXITED: return "EVENT_MOUSE_EXITED";
-        case EVENT_MOUSE_PRESSED: return "EVENT_MOUSE_PRESSED";
-        case EVENT_MOUSE_RELEASED: return "EVENT_MOUSE_RELEASED";
-        case EVENT_MOUSE_MOVED: return "EVENT_MOUSE_MOVED";
-        case EVENT_MOUSE_DRAGGED: return "EVENT_MOUSE_DRAGGED";
-        case EVENT_MOUSE_WHEEL_MOVED: return "EVENT_MOUSE_WHEEL_MOVED";
-        default: return "unknown (" + type + ")";
+            case EVENT_MOUSE_CLICKED: return "EVENT_MOUSE_CLICKED";
+            case EVENT_MOUSE_ENTERED: return "EVENT_MOUSE_ENTERED";
+            case EVENT_MOUSE_EXITED: return "EVENT_MOUSE_EXITED";
+            case EVENT_MOUSE_PRESSED: return "EVENT_MOUSE_PRESSED";
+            case EVENT_MOUSE_RELEASED: return "EVENT_MOUSE_RELEASED";
+            case EVENT_MOUSE_MOVED: return "EVENT_MOUSE_MOVED";
+            case EVENT_MOUSE_DRAGGED: return "EVENT_MOUSE_DRAGGED";
+            case EVENT_MOUSE_WHEEL_MOVED: return "EVENT_MOUSE_WHEEL_MOVED";
+            default: return "unknown (" + type + ")";
         }
     }
     
@@ -558,8 +502,8 @@ public class MouseEvent extends InputEvent
     private final float rotationScale;
     private final float maxPressure;
     
-    private static final float[] constMousePressure = new float[]{0f};
-    private static final short[] constMousePointerIDs = new short[]{0};
+    private static final float[] constMousePressure0 = new float[]{0f};
+    private static final float[] constMousePressure1 = new float[]{1f};
     private static final PointerType[] constMousePointerTypes = new PointerType[] { PointerType.Mouse };
     
     public static final short EVENT_MOUSE_CLICKED  = 200;

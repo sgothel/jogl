@@ -135,6 +135,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     /** Timeout of queued events (repaint and resize) */
     static final long QUEUED_EVENT_TO = 1200; // ms    
 
+    private static final int[] constMousePointerTypes = new int[] { PointerType.Mouse.ordinal() };
+    
     //
     // Volatile: Multithread Mutable Access
     //    
@@ -181,34 +183,50 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     private ArrayList<MouseListener> mouseListeners = new ArrayList<MouseListener>();
     
+    /** from event passing: {@link WindowImpl#consumePointerEvent(MouseEvent)}. */
     private static class PointerState0 {
-        /** current pressed mouse button number */
-        private short buttonPressed = (short)0;
-        /** current pressed mouse button modifier mask */
-        private int buttonModMask = 0;
-        /** last time when a mouse button was pressed */
-        private long lastButtonPressTime = 0;
-        /** last mouse button click count */
-        private short lastButtonClickCount = (short)0;
         /** mouse entered window - is inside the window (may be synthetic) */
-        private boolean insideWindow = false;
-        /** last mouse-move position */
-        private Point lastMovePosition = new Point();
-    }
-    private static class PointerState1 {
-        /** current pressed mouse button number */
-        private short buttonPressed = (short)0;
+        boolean insideWindow = false;
+        
         /** last time when a mouse button was pressed */
-        private long lastButtonPressTime = 0;
-        /** mouse entered window - is inside the window (may be synthetic) */
-        private boolean insideWindow = false;
-        /** last mouse-move position */
-        private Point lastMovePosition = new Point();
+        long lastButtonPressTime = 0;
+        
+        void clearButton() {
+            lastButtonPressTime = 0;
+        }
     }
-    /** doMouseEvent */
     private PointerState0 pState0 = new PointerState0();
-    /** consumeMouseEvent */
+    
+    /** from direct input: {@link WindowImpl#doPointerEvent(boolean, boolean, int[], short, int, int, short[], int[], int[], float[], float, float[], float)}. */
+    private static class PointerState1 extends PointerState0 {
+        /** current pressed mouse button number */
+        short buttonPressed = (short)0;
+        /** current pressed mouse button modifier mask */
+        int buttonPressedMask = 0;
+        /** last mouse button click count */
+        short lastButtonClickCount = (short)0;
+        
+        final void clearButton() {
+            super.clearButton();
+            lastButtonPressTime = 0;
+            lastButtonClickCount = (short)0; 
+            buttonPressed = 0;
+            buttonPressedMask = 0;            
+        }
+        
+        /** last pointer-move position for 8 touch-down pointers */
+        final Point[] movePositions = new Point[] {
+                new Point(), new Point(), new Point(), new Point(),
+                new Point(), new Point(), new Point(), new Point() };
+        final Point getMovePosition(int id) {
+            if( 0 <= id && id < movePositions.length ) {
+                return movePositions[id];
+            }
+            return null;
+        }
+    }
     private PointerState1 pState1 = new PointerState1();
+        
     private boolean defaultGestureHandlerEnabled = true;
     private DoubleTapScrollGesture gesture2PtrTouchScroll = null;
     private ArrayList<GestureHandler> pointerGestureHandler = new ArrayList<GestureHandler>();
@@ -2247,7 +2265,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public boolean consumeEvent(NEWTEvent e) {
+    public final boolean consumeEvent(NEWTEvent e) {
         switch(e.getEventType()) {
             // special repaint treatment
             case WindowEvent.EVENT_WINDOW_REPAINT:
@@ -2288,7 +2306,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         } else if(e instanceof KeyEvent) {
             consumeKeyEvent((KeyEvent)e);
         } else if(e instanceof MouseEvent) {
-            consumeMouseEvent((MouseEvent)e);
+            consumePointerEvent((MouseEvent)e);
         } else {
             throw new NativeWindowException("Unexpected NEWTEvent type " + e);
         }
@@ -2347,21 +2365,115 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                         int x, int y, short button, float[] rotationXYZ, float rotationScale) {
         doMouseEvent(true, wait, eventType, modifiers, x, y, button, rotationXYZ, rotationScale);
     } */
+    
+    /**
+     * Send mouse event (one-pointer) either to be directly consumed or to be enqueued
+     * 
+     * @param enqueue if true, event will be {@link #enqueueEvent(boolean, NEWTEvent) enqueued}, 
+     *                otherwise {@link #consumeEvent(NEWTEvent) consumed} directly.
+     * @param wait if true wait until {@link #consumeEvent(NEWTEvent) consumed}.
+     */
     protected void doMouseEvent(boolean enqueue, boolean wait, short eventType, int modifiers,
                                 int x, int y, short button, float[] rotationXYZ, float rotationScale) {
-        if( 0 > button || button > MouseEvent.BUTTON_NUMBER ) {
+        if( 0 > button || button > MouseEvent.BUTTON_COUNT ) {
             throw new NativeWindowException("Invalid mouse button number" + button);
+        } else if( 0 == button ) {
+            button = 1;
+        }
+        doPointerEvent(enqueue, wait, constMousePointerTypes, eventType, modifiers,
+                       0 /*actionIdx*/, new short[] { (short)(button-1) },
+                       new int[]{x}, new int[]{y}, new float[]{0f} /*pressure*/, 1f /*maxPressure*/,
+                       rotationXYZ, rotationScale);
+    }
+
+    /**
+     * Send multiple-pointer event either to be directly consumed or to be enqueued
+     * <p>
+     * The index for the element of multiple-pointer arrays represents the pointer which triggered the event
+     * is passed via <i>actionIdx</i>.
+     * </p>  
+     * 
+     * @param enqueue if true, event will be {@link #enqueueEvent(boolean, NEWTEvent) enqueued}, 
+     *                otherwise {@link #consumeEvent(NEWTEvent) consumed} directly.
+     * @param wait if true wait until {@link #consumeEvent(NEWTEvent) consumed}.
+     * @param pTypesOrdinal {@link MouseEvent.PointerType#ordinal()} for each pointer (multiple pointer)
+     * @param eventType
+     * @param modifiers
+     * @param actionIdx index of multiple-pointer arrays representing the pointer which triggered the event
+     * @param pID Pointer ID for each pointer (multiple pointer), we assume pointerID's starts w/ 0
+     * @param pX X-axis for each pointer (multiple pointer)
+     * @param pY Y-axis for each pointer (multiple pointer)
+     * @param pPressure Pressure for each pointer (multiple pointer)
+     * @param maxPressure Maximum pointer pressure for all pointer
+     */
+    public void doPointerEvent(boolean enqueue, boolean wait,
+                               int[] pTypesOrdinal, short eventType, int modifiers, 
+                               int actionIdx, short[] pID,
+                               int[] pX, int[] pY, float[] pPressure, float maxPressure,
+                               float[] rotationXYZ, float rotationScale) {
+        final long when = System.currentTimeMillis();
+        final int pointerCount = pTypesOrdinal.length;
+        
+        if( 0 > actionIdx || actionIdx >= pointerCount) {
+            throw new IllegalArgumentException("actionIdx out of bounds [0.."+(pointerCount-1)+"]");            
+        }
+        if( 0 < actionIdx ) {
+            // swap values to make idx 0 the triggering pointer
+            {
+                final int aType = pTypesOrdinal[actionIdx];
+                pTypesOrdinal[actionIdx] = pTypesOrdinal[0];
+                pTypesOrdinal[0] = aType;
+            }
+            {
+                final short s = pID[actionIdx];
+                pID[actionIdx] = pID[0];
+                pID[0] = s;
+            }
+            {
+                int s = pX[actionIdx];
+                pX[actionIdx] = pX[0];
+                pX[0] = s;
+                s = pY[actionIdx];
+                pY[actionIdx] = pY[0];
+                pY[0] = s;
+            }
+            {
+                final float aPress = pPressure[actionIdx];
+                pPressure[actionIdx] = pPressure[0];
+                pPressure[0] = aPress;
+            }
+        }
+        final PointerType[] pointerType = new PointerType[pointerCount];
+        for(int i=pointerCount-1; i>=0; i--) {
+            pointerType[i] = PointerType.valueOf(pTypesOrdinal[i]);
+        }
+        final short id = pID[0];
+        final short button;
+        {
+            final int b = id + 1;
+            if( com.jogamp.newt.event.MouseEvent.BUTTON1 <= b && b <= com.jogamp.newt.event.MouseEvent.BUTTON_COUNT ) {
+                button = (short)b;
+            } else {
+                button = com.jogamp.newt.event.MouseEvent.BUTTON1;
+            }
         }
         
         //
-        // Remove redundant events, determine ENTERED state and reset states if applicable 
+        // - Determine ENTERED/EXITED state
+        // - Remove redundant move/drag events
+        // - Reset states if applicable 
         //
-        final long when = System.currentTimeMillis();
+        int x = pX[0];
+        int y = pY[0];
+        final Point movePositionP0 = pState1.getMovePosition(id);
         switch( eventType ) {
             case MouseEvent.EVENT_MOUSE_EXITED:
-                if( x==-1 && y==-1 ) {
-                    x = pState0.lastMovePosition.getX();
-                    y = pState0.lastMovePosition.getY();
+                if( null != movePositionP0 ) {
+                    if( x==-1 && y==-1 ) {
+                        x = movePositionP0.getX();
+                        y = movePositionP0.getY();
+                    }
+                    movePositionP0.set(0, 0);
                 }
                 // Fall through intended!
                 
@@ -2369,54 +2481,46 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 // clip coordinates to window dimension
                 x = Math.min(Math.max(x,  0), getWidth()-1);
                 y = Math.min(Math.max(y,  0), getHeight()-1);
-                pState0.insideWindow = eventType == MouseEvent.EVENT_MOUSE_ENTERED;
-                // clear states
-                pState0.lastButtonPressTime = 0;
-                pState0.lastButtonClickCount = (short)0; 
-                pState0.buttonPressed = 0;
-                pState0.buttonModMask = 0;
+                pState1.insideWindow = eventType == MouseEvent.EVENT_MOUSE_ENTERED;
+                pState1.clearButton();
                 break;
                 
             case MouseEvent.EVENT_MOUSE_MOVED:
             case MouseEvent.EVENT_MOUSE_DRAGGED:
-                if( pState0.insideWindow && pState0.lastMovePosition.getX() == x && pState0.lastMovePosition.getY() == y ) { 
-                    if(DEBUG_MOUSE_EVENT) {
-                        System.err.println("doMouseEvent: skip EVENT_MOUSE_MOVED w/ same position: "+pState0.lastMovePosition);
+                if( null != movePositionP0 ) {
+                    if( pState1.insideWindow && movePositionP0.getX() == x && movePositionP0.getY() == y ) { 
+                        if(DEBUG_MOUSE_EVENT) {
+                            System.err.println("doMouseEvent: skip "+MouseEvent.getEventTypeString(eventType)+" w/ same position: "+movePositionP0);
+                        }
+                        return; // skip same position
                     }
-                    return; // skip same position
+                    movePositionP0.set(x, y);
                 }
-                pState0.lastMovePosition.setX(x);
-                pState0.lastMovePosition.setY(y);
                 
                 // Fall through intended !
                 
             default:
-                if(!pState0.insideWindow) {
-                    pState0.insideWindow = true;
-                    
-                    // clear states
-                    pState0.lastButtonPressTime = 0;
-                    pState0.lastButtonClickCount = (short)0; 
-                    pState0.buttonPressed = 0;
-                    pState0.buttonModMask = 0;
+                if(!pState1.insideWindow) {
+                    pState1.insideWindow = true;                    
+                    pState1.clearButton();
                 }
         }
         
         if( x < 0 || y < 0 || x >= getWidth() || y >= getHeight() ) {
             if(DEBUG_MOUSE_EVENT) {
                 System.err.println("doMouseEvent: drop: "+MouseEvent.getEventTypeString(eventType)+
-                                   ", mod "+modifiers+", pos "+x+"/"+y+", button "+button+", lastMousePosition: "+pState0.lastMovePosition);
+                                   ", mod "+modifiers+", pos "+x+"/"+y+", button "+button+", lastMousePosition: "+movePositionP0);
             }
             return; // .. invalid ..
         }
         if(DEBUG_MOUSE_EVENT) {
             System.err.println("doMouseEvent: enqueue "+enqueue+", wait "+wait+", "+MouseEvent.getEventTypeString(eventType)+
-                               ", mod "+modifiers+", pos "+x+"/"+y+", button "+button+", lastMousePosition: "+pState0.lastMovePosition);
+                               ", mod "+modifiers+", pos "+x+"/"+y+", button "+button+", lastMousePosition: "+movePositionP0);
         }
-        
-        modifiers |= InputEvent.getButtonMask(button); // Always add current button to modifier mask (Bug 571)
-        modifiers |= pState0.buttonModMask; // Always add currently pressed mouse buttons to modifier mask
 
+        modifiers |= InputEvent.getButtonMask(button); // Always add current button to modifier mask (Bug 571)
+        modifiers |= pState1.buttonPressedMask; // Always add currently pressed mouse buttons to modifier mask
+        
         if( isPointerConfined() ) {
             modifiers |= InputEvent.CONFINED_MASK;
         }
@@ -2424,77 +2528,78 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             modifiers |= InputEvent.INVISIBLE_MASK;
         }
         
-        final MouseEvent e;
-
+        pX[0] = x;
+        pY[0] = y;
+        
+        //
+        // - Determine CLICK COUNT
+        // - Ignore sent CLICKED
+        // - Track buttonPressed incl. buttonPressedMask
+        // - Fix MOVED/DRAGGED event
+        //
+        final MouseEvent e;        
         switch( eventType ) {
+            case MouseEvent.EVENT_MOUSE_CLICKED:
+                e = null;
+                break;
+        
             case MouseEvent.EVENT_MOUSE_PRESSED:
-                if( when - pState0.lastButtonPressTime < MouseEvent.getClickTimeout() ) {
-                    pState0.lastButtonClickCount++;
-                } else {
-                    pState0.lastButtonClickCount=(short)1;
+                if( 0 >= pPressure[0] ) {
+                    pPressure[0] = maxPressure;
                 }
-                pState0.lastButtonPressTime = when;
-                pState0.buttonPressed = button;
-                pState0.buttonModMask |= MouseEvent.getButtonMask(button);
-                e = new MouseEvent(eventType, this, when,
-                                   modifiers, x, y, pState0.lastButtonClickCount, button, rotationXYZ, rotationScale);
+                pState1.buttonPressedMask |= InputEvent.getButtonMask(button);
+                if( 1 == pointerCount ) {
+                    if( when - pState1.lastButtonPressTime < MouseEvent.getClickTimeout() ) {
+                        pState1.lastButtonClickCount++;
+                    } else {
+                        pState1.lastButtonClickCount=(short)1;
+                    }
+                    pState1.lastButtonPressTime = when;
+                    pState1.buttonPressed = button;
+                    e = new MouseEvent(eventType, this, when, modifiers, pointerType, pID, 
+                                       pX, pY, pPressure, maxPressure, button, pState1.lastButtonClickCount, rotationXYZ, rotationScale);
+                } else {
+                    e = new MouseEvent(eventType, this, when, modifiers, pointerType, pID, 
+                                       pX, pY, pPressure, maxPressure, button, (short)1, rotationXYZ, rotationScale);
+                }
                 break;
             case MouseEvent.EVENT_MOUSE_RELEASED:
-                e = new MouseEvent(eventType, this, when,
-                                   modifiers, x, y, pState0.lastButtonClickCount, button, rotationXYZ, rotationScale);
-                if( when - pState0.lastButtonPressTime >= MouseEvent.getClickTimeout() ) {
-                    pState0.lastButtonClickCount = (short)0;
-                    pState0.lastButtonPressTime = 0;
+                if( 1 == pointerCount ) {
+                    e = new MouseEvent(eventType, this, when, modifiers, pointerType, pID, 
+                                       pX, pY, pPressure, maxPressure, button, pState1.lastButtonClickCount, rotationXYZ, rotationScale);
+                    if( when - pState1.lastButtonPressTime >= MouseEvent.getClickTimeout() ) {
+                        pState1.lastButtonClickCount = (short)0;
+                        pState1.lastButtonPressTime = 0;
+                    }
+                    pState1.buttonPressed = 0;
+                } else {
+                    e = new MouseEvent(eventType, this, when, modifiers, pointerType, pID, 
+                                       pX, pY, pPressure, maxPressure, button, (short)1, rotationXYZ, rotationScale);
                 }
-                pState0.buttonPressed = 0;
-                pState0.buttonModMask &= ~MouseEvent.getButtonMask(button);
+                pState1.buttonPressedMask &= ~InputEvent.getButtonMask(button);
+                if( null != movePositionP0 ) {
+                    movePositionP0.set(0, 0);
+                }
                 break;
             case MouseEvent.EVENT_MOUSE_MOVED:
-                if ( pState0.buttonPressed > 0 ) {
-                    e = new MouseEvent(MouseEvent.EVENT_MOUSE_DRAGGED, this, when,
-                                       modifiers, x, y, (short)1, pState0.buttonPressed, rotationXYZ, rotationScale);
+                if ( 0 != pState1.buttonPressedMask ) { // any button or pointer move -> drag
+                    e = new MouseEvent(MouseEvent.EVENT_MOUSE_DRAGGED, this, when, modifiers, pointerType, pID, 
+                                       pX, pY, pPressure, maxPressure, pState1.buttonPressed, (short)1, rotationXYZ, rotationScale);
                 } else {
-                    e = new MouseEvent(eventType, this, when,
-                                       modifiers, x, y, (short)0, button, rotationXYZ, rotationScale);
+                    e = new MouseEvent(eventType, this, when, modifiers, pointerType, pID, 
+                                       pX, pY, pPressure, maxPressure, button, (short)0, rotationXYZ, rotationScale);
                 }
                 break;
+            case MouseEvent.EVENT_MOUSE_DRAGGED:
+                if( 0 >= pPressure[0] ) {
+                    pPressure[0] = maxPressure;
+                }
+                // Fall through intended!
             default:
-                e = new MouseEvent(eventType, this, when, modifiers, x, y, (short)0, button, rotationXYZ, rotationScale);
+                e = new MouseEvent(eventType, this, when, modifiers, pointerType, pID, 
+                                   pX, pY, pPressure, maxPressure, button, (short)0, rotationXYZ, rotationScale);
         }
         doEvent(enqueue, wait, e); // actual mouse event
-    }
-
-    /**
-     * Send multiple-pointer event directly to be consumed
-     * <p>
-     * The index for the element of multiple-pointer arrays represents the pointer which triggered the event
-     * is passed via <i>actionIdx</i>.
-     * </p>  
-     * 
-     * @param eventType
-     * @param source
-     * @param when
-     * @param modifiers
-     * @param actionIdx index of multiple-pointer arrays representing the pointer which triggered the event
-     * @param pointerType PointerType for each pointer (multiple pointer)
-     * @param pointerID Pointer ID for each pointer (multiple pointer)
-     * @param x X-axis for each pointer (multiple pointer)
-     * @param y Y-axis for each pointer (multiple pointer)
-     * @param pressure Pressure for each pointer (multiple pointer)
-     * @param maxPressure Maximum pointer pressure for all pointer
-     * @param button Corresponding mouse-button
-     * @param clickCount Mouse-button click-count
-     * @param rotationXYZ Rotation of all axis
-     * @param rotationScale Rotation scale
-     */
-    public void sendMouseEvent(short eventType, Object source, long when, int modifiers, 
-                               int actionIdx, PointerType pointerType[], short[] pointerID,
-                               int[] x, int[] y, float[] pressure, float maxPressure, 
-                               short button, short clickCount, float[] rotationXYZ, float rotationScale) {
-        final MouseEvent pe = MouseEvent.create(eventType, source, when, modifiers, actionIdx, 
-                                                pointerType, pointerID, x, y, pressure, maxPressure, button, clickCount, 
-                                                rotationXYZ, rotationScale);
-        consumeMouseEvent(pe);
     }
     
     @Override
@@ -2619,25 +2724,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      *   - dispatch event to listener
      * </pre>
      */
-    protected void consumeMouseEvent(MouseEvent pe) {        
-        final int x = pe.getX();
-        final int y = pe.getY();
+    private final void consumePointerEvent(MouseEvent pe) {        
+        int x = pe.getX();
+        int y = pe.getY();
         
-        if( x < 0 || y < 0 || x >= getWidth() || y >= getHeight() ) {
-            if(DEBUG_MOUSE_EVENT) {
-                System.err.println("consumeMouseEvent.drop: "+pe);
-            }
-            return; // .. invalid ..
-        }
         if(DEBUG_MOUSE_EVENT) {
             System.err.println("consumeMouseEvent.in: "+pe);
         }
         
         //
-        // - Remove redundant events
         // - Determine ENTERED/EXITED state
-        // - synthesize ENTERED event
-        // - fix MOVED/DRAGGED event
+        // - Synthesize ENTERED event
         // - Reset states if applicable 
         //
         final long when = pe.getWhen();
@@ -2646,36 +2743,19 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         switch( eventType ) {
             case MouseEvent.EVENT_MOUSE_EXITED:
             case MouseEvent.EVENT_MOUSE_ENTERED:
-                pState1.insideWindow = eventType == MouseEvent.EVENT_MOUSE_ENTERED;
-                // clear states
-                pState1.lastButtonPressTime = 0;
-                pState1.buttonPressed = 0;
+                // clip coordinates to window dimension
+                x = Math.min(Math.max(x,  0), getWidth()-1);
+                y = Math.min(Math.max(y,  0), getHeight()-1);
+                pState0.insideWindow = eventType == MouseEvent.EVENT_MOUSE_ENTERED;
+                pState0.clearButton();
                 eEntered = null;
                 break;
                 
-            case MouseEvent.EVENT_MOUSE_MOVED:
-                if ( pState1.buttonPressed > 0 ) {
-                    pe = pe.createVariant(MouseEvent.EVENT_MOUSE_DRAGGED);
-                    eventType = pe.getEventType();
-                }
-                // Fall through intended !
-            case MouseEvent.EVENT_MOUSE_DRAGGED:
-                if( pState1.insideWindow && pState1.lastMovePosition.getX() == x && pState1.lastMovePosition.getY() == y ) { 
-                    if(DEBUG_MOUSE_EVENT) {
-                        System.err.println("consumeMouseEvent: skip EVENT_MOUSE_MOVED w/ same position: "+pState1.lastMovePosition);
-                    }
-                    return; // skip same position
-                }
-                pState1.lastMovePosition.setX(x);
-                pState1.lastMovePosition.setY(y);
-                // Fall through intended !                
             default:
-                if(!pState1.insideWindow) {
-                    pState1.insideWindow = true;
+                if(!pState0.insideWindow) {
+                    pState0.insideWindow = true;
+                    pState0.clearButton();
                     eEntered = pe.createVariant(MouseEvent.EVENT_MOUSE_ENTERED);
-                    // clear states
-                    pState1.lastButtonPressTime = 0;
-                    pState1.buttonPressed = 0;
                 } else {
                     eEntered = null;
                 }
@@ -2685,6 +2765,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 System.err.println("consumeMouseEvent.send.0: "+eEntered);
             }
             dispatchMouseEvent(eEntered);
+        } else if( x < 0 || y < 0 || x >= getWidth() || y >= getHeight() ) {
+            if(DEBUG_MOUSE_EVENT) {
+                System.err.println("consumeMouseEvent.drop: "+pe);
+            }
+            return; // .. invalid ..
         }
         
         //
@@ -2758,25 +2843,24 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
         
         //
-        // Synthesize mouse click
-        //
+        // - Synthesize mouse CLICKED
+        // - Ignore sent CLICKED
+        //        
         final MouseEvent eClicked;
         switch( eventType ) {
             case MouseEvent.EVENT_MOUSE_PRESSED:
                 if( 1 == pe.getPointerCount() ) {
-                    pState1.lastButtonPressTime = when;
+                    pState0.lastButtonPressTime = when;
                 }
-                pState1.buttonPressed = pe.getButton();
                 eClicked = null;
                 break;
             case MouseEvent.EVENT_MOUSE_RELEASED:
-                if( 1 == pe.getPointerCount() && when - pState1.lastButtonPressTime < MouseEvent.getClickTimeout() ) {
+                if( 1 == pe.getPointerCount() && when - pState0.lastButtonPressTime < MouseEvent.getClickTimeout() ) {
                     eClicked = pe.createVariant(MouseEvent.EVENT_MOUSE_CLICKED);
                 } else {
                     eClicked = null;
-                    pState1.lastButtonPressTime = 0;                    
+                    pState0.lastButtonPressTime = 0;                    
                 }
-                pState1.buttonPressed = 0;
                 break;
             case MouseEvent.EVENT_MOUSE_CLICKED:
                 // ignore - synthesized here ..
@@ -2874,12 +2958,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         
     public void sendKeyEvent(short eventType, int modifiers, short keyCode, short keySym, char keyChar) {
         // Always add currently pressed mouse buttons to modifier mask
-        consumeKeyEvent( KeyEvent.create(eventType, this, System.currentTimeMillis(), modifiers | pState0.buttonModMask, keyCode, keySym, keyChar) );
+        consumeKeyEvent( KeyEvent.create(eventType, this, System.currentTimeMillis(), modifiers | pState1.buttonPressedMask, keyCode, keySym, keyChar) );
     }
 
     public void enqueueKeyEvent(boolean wait, short eventType, int modifiers, short keyCode, short keySym, char keyChar) {
         // Always add currently pressed mouse buttons to modifier mask
-        enqueueEvent(wait, KeyEvent.create(eventType, this, System.currentTimeMillis(), modifiers | pState0.buttonModMask, keyCode, keySym, keyChar) );
+        enqueueEvent(wait, KeyEvent.create(eventType, this, System.currentTimeMillis(), modifiers | pState1.buttonPressedMask, keyCode, keySym, keyChar) );
     }
     
     @Override
@@ -2980,7 +3064,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return e.isConsumed();
     }
     
-    protected void consumeKeyEvent(KeyEvent e) {
+    private final void consumeKeyEvent(KeyEvent e) {
         boolean consumedE = false;
         if( null != keyboardFocusHandler && !e.isAutoRepeat() ) {
             consumedE = propagateKeyEvent(e, keyboardFocusHandler);
@@ -3059,7 +3143,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return windowListeners.toArray(new WindowListener[windowListeners.size()]);
     }
 
-    protected void consumeWindowEvent(WindowEvent e) {
+    private final void consumeWindowEvent(WindowEvent e) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("consumeWindowEvent: "+e+", visible "+isVisible()+" "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight());
         }
@@ -3266,10 +3350,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             } else if ( (left != insets.getLeftWidth() || right != insets.getRightWidth() || 
                          top != insets.getTopHeight() || bottom != insets.getBottomHeight() )
                        ) {
-                insets.setLeftWidth(left);
-                insets.setRightWidth(right);            
-                insets.setTopHeight(top);
-                insets.setBottomHeight(bottom);            
+                insets.set(left, right, top, bottom);
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("Window.insetsChanged: (defer: "+defer+") "+insets);
                 }
