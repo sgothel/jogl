@@ -93,10 +93,10 @@ interface FFMPEGNatives {
         COUNT;       ///< Number of sample formats.
         
         public static SampleFormat valueOf(int i) {
-            for (SampleFormat fmt : SampleFormat.values()) {
-                if(fmt.ordinal() == i) {
-                    return fmt;
-                }
+            // ordinal = enumValue.ordinal(), reverse: enumValue = EnumClass.values()[ordinal]
+            final SampleFormat[] all = SampleFormat.values();
+            if( 0 <= i && i < all.length ) {
+                return all[i];
             }
             return null;            
         }
@@ -247,10 +247,10 @@ interface FFMPEGNatives {
         COUNT      ///< number of pixel formats in this list
         ;
         public static PixelFormat valueOf(int i) {
-            for (PixelFormat fmt : PixelFormat.values()) {
-                if(fmt.ordinal() == i) {
-                    return fmt;
-                }
+            // ordinal = enumValue.ordinal(), reverse: enumValue = EnumClass.values()[ordinal]
+            final PixelFormat[] all = PixelFormat.values();
+            if( 0 <= i && i < all.length ) {
+                return all[i];
             }
             return null;            
         }

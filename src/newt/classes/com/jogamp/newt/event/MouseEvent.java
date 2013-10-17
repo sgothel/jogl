@@ -66,17 +66,27 @@ public class MouseEvent extends InputEvent
     
     /** Type of pointer devices */
     public static enum PointerType implements InputEvent.InputType {
-        /** {@link PointerClass#Offscreen} mouse. */
+        /** {@link PointerClass#Offscreen} mouse. Ordinal 0. */
         Mouse(PointerClass.Offscreen),
-        /** {@link PointerClass#Offscreen} touch pad, usually using fingers. */
+        /** {@link PointerClass#Offscreen} touch pad, usually using fingers. Ordinal 1. */
         TouchPad(PointerClass.Offscreen),
-        /** {@link PointerClass#Onscreen} touch screen, usually using fingers. */
+        /** {@link PointerClass#Onscreen} touch screen, usually using fingers. Ordinal 2. */
         TouchScreen(PointerClass.Onscreen),
-        /** {@link PointerClass#Onscreen} pen on screen ?. */
+        /** {@link PointerClass#Onscreen} pen usually on screen? Ordinal 3. FIXME*/
         Pen(PointerClass.Onscreen),
+        /** {@link PointerClass#Undefined} ?. Ordinal 4. */
         Undefined(PointerClass.Undefined);
         
         public PointerClass getPointerClass() { return pc; }
+        
+        public static PointerType valueOf(int i) {
+            // ordinal = enumValue.ordinal(), reverse: enumValue = EnumClass.values()[ordinal]
+            final PointerType[] all = PointerType.values();
+            if( 0 <= i && i < all.length ) {
+                return all[i];
+            }
+            return null;            
+        }
         
         private PointerType(PointerClass pc) {
             this.pc = pc;
