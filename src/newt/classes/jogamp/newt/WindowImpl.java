@@ -2784,7 +2784,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      *   - dispatch event to listener
      * </pre>
      */
-    private final void consumePointerEvent(MouseEvent pe) {        
+    protected void consumePointerEvent(MouseEvent pe) {        
         int x = pe.getX();
         int y = pe.getY();
         
@@ -3124,7 +3124,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return e.isConsumed();
     }
     
-    private final void consumeKeyEvent(KeyEvent e) {
+    protected void consumeKeyEvent(KeyEvent e) {
         boolean consumedE = false;
         if( null != keyboardFocusHandler && !e.isAutoRepeat() ) {
             consumedE = propagateKeyEvent(e, keyboardFocusHandler);
@@ -3203,7 +3203,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return windowListeners.toArray(new WindowListener[windowListeners.size()]);
     }
 
-    private final void consumeWindowEvent(WindowEvent e) {
+    protected void consumeWindowEvent(WindowEvent e) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("consumeWindowEvent: "+e+", visible "+isVisible()+" "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight());
         }
