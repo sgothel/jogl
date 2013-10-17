@@ -488,7 +488,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
                 prevMouseY = e.getY();
             } else if( e.getPointerCount() == 4 ) {
                 final Object src = e.getSource();
-                if( e.getPressure(true) > 0.7f && src instanceof Window) { // show Keyboard
+                if( e.getPressure(0, true) > 0.7f && src instanceof Window) { // show Keyboard
                    ((Window) src).setKeyboardVisible(true);
                 }
             }

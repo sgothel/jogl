@@ -300,8 +300,8 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
         _numButtonsToTest = 3 ;
 
         {
-            if( _numButtonsToTest > com.jogamp.newt.event.MouseEvent.BUTTON_NUMBER ) { 
-                _numButtonsToTest = com.jogamp.newt.event.MouseEvent.BUTTON_NUMBER ;
+            if( _numButtonsToTest > com.jogamp.newt.event.MouseEvent.BUTTON_COUNT ) { 
+                _numButtonsToTest = com.jogamp.newt.event.MouseEvent.BUTTON_COUNT ;
             }
 
             // These two arrays are assumed to be peers, i.e. are the same

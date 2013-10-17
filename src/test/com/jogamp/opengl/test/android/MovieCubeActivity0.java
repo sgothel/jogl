@@ -61,7 +61,7 @@ public class MovieCubeActivity0 extends NewtBaseActivity {
    MouseAdapter showKeyboardMouseListener = new MouseAdapter() {
         @Override
         public void mousePressed(MouseEvent e) {
-           if( e.getPointerCount() == 4 && e.getPressure(true) > 0.7f ) {
+           if( e.getPointerCount() == 4 && e.getPressure(0, true) > 0.7f ) {
                ((com.jogamp.newt.Window) e.getSource()).setKeyboardVisible(true);
            }
         }

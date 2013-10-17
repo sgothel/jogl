@@ -34,6 +34,7 @@
 
 package com.jogamp.newt.event;
 
+import com.jogamp.common.util.IntBitfield;
 import com.jogamp.newt.Window;
 
 @SuppressWarnings("serial")
@@ -63,7 +64,8 @@ public abstract class InputEvent extends NEWTEvent
  public static final int  BUTTON8_MASK     = 1 << 12;
  public static final int  BUTTON9_MASK     = 1 << 13;
  
- public static final int  BUTTONLAST_MASK  = 1 << 20;  // 16
+ public static final int  BUTTONLAST_MASK  = 1 << 20;  // 16 buttons
+ public static final int  BUTTONALL_MASK   = 0xffff << 5 ;  // 16 buttons
  
  /** Event is caused by auto-repeat. */
  public static final int  AUTOREPEAT_MASK  = 1 << 29;
@@ -78,12 +80,12 @@ public abstract class InputEvent extends NEWTEvent
   * Returns the corresponding button mask for the given button.
   * <p>
   * In case the given button lies outside 
-  * of the valid range [{@link MouseEvent#BUTTON1} .. {@link MouseEvent#BUTTON_NUMBER}],
+  * of the valid range [{@link MouseEvent#BUTTON1} .. {@link MouseEvent#BUTTON_COUNT}],
   * null is returned.
   * </p>
   */
  public static final int getButtonMask(int button)  {
-     if( 0 < button && button <= MouseEvent.BUTTON_NUMBER ) {
+     if( 0 < button && button <= MouseEvent.BUTTON_COUNT ) {
          return 1 << ( 4 + button ) ;
      }
      return 0;
@@ -143,7 +145,7 @@ public abstract class InputEvent extends NEWTEvent
     if(isAltDown()) { if(!isFirst) { sb.append(", "); } isFirst = false; sb.append("alt"); }
     if(isAltGraphDown()) { if(!isFirst) { sb.append(", "); } isFirst = false; sb.append("altgr"); }
     if(isAutoRepeat()) { if(!isFirst) { sb.append(", "); } isFirst = false; sb.append("repeat"); }
-    for(int i=1; i<=MouseEvent.BUTTON_NUMBER; i++) {
+    for(int i=1; i<=MouseEvent.BUTTON_COUNT; i++) {
         if(isButtonDown(i)) { if(!isFirst) { sb.append(", "); } isFirst = false; sb.append("button").append(i); }
     }
     if(isConfined()) { if(!isFirst) { sb.append(", "); } isFirst = false; sb.append("confined"); }
@@ -154,25 +156,58 @@ public abstract class InputEvent extends NEWTEvent
  }
 
  /**
+  * See also {@link MouseEvent}'s section about <i>Multiple-Pointer Events</i>.
   * @return Array of pressed mouse buttons  [{@link MouseEvent#BUTTON1} .. {@link MouseEvent#BUTTON6}]. 
   *         If none is down, the resulting array is of length 0.
   */
  public final short[] getButtonsDown()  {
-     int len = 0;
-     for(int i=1; i<=MouseEvent.BUTTON_NUMBER; i++) {
-         if( isButtonDown(i) ) { len++; }
-     }
+     final int len = getButtonDownCount();
      
-     short[] res = new short[len];
+     final short[] res = new short[len];
      int j = 0;
-     for(int i=1; i<=MouseEvent.BUTTON_NUMBER; i++) {
+     for(int i=1; i<=MouseEvent.BUTTON_COUNT; i++) {
          if( isButtonDown(i) ) { res[j++] = (short) ( ( MouseEvent.BUTTON1 - 1 ) + i ); }
      }
      return res;
  }
 
+ /**
+  * See also {@link MouseEvent}'s section about <i>Multiple-Pointer Events</i>.
+  * @param button the button to test
+  * @return true if the given button is down 
+  */
  public final boolean isButtonDown(int button)  {
     return ( modifiers & getButtonMask(button) ) != 0;
+ }
+
+ /** 
+  * Returns the number of pressed buttons by counting the set bits:
+  * <pre>
+  *     getBitCount(modifiers & BUTTONALL_MASK);
+  * </pre>
+  * <p>
+  * See also {@link MouseEvent}'s section about <i>Multiple-Pointer Events</i>.
+  * </p>
+  * @see IntBitfield#getBitCount(int)
+  * @see #BUTTONALL_MASK
+  */
+ public final int getButtonDownCount() {
+     return IntBitfield.getBitCount(modifiers & BUTTONALL_MASK);
+ }
+ 
+ /** 
+  * Returns true if at least one button is pressed, otherwise false:
+  * <pre>
+  *     0 != ( modifiers & BUTTONALL_MASK )
+  * </pre>
+  * <p>
+  * See also {@link MouseEvent}'s section about <i>Multiple-Pointer Events</i>.
+  * </p>
+  * @see IntBitfield#getBitCount(int)
+  * @see #BUTTONALL_MASK
+  */
+ public final boolean isAnyButtonDown() {
+     return 0 != ( modifiers & BUTTONALL_MASK );
  }
  
  public String toString() {

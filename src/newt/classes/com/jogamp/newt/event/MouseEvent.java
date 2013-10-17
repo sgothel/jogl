@@ -37,12 +37,23 @@ package com.jogamp.newt.event;
 /**
  * Pointer event of type {@link PointerType}.
  * <p>
- * http://www.w3.org/Submission/pointer-events/#pointerevent-interface
+ * The historical misleading class name may change in the future to <code>PointerEvent</code>. 
  * </p>
  * <p>
+ * http://www.w3.org/Submission/pointer-events/#pointerevent-interface
+ * </p>
+ * <a name="multiPtrEvent"><h5>Multiple-Pointer Events</h5></a> 
+ * <p>
  * In case an instance represents a multiple-pointer event, i.e. {@link #getPointerCount()} is &gt; 1,
- * the first data element of the multiple-pointer fields represents the pointer which triggered the action.<br/>
+ * the first data element of the multiple-pointer fields represents the pointer triggering this event.<br/>
  * For example {@link #getX(int) e.getX(0)} at {@link #EVENT_MOUSE_PRESSED} returns the data of the pressed pointer, etc.
+ * </p>
+ * <p>
+ * If representing a multiple-pointer event, the {@link #getButton() button number} is equal to the first {@link #getPointerId(int) pointer ID}
+ * triggering the event and the {@link InputEvent#BUTTON1_MASK button mask bits} in the {@link #getModifiers() modifiers} 
+ * field  represents the pressed pointer IDs.<br>
+ * Hence users can query the pressed button count as well as the pressed pointer count via {@link InputEvent#getButtonDownCount()}
+ * or use the simple query {@link InputEvent#isAnyButtonDown()}. 
  * </p>
  */
 @SuppressWarnings("serial")
@@ -93,8 +104,14 @@ public class MouseEvent extends InputEvent
     public static final short BUTTON9 = 9;
     
     /** Maximum number of buttons, value <code>16</code> */
-    public static final short BUTTON_NUMBER =  16;
+    public static final short BUTTON_COUNT =  16;
 
+    /** 
+     * Maximum number of buttons, value <code>16</code>.
+     * @deprecated Use {@link #BUTTON_COUNT} .. semantics.
+     */
+    public static final short BUTTON_NUMBER =  16;
+    
     /** Returns the 3-axis XYZ rotation array by given rotation on Y axis or X axis (if SHIFT_MASK is given in mods). */ 
     public static final float[] getRotationXYZ(final float rotationXorY, final int mods) {
         final float[] rotationXYZ = new float[] { 0f, 0f, 0f };
@@ -132,14 +149,17 @@ public class MouseEvent extends InputEvent
      * Constructor for a multiple-pointer event.
      * <p>
      * First element of multiple-pointer arrays represents the pointer which triggered the event!
-     * </p>  
+     * </p>
+     * <p>  
+     * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
+     * </p>
      * 
      * @param eventType
      * @param source
      * @param when
      * @param modifiers
      * @param pointerType PointerType for each pointer (multiple pointer)
-     * @param pointerID Pointer ID for each pointer (multiple pointer)
+     * @param pointerID Pointer ID for each pointer (multiple pointer). IDs start w/ 0 and are consecutive numbers.
      * @param x X-axis for each pointer (multiple pointer)
      * @param y Y-axis for each pointer (multiple pointer)
      * @param pressure Pressure for each pointer (multiple pointer)
@@ -185,9 +205,13 @@ public class MouseEvent extends InputEvent
     /**
      * Factory for a multiple-pointer event.
      * <p>
-     * The index for the element of multiple-pointer arrays represents the pointer which triggered the event
-     * is passed via <i>actionIdx</i>.
+     * The index for the multiple-pointer fields representing the triggering pointer is passed via <i>actionIdx</i>.
+     * If <i>actionIdx</i> is not <code>0</code>, all multiple-pointer fields values of index <code>0</code>
+     * and <i>actionIdx</i> are swapped so that the pointer-index 0 will represent the triggering pointer.
      * </p>  
+     * <p>  
+     * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
+     * </p>
      * 
      * @param eventType
      * @param source
@@ -195,7 +219,7 @@ public class MouseEvent extends InputEvent
      * @param modifiers
      * @param actionIdx index of multiple-pointer arrays representing the pointer which triggered the event
      * @param pointerType PointerType for each pointer (multiple pointer)
-     * @param pointerID Pointer ID for each pointer (multiple pointer)
+     * @param pointerID Pointer ID for each pointer (multiple pointer). IDs start w/ 0 and are consecutive numbers.
      * @param x X-axis for each pointer (multiple pointer)
      * @param y Y-axis for each pointer (multiple pointer)
      * @param pressure Pressure for each pointer (multiple pointer)
@@ -269,7 +293,7 @@ public class MouseEvent extends InputEvent
     
     /**
      * @return the pointer id for the given index.
-     *  return -1 if index not available.
+     *  return -1 if index not available. IDs start w/ 0 and are consecutive numbers.
      */
     public final short getPointerId(int index) {
         if(0 > index || index >= pointerID.length) {
@@ -292,16 +316,22 @@ public class MouseEvent extends InputEvent
     }
     
     /**
-     * @return array of all pointer IDs for all pointers
+     * @return array of all pointer IDs for all pointers. IDs start w/ 0 and are consecutive numbers.
      */
     public final short[] getAllPointerIDs() {
         return pointerID;
     }
     
+    /** 
+     * Returns the button number, e.g. [{@link #BUTTON1}..{@link #BUTTON_COUNT}-1].
+     * <p>
+     * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
+     * </p> 
+     */
     public final short getButton() {
         return button;
     }
-    
+
     public final short getClickCount() {
         return clickCount;
     }
@@ -315,6 +345,7 @@ public class MouseEvent extends InputEvent
     }
 
     /** 
+     * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * @param index pointer-index within [0 .. {@link #getPointerCount()}-1]
      * @return X-Coord associated with the pointer-index.
      * @see getPointerId(index)
@@ -324,6 +355,7 @@ public class MouseEvent extends InputEvent
     }
 
     /** 
+     * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * @param index pointer-index within [0 .. {@link #getPointerCount()}-1]
      * @return Y-Coord associated with the pointer-index.
      * @see getPointerId(index)
@@ -333,6 +365,7 @@ public class MouseEvent extends InputEvent
     }
     
     /**
+     * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * @return array of all X-Coords for all pointers
      */
     public final int[] getAllX() {
@@ -340,6 +373,7 @@ public class MouseEvent extends InputEvent
     }
     
     /**
+     * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * @return array of all Y-Coords for all pointers
      */
     public final int[] getAllY() {
@@ -357,6 +391,19 @@ public class MouseEvent extends InputEvent
     }
     
     /**
+     * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
+     * @param index pointer-index within [0 .. {@link #getPointerCount()}-1]
+     * @param normalized if true, method returns the normalized pressure, i.e. <code>pressure / maxPressure</code> 
+     * @return The pressure associated with the pointer-index.
+     *         The value of zero is return if not available.
+     * @see #getMaxPressure()
+     */
+    public final float getPressure(int index, boolean normalized){
+        return normalized ? pressure[index] / maxPressure : pressure[index];
+    }
+    
+    /**
+     * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * @return array of all raw, un-normalized pressures for all pointers
      */
     public final float[] getAllPressures() {
@@ -378,17 +425,6 @@ public class MouseEvent extends InputEvent
      */
     public final float getMaxPressure() {
         return maxPressure;
-    }
-    
-    /**
-     * @param index pointer-index within [0 .. {@link #getPointerCount()}-1]
-     * @param normalized if true, method returns the normalized pressure, i.e. <code>pressure / maxPressure</code> 
-     * @return The pressure associated with the pointer-index.
-     *         The value of zero is return if not available.
-     * @see #getMaxPressure()
-     */
-    public final float getPressure(int index, boolean normalized){
-        return normalized ? pressure[index] / maxPressure : pressure[index];
     }
     
     /**
@@ -496,7 +532,7 @@ public class MouseEvent extends InputEvent
     
     /** PointerType for each pointer (multiple pointer) */
     private final PointerType pointerType[];
-    /** Pointer-ID for each pointer (multiple pointer) */
+    /** Pointer-ID for each pointer (multiple pointer). IDs start w/ 0 and are consecutive numbers. */
     private final short pointerID[];
     /** X-axis for each pointer (multiple pointer) */
     private final int x[];

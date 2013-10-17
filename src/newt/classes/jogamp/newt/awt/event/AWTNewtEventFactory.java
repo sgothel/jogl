@@ -92,7 +92,7 @@ public class AWTNewtEventFactory {
             getMaskForButtonMethod = _getMaskForButtonMethod;
         } */
         
-        awtButtonDownMasks = new int[com.jogamp.newt.event.MouseEvent.BUTTON_NUMBER] ; // java.awt.MouseInfo.getNumberOfButtons() ;
+        awtButtonDownMasks = new int[com.jogamp.newt.event.MouseEvent.BUTTON_COUNT] ; // java.awt.MouseInfo.getNumberOfButtons() ;
         for (int n = 0 ; n < awtButtonDownMasks.length ; ++n) {
             awtButtonDownMasks[n] = getAWTButtonDownMaskImpl(n+1);
         }
@@ -153,7 +153,7 @@ public class AWTNewtEventFactory {
             case 2 : m = java.awt.event.InputEvent.BUTTON2_DOWN_MASK; break; // 1<<11
             case 3 : m = java.awt.event.InputEvent.BUTTON3_DOWN_MASK; break; // 1<<12
             default:
-                if( button <= com.jogamp.newt.event.MouseEvent.BUTTON_NUMBER ) {
+                if( button <= com.jogamp.newt.event.MouseEvent.BUTTON_COUNT ) {
                     m = 1 << ( 10 + button ) ; // b4 = 1<<14, b5 = 1<<15, etc
                 } else {
                     m = 0;
@@ -179,7 +179,7 @@ public class AWTNewtEventFactory {
     }
     
     public static final short awtButton2Newt(int awtButton) {
-        if( 0 < awtButton && awtButton <= com.jogamp.newt.event.MouseEvent.BUTTON_NUMBER ) {
+        if( 0 < awtButton && awtButton <= com.jogamp.newt.event.MouseEvent.BUTTON_COUNT ) {
             return (short)awtButton;
         } else {
             return (short)0;
