@@ -71,7 +71,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGe
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT -time 5000
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelsAWT %*
-scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NewtCanvasAWT %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT %*

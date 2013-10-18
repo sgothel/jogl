@@ -187,7 +187,7 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Window -Djogl.debug.Animator -Dnewt.debug.Screen"
     #D_ARGS="-Dnativewindow.debug.JAWT -Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Window.KeyEvent"
-    D_ARGS="-Dnewt.debug.Window.MouseEvent"
+    #D_ARGS="-Dnewt.debug.Window.MouseEvent"
     #D_ARGS="-Dnewt.debug.Window.MouseEvent -Dnewt.debug.Window.KeyEvent"
     #D_ARGS="-Dnewt.debug.Window -Dnativewindow.debug=all"
     #D_ARGS="-Dnewt.debug.Window -Dnativewindow.debug.JAWT -Djogl.debug.Animator"
@@ -323,7 +323,7 @@ function testawtswt() {
 #
 #testnoawt jogamp.opengl.openal.av.ALDummyUsage $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 
 #
 # tile rendring / printing w/ & w/o AWT
@@ -523,7 +523,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtKeyPressReleaseUnmaskRepeatAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodesAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodeModifiersAWT $*
-testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNEWTWindowAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNEWTWindowAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersAWTCanvas $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasAWT $*
 #testawtswt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasSWTAWT $*

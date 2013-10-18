@@ -1,7 +1,7 @@
 set THISDIR="C:\JOGL"
 
-set J2RE_HOME=c:\jre1.7.0_40_x32
-set JAVA_HOME=c:\jdk1.7.0_40_x32
+set J2RE_HOME=c:\jre1.7.0_45_x32
+set JAVA_HOME=c:\jdk1.7.0_45_x32
 set ANT_PATH=C:\apache-ant-1.8.2
 
 set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;c:\mingw\bin;%PATH%

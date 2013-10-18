@@ -1,14 +1,15 @@
 
 set BLD_SUB=build-win64
-set J2RE_HOME=c:\jre1.7.0_40_x64
-set JAVA_HOME=c:\jdk1.7.0_40_x64
+set J2RE_HOME=c:\jre1.7.0_45_x64
+set JAVA_HOME=c:\jdk1.7.0_45_x64
 set ANT_PATH=C:\apache-ant-1.8.2
 
 set PROJECT_ROOT=D:\projects\jogamp\jogl
 set BLD_DIR=..\%BLD_SUB%
 
 REM set FFMPEG_LIB=C:\ffmpeg_libav\lavc53_lavf53_lavu51-ffmpeg\x64
-set FFMPEG_LIB=C:\ffmpeg_libav\lavc55_lavf55_lavu52-ffmpeg\x64
+REM set FFMPEG_LIB=C:\ffmpeg_libav\lavc55_lavf55_lavu52-ffmpeg\x64
+set FFMPEG_LIB=C:\ffmpeg_libav\lavc55_lavf55_lavu52-ffmpeg-2013-10-09\x64
 REM set FFMPEG_LIB=C:\ffmpeg_libav\lavc54_lavf54_lavu52_lavr01-libav\x64
 
 REM set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;c:\mingw\bin;%PATH%
