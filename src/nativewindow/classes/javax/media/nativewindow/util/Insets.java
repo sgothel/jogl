@@ -103,7 +103,7 @@ public class Insets implements Cloneable, InsetsImmutable {
 
     @Override
     public String toString() {
-        return new String("[ l "+l+", r "+r+" - t "+t+", b "+b+" - "+getTotalWidth()+"x"+getTotalHeight()+"]");
+        return "[ l "+l+", r "+r+" - t "+t+", b "+b+" - "+getTotalWidth()+"x"+getTotalHeight()+"]";
     }
 }
 

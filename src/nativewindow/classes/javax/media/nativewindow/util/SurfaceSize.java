@@ -58,7 +58,7 @@ public class SurfaceSize implements Comparable<SurfaceSize> {
 
     @Override
     public final String toString() {
-        return new String("[ "+resolution+" x "+bitsPerPixel+" bpp ]");
+        return "[ "+resolution+" x "+bitsPerPixel+" bpp ]";
     }
 
     /**

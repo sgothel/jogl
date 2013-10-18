@@ -195,7 +195,7 @@ public class Rectangle implements Cloneable, RectangleImmutable {
 
     @Override
     public String toString() {
-        return new String("[ "+x+" / "+y+"  "+width+" x "+height+" ]");
+        return "[ "+x+" / "+y+"  "+width+" x "+height+" ]";
     }
 }
 

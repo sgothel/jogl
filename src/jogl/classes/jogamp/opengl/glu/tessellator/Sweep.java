@@ -742,7 +742,7 @@ class Sweep {
         eUp.Org.s = isect.s;
         eUp.Org.t = isect.t;
         eUp.Org.pqHandle = tess.pq.pqInsert(eUp.Org); /* __gl_pqSortInsert */
-        if (eUp.Org.pqHandle == Long.MAX_VALUE) {
+        if (eUp.Org.pqHandle == Integer.MAX_VALUE) {
             tess.pq.pqDeletePriorityQ();    /* __gl_pqSortDeletePriorityQ */
             tess.pq = null;
             throw new RuntimeException();
@@ -1242,7 +1242,7 @@ class Sweep {
         vHead = tess.mesh.vHead;
         for (v = vHead.next; v != vHead; v = v.next) {
             v.pqHandle = pq.pqInsert(v); /* __gl_pqSortInsert */
-            if (v.pqHandle == Long.MAX_VALUE) break;
+            if (v.pqHandle == Integer.MAX_VALUE) break;
         }
         if (v != vHead || !pq.pqInit()) { /* __gl_pqSortInit */
             tess.pq.pqDeletePriorityQ();    /* __gl_pqSortDeletePriorityQ */
