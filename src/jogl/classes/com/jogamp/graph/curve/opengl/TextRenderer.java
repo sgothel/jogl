@@ -38,28 +38,28 @@ import jogamp.graph.curve.text.GlyphString;
 import com.jogamp.graph.font.Font;
 
 public abstract class TextRenderer extends Renderer {
-    /** 
+    /**
      * Create a Hardware accelerated Text Renderer.
-     * @param rs the used {@link RenderState} 
+     * @param rs the used {@link RenderState}
      * @param renderModes either {@link com.jogamp.graph.curve.opengl.GLRegion#SINGLE_PASS} or {@link com.jogamp.graph.curve.Region#VBAA_RENDERING_BIT}
      */
     public static TextRenderer create(RenderState rs, int renderModes) {
         return new jogamp.graph.curve.opengl.TextRendererImpl01(rs, renderModes);
     }
-    
+
     protected TextRenderer(RenderState rs, int type) {
         super(rs, type);
     }
-    
+
 
     /** Render the String in 3D space wrt to the font provided at the position provided
      * the outlines will be generated, if not yet generated
      * @param gl the current GL state
      * @param font {@link Font} to be used
-     * @param str text to be rendered 
-     * @param position the lower left corner of the string 
+     * @param str text to be rendered
+     * @param position the lower left corner of the string
      * @param fontSize font size
-     * @param texWidth desired texture width for multipass-rendering. 
+     * @param texWidth desired texture width for multipass-rendering.
      *        The actual used texture-width is written back when mp rendering is enabled, otherwise the store is untouched.
      * @throws Exception if TextRenderer not initialized
      */
@@ -77,11 +77,11 @@ public abstract class TextRenderer extends Renderer {
         if(DEBUG_INSTANCE) {
             System.err.println("createString: "+getCacheSize()+"/"+getCacheLimit()+" - "+Font.NAME_UNIQUNAME + " - " + str + " - " + size);
         }
-        final GlyphString glyphString = GlyphString.createString(null, rs.getVertexFactory(), font, size, str);        
-        glyphString.createRegion(gl, renderModes);        
+        final GlyphString glyphString = GlyphString.createString(null, rs.getVertexFactory(), font, size, str);
+        glyphString.createRegion(gl, renderModes);
         return glyphString;
     }
-    
+
     /** FIXME
    public void flushCache(GL2ES2 gl) {
        Iterator<GlyphString> iterator = stringCacheMap.values().iterator();
@@ -89,10 +89,10 @@ public abstract class TextRenderer extends Renderer {
            GlyphString glyphString = iterator.next();
            glyphString.destroy(gl, rs);
        }
-       stringCacheMap.clear();    
+       stringCacheMap.clear();
        stringCacheArray.clear();
    } */
-   
+
    @Override
    protected void destroyImpl(GL2ES2 gl) {
        // fluchCache(gl) already called
@@ -101,42 +101,42 @@ public abstract class TextRenderer extends Renderer {
            GlyphString glyphString = iterator.next();
            glyphString.destroy(gl, rs);
        }
-       stringCacheMap.clear();    
+       stringCacheMap.clear();
        stringCacheArray.clear();
    }
-   
+
    /**
     * <p>Sets the cache limit for reusing GlyphString's and their Region.
     * Default is {@link #DEFAULT_CACHE_LIMIT}, -1 unlimited, 0 turns cache off, >0 limited </p>
-    * 
+    *
     * <p>The cache will be validate when the next string rendering happens.</p>
-    *  
+    *
     * @param newLimit new cache size
-    * 
+    *
     * @see #DEFAULT_CACHE_LIMIT
     */
    public final void setCacheLimit(int newLimit ) { stringCacheLimit = newLimit; }
-   
+
    /**
     * Sets the cache limit, see {@link #setCacheLimit(int)} and validates the cache.
-    * 
+    *
     * @see #setCacheLimit(int)
-    * 
+    *
     * @param gl current GL used to remove cached objects if required
     * @param newLimit new cache size
     */
    public final void setCacheLimit(GL2ES2 gl, int newLimit ) { stringCacheLimit = newLimit; validateCache(gl, 0); }
-   
+
    /**
     * @return the current cache limit
     */
    public final int getCacheLimit() { return stringCacheLimit; }
-   
-   /** 
+
+   /**
     * @return the current utilized cache size, <= {@link #getCacheLimit()}
     */
    public final int getCacheSize() { return stringCacheArray.size(); }
-   
+
    protected final void validateCache(GL2ES2 gl, int space) {
        if ( getCacheLimit() > 0 ) {
            while ( getCacheSize() + space > getCacheLimit() ) {
@@ -144,7 +144,7 @@ public abstract class TextRenderer extends Renderer {
            }
        }
    }
-   
+
    protected final GlyphString getCachedGlyphString(Font font, String str, int fontSize) {
        return stringCacheMap.get(getKey(font, str, fontSize));
    }
@@ -160,13 +160,13 @@ public abstract class TextRenderer extends Renderer {
            } /// else overwrite is nop ..
        }
    }
-   
+
    protected final void removeCachedGlyphString(GL2ES2 gl, Font font, String str, int fontSize) {
        final String key = getKey(font, str, fontSize);
        GlyphString glyphString = stringCacheMap.remove(key);
        if(null != glyphString) {
            glyphString.destroy(gl, rs);
-       }       
+       }
        stringCacheArray.remove(key);
    }
 
@@ -177,7 +177,7 @@ public abstract class TextRenderer extends Renderer {
            glyphString.destroy(gl, rs);
        }
    }
-      
+
    protected final String getKey(Font font, String str, int fontSize) {
        final StringBuilder sb = new StringBuilder();
        return font.getName(sb, Font.NAME_UNIQUNAME)
@@ -186,8 +186,8 @@ public abstract class TextRenderer extends Renderer {
 
    /** Default cache limit, see {@link #setCacheLimit(int)} */
    public static final int DEFAULT_CACHE_LIMIT = 256;
-   
+
    private HashMap<String, GlyphString> stringCacheMap = new HashMap<String, GlyphString>(DEFAULT_CACHE_LIMIT);
    private ArrayList<String> stringCacheArray = new ArrayList<String>(DEFAULT_CACHE_LIMIT);
-   private int stringCacheLimit = DEFAULT_CACHE_LIMIT;      
+   private int stringCacheLimit = DEFAULT_CACHE_LIMIT;
 }

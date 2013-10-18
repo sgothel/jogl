@@ -31,12 +31,12 @@ package javax.media.nativewindow;
 /**
  * Provides a {@link NativeSurface} with a mutable <code>surfaceHandle</code>
  * via {@link #setSurfaceHandle(long)}.
- * 
+ *
  * @see NativeSurface
  */
 public interface MutableSurface extends NativeSurface {
 
-    /** 
+    /**
      * Sets the surface handle which is created outside of this implementation.
      */
     public void setSurfaceHandle(long surfaceHandle);

@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -57,7 +57,7 @@ import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 
 public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration implements Cloneable {
-    
+
     public final long getNativeConfig() {
         return ((EGLGLCapabilities)capabilitiesChosen).getEGLConfig();
     }
@@ -66,7 +66,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         return ((EGLGLCapabilities)capabilitiesChosen).getEGLConfigID();
     }
 
-    EGLGraphicsConfiguration(AbstractGraphicsScreen absScreen, 
+    EGLGraphicsConfiguration(AbstractGraphicsScreen absScreen,
                              EGLGLCapabilities capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser) {
         super(absScreen, capsChosen, capsRequested);
         this.chooser = chooser;
@@ -77,7 +77,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
      * @param absScreen
      * @param eglConfigID {@link EGL#EGL_CONFIG_ID} for which the config is being created for.
      * @return
-     * @throws GLException if invalid EGL display. 
+     * @throws GLException if invalid EGL display.
      */
     public static EGLGraphicsConfiguration create(GLCapabilitiesImmutable capsRequested, AbstractGraphicsScreen absScreen, int eglConfigID) {
         final AbstractGraphicsDevice absDevice = absScreen.getDevice();
@@ -101,9 +101,9 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
     public Object clone() {
         return super.clone();
     }
-        
+
     void updateGraphicsConfiguration() {
-        CapabilitiesImmutable capsChosen = getChosenCapabilities(); 
+        CapabilitiesImmutable capsChosen = getChosenCapabilities();
         EGLGraphicsConfiguration newConfig = (EGLGraphicsConfiguration)
             GraphicsConfigurationFactory.getFactory(getScreen().getDevice(), capsChosen).chooseGraphicsConfiguration(
                 capsChosen, getRequestedCapabilities(), chooser, getScreen(), VisualIDHolder.VID_UNDEFINED);
@@ -140,7 +140,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
             return false;
         }
         final IntBuffer val = Buffers.newDirectIntBuffer(1);
-        
+
         // get the configID
         if(!EGL.eglGetConfigAttrib(display, config, EGL.EGL_CONFIG_ID, val)) {
             final int eglErr = EGL.eglGetError();
@@ -169,7 +169,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         }
         if ( 0 != ( _stype & EGL.EGL_PBUFFER_BIT ) ) {
             val |= GLGraphicsConfigurationUtil.PBUFFER_BIT |
-                   GLGraphicsConfigurationUtil.FBO_BIT;     
+                   GLGraphicsConfigurationUtil.FBO_BIT;
         }
         return val;
     }
@@ -189,7 +189,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         final int cfgID;
         final int rType;
         final int visualID;
-        
+
         // get the configID
         if(!EGL.eglGetConfigAttrib(display, config, EGL.EGL_CONFIG_ID, val)) {
             if(DEBUG) {
@@ -199,7 +199,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
             return null;
         }
         cfgID = val.get(0);
-        
+
         if(!EGL.eglGetConfigAttrib(display, config, EGL.EGL_RENDERABLE_TYPE, val)) {
             if(DEBUG) {
                 System.err.println("EGL couldn't retrieve EGL_RENDERABLE_TYPE for config "+toHexString(config)+", error "+toHexString(EGL.eglGetError()));
@@ -213,8 +213,8 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         } else {
             visualID = VisualIDHolder.VID_UNDEFINED;
         }
-        
-        EGLGLCapabilities caps = null;        
+
+        EGLGLCapabilities caps = null;
         try {
             if(null == glp) {
                 glp = EGLGLCapabilities.getCompatible(device, rType);
@@ -232,8 +232,8 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
                 System.err.println("config "+toHexString(config)+": "+gle);
             }
             return null;
-        }        
-                
+        }
+
         if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_CONFIG_CAVEAT, val)) {
             if( EGL.EGL_SLOW_CONFIG == val.get(0) ) {
                 caps.setHardwareAccelerated(false);
@@ -244,11 +244,11 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
             caps.setNumSamples(val.get(0));
         }
         if(!caps.getSampleBuffers()) {
-            // try NV_coverage_sample extension 
+            // try NV_coverage_sample extension
             if(EGL.eglGetConfigAttrib(display, config, EGLExt.EGL_COVERAGE_BUFFERS_NV, val)) {
                 if(val.get(0)>0 &&
                    EGL.eglGetConfigAttrib(display, config, EGLExt.EGL_COVERAGE_SAMPLES_NV, val)) {
-                    caps.setSampleExtension(GLGraphicsConfigurationUtil.NV_coverage_sample); 
+                    caps.setSampleExtension(GLGraphicsConfigurationUtil.NV_coverage_sample);
                     caps.setSampleBuffers(true);
                     caps.setNumSamples(val.get(0));
                 }
@@ -269,7 +269,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
             if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_TRANSPARENT_BLUE_VALUE, val)) {
                 caps.setTransparentBlueValue(val.get(0)==EGL.EGL_DONT_CARE?-1:val.get(0));
             }
-            /** Not defined in EGL 
+            /** Not defined in EGL
             if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_TRANSPARENT_ALPHA_VALUE, val)) {
                 caps.setTransparentAlphaValue(val.get(0)==EGL.EGL_DONT_CARE?-1:val.get(0));
             } */
@@ -294,16 +294,16 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
             caps.setDepthBits(val.get(0));
         }
 
-        // Since the passed GLProfile may be null, 
+        // Since the passed GLProfile may be null,
         // we use EGL_RENDERABLE_TYPE derived profile as created in the EGLGLCapabilities constructor.
-        final int availableTypeBits = EGLConfigDrawableTypeBits(device, config);        
+        final int availableTypeBits = EGLConfigDrawableTypeBits(device, config);
         final int drawableTypeBits = winattrmask & availableTypeBits;
 
         if( 0 == drawableTypeBits ) {
             return null;
         }
-        
-        return (EGLGLCapabilities) GLGraphicsConfigurationUtil.fixWinAttribBitsAndHwAccel(device, drawableTypeBits, caps); 
+
+        return (EGLGLCapabilities) GLGraphicsConfigurationUtil.fixWinAttribBitsAndHwAccel(device, drawableTypeBits, caps);
     }
 
     public static IntBuffer GLCapabilities2AttribList(GLCapabilitiesImmutable caps) {
@@ -313,7 +313,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         attrs.put(idx++, EGL.EGL_SURFACE_TYPE);
         final int surfaceType;
         if( caps.isOnscreen() ) {
-            surfaceType = EGL.EGL_WINDOW_BIT;            
+            surfaceType = EGL.EGL_WINDOW_BIT;
         } else if( caps.isFBO() ) {
             surfaceType = EGL.EGL_PBUFFER_BIT;  // native replacement!
         } else if( caps.isPBuffer() ) {
@@ -338,7 +338,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
             attrs.put(idx++, EGL.EGL_ALPHA_SIZE);
             attrs.put(idx++, caps.getAlphaBits());
         }
-        
+
         if(caps.getStencilBits()>0) {
             attrs.put(idx++, EGL.EGL_STENCIL_SIZE);
             attrs.put(idx++, caps.getStencilBits());
@@ -382,7 +382,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
             attrs.put(idx++, caps.getTransparentAlphaValue()>=0?caps.getTransparentAlphaValue():EGL.EGL_DONT_CARE; */
         }
 
-        // 28 
+        // 28
         attrs.put(idx++, EGL.EGL_RENDERABLE_TYPE);
         if(caps.getGLProfile().usesNativeGLES1()) {
             attrs.put(idx++, EGL.EGL_OPENGL_ES_BIT);

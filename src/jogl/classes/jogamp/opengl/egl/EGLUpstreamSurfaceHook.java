@@ -23,8 +23,8 @@ import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
     protected static final boolean DEBUG = EGLDrawableFactory.DEBUG;
     private final NativeSurface upstreamSurface;
-    private final UpstreamSurfaceHook.MutableSize upstreamSurfaceHookMutableSize; 
-    
+    private final UpstreamSurfaceHook.MutableSize upstreamSurfaceHookMutableSize;
+
     public EGLUpstreamSurfaceHook(NativeSurface upstream) {
         upstreamSurface = upstream;
         if(upstreamSurface instanceof ProxySurface) {
@@ -39,32 +39,33 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
             upstreamSurfaceHookMutableSize = null;
         }
     }
-    
+
     public final NativeSurface getUpstreamSurface() { return upstreamSurface; }
-    
+
     static String getThreadName() { return Thread.currentThread().getName(); }
-    
+
+    @Override
     public final void setSize(int width, int height) {
         if(null != upstreamSurfaceHookMutableSize) {
             upstreamSurfaceHookMutableSize.setSize(width, height);
-        }        
+        }
     }
-    
+
     @Override
     public final void create(ProxySurface surface) {
         final String dbgPrefix;
         if(DEBUG) {
             dbgPrefix = getThreadName() + ": EGLUpstreamSurfaceHook.create( up "+upstreamSurface.getClass().getSimpleName()+" -> this "+surface.getClass().getSimpleName()+" ): ";
-            System.err.println(dbgPrefix+this);            
+            System.err.println(dbgPrefix+this);
         } else {
             dbgPrefix = null;
         }
-        
+
         if(upstreamSurface instanceof ProxySurface) {
-            // propagate createNotify(..) so upstreamSurface will be created 
+            // propagate createNotify(..) so upstreamSurface will be created
             ((ProxySurface)upstreamSurface).createNotify();
         }
-        
+
         // lock upstreamSurface, so it can be used in case EGLDisplay is derived from it!
         if(NativeSurface.LOCK_SURFACE_NOT_READY >= upstreamSurface.lockSurface()) {
             throw new GLException("Could not lock: "+upstreamSurface);
@@ -73,16 +74,16 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
             evalUpstreamSurface(dbgPrefix, surface);
         } finally {
             upstreamSurface.unlockSurface();
-        }        
+        }
     }
-    
+
     private final void evalUpstreamSurface(String dbgPrefix, ProxySurface surface) {
         //
         // evaluate nature of upstreamSurface, may create EGL instances if required
         //
-        
+
         boolean isEGLSurfaceValid = true; // assume yes
-        
+
         final EGLGraphicsDevice eglDevice;
         final AbstractGraphicsConfiguration aConfig;
         {
@@ -92,14 +93,14 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
                 System.err.println(dbgPrefix+"SurfaceDevice: "+surfaceDevice.getClass().getSimpleName()+", hash 0x"+Integer.toHexString(surfaceDevice.hashCode())+", "+surfaceDevice);
                 System.err.println(dbgPrefix+"SurfaceConfig: "+surfaceConfig.getClass().getSimpleName()+", hash 0x"+Integer.toHexString(surfaceConfig.hashCode())+", "+surfaceConfig);
             }
-    
-            final AbstractGraphicsConfiguration upstreamConfig = upstreamSurface.getGraphicsConfiguration();        
+
+            final AbstractGraphicsConfiguration upstreamConfig = upstreamSurface.getGraphicsConfiguration();
             final AbstractGraphicsDevice upstreamDevice = upstreamConfig.getScreen().getDevice();
             if(DEBUG) {
                 System.err.println(dbgPrefix+"UpstreamDevice: "+upstreamDevice.getClass().getSimpleName()+", hash 0x"+Integer.toHexString(upstreamDevice.hashCode())+", "+upstreamDevice);
                 System.err.println(dbgPrefix+"UpstreamConfig: "+upstreamConfig.getClass().getSimpleName()+", hash 0x"+Integer.toHexString(upstreamConfig.hashCode())+", "+upstreamConfig);
             }
-            
+
             if( surfaceDevice instanceof EGLGraphicsDevice ) {
                 eglDevice = (EGLGraphicsDevice) surfaceDevice;
                 aConfig = surfaceConfig;
@@ -129,13 +130,13 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
                 surface.addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_DEVICE );
             }
         }
-        
+
         final GLCapabilitiesImmutable capsRequested = (GLCapabilitiesImmutable) aConfig.getRequestedCapabilities();
         final EGLGraphicsConfiguration eglConfig;
         if( aConfig instanceof EGLGraphicsConfiguration ) {
             // Config is already in EGL type - reuse ..
             final EGLGLCapabilities capsChosen = (EGLGLCapabilities) aConfig.getChosenCapabilities();
-            if( !isEGLSurfaceValid || !EGLGraphicsConfiguration.isEGLConfigValid(eglDevice.getHandle(), capsChosen.getEGLConfig()) ) { 
+            if( !isEGLSurfaceValid || !EGLGraphicsConfiguration.isEGLConfigValid(eglDevice.getHandle(), capsChosen.getEGLConfig()) ) {
                 // 'refresh' the native EGLConfig handle
                 capsChosen.setEGLConfig(EGLGraphicsConfiguration.EGLConfigId2EGLConfig(eglDevice.getHandle(), capsChosen.getEGLConfigID()));
                 if( 0 == capsChosen.getEGLConfig() ) {
@@ -166,7 +167,7 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
             isEGLSurfaceValid = false;
         }
         surface.setGraphicsConfiguration(eglConfig);
-        
+
         if(isEGLSurfaceValid) {
             isEGLSurfaceValid = EGLDrawable.isValidEGLSurface(eglDevice.getHandle(), upstreamSurface.getSurfaceHandle());
         }
@@ -182,15 +183,15 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
             if(DEBUG) {
                 System.err.println(dbgPrefix+"Fin: EGL surface n/a - TBD: "+upstreamSurface);
             }
-        }        
+        }
     }
 
     @Override
     public final void destroy(ProxySurface surface) {
         if(EGLDrawableFactory.DEBUG) {
-            System.err.println("EGLUpstreamSurfaceHook.destroy("+surface.getClass().getSimpleName()+"): "+this);            
+            System.err.println("EGLUpstreamSurfaceHook.destroy("+surface.getClass().getSimpleName()+"): "+this);
         }
-        surface.clearUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE );            
+        surface.clearUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE );
         if(upstreamSurface instanceof ProxySurface) {
             ((ProxySurface)upstreamSurface).destroyNotify();
         }
@@ -205,7 +206,7 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
     public final int getHeight(ProxySurface s) {
         return upstreamSurface.getHeight();
     }
-    
+
     @Override
     public String toString() {
         final String us_s = null != upstreamSurface ? ( upstreamSurface.getClass().getName() + ": 0x" + Long.toHexString(upstreamSurface.getSurfaceHandle()) ) : "nil";

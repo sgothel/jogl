@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  */
 
 package com.jogamp.newt.event;
@@ -37,12 +37,12 @@ package com.jogamp.newt.event;
 /**
  * Pointer event of type {@link PointerType}.
  * <p>
- * The historical misleading class name may change in the future to <code>PointerEvent</code>. 
+ * The historical misleading class name may change in the future to <code>PointerEvent</code>.
  * </p>
  * <p>
  * http://www.w3.org/Submission/pointer-events/#pointerevent-interface
  * </p>
- * <a name="multiPtrEvent"><h5>Multiple-Pointer Events</h5></a> 
+ * <a name="multiPtrEvent"><h5>Multiple-Pointer Events</h5></a>
  * <p>
  * In case an instance represents a multiple-pointer event, i.e. {@link #getPointerCount()} is &gt; 1,
  * the first data element of the multiple-pointer fields represents the pointer triggering this event.<br/>
@@ -62,10 +62,10 @@ package com.jogamp.newt.event;
  * </p>
  * <p>
  * If representing a multiple-pointer event, the {@link #getButton() button number} is mapped to the <i>first {@link #getPointerId(int) pointer ID}</i>
- * triggering the event and the {@link InputEvent#BUTTON1_MASK button mask bits} in the {@link #getModifiers() modifiers} 
+ * triggering the event and the {@link InputEvent#BUTTON1_MASK button mask bits} in the {@link #getModifiers() modifiers}
  * field  represent the pressed pointer IDs.<br>
  * Hence users can query the pressed button count as well as the pressed pointer count via {@link InputEvent#getButtonDownCount()}
- * or use the simple query {@link InputEvent#isAnyButtonDown()}. 
+ * or use the simple query {@link InputEvent#isAnyButtonDown()}.
  * </p>
  */
 @SuppressWarnings("serial")
@@ -75,7 +75,7 @@ public class MouseEvent extends InputEvent
     public static enum PointerClass implements InputEvent.InputClass {
         Offscreen, Onscreen, Undefined;
     }
-    
+
     /** Type of pointer devices */
     public static enum PointerType implements InputEvent.InputType {
         /** {@link PointerClass#Offscreen} mouse. Ordinal 0. */
@@ -88,10 +88,10 @@ public class MouseEvent extends InputEvent
         Pen(PointerClass.Onscreen),
         /** {@link PointerClass#Undefined} ?. Ordinal 4. */
         Undefined(PointerClass.Undefined);
-        
+
         public PointerClass getPointerClass() { return pc; }
-        
-        /** 
+
+        /**
          * Returns the matching PointerType value corresponding to the given PointerType's integer ordinal.
          * <pre>
          *   given:
@@ -108,8 +108,8 @@ public class MouseEvent extends InputEvent
             }
             throw new IllegalArgumentException("Ordinal "+ordinal+" out of range of PointerType.values()[0.."+(all.length-1)+"]");
         }
-        
-        /** 
+
+        /**
          * Returns the PointerType array of matching PointerType values corresponding to the given PointerType's integer ordinal values.
          * <p>
          * See {@link #valueOf(int)}.
@@ -124,13 +124,13 @@ public class MouseEvent extends InputEvent
             }
             return types;
         }
-        
+
         private PointerType(PointerClass pc) {
             this.pc = pc;
         }
         PointerClass pc;
     }
-    
+
     /** ID for button 1, value <code>1</code> */
     public static final short BUTTON1 = 1;
     /** ID for button 2, value <code>2</code> */
@@ -149,17 +149,17 @@ public class MouseEvent extends InputEvent
     public static final short BUTTON8 = 8;
     /** ID for button 6, value <code>9</code> */
     public static final short BUTTON9 = 9;
-    
+
     /** Maximum number of buttons, value <code>16</code> */
     public static final short BUTTON_COUNT =  16;
 
-    /** 
+    /**
      * Maximum number of buttons, value <code>16</code>.
      * @deprecated Use {@link #BUTTON_COUNT} .. semantics.
      */
     public static final short BUTTON_NUMBER =  16;
-    
-    /** Returns the 3-axis XYZ rotation array by given rotation on Y axis or X axis (if SHIFT_MASK is given in mods). */ 
+
+    /** Returns the 3-axis XYZ rotation array by given rotation on Y axis or X axis (if SHIFT_MASK is given in mods). */
     public static final float[] getRotationXYZ(final float rotationXorY, final int mods) {
         final float[] rotationXYZ = new float[] { 0f, 0f, 0f };
         if( 0 != ( mods & InputEvent.SHIFT_MASK ) ) {
@@ -169,14 +169,14 @@ public class MouseEvent extends InputEvent
         }
         return rotationXYZ;
     }
-    
-    public static final short getClickTimeout() { 
-        return 300; 
+
+    public static final short getClickTimeout() {
+        return 300;
     }
-        
-    /** 
+
+    /**
      * Constructor for traditional one-pointer event.
-     * 
+     *
      * @param eventType
      * @param source
      * @param when
@@ -193,7 +193,7 @@ public class MouseEvent extends InputEvent
             int modifiers, int x, int y, short clickCount, short button,
             float[] rotationXYZ, float rotationScale)
     {
-        super(eventType, source, when, modifiers); 
+        super(eventType, source, when, modifiers);
         this.x = new int[]{x};
         this.y = new int[]{y};
         switch(eventType) {
@@ -214,15 +214,15 @@ public class MouseEvent extends InputEvent
         this.pointerType = constMousePointerTypes;
     }
 
-    /** 
+    /**
      * Constructor for a multiple-pointer event.
      * <p>
      * First element of multiple-pointer arrays represents the pointer which triggered the event!
      * </p>
-     * <p>  
+     * <p>
      * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * </p>
-     * 
+     *
      * @param eventType
      * @param source
      * @param when
@@ -239,12 +239,12 @@ public class MouseEvent extends InputEvent
      * @param rotationXYZ Rotation of all axis
      * @param rotationScale Rotation scale
      */
-    public MouseEvent(short eventType, Object source, long when, int modifiers, 
-                      PointerType pointerType[], short[] pointerID, 
-                      int[] x, int[] y, float[] pressure, float maxPressure, 
+    public MouseEvent(short eventType, Object source, long when, int modifiers,
+                      PointerType pointerType[], short[] pointerID,
+                      int[] x, int[] y, float[] pressure, float maxPressure,
                       short button, short clickCount, float[] rotationXYZ, float rotationScale)
     {
-        super(eventType, source, when, modifiers); 
+        super(eventType, source, when, modifiers);
         this.x = x;
         this.y = y;
         final int pointerCount = pointerType.length;
@@ -266,12 +266,12 @@ public class MouseEvent extends InputEvent
         this.rotationScale = rotationScale;
         this.pointerType = pointerType;
     }
-    
+
     public MouseEvent createVariant(short newEventType) {
         return new MouseEvent(newEventType, source, getWhen(), getModifiers(), pointerType, pointerID,
                               x, y, pressure, maxPressure, button, clickCount, rotationXYZ, rotationScale);
     }
-    
+
     /**
      * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * @return the count of pointers involved in this event
@@ -279,7 +279,7 @@ public class MouseEvent extends InputEvent
     public final int getPointerCount() {
         return pointerType.length;
     }
-    
+
     /**
      * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * @return the {@link PointerType} for the data at index or null if index not available.
@@ -290,7 +290,7 @@ public class MouseEvent extends InputEvent
         }
         return pointerType[index];
     }
-    
+
     /**
      * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * @return array of all {@link PointerType}s for all pointers
@@ -298,10 +298,10 @@ public class MouseEvent extends InputEvent
     public final PointerType[] getAllPointerTypes() {
         return pointerType;
     }
-    
+
     /**
      * Return the pointer id for the given index or -1 if index not available.
-     * <p> 
+     * <p>
      * IDs start w/ 0 and are consecutive numbers.
      * </p>
      * <p>
@@ -317,7 +317,7 @@ public class MouseEvent extends InputEvent
         }
         return pointerID[index];
     }
-    
+
     /**
      * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * @return the pointer index for the given pointer id or -1 if id not available.
@@ -332,7 +332,7 @@ public class MouseEvent extends InputEvent
         }
         return -1;
     }
-    
+
     /**
      * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * @return array of all pointer IDs for all pointers. IDs start w/ 0 and are consecutive numbers.
@@ -340,15 +340,15 @@ public class MouseEvent extends InputEvent
     public final short[] getAllPointerIDs() {
         return pointerID;
     }
-    
-    /** 
+
+    /**
      * Returns the button number, e.g. [{@link #BUTTON1}..{@link #BUTTON_COUNT}-1].
      * <p>
      * A button value of <code>0</code> denotes no button activity, i.e. {@link PointerType#Mouse} move.
      * </p>
      * <p>
      * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
-     * </p> 
+     * </p>
      */
     public final short getButton() {
         return button;
@@ -357,16 +357,16 @@ public class MouseEvent extends InputEvent
     public final short getClickCount() {
         return clickCount;
     }
-    
+
     public final int getX() {
         return x[0];
     }
-    
+
     public final int getY() {
         return y[0];
     }
 
-    /** 
+    /**
      * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * @param index pointer-index within [0 .. {@link #getPointerCount()}-1]
      * @return X-Coord associated with the pointer-index.
@@ -376,7 +376,7 @@ public class MouseEvent extends InputEvent
         return x[index];
     }
 
-    /** 
+    /**
      * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * @param index pointer-index within [0 .. {@link #getPointerCount()}-1]
      * @return Y-Coord associated with the pointer-index.
@@ -385,7 +385,7 @@ public class MouseEvent extends InputEvent
     public final int getY(int index) {
         return y[index];
     }
-    
+
     /**
      * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * @return array of all X-Coords for all pointers
@@ -393,7 +393,7 @@ public class MouseEvent extends InputEvent
     public final int[] getAllX() {
         return x;
     }
-    
+
     /**
      * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * @return array of all Y-Coords for all pointers
@@ -401,9 +401,9 @@ public class MouseEvent extends InputEvent
     public final int[] getAllY() {
         return y;
     }
-    
+
     /**
-     * @param normalized if true, method returns the normalized pressure, i.e. <code>pressure / maxPressure</code> 
+     * @param normalized if true, method returns the normalized pressure, i.e. <code>pressure / maxPressure</code>
      * @return The pressure associated with the pointer-index 0.
      *         The value of zero is return if not available.
      * @see #getMaxPressure()
@@ -411,11 +411,11 @@ public class MouseEvent extends InputEvent
     public final float getPressure(boolean normalized){
         return normalized ? pressure[0] / maxPressure : pressure[0];
     }
-    
+
     /**
      * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * @param index pointer-index within [0 .. {@link #getPointerCount()}-1]
-     * @param normalized if true, method returns the normalized pressure, i.e. <code>pressure / maxPressure</code> 
+     * @param normalized if true, method returns the normalized pressure, i.e. <code>pressure / maxPressure</code>
      * @return The pressure associated with the pointer-index.
      *         The value of zero is return if not available.
      * @see #getMaxPressure()
@@ -423,7 +423,7 @@ public class MouseEvent extends InputEvent
     public final float getPressure(int index, boolean normalized){
         return normalized ? pressure[index] / maxPressure : pressure[index];
     }
-    
+
     /**
      * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * @return array of all raw, un-normalized pressures for all pointers
@@ -431,12 +431,12 @@ public class MouseEvent extends InputEvent
     public final float[] getAllPressures() {
         return pressure;
     }
-    
-    /** 
+
+    /**
      * Returns the maximum pressure known for the input device generating this event.
      * <p>
      * This value may be self calibrating on devices/OS, where no known maximum pressure is known.
-     * Hence subsequent events may return a higher value. 
+     * Hence subsequent events may return a higher value.
      * </p>
      * <p>
      * Self calibrating maximum pressure is performed on:
@@ -448,25 +448,25 @@ public class MouseEvent extends InputEvent
     public final float getMaxPressure() {
         return maxPressure;
     }
-    
+
     /**
      * Returns a 3-component float array filled with the values of the rotational axis
      * in the following order: horizontal-, vertical- and z-axis.
-     * <p> 
+     * <p>
      * A vertical rotation of <b>&gt; 0.0f is up</b> and <b>&lt; 0.0f is down</b>.
      * </p>
      * <p>
-     * A horizontal rotation of <b>&gt; 0.0f is left</b> and <b>&lt; 0.0f is right</b>.   
+     * A horizontal rotation of <b>&gt; 0.0f is left</b> and <b>&lt; 0.0f is right</b>.
      * </p>
      * <p>
-     * A z-axis rotation of <b>&gt; 0.0f is back</b> and <b>&lt; 0.0f is front</b>.   
+     * A z-axis rotation of <b>&gt; 0.0f is back</b> and <b>&lt; 0.0f is front</b>.
      * </p>
      * <p>
      * <i>However</i>, on some OS this might be flipped due to the OS <i>default</i> behavior.
      * The latter is true for OS X 10.7 (Lion) for example.
      * </p>
      * <p>
-     * On PointerClass {@link PointerClass#Onscreen onscreen} devices, i.e. {@link PointerType#TouchScreen touch screens}, 
+     * On PointerClass {@link PointerClass#Onscreen onscreen} devices, i.e. {@link PointerType#TouchScreen touch screens},
      * rotation events are usually produced by a 2-finger movement, where horizontal and vertical rotation values are filled.
      * </p>
      * <p>
@@ -475,13 +475,13 @@ public class MouseEvent extends InputEvent
      * </p>
      * <p>
      * The {@link InputEvent#SHIFT_MASK} modifier is set in case <b>|horizontal| &gt; |vertical|</b> value.<br/>
-     * This can be utilized to implement only one 2d rotation direction, you may use {@link #isShiftDown()} to query it.  
+     * This can be utilized to implement only one 2d rotation direction, you may use {@link #isShiftDown()} to query it.
      * </p>
      * <p>
      * In case the pointer type is {@link PointerType#Mouse mouse},
      * events are usually send in steps of one, ie. <i>-1.0f</i> and <i>1.0f</i>.
      * Higher values may result due to fast scrolling.
-     * Fractional values may result due to slow scrolling with high resolution devices.<br/>  
+     * Fractional values may result due to slow scrolling with high resolution devices.<br/>
      * Here the button number refers to the wheel number.
      * </p>
      * <p>
@@ -492,28 +492,30 @@ public class MouseEvent extends InputEvent
     public final float[] getRotation() {
         return rotationXYZ;
     }
-    
-    /** 
+
+    /**
      * Returns the scale used to determine the {@link #getRotation() rotation value},
      * which semantics depends on the {@link #getPointerType() pointer type's} {@link PointerClass}.
      * <p>
      * For {@link PointerClass#Offscreen}, the scale is usually <code>1.0f</code> and denominates
      * an abstract value without association to a physical value.
-     * </p> 
+     * </p>
      * <p>
      * For {@link PointerClass#Onscreen}, the scale varies and denominates
-     * the divisor of the distance the finger[s] have moved on the screen. 
-     * Hence <code>scale * rotation</code> reproduces the screen distance in pixels the finger[s] have moved. 
-     * </p> 
+     * the divisor of the distance the finger[s] have moved on the screen.
+     * Hence <code>scale * rotation</code> reproduces the screen distance in pixels the finger[s] have moved.
+     * </p>
      */
     public final float getRotationScale() {
         return rotationScale;
     }
-    
+
+    @Override
     public final String toString() {
         return toString(null).toString();
     }
 
+    @Override
     public final StringBuilder toString(StringBuilder sb) {
         if(null == sb) {
             sb = new StringBuilder();
@@ -533,7 +535,7 @@ public class MouseEvent extends InputEvent
                 .append("p[").append(pressure[i]).append("/").append(maxPressure).append("=").append(pressure[i]/maxPressure).append("]");
             }
             sb.append("]");
-        }        
+        }
         sb.append(", ");
         return super.toString(sb).append("]");
     }
@@ -551,14 +553,14 @@ public class MouseEvent extends InputEvent
             default: return "unknown (" + type + ")";
         }
     }
-    
+
     /** PointerType for each pointer (multiple pointer) */
     private final PointerType pointerType[];
-    /** 
+    /**
      * Pointer-ID for each pointer (multiple pointer). IDs start w/ 0 and are consecutive numbers.
-     * <p> 
+     * <p>
      * A pointer-ID of -1 may also denote no pointer/button activity, i.e. {@link PointerType#Mouse} move.
-     * </p> 
+     * </p>
      */
     private final short pointerID[];
     /** X-axis for each pointer (multiple pointer) */
@@ -581,11 +583,11 @@ public class MouseEvent extends InputEvent
     /** Rotation scale */
     private final float rotationScale;
     private final float maxPressure;
-    
+
     private static final float[] constMousePressure0 = new float[]{0f};
     private static final float[] constMousePressure1 = new float[]{1f};
     private static final PointerType[] constMousePointerTypes = new PointerType[] { PointerType.Mouse };
-    
+
     public static final short EVENT_MOUSE_CLICKED  = 200;
     public static final short EVENT_MOUSE_ENTERED  = 201;
     public static final short EVENT_MOUSE_EXITED   = 202;

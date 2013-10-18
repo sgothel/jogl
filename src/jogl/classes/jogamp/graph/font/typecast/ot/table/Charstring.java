@@ -28,6 +28,6 @@ package jogamp.graph.font.typecast.ot.table;
 public abstract class Charstring {
 
     public abstract int getIndex();
-    
+
     public abstract String getName();
 }

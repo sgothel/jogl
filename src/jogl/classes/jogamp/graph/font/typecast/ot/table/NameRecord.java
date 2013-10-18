@@ -75,19 +75,19 @@ public class NameRecord {
         _stringLength = di.readShort();
         _stringOffset = di.readShort();
     }
-    
+
     public short getEncodingId() {
         return _encodingId;
     }
-    
+
     public short getLanguageId() {
         return _languageId;
     }
-    
+
     public short getNameId() {
         return _nameId;
     }
-    
+
     public short getPlatformId() {
         return _platformId;
     }
@@ -101,7 +101,7 @@ public class NameRecord {
         StringBuilder sb = new StringBuilder();
         di.skipBytes(_stringOffset);
         if (_platformId == ID.platformUnicode) {
-            
+
             // Unicode (big-endian)
             for (int i = 0; i < _stringLength/2; i++) {
                 sb.append(di.readChar());
@@ -113,13 +113,13 @@ public class NameRecord {
                 sb.append((char) di.readByte());
             }
         } else if (_platformId == ID.platformISO) {
-            
+
             // ISO encoding, ASCII
             for (int i = 0; i < _stringLength; i++) {
                 sb.append((char) di.readByte());
             }
         } else if (_platformId == ID.platformMicrosoft) {
-            
+
             // Microsoft encoding, Unicode
             char c;
             for (int i = 0; i < _stringLength/2; i++) {
@@ -130,9 +130,10 @@ public class NameRecord {
         _record = sb.toString();
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        
+
         sb.append("             Platform ID:       ").append(_platformId)
             .append("\n             Specific ID:       ").append(_encodingId)
             .append("\n             Language ID:       ").append(_languageId)
@@ -140,7 +141,7 @@ public class NameRecord {
             .append("\n             Length:            ").append(_stringLength)
             .append("\n             Offset:            ").append(_stringOffset)
             .append("\n\n").append(_record);
-        
+
         return sb.toString();
     }
 }

@@ -1,9 +1,9 @@
 /*****************************************************************************
  * Copyright (C) The Apache Software Foundation. All rights reserved.        *
- * ------------------------------------------------------------------------- * 
- * This software is published under the terms of the Apache Software License * 
- * version 1.1, a copy of which has been included with this distribution in  * 
- * the LICENSE file.                                                         * 
+ * ------------------------------------------------------------------------- *
+ * This software is published under the terms of the Apache Software License *
+ * version 1.1, a copy of which has been included with this distribution in  *
+ * the LICENSE file.                                                         *
  *****************************************************************************/
 
 package jogamp.graph.font.typecast.ot.table;
@@ -39,7 +39,7 @@ public class MaxpTable implements Table {
     protected MaxpTable(DirectoryEntry de, DataInput di) throws IOException {
         this.de = (DirectoryEntry) de.clone();
         versionNumber = di.readInt();
-        
+
         // CFF fonts use version 0.5, TrueType fonts use version 1.0
         if (versionNumber == 0x00005000) {
             numGlyphs = di.readUnsignedShort();
@@ -121,10 +121,12 @@ public class MaxpTable implements Table {
         return numGlyphs;
     }
 
+    @Override
     public int getType() {
         return maxp;
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("'maxp' Table - Maximum Profile\n------------------------------")
@@ -149,15 +151,16 @@ public class MaxpTable implements Table {
         }
         return sb.toString();
     }
-    
+
     /**
      * Get a directory entry for this table.  This uniquely identifies the
      * table in collections where there may be more than one instance of a
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return de;
     }
-    
+
 }

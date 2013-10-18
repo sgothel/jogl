@@ -48,11 +48,11 @@ public class Triangle {
     public Vertex[] getVertices() {
         return vertices;
     }
-    
+
     public boolean isEdgesBoundary() {
         return boundaryEdges[0] || boundaryEdges[1] || boundaryEdges[2];
     }
-    
+
     public boolean isVerticesBoundary() {
         return boundaryVertices[0] || boundaryVertices[1] || boundaryVertices[2];
     }
@@ -60,11 +60,11 @@ public class Triangle {
     public void setEdgesBoundary(boolean[] boundary) {
         this.boundaryEdges = boundary;
     }
-    
+
     public boolean[] getEdgeBoundary() {
         return boundaryEdges;
     }
-    
+
     public boolean[] getVerticesBoundary() {
         return boundaryVertices;
     }
@@ -72,7 +72,8 @@ public class Triangle {
     public void setVerticesBoundary(boolean[] boundaryVertices) {
         this.boundaryVertices = boundaryVertices;
     }
-    
+
+    @Override
     public String toString() {
         return "Tri ID: " + id + "\n" +  vertices[0]  + "\n" +  vertices[1] + "\n" +  vertices[2];
     }

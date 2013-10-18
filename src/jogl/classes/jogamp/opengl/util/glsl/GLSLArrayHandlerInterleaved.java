@@ -40,8 +40,8 @@ import jogamp.opengl.util.GLVBOArrayHandler;
 import com.jogamp.opengl.util.GLArrayDataEditable;
 
 /**
- * Interleaved fixed function arrays, i.e. where this buffer data 
- * represents many arrays. 
+ * Interleaved fixed function arrays, i.e. where this buffer data
+ * represents many arrays.
  */
 public class GLSLArrayHandlerInterleaved extends GLVBOArrayHandler implements GLArrayHandler {
   private List<GLArrayHandlerFlat> subArrays = new ArrayList<GLArrayHandlerFlat>();
@@ -49,13 +49,15 @@ public class GLSLArrayHandlerInterleaved extends GLVBOArrayHandler implements GL
   public GLSLArrayHandlerInterleaved(GLArrayDataEditable ad) {
     super(ad);
   }
-  
+
+  @Override
   public final void setSubArrayVBOName(int vboName) {
       for(int i=0; i<subArrays.size(); i++) {
           subArrays.get(i).getData().setVBOName(vboName);
-      }      
+      }
   }
-  
+
+  @Override
   public final void addSubHandler(GLArrayHandlerFlat handler) {
       subArrays.add(handler);
   }
@@ -63,9 +65,10 @@ public class GLSLArrayHandlerInterleaved extends GLVBOArrayHandler implements GL
   private final void syncSubData(GL gl, Object ext) {
       for(int i=0; i<subArrays.size(); i++) {
           subArrays.get(i).syncData(gl, ext);
-      }      
-  }  
-  
+      }
+  }
+
+  @Override
   public final void enableState(GL gl, boolean enable, Object ext) {
     if(enable) {
         if(!ad.isVBO()) {
@@ -78,7 +81,7 @@ public class GLSLArrayHandlerInterleaved extends GLVBOArrayHandler implements GL
     }
     for(int i=0; i<subArrays.size(); i++) {
         subArrays.get(i).enableState(gl, enable, ext);
-    }      
+    }
   }
 }
 

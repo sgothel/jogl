@@ -86,7 +86,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   public static final VersionNumber versionOneFour = new VersionNumber(1, 4, 0);
 
   static final String GLX_SGIX_pbuffer = "GLX_SGIX_pbuffer";
-  
+
   private static DesktopGLDynamicLookupHelper x11GLXDynamicLookupHelper = null;
 
   public X11GLXDrawableFactory() {
@@ -95,6 +95,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     synchronized(X11GLXDrawableFactory.class) {
         if( null == x11GLXDynamicLookupHelper ) {
             x11GLXDynamicLookupHelper = AccessController.doPrivileged(new PrivilegedAction<DesktopGLDynamicLookupHelper>() {
+                @Override
                 public DesktopGLDynamicLookupHelper run() {
                     DesktopGLDynamicLookupHelper tmp;
                     try {
@@ -134,7 +135,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   protected final boolean isComplete() {
       return null != x11GLXDynamicLookupHelper;
   }
-  
+
   @Override
   protected final void destroy() {
     if(null != sharedResourceRunner) {
@@ -205,7 +206,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       final public GLContextImpl getContext() { return context; }
       @Override
       public GLRendererQuirks getRendererQuirks() {
-          return null != context ? context.getRendererQuirks() : null;      
+          return null != context ? context.getRendererQuirks() : null;
       }
 
       final String getGLXVendorName() { return glXServerVendorName; }
@@ -251,18 +252,18 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
             }
             return res;
         }
-        
+
         @Override
         public SharedResourceRunner.Resource createSharedResource(String connection) {
             final X11GraphicsDevice sharedDevice = new X11GraphicsDevice(X11Util.openDisplay(connection), AbstractGraphicsDevice.DEFAULT_UNIT, true /* owner */);
             sharedDevice.lock();
             try {
                 final X11GraphicsScreen sharedScreen = new X11GraphicsScreen(sharedDevice, sharedDevice.getDefaultScreen());
-                
+
                 GLXUtil.initGLXClientDataSingleton(sharedDevice);
                 final String glXServerVendorName = GLX.glXQueryServerString(sharedDevice.getHandle(), 0, GLX.GLX_VENDOR);
                 final boolean glXServerMultisampleAvailable = GLXUtil.isMultisampleAvailable(GLX.glXQueryServerString(sharedDevice.getHandle(), 0, GLX.GLX_EXTENSIONS));
-                
+
                 final GLProfile glp = GLProfile.get(sharedDevice, GLProfile.GL_PROFILE_LIST_MIN_DESKTOP, false);
                 if (null == glp) {
                     throw new GLException("Couldn't get default GLProfile for device: "+sharedDevice);
@@ -283,7 +284,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                 if (null == sharedContext) {
                     throw new GLException("Couldn't create shared context for drawable: "+sharedDrawable);
                 }
-                
+
                 boolean madeCurrent = false;
                 sharedContext.makeCurrent();
                 try {
@@ -493,12 +494,12 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  protected final ProxySurface createMutableSurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice, 
+  protected final ProxySurface createMutableSurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice,
                                                         GLCapabilitiesImmutable capsChosen,
                                                         GLCapabilitiesImmutable capsRequested,
                                                         GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstreamHook) {
     final X11GraphicsDevice device;
-    if( createNewDevice || !(deviceReq instanceof X11GraphicsDevice) ) { 
+    if( createNewDevice || !(deviceReq instanceof X11GraphicsDevice) ) {
         device = new X11GraphicsDevice(X11Util.openDisplay(deviceReq.getConnection()), deviceReq.getUnitID(), true /* owner */);
     } else {
         device = (X11GraphicsDevice) deviceReq;
@@ -506,18 +507,18 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     final X11GraphicsScreen screen = new X11GraphicsScreen(device, device.getDefaultScreen());
     final X11GLXGraphicsConfiguration config = X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, screen, VisualIDHolder.VID_UNDEFINED);
     if(null == config) {
-        throw new GLException("Choosing GraphicsConfiguration failed w/ "+capsChosen+" on "+screen); 
+        throw new GLException("Choosing GraphicsConfiguration failed w/ "+capsChosen+" on "+screen);
     }
     return new WrappedSurface(config, 0, upstreamHook, createNewDevice);
   }
-  
+
   @Override
-  public final ProxySurface createDummySurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice, 
+  public final ProxySurface createDummySurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice,
                                                    GLCapabilitiesImmutable chosenCaps, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height) {
     chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(chosenCaps);
-    return createMutableSurfaceImpl(deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser, new X11DummyUpstreamSurfaceHook(width, height)); 
-  }  
-  
+    return createMutableSurfaceImpl(deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser, new X11DummyUpstreamSurfaceHook(width, height));
+  }
+
   @Override
   protected final ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice deviceReq, int screenIdx, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstream) {
     final X11GraphicsDevice device = new X11GraphicsDevice(X11Util.openDisplay(deviceReq.getConnection()), deviceReq.getUnitID(), true /* owner */);

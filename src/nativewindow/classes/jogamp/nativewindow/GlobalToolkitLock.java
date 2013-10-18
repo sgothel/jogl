@@ -36,20 +36,20 @@ import com.jogamp.common.util.locks.RecursiveLock;
 /**
  * Implementing a global recursive {@link javax.media.nativewindow.ToolkitLock}.
  * <p>
- * This is the last resort for unstable driver where multiple X11 display connections 
+ * This is the last resort for unstable driver where multiple X11 display connections
  * to the same connection name are not treated thread safe within the GL/X11 driver.
  * </p>
  */
 public class GlobalToolkitLock implements ToolkitLock {
     private static final RecursiveLock globalLock = LockFactory.createRecursiveLock();
     private static GlobalToolkitLock singleton = new GlobalToolkitLock();
-    
+
     public static final GlobalToolkitLock getSingleton() {
         return singleton;
     }
-    
+
     private GlobalToolkitLock() { }
-    
+
     @Override
     public final void lock() {
         globalLock.lock();
@@ -61,17 +61,18 @@ public class GlobalToolkitLock implements ToolkitLock {
         if(TRACE_LOCK) { System.err.println("GlobalToolkitLock.unlock()"); }
         globalLock.unlock(); // implicit lock validation
     }
-    
+
     @Override
     public final void validateLocked() throws RuntimeException {
         globalLock.validateLocked();
     }
-    
+
     @Override
     public final void dispose() {
         // nop
     }
-    
+
+    @Override
     public String toString() {
         return "GlobalToolkitLock[obj 0x"+Integer.toHexString(hashCode())+", isOwner "+globalLock.isOwner(Thread.currentThread())+", "+globalLock.toString()+"]";
     }

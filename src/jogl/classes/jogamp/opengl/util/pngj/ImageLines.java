@@ -5,7 +5,7 @@ import jogamp.opengl.util.pngj.ImageLine.SampleType;
 /**
  * Wraps in a matrix a set of image rows, not necessarily contiguous - but
  * equispaced.
- * 
+ *
  * The fields mirrors those of {@link ImageLine}, and you can access each row as
  * a ImageLine backed by the matrix row, see
  * {@link #getImageLineAtMatrixRow(int)}
@@ -28,7 +28,7 @@ public class ImageLines {
 	 * Allocates a matrix to store {@code nRows} image rows. See
 	 * {@link ImageLine} and {@link PngReader#readRowsInt()}
 	 * {@link PngReader#readRowsByte()}
-	 * 
+	 *
 	 * @param imgInfo
 	 * @param stype
 	 * @param unpackedMode
@@ -77,7 +77,7 @@ public class ImageLines {
 
 	/**
 	 * Converts from matrix row number (0 : nRows-1) to image row number
-	 * 
+	 *
 	 * @param mrow
 	 *            Matrix row number
 	 * @return Image row number. Invalid only if mrow is invalid
@@ -88,7 +88,7 @@ public class ImageLines {
 
 	/**
 	 * Returns a ImageLine is backed by the matrix, no allocation done
-	 * 
+	 *
 	 * @param mrow
 	 *            Matrix row, from 0 to nRows This is not necessarily the image
 	 *            row, see {@link #imageRowToMatrixRow(int)} and

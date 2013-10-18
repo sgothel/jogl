@@ -43,7 +43,7 @@ import jogamp.nativewindow.windows.GDI;
  * allowing the use of HDC via lockSurface()/unlockSurface() protocol.
  * The latter will get and release the HDC.
  * The size via getWidth()/getHeight() is invalid.
- * 
+ *
  * @see ProxySurface
  */
 public class GDISurface extends ProxySurfaceImpl {
@@ -65,20 +65,20 @@ public class GDISurface extends ProxySurfaceImpl {
   }
 
   @Override
-  protected void invalidateImpl() {    
+  protected void invalidateImpl() {
     if(0 != surfaceHandle) {
         throw new NativeWindowException("didn't release surface Handle: "+this);
     }
     windowHandle = 0;
     // surfaceHandle = 0;
   }
-  
+
   /**
    * {@inheritDoc}
    * <p>
-   * Actually the window handle (HWND), since the surfaceHandle (HDC) is derived 
+   * Actually the window handle (HWND), since the surfaceHandle (HDC) is derived
    * from it at {@link #lockSurface()}.
-   * </p> 
+   * </p>
    */
   @Override
   public final void setSurfaceHandle(long surfaceHandle) {
@@ -86,7 +86,7 @@ public class GDISurface extends ProxySurfaceImpl {
   }
 
   /**
-   * Sets the window handle (HWND). 
+   * Sets the window handle (HWND).
    */
   public final void setWindowHandle(long windowHandle) {
       this.windowHandle = windowHandle;
@@ -118,7 +118,7 @@ public class GDISurface extends ProxySurfaceImpl {
   final protected void unlockSurfaceImpl() {
     if (0 != surfaceHandle) {
         if(0 == GDI.ReleaseDC(windowHandle, surfaceHandle)) {
-            throw new NativeWindowException("DC not released: "+this+", isWindow "+GDI.IsWindow(windowHandle)+", werr "+GDI.GetLastError()+", thread: "+Thread.currentThread().getName());        
+            throw new NativeWindowException("DC not released: "+this+", isWindow "+GDI.IsWindow(windowHandle)+", werr "+GDI.GetLastError()+", thread: "+Thread.currentThread().getName());
         }
         surfaceHandle=0;
     }

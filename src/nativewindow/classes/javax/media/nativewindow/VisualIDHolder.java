@@ -38,7 +38,7 @@ import java.util.Comparator;
  * </p>
  */
 public interface VisualIDHolder {
-    
+
     public enum VIDType {
         // Generic Values
         INTRINSIC(0), NATIVE(1),
@@ -47,19 +47,19 @@ public interface VisualIDHolder {
         // X11 Values
         X11_XVISUAL(20), X11_FBCONFIG(21),
         // Windows Values
-        WIN32_PFD(30); 
-        
+        WIN32_PFD(30);
+
         public final int id;
 
         VIDType(int id){
             this.id = id;
         }
-    }    
-    
+    }
+
     /**
      * Returns the native visual ID of the given <code>type</code>
      * if supported, or {@link #VID_UNDEFINED} if not supported.
-     * <p> 
+     * <p>
      * Depending on the native windowing system, <code>type</code> is handled as follows:
      * <ul>
      *   <li>X11 throws NativeWindowException on <code>EGL_CONFIG</code>, <code>WIN32_PFD</code>
@@ -76,7 +76,7 @@ public interface VisualIDHolder {
      *       <li><code>X11_XVISUAL</code>: <i>X11 XVisual ID</i></li>
      *       <li><code>X11_FBCONFIG</code>: <i>X11 FBConfig ID</i> or <code>VID_UNDEFINED</code></li>
      *     </ul></li>
-     *   <li>Windows/GL throws NativeWindowException on <code>EGL_CONFIG</code>, <code>X11_XVISUAL</code>, <code>X11_FBCONFIG</code> 
+     *   <li>Windows/GL throws NativeWindowException on <code>EGL_CONFIG</code>, <code>X11_XVISUAL</code>, <code>X11_FBCONFIG</code>
      *     <ul>
      *       <li><code>INTRINSIC</code>: <i>Win32 PIXELFORMATDESCRIPTOR ID</i></li>
      *       <li><code>NATIVE</code>: <i>Win32 PIXELFORMATDESCRIPTOR ID</i></li>
@@ -91,35 +91,36 @@ public interface VisualIDHolder {
      * </ul>
      * </p>
      * Note: <code>INTRINSIC</code> and <code>NATIVE</code> are always handled,
-     *       but may result in {@link #VID_UNDEFINED}. The latter is true if 
-     *       the native value are actually undefined or the corresponding object is not 
+     *       but may result in {@link #VID_UNDEFINED}. The latter is true if
+     *       the native value are actually undefined or the corresponding object is not
      *       mapped to a native visual object.
-     *       
+     *
      * @throws NativeWindowException if <code>type</code> is neither
      *         <code>INTRINSIC</code> nor <code>NATIVE</code>
-     *         and does not match the native implementation. 
+     *         and does not match the native implementation.
      */
     int getVisualID(VIDType type) throws NativeWindowException ;
-    
-    /** 
+
+    /**
      * {@link #getVisualID(VIDType)} result indicating an undefined value,
      * which could be cause by an unsupported query.
      * <p>
      * We assume the const value <code>0</code> doesn't reflect a valid native visual ID
      * and is interpreted as <i>no value</i> on all platforms.
      * This is currently true for Android, X11 and Windows.
-     * </p> 
+     * </p>
      */
     static final int VID_UNDEFINED = 0;
-    
+
     /** Comparing {@link VIDType#NATIVE} */
     public static class VIDComparator implements Comparator<VisualIDHolder> {
         private VIDType type;
-        
+
         public VIDComparator(VIDType type) {
             this.type = type;
         }
-        
+
+        @Override
         public int compare(VisualIDHolder vid1, VisualIDHolder vid2) {
             final int id1 = vid1.getVisualID(type);
             final int id2 = vid2.getVisualID(type);
@@ -131,5 +132,5 @@ public interface VisualIDHolder {
             }
             return 0;
         }
-    }    
+    }
 }

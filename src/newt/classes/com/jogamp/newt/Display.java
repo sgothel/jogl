@@ -41,9 +41,11 @@ public abstract class Display {
     public static final boolean DEBUG = Debug.debug("Display");
 
     /** return precomputed hashCode from FQN {@link #getFQName()} */
+    @Override
     public abstract int hashCode();
 
     /** return true if obj is of type Display and both FQN {@link #getFQName()} equals */
+    @Override
     public boolean equals(Object obj) {
         if (this == obj) { return true; }
         if (obj instanceof Display) {
@@ -114,9 +116,9 @@ public abstract class Display {
      */
     public abstract int removeReference();
 
-    /** 
-     * Return the {@link AbstractGraphicsDevice} used for depending resources lifecycle, 
-     * i.e. {@link Screen} and {@link Window}, as well as the event dispatching (EDT). */ 
+    /**
+     * Return the {@link AbstractGraphicsDevice} used for depending resources lifecycle,
+     * i.e. {@link Screen} and {@link Window}, as well as the event dispatching (EDT). */
     public abstract AbstractGraphicsDevice getGraphicsDevice();
 
     /**
@@ -136,8 +138,8 @@ public abstract class Display {
     public abstract int getId();
 
     /**
-     * @return This display connection name as defined at creation time. 
-     *         The display connection name is a technical platform specific detail, see {@link AbstractGraphicsDevice#getConnection()}. 
+     * @return This display connection name as defined at creation time.
+     *         The display connection name is a technical platform specific detail, see {@link AbstractGraphicsDevice#getConnection()}.
      *
      * @see AbstractGraphicsDevice#getConnection()
      */
@@ -154,11 +156,11 @@ public abstract class Display {
     /**
      * Sets a new {@link EDTUtil} and returns the previous one.
      * <p>
-     * If <code>usrEDTUtil</code> is <code>null</code>, 
+     * If <code>usrEDTUtil</code> is <code>null</code>,
      * the device's default EDTUtil is created and used.
      * </p>
      * <p>
-     * If a previous one exists and it differs from <code>usrEDTUtil</code>, 
+     * If a previous one exists and it differs from <code>usrEDTUtil</code>,
      * it's being stopped, wait-until-idle.
      * </p>
      * <p>
@@ -167,7 +169,7 @@ public abstract class Display {
      * </p>
      */
     public abstract EDTUtil setEDTUtil(EDTUtil usrEDTUtil);
-    
+
     public abstract EDTUtil getEDTUtil();
 
     /**
@@ -176,7 +178,7 @@ public abstract class Display {
     public abstract boolean isEDTRunning();
 
     public abstract void dispatchMessages();
-    
+
     // Global Displays
     protected static final ArrayList<WeakReference<Display>> displayList = new ArrayList<WeakReference<Display>>();
     protected static int displaysActive = 0;
@@ -193,12 +195,12 @@ public abstract class Display {
     }
 
     /**
-     * 
+     *
      * @param type
      * @param name
      * @param fromIndex start index, then increasing until found or end of list
-     * @paran shared if true, only shared instances are found, otherwise also exclusive 
-     * @return 
+     * @paran shared if true, only shared instances are found, otherwise also exclusive
+     * @return
      */
     public static Display getFirstDisplayOf(String type, String name, int fromIndex, boolean shared) {
         return getDisplayOfImpl(type, name, fromIndex, 1, shared);
@@ -209,7 +211,7 @@ public abstract class Display {
      * @param type
      * @param name
      * @param fromIndex start index, then decreasing until found or end of list. -1 is interpreted as size - 1.
-     * @paran shared if true, only shared instances are found, otherwise also exclusive 
+     * @paran shared if true, only shared instances are found, otherwise also exclusive
      * @return
      */
     public static Display getLastDisplayOf(String type, String name, int fromIndex, boolean shared) {
@@ -231,7 +233,7 @@ public abstract class Display {
                 } else {
                     if( display.getType().equals(type) &&
                         display.getName().equals(name) &&
-                        ( !shared || shared && !display.isExclusive() ) 
+                        ( !shared || shared && !display.isExclusive() )
                       ) {
                         return display;
                     }
@@ -241,7 +243,7 @@ public abstract class Display {
         }
         return null;
     }
-    
+
     protected static void addDisplay2List(Display display) {
         synchronized(displayList) {
             // GC before add
@@ -256,7 +258,7 @@ public abstract class Display {
             displayList.add(new WeakReference<Display>(display));
         }
     }
-    
+
     /** Returns the global display collection */
     public static Collection<Display> getAllDisplays() {
         ArrayList<Display> list;

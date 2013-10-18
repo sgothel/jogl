@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -68,7 +68,7 @@ import java.util.regex.Pattern;
    * <br>
    *
    * <pre>
-   * 
+   *
    * #ifndef GL_XXXX
    * GLAPI <returnType> <APIENTRY|GLAPIENTRY> glFuncName(<params>)
    * #endif GL_XXXX
@@ -78,7 +78,7 @@ import java.util.regex.Pattern;
    * For example, if it parses the following data:
    *
    * <pre>
-   * 
+   *
    * #ifndef GL_VERSION_1_3
    * GLAPI void APIENTRY glActiveTexture (GLenum);
    * GLAPI void APIENTRY glMultiTexCoord1dv (GLenum, const GLdouble *);
@@ -89,7 +89,7 @@ import java.util.regex.Pattern;
    * GLAPI void APIENTRY glCompressedTexImage3DARB (GLenum, GLint, GLenum, GLsizei, GLsizei, GLsizei, GLint, GLsizei, const GLvoid *);
    * GLAPI void APIENTRY glCompressedTexImage2DARB (GLenum, GLint, GLenum, GLsizei, GLsizei, GLint, GLsizei, const GLvoid *);
    * #endif
-   * 
+   *
    * </pre>
    *
    * It will associate
@@ -105,7 +105,7 @@ import java.util.regex.Pattern;
    * */
 public class BuildStaticGLInfo {
 
-  // Handles function pointer 
+  // Handles function pointer
   protected static final int funcIdentifierGroup = 9;
   protected static Pattern funcPattern =
     Pattern.compile("^(GLAPI|GL_API|GL_APICALL|EGLAPI|extern)?(\\s*)((unsigned|const)\\s+)?(\\w+)(\\s+\\*\\s*|\\s*\\*\\s+|\\s+)?(GLAPIENTRY|GL_APIENTRY|APIENTRY|EGLAPIENTRY|WINAPI)?(\\s*)([ew]?gl\\w+)\\s?(\\(.*)");
@@ -119,7 +119,7 @@ public class BuildStaticGLInfo {
     Pattern.compile("\\#(elif|else)(.*)");
   protected static Pattern endifPattern =
     Pattern.compile("\\#endif(.*)");
-  
+
   protected static final int defineIdentifierGroup = 1;
   protected static Pattern definePattern =
     Pattern.compile("\\#define ([CEW]?GL[XU]?_[A-Za-z0-9_]+)\\s*([A-Za-z0-9_]+)(.*)");
@@ -203,7 +203,7 @@ public class BuildStaticGLInfo {
         Matcher m = null;
         int block = 0;
         while ((line = reader.readLine()) != null) {
-            int type = 0; // 1-define, 2-function            
+            int type = 0; // 1-define, 2-function
             if ( 0 < block ) { // inside a #ifndef GL_XXX block and matching a function, if block > 0
                 String identifier = null;
                 if( 2 >= block ) {  // not within sub-blocks > 2, i.e. further typedefs
@@ -216,9 +216,9 @@ public class BuildStaticGLInfo {
                     }
                 }
                 if ( identifier != null &&
-                     activeAssociation != null &&                     
-                     !identifier.equals(activeAssociation) // Handles #ifndef GL_... #define GL_... 
-                   ) 
+                     activeAssociation != null &&
+                     !identifier.equals(activeAssociation) // Handles #ifndef GL_... #define GL_...
+                   )
                 {
                     addAssociation(identifier, activeAssociation);
                     if (DEBUG) {
@@ -243,7 +243,7 @@ public class BuildStaticGLInfo {
                             if (DEBUG) {
                                 System.err.println("<"+block+"> END ASSOCIATION BLOCK: <" + activeAssociation + " <-> " + comment + ">");
                             }
-                            activeAssociation = null;                
+                            activeAssociation = null;
                         } else {
                             if (DEBUG) {
                                 System.err.println("<"+block+"> END IF BLOCK: <" + comment + ">");
@@ -251,7 +251,7 @@ public class BuildStaticGLInfo {
                         }
                     }
                 }
-            } else if ((m = associationPattern.matcher(line)).matches()) {                
+            } else if ((m = associationPattern.matcher(line)).matches()) {
                 // found a new #ifndef GL_XXX block
                 activeAssociation = m.group(1).trim();
                 block++;
@@ -387,7 +387,7 @@ public class BuildStaticGLInfo {
             declarationToExtensionMap.put(identifier, extensions);
         }
         extensions.add(association);
-        
+
         Set<String> identifiers = extensionToDeclarationMap.get(association);
         if (identifiers == null) {
             identifiers = new HashSet<String>();

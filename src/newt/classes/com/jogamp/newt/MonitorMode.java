@@ -37,7 +37,7 @@ import javax.media.nativewindow.util.SurfaceSize;
 import com.jogamp.newt.util.MonitorModeUtil;
 
 
-/** 
+/**
  * Immutable MonitorMode Class, consisting of it's read only components:<br>
  * <ul>
  *  <li>nativeId</li>
@@ -79,7 +79,7 @@ import com.jogamp.newt.util.MonitorModeUtil;
         // Pick the monitor:
         // Either the one used by a window ..
         MonitorDevice monitor = window.getMainMonitor();
-        
+
         // Or arbitrary from the list ..
         List<MonitorDevice> allMonitor = getMonitorDevices();
         MonitorDevice monitor = allMonitor.get(0);
@@ -87,7 +87,7 @@ import com.jogamp.newt.util.MonitorModeUtil;
         // Current and original modes ..
         MonitorMode mmCurrent = monitor.queryCurrentMode();
         MonitorMode mmOrig = monitor.getOriginalMode();
-        
+
         // Target resolution
         Dimension res = new Dimension(800, 600);
 
@@ -102,7 +102,7 @@ import com.jogamp.newt.util.MonitorModeUtil;
         monitorModes = MonitorModeUtil.filterByFlags(monitorModes, 0); // no interlace, double-scan etc
         monitorModes = MonitorModeUtil.filterByRotation(monitorModes, rot);
         monitorModes = MonitorModeUtil.filterByResolution(monitorModes, res);
-        monitorModes = MonitorModeUtil.filterByRate(monitorModes, freq);        
+        monitorModes = MonitorModeUtil.filterByRate(monitorModes, freq);
         monitorModes = MonitorModeUtil.getHighestAvailableBpp(monitorModes);
 
         // pick 1st one and set to current ..
@@ -111,20 +111,22 @@ import com.jogamp.newt.util.MonitorModeUtil;
  * </pre>
  */
 public class MonitorMode implements Comparable<MonitorMode> {
-    
+
     /** Comparator for 2 {@link MonitorMode}s, following comparison order as described in {@link MonitorMode#compareTo(MonitorMode)}, returning the ascending order. */
     public static final Comparator<MonitorMode> monitorModeComparator = new Comparator<MonitorMode>() {
+        @Override
         public int compare(MonitorMode mm1, MonitorMode mm2) {
             return mm1.compareTo(mm2);
         } };
-    
+
     /** Comparator for 2 {@link MonitorMode}s, following comparison order as described in {@link MonitorMode#compareTo(MonitorMode)}, returning the descending order. */
     public static final Comparator<MonitorMode> monitorModeComparatorInv = new Comparator<MonitorMode>() {
+        @Override
         public int compare(MonitorMode mm1, MonitorMode mm2) {
             return mm2.compareTo(mm1);
         } };
-        
-    /** 
+
+    /**
      * Immutable <i>surfaceSize, flags and refreshRate</i> Class, consisting of it's read only components:<br>
      * <ul>
      *  <li>nativeId</li>
@@ -141,7 +143,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
         /** Vertical refresh rate */
         public final float refreshRate;
         public final int hashCode;
-    
+
         public SizeAndRRate(SurfaceSize surfaceSize, float refreshRate, int flags) {
             if(null==surfaceSize) {
                 throw new IllegalArgumentException("surfaceSize must be set ("+surfaceSize+")");
@@ -151,11 +153,11 @@ public class MonitorMode implements Comparable<MonitorMode> {
             this.refreshRate=refreshRate;
             this.hashCode = getHashCode();
         }
-    
+
         private final static String STR_INTERLACE = "Interlace";
         private final static String STR_DOUBLESCAN = "DoubleScan";
         private final static String STR_SEP = ", ";
-        
+
         public static final StringBuilder flags2String(int flags) {
             final StringBuilder sb = new StringBuilder();
             boolean sp = false;
@@ -172,14 +174,15 @@ public class MonitorMode implements Comparable<MonitorMode> {
             }
             return sb;
         }
+        @Override
         public final String toString() {
             return new String(surfaceSize+" @ "+refreshRate+" Hz, flags ["+flags2String(flags).toString()+"]");
         }
-    
+
         /**
          * <p>
          * Compares {@link SurfaceSize#compareTo(SurfaceSize) surfaceSize} 1st, then {@link #flags}, then {@link #refreshRate}.
-         * </p> 
+         * </p>
          * <p>
          * Flags are compared as follows:
          * <pre>
@@ -196,7 +199,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
             final int rssz = surfaceSize.compareTo(sszr.surfaceSize);
             if( 0 != rssz ) {
                 return rssz;
-            }            
+            }
             final int tflags = 0 == flags ? Integer.MAX_VALUE : flags; // normalize NONE
             final int xflags = 0 == sszr.flags ? Integer.MAX_VALUE : sszr.flags; // normalize NONE
             if( tflags == xflags ) {
@@ -218,9 +221,9 @@ public class MonitorMode implements Comparable<MonitorMode> {
                 return 0;
             }
         }
-        
+
         /**
-         * Tests equality of two {@link SizeAndRRate} objects 
+         * Tests equality of two {@link SizeAndRRate} objects
          * by evaluating equality of it's components:<br/>
          * <ul>
          *  <li><code>surfaceSize</code></li>
@@ -228,6 +231,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
          *  <li><code>flags</code></li>
          * </ul>
          */
+        @Override
         public final boolean equals(Object obj) {
             if (this == obj) { return true; }
             if (obj instanceof SizeAndRRate) {
@@ -238,7 +242,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
             }
             return false;
         }
-    
+
         /**
          * Returns a combined hash code of it's elements:<br/>
          * <ul>
@@ -247,18 +251,19 @@ public class MonitorMode implements Comparable<MonitorMode> {
          *  <li><code>refreshRate</code></li>
          * </ul>
          */
+        @Override
         public final int hashCode() {
             return hashCode;
-        }        
+        }
         private final int getHashCode() {
             // 31 * x == (x << 5) - x
             int hash = 31 + surfaceSize.hashCode();
             hash = ((hash << 5) - hash) + flags;
             hash = ((hash << 5) - hash) + (int)(refreshRate*100.0f);
             return hash;
-        }        
+        }
     }
-    
+
     /** zero rotation, compared to normal settings */
     public static final int ROTATE_0   = 0;
 
@@ -270,15 +275,15 @@ public class MonitorMode implements Comparable<MonitorMode> {
 
     /** 270 degrees CCW rotation */
     public static final int ROTATE_270 = 270;
-    
+
     /** Frame is split into two fields. See {@link #getFlags()}. */
     public static final int FLAG_INTERLACE = 1 << 0;
-    
+
     /** Lines are doubled. See {@link #getFlags()}. */
     public static final int FLAG_DOUBLESCAN = 1 << 1;
 
     /** The immutable native Id of this instance, which may not be unique. */
-    private final int nativeId;    
+    private final int nativeId;
     private final SizeAndRRate sizeAndRRate;
     private final int rotation;
     private final int hashCode;
@@ -301,7 +306,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
         this.rotation = rotation;
         this.hashCode = getHashCode();
     }
-    
+
     /**
      * Creates a user instance w/o {@link #getId() identity} to filter our matching modes w/ identity.
      * <p>
@@ -314,16 +319,16 @@ public class MonitorMode implements Comparable<MonitorMode> {
      */
     public MonitorMode(SurfaceSize surfaceSize, float refreshRate, int flags, int rotation) {
         this(0, new SizeAndRRate(surfaceSize, refreshRate, flags), rotation);
-    }    
+    }
 
     /** @return the immutable native Id of this mode, may not be unique, may be 0. */
     public final int getId() { return nativeId; }
-    
+
     /** Returns the <i>surfaceSize and refreshRate</i> instance. */
-    public final SizeAndRRate getSizeAndRRate() { 
+    public final SizeAndRRate getSizeAndRRate() {
         return sizeAndRRate;
     }
-    
+
     /** Returns the unrotated {@link SurfaceSize} */
     public final SurfaceSize getSurfaceSize() {
         return sizeAndRRate.surfaceSize;
@@ -338,28 +343,29 @@ public class MonitorMode implements Comparable<MonitorMode> {
     public final int getFlags() {
         return sizeAndRRate.flags;
     }
-    
+
     /** Returns the CCW rotation of this mode */
     public final int getRotation() {
         return rotation;
     }
-    
-    /** Returns the rotated screen width, 
+
+    /** Returns the rotated screen width,
      *  derived from <code>getMonitorMode().getSurfaceSize().getResolution()</code>
-     *  and <code>getRotation()</code> 
+     *  and <code>getRotation()</code>
      */
     public final int getRotatedWidth() {
         return getRotatedWH(true);
     }
-    
-    /** Returns the rotated screen height, 
+
+    /** Returns the rotated screen height,
      *  derived from <code>getMonitorMode().getSurfaceSize().getResolution()</code>
-     *  and <code>getRotation()</code> 
+     *  and <code>getRotation()</code>
      */
     public final int getRotatedHeight() {
         return getRotatedWH(false);
     }
 
+    @Override
     public final String toString() {
         return "[Id "+Display.toHexString(nativeId)+", " +  sizeAndRRate + ", " + rotation + " degr]";
     }
@@ -367,9 +373,9 @@ public class MonitorMode implements Comparable<MonitorMode> {
     /**
      * <p>
      * Compares {@link SizeAndRRate#compareTo(SizeAndRRate) sizeAndRRate} 1st, then {@link #rotation}.
-     * </p> 
+     * </p>
      * <p>
-     * Rotation is compared inverted, i.e. <code>360 - rotation</code>, 
+     * Rotation is compared inverted, i.e. <code>360 - rotation</code>,
      * so the lowest rotation reflects a higher value.
      * </p>
      * <p>
@@ -380,7 +386,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
      *   <li>flags</li>
      *   <li>refresh rate</li>
      *   <li>rotation</li>
-     * </ul> 
+     * </ul>
      * </p>
      * {@inheritDoc}
      */
@@ -399,9 +405,9 @@ public class MonitorMode implements Comparable<MonitorMode> {
         }
         return 0;
     }
-    
+
     /**
-     * Tests equality of two {@link MonitorMode} objects 
+     * Tests equality of two {@link MonitorMode} objects
      * by evaluating equality of it's components:<br/>
      * <ul>
      *  <li><code>nativeId</code></li>
@@ -409,6 +415,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
      *  <li><code>rotation</code></li>
      * </ul>
      */
+    @Override
     public final boolean equals(Object obj) {
         if (this == obj) { return true; }
         if (obj instanceof MonitorMode) {
@@ -428,6 +435,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
      *  <li><code>rotation</code></li>
      * </ul>
      */
+    @Override
     public final int hashCode() {
         return hashCode;
     }
@@ -438,7 +446,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
         hash = ((hash << 5) - hash) + getRotation();
         return hash;
     }
-    
+
     private final int getRotatedWH(boolean width) {
         final DimensionImmutable d = sizeAndRRate.surfaceSize.getResolution();
         final boolean swap = MonitorMode.ROTATE_90 == rotation || MonitorMode.ROTATE_270 == rotation ;
@@ -446,5 +454,5 @@ public class MonitorMode implements Comparable<MonitorMode> {
             return d.getHeight();
         }
         return d.getWidth();
-    }    
+    }
 }

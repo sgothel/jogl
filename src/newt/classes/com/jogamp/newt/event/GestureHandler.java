@@ -30,7 +30,7 @@ package com.jogamp.newt.event;
 import jogamp.newt.Debug;
 
 /**
- * Generic gesture handler interface designed to allow pass-through 
+ * Generic gesture handler interface designed to allow pass-through
  * filtering of {@link InputEvent}s.
  * <p>
  * To avoid negative impact on event processing,
@@ -44,18 +44,18 @@ import jogamp.newt.Debug;
  */
 public interface GestureHandler {
     public static final boolean DEBUG = Debug.debug("Window.MouseEvent");
-    
+
     /** A custom gesture event */
     @SuppressWarnings("serial")
     public static class GestureEvent extends InputEvent {
         /** A gesture has been detected. */
         public static final short EVENT_GESTURE_DETECTED = 400;
-        
+
         private final GestureHandler handler;
-        
+
         /**
          * Creates a gesture event with default type {@link #EVENT_GESTURE_DETECTED}.
-         * 
+         *
          * @param source
          * @param when
          * @param modifiers
@@ -65,7 +65,7 @@ public interface GestureHandler {
             super(EVENT_GESTURE_DETECTED, source, when, modifiers);
             this.handler = handler;
         }
-        
+
         /**
          * Creates a gesture event with custom <i>event_type</i> !
          * @param event_type must lie within [400..599]
@@ -78,14 +78,14 @@ public interface GestureHandler {
             super(event_type, source, when, modifiers);
             this.handler = handler;
         }
-        
+
         /** Return the {@link GestureHandler}, which produced the event. */
         public final GestureHandler getHandler() { return handler; }
     }
-    
+
     /**
      * Listener for {@link GestureEvent}s.
-     * 
+     *
      * @see GestureEvent
      */
     public static interface GestureListener extends NEWTEventListener
@@ -93,50 +93,50 @@ public interface GestureHandler {
         /** {@link GestureHandler} {@link GestureHandler#hasGesture() has detected} the gesture. */
         public void gestureDetected(GestureEvent gh);
     }
-    
-    /** 
-     * Clears state of handler, i.e. resets all states incl. previous detected gesture. 
+
+    /**
+     * Clears state of handler, i.e. resets all states incl. previous detected gesture.
      * @param clearStarted if true, also clears {@link #isWithinGesture() started} state,
      *                     otherwise stay within gesture - if appropriate.
-     *                     Staying within a gesture allows fluent continuous gesture sequence, 
-     *                     e.g. for scrolling. 
+     *                     Staying within a gesture allows fluent continuous gesture sequence,
+     *                     e.g. for scrolling.
      */
     public void clear(boolean clearStarted);
-    
-    /** 
+
+    /**
      * Returns true if a previous {@link #process(InputEvent)} command produced a gesture,
-     * which has not been {@link #clear(boolean) cleared}. 
+     * which has not been {@link #clear(boolean) cleared}.
      * Otherwise returns false.
-     */ 
+     */
     public boolean hasGesture();
-    
-    /** 
+
+    /**
      * Returns the corresponding {@link InputEvent} for the gesture as detected by
      * a previous {@link #process(InputEvent)}, which has not been {@link #clear(boolean) cleared}.
      * Otherwise returns null.
      * <p>
      * Only implemented for gestures mapping to {@link InputEvent}s.
-     * </p> 
-     */ 
+     * </p>
+     */
     public InputEvent getGestureEvent();
-    
-    /** 
+
+    /**
      * Returns true if within a gesture as detected by a previous {@link #process(InputEvent)} command,
-     * which has not been {@link #clear(boolean) cleared}. 
+     * which has not been {@link #clear(boolean) cleared}.
      * Otherwise returns false.
-     */ 
+     */
     public boolean isWithinGesture();
 
     /**
      * Process the given {@link InputEvent} and returns true if it produced the gesture.
      * Otherwise returns false.
      * <p>
-     * If a gesture was already detected previously and has not been cleared, 
-     * method does not process the event and returns true. 
+     * If a gesture was already detected previously and has not been cleared,
+     * method does not process the event and returns true.
      * </p>
      * <p>
-     * Besides validation of the event's details, 
-     * the handler may also validate the {@link InputEvent.InputClass} and/or {@link InputEvent.InputType}.  
+     * Besides validation of the event's details,
+     * the handler may also validate the {@link InputEvent.InputClass} and/or {@link InputEvent.InputType}.
      * </p>
      */
     public boolean process(InputEvent e);

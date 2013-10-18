@@ -73,7 +73,7 @@ public class GlyfSimpleDescript extends GlyfDescript {
             short numberOfContours,
             DataInput di) throws IOException {
         super(parentTable, glyphIndex, numberOfContours, di);
-        
+
         // Simple glyph description
         _endPtsOfContours = new int[numberOfContours];
         for (int i = 0; i < numberOfContours; i++) {
@@ -92,30 +92,37 @@ public class GlyfSimpleDescript extends GlyfDescript {
         readCoords(_count, di);
     }
 
+    @Override
     public int getEndPtOfContours(int i) {
         return _endPtsOfContours[i];
     }
 
+    @Override
     public byte getFlags(int i) {
         return _flags[i];
     }
 
+    @Override
     public short getXCoordinate(int i) {
         return _xCoordinates[i];
     }
 
+    @Override
     public short getYCoordinate(int i) {
         return _yCoordinates[i];
     }
 
+    @Override
     public boolean isComposite() {
         return false;
     }
 
+    @Override
     public int getPointCount() {
         return _count;
     }
 
+    @Override
     public int getContourCount() {
         return getNumberOfContours();
     }
@@ -184,7 +191,8 @@ public class GlyfSimpleDescript extends GlyfDescript {
             System.out.println("error: array index out of bounds");
         }
     }
-    
+
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(super.toString());

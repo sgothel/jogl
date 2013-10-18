@@ -51,7 +51,7 @@ import com.jogamp.common.util.locks.RecursiveLock;
 public class GLPbufferImpl extends GLAutoDrawableBase implements GLPbuffer {
 
   public GLPbufferImpl(GLDrawableImpl pbufferDrawable, GLContextImpl pbufferContext) {
-    super(pbufferDrawable, pbufferContext, true); // drawable := pbufferDrawable, context := pbufferContext  
+    super(pbufferDrawable, pbufferContext, true); // drawable := pbufferDrawable, context := pbufferContext
   }
 
   //
@@ -60,26 +60,26 @@ public class GLPbufferImpl extends GLAutoDrawableBase implements GLPbuffer {
 
   //
   // GLDrawable delegation
-  // 
-    
+  //
+
   @Override
   public final void swapBuffers() throws GLException {
       defaultSwapBuffers();
   }
-  
+
   //
   // GLAutoDrawable completion
   //
   private final RecursiveLock lock = LockFactory.createRecursiveLock();  // instance wide lock
-  
+
   @Override
   protected final RecursiveLock getLock() { return lock; }
-  
+
   @Override
   public final Object getUpstreamWidget() {
     return null;
   }
-  
+
   @Override
   public void destroy() {
     defaultDestroy();
@@ -92,7 +92,7 @@ public class GLPbufferImpl extends GLAutoDrawableBase implements GLPbuffer {
 
   @Override
   public final void display() {
-    final RecursiveLock _lock = lock;        
+    final RecursiveLock _lock = lock;
     _lock.lock(); // sync: context/drawable could been recreated/destroyed while animating
     try {
         if( null != context ) {

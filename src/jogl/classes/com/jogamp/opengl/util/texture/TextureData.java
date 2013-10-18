@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
@@ -57,8 +57,8 @@ import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
 
 public class TextureData {
     /** ColorSpace of pixel data. */
-    public static enum ColorSpace { RGB, YCbCr, YCCK, CMYK };   
-    
+    public static enum ColorSpace { RGB, YCbCr, YCCK, CMYK };
+
     protected int width;
     protected int height;
     private int border;
@@ -83,7 +83,7 @@ public class TextureData {
     protected GLProfile glProfile;
     protected ColorSpace pixelCS = ColorSpace.RGB;
 
-    /** 
+    /**
      * Constructs a new TextureData object with the specified parameters
      * and data contained in the given Buffer. The optional Flusher can
      * be used to clean up native resources associated with this
@@ -123,7 +123,7 @@ public class TextureData {
      *   data were invalid, such as requesting mipmap generation for a
      *   compressed texture
      */
-    public TextureData(GLProfile glp, 
+    public TextureData(GLProfile glp,
                        int internalFormat,
                        int width,
                        int height,
@@ -135,11 +135,11 @@ public class TextureData {
                        boolean mustFlipVertically,
                        Buffer buffer,
                        Flusher flusher) throws IllegalArgumentException {
-        this(glp, internalFormat, width, height, border, new GLPixelAttributes(pixelFormat, pixelType), 
+        this(glp, internalFormat, width, height, border, new GLPixelAttributes(pixelFormat, pixelType),
              mipmap, dataIsCompressed, mustFlipVertically, buffer, flusher);
     }
 
-    /** 
+    /**
      * Constructs a new TextureData object with the specified parameters
      * and data contained in the given Buffer. The optional Flusher can
      * be used to clean up native resources associated with this
@@ -178,7 +178,7 @@ public class TextureData {
      *   data were invalid, such as requesting mipmap generation for a
      *   compressed texture
      */
-    public TextureData(GLProfile glp, 
+    public TextureData(GLProfile glp,
                        int internalFormat,
                        int width,
                        int height,
@@ -207,8 +207,8 @@ public class TextureData {
         alignment = 1;  // FIXME: is this correct enough in all situations?
         estimatedMemorySize = estimatedMemorySize(buffer);
     }
-    
-    /** 
+
+    /**
      * Constructs a new TextureData object with the specified parameters
      * and data for multiple mipmap levels contained in the given array
      * of Buffers. The optional Flusher can be used to clean up native
@@ -258,11 +258,11 @@ public class TextureData {
                        boolean mustFlipVertically,
                        Buffer[] mipmapData,
                        Flusher flusher) throws IllegalArgumentException {
-        this(glp, internalFormat, width, height, border, new GLPixelAttributes(pixelFormat, pixelType), 
+        this(glp, internalFormat, width, height, border, new GLPixelAttributes(pixelFormat, pixelType),
              dataIsCompressed, mustFlipVertically, mipmapData, flusher);
     }
 
-    /** 
+    /**
      * Constructs a new TextureData object with the specified parameters
      * and data for multiple mipmap levels contained in the given array
      * of Buffers. The optional Flusher can be used to clean up native
@@ -325,19 +325,19 @@ public class TextureData {
             estimatedMemorySize += estimatedMemorySize(mipmapData[i]);
         }
     }
-    
-    /** 
+
+    /**
      * Returns the color space of the pixel data.
-     * @see #setColorSpace(ColorSpace) 
+     * @see #setColorSpace(ColorSpace)
      */
     public ColorSpace getColorSpace() { return pixelCS; }
 
-    /** 
+    /**
      * Set the color space of the pixel data, which defaults to {@link ColorSpace#RGB}.
-     * @see #getColorSpace() 
+     * @see #getColorSpace()
      */
     public void setColorSpace(ColorSpace cs) { pixelCS = cs; }
-    
+
     /** Used only by subclasses */
     protected TextureData(GLProfile glp) { this.glProfile = glp; this.pixelAttributes = GLPixelAttributes.UNDEF; }
 
@@ -346,8 +346,8 @@ public class TextureData {
     /** Returns the height in pixels of the texture data. */
     public int getHeight() { return height; }
     /** Returns the border in pixels of the texture data. */
-    public int getBorder() { 
-        return border; 
+    public int getBorder() {
+        return border;
     }
     /** Returns the intended OpenGL {@link GLPixelAttributes} of the texture data, i.e. format and type. */
     public GLPixelAttributes getPixelAttributes() {
@@ -362,21 +362,21 @@ public class TextureData {
         return pixelAttributes.type;
     }
     /** Returns the intended OpenGL internal format of the texture data. */
-    public int getInternalFormat() { 
-        return internalFormat; 
+    public int getInternalFormat() {
+        return internalFormat;
     }
     /** Returns whether mipmaps should be generated for the texture data. */
-    public boolean getMipmap() { 
-        return mipmap; 
+    public boolean getMipmap() {
+        return mipmap;
     }
     /** Indicates whether the texture data is in compressed form. */
-    public boolean isDataCompressed() { 
-        return dataIsCompressed; 
+    public boolean isDataCompressed() {
+        return dataIsCompressed;
     }
     /** Indicates whether the texture coordinates must be flipped
         vertically for proper display. */
-    public boolean getMustFlipVertically() { 
-        return mustFlipVertically; 
+    public boolean getMustFlipVertically() {
+        return mustFlipVertically;
     }
     /** Returns the texture data, or null if it is specified as a set of mipmaps. */
     public Buffer getBuffer() {
@@ -384,18 +384,18 @@ public class TextureData {
     }
     /** Returns all mipmap levels for the texture data, or null if it is
         specified as a single image. */
-    public Buffer[] getMipmapData() { 
-        return mipmapData; 
+    public Buffer[] getMipmapData() {
+        return mipmapData;
     }
     /** Returns the required byte alignment for the texture data. */
-    public int getAlignment() { 
-        return alignment; 
+    public int getAlignment() {
+        return alignment;
     }
     /** Returns the row length needed for correct GL_UNPACK_ROW_LENGTH
         specification. This is currently only supported for
         non-mipmapped, non-compressed textures. */
-    public int getRowLength() { 
-        return rowLength; 
+    public int getRowLength() {
+        return rowLength;
     }
 
     /** Sets the width in pixels of the texture data. */
@@ -405,25 +405,25 @@ public class TextureData {
     /** Sets the border in pixels of the texture data. */
     public void setBorder(int border) { this.border = border; }
     /** Sets the intended OpenGL pixel format of the texture data. */
-    public void setPixelAttributes(GLPixelAttributes pixelAttributes) { this.pixelAttributes = pixelAttributes; }     
-    /** 
+    public void setPixelAttributes(GLPixelAttributes pixelAttributes) { this.pixelAttributes = pixelAttributes; }
+    /**
      * Sets the intended OpenGL pixel format component of {@link GLPixelAttributes} of the texture data.
      * <p>
-     * Use {@link #setPixelAttributes(GLPixelAttributes)}, if setting format and type. 
-     * </p> 
+     * Use {@link #setPixelAttributes(GLPixelAttributes)}, if setting format and type.
+     * </p>
      */
     public void setPixelFormat(int pixelFormat) {
         if( pixelAttributes.format != pixelFormat ) {
             pixelAttributes = new GLPixelAttributes(pixelFormat, pixelAttributes.type);
         }
     }
-    /** 
+    /**
      * Sets the intended OpenGL pixel type component of {@link GLPixelAttributes} of the texture data.
      * <p>
-     * Use {@link #setPixelAttributes(GLPixelAttributes)}, if setting format and type. 
-     * </p> 
+     * Use {@link #setPixelAttributes(GLPixelAttributes)}, if setting format and type.
+     * </p>
      */
-    public void setPixelType(int pixelType) { 
+    public void setPixelType(int pixelType) {
         if( pixelAttributes.type != pixelType) {
             pixelAttributes = new GLPixelAttributes(pixelAttributes.format, pixelType);
         }
@@ -499,6 +499,7 @@ public class TextureData {
         public void flush();
     }
 
+    @Override
     public String toString() {
         return "TextureData["+width+"x"+height+", y-flip "+mustFlipVertically+", internFormat 0x"+Integer.toHexString(internalFormat)+", "+
                 pixelAttributes+", border "+border+", estSize "+estimatedMemorySize+", alignment "+alignment+", rowlen "+rowLength;

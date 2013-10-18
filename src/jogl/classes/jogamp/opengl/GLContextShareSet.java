@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2011 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -55,7 +55,7 @@ import javax.media.opengl.GLException;
 
 public class GLContextShareSet {
   private static final boolean DEBUG = GLContextImpl.DEBUG;
-  
+
   // This class is implemented using a HashMap which maps from all shared contexts
   // to a share set, containing all shared contexts itself.
 
@@ -74,17 +74,17 @@ public class GLContextShareSet {
         } else {
           destroyedShares.put(ctx, dummyValue);
         }
-      }      
+      }
     }
 
     public Set<GLContext> getCreatedShares() {
         return createdShares.keySet();
     }
-    
+
     public Set<GLContext> getDestroyedShares() {
         return destroyedShares.keySet();
     }
-    
+
     public GLContext getCreatedShare(GLContext ignore) {
       for (Iterator<GLContext> iter = createdShares.keySet().iterator(); iter.hasNext(); ) {
         GLContext ctx = iter.next();
@@ -133,9 +133,9 @@ public class GLContextShareSet {
     addEntry(share1, share);
     addEntry(share2, share);
     if (DEBUG) {
-      System.err.println("GLContextShareSet: registereSharing: 1: " + 
+      System.err.println("GLContextShareSet: registereSharing: 1: " +
               toHexString(share1.getHandle()) + ", 2: " + toHexString(share2.getHandle()));
-    }                  
+    }
   }
 
   public static synchronized void unregisterSharing(GLContext lastContext) {
@@ -155,9 +155,9 @@ public class GLContextShareSet {
         throw new GLException("Last context's share set contains no destroyed context");
     }
     if (DEBUG) {
-      System.err.println("GLContextShareSet: unregisterSharing: " + 
+      System.err.println("GLContextShareSet: unregisterSharing: " +
               toHexString(lastContext.getHandle())+", entries: "+s.size());
-    }                  
+    }
     for(Iterator<GLContext> iter = s.iterator() ; iter.hasNext() ; ) {
         GLContext ctx = iter.next();
         if(null == removeEntry(ctx)) {
@@ -165,7 +165,7 @@ public class GLContextShareSet {
         }
     }
   }
-  
+
   private static synchronized Set<GLContext> getCreatedSharedImpl(GLContext context) {
     if (context == null) {
       throw new IllegalArgumentException("context is null");
@@ -174,9 +174,9 @@ public class GLContextShareSet {
     if (share != null) {
         return share.getCreatedShares();
     }
-    return null;    
+    return null;
   }
-  
+
   public static synchronized boolean isShared(GLContext context) {
     if (context == null) {
       throw new IllegalArgumentException("context is null");
@@ -184,12 +184,12 @@ public class GLContextShareSet {
     final ShareSet share = entryFor(context);
     return share != null;
   }
-  
+
   public static synchronized boolean hasCreatedSharedLeft(GLContext context) {
       final Set<GLContext> s = getCreatedSharedImpl(context);
       return null != s && s.size()>0 ;
   }
-  
+
   /** currently not used ..
   public static synchronized Set<GLContext> getCreatedShared(GLContext context) {
     final Set<GLContext> s = getCreatedSharedImpl(context);
@@ -198,7 +198,7 @@ public class GLContextShareSet {
     }
     return s;
   }
-    
+
   public static synchronized Set<GLContext> getDestroyedShared(GLContext context) {
     if (context == null) {
       throw new IllegalArgumentException("context is null");
@@ -209,7 +209,7 @@ public class GLContextShareSet {
     }
     return share.getDestroyedShares();
   } */
-    
+
   public static synchronized GLContext getShareContext(GLContext contextToCreate) {
     ShareSet share = entryFor(contextToCreate);
     if (share == null) {
@@ -262,7 +262,7 @@ public class GLContextShareSet {
 
   //----------------------------------------------------------------------
   // Internals only below this point
-  
+
 
   private static ShareSet entryFor(GLContext context) {
     return (ShareSet) shareMap.get(context);
@@ -276,8 +276,8 @@ public class GLContextShareSet {
   private static ShareSet removeEntry(GLContext context) {
     return (ShareSet) shareMap.remove(context);
   }
-  
+
   protected static String toHexString(long hex) {
     return "0x" + Long.toHexString(hex);
-  }  
+  }
 }

@@ -39,7 +39,7 @@ public class RegisteredClass {
 
     /** Application handle, same as {@link RegisteredClassFactory#getHInstance()}. */
     public final long getHInstance() { return hInstance; }
-    
+
     /** Unique Window Class Name */
     public final String getName() { return className; }
 

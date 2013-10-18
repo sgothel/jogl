@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -30,21 +30,21 @@ package jogamp.opengl.util.av.impl;
 import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 interface FFMPEGNatives {
-        
+
     boolean initSymbols0(long[] symbols, int count);
     int getAvUtilMajorVersionCC0();
     int getAvFormatMajorVersionCC0();
     int getAvCodecMajorVersionCC0();
     int getAvResampleMajorVersionCC0();
     int getSwResampleMajorVersionCC0();
-    
+
     long createInstance0(FFMPEGMediaPlayer upstream, boolean verbose);
     void destroyInstance0(long moviePtr);
-    
+
     /**
      * Issues {@link #updateAttributes(int, int, int, int, int, int, int, float, int, int, String, String)}
      * and {@link #updateAttributes2(int, int, int, int, int, int, int, int, int, int)}.
-     * 
+     *
      * @param moviePtr
      * @param url
      * @param vid
@@ -56,25 +56,25 @@ interface FFMPEGNatives {
      * @param aPrefSampleRate
      * @param aPrefChannelCount
      */
-    void setStream0(long moviePtr, String url, boolean isCameraInput, 
-                    int vid, String sizes, int vWidth, int vHeight, 
+    void setStream0(long moviePtr, String url, boolean isCameraInput,
+                    int vid, String sizes, int vWidth, int vHeight,
                     int vRate, int aid, int aMaxChannelCount, int aPrefSampleRate);
-    
+
     void setGLFuncs0(long moviePtr, long procAddrGLTexSubImage2D, long procAddrGLGetError, long procAddrGLFlush, long procAddrGLFinish);
 
-    int getVideoPTS0(long moviePtr);    
-    
+    int getVideoPTS0(long moviePtr);
+
     int getAudioPTS0(long moviePtr);
-    
+
     /**
      * @return resulting current video PTS, or {@link TextureFrame#INVALID_PTS}
      */
     int readNextPacket0(long moviePtr, int texTarget, int texFmt, int texType);
-    
+
     int play0(long moviePtr);
     int pause0(long moviePtr);
     int seek0(long moviePtr, int position);
-        
+
     /** FFMPEG/libAV Audio Sample Format */
     public static enum SampleFormat {
         // NONE = -1,
@@ -89,10 +89,10 @@ interface FFMPEGNatives {
         S32P,        ///< signed 32 bits, planar
         FLTP,        ///< float, planar
         DBLP,        ///< double, planar
-        
+
         COUNT;       ///< Number of sample formats.
-        
-        /** 
+
+        /**
          * Returns the matching SampleFormat value corresponding to the given SampleFormat's integer ordinal.
          * <pre>
          *   given:
@@ -131,7 +131,7 @@ interface FFMPEGNatives {
         /** planar YUV 4:1:1, 12bpp, (1 Cr & Cb sample per 4x1 Y samples) */
         YUV411P,
         /** Y, 8bpp */
-        GRAY8,        
+        GRAY8,
         /** Y,  1bpp, 0 is white, 1 is black, in each byte pixels are ordered from the msb to the lsb */
         MONOWHITE,
         /** Y,  1bpp, 0 is black, 1 is white, in each byte pixels are ordered from the msb to the lsb */
@@ -151,57 +151,57 @@ interface FFMPEGNatives {
         /** packed YUV 4:2:2, 16bpp, Cb Y0 Cr Y1 */
         UYVY422,
         /** packed YUV 4:1:1, 12bpp, Cb Y0 Y1 Cr Y2 Y3 */
-        UYYVYY411, 
+        UYYVYY411,
         /** packed RGB 3:3:2,  8bpp, (msb)2B 3G 3R(lsb) */
-        BGR8, 
+        BGR8,
         /** packed RGB 1:2:1 bitstream,  4bpp, (msb)1B 2G 1R(lsb), a byte contains two pixels, the first pixel in the byte is the one composed by the 4 msb bits */
-        BGR4, 
+        BGR4,
         /** packed RGB 1:2:1,  8bpp, (msb)1B 2G 1R(lsb) */
-        BGR4_BYTE, 
+        BGR4_BYTE,
         /** packed RGB 3:3:2,  8bpp, (msb)2R 3G 3B(lsb) */
-        RGB8, 
+        RGB8,
         /** packed RGB 1:2:1 bitstream,  4bpp, (msb)1R 2G 1B(lsb), a byte contains two pixels, the first pixel in the byte is the one composed by the 4 msb bits */
-        RGB4, 
+        RGB4,
         /** packed RGB 1:2:1,  8bpp, (msb)1R 2G 1B(lsb) */
-        RGB4_BYTE, 
+        RGB4_BYTE,
         /** planar YUV 4:2:0, 12bpp, 1 plane for Y and 1 plane for the UV components, which are interleaved (first byte U and the following byte V) */
-        NV12, 
+        NV12,
         /** as above, but U and V bytes are swapped */
-        NV21, 
+        NV21,
 
         /** packed ARGB 8:8:8:8, 32bpp, ARGBARGB... */
-        ARGB, 
+        ARGB,
         /** packed RGBA 8:8:8:8, 32bpp, RGBARGBA... */
-        RGBA, 
+        RGBA,
         /** packed ABGR 8:8:8:8, 32bpp, ABGRABGR... */
-        ABGR, 
+        ABGR,
         /** packed BGRA 8:8:8:8, 32bpp, BGRABGRA... */
-        BGRA, 
+        BGRA,
 
         /** Y, 16bpp, big-endian */
-        GRAY16BE,        
+        GRAY16BE,
         /** Y        , 16bpp, little-endian */
-        GRAY16LE,        
+        GRAY16LE,
         /** planar YUV 4:4:0 (1 Cr & Cb sample per 1x2 Y samples) */
-        YUV440P, 
+        YUV440P,
         /** planar YUV 4:4:0 full scale (JPEG), deprecated in favor of YUV440P and setting color_range */
-        YUVJ440P, 
+        YUVJ440P,
         /** planar YUV 4:2:0, 20bpp, (1 Cr & Cb sample per 2x2 Y & A samples) */
-        YUVA420P, 
+        YUVA420P,
         /** H.264 HW decoding with VDPAU, data[0] contains a vdpau_render_state struct which contains the bitstream of the slices as well as various fields extracted from headers */
-        VDPAU_H264, 
+        VDPAU_H264,
         /** MPEG-1 HW decoding with VDPAU, data[0] contains a vdpau_render_state struct which contains the bitstream of the slices as well as various fields extracted from headers */
-        VDPAU_MPEG1, 
+        VDPAU_MPEG1,
         /** MPEG-2 HW decoding with VDPAU, data[0] contains a vdpau_render_state struct which contains the bitstream of the slices as well as various fields extracted from headers */
-        VDPAU_MPEG2, 
+        VDPAU_MPEG2,
         /** WMV3 HW decoding with VDPAU, data[0] contains a vdpau_render_state struct which contains the bitstream of the slices as well as various fields extracted from headers */
-        VDPAU_WMV3, 
+        VDPAU_WMV3,
         /** VC-1 HW decoding with VDPAU, data[0] contains a vdpau_render_state struct which contains the bitstream of the slices as well as various fields extracted from headers */
-        VDPAU_VC1, 
+        VDPAU_VC1,
         /** packed RGB 16:16:16, 48bpp, 16R, 16G, 16B, the 2-byte value for each R/G/B component is stored as big-endian */
-        RGB48BE, 
+        RGB48BE,
         /** packed RGB 16:16:16, 48bpp, 16R, 16G, 16B, the 2-byte value for each R/G/B component is stored as little-endian */
-        RGB48LE, 
+        RGB48LE,
 
         RGB565BE,  ///< packed RGB 5:6:5, 16bpp, (msb)   5R 6G 5B(lsb), big-endian
         RGB565LE,  ///< packed RGB 5:6:5, 16bpp, (msb)   5R 6G 5B(lsb), little-endian
@@ -255,7 +255,7 @@ interface FFMPEGNatives {
         GBRP16LE,  ///< planar GBR 4:4:4 48bpp, little endian
         COUNT      ///< number of pixel formats in this list
         ;
-        /** 
+        /**
          * Returns the matching PixelFormat value corresponding to the given PixelFormat's integer ordinal.
          * <pre>
          *   given:

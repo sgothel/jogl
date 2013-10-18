@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,18 +20,18 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
- * 
+ *
  * ---------------------
- * 
+ *
  * Based on Brian Paul's tile rendering library, found
  * at <a href = "http://www.mesa3d.org/brianp/TR.html">http://www.mesa3d.org/brianp/TR.html</a>.
- * 
- * Copyright (C) 1997-2005 Brian Paul. 
- * Licensed under BSD-compatible terms with permission of the author. 
+ *
+ * Copyright (C) 1997-2005 Brian Paul.
+ * Licensed under BSD-compatible terms with permission of the author.
  * See LICENSE.txt for license information.
  */
 package com.jogamp.opengl.util;
@@ -60,7 +60,7 @@ import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
  * <p>
  * See {@link TileRendererBase} for details.
  * </p>
- * 
+ *
  * @author ryanm, sgothel
  */
 public class TileRenderer extends TileRendererBase {
@@ -150,7 +150,7 @@ public class TileRenderer extends TileRendererBase {
         .append("rowOrder "+rowOrder+", offset/size "+offsetX+"/"+offsetY+" "+tileSize.getWidth()+"x"+tileSize.getHeight()+" brd "+tileBorder+", ");
         return super.tileDetails(sb);
     }
-    
+
     /**
      * Creates a new TileRenderer object
      */
@@ -169,7 +169,7 @@ public class TileRenderer extends TileRendererBase {
         super.setImageSize(width, height);
         reset();
     }
-    
+
     /**
      * Clips the image-size this tile-renderer iterates through,
      * which can be retrieved via {@link #getClippedImageSize()}.
@@ -179,7 +179,7 @@ public class TileRenderer extends TileRendererBase {
      * <p>
      * Implementation {@link #reset()} internal states.
      * </p>
-     * 
+     *
      * @param width The image-clipping.width
      * @param height The image-clipping.height
      * @see #getClippedImageSize()
@@ -208,7 +208,7 @@ public class TileRenderer extends TileRendererBase {
      * {@link #TR_IMAGE_CLIPPING_HEIGHT}.
      * </p>
      */
-    public final DimensionImmutable getClippedImageSize() { 
+    public final DimensionImmutable getClippedImageSize() {
         if( null != imageClippingDim ) {
             return new Dimension(Math.min(imageClippingDim.getWidth(), imageSize.getWidth()),
                                  Math.min(imageClippingDim.getHeight(), imageSize.getHeight()) );
@@ -224,7 +224,7 @@ public class TileRenderer extends TileRendererBase {
      * <p>
      * Implementation {@link #reset()} internal states.
      * </p>
-     * 
+     *
      * @param width
      *           The width of the tiles. Must not be larger than the GL
      *           context
@@ -238,10 +238,10 @@ public class TileRenderer extends TileRendererBase {
      */
     public final void setTileSize(int width, int height, int border) {
         if( 0 > border ) {
-            throw new IllegalArgumentException("Tile border must be >= 0");        
+            throw new IllegalArgumentException("Tile border must be >= 0");
         }
         if( 2 * border >= width || 2 * border >= height ) {
-            throw new IllegalArgumentException("Tile size must be > 0x0 minus 2*border");        
+            throw new IllegalArgumentException("Tile size must be > 0x0 minus 2*border");
         }
         tileBorder = border;
         tileSize.set( width, height );
@@ -249,7 +249,7 @@ public class TileRenderer extends TileRendererBase {
         reset();
     }
 
-    /** 
+    /**
      * Sets an xy offset for the resulting tiles
      * {@link TileRendererBase#TR_CURRENT_TILE_X_POS x-pos} and {@link TileRendererBase#TR_CURRENT_TILE_Y_POS y-pos}.
      * @see #TR_TILE_X_OFFSET
@@ -259,12 +259,12 @@ public class TileRenderer extends TileRendererBase {
         offsetX = xoff;
         offsetY = yoff;
     }
-    
+
     /**
      * {@inheritDoc}
-     * 
+     *
      * Reset internal states of {@link TileRenderer} are:
-     * <ul> 
+     * <ul>
      *  <li>{@link #TR_ROWS}</li>
      *  <li>{@link #TR_COLUMNS}</li>
      *  <li>{@link #TR_CURRENT_COLUMN}</li>
@@ -291,13 +291,13 @@ public class TileRenderer extends TileRendererBase {
 
         assert columns >= 0;
         assert rows >= 0;
-        
+
         beginCalled = false;
         isInit = true;
     }
 
     /* pp */ final int getCurrentTile() { return currentTile; }
-    
+
     @Override
     public final int getParam(int pname) {
         switch (pname) {
@@ -346,7 +346,7 @@ public class TileRenderer extends TileRendererBase {
 
     /**
      * Sets the order of row traversal, default is {@link #TR_BOTTOM_TO_TOP}.
-     * 
+     *
      * @param order The row traversal order, must be either {@link #TR_TOP_TO_BOTTOM} or {@link #TR_BOTTOM_TO_TOP}.
      */
     public final void setRowOrder(int order) {
@@ -361,11 +361,11 @@ public class TileRenderer extends TileRendererBase {
     public final boolean isSetup() {
         return 0 < imageSize.getWidth() && 0 < imageSize.getHeight();
     }
-    
+
     /**
      * {@inheritDoc}
-     * 
-     * <p> 
+     *
+     * <p>
      * <i>end of tiling</i> is reached w/ {@link TileRenderer}, if at least one of the following is true:
      * <ul>
      *   <li>all tiles have been rendered, i.e. {@link #TR_CURRENT_TILE_NUM} is -1</li>
@@ -378,13 +378,13 @@ public class TileRenderer extends TileRendererBase {
         if ( !isInit ) { // ensure at least one reset-call
             reset();
         }
-        return 0 > currentTile || 0 >= columns*rows; 
+        return 0 > currentTile || 0 >= columns*rows;
     }
-    
+
     /**
      * {@inheritDoc}
-     * 
-     * @throws IllegalStateException if {@link #setImageSize(int, int) image-size} has not been set or 
+     *
+     * @throws IllegalStateException if {@link #setImageSize(int, int) image-size} has not been set or
      *         {@link #eot() end-of-tiling} has been reached.
      */
     @Override
@@ -396,7 +396,7 @@ public class TileRenderer extends TileRendererBase {
             throw new IllegalStateException("EOT reached: "+this);
         }
         validateGL(gl);
-        
+
         /* which tile (by row and column) we're about to render */
         if (rowOrder == TR_BOTTOM_TO_TOP) {
             currentRow = currentTile / columns;
@@ -434,11 +434,11 @@ public class TileRenderer extends TileRendererBase {
         currentTileHeight = tH;
 
         gl.glViewport( 0, 0, tW, tH );
-        
+
         if( DEBUG ) {
             System.err.println("TileRenderer.begin: "+this.toString());
         }
-        
+
         // Do not forget to issue:
         //    reshape( 0, 0, tW, tH );
         // which shall reflect tile renderer tiles: currentTileXPos, currentTileYPos and imageSize
@@ -454,7 +454,7 @@ public class TileRenderer extends TileRendererBase {
 
         // be sure OpenGL rendering is finished
         gl.glFlush();
-        
+
         // save current glPixelStore values
         psm.save(gl);
         psm.setPackAlignment(gl, 1);
@@ -467,13 +467,13 @@ public class TileRenderer extends TileRendererBase {
         } else {
             gl2es3 = null;
             readBuffer = 0; // undef. probably default: GL_FRONT (single buffering) GL_BACK (double buffering)
-        }        
+        }
         if( DEBUG ) {
             System.err.println("TileRenderer.end.0: readBuffer 0x"+Integer.toHexString(readBuffer)+", "+this.toString());
         }
-        
+
         final int tmp[] = new int[1];
-        
+
         if( tileBuffer != null ) {
             final GLPixelAttributes pixelAttribs = tileBuffer.pixelAttributes;
             final int srcX = tileBorder;
@@ -527,7 +527,7 @@ public class TileRenderer extends TileRendererBase {
         psm.restore(gl);
 
         beginCalled = false;
-        
+
         /* increment tile counter, return 1 if more tiles left to render */
         currentTile++;
         if( currentTile >= rows * columns ) {

@@ -33,36 +33,36 @@ import com.jogamp.common.util.locks.RecursiveLock;
  * Interface specifying the offscreen layer surface protocol.
  */
 public interface OffscreenLayerSurface {
-  /** 
+  /**
    * Attach the offscreen layer to this offscreen layer surface.
    * <p>
    * Implementation may realize all required resources at this point.
    * </p>
-   * 
+   *
    * @see #isOffscreenLayerSurfaceEnabled()
    * @throws NativeWindowException if {@link #isOffscreenLayerSurfaceEnabled()} == false
    */
   public void attachSurfaceLayer(final long layerHandle) throws NativeWindowException;
-  
-  /** 
+
+  /**
    * Detaches a previously attached offscreen layer from this offscreen layer surface.
    * @see #attachSurfaceLayer(long)
    * @see #isOffscreenLayerSurfaceEnabled()
-   * @throws NativeWindowException if {@link #isOffscreenLayerSurfaceEnabled()} == false 
+   * @throws NativeWindowException if {@link #isOffscreenLayerSurfaceEnabled()} == false
    *                               or no surface layer is attached.
    */
   public void detachSurfaceLayer() throws NativeWindowException;
-  
+
   /** Returns the attached surface layer or null if none is attached. */
   public long getAttachedSurfaceLayer();
-  
+
   /** Returns true if a surface layer is attached, otherwise false. */
   public boolean isSurfaceLayerAttached();
-  
+
   /** Sets the capabilities of this instance, allowing upstream API's to refine it, i.e. OpenGL related settings. */
   public void setChosenCapabilities(CapabilitiesImmutable caps);
-  
-  /** Returns the recursive lock object of this surface, which synchronizes multithreaded access. */ 
+
+  /** Returns the recursive lock object of this surface, which synchronizes multithreaded access. */
   public RecursiveLock getLock();
-  
+
 }

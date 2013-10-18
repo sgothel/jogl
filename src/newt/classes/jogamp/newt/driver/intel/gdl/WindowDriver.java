@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2012 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  */
 
 package jogamp.newt.driver.intel.gdl;
@@ -48,6 +48,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
 
     static long nextWindowHandle = 1;
 
+    @Override
     protected void createNativeImpl() {
         if(0!=getParentWindowHandle()) {
             throw new NativeWindowException("GDL Window does not support window parenting");
@@ -72,6 +73,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
         }
     }
 
+    @Override
     protected void closeNativeImpl() {
         if(0!=surfaceHandle) {
             synchronized(WindowDriver.class) {
@@ -82,6 +84,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
         }
     }
 
+    @Override
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
         ScreenDriver  screen = (ScreenDriver) getScreen();
 
@@ -108,10 +111,11 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
             }
             visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));
         }
-        
+
         return true;
     }
 
+    @Override
     protected void requestFocusImpl(boolean reparented) {
         ((DisplayDriver)getScreen().getDisplay()).setFocus(this);
     }
@@ -121,14 +125,16 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
         return surfaceHandle;
     }
 
+    @Override
     protected Point getLocationOnScreenImpl(int x, int y) {
         return new Point(x,y);
     }
 
+    @Override
     protected void updateInsetsImpl(Insets insets) {
-        // nop ..        
+        // nop ..
     }
-    
+
     //----------------------------------------------------------------------
     // Internals only
     //

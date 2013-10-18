@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -48,7 +48,7 @@ import jogamp.opengl.Debug;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 
 /**
- * GLEventListenerState is holding {@link GLAutoDrawable} components crucial 
+ * GLEventListenerState is holding {@link GLAutoDrawable} components crucial
  * to relocating all its {@link GLEventListener} w/ their operating {@link GLContext}, etc.
  * The components are:
  * <ul>
@@ -69,8 +69,8 @@ import com.jogamp.nativewindow.MutableGraphicsConfiguration;
  */
 public class GLEventListenerState {
     private static final boolean DEBUG = Debug.debug("GLDrawable") || Debug.debug("GLEventListenerState");
-    
-    private GLEventListenerState(AbstractGraphicsDevice upstreamDevice, boolean proxyOwnsUpstreamDevice, AbstractGraphicsDevice device, 
+
+    private GLEventListenerState(AbstractGraphicsDevice upstreamDevice, boolean proxyOwnsUpstreamDevice, AbstractGraphicsDevice device,
                                  GLCapabilitiesImmutable caps,
                                  GLContext context, int count, GLAnimatorControl anim, boolean animStarted) {
         this.upstreamDevice = upstreamDevice;
@@ -82,19 +82,19 @@ public class GLEventListenerState {
         this.listenersInit = new boolean[count];
         this.anim = anim;
         this.animStarted = animStarted;
-        
+
         this.owner = true;
     }
     /**
-     * Returns <code>true</code>, if this instance is the current owner of the components, 
+     * Returns <code>true</code>, if this instance is the current owner of the components,
      * otherwise <code>false</code>.
      * <p>
      * Ownership is lost if {@link #moveTo(GLAutoDrawable)} is being called successfully
-     * and all components are transferred to the new {@link GLAutoDrawable}. 
+     * and all components are transferred to the new {@link GLAutoDrawable}.
      * </p>
      */
     public final boolean isOwner() { return owner; }
-    
+
     public final int listenerCount() { return listeners.length; }
 
     public final AbstractGraphicsDevice upstreamDevice;
@@ -103,10 +103,10 @@ public class GLEventListenerState {
     public final GLCapabilitiesImmutable caps;
     public final GLContext context;
     public final GLEventListener[] listeners;
-    public final boolean[] listenersInit;    
+    public final boolean[] listenersInit;
     public final GLAnimatorControl anim;
     public final boolean animStarted;
-    
+
     private boolean owner;
 
     /**
@@ -127,25 +127,25 @@ public class GLEventListenerState {
     private static AbstractGraphicsDevice cloneDevice(AbstractGraphicsDevice aDevice) {
         return (AbstractGraphicsDevice) aDevice.clone();
     }
-    
+
     /**
-     * Moves all GLEventListenerState components from the given {@link GLAutoDrawable} 
+     * Moves all GLEventListenerState components from the given {@link GLAutoDrawable}
      * to a newly created instance.
      * <p>
      * Note that all components are removed from the {@link GLAutoDrawable},
      * i.e. the {@link GLContext}, all {@link GLEventListener}.
      * </p>
-     * <p> 
+     * <p>
      * If the {@link GLAutoDrawable} was added to a {@link GLAnimatorControl}, it is removed
      * and the {@link GLAnimatorControl} added to the GLEventListenerState.
      * </p>
      * <p>
-     * The returned GLEventListenerState instance is the {@link #isOwner() owner of the components}. 
+     * The returned GLEventListenerState instance is the {@link #isOwner() owner of the components}.
      * </p>
-     * 
+     *
      * @param a {@link GLAutoDrawable} source to move components from
      * @return new GLEventListenerState instance {@link #isOwner() owning} moved components.
-     * 
+     *
      * @see #moveTo(GLAutoDrawable)
      */
     public static GLEventListenerState moveFrom(GLAutoDrawable a) {
@@ -154,16 +154,16 @@ public class GLEventListenerState {
         if( null != aAnim ) {
             aAnimStarted = aAnim.isStarted();
             aAnim.remove(a); // also handles ECT
-        } else {        
+        } else {
             aAnimStarted = false;
         }
-        
+
         final GLEventListenerState glls;
         final NativeSurface aSurface = a.getNativeSurface();
         final boolean surfaceLocked = false; // NativeSurface.LOCK_SURFACE_NOT_READY < aSurface.lockSurface();
         try {
             final int aSz = a.getGLEventListenerCount();
-    
+
             // Create new AbstractGraphicsScreen w/ cloned AbstractGraphicsDevice for future GLAutoDrawable
             // allowing this AbstractGraphicsDevice to loose ownership -> not closing display/device!
             final AbstractGraphicsConfiguration aCfg = aSurface.getGraphicsConfiguration();
@@ -171,7 +171,7 @@ public class GLEventListenerState {
             final AbstractGraphicsDevice aDevice1 = aCfg.getScreen().getDevice();
             final AbstractGraphicsDevice aDevice2 = cloneDevice(aDevice1);
             aDevice1.clearHandleOwner();  // don't close device handle
-            if( DEBUG ) {            
+            if( DEBUG ) {
                 System.err.println("GLEventListenerState.moveFrom.0a: orig 0x"+Integer.toHexString(aDevice1.hashCode())+", "+aDevice1);
                 System.err.println("GLEventListenerState.moveFrom.0b: pres 0x"+Integer.toHexString(aDevice2.hashCode())+", "+aDevice2);
                 System.err.println("GLEventListenerState.moveFrom.1: "+aSurface.getClass().getName()/*+", "+aSurface*/);
@@ -203,9 +203,9 @@ public class GLEventListenerState {
                 }
                 aUpDevice2 = _aUpDevice2;
             }
-            
-            glls = new GLEventListenerState(aUpDevice2, proxyOwnsUpstreamDevice, aDevice2, caps, a.getContext(), aSz, aAnim, aAnimStarted); 
-    
+
+            glls = new GLEventListenerState(aUpDevice2, proxyOwnsUpstreamDevice, aDevice2, caps, a.getContext(), aSz, aAnim, aAnimStarted);
+
             //
             // remove and cache all GLEventListener and their init-state
             //
@@ -213,41 +213,41 @@ public class GLEventListenerState {
                 final GLEventListener l = a.getGLEventListener(0);
                 glls.listenersInit[i] = a.getGLEventListenerInitState(l);
                 glls.listeners[i] = a.removeGLEventListener( l );
-            }    
-    
+            }
+
             //
             // trigger glFinish to sync GL ctx
             //
             a.invoke(true, glFinish);
-    
+
             a.setContext( null, false );
-            
+
         } finally {
             if( surfaceLocked ) {
                 aSurface.unlockSurface();
             }
-        }        
-        
+        }
+
         return glls;
     }
 
     /**
-     * Moves all GLEventListenerState components to the given {@link GLAutoDrawable} 
+     * Moves all GLEventListenerState components to the given {@link GLAutoDrawable}
      * from this instance, while loosing {@link #isOwner() ownership}.
-     * <p> 
+     * <p>
      * If the previous {@link GLAutoDrawable} was removed from a {@link GLAnimatorControl} by previous {@link #moveFrom(GLAutoDrawable)},
      * the given {@link GLAutoDrawable} is added to the cached {@link GLAnimatorControl}.
-     * This operation is skipped, if the given {@link GLAutoDrawable} is already added to a {@link GLAnimatorControl} instance.  
+     * This operation is skipped, if the given {@link GLAutoDrawable} is already added to a {@link GLAnimatorControl} instance.
      * </p>
      * <p>
-     * Note: After this operation, the GLEventListenerState reference should be released. 
+     * Note: After this operation, the GLEventListenerState reference should be released.
      * </p>
-     * 
+     *
      * @param a {@link GLAutoDrawable} destination to move GLEventListenerState components to
-     * 
+     *
      * <!-- @throws GLException if the {@link GLAutoDrawable}'s configuration is incompatible, i.e. different {@link GLCapabilitiesImmutable}. -->
      * @throws GLException if this preserved {@link AbstractGraphicsDevice} is incompatible w/ the given destination one.
-     * 
+     *
      * @see #moveFrom(GLAutoDrawable)
      * @see #isOwner()
      */
@@ -261,22 +261,22 @@ public class GLEventListenerState {
             if( aPaused ) {
                 aAnim.resume();
             }
-        } else {        
+        } else {
             aPaused = false;
         }
-        
+
         final List<GLRunnable> aGLCmds = new ArrayList<GLRunnable>();
         final int aSz = listenerCount();
-        
+
         final NativeSurface aSurface = a.getNativeSurface();
         final boolean surfaceLocked = false; // NativeSurface.LOCK_SURFACE_NOT_READY < aSurface.lockSurface();
         final boolean aRealized;
         try {
-            
+
             final MutableGraphicsConfiguration aCfg = (MutableGraphicsConfiguration) aSurface.getGraphicsConfiguration();
             /**
             final GLCapabilitiesImmutable aCaps = (GLCapabilitiesImmutable) aCfg.getChosenCapabilities();
-            if( caps.getVisualID(VisualIDHolder.VIDType.INTRINSIC) != aCaps.getVisualID(VisualIDHolder.VIDType.INTRINSIC) || 
+            if( caps.getVisualID(VisualIDHolder.VIDType.INTRINSIC) != aCaps.getVisualID(VisualIDHolder.VIDType.INTRINSIC) ||
                 caps.getVisualID(VisualIDHolder.VIDType.NATIVE) != aCaps.getVisualID(VisualIDHolder.VIDType.NATIVE) ) {
                 throw new GLException("Incompatible Capabilities - Prev-Holder: "+caps+", New-Holder "+caps);
             } */
@@ -285,8 +285,8 @@ public class GLEventListenerState {
             if( !aDevice1.getUniqueID().equals( aDevice2.getUniqueID() ) ) {
                 throw new GLException("Incompatible devices: Preserved <"+aDevice2.getUniqueID()+">, target <"+aDevice1.getUniqueID()+">");
             }
-            
-            // collect optional upstream surface info 
+
+            // collect optional upstream surface info
             final ProxySurface aProxy;
             final NativeSurface aUpSurface;
             if(aSurface instanceof ProxySurface) {
@@ -302,8 +302,8 @@ public class GLEventListenerState {
             }
             if( null==aUpSurface && null != upstreamDevice ) {
                 throw new GLException("Incompatible Surface config - Has Upstream-Surface: Prev-Holder = true, New-Holder = false");
-            }            
-            
+            }
+
             // Destroy and remove currently associated GLContext, if any (will be replaced)
             a.setContext( null, true );
             aRealized = a.isRealized();
@@ -311,7 +311,7 @@ public class GLEventListenerState {
                 // Unrealize due to device dependencies of an upstream surface, e.g. EGLUpstreamSurfaceHook
                 a.getDelegatedDrawable().setRealized(false);
             }
-            
+
             // Set new Screen and close previous one
             {
                 if( DEBUG ) {
@@ -319,13 +319,13 @@ public class GLEventListenerState {
                     System.err.println("GLEventListenerState.moveTo.0b: pres 0x"+Integer.toHexString(aDevice2.hashCode())+", "+aDevice2);
                 }
                 DefaultGraphicsDevice.swapDeviceHandleAndOwnership(aDevice1, aDevice2);
-                aDevice2.close();                
+                aDevice2.close();
                 if( DEBUG ) {
                     System.err.println("GLEventListenerState.moveTo.1a: orig 0x"+Integer.toHexString(aDevice1.hashCode())+", "+aDevice1);
                     System.err.println("GLEventListenerState.moveTo.1b: pres 0x"+Integer.toHexString(aDevice2.hashCode())+", "+aDevice2);
                 }
             }
-            
+
             // If using a ProxySurface w/ an upstream surface, set new Screen and close previous one on it
             if( null != aUpSurface ) {
                 final MutableGraphicsConfiguration aUpCfg = (MutableGraphicsConfiguration) aUpSurface.getGraphicsConfiguration();
@@ -339,9 +339,9 @@ public class GLEventListenerState {
                         System.err.println("GLEventListenerState.moveTo.2a: up-orig 0x"+Integer.toHexString(aUpDevice1.hashCode())+", "+aUpDevice1);
                         System.err.println("GLEventListenerState.moveTo.2b: up-pres 0x"+Integer.toHexString(aUpDevice2.hashCode())+", "+aUpDevice2);
                         System.err.println("GLEventListenerState.moveTo.2c:  "+aUpSurface.getClass().getName()/*+", "+aUpSurface+", "*/+aProxy.getUpstreamOptionBits(null).toString());
-                    }                            
+                    }
                     DefaultGraphicsDevice.swapDeviceHandleAndOwnership(aUpDevice1, aUpDevice2);
-                    aUpDevice2.close();                            
+                    aUpDevice2.close();
                     if( proxyOwnsUpstreamDevice ) {
                         aProxy.addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_DEVICE );
                     }
@@ -354,7 +354,7 @@ public class GLEventListenerState {
                     throw new GLException("Incompatible Surface config - Has Upstream-Surface: Prev-Holder = false, New-Holder = true");
                 }
             }
-            
+
             if( aRealized && null != aUpSurface ) {
                 a.getDelegatedDrawable().setRealized(true);
             }
@@ -369,7 +369,7 @@ public class GLEventListenerState {
             }
         }
         owner = false;
-        
+
         //
         // Trigger GL-Viewport reset and reshape of all initialized GLEventListeners
         //
@@ -389,7 +389,7 @@ public class GLEventListenerState {
             a.setGLEventListenerInitState(l, listenersInit[i]);
             listeners[i] = null;
         }
-        
+
         if( hasAnimator ) {
             // prefer already bound animator
             aAnim.add(a);
@@ -410,7 +410,7 @@ public class GLEventListenerState {
         public boolean run(GLAutoDrawable drawable) {
             drawable.getGL().glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
             return true;
-        }            
+        }
     };
 
     public static GLRunnable glFinish = new GLRunnable() {
@@ -418,7 +418,7 @@ public class GLEventListenerState {
         public boolean run(GLAutoDrawable drawable) {
             drawable.getGL().glFinish();
             return true;
-        }            
+        }
     };
 
     public static class ReshapeGLEventListener implements GLRunnable {
@@ -430,6 +430,6 @@ public class GLEventListenerState {
         public boolean run(GLAutoDrawable drawable) {
             listener.reshape(drawable, 0, 0, drawable.getWidth(), drawable.getHeight());
             return true;
-        }      
+        }
     }
 }

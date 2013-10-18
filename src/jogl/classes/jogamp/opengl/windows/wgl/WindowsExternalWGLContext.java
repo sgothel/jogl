@@ -56,7 +56,7 @@ import jogamp.nativewindow.windows.GDI;
 import jogamp.opengl.GLContextShareSet;
 
 public class WindowsExternalWGLContext extends WindowsWGLContext {
-    
+
   private WindowsExternalWGLContext(Drawable drawable, long ctx, WindowsWGLGraphicsConfiguration cfg) {
     super(drawable, null);
     this.contextHandle = ctx;

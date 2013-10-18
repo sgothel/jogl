@@ -105,7 +105,7 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
   @Override
   protected void setRealizedImpl() {
   }
-  
+
   @Override
   protected void associateContext(GLContext ctx, boolean bound) {
     // NOTE: we need to keep track of the created contexts in order to
@@ -123,14 +123,14 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
                 } else {
                     i++;
                 }
-            }            
+            }
         }
-    }      
+    }
   }
-  
+
   @Override
   protected final void swapBuffersImpl(boolean doubleBuffered) {
-    if(doubleBuffered) { 
+    if(doubleBuffered) {
         synchronized (createdContexts) {
             for(int i=0; i<createdContexts.size(); ) {
                 final MacOSXCGLContext ctx = createdContexts.get(i).get();

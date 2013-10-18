@@ -14,17 +14,17 @@ import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 
 public class X11DummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize {
     /**
-     * @param width the initial width as returned by {@link NativeSurface#getWidth()} via {@link UpstreamSurfaceHook#getWidth(ProxySurface)}, 
-     *        not the actual dummy surface width. 
+     * @param width the initial width as returned by {@link NativeSurface#getWidth()} via {@link UpstreamSurfaceHook#getWidth(ProxySurface)},
+     *        not the actual dummy surface width.
      *        The latter is platform specific and small
-     * @param height the initial height as returned by {@link NativeSurface#getHeight()} via {@link UpstreamSurfaceHook#getHeight(ProxySurface)}, 
+     * @param height the initial height as returned by {@link NativeSurface#getHeight()} via {@link UpstreamSurfaceHook#getHeight(ProxySurface)},
      *        not the actual dummy surface height,
      *        The latter is platform specific and small
      */
     public X11DummyUpstreamSurfaceHook(int width, int height) {
         super(width, height);
     }
-    
+
     @Override
     public final void create(ProxySurface s) {
         final X11GraphicsConfiguration cfg = (X11GraphicsConfiguration) s.getGraphicsConfiguration();
@@ -42,14 +42,14 @@ public class X11DummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize 
                     throw new NativeWindowException("Creating dummy window failed w/ "+cfg);
                 }
                 s.setSurfaceHandle(windowHandle);
-                s.addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE );            
+                s.addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE );
             }
             s.addUpstreamOptionBits(ProxySurface.OPT_UPSTREAM_WINDOW_INVISIBLE);
         } finally {
             device.unlock();
         }
     }
-    
+
     @Override
     public final void destroy(ProxySurface s) {
         if( s.containsUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE ) ) {
@@ -59,7 +59,7 @@ public class X11DummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize 
             }
             device.lock();
             try {
-                X11Lib.DestroyWindow(device.getHandle(), s.getSurfaceHandle());            
+                X11Lib.DestroyWindow(device.getHandle(), s.getSurfaceHandle());
                 s.setSurfaceHandle(0);
                 s.clearUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE );
             } finally {

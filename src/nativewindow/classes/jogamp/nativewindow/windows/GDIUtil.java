@@ -37,11 +37,11 @@ import jogamp.nativewindow.ToolkitProperties;
 
 public class GDIUtil implements ToolkitProperties {
     private static final boolean DEBUG = Debug.debug("GDIUtil");
-  
+
     private static final String dummyWindowClassNameBase = "_dummyWindow_clazz" ;
     private static RegisteredClassFactory dummyWindowClassFactory;
     private static boolean isInit = false;
-  
+
     /**
      * Called by {@link NativeWindowFactory#initSingleton()}
      * @see ToolkitProperties
@@ -59,42 +59,42 @@ public class GDIUtil implements ToolkitProperties {
                     if( !initIDs0() ) {
                         throw new NativeWindowException("GDI: Could not initialized native stub");
                     }
-                    dummyWindowClassFactory = new RegisteredClassFactory(dummyWindowClassNameBase, getDummyWndProc0());                    
+                    dummyWindowClassFactory = new RegisteredClassFactory(dummyWindowClassNameBase, getDummyWndProc0());
                     isInit = true;
                 }
             }
         }
     }
-  
+
     /**
      * Called by {@link NativeWindowFactory#shutdown()}
      * @see ToolkitProperties
      */
-    public static void shutdown() {      
+    public static void shutdown() {
     }
-    
+
     /**
      * Called by {@link NativeWindowFactory#initSingleton()}
      * @see ToolkitProperties
      */
     public static boolean requiresToolkitLock() { return false; }
-  
+
     /**
      * Called by {@link NativeWindowFactory#initSingleton()}
      * @see ToolkitProperties
      */
     public static final boolean hasThreadingIssues() { return false; }
-    
+
     private static RegisteredClass dummyWindowClass = null;
     private static Object dummyWindowSync = new Object();
-  
+
     public static long CreateDummyWindow(int x, int y, int width, int height) {
         synchronized(dummyWindowSync) {
             dummyWindowClass = dummyWindowClassFactory.getSharedClass();
             return CreateDummyWindow0(dummyWindowClass.getHInstance(), dummyWindowClass.getName(), dummyWindowClass.getName(), x, y, width, height);
         }
     }
-  
+
     public static boolean DestroyDummyWindow(long hwnd) {
         boolean res;
         synchronized(dummyWindowSync) {
@@ -106,27 +106,27 @@ public class GDIUtil implements ToolkitProperties {
         }
         return res;
     }
-  
+
     public static Point GetRelativeLocation(long src_win, long dest_win, int src_x, int src_y) {
         return (Point) GetRelativeLocation0(src_win, dest_win, src_x, src_y);
     }
-    
+
     public static boolean IsUndecorated(long win) {
         return IsUndecorated0(win);
     }
-    
+
     public static boolean IsChild(long win) {
         return IsChild0(win);
     }
-    
+
     public static native boolean CreateWindowClass(long hInstance, String clazzName, long wndProc);
     public static native boolean DestroyWindowClass(long hInstance, String className);
-    
+
     private static native boolean initIDs0();
-    private static native long getDummyWndProc0();  
+    private static native long getDummyWndProc0();
     private static native Object GetRelativeLocation0(long src_win, long dest_win, int src_x, int src_y);
     private static native boolean IsChild0(long win);
     private static native boolean IsUndecorated0(long win);
-  
-    static native long CreateDummyWindow0(long hInstance, String className, String windowName, int x, int y, int width, int height);  
+
+    static native long CreateDummyWindow0(long hInstance, String className, String windowName, int x, int y, int width, int height);
 }

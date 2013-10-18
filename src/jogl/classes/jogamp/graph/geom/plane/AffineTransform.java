@@ -33,7 +33,7 @@ public class AffineTransform implements Cloneable, Serializable {
     private static final long serialVersionUID = 1330973210523860834L;
 
     static final String determinantIsZero = "Determinant is zero";
-    
+
     public static final int TYPE_IDENTITY = 0;
     public static final int TYPE_TRANSLATION = 1;
     public static final int TYPE_UNIFORM_SCALE = 2;
@@ -49,14 +49,14 @@ public class AffineTransform implements Cloneable, Serializable {
      * The <code>TYPE_UNKNOWN</code> is an initial type value
      */
     static final int TYPE_UNKNOWN = -1;
-    
+
     /**
-     * The min value equivalent to zero. If absolute value less then ZERO it considered as zero.  
+     * The min value equivalent to zero. If absolute value less then ZERO it considered as zero.
      */
     static final float ZERO = (float) 1E-10;
-   
+
     private final Vertex.Factory<? extends Vertex> pointFactory;
-    
+
     /**
      * The values of transformation matrix
      */
@@ -68,7 +68,7 @@ public class AffineTransform implements Cloneable, Serializable {
     float m12;
 
     /**
-     * The transformation <code>type</code> 
+     * The transformation <code>type</code>
      */
     transient int type;
 
@@ -123,20 +123,20 @@ public class AffineTransform implements Cloneable, Serializable {
 
     /*
      * Method returns type of affine transformation.
-     * 
+     *
      * Transform matrix is
      *   m00 m01 m02
      *   m10 m11 m12
-     * 
-     * According analytic geometry new basis vectors are (m00, m01) and (m10, m11), 
-     * translation vector is (m02, m12). Original basis vectors are (1, 0) and (0, 1). 
-     * Type transformations classification:  
+     *
+     * According analytic geometry new basis vectors are (m00, m01) and (m10, m11),
+     * translation vector is (m02, m12). Original basis vectors are (1, 0) and (0, 1).
+     * Type transformations classification:
      *   TYPE_IDENTITY - new basis equals original one and zero translation
-     *   TYPE_TRANSLATION - translation vector isn't zero  
+     *   TYPE_TRANSLATION - translation vector isn't zero
      *   TYPE_UNIFORM_SCALE - vectors length of new basis equals
-     *   TYPE_GENERAL_SCALE - vectors length of new basis doesn't equal 
+     *   TYPE_GENERAL_SCALE - vectors length of new basis doesn't equal
      *   TYPE_FLIP - new basis vector orientation differ from original one
-     *   TYPE_QUADRANT_ROTATION - new basis is rotated by 90, 180, 270, or 360 degrees     
+     *   TYPE_QUADRANT_ROTATION - new basis is rotated by 90, 180, 270, or 360 degrees
      *   TYPE_GENERAL_ROTATION - new basis is rotated by arbitrary angle
      *   TYPE_GENERAL_TRANSFORM - transformation can't be inversed
      */
@@ -322,7 +322,7 @@ public class AffineTransform implements Cloneable, Serializable {
     }
 
     public static <T extends Vertex> AffineTransform getShearInstance(Vertex.Factory<? extends Vertex> factory, float shx, float shy) {
-        AffineTransform t = new AffineTransform(factory);        
+        AffineTransform t = new AffineTransform(factory);
         t.setToShear(shx, shy);
         return t;
     }
@@ -359,13 +359,13 @@ public class AffineTransform implements Cloneable, Serializable {
         concatenate(AffineTransform.getRotateInstance(pointFactory, angle, px, py));
     }
 
-    /** 
+    /**
      * Multiply matrix of two AffineTransform objects.
      * The first argument's {@link Vertex.Factory} is being used.
-     * 
+     *
      * @param t1 - the AffineTransform object is a multiplicand
      * @param t2 - the AffineTransform object is a multiplier
-     * @return an AffineTransform object that is a result of t1 multiplied by matrix t2. 
+     * @return an AffineTransform object that is a result of t1 multiplied by matrix t2.
      */
     AffineTransform multiply(AffineTransform t1, AffineTransform t2) {
         return new AffineTransform(t1.pointFactory,
@@ -415,7 +415,7 @@ public class AffineTransform implements Cloneable, Serializable {
 
     public void transform(Vertex[] src, int srcOff, Vertex[] dst, int dstOff, int length) {
         while (--length >= 0) {
-            Vertex srcPoint = src[srcOff++]; 
+            Vertex srcPoint = src[srcOff++];
             float x = srcPoint.getX();
             float y = srcPoint.getY();
             Vertex dstPoint = dst[dstOff];
@@ -426,7 +426,7 @@ public class AffineTransform implements Cloneable, Serializable {
             dst[dstOff++] = dstPoint;
         }
     }
-    
+
     public void transform(float[] src, int srcOff, float[] dst, int dstOff, int length) {
         int step = 2;
         if (src == dst && srcOff < dstOff && dstOff < srcOff + length * 2) {
@@ -443,7 +443,7 @@ public class AffineTransform implements Cloneable, Serializable {
             dstOff += step;
         }
     }
-    
+
     public Vertex deltaTransform(Vertex src, Vertex dst) {
         if (dst == null) {
             dst = pointFactory.create();
@@ -486,7 +486,7 @@ public class AffineTransform implements Cloneable, Serializable {
     {
         float det = getDeterminant();
         if (FloatUtil.abs(det) < ZERO) {
-            throw new NoninvertibleTransformException(determinantIsZero);            
+            throw new NoninvertibleTransformException(determinantIsZero);
         }
 
         while (--length >= 0) {
@@ -554,7 +554,7 @@ public class AffineTransform implements Cloneable, Serializable {
         return false;
     }
 
-    
+
     /**
      * Write AffineTrasform object to the output steam.
      * @param stream - the output stream
@@ -564,12 +564,12 @@ public class AffineTransform implements Cloneable, Serializable {
         stream.defaultWriteObject();
     }
 
-    
+
     /**
      * Read AffineTransform object from the input stream
      * @param stream - the input steam
      * @throws IOException - if there are I/O errors while reading from the input strem
-     * @throws ClassNotFoundException - if class could not be found 
+     * @throws ClassNotFoundException - if class could not be found
      */
     private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
         stream.defaultReadObject();

@@ -72,10 +72,12 @@ public class CoverageFormat2 extends Coverage {
         }
     }
 
+    @Override
     public int getFormat() {
         return 2;
     }
 
+    @Override
     public int findGlyph(int glyphId) {
         for (int i = 0; i < _rangeCount; i++) {
             int n = _rangeRecords[i].getCoverageIndex(glyphId);

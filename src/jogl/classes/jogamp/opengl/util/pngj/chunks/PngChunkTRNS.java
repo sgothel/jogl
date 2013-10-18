@@ -82,7 +82,7 @@ public class PngChunkTRNS extends PngChunkSingle {
 
 	/**
 	 * Set rgb values
-	 * 
+	 *
 	 */
 	public void setRGB(int r, int g, int b) {
 		if (imgInfo.greyscale || imgInfo.indexed)

@@ -71,19 +71,19 @@ public class AWTMisc {
         }
         return (Container) c;
     }
-    
+
     /**
      * Return insets of the component w/o traversing up to parent,
      * i.e. trying Window and JComponent.
      * <p>
-     * Exception is JRootPane. 
+     * Exception is JRootPane.
      * Return it's parent's Window component's insets if available,
      * otherwise return JRootPane's insets.<br>
-     * This is due to <i>experience</i> that <i>some</i> JRootPane's 
+     * This is due to <i>experience</i> that <i>some</i> JRootPane's
      * do not expose valid insets value.
      * </p>
      * @param topLevelOnly if true only returns insets of top-level components, i.e. Window and JRootPanel,
-     * otherwise for JComponent as well. 
+     * otherwise for JComponent as well.
      */
     public static Insets getInsets(Component c, boolean topLevelOnly) {
         if( c instanceof Window ) {
@@ -108,7 +108,7 @@ public class AWTMisc {
          */
         public void run(Component c);
     }
-    
+
     public static int performAction(Container c, Class<?> cType, ComponentAction action) {
         int count = 0;
         final int cc = c.getComponentCount();
@@ -128,18 +128,18 @@ public class AWTMisc {
         }
         return count;
     }
-    
+
     /**
      * Traverse to the next forward or backward component using the
      * container's FocusTraversalPolicy.
-     * 
-     * @param comp the assumed current focuse component 
+     *
+     * @param comp the assumed current focuse component
      * @param forward if true, returns the next focus component, otherwise the previous one.
      * @return
      */
     public static Component getNextFocus(Component comp, boolean forward) {
         Container focusContainer = comp.getFocusCycleRootAncestor();
-        while ( focusContainer != null && 
+        while ( focusContainer != null &&
                 ( !focusContainer.isShowing() || !focusContainer.isFocusable() || !focusContainer.isEnabled() ) )
         {
             comp = focusContainer;
@@ -155,7 +155,7 @@ public class AWTMisc {
         }
         return next;
     }
-    
+
     /**
      * Issue this when your non AWT toolkit gains focus to clear AWT menu path
      */

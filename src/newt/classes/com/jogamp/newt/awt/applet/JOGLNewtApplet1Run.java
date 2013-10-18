@@ -47,12 +47,12 @@ import jogamp.nativewindow.jawt.JAWTUtil;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
 
-/** 
+/**
  * Simple GLEventListener deployment as an applet using JOGL. This demo must be
  * referenced from a web page via an &lt;applet&gt; tag.
- * 
+ *
  *  <p>
- *  Example of an applet tag using GearsES2 within the applet area (normal case): 
+ *  Example of an applet tag using GearsES2 within the applet area (normal case):
  *  <pre>
         &lt;applet width=100 height=100&gt;
            &lt;param name="java_arguments" value="-Dsun.java2d.noddraw=true"&gt;
@@ -65,9 +65,9 @@ import com.jogamp.newt.opengl.GLWindow;
         &lt;/applet&gt;Hello Gears !
  *  </pre>
  *  </p>
- *  
+ *
  *  <p>
- *  Example of an applet tag using GearsES2 in an undecorated, translucent, closeable and always-on-top window: 
+ *  Example of an applet tag using GearsES2 in an undecorated, translucent, closeable and always-on-top window:
  *  <pre>
         &lt;applet width=1 height=1&gt;
            &lt;param name="java_arguments" value="-Dsun.java2d.noddraw=true"&gt;
@@ -95,13 +95,14 @@ import com.jogamp.newt.opengl.GLWindow;
 @SuppressWarnings("serial")
 public class JOGLNewtApplet1Run extends Applet {
     public static final boolean DEBUG = JOGLNewtAppletBase.DEBUG;
-    
+
     GLWindow glWindow = null;
     NewtCanvasAWT newtCanvasAWT = null;
     JOGLNewtAppletBase base = null;
     /** if valid glStandalone:=true (own window) ! */
-    int glXd=Integer.MAX_VALUE, glYd=Integer.MAX_VALUE, glWidth=Integer.MAX_VALUE, glHeight=Integer.MAX_VALUE; 
+    int glXd=Integer.MAX_VALUE, glYd=Integer.MAX_VALUE, glWidth=Integer.MAX_VALUE, glHeight=Integer.MAX_VALUE;
 
+    @Override
     public void init() {
         if(DEBUG) {
             System.err.println("JOGLNewtApplet1Run.init() START");
@@ -135,7 +136,7 @@ public class JOGLNewtApplet1Run extends Applet {
             glCloseable = JOGLNewtAppletBase.str2Bool(getParameter("gl_closeable"), glCloseable);
             glOpaque = JOGLNewtAppletBase.str2Bool(getParameter("gl_opaque"), glOpaque);
             glAlphaBits = JOGLNewtAppletBase.str2Int(getParameter("gl_alpha"), glAlphaBits);
-            glNumMultisampleBuffer = JOGLNewtAppletBase.str2Int(getParameter("gl_multisamplebuffer"), glNumMultisampleBuffer); 
+            glNumMultisampleBuffer = JOGLNewtAppletBase.str2Int(getParameter("gl_multisamplebuffer"), glNumMultisampleBuffer);
             glXd = JOGLNewtAppletBase.str2Int(getParameter("gl_dx"), glXd);
             glYd = JOGLNewtAppletBase.str2Int(getParameter("gl_dy"), glYd);
             glWidth = JOGLNewtAppletBase.str2Int(getParameter("gl_width"), glWidth);
@@ -168,8 +169,8 @@ public class JOGLNewtApplet1Run extends Applet {
             System.err.println("glNumMultisampleBuffer: "+glNumMultisampleBuffer);
             System.err.println("glNoDefaultKeyListener: "+glNoDefaultKeyListener);
         }
-        
-        base = new JOGLNewtAppletBase(glEventListenerClazzName, 
+
+        base = new JOGLNewtAppletBase(glEventListenerClazzName,
                                       glSwapInterval,
                                       glNoDefaultKeyListener,
                                       glCloseable,
@@ -223,6 +224,7 @@ public class JOGLNewtApplet1Run extends Applet {
         }
     }
 
+    @Override
     public void start() {
         if(DEBUG) {
             System.err.println("JOGLNewtApplet1Run.start() START (isVisible "+isVisible()+", isDisplayable "+isDisplayable()+")");
@@ -252,9 +254,9 @@ public class JOGLNewtApplet1Run extends Applet {
             System.err.println("GLWindow: "+glWindow);
         }
         base.start();
-        if( null != newtCanvasAWT && 
+        if( null != newtCanvasAWT &&
             newtCanvasAWT.isOffscreenLayerSurfaceEnabled() &&
-            0 != ( JAWTUtil.JAWT_OSX_CALAYER_QUIRK_POSITION & JAWTUtil.getOSXCALayerQuirks() ) ) {          
+            0 != ( JAWTUtil.JAWT_OSX_CALAYER_QUIRK_POSITION & JAWTUtil.getOSXCALayerQuirks() ) ) {
             // force relayout
             final int cW = newtCanvasAWT.getWidth();
             final int cH = newtCanvasAWT.getHeight();
@@ -266,6 +268,7 @@ public class JOGLNewtApplet1Run extends Applet {
         }
     }
 
+    @Override
     public void stop() {
         if(DEBUG) {
             System.err.println("JOGLNewtApplet1Run.stop() START");
@@ -276,6 +279,7 @@ public class JOGLNewtApplet1Run extends Applet {
         }
     }
 
+    @Override
     public void destroy() {
         if(DEBUG) {
             System.err.println("JOGLNewtApplet1Run.destroy() START");

@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -45,29 +45,29 @@ import com.jogamp.common.nio.Buffers;
  * {@link DataBuffer} specialization using NIO direct buffer of type {@link DataBuffer#TYPE_INT} as storage.
  */
 public final class DirectDataBufferInt extends DataBuffer {
-    
+
     public static class DirectWritableRaster extends WritableRaster {
         protected DirectWritableRaster(SampleModel sampleModel, DirectDataBufferInt dataBuffer, Point origin) {
             super(sampleModel, dataBuffer, origin);
         }
     }
-    
+
     public static class BufferedImageInt extends BufferedImage {
         final int customImageType;
         public BufferedImageInt (int customImageType, ColorModel cm, WritableRaster raster, Hashtable<?,?> properties) {
             super(cm, raster, false /* isRasterPremultiplied */, properties);
-            this.customImageType = customImageType; 
+            this.customImageType = customImageType;
         }
-        
+
         /**
-         * @return one of the custom image-type values {@link BufferedImage#TYPE_INT_ARGB TYPE_INT_ARGB}, 
-         *         {@link BufferedImage#TYPE_INT_ARGB_PRE TYPE_INT_ARGB_PRE}, 
+         * @return one of the custom image-type values {@link BufferedImage#TYPE_INT_ARGB TYPE_INT_ARGB},
+         *         {@link BufferedImage#TYPE_INT_ARGB_PRE TYPE_INT_ARGB_PRE},
          *         {@link BufferedImage#TYPE_INT_RGB TYPE_INT_RGB} or {@link BufferedImage#TYPE_INT_BGR TYPE_INT_BGR}.
          */
         public int getCustomType() {
             return customImageType;
         }
-        
+
         @Override
         public String toString() {
             return new String("BufferedImageInt@"+Integer.toHexString(hashCode())
@@ -75,26 +75,26 @@ public final class DirectDataBufferInt extends DataBuffer {
                               +" "+getColorModel()+" "+getRaster());
         }
     }
-    
+
     /**
-     * Creates a {@link BufferedImageInt} using a {@link DirectColorModel direct color model} in {@link ColorSpace#CS_sRGB sRGB color space}.<br> 
+     * Creates a {@link BufferedImageInt} using a {@link DirectColorModel direct color model} in {@link ColorSpace#CS_sRGB sRGB color space}.<br>
      * It uses a {@link DirectWritableRaster} utilizing {@link DirectDataBufferInt} storage.
      * <p>
-     * Note that due to using the custom storage type {@link DirectDataBufferInt}, the resulting 
+     * Note that due to using the custom storage type {@link DirectDataBufferInt}, the resulting
      * {@link BufferedImage}'s {@link BufferedImage#getType() image-type} is of {@link BufferedImage#TYPE_CUSTOM TYPE_CUSTOM}.
      * We are not able to change this detail, since the AWT image implementation associates the {@link BufferedImage#getType() image-type}
      * with a build-in storage-type.
      * Use {@link BufferedImageInt#getCustomType()} to retrieve the custom image-type, which will return the <code>imageType</code>
-     * value passed here.   
+     * value passed here.
      * </p>
-     *  
+     *
      * @param width
      * @param height
-     * @param imageType one of {@link BufferedImage#TYPE_INT_ARGB TYPE_INT_ARGB}, {@link BufferedImage#TYPE_INT_ARGB_PRE TYPE_INT_ARGB_PRE}, 
+     * @param imageType one of {@link BufferedImage#TYPE_INT_ARGB TYPE_INT_ARGB}, {@link BufferedImage#TYPE_INT_ARGB_PRE TYPE_INT_ARGB_PRE},
      *                         {@link BufferedImage#TYPE_INT_RGB TYPE_INT_RGB} or {@link BufferedImage#TYPE_INT_BGR TYPE_INT_BGR}.
      * @param location origin, if <code>null</code> 0/0 is assumed.
      * @param properties <code>Hashtable</code> of
-     *                  <code>String</code>/<code>Object</code> pairs. Used for {@link BufferedImage#getProperty(String)} etc. 
+     *                  <code>String</code>/<code>Object</code> pairs. Used for {@link BufferedImage#getProperty(String)} etc.
      * @return
      */
     public static BufferedImageInt createBufferedImage(int width, int height, int imageType, Point location, Hashtable<?,?> properties) {
@@ -150,30 +150,30 @@ public final class DirectDataBufferInt extends DataBuffer {
         bandMasks[0] = rmask;
         bandMasks[1] = gmask;
         bandMasks[2] = bmask;
-        
+
         final DirectDataBufferInt dataBuffer = new DirectDataBufferInt(width*height);
         if( null == location ) {
             location = new Point(0,0);
         }
-        final SinglePixelPackedSampleModel sppsm = new SinglePixelPackedSampleModel(dataBuffer.getDataType(), 
+        final SinglePixelPackedSampleModel sppsm = new SinglePixelPackedSampleModel(dataBuffer.getDataType(),
                     width, height, width /* scanLineStride */, bandMasks);
         // IntegerComponentRasters must haveinteger DataBuffers:
         //    final WritableRaster raster = new IntegerInterleavedRaster(sppsm, dataBuffer, location);
         // Not public:
         //    final WritableRaster raster = new SunWritableRaster(sppsm, dataBuffer, location);
         final WritableRaster raster = new DirectWritableRaster(sppsm, dataBuffer, location);
-        
+
         return new BufferedImageInt(imageType, colorModel, raster, properties);
     }
-    
+
     /** Default data bank. */
     private IntBuffer data;
 
     /** All data banks */
     private IntBuffer bankdata[];
-    
+
     /**
-     * Constructs an nio integer-based {@link DataBuffer} with a single bank 
+     * Constructs an nio integer-based {@link DataBuffer} with a single bank
      * and the specified size.
      *
      * @param size The size of the {@link DataBuffer}.
@@ -222,17 +222,17 @@ public final class DirectDataBufferInt extends DataBuffer {
 
     /**
      * Returns the default (first) int data array in {@link DataBuffer}.
-     *    
+     *
      * @return The first integer data array.
      */
     public IntBuffer getData() {
         return data;
     }
 
-    /** 
-     * Returns the data array for the specified bank.    
-     *   
-     * @param bank The bank whose data array you want to get. 
+    /**
+     * Returns the data array for the specified bank.
+     *
+     * @param bank The bank whose data array you want to get.
      * @return The data array for the specified bank.
      */
     public IntBuffer getData(int bank) {
@@ -241,25 +241,27 @@ public final class DirectDataBufferInt extends DataBuffer {
 
     /**
      * Returns the requested data array element from the first (default) bank.
-     * 
+     *
      * @param i The data array element you want to get.
      * @return The requested data array element as an integer.
      * @see #setElem(int, int)
      * @see #setElem(int, int, int)
      */
+    @Override
     public int getElem(int i) {
         return data.get(i+offset);
     }
 
     /**
      * Returns the requested data array element from the specified bank.
-     * 
+     *
      * @param bank The bank from which you want to get a data array element.
      * @param i The data array element you want to get.
      * @return The requested data array element as an integer.
      * @see #setElem(int, int)
      * @see #setElem(int, int, int)
      */
+    @Override
     public int getElem(int bank, int i) {
         return bankdata[bank].get(i+offsets[bank]);
     }
@@ -273,6 +275,7 @@ public final class DirectDataBufferInt extends DataBuffer {
      * @see #getElem(int)
      * @see #getElem(int, int)
      */
+    @Override
     public void setElem(int i, int val) {
         data.put(i+offset, val);
     }
@@ -286,6 +289,7 @@ public final class DirectDataBufferInt extends DataBuffer {
      * @see #getElem(int)
      * @see #getElem(int, int)
      */
+    @Override
     public void setElem(int bank, int i, int val) {
         bankdata[bank].put(i+offsets[bank], val);
     }

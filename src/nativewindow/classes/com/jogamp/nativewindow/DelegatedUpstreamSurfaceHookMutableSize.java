@@ -29,11 +29,11 @@ public class DelegatedUpstreamSurfaceHookMutableSize extends UpstreamSurfaceHook
             upstream.destroy(s);
         }
     }
-    
+
     @Override
     public String toString() {
-        return getClass().getSimpleName()+"[ "+ width + "x" + height + ", " + upstream + "]";        
+        return getClass().getSimpleName()+"[ "+ width + "x" + height + ", " + upstream + "]";
     }
-    
+
 }
 

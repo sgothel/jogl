@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  */
 
 package com.jogamp.newt.event;
@@ -50,7 +50,7 @@ package com.jogamp.newt.event;
  */
 @SuppressWarnings("serial")
 public class NEWTEvent extends java.util.EventObject {
-    /** 
+    /**
      * See {@link #setConsumed(boolean)} for description.
      */
     public static final Object consumedTag = new Object();
@@ -78,11 +78,11 @@ public class NEWTEvent extends java.util.EventObject {
         return when;
     }
 
-    /** 
+    /**
      * Attach the passed object to this event.<br>
      * If an object was previously attached, it will be replaced.<br>
      * Attachments to NEWT events allow users to pass on information
-     * from one custom listener to another, ie custom listener to listener 
+     * from one custom listener to another, ie custom listener to listener
      * communication.
      * @param attachment User application specific object
      */
@@ -90,14 +90,14 @@ public class NEWTEvent extends java.util.EventObject {
         this.attachment = attachment;
     }
 
-    /** 
+    /**
      * @return The user application specific attachment, or null
      */
     public final Object getAttachment() {
         return attachment;
     }
-    
-    /** 
+
+    /**
      * Returns <code>true</code> if this events has been {@link #setConsumed(boolean) consumed},
      * otherwise <code>false</code>.
      * @see #setConsumed(boolean)
@@ -105,8 +105,8 @@ public class NEWTEvent extends java.util.EventObject {
     public final boolean isConsumed() {
         return consumedTag == attachment;
     }
-    
-    /** 
+
+    /**
      * If <code>consumed</code> is <code>true</code>, this event is marked as consumed,
      * ie. the event will not be propagated any further to potential <i>other</i> event listener.
      * Otherwise the event will be propagated to other event listener, the default.
@@ -130,7 +130,8 @@ public class NEWTEvent extends java.util.EventObject {
             setAttachment( null );
         }
     }
-    
+
+    @Override
     public String toString() {
         return toString(null).toString();
     }

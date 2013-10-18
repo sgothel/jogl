@@ -10,7 +10,7 @@ package javax.media.opengl;
  * Sample code which installs this pipeline, manual:
  * <pre>
  *     gl = drawable.setGL(new DebugGL(drawable.getGL()));
- * </pre> 
+ * </pre>
  * For automatic instantiation see {@link GLPipelineFactory#create(String, Class, GL, Object[])}.
  * </p>
  */

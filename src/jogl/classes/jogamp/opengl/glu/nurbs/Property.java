@@ -36,9 +36,9 @@ package jogamp.opengl.glu.nurbs;
 
 /**
  * Class representing property
- * 
+ *
  * @author Tomas Hrasky
- * 
+ *
  */
 public class Property {
 
@@ -59,7 +59,7 @@ public class Property {
 
   /**
    * Makes new property with given parameters
-   * 
+   *
    * @param type
    *            property type
    * @param tag

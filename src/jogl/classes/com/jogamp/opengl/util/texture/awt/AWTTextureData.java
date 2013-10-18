@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
@@ -80,7 +80,7 @@ public class AWTTextureData extends TextureData {
 
     private static final java.awt.image.ColorModel rgbaColorModel =
         new ComponentColorModel(java.awt.color.ColorSpace.getInstance(java.awt.color.ColorSpace.CS_sRGB),
-                                new int[] {8, 8, 8, 8}, true, true, 
+                                new int[] {8, 8, 8, 8}, true, true,
                                 Transparency.TRANSLUCENT,
                                 DataBuffer.TYPE_BYTE);
     private static final java.awt.image.ColorModel rgbColorModel =
@@ -90,7 +90,7 @@ public class AWTTextureData extends TextureData {
                                 DataBuffer.TYPE_BYTE);
 
 
-    /** 
+    /**
      * Constructs a new TextureData object with the specified parameters
      * and data contained in the given BufferedImage. The resulting
      * TextureData "wraps" the contents of the BufferedImage, so if a
@@ -113,7 +113,7 @@ public class AWTTextureData extends TextureData {
      *                       texture
      * @param image          the image containing the texture data
      */
-    public AWTTextureData(GLProfile glp, 
+    public AWTTextureData(GLProfile glp,
                           int internalFormat,
                           int pixelFormat,
                           boolean mipmap,
@@ -142,15 +142,15 @@ public class AWTTextureData extends TextureData {
                   (expectingGL12    && haveGL12))) {
                 revertPixelAttributes();
             }
-        }        
+        }
     }
-    
+
     @Override
     public GLPixelAttributes getPixelAttributes() {
         validatePixelAttributes();
         return super.getPixelAttributes();
     }
-    
+
     @Override
     public int getPixelFormat() {
         validatePixelAttributes();
@@ -246,7 +246,7 @@ public class AWTTextureData extends TextureData {
                         // we can pass the image data directly to OpenGL only if
                         // we have an integral number of pixels in each scanline
                         // and only if the GL_EXT_abgr extension is present
-    
+
                         // NOTE: disabling this code path for now as it appears it's
                         // buggy at least on some NVidia drivers and doesn't perform
                         // the necessary byte swapping (FIXME: needs more
@@ -255,7 +255,7 @@ public class AWTTextureData extends TextureData {
                             pixelAttributes = new GLPixelAttributes(GL2.GL_ABGR_EXT, GL.GL_UNSIGNED_BYTE);
                             rowLength = scanlineStride / 4;
                             alignment = 4;
-    
+
                             // Store a reference to the original image for later in
                             // case it turns out that we don't have GL_EXT_abgr at the
                             // time we're going to do the texture upload to OpenGL

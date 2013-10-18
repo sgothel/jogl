@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -45,17 +45,20 @@ public class ScreenDriver extends ScreenImpl {
     public ScreenDriver() {
     }
 
+    @Override
     protected void createNativeImpl() {
         aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), screen_idx);
         initNative();
     }
 
+    @Override
     protected void closeNativeImpl() { }
 
+    @Override
     protected int validateScreenIndex(int idx) {
-        return 0; // only one screen available 
-    }       
-    
+        return 0; // only one screen available
+    }
+
     @Override
     protected final void collectNativeMonitorModesAndDevicesImpl(MonitorModeProps.Cache cache) {
         int[] props = new int[ MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL ];
@@ -92,20 +95,20 @@ public class ScreenDriver extends ScreenImpl {
     protected boolean setCurrentMonitorModeImpl(final MonitorDevice monitor, final MonitorMode mode) {
         return false;
     }
-    
+
     @Override
     protected void calcVirtualScreenOriginAndSize(Rectangle vOriginSize) {
         vOriginSize.set(0, 0, cachedWidth, cachedHeight);
     }
-    
+
     /** Called from {@link #initNative()}. */
     protected void setScreenSize(int width, int height) {
         cachedWidth = width;
         cachedHeight = height;
     }
-    
+
     private static int cachedWidth = 0;
-    private static int cachedHeight = 0;    
+    private static int cachedHeight = 0;
 
     protected static native boolean initIDs();
     protected native void initNative();

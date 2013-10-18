@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl;
 
 import com.jogamp.common.GlueGenVersion;
@@ -90,16 +90,16 @@ public class JoglVersion extends JogampVersion {
             sb.append("\tnone").append(Platform.getNewline());
         }
         sb.append(Platform.getNewline());
-        return sb;        
+        return sb;
     }
-    
+
     public static StringBuilder getAllAvailableCapabilitiesInfo(AbstractGraphicsDevice device, StringBuilder sb) {
         if(null==sb) {
             sb = new StringBuilder();
         }
         if(null == device) {
             device = GLProfile.getDefaultDevice();
-        }        
+        }
         sb.append(Platform.getNewline()).append(Platform.getNewline());
         sb.append("Desktop Capabilities: ").append(Platform.getNewline());
         getAvailableCapabilitiesInfo(GLDrawableFactory.getDesktopFactory(), device, sb);
@@ -107,7 +107,7 @@ public class JoglVersion extends JogampVersion {
         getAvailableCapabilitiesInfo(GLDrawableFactory.getEGLFactory(), device, sb);
         return sb;
     }
-    
+
     public static StringBuilder getDefaultOpenGLInfo(AbstractGraphicsDevice device, StringBuilder sb, boolean withCapabilitiesInfo) {
         if(null==sb) {
             sb = new StringBuilder();
@@ -126,7 +126,7 @@ public class JoglVersion extends JogampVersion {
         }
         return sb;
     }
-    
+
     public static StringBuilder getGLInfo(GL gl, StringBuilder sb) {
         return getGLInfo(gl, sb, false);
     }
@@ -136,26 +136,26 @@ public class JoglVersion extends JogampVersion {
         if(null==sb) {
             sb = new StringBuilder();
         }
-        
+
         sb.append(VersionUtil.SEPERATOR).append(Platform.getNewline());
         sb.append(device.getClass().getSimpleName()).append("[type ")
                 .append(device.getType()).append(", connection ").append(device.getConnection()).append("]: ").append(Platform.getNewline());
-        GLProfile.glAvailabilityToString(device, sb, "\t", 1);        
+        GLProfile.glAvailabilityToString(device, sb, "\t", 1);
         sb.append(Platform.getNewline());
 
         sb = getGLStrings(gl, sb, withCapabilitiesAndExtensionInfo);
-        
+
         if( withCapabilitiesAndExtensionInfo ) {
-            sb = getAllAvailableCapabilitiesInfo(device, sb);            
+            sb = getAllAvailableCapabilitiesInfo(device, sb);
         }
         return sb;
     }
-    
+
     public static StringBuilder getGLStrings(GL gl, StringBuilder sb) {
         return getGLStrings(gl, sb, true);
     }
-    
-    public static StringBuilder getGLStrings(GL gl, StringBuilder sb, boolean withExtensions) {        
+
+    public static StringBuilder getGLStrings(GL gl, StringBuilder sb, boolean withExtensions) {
         if(null==sb) {
             sb = new StringBuilder();
         }
@@ -175,7 +175,7 @@ public class JoglVersion extends JogampVersion {
         sb.append("GL_RENDERER    ").append(gl.glGetString(GL.GL_RENDERER));
         sb.append(Platform.getNewline());
         sb.append("GL_VERSION     ").append(gl.glGetString(GL.GL_VERSION));
-        sb.append(Platform.getNewline());        
+        sb.append(Platform.getNewline());
         sb.append("GLSL           ").append(gl.hasGLSL()).append(", has-compiler-func: ").append(gl.isFunctionAvailable("glCompileShader"));
         if(gl.hasGLSL()) {
             sb.append(", version: ").append(gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION)).append(" / ").append(ctx.getGLSLVersionNumber());
@@ -200,7 +200,7 @@ public class JoglVersion extends JogampVersion {
         return sb;
     }
 
-    public StringBuilder getBriefOSGLBuildInfo(GL gl, StringBuilder sb) {        
+    public StringBuilder getBriefOSGLBuildInfo(GL gl, StringBuilder sb) {
         if(null==sb) {
             sb = new StringBuilder();
         }
@@ -216,7 +216,7 @@ public class JoglVersion extends JogampVersion {
         sb.append(Platform.getNewline());
         return sb;
     }
-    
+
     public static void main(String args[]) {
         System.err.println(VersionUtil.getPlatformInfo());
         System.err.println(GlueGenVersion.getInstance());

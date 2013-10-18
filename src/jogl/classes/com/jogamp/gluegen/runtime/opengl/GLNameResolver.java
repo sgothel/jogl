@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  */
 package com.jogamp.gluegen.runtime.opengl;
 
@@ -43,12 +43,12 @@ public class GLNameResolver {
     //GL_XYZ : GL_XYZ, GL_GL2_XYZ, GL_ARB_XYZ, GL_OES_XYZ, GL_OML_XYZ
     //
     // Pass-1 Unify ARB extensions with the same value
-    // Pass-2 Unify vendor extensions, 
+    // Pass-2 Unify vendor extensions,
     //        if exist as an ARB extension with the same value.
     // Pass-3 Emit
 
     public static final String[] extensionsARB = { "ARB", "GL2", "OES", "KHR", "OML" };
-    public static final String[] extensionsVEN = { "3DFX", 
+    public static final String[] extensionsVEN = { "3DFX",
                                                    "AMD",
                                                    "ANGLE",
                                                    "ARM",
@@ -158,7 +158,7 @@ public class GLNameResolver {
         return str;
     }
     public static final boolean isExtension(String str, boolean isGLFunc) {
-        return isExtension(extensionsARB, str, isGLFunc) || 
+        return isExtension(extensionsARB, str, isGLFunc) ||
                isExtension(extensionsVEN, str, isGLFunc);
     }
 

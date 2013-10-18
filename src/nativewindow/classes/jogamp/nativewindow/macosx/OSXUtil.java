@@ -41,9 +41,9 @@ import jogamp.nativewindow.NWJNILibLoader;
 import jogamp.nativewindow.ToolkitProperties;
 
 public class OSXUtil implements ToolkitProperties {
-    private static boolean isInit = false;  
+    private static boolean isInit = false;
     private static final boolean DEBUG = Debug.debug("OSXUtil");
-    
+
     /**
      * Called by {@link NativeWindowFactory#initSingleton()}
      * @see ToolkitProperties
@@ -56,10 +56,10 @@ public class OSXUtil implements ToolkitProperties {
           if(!NWJNILibLoader.loadNativeWindow("macosx")) {
               throw new NativeWindowException("NativeWindow MacOSX native library load error.");
           }
-          
+
           if( !initIDs0() ) {
               throw new NativeWindowException("MacOSX: Could not initialized native stub");
-          }  
+          }
           isInit = true;
       }
     }
@@ -69,27 +69,27 @@ public class OSXUtil implements ToolkitProperties {
      * @see ToolkitProperties
      */
     public static void shutdown() { }
-    
+
     /**
      * Called by {@link NativeWindowFactory#initSingleton()}
      * @see ToolkitProperties
      */
     public static boolean requiresToolkitLock() { return false; }
-    
+
     /**
      * Called by {@link NativeWindowFactory#initSingleton()}
      * @see ToolkitProperties
      */
     public static final boolean hasThreadingIssues() { return false; }
-    
+
     public static boolean isNSView(long object) {
         return 0 != object ? isNSView0(object) : false;
     }
-    
+
     public static boolean isNSWindow(long object) {
         return 0 != object ? isNSWindow0(object) : false;
     }
-    
+
     /**
      * In case the <code>windowOrView</code> is top-level,
      * you shall set <code>topLevel</code> to true where
@@ -108,7 +108,7 @@ public class OSXUtil implements ToolkitProperties {
      * @param src_y
      * @return the client position
      */
-    public static Point GetLocationOnScreen(long windowOrView, boolean topLevel, int src_x, int src_y) {      
+    public static Point GetLocationOnScreen(long windowOrView, boolean topLevel, int src_x, int src_y) {
       final Point los = (Point) GetLocationOnScreen0(windowOrView, src_x, src_y);
       if(topLevel) {
           // top-level position -> client window position
@@ -117,11 +117,11 @@ public class OSXUtil implements ToolkitProperties {
       }
       return los;
     }
-    
+
     public static Insets GetInsets(long windowOrView) {
       return (Insets) GetInsets0(windowOrView);
     }
-    
+
     public static long CreateNSWindow(int x, int y, int width, int height) {
       return CreateNSWindow0(x, y, width, height);
     }
@@ -134,11 +134,11 @@ public class OSXUtil implements ToolkitProperties {
     public static long GetNSWindow(long nsView) {
       return GetNSWindow0(nsView);
     }
-    
-    /** 
+
+    /**
      * Create a CALayer suitable to act as a root CALayer.
      * @see #DestroyCALayer(long)
-     * @see #AddCASublayer(long, long) 
+     * @see #AddCASublayer(long, long)
      */
     public static long CreateCALayer(final int width, final int height) {
       final long l = CreateCALayer0(width, height);
@@ -147,8 +147,8 @@ public class OSXUtil implements ToolkitProperties {
       }
       return l;
     }
-    
-    /** 
+
+    /**
      * Attach a sub CALayer to the root CALayer
      * <p>
      * Method will trigger a <code>display</code>
@@ -156,7 +156,7 @@ public class OSXUtil implements ToolkitProperties {
      * </p>
      * <p>
      * Hence it is important that related resources are not locked <i>if</i>
-     * they will be used for creation.  
+     * they will be used for creation.
      * </p>
      * @param caLayerQuirks TODO
      * @see #CreateCALayer(int, int)
@@ -171,18 +171,18 @@ public class OSXUtil implements ToolkitProperties {
         }
         AddCASublayer0(rootCALayer, subCALayer, x, y, width, height, caLayerQuirks);
     }
-    
-    /** 
+
+    /**
      * Fix root and sub CALayer position to 0/0 and size
      * <p>
      * If the sub CALayer implements the Objective-C NativeWindow protocol NWDedicatedSize (e.g. JOGL's MyNSOpenGLLayer),
-     * the dedicated size is passed to the layer, which propagates it appropriately. 
+     * the dedicated size is passed to the layer, which propagates it appropriately.
      * </p>
      * <p>
      * On OSX/Java7 our root CALayer's frame position and size gets corrupted by its NSView,
      * hence we have created the NWDedicatedSize protocol.
      * </p>
-     * 
+     *
      * @param rootCALayer the root surface layer, maybe null.
      * @param subCALayer the client surface layer, maybe null.
      * @param visible TODO
@@ -196,8 +196,8 @@ public class OSXUtil implements ToolkitProperties {
         }
         FixCALayerLayout0(rootCALayer, subCALayer, visible, x, y, width, height, caLayerQuirks);
     }
-    
-    /** 
+
+    /**
      * Detach a sub CALayer from the root CALayer.
      */
     public static void RemoveCASublayer(final long rootCALayer, final long subCALayer) {
@@ -209,11 +209,11 @@ public class OSXUtil implements ToolkitProperties {
         }
         RemoveCASublayer0(rootCALayer, subCALayer);
     }
-    
-    /** 
+
+    /**
      * Destroy a CALayer.
      * @see #CreateCALayer(int, int)
-     */    
+     */
     public static void DestroyCALayer(final long caLayer) {
         if(0==caLayer) {
             throw new IllegalArgumentException("caLayer 0x"+Long.toHexString(caLayer));
@@ -223,13 +223,13 @@ public class OSXUtil implements ToolkitProperties {
         }
         DestroyCALayer0(caLayer);
     }
-    
+
     /**
      * Run on OSX UI main thread.
-     * <p> 
+     * <p>
      * 'waitUntilDone' is implemented on Java site via lock/wait on {@link RunnableTask} to not freeze OSX main thread.
      * </p>
-     * 
+     *
      * @param waitUntilDone
      * @param runnable
      */
@@ -238,10 +238,10 @@ public class OSXUtil implements ToolkitProperties {
             runnable.run(); // don't leave the JVM
         } else {
             // Utilize Java side lock/wait and simply pass the Runnable async to OSX main thread,
-            // otherwise we may freeze the OSX main thread.            
+            // otherwise we may freeze the OSX main thread.
             Throwable throwable = null;
             final Object sync = new Object();
-            final RunnableTask rt = new RunnableTask( runnable, waitUntilDone ? sync : null, true, waitUntilDone ? null : System.err ); 
+            final RunnableTask rt = new RunnableTask( runnable, waitUntilDone ? sync : null, true, waitUntilDone ? null : System.err );
             synchronized(sync) {
                 RunOnMainThread0(rt);
                 if( waitUntilDone ) {
@@ -260,7 +260,7 @@ public class OSXUtil implements ToolkitProperties {
             }
         }
     }
-    
+
     /**
      * Run later on ..
      * @param onMain if true, run on main-thread, otherwise on the current OSX thread.
@@ -270,20 +270,20 @@ public class OSXUtil implements ToolkitProperties {
     public static void RunLater(boolean onMain, Runnable runnable, int delay) {
         RunLater0(onMain, new RunnableTask( runnable, null, true, System.err ), delay);
     }
-    
-    private static Runnable _nop = new Runnable() { public void run() {}; };
-    
-    /** Issues a {@link #RunOnMainThread(boolean, Runnable)} w/ an <i>NOP</i> runnable, while waiting until done. */ 
+
+    private static Runnable _nop = new Runnable() { @Override public void run() {}; };
+
+    /** Issues a {@link #RunOnMainThread(boolean, Runnable)} w/ an <i>NOP</i> runnable, while waiting until done. */
     public static void WaitUntilFinish() {
         RunOnMainThread(true, _nop);
     }
-    
+
     /**
      * Run on OSX UI main thread.
-     * <p> 
+     * <p>
      * 'waitUntilDone' is implemented on Java site via lock/wait on {@link FunctionTask} to not freeze OSX main thread.
      * </p>
-     * 
+     *
      * @param waitUntilDone
      * @param func
      */
@@ -292,10 +292,10 @@ public class OSXUtil implements ToolkitProperties {
             return func.eval(args); // don't leave the JVM
         } else {
             // Utilize Java side lock/wait and simply pass the Runnable async to OSX main thread,
-            // otherwise we may freeze the OSX main thread.            
+            // otherwise we may freeze the OSX main thread.
             Throwable throwable = null;
             final Object sync = new Object();
-            final FunctionTask<R,A> rt = new FunctionTask<R,A>( func, waitUntilDone ? sync : null, true, waitUntilDone ? null : System.err ); 
+            final FunctionTask<R,A> rt = new FunctionTask<R,A>( func, waitUntilDone ? sync : null, true, waitUntilDone ? null : System.err );
             synchronized(sync) {
                 rt.setArgs(args);
                 RunOnMainThread0(rt);
@@ -316,20 +316,20 @@ public class OSXUtil implements ToolkitProperties {
             return rt.getResult();
         }
     }
-    
+
     public static boolean IsMainThread() {
         return IsMainThread0();
     }
-    
+
     /** Returns the screen refresh rate in Hz. If unavailable, returns 60Hz. */
     public static int GetScreenRefreshRate(int scrn_idx) {
         return GetScreenRefreshRate0(scrn_idx);
     }
-    
+
     /***
     private static boolean  isAWTEDTMainThreadInit = false;
     private static boolean  isAWTEDTMainThread;
-    
+
     public synchronized static boolean isAWTEDTMainThread() {
         if(!isAWTEDTMainThreadInit) {
             isAWTEDTMainThreadInit = true;
@@ -343,10 +343,10 @@ public class OSXUtil implements ToolkitProperties {
             } else {
                 isAWTEDTMainThread = false;
             }
-        }        
+        }
         return isAWTEDTMainThread;
     } */
-    
+
     private static native boolean initIDs0();
     private static native boolean isNSView0(long object);
     private static native boolean isNSWindow0(long object);

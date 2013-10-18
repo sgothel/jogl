@@ -35,8 +35,8 @@ import javax.media.opengl.GL;
 import com.jogamp.opengl.util.GLArrayDataEditable;
 
 /**
- * Interleaved fixed function arrays, i.e. where this buffer data 
- * represents many arrays. 
+ * Interleaved fixed function arrays, i.e. where this buffer data
+ * represents many arrays.
  */
 public abstract class GLVBOArrayHandler implements GLArrayHandler {
   protected GLArrayDataEditable ad;
@@ -44,13 +44,14 @@ public abstract class GLVBOArrayHandler implements GLArrayHandler {
   public GLVBOArrayHandler(GLArrayDataEditable ad) {
     this.ad = ad;
   }
-  
+
+  @Override
   public final boolean bindBuffer(GL gl, boolean bind) {
     if( !ad.isVBO() ) {
         return false;
     }
     if(bind) {
-        // always bind and refresh the VBO mgr, 
+        // always bind and refresh the VBO mgr,
         // in case more than one gl*Pointer objects are in use
         gl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
         if(!ad.isVBOWritten()) {
@@ -65,6 +66,6 @@ public abstract class GLVBOArrayHandler implements GLArrayHandler {
     }
     return true;
   }
-  
+
 }
 

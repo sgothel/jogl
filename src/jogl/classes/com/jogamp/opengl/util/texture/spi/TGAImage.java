@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,11 +28,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -146,9 +146,9 @@ public class TGAImage {
             tgaType = TYPE_OLD; // dont try and get footer.
 
             // initial header fields
-            idLength = in.readUnsignedByte();    
+            idLength = in.readUnsignedByte();
             colorMapType = in.readUnsignedByte();
-            imageType = in.readUnsignedByte();    
+            imageType = in.readUnsignedByte();
 
             // color map header fields
             firstEntryIndex = in.readUnsignedShort();
@@ -199,6 +199,7 @@ public class TGAImage {
         public byte[] imageIDbuf()           { return imageIDbuf; }
         public String imageID()              { return imageID; }
 
+        @Override
         public String toString() {
             return "TGA Header " +
                 " id length: " + idLength +
@@ -288,14 +289,14 @@ public class TGAImage {
             throw new IOException("TGADecoder Compressed Grayscale images not supported");
         }
     }
-  
+
     /**
      * This assumes that the body is for a 24 bit or 32 bit for a
      * RGB or ARGB image respectively.
      */
     private void decodeRGBImageU24_32(GLProfile glp, LEDataInputStream dIn) throws IOException {
         setupImage24_32(glp);
-        
+
         int i;    // row index
         int y;    // output row index
         int rawWidth = header.width() * bpp;
@@ -317,14 +318,14 @@ public class TGAImage {
             swapBGR(tmpData, rawWidth, header.height(), bpp);
         data = ByteBuffer.wrap(tmpData);
     }
-    
+
     /**
      * This assumes that the body is for a 24 bit or 32 bit for a
      * RGB or ARGB image respectively.
      */
     private void decodeRGBImageRLE24_32(GLProfile glp, LEDataInputStream dIn) throws IOException {
         setupImage24_32(glp);
-        
+
         byte[] pixel = new byte[bpp];
         int rawWidth = header.width() * bpp;
         byte[] tmpData = new byte[rawWidth * header.height()];
@@ -341,17 +342,17 @@ public class TGAImage {
                 dIn.read(tmpData, i, len * bpp);
             i += bpp * len;
         }
-        
+
         if(format == GL.GL_RGB || format == GL.GL_RGBA)
             swapBGR(tmpData, rawWidth, header.height(), bpp);
         data = ByteBuffer.wrap(tmpData);
     }
-    
+
     private void setupImage24_32(GLProfile glp) {
         bpp = header.pixelDepth / 8;
         switch (header.pixelDepth) {
-        case 24: 
-            format = glp.isGL2GL3() ? GL2GL3.GL_BGR : GL.GL_RGB;   
+        case 24:
+            format = glp.isGL2GL3() ? GL2GL3.GL_BGR : GL.GL_RGB;
             break;
         case 32:
             boolean useBGRA = glp.isGL2GL3();

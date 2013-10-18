@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.newt;
 
 import java.util.List;
@@ -36,7 +36,7 @@ import javax.media.nativewindow.util.RectangleImmutable;
 
 import com.jogamp.common.util.ArrayHashSet;
 
-/** 
+/**
  * Visual output device, i.e. a CRT, LED ..consisting of it's components:<br>
  * <ui>
  *   <li>Immutable
@@ -55,7 +55,7 @@ import com.jogamp.common.util.ArrayHashSet;
  */
 public abstract class MonitorDevice {
     protected final Screen screen; // backref
-    protected final int nativeId; // unique monitor device ID 
+    protected final int nativeId; // unique monitor device ID
     protected final DimensionImmutable sizeMM; // in [mm]
     protected final MonitorMode originalMode;
     protected final ArrayHashSet<MonitorMode> supportedModes; // FIXME: May need to support mutable mode, i.e. adding modes on the fly!
@@ -73,20 +73,21 @@ public abstract class MonitorDevice {
         this.viewport = viewport;
         this.modeChanged = false;
     }
-    
+
     /** Returns the {@link Screen} owning this monitor. */
     public final Screen getScreen() {
         return screen;
     }
-    
+
     /**
-     * Tests equality of two <code>MonitorDevice</code> objects 
+     * Tests equality of two <code>MonitorDevice</code> objects
      * by evaluating equality of it's components:<br>
      * <ul>
      *  <li><code>nativeID</code></li>
      * </ul>
      * <br>
      */
+    @Override
     public final boolean equals(Object obj) {
         if (this == obj) { return true; }
         if (obj instanceof MonitorDevice) {
@@ -102,13 +103,14 @@ public abstract class MonitorDevice {
      *  <li><code>nativeID</code></li>
      * </ul>
      */
+    @Override
     public final int hashCode() {
         return nativeId;
     }
-    
+
     /** @return the immutable unique native Id of this monitor device. */
     public final int getId() { return nativeId; }
-    
+
     /**
      * @return the immutable monitor size in millimeters.
      */
@@ -140,11 +142,11 @@ public abstract class MonitorDevice {
         return supportedModes.getData();
     }
 
-    /** Returns the {@link RectangleImmutable rectangular} portion of the rotated virtual {@link Screen} size represented by this monitor. */  
+    /** Returns the {@link RectangleImmutable rectangular} portion of the rotated virtual {@link Screen} size represented by this monitor. */
     public final RectangleImmutable getViewport() {
         return viewport;
     }
-    
+
     /** Returns <code>true</code> if given coordinates are contained by this {@link #getViewport() viewport}, otherwise <code>false</code>. */
     public final boolean contains(int x, int y) {
         return x >= viewport.getX() &&
@@ -152,8 +154,8 @@ public abstract class MonitorDevice {
                y >= viewport.getY() &&
                y <  viewport.getY() + viewport.getHeight() ;
     }
-    
-    /** 
+
+    /**
      * Returns the coverage of given rectangle w/ this this {@link #getViewport() viewport}, i.e. between <code>0.0</code> and <code>1.0</code>.
      * <p>
      * Coverage is computed by:
@@ -161,12 +163,12 @@ public abstract class MonitorDevice {
      *    isect = viewport.intersection(r);
      *    coverage = area( isect ) / area( viewport ) ;
      * </pre>
-     * </p> 
+     * </p>
      */
     public final float coverage(RectangleImmutable r) {
         return viewport.coverage(r);
     }
-    
+
     /**
      * Returns the union of the given monitor's {@link #getViewport() viewport}.
      * @param result storage for result, will be returned
@@ -186,14 +188,14 @@ public abstract class MonitorDevice {
         result.set(x1, y1, x2 - x1, y2 - y1);
         return result;
     }
-    
+
     public final boolean isOriginalMode() {
         return currentMode.hashCode() == originalMode.hashCode();
     }
-    
+
     /**
      * Returns <code>true</true> if the {@link MonitorMode}
-     * has been changed programmatic via this API <i>only</i>, otherwise <code>false</code>. 
+     * has been changed programmatic via this API <i>only</i>, otherwise <code>false</code>.
      * <p>
      * Note: We cannot guarantee that we won't interfere w/ another running
      * application's screen mode change or vice versa.
@@ -202,7 +204,7 @@ public abstract class MonitorDevice {
     public final boolean isModeChangedByUs() {
         return modeChanged && !isOriginalMode();
     }
-    
+
     /**
      * Returns the cached current {@link MonitorMode} w/o native query.
      * <p>
@@ -212,7 +214,7 @@ public abstract class MonitorDevice {
     public final MonitorMode getCurrentMode() {
         return currentMode;
     }
-    
+
     /**
      * Returns the current {@link MonitorMode} resulting from a native query.
      * <p>
@@ -228,6 +230,7 @@ public abstract class MonitorDevice {
      */
     public abstract boolean setCurrentMode(MonitorMode mode);
 
+    @Override
     public String toString() {
         return "Monitor[Id "+Display.toHexString(nativeId)+", "+sizeMM+" mm, viewport "+viewport+ ", orig "+originalMode+", curr "+currentMode+
                ", modeChanged "+modeChanged+", modeCount "+supportedModes.size()+"]";

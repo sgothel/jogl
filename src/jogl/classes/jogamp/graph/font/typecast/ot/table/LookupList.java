@@ -67,11 +67,11 @@ public class LookupList {
     /** Creates new LookupList */
     public LookupList(DataInputStream dis, int offset, LookupSubtableFactory factory)
     throws IOException {
-        
+
         // Ensure we're in the right place
         dis.reset();
         dis.skipBytes(offset);
-        
+
         // Start reading
         _lookupCount = dis.readUnsignedShort();
         _lookupOffsets = new int[_lookupCount];
@@ -87,11 +87,11 @@ public class LookupList {
     public int getLookupCount() {
         return _lookupCount;
     }
-    
+
     public int getLookupOffset(int i) {
         return _lookupOffsets[i];
     }
-    
+
     public Lookup getLookup(int i) {
         return _lookups[i];
     }

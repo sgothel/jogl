@@ -280,7 +280,7 @@ public class WindowsWGLContext extends GLContextImpl {
     if (DEBUG) {
         System.err.println(getThreadName() + ": createImpl: START "+glCaps+", share "+shareWith);
     }
-    
+
     // Windows can set up sharing of display lists after creation time
     long share;
     if ( null != shareWith ) {
@@ -405,7 +405,7 @@ public class WindowsWGLContext extends GLContextImpl {
   protected void  makeCurrentImpl() throws GLException {
     if (WGL.wglGetCurrentContext() != contextHandle) {
       if (!wglMakeContextCurrent(drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
-        throw new GLException("Error making context " + toHexString(contextHandle) + 
+        throw new GLException("Error making context " + toHexString(contextHandle) +
                               " current on Thread " + getThreadName() +
                               ", drawableWrite " + toHexString(drawable.getHandle()) +
                               ", drawableRead "+ toHexString(drawableRead.getHandle()) +
@@ -563,13 +563,13 @@ public class WindowsWGLContext extends GLContextImpl {
   }
 
   @Override
-  public final ByteBuffer glAllocateMemoryNV(int size, float readFrequency, float writeFrequency, float priority) {  
+  public final ByteBuffer glAllocateMemoryNV(int size, float readFrequency, float writeFrequency, float priority) {
     return getWGLExt().wglAllocateMemoryNV(size, readFrequency, writeFrequency, priority);
   }
-  
+
   @Override
   public final void glFreeMemoryNV(ByteBuffer pointer) {
     getWGLExt().wglFreeMemoryNV(pointer);
   }
-  
+
 }

@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -67,7 +67,7 @@ public class BuildComposablePipeline {
      * By extra command-line argument: <code>prolog_xor_downstream</code>.
      * <p>
      * If true, either prolog (if exist) is called or downstream's method, but not both.
-     * By default, both methods would be called. 
+     * By default, both methods would be called.
      * </p>
      * <p>Default: false</p>
      */
@@ -81,7 +81,7 @@ public class BuildComposablePipeline {
      * <p>Default: false</p>
      */
     public static final int GEN_GL_IDENTITY_BY_ASSIGNABLE_CLASS = 1 << 4;
-    
+
     int mode;
     private String outputDir;
     private String outputPackage;
@@ -402,6 +402,7 @@ public class BuildComposablePipeline {
                     ifNames,
                     null,
                     new CodeGenUtils.EmissionCallback() {
+                        @Override
                         public void emit(PrintWriter w) {
                             emitClassDocComment(w);
                         }
@@ -752,18 +753,22 @@ public class BuildComposablePipeline {
             this.mode = mode;
         }
 
+        @Override
         protected String getOutputName() {
             return className;
         }
 
+        @Override
         protected int getMode() {
             return mode;
         }
 
+        @Override
         protected boolean emptyMethodAllowed() {
             return true;
         }
 
+        @Override
         protected boolean emptyDownstreamAllowed() {
             return true;
         }
@@ -773,6 +778,7 @@ public class BuildComposablePipeline {
             super.preMethodEmissionHook(output);
         }
 
+        @Override
         protected void constructorHook(PrintWriter output) {
             output.print("  public " + getOutputName() + "(");
             output.print(downstreamName + " " + getDownstreamObjectName());
@@ -803,6 +809,7 @@ public class BuildComposablePipeline {
             }
         }
 
+        @Override
         protected void emitClassDocComment(PrintWriter output) {
             output.println("/**");
             output.println(" * Composable pipeline {@link " + outputPackage + "." + outputName + "}, implementing the interface");
@@ -837,10 +844,12 @@ public class BuildComposablePipeline {
             output.println("*/");
         }
 
+        @Override
         protected boolean hasPreDownstreamCallHook(Method m) {
             return null != getMethod(prologClassOpt, m);
         }
 
+        @Override
         protected void preDownstreamCallHook(PrintWriter output, Method m) {
             if (null != prologNameOpt) {
                 output.print(getPrologObjectNameOpt());
@@ -852,10 +861,12 @@ public class BuildComposablePipeline {
             }
         }
 
+        @Override
         protected boolean hasPostDownstreamCallHook(Method m) {
             return false;
         }
 
+        @Override
         protected void postDownstreamCallHook(PrintWriter output, Method m) {
         }
     } // end class CustomPipeline
@@ -869,18 +880,22 @@ public class BuildComposablePipeline {
             className = "Debug" + getBaseInterfaceName();
         }
 
+        @Override
         protected String getOutputName() {
             return className;
         }
 
+        @Override
         protected int getMode() {
             return 0;
         }
 
+        @Override
         protected boolean emptyMethodAllowed() {
             return false;
         }
 
+        @Override
         protected boolean emptyDownstreamAllowed() {
             return false;
         }
@@ -890,6 +905,7 @@ public class BuildComposablePipeline {
             super.preMethodEmissionHook(output);
         }
 
+        @Override
         protected void constructorHook(PrintWriter output) {
             output.print("  public " + getOutputName() + "(");
             output.println(downstreamName + " " + getDownstreamObjectName() + ")");
@@ -971,6 +987,7 @@ public class BuildComposablePipeline {
             output.println("  private GLContext _context;");
         }
 
+        @Override
         protected void emitClassDocComment(PrintWriter output) {
             output.println("/**");
             output.println(" * <p>");
@@ -988,18 +1005,22 @@ public class BuildComposablePipeline {
             output.println(" */");
         }
 
+        @Override
         protected boolean hasPreDownstreamCallHook(Method m) {
             return true;
         }
 
+        @Override
         protected void preDownstreamCallHook(PrintWriter output, Method m) {
             output.println("    checkContext();");
         }
 
+        @Override
         protected boolean hasPostDownstreamCallHook(Method m) {
             return true;
         }
 
+        @Override
         protected void postDownstreamCallHook(PrintWriter output, Method m) {
             if (m.getName().equals("glBegin")) {
                 output.println("    insideBeginEndPair = true;");
@@ -1041,18 +1062,22 @@ public class BuildComposablePipeline {
             className = "Trace" + getBaseInterfaceName();
         }
 
+        @Override
         protected String getOutputName() {
             return className;
         }
 
+        @Override
         protected int getMode() {
             return 0;
         }
 
+        @Override
         protected boolean emptyMethodAllowed() {
             return false;
         }
 
+        @Override
         protected boolean emptyDownstreamAllowed() {
             return false;
         }
@@ -1062,6 +1087,7 @@ public class BuildComposablePipeline {
             super.preMethodEmissionHook(output);
         }
 
+        @Override
         protected void constructorHook(PrintWriter output) {
             output.print("  public " + getOutputName() + "(");
             output.println(downstreamName + " " + getDownstreamObjectName() + ", PrintStream " + getOutputStreamName() + ")");
@@ -1112,6 +1138,7 @@ public class BuildComposablePipeline {
             output.println("}");
         }
 
+        @Override
         protected void emitClassDocComment(PrintWriter output) {
             output.println("/**");
             output.println(" * <p>");
@@ -1129,10 +1156,12 @@ public class BuildComposablePipeline {
             output.println(" */");
         }
 
+        @Override
         protected boolean hasPreDownstreamCallHook(Method m) {
             return true;
         }
 
+        @Override
         protected void preDownstreamCallHook(PrintWriter output, Method m) {
             if (m.getName().equals("glEnd") || m.getName().equals("glEndList")) {
                 output.println("indent-=2;");
@@ -1146,10 +1175,12 @@ public class BuildComposablePipeline {
             output.println(");");
         }
 
+        @Override
         protected boolean hasPostDownstreamCallHook(Method m) {
             return true;
         }
 
+        @Override
         protected void postDownstreamCallHook(PrintWriter output, Method m) {
             Class<?> ret = m.getReturnType();
             if (ret != Void.TYPE) {

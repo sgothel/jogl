@@ -77,16 +77,16 @@ public class GLUniformData {
           sb = new StringBuilder();
       }
       sb.append("GLUniformData[name ").append(name).
-                       append(", location ").append(location). 
+                       append(", location ").append(location).
                        append(", size ").append(rows).append("x").append(columns).
-                       append(", count ").append(count). 
-                       append(", data ");      
+                       append(", count ").append(count).
+                       append(", data ");
       if(isMatrix() && data instanceof FloatBuffer) {
           sb.append("\n");
-          final FloatBuffer fb = (FloatBuffer)getBuffer(); 
+          final FloatBuffer fb = (FloatBuffer)getBuffer();
           for(int i=0; i<count; i++) {
               FloatUtil.matrixToString(sb, i+": ", "%10.5f", fb, i*rows*columns, rows, columns, false);
-              sb.append(",\n");              
+              sb.append(",\n");
           }
       } else if(isBuffer()) {
           Buffers.toString(sb, null, getBuffer());
@@ -96,7 +96,8 @@ public class GLUniformData {
       sb.append("]");
       return sb;
     }
-    
+
+    @Override
     public String toString() {
         return toString(null).toString();
     }
@@ -166,7 +167,7 @@ public class GLUniformData {
         location = gl.glGetUniformLocation(program, name);
         return location;
     }
-    
+
     public Object getObject() {
         return data;
     }

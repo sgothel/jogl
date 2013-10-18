@@ -75,11 +75,11 @@ public class OTFontCollection {
     public OTFont getFont(int i) {
         return _fonts[i];
     }
-    
+
     public int getFontCount() {
         return _fonts.length;
     }
-    
+
     public TTCHeader getTtcHeader() {
         return _ttcHeader;
     }

@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -65,18 +65,18 @@ import jogamp.opengl.util.av.impl.FFMPEGNatives.SampleFormat;
  * Besides the default BSD/Linux/.. repositories and installations,
  * precompiled binaries can be found at the
  * <a href="#libavavail">listed location below</a>.
- * </p> 
- * 
+ * </p>
+ *
  * <a name="implspecifics"><h5>Implementation specifics</h5></a>
  * <p>
- * The decoded video frame is written directly into an OpenGL texture 
- * on the GPU in it's native format. A custom fragment shader converts 
- * the native pixelformat to a usable <i>RGB</i> format if required. 
- * Hence only 1 copy is required before bloating the picture 
+ * The decoded video frame is written directly into an OpenGL texture
+ * on the GPU in it's native format. A custom fragment shader converts
+ * the native pixelformat to a usable <i>RGB</i> format if required.
+ * Hence only 1 copy is required before bloating the picture
  * from <i>YUV*</i> to <i>RGB</i>, for example.
- * </p> 
+ * </p>
  * <p>
- * Implements pixel format conversion to <i>RGB</i> via  
+ * Implements pixel format conversion to <i>RGB</i> via
  * fragment shader texture-lookup functions:
  * <ul>
  *   <li>{@link PixelFormat#YUV420P}</li>
@@ -88,10 +88,10 @@ import jogamp.opengl.util.av.impl.FFMPEGNatives.SampleFormat;
  * </ul>
  * </p>
  * <p>
- * 
+ *
  * <a name="libavspecifics"><h5>Libav Specifics</h5></a>
  * <p>
- * Utilizes a slim dynamic and native binding to the Lib_av 
+ * Utilizes a slim dynamic and native binding to the Lib_av
  * libraries:
  * <ul>
  *   <li>libavcodec</li>
@@ -99,9 +99,9 @@ import jogamp.opengl.util.av.impl.FFMPEGNatives.SampleFormat;
  *   <li>libavutil</li>
  *   <li>libavresample (opt)</li>
  *   <li>libavdevice (opt)</li>
- * </ul> 
+ * </ul>
  * </p>
- * 
+ *
  * <a name="compatibility"><h5>LibAV Compatibility</h5></a>
  * <p>
  * Currently we are binary compatible w/:
@@ -115,25 +115,25 @@ import jogamp.opengl.util.av.impl.FFMPEGNatives.SampleFormat;
  * <p>
  * See http://upstream-tracker.org/versions/libav.html
  * </p>
- * <p> 
- * Check tag 'FIXME: Add more planar formats !' 
+ * <p>
+ * Check tag 'FIXME: Add more planar formats !'
  * here and in the corresponding native code
  * <code>jogl/src/jogl/native/libav/ffmpeg_impl_template.c</code>
  * </p>
- * 
- * 
+ *
+ *
  * <a name="todo"><h5>TODO:</h5></a>
  * <p>
  * <ul>
  *   <li>better audio synchronization handling? (video is synchronized)</li>
- * </ul> 
+ * </ul>
  * </p>
- * 
+ *
  * <a name="libavavail"><h5>FFMPEG / LibAV Availability</h5></a>
  * <p>
  * <ul>
  *   <li>GNU/Linux: ffmpeg or libav are deployed in most distributions.</li>
- *   <li>Windows: 
+ *   <li>Windows:
  *   <ul>
  *     <li>http://ffmpeg.zeranoe.com/builds/ (ffmpeg) <i>recommended, works w/ dshow</i></li>
  *     <li>http://win32.libav.org/releases/  (libav)</li>
@@ -144,22 +144,22 @@ import jogamp.opengl.util.av.impl.FFMPEGNatives.SampleFormat;
  *       pkt install pkg:/video/ffmpeg
  *       </pre></li>
  * </ul>
- * </p> 
+ * </p>
  */
 public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
 
     /** POSIX ENOSYS {@value}: Function not implemented. FIXME: Move to GlueGen ?!*/
     private static final int ENOSYS = 38;
-    
+
     // Instance data
     private static final FFMPEGNatives natives;
     private static final int avUtilMajorVersionCC;
     private static final int avFormatMajorVersionCC;
-    private static final int avCodecMajorVersionCC;    
+    private static final int avCodecMajorVersionCC;
     private static final int avResampleMajorVersionCC;
     private static final int swResampleMajorVersionCC;
     private static final boolean available;
-    
+
     static {
         final boolean libAVGood = FFMPEGDynamicLibraryBundleInfo.initSingleton();
         final boolean libAVVersionGood;
@@ -171,7 +171,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                 avUtilMajorVersionCC = natives.getAvUtilMajorVersionCC0();
                 avResampleMajorVersionCC = natives.getAvResampleMajorVersionCC0();
                 swResampleMajorVersionCC = natives.getSwResampleMajorVersionCC0();
-            } else {            
+            } else {
                 avUtilMajorVersionCC = 0;
                 avFormatMajorVersionCC = 0;
                 avCodecMajorVersionCC = 0;
@@ -211,25 +211,25 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         }
         available = libAVGood && libAVVersionGood && null != natives;
     }
-    
+
     public static final boolean isAvailable() { return available; }
 
     //
     // General
     //
-    
-    private long moviePtr = 0;    
-    
+
+    private long moviePtr = 0;
+
     //
     // Video
     //
-    
+
     private String texLookupFuncName = "ffmpegTexture2D";
-    private boolean usesTexLookupShader = false;    
+    private boolean usesTexLookupShader = false;
     private PixelFormat vPixelFmt = null;
     private int vPlanes = 0;
     private int vBitsPerPixel = 0;
-    private int vBytesPerPixelPerPlane = 0;    
+    private int vBytesPerPixelPerPlane = 0;
     private int texWidth, texHeight; // overall (stuffing planes in one texture)
     private String singleTexComp = "r";
     private GLPixelStorageModes psm;
@@ -237,10 +237,10 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     //
     // Audio
     //
-    
+
     private AudioSink.AudioFormat avChosenAudioFormat;
     private int audioSamplesPerFrameAndChannel = 0;
-    
+
     public FFMPEGMediaPlayer() {
         if(!available) {
             throw new RuntimeException("FFMPEGMediaPlayer not available");
@@ -263,14 +263,14 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     }
     private final void destroyAudioSink() {
         final AudioSink _audioSink = audioSink;
-        if( null != _audioSink ) {            
+        if( null != _audioSink ) {
             audioSink = null;
             _audioSink.destroy();
         }
     }
-    
+
     public static final String dev_video_linux = "/dev/video";
-    
+
     @Override
     protected final void initStreamImpl(int vid, int aid) throws IOException {
         if(0==moviePtr) {
@@ -279,7 +279,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         if(DEBUG) {
             System.err.println("initStream: p1 "+this);
         }
-        
+
         final String streamLocS=IOUtil.decodeFromURI(streamLoc.toString());
         destroyAudioSink();
         if( GLMediaPlayer.STREAM_ID_NONE == aid ) {
@@ -291,7 +291,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         if(DEBUG) {
             System.err.println("initStream: p2 preferred "+preferredAudioFormat+", "+this);
         }
-        
+
         final boolean isCameraInput = null != cameraPath;
         final String resStreamLocS;
         // int rw=640, rh=480, rr=15;
@@ -314,7 +314,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                 case OPENKODE:
                 default:
                     resStreamLocS = streamLocS; // FIXME: ??
-                    break;            
+                    break;
             }
             if( null != cameraProps ) {
                 sizes = cameraProps.get(CameraPropSizeS);
@@ -346,6 +346,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         if( null != gl && STREAM_ID_NONE != vid ) {
             final GLContextImpl ctx = (GLContextImpl)gl.getContext();
             AccessController.doPrivileged(new PrivilegedAction<Object>() {
+                @Override
                 public Object run() {
                     final ProcAddressTable pt = ctx.getGLProcAddressTable();
                     final long procAddrGLTexSubImage2D = pt.getAddressFor("glTexSubImage2D");
@@ -362,7 +363,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         if(DEBUG) {
             System.err.println("initGL: p3 avChosen "+avChosenAudioFormat);
         }
-        
+
         if( STREAM_ID_NONE == aid ) {
             audioSink.destroy();
             audioSink = AudioSinkFactory.createNull();
@@ -386,7 +387,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             System.err.println("initGL: p4 chosen "+avChosenAudioFormat);
             System.err.println("initGL: p4 chosen "+audioSink);
         }
-        
+
         if( null != gl && STREAM_ID_NONE != vid ) {
             int tf, tif=GL.GL_RGBA; // texture format and internal format
             int tt = GL.GL_UNSIGNED_BYTE;
@@ -413,9 +414,9 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                             tf = GL2ES2.GL_BGRA;  tif=GL.GL_RGBA;  break;
                         } else {
                             tf = GL2ES2.GL_RGBA;  tif=GL.GL_RGBA;  break;
-                        }                    
+                        }
                 default: throw new RuntimeException("Unsupported bytes-per-pixel / plane "+vBytesPerPixelPerPlane);
-            }        
+            }
             setTextureFormat(tif, tf);
             setTextureType(tt);
             if(DEBUG) {
@@ -423,12 +424,12 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                                    ", tex "+texWidth+"x"+texHeight+", usesTexLookupShader "+usesTexLookupShader);
             }
         }
-    }    
+    }
     @Override
     protected final TextureFrame createTexImage(GL gl, int texName) {
         return new TextureFrame( createTexImageImpl(gl, texName, texWidth, texHeight) );
     }
-    
+
     /**
      * @param sampleRate sample rate in Hz (1/s)
      * @param sampleSize sample size in bits
@@ -439,10 +440,10 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * @param littleEndian true for little-endian, false for big endian
      * @return
      */
-    
+
     /**
      * Native callback
-     * Converts the given libav/ffmpeg values to {@link AudioFormat} and returns {@link AudioSink#isSupported(AudioFormat)}. 
+     * Converts the given libav/ffmpeg values to {@link AudioFormat} and returns {@link AudioSink#isSupported(AudioFormat)}.
      * @param audioSampleFmt ffmpeg/libav audio-sample-format, see {@link SampleFormat}.
      * @param audioSampleRate sample rate in Hz (1/s)
      * @param audioChannels number of channels
@@ -456,9 +457,9 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         }
         return res;
     }
-    
+
     /**
-     * Returns {@link AudioFormat} as converted from the given libav/ffmpeg values. 
+     * Returns {@link AudioFormat} as converted from the given libav/ffmpeg values.
      * @param audioSampleFmt ffmpeg/libav audio-sample-format, see {@link SampleFormat}.
      * @param audioSampleRate sample rate in Hz (1/s)
      * @param audioChannels number of channels
@@ -506,7 +507,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         }
         return new AudioFormat(audioSampleRate, sampleSize, audioChannels, signed, fixedP, planar, true /* littleEndian */);
     }
-    
+
     /**
      * Native callback
      * @param vid
@@ -523,9 +524,9 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * @param audioChannels
      * @param audioSamplesPerFrameAndChannel in audio samples per frame and channel
      */
-    void setupFFAttributes(int vid, int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,              
+    void setupFFAttributes(int vid, int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,
                           int tWd0, int tWd1, int tWd2, int vW, int vH,
-                          int aid, int audioSampleFmt, int audioSampleRate, 
+                          int aid, int audioSampleFmt, int audioSampleRate,
                           int audioChannels, int audioSamplesPerFrameAndChannel) {
         // defaults ..
         vPixelFmt = null;
@@ -534,28 +535,28 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         vBytesPerPixelPerPlane = 0;
         usesTexLookupShader = false;
         texWidth = 0; texHeight = 0;
-        
+
         final int[] vTexWidth = { 0, 0, 0 }; // per plane
-        
+
         if( STREAM_ID_NONE != vid ) {
             vPixelFmt = PixelFormat.valueOf(pixFmt);
             vPlanes = planes;
             vBitsPerPixel = bitsPerPixel;
-            vBytesPerPixelPerPlane = bytesPerPixelPerPlane;                        
+            vBytesPerPixelPerPlane = bytesPerPixelPerPlane;
             vTexWidth[0] = tWd0; vTexWidth[1] = tWd1; vTexWidth[2] = tWd2;
-            
+
             switch(vPixelFmt) {
                 case YUVJ420P:
                 case YUV420P: // < planar YUV 4:2:0, 12bpp, (1 Cr & Cb sample per 2x2 Y samples)
                     usesTexLookupShader = true;
                     // YUV420P: Adding U+V on right side of fixed height texture,
                     //          since width is already aligned by decoder.
-                    //          Splitting texture to 4 quadrants: 
+                    //          Splitting texture to 4 quadrants:
                     //            Y covers left top/low quadrant
                     //            U on top-right quadrant.
                     //            V on low-right quadrant.
                     // Y=w*h, U=w/2*h/2, V=w/2*h/2
-                    //   w*h + 2 ( w/2 * h/2 ) 
+                    //   w*h + 2 ( w/2 * h/2 )
                     //   w*h + w*h/2
                     texWidth = vTexWidth[0] + vTexWidth[1]; texHeight = vH;
                     break;
@@ -573,27 +574,27 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                 case YUYV422: // < packed YUV 4:2:2, 2x 16bpp, Y0 Cb Y1 Cr - stuffed into RGBA half width texture
                 case BGR24:
                     usesTexLookupShader = true;
-                    texWidth = vTexWidth[0]; texHeight = vH; 
+                    texWidth = vTexWidth[0]; texHeight = vH;
                     break;
-                    
+
                 case RGB24:
                 case ARGB:
                 case RGBA:
                 case ABGR:
                 case BGRA:
                     usesTexLookupShader = false;
-                    texWidth = vTexWidth[0]; texHeight = vH; 
+                    texWidth = vTexWidth[0]; texHeight = vH;
                     break;
                 default: // FIXME: Add more formats !
                     throw new RuntimeException("Unsupported pixelformat: "+vPixelFmt);
             }
         }
-        
+
         // defaults ..
         final SampleFormat aSampleFmt;
         avChosenAudioFormat = null;;
         this.audioSamplesPerFrameAndChannel = 0;
-        
+
         if( STREAM_ID_NONE != aid ) {
             aSampleFmt = SampleFormat.valueOf(audioSampleFmt);
             avChosenAudioFormat = avAudioFormat2Local(aSampleFmt, audioSampleRate, audioChannels);
@@ -601,7 +602,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         } else {
             aSampleFmt = null;
         }
-        
+
         if(DEBUG) {
             System.err.println("audio: id "+aid+", fmt "+aSampleFmt+", "+avChosenAudioFormat+", aFrameSize/fc "+audioSamplesPerFrameAndChannel);
             System.err.println("video: id "+vid+", fmt "+vW+"x"+vH+", "+vPixelFmt+", planes "+vPlanes+", bpp "+vBitsPerPixel+"/"+vBytesPerPixelPerPlane+", usesTexLookupShader "+usesTexLookupShader);
@@ -612,7 +613,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             System.err.println(this.toString());
         }
     }
-    
+
     /**
      * Native callback
      * @param isInGLOrientation
@@ -624,13 +625,13 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * @param tWd1
      * @param tWd2
      */
-    void updateVidAttributes(boolean isInGLOrientation, int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,              
+    void updateVidAttributes(boolean isInGLOrientation, int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,
                              int tWd0, int tWd1, int tWd2, int vW, int vH) {
     }
-    
+
     /**
      * {@inheritDoc}
-     * 
+     *
      * If this implementation generates a specialized shader,
      * it allows the user to override the default function name <code>ffmpegTexture2D</code>.
      * Otherwise the call is delegated to it's super class.
@@ -646,15 +647,15 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             }
             return texLookupFuncName;
         }
-        return super.getTextureLookupFunctionName(desiredFuncName);        
+        return super.getTextureLookupFunctionName(desiredFuncName);
     }
-    
+
     /**
      * {@inheritDoc}
-     * 
+     *
      * Depending on the pixelformat, a specific conversion shader is being created,
-     * e.g. YUV420P to RGB. Otherwise the call is delegated to it's super class.  
-     */ 
+     * e.g. YUV420P to RGB. Otherwise the call is delegated to it's super class.
+     */
     @Override
     public final String getTextureLookupFragmentShaderImpl() throws IllegalStateException {
       if(State.Uninitialized == state) {
@@ -685,7 +686,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
               "  return vec4(r, g, b, 1);\n"+
               "}\n"
           ;
-          
+
         case YUVJ422P:
         case YUV422P: ///< planar YUV 4:2:2, 16bpp, (1 Cr & Cb sample per 2x1 Y samples)
           return
@@ -706,7 +707,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
               "  return vec4(r, g, b, 1);\n"+
               "}\n"
           ;
-            
+
         case YUYV422: // < packed YUV 4:2:2, 2 x 16bpp, [Y0 Cb] [Y1 Cr]
                       // Stuffed into RGBA half width texture
           return
@@ -740,9 +741,9 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
 
         default: // FIXME: Add more formats !
           throw new InternalError("Add proper mapping of: vPixelFmt "+vPixelFmt+", usesTexLookupShader "+usesTexLookupShader);
-      }        
+      }
     }
-    
+
     @Override
     public final boolean playImpl() {
         if(0==moviePtr) {
@@ -754,7 +755,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         }
         return true;
     }
-    
+
     @Override
     public final boolean pauseImpl() {
         if(0==moviePtr) {
@@ -780,12 +781,12 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         psm.setUnpackAlignment(gl, 1); // RGBA ? 4 : 1
         gl.glActiveTexture(GL.GL_TEXTURE0+getTextureUnit());
     }
-    
+
     @Override
     protected void postNextTextureImpl(GL gl) {
         psm.restore(gl);
     }
-    
+
     @Override
     protected final int getNextTextureImpl(GL gl, TextureFrame nextFrame) {
         if(0==moviePtr) {
@@ -806,14 +807,14 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             nextFrame.setPTS(vPTS);
         }
         return vPTS;
-    }    
-    
+    }
+
     final void pushSound(ByteBuffer sampleData, int data_size, int audio_pts) {
         setFirstAudioPTS2SCR( audio_pts );
         if( 1.0f == playSpeed || audioSinkPlaySpeedSet ) {
             audioSink.enqueueData( audio_pts, sampleData, data_size);
         }
     }
-    
+
 }
 

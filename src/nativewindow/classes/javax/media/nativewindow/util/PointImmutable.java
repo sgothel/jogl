@@ -41,12 +41,12 @@ public interface PointImmutable extends WriteCloneable, Comparable<PointImmutabl
     /**
      * <p>
      * Compares the square of the position.
-     * </p> 
+     * </p>
      * {@inheritDoc}
      */
     @Override
     public int compareTo(final PointImmutable d);
-    
+
     /**
      * Checks whether two points objects are equal. Two instances
      * of <code>PointReadOnly</code> are equal if the two components
@@ -54,8 +54,10 @@ public interface PointImmutable extends WriteCloneable, Comparable<PointImmutabl
      * @return <code>true</code> if the two points are equal;
      *         otherwise <code>false</code>.
      */
+    @Override
     public boolean equals(Object obj);
 
+    @Override
     public int hashCode();
-    
+
 }

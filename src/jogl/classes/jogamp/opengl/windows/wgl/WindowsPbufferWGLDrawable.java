@@ -127,7 +127,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         }
 
         final int winattrPbuffer = GLGraphicsConfigurationUtil.getExclusiveWinAttributeBits(false /* onscreen */, false /* fbo */, true /* pbuffer */, false /* bitmap */);
-        
+
         final IntBuffer iattributes = Buffers.newDirectIntBuffer(2*WindowsWGLGraphicsConfiguration.MAX_ATTRIBS);
         final FloatBuffer fattributes = Buffers.newDirectFloatBuffer(1);
         int[]   floatModeTmp = new int[1];
@@ -162,7 +162,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         if (DEBUG) {
           System.err.println("" + nformats + " suitable pixel formats found");
           for (int i = 0; i < nformats; i++) {
-            WGLGLCapabilities dbgCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedResource, device, glProfile, 
+            WGLGLCapabilities dbgCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedResource, device, glProfile,
                                           sharedHdc, pformats.get(i), winattrPbuffer);
             System.err.println("pixel format " + pformats.get(i) + " (index " + i + "): " + dbgCaps);
           }
@@ -209,7 +209,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
 
         // Re-query chosen pixel format
         {
-          WGLGLCapabilities newCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedResource, device, glProfile, 
+          WGLGLCapabilities newCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedResource, device, glProfile,
                                           sharedHdc, pfdid, winattrPbuffer);
           if(null == newCaps) {
             throw new GLException("pbuffer creation error: unable to re-query chosen PFD ID: " + pfdid + ", hdc " + GLDrawableImpl.toHexString(tmpHdc));

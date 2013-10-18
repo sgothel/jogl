@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,20 +20,20 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.newt.event.awt;
 
 import java.awt.Dimension;
 
 import jogamp.newt.awt.event.AWTNewtEventFactory;
 
-public class AWTWindowAdapter 
-    extends AWTAdapter 
+public class AWTWindowAdapter
+    extends AWTAdapter
     implements java.awt.event.ComponentListener, java.awt.event.WindowListener, java.awt.event.FocusListener
 {
     WindowClosingListener windowClosingListener;
@@ -50,6 +50,7 @@ public class AWTWindowAdapter
         super(downstream);
     }
 
+    @Override
     public AWTAdapter addTo(java.awt.Component awtComponent) {
         java.awt.Window win = getWindow(awtComponent);
         awtComponent.addComponentListener(this);
@@ -63,17 +64,18 @@ public class AWTWindowAdapter
         if(awtComponent instanceof java.awt.Window) {
             ((java.awt.Window)awtComponent).addWindowListener(this);
         }
-        return this;        
+        return this;
     }
-    
+
     public AWTAdapter removeWindowClosingFrom(java.awt.Component awtComponent) {
         java.awt.Window win = getWindow(awtComponent);
         if( null != win && null != windowClosingListener ) {
             win.removeWindowListener(windowClosingListener);
         }
-        return this;        
+        return this;
     }
-    
+
+    @Override
     public AWTAdapter removeFrom(java.awt.Component awtComponent) {
         awtComponent.removeFocusListener(this);
         awtComponent.removeComponentListener(this);
@@ -94,6 +96,7 @@ public class AWTWindowAdapter
         return null;
     }
 
+    @Override
     public void focusGained(java.awt.event.FocusEvent e) {
         com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
         if(DEBUG_IMPLEMENTATION) {
@@ -106,6 +109,7 @@ public class AWTWindowAdapter
         }
     }
 
+    @Override
     public void focusLost(java.awt.event.FocusEvent e) {
         com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
         if(DEBUG_IMPLEMENTATION) {
@@ -118,6 +122,7 @@ public class AWTWindowAdapter
         }
     }
 
+    @Override
     public void componentResized(java.awt.event.ComponentEvent e) {
         com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
         if(DEBUG_IMPLEMENTATION) {
@@ -142,6 +147,7 @@ public class AWTWindowAdapter
         }
     }
 
+    @Override
     public void componentMoved(java.awt.event.ComponentEvent e) {
         com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
         if(DEBUG_IMPLEMENTATION) {
@@ -154,6 +160,7 @@ public class AWTWindowAdapter
         }
     }
 
+    @Override
     public void componentShown(java.awt.event.ComponentEvent e) {
         final java.awt.Component comp = e.getComponent();
         if(DEBUG_IMPLEMENTATION) {
@@ -171,6 +178,7 @@ public class AWTWindowAdapter
         }*/
     }
 
+    @Override
     public void componentHidden(java.awt.event.ComponentEvent e) {
         final java.awt.Component comp = e.getComponent();
         if(DEBUG_IMPLEMENTATION) {
@@ -188,6 +196,7 @@ public class AWTWindowAdapter
         }*/
     }
 
+    @Override
     public void windowActivated(java.awt.event.WindowEvent e) {
         com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
         if(null!=newtListener) {
@@ -197,10 +206,13 @@ public class AWTWindowAdapter
         }
     }
 
+    @Override
     public void windowClosed(java.awt.event.WindowEvent e) { }
 
+    @Override
     public void windowClosing(java.awt.event.WindowEvent e) { }
 
+    @Override
     public void windowDeactivated(java.awt.event.WindowEvent e) {
         com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
         if(null!=newtListener) {
@@ -210,13 +222,17 @@ public class AWTWindowAdapter
         }
     }
 
+    @Override
     public void windowDeiconified(java.awt.event.WindowEvent e) { }
 
+    @Override
     public void windowIconified(java.awt.event.WindowEvent e) { }
 
+    @Override
     public void windowOpened(java.awt.event.WindowEvent e) { }
 
     class WindowClosingListener implements java.awt.event.WindowListener {
+        @Override
         public void windowClosing(java.awt.event.WindowEvent e) {
             com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
             if(null!=newtListener) {
@@ -225,7 +241,8 @@ public class AWTWindowAdapter
                 enqueueEvent(true, event);
             }
         }
-        public void windowClosed(java.awt.event.WindowEvent e) { 
+        @Override
+        public void windowClosed(java.awt.event.WindowEvent e) {
             com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
             if(null!=newtListener) {
                 ((com.jogamp.newt.event.WindowListener)newtListener).windowDestroyed(event);
@@ -234,10 +251,15 @@ public class AWTWindowAdapter
             }
         }
 
+        @Override
         public void windowActivated(java.awt.event.WindowEvent e) { }
+        @Override
         public void windowDeactivated(java.awt.event.WindowEvent e) { }
+        @Override
         public void windowDeiconified(java.awt.event.WindowEvent e) { }
+        @Override
         public void windowIconified(java.awt.event.WindowEvent e) { }
+        @Override
         public void windowOpened(java.awt.event.WindowEvent e) { }
     }
 }

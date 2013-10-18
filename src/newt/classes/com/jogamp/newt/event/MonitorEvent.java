@@ -35,19 +35,19 @@ import com.jogamp.newt.MonitorMode;
 public class MonitorEvent extends OutputEvent {
     public static final short EVENT_MONITOR_MODE_CHANGE_NOTIFY = 600;
     public static final short EVENT_MONITOR_MODE_CHANGED       = 601;
-    
+
     private final MonitorMode mode;
-    
+
     public MonitorEvent (short eventType, MonitorDevice source, long when, MonitorMode mode) {
         super(eventType, source, when);
         this.mode = mode;
     }
-    
+
     /** Returns the {@link #getSource() source}, which is a {@link MonitorDevice}. */
     public final MonitorDevice getMonitor() { return (MonitorDevice)source; }
-    
+
     public final MonitorMode getMode() { return mode; }
-    
+
     public static String getEventTypeString(short type) {
         switch(type) {
         case EVENT_MONITOR_MODE_CHANGE_NOTIFY: return "EVENT_MONITOR_MODE_CHANGE_NOTIFY";
@@ -55,11 +55,13 @@ public class MonitorEvent extends OutputEvent {
         default: return "unknown (" + type + ")";
         }
     }
-    
+
+    @Override
     public final String toString() {
         return toString(null).toString();
     }
 
+    @Override
     public final StringBuilder toString(StringBuilder sb) {
         if(null == sb) {
             sb = new StringBuilder();

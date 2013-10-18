@@ -39,21 +39,21 @@ public interface GLArrayHandlerFlat {
 
   /**
    * Implementation shall associate the data with the array
-   * 
+   *
    * @param gl current GL object
-   * @param ext extension object allowing passing of an implementation detail 
+   * @param ext extension object allowing passing of an implementation detail
    */
   public void syncData(GL gl, Object ext);
-  
+
   /**
    * Implementation shall enable or disable the array state.
-   * 
+   *
    * @param gl current GL object
    * @param enable true if array shall be enabled, otherwise false.
-   * @param ext extension object allowing passing of an implementation detail 
+   * @param ext extension object allowing passing of an implementation detail
    */
-  public void enableState(GL gl, boolean enable, Object ext);  
-  
+  public void enableState(GL gl, boolean enable, Object ext);
+
   public GLArrayDataWrapper getData();
 }
 

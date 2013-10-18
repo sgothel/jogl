@@ -78,7 +78,7 @@ public class AWTWindowClosingProtocol implements WindowClosingProtocol {
   /**
    * Adds this closing listener to the components Window if exist and only one time.
    * <p>
-   * If the closing listener is already added, and {@link IllegalStateException} is thrown. 
+   * If the closing listener is already added, and {@link IllegalStateException} is thrown.
    * </p>
    *
    * @return true if added, otherwise false.
@@ -119,6 +119,7 @@ public class AWTWindowClosingProtocol implements WindowClosingProtocol {
    *         otherwise return the AWT/Swing close operation value translated to
    *         a {@link WindowClosingProtocol} value .
    */
+  @Override
   public final WindowClosingMode getDefaultCloseOperation() {
       synchronized(closingListenerLock) {
         if(defaultCloseOperationSetByUser) {
@@ -129,6 +130,7 @@ public class AWTWindowClosingProtocol implements WindowClosingProtocol {
       return AWTMisc.getNWClosingOperation(comp);
   }
 
+  @Override
   public final WindowClosingMode setDefaultCloseOperation(WindowClosingMode op) {
       synchronized(closingListenerLock) {
           final WindowClosingMode _op = defaultCloseOperation;

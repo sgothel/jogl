@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -67,19 +67,19 @@ import com.jogamp.opengl.util.awt.AWTGLPixelBuffer.AWTGLPixelBufferProvider;
  */
 public class AWTTilePainter {
     private static final boolean DEBUG_TILES = Debug.debug("TileRenderer.PNG");
-    
+
     public final TileRenderer renderer;
     public final int componentCount;
     public final double scaleMatX, scaleMatY;
     public final int customTileWidth, customTileHeight, customNumSamples;
     public final boolean verbose;
-    
+
     public boolean flipVertical;
     private AWTGLPixelBuffer tBuffer = null;
     private BufferedImage vFlipImage = null;
     private Graphics2D g2d = null;
-    private AffineTransform saveAT = null;    
-    
+    private AffineTransform saveAT = null;
+
     public static void dumpHintsAndScale(Graphics2D g2d) {
           final RenderingHints rHints = g2d.getRenderingHints();
           final Set<Entry<Object, Object>> rEntries = rHints.entrySet();
@@ -92,13 +92,13 @@ public class AWTTilePainter {
           if( null != aTrans ) {
               System.err.println(" type "+aTrans.getType());
               System.err.println(" scale "+aTrans.getScaleX()+" x "+aTrans.getScaleY());
-              System.err.println(" move "+aTrans.getTranslateX()+" x "+aTrans.getTranslateY());        
+              System.err.println(" move "+aTrans.getTranslateX()+" x "+aTrans.getTranslateY());
               System.err.println(" mat  "+aTrans);
           } else {
               System.err.println(" null transform");
           }
     }
-    
+
     /**
      * @return resulting number of samples by comparing w/ {@link #customNumSamples} and the caps-config, 0 if disabled
      */
@@ -114,12 +114,12 @@ public class AWTTilePainter {
               return caps.getNumSamples();
           }
     }
-    
-    /** 
+
+    /**
      * Assumes a configured {@link TileRenderer}, i.e.
      * an {@link TileRenderer#attachAutoDrawable(GLAutoDrawable) attached}
      * {@link GLAutoDrawable} with {@link TileRenderer#setTileSize(int, int, int) set tile size}.
-     * <p> 
+     * <p>
      * Sets the renderer to {@link TileRenderer#TR_TOP_TO_BOTTOM} row order.
      * </p>
      * <p>
@@ -129,7 +129,7 @@ public class AWTTilePainter {
      * @param componentCount
      * @param scaleMatX {@link Graphics2D} {@link Graphics2D#scale(double, double) scaling factor}, i.e. rendering 1/scaleMatX * width pixels
      * @param scaleMatY {@link Graphics2D} {@link Graphics2D#scale(double, double) scaling factor}, i.e. rendering 1/scaleMatY * height pixels
-     * @param numSamples custom multisampling value: < 0 turns off, == 0 leaves as-is, > 0 enables using given num samples 
+     * @param numSamples custom multisampling value: < 0 turns off, == 0 leaves as-is, > 0 enables using given num samples
      * @param tileWidth custom tile width for {@link TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
      * @param tileHeight custom tile height for {@link TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
      * @param verbose
@@ -146,13 +146,14 @@ public class AWTTilePainter {
         this.verbose = verbose;
         this.flipVertical = true;
     }
-    
+
+    @Override
     public String toString() { return renderer.toString(); }
-    
+
     public void setIsGLOriented(boolean v) {
         flipVertical = v;
     }
-    
+
     private static Rectangle2D getClipBounds2D(Graphics2D g) {
         final Shape shape = g.getClip();
         return null != shape ? shape.getBounds2D() : null;
@@ -170,7 +171,7 @@ public class AWTTilePainter {
         }
         return new Rectangle2D.Double(x, y, width, height);
     }
-    
+
     /**
      * Caches the {@link Graphics2D} instance for rendering.
      * <p>
@@ -201,9 +202,9 @@ public class AWTTilePainter {
         final Rectangle2D dClipOrigR = getClipBounds2D(g2d);
         final Rectangle2D dClipOrig = clipNegative(dClipOrigR);
         final Rectangle2D dImageSizeOrig = new Rectangle2D.Double(0, 0, width, height);
-        
+
         // Retrieve scaled image-size and clip-bounds
-        // Note: Clip bounds lie within image-size! 
+        // Note: Clip bounds lie within image-size!
         final Rectangle2D dImageSizeScaled, dClipScaled;
         {
             final AffineTransform scaledATI;
@@ -230,10 +231,10 @@ public class AWTTilePainter {
         // GL y-offset is lower-left origin, AWT y-offset upper-left.
         scaledYOffset = iClipScaled.y;
         renderer.setTileOffset(iClipScaled.x, iImageSizeScaled.height - ( iClipScaled.y + clipH ));
-        
+
         // Scale actual Grahics2D matrix
         g2d.scale(scaleMatX, scaleMatY);
-        
+
         if( verbose ) {
             System.err.println("AWT print.0: image "+dImageSizeOrig + " -> " + dImageSizeScaled + " -> " + iImageSizeScaled);
             System.err.println("AWT print.0: clip  "+dClipOrigR + " -> " + dClipOrig + " -> " + dClipScaled + " -> " + iClipScaled);
@@ -241,12 +242,12 @@ public class AWTTilePainter {
         }
     }
     private int scaledYOffset;
-    
+
     /** See {@ #setupGraphics2DAndClipBounds(Graphics2D)}. */
-    public void resetGraphics2D() {        
+    public void resetGraphics2D() {
         g2d.setTransform(saveAT);
     }
-    
+
     /**
      * Disposes resources and {@link TileRenderer#detachAutoDrawable() detaches}
      * the {@link TileRenderer}'s {@link GLAutoDrawable}.
@@ -263,7 +264,7 @@ public class AWTTilePainter {
             vFlipImage = null;
         }
     }
-    
+
     final GLEventListener preTileGLEL = new GLEventListener() {
         @Override
         public void init(GLAutoDrawable drawable) {}
@@ -275,7 +276,7 @@ public class AWTTilePainter {
             if( null == tBuffer ) {
                 final int tWidth = renderer.getParam(TileRenderer.TR_TILE_WIDTH);
                 final int tHeight = renderer.getParam(TileRenderer.TR_TILE_HEIGHT);
-                final AWTGLPixelBufferProvider printBufferProvider = new AWTGLPixelBufferProvider( true /* allowRowStride */ );      
+                final AWTGLPixelBufferProvider printBufferProvider = new AWTGLPixelBufferProvider( true /* allowRowStride */ );
                 final GLPixelAttributes pixelAttribs = printBufferProvider.getAttributes(gl, componentCount);
                 tBuffer = printBufferProvider.allocate(gl, pixelAttribs, tWidth, tHeight, 1, true, 0);
                 renderer.setTileBuffer(tBuffer);
@@ -300,7 +301,7 @@ public class AWTTilePainter {
         @Override
         public void dispose(GLAutoDrawable drawable) {}
         @Override
-        public void display(GLAutoDrawable drawable) {              
+        public void display(GLAutoDrawable drawable) {
             final DimensionImmutable cis = renderer.getClippedImageSize();
             final int tWidth = renderer.getParam(TileRendererBase.TR_CURRENT_TILE_WIDTH);
             final int tHeight = renderer.getParam(TileRendererBase.TR_CURRENT_TILE_HEIGHT);
@@ -309,26 +310,26 @@ public class AWTTilePainter {
             final int imgYOff = flipVertical ? 0 : renderer.getParam(TileRenderer.TR_TILE_HEIGHT) - tHeight; // imgYOff will be cut-off via sub-image
             final int pX = renderer.getParam(TileRendererBase.TR_CURRENT_TILE_X_POS); // tileX == pX
             final int pY = cis.getHeight() - ( tY - tYOff + tHeight ) + scaledYOffset;
-            
+
             // Copy temporary data into raster of BufferedImage for faster
             // blitting Note that we could avoid this copy in the cases
             // where !offscreenDrawable.isGLOriented(),
             // but that's the software rendering path which is very slow anyway.
             final BufferedImage dstImage;
             if( DEBUG_TILES ) {
-                final String fname = String.format("file_%03d_0_tile_[%02d][%02d]_sz_%03dx%03d_pos0_%03d_%03d_yOff_%03d_pos1_%03d_%03d.png", 
-                        _counter, 
+                final String fname = String.format("file_%03d_0_tile_[%02d][%02d]_sz_%03dx%03d_pos0_%03d_%03d_yOff_%03d_pos1_%03d_%03d.png",
+                        _counter,
                         renderer.getParam(TileRenderer.TR_CURRENT_COLUMN), renderer.getParam(TileRenderer.TR_CURRENT_ROW),
                         tWidth, tHeight,
                         pX, tY, tYOff, pX, pY).replace(' ', '_');
                 System.err.println("XXX file "+fname);
-                final File fout = new File(fname); 
+                final File fout = new File(fname);
                 try {
                     ImageIO.write(tBuffer.image, "png", fout);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            }            
+            }
             if( flipVertical ) {
                 final BufferedImage srcImage = tBuffer.image;
                 dstImage = vFlipImage;
@@ -347,20 +348,20 @@ public class AWTTilePainter {
                 dstImage = tBuffer.image;
             }
             if( DEBUG_TILES ) {
-                final String fname = String.format("file_%03d_1_tile_[%02d][%02d]_sz_%03dx%03d_pos0_%03d_%03d_yOff_%03d_pos1_%03d_%03d.png", 
-                        _counter, 
+                final String fname = String.format("file_%03d_1_tile_[%02d][%02d]_sz_%03dx%03d_pos0_%03d_%03d_yOff_%03d_pos1_%03d_%03d.png",
+                        _counter,
                         renderer.getParam(TileRenderer.TR_CURRENT_COLUMN), renderer.getParam(TileRenderer.TR_CURRENT_ROW),
                         tWidth, tHeight,
                         pX, tY, tYOff, pX, pY).replace(' ', '_');
                 System.err.println("XXX file "+fname);
-                final File fout = new File(fname); 
+                final File fout = new File(fname);
                 try {
                     ImageIO.write(dstImage, "png", fout);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 _counter++;
-            }            
+            }
             // Draw resulting image in one shot
             final BufferedImage outImage = dstImage.getSubimage(0, imgYOff, tWidth, tHeight);
             final boolean drawDone = g2d.drawImage(outImage, pX, pY, null); // Null ImageObserver since image data is ready.

@@ -28,9 +28,9 @@
 package jogamp.opengl;
 
 /**
- * Class holding GLX/WGL/.. extension strings, commonly used by JOGL's implementation. 
+ * Class holding GLX/WGL/.. extension strings, commonly used by JOGL's implementation.
  */
-public class GLXExtensions {   
+public class GLXExtensions {
   public static final String GLX_MESA_swap_control           = "GLX_MESA_swap_control";
   public static final String GLX_SGI_swap_control            = "GLX_SGI_swap_control";
   public static final String GLX_NV_swap_group               = "GLX_NV_swap_group";

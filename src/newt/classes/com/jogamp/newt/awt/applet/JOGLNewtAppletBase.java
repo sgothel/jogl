@@ -57,7 +57,7 @@ import com.jogamp.opengl.util.Animator;
 
 public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
     public static final boolean DEBUG = Debug.debug("Applet");
-    
+
     String glEventListenerClazzName;
     int glSwapInterval;
     boolean noDefaultKeyListener;
@@ -71,13 +71,13 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
     boolean isValid = false;
     NativeWindow awtParent;
 
-    public JOGLNewtAppletBase(String glEventListenerClazzName, 
+    public JOGLNewtAppletBase(String glEventListenerClazzName,
                               int glSwapInterval,
                               boolean noDefaultKeyListener,
                               boolean glClosable,
                               boolean glDebug,
                               boolean glTrace) {
-    
+
         this.glEventListenerClazzName=glEventListenerClazzName;
         this.glSwapInterval=glSwapInterval;
         this.noDefaultKeyListener = noDefaultKeyListener;
@@ -112,6 +112,7 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
 
         try {
             final Class<?> clazz = AccessController.doPrivileged(new PrivilegedAction<Class<?>>() {
+                @Override
                 public Class<?> run() {
                     final ClassLoader cl = Thread.currentThread().getContextClassLoader();
                     Class<?> clazz = null;
@@ -169,13 +170,14 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
                         if(null == glWindow.getParent()) {
                             // we may be called directly by the native EDT
                             new Thread(new Runnable() {
+                               @Override
                                public void run() {
                                 if( glWindow.isNativeValid() ) {
                                     glWindow.reparentWindow(awtParent);
                                 }
                                }
-                            }).start();                         
-                        }                        
+                            }).start();
+                        }
                     }
                 } } );
 
@@ -203,7 +205,7 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
             if(glEventListener instanceof KeyListener) {
                 glWindow.addKeyListener((KeyListener)glEventListener);
             }
-            
+
             if(!noDefaultKeyListener) {
                 glWindow.addKeyListener(this);
             }
@@ -216,7 +218,7 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
             glAnimator.setThreadGroup(tg);
             glAnimator.add(glWindow);
             glAnimator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, null);
-            
+
         } catch (Throwable t) {
             throw new RuntimeException(t);
         }
@@ -256,30 +258,34 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
     // ***********************************************************************************
     // ***********************************************************************************
 
+    @Override
     public void init(GLAutoDrawable drawable) {
         GL _gl = drawable.getGL();
 
         if(glDebug) {
             try {
                 _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", null, _gl, null) );
-            } catch (Exception e) {e.printStackTrace();} 
+            } catch (Exception e) {e.printStackTrace();}
         }
 
         if(glTrace) {
             try {
                 // Trace ..
                 _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", null, _gl, new Object[] { System.err } ) );
-            } catch (Exception e) {e.printStackTrace();} 
+            } catch (Exception e) {e.printStackTrace();}
         }
 
         if(glSwapInterval>=0) {
             _gl.setSwapInterval(glSwapInterval);
         }
     }
+    @Override
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
     }
+    @Override
     public void display(GLAutoDrawable drawable) {
     }
+    @Override
     public void dispose(GLAutoDrawable drawable) {
     }
 
@@ -317,9 +323,9 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
             }
        }
     }
-    
+
     @Override
-    public void keyReleased(KeyEvent e) { 
+    public void keyReleased(KeyEvent e) {
     }
 }
 

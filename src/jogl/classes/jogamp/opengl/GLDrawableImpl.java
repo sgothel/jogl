@@ -53,11 +53,11 @@ import javax.media.opengl.GLProfile;
 
 public abstract class GLDrawableImpl implements GLDrawable {
   protected static final boolean DEBUG = GLDrawableFactoryImpl.DEBUG;
-  
+
   protected GLDrawableImpl(GLDrawableFactory factory, NativeSurface comp, boolean realized) {
       this(factory, comp, (GLCapabilitiesImmutable) comp.getGraphicsConfiguration().getRequestedCapabilities(), realized);
   }
-  
+
   protected GLDrawableImpl(GLDrawableFactory factory, NativeSurface comp, GLCapabilitiesImmutable requestedCapabilities, boolean realized) {
       this.factory = factory;
       this.surface = comp;
@@ -100,20 +100,20 @@ public abstract class GLDrawableImpl implements GLDrawable {
         }
     } finally {
         unlockSurface();
-    }        
+    }
     surface.surfaceUpdated(this, surface, System.currentTimeMillis());
   }
-  
+
   /**
    * Platform and implementation depending surface swap.
    * <p>The surface is locked.</p>
    * <p>
-   * If <code>doubleBuffered</code> is <code>true</code>, 
+   * If <code>doubleBuffered</code> is <code>true</code>,
    * an actual platform dependent surface swap shall be executed.
    * </p>
    * <p>
-   * If <code>doubleBuffered</code> is <code>false</code>, 
-   * {@link GL#glFlush()} has been called already and 
+   * If <code>doubleBuffered</code> is <code>false</code>,
+   * {@link GL#glFlush()} has been called already and
    * the implementation may execute implementation specific code.
    * </p>
    * @param doubleBuffered indicates whether double buffering is enabled, see above.
@@ -143,19 +143,19 @@ public abstract class GLDrawableImpl implements GLDrawable {
     return surface;
   }
 
-  /** 
+  /**
    * called with locked surface @ setRealized(false) or @ lockSurface(..) when surface changed
    * <p>
    * Must be paired w/ {@link #createHandle()}.
-   * </p> 
+   * </p>
    */
   protected void destroyHandle() {}
 
-  /** 
+  /**
    * called with locked surface @ setRealized(true) or @ lockSurface(..) when surface changed
    * <p>
    * Must be paired w/ {@link #destroyHandle()}.
-   * </p> 
+   * </p>
    */
   protected void createHandle() {}
 
@@ -213,16 +213,16 @@ public abstract class GLDrawableImpl implements GLDrawable {
         System.err.println(getThreadName() + ": setRealized: "+getClass().getName()+" "+this.realized+" == "+realizedArg);
     }
   }
-  
+
   /**
-   * Platform specific realization of drawable 
+   * Platform specific realization of drawable
    */
   protected abstract void setRealizedImpl();
 
   /**
    * Callback for special implementations, allowing
    * <ul>
-   *   <li>to associate bound context to this drawable (bound == true) 
+   *   <li>to associate bound context to this drawable (bound == true)
    *       or to remove such association (bound == false).</li>
    *   <li>to trigger GLContext/GLDrawable related lifecycle: <code>construct</code>, <code>destroy</code>.</li>
    * </ul>
@@ -239,8 +239,8 @@ public abstract class GLDrawableImpl implements GLDrawable {
    * @param bound if <code>true</code> create an association, otherwise remove it
    */
   protected void associateContext(GLContext ctx, boolean bound) { }
-  
-  /** 
+
+  /**
    * Callback for special implementations, allowing GLContext to trigger GL related lifecycle: <code>makeCurrent</code>, <code>release</code>.
    * <p>
    * If <code>current</code> is <code>true</code>, the context has just been made current.
@@ -252,13 +252,13 @@ public abstract class GLDrawableImpl implements GLDrawable {
    * Being called by {@link GLContextImpl#contextMadeCurrent(boolean)}.
    * </p>
    * @see #associateContext(GLContext, boolean)
-   */ 
+   */
   protected void contextMadeCurrent(GLContext glc, boolean current) { }
 
   /** Callback for special implementations, allowing GLContext to fetch a custom default render framebuffer. Defaults to zero.*/
   protected int getDefaultDrawFramebuffer() { return 0; }
   /** Callback for special implementations, allowing GLContext to fetch a custom default read framebuffer. Defaults to zero. */
-  protected int getDefaultReadFramebuffer() { return 0; }  
+  protected int getDefaultReadFramebuffer() { return 0; }
   /** Callback for special implementations, allowing GLContext to fetch a custom default read buffer of current framebuffer. */
   protected int getDefaultReadBuffer(GL gl) {
       if(gl.isGLES() || getChosenGLCapabilities().getDoubleBuffered()) {
@@ -266,9 +266,9 @@ public abstract class GLDrawableImpl implements GLDrawable {
           // Note-2: ES3 only supports GL_BACK, GL_NONE or GL_COLOR_ATTACHMENT0+i
           return GL.GL_BACK;
       }
-      return GL.GL_FRONT ; 
+      return GL.GL_FRONT ;
   }
-  
+
   @Override
   public final boolean isRealized() {
     return realized;
@@ -286,22 +286,22 @@ public abstract class GLDrawableImpl implements GLDrawable {
 
   @Override
   public boolean isGLOriented() {
-      return true;      
+      return true;
   }
-  
-  /** 
+
+  /**
    * {@link NativeSurface#lockSurface() Locks} the underlying windowing toolkit's {@link NativeSurface surface}.
    * <p>
    * <i>If</i> drawable is {@link #setRealized(boolean) realized},
-   * the {@link #getHandle() drawable handle} is valid after successfully {@link NativeSurface#lockSurface() locking} 
+   * the {@link #getHandle() drawable handle} is valid after successfully {@link NativeSurface#lockSurface() locking}
    * it's {@link NativeSurface surface} until being {@link #unlockSurface() unlocked}.
    * </p>
    * <p>
-   * In case the {@link NativeSurface surface} has changed as indicated by it's 
+   * In case the {@link NativeSurface surface} has changed as indicated by it's
    * {@link NativeSurface#lockSurface() lock} result {@link NativeSurface#LOCK_SURFACE_CHANGED},
-   * the implementation is required to update this information as needed within it's implementation. 
+   * the implementation is required to update this information as needed within it's implementation.
    * </p>
-   * 
+   *
    * @see NativeSurface#lockSurface()
    * @see #getHandle()
    */
@@ -312,7 +312,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
         final long _handle1 = getHandle();
         destroyHandle();
         createHandle();
-        final long _handle2 = getHandle();        
+        final long _handle2 = getHandle();
         if(DEBUG) {
             if( _handle1 != _handle2) {
                 System.err.println(getThreadName() + ": Drawable handle changed: "+toHexString(_handle1)+" -> "+toHexString(_handle2));
@@ -320,14 +320,14 @@ public abstract class GLDrawableImpl implements GLDrawable {
         }
     }
     return lockRes;
-    
+
   }
 
-  /** 
+  /**
    * {@link NativeSurface#unlockSurface() Unlocks} the underlying windowing toolkit {@link NativeSurface surface},
    * which may render the {@link #getHandle() drawable handle} invalid.
-   * 
-   * @see NativeSurface#unlockSurface() 
+   *
+   * @see NativeSurface#unlockSurface()
    * @see #getHandle()
    */
   public final void unlockSurface() {

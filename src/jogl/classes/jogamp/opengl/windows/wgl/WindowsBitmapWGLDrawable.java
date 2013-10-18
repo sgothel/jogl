@@ -63,7 +63,7 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
   private WindowsBitmapWGLDrawable(GLDrawableFactory factory, NativeSurface comp) {
     super(factory, comp, false);
   }
-  
+
   protected static WindowsBitmapWGLDrawable create(GLDrawableFactory factory, NativeSurface comp) {
     final WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)comp.getGraphicsConfiguration();
     final AbstractGraphicsDevice aDevice = config.getScreen().getDevice();
@@ -102,7 +102,7 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
   public boolean isGLOriented() {
       return false;
   }
-  
+
   private void createBitmap() {
     int werr;
     final NativeSurface ns = getNativeSurface();

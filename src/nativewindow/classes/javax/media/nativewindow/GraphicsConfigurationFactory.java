@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008-2009 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -48,7 +48,7 @@ import java.util.Set;
 
 /**
  * Provides the mechanism by which the graphics configuration for a
- * window can be chosen before the window is created. The graphics 
+ * window can be chosen before the window is created. The graphics
  * configuration decides parameters related to hardware accelerated rendering such
  * as the OpenGL pixel format. <br>
  * On some window systems (EGL/OpenKODE and X11 in particular) it is necessary to
@@ -69,21 +69,23 @@ public abstract class GraphicsConfigurationFactory {
         public final Class<?> deviceType;
         public final Class<?> capsType;
         private final int hash32;
-        
+
         public DeviceCapsType(Class<?> deviceType, Class<?> capsType) {
             this.deviceType = deviceType;
             this.capsType = capsType;
-            
+
             // 31 * x == (x << 5) - x
             int hash32 = 31 + deviceType.hashCode();
             hash32 = ((hash32 << 5) - hash32) + capsType.hashCode();
             this.hash32 = hash32;
         }
-        
+
+        @Override
         public final int hashCode() {
             return hash32;
         }
-        
+
+        @Override
         public final boolean equals(Object obj) {
             if(this == obj)  { return true; }
             if (obj instanceof DeviceCapsType) {
@@ -92,18 +94,18 @@ public abstract class GraphicsConfigurationFactory {
             }
             return false;
         }
-        
+
         @Override
         public final String toString() {
             return "DeviceCapsType["+deviceType.getName()+", "+capsType.getName()+"]";
         }
-        
+
     }
-    
+
     private static final Map<DeviceCapsType, GraphicsConfigurationFactory> registeredFactories;
-    private static final DeviceCapsType defaultDeviceCapsType; 
+    private static final DeviceCapsType defaultDeviceCapsType;
     static boolean initialized = false;
-    
+
     static {
         DEBUG = Debug.debug("GraphicsConfiguration");
         if(DEBUG) {
@@ -113,7 +115,7 @@ public abstract class GraphicsConfigurationFactory {
         registeredFactories = Collections.synchronizedMap(new HashMap<DeviceCapsType, GraphicsConfigurationFactory>());
         defaultDeviceCapsType = new DeviceCapsType(AbstractGraphicsDevice.class, CapabilitiesImmutable.class);
     }
-        
+
     public static synchronized void initSingleton() {
         if(!initialized) {
             initialized = true;
@@ -121,31 +123,31 @@ public abstract class GraphicsConfigurationFactory {
             if(DEBUG) {
                 System.err.println(Thread.currentThread().getName()+" - GraphicsConfigurationFactory.initSingleton()");
             }
-            
+
             // Register the default no-op factory for arbitrary
             // AbstractGraphicsDevice implementations, including
             // AWTGraphicsDevice instances -- the OpenGL binding will take
             // care of handling AWTGraphicsDevices on X11 platforms (as
             // well as X11GraphicsDevices in non-AWT situations)
             registerFactory(defaultDeviceCapsType.deviceType, defaultDeviceCapsType.capsType, new DefaultGraphicsConfigurationFactoryImpl());
-            
+
             if (NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true)) {
                 try {
-                    ReflectionUtil.callStaticMethod("jogamp.nativewindow.x11.X11GraphicsConfigurationFactory", 
-                                                    "registerFactory", null, null, GraphicsConfigurationFactory.class.getClassLoader());                
+                    ReflectionUtil.callStaticMethod("jogamp.nativewindow.x11.X11GraphicsConfigurationFactory",
+                                                    "registerFactory", null, null, GraphicsConfigurationFactory.class.getClassLoader());
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
                 if(NativeWindowFactory.isAWTAvailable()) {
                     try {
-                        ReflectionUtil.callStaticMethod("jogamp.nativewindow.x11.awt.X11AWTGraphicsConfigurationFactory", 
-                                                        "registerFactory", null, null, GraphicsConfigurationFactory.class.getClassLoader());                
+                        ReflectionUtil.callStaticMethod("jogamp.nativewindow.x11.awt.X11AWTGraphicsConfigurationFactory",
+                                                        "registerFactory", null, null, GraphicsConfigurationFactory.class.getClassLoader());
                     } catch (Exception e) { /* n/a */ }
                 }
             }
         }
     }
-    
+
     public static synchronized void shutdown() {
         if(initialized) {
             initialized = false;
@@ -155,7 +157,7 @@ public abstract class GraphicsConfigurationFactory {
             registeredFactories.clear();
         }
     }
-    
+
     protected static String getThreadName() {
         return Thread.currentThread().getName();
     }
@@ -176,10 +178,10 @@ public abstract class GraphicsConfigurationFactory {
     /**
      * Returns the graphics configuration factory for use with the
      * given device and capability.
-     * 
+     *
      * @see #getFactory(Class, Class)
      */
-    public static GraphicsConfigurationFactory getFactory(AbstractGraphicsDevice device, CapabilitiesImmutable caps) {        
+    public static GraphicsConfigurationFactory getFactory(AbstractGraphicsDevice device, CapabilitiesImmutable caps) {
         if (device == null) {
             throw new IllegalArgumentException("null device");
         }
@@ -195,7 +197,7 @@ public abstract class GraphicsConfigurationFactory {
      * <p>
      * Note: Registered device types maybe classes or interfaces, where capabilities types are interfaces only.
      * </p>
-     *  
+     *
      * <p>
      * Pseudo code for finding a suitable factory is:
      * <pre>
@@ -211,7 +213,7 @@ public abstract class GraphicsConfigurationFactory {
      * @param deviceType the minimum capabilities class type accepted, must implement or extend {@link AbstractGraphicsDevice}
      * @param capabilitiesType the minimum capabilities class type accepted, must implement or extend {@link CapabilitiesImmutable}
      *
-     * @throws IllegalArgumentException if the deviceType does not implement {@link AbstractGraphicsDevice} or 
+     * @throws IllegalArgumentException if the deviceType does not implement {@link AbstractGraphicsDevice} or
      *                                  capabilitiesType does not implement {@link CapabilitiesImmutable}
      */
     public static GraphicsConfigurationFactory getFactory(Class<?> deviceType, Class<?> capabilitiesType)
@@ -228,12 +230,12 @@ public abstract class GraphicsConfigurationFactory {
             System.err.println("GraphicsConfigurationFactory.getFactory: "+deviceType.getName()+", "+capabilitiesType.getName());
             dumpFactories();
         }
-        
-        final List<Class<?>> deviceTypes = getAllAssignableClassesFrom(defaultDeviceCapsType.deviceType, deviceType, false);        
+
+        final List<Class<?>> deviceTypes = getAllAssignableClassesFrom(defaultDeviceCapsType.deviceType, deviceType, false);
         if(DEBUG) {
             System.err.println("GraphicsConfigurationFactory.getFactory() deviceTypes: " + deviceTypes);
         }
-        final List<Class<?>> capabilitiesTypes = getAllAssignableClassesFrom(defaultDeviceCapsType.capsType, capabilitiesType, true);        
+        final List<Class<?>> capabilitiesTypes = getAllAssignableClassesFrom(defaultDeviceCapsType.capsType, capabilitiesType, true);
         if(DEBUG) {
             System.err.println("GraphicsConfigurationFactory.getFactory() capabilitiesTypes: " + capabilitiesTypes);
         }
@@ -259,7 +261,7 @@ public abstract class GraphicsConfigurationFactory {
         return factory;
     }
     private static ArrayList<Class<?>> getAllAssignableClassesFrom(Class<?> superClassOrInterface, Class<?> fromClass, boolean interfacesOnly) {
-        // Using a todo list avoiding a recursive loop! 
+        // Using a todo list avoiding a recursive loop!
         final ArrayList<Class<?>> inspectClasses  = new ArrayList<Class<?>>();
         final ArrayList<Class<?>> resolvedInterfaces = new ArrayList<Class<?>>();
         inspectClasses.add(fromClass);
@@ -277,7 +279,7 @@ public abstract class GraphicsConfigurationFactory {
             }
         }
         types.addAll(Arrays.asList(fromClass.getInterfaces()));
-                
+
         for(int i=0; i<types.size(); i++) {
             final Class<?> iface = types.get(i);
             if( superClassOrInterface.isAssignableFrom(iface) && !resolvedInterfaces.contains(iface) ) {
@@ -302,20 +304,20 @@ public abstract class GraphicsConfigurationFactory {
         }
     }
 
-    /** 
+    /**
      * Registers a GraphicsConfigurationFactory handling
      * the given graphics device and capability class.
      * <p>
      * This does not need to be called by end users, only implementors of new
      * GraphicsConfigurationFactory subclasses.
      * </p>
-     * 
+     *
      * <p>
      * Note: Registered device types maybe classes or interfaces, where capabilities types are interfaces only.
-     * </p> 
-     * 
+     * </p>
+     *
      * <p>See {@link #getFactory(Class, Class)} for a description of the find algorithm.</p>
-     * 
+     *
      * @param deviceType the minimum capabilities class type accepted, must implement or extend interface {@link AbstractGraphicsDevice}
      * @param capabilitiesType the minimum capabilities class type accepted, must extend interface {@link CapabilitiesImmutable}
      * @return the previous registered factory, or null if none
@@ -329,7 +331,7 @@ public abstract class GraphicsConfigurationFactory {
         }
         if (!(defaultDeviceCapsType.capsType.isAssignableFrom(capabilitiesType))) {
             throw new IllegalArgumentException("Given capabilities class must implement CapabilitiesImmutable");
-        }        
+        }
         final DeviceCapsType dct = new DeviceCapsType(abstractGraphicsDeviceImplementor, capabilitiesType);
         final GraphicsConfigurationFactory prevFactory;
         if(null == factory) {
@@ -352,7 +354,7 @@ public abstract class GraphicsConfigurationFactory {
      * <P> Selects a graphics configuration on the specified graphics
      * device compatible with the supplied {@link Capabilities}. Some
      * platforms (e.g.: X11, EGL, KD) require the graphics configuration
-     * to be specified when the native window is created. 
+     * to be specified when the native window is created.
      * These architectures have seperated their device, screen, window and drawable
      * context and hence are capable of quering the capabilities for each screen.
      * A fully established window is not required.</P>
@@ -360,7 +362,7 @@ public abstract class GraphicsConfigurationFactory {
      * <P>Other platforms (e.g. Windows, MacOSX) don't offer the mentioned seperation
      * and hence need a fully established window and it's drawable.
      * Here the validation of the capabilities is performed later.
-     * In this case, the AbstractGraphicsConfiguration implementation 
+     * In this case, the AbstractGraphicsConfiguration implementation
      * must allow an overwrite of the Capabilites, for example
      * {@link DefaultGraphicsConfiguration#setChosenCapabilities DefaultGraphicsConfiguration.setChosenCapabilities(..)}.
      * </P>
@@ -385,7 +387,7 @@ public abstract class GraphicsConfigurationFactory {
      * @param capsRequested  the original requested capabilities
      * @param chooser        the choosing implementation
      * @param screen         the referring Screen
-     * @param nativeVisualID if not {@link VisualIDHolder#VID_UNDEFINED} it reflects a pre-chosen visualID of the native platform's windowing system. 
+     * @param nativeVisualID if not {@link VisualIDHolder#VID_UNDEFINED} it reflects a pre-chosen visualID of the native platform's windowing system.
      * @return               the complete GraphicsConfiguration
      *
      * @throws IllegalArgumentException if the data type of the passed

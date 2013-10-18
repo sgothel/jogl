@@ -38,7 +38,7 @@ public abstract class ID {
     public static final short encodingUnicode11Semantics = 1;
     public static final short encodingISO10646Semantics = 2;
     public static final short encodingUnicode20Semantics = 3;
-    
+
     // Microsoft Encoding IDs
 //    public static final short encodingUndefined = 0;
 //    public static final short encodingUGL = 1;
@@ -203,7 +203,7 @@ public abstract class ID {
     public static String getEncodingName(short platformId, short encodingId) {
 
         if (platformId == platformUnicode) {
-            
+
             // Unicode specific encodings
             switch (encodingId) {
                 case encodingUnicode10Semantics: return "Unicode 1.0 semantics";

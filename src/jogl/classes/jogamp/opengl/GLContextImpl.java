@@ -106,14 +106,14 @@ public abstract class GLContextImpl extends GLContext {
   private final GLStateTracker glStateTracker = new GLStateTracker();
   private GLDebugMessageHandler glDebugHandler = null;
   private final int[] boundFBOTarget = new int[] { 0, 0 }; // { draw, read }
-  private int defaultVAO = 0; 
-  
+  private int defaultVAO = 0;
+
   protected GLDrawableImpl drawable;
   protected GLDrawableImpl drawableRead;
-  
+
   private volatile boolean pixelDataEvaluated;
   private int /* pixelDataInternalFormat, */ pixelDataFormat, pixelDataType;
-  
+
   protected GL gl;
 
   protected static final Object mappedContextTypeObjectLock;
@@ -161,7 +161,7 @@ public abstract class GLContextImpl extends GLContext {
       glStateTracker.setEnabled(false);
       glStateTracker.clearStates();
   }
-  
+
   @Override
   protected void resetStates(boolean isInit) {
       if( !isInit ) {
@@ -177,12 +177,12 @@ public abstract class GLContextImpl extends GLContext {
       glRenderer = glVendor;
       glRendererLowerCase = glRenderer;
       glVersion = glVendor;
-      
+
       if (boundFBOTarget != null) { // <init>
           boundFBOTarget[0] = 0; // draw
           boundFBOTarget[1] = 0; // read
       }
-      
+
       pixelDataEvaluated = false;
 
       super.resetStates(isInit);
@@ -190,7 +190,7 @@ public abstract class GLContextImpl extends GLContext {
 
   @Override
   public final GLDrawable setGLReadDrawable(GLDrawable read) {
-    if(!isGLReadDrawableAvailable()) { 
+    if(!isGLReadDrawableAvailable()) {
         throw new GLException("Setting read drawable feature not available");
     }
     final boolean lockHeld = lock.isOwner(Thread.currentThread());
@@ -220,7 +220,7 @@ public abstract class GLContextImpl extends GLContext {
     final Thread currentThread = Thread.currentThread();
     if( lock.isLockedByOtherThread() ) {
         throw new GLException("GLContext current by other thread "+lock.getOwner().getName()+", operation not allowed on this thread "+currentThread.getName());
-    }    
+    }
     final boolean lockHeld = lock.isOwner(currentThread);
     if( lockHeld && lock.getHoldCount() > 1 ) {
         // would need to makeCurrent * holdCount
@@ -272,7 +272,7 @@ public abstract class GLContextImpl extends GLContext {
       }
       return _gl;
   }
-  
+
   @Override
   public final GL getGL() {
     return gl;
@@ -314,7 +314,7 @@ public abstract class GLContextImpl extends GLContext {
   @Override
   public void release() throws GLException {
     release(false);
-  }  
+  }
   private void release(boolean inDestruction) throws GLException {
     if( TRACE_SWITCH ) {
         System.err.println(getThreadName() +": GLContext.ContextSwitch[release.0]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+", inDestruction: "+inDestruction+", "+lock);
@@ -332,7 +332,7 @@ public abstract class GLContextImpl extends GLContext {
         }
         throw new GLException(msg);
     }
-    
+
     Throwable drawableContextMadeCurrentException = null;
     final boolean actualRelease = ( inDestruction || lock.getHoldCount() == 1 ) && 0 != contextHandle;
     try {
@@ -365,7 +365,7 @@ public abstract class GLContextImpl extends GLContext {
     if(null != drawableContextMadeCurrentException) {
       throw new GLException("GLContext.release(false) during GLDrawableImpl.contextMadeCurrent(this, false)", drawableContextMadeCurrentException);
     }
-    
+
   }
   private Throwable lastCtxReleaseStack = null;
   protected abstract void releaseImpl() throws GLException;
@@ -518,21 +518,21 @@ public abstract class GLContextImpl extends GLContext {
   public final int makeCurrent() throws GLException {
       return makeCurrent(false);
   }
-  
+
   protected final int makeCurrent(boolean forceDrawableAssociation) throws GLException {
     if( TRACE_SWITCH ) {
         System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.0]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - "+lock);
-    }      
+    }
 
     // Note: the surface is locked within [makeCurrent .. swap .. release]
     final int lockRes = drawable.lockSurface();
     if (NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes) {
         if( DEBUG_TRACE_SWITCH ) {
-            System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.X1]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - Surface Not Ready - CONTEXT_NOT_CURRENT - "+lock);                        
+            System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.X1]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - Surface Not Ready - CONTEXT_NOT_CURRENT - "+lock);
         }
         return CONTEXT_NOT_CURRENT;
     }
-    
+
     boolean unlockResources = true; // Must be cleared if successful, otherwise finally block will release context and/or surface!
     int res = CONTEXT_NOT_CURRENT;
     try {
@@ -552,7 +552,7 @@ public abstract class GLContextImpl extends GLContext {
                         drawableUpdatedNotify();
                         unlockResources = false; // success
                         if( TRACE_SWITCH ) {
-                            System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.X2]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - keep   - CONTEXT_CURRENT - "+lock);                        
+                            System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.X2]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - keep   - CONTEXT_CURRENT - "+lock);
                         }
                         return CONTEXT_CURRENT;
                     } else {
@@ -561,7 +561,7 @@ public abstract class GLContextImpl extends GLContext {
                 }
                 res = makeCurrentWithinLock(lockRes);
                 unlockResources = CONTEXT_NOT_CURRENT == res; // success ?
-                
+
                 /**
                  * FIXME: refactor dependence on Java 2D / JOGL bridge
                     if ( tracker != null && res == CONTEXT_CURRENT_NEW ) {
@@ -608,16 +608,16 @@ public abstract class GLContextImpl extends GLContext {
         if(TRACE_GL) {
             gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", null, gl, new Object[] { System.err } ) );
         }
-        
+
         forceDrawableAssociation = true;
       }
-      
+
       if( forceDrawableAssociation ) {
           associateDrawable(true);
       }
-      
+
       contextMadeCurrent(true);
-      
+
       /* FIXME: refactor dependence on Java 2D / JOGL bridge
 
       // Try cleaning up any stale server-side OpenGL objects
@@ -629,10 +629,10 @@ public abstract class GLContextImpl extends GLContext {
     }
     if( TRACE_SWITCH ) {
         System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.X3]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - switch - "+makeCurrentResultToString(res)+" - stateTracker.on "+glStateTracker.isEnabled()+" - "+lock);
-    }      
+    }
     return res;
   }
-  
+
   private final int makeCurrentWithinLock(int surfaceLockRes) throws GLException {
       if (!isCreated()) {
         if( 0 >= drawable.getWidth() || 0 >= drawable.getHeight() ) {
@@ -683,7 +683,7 @@ public abstract class GLContextImpl extends GLContext {
             final AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration();
             final AbstractGraphicsDevice device = config.getScreen().getDevice();
 
-            // Non ARB desktop profiles may not have been registered 
+            // Non ARB desktop profiles may not have been registered
             if( !GLContext.getAvailableGLVersionsSet(device) ) {        // not yet set
                 if( 0 == ( ctxOptions & GLContext.CTX_PROFILE_ES) ) {   // not ES profile
                     final int reqMajor;
@@ -701,10 +701,10 @@ public abstract class GLContextImpl extends GLContext {
                     GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile,
                                                     ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
                     GLContext.setAvailableGLVersionsSet(device);
-                    
+
                     if (DEBUG) {
                       System.err.println(getThreadName() + ": createContextOLD-MapVersionsAvailable HAVE: " + device+" -> "+reqMajor+"."+reqProfile+ " -> "+getGLVersion());
-                    }                    
+                    }
                 }
             }
         }
@@ -717,17 +717,17 @@ public abstract class GLContextImpl extends GLContext {
   protected abstract void makeCurrentImpl() throws GLException;
 
   /**
-   * Calls {@link GLDrawableImpl#associateContext(GLContext, boolean)} 
-   */ 
-  protected void associateDrawable(boolean bound) { 
-      drawable.associateContext(this, bound);      
+   * Calls {@link GLDrawableImpl#associateContext(GLContext, boolean)}
+   */
+  protected void associateDrawable(boolean bound) {
+      drawable.associateContext(this, bound);
   }
-  
+
   /**
-   * Calls {@link GLDrawableImpl#contextMadeCurrent(GLContext, boolean)} 
-   */ 
+   * Calls {@link GLDrawableImpl#contextMadeCurrent(GLContext, boolean)}
+   */
   protected void contextMadeCurrent(boolean current) {
-      drawable.contextMadeCurrent(this, current);      
+      drawable.contextMadeCurrent(this, current);
   }
 
   /**
@@ -827,7 +827,7 @@ public abstract class GLContextImpl extends GLContext {
     final GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     final int[] reqMajorCTP = new int[] { 0, 0 };
     getRequestMajorAndCompat(glCaps.getGLProfile(), reqMajorCTP);
-    
+
     int _major[] = { 0 };
     int _minor[] = { 0 };
     int _ctp[] = { 0 };
@@ -842,7 +842,7 @@ public abstract class GLContextImpl extends GLContext {
     }
     return _ctx;
   }
-  
+
   private final boolean mapGLVersions(AbstractGraphicsDevice device) {
     synchronized (GLContext.deviceVersionAvailable) {
         final long t0 = ( DEBUG ) ? System.nanoTime() : 0;
@@ -854,7 +854,7 @@ public abstract class GLContextImpl extends GLContext {
         boolean hasGL4   = false;
         boolean hasGL3   = false;
         boolean hasES3   = false;
-        
+
         // Even w/ PROFILE_ALIASING, try to use true core GL profiles
         // ensuring proper user behavior across platforms due to different feature sets!
         //
@@ -863,7 +863,7 @@ public abstract class GLContextImpl extends GLContext {
             success |= hasGL4;
             if(hasGL4) {
                 // Map all lower compatible profiles: GL3
-                GLContext.mapAvailableGLVersion(device, 3, CTX_PROFILE_CORE, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);                
+                GLContext.mapAvailableGLVersion(device, 3, CTX_PROFILE_CORE, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
                 if(PROFILE_ALIASING) {
                     hasGL3   = true;
                 }
@@ -874,7 +874,7 @@ public abstract class GLContextImpl extends GLContext {
             hasGL3   = createContextARBMapVersionsAvailable(3, CTX_PROFILE_CORE);    // GL3
             success |= hasGL3;
             if(hasGL3) {
-                resetStates(false); // clean this context states, since creation was temporary                
+                resetStates(false); // clean this context states, since creation was temporary
             }
         }
         if(!hasGL4bc) {
@@ -919,14 +919,14 @@ public abstract class GLContextImpl extends GLContext {
             hasGL2   = createContextARBMapVersionsAvailable(2, CTX_PROFILE_COMPAT);  // GL2
             success |= hasGL2;
             if(hasGL2) {
-                resetStates(false); // clean this context states, since creation was temporary                
+                resetStates(false); // clean this context states, since creation was temporary
             }
         }
         if(!hasES3) {
             hasES3   = createContextARBMapVersionsAvailable(3, CTX_PROFILE_ES);  // ES3
             success |= hasES3;
             if(hasES3) {
-                resetStates(false); // clean this context states, since creation was temporary                
+                resetStates(false); // clean this context states, since creation was temporary
             }
         }
         if(success) {
@@ -935,7 +935,7 @@ public abstract class GLContextImpl extends GLContext {
             if(DEBUG) {
                 final long t1 = System.nanoTime();
                 System.err.println("GLContextImpl.mapGLVersions: "+device+", profileAliasing: "+PROFILE_ALIASING+", total "+(t1-t0)/1e6 +"ms");
-                System.err.println(GLContext.dumpAvailableGLVersions(null).toString());                
+                System.err.println(GLContext.dumpAvailableGLVersions(null).toString());
             }
         } else if (DEBUG) {
             System.err.println(getThreadName() + ": createContextARB-MapVersions NONE for :"+device);
@@ -944,9 +944,9 @@ public abstract class GLContextImpl extends GLContext {
     }
   }
 
-  /** 
+  /**
    * Note: Since context creation is temporary, caller need to issue {@link #resetStates(boolean)}, if creation was successful, i.e. returns true.
-   * This method does not reset the states, allowing the caller to utilize the state variables. 
+   * This method does not reset the states, allowing the caller to utilize the state variables.
    **/
   private final boolean createContextARBMapVersionsAvailable(int reqMajor, int reqProfile) {
     long _context;
@@ -1059,7 +1059,7 @@ public abstract class GLContextImpl extends GLContext {
       if ( 0 == ctp ) {
         throw new GLException("Invalid GL Version "+major+"."+minor+", ctp "+toHexString(ctp));
       }
-      
+
       if (!GLContext.isValidGLVersion(ctp, major, minor)) {
         throw new GLException("Invalid GL Version "+major+"."+minor+", ctp "+toHexString(ctp));
       }
@@ -1080,10 +1080,10 @@ public abstract class GLContextImpl extends GLContext {
               if( ctxGLSLVersion.isZero() ) {
                   ctxGLSLVersion = getStaticGLSLVersionNumber(major, minor, ctxOptions);
               }
-          } 
+          }
       }
   }
-  
+
   //----------------------------------------------------------------------
   // Helpers for various context implementations
   //
@@ -1107,8 +1107,8 @@ public abstract class GLContextImpl extends GLContext {
     */
     return gl;
   }
-  
-  /** 
+
+  /**
    * Finalizes GL instance initialization after this context has been initialized.
    * <p>
    * Method calls 'void finalizeInit()' of instance 'gl' as retrieved by reflection, if exist.
@@ -1138,7 +1138,7 @@ public abstract class GLContextImpl extends GLContext {
    * ie for GLXExt, EGLExt, ..
    */
   public abstract ProcAddressTable getPlatformExtProcAddressTable();
-  
+
   /**
    * Part of <code>GL_NV_vertex_array_range</code>.
    * <p>
@@ -1154,7 +1154,7 @@ public abstract class GLContextImpl extends GLContext {
    * Provides platform-independent access to the <code>wglFreeMemoryNV</code> /
    * <code>glXFreeMemoryNV</code>.
    * </p>
-   */  
+   */
   public abstract void glFreeMemoryNV(ByteBuffer pointer);
 
   /** Maps the given "platform-independent" function name to a real function
@@ -1189,13 +1189,14 @@ public abstract class GLContextImpl extends GLContext {
       GLEmitter by looking up anew all of its function pointers. */
   protected final void resetProcAddressTable(final ProcAddressTable table) {
     AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        @Override
         public Object run() {
             table.reset(getDrawableImpl().getGLDynamicLookupHelper() );
             return null;
         }
     } );
   }
-  
+
   private final boolean initGLRendererAndGLVersionStrings()  {
     final GLDynamicLookupHelper glDynLookupHelper = getDrawableImpl().getGLDynamicLookupHelper();
     final long _glGetString = glDynLookupHelper.dynamicLookupFunction("glGetString");
@@ -1215,7 +1216,7 @@ public abstract class GLContextImpl extends GLContext {
             return false;
         }
         glVendor = _glVendor;
-        
+
         final String _glRenderer = glGetStringInt(GL.GL_RENDERER, _glGetString);
         if(null == _glRenderer) {
             if(DEBUG) {
@@ -1226,7 +1227,7 @@ public abstract class GLContextImpl extends GLContext {
         }
         glRenderer = _glRenderer;
         glRendererLowerCase = glRenderer.toLowerCase();
-        
+
         final String _glVersion = glGetStringInt(GL.GL_VERSION, _glGetString);
         if(null == _glVersion) {
             // FIXME
@@ -1237,7 +1238,7 @@ public abstract class GLContextImpl extends GLContext {
             return false;
         }
         glVersion = _glVersion;
-        
+
         return true;
     }
   }
@@ -1251,7 +1252,7 @@ public abstract class GLContextImpl extends GLContext {
           minor[0] = 0;
       }
   }
-  
+
   /**
    * Returns null if version string is invalid, otherwise a valid instance.
    * <p>
@@ -1278,7 +1279,7 @@ public abstract class GLContextImpl extends GLContext {
    * version for given arrays.
    * <p>
    * If the GL query fails, major will be zero.
-   * </p> 
+   * </p>
    * <p>
    * Note: Non ARB ctx is limited to GL 3.0.
    * </p>
@@ -1292,20 +1293,20 @@ public abstract class GLContextImpl extends GLContext {
         if(DEBUG) {
             Thread.dumpStack();
         }
-        return false;        
+        return false;
     } else {
         glGetIntegervInt(GL2GL3.GL_MAJOR_VERSION, glIntMajor, 0, _glGetIntegerv);
         glGetIntegervInt(GL2GL3.GL_MINOR_VERSION, glIntMinor, 0, _glGetIntegerv);
         limitNonARBContextVersion(glIntMajor, glIntMinor, ctp);
-        return true;        
+        return true;
     }
   }
-  
+
   protected final int getCtxOptions() {
       return ctxOptions;
   }
 
-  
+
   /**
    * Sets the OpenGL implementation class and
    * the cache of which GL functions are available for calling through this
@@ -1325,8 +1326,8 @@ public abstract class GLContextImpl extends GLContext {
    *                      <li>be greater or equal than the requested <code>major.minor</code> version, and</li>
    *                      <li>match the ctxProfileBits</li>
    *                    </ul>, otherwise method aborts and returns <code>false</code>.
-   * @return returns <code>true</code> if successful, otherwise <code>false</code>. See <code>strictMatch</code>. 
-   *                 If <code>false</code> is returned, no data has been cached or mapped, i.e. ProcAddressTable, Extensions, Version, etc. 
+   * @return returns <code>true</code> if successful, otherwise <code>false</code>. See <code>strictMatch</code>.
+   *                 If <code>false</code> is returned, no data has been cached or mapped, i.e. ProcAddressTable, Extensions, Version, etc.
    * @see #setContextVersion
    * @see javax.media.opengl.GLContext#CTX_OPTION_ANY
    * @see javax.media.opengl.GLContext#CTX_PROFILE_COMPAT
@@ -1340,7 +1341,7 @@ public abstract class GLContextImpl extends GLContext {
     if ( 0 < major && !GLContext.isValidGLVersion(ctxProfileBits, major, minor) ) {
         throw new GLException("Invalid GL Version Request "+GLContext.getGLVersion(major, minor, ctxProfileBits, null));
     }
-    
+
     if(null==this.gl || !verifyInstance(gl.getGLProfile(), "Impl", this.gl)) {
         setGL( createGL( getGLDrawable().getGLProfile() ) );
     }
@@ -1348,7 +1349,7 @@ public abstract class GLContextImpl extends GLContext {
 
     final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
     final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
-    
+
     {
         final boolean initGLRendererAndGLVersionStringsOK = initGLRendererAndGLVersionStrings();
         if( !initGLRendererAndGLVersionStringsOK ) {
@@ -1367,7 +1368,7 @@ public abstract class GLContextImpl extends GLContext {
             System.err.println(getThreadName() + ": GLContext.setGLFuncAvail: Given "+adevice+" - "+GLContext.getGLVersion(major, minor, ctxProfileBits, glVersion));
         }
     }
-    
+
     //
     // Validate GL version either by GL-Integer or GL-String
     //
@@ -1377,8 +1378,8 @@ public abstract class GLContextImpl extends GLContext {
     boolean versionValidated = false;
     boolean versionGL3IntFailed = false;
     {
-        // Validate the requested version w/ the GL-version from an integer query. 
-        final int[] glIntMajor = new int[] { 0 }, glIntMinor = new int[] { 0 }; 
+        // Validate the requested version w/ the GL-version from an integer query.
+        final int[] glIntMajor = new int[] { 0 }, glIntMinor = new int[] { 0 };
         final boolean getGLIntVersionOK = getGLIntVersion(glIntMajor, glIntMinor, ctxProfileBits);
         if( !getGLIntVersionOK ) {
             final String errMsg = "Fetching GL Integer Version failed. "+adevice+" - "+GLContext.getGLVersion(major, minor, ctxProfileBits, null);
@@ -1392,14 +1393,14 @@ public abstract class GLContextImpl extends GLContext {
                 // unusable GL context - non query mode - hard fail!
                 throw new GLException(errMsg);
             }
-        }        
+        }
         if (DEBUG) {
             System.err.println(getThreadName() + ": GLContext.setGLFuncAvail: version verification (Int): "+glVersion+", "+glIntMajor[0]+"."+glIntMinor[0]);
         }
-        
+
         // Only validate if a valid int version was fetched, otherwise cont. w/ version-string method -> 3.0 > Version || Version > MAX!
         if ( GLContext.isValidGLVersion(ctxProfileBits, glIntMajor[0], glIntMinor[0]) ) {
-            if( glIntMajor[0]<major || ( glIntMajor[0]==major && glIntMinor[0]<minor ) || 0 == major ) {        
+            if( glIntMajor[0]<major || ( glIntMajor[0]==major && glIntMinor[0]<minor ) || 0 == major ) {
                 if( strictMatch && 2 < major ) { // relaxed match for versions major < 3 requests, last resort!
                     if(DEBUG) {
                         System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.X: FAIL, GL version mismatch (Int): "+GLContext.getGLVersion(major, minor, ctxProfileBits, null)+" -> "+glVersion+", "+glIntMajor[0]+"."+glIntMinor[0]);
@@ -1415,13 +1416,13 @@ public abstract class GLContextImpl extends GLContext {
         }
     }
     if( !versionValidated ) {
-        // Validate the requested version w/ the GL-version from the version string. 
+        // Validate the requested version w/ the GL-version from the version string.
         final VersionNumber setGLVersionNumber = new VersionNumber(major, minor, 0);
         final VersionNumber strGLVersionNumber = getGLVersionNumber(ctxProfileBits, glVersion);
         if (DEBUG) {
             System.err.println(getThreadName() + ": GLContext.setGLFuncAvail: version verification (String): "+glVersion+", "+strGLVersionNumber);
         }
-        
+
         // Only validate if a valid string version was fetched -> MIN > Version || Version > MAX!
         if( null != strGLVersionNumber ) {
             if( strGLVersionNumber.compareTo(setGLVersionNumber) < 0 || 0 == major ) {
@@ -1438,7 +1439,7 @@ public abstract class GLContextImpl extends GLContext {
                 if(DEBUG) {
                     System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.X: FAIL, GL3 version Int failed, String: "+GLContext.getGLVersion(major, minor, ctxProfileBits, null)+" -> "+glVersion+", "+strGLVersionNumber);
                 }
-                return false;            
+                return false;
             }
             versionValidated = true;
         }
@@ -1447,27 +1448,27 @@ public abstract class GLContextImpl extends GLContext {
         if(DEBUG) {
             System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.X: FAIL, No GL version validation possible: "+GLContext.getGLVersion(major, minor, ctxProfileBits, null)+" -> "+glVersion);
         }
-        return false;                    
+        return false;
     }
     if (DEBUG) {
         System.err.println(getThreadName() + ": GLContext.setGLFuncAvail: post version verification "+GLContext.getGLVersion(major, minor, ctxProfileBits, null)+", strictMatch "+strictMatch+", versionValidated "+versionValidated+", versionGL3IntFailed "+versionGL3IntFailed);
     }
-    
+
     if( 2 > major ) { // there is no ES2/3-compat for a profile w/ major < 2
         ctxProfileBits &= ~ ( GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_ES3_COMPAT ) ;
     }
-    
+
     final VersionNumberString vendorVersion = GLVersionNumber.createVendorVersion(glVersion);
-    
+
     setRendererQuirks(adevice, major, minor, ctxProfileBits, vendorVersion);
-    
+
     if( strictMatch && glRendererQuirks.exist(GLRendererQuirks.GLNonCompliant) ) {
         if(DEBUG) {
             System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.X: FAIL, GL is not compliant: "+GLContext.getGLVersion(major, minor, ctxProfileBits, glVersion)+", "+glRenderer);
         }
         return false;
     }
-    
+
     if(!isCurrentContextHardwareRasterizer()) {
         ctxProfileBits |= GLContext.CTX_IMPL_ACCEL_SOFT;
     }
@@ -1529,7 +1530,7 @@ public abstract class GLContextImpl extends GLContext {
             }
         }
     }
-    
+
     if( 0 != ( CTX_PROFILE_ES & ctxProfileBits ) ) {
         if( major >= 3 ) {
             ctxProfileBits |= CTX_IMPL_ES3_COMPAT | CTX_IMPL_ES2_COMPAT ;
@@ -1550,45 +1551,45 @@ public abstract class GLContextImpl extends GLContext {
     } else if( hasFBOImpl(major, ctxProfileBits, extensionAvailability) ) {
         ctxProfileBits |= CTX_IMPL_FBO;
     }
-    
+
     if( ( 0 != ( CTX_PROFILE_ES & ctxProfileBits ) && major == 1 ) ||  isExtensionAvailable(GLExtensions.OES_single_precision) ) {
         ctxProfileBits |= CTX_IMPL_FP32_COMPAT_API;
     }
-    
+
     if(FORCE_NO_FBO_SUPPORT) {
         ctxProfileBits &= ~CTX_IMPL_FBO ;
-    }      
-    
+    }
+
     //
     // Set GL Version (complete w/ version string)
     //
     setContextVersion(major, minor, ctxProfileBits, vendorVersion, true);
-    
+
     finalizeInit(gl);
-    
+
     setDefaultSwapInterval();
-    
+
     final int glErrX = gl.glGetError(); // clear GL error, maybe caused by above operations
-    
+
     if(DEBUG) {
         System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.X: OK "+contextFQN+" - "+GLContext.getGLVersion(ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions, null)+" - glErr "+toHexString(glErrX));
     }
     return true;
   }
-  
+
   private final void setRendererQuirks(final AbstractGraphicsDevice adevice, int major, int minor, int ctp, final VersionNumberString vendorVersion) {
     int[] quirks = new int[GLRendererQuirks.COUNT + 1]; // + 1 ( NoFullFBOSupport )
     int i = 0;
-    
+
     final String MesaSP = "Mesa ";
-    // final String MesaRendererAMDsp = " AMD "; 
-    // final String MesaRendererIntelsp = "Intel(R)"; 
+    // final String MesaRendererAMDsp = " AMD ";
+    // final String MesaRendererIntelsp = "Intel(R)";
     final boolean hwAccel = 0 == ( ctp & GLContext.CTX_IMPL_ACCEL_SOFT );
     final boolean compatCtx = 0 != ( ctp & GLContext.CTX_PROFILE_COMPAT );
     final boolean isDriverMesa = glRenderer.contains(MesaSP) || glRenderer.contains("Gallium ");
     final boolean isDriverATICatalyst = !isDriverMesa && ( glVendor.contains("ATI Technologies") || glRenderer.startsWith("ATI ") );
     final boolean isDriverNVIDIAGeForce = !isDriverMesa && ( glVendor.contains("NVIDIA Corporation") || glRenderer.contains("NVIDIA ") );
-    
+
     //
     // OS related quirks
     //
@@ -1603,7 +1604,7 @@ public abstract class GLContextImpl extends GLContext {
             }
             quirks[i++] = quirk;
         }
-        
+
         if( isDriverNVIDIAGeForce ) {
             final VersionNumber osxVersionNVFlushClean = new VersionNumber(10,7,3); // < OSX 10.7.3 w/ NV needs glFlush
             if( Platform.getOSVersionNumber().compareTo(osxVersionNVFlushClean) < 0 ) {
@@ -1622,7 +1623,7 @@ public abstract class GLContextImpl extends GLContext {
                 quirks[i++] = quirk;
             }
         }
-    } else if( Platform.getOSType() == Platform.OSType.WINDOWS ) {        
+    } else if( Platform.getOSType() == Platform.OSType.WINDOWS ) {
         //
         // WINDOWS
         //
@@ -1633,28 +1634,28 @@ public abstract class GLContextImpl extends GLContext {
             }
             quirks[i++] = quirk;
         }
-        
+
         if( isDriverATICatalyst ) {
-            final VersionNumber winXPVersionNumber = new VersionNumber ( 5, 1, 0);          
-            final VersionNumber amdSafeMobilityVersion = new VersionNumber(12, 102, 3);  
-            
+            final VersionNumber winXPVersionNumber = new VersionNumber ( 5, 1, 0);
+            final VersionNumber amdSafeMobilityVersion = new VersionNumber(12, 102, 3);
+
             if ( vendorVersion.compareTo(amdSafeMobilityVersion) < 0 ) { // includes: vendorVersion.isZero()
                 final int quirk = GLRendererQuirks.NeedCurrCtx4ARBCreateContext;
                 if(DEBUG) {
                     System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType()+", [Vendor "+glVendor+" or Renderer "+glRenderer+"], driverVersion "+vendorVersion);
                 }
-                quirks[i++] = quirk;                
+                quirks[i++] = quirk;
             }
-            
+
             if( Platform.getOSVersionNumber().compareTo(winXPVersionNumber) <= 0 ) {
                 final int quirk = GLRendererQuirks.NeedCurrCtx4ARBPixFmtQueries;
                 if(DEBUG) {
                     System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS-Version "+Platform.getOSType()+" "+Platform.getOSVersionNumber()+", [Vendor "+glVendor+" or Renderer "+glRenderer+"]");
                 }
-                quirks[i++] = quirk;                
+                quirks[i++] = quirk;
             }
         }
-    } else if( Platform.OSType.ANDROID == Platform.getOSType() ) {    
+    } else if( Platform.OSType.ANDROID == Platform.getOSType() ) {
         //
         // ANDROID
         //
@@ -1667,7 +1668,7 @@ public abstract class GLContextImpl extends GLContext {
             quirks[i++] = quirk;
         }
     }
-    
+
     //
     // Windowing Toolkit related quirks
     //
@@ -1704,8 +1705,8 @@ public abstract class GLContextImpl extends GLContext {
             }
         }
     }
-    
-    
+
+
     //
     // RENDERER related quirks
     //
@@ -1735,8 +1736,8 @@ public abstract class GLContextImpl extends GLContext {
         }
         if( Platform.getOSType() == Platform.OSType.WINDOWS && glRenderer.contains("SVGA3D") )
         {
-            final VersionNumber mesaSafeFBOVersion = new VersionNumber(8, 0, 0);              
-            if ( vendorVersion.compareTo(mesaSafeFBOVersion) < 0 ) { // includes: vendorVersion.isZero()            
+            final VersionNumber mesaSafeFBOVersion = new VersionNumber(8, 0, 0);
+            if ( vendorVersion.compareTo(mesaSafeFBOVersion) < 0 ) { // includes: vendorVersion.isZero()
                 final int quirk = GLRendererQuirks.NoFullFBOSupport;
                 if(DEBUG) {
                     System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType() + " / Renderer " + glRenderer + " / Mesa-Version "+vendorVersion);
@@ -1745,7 +1746,7 @@ public abstract class GLContextImpl extends GLContext {
             }
         }
     }
-    
+
     //
     // Property related quirks
     //
@@ -1754,28 +1755,28 @@ public abstract class GLContextImpl extends GLContext {
         if(DEBUG) {
             System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: property");
         }
-        quirks[i++] = quirk;        
+        quirks[i++] = quirk;
     }
-    
+
     glRendererQuirks = new GLRendererQuirks(quirks, 0, i);
   }
-    
+
   private static final boolean hasFBOImpl(int major, int ctp, ExtensionAvailabilityCache extCache) {
     return ( 0 != (ctp & CTX_PROFILE_ES) && major >= 2 ) ||   // ES >= 2.0
-            
-           major >= 3 ||                                                 // any >= 3.0 GL ctx                       
-           
+
+           major >= 3 ||                                                 // any >= 3.0 GL ctx
+
            ( null != extCache &&
-           
+
                extCache.isExtensionAvailable(GLExtensions.ARB_ES2_compatibility)  ||         // ES 2.0 compatible
-               
+
                extCache.isExtensionAvailable(GLExtensions.ARB_framebuffer_object) ||         // ARB_framebuffer_object
-               
+
                extCache.isExtensionAvailable(GLExtensions.EXT_framebuffer_object) ||         // EXT_framebuffer_object
-               
-               extCache.isExtensionAvailable(GLExtensions.OES_framebuffer_object) ) ;        // OES_framebuffer_object excluded               
+
+               extCache.isExtensionAvailable(GLExtensions.OES_framebuffer_object) ) ;        // OES_framebuffer_object excluded
   }
-  
+
   private final void removeCachedVersion(int major, int minor, int ctxProfileBits) {
     if(!isCurrentContextHardwareRasterizer()) {
         ctxProfileBits |= GLContext.CTX_IMPL_ACCEL_SOFT;
@@ -1932,7 +1933,7 @@ public abstract class GLContextImpl extends GLContext {
       evalPixelDataType();
       return pixelDataFormat;
   }
-  
+
   private final void evalPixelDataType() {
     if(!pixelDataEvaluated) {
         synchronized(this) {
@@ -1946,14 +1947,14 @@ public abstract class GLContextImpl extends GLContext {
                 } else */ if( isGLES2Compatible() || isExtensionAvailable(GLExtensions.OES_read_format) ) {
                     final int[] glImplColorReadVals = new int[] { 0, 0 };
                     gl.glGetIntegerv(GL.GL_IMPLEMENTATION_COLOR_READ_FORMAT, glImplColorReadVals, 0);
-                    gl.glGetIntegerv(GL.GL_IMPLEMENTATION_COLOR_READ_TYPE, glImplColorReadVals, 1);            
+                    gl.glGetIntegerv(GL.GL_IMPLEMENTATION_COLOR_READ_TYPE, glImplColorReadVals, 1);
                     // pixelDataInternalFormat = (4 == components) ? GL.GL_RGBA : GL.GL_RGB;
                     pixelDataFormat = glImplColorReadVals[0];
                     pixelDataType = glImplColorReadVals[1];
                     ok = 0 != pixelDataFormat && 0 != pixelDataType;
                 }
                 if( !ok ) {
-                    // RGBA read is safe for all GL profiles 
+                    // RGBA read is safe for all GL profiles
                     // pixelDataInternalFormat = (4 == components) ? GL.GL_RGBA : GL.GL_RGB;
                     pixelDataFormat=GL.GL_RGBA;
                     pixelDataType = GL.GL_UNSIGNED_BYTE;
@@ -1984,54 +1985,54 @@ public abstract class GLContextImpl extends GLContext {
   public final GLStateTracker getGLStateTracker() {
     return glStateTracker;
   }
-  
+
   //---------------------------------------------------------------------------
   // Helpers for context optimization where the last context is left
   // current on the OpenGL worker thread
   //
 
-  /** 
+  /**
    * Returns true if the given thread is owner, otherwise false.
    * <p>
    * Method exists merely for code validation of {@link #isCurrent()}.
-   * </p> 
+   * </p>
    */
   public final boolean isOwner(Thread thread) {
       return lock.isOwner(thread);
   }
-  
-  /** 
+
+  /**
    * Returns true if there are other threads waiting for this GLContext to {@link #makeCurrent()}, otherwise false.
    * <p>
    * Since method does not perform any synchronization, accurate result are returned if lock is hold - only.
-   * </p> 
+   * </p>
    */
   public final boolean hasWaiters() {
     return lock.getQueueLength()>0;
   }
-  
-  /** 
+
+  /**
    * Returns the number of hold locks. See {@link RecursiveLock#getHoldCount()} for semantics.
    * <p>
    * Since method does not perform any synchronization, accurate result are returned if lock is hold - only.
-   * </p> 
+   * </p>
    */
   public final int getLockCount() {
       return lock.getHoldCount();
   }
-  
+
   //---------------------------------------------------------------------------
   // Special FBO hook
   //
-  
+
   /**
    * Tracks {@link GL#GL_FRAMEBUFFER}, {@link GL2GL3#GL_DRAW_FRAMEBUFFER} and {@link GL2GL3#GL_READ_FRAMEBUFFER}
    * to be returned via {@link #getBoundFramebuffer(int)}.
-   * 
+   *
    * <p>Invoked by {@link GL#glBindFramebuffer(int, int)}. </p>
-   * 
-   * <p>Assumes valid <code>framebufferName</code> range of [0..{@link Integer#MAX_VALUE}]</p> 
-   * 
+   *
+   * <p>Assumes valid <code>framebufferName</code> range of [0..{@link Integer#MAX_VALUE}]</p>
+   *
    * <p>Does not throw an exception if <code>target</code> is unknown or <code>framebufferName</code> invalid.</p>
    */
   public final void setBoundFramebuffer(int target, int framebufferName) {
@@ -2064,14 +2065,14 @@ public abstract class GLContextImpl extends GLContext {
               throw new InternalError("Invalid FBO target name: "+toHexString(target));
       }
   }
-  
+
   @Override
-  public final int getDefaultDrawFramebuffer() { return drawable.getDefaultDrawFramebuffer(); }  
+  public final int getDefaultDrawFramebuffer() { return drawable.getDefaultDrawFramebuffer(); }
   @Override
-  public final int getDefaultReadFramebuffer() { return drawable.getDefaultReadFramebuffer(); }  
+  public final int getDefaultReadFramebuffer() { return drawable.getDefaultReadFramebuffer(); }
   @Override
   public final int getDefaultReadBuffer() { return drawable.getDefaultReadBuffer(gl); }
-    
+
   //---------------------------------------------------------------------------
   // GL_ARB_debug_output, GL_AMD_debug_output helpers
   //
@@ -2090,7 +2091,7 @@ public abstract class GLContextImpl extends GLContext {
   public final int getContextCreationFlags() {
       return additionalCtxCreationFlags;
   }
-  
+
   @Override
   public final void setContextCreationFlags(int flags) {
       if(!isCreated()) {
@@ -2160,7 +2161,7 @@ public abstract class GLContextImpl extends GLContext {
 
   /** Internal bootstraping glGetString(GL_RENDERER) */
   private static native String glGetStringInt(int name, long procAddress);
-  
+
   /** Internal bootstraping glGetIntegerv(..) for version */
   private static native void glGetIntegervInt(int pname, int[] params, int params_offset, long procAddress);
 }

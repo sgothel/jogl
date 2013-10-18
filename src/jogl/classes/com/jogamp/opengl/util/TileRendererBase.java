@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,18 +20,18 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
- * 
+ *
  * ---------------------
- * 
+ *
  * Based on Brian Paul's tile rendering library, found
  * at <a href = "http://www.mesa3d.org/brianp/TR.html">http://www.mesa3d.org/brianp/TR.html</a>.
- * 
- * Copyright (C) 1997-2005 Brian Paul. 
- * Licensed under BSD-compatible terms with permission of the author. 
+ *
+ * Copyright (C) 1997-2005 Brian Paul.
+ * Licensed under BSD-compatible terms with permission of the author.
  * See LICENSE.txt for license information.
  */
 package com.jogamp.opengl.util;
@@ -66,17 +66,17 @@ import jogamp.opengl.Debug;
  * The PMV matrix needs to be reshaped in user code
  * after calling {@link #beginTile(GL)}, See {@link #beginTile(GL)}.
  * </p>
- * <p> 
+ * <p>
  * If {@link #attachAutoDrawable(GLAutoDrawable) attaching to} an {@link GLAutoDrawable},
  * the {@link TileRendererListener#reshapeTile(TileRendererBase, int, int, int, int, int, int)} method
  * is being called after {@link #beginTile(GL)} for each rendered tile.
- * It's implementation shall reshape the PMV matrix according to {@link #beginTile(GL)}. 
+ * It's implementation shall reshape the PMV matrix according to {@link #beginTile(GL)}.
  * </p>
  * <a name="glprequirement"><h5>GL Profile Requirement</h5></a>
  * <p>
- * Note that {@link #setImageBuffer(GLPixelBuffer) image buffer} can only be used 
+ * Note that {@link #setImageBuffer(GLPixelBuffer) image buffer} can only be used
  * in conjunction w/ a {@link GL} instance &ge; {@link GL2ES3} passed to {@link #beginTile(GL)} and {@link #endTile(GL)}.<br>
- * This is due to setting up the {@link GL2ES3#GL_PACK_ROW_LENGTH pack row length} 
+ * This is due to setting up the {@link GL2ES3#GL_PACK_ROW_LENGTH pack row length}
  * for an {@link #setImageSize(int, int) image width} != tile-width, which usually is the case.<br>
  * Hence a {@link GLException} is thrown in both methods,
  * if using an {@link #setImageBuffer(GLPixelBuffer) image buffer}
@@ -86,7 +86,7 @@ import jogamp.opengl.Debug;
  * Further more, reading back of MSAA buffers is only supported since {@link GL2ES3}
  * since it requires to set the {@link GL2ES3#glReadBuffer(int) read-buffer}.
  * </p>
- * 
+ *
  * @author ryanm, sgothel
  */
 public abstract class TileRendererBase {
@@ -114,16 +114,16 @@ public abstract class TileRendererBase {
      * The height of the current tile. See {@link #getParam(int)}.
      */
     public static final int TR_CURRENT_TILE_HEIGHT = 6;
-    
+
     /* pp */ static final boolean DEBUG = Debug.debug("TileRenderer");
-    
-    /** 
+
+    /**
      * Listener for tile renderer events, intended to extend {@link GLEventListener} implementations,
      * enabling tile rendering via {@link TileRendererBase#attachAutoDrawable(GLAutoDrawable)}.
      */
     public static interface TileRendererListener {
-        /** 
-         * The owning {@link GLAutoDrawable} is {@link TileRendererBase#attachAutoDrawable(GLAutoDrawable) attached} 
+        /**
+         * The owning {@link GLAutoDrawable} is {@link TileRendererBase#attachAutoDrawable(GLAutoDrawable) attached}
          * to the given {@link TileRendererBase} instance.
          * <p>
          * The {@link GLContext} of the {@link TileRendererBase}'s {@link TileRendererBase#getAttachedDrawable() attached} {@link GLAutoDrawable}
@@ -133,9 +133,9 @@ public abstract class TileRendererBase {
          * @see TileRendererBase#getAttachedDrawable()
          */
         public void addTileRendererNotify(TileRendererBase tr);
-        
-        /** 
-         * The owning {@link GLAutoDrawable} is {@link TileRendererBase#detachAutoDrawable() detached} 
+
+        /**
+         * The owning {@link GLAutoDrawable} is {@link TileRendererBase#detachAutoDrawable() detached}
          * from the given {@link TileRendererBase} instance.
          * <p>
          * The {@link GLContext} of the {@link TileRendererBase}'s {@link TileRendererBase#getAttachedDrawable() attached} {@link GLAutoDrawable}
@@ -145,10 +145,10 @@ public abstract class TileRendererBase {
          * @see TileRendererBase#getAttachedDrawable()
          */
         public void removeTileRendererNotify(TileRendererBase tr);
-        
-        /** 
+
+        /**
          * Called by the {@link TileRendererBase} during tile-rendering via an
-         * {@link TileRendererBase#getAttachedDrawable() attached} {@link GLAutoDrawable}'s 
+         * {@link TileRendererBase#getAttachedDrawable() attached} {@link GLAutoDrawable}'s
          * {@link GLAutoDrawable#display()} call for each tile before {@link #display(GLAutoDrawable)}.
          * <p>
          * The <a href="#pmvmatrix">PMV Matrix</a> shall be reshaped
@@ -175,14 +175,14 @@ public abstract class TileRendererBase {
          * @see TileRendererBase#getAttachedDrawable()
          */
         public void reshapeTile(TileRendererBase tr,
-                                int tileX, int tileY, int tileWidth, int tileHeight, 
+                                int tileX, int tileY, int tileWidth, int tileHeight,
                                 int imageWidth, int imageHeight);
 
         /**
-         * Called by the {@link TileRendererBase} during tile-rendering 
+         * Called by the {@link TileRendererBase} during tile-rendering
          * after {@link TileRendererBase#beginTile(GL)} and before {@link #reshapeTile(TileRendererBase, int, int, int, int, int, int) reshapeTile(..)}.
          * <p>
-         * If {@link TileRendererBase} is of type {@link TileRenderer}, 
+         * If {@link TileRendererBase} is of type {@link TileRenderer},
          * method is called for the first tile of all tiles.<br>
          * Otherwise, i.e. {@link RandomTileRenderer}, method is called for each particular tile.
          * </p>
@@ -193,12 +193,12 @@ public abstract class TileRendererBase {
          * @param tr the issuing {@link TileRendererBase}
          */
         public void startTileRendering(TileRendererBase tr);
-        
+
         /**
          * Called by the {@link TileRenderer} during tile-rendering
          * after {@link TileRendererBase#endTile(GL)} and {@link GLAutoDrawable#swapBuffers()}.
          * <p>
-         * If {@link TileRendererBase} is of type {@link TileRenderer}, 
+         * If {@link TileRendererBase} is of type {@link TileRenderer},
          * method is called for the last tile of all tiles.<br>
          * Otherwise, i.e. {@link RandomTileRenderer}, method is called for each particular tile.
          * </p>
@@ -210,7 +210,7 @@ public abstract class TileRendererBase {
          */
         public void endTileRendering(TileRendererBase tr);
     }
-    
+
     protected final Dimension imageSize = new Dimension(0, 0);
     protected final GLPixelStorageModes psm = new GLPixelStorageModes();
     protected GLPixelBuffer imageBuffer;
@@ -244,29 +244,30 @@ public abstract class TileRendererBase {
         sb.append(", isSetup "+isSetup());
         return sb;
     }
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         return getClass().getSimpleName()+
                 "["+toString(sb).toString()+"]";
     }
-    
+
     protected TileRendererBase() {
     }
 
     /**
      * Gets the parameters of this TileRenderer object
-     * 
+     *
      * @param pname The parameter name that is to be retrieved
      * @return the value of the parameter
      * @throws IllegalArgumentException if <code>pname</code> is not handled
      */
     public abstract int getParam(int pname) throws IllegalArgumentException;
-    
+
     /**
      * Specify a buffer the tiles to be copied to. This is not
      * necessary for the creation of the final image, but useful if you
      * want to inspect each tile in turn.
-     * 
+     *
      * @param buffer The buffer itself. Must be large enough to contain a random tile
      */
     public final void setTileBuffer(GLPixelBuffer buffer) {
@@ -281,7 +282,7 @@ public abstract class TileRendererBase {
 
     /**
      * Sets the desired size of the final image
-     * 
+     *
      * @param width The width of the final image
      * @param height The height of the final image
      */
@@ -294,7 +295,7 @@ public abstract class TileRendererBase {
 
     /**
      * Sets the buffer in which to store the final image
-     * 
+     *
      * @param buffer the buffer itself, must be large enough to hold the final image
      */
     public final void setImageBuffer(GLPixelBuffer buffer) {
@@ -310,16 +311,16 @@ public abstract class TileRendererBase {
     /* pp */ final void validateGL(GL gl) throws GLException {
         if( imageBuffer != null && !gl.isGL2ES3()) {
             throw new GLException("Using image-buffer w/ inssufficient GL context: "+gl.getContext().getGLVersion()+", "+gl.getGLProfile());
-        }        
+        }
     }
-    
-    /** 
+
+    /**
      * Returns true if this instance is setup properly, i.e. {@link #setImageSize(int, int)} ..,
      * and ready for {@link #beginTile(GL)}.
      * Otherwise returns false.
      */
     public abstract boolean isSetup();
-    
+
     /**
      * Returns true if <i>end of tiling</i> has been reached, otherwise false.
      * <p>
@@ -331,7 +332,7 @@ public abstract class TileRendererBase {
      * </p>
      */
     public abstract boolean eot();
-    
+
     /**
      * Method resets implementation's internal state to <i>start of tiling</i>
      * as required for {@link #beginTile(GL)} if {@link #eot() end of tiling} has been reached.
@@ -340,7 +341,7 @@ public abstract class TileRendererBase {
      * </p>
      */
     public abstract void reset();
-    
+
     /**
      * Begins rendering a tile.
      * <p>
@@ -367,7 +368,7 @@ public abstract class TileRendererBase {
      * </p>
      * <p>
      * Use shall render the scene afterwards, concluded with a call to
-     * this renderer {@link #endTile(GL)}. 
+     * this renderer {@link #endTile(GL)}.
      * </p>
      * <p>
      * User has to comply with the <a href="#glprequirement">GL profile requirement</a>.
@@ -376,10 +377,10 @@ public abstract class TileRendererBase {
      * If {@link #eot() end of tiling} has been reached,
      * user needs to {@link #reset()} tiling before calling this method.
      * </p>
-     * 
+     *
      * @param gl The gl context
      * @throws IllegalStateException if {@link #setImageSize(int, int) image-size} is undefined,
-     *         an {@link #isSetup() implementation related setup} has not be performed 
+     *         an {@link #isSetup() implementation related setup} has not be performed
      *         or {@ link #eot()} has been reached. See implementing classes.
      * @throws GLException if {@link #setImageBuffer(GLPixelBuffer) image buffer} is used but <code>gl</code> instance is &lt; {@link GL2ES3}
      * @see #isSetup()
@@ -387,7 +388,7 @@ public abstract class TileRendererBase {
      * @see #reset()
      */
     public abstract void beginTile(GL gl) throws IllegalStateException, GLException;
-    
+
     /**
      * Must be called after rendering the scene,
      * see {@link #beginTile(GL)}.
@@ -399,13 +400,13 @@ public abstract class TileRendererBase {
      * <p>
      * User has to comply with the <a href="#glprequirement">GL profile requirement</a>.
      * </p>
-     * 
+     *
      * @param gl the gl context
      * @throws IllegalStateException if beginTile(gl) has not been called
      * @throws GLException if {@link #setImageBuffer(GLPixelBuffer) image buffer} is used but <code>gl</code> instance is &lt; {@link GL2ES3}
      */
     public abstract void endTile( GL gl ) throws IllegalStateException, GLException;
-    
+
     /**
      * Determines whether the chosen {@link GLCapabilitiesImmutable}
      * requires a <i>pre-{@link GLDrawable#swapBuffers() swap-buffers}</i>
@@ -417,18 +418,18 @@ public abstract class TileRendererBase {
      * Here {@link GLDrawable#swapBuffers() swap-buffers} shall happen <b>after</b> calling {@link #endTile(GL)}, the default.
      * </p>
      * <p>
-     * However, <i>multisampling</i> offscreen {@link GLFBODrawable}s 
+     * However, <i>multisampling</i> offscreen {@link GLFBODrawable}s
      * utilize {@link GLDrawable#swapBuffers() swap-buffers} to <i>downsample</i>
      * the multisamples into the readable sampling sink.
-     * In this case, we require a {@link GLDrawable#swapBuffers() swap-buffers} <b>before</b> calling {@link #endTile(GL)}. 
-     * </p> 
-     * @param chosenCaps the chosen {@link GLCapabilitiesImmutable} 
+     * In this case, we require a {@link GLDrawable#swapBuffers() swap-buffers} <b>before</b> calling {@link #endTile(GL)}.
+     * </p>
+     * @param chosenCaps the chosen {@link GLCapabilitiesImmutable}
      * @return chosenCaps.isFBO() && chosenCaps.getSampleBuffers()
      */
     public final boolean reqPreSwapBuffers(GLCapabilitiesImmutable chosenCaps) {
         return chosenCaps.isFBO() && chosenCaps.getSampleBuffers();
     }
-    
+
     /**
      * Attaches the given {@link GLAutoDrawable} to this tile renderer.
      * <p>
@@ -440,17 +441,17 @@ public abstract class TileRendererBase {
      * <p>
      * The {@link GLAutoDrawable}'s {@link GLAutoDrawable#getAutoSwapBufferMode() auto-swap mode} is cached
      * and set to <code>false</code>, since {@link GLAutoDrawable#swapBuffers() swapBuffers()} maybe issued before {@link #endTile(GL)},
-     * see {@link #reqPreSwapBuffers(GLCapabilitiesImmutable)}.  
+     * see {@link #reqPreSwapBuffers(GLCapabilitiesImmutable)}.
      * </p>
      * <p>
-     * This tile renderer's internal {@link GLEventListener} is then added to the attached {@link GLAutoDrawable} 
+     * This tile renderer's internal {@link GLEventListener} is then added to the attached {@link GLAutoDrawable}
      * to handle the tile rendering, replacing the original {@link GLEventListener}.<br>
      * It's {@link GLEventListener#display(GLAutoDrawable) display} implementations issues:
      * <ul>
      *   <li>Optional {@link #setGLEventListener(GLEventListener, GLEventListener) pre-glel}.{@link GLEventListener#display(GLAutoDrawable) display(..)}</li>
      *   <li>{@link #beginTile(GL)}</li>
      *   <li>for all original {@link TileRendererListener}:
-     *   <ul> 
+     *   <ul>
      *     <li>{@link TileRendererListener#reshapeTile(TileRendererBase, int, int, int, int, int, int) reshapeTile(tileX, tileY, tileWidth, tileHeight, imageWidth, imageHeight)}</li>
      *     <li>{@link GLEventListener#display(GLAutoDrawable) display(autoDrawable)}</li>
      *   </ul></li>
@@ -468,7 +469,7 @@ public abstract class TileRendererBase {
      * since it's called after {@link #endTile(GL)}.
      * </p>
      * <p>
-     * Call {@link #detachAutoDrawable()} to remove the attached {@link GLAutoDrawable} from this tile renderer 
+     * Call {@link #detachAutoDrawable()} to remove the attached {@link GLAutoDrawable} from this tile renderer
      * and to restore it's original {@link GLEventListener}.
      * </p>
      * @param glad the {@link GLAutoDrawable} to attach.
@@ -481,7 +482,7 @@ public abstract class TileRendererBase {
             throw new IllegalStateException("GLAutoDrawable already attached");
         }
         this.glad = glad;
-        
+
         final int aSz = glad.getGLEventListenerCount();
         listeners = new GLEventListener[aSz];
         listenersInit = new boolean[aSz];
@@ -510,11 +511,11 @@ public abstract class TileRendererBase {
         }
     }
 
-    /** 
-     * Returns a previously {@link #attachAutoDrawable(GLAutoDrawable) attached} {@link GLAutoDrawable}, 
+    /**
+     * Returns a previously {@link #attachAutoDrawable(GLAutoDrawable) attached} {@link GLAutoDrawable},
      * <code>null</code> if none is attached.
      * <p>
-     * If called from {@link TileRendererListener#addTileRendererNotify(TileRendererBase)} 
+     * If called from {@link TileRendererListener#addTileRendererNotify(TileRendererBase)}
      * or {@link TileRendererListener#removeTileRendererNotify(TileRendererBase)}, method returns the
      * just attached or soon to be detached {@link GLAutoDrawable}.
      * </p>
@@ -522,9 +523,9 @@ public abstract class TileRendererBase {
      * @see #detachAutoDrawable()
      */
     public final GLAutoDrawable getAttachedDrawable() {
-        return glad;        
+        return glad;
     }
-    
+
     /**
      * Detaches the given {@link GLAutoDrawable} from this tile renderer.
      * @see #attachAutoDrawable(GLAutoDrawable)
@@ -547,16 +548,16 @@ public abstract class TileRendererBase {
                 System.err.println("TileRenderer: detached: "+glad);
                 System.err.println("TileRenderer: "+glad.getChosenGLCapabilities());
             }
-            
+
             listeners = null;
             listenersInit = null;
             glad = null;
         }
     }
-    
+
     /**
      * Set {@link GLEventListener} for pre- and post operations when used w/
-     * {@link #attachAutoDrawable(GLAutoDrawable)} 
+     * {@link #attachAutoDrawable(GLAutoDrawable)}
      * for each {@link GLEventListener} callback.
      * @param preTile the pre operations
      * @param postTile the post operations
@@ -565,10 +566,10 @@ public abstract class TileRendererBase {
         glEventListenerPre = preTile;
         glEventListenerPost = postTile;
     }
-    
+
     /**
      * Rendering one tile, by simply calling {@link GLAutoDrawable#display()}.
-     * 
+     *
      * @throws IllegalStateException if no {@link GLAutoDrawable} is {@link #attachAutoDrawable(GLAutoDrawable) attached}
      *                               or imageSize is not set
      */
@@ -578,10 +579,10 @@ public abstract class TileRendererBase {
         }
         glad.display();
     }
-    
+
     private final GLEventListener tiledGLEL = new GLEventListener() {
         final TileRenderer tileRenderer = TileRendererBase.this instanceof TileRenderer ? (TileRenderer) TileRendererBase.this : null;
-        
+
         @Override
         public void init(GLAutoDrawable drawable) {
             if( null != glEventListenerPre ) {
@@ -642,13 +643,13 @@ public abstract class TileRendererBase {
                     if( null == tileRenderer || 0 == tileRenderer.getCurrentTile() ) {
                         tl.startTileRendering(TileRendererBase.this);
                     }
-                    tl.reshapeTile(TileRendererBase.this, 
+                    tl.reshapeTile(TileRendererBase.this,
                                    currentTileXPos, currentTileYPos, currentTileWidth, currentTileHeight,
                                    imageSize.getWidth(), imageSize.getHeight());
                     l.display(drawable);
                 }
             }
-            
+
             if( gladRequiresPreSwap ) {
                 glad.swapBuffers();
                 endTile(gl);
@@ -662,7 +663,7 @@ public abstract class TileRendererBase {
                     if( l instanceof TileRendererListener ) {
                         ((TileRendererListener)l).endTileRendering(TileRendererBase.this);
                     }
-                }                
+                }
             }
             if( null != glEventListenerPost ) {
                 glEventListenerPost.reshape(drawable, 0, 0, currentTileWidth, currentTileHeight);

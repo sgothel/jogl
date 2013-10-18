@@ -37,17 +37,17 @@ import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.opengl.math.Quaternion;
 
 public class GlyphShape {
-    
+
     private Quaternion quat= null;
     private OutlineShape shape = null;
-    
+
     /** Create a new Glyph shape
      * based on Parametric curve control polyline
      */
     public GlyphShape(Vertex.Factory<? extends Vertex> factory){
         shape = new OutlineShape(factory);
     }
-    
+
     /** Create a new GlyphShape from a {@link OutlineShape}
      * @param factory vertex impl factory {@link Factory}
      * @param shape {@link OutlineShape} representation of the Glyph
@@ -57,24 +57,24 @@ public class GlyphShape {
         this.shape = shape;
         this.shape.transformOutlines(OutlineShape.VerticesState.QUADRATIC_NURBS);
     }
-    
+
     public final Vertex.Factory<? extends Vertex> vertexFactory() { return shape.vertexFactory(); }
-    
+
     public OutlineShape getShape() {
         return shape;
     }
-    
+
     public int getNumVertices() {
         return shape.getVertices().size();
     }
-    
+
     /** Get the rotational Quaternion attached to this Shape
      * @return the Quaternion Object
      */
     public Quaternion getQuat() {
         return quat;
     }
-    
+
     /** Set the Quaternion that shall defien the rotation
      * of this shape.
      * @param quat
@@ -82,7 +82,7 @@ public class GlyphShape {
     public void setQuat(Quaternion quat) {
         this.quat = quat;
     }
-    
+
     /** Triangluate the glyph shape
      * @return ArrayList of triangles which define this shape
      */
@@ -95,5 +95,5 @@ public class GlyphShape {
      */
     public ArrayList<Vertex> getVertices(){
         return shape.getVertices();
-    }    
+    }
 }

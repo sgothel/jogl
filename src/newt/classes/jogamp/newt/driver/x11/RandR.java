@@ -38,18 +38,18 @@ import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.MonitorMode;
 
 public interface RandR {
-    public static final VersionNumber version110 = new VersionNumber(1, 1, 0);    
+    public static final VersionNumber version110 = new VersionNumber(1, 1, 0);
     public static final VersionNumber version130 = new VersionNumber(1, 3, 0);
     public static final VersionNumber version140 = new VersionNumber(1, 4, 0);
 
     VersionNumber getVersion();
-    
+
     void dumpInfo(final long dpy, final int screen_idx);
-    
+
     /**
-     * Encapsulate initial device query allowing caching of internal data structures. 
+     * Encapsulate initial device query allowing caching of internal data structures.
      * Methods covered:
-     * <ul> 
+     * <ul>
      *   <li>{@link #getMonitorDeviceCount(long, ScreenDriver)}</li>
      *   <li>{@link #getAvailableRotations(long, ScreenDriver, int)}</li>
      *   <li>{@link #getMonitorModeProps(long, ScreenDriver, int)}</li>
@@ -57,7 +57,7 @@ public interface RandR {
      *   <li>{@link #getMonitorDeviceProps(long, ScreenDriver, List, int, MonitorMode)}</li>
      * </ul>
      * <p>
-     * Above methods may be called w/o begin/end, in which case no 
+     * Above methods may be called w/o begin/end, in which case no
      * internal data structures can be cached:
      * </p>
      * @param dpy TODO
@@ -66,11 +66,11 @@ public interface RandR {
      */
     boolean beginInitialQuery(long dpy, ScreenDriver screen);
     void endInitialQuery(long dpy, ScreenDriver screen);
-    
+
     int getMonitorDeviceCount(final long dpy, final ScreenDriver screen);
     int[] getAvailableRotations(final long dpy, final ScreenDriver screen, final int crt_idx);
     /**
-     * 
+     *
      * @param dpy
      * @param screen
      * @param mode_idx w/o indexing rotation
@@ -80,7 +80,7 @@ public interface RandR {
     int[] getMonitorDeviceProps(final long dpy, final ScreenDriver screen, MonitorModeProps.Cache cache, final int crt_idx);
     int[] getMonitorDeviceViewport(final long dpy, final ScreenDriver screen, final int crt_idx);
     int[] getCurrentMonitorModeProps(final long dpy, final ScreenDriver screen, final int crt_idx);
-    boolean setCurrentMonitorMode(final long dpy, final ScreenDriver screen, MonitorDevice monitor, final MonitorMode mode);  
-    
-    public void updateScreenViewport(final long dpy, final ScreenDriver screen, RectangleImmutable viewport);    
+    boolean setCurrentMonitorMode(final long dpy, final ScreenDriver screen, MonitorDevice monitor, final MonitorMode mode);
+
+    public void updateScreenViewport(final long dpy, final ScreenDriver screen, RectangleImmutable viewport);
 }

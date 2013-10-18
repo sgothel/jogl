@@ -31,7 +31,7 @@ import java.io.IOException;
 public class ResourceData {
 
     private byte[] data;
-    
+
     /** Creates new ResourceData */
     public ResourceData(DataInput di) throws IOException {
         int dataLen = di.readInt();

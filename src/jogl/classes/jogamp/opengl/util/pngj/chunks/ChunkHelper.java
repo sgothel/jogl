@@ -47,19 +47,21 @@ public class ChunkHelper {
 	public static final String zTXt = "zTXt";
 
 	private static final ThreadLocal<Inflater> inflaterProvider = new ThreadLocal<Inflater>() {
+		@Override
 		protected Inflater initialValue() {
 			return new Inflater();
 		}
 	};
 
 	private static final ThreadLocal<Deflater> deflaterProvider = new ThreadLocal<Deflater>() {
+		@Override
 		protected Deflater initialValue() {
 			return new Deflater();
 		}
 	};
 
 	/*
-	 * static auxiliary buffer. any method that uses this should synchronize against this 
+	 * static auxiliary buffer. any method that uses this should synchronize against this
 	 */
 	private static byte[] tmpbuffer = new byte[4096];
 
@@ -136,7 +138,7 @@ public class ChunkHelper {
 
 	/**
 	 * Finds position of null byte in array
-	 * 
+	 *
 	 * @param b
 	 * @return -1 if not found
 	 */
@@ -149,7 +151,7 @@ public class ChunkHelper {
 
 	/**
 	 * Decides if a chunk should be loaded, according to a ChunkLoadBehaviour
-	 * 
+	 *
 	 * @param id
 	 * @param behav
 	 * @return true/false
@@ -208,7 +210,7 @@ public class ChunkHelper {
 
 	/**
 	 * Returns only the chunks that "match" the predicate
-	 * 
+	 *
 	 * See also trimList()
 	 */
 	public static List<PngChunk> filterList(List<PngChunk> target, ChunkPredicate predicateKeep) {
@@ -223,7 +225,7 @@ public class ChunkHelper {
 
 	/**
 	 * Remove (in place) the chunks that "match" the predicate
-	 * 
+	 *
 	 * See also filterList
 	 */
 	public static int trimList(List<PngChunk> target, ChunkPredicate predicateRemove) {
@@ -244,10 +246,10 @@ public class ChunkHelper {
 	 * they have same id and (perhaps, if multiple are allowed) if the match
 	 * also in some "internal key" (eg: key for string values, palette for sPLT,
 	 * etc)
-	 * 
+	 *
 	 * Notice that the use of this is optional, and that the PNG standard allows
 	 * Text chunks that have same key
-	 * 
+	 *
 	 * @return true if "equivalent"
 	 */
 	public static final boolean equivalent(PngChunk c1, PngChunk c2) {

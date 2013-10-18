@@ -2,9 +2,9 @@ package jogamp.opengl.glu.nurbs;
 
 /**
  * Class replacing C language pointer
- * 
+ *
  * @author Tomas Hrasky
- * 
+ *
  */
 public class CArrayOfFloats {
 
@@ -25,7 +25,7 @@ public class CArrayOfFloats {
 
   /**
    * Makes new CArray
-   * 
+   *
    * @param array
    *            underlaying array
    * @param pointer
@@ -39,7 +39,7 @@ public class CArrayOfFloats {
 
   /**
    * Makes new CArray from other CArray
-   * 
+   *
    * @param carray
    *            reference array
    */
@@ -51,7 +51,7 @@ public class CArrayOfFloats {
 
   /**
    * Makes new CArray with pointer set to 0
-   * 
+   *
    * @param ctlarray
    *            underlaying array
    */
@@ -62,7 +62,7 @@ public class CArrayOfFloats {
 
   /**
    * Returns element at pointer
-   * 
+   *
    * @return element at pointer
    */
   public float get() {
@@ -79,7 +79,7 @@ public class CArrayOfFloats {
 
   /**
    * Sets element at pointer
-   * 
+   *
    * @param f
    *            desired value
    */
@@ -90,7 +90,7 @@ public class CArrayOfFloats {
 
   /**
    * Returns array element at specified index
-   * 
+   *
    * @param i
    *            array index
    * @return element at index
@@ -101,7 +101,7 @@ public class CArrayOfFloats {
 
   /**
    * Returns array element at specified index relatively to pointer
-   * 
+   *
    * @param i
    *            relative index
    * @return element at relative index
@@ -112,7 +112,7 @@ public class CArrayOfFloats {
 
   /**
    * Sets value of element at specified index relatively to pointer
-   * 
+   *
    * @param i
    *            relative index
    * @param value
@@ -124,7 +124,7 @@ public class CArrayOfFloats {
 
   /**
    * Lessens pointer by value
-   * 
+   *
    * @param i
    *            lessen by
    */
@@ -135,7 +135,7 @@ public class CArrayOfFloats {
 
   /**
    * Returns pointer value
-   * 
+   *
    * @return pointer value
    */
   public int getPointer() {
@@ -144,7 +144,7 @@ public class CArrayOfFloats {
 
   /**
    * Sets ponter value
-   * 
+   *
    * @param pointer
    *            pointer value to be set
    */
@@ -157,7 +157,7 @@ public class CArrayOfFloats {
 
   /**
    * Raises pointer by value
-   * 
+   *
    * @param i
    *            raise by
    */
@@ -176,7 +176,7 @@ public class CArrayOfFloats {
 
   /**
    * Returns underlaying array
-   * 
+   *
    * @return underlaying array
    */
   public float[] getArray() {
@@ -185,7 +185,7 @@ public class CArrayOfFloats {
 
   /**
    * Sets underlaying array
-   * 
+   *
    * @param array
    *            underlaying array
    */

@@ -50,8 +50,8 @@ import jogamp.opengl.Debug;
     rendering context which is associated with the GLAutoDrawable for
     the lifetime of the object.
     <p>
-    Since the {@link GLContext} {@link GLContext#makeCurrent makeCurrent} 
-    implementation is synchronized, i.e. blocks if the context 
+    Since the {@link GLContext} {@link GLContext#makeCurrent makeCurrent}
+    implementation is synchronized, i.e. blocks if the context
     is current on another thread, the internal
     {@link GLContext} for the GLAutoDrawable can be used for the event
     based rendering mechanism and by end users directly.
@@ -123,7 +123,7 @@ public interface GLAutoDrawable extends GLDrawable {
    * otherwise return <code>this</code> instance.
    */
   public GLDrawable getDelegatedDrawable();
-  
+
   /**
    * Returns the context associated with this drawable. The returned
    * context will be synchronized.
@@ -135,38 +135,38 @@ public interface GLAutoDrawable extends GLDrawable {
    * Associate the new context, <code>newtCtx</code>, to this auto-drawable.
    * <p>
    * The current context will be destroyed if <code>destroyPrevCtx</code> is <code>true</code>,
-   * otherwise it will be dis-associated from this auto-drawable 
+   * otherwise it will be dis-associated from this auto-drawable
    * via {@link GLContext#setGLDrawable(GLDrawable, boolean) setGLDrawable(null, true);} first.
    * </p>
    * <p>
-   * The new context will be associated with this auto-drawable 
+   * The new context will be associated with this auto-drawable
    * via {@link GLContext#setGLDrawable(GLDrawable, boolean) newCtx.setGLDrawable(drawable, true);}.
-   * </p> 
+   * </p>
    * <p>
    * If the old or new context was current on this thread, it is being released before switching the association.
-   * The new context will be made current afterwards, if it was current before. 
+   * The new context will be made current afterwards, if it was current before.
    * However the user shall take extra care that no other thread
    * attempts to make this context current.
    * </p>
-   * 
+   *
    * @param newCtx the new context, maybe <code>null</code> for dis-association.
-   * @param destroyPrevCtx if <code>true</code>, destroy the previous context if exists  
+   * @param destroyPrevCtx if <code>true</code>, destroy the previous context if exists
    * @return the previous GLContext, maybe <code>null</code>
-   *  
+   *
    * @see GLContext#setGLDrawable(GLDrawable, boolean)
    * @see GLContext#setGLReadDrawable(GLDrawable)
    * @see jogamp.opengl.GLDrawableHelper#switchContext(GLDrawable, GLContext, boolean, GLContext, int)
    */
   public GLContext setContext(GLContext newCtx, boolean destroyPrevCtx);
-  
+
   /**
    * Adds the given {@link GLEventListener listener} to the end of this drawable queue.
    * The {@link GLEventListener listeners} are notified of events in the order of the queue.
    * <p>
-   * The newly added listener's {@link GLEventListener#init(GLAutoDrawable) init(..)} 
+   * The newly added listener's {@link GLEventListener#init(GLAutoDrawable) init(..)}
    * method will be called once before any other of it's callback methods.
    * See {@link #getGLEventListenerInitState(GLEventListener)} for details.
-   * </p> 
+   * </p>
    * @param listener The GLEventListener object to be inserted
    */
   public void addGLEventListener(GLEventListener listener);
@@ -175,10 +175,10 @@ public interface GLAutoDrawable extends GLDrawable {
    * Adds the given {@link GLEventListener listener} at the given index of this drawable queue.
    * The {@link GLEventListener listeners} are notified of events in the order of the queue.
    * <p>
-   * The newly added listener's {@link GLEventListener#init(GLAutoDrawable) init(..)} 
+   * The newly added listener's {@link GLEventListener#init(GLAutoDrawable) init(..)}
    * method will be called once before any other of it's callback methods.
    * See {@link #getGLEventListenerInitState(GLEventListener)} for details.
-   * </p> 
+   * </p>
    * @param index Position where the listener will be inserted.
    *              Should be within (0 <= index && index <= size()).
    *              An index value of -1 is interpreted as the end of the list, size().
@@ -192,7 +192,7 @@ public interface GLAutoDrawable extends GLDrawable {
    * @return The number of GLEventListener objects of this drawable queue.
    */
   public int getGLEventListenerCount();
-  
+
   /**
    * Returns the {@link GLEventListener} at the given index of this drawable queue.
    * @param index Position of the listener to be returned.
@@ -202,18 +202,18 @@ public interface GLAutoDrawable extends GLDrawable {
    * @throws IndexOutOfBoundsException If the index is not within (0 <= index && index < size()), or -1
    */
   public GLEventListener getGLEventListener(int index) throws IndexOutOfBoundsException;
-  
+
   /**
    * Retrieves whether the given {@link GLEventListener listener} is initialized or not.
    * <p>
-   * After {@link #addGLEventListener(GLEventListener) adding} a {@link GLEventListener} it is 
+   * After {@link #addGLEventListener(GLEventListener) adding} a {@link GLEventListener} it is
    * marked <i>uninitialized</i> and added to a list of to be initialized {@link GLEventListener}.
-   * If such <i>uninitialized</i> {@link GLEventListener}'s handler methods (reshape, display) 
+   * If such <i>uninitialized</i> {@link GLEventListener}'s handler methods (reshape, display)
    * are about to be invoked, it's {@link GLEventListener#init(GLAutoDrawable) init(..)} method is invoked first.
    * Afterwards the {@link GLEventListener} is marked <i>initialized</i>
    * and removed from the list of to be initialized {@link GLEventListener}.
    * </p>
-   * <p> 
+   * <p>
    * This methods returns the {@link GLEventListener} initialized state,
    * i.e. returns <code>false</code> if it is included in the list of to be initialized {@link GLEventListener},
    * otherwise <code>true</code>.
@@ -221,17 +221,17 @@ public interface GLAutoDrawable extends GLDrawable {
    * @param listener the GLEventListener object to query it's initialized state.
    */
   public boolean getGLEventListenerInitState(GLEventListener listener);
-  
+
   /**
    * Sets the given {@link GLEventListener listener's} initialized state.
-   * <p> 
+   * <p>
    * This methods allows manually setting the {@link GLEventListener} initialized state,
    * i.e. adding it to, or removing it from the list of to be initialized {@link GLEventListener}.
    * See {@link #getGLEventListenerInitState(GLEventListener)} for details.
    * </p>
    * <p>
    * <b>Warning:</b> This method does not validate whether the given {@link GLEventListener listener's}
-   * is member of this drawable queue, i.e. {@link #addGLEventListener(GLEventListener) added}. 
+   * is member of this drawable queue, i.e. {@link #addGLEventListener(GLEventListener) added}.
    * </p>
    * <p>
    * This method is only exposed to allow users full control over the {@link GLEventListener}'s state
@@ -239,16 +239,16 @@ public interface GLAutoDrawable extends GLDrawable {
    * </p>
    * <p>
    * One use case is moving a {@link GLContext} and their initialized {@link GLEventListener}
-   * from one {@link GLAutoDrawable} to another, 
+   * from one {@link GLAutoDrawable} to another,
    * where a subsequent {@link GLEventListener#init(GLAutoDrawable) init(..)} call after adding it
-   * to the new owner is neither required nor desired. 
+   * to the new owner is neither required nor desired.
    * See {@link com.jogamp.opengl.util.GLDrawableUtil#swapGLContextAndAllGLEventListener(GLAutoDrawable, GLAutoDrawable) swapGLContextAndAllGLEventListener(..)}.
    * </p>
    * @param listener the GLEventListener object to perform a state change.
-   * @param initialized if <code>true</code>, mark the listener initialized, otherwise uninitialized. 
+   * @param initialized if <code>true</code>, mark the listener initialized, otherwise uninitialized.
    */
   public void setGLEventListenerInitState(GLEventListener listener, boolean initialized);
-  
+
   /**
    * Disposes the given {@link GLEventListener listener} via {@link GLEventListener#dispose(GLAutoDrawable) dispose(..)}
    * if it has been initialized and added to this queue.
@@ -257,7 +257,7 @@ public interface GLAutoDrawable extends GLDrawable {
    * otherwise marked uninitialized.
    * </p>
    * <p>
-   * If an {@link GLAnimatorControl} is being attached and the current thread is different 
+   * If an {@link GLAnimatorControl} is being attached and the current thread is different
    * than {@link GLAnimatorControl#getThread() the animator's thread}, it is paused during the operation.
    * </p>
    * <p>
@@ -268,8 +268,8 @@ public interface GLAutoDrawable extends GLDrawable {
    * Use {@link #removeGLEventListener(GLEventListener) removeGLEventListener(listener)} instead
    * if you just want to remove the {@link GLEventListener listener} and <i>don't care</i> about the disposal of the it's (OpenGL) resources.
    * </p>
-   * <p> 
-   * Also note that this is done from within a particular drawable's 
+   * <p>
+   * Also note that this is done from within a particular drawable's
    * {@link GLEventListener} handler (reshape, display, etc.), that it is not
    * guaranteed that all other listeners will be evaluated properly
    * during this update cycle.
@@ -277,30 +277,30 @@ public interface GLAutoDrawable extends GLDrawable {
    * @param listener The GLEventListener object to be disposed and removed if <code>remove</code> is <code>true</code>
    * @param remove pass <code>true</code> to have the <code>listener</code> removed from this drawable queue, otherwise pass <code>false</code>
    * @return the disposed and/or removed GLEventListener, or null if no action was performed, i.e. listener was not added
-   */  
+   */
   public GLEventListener disposeGLEventListener(GLEventListener listener, boolean remove);
-  
-  /** 
+
+  /**
    * Removes the given {@link GLEventListener listener} from this drawable queue.
    * <p>
-   * This is an inexpensive operation, since the removed listener's 
+   * This is an inexpensive operation, since the removed listener's
    * {@link GLEventListener#dispose(GLAutoDrawable) dispose(..)} method will <i>not</i> be called.
    * </p>
    * <p>
-   * Use {@link #disposeGLEventListener(GLEventListener, boolean) disposeGLEventListener(listener, true)} 
+   * Use {@link #disposeGLEventListener(GLEventListener, boolean) disposeGLEventListener(listener, true)}
    * instead to ensure disposal of the {@link GLEventListener listener}'s (OpenGL) resources.
-   * </p> 
-   * <p> 
-   * Note that if this is done from within a particular drawable's 
+   * </p>
+   * <p>
+   * Note that if this is done from within a particular drawable's
    * {@link GLEventListener} handler (reshape, display, etc.), that it is not
    * guaranteed that all other listeners will be evaluated properly
    * during this update cycle.
    * </p>
    * @param listener The GLEventListener object to be removed
    * @return the removed GLEventListener, or null if listener was not added
-   */  
+   */
   public GLEventListener removeGLEventListener(GLEventListener listener);
-  
+
   /**
    * Registers the usage of an animator, an {@link javax.media.opengl.GLAnimatorControl} implementation.
    * The animator will be queried whether it's animating, ie periodically issuing {@link #display()} calls or not.
@@ -334,17 +334,17 @@ public interface GLAutoDrawable extends GLDrawable {
   /**
    * Dedicates this instance's {@link GLContext} to the given thread.<br/>
    * The thread will exclusively claim the {@link GLContext} via {@link #display()} and not release it
-   * until {@link #destroy()} or <code>setExclusiveContextThread(null)</code> has been called. 
+   * until {@link #destroy()} or <code>setExclusiveContextThread(null)</code> has been called.
    * <p>
    * Default non-exclusive behavior is <i>requested</i> via <code>setExclusiveContextThread(null)</code>,
-   * which will cause the next call of {@link #display()} on the exclusive thread to 
-   * release the {@link GLContext}. Only after it's async release, {@link #getExclusiveContextThread()} 
+   * which will cause the next call of {@link #display()} on the exclusive thread to
+   * release the {@link GLContext}. Only after it's async release, {@link #getExclusiveContextThread()}
    * will return <code>null</code>.
    * </p>
    * <p>
    * To release a previous made exclusive thread, a user issues <code>setExclusiveContextThread(null)</code>
-   * and may poll {@link #getExclusiveContextThread()} until it returns <code>null</code>, 
-   * <i>while</i> the exclusive thread is still running.  
+   * and may poll {@link #getExclusiveContextThread()} until it returns <code>null</code>,
+   * <i>while</i> the exclusive thread is still running.
    * </p>
    * <p>
    * Note: Setting a new exclusive thread without properly releasing a previous one
@@ -359,17 +359,17 @@ public interface GLAutoDrawable extends GLDrawable {
    * and spare redundant context switches, see {@link com.jogamp.opengl.util.AnimatorBase#setExclusiveContext(boolean)}.
    * </p>
    * @param t the exclusive thread to claim the context, or <code>null</code> for default operation.
-   * @return previous exclusive context thread 
+   * @return previous exclusive context thread
    * @throws GLException If an exclusive thread is still active but a new one is attempted to be set
    * @see com.jogamp.opengl.util.AnimatorBase#setExclusiveContext(boolean)
    */
   public Thread setExclusiveContextThread(Thread t) throws GLException;
-  
+
   /**
-   * @see #setExclusiveContextThread(Thread) 
+   * @see #setExclusiveContextThread(Thread)
    */
   public Thread getExclusiveContextThread();
-  
+
   /**
    * Enqueues a one-shot {@link GLRunnable},
    * which will be executed within the next {@link #display()} call
@@ -391,7 +391,7 @@ public interface GLAutoDrawable extends GLDrawable {
    * has been executed by the {@link GLAnimatorControl animator}, otherwise the method returns immediately.
    * </p>
    * <p>
-   * If <code>wait</code> is <code>true</code> <b>and</b> 
+   * If <code>wait</code> is <code>true</code> <b>and</b>
    * {@link #isRealized()} returns <code>false</code> <i>or</i> {@link #getContext()} returns <code>null</code>,
    * the call is ignored and returns <code>false</code>.<br>
    * This helps avoiding deadlocking the caller.
@@ -404,16 +404,16 @@ public interface GLAutoDrawable extends GLDrawable {
    * @param wait if <code>true</code> block until execution of <code>glRunnable</code> is finished, otherwise return immediately w/o waiting
    * @param glRunnable the {@link GLRunnable} to execute within {@link #display()}
    * @return <code>true</code> if the {@link GLRunnable} has been processed or queued, otherwise <code>false</code>.
-   * 
+   *
    * @see #setAnimator(GLAnimatorControl)
    * @see #display()
    * @see GLRunnable
    * @see #invoke(boolean, List)
    */
   public boolean invoke(boolean wait, GLRunnable glRunnable);
-  
+
   /**
-   * Extends {@link #invoke(boolean, GLRunnable)} functionality 
+   * Extends {@link #invoke(boolean, GLRunnable)} functionality
    * allowing to inject a list of {@link GLRunnable}s.
    * @param wait if <code>true</code> block until execution of the last <code>glRunnable</code> is finished, otherwise return immediately w/o waiting
    * @param glRunnables the {@link GLRunnable}s to execute within {@link #display()}
@@ -494,16 +494,16 @@ public interface GLAutoDrawable extends GLDrawable {
    * <p>
    * This GLAutoDrawable implementation holds it's own GLContext reference,
    * thus created a GLContext using this methods won't replace it implicitly.
-   * To replace or set this GLAutoDrawable's GLContext you need to call {@link #setContext(GLContext, boolean)}. 
+   * To replace or set this GLAutoDrawable's GLContext you need to call {@link #setContext(GLContext, boolean)}.
    * </p>
    * <p>
-   * The GLAutoDrawable implementation shall also set the 
-   * context creation flags as customized w/ {@link #setContextCreationFlags(int)}. 
+   * The GLAutoDrawable implementation shall also set the
+   * context creation flags as customized w/ {@link #setContextCreationFlags(int)}.
    * </p>
    */
   @Override
   public GLContext createContext(GLContext shareWith);
-  
+
   /** Returns the {@link GL} pipeline object this GLAutoDrawable uses.
       If this method is called outside of the {@link
       GLEventListener}'s callback methods (init, display, etc.) it may
@@ -522,13 +522,13 @@ public interface GLAutoDrawable extends GLDrawable {
       demos for examples.
       @return the set GL pipeline or null if not successful */
   public GL setGL(GL gl);
-  
+
   /**
    * Method <i>may</i> return the upstream UI toolkit object
    * holding this {@link GLAutoDrawable} instance, if exist.
    * <p>
    * Currently known Java UI toolkits and it's known return types are:
-   * 
+   *
    * <table border="1">
    *     <tr><td>Toolkit</td>  <td>GLAutoDrawable Implementation</td>            <td>~</td>      <td>Return Type of getUpstreamWidget()</td</tr>
    *     <tr><td>NEWT</td>     <td>{@link com.jogamp.newt.opengl.GLWindow}</td>  <td>has a</td>  <td>{@link com.jogamp.newt.Window}</td</tr>
@@ -536,7 +536,7 @@ public interface GLAutoDrawable extends GLDrawable {
    *     <tr><td>AWT</td>      <td>{@link javax.media.opengl.awt.GLCanvas}</td>  <td>is a</td>   <td>{@link java.awt.Canvas}</td</tr>
    *     <tr><td>AWT</td>      <td>{@link javax.media.opengl.awt.GLJPanel}</td>  <td>is a</td>   <td>{@link javax.swing.JPanel}</td</tr>
    * </table>
-   * However, the result may be other object types than the listed above 
+   * However, the result may be other object types than the listed above
    * due to new supported toolkits.
    * </p>
    * <p>

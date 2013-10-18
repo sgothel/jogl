@@ -62,7 +62,7 @@ public class ScriptRecord {
 
     private int _tag;
     private int _offset;
-    
+
     /** Creates new ScriptRecord */
     protected ScriptRecord(DataInput di) throws IOException {
         _tag = di.readInt();
@@ -72,7 +72,7 @@ public class ScriptRecord {
     public int getTag() {
         return _tag;
     }
-    
+
     public int getOffset() {
         return _offset;
     }

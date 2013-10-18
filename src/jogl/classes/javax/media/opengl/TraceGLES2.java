@@ -12,7 +12,7 @@ import java.io.PrintStream;
  * Sample code which installs this pipeline, manual:
  * <pre>
  *     gl = drawable.setGL(new TraceGL(drawable.getGL(), System.err));
- * </pre> 
+ * </pre>
  * For automatic instantiation see {@link GLPipelineFactory#create(String, Class, GL, Object[])}.
  * </p>
  */

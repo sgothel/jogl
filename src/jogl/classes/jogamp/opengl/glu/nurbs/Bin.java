@@ -143,7 +143,7 @@ public class Bin {
   /**
    * Returns next arc in linked list
    * @return next arc
-   * 
+   *
    */
   private Arc nextarc() {
     // DONE

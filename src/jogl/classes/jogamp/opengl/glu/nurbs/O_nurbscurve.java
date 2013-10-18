@@ -68,7 +68,7 @@ public class O_nurbscurve {
 
   /**
    * Makes new O_nurbscurve
-   * @param realType type of curve 
+   * @param realType type of curve
    */
   public O_nurbscurve(int realType) {
     // DONE

@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  */
 
 package jogamp.newt;
@@ -53,6 +53,7 @@ public abstract class DisplayImpl extends Display {
 
     static {
         NativeWindowFactory.addCustomShutdownHook(true /* head */, new Runnable() {
+           @Override
            public void run() {
                WindowImpl.shutdownAll();
                ScreenImpl.shutdownAll();
@@ -60,16 +61,16 @@ public abstract class DisplayImpl extends Display {
            }
         });
     }
-        
+
     /** Ensure static init has been run. */
     /* pp */static void initSingleton() { }
-    
-    private static Class<?> getDisplayClass(String type) 
-        throws ClassNotFoundException 
+
+    private static Class<?> getDisplayClass(String type)
+        throws ClassNotFoundException
     {
         final Class<?> displayClass = NewtFactory.getCustomClass(type, "DisplayDriver");
         if(null==displayClass) {
-            throw new ClassNotFoundException("Failed to find NEWT Display Class <"+type+".DisplayDriver>");            
+            throw new ClassNotFoundException("Failed to find NEWT Display Class <"+type+".DisplayDriver>");
         }
         return displayClass;
     }
@@ -100,7 +101,7 @@ public abstract class DisplayImpl extends Display {
                 display.setEDTUtil( display.edtUtil ); // device's default if EDT is used, or null
                 Display.addDisplay2List(display);
             }
-            
+
             if(DEBUG) {
                 System.err.println("Display.create() NEW: "+display+" "+getThreadName());
             }
@@ -109,7 +110,7 @@ public abstract class DisplayImpl extends Display {
             throw new RuntimeException(e);
         }
     }
-    
+
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {
@@ -147,6 +148,7 @@ public abstract class DisplayImpl extends Display {
             final DisplayImpl f_dpy = this;
             try {
                 runOnEDTIfAvail(true, new Runnable() {
+                    @Override
                     public void run() {
                         f_dpy.createNativeImpl();
                     }});
@@ -168,7 +170,7 @@ public abstract class DisplayImpl extends Display {
     protected EDTUtil createEDTUtil() {
         final EDTUtil def;
         if(NewtFactory.useEDT()) {
-            def = new DefaultEDTUtil(Thread.currentThread().getThreadGroup(), "Display-"+getFQName(), dispatchMessagesRunnable);            
+            def = new DefaultEDTUtil(Thread.currentThread().getThreadGroup(), "Display-"+getFQName(), dispatchMessagesRunnable);
             if(DEBUG) {
                 System.err.println("Display.createEDTUtil("+getFQName()+"): "+def.getClass().getName());
             }
@@ -244,6 +246,7 @@ public abstract class DisplayImpl extends Display {
         task.run();
     }
 
+    @Override
     public boolean validateEDTStopped() {
         if( 0==refCount && null == aDevice ) {
             final EDTUtil _edtUtil = edtUtil;
@@ -271,12 +274,13 @@ public abstract class DisplayImpl extends Display {
             if(DEBUG) {
                 System.err.println("Display.destroy(): "+this+", active "+displaysActive+" "+getThreadName());
             }
-        }        
+        }
         final DisplayImpl f_dpy = this;
         final AbstractGraphicsDevice f_aDevice = aDevice;
         aDevice = null;
         refCount=0;
         stopEDT( edtUtil, new Runnable() { // blocks!
+            @Override
             public void run() {
                 if ( null != f_aDevice ) {
                     f_dpy.closeNativeImpl(f_aDevice);
@@ -287,10 +291,10 @@ public abstract class DisplayImpl extends Display {
             dumpDisplayList("Display.destroy("+getFQName()+") END");
         }
     }
-    
+
     /** May be utilized at a shutdown hook, impl. does not block. */
     /* pp */ static final void shutdownAll() {
-        final int dCount = displayList.size(); 
+        final int dCount = displayList.size();
         if(DEBUG) {
             dumpDisplayList("Display.shutdownAll "+dCount+" instances, on thread "+getThreadName());
         }
@@ -306,8 +310,9 @@ public abstract class DisplayImpl extends Display {
                 final EDTUtil edtUtil = d.getEDTUtil();
                 final AbstractGraphicsDevice f_aDevice = d.aDevice;
                 d.aDevice = null;
-                d.refCount=0;                
+                d.refCount=0;
                 final Runnable closeNativeTask = new Runnable() {
+                    @Override
                     public void run() {
                         if ( null != d.getGraphicsDevice() ) {
                             d.closeNativeImpl(f_aDevice);
@@ -329,6 +334,7 @@ public abstract class DisplayImpl extends Display {
         }
     }
 
+    @Override
     public synchronized final int addReference() {
         if(DEBUG) {
             System.err.println("Display.addReference() ("+DisplayImpl.getThreadName()+"): "+refCount+" -> "+(refCount+1));
@@ -343,6 +349,7 @@ public abstract class DisplayImpl extends Display {
     }
 
 
+    @Override
     public synchronized final int removeReference() {
         if(DEBUG) {
             System.err.println("Display.removeReference() ("+DisplayImpl.getThreadName()+"): "+refCount+" -> "+(refCount-1));
@@ -355,6 +362,7 @@ public abstract class DisplayImpl extends Display {
         return refCount;
     }
 
+    @Override
     public synchronized final int getReferenceCount() {
         return refCount;
     }
@@ -381,7 +389,7 @@ public abstract class DisplayImpl extends Display {
     public final String getFQName() {
         return fqname;
     }
-    
+
     @Override
     public final boolean isExclusive() {
         return exclusive;
@@ -438,7 +446,7 @@ public abstract class DisplayImpl extends Display {
     @Override
     public String toString() {
         final EDTUtil _edtUtil = edtUtil;
-        final boolean _edtUtilRunning = ( null != _edtUtil ) ? _edtUtil.isRunning() : false; 
+        final boolean _edtUtilRunning = ( null != _edtUtil ) ? _edtUtil.isRunning() : false;
         return "NEWT-Display["+getFQName()+", excl "+exclusive+", refCount "+refCount+", hasEDT "+(null!=_edtUtil)+", edtRunning "+_edtUtilRunning+", "+aDevice+"]";
     }
 
@@ -450,13 +458,14 @@ public abstract class DisplayImpl extends Display {
     private volatile boolean haveEvents = false;
 
     final protected Runnable dispatchMessagesRunnable = new Runnable() {
+        @Override
         public void run() {
             DisplayImpl.this.dispatchMessages();
         } };
 
     final void dispatchMessage(final NEWTEvent event) {
-        try { 
-            final Object source = event.getSource();        
+        try {
+            final Object source = event.getSource();
             if(source instanceof NEWTEventConsumer) {
                 final NEWTEventConsumer consumer = (NEWTEventConsumer) source ;
                 if(!consumer.consumeEvent(event)) {
@@ -476,10 +485,10 @@ public abstract class DisplayImpl extends Display {
             throw re;
         }
     }
-    
+
     final void dispatchMessage(final NEWTEventTask eventTask) {
         final NEWTEvent event = eventTask.get();
-        try { 
+        try {
             if(null == event) {
                 // Ooops ?
                 System.err.println("Warning: event of eventTask is NULL");
@@ -495,15 +504,15 @@ public abstract class DisplayImpl extends Display {
                 throw re;
             }
         }
-        eventTask.notifyCaller();        
+        eventTask.notifyCaller();
     }
-    
+
     @Override
     public void dispatchMessages() {
         // System.err.println("Display.dispatchMessages() 0 "+this+" "+getThreadName());
-        if(0==refCount || // no screens 
+        if(0==refCount || // no screens
            null==getGraphicsDevice() // no native device
-          ) 
+          )
         {
             return;
         }
@@ -541,13 +550,13 @@ public abstract class DisplayImpl extends Display {
             }
             return;
         }
-        
+
         // can't wait if we are on EDT or NEDT -> consume right away
         if(wait && _edtUtil.isCurrentThreadEDTorNEDT() ) {
             dispatchMessage(e);
             return;
         }
-        
+
         final Object lock = new Object();
         final NEWTEventTask eTask = new NEWTEventTask(e, wait?lock:null);
         synchronized(lock) {
@@ -565,13 +574,13 @@ public abstract class DisplayImpl extends Display {
                 if( null != eTask.getException() ) {
                     throw eTask.getException();
                 }
-            }            
+            }
         }
     }
 
     public interface DisplayRunnable<T> {
         T run(long dpy);
-    }    
+    }
     public static final <T> T runWithLockedDevice(AbstractGraphicsDevice device, DisplayRunnable<T> action) {
         T res;
         device.lock();
@@ -589,7 +598,7 @@ public abstract class DisplayImpl extends Display {
         }
         return runWithLockedDevice(device, action);
     }
-    
+
     protected volatile EDTUtil edtUtil = null;
     protected int id;
     protected String name;

@@ -98,7 +98,7 @@ public class ImageInfo {
 
 	/**
 	 * Full constructor
-	 * 
+	 *
 	 * @param cols
 	 *            Width in pixels
 	 * @param rows

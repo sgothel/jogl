@@ -52,30 +52,30 @@ public class SharedResourceRunner implements Runnable {
          * <p>
          * Called within synchronized block.
          * </p>
-         * @param connection for creation a {@link AbstractGraphicsDevice} instance. 
-         * @return <code>true</code> if the device supports all protocols required for the implementation, otherwise <code>false</code>. 
+         * @param connection for creation a {@link AbstractGraphicsDevice} instance.
+         * @return <code>true</code> if the device supports all protocols required for the implementation, otherwise <code>false</code>.
          */
         boolean isDeviceSupported(String connection);
-        
+
         /**
          * <p>
          * Called within synchronized block.
          * </p>
-         * @param connection for creation a {@link AbstractGraphicsDevice} instance. 
-         * @return A new shared resource instance 
+         * @param connection for creation a {@link AbstractGraphicsDevice} instance.
+         * @return A new shared resource instance
          */
         Resource createSharedResource(String connection);
-        
-        /** Called within synchronized block. */ 
+
+        /** Called within synchronized block. */
         void releaseSharedResource(Resource shared);
-        /** Called within synchronized block. */ 
+        /** Called within synchronized block. */
         void clear();
 
-        /** Called within synchronized block. */ 
+        /** Called within synchronized block. */
         Resource mapPut(String connection, Resource resource);
-        /** Called within synchronized block. */ 
+        /** Called within synchronized block. */
         Resource mapGet(String connection);
-        /** Called within synchronized block. */ 
+        /** Called within synchronized block. */
         Collection<Resource> mapValues();
     }
 
@@ -103,7 +103,7 @@ public class SharedResourceRunner implements Runnable {
         this.impl = impl;
         resetState();
     }
-    
+
     private void resetState() { // synchronized call
         devicesTried.clear();
         thread = null;
@@ -114,12 +114,12 @@ public class SharedResourceRunner implements Runnable {
         releaseConnection = null;
     }
 
-    /** 
+    /**
      * Start the shared resource runner thread, if not running.
      * <p>
      * Validate the thread upfront and release all related resource if it was killed.
      * </p>
-     * 
+     *
      * @return the shared resource runner thread.
      */
     public Thread start() {
@@ -132,7 +132,7 @@ public class SharedResourceRunner implements Runnable {
                 releaseSharedResources();
                 thread = null;
                 running = false;
-            }        
+            }
             if( null == thread ) {
                 if (DEBUG) {
                     System.err.println("SharedResourceRunner.start() - start new Thread - "+getThreadName());
@@ -150,7 +150,7 @@ public class SharedResourceRunner implements Runnable {
         }
         return thread;
     }
-    
+
     public void stop() {
         synchronized (this) {
             if(null != thread) {
@@ -160,7 +160,7 @@ public class SharedResourceRunner implements Runnable {
                 synchronized (this) {
                     shouldRelease = true;
                     this.notifyAll();
-        
+
                     while (running) {
                         try {
                             this.wait();
@@ -170,7 +170,7 @@ public class SharedResourceRunner implements Runnable {
             }
         }
     }
-    
+
     public SharedResourceRunner.Resource getOrCreateShared(AbstractGraphicsDevice device) {
         SharedResourceRunner.Resource sr = null;
         if(null != device) {
@@ -203,7 +203,7 @@ public class SharedResourceRunner implements Runnable {
         if(null != device) {
             synchronized (this) {
                 final String connection = device.getConnection();
-                sr = impl.mapGet(connection);    
+                sr = impl.mapGet(connection);
                 if (null != sr) {
                     removeDeviceTried(connection);
                     if (DEBUG) {
@@ -252,6 +252,7 @@ public class SharedResourceRunner implements Runnable {
         // done
     }
 
+    @Override
     public final void run() {
         final String threadName = getThreadName();
 
@@ -261,7 +262,7 @@ public class SharedResourceRunner implements Runnable {
 
         synchronized (this) {
             running = true;
-            
+
             while (!shouldRelease) {
                 try {
                     // wait for stop or init
@@ -271,7 +272,7 @@ public class SharedResourceRunner implements Runnable {
                     }
                     notifyAll();
                     this.wait();
-                } catch (InterruptedException ex) { 
+                } catch (InterruptedException ex) {
                     shouldRelease = true;
                     if(DEBUG) {
                         System.err.println("SharedResourceRunner.run(): INTERRUPTED - "+threadName);
@@ -311,7 +312,7 @@ public class SharedResourceRunner implements Runnable {
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
-                        }                        
+                        }
                     }
                 }
                 initConnection = null;

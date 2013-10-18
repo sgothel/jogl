@@ -36,9 +36,9 @@ package jogamp.opengl.glu.nurbs;
 
 /**
  * Holds vertex used in trim
- * 
+ *
  * @author Tomas Hrasky
- * 
+ *
  */
 public class TrimVertex {
 

@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -54,16 +54,16 @@ import com.jogamp.nativewindow.x11.X11GraphicsDevice;
  */
 public class X11Util implements ToolkitProperties {
     public static final boolean DEBUG = Debug.debug("X11Util");
-    
-    /** 
+
+    /**
      * See Bug 515 - https://jogamp.org/bugzilla/show_bug.cgi?id=515
-     * <p> 
+     * <p>
      * It is observed that ATI X11 drivers, eg.
-     * <ul> 
+     * <ul>
      *   <li>fglrx 8.78.6,</li>
      *   <li>fglrx 11.08/8.881 and </li>
      *   <li>fglrx 11.11/8.911</li>
-     * </ul>  
+     * </ul>
      * are quite sensitive to multiple Display connections.
      * </p>
      * <p>
@@ -81,11 +81,11 @@ public class X11Util implements ToolkitProperties {
      * </p>
      * <p>
      * With ATI X11 drivers all connections must be closed at JVM shutdown,
-     * otherwise a SIGSEGV (after JVM safepoint) will be caused. 
+     * otherwise a SIGSEGV (after JVM safepoint) will be caused.
      * </p>
      */
     public static final boolean ATI_HAS_XCLOSEDISPLAY_BUG = !Debug.isPropertyDefined("nativewindow.debug.X11Util.ATI_HAS_NO_XCLOSEDISPLAY_BUG", true);
-    
+
     /** See {@link #ATI_HAS_XCLOSEDISPLAY_BUG}. */
     public static final boolean HAS_XCLOSEDISPLAY_BUG = Debug.isPropertyDefined("nativewindow.debug.X11Util.HAS_XCLOSEDISPLAY_BUG", true);
 
@@ -105,7 +105,7 @@ public class X11Util implements ToolkitProperties {
     private static final Object setX11ErrorHandlerLock = new Object();
     private static final String X11_EXTENSION_ATIFGLRXDRI     = "ATIFGLRXDRI";
     private static final String X11_EXTENSION_ATIFGLEXTENSION = "ATIFGLEXTENSION";
-    
+
     /**
      * Called by {@link NativeWindowFactory#initSingleton()}
      * @see ToolkitProperties
@@ -121,15 +121,15 @@ public class X11Util implements ToolkitProperties {
                     if(!NWJNILibLoader.loadNativeWindow("x11")) {
                         throw new NativeWindowException("NativeWindow X11 native library load error.");
                     }
-        
+
                     final boolean isInitOK = initialize0( XERROR_STACKDUMP );
-        
+
                     final boolean hasX11_EXTENSION_ATIFGLRXDRI, hasX11_EXTENSION_ATIFGLEXTENSION;
                     final long dpy = X11Lib.XOpenDisplay(PropertyAccess.getProperty("nativewindow.x11.display.default", true));
                     if(0 != dpy) {
                         if(XSYNC_ENABLED) {
                             X11Lib.XSynchronize(dpy, true);
-                        }                    
+                        }
                         try {
                             nullDisplayName = X11Lib.XDisplayString(dpy);
                             hasX11_EXTENSION_ATIFGLRXDRI = X11Lib.QueryExtension(dpy, X11_EXTENSION_ATIFGLRXDRI);
@@ -147,7 +147,7 @@ public class X11Util implements ToolkitProperties {
                     if ( !markAllDisplaysUnclosable ) {
                         markAllDisplaysUnclosable = ( ATI_HAS_XCLOSEDISPLAY_BUG && isATIFGLRX ) || HAS_XCLOSEDISPLAY_BUG;
                     }
-                    
+
                     if(DEBUG) {
                         System.err.println("X11Util.initSingleton(): OK "+isInitOK+"]"+
                                            ",\n\t X11 Display(NULL) <"+nullDisplayName+">"+
@@ -164,17 +164,17 @@ public class X11Util implements ToolkitProperties {
             }
         }
     }
-    
+
     // not exactly thread safe, but good enough for our purpose,
     // which is to tag a NamedDisplay uncloseable after creation.
-    private static Object globalLock = new Object(); 
+    private static Object globalLock = new Object();
     private static LongObjectHashMap openDisplayMap = new LongObjectHashMap(); // handle -> name
     private static List<NamedDisplay> openDisplayList = new ArrayList<NamedDisplay>();     // open, no close attempt
     private static List<NamedDisplay> reusableDisplayList = new ArrayList<NamedDisplay>(); // close attempt, marked uncloseable, for reuse
     private static List<NamedDisplay> pendingDisplayList = new ArrayList<NamedDisplay>();  // all open (close attempt or reusable) in creation order
     private static final HashMap<String /* displayName */, Boolean> displayXineramaEnabledMap = new HashMap<String, Boolean>();
-    
-    /** 
+
+    /**
      * Cleanup resources.
      * <p>
      * Called by {@link NativeWindowFactory#shutdown()}
@@ -184,7 +184,7 @@ public class X11Util implements ToolkitProperties {
     public static void shutdown() {
         if(isInit) {
             synchronized(X11Util.class) {
-                if(isInit) {                    
+                if(isInit) {
                     final boolean isJVMShuttingDown = NativeWindowFactory.isJVMShuttingDown() ;
                     if( DEBUG ||
                         ( ( openDisplayMap.size() > 0 || reusableDisplayList.size() > 0 || pendingDisplayList.size() > 0 ) &&
@@ -207,9 +207,9 @@ public class X11Util implements ToolkitProperties {
                             }
                         }
                     }
-            
-                    // Only at JVM shutdown time, since AWT impl. seems to 
-                    // dislike closing of X11 Display's (w/ ATI driver). 
+
+                    // Only at JVM shutdown time, since AWT impl. seems to
+                    // dislike closing of X11 Display's (w/ ATI driver).
                     if( isJVMShuttingDown ) {
                         synchronized(globalLock) {
                             isInit = false;
@@ -226,7 +226,7 @@ public class X11Util implements ToolkitProperties {
             }
         }
     }
-    
+
     /**
      * Called by {@link NativeWindowFactory#initSingleton()}
      * @see ToolkitProperties
@@ -234,15 +234,15 @@ public class X11Util implements ToolkitProperties {
     public static final boolean requiresToolkitLock() {
         return true; // JAWT locking: yes, instead of native X11 locking w use a recursive lock per display connection.
     }
-    
+
     /**
      * Called by {@link NativeWindowFactory#initSingleton()}
      * @see ToolkitProperties
      */
     public static final boolean hasThreadingIssues() {
-        return hasThreadingIssues; // JOGL impl. may utilize special locking "somewhere" 
+        return hasThreadingIssues; // JOGL impl. may utilize special locking "somewhere"
     }
-    
+
     public static void setX11ErrorHandler(boolean onoff, boolean quiet) {
         synchronized(setX11ErrorHandlerLock) {
             setX11ErrorHandler0(onoff, quiet);
@@ -271,7 +271,7 @@ public class X11Util implements ToolkitProperties {
     public static boolean getMarkAllDisplaysUnclosable() {
         return markAllDisplaysUnclosable;
     }
-    
+
     private X11Util() {}
 
     public static class NamedDisplay {
@@ -300,10 +300,12 @@ public class X11Util implements ToolkitProperties {
             }
         }
 
+        @Override
         public final int hashCode() {
             return hash32;
         }
-        
+
+        @Override
         public final boolean equals(Object obj) {
             if(this == obj) { return true; }
             if(obj instanceof NamedDisplay) {
@@ -311,10 +313,10 @@ public class X11Util implements ToolkitProperties {
             }
             return false;
         }
-        
+
         public final void addRef() { refCount++; }
         public final void removeRef() { refCount--; }
-        
+
         public final String getName() { return name; }
         public final long   getHandle() { return handle; }
         public final int    getRefCount() { return refCount; }
@@ -365,7 +367,7 @@ public class X11Util implements ToolkitProperties {
             return openDisplayList.size();
         }
     }
-        
+
     public static void dumpOpenDisplayConnections() {
         synchronized(globalLock) {
             System.err.println("X11Util: Open X11 Display Connections: "+openDisplayList.size());
@@ -381,7 +383,7 @@ public class X11Util implements ToolkitProperties {
             }
         }
     }
-    
+
     public static int getReusableDisplayConnectionNumber() {
         synchronized(globalLock) {
             return reusableDisplayList.size();
@@ -439,7 +441,7 @@ public class X11Util implements ToolkitProperties {
         NamedDisplay namedDpy = null;
         name = validateDisplayName(name);
         boolean reused = false;
-        
+
         synchronized(globalLock) {
             for(int i=0; i<reusableDisplayList.size(); i++) {
                 if(reusableDisplayList.get(i).getName().equals(name)) {
@@ -484,7 +486,7 @@ public class X11Util implements ToolkitProperties {
                 X11Util.dumpPendingDisplayConnections();
                 throw new RuntimeException("X11Util.Display: Display(0x"+Long.toHexString(handle)+") Mapping error: "+namedDpy+". Thread "+Thread.currentThread().getName());
             }
-    
+
             namedDpy.removeRef();
             if(!openDisplayList.remove(namedDpy)) { throw new RuntimeException("Internal: "+namedDpy); }
 
@@ -497,13 +499,13 @@ public class X11Util implements ToolkitProperties {
                 pendingDisplayList.remove(namedDpy);
             } else {
                 // for reuse
-                X11Lib.XSync(namedDpy.getHandle(), true); // flush output buffer and discard all events                
+                X11Lib.XSync(namedDpy.getHandle(), true); // flush output buffer and discard all events
                 reusableDisplayList.add(namedDpy);
             }
 
             if(DEBUG) {
                 System.err.println("X11Util.Display: Closed (real: "+(!namedDpy.isUncloseable())+") "+namedDpy+". Thread "+Thread.currentThread().getName());
-            }    
+            }
         }
     }
 
@@ -513,7 +515,7 @@ public class X11Util implements ToolkitProperties {
         }
     }
 
-    /** 
+    /**
      * @return If name is null, it returns the previous queried NULL display name,
      * otherwise the name. */
     public static String validateDisplayName(String name) {
@@ -537,7 +539,7 @@ public class X11Util implements ToolkitProperties {
         long handle = X11Lib.XOpenDisplay(arg0);
         if(XSYNC_ENABLED && 0 != handle) {
             X11Lib.XSynchronize(handle, true);
-        }                    
+        }
         if(TRACE_DISPLAY_LIFECYCLE) {
             System.err.println(Thread.currentThread()+" - X11Util.XOpenDisplay("+arg0+") 0x"+Long.toHexString(handle));
             // Thread.dumpStack();
@@ -557,13 +559,13 @@ public class X11Util implements ToolkitProperties {
             System.err.println("X11Util: Catched Exception:");
             ex.printStackTrace();
         }
-        return res;            
+        return res;
     }
 
     static volatile boolean XineramaFetched = false;
     static long XineramaLibHandle = 0;
     static long XineramaQueryFunc = 0;
-    
+
     public static boolean XineramaIsEnabled(X11GraphicsDevice device) {
         if(null == device) {
             throw new IllegalArgumentException("X11 Display device is NULL");
@@ -573,9 +575,9 @@ public class X11Util implements ToolkitProperties {
             return XineramaIsEnabled(device.getHandle());
         } finally {
             device.unlock();
-        }        
+        }
     }
-    
+
     public static boolean XineramaIsEnabled(long displayHandle) {
         if( 0 == displayHandle ) {
             throw new IllegalArgumentException("X11 Display handle is NULL");
@@ -616,10 +618,10 @@ public class X11Util implements ToolkitProperties {
         }
         return res;
     }
-    
+
     private static final String getCurrentThreadName() { return Thread.currentThread().getName(); } // Callback for JNI
     private static final void dumpStack() { Thread.dumpStack(); } // Callback for JNI
-    
+
     private static native boolean initialize0(boolean debug);
     private static native void shutdown0();
     private static native void setX11ErrorHandler0(boolean onoff, boolean quiet);

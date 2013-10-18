@@ -46,8 +46,8 @@ package javax.media.opengl;
     as a texture map and enabling rendering to floating-point frame
     buffers. These methods are not guaranteed to be supported on all
     platforms and may be deprecated in a future release.
-    
-    @deprecated Use {@link GLOffscreenAutoDrawable} w/ {@link GLCapabilities#setFBO(boolean)} 
+
+    @deprecated Use {@link GLOffscreenAutoDrawable} w/ {@link GLCapabilities#setFBO(boolean)}
                 via {@link GLDrawableFactory#createOffscreenAutoDrawable(javax.media.nativewindow.AbstractGraphicsDevice, GLCapabilitiesImmutable, GLCapabilitiesChooser, int, int, GLContext) GLDrawableFactory.createOffscreenAutoDrawable(..)}.
   */
 public interface GLPbuffer extends GLAutoDrawable {

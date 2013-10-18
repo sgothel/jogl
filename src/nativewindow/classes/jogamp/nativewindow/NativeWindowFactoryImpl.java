@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -48,9 +48,10 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
     public static ToolkitLock getNullToolkitLock() {
         return nullToolkitLock;
     }
-    
+
     // This subclass of NativeWindowFactory handles the case of
     // NativeWindows being passed in
+    @Override
     protected NativeWindow getNativeWindowImpl(Object winObj, AbstractGraphicsConfiguration config) throws IllegalArgumentException {
         if (winObj instanceof NativeWindow) {
             // Use the NativeWindow directly
@@ -69,7 +70,7 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
                                            winObj.getClass().getName() + " is unsupported; expected " +
                                            "javax.media.nativewindow.NativeWindow or "+AWTNames.ComponentClass);
     }
-    
+
     private Constructor<?> nativeWindowConstructor = null;
 
     private NativeWindow getAWTNativeWindow(Object winObj, AbstractGraphicsConfiguration config) {
@@ -93,7 +94,7 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
                 }
 
                 nativeWindowConstructor = ReflectionUtil.getConstructor(
-                                            windowClassName, new Class[] { Object.class, AbstractGraphicsConfiguration.class }, 
+                                            windowClassName, new Class[] { Object.class, AbstractGraphicsConfiguration.class },
                                             getClass().getClassLoader());
             } catch (Exception e) {
                 throw new IllegalArgumentException(e);

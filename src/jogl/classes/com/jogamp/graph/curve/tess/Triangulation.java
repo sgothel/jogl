@@ -33,7 +33,7 @@ import jogamp.graph.curve.tess.CDTriangulator2D;
 
 public class Triangulation {
     /** Create a new instance of a triangulation.
-     *  Currently only a modified version of Constraint Delaunay 
+     *  Currently only a modified version of Constraint Delaunay
      *  is implemented.
      * @return instance of a triangulator
      * @see Triangulator

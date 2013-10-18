@@ -99,7 +99,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   }
 
   /**
-   * Copies all {@link GLCapabilities} and {@link Capabilities} values 
+   * Copies all {@link GLCapabilities} and {@link Capabilities} values
    * from <code>source</code> into this instance.
    * @return this instance
    */
@@ -122,11 +122,11 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     sampleExtension = source.getSampleExtension();
     return this;
   }
-  
+
   @Override
   public int hashCode() {
     // 31 * x == (x << 5) - x
-    int hash = super.hashCode(); 
+    int hash = super.hashCode();
     hash = ((hash << 5) - hash) + this.glProfile.hashCode() ;
     hash = ((hash << 5) - hash) + ( this.hardwareAccelerated ? 1 : 0 );
     hash = ((hash << 5) - hash) + ( this.stereo ? 1 : 0 );
@@ -238,7 +238,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   public void setGLProfile(GLProfile profile) {
     glProfile=profile;
   }
-  
+
   @Override
   public final boolean isPBuffer() {
     return isPBuffer;
@@ -255,7 +255,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
    * <p>
    * Requesting offscreen pbuffer mode disables the offscreen auto selection.
    * </p>
-   */  
+   */
   public void setPBuffer(boolean enable) {
     if(enable) {
       setOnscreen(false);
@@ -267,7 +267,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   public final boolean isFBO() {
       return isFBO;
   }
-  
+
   /**
    * Requesting offscreen FBO mode.
    * <p>
@@ -422,7 +422,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     return sampleBuffers;
   }
 
-  /** 
+  /**
    * If sample buffers are enabled, indicates the number of buffers
    * to be allocated. Defaults to 2.
    * @see #getNumSamples()
@@ -491,7 +491,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
         if(isOnscreen()) {
             sink.append(".");        // no additional off-screen modes besides on-screen
         } else {
-            sink.append("auto-cfg"); // auto-config off-screen mode            
+            sink.append("auto-cfg"); // auto-config off-screen mode
         }
     }
     sink.append("]");
