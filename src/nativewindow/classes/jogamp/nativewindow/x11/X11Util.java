@@ -326,11 +326,6 @@ public class X11Util implements ToolkitProperties {
         public final Throwable getCreationStack() { return creationStack; }
 
         @Override
-        public Object clone() throws CloneNotSupportedException {
-          return super.clone();
-        }
-
-        @Override
         public String toString() {
             return "NamedX11Display["+name+", 0x"+Long.toHexString(handle)+", refCount "+refCount+", unCloseable "+unCloseable+"]";
         }
