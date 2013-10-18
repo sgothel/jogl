@@ -70,9 +70,9 @@ public final class DirectDataBufferInt extends DataBuffer {
 
         @Override
         public String toString() {
-            return new String("BufferedImageInt@"+Integer.toHexString(hashCode())
-                              +": custom/internal type = "+customImageType+"/"+getType()
-                              +" "+getColorModel()+" "+getRaster());
+            return "BufferedImageInt@"+Integer.toHexString(hashCode())
+                   +": custom/internal type = "+customImageType+"/"+getType()
+                   +" "+getColorModel()+" "+getRaster();
         }
     }
 

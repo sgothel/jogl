@@ -137,7 +137,7 @@ public abstract class CompileShader {
         }
         String dirname;
         if (lastSlash < 0) {
-            dirname = new String();
+            dirname = "";
         } else {
             dirname = path.substring(0, lastSlash + 1);
         }
