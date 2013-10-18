@@ -171,7 +171,7 @@ public class TextRenderer {
     private TextureRenderer cachedBackingStore;
     private Graphics2D cachedGraphics;
     private FontRenderContext cachedFontRenderContext;
-    private Map /*<String,Rect>*/ stringLocations = new HashMap /*<String,Rect>*/();
+    private Map<String, Rect> stringLocations = new HashMap<String, Rect>();
     private GlyphProducer mGlyphProducer;
 
     private int numRenderCycles;
@@ -335,9 +335,9 @@ public class TextRenderer {
         is made to ensure an accurate bound. */
     public Rectangle2D getBounds(CharSequence str) {
         // FIXME: this should be more optimized and use the glyph cache
-        Rect r = null;
+        Rect r = stringLocations.get(str);
 
-        if ((r = (Rect) stringLocations.get(str)) != null) {
+        if (r != null) {
             TextData data = (TextData) r.getUserData();
 
             // Reconstitute the Java 2D results based on the cached values
@@ -750,7 +750,7 @@ public class TextRenderer {
     }
 
     private void clearUnusedEntries() {
-        final java.util.List deadRects = new ArrayList /*<Rect>*/();
+        final java.util.List<Rect> deadRects = new ArrayList<Rect>();
 
         // Iterate through the contents of the backing store, removing
         // text strings that haven't been used recently
@@ -767,8 +767,7 @@ public class TextRenderer {
                 }
             });
 
-        for (Iterator iter = deadRects.iterator(); iter.hasNext();) {
-            Rect r = (Rect) iter.next();
+        for (Rect r : deadRects) {
             packer.remove(r);
             stringLocations.remove(((TextData) r.getUserData()).string());
 
@@ -807,9 +806,7 @@ public class TextRenderer {
 
     private void internal_draw3D(CharSequence str, float x, float y, float z,
                                  float scaleFactor) {
-        List/*<Glyph>*/ glyphs = mGlyphProducer.getGlyphs(str);
-        for (Iterator iter = glyphs.iterator(); iter.hasNext(); ) {
-            Glyph glyph = (Glyph) iter.next();
+        for (Glyph glyph : mGlyphProducer.getGlyphs(str)) {
             float advance = glyph.draw3D(x, y, z, scaleFactor);
             x += advance * scaleFactor;
         }
@@ -831,7 +828,7 @@ public class TextRenderer {
         }
 
         // Look up the string on the backing store
-        Rect rect = (Rect) stringLocations.get(curStr);
+        Rect rect = stringLocations.get(curStr);
 
         if (rect == null) {
             // Rasterize this string and place it on the backing store
@@ -1588,9 +1585,9 @@ public class TextRenderer {
     class GlyphProducer {
         final int undefined = -2;
         FontRenderContext fontRenderContext;
-        List/*<Glyph>*/ glyphsOutput = new ArrayList/*<Glyph>*/();
-        HashMap/*<String, GlyphVector>*/fullGlyphVectorCache = new HashMap/*<String, GlyphVector>*/();
-        HashMap/*<Character, GlyphMetrics>*/glyphMetricsCache = new HashMap/*<Character, GlyphMetrics>*/();
+        List<Glyph> glyphsOutput = new ArrayList<Glyph>();
+        HashMap<String, GlyphVector> fullGlyphVectorCache = new HashMap<String, GlyphVector>();
+        HashMap<Character, GlyphMetrics> glyphMetricsCache = new HashMap<Character, GlyphMetrics>();
         // The mapping from unicode character to font-specific glyph ID
         int[] unicodes2Glyphs;
         // The mapping from glyph ID to Glyph
@@ -1604,10 +1601,10 @@ public class TextRenderer {
             clearAllCacheEntries();
         }
 
-        public List/*<Glyph>*/ getGlyphs(CharSequence inString) {
+        public List<Glyph> getGlyphs(CharSequence inString) {
             glyphsOutput.clear();
             GlyphVector fullRunGlyphVector;
-            fullRunGlyphVector = (GlyphVector) fullGlyphVectorCache.get(inString.toString());
+            fullRunGlyphVector = fullGlyphVectorCache.get(inString.toString());
             if (fullRunGlyphVector == null) {
                 iter.initFromCharSequence(inString);
                 fullRunGlyphVector = font.createGlyphVector(getFontRenderContext(), iter);
@@ -1624,7 +1621,7 @@ public class TextRenderer {
             int i = 0;
             while (i < lengthInGlyphs) {
                 Character letter = CharacterCache.valueOf(inString.charAt(i));
-                GlyphMetrics metrics = (GlyphMetrics) glyphMetricsCache.get(letter);
+                GlyphMetrics metrics = glyphMetricsCache.get(letter);
                 if (metrics == null) {
                     metrics = fullRunGlyphVector.getGlyphMetrics(i);
                     glyphMetricsCache.put(letter, metrics);
