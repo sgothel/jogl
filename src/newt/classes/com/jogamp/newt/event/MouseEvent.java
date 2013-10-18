@@ -49,9 +49,21 @@ package com.jogamp.newt.event;
  * For example {@link #getX(int) e.getX(0)} at {@link #EVENT_MOUSE_PRESSED} returns the data of the pressed pointer, etc.
  * </p>
  * <p>
- * If representing a multiple-pointer event, the {@link #getButton() button number} is equal to the first {@link #getPointerId(int) pointer ID}
+ * A {@link #getButton() button value} of <code>0</code> denotes no button activity, i.e. {@link PointerType#Mouse} move.
+ * </p>
+ * <p>
+ * A {@link #getPointerId(int) pointer-ID} of -1 denotes no pointer/button activity, i.e. {@link PointerType#Mouse} move.
+ * </p>
+ * <p>
+ * {@link #getButton() Button values} are mapped from and to {@link #getPointerId(int) pointer-IDs} as follows:
+ *    <code>
+ *       getPointerId(0) == getButton() - 1
+ *    </code>.
+ * </p>
+ * <p>
+ * If representing a multiple-pointer event, the {@link #getButton() button number} is mapped to the <i>first {@link #getPointerId(int) pointer ID}</i>
  * triggering the event and the {@link InputEvent#BUTTON1_MASK button mask bits} in the {@link #getModifiers() modifiers} 
- * field  represents the pressed pointer IDs.<br>
+ * field  represent the pressed pointer IDs.<br>
  * Hence users can query the pressed button count as well as the pressed pointer count via {@link InputEvent#getButtonDownCount()}
  * or use the simple query {@link InputEvent#isAnyButtonDown()}. 
  * </p>
@@ -162,7 +174,21 @@ public class MouseEvent extends InputEvent
         return 300; 
     }
         
-    /** Constructor for traditional one-pointer event. */ 
+    /** 
+     * Constructor for traditional one-pointer event.
+     * 
+     * @param eventType
+     * @param source
+     * @param when
+     * @param modifiers
+     * @param x X-axis
+     * @param y Y-axis
+     * @param clickCount Mouse-button click-count
+     * @param button button number, e.g. [{@link #BUTTON1}..{@link #BUTTON_COUNT}-1].
+     *               A button value of <code>0</code> denotes no button activity, i.e. {@link PointerType#Mouse} move.
+     * @param rotationXYZ Rotation of all axis
+     * @param rotationScale Rotation scale
+     */
     public MouseEvent(short eventType, Object source, long when,
             int modifiers, int x, int y, short clickCount, short button,
             float[] rotationXYZ, float rotationScale)
@@ -203,6 +229,7 @@ public class MouseEvent extends InputEvent
      * @param modifiers
      * @param pointerType PointerType for each pointer (multiple pointer)
      * @param pointerID Pointer ID for each pointer (multiple pointer). IDs start w/ 0 and are consecutive numbers.
+     *                  A pointer-ID of -1 may also denote no pointer/button activity, i.e. {@link PointerType#Mouse} move.
      * @param x X-axis for each pointer (multiple pointer)
      * @param y Y-axis for each pointer (multiple pointer)
      * @param pressure Pressure for each pointer (multiple pointer)
@@ -246,6 +273,7 @@ public class MouseEvent extends InputEvent
     }
     
     /**
+     * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * @return the count of pointers involved in this event
      */
     public final int getPointerCount() {
@@ -253,8 +281,8 @@ public class MouseEvent extends InputEvent
     }
     
     /**
-     * @return the {@link PointerType} for the data at index.
-     *  return null if index not available.
+     * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
+     * @return the {@link PointerType} for the data at index or null if index not available.
      */
     public final PointerType getPointerType(int index) {
         if(0 > index || index >= pointerType.length) {
@@ -264,6 +292,7 @@ public class MouseEvent extends InputEvent
     }
     
     /**
+     * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * @return array of all {@link PointerType}s for all pointers
      */
     public final PointerType[] getAllPointerTypes() {
@@ -271,8 +300,16 @@ public class MouseEvent extends InputEvent
     }
     
     /**
-     * @return the pointer id for the given index.
-     *  return -1 if index not available. IDs start w/ 0 and are consecutive numbers.
+     * Return the pointer id for the given index or -1 if index not available.
+     * <p> 
+     * IDs start w/ 0 and are consecutive numbers.
+     * </p>
+     * <p>
+     * A pointer-ID of -1 may also denote no pointer/button activity, i.e. {@link PointerType#Mouse} move.
+     * </p>
+     * <p>
+     * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
+     * </p>
      */
     public final short getPointerId(int index) {
         if(0 > index || index >= pointerID.length) {
@@ -282,19 +319,22 @@ public class MouseEvent extends InputEvent
     }
     
     /**
-     * @return the pointer index for the given pointer id.
-     *  return -1 if id not available.
+     * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
+     * @return the pointer index for the given pointer id or -1 if id not available.
      */
     public final int getPointerIdx(short id) {
-        for(int i=pointerID.length-1; i>=0; i--) {
-            if( pointerID[i] == id ) {
-                return i;
+        if( id >= 0 ) {
+            for(int i=pointerID.length-1; i>=0; i--) {
+                if( pointerID[i] == id ) {
+                    return i;
+                }
             }
         }
         return -1;
     }
     
     /**
+     * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * @return array of all pointer IDs for all pointers. IDs start w/ 0 and are consecutive numbers.
      */
     public final short[] getAllPointerIDs() {
@@ -303,6 +343,9 @@ public class MouseEvent extends InputEvent
     
     /** 
      * Returns the button number, e.g. [{@link #BUTTON1}..{@link #BUTTON_COUNT}-1].
+     * <p>
+     * A button value of <code>0</code> denotes no button activity, i.e. {@link PointerType#Mouse} move.
+     * </p>
      * <p>
      * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * </p> 
@@ -511,7 +554,12 @@ public class MouseEvent extends InputEvent
     
     /** PointerType for each pointer (multiple pointer) */
     private final PointerType pointerType[];
-    /** Pointer-ID for each pointer (multiple pointer). IDs start w/ 0 and are consecutive numbers. */
+    /** 
+     * Pointer-ID for each pointer (multiple pointer). IDs start w/ 0 and are consecutive numbers.
+     * <p> 
+     * A pointer-ID of -1 may also denote no pointer/button activity, i.e. {@link PointerType#Mouse} move.
+     * </p> 
+     */
     private final short pointerID[];
     /** X-axis for each pointer (multiple pointer) */
     private final int x[];
@@ -520,7 +568,14 @@ public class MouseEvent extends InputEvent
     /** Pressure for each pointer (multiple pointer) */
     private final float pressure[];
     // private final short tiltX[], tiltY[]; // TODO: A generic way for pointer axis information, see Android MotionEvent!
-    private final short clickCount, button;
+    private final short clickCount;
+    /**
+     * Returns the button number, e.g. [{@link #BUTTON1}..{@link #BUTTON_COUNT}-1].
+     * <p>
+     * A button value of <code>0</code> denotes no button activity, i.e. {@link PointerType#Mouse} move.
+     * </p>
+     */
+    private final short button;
     /** Rotation around the X, Y and X axis */
     private final float[] rotationXYZ;
     /** Rotation scale */

@@ -2381,8 +2381,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                 int x, int y, short button, final float[] rotationXYZ, float rotationScale) {
         if( 0 > button || button > MouseEvent.BUTTON_COUNT ) {
             throw new NativeWindowException("Invalid mouse button number" + button);
-        } else if( 0 == button ) {
-            button = 1;
         }
         doPointerEvent(enqueue, wait, constMousePointerTypes, eventType, modifiers,
                        0 /*actionIdx*/, new short[] { (short)(button-1) }, 
@@ -2467,7 +2465,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @param eventType
      * @param modifiers
      * @param pActionIdx index of multiple-pointer arrays representing the pointer which triggered the event
-     * @param pID Pointer ID for each pointer (multiple pointer). We assume consecutive pointerIDs starting w/ 0.
+     * @param pID Pointer ID for each pointer (multiple pointer). We assume consecutive pointerIDs starting w/ 0. 
+     *            A pointer-ID of -1 may also denote no pointer/button activity, i.e. {@link PointerType#Mouse} move.
      * @param pX X-axis for each pointer (multiple pointer)
      * @param pY Y-axis for each pointer (multiple pointer)
      * @param pPressure Pressure for each pointer (multiple pointer)
@@ -2513,7 +2512,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         final short button;
         {
             final int b = id + 1;
-            if( com.jogamp.newt.event.MouseEvent.BUTTON1 <= b && b <= com.jogamp.newt.event.MouseEvent.BUTTON_COUNT ) {
+            if( 0 <= b && b <= com.jogamp.newt.event.MouseEvent.BUTTON_COUNT ) { // we allow id==-1 -> button==0 for no button, i.e. mouse move
                 button = (short)b;
             } else {
                 button = com.jogamp.newt.event.MouseEvent.BUTTON1;
@@ -2580,7 +2579,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                ", mod "+modifiers+", pos "+x+"/"+y+", button "+button+", lastMousePosition: "+movePositionP0);
         }
 
-        modifiers |= InputEvent.getButtonMask(button); // Always add current button to modifier mask (Bug 571)
+        final int buttonMask = InputEvent.getButtonMask(button);
+        modifiers |= buttonMask; // Always add current button to modifier mask (Bug 571)
         modifiers |= pState1.buttonPressedMask; // Always add currently pressed mouse buttons to modifier mask
         
         if( isPointerConfined() ) {
@@ -2609,7 +2609,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 if( 0 >= pPressure[0] ) {
                     pPressure[0] = maxPressure;
                 }
-                pState1.buttonPressedMask |= InputEvent.getButtonMask(button);
+                pState1.buttonPressedMask |= buttonMask;
                 if( 1 == pCount ) {
                     if( when - pState1.lastButtonPressTime < MouseEvent.getClickTimeout() ) {
                         pState1.lastButtonClickCount++;
@@ -2638,7 +2638,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     e = new MouseEvent(eventType, this, when, modifiers, pTypes, pID, 
                                        pX, pY, pPressure, maxPressure, button, (short)1, rotationXYZ, rotationScale);
                 }
-                pState1.buttonPressedMask &= ~InputEvent.getButtonMask(button);
+                pState1.buttonPressedMask &= ~buttonMask;
                 if( null != movePositionP0 ) {
                     movePositionP0.set(0, 0);
                 }
