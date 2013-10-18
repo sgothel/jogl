@@ -26,10 +26,12 @@ public class FpgmTable extends Program implements Table {
         readInstructions(di, de.getLength());
     }
 
+    @Override
     public int getType() {
         return fpgm;
     }
 
+    @Override
     public String toString() {
         return Disassembler.disassemble(getInstructions(), 0);
     }
@@ -40,6 +42,7 @@ public class FpgmTable extends Program implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return de;
     }

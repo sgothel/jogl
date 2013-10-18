@@ -53,6 +53,7 @@ public abstract class DisplayImpl extends Display {
 
     static {
         NativeWindowFactory.addCustomShutdownHook(true /* head */, new Runnable() {
+           @Override
            public void run() {
                WindowImpl.shutdownAll();
                ScreenImpl.shutdownAll();
@@ -147,6 +148,7 @@ public abstract class DisplayImpl extends Display {
             final DisplayImpl f_dpy = this;
             try {
                 runOnEDTIfAvail(true, new Runnable() {
+                    @Override
                     public void run() {
                         f_dpy.createNativeImpl();
                     }});
@@ -244,6 +246,7 @@ public abstract class DisplayImpl extends Display {
         task.run();
     }
 
+    @Override
     public boolean validateEDTStopped() {
         if( 0==refCount && null == aDevice ) {
             final EDTUtil _edtUtil = edtUtil;
@@ -277,6 +280,7 @@ public abstract class DisplayImpl extends Display {
         aDevice = null;
         refCount=0;
         stopEDT( edtUtil, new Runnable() { // blocks!
+            @Override
             public void run() {
                 if ( null != f_aDevice ) {
                     f_dpy.closeNativeImpl(f_aDevice);
@@ -308,6 +312,7 @@ public abstract class DisplayImpl extends Display {
                 d.aDevice = null;
                 d.refCount=0;
                 final Runnable closeNativeTask = new Runnable() {
+                    @Override
                     public void run() {
                         if ( null != d.getGraphicsDevice() ) {
                             d.closeNativeImpl(f_aDevice);
@@ -329,6 +334,7 @@ public abstract class DisplayImpl extends Display {
         }
     }
 
+    @Override
     public synchronized final int addReference() {
         if(DEBUG) {
             System.err.println("Display.addReference() ("+DisplayImpl.getThreadName()+"): "+refCount+" -> "+(refCount+1));
@@ -343,6 +349,7 @@ public abstract class DisplayImpl extends Display {
     }
 
 
+    @Override
     public synchronized final int removeReference() {
         if(DEBUG) {
             System.err.println("Display.removeReference() ("+DisplayImpl.getThreadName()+"): "+refCount+" -> "+(refCount-1));
@@ -355,6 +362,7 @@ public abstract class DisplayImpl extends Display {
         return refCount;
     }
 
+    @Override
     public synchronized final int getReferenceCount() {
         return refCount;
     }
@@ -450,6 +458,7 @@ public abstract class DisplayImpl extends Display {
     private volatile boolean haveEvents = false;
 
     final protected Runnable dispatchMessagesRunnable = new Runnable() {
+        @Override
         public void run() {
             DisplayImpl.this.dispatchMessages();
         } };

@@ -47,10 +47,12 @@ public class GLSLArrayHandlerFlat implements GLArrayHandlerFlat {
     this.ad = ad;
   }
 
+  @Override
   public GLArrayDataWrapper getData() {
       return ad;
   }
 
+  @Override
   public final void syncData(GL gl, Object ext) {
     final GL2ES2 glsl = gl.getGL2ES2();
     if( null != ext ) {
@@ -77,6 +79,7 @@ public class GLSLArrayHandlerFlat implements GLArrayHandlerFlat {
     }*/
   }
 
+  @Override
   public final void enableState(GL gl, boolean enable, Object ext) {
     final GL2ES2 glsl = gl.getGL2ES2();
     if( null != ext ) {

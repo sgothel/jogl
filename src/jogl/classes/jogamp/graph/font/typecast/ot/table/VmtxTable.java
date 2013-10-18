@@ -77,10 +77,12 @@ public class VmtxTable implements Table {
         }
     }
 
+    @Override
     public int getType() {
         return vmtx;
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("'vmtx' Table - Vertical Metrics\n-------------------------------\n");
@@ -106,6 +108,7 @@ public class VmtxTable implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }

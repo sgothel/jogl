@@ -94,5 +94,6 @@ public class TextureCoords {
         rectangle. */
     public float top() { return top; }
 
+    @Override
     public String toString() { return "TexCoord[h: "+left+" - "+right+", v: "+bottom+" - "+top+"]"; }
 }

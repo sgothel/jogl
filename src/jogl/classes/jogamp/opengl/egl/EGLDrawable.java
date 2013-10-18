@@ -115,6 +115,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
         }
     }
 
+    @Override
     protected void destroyHandle() {
         final EGLWrappedSurface eglws = (EGLWrappedSurface) surface;
         if(DEBUG) {

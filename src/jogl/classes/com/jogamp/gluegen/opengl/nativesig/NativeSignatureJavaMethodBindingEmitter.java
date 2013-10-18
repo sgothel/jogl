@@ -131,6 +131,7 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
     }
   }
 
+  @Override
   protected String getReturnTypeString(boolean skipArray) {
     if (isForImplementingMethodCall()) {
       JavaType returnType = getBinding().getJavaReturnType();
@@ -142,6 +143,7 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
     return super.getReturnTypeString(skipArray);
   }
 
+  @Override
   protected void emitPreCallSetup(MethodBinding binding, PrintWriter writer) {
     super.emitPreCallSetup(binding, writer);
     for (int i = 0; i < binding.getNumArguments(); i++) {
@@ -162,6 +164,7 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
     return "__buffer_array_" + argNumber;
   }
 
+  @Override
   protected int emitArguments(PrintWriter writer)
   {
     boolean needComma = false;
@@ -242,6 +245,7 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
     return numEmitted;
   }
 
+  @Override
   protected void emitReturnVariableSetupAndCall(MethodBinding binding, PrintWriter writer) {
     writer.print("    ");
     JavaType returnType = binding.getJavaReturnType();
@@ -455,6 +459,7 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
     return numArgsEmitted;
   }
 
+  @Override
   protected void emitCallResultReturn(MethodBinding binding, PrintWriter writer) {
     for (int i = 0; i < binding.getNumArguments(); i++) {
       JavaType type = binding.getJavaArgumentType(i);
@@ -468,6 +473,7 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
     super.emitCallResultReturn(binding, writer);
   }
 
+  @Override
   public String getName() {
     String res = super.getName();
     if (forImplementingMethodCall && bufferObjectVariant) {

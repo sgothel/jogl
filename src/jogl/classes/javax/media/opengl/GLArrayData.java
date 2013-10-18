@@ -201,6 +201,7 @@ public interface GLArrayData {
      */
     public int getStride();
 
+    @Override
     public String toString();
 
     public void destroy(GL gl);

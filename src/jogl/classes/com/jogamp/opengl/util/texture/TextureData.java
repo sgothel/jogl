@@ -499,6 +499,7 @@ public class TextureData {
         public void flush();
     }
 
+    @Override
     public String toString() {
         return "TextureData["+width+"x"+height+", y-flip "+mustFlipVertically+", internFormat 0x"+Integer.toHexString(internalFormat)+", "+
                 pixelAttributes+", border "+border+", estSize "+estimatedMemorySize+", alignment "+alignment+", rowlen "+rowLength;

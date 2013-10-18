@@ -41,6 +41,7 @@ public class PngMetadata {
 			throw new PngjException("cannot set chunk : readonly metadata");
 		if (lazyOverwrite) {
 			ChunkHelper.trimList(cl.getQueuedChunks(), new ChunkPredicate() {
+				@Override
 				public boolean match(PngChunk c2) {
 					return ChunkHelper.equivalent(c, c2);
 				}

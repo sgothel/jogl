@@ -45,6 +45,7 @@ public class KernTable implements Table {
     /** Get the table type, as a table directory value.
      * @return The table type
      */
+    @Override
     public int getType() {
         return kern;
     }
@@ -55,6 +56,7 @@ public class KernTable implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return de;
     }

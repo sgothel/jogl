@@ -142,6 +142,7 @@ public class SharedResourceToolkitLock implements ToolkitLock {
         }
     }
 
+    @Override
     public String toString() {
         return "SharedResourceToolkitLock[refCount "+refCount+", handle 0x"+Long.toHexString(handle)+", obj 0x"+Integer.toHexString(hashCode())+", isOwner "+lock.isOwner(Thread.currentThread())+", "+lock.toString()+"]";
     }

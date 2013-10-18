@@ -50,14 +50,17 @@ public class GLSLArrayHandler extends GLVBOArrayHandler implements GLArrayHandle
     super(ad);
   }
 
+  @Override
   public final void setSubArrayVBOName(int vboName) {
       throw new UnsupportedOperationException();
   }
 
+  @Override
   public final void addSubHandler(GLArrayHandlerFlat handler) {
       throw new UnsupportedOperationException();
   }
 
+  @Override
   public final void enableState(GL gl, boolean enable, Object ext) {
     final GL2ES2 glsl = gl.getGL2ES2();
     if( null != ext ) {

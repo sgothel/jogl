@@ -63,6 +63,7 @@ public class X11GraphicsScreen extends DefaultGraphicsScreen implements Cloneabl
         return X11Lib.DefaultVisualID(getDevice().getHandle(), getIndex());
     }
 
+    @Override
     public Object clone() {
       return super.clone();
     }

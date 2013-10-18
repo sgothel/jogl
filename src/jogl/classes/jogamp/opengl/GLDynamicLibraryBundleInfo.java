@@ -46,6 +46,7 @@ public abstract class GLDynamicLibraryBundleInfo implements DynamicLibraryBundle
      * </pre>
      * </p>
      */
+    @Override
     public final boolean shallLinkGlobal() { return true; }
 
     /**

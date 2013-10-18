@@ -321,6 +321,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
     Buffers.putf(buffer, v);
   }
 
+  @Override
   public String toString() {
     return "GLArrayDataClient["+name+
                        ", index "+index+

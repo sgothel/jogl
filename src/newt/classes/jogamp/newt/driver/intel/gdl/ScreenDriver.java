@@ -53,14 +53,17 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
     public ScreenDriver() {
     }
 
+    @Override
     protected void createNativeImpl() {
         AbstractGraphicsDevice adevice = getDisplay().getGraphicsDevice();
         GetScreenInfo(adevice.getHandle(), screen_idx);
         aScreen = new DefaultGraphicsScreen(adevice, screen_idx);
     }
 
+    @Override
     protected void closeNativeImpl() { }
 
+    @Override
     protected int validateScreenIndex(int idx) {
         return 0; // only one screen available
     }
@@ -102,6 +105,7 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
         return false;
     }
 
+    @Override
     protected void calcVirtualScreenOriginAndSize(Rectangle vOriginSize) {
         vOriginSize.set(0, 0, cachedWidth, cachedHeight);
     }

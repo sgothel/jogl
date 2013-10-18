@@ -99,6 +99,7 @@ public class GlyfCompositeDescript extends GlyfDescript {
         }
     }
 
+    @Override
     public int getEndPtOfContours(int i) {
         GlyfCompositeComp c = getCompositeCompEndPt(i);
         if (c != null) {
@@ -108,6 +109,7 @@ public class GlyfCompositeDescript extends GlyfDescript {
         return 0;
     }
 
+    @Override
     public byte getFlags(int i) {
         GlyfCompositeComp c = getCompositeComp(i);
         if (c != null) {
@@ -117,6 +119,7 @@ public class GlyfCompositeDescript extends GlyfDescript {
         return 0;
     }
 
+    @Override
     public short getXCoordinate(int i) {
         GlyfCompositeComp c = getCompositeComp(i);
         if (c != null) {
@@ -131,6 +134,7 @@ public class GlyfCompositeDescript extends GlyfDescript {
         return 0;
     }
 
+    @Override
     public short getYCoordinate(int i) {
         GlyfCompositeComp c = getCompositeComp(i);
         if (c != null) {
@@ -145,10 +149,12 @@ public class GlyfCompositeDescript extends GlyfDescript {
         return 0;
     }
 
+    @Override
     public boolean isComposite() {
         return true;
     }
 
+    @Override
     public int getPointCount() {
         GlyfCompositeComp c = _components.get(_components.size()-1);
         GlyphDescription gd = _parentTable.getDescription(c.getGlyphIndex());
@@ -159,6 +165,7 @@ public class GlyfCompositeDescript extends GlyfDescript {
         }
     }
 
+    @Override
     public int getContourCount() {
         GlyfCompositeComp c = _components.get(_components.size()-1);
         return c.getFirstContour() + _parentTable.getDescription(c.getGlyphIndex()).getContourCount();

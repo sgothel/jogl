@@ -173,6 +173,7 @@ public class ImmModeSink {
     vboSet.reset(gl);
   }
 
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("ImmModeSink[");
     sb.append(",\n\tVBO list: "+vboSetList.size()+" [");
@@ -1236,6 +1237,7 @@ public class ImmModeSink {
     }
   }
 
+    @Override
     public String toString() {
         final String glslS = useGLSL ?
                        ", useShaderState "+(null!=shaderState)+

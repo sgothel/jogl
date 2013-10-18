@@ -54,10 +54,12 @@ public class AWTThreadingPlugin implements ToolkitThreadingPlugin {
 
   public AWTThreadingPlugin() {}
 
+  @Override
   public final boolean isToolkitThread() throws GLException {
       return EventQueue.isDispatchThread();
   }
 
+  @Override
   public final boolean isOpenGLThread() throws GLException {
     switch (ThreadingImpl.getMode()) {
       case ST_AWT:
@@ -83,6 +85,7 @@ public class AWTThreadingPlugin implements ToolkitThreadingPlugin {
     }
   }
 
+  @Override
   public final void invokeOnOpenGLThread(boolean wait, Runnable r) throws GLException {
     switch (ThreadingImpl.getMode()) {
       case ST_AWT:

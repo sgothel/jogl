@@ -193,6 +193,7 @@ public interface AudioSink {
             return ( byteCount << 3 ) / sampleSize;
         }
 
+        @Override
         public String toString() {
             return "AudioDataFormat[sampleRate "+sampleRate+", sampleSize "+sampleSize+", channelCount "+channelCount+
                    ", signed "+signed+", fixedP "+fixedP+", "+(planar?"planar":"packed")+", "+(littleEndian?"little":"big")+"-endian]"; }
@@ -217,6 +218,7 @@ public interface AudioSink {
         /** Set this frame's size in bytes. */
         public final void setByteSize(int size) { this.byteSize=size; }
 
+        @Override
         public String toString() {
             return "AudioFrame[pts " + pts + " ms, l " + duration + " ms, "+byteSize + " bytes]";
         }
@@ -235,6 +237,7 @@ public interface AudioSink {
         /** Get this frame's data. */
         public final ByteBuffer getData() { return data; }
 
+        @Override
         public String toString() {
             return "AudioDataFrame[pts " + pts + " ms, l " + duration + " ms, "+byteSize + " bytes, " + data + "]";
         }

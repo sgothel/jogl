@@ -87,16 +87,19 @@ public class FPSCounterImpl implements FPSCounter {
         return sb;
     }
 
+    @Override
     public String toString() {
         return toString(null).toString();
     }
 
+    @Override
     public final synchronized void setUpdateFPSFrames(int frames, PrintStream out) {
         fpsUpdateFramesInterval = frames;
         fpsOutputStream = out;
         resetFPSCounter();
     }
 
+    @Override
     public final synchronized void resetFPSCounter() {
         fpsStartTime = TimeUnit.NANOSECONDS.toMillis(System.nanoTime()); // overwrite startTime to real init one
         fpsLastUpdateTime   = fpsStartTime;
@@ -106,34 +109,42 @@ public class FPSCounterImpl implements FPSCounter {
         fpsLastPeriod = 0; fpsTotalDuration=0;
     }
 
+    @Override
     public final synchronized int getUpdateFPSFrames() {
         return fpsUpdateFramesInterval;
     }
 
+    @Override
     public final synchronized long getFPSStartTime()   {
         return fpsStartTime;
     }
 
+    @Override
     public final synchronized long getLastFPSUpdateTime() {
         return fpsLastUpdateTime;
     }
 
+    @Override
     public final synchronized long getLastFPSPeriod() {
         return fpsLastPeriod;
     }
 
+    @Override
     public final synchronized float getLastFPS() {
         return fpsLast;
     }
 
+    @Override
     public final synchronized int getTotalFPSFrames() {
         return fpsTotalFrames;
     }
 
+    @Override
     public final synchronized long getTotalFPSDuration() {
         return fpsTotalDuration;
     }
 
+    @Override
     public final synchronized float getTotalFPS() {
         return fpsTotal;
     }

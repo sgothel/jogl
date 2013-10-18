@@ -78,8 +78,10 @@ public interface RectangleImmutable extends WriteCloneable, Comparable<Rectangle
      * @return      <code>true</code> if the two rectangles are equal;
      * otherwise <code>false</code>.
      */
+    @Override
     boolean equals(Object obj);
 
+    @Override
     int hashCode();
 
 }

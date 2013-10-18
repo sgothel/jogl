@@ -127,6 +127,7 @@ public class GLOffscreenAutoDrawableImpl extends GLAutoDrawableDelegate implemen
             return ((GLFBODrawableImpl)drawable).getFBObject(bufferName);
         }
 
+        @Override
         public final FBObject.TextureAttachment getTextureBuffer(int bufferName) {
             return ((GLFBODrawableImpl)drawable).getTextureBuffer(bufferName);
         }

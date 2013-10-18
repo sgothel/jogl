@@ -36,6 +36,7 @@ package jogamp.nativewindow;
 import javax.media.nativewindow.*;
 
 public class DefaultGraphicsConfigurationFactoryImpl extends GraphicsConfigurationFactory {
+    @Override
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
             CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested, CapabilitiesChooser chooser, AbstractGraphicsScreen screen, int nativeVisualID) {
         return new DefaultGraphicsConfiguration(screen, capsChosen, capsRequested);

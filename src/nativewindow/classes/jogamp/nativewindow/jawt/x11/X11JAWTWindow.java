@@ -57,12 +57,15 @@ public class X11JAWTWindow extends JAWTWindow {
     super(comp, config);
   }
 
+  @Override
   protected void invalidateNative() { }
 
+  @Override
   protected JAWT fetchJAWTImpl() throws NativeWindowException {
       return JAWTUtil.getJAWT(false); // no offscreen
   }
 
+  @Override
   protected int lockSurfaceImpl() throws NativeWindowException {
     int ret = NativeWindow.LOCK_SUCCESS;
     ds = getJAWT().GetDrawingSurface(component);
@@ -104,6 +107,7 @@ public class X11JAWTWindow extends JAWTWindow {
     return ret;
   }
 
+  @Override
   protected void unlockSurfaceImpl() throws NativeWindowException {
     if(null!=ds) {
         if (null!=dsi) {
@@ -119,6 +123,7 @@ public class X11JAWTWindow extends JAWTWindow {
     x11dsi = null;
   }
 
+  @Override
   protected Point getLocationOnScreenNativeImpl(int x, int y) {
     // surface is locked and hence the device
     return X11Lib.GetRelativeLocation(getDisplayHandle(), getScreenIndex(), getWindowHandle(), 0 /*root win*/, x, y);

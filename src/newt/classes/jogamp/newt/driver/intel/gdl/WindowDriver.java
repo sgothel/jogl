@@ -48,6 +48,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
 
     static long nextWindowHandle = 1;
 
+    @Override
     protected void createNativeImpl() {
         if(0!=getParentWindowHandle()) {
             throw new NativeWindowException("GDL Window does not support window parenting");
@@ -72,6 +73,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
         }
     }
 
+    @Override
     protected void closeNativeImpl() {
         if(0!=surfaceHandle) {
             synchronized(WindowDriver.class) {
@@ -82,6 +84,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
         }
     }
 
+    @Override
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
         ScreenDriver  screen = (ScreenDriver) getScreen();
 
@@ -112,6 +115,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
         return true;
     }
 
+    @Override
     protected void requestFocusImpl(boolean reparented) {
         ((DisplayDriver)getScreen().getDisplay()).setFocus(this);
     }
@@ -121,10 +125,12 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
         return surfaceHandle;
     }
 
+    @Override
     protected Point getLocationOnScreenImpl(int x, int y) {
         return new Point(x,y);
     }
 
+    @Override
     protected void updateInsetsImpl(Insets insets) {
         // nop ..
     }

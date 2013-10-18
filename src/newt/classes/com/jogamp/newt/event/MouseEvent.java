@@ -510,10 +510,12 @@ public class MouseEvent extends InputEvent
         return rotationScale;
     }
 
+    @Override
     public final String toString() {
         return toString(null).toString();
     }
 
+    @Override
     public final StringBuilder toString(StringBuilder sb) {
         if(null == sb) {
             sb = new StringBuilder();

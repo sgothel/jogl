@@ -56,6 +56,7 @@ public class WindowDriver extends WindowImpl {
     public WindowDriver() {
     }
 
+    @Override
     protected void createNativeImpl() {
         if(0!=getParentWindowHandle()) {
             throw new RuntimeException("Window parenting not supported (yet)");
@@ -83,6 +84,7 @@ public class WindowDriver extends WindowImpl {
         windowHandleClose = eglWindowHandle;
     }
 
+    @Override
     protected void closeNativeImpl() {
         if(0!=windowHandleClose) {
             CloseWindow(windowHandleClose, windowUserData);
@@ -90,8 +92,10 @@ public class WindowDriver extends WindowImpl {
         }
     }
 
+    @Override
     protected void requestFocusImpl(boolean reparented) { }
 
+    @Override
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
             setVisible0(eglWindowHandle, 0 != ( FLAG_IS_VISIBLE & flags));
@@ -125,10 +129,12 @@ public class WindowDriver extends WindowImpl {
         return true;
     }
 
+    @Override
     protected Point getLocationOnScreenImpl(int x, int y) {
         return new Point(x,y);
     }
 
+    @Override
     protected void updateInsetsImpl(Insets insets) {
         // nop ..
     }

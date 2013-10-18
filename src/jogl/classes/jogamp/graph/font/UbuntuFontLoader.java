@@ -71,10 +71,12 @@ public class UbuntuFontLoader implements FontSet {
         return 0 != ( bits & bit ) ;
     }
 
+    @Override
     public Font getDefault() throws IOException {
         return get(FAMILY_REGULAR, 0) ; // Sans Serif Regular
     }
 
+    @Override
     public Font get(int family, int style) throws IOException {
         Font font = (Font)fontMap.get( ( family << 8 ) | style );
         if (font != null) {

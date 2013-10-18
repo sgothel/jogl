@@ -609,6 +609,7 @@ public interface GLMediaPlayer extends TextureSequence {
     public int getHeight();
 
     /** Returns a string represantation of this player, incl. state and audio/video details. */
+    @Override
     public String toString();
 
     /** Returns a string represantation of this player's performance values. */

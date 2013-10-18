@@ -105,6 +105,7 @@ public class VheaTable implements Table {
         return _numberOfLongVerMetrics;
     }
 
+    @Override
     public int getType() {
         return vhea;
     }
@@ -113,6 +114,7 @@ public class VheaTable implements Table {
         return _yMaxExtent;
     }
 
+    @Override
     public String toString() {
         return new StringBuilder()
             .append("'vhea' Table - Vertical Header\n------------------------------")
@@ -142,6 +144,7 @@ public class VheaTable implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }

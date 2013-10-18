@@ -112,6 +112,7 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
 
         try {
             final Class<?> clazz = AccessController.doPrivileged(new PrivilegedAction<Class<?>>() {
+                @Override
                 public Class<?> run() {
                     final ClassLoader cl = Thread.currentThread().getContextClassLoader();
                     Class<?> clazz = null;
@@ -169,6 +170,7 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
                         if(null == glWindow.getParent()) {
                             // we may be called directly by the native EDT
                             new Thread(new Runnable() {
+                               @Override
                                public void run() {
                                 if( glWindow.isNativeValid() ) {
                                     glWindow.reparentWindow(awtParent);
@@ -256,6 +258,7 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
     // ***********************************************************************************
     // ***********************************************************************************
 
+    @Override
     public void init(GLAutoDrawable drawable) {
         GL _gl = drawable.getGL();
 
@@ -276,10 +279,13 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
             _gl.setSwapInterval(glSwapInterval);
         }
     }
+    @Override
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
     }
+    @Override
     public void display(GLAutoDrawable drawable) {
     }
+    @Override
     public void dispose(GLAutoDrawable drawable) {
     }
 

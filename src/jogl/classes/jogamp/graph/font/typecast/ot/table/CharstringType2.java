@@ -133,10 +133,12 @@ public class CharstringType2 extends Charstring {
         _globalSubrIndex = globalSubrIndex;
     }
 
+    @Override
     public int getIndex() {
         return _index;
     }
 
+    @Override
     public String getName() {
         return _name;
     }
@@ -223,6 +225,7 @@ public class CharstringType2 extends Charstring {
         return _ip < _offset + _length;
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         resetIP();

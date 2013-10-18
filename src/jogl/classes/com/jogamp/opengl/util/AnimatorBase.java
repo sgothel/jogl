@@ -194,6 +194,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
             resume();
         }
         final Condition waitForAnimatingAndECTCondition = new Condition() {
+            @Override
             public boolean eval() {
                 final Thread dect = drawable.getExclusiveContextThread();
                 return isStarted() && !isPaused() && !isAnimating() && ( exclusiveContext && null == dect || !exclusiveContext && null != dect );
@@ -217,6 +218,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         if( exclusiveContext && isAnimating() ) {
             drawable.setExclusiveContextThread( null );
             final Condition waitForNullECTCondition = new Condition() {
+                @Override
                 public boolean eval() {
                     return null != drawable.getExclusiveContextThread();
                 } };
@@ -240,6 +242,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         notifyAll();
     }
     private final Condition waitForNotAnimatingIfEmptyCondition = new Condition() {
+        @Override
         public boolean eval() {
             return isStarted() && drawablesEmpty && isAnimating();
         } };
@@ -577,6 +580,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
 
     protected static String getThreadName() { return Thread.currentThread().getName(); }
 
+    @Override
     public String toString() {
         return getClass().getName()+"[started "+isStarted()+", animating "+isAnimating()+", paused "+isPaused()+", drawable "+drawables.size()+
                ", totals[dt "+getTotalFPSDuration()+", frames "+getTotalFPSFrames()+", fps "+getTotalFPS()+

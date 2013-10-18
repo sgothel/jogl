@@ -59,10 +59,12 @@ public class MemoryObject {
     /**
      * @return the 32bit hash value generated via {@link HashUtil#getAddrSizeHash32_EqualDist(long, long)}.
      */
+    @Override
     public int hashCode() {
         return hash;
     }
 
+    @Override
     public String toString() {
         return "MemoryObject[addr 0x"+Long.toHexString(addr)+", size 0x"+Long.toHexString(size)+", hash32: 0x"+Integer.toHexString(hash)+"]";
     }

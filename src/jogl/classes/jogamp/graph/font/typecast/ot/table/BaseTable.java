@@ -47,10 +47,12 @@ public class BaseTable implements Table {
             _coordinate = di.readShort();
         }
 
+        @Override
         public int getBaseCoordFormat() {
             return 1;
         }
 
+        @Override
         public short getCoordinate() {
             return _coordinate;
         }
@@ -69,10 +71,12 @@ public class BaseTable implements Table {
             _baseCoordPoint = di.readUnsignedShort();
         }
 
+        @Override
         public int getBaseCoordFormat() {
             return 2;
         }
 
+        @Override
         public short getCoordinate() {
             return _coordinate;
         }
@@ -89,10 +93,12 @@ public class BaseTable implements Table {
             _deviceTableOffset = di.readUnsignedShort();
         }
 
+        @Override
         public int getBaseCoordFormat() {
             return 2;
         }
 
+        @Override
         public short getCoordinate() {
             return _coordinate;
         }
@@ -211,6 +217,7 @@ public class BaseTable implements Table {
             }
         }
 
+        @Override
         public String toString() {
             StringBuilder sb = new StringBuilder()
                 .append("\nBaseScript BaseScriptT").append(Integer.toHexString(_thisOffset))
@@ -273,6 +280,7 @@ public class BaseTable implements Table {
             }
         }
 
+        @Override
         public String toString() {
             StringBuilder sb = new StringBuilder()
                 .append("\nBaseScriptList BaseScriptListT").append(Integer.toHexString(_thisOffset))
@@ -305,6 +313,7 @@ public class BaseTable implements Table {
             }
         }
 
+        @Override
         public String toString() {
             StringBuilder sb = new StringBuilder()
                 .append("\nBaseTagList BaseTagListT").append(Integer.toHexString(_thisOffset))
@@ -338,6 +347,7 @@ public class BaseTable implements Table {
             }
         }
 
+        @Override
         public String toString() {
             return new StringBuilder()
                 .append("\nAxis AxisT").append(Integer.toHexString(_thisOffset))
@@ -403,10 +413,12 @@ public class BaseTable implements Table {
         return String.valueOf(c);
     }
 
+    @Override
     public int getType() {
         return BASE;
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder()
             .append("; 'BASE' Table - Baseline\n;-------------------------------------\n\n")
@@ -429,6 +441,7 @@ public class BaseTable implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }

@@ -30,6 +30,7 @@ public class ClassDefFormat2 extends ClassDef {
         }
     }
 
+    @Override
     public int getFormat() {
         return 2;
     }

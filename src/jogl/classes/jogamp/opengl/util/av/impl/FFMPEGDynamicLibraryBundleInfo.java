@@ -252,6 +252,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
             loaded[i] = false;
         }
         final DynamicLibraryBundle dl = AccessController.doPrivileged(new PrivilegedAction<DynamicLibraryBundle>() {
+                                          @Override
                                           public DynamicLibraryBundle run() {
                                               return new DynamicLibraryBundle(new FFMPEGDynamicLibraryBundleInfo());
                                           } } );
@@ -272,6 +273,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
 
         // lookup
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            @Override
             public Object run() {
                 for(int i = 0; i<symbolCount; i++) {
                     symbolAddr[i] = dl.dynamicLookupFunction(symbolNames[i]);

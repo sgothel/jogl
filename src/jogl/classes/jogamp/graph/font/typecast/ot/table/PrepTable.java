@@ -26,10 +26,12 @@ public class PrepTable extends Program implements Table {
         readInstructions(di, de.getLength());
     }
 
+    @Override
     public int getType() {
         return prep;
     }
 
+    @Override
     public String toString() {
         return Disassembler.disassemble(getInstructions(), 0);
     }
@@ -40,6 +42,7 @@ public class PrepTable extends Program implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return de;
     }

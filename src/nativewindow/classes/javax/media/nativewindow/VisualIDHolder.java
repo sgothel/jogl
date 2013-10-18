@@ -120,6 +120,7 @@ public interface VisualIDHolder {
             this.type = type;
         }
 
+        @Override
         public int compare(VisualIDHolder vid1, VisualIDHolder vid2) {
             final int id1 = vid1.getVisualID(type);
             final int id2 = vid2.getVisualID(type);

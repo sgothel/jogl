@@ -45,6 +45,7 @@ public class DsigTable implements Table {
      * Get the table type, as a table directory value.
      * @return The table type
      */
+    @Override
     public int getType() {
         return DSIG;
     }
@@ -55,10 +56,12 @@ public class DsigTable implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return de;
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder().append("DSIG\n");
         for (int i = 0; i < numSigs; i++) {

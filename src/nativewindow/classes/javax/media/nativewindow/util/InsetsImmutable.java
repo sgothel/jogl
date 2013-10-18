@@ -59,8 +59,10 @@ public interface InsetsImmutable extends WriteCloneable {
      * @return      <code>true</code> if the two Insets are equal;
      * otherwise <code>false</code>.
      */
+    @Override
     boolean equals(Object obj);
 
+    @Override
     int hashCode();
 
 }

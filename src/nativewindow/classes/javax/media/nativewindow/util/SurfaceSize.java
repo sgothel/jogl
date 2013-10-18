@@ -56,6 +56,7 @@ public class SurfaceSize implements Comparable<SurfaceSize> {
         return bitsPerPixel;
     }
 
+    @Override
     public final String toString() {
         return new String("[ "+resolution+" x "+bitsPerPixel+" bpp ]");
     }
@@ -89,6 +90,7 @@ public class SurfaceSize implements Comparable<SurfaceSize> {
      * @return  <code>true</code> if the two dimensions are equal;
      *          otherwise <code>false</code>.
      */
+    @Override
     public final boolean equals(Object obj) {
         if(this == obj)  { return true; }
         if (obj instanceof SurfaceSize) {
@@ -99,6 +101,7 @@ public class SurfaceSize implements Comparable<SurfaceSize> {
         return false;
     }
 
+    @Override
     public final int hashCode() {
         // 31 * x == (x << 5) - x
         int hash = 31 + getResolution().hashCode();

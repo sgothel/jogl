@@ -314,5 +314,6 @@ public class PNGImage {
         }
     }
 
+    @Override
     public String toString() { return "PNGImage["+pixelWidth+"x"+pixelHeight+", dpi "+dpi[0]+" x "+dpi[1]+", bytesPerPixel "+bytesPerPixel+", reversedChannels "+reversedChannels+", "+data+"]"; }
 }

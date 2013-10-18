@@ -262,6 +262,7 @@ public class GLRendererQuirks {
         return sb;
     }
 
+    @Override
     public final String toString() {
         return toString(null).toString();
     }

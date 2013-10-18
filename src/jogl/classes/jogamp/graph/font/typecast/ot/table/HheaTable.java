@@ -92,6 +92,7 @@ public class HheaTable implements Table {
         return numberOfHMetrics;
     }
 
+    @Override
     public int getType() {
         return hhea;
     }
@@ -100,6 +101,7 @@ public class HheaTable implements Table {
         return xMaxExtent;
     }
 
+    @Override
     public String toString() {
         return new StringBuilder()
             .append("'hhea' Table - Horizontal Header\n--------------------------------")
@@ -129,6 +131,7 @@ public class HheaTable implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return de;
     }

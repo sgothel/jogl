@@ -77,6 +77,7 @@ public class VBORegion2PES2  extends GLRegion {
         mgl_ActiveTexture = new GLUniformData(UniformNames.gcu_TextureUnit, textureEngine);
     }
 
+    @Override
     public void update(GL2ES2 gl, RenderState rs) {
         if(!isDirty()) {
             return;
@@ -194,6 +195,7 @@ public class VBORegion2PES2  extends GLRegion {
 
     int[] maxTexSize = new int[] { -1 } ;
 
+    @Override
     protected void drawImpl(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int[/*1*/] texWidth) {
         if(vp_width <=0 || vp_height <= 0 || null==texWidth || texWidth[0] <= 0){
             renderRegion(gl);
@@ -296,6 +298,7 @@ public class VBORegion2PES2  extends GLRegion {
         verticeTxtAttr.enableBuffer(gl, false);
     }
 
+    @Override
     public void destroy(GL2ES2 gl, RenderState rs) {
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegion2PES2 Destroy: " + this);

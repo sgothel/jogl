@@ -333,10 +333,12 @@ public class AABBox implements Cloneable {
         return high[2] - low[2];
     }
 
+    @Override
     public final AABBox clone() {
         return new AABBox(this.low, this.high);
     }
 
+    @Override
     public final boolean equals(Object obj) {
         if( obj == this ) {
             return true;
@@ -349,6 +351,7 @@ public class AABBox implements Cloneable {
                VectorUtil.checkEquality(high, other.high) ;
     }
 
+    @Override
     public final String toString() {
         return "[ "+low[0]+"/"+low[1]+"/"+low[1]+" .. "+high[0]+"/"+high[0]+"/"+high[0]+", ctr "+
                     center[0]+"/"+center[1]+"/"+center[1]+" ]";

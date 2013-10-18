@@ -44,6 +44,7 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
 
     static String getThreadName() { return Thread.currentThread().getName(); }
 
+    @Override
     public final void setSize(int width, int height) {
         if(null != upstreamSurfaceHookMutableSize) {
             upstreamSurfaceHookMutableSize.setSize(width, height);

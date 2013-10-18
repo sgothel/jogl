@@ -54,6 +54,7 @@ public class VersionApplet extends Applet {
         this.f = f;
         this.va = va;
     }
+    @Override
     public void windowClosing(WindowEvent ev) {
         f.setVisible(false);
         va.stop();
@@ -129,24 +130,28 @@ public class VersionApplet extends Applet {
       }
   }
 
+  @Override
   public void init() {
     System.err.println("VersionApplet: init() - begin");
     my_init();
     System.err.println("VersionApplet: init() - end");
   }
 
+  @Override
   public void start() {
     System.err.println("VersionApplet: start() - begin");
     canvas.setVisible(true);
     System.err.println("VersionApplet: start() - end");
   }
 
+  @Override
   public void stop() {
     System.err.println("VersionApplet: stop() - begin");
     canvas.setVisible(false);
     System.err.println("VersionApplet: stop() - end");
   }
 
+  @Override
   public void destroy() {
     System.err.println("VersionApplet: destroy() - start");
     my_release();
@@ -154,6 +159,7 @@ public class VersionApplet extends Applet {
   }
 
   class GLInfo implements GLEventListener {
+    @Override
     public void init(GLAutoDrawable drawable) {
         GL gl = drawable.getGL();
         String s = JoglVersion.getGLInfo(gl, null).toString();
@@ -161,12 +167,15 @@ public class VersionApplet extends Applet {
         tareaVersion.append(s);
     }
 
+    @Override
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
     }
 
+    @Override
     public void display(GLAutoDrawable drawable) {
     }
 
+    @Override
     public void dispose(GLAutoDrawable drawable) {
     }
   }

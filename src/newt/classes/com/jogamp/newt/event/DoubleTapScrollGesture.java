@@ -142,6 +142,7 @@ public class DoubleTapScrollGesture implements GestureHandler {
         }
     }
 
+    @Override
     public String toString() {
         return "DoubleTapScroll[state "+gestureState+", in "+isWithinGesture()+", has "+(null!=hitGestureEvent)+", pc "+pointerDownCount+"]";
     }

@@ -164,6 +164,7 @@ public class CffTable implements Table {
             return "";
         }
 
+        @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
             Enumeration<Integer> keys = _entries.keys();
@@ -220,6 +221,7 @@ public class CffTable implements Table {
             return _data;
         }
 
+        @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
             sb.append("DICT\n");
@@ -254,6 +256,7 @@ public class CffTable implements Table {
             return new Dict(getData(), offset, len);
         }
 
+        @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < getCount(); ++i) {
@@ -287,6 +290,7 @@ public class CffTable implements Table {
             return name;
         }
 
+        @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < getCount(); ++i) {
@@ -321,6 +325,7 @@ public class CffTable implements Table {
             }
         }
 
+        @Override
         public String toString() {
             int nonStandardBase = CffStandardStrings.standardStrings.length;
             StringBuilder sb = new StringBuilder();
@@ -388,10 +393,12 @@ public class CffTable implements Table {
             }
         }
 
+        @Override
         public int getFormat() {
             return 0;
         }
 
+        @Override
         public int getSID(int gid) {
             if (gid == 0) {
                 return 0;
@@ -413,10 +420,12 @@ public class CffTable implements Table {
             }
         }
 
+        @Override
         public int getFormat() {
             return 1;
         }
 
+        @Override
         public int getSID(int gid) {
             if (gid == 0) {
                 return 0;
@@ -448,10 +457,12 @@ public class CffTable implements Table {
             }
         }
 
+        @Override
         public int getFormat() {
             return 2;
         }
 
+        @Override
         public int getSID(int gid) {
             if (gid == 0) {
                 return 0;
@@ -586,10 +597,12 @@ public class CffTable implements Table {
         return _charstringsArray[fontIndex].length;
     }
 
+    @Override
     public int getType() {
         return CFF;
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("'CFF' Table - Compact Font Format\n---------------------------------\n");
@@ -614,6 +627,7 @@ public class CffTable implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }

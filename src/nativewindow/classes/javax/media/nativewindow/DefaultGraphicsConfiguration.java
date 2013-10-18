@@ -69,18 +69,22 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
         }
     }
 
+    @Override
     final public AbstractGraphicsScreen getScreen() {
         return screen;
     }
 
+    @Override
     final public CapabilitiesImmutable getChosenCapabilities() {
         return capabilitiesChosen;
     }
 
+    @Override
     final public CapabilitiesImmutable getRequestedCapabilities() {
         return capabilitiesRequested;
     }
 
+    @Override
     public AbstractGraphicsConfiguration getNativeGraphicsConfiguration() {
         return this;
     }

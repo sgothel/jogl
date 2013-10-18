@@ -54,6 +54,7 @@ import com.jogamp.opengl.util.texture.spi.*;
 public class IIOTextureProvider implements TextureProvider {
     private static final boolean DEBUG = Debug.debug("TextureIO");
 
+    @Override
     public TextureData newTextureData(GLProfile glp, File file,
                                       int internalFormat,
                                       int pixelFormat,
@@ -70,6 +71,7 @@ public class IIOTextureProvider implements TextureProvider {
         return new AWTTextureData(glp, internalFormat, pixelFormat, mipmap, img);
     }
 
+    @Override
     public TextureData newTextureData(GLProfile glp, InputStream stream,
                                       int internalFormat,
                                       int pixelFormat,
@@ -86,6 +88,7 @@ public class IIOTextureProvider implements TextureProvider {
         return new AWTTextureData(glp, internalFormat, pixelFormat, mipmap, img);
     }
 
+    @Override
     public TextureData newTextureData(GLProfile glp, URL url,
                                       int internalFormat,
                                       int pixelFormat,

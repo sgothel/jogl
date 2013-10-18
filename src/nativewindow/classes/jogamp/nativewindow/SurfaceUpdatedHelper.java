@@ -74,6 +74,7 @@ public class SurfaceUpdatedHelper implements SurfaceUpdatedListener {
         }
     }
 
+    @Override
     public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
         synchronized(surfaceUpdatedListenersLock) {
           for(int i = 0; i < surfaceUpdatedListeners.size(); i++ ) {

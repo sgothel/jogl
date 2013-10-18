@@ -46,6 +46,7 @@ public class RegionRendererImpl01 extends RegionRenderer {
 
     }
 
+    @Override
     protected boolean initShaderProgram(GL2ES2 gl) {
         final ShaderState st = rs.getShaderState();
 

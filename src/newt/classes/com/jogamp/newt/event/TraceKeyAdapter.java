@@ -40,10 +40,12 @@ public class TraceKeyAdapter implements KeyListener {
         this.downstream = downstream;
     }
 
+    @Override
     public void keyPressed(KeyEvent e) {
         System.err.println(e);
         if(null!=downstream) { downstream.keyPressed(e); }
     }
+    @Override
     public void keyReleased(KeyEvent e) {
         System.err.println(e);
         if(null!=downstream) { downstream.keyReleased(e); }

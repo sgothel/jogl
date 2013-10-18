@@ -30,18 +30,25 @@ package com.jogamp.newt.event;
 
 public abstract class WindowAdapter implements WindowListener
 {
+    @Override
     public void windowResized(WindowEvent e) {
     }
+    @Override
     public void windowMoved(WindowEvent e) {
     }
+    @Override
     public void windowDestroyNotify(WindowEvent e) {
     }
+    @Override
     public void windowDestroyed(WindowEvent e) {
     }
+    @Override
     public void windowGainedFocus(WindowEvent e) {
     }
+    @Override
     public void windowLostFocus(WindowEvent e) {
     }
+    @Override
     public void windowRepaint(WindowUpdateEvent e) {
     }
 }

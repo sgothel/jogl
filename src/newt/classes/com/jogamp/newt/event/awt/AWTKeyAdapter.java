@@ -49,11 +49,13 @@ public class AWTKeyAdapter extends AWTAdapter implements java.awt.event.KeyListe
         super(downstream);
     }
 
+    @Override
     public AWTAdapter addTo(java.awt.Component awtComponent) {
         awtComponent.addKeyListener(this);
         return this;
     }
 
+    @Override
     public AWTAdapter removeFrom(java.awt.Component awtComponent) {
         awtComponent.removeKeyListener(this);
         return this;

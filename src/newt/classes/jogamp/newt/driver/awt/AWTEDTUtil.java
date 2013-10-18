@@ -218,6 +218,7 @@ public class AWTEDTUtil implements EDTUtil {
         }
         try {
             AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+                @Override
                 public void run() { }
             });
         } catch (Exception e) { }

@@ -109,6 +109,7 @@ public class GLDebugMessageHandler {
 
     private final long getAddressFor(final ProcAddressTable table, final String functionName) {
         return AccessController.doPrivileged(new PrivilegedAction<Long>() {
+            @Override
             public Long run() {
                 try {
                     return Long.valueOf( table.getAddressFor(functionName) );
@@ -300,6 +301,7 @@ public class GLDebugMessageHandler {
         public StdErrGLDebugListener(boolean threadDump) {
             this.threadDump = threadDump;
         }
+        @Override
         public void messageSent(GLDebugMessage event) {
             System.err.println(event);
             if(threadDump) {

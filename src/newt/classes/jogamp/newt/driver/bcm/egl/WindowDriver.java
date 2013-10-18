@@ -52,6 +52,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
     public WindowDriver() {
     }
 
+    @Override
     protected void createNativeImpl() {
         if(0!=getParentWindowHandle()) {
             throw new RuntimeException("Window parenting not supported (yet)");
@@ -72,12 +73,14 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
         }
     }
 
+    @Override
     protected void closeNativeImpl() {
         if(0!=windowHandleClose) {
             CloseWindow(getDisplayHandle(), windowHandleClose);
         }
     }
 
+    @Override
     protected void requestFocusImpl(boolean reparented) { }
 
     protected void setSizeImpl(int width, int height) {
@@ -89,6 +92,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
         }
     }
 
+    @Override
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
         if(0!=getWindowHandle()) {
             if(0 != ( FLAG_CHANGE_FULLSCREEN & flags)) {
@@ -117,10 +121,12 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
         return true;
     }
 
+    @Override
     protected Point getLocationOnScreenImpl(int x, int y) {
         return new Point(x,y);
     }
 
+    @Override
     protected void updateInsetsImpl(Insets insets) {
         // nop ..
     }

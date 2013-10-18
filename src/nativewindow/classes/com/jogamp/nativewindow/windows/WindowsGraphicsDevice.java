@@ -47,6 +47,7 @@ public class WindowsGraphicsDevice extends DefaultGraphicsDevice implements Clon
         super(NativeWindowFactory.TYPE_WINDOWS, connection, unitID);
     }
 
+    @Override
     public Object clone() {
       return super.clone();
     }

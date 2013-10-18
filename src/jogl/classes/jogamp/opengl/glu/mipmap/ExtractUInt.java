@@ -56,6 +56,7 @@ public class ExtractUInt implements ExtractPrimitive {
   public ExtractUInt() {
   }
 
+  @Override
   public double extract( boolean isSwap, ByteBuffer uint ) {
     long i = 0;
     if( isSwap ) {
@@ -67,6 +68,7 @@ public class ExtractUInt implements ExtractPrimitive {
     return( i );
   }
 
+  @Override
   public void shove( double value, int index, ByteBuffer data ) {
     assert(0.0 <= value && value < 0xFFFFFFFF);
     IntBuffer ib = data.asIntBuffer();

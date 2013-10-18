@@ -142,6 +142,7 @@ public class HeadTable implements Table {
         return _modified;
     }
 
+    @Override
     public int getType() {
         return head;
     }
@@ -170,6 +171,7 @@ public class HeadTable implements Table {
         return _yMin;
     }
 
+    @Override
     public String toString() {
         return new StringBuilder()
             .append("'head' Table - Font Header\n--------------------------")
@@ -199,6 +201,7 @@ public class HeadTable implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }

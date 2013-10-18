@@ -554,6 +554,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
      * as criteria.
      * @see java.lang.Comparable#compareTo(java.lang.Object)
      */
+    @Override
     public final int compareTo(OutlineShape outline) {
         float size = getBounds().getSize();
         float newSize = outline.getBounds().getSize();
@@ -586,6 +587,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
      * @return true if {@code obj} is an OutlineShape, not null,
      *                 same outlineState, equal bounds and equal outlines in the same order
      */
+    @Override
     public boolean equals(Object obj) {
         if( obj == this) {
             return true;
@@ -614,6 +616,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
     /**
      * @return deep clone of this OutlineShape w/o Region
      */
+    @Override
     public OutlineShape clone() {
         OutlineShape o;
         try {

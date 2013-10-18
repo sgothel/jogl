@@ -64,6 +64,7 @@ public class NullToolkitLock implements ToolkitLock {
         // nop
     }
 
+    @Override
     public String toString() {
         return "NullToolkitLock[]";
     }

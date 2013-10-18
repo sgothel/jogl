@@ -64,6 +64,7 @@ public class FPSAnimator extends AnimatorBase {
     private volatile boolean shouldRun;  // MainTask trigger
     private volatile boolean shouldStop; // MainTask trigger
 
+    @Override
     protected String getBaseName(String prefix) {
         return "FPS" + prefix + "Animator" ;
     }
@@ -140,10 +141,12 @@ public class FPSAnimator extends AnimatorBase {
 
         public boolean isActive() { return !alreadyStopped && !alreadyPaused; }
 
+        @Override
         public String toString() {
             return "Task[thread "+animThread+", stopped "+alreadyStopped+", paused "+alreadyPaused+" shouldRun "+shouldRun+", shouldStop "+shouldStop+" -- started "+isStartedImpl()+", animating "+isAnimatingImpl()+", paused "+isPausedImpl()+", drawable "+drawables.size()+", drawablesEmpty "+drawablesEmpty+"]";
         }
 
+        @Override
         public void run() {
             if( justStarted ) {
                 justStarted = false;
@@ -208,6 +211,7 @@ public class FPSAnimator extends AnimatorBase {
     private final boolean isAnimatingImpl() {
         return animThread != null && isAnimating ;
     }
+    @Override
     public final boolean isAnimating() {
         stateSync.lock();
         try {
@@ -220,6 +224,7 @@ public class FPSAnimator extends AnimatorBase {
     private final boolean isPausedImpl() {
         return animThread != null && ( !shouldRun && !shouldStop ) ;
     }
+    @Override
     public final boolean isPaused() {
         stateSync.lock();
         try {
@@ -231,6 +236,7 @@ public class FPSAnimator extends AnimatorBase {
 
     static int timerNo = 0;
 
+    @Override
     public synchronized boolean start() {
         if ( null != timer || null != task || isStartedImpl() ) {
             return false;
@@ -254,10 +260,12 @@ public class FPSAnimator extends AnimatorBase {
         return res;
     }
     private final Condition waitForStartedAddedCondition = new Condition() {
+        @Override
         public boolean eval() {
             return !isStartedImpl() || !isAnimating ;
         } };
     private final Condition waitForStartedEmptyCondition = new Condition() {
+        @Override
         public boolean eval() {
             return !isStartedImpl() || isAnimating ;
         } };
@@ -265,6 +273,7 @@ public class FPSAnimator extends AnimatorBase {
     /** Stops this FPSAnimator. Due to the implementation of the
     FPSAnimator it is not guaranteed that the FPSAnimator will be
     completely stopped by the time this method returns. */
+    @Override
     public synchronized boolean stop() {
         if ( null == timer || !isStartedImpl() ) {
             return false;
@@ -297,10 +306,12 @@ public class FPSAnimator extends AnimatorBase {
         return res;
     }
     private final Condition waitForStoppedCondition = new Condition() {
+        @Override
         public boolean eval() {
             return isStartedImpl();
         } };
 
+    @Override
     public synchronized boolean pause() {
         if ( !isStartedImpl() || ( null != task && isPausedImpl() ) ) {
             return false;
@@ -327,11 +338,13 @@ public class FPSAnimator extends AnimatorBase {
         return res;
     }
     private final Condition waitForPausedCondition = new Condition() {
+        @Override
         public boolean eval() {
             // end waiting if stopped as well
             return isAnimating && isStartedImpl();
         } };
 
+    @Override
     public synchronized boolean resume() {
         if ( null != task || !isStartedImpl() || !isPausedImpl() ) {
             return false;
@@ -353,6 +366,7 @@ public class FPSAnimator extends AnimatorBase {
         return res;
     }
     private final Condition waitForResumeCondition = new Condition() {
+        @Override
         public boolean eval() {
             // end waiting if stopped as well
             return !drawablesEmpty && !isAnimating && isStartedImpl();

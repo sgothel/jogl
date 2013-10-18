@@ -122,6 +122,7 @@ public abstract class CmapFormat {
 
     public abstract int mapCharCode(int charCode);
 
+    @Override
     public String toString() {
         return new StringBuilder()
         .append("format: ")

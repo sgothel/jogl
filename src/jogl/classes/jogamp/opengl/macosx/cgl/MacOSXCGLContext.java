@@ -822,6 +822,7 @@ public class MacOSXCGLContext extends GLContextImpl
                       texID = fbod.getTextureBuffer(GL.GL_FRONT).getName();
                       pbufferHandle = 0;
                       fbod.setSwapBufferContext(new GLFBODrawableImpl.SwapBufferContext() {
+                          @Override
                           public void swapBuffers(boolean doubleBuffered) {
                               MacOSXCGLContext.NSOpenGLImpl.this.swapBuffers();
                           } } ) ;

@@ -48,6 +48,7 @@ public class VBORegionSPES2 extends GLRegion {
         super(renderModes);
     }
 
+    @Override
     protected void update(GL2ES2 gl, RenderState rs) {
         if(!isDirty()) {
             return;
@@ -125,6 +126,7 @@ public class VBORegionSPES2 extends GLRegion {
         setDirty(false);
     }
 
+    @Override
     protected void drawImpl(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int[/*1*/] texWidth) {
         verticeAttr.enableBuffer(gl, true);
         texCoordAttr.enableBuffer(gl, true);
@@ -137,6 +139,7 @@ public class VBORegionSPES2 extends GLRegion {
         verticeAttr.enableBuffer(gl, false);
     }
 
+    @Override
     public final void destroy(GL2ES2 gl, RenderState rs) {
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegionSPES2 Destroy: " + this);

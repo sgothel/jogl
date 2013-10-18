@@ -64,14 +64,17 @@ public class DisplayDriver extends DisplayImpl {
     public DisplayDriver() {
     }
 
+    @Override
     protected void dispatchMessagesNative() {
         // nop
     }
 
+    @Override
     protected void createNativeImpl() {
         aDevice = new MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
     }
 
+    @Override
     protected void closeNativeImpl(AbstractGraphicsDevice aDevice) {
         aDevice.close();
     }

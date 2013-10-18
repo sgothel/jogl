@@ -161,6 +161,7 @@ public abstract class CompileShader {
             new Thread(this, "Output Reader Thread").start();
         }
 
+        @Override
         public void run()
         {
             byte[] buffer = new byte[4096];

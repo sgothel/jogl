@@ -71,16 +71,19 @@ public class DisplayDriver extends DisplayImpl {
     public DisplayDriver() {
     }
 
+    @Override
     protected void createNativeImpl() {
         sharedClass = sharedClassFactory.getSharedClass();
         aDevice = new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
     }
 
+    @Override
     protected void closeNativeImpl(AbstractGraphicsDevice aDevice) {
         sharedClassFactory.releaseSharedClass();
         aDevice.close();
     }
 
+    @Override
     protected void dispatchMessagesNative() {
         DispatchMessages0();
     }

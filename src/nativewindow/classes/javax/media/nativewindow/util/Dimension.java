@@ -45,10 +45,12 @@ public class Dimension implements Cloneable, DimensionImmutable {
         this.height=height;
     }
 
+    @Override
     public Object cloneMutable() {
       return clone();
     }
 
+    @Override
     public Object clone() {
         try {
             return super.clone();

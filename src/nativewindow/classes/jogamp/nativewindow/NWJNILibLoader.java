@@ -39,6 +39,7 @@ import com.jogamp.common.util.cache.TempJarCache;
 public class NWJNILibLoader extends JNILibLoaderBase {
     public static boolean loadNativeWindow(final String ossuffix) {
         return AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+            @Override
             public Boolean run() {
                 Platform.initSingleton();
                 final String libName = "nativewindow_"+ossuffix ;

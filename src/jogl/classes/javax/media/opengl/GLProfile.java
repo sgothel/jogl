@@ -121,11 +121,13 @@ public class GLProfile {
                 // run the whole static initialization privileged to speed up,
                 // since this skips checking further access
                 AccessController.doPrivileged(new PrivilegedAction<Object>() {
+                    @Override
                     public Object run() {
                         Platform.initSingleton();
 
                         // Performance hack to trigger classloading of the GL classes impl, which makes up to 12%, 800ms down to 700ms
                         new Thread(new Runnable() {
+                          @Override
                           public void run() {
                               final ClassLoader cl = GLProfile.class.getClassLoader();
                               try {
@@ -1020,6 +1022,7 @@ public class GLProfile {
      * @return true if given Object is a GLProfile and
      *         if both, profile and profileImpl is equal with this.
      */
+    @Override
     public final boolean equals(Object o) {
         if(this==o) { return true; }
         if(o instanceof GLProfile) {
@@ -1029,6 +1032,7 @@ public class GLProfile {
         return false;
     }
 
+    @Override
     public int hashCode() {
         int hash = 5;
         hash = 97 * hash + getImplName().hashCode();
@@ -1469,6 +1473,7 @@ public class GLProfile {
         return true;
     }
 
+    @Override
     public String toString() {
         return "GLProfile[" + getName() + "/" + getImplName() + "."+(this.isHardwareRasterizer?"hw":"sw")+"]";
     }

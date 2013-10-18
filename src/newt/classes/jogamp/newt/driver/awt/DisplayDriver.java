@@ -46,6 +46,7 @@ public class DisplayDriver extends DisplayImpl {
     public DisplayDriver() {
     }
 
+    @Override
     protected void createNativeImpl() {
         aDevice = AWTGraphicsDevice.createDefault();
     }
@@ -54,6 +55,7 @@ public class DisplayDriver extends DisplayImpl {
         aDevice = d;
     }
 
+    @Override
     protected EDTUtil createEDTUtil() {
         final EDTUtil def;
         if(NewtFactory.useEDT()) {
@@ -67,10 +69,12 @@ public class DisplayDriver extends DisplayImpl {
         return def;
     }
 
+    @Override
     protected void closeNativeImpl(AbstractGraphicsDevice aDevice) {
         aDevice.close();
     }
 
+    @Override
     protected void dispatchMessagesNative() { /* nop */ }
 }
 

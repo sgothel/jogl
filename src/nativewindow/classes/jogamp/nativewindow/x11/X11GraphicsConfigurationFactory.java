@@ -51,6 +51,7 @@ public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactor
     private X11GraphicsConfigurationFactory() {
     }
 
+    @Override
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
         CapabilitiesImmutable  capsChosen, CapabilitiesImmutable capsRequested, CapabilitiesChooser chooser, AbstractGraphicsScreen screen, int nativeVisualID)
         throws IllegalArgumentException, NativeWindowException {

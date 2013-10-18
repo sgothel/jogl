@@ -68,6 +68,7 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
         public final long getImage() { return image; }
         public final long getSync() { return sync; }
 
+        @Override
         public String toString() {
             return "EGLTextureFrame[pts " + pts + " ms, l " + duration + " ms, texID "+ texture.getTextureObject() + ", img "+ image + ", sync "+ sync+", clientBuffer "+clientBuffer+"]";
         }

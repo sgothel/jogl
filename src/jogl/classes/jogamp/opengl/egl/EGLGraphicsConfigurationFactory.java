@@ -115,6 +115,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
     private EGLGraphicsConfigurationFactory() {
     }
 
+    @Override
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl (
             CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
             CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, int nativeVisualID) {

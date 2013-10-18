@@ -244,6 +244,7 @@ public abstract class TileRendererBase {
         sb.append(", isSetup "+isSetup());
         return sb;
     }
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         return getClass().getSimpleName()+

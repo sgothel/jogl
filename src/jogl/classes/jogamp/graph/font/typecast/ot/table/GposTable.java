@@ -45,10 +45,12 @@ public class GposTable implements Table {
     /** Get the table type, as a table directory value.
      * @return The table type
      */
+    @Override
     public int getType() {
         return GPOS;
     }
 
+    @Override
     public String toString() {
         return "GPOS";
     }
@@ -59,6 +61,7 @@ public class GposTable implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }

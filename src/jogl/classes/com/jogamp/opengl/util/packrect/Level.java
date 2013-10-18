@@ -52,12 +52,14 @@ public class Level {
   private int nextAddX;
 
   static class RectXComparator implements Comparator {
+    @Override
     public int compare(Object o1, Object o2) {
       Rect r1 = (Rect) o1;
       Rect r2 = (Rect) o2;
       return r1.x() - r2.x();
     }
 
+    @Override
     public boolean equals(Object obj) {
       return this == obj;
     }

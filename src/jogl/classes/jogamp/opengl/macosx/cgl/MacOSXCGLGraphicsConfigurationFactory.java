@@ -59,6 +59,7 @@ public class MacOSXCGLGraphicsConfigurationFactory extends GLGraphicsConfigurati
     private MacOSXCGLGraphicsConfigurationFactory() {
     }
 
+    @Override
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
             CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
             CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, int nativeVisualID) {

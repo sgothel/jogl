@@ -49,6 +49,7 @@ public class ScreenDriver extends ScreenImpl {
     public ScreenDriver() {
     }
 
+    @Override
     protected void createNativeImpl() {
         aScreen = new AWTGraphicsScreen((AWTGraphicsDevice)display.getGraphicsDevice());
     }
@@ -65,8 +66,10 @@ public class ScreenDriver extends ScreenImpl {
         super.updateVirtualScreenOriginAndSize();
     }
 
+    @Override
     protected void closeNativeImpl() { }
 
+    @Override
     protected int validateScreenIndex(int idx) {
         return idx; // pass through ...
     }

@@ -148,10 +148,12 @@ public class VdmxTable implements Table {
         }
     }
 
+    @Override
     public int getType() {
         return VDMX;
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("'VDMX' Table - Precomputed Vertical Device Metrics\n")
@@ -191,6 +193,7 @@ public class VdmxTable implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }

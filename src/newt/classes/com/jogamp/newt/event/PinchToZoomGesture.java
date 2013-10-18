@@ -75,6 +75,7 @@ public class PinchToZoomGesture implements GestureHandler {
         this.zoom = 1f;
     }
 
+    @Override
     public String toString() {
         return "PinchZoom[1stTouch "+zoomFirstTouch+", in "+isWithinGesture()+", has "+(null!=zoomEvent)+", zoom "+zoom+"]";
     }

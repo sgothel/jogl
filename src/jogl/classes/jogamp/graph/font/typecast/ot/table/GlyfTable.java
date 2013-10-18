@@ -116,6 +116,7 @@ public class GlyfTable implements Table {
         }
     }
 
+    @Override
     public int getType() {
         return glyf;
     }
@@ -126,6 +127,7 @@ public class GlyfTable implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }

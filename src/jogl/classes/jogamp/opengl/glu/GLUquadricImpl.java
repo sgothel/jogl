@@ -164,6 +164,7 @@ public class GLUquadricImpl implements GLUquadric {
     replaceImmModeSink();
   }
 
+  @Override
   public void enableImmModeSink(boolean val) {
     if(gl.isGL2()) {
         immModeSinkEnabled=val;
@@ -175,10 +176,12 @@ public class GLUquadricImpl implements GLUquadric {
     }
   }
 
+  @Override
   public boolean isImmModeSinkEnabled() {
     return immModeSinkEnabled;
   }
 
+  @Override
   public void setImmMode(boolean val) {
     if(immModeSinkEnabled) {
         immModeSinkImmediate=val;
@@ -187,10 +190,12 @@ public class GLUquadricImpl implements GLUquadric {
     }
   }
 
+  @Override
   public boolean getImmMode() {
     return immModeSinkImmediate;
   }
 
+  @Override
   public ImmModeSink replaceImmModeSink() {
     if(!immModeSinkEnabled) return null;
 
@@ -222,6 +227,7 @@ public class GLUquadricImpl implements GLUquadric {
     return res;
   }
 
+  @Override
   public void resetImmModeSink(GL gl) {
     if(immModeSinkEnabled) {
         immModeSink.reset(gl);

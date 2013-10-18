@@ -449,8 +449,14 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
           _lock.unlock();
       }
   }
-  private final Runnable realizeOnEDTAction = new Runnable() { public void run() { setRealizedImpl(true); } };
-  private final Runnable unrealizeOnEDTAction = new Runnable() { public void run() { setRealizedImpl(false); } };
+  private final Runnable realizeOnEDTAction = new Runnable() {
+    @Override
+    public void run() { setRealizedImpl(true); }
+  };
+  private final Runnable unrealizeOnEDTAction = new Runnable() {
+    @Override
+    public void run() { setRealizedImpl(false); }
+  };
 
   @Override
   public final void setRealized(boolean realized) {

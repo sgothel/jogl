@@ -56,6 +56,7 @@ public class Extract233rev implements Extract {
   public Extract233rev() {
   }
 
+  @Override
   public void extract( boolean isSwap, ByteBuffer packedPixel, float[] extractComponents ) {
     // 11100000 == 0xe0
     // 00011100 == 0x1c
@@ -66,6 +67,7 @@ public class Extract233rev implements Extract {
     extractComponents[2] = (float)((ubyte & 0xC0) >> 6) / 3.0f;
   }
 
+  @Override
   public void shove( float[] shoveComponents, int index, ByteBuffer packedPixel ) {
     // 11100000 == 0xE0
     // 00011100 == 0x1C

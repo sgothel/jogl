@@ -76,6 +76,7 @@ public interface Vertex extends Vert3fImmutable, Cloneable {
      * @param obj the Object to compare this Vertex with
      * @return true if {@code obj} is a Vertex and not null, on-curve flag is equal and has same vertex- and tex-coords.
      */
+    @Override
     boolean equals(Object obj);
 
     /**

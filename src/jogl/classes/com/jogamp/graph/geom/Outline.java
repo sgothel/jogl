@@ -173,6 +173,7 @@ public class Outline implements Cloneable, Comparable<Outline> {
      * as criteria.
      * @see java.lang.Comparable#compareTo(java.lang.Object)
      */
+    @Override
     public final int compareTo(Outline outline) {
         float size = getBounds().getSize();
         float newSize = outline.getBounds().getSize();
@@ -204,6 +205,7 @@ public class Outline implements Cloneable, Comparable<Outline> {
      * @param obj the Object to compare this Outline with
      * @return true if {@code obj} is an Outline, not null, equals bounds and equal vertices in the same order
      */
+    @Override
     public boolean equals(Object obj) {
         if( obj == this) {
             return true;
@@ -229,6 +231,7 @@ public class Outline implements Cloneable, Comparable<Outline> {
     /**
      * @return deep clone of this Outline
      */
+    @Override
     public Outline clone() {
         Outline o;
         try {

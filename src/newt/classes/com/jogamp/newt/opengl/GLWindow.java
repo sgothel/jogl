@@ -117,6 +117,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         super(null, null, false /* always handle device lifecycle ourselves */);
         this.window = (WindowImpl) window;
         this.window.setWindowDestroyNotifyAction( new Runnable() {
+            @Override
             public void run() {
                 defaultWindowDestroyNotifyOp();
             } } );
@@ -549,6 +550,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                     anim.stop(); // on anim thread, non-blocking
                 } else {
                     AccessController.doPrivileged(new PrivilegedAction<Object>() {
+                        @Override
                         public Object run() {
                             if( anim.isAnimating() && null != animThread ) {
                                 try {

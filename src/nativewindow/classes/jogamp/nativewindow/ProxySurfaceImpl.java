@@ -253,6 +253,7 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
         return surfaceLock.getOwner();
     }
 
+    @Override
     public final StringBuilder getUpstreamOptionBits(StringBuilder sink) {
         if(null == sink) {
             sink = new StringBuilder();

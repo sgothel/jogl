@@ -134,6 +134,7 @@ public class GLEmitter extends ProcAddressEmitter {
         private List<ConstantDefinition> constants;
         private List<FunctionSymbol> functions;
 
+        @Override
         public void filterSymbols(List<ConstantDefinition> constants,
                 List<FunctionSymbol> functions) {
             this.constants = constants;
@@ -141,10 +142,12 @@ public class GLEmitter extends ProcAddressEmitter {
             doWork();
         }
 
+        @Override
         public List<ConstantDefinition> getConstants() {
             return constants;
         }
 
+        @Override
         public List<FunctionSymbol> getFunctions() {
             return functions;
         }

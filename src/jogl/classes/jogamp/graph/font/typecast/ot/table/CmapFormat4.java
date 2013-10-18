@@ -110,10 +110,12 @@ public class CmapFormat4 extends CmapFormat {
 //        }
     }
 
+    @Override
     public int getRangeCount() {
         return _segCount;
     }
 
+    @Override
     public Range getRange(int index) throws ArrayIndexOutOfBoundsException {
         if (index < 0 || index >= _segCount) {
             throw new ArrayIndexOutOfBoundsException();
@@ -121,6 +123,7 @@ public class CmapFormat4 extends CmapFormat {
         return new Range(_startCode[index], _endCode[index]);
     }
 
+    @Override
     public int mapCharCode(int charCode) {
         try {
             for (int i = 0; i < _segCount; i++) {
@@ -142,6 +145,7 @@ public class CmapFormat4 extends CmapFormat {
         return 0;
     }
 
+    @Override
     public String toString() {
         return new StringBuilder()
             .append(super.toString())

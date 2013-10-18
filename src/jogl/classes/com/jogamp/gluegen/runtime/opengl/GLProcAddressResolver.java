@@ -42,6 +42,7 @@ public class GLProcAddressResolver implements FunctionAddressResolver {
 
     public static final boolean DEBUG = false;
 
+    @Override
     public long resolve(String name, DynamicLookupHelper lookup) {
 
         long newProcAddress = 0;

@@ -514,6 +514,7 @@ public class ShaderCode {
         id=-1;
     }
 
+    @Override
     public boolean equals(Object obj) {
         if(this==obj) { return true; }
         if(obj instanceof ShaderCode) {
@@ -521,9 +522,11 @@ public class ShaderCode {
         }
         return false;
     }
+    @Override
     public int hashCode() {
         return id;
     }
+    @Override
     public String toString() {
         StringBuilder buf = new StringBuilder("ShaderCode[id="+id+", type="+shaderTypeStr()+", valid="+valid+", shader: ");
         for(int i=0; i<shader.remaining(); i++) {

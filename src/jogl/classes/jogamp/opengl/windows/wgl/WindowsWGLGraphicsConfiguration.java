@@ -119,6 +119,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         return cfg;
     }
 
+    @Override
     public Object clone() {
         return super.clone();
     }
@@ -715,6 +716,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
        return createPixelFormatDescriptor(0, 0);
    }
 
+   @Override
    public String toString() {
        return "WindowsWGLGraphicsConfiguration["+getScreen()+", pfdID " + getPixelFormatID() + ", ARB-Choosen " + isChoosenByARB() +
                ",\n\trequested " + getRequestedCapabilities() +

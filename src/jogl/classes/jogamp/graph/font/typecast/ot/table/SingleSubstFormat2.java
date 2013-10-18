@@ -78,10 +78,12 @@ public class SingleSubstFormat2 extends SingleSubst {
         _coverage = Coverage.read(dis);
     }
 
+    @Override
     public int getFormat() {
         return 2;
     }
 
+    @Override
     public int substitute(int glyphId) {
         int i = _coverage.findGlyph(glyphId);
         if (i > -1) {
@@ -90,6 +92,7 @@ public class SingleSubstFormat2 extends SingleSubst {
         return glyphId;
     }
 
+    @Override
     public String getTypeAsString() {
         return "SingleSubstFormat2";
     }

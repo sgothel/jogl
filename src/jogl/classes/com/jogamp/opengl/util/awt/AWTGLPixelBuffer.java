@@ -117,11 +117,13 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
         return new BufferedImage (cm, raster1, cm.isAlphaPremultiplied(), null);
     }
 
+    @Override
     public StringBuilder toString(StringBuilder sb) {
         sb = super.toString(sb);
         sb.append(", allowRowStride ").append(allowRowStride).append(", image [").append(image.getWidth()).append("x").append(image.getHeight()).append(", ").append(image.toString()).append("]");
         return sb;
     }
+    @Override
     public String toString() {
         return "AWTGLPixelBuffer["+toString(null).toString()+"]";
     }
@@ -213,6 +215,7 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
         }
 
         /** Return the last {@link #allocate(GL, GLPixelAttributes, int, int, int, boolean, int) allocated} {@link AWTGLPixelBuffer} w/ {@link GLPixelAttributes#componentCount}. */
+        @Override
         public AWTGLPixelBuffer getSingleBuffer(GLPixelAttributes pixelAttributes) {
             return 4 == pixelAttributes.componentCount ? singleRGBA4 : singleRGB3;
         }
@@ -221,6 +224,7 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
          * Initializes the single {@link AWTGLPixelBuffer} w/ a given size, if not yet {@link #allocate(GL, GLPixelAttributes, int, int, int, boolean, int) allocated}.
          * @return the newly initialized single {@link AWTGLPixelBuffer}, or null if already allocated.
          */
+        @Override
         public AWTGLPixelBuffer initSingleton(int componentCount, int width, int height, int depth, boolean pack) {
             if( 4 == componentCount ) {
                 if( null != singleRGBA4 ) {

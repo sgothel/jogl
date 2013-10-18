@@ -186,6 +186,7 @@ public class PngHelperInternal {
 	}
 
 	private static final ThreadLocal<CRC32> crcProvider = new ThreadLocal<CRC32>() {
+		@Override
 		protected CRC32 initialValue() {
 			return new CRC32();
 		}

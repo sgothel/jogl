@@ -34,10 +34,12 @@ public class GaspTable implements Table {
         }
     }
 
+    @Override
     public int getType() {
         return gasp;
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("'gasp' Table - Grid-fitting And Scan-conversion Procedure\n---------------------------------------------------------");
@@ -56,6 +58,7 @@ public class GaspTable implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return de;
     }

@@ -140,6 +140,7 @@ public class JPEGDecoder {
             }
         }
 
+        @Override
         public final String toString() {
             return "JFIF[ver "+version+", density[units "+densityUnits+", "+xDensity+"x"+yDensity+"], thumb "+thumbWidth+"x"+thumbHeight+"]";
         }
@@ -172,6 +173,7 @@ public class JPEGDecoder {
                 return null;
             }
         }
+        @Override
         public final String toString() {
             return "Adobe[ver "+version+", flags["+toHexString(flags0)+", "+toHexString(flags1)+"], colorSpace/Code "+colorSpace+"/"+toHexString(colorCode)+"]";
         }
@@ -190,6 +192,7 @@ public class JPEGDecoder {
                 return null;
             }
         }
+        @Override
         public final String toString() {
             return "EXIF[]";
         }
@@ -362,6 +365,7 @@ public class JPEGDecoder {
         public final boolean hasCompID(int componentID) {
             return compIDs.contains(componentID);
         }
+        @Override
         public final String toString() {
             return "Frame[progressive "+progressive+", precision "+precision+", scanLines "+scanLines+", samplesPerLine "+samplesPerLine+
                     ", components[count "+compCount+", maxID "+maxCompID+", componentIDs "+compIDs+", comps "+Arrays.asList(comps)+"]]";
@@ -403,6 +407,7 @@ public class JPEGDecoder {
             return blocks[row][col];
         }
 
+        @Override
         public final String toString() {
             return "CompIn[h "+h+", v "+v+", qttIdx "+qttIdx+", blocks["+blocksPerColumn+", mcu "+blocksPerColumnForMcu+"]["+blocksPerLine+", mcu "+blocksPerLineForMcu+"][64]]";
         }
@@ -426,11 +431,13 @@ public class JPEGDecoder {
             return lines.get( i < sz ? i : sz - 1);
         }
 
+        @Override
         public final String toString() {
             return "CompOut[lines "+lines.size()+", scale "+scaleX+"x"+scaleY+"]";
         }
     }
 
+    @Override
     public String toString() {
         final String jfifS = null != jfif ? jfif.toString() : "JFIF nil";
         final String exifS = null != exif ? exif.toString() : "Exif nil";
@@ -1227,6 +1234,7 @@ public class JPEGDecoder {
         final DecoderFunction decodeACSuccessive = new ACSuccessiveDecoder();
 
         class BaselineDecoder implements DecoderFunction {
+            @Override
             public void decode(ComponentIn component, int[] zz) throws IOException {
                 final int t = decodeHuffman(component.huffmanTableDC);
                 final int diff = ( t == 0 ) ? 0 : receiveAndExtend(t);
@@ -1250,6 +1258,7 @@ public class JPEGDecoder {
             }
         }
         class DCFirstDecoder implements DecoderFunction {
+            @Override
             public void decode(ComponentIn component, int[] zz) throws IOException {
                 final int t = decodeHuffman(component.huffmanTableDC);
                 final int diff = ( t == 0 ) ? 0 : (receiveAndExtend(t) << successive);
@@ -1257,12 +1266,14 @@ public class JPEGDecoder {
             }
         }
         class DCSuccessiveDecoder implements DecoderFunction {
+            @Override
             public void decode(ComponentIn component, int[] zz) throws IOException {
                 zz[0] |= readBit() << successive;
             }
         }
 
         class ACFirstDecoder implements DecoderFunction {
+            @Override
             public void decode(ComponentIn component, int[] zz) throws IOException {
                 if (eobrun > 0) {
                     eobrun--;
@@ -1288,6 +1299,7 @@ public class JPEGDecoder {
             }
         }
         class ACSuccessiveDecoder implements DecoderFunction {
+            @Override
             public void decode(ComponentIn component, int[] zz) throws IOException {
                 int k = spectralStart, e = spectralEnd, r = 0;
                 while (k <= e) {

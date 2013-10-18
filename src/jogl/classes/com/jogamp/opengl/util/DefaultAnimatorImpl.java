@@ -41,6 +41,7 @@ import javax.media.opengl.GLAutoDrawable;
     up this behavior if desired. */
 
 class DefaultAnimatorImpl implements AnimatorBase.AnimatorImpl {
+    @Override
     public void display(ArrayList<GLAutoDrawable> drawables,
                         boolean ignoreExceptions,
                         boolean printExceptions) {
@@ -60,6 +61,7 @@ class DefaultAnimatorImpl implements AnimatorBase.AnimatorImpl {
         }
     }
 
+    @Override
     public boolean blockUntilDone(Thread thread) {
         return Thread.currentThread() != thread;
     }

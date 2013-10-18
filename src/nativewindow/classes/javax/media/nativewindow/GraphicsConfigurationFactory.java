@@ -80,10 +80,12 @@ public abstract class GraphicsConfigurationFactory {
             this.hash32 = hash32;
         }
 
+        @Override
         public final int hashCode() {
             return hash32;
         }
 
+        @Override
         public final boolean equals(Object obj) {
             if(this == obj)  { return true; }
             if (obj instanceof DeviceCapsType) {

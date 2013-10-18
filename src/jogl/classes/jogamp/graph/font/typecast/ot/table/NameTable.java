@@ -130,6 +130,7 @@ public class NameTable implements Table {
         return sb;
     }
 
+    @Override
     public int getType() {
         return name;
     }
@@ -140,6 +141,7 @@ public class NameTable implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }

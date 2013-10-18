@@ -122,18 +122,22 @@ public final class Path2D implements Cloneable {
             this.t = at;
         }
 
+        @Override
         public int getWindingRule() {
             return p.getWindingRule();
         }
 
+        @Override
         public boolean isDone() {
             return typeIndex >= p.typeSize;
         }
 
+        @Override
         public void next() {
             typeIndex++;
         }
 
+        @Override
         public int currentSegment(float[] coords) {
             if (isDone()) {
                 throw new NoSuchElementException(iteratorOutOfBounds);
@@ -256,6 +260,7 @@ public final class Path2D implements Cloneable {
         }
     }
 
+    @Override
     public String toString() {
         return "[size "+size()+", closed "+isClosed()+"]";
     }

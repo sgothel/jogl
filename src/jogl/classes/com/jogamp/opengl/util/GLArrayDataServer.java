@@ -327,6 +327,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
   // Data and GL state modification ..
   //
 
+  @Override
   public void destroy(GL gl) {
     // super.destroy(gl):
     // - GLArrayDataClient.destroy(gl): disables & clears client-side buffer
@@ -349,11 +350,13 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
    * switch to client side data one
    * Only possible if buffer is defined.
    */
+  @Override
   public void    setVBOEnabled(boolean vboUsage) {
     checkSeal(false);
     super.setVBOEnabled(vboUsage);
   }
 
+  @Override
   public String toString() {
     return "GLArrayDataServer["+name+
                        ", index "+index+
@@ -384,6 +387,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
   // non public matters ..
   //
 
+  @Override
   protected void init(String name, int index, int comps, int dataType, boolean normalized,
                       int stride, Buffer data, int initialElementCount, boolean isVertexAttribute,
                       GLArrayHandler glArrayHandler,
@@ -396,6 +400,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
     vboEnabled=true;
   }
 
+  @Override
   protected void init_vbo(GL gl) {
     super.init_vbo(gl);
     if(vboEnabled && vboName==0) {

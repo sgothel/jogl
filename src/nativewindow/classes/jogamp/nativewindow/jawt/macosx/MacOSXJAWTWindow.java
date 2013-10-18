@@ -88,6 +88,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
               OSXUtil.DestroyNSWindow(windowHandle);
           }
           OSXUtil.RunOnMainThread(false, new Runnable() {
+              @Override
               public void run() {
                   if( 0 != rootSurfaceLayer ) {
                       if( 0 != jawtSurfaceLayersHandle) {
@@ -106,6 +107,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
   @Override
   protected void attachSurfaceLayerImpl(final long layerHandle) {
       OSXUtil.RunOnMainThread(false, new Runnable() {
+          @Override
           public void run() {
               // AWT position is top-left w/ insets, where CALayer position is bottom/left from root CALayer w/o insets.
               // Determine p0: components location on screen w/o insets.
@@ -167,6 +169,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
   @Override
   protected void detachSurfaceLayerImpl(final long layerHandle, final Runnable detachNotify) {
       OSXUtil.RunOnMainThread(false, new Runnable() {
+          @Override
           public void run() {
               detachNotify.run();
               OSXUtil.RemoveCASublayer(rootSurfaceLayer, layerHandle);
@@ -183,6 +186,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
     return offscreenSurfaceDrawableSet ? offscreenSurfaceDrawable : drawable /* super.getSurfaceHandle() */ ;
   }
 
+  @Override
   public void setSurfaceHandle(long surfaceHandle) {
       if( !isOffscreenLayerSurfaceEnabled() ) {
           throw new java.lang.UnsupportedOperationException("Not using CALAYER");
@@ -194,11 +198,13 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
       this.offscreenSurfaceDrawableSet = true;
   }
 
+  @Override
   protected JAWT fetchJAWTImpl() throws NativeWindowException {
        // use offscreen if supported and [ applet or requested ]
       return JAWTUtil.getJAWT(getShallUseOffscreenLayer() || isApplet());
   }
 
+  @Override
   protected int lockSurfaceImpl() throws NativeWindowException {
     int ret = NativeWindow.LOCK_SURFACE_NOT_READY;
     ds = getJAWT().GetDrawingSurface(component);
@@ -223,6 +229,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
     }
     if (firstLock) {
       AccessController.doPrivileged(new PrivilegedAction<Object>() {
+          @Override
           public Object run() {
             dsi = ds.GetDrawingSurfaceInfo();
             return null;
@@ -284,6 +291,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
         if(null == errMsg) {
             jawtSurfaceLayersHandle = GetJAWTSurfaceLayersHandle0(dsi.getBuffer());
             OSXUtil.RunOnMainThread(false, new Runnable() {
+                @Override
                 public void run() {
                     String errMsg = null;
                     if(0 == rootSurfaceLayer && 0 != jawtSurfaceLayersHandle) {
@@ -322,6 +330,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
     return ret;
   }
 
+  @Override
   protected void unlockSurfaceImpl() throws NativeWindowException {
     if(null!=ds) {
         if (null!=dsi) {
@@ -362,6 +371,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
       getLocationOnScreenNonBlocking(storage, component);
       return storage;
   }
+  @Override
   protected Point getLocationOnScreenNativeImpl(final int x0, final int y0) { return null; }
 
 

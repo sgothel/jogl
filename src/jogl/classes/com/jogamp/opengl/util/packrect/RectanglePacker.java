@@ -61,12 +61,14 @@ public class RectanglePacker {
   private int maxHeight = -1;
 
   static class RectHComparator implements Comparator {
+    @Override
     public int compare(Object o1, Object o2) {
       Rect r1 = (Rect) o1;
       Rect r2 = (Rect) o2;
       return r2.h() - r1.h();
     }
 
+    @Override
     public boolean equals(Object obj) {
       return this == obj;
     }

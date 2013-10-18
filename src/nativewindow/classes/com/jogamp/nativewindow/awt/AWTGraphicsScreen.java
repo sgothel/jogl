@@ -87,6 +87,7 @@ public class AWTGraphicsScreen extends DefaultGraphicsScreen implements Cloneabl
     return new AWTGraphicsScreen(AWTGraphicsDevice.createDefault());
   }
 
+  @Override
   public Object clone() {
       return super.clone();
   }

@@ -346,6 +346,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         if( null != gl && STREAM_ID_NONE != vid ) {
             final GLContextImpl ctx = (GLContextImpl)gl.getContext();
             AccessController.doPrivileged(new PrivilegedAction<Object>() {
+                @Override
                 public Object run() {
                     final ProcAddressTable pt = ctx.getGLProcAddressTable();
                     final long procAddrGLTexSubImage2D = pt.getAddressFor("glTexSubImage2D");

@@ -31,6 +31,7 @@ public interface GLArrayDataEditable extends GLArrayData {
     // Data and GL state modification ..
     //
 
+    @Override
     public void destroy(GL gl);
 
     public void reset(GL gl);

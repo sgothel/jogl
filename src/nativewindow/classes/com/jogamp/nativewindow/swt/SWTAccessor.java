@@ -122,6 +122,7 @@ public class SWTAccessor {
 
     static {
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            @Override
             public Object run() {
                 NativeWindowFactory.initSingleton(); // last resort ..
                 return null;
@@ -360,6 +361,7 @@ public class SWTAccessor {
 
         if(null != OS_gtk_class) {
             invoke(true, new Runnable() {
+                @Override
                 public void run() {
                     if(realize) {
                         callStaticMethodL2V(OS_gtk_widget_realize, handle);
@@ -434,6 +436,7 @@ public class SWTAccessor {
     public static long newGC(final Control swtControl, final GCData gcData) {
         final Object[] o = new Object[1];
         invoke(true, new Runnable() {
+            @Override
             public void run() {
                 o[0] = ReflectionUtil.callMethod(swtControl, swt_control_internal_new_GC, new Object[] { gcData });
             }
@@ -447,6 +450,7 @@ public class SWTAccessor {
 
     public static void disposeGC(final Control swtControl, final long gc, final GCData gcData) {
         invoke(true, new Runnable() {
+            @Override
             public void run() {
                 if(swt_uses_long_handles) {
                     ReflectionUtil.callMethod(swtControl, swt_control_internal_dispose_GC, new Object[] { new Long(gc), gcData });

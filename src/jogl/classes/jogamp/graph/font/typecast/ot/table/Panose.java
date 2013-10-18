@@ -79,6 +79,7 @@ public class Panose {
     return bXHeight;
   }
 
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append(String.valueOf(bFamilyType)).append(" ")

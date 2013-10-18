@@ -73,14 +73,17 @@ public class CmapFormat6 extends CmapFormat {
         //di.skipBytes(_length - 4);
     }
 
+    @Override
     public int getRangeCount() {
         return 0;
     }
 
+    @Override
     public Range getRange(int index) throws ArrayIndexOutOfBoundsException {
         throw new ArrayIndexOutOfBoundsException();
     }
 
+    @Override
     public int mapCharCode(int charCode) {
         return 0;
     }

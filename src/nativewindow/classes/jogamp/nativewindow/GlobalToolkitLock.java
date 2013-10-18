@@ -72,6 +72,7 @@ public class GlobalToolkitLock implements ToolkitLock {
         // nop
     }
 
+    @Override
     public String toString() {
         return "GlobalToolkitLock[obj 0x"+Integer.toHexString(hashCode())+", isOwner "+globalLock.isOwner(Thread.currentThread())+", "+globalLock.toString()+"]";
     }

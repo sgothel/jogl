@@ -47,10 +47,12 @@ public class Rectangle implements Cloneable, RectangleImmutable {
         this.height=height;
     }
 
+    @Override
     public Object cloneMutable() {
       return clone();
     }
 
+    @Override
     protected Object clone() {
         try {
             return super.clone();
@@ -191,6 +193,7 @@ public class Rectangle implements Cloneable, RectangleImmutable {
         return sum3 * (sum3 + 1)/2 + val2;
     }
 
+    @Override
     public String toString() {
         return new String("[ "+x+" / "+y+"  "+width+" x "+height+" ]");
     }

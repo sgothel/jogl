@@ -60,14 +60,17 @@ public class WindowsJAWTWindow extends JAWTWindow {
     super(comp, config);
   }
 
+  @Override
   protected void invalidateNative() {
     windowHandle = 0;
   }
 
+  @Override
   protected JAWT fetchJAWTImpl() throws NativeWindowException {
       return JAWTUtil.getJAWT(false); // no offscreen
   }
 
+  @Override
   protected int lockSurfaceImpl() throws NativeWindowException {
     int ret = NativeWindow.LOCK_SUCCESS;
     ds = getJAWT().GetDrawingSurface(component);
@@ -110,6 +113,7 @@ public class WindowsJAWTWindow extends JAWTWindow {
     return ret;
   }
 
+  @Override
   protected void unlockSurfaceImpl() throws NativeWindowException {
     drawable = 0; // invalid HDC
     if(null!=ds) {
@@ -131,6 +135,7 @@ public class WindowsJAWTWindow extends JAWTWindow {
     return windowHandle;
   }
 
+  @Override
   protected Point getLocationOnScreenNativeImpl(int x, int y) {
     return GDIUtil.GetRelativeLocation( getWindowHandle(), 0 /*root win*/, x, y);
   }

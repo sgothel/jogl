@@ -65,6 +65,7 @@ public class X11SunJDKReflection {
 
   static {
     AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        @Override
         public Object run() {
           try {
             x11GraphicsDeviceClass = Class.forName("sun.awt.X11GraphicsDevice");

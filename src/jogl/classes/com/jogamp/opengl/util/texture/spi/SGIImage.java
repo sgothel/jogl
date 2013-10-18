@@ -126,6 +126,7 @@ public class SGIImage {
             in.read(tmp);
         }
 
+        @Override
         public String toString() {
             return ("magic: " + magic +
                     " storage: " + (int) storage +
@@ -226,6 +227,7 @@ public class SGIImage {
         (bottom-to-top) order for calls to glTexImage2D. */
     public byte[] getData()  { return data; }
 
+    @Override
     public String toString() {
         return header.toString();
     }

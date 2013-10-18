@@ -158,6 +158,7 @@ public class TextureState {
     public final int getWrapT() { return state[5]; }
 
 
+    @Override
     public final String toString() {
         return "TextureState[unit "+(state[0] - GL.GL_TEXTURE0)+", target "+toHexString(target)+
                 ": obj "+toHexString(state[1])+

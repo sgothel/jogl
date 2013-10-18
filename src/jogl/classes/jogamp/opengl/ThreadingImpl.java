@@ -72,6 +72,7 @@ public class ThreadingImpl {
     static {
         threadingPlugin =
             AccessController.doPrivileged(new PrivilegedAction<ToolkitThreadingPlugin>() {
+                    @Override
                     public ToolkitThreadingPlugin run() {
                         final String singleThreadProp;
                         {

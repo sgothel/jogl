@@ -59,6 +59,7 @@ public class DisplayDriver extends jogamp.newt.DisplayImpl {
     public DisplayDriver() {
     }
 
+    @Override
     protected void createNativeImpl() {
         synchronized(DisplayDriver.class) {
             if(0==initCounter) {
@@ -72,6 +73,7 @@ public class DisplayDriver extends jogamp.newt.DisplayImpl {
         aDevice = new DefaultGraphicsDevice(NativeWindowFactory.TYPE_DEFAULT, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT, displayHandle);
     }
 
+    @Override
     protected void closeNativeImpl(AbstractGraphicsDevice aDevice) {
         if(0==displayHandle) {
             throw new NativeWindowException("displayHandle null; initCnt "+initCounter);
@@ -87,6 +89,7 @@ public class DisplayDriver extends jogamp.newt.DisplayImpl {
         aDevice.close();
     }
 
+    @Override
     protected void dispatchMessagesNative() {
         if(0!=displayHandle) {
             DispatchMessages(displayHandle, focusedWindow);

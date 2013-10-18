@@ -65,6 +65,7 @@ public class EGLDisplayUtil {
             this.createdStack = DEBUG ? new Throwable() : null;
         }
 
+        @Override
         public String toString() {
             return "EGLDisplay[0x"+Long.toHexString(eglDisplay)+": refCnt "+refCount+"]";
         }
@@ -248,9 +249,11 @@ public class EGLDisplayUtil {
     }
 
     public static final EGLGraphicsDevice.EGLDisplayLifecycleCallback eglLifecycleCallback = new EGLGraphicsDevice.EGLDisplayLifecycleCallback() {
+        @Override
         public long eglGetAndInitDisplay(long[] nativeDisplayID) {
             return eglGetDisplayAndInitialize(nativeDisplayID);
         }
+        @Override
         public void eglTerminate(long eglDisplayHandle) {
             EGLDisplayUtil.eglTerminate(eglDisplayHandle);
         }

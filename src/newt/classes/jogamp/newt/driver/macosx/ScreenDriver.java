@@ -52,10 +52,12 @@ public class ScreenDriver extends ScreenImpl {
     public ScreenDriver() {
     }
 
+    @Override
     protected void createNativeImpl() {
         aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), screen_idx);
     }
 
+    @Override
     protected void closeNativeImpl() { }
 
     private MonitorMode getMonitorModeImpl(MonitorModeProps.Cache cache, int crt_idx, int mode_idx) {
@@ -114,6 +116,7 @@ public class ScreenDriver extends ScreenImpl {
         return setMonitorMode0(monitor.getId(), mode.getId(), mode.getRotation());
     }
 
+    @Override
     protected int validateScreenIndex(int idx) {
         return 0; // big-desktop w/ multiple monitor attached, only one screen available
     }

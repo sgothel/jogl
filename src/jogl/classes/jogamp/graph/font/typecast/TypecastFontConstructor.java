@@ -43,8 +43,10 @@ import com.jogamp.graph.font.Font;
 
 public class TypecastFontConstructor implements FontConstructor  {
 
+    @Override
     public Font create(final File ffile) throws IOException {
         Object o = AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            @Override
             public Object run() {
                 OTFontCollection fontset;
                 try {
@@ -64,8 +66,10 @@ public class TypecastFontConstructor implements FontConstructor  {
         throw new InternalError("Unexpected Object: "+o);
     }
 
+    @Override
     public Font create(final URLConnection fconn) throws IOException {
         return AccessController.doPrivileged(new PrivilegedAction<Font>() {
+            @Override
             public Font run() {
                 File tf = null;
                 int len=0;

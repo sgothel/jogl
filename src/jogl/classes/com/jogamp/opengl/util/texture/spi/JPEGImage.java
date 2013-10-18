@@ -112,6 +112,7 @@ public class JPEGImage {
             data.put(i++, Cr);
         }
 
+        @Override
         public String toString() {
             return "JPEGPixels["+width+"x"+height+", sourceComp "+sourceComponents+", sourceCS "+sourceCS+", storageCS "+storageCS+", storageComp "+storageComponents+"]";
         }
@@ -171,5 +172,6 @@ public class JPEGImage {
         (bottom-to-top) order for calls to glTexImage2D. */
     public ByteBuffer getData()  { return data; }
 
+    @Override
     public String toString() { return "JPEGImage["+pixelWidth+"x"+pixelHeight+", bytesPerPixel "+bytesPerPixel+", reversedChannels "+reversedChannels+", "+pixelStorage+", "+data+"]"; }
 }

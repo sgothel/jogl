@@ -102,6 +102,7 @@ public class JOGLNewtApplet1Run extends Applet {
     /** if valid glStandalone:=true (own window) ! */
     int glXd=Integer.MAX_VALUE, glYd=Integer.MAX_VALUE, glWidth=Integer.MAX_VALUE, glHeight=Integer.MAX_VALUE;
 
+    @Override
     public void init() {
         if(DEBUG) {
             System.err.println("JOGLNewtApplet1Run.init() START");
@@ -223,6 +224,7 @@ public class JOGLNewtApplet1Run extends Applet {
         }
     }
 
+    @Override
     public void start() {
         if(DEBUG) {
             System.err.println("JOGLNewtApplet1Run.start() START (isVisible "+isVisible()+", isDisplayable "+isDisplayable()+")");
@@ -266,6 +268,7 @@ public class JOGLNewtApplet1Run extends Applet {
         }
     }
 
+    @Override
     public void stop() {
         if(DEBUG) {
             System.err.println("JOGLNewtApplet1Run.stop() START");
@@ -276,6 +279,7 @@ public class JOGLNewtApplet1Run extends Applet {
         }
     }
 
+    @Override
     public void destroy() {
         if(DEBUG) {
             System.err.println("JOGLNewtApplet1Run.destroy() START");

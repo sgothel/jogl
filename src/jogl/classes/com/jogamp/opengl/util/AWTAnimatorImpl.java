@@ -58,6 +58,7 @@ class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
     private Map<RepaintManager,RepaintManager> repaintManagers = new IdentityHashMap<RepaintManager,RepaintManager>();
     private Map<JComponent,Rectangle>  dirtyRegions    = new IdentityHashMap<JComponent,Rectangle>();
 
+    @Override
     public void display(ArrayList<GLAutoDrawable> drawables,
                         boolean ignoreExceptions,
                         boolean printExceptions) {
@@ -97,6 +98,7 @@ class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
     // Uses RepaintManager APIs to implement more efficient redrawing of
     // the Swing widgets we're animating
     private Runnable drawWithRepaintManagerRunnable = new Runnable() {
+            @Override
             public void run() {
                 for (Iterator<JComponent> iter = lightweights.iterator(); iter.hasNext(); ) {
                     JComponent comp = iter.next();
@@ -164,6 +166,7 @@ class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
             }
         };
 
+    @Override
     public boolean blockUntilDone(Thread thread) {
         return Thread.currentThread() != thread && !EventQueue.isDispatchThread();
     }

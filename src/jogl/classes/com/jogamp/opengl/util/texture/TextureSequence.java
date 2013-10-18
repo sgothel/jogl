@@ -124,6 +124,7 @@ public interface TextureSequence {
 
         public final Texture getTexture() { return texture; }
 
+        @Override
         public String toString() {
             return "TextureFrame[pts " + pts + " ms, l " + duration + " ms, texID "+ (null != texture ? texture.getTextureObject() : 0) + "]";
         }

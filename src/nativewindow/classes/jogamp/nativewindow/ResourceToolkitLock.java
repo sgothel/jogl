@@ -73,6 +73,7 @@ public class ResourceToolkitLock implements ToolkitLock {
         // nop
     }
 
+    @Override
     public String toString() {
         return "ResourceToolkitLock[obj 0x"+Integer.toHexString(hashCode())+", isOwner "+lock.isOwner(Thread.currentThread())+", "+lock.toString()+"]";
     }

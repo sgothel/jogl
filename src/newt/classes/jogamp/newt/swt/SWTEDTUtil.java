@@ -54,6 +54,7 @@ public class SWTEDTUtil implements EDTUtil {
         this.threadGroup = Thread.currentThread().getThreadGroup();
         this.name=Thread.currentThread().getName()+"-SWTDisplay-"+newtDisplay.getFQName()+"-EDT-";
         this.dispatchMessages = new Runnable() {
+            @Override
             public void run() {
                 ((jogamp.newt.DisplayImpl) newtDisplay).dispatchMessages();
             } };
@@ -252,6 +253,7 @@ public class SWTEDTUtil implements EDTUtil {
         }
         try {
             swtDisplay.syncExec(new Runnable() {
+                @Override
                 public void run() { }
             });
         } catch (Exception e) { }

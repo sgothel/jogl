@@ -207,6 +207,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         /** last mouse button click count */
         short lastButtonClickCount = (short)0;
 
+        @Override
         final void clearButton() {
             super.clearButton();
             lastButtonPressTime = 0;
@@ -536,12 +537,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private Object closingListenerLock = new Object();
     private WindowClosingMode defaultCloseOperation = WindowClosingMode.DISPOSE_ON_CLOSE;
 
+    @Override
     public WindowClosingMode getDefaultCloseOperation() {
         synchronized (closingListenerLock) {
             return defaultCloseOperation;
         }
     }
 
+    @Override
     public WindowClosingMode setDefaultCloseOperation(WindowClosingMode op) {
         synchronized (closingListenerLock) {
             WindowClosingMode _op = defaultCloseOperation;
@@ -956,6 +959,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             this.visible = visible;
         }
 
+        @Override
         public final void run() {
             setVisibleActionImpl(visible);
         }
@@ -983,6 +987,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             this.disregardFS = disregardFS;
         }
 
+        @Override
         public final void run() {
             final RecursiveLock _lock = windowLock;
             _lock.lock();
@@ -1035,6 +1040,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     private class DestroyAction implements Runnable {
+        @Override
         public final void run() {
             boolean animatorPaused = false;
             if(null!=lifecycleHook) {
@@ -1188,6 +1194,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             screen = newScreen;
         }
 
+        @Override
         public final void run() {
             boolean animatorPaused = false;
             if(null!=lifecycleHook) {
@@ -1462,6 +1469,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     private class ReparentActionRecreate implements Runnable {
+        @Override
         public final void run() {
             final RecursiveLock _lock = windowLock;
             _lock.lock();
@@ -1514,6 +1522,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             this.undecorated = undecorated;
         }
 
+        @Override
         public final void run() {
             final RecursiveLock _lock = windowLock;
             _lock.lock();
@@ -1559,6 +1568,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             this.alwaysOnTop = alwaysOnTop;
         }
 
+        @Override
         public final void run() {
             final RecursiveLock _lock = windowLock;
             _lock.lock();
@@ -1834,6 +1844,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     private final Runnable requestFocusAction = new Runnable() {
+        @Override
         public final void run() {
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("Window.RequestFocusAction: force 0 - ("+getThreadName()+"): "+hasFocus+" -> true - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
@@ -1842,6 +1853,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     };
     private final Runnable requestFocusActionForced = new Runnable() {
+        @Override
         public final void run() {
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("Window.RequestFocusAction: force 1 - ("+getThreadName()+"): "+hasFocus+" -> true - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
@@ -1921,6 +1933,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             this.y = y;
         }
 
+        @Override
         public final void run() {
             final RecursiveLock _lock = windowLock;
             _lock.lock();
@@ -1970,6 +1983,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
         public boolean fsOn() { return fullscreen; }
 
+        @Override
         public final void run() {
             final RecursiveLock _lock = windowLock;
             _lock.lock();
@@ -2144,6 +2158,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         List<MonitorDevice> _fullscreenMonitors = null;
         boolean _fullscreenUseMainMonitor = true;
 
+        @Override
         public void monitorModeChangeNotify(MonitorEvent me) {
             hadFocus = hasFocus();
             if(DEBUG_IMPLEMENTATION) {
@@ -2164,6 +2179,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             }
         }
 
+        @Override
         public void monitorModeChanged(MonitorEvent me, boolean success) {
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("Window.monitorModeChanged: hadFocus "+hadFocus+", "+me+", success: "+success+" @ "+Thread.currentThread().getName());

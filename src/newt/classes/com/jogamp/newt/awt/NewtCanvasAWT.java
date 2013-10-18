@@ -107,10 +107,12 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
 
     private AWTWindowClosingProtocol awtWindowClosingProtocol =
           new AWTWindowClosingProtocol(this, new Runnable() {
+                @Override
                 public void run() {
                     NewtCanvasAWT.this.destroyImpl(false /* removeNotify */, true /* windowClosing */);
                 }
             }, new Runnable() {
+                @Override
                 public void run() {
                     if( newtChild != null ) {
                         newtChild.sendWindowEvent(WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
@@ -148,14 +150,17 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         setNEWTChild(child);
     }
 
+    @Override
     public void setShallUseOffscreenLayer(boolean v) {
         shallUseOffscreenLayer = v;
     }
 
+    @Override
     public final boolean getShallUseOffscreenLayer() {
         return shallUseOffscreenLayer;
     }
 
+    @Override
     public final boolean isOffscreenLayerSurfaceEnabled() {
         return jawtWindow.isOffscreenLayerSurfaceEnabled();
     }
@@ -178,6 +183,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     }
 
     class FocusAction implements Window.FocusRunnable {
+        @Override
         public boolean run() {
             final boolean isParent = isParent();
             final boolean isFullscreen = isFullscreen();
@@ -214,11 +220,13 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     };
 
     class FocusTraversalKeyListener implements KeyListener {
+         @Override
          public void keyPressed(KeyEvent e) {
              if( isParent() && !isFullscreen() ) {
                  handleKey(e, false);
              }
          }
+         @Override
          public void keyReleased(KeyEvent e) {
              if( isParent() && !isFullscreen() ) {
                  handleKey(e, true);
@@ -263,6 +271,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     private final FocusTraversalKeyListener newtFocusTraversalKeyListener = new FocusTraversalKeyListener();
 
     class FocusPropertyChangeListener implements PropertyChangeListener {
+        @Override
         public void propertyChange(PropertyChangeEvent evt) {
             final Object oldF = evt.getOldValue();
             final Object newF = evt.getNewValue();
@@ -358,10 +367,12 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
      * or {@link #addNotify()} hasn't been called yet.*/
     public NativeWindow getNativeWindow() { return jawtWindow; }
 
+    @Override
     public WindowClosingMode getDefaultCloseOperation() {
         return awtWindowClosingProtocol.getDefaultCloseOperation();
     }
 
+    @Override
     public WindowClosingMode setDefaultCloseOperation(WindowClosingMode op) {
         return awtWindowClosingProtocol.setDefaultCloseOperation(op);
     }
@@ -745,6 +756,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
       }
     }
     private final Runnable forceRelayout = new Runnable() {
+        @Override
         public void run() {
             if(DEBUG) {
                 System.err.println("NewtCanvasAWT.forceRelayout.0");
@@ -797,6 +809,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     if (!disableBackgroundEraseInitialized) {
       try {
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            @Override
             public Object run() {
               try {
                 Class<?> clazz = getToolkit().getClass();

@@ -66,10 +66,12 @@ public class WindowEvent extends NEWTEvent {
         }
     }
 
+    @Override
     public String toString() {
         return toString(null).toString();
     }
 
+    @Override
     public StringBuilder toString(StringBuilder sb) {
         if(null == sb) {
             sb = new StringBuilder();

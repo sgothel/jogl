@@ -45,10 +45,12 @@ public class GLFixedArrayHandlerFlat implements GLArrayHandlerFlat {
     this.ad = ad;
   }
 
+  @Override
   public GLArrayDataWrapper getData() {
       return ad;
   }
 
+  @Override
   public final void syncData(GL gl, Object ext) {
     final GLPointerFunc glp = gl.getGL2ES1();
     switch(ad.getIndex()) {
@@ -69,6 +71,7 @@ public class GLFixedArrayHandlerFlat implements GLArrayHandlerFlat {
     }
   }
 
+  @Override
   public final void enableState(GL gl, boolean enable, Object ext) {
     final GLPointerFunc glp = gl.getGL2ES1();
     if(enable) {

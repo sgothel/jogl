@@ -82,38 +82,45 @@ public class LEDataInputStream extends FilterInputStream implements DataInput
         dataIn = new DataInputStream(in);
     }
 
+    @Override
     public void close() throws IOException
     {
         dataIn.close();        // better close as we create it.
         // this will close underlying as well.
     }
 
+    @Override
     public synchronized    final int read(byte    b[]) throws    IOException
     {
         return dataIn.read(b, 0, b.length);
     }
 
+    @Override
     public synchronized    final int read(byte    b[], int off, int len) throws IOException
     {
         int    rl = dataIn.read(b,    off, len);
         return rl;
     }
 
+    @Override
     public final void readFully(byte b[]) throws IOException
     {
         dataIn.readFully(b,    0, b.length);
     }
 
+    @Override
     public final void readFully(byte b[], int off, int len)    throws IOException
     {
         dataIn.readFully(b,    off, len);
     }
 
+    @Override
     public final int skipBytes(int n) throws IOException
     {
         return dataIn.skipBytes(n);
     }
 
+    @Override
     public final boolean readBoolean() throws IOException
     {
         int    ch = dataIn.read();
@@ -122,6 +129,7 @@ public class LEDataInputStream extends FilterInputStream implements DataInput
         return (ch != 0);
     }
 
+    @Override
     public final byte readByte() throws    IOException
     {
         int    ch = dataIn.read();
@@ -130,6 +138,7 @@ public class LEDataInputStream extends FilterInputStream implements DataInput
         return (byte)(ch);
     }
 
+    @Override
     public final int readUnsignedByte()    throws IOException
     {
         int    ch = dataIn.read();
@@ -138,6 +147,7 @@ public class LEDataInputStream extends FilterInputStream implements DataInput
         return ch;
     }
 
+    @Override
     public final short readShort() throws IOException
     {
         int    ch1    = dataIn.read();
@@ -147,6 +157,7 @@ public class LEDataInputStream extends FilterInputStream implements DataInput
         return (short)((ch1    << 0) +    (ch2 <<    8));
     }
 
+    @Override
     public final int readUnsignedShort() throws    IOException
     {
         int    ch1    = dataIn.read();
@@ -156,6 +167,7 @@ public class LEDataInputStream extends FilterInputStream implements DataInput
         return (ch1    << 0) +    (ch2 <<    8);
     }
 
+    @Override
     public final char readChar() throws    IOException
     {
         int    ch1    = dataIn.read();
@@ -165,6 +177,7 @@ public class LEDataInputStream extends FilterInputStream implements DataInput
         return (char)((ch1 << 0) + (ch2    << 8));
     }
 
+    @Override
     public final int readInt() throws IOException
     {
         int    ch1    = dataIn.read();
@@ -176,6 +189,7 @@ public class LEDataInputStream extends FilterInputStream implements DataInput
         return ((ch1 <<    0) + (ch2 << 8)    + (ch3 << 16) +    (ch4 <<    24));
     }
 
+    @Override
     public final long readLong() throws    IOException
     {
         int    i1 = readInt();
@@ -183,11 +197,13 @@ public class LEDataInputStream extends FilterInputStream implements DataInput
         return ((long)i1 & 0xFFFFFFFFL) + ((long)i2 << 32);
     }
 
+    @Override
     public final float readFloat() throws IOException
     {
         return Float.intBitsToFloat(readInt());
     }
 
+    @Override
     public final double    readDouble() throws    IOException
     {
         return Double.longBitsToDouble(readLong());
@@ -197,6 +213,7 @@ public class LEDataInputStream extends FilterInputStream implements DataInput
      * dont call this it is not implemented.
      * @return empty new string
      **/
+    @Override
     public final String    readLine() throws IOException
     {
         return new String();
@@ -206,6 +223,7 @@ public class LEDataInputStream extends FilterInputStream implements DataInput
      * dont call this it is not implemented
      * @return empty new string
      **/
+    @Override
     public final String    readUTF() throws IOException
     {
         return new String();

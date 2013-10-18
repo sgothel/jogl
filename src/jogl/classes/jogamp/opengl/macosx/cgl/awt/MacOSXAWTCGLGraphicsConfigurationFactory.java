@@ -63,6 +63,7 @@ public class MacOSXAWTCGLGraphicsConfigurationFactory extends GLGraphicsConfigur
     private MacOSXAWTCGLGraphicsConfigurationFactory() {
     }
 
+    @Override
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
             CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
             CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, int nativeVisualID) {

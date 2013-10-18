@@ -53,6 +53,7 @@ import com.jogamp.opengl.util.texture.*;
 import com.jogamp.opengl.util.texture.spi.*;
 
 public class IIOTextureWriter implements TextureWriter {
+    @Override
     public boolean write(File file,
                          TextureData data) throws IOException {
         int pixelFormat = data.getPixelFormat();

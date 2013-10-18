@@ -216,6 +216,7 @@ public class GLPixelBuffer {
                 }
             }
         }
+        @Override
         public String toString() {
             return "PixelAttributes[comp "+componentCount+", fmt 0x"+Integer.toHexString(format)+", type 0x"+Integer.toHexString(type)+", bytesPerPixel "+bytesPerPixel+"]";
         }
@@ -258,6 +259,7 @@ public class GLPixelBuffer {
         .append(", buffer[bytes ").append(byteSize).append(", elemSize ").append(bufferElemSize).append(", ").append(buffer).append("]");
         return sb;
     }
+    @Override
     public String toString() {
         return "GLPixelBuffer["+toString(null).toString()+"]";
     }

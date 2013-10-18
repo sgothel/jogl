@@ -130,10 +130,12 @@ public class CmapTable implements Table {
         return null;
     }
 
+    @Override
     public int getType() {
         return cmap;
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder().append("cmap\n");
 
@@ -155,6 +157,7 @@ public class CmapTable implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }

@@ -202,6 +202,7 @@ public class GLDebugMessage {
         return sb;
     }
 
+    @Override
     public String toString() {
         return toString(null).toString();
     }

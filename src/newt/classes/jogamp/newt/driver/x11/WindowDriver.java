@@ -176,6 +176,7 @@ public class WindowDriver extends WindowImpl {
         final int fflags = flags;
         final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
         runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
+            @Override
             public Object run(long dpy) {
                 reconfigureWindow0( dpy, getScreenIndex(),
                                     getParentWindowHandle(), getWindowHandle(), display.getWindowDeleteAtom(),
@@ -202,6 +203,7 @@ public class WindowDriver extends WindowImpl {
             }
             final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
             runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
+                @Override
                 public Object run(long dpy) {
                     reconfigureWindow0( dpy, getScreenIndex(),
                                         getParentWindowHandle(), getWindowHandle(), display.getWindowDeleteAtom(),
@@ -223,6 +225,7 @@ public class WindowDriver extends WindowImpl {
     @Override
     protected void requestFocusImpl(final boolean force) {
         runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
+            @Override
             public Object run(long dpy) {
                 requestFocus0(dpy, getWindowHandle(), force);
                 return null;
@@ -233,6 +236,7 @@ public class WindowDriver extends WindowImpl {
     @Override
     protected void setTitleImpl(final String title) {
         runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
+            @Override
             public Object run(long dpy) {
                 setTitle0(dpy, getWindowHandle(), title);
                 return null;
@@ -243,6 +247,7 @@ public class WindowDriver extends WindowImpl {
     @Override
     protected boolean setPointerVisibleImpl(final boolean pointerVisible) {
         return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Boolean>() {
+            @Override
             public Boolean run(long dpy) {
                 return Boolean.valueOf(setPointerVisible0(dpy, getWindowHandle(), pointerVisible));
             }
@@ -252,6 +257,7 @@ public class WindowDriver extends WindowImpl {
     @Override
     protected boolean confinePointerImpl(final boolean confine) {
         return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Boolean>() {
+            @Override
             public Boolean run(long dpy) {
                 return Boolean.valueOf(confinePointer0(dpy, getWindowHandle(), confine));
             }
@@ -261,6 +267,7 @@ public class WindowDriver extends WindowImpl {
     @Override
     protected void warpPointerImpl(final int x, final int y) {
         runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
+            @Override
             public Object run(long dpy) {
                 warpPointer0(dpy, getWindowHandle(), x, y);
                 return null;
@@ -271,6 +278,7 @@ public class WindowDriver extends WindowImpl {
     @Override
     protected Point getLocationOnScreenImpl(final int x, final int y) {
         return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Point>() {
+            @Override
             public Point run(long dpy) {
                 return X11Lib.GetRelativeLocation(dpy, getScreenIndex(), getWindowHandle(), 0 /*root win*/, x, y);
             }

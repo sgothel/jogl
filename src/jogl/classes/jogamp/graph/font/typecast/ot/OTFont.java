@@ -283,6 +283,7 @@ public class OTFont {
         _glyf = (GlyfTable) getTable(Table.glyf);
     }
 
+    @Override
     public String toString() {
         if (_tableDirectory != null) {
             return _tableDirectory.toString();

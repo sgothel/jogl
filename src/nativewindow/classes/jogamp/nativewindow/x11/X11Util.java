@@ -300,10 +300,12 @@ public class X11Util implements ToolkitProperties {
             }
         }
 
+        @Override
         public final int hashCode() {
             return hash32;
         }
 
+        @Override
         public final boolean equals(Object obj) {
             if(this == obj) { return true; }
             if(obj instanceof NamedDisplay) {

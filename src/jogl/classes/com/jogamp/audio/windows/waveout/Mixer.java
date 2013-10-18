@@ -129,6 +129,7 @@ public class Mixer {
             super("Mixer Thread");
         }
 
+        @Override
         public void run() {
             while (!shutdown) {
                 List/*<Track>*/ curTracks = tracks;
@@ -166,6 +167,7 @@ public class Mixer {
             }
         }
 
+        @Override
         public void run() {
             while (!shutdown) {
                 // Get the next buffer

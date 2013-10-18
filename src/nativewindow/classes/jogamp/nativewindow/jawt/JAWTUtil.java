@@ -320,6 +320,7 @@ public class JAWTUtil {
     j2dExist = ok;
 
     PrivilegedDataBlob1 pdb1 = (PrivilegedDataBlob1) AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        @Override
         public Object run() {
             PrivilegedDataBlob1 d = new PrivilegedDataBlob1();
             try {
@@ -352,9 +353,11 @@ public class JAWTUtil {
     jawtLock = LockFactory.createRecursiveLock();
 
     jawtToolkitLock = new ToolkitLock() {
+          @Override
           public final void lock() {
               JAWTUtil.lockToolkit();
           }
+          @Override
           public final void unlock() {
               JAWTUtil.unlockToolkit();
           }
@@ -380,6 +383,7 @@ public class JAWTUtil {
         } else {
             final ArrayList<Map<?,?>> desktophintsBucket = new ArrayList<Map<?,?>>(1);
             EventQueue.invokeAndWait(new Runnable() {
+                @Override
                 public void run() {
                     Map<?,?> _desktophints = (Map<?,?>)(Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"));
                     if(null!=_desktophints) {

@@ -206,6 +206,7 @@ class Vec3f {
     z *= arg.z;
   }
 
+  @Override
   public String toString() {
     return "(" + x + ", " + y + ", " + z + ")";
   }

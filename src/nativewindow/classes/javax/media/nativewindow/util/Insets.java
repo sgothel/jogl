@@ -45,10 +45,12 @@ public class Insets implements Cloneable, InsetsImmutable {
         this.b=bottom;
     }
 
+    @Override
     public Object cloneMutable() {
       return clone();
     }
 
+    @Override
     protected Object clone() {
         try {
             return super.clone();
@@ -99,6 +101,7 @@ public class Insets implements Cloneable, InsetsImmutable {
         return sum3 * (sum3 + 1)/2 + val2;
     }
 
+    @Override
     public String toString() {
         return new String("[ l "+l+", r "+r+" - t "+t+", b "+b+" - "+getTotalWidth()+"x"+getTotalHeight()+"]");
     }

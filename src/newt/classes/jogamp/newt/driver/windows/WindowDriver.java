@@ -127,6 +127,7 @@ public class WindowDriver extends WindowImpl {
         return false;
     }
 
+    @Override
     protected void createNativeImpl() {
         final ScreenDriver  screen = (ScreenDriver) getScreen();
         final DisplayDriver display = (DisplayDriver) screen.getDisplay();
@@ -156,6 +157,7 @@ public class WindowDriver extends WindowImpl {
         }
     }
 
+    @Override
     protected void closeNativeImpl() {
         if(windowHandleClose != 0) {
             if (hdc != 0) {
@@ -183,6 +185,7 @@ public class WindowDriver extends WindowImpl {
         hdc_old = 0;
     }
 
+    @Override
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("WindowsWindow reconfig: "+x+"/"+y+" "+width+"x"+height+", "+
@@ -210,6 +213,7 @@ public class WindowDriver extends WindowImpl {
         return true;
     }
 
+    @Override
     protected void requestFocusImpl(boolean force) {
         requestFocus0(getWindowHandle(), force);
     }
@@ -224,6 +228,7 @@ public class WindowDriver extends WindowImpl {
         final boolean[] res = new boolean[] { false };
 
         this.runOnEDTIfAvail(true, new Runnable() {
+            @Override
             public void run() {
                 res[0] = setPointerVisible0(getWindowHandle(), pointerVisible);
             }
@@ -236,6 +241,7 @@ public class WindowDriver extends WindowImpl {
         final Boolean[] res = new Boolean[] { Boolean.FALSE };
 
         this.runOnEDTIfAvail(true, new Runnable() {
+            @Override
             public void run() {
                 final Point p0 = getLocationOnScreenImpl(0, 0);
                 res[0] = Boolean.valueOf(confinePointer0(getWindowHandle(), confine,
@@ -248,6 +254,7 @@ public class WindowDriver extends WindowImpl {
     @Override
     protected void warpPointerImpl(final int x, final int y) {
         this.runOnEDTIfAvail(true, new Runnable() {
+            @Override
             public void run() {
                 final Point sPos = getLocationOnScreenImpl(x, y);
                 warpPointer0(getWindowHandle(), sPos.getX(), sPos.getY());
@@ -256,10 +263,12 @@ public class WindowDriver extends WindowImpl {
         return;
     }
 
+    @Override
     protected Point getLocationOnScreenImpl(int x, int y) {
         return GDIUtil.GetRelativeLocation( getWindowHandle(), 0 /*root win*/, x, y);
     }
 
+    @Override
     protected void updateInsetsImpl(Insets insets) {
         // nop - using event driven insetsChange(..)
     }

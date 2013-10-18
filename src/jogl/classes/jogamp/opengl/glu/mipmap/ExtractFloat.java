@@ -56,6 +56,7 @@ public class ExtractFloat implements ExtractPrimitive {
   public ExtractFloat() {
   }
 
+  @Override
   public double extract( boolean isSwap, ByteBuffer data ) {
     float f = 0;
     if( isSwap ) {
@@ -67,6 +68,7 @@ public class ExtractFloat implements ExtractPrimitive {
     return( f );
   }
 
+  @Override
   public void shove( double value, int index, ByteBuffer data ) {
     assert(0.0 <= value && value < 1.0);
     data.asFloatBuffer().put( index, (float)value );

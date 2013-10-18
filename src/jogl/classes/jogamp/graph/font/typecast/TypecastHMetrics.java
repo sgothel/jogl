@@ -61,21 +61,27 @@ class TypecastHMetrics implements Metrics {
         bbox = new AABBox(lowx, lowy, 0, highx, highy, 0); // invert
     }
 
+    @Override
     public final float getAscent(float pixelSize) {
         return getScale(pixelSize) * -hheaTable.getAscender(); // invert
     }
+    @Override
     public final float getDescent(float pixelSize) {
         return getScale(pixelSize) * -hheaTable.getDescender(); // invert
     }
+    @Override
     public final float getLineGap(float pixelSize) {
         return getScale(pixelSize) * -hheaTable.getLineGap(); // invert
     }
+    @Override
     public final float getMaxExtend(float pixelSize) {
         return getScale(pixelSize) * hheaTable.getXMaxExtent();
     }
+    @Override
     public final float getScale(float pixelSize) {
         return pixelSize * unitsPerEM_Inv;
     }
+    @Override
     public final AABBox getBBox(float pixelSize) {
         AABBox res = new AABBox(bbox.getLow(), bbox.getHigh());
         res.scale(getScale(pixelSize));

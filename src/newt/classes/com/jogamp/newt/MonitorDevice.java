@@ -87,6 +87,7 @@ public abstract class MonitorDevice {
      * </ul>
      * <br>
      */
+    @Override
     public final boolean equals(Object obj) {
         if (this == obj) { return true; }
         if (obj instanceof MonitorDevice) {
@@ -102,6 +103,7 @@ public abstract class MonitorDevice {
      *  <li><code>nativeID</code></li>
      * </ul>
      */
+    @Override
     public final int hashCode() {
         return nativeId;
     }
@@ -228,6 +230,7 @@ public abstract class MonitorDevice {
      */
     public abstract boolean setCurrentMode(MonitorMode mode);
 
+    @Override
     public String toString() {
         return "Monitor[Id "+Display.toHexString(nativeId)+", "+sizeMM+" mm, viewport "+viewport+ ", orig "+originalMode+", curr "+currentMode+
                ", modeChanged "+modeChanged+", modeCount "+supportedModes.size()+"]";

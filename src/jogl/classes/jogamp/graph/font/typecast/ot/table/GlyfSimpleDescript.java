@@ -92,30 +92,37 @@ public class GlyfSimpleDescript extends GlyfDescript {
         readCoords(_count, di);
     }
 
+    @Override
     public int getEndPtOfContours(int i) {
         return _endPtsOfContours[i];
     }
 
+    @Override
     public byte getFlags(int i) {
         return _flags[i];
     }
 
+    @Override
     public short getXCoordinate(int i) {
         return _xCoordinates[i];
     }
 
+    @Override
     public short getYCoordinate(int i) {
         return _yCoordinates[i];
     }
 
+    @Override
     public boolean isComposite() {
         return false;
     }
 
+    @Override
     public int getPointCount() {
         return _count;
     }
 
+    @Override
     public int getContourCount() {
         return getNumberOfContours();
     }
@@ -185,6 +192,7 @@ public class GlyfSimpleDescript extends GlyfDescript {
         }
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(super.toString());

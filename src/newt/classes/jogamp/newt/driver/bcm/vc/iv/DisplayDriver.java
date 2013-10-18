@@ -59,15 +59,18 @@ public class DisplayDriver extends DisplayImpl {
     public DisplayDriver() {
     }
 
+    @Override
     protected void createNativeImpl() {
         // FIXME: map name to EGL_*_DISPLAY
         aDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
     }
 
+    @Override
     protected void closeNativeImpl(AbstractGraphicsDevice aDevice) {
         aDevice.close();
     }
 
+    @Override
     protected void dispatchMessagesNative() {
         DispatchMessages();
     }

@@ -87,6 +87,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             isOffscreenInstance = false;
             if (0 != handle) {
                 OSXUtil.RunOnMainThread(false, new Runnable() {
+                   @Override
                    public void run() {
                        close0( handle );
                    } } );
@@ -144,6 +145,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         if (isNativeValid()) {
             if (0 != sscSurfaceHandle) {
                 OSXUtil.RunOnMainThread(false, new Runnable() {
+                    @Override
                     public void run() {
                         orderOut0( 0 != getParentWindowHandle() ? getParentWindowHandle() : getWindowHandle() );
                     } } );
@@ -160,6 +162,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     @Override
     protected void setTitleImpl(final String title) {
         OSXUtil.RunOnMainThread(false, new Runnable() {
+            @Override
             public void run() {
                 setTitle0(getWindowHandle(), title);
             } } );
@@ -172,6 +175,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         }
         if(!isOffscreenInstance) {
             OSXUtil.RunOnMainThread(false, new Runnable() {
+                @Override
                 public void run() {
                     requestFocus0(getWindowHandle(), force);
                 } } );
@@ -187,6 +191,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         }
         if(!isOffscreenInstance) {
             OSXUtil.RunOnMainThread(false, new Runnable() {
+                @Override
                 public void run() {
                     resignFocus0(getWindowHandle());
                 } } );
@@ -209,6 +214,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 System.err.println("MacWindow: updatePosition() parent["+useParent+" "+pX+"/"+pY+"] "+x+"/"+y+" ->  "+x+"/"+y+" rel-client-pos, "+p0S+" screen-client-pos");
             }
             OSXUtil.RunOnMainThread(false, new Runnable() {
+                @Override
                 public void run() {
                     setWindowClientTopLeftPoint0(handle, p0S.getX(), p0S.getY(), isVisible());
                 } } );
@@ -230,6 +236,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                     System.err.println("MacWindow: sizeChanged() parent["+useParent+" "+x+"/"+y+"] "+getX()+"/"+getY()+" "+newWidth+"x"+newHeight+" ->  "+p0S+" screen-client-pos");
                 }
                 OSXUtil.RunOnMainThread(false, new Runnable() {
+                    @Override
                     public void run() {
                         setWindowClientTopLeftPoint0(getWindowHandle(), p0S.getX(), p0S.getY(), isVisible());
                     } } );
@@ -275,6 +282,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && !setVisible ) {
             if ( !isOffscreenInstance ) {
                 OSXUtil.RunOnMainThread(false, new Runnable() {
+                    @Override
                     public void run() {
                         orderOut0(getWindowHandle());
                         visibleChanged(true, false);
@@ -297,6 +305,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             if( width>0 && height>0 ) {
                 if( !isOffscreenInstance ) {
                     OSXUtil.RunOnMainThread(false, new Runnable() {
+                        @Override
                         public void run() {
                             setWindowClientTopLeftPointAndSize0(getWindowHandle(), pClientLevelOnSreen.getX(), pClientLevelOnSreen.getY(), width, height, setVisible);
                         } } );
@@ -308,6 +317,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && setVisible ) {
                 if( !isOffscreenInstance ) {
                     OSXUtil.RunOnMainThread(false, new Runnable() {
+                        @Override
                         public void run() {
                             orderFront0(getWindowHandle());
                             visibleChanged(true, true);
@@ -476,6 +486,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                     throw new NativeWindowException("Internal Error - create w/ window, but no Newt NSView");
                 }
                 OSXUtil.RunOnMainThread(false, new Runnable() {
+                    @Override
                     public void run() {
                         changeContentView0(parentWinHandle, preWinHandle, 0);
                         close0( preWinHandle );
@@ -502,6 +513,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             final boolean isOpaque = getGraphicsConfiguration().getChosenCapabilities().isBackgroundOpaque() && !offscreenInstance;
             // Blocking initialization on main-thread!
             OSXUtil.RunOnMainThread(true, new Runnable() {
+                @Override
                 public void run() {
                     initWindow0( parentWinHandle, newWin, pS.getX(), pS.getY(), width, height,
                                  isOpaque, fullscreen, visible && !offscreenInstance, surfaceHandle);

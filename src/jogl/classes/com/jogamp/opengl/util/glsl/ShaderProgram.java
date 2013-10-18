@@ -263,6 +263,7 @@ public class ShaderProgram {
         return programLinked;
     }
 
+    @Override
     public boolean equals(Object obj) {
         if(this == obj)  { return true; }
         if(obj instanceof ShaderProgram) {
@@ -271,6 +272,7 @@ public class ShaderProgram {
         return false;
     }
 
+    @Override
     public int hashCode() {
         return id;
     }
@@ -288,6 +290,7 @@ public class ShaderProgram {
         return sb;
     }
 
+    @Override
     public String toString() {
         return toString(null).toString();
     }

@@ -45,6 +45,7 @@ public abstract class GLVBOArrayHandler implements GLArrayHandler {
     this.ad = ad;
   }
 
+  @Override
   public final boolean bindBuffer(GL gl, boolean bind) {
     if( !ad.isVBO() ) {
         return false;

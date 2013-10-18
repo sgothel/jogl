@@ -229,6 +229,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
       }
   }
 
+  @Override
   protected final SharedResource getOrCreateSharedResourceImpl(AbstractGraphicsDevice adevice) {
     final String connection = adevice.getConnection();
     SharedResource sr;

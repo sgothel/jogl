@@ -49,10 +49,12 @@ public class LocaTable implements Table {
         return _offsets[i] * _factor;
     }
 
+    @Override
     public int getType() {
         return loca;
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("'loca' Table - Index To Location Table\n--------------------------------------\n")
@@ -71,6 +73,7 @@ public class LocaTable implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }

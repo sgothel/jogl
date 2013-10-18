@@ -147,6 +147,7 @@ public class AWTTilePainter {
         this.flipVertical = true;
     }
 
+    @Override
     public String toString() { return renderer.toString(); }
 
     public void setIsGLOriented(boolean v) {

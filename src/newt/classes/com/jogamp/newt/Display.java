@@ -41,9 +41,11 @@ public abstract class Display {
     public static final boolean DEBUG = Debug.debug("Display");
 
     /** return precomputed hashCode from FQN {@link #getFQName()} */
+    @Override
     public abstract int hashCode();
 
     /** return true if obj is of type Display and both FQN {@link #getFQName()} equals */
+    @Override
     public boolean equals(Object obj) {
         if (this == obj) { return true; }
         if (obj instanceof Display) {

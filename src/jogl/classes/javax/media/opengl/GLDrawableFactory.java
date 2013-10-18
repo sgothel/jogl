@@ -134,6 +134,7 @@ public abstract class GLDrawableFactory {
   private static final void initSingletonImpl() {
     NativeWindowFactory.initSingleton();
     NativeWindowFactory.addCustomShutdownHook(false /* head */, new Runnable() {
+       @Override
        public void run() {
            shutdown0();
        }

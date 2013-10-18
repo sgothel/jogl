@@ -107,6 +107,7 @@ public class AWTCanvas extends Canvas {
     return res;
   }
 
+  @Override
   public void addNotify() {
 
     /**
@@ -160,6 +161,7 @@ public class AWTCanvas extends Canvas {
       return null != jawtWindow ? jawtWindow.isOffscreenLayerSurfaceEnabled() : false;
   }
 
+  @Override
   public void removeNotify() {
       try {
         dispose();
@@ -195,6 +197,7 @@ public class AWTCanvas extends Canvas {
    * Overridden to choose a GraphicsConfiguration on a parent container's
    * GraphicsDevice because both devices
    */
+  @Override
   public GraphicsConfiguration getGraphicsConfiguration() {
     /*
      * Workaround for problems with Xinerama and java.awt.Component.checkGD
@@ -324,6 +327,7 @@ public class AWTCanvas extends Canvas {
     if (!disableBackgroundEraseInitialized) {
       try {
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            @Override
             public Object run() {
               try {
                 Class<?> clazz = getToolkit().getClass();

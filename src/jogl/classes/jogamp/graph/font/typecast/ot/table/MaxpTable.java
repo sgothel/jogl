@@ -121,10 +121,12 @@ public class MaxpTable implements Table {
         return numGlyphs;
     }
 
+    @Override
     public int getType() {
         return maxp;
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("'maxp' Table - Maximum Profile\n------------------------------")
@@ -156,6 +158,7 @@ public class MaxpTable implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return de;
     }

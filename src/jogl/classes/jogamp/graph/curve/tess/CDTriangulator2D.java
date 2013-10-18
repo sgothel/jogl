@@ -65,6 +65,7 @@ public class CDTriangulator2D implements Triangulator{
     /** Reset the triangulation to initial state
      *  Clearing cached data
      */
+    @Override
     public void reset() {
         maxTriID = 0;
         vertices = new ArrayList<Vertex>();
@@ -72,6 +73,7 @@ public class CDTriangulator2D implements Triangulator{
         loops = new ArrayList<Loop>();
     }
 
+    @Override
     public void addCurve(Outline polyline) {
         Loop loop = null;
 
@@ -93,6 +95,7 @@ public class CDTriangulator2D implements Triangulator{
         }
     }
 
+    @Override
     public ArrayList<Triangle> generate() {
         for(int i=0;i<loops.size();i++) {
             Loop loop = loops.get(i);

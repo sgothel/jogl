@@ -109,6 +109,7 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
   }
 
   // open access to superclass method
+  @Override
   public void setChosenCapabilities(CapabilitiesImmutable capsChosen) {
       super.setChosenCapabilities(capsChosen);
   }

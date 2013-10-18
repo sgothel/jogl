@@ -74,6 +74,7 @@ public class ScreenDriver extends ScreenImpl {
     protected void createNativeImpl() {
         // validate screen index
         Long handle = runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Long>() {
+            @Override
             public Long run(long dpy) {
                 return new Long(GetScreen0(dpy, screen_idx));
             } } );
@@ -180,6 +181,7 @@ public class ScreenDriver extends ScreenImpl {
         if( null == rAndR ) { return null; }
 
         return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<MonitorMode>() {
+            @Override
             public MonitorMode run(long dpy) {
                 final int[] currentModeProps = rAndR.getCurrentMonitorModeProps(dpy, ScreenDriver.this, monitor.getId());
                 return MonitorModeProps.streamInMonitorMode(null, null, currentModeProps, 0);
@@ -192,6 +194,7 @@ public class ScreenDriver extends ScreenImpl {
 
         final long t0 = System.currentTimeMillis();
         boolean done = runWithOptTempDisplayHandle( new DisplayImpl.DisplayRunnable<Boolean>() {
+            @Override
             public Boolean run(long dpy) {
                 return Boolean.valueOf( rAndR.setCurrentMonitorMode(dpy, ScreenDriver.this, monitor, mode) );
             }
@@ -205,6 +208,7 @@ public class ScreenDriver extends ScreenImpl {
     }
 
     private DisplayImpl.DisplayRunnable<Boolean> xineramaEnabledQueryWithTemp = new DisplayImpl.DisplayRunnable<Boolean>() {
+        @Override
         public Boolean run(long dpy) {
             return new Boolean(X11Util.XineramaIsEnabled(dpy));
         } };
@@ -236,6 +240,7 @@ public class ScreenDriver extends ScreenImpl {
                 } } );
         } else */ {
             runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
+                @Override
                 public Object run(long dpy) {
                     vOriginSize.set(0, 0, getWidth0(dpy, screen_idx), getHeight0(dpy, screen_idx));
                     return null;

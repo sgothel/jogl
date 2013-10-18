@@ -79,6 +79,7 @@ public class TypecastGlyph implements FontInt.GlyphInt {
             return fo.floatValue();
         }
 
+        @Override
         public String toString()
         {
             return "\nAdvance:"+
@@ -122,6 +123,7 @@ public class TypecastGlyph implements FontInt.GlyphInt {
             return this.advance.get(size, useFrationalMetrics);
         }
 
+        @Override
         public String toString()
         {
             return "\nMetrics:"+
@@ -173,10 +175,12 @@ public class TypecastGlyph implements FontInt.GlyphInt {
         this.metrics.reset();
     }
 
+    @Override
     public Font getFont() {
         return this.font;
     }
 
+    @Override
     public char getSymbol() {
         return this.symbol;
     }
@@ -201,6 +205,7 @@ public class TypecastGlyph implements FontInt.GlyphInt {
         return this.metrics.getScale(pixelSize);
     }
 
+    @Override
     public AABBox getBBox(float pixelSize) {
         final float size = getScale(pixelSize);
         AABBox newBox = getBBox().clone();
@@ -212,14 +217,17 @@ public class TypecastGlyph implements FontInt.GlyphInt {
         this.metrics.addAdvance(advance, size);
     }
 
+    @Override
     public float getAdvance(float pixelSize, boolean useFrationalMetrics) {
         return this.metrics.getAdvance(pixelSize, useFrationalMetrics);
     }
 
+    @Override
     public Path2D getPath() {
         return this.path;
     }
 
+    @Override
     public Path2D getPath(float pixelSize) {
         final float size = getScale(pixelSize);
 

@@ -93,10 +93,12 @@ public class HdmxTable implements Table {
         return _records[i];
     }
 
+    @Override
     public int getType() {
         return hdmx;
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("'hdmx' Table - Horizontal Device Metrics\n----------------------------------------\n");
@@ -124,6 +126,7 @@ public class HdmxTable implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }

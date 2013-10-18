@@ -36,10 +36,12 @@ public class KernSubtableFormat0 extends KernSubtable {
         }
     }
 
+    @Override
     public int getKerningPairCount() {
         return nPairs;
     }
 
+    @Override
     public KerningPair getKerningPair(int i) {
         return kerningPairs[i];
     }

@@ -80,7 +80,7 @@ public class GLDrawableHelper {
   /** -1 release, 0 nop, 1 claim */
   private volatile int exclusiveContextSwitch;
   private GLAnimatorControl animatorCtrl;
-  private static Runnable nop = new Runnable() { public void run() {} };
+  private static Runnable nop = new Runnable() { @Override public void run() {} };
 
   public GLDrawableHelper() {
     reset();
@@ -493,6 +493,7 @@ public class GLDrawableHelper {
       final boolean isPaused = isAnimatorAnimatingOnOtherThread() && animatorCtrl.pause();
       final GLEventListener[] res = new GLEventListener[] { null };
       final Runnable action = new Runnable() {
+          @Override
           public void run() {
               res[0] = disposeGLEventListener(autoDrawable, listener, remove);
           }
@@ -525,6 +526,7 @@ public class GLDrawableHelper {
       final boolean isPaused = isAnimatorAnimatingOnOtherThread() && animatorCtrl.pause();
 
       final Runnable action = new Runnable() {
+          @Override
           public void run() {
               disposeAllGLEventListener(autoDrawable, remove);
           }

@@ -43,6 +43,7 @@ public final class CgDynamicLibraryBundleInfo implements DynamicLibraryBundleInf
     private static final List<String> glueLibNames;
     static {
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            @Override
             public Object run() {
                 Platform.initSingleton();
 

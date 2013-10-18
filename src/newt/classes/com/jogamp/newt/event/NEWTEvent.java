@@ -131,6 +131,7 @@ public class NEWTEvent extends java.util.EventObject {
         }
     }
 
+    @Override
     public String toString() {
         return toString(null).toString();
     }

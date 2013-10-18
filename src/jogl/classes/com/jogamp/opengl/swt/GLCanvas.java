@@ -286,6 +286,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
                                  final GLCapabilitiesChooser chooser, final GLContext shareWith) {
        final GLCanvas[] res = new GLCanvas[] { null };
        parent.getDisplay().syncExec(new Runnable() {
+           @Override
            public void run() {
                res[0] = new GLCanvas( parent, style, caps, chooser, shareWith );
            }

@@ -43,14 +43,17 @@ public class GLFixedArrayHandler extends GLVBOArrayHandler implements GLArrayHan
     super(ad);
   }
 
+  @Override
   public final void setSubArrayVBOName(int vboName) {
       throw new UnsupportedOperationException();
   }
 
+  @Override
   public final void addSubHandler(GLArrayHandlerFlat handler) {
       throw new UnsupportedOperationException();
   }
 
+  @Override
   public final void enableState(GL gl, boolean enable, Object ext) {
     final GLPointerFunc glp = gl.getGL2ES1();
     if(enable) {

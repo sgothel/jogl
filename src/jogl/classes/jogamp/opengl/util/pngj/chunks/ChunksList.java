@@ -59,12 +59,14 @@ public class ChunksList {
 	protected static List<PngChunk> getXById(final List<PngChunk> list, final String id, final String innerid) {
 		if (innerid == null)
 			return ChunkHelper.filterList(list, new ChunkPredicate() {
+				@Override
 				public boolean match(PngChunk c) {
 					return c.id.equals(id);
 				}
 			});
 		else
 			return ChunkHelper.filterList(list, new ChunkPredicate() {
+				@Override
 				public boolean match(PngChunk c) {
 					if (!c.id.equals(id))
 						return false;
@@ -152,12 +154,14 @@ public class ChunksList {
 	 */
 	public List<PngChunk> getEquivalent(final PngChunk c2) {
 		return ChunkHelper.filterList(chunks, new ChunkPredicate() {
+			@Override
 			public boolean match(PngChunk c) {
 				return ChunkHelper.equivalent(c, c2);
 			}
 		});
 	}
 
+	@Override
 	public String toString() {
 		return "ChunkList: read: " + chunks.size();
 	}

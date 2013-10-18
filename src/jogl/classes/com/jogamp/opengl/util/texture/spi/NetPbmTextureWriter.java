@@ -84,6 +84,7 @@ public class NetPbmTextureWriter implements TextureWriter {
 
     public String getSuffix() { return (magic==6)?PPM:PAM; }
 
+    @Override
     public boolean write(File file, TextureData data) throws IOException {
         boolean res;
         final int magic_old = magic;

@@ -222,6 +222,7 @@ public class GLWorkerThread {
   protected static String getThreadName() { return Thread.currentThread().getName(); }
 
   static class WorkerRunnable implements Runnable {
+    @Override
     public void run() {
       // Notify starting thread that we're ready
       synchronized (lock) {

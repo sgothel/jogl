@@ -92,6 +92,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     synchronized(WindowsWGLDrawableFactory.class) {
         if( null == windowsWGLDynamicLookupHelper ) {
             windowsWGLDynamicLookupHelper = AccessController.doPrivileged(new PrivilegedAction<DesktopGLDynamicLookupHelper>() {
+                @Override
                 public DesktopGLDynamicLookupHelper run() {
                     DesktopGLDynamicLookupHelper tmp;
                     try {

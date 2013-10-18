@@ -73,6 +73,7 @@ public class Triangle {
         this.boundaryVertices = boundaryVertices;
     }
 
+    @Override
     public String toString() {
         return "Tri ID: " + id + "\n" +  vertices[0]  + "\n" +  vertices[1] + "\n" +  vertices[2];
     }

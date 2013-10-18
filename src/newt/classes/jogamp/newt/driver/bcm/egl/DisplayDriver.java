@@ -61,6 +61,7 @@ public class DisplayDriver extends jogamp.newt.DisplayImpl {
     public DisplayDriver() {
     }
 
+    @Override
     protected void createNativeImpl() {
         final long handle = CreateDisplay(ScreenDriver.fixedWidth, ScreenDriver.fixedHeight);
         if (handle == EGL.EGL_NO_DISPLAY) {
@@ -69,6 +70,7 @@ public class DisplayDriver extends jogamp.newt.DisplayImpl {
         aDevice = new EGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, handle, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT, null);
     }
 
+    @Override
     protected void closeNativeImpl(AbstractGraphicsDevice aDevice) {
         if (aDevice.getHandle() != EGL.EGL_NO_DISPLAY) {
             DestroyDisplay(aDevice.getHandle());
@@ -76,6 +78,7 @@ public class DisplayDriver extends jogamp.newt.DisplayImpl {
         aDevice.close();
     }
 
+    @Override
     protected void dispatchMessagesNative() {
         // n/a .. DispatchMessages();
     }

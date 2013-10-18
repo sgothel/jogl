@@ -54,10 +54,12 @@ public class DefaultGraphicsScreen implements Cloneable, AbstractGraphicsScreen 
         }
     }
 
+    @Override
     public AbstractGraphicsDevice getDevice() {
         return device;
     }
 
+    @Override
     public int getIndex() {
       return idx;
     }

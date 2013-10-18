@@ -47,20 +47,24 @@ public final class DesktopES2DynamicLibraryBundleInfo extends GLDynamicLibraryBu
         super();
     }
 
+    @Override
     public final List<String> getToolGetProcAddressFuncNameList() {
         List<String> res = new ArrayList<String>();
         res.add("eglGetProcAddress");
         return res;
     }
 
+    @Override
     public final long toolGetProcAddress(long toolGetProcAddressHandle, String funcName) {
         return EGL.eglGetProcAddress(toolGetProcAddressHandle, funcName);
     }
 
+    @Override
     public final boolean useToolGetProcAdressFirst(String funcName) {
         return true;
     }
 
+    @Override
     public final List<List<String>> getToolLibNames() {
         final List<List<String>> libsList = new ArrayList<List<String>>();
         final List<String> libsGL = new ArrayList<String>();
@@ -90,6 +94,7 @@ public final class DesktopES2DynamicLibraryBundleInfo extends GLDynamicLibraryBu
         return libsList;
     }
 
+    @Override
     public final List<String> getGlueLibNames() {
         return glueLibNames;
     }

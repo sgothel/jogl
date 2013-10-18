@@ -252,6 +252,7 @@ public class SharedResourceRunner implements Runnable {
         // done
     }
 
+    @Override
     public final void run() {
         final String threadName = getThreadName();
 

@@ -99,6 +99,7 @@ public class GsubTable implements Table, LookupSubtableFactory {
      * 5 - Context - Replace one or more glyphs in context
      * 6 - Chaining - Context Replace one or more glyphs in chained context
      */
+    @Override
     public LookupSubtable read(
             int type,
             DataInputStream dis,
@@ -130,6 +131,7 @@ public class GsubTable implements Table, LookupSubtableFactory {
     /** Get the table type, as a table directory value.
      * @return The table type
      */
+    @Override
     public int getType() {
         return GSUB;
     }
@@ -146,6 +148,7 @@ public class GsubTable implements Table, LookupSubtableFactory {
         return _lookupList;
     }
 
+    @Override
     public String toString() {
         return "GSUB";
     }
@@ -174,6 +177,7 @@ public class GsubTable implements Table, LookupSubtableFactory {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }

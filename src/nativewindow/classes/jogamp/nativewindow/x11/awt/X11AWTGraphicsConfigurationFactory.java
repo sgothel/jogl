@@ -66,6 +66,7 @@ public class X11AWTGraphicsConfigurationFactory extends GraphicsConfigurationFac
     private X11AWTGraphicsConfigurationFactory() {
     }
 
+    @Override
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
             CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
             CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, int nativeVisualID) {

@@ -74,6 +74,7 @@ public class TimeFrameI {
     /** Set this frame's duration in milliseconds. */
     public final void setDuration(int duration) { this.duration = duration; }
 
+    @Override
     public String toString() {
         return "TimeFrame[pts " + pts + " ms, l " + duration + " ms]";
     }

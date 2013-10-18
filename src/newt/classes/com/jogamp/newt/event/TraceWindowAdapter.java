@@ -40,30 +40,37 @@ public class TraceWindowAdapter implements WindowListener {
         this.downstream = downstream;
     }
 
+    @Override
     public void windowResized(WindowEvent e) {
         System.err.println(e);
         if(null!=downstream) { downstream.windowResized(e); }
     }
+    @Override
     public void windowMoved(WindowEvent e) {
         System.err.println(e);
         if(null!=downstream) { downstream.windowMoved(e); }
     }
+    @Override
     public void windowDestroyNotify(WindowEvent e) {
         System.err.println(e);
         if(null!=downstream) { downstream.windowDestroyNotify(e); }
     }
+    @Override
     public void windowDestroyed(WindowEvent e) {
         System.err.println(e);
         if(null!=downstream) { downstream.windowDestroyed(e); }
     }
+    @Override
     public void windowGainedFocus(WindowEvent e) {
         System.err.println(e);
         if(null!=downstream) { downstream.windowGainedFocus(e); }
     }
+    @Override
     public void windowLostFocus(WindowEvent e) {
         System.err.println(e);
         if(null!=downstream) { downstream.windowLostFocus(e); }
     }
+    @Override
     public void windowRepaint(WindowUpdateEvent e) {
         System.err.println(e);
         if(null!=downstream) { downstream.windowRepaint(e); }

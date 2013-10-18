@@ -12,6 +12,7 @@ public abstract class PngChunkSingle extends PngChunk {
 		super(id, imgInfo);
 	}
 
+	@Override
 	public final boolean allowsMultiple() {
 		return false;
 	}

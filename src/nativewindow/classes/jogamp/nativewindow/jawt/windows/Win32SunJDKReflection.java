@@ -65,6 +65,7 @@ public class Win32SunJDKReflection {
 
   static {
     AccessController.doPrivileged(new PrivilegedAction() {
+        @Override
         public Object run() {
           try {
             win32GraphicsDeviceClass = Class.forName("sun.awt.Win32GraphicsDevice");

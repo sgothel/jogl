@@ -47,12 +47,14 @@ public class ChunkHelper {
 	public static final String zTXt = "zTXt";
 
 	private static final ThreadLocal<Inflater> inflaterProvider = new ThreadLocal<Inflater>() {
+		@Override
 		protected Inflater initialValue() {
 			return new Inflater();
 		}
 	};
 
 	private static final ThreadLocal<Deflater> deflaterProvider = new ThreadLocal<Deflater>() {
+		@Override
 		protected Deflater initialValue() {
 			return new Deflater();
 		}

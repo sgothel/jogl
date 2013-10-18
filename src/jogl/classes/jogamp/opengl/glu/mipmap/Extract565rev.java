@@ -56,6 +56,7 @@ public class Extract565rev implements Extract {
   public Extract565rev() {
   }
 
+  @Override
   public void extract( boolean isSwap, ByteBuffer packedPixel, float[] extractComponents ) {
     int ushort = 0;
 
@@ -74,6 +75,7 @@ public class Extract565rev implements Extract {
     extractComponents[2] = (float)( ( ushort & 0xF800 ) >> 11 ) / 31.0f;
   }
 
+  @Override
   public void shove( float[] shoveComponents, int index, ByteBuffer packedPixel ) {
     // 00000000,00111111 == 0x001F
     // 00000111,11100000 == 0x07E0

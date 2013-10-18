@@ -54,8 +54,10 @@ public interface PointImmutable extends WriteCloneable, Comparable<PointImmutabl
      * @return <code>true</code> if the two points are equal;
      *         otherwise <code>false</code>.
      */
+    @Override
     public boolean equals(Object obj);
 
+    @Override
     public int hashCode();
 
 }

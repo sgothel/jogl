@@ -56,12 +56,14 @@ public class ExtractSByte implements ExtractPrimitive {
   public ExtractSByte() {
   }
 
+  @Override
   public double extract( boolean isSwap, ByteBuffer sbyte ) {
     byte b = sbyte.get();
     assert( b <= 127 );
     return( b );
   }
 
+  @Override
   public void shove( double value, int index, ByteBuffer data ) {
     data.position( index );
     data.put( (byte)value );

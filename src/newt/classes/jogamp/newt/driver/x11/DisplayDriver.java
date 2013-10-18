@@ -63,6 +63,7 @@ public class DisplayDriver extends DisplayImpl {
     public DisplayDriver() {
     }
 
+    @Override
     public String validateDisplayName(String name, long handle) {
         return X11Util.validateDisplayName(name, handle);
     }
@@ -72,6 +73,7 @@ public class DisplayDriver extends DisplayImpl {
      *
      * We use a private non-shared X11 Display instance for EDT window operations and one for exposed animation, eg. OpenGL.
      */
+    @Override
     protected void createNativeImpl() {
         X11Util.setX11ErrorHandler(true, DEBUG ? false : true); // make sure X11 error handler is set
         long handle = X11Util.openDisplay(name);

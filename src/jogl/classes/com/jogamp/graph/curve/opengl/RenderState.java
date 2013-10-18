@@ -105,6 +105,7 @@ public abstract class RenderState {
         return sb;
     }
 
+    @Override
     public String toString() {
         return toString(null, false).toString();
     }

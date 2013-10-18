@@ -43,6 +43,7 @@ public class MacOSXGraphicsDevice extends DefaultGraphicsDevice implements Clone
         super(NativeWindowFactory.TYPE_MACOSX, AbstractGraphicsDevice.DEFAULT_CONNECTION, unitID);
     }
 
+    @Override
     public Object clone() {
       return super.clone();
     }

@@ -114,12 +114,14 @@ public class MonitorMode implements Comparable<MonitorMode> {
 
     /** Comparator for 2 {@link MonitorMode}s, following comparison order as described in {@link MonitorMode#compareTo(MonitorMode)}, returning the ascending order. */
     public static final Comparator<MonitorMode> monitorModeComparator = new Comparator<MonitorMode>() {
+        @Override
         public int compare(MonitorMode mm1, MonitorMode mm2) {
             return mm1.compareTo(mm2);
         } };
 
     /** Comparator for 2 {@link MonitorMode}s, following comparison order as described in {@link MonitorMode#compareTo(MonitorMode)}, returning the descending order. */
     public static final Comparator<MonitorMode> monitorModeComparatorInv = new Comparator<MonitorMode>() {
+        @Override
         public int compare(MonitorMode mm1, MonitorMode mm2) {
             return mm2.compareTo(mm1);
         } };
@@ -172,6 +174,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
             }
             return sb;
         }
+        @Override
         public final String toString() {
             return new String(surfaceSize+" @ "+refreshRate+" Hz, flags ["+flags2String(flags).toString()+"]");
         }
@@ -228,6 +231,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
          *  <li><code>flags</code></li>
          * </ul>
          */
+        @Override
         public final boolean equals(Object obj) {
             if (this == obj) { return true; }
             if (obj instanceof SizeAndRRate) {
@@ -247,6 +251,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
          *  <li><code>refreshRate</code></li>
          * </ul>
          */
+        @Override
         public final int hashCode() {
             return hashCode;
         }
@@ -360,6 +365,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
         return getRotatedWH(false);
     }
 
+    @Override
     public final String toString() {
         return "[Id "+Display.toHexString(nativeId)+", " +  sizeAndRRate + ", " + rotation + " degr]";
     }
@@ -409,6 +415,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
      *  <li><code>rotation</code></li>
      * </ul>
      */
+    @Override
     public final boolean equals(Object obj) {
         if (this == obj) { return true; }
         if (obj instanceof MonitorMode) {
@@ -428,6 +435,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
      *  <li><code>rotation</code></li>
      * </ul>
      */
+    @Override
     public final int hashCode() {
         return hashCode;
     }

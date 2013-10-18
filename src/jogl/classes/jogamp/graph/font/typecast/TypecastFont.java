@@ -148,25 +148,31 @@ class TypecastFont implements FontInt {
         char2Glyph = new IntObjectHashMap(cmapentries + cmapentries/4);
     }
 
+    @Override
     public StringBuilder getName(StringBuilder sb, int nameIndex) {
         return font.getName(nameIndex, sb);
     }
+    @Override
     public String getName(int nameIndex) {
         return getName(null, nameIndex).toString();
     }
+    @Override
     public StringBuilder getAllNames(StringBuilder sb, String separator) {
         return font.getAllNames(sb, separator);
     }
+    @Override
     public StringBuilder getFullFamilyName(StringBuilder sb) {
         sb = getName(sb, Font.NAME_FAMILY).append("-");
         getName(sb, Font.NAME_SUBFAMILY);
         return sb;
     }
 
+    @Override
     public float getAdvanceWidth(int i, float pixelSize) {
         return font.getHmtxTable().getAdvanceWidth(i) * metrics.getScale(pixelSize);
     }
 
+    @Override
     public Metrics getMetrics() {
         if (metrics == null) {
             metrics = new TypecastHMetrics(this);
@@ -174,6 +180,7 @@ class TypecastFont implements FontInt {
         return metrics;
     }
 
+    @Override
     public Glyph getGlyph(char symbol) {
         TypecastGlyph result = (TypecastGlyph) char2Glyph.get(symbol);
         if (null == result) {
@@ -219,11 +226,13 @@ class TypecastFont implements FontInt {
         return result;
     }
 
+    @Override
     public ArrayList<OutlineShape> getOutlineShapes(CharSequence string, float pixelSize, Factory<? extends Vertex> vertexFactory) {
     	AffineTransform transform = new AffineTransform(vertexFactory);
     	return TypecastRenderer.getOutlineShapes(this, string, pixelSize, transform, vertexFactory);
     }
 
+    @Override
     public float getStringWidth(CharSequence string, float pixelSize) {
         float width = 0;
         final int len = string.length();
@@ -241,6 +250,7 @@ class TypecastFont implements FontInt {
         return (int)(width + 0.5f);
     }
 
+    @Override
     public float getStringHeight(CharSequence string, float pixelSize) {
         int height = 0;
 
@@ -257,6 +267,7 @@ class TypecastFont implements FontInt {
         return height;
     }
 
+    @Override
     public AABBox getStringBounds(CharSequence string, float pixelSize) {
         if (string == null) {
             return new AABBox();
@@ -287,14 +298,17 @@ class TypecastFont implements FontInt {
         return new AABBox(0, 0, 0, totalWidth, totalHeight,0);
     }
 
+    @Override
     final public int getNumGlyphs() {
         return font.getNumGlyphs();
     }
 
+    @Override
     public boolean isPrintableChar( char c ) {
         return FontFactory.isPrintableChar(c);
     }
 
+    @Override
     public String toString() {
         return getFullFamilyName(null).toString();
     }

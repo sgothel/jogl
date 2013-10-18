@@ -188,6 +188,7 @@ public class Texture {
     /** The texture coordinates corresponding to the entire image. */
     private TextureCoords coords;
 
+    @Override
     public String toString() {
         return "Texture[target 0x"+Integer.toHexString(target)+", name "+texID+", "+
                 imgWidth+"/"+texWidth+" x "+imgHeight+"/"+texHeight+", y-flip "+mustFlipVertically+

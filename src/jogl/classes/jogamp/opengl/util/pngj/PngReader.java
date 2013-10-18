@@ -994,6 +994,7 @@ public class PngReader {
 	/**
 	 * Basic info, for debugging.
 	 */
+	@Override
 	public String toString() { // basic info
 		return "filename=" + filename + " " + imgInfo.toString();
 	}

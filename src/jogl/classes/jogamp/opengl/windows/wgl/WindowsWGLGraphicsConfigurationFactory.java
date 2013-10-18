@@ -79,6 +79,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
     private WindowsWGLGraphicsConfigurationFactory() {
     }
 
+    @Override
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
             CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested, CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, int nativeVisualID) {
 

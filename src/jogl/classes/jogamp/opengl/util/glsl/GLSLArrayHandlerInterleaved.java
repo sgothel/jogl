@@ -50,12 +50,14 @@ public class GLSLArrayHandlerInterleaved extends GLVBOArrayHandler implements GL
     super(ad);
   }
 
+  @Override
   public final void setSubArrayVBOName(int vboName) {
       for(int i=0; i<subArrays.size(); i++) {
           subArrays.get(i).getData().setVBOName(vboName);
       }
   }
 
+  @Override
   public final void addSubHandler(GLArrayHandlerFlat handler) {
       subArrays.add(handler);
   }
@@ -66,6 +68,7 @@ public class GLSLArrayHandlerInterleaved extends GLVBOArrayHandler implements GL
       }
   }
 
+  @Override
   public final void enableState(GL gl, boolean enable, Object ext) {
     if(enable) {
         if(!ad.isVBO()) {

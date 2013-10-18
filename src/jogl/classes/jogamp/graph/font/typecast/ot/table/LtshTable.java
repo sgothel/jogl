@@ -38,10 +38,12 @@ public class LtshTable implements Table {
      * Get the table type, as a table directory value.
      * @return The table type
      */
+    @Override
     public int getType() {
         return LTSH;
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("'LTSH' Table - Linear Threshold Table\n-------------------------------------")
@@ -61,6 +63,7 @@ public class LtshTable implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return de;
     }

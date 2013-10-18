@@ -69,6 +69,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
         this.chooser=chooser;
     }
 
+    @Override
     public Object clone() {
         return super.clone();
     }
@@ -478,6 +479,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     return tmp.get(tmp.position());
   }
 
+  @Override
   public String toString() {
     return "X11GLXGraphicsConfiguration["+getScreen()+", visualID " + toHexString(getXVisualID()) + ", fbConfigID " + toHexString(getFBConfigID()) +
                                         ",\n\trequested " + getRequestedCapabilities()+

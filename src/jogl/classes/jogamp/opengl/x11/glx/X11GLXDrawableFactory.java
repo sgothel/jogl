@@ -95,6 +95,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     synchronized(X11GLXDrawableFactory.class) {
         if( null == x11GLXDynamicLookupHelper ) {
             x11GLXDynamicLookupHelper = AccessController.doPrivileged(new PrivilegedAction<DesktopGLDynamicLookupHelper>() {
+                @Override
                 public DesktopGLDynamicLookupHelper run() {
                     DesktopGLDynamicLookupHelper tmp;
                     try {

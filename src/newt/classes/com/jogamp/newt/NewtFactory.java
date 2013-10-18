@@ -56,6 +56,7 @@ public class NewtFactory {
 
     static {
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            @Override
             public Object run() {
                 NativeWindowFactory.initSingleton(); // last resort ..
 

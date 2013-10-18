@@ -72,6 +72,7 @@ class GL2SurfaceEvaluator implements SurfaceEvaluator {
   /**
    * Pushes eval bit
    */
+  @Override
   public void bgnmap2f() {
 
     if (output_triangles) {
@@ -88,6 +89,7 @@ class GL2SurfaceEvaluator implements SurfaceEvaluator {
    * Sets  glPolygonMode
    * @param style polygon mode (N_MESHFILL/N_MESHLINE/N_MESHPOINT)
    */
+  @Override
   public void polymode(int style) {
     if (!output_triangles) {
       switch (style) {
@@ -109,6 +111,7 @@ class GL2SurfaceEvaluator implements SurfaceEvaluator {
   /**
    * Pops all attributes
    */
+  @Override
   public void endmap2f() {
     // TODO Auto-generated method stub
     if (output_triangles) {
@@ -126,6 +129,7 @@ class GL2SurfaceEvaluator implements SurfaceEvaluator {
    * @param vlo
    * @param vhi
    */
+  @Override
   public void domain2f(float ulo, float uhi, float vlo, float vhi) {
     // DONE
   }
@@ -139,6 +143,7 @@ class GL2SurfaceEvaluator implements SurfaceEvaluator {
    * @param v0 lowest v
    * @param v1 highest v
    */
+  @Override
   public void mapgrid2f(int nu, float u0, float u1, int nv, float v0, float v1) {
 
     if (output_triangles) {
@@ -157,6 +162,7 @@ class GL2SurfaceEvaluator implements SurfaceEvaluator {
    * @param vmin minimum V
    * @param vmax maximum V
    */
+  @Override
   public void mapmesh2f(int style, int umin, int umax, int vmin, int vmax) {
     if (output_triangles) {
       //            System.out.println("TODO openglsurfaceavaluator.mapmesh2f output_triangles");
@@ -195,6 +201,7 @@ class GL2SurfaceEvaluator implements SurfaceEvaluator {
    * @param vorder surface order in v direction
    * @param pts control points
    */
+  @Override
   public void map2f(int type, float ulo, float uhi, int ustride, int uorder,
                     float vlo, float vhi, int vstride, int vorder, CArrayOfFloats pts) {
     // TODO Auto-generated method stub
@@ -210,6 +217,7 @@ class GL2SurfaceEvaluator implements SurfaceEvaluator {
    * Calls opengl enable
    * @param type what to enable
    */
+  @Override
   public void enable(int type) {
     //DONE
     gl.glEnable(type);

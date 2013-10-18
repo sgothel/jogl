@@ -86,6 +86,7 @@ public class WindowDriver extends WindowImpl {
     private Frame awtFrame = null;
     private AWTCanvas awtCanvas;
 
+    @Override
     protected void requestFocusImpl(boolean reparented) {
         awtContainer.requestFocus();
     }
@@ -97,6 +98,7 @@ public class WindowDriver extends WindowImpl {
         }
     }
 
+    @Override
     protected void createNativeImpl() {
         if(0!=getParentWindowHandle()) {
             throw new RuntimeException("Window parenting not supported in AWT, use AWTWindow(Frame) cstr for wrapping instead");
@@ -140,6 +142,7 @@ public class WindowDriver extends WindowImpl {
         }
     }
 
+    @Override
     protected void closeNativeImpl() {
         setWindowHandle(0);
         if(null!=awtContainer) {
@@ -176,6 +179,7 @@ public class WindowDriver extends WindowImpl {
         return res;
     }
 
+    @Override
     protected void updateInsetsImpl(javax.media.nativewindow.util.Insets insets) {
         final Insets contInsets = awtContainer.getInsets();
         insets.set(contInsets.left, contInsets.right, contInsets.top, contInsets.bottom);
@@ -214,6 +218,7 @@ public class WindowDriver extends WindowImpl {
         awtContainer.validate();
     }
 
+    @Override
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("AWTWindow reconfig: "+x+"/"+y+" "+width+"x"+height+", "+
@@ -266,6 +271,7 @@ public class WindowDriver extends WindowImpl {
         return true;
     }
 
+    @Override
     protected Point getLocationOnScreenImpl(int x, int y) {
         java.awt.Point ap = awtCanvas.getLocationOnScreen();
         ap.translate(x, y);

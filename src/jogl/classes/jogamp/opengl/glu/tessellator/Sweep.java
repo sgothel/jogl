@@ -1150,6 +1150,7 @@ class Sweep {
  */ {
         /* __gl_dictListNewDict */
         tess.dict = Dict.dictNewDict(tess, new Dict.DictLeq() {
+            @Override
             public boolean leq(Object frame, Object key1, Object key2) {
                 return EdgeLeq(tess, (ActiveRegion) key1, (ActiveRegion) key2);
             }
@@ -1231,6 +1232,7 @@ class Sweep {
 
         /* __gl_pqSortNewPriorityQ */
         pq = tess.pq = PriorityQ.pqNewPriorityQ(new PriorityQ.Leq() {
+            @Override
             public boolean leq(Object key1, Object key2) {
                 return Geom.VertLeq(((GLUvertex) key1), (GLUvertex) key2);
             }

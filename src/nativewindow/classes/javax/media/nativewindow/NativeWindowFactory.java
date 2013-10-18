@@ -123,6 +123,7 @@ public abstract class NativeWindowFactory {
         return AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
             private final File vcliblocation = new File(
                     "/opt/vc/lib/libbcm_host.so");
+                @Override
                 public Boolean run() {
                     if ( vcliblocation.isFile() ) {
                         return Boolean.TRUE;
@@ -160,12 +161,14 @@ public abstract class NativeWindowFactory {
         final String[] _tmp = new String[] { null };
 
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            @Override
             public Object run() {
                 Platform.initSingleton(); // last resort ..
                 _DEBUG[0] = Debug.debug("NativeWindow");
                 _tmp[0] = Debug.getProperty("nativewindow.ws.name", true);
                 Runtime.getRuntime().addShutdownHook(
                     new Thread(new Runnable() {
+                                @Override
                                 public void run() {
                                     NativeWindowFactory.shutdown(true);
                                 } }, "NativeWindowFactory_ShutdownHook" ) ) ;
@@ -318,6 +321,7 @@ public abstract class NativeWindowFactory {
                 ReflectionUtil.isClassAvailable("com.jogamp.nativewindow.awt.AWTGraphicsDevice", cl) ) {
 
                 Method[] jawtUtilMethods = AccessController.doPrivileged(new PrivilegedAction<Method[]>() {
+                    @Override
                     public Method[] run() {
                         try {
                             Class<?> _jawtUtilClass = Class.forName(JAWTUtilClassName, true, NativeWindowFactory.class.getClassLoader());

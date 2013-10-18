@@ -315,6 +315,7 @@ public class ImageLine {
 	/**
 	 * Basic info
 	 */
+	@Override
 	public String toString() {
 		return "row=" + rown + " cols=" + imgInfo.cols + " bpc=" + imgInfo.bitDepth + " size=" + scanline.length;
 	}

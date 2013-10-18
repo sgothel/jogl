@@ -59,8 +59,10 @@ public interface DimensionImmutable extends WriteCloneable, Comparable<Dimension
      * @return  <code>true</code> if the two dimensions are equal;
      *          otherwise <code>false</code>.
      */
+    @Override
     boolean equals(Object obj);
 
+    @Override
     int hashCode();
 
 }

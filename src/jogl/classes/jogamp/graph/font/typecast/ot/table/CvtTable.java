@@ -29,6 +29,7 @@ public class CvtTable implements Table {
         }
     }
 
+    @Override
     public int getType() {
         return cvt;
     }
@@ -37,6 +38,7 @@ public class CvtTable implements Table {
         return values;
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("'cvt ' Table - Control Value Table\n----------------------------------\n");
@@ -54,6 +56,7 @@ public class CvtTable implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return de;
     }

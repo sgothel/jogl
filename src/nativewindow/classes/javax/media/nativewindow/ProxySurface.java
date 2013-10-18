@@ -122,5 +122,6 @@ public interface ProxySurface extends MutableSurface {
     public void clearUpstreamOptionBits(int v);
 
     public StringBuilder toString(StringBuilder sink);
+    @Override
     public String toString();
 }

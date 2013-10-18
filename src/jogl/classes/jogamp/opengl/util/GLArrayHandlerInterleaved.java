@@ -46,12 +46,14 @@ public class GLArrayHandlerInterleaved extends GLVBOArrayHandler implements GLAr
     super(ad);
   }
 
+  @Override
   public final void setSubArrayVBOName(int vboName) {
       for(int i=0; i<subArrays.size(); i++) {
           subArrays.get(i).getData().setVBOName(vboName);
       }
   }
 
+  @Override
   public final void addSubHandler(GLArrayHandlerFlat handler) {
       subArrays.add(handler);
   }
@@ -62,6 +64,7 @@ public class GLArrayHandlerInterleaved extends GLVBOArrayHandler implements GLAr
       }
   }
 
+  @Override
   public final void enableState(GL gl, boolean enable, Object ext) {
     if(enable) {
         final boolean vboBound = bindBuffer(gl, true);

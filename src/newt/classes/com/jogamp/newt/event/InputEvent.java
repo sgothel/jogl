@@ -210,10 +210,12 @@ public abstract class InputEvent extends NEWTEvent
      return 0 != ( modifiers & BUTTONALL_MASK );
  }
 
+ @Override
  public String toString() {
      return toString(null).toString();
  }
 
+ @Override
  public StringBuilder toString(StringBuilder sb) {
      if(null == sb) {
          sb = new StringBuilder();

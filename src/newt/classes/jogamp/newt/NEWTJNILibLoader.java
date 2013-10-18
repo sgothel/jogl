@@ -51,6 +51,7 @@ import com.jogamp.common.util.cache.TempJarCache;
 public class NEWTJNILibLoader extends JNILibLoaderBase {
     public static boolean loadNEWT() {
         return AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+            @Override
             public Boolean run() {
                 Platform.initSingleton();
                 final String libName = "newt";

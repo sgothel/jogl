@@ -199,6 +199,7 @@ public class TGAImage {
         public byte[] imageIDbuf()           { return imageIDbuf; }
         public String imageID()              { return imageID; }
 
+        @Override
         public String toString() {
             return "TGA Header " +
                 " id length: " + idLength +

@@ -92,6 +92,7 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
     private X11GLXGraphicsConfigurationFactory() {
     }
 
+    @Override
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
             CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested, CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, int nativeVisualID) {
         if (!(absScreen instanceof X11GraphicsScreen)) {

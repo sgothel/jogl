@@ -1189,6 +1189,7 @@ public abstract class GLContextImpl extends GLContext {
       GLEmitter by looking up anew all of its function pointers. */
   protected final void resetProcAddressTable(final ProcAddressTable table) {
     AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        @Override
         public Object run() {
             table.reset(getDrawableImpl().getGLDynamicLookupHelper() );
             return null;

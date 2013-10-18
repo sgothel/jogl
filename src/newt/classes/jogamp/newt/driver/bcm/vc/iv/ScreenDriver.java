@@ -45,13 +45,16 @@ public class ScreenDriver extends ScreenImpl {
     public ScreenDriver() {
     }
 
+    @Override
     protected void createNativeImpl() {
         aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), screen_idx);
         initNative();
     }
 
+    @Override
     protected void closeNativeImpl() { }
 
+    @Override
     protected int validateScreenIndex(int idx) {
         return 0; // only one screen available
     }

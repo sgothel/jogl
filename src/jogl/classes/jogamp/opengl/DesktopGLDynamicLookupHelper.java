@@ -39,6 +39,7 @@ public class DesktopGLDynamicLookupHelper extends GLDynamicLookupHelper {
 
     public final DesktopGLDynamicLibraryBundleInfo getDesktopGLBundleInfo() { return (DesktopGLDynamicLibraryBundleInfo) getBundleInfo(); }
 
+    @Override
     public final synchronized boolean loadGLULibrary() {
         /** hacky code .. where all platform GLU libs are tried ..*/
         if(null==gluLib) {

@@ -293,10 +293,12 @@ public class Os2Table implements Table {
         return _usMaxContext;
     }
 
+    @Override
     public int getType() {
         return OS_2;
     }
 
+    @Override
     public String toString() {
         return new StringBuilder()
             .append("'OS/2' Table - OS/2 and Windows Metrics\n---------------------------------------")
@@ -351,6 +353,7 @@ public class Os2Table implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }

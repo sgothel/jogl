@@ -57,6 +57,7 @@ public class OffscreenWindow extends WindowImpl implements MutableSurface {
 
     static long nextWindowHandle = 0x100; // start here - a marker
 
+    @Override
     protected void createNativeImpl() {
         if(capsRequested.isOnscreen()) {
             throw new NativeWindowException("Capabilities is onscreen");
@@ -75,6 +76,7 @@ public class OffscreenWindow extends WindowImpl implements MutableSurface {
         visibleChanged(false, true);
     }
 
+    @Override
     protected void closeNativeImpl() {
         // nop
     }
@@ -85,6 +87,7 @@ public class OffscreenWindow extends WindowImpl implements MutableSurface {
         surfaceHandle = 0;
     }
 
+    @Override
     public void setSurfaceHandle(long handle) {
         surfaceHandle = handle ;
     }
@@ -94,6 +97,7 @@ public class OffscreenWindow extends WindowImpl implements MutableSurface {
         return surfaceHandle;
     }
 
+    @Override
     protected void requestFocusImpl(boolean reparented) {
     }
 
@@ -113,6 +117,7 @@ public class OffscreenWindow extends WindowImpl implements MutableSurface {
     }
 
 
+    @Override
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
         sizeChanged(false, width, height, false);
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
@@ -138,10 +143,12 @@ public class OffscreenWindow extends WindowImpl implements MutableSurface {
      return new Point(0,0);
     }
 
+    @Override
     protected Point getLocationOnScreenImpl(int x, int y) {
         return new Point(x,y);
     }
 
+    @Override
     protected void updateInsetsImpl(Insets insets) {
         // nop ..
     }

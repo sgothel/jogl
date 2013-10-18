@@ -52,6 +52,7 @@ public class GLRunnableTask implements GLRunnable {
         isFlushed = false;
     }
 
+    @Override
     public boolean run(GLAutoDrawable drawable) {
         boolean res = true;
         if(null == notifyObject) {

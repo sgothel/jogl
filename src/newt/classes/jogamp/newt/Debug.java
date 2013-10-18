@@ -54,6 +54,7 @@ public class Debug extends PropertyAccess {
 
   static {
     AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        @Override
         public Object run() {
             PropertyAccess.addTrustedPrefix("newt.");
             return null;

@@ -292,6 +292,7 @@ public class FBObject {
 
         int objectHashCode() { return super.hashCode(); }
 
+        @Override
         public String toString() {
             return getClass().getSimpleName()+"[type "+type+", format "+toHexString(format)+", "+width+"x"+height+
                    "; name "+toHexString(name)+", obj "+toHexString(objectHashCode())+"]";
@@ -414,6 +415,7 @@ public class FBObject {
             }
         }
 
+        @Override
         public String toString() {
             return getClass().getSimpleName()+"[type "+type+", format "+toHexString(format)+", samples "+samples+", "+getWidth()+"x"+getHeight()+
                    ", name "+toHexString(getName())+", obj "+toHexString(objectHashCode())+"]";
@@ -527,6 +529,7 @@ public class FBObject {
                 setName(0);
             }
         }
+        @Override
         public String toString() {
             return getClass().getSimpleName()+"[type "+type+", target GL_TEXTURE_2D, level 0, format "+toHexString(format)+
                                               ", "+getWidth()+"x"+getHeight()+", border 0, dataFormat "+toHexString(dataFormat)+
@@ -2306,6 +2309,7 @@ public class FBObject {
 
     int objectHashCode() { return super.hashCode(); }
 
+    @Override
     public final String toString() {
         final String caps = null != colorAttachmentPoints ? Arrays.asList(colorAttachmentPoints).toString() : null ;
         return "FBO[name r/w "+fbName+"/"+getReadFramebuffer()+", init "+initialized+", bound "+bound+", size "+width+"x"+height+

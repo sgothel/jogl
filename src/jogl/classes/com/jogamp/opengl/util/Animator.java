@@ -109,6 +109,7 @@ public class Animator extends AnimatorBase {
         }
     }
 
+    @Override
     protected String getBaseName(String prefix) {
         return prefix + "Animator" ;
     }
@@ -138,10 +139,12 @@ public class Animator extends AnimatorBase {
     }
 
     class MainLoop implements Runnable {
+        @Override
         public String toString() {
             return "[started "+isStartedImpl()+", animating "+isAnimatingImpl()+", paused "+isPausedImpl()+", drawable "+drawables.size()+", drawablesEmpty "+drawablesEmpty+"]";
         }
 
+        @Override
         public void run() {
             try {
                 if(DEBUG) {
@@ -228,6 +231,7 @@ public class Animator extends AnimatorBase {
     private final boolean isAnimatingImpl() {
         return animThread != null && isAnimating ;
     }
+    @Override
     public final boolean isAnimating() {
         stateSync.lock();
         try {
@@ -240,6 +244,7 @@ public class Animator extends AnimatorBase {
     private final boolean isPausedImpl() {
         return animThread != null && pauseIssued ;
     }
+    @Override
     public final boolean isPaused() {
         stateSync.lock();
         try {
@@ -262,6 +267,7 @@ public class Animator extends AnimatorBase {
         threadGroup = tg;
     }
 
+    @Override
     public synchronized boolean start() {
         if ( isStartedImpl() ) {
             return false;
@@ -286,10 +292,12 @@ public class Animator extends AnimatorBase {
         return finishLifecycleAction(waitForStartedCondition, 0);
     }
     private final Condition waitForStartedCondition = new Condition() {
+        @Override
         public boolean eval() {
             return !isStartedImpl() || (!drawablesEmpty && !isAnimating) ;
         } };
 
+    @Override
     public synchronized boolean stop() {
         if ( !isStartedImpl() ) {
             return false;
@@ -298,10 +306,12 @@ public class Animator extends AnimatorBase {
         return finishLifecycleAction(waitForStoppedCondition, 0);
     }
     private final Condition waitForStoppedCondition = new Condition() {
+        @Override
         public boolean eval() {
             return isStartedImpl();
         } };
 
+    @Override
     public synchronized boolean pause() {
         if ( !isStartedImpl() || pauseIssued ) {
             return false;
@@ -310,11 +320,13 @@ public class Animator extends AnimatorBase {
         return finishLifecycleAction(waitForPausedCondition, 0);
     }
     private final Condition waitForPausedCondition = new Condition() {
+        @Override
         public boolean eval() {
             // end waiting if stopped as well
             return isStartedImpl() && isAnimating;
         } };
 
+    @Override
     public synchronized boolean resume() {
         if ( !isStartedImpl() || !pauseIssued ) {
             return false;
@@ -323,6 +335,7 @@ public class Animator extends AnimatorBase {
         return finishLifecycleAction(waitForResumeCondition, 0);
     }
     private final Condition waitForResumeCondition = new Condition() {
+        @Override
         public boolean eval() {
             // end waiting if stopped as well
             return isStartedImpl() && ( !drawablesEmpty && !isAnimating || drawablesEmpty && !pauseIssued ) ;

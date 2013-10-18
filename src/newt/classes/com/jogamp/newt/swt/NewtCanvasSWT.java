@@ -99,6 +99,7 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
     public static NewtCanvasSWT create(final Composite parent, final int style, final Window child) {
         final NewtCanvasSWT[] res = new NewtCanvasSWT[] { null };
         parent.getDisplay().syncExec( new Runnable() {
+           @Override
            public void run() {
                res[0] = new NewtCanvasSWT( parent, style, child);
            }
@@ -254,10 +255,12 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
     /** @return this SWT Canvas NativeWindow representation, may be null in case it has not been realized. */
     public NativeWindow getNativeWindow() { return nativeWindow; }
 
+    @Override
     public WindowClosingMode getDefaultCloseOperation() {
         return newtChildCloseOp; // TODO: implement ?!
     }
 
+    @Override
     public WindowClosingMode setDefaultCloseOperation(WindowClosingMode op) {
         return newtChildCloseOp = op; // TODO: implement ?!
     }

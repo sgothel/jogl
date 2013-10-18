@@ -65,8 +65,11 @@ public class RenderStateImpl extends RenderState {
         this(st, pointFactory, new PMVMatrix());
     }
 
+    @Override
     public final GLUniformData getWeight() { return gcu_Weight; }
+    @Override
     public final GLUniformData getAlpha() { return gcu_Alpha; }
+    @Override
     public final GLUniformData getColorStatic() { return gcu_ColorStatic; }
     //public final GLUniformData getStrength() { return gcu_Strength; }
 

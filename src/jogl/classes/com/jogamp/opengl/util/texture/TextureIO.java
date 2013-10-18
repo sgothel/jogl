@@ -914,6 +914,7 @@ public class TextureIO {
     //----------------------------------------------------------------------
     // DDS provider -- supports files only for now
     static class DDSTextureProvider implements TextureProvider {
+        @Override
         public TextureData newTextureData(GLProfile glp, File file,
                                           int internalFormat,
                                           int pixelFormat,
@@ -928,6 +929,7 @@ public class TextureIO {
             return null;
         }
 
+        @Override
         public TextureData newTextureData(GLProfile glp, InputStream stream,
                                           int internalFormat,
                                           int pixelFormat,
@@ -944,6 +946,7 @@ public class TextureIO {
             return null;
         }
 
+        @Override
         public TextureData newTextureData(GLProfile glp, URL url,
                                           int internalFormat,
                                           int pixelFormat,
@@ -999,6 +1002,7 @@ public class TextureIO {
                 }
             }
             TextureData.Flusher flusher = new TextureData.Flusher() {
+                    @Override
                     public void flush() {
                         image.close();
                     }
@@ -1042,6 +1046,7 @@ public class TextureIO {
     //----------------------------------------------------------------------
     // Base class for SGI RGB and TGA image providers
     static abstract class StreamBasedTextureProvider implements TextureProvider {
+        @Override
         public TextureData newTextureData(GLProfile glp, File file,
                                           int internalFormat,
                                           int pixelFormat,
@@ -1062,6 +1067,7 @@ public class TextureIO {
             }
         }
 
+        @Override
         public TextureData newTextureData(GLProfile glp, URL url,
                                           int internalFormat,
                                           int pixelFormat,
@@ -1079,6 +1085,7 @@ public class TextureIO {
     //----------------------------------------------------------------------
     // SGI RGB image provider
     static class SGITextureProvider extends StreamBasedTextureProvider {
+        @Override
         public TextureData newTextureData(GLProfile glp, InputStream stream,
                                           int internalFormat,
                                           int pixelFormat,
@@ -1114,6 +1121,7 @@ public class TextureIO {
     //----------------------------------------------------------------------
     // TGA (Targa) image provider
     static class TGATextureProvider extends StreamBasedTextureProvider {
+        @Override
         public TextureData newTextureData(GLProfile glp, InputStream stream,
                                           int internalFormat,
                                           int pixelFormat,
@@ -1151,6 +1159,7 @@ public class TextureIO {
     //----------------------------------------------------------------------
     // PNG image provider
     static class PNGTextureProvider extends StreamBasedTextureProvider {
+        @Override
         public TextureData newTextureData(GLProfile glp, InputStream stream,
                                           int internalFormat,
                                           int pixelFormat,
@@ -1188,6 +1197,7 @@ public class TextureIO {
     //----------------------------------------------------------------------
     // JPEG image provider
     static class JPGTextureProvider extends StreamBasedTextureProvider {
+        @Override
         public TextureData newTextureData(GLProfile glp, InputStream stream,
                                           int internalFormat,
                                           int pixelFormat,
@@ -1226,6 +1236,7 @@ public class TextureIO {
     // DDS texture writer
     //
     static class DDSTextureWriter implements TextureWriter {
+        @Override
         public boolean write(File file,
                              TextureData data) throws IOException {
             if (DDS.equals(IOUtil.getFileSuffix(file))) {
@@ -1276,6 +1287,7 @@ public class TextureIO {
     // SGI (rgb) texture writer
     //
     static class SGITextureWriter implements TextureWriter {
+        @Override
         public boolean write(File file,
                              TextureData data) throws IOException {
             String fileSuffix = IOUtil.getFileSuffix(file);
@@ -1321,6 +1333,7 @@ public class TextureIO {
     // TGA (Targa) texture writer
 
     static class TGATextureWriter implements TextureWriter {
+        @Override
         public boolean write(File file,
                              TextureData data) throws IOException {
             if (TGA.equals(IOUtil.getFileSuffix(file))) {
@@ -1371,6 +1384,7 @@ public class TextureIO {
     // PNG texture writer
 
     static class PNGTextureWriter implements TextureWriter {
+        @Override
         public boolean write(File file, TextureData data) throws IOException {
             if (PNG.equals(IOUtil.getFileSuffix(file))) {
                 // See whether the PNG writer can handle this TextureData

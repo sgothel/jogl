@@ -78,43 +78,51 @@ public class LEDataOutputStream extends FilterOutputStream implements DataOutput
         dataOut = new DataOutputStream(out);
     }
 
+    @Override
     public void close() throws IOException
     {
         dataOut.close(); // better close as we create it.
         // this will close underlying as well.
     }
 
+    @Override
     public synchronized final void write(byte b[]) throws IOException
     {
         dataOut.write(b, 0, b.length);
     }
 
+    @Override
     public synchronized final void write(byte b[], int off, int len) throws IOException
     {
         dataOut.write(b, off, len);
     }
 
+    @Override
     public final void write(int b) throws IOException
     {
         dataOut.write(b);
     }
 
+    @Override
     public final void writeBoolean(boolean v) throws IOException
     {
         dataOut.writeBoolean(v);
     }
 
+    @Override
     public final void writeByte(int v) throws IOException
     {
         dataOut.writeByte(v);
     }
 
     /** Don't call this -- not implemented */
+    @Override
     public final void writeBytes(String s) throws IOException
     {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public final void writeChar(int v) throws IOException
     {
         dataOut.writeChar(((v >> 8) & 0xff) |
@@ -122,21 +130,25 @@ public class LEDataOutputStream extends FilterOutputStream implements DataOutput
     }
 
     /** Don't call this -- not implemented */
+    @Override
     public final void writeChars(String s) throws IOException
     {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public final void writeDouble(double v) throws IOException
     {
         writeLong(Double.doubleToRawLongBits(v));
     }
 
+    @Override
     public final void writeFloat(float v) throws IOException
     {
         writeInt(Float.floatToRawIntBits(v));
     }
 
+    @Override
     public final void writeInt(int v) throws IOException
     {
         dataOut.writeInt((v >>> 24) |
@@ -145,12 +157,14 @@ public class LEDataOutputStream extends FilterOutputStream implements DataOutput
                          (v << 24));
     }
 
+    @Override
     public final void writeLong(long v) throws IOException
     {
         writeInt((int) v);
         writeInt((int) (v >>> 32));
     }
 
+    @Override
     public final void writeShort(int v) throws IOException
     {
         dataOut.writeShort(((v >> 8) & 0xff) |
@@ -158,6 +172,7 @@ public class LEDataOutputStream extends FilterOutputStream implements DataOutput
     }
 
     /** Don't call this -- not implemented */
+    @Override
     public final void writeUTF(String s) throws IOException
     {
         throw new UnsupportedOperationException();

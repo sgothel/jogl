@@ -56,6 +56,7 @@ public class ExtractSShort implements ExtractPrimitive {
   public ExtractSShort() {
   }
 
+  @Override
   public double extract( boolean isSwap, ByteBuffer ushort ) {
     short s = 0;
     if( isSwap ) {
@@ -67,6 +68,7 @@ public class ExtractSShort implements ExtractPrimitive {
     return( s );
   }
 
+  @Override
   public void shove( double value, int index, ByteBuffer data ) {
     assert(0.0 <= value && value < 32768.0);
     ShortBuffer sb = data.asShortBuffer();

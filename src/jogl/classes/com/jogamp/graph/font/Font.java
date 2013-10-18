@@ -109,5 +109,6 @@ public interface Font {
     public boolean isPrintableChar( char c );
 
     /** Shall return {@link #getFullFamilyName()} */
+    @Override
     public String toString();
 }

@@ -90,6 +90,7 @@ public class CmapIndexEntry implements Comparable {
         _format = format;
     }
 
+    @Override
     public String toString() {
         return new StringBuilder()
             .append("platform id: ")
@@ -104,6 +105,7 @@ public class CmapIndexEntry implements Comparable {
             .append(_offset).toString();
     }
 
+    @Override
     public int compareTo(java.lang.Object obj) {
         CmapIndexEntry entry = (CmapIndexEntry) obj;
         if (getOffset() < entry.getOffset()) {

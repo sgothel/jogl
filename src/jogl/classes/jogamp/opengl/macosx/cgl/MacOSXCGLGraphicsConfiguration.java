@@ -59,6 +59,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
         super(screen, capsChosen, capsRequested);
     }
 
+    @Override
     public Object clone() {
         return super.clone();
     }

@@ -76,6 +76,7 @@ public class DefaultCapabilitiesChooser implements CapabilitiesChooser {
   private final static int NO_SCORE = -9999999;
   private final static int COLOR_MISMATCH_PENALTY_SCALE     = 36;
 
+  @Override
   public int chooseCapabilities(final CapabilitiesImmutable desired,
                                 final List<? extends CapabilitiesImmutable> available,
                                 final int windowSystemRecommendedChoice) {

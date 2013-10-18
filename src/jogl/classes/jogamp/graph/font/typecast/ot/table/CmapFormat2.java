@@ -118,10 +118,12 @@ public class CmapFormat2 extends CmapFormat {
         }
     }
 
+    @Override
     public int getRangeCount() {
         return _subHeaders.length;
     }
 
+    @Override
     public Range getRange(int index) throws ArrayIndexOutOfBoundsException {
         if (index < 0 || index >= _subHeaders.length) {
             throw new ArrayIndexOutOfBoundsException();
@@ -144,6 +146,7 @@ public class CmapFormat2 extends CmapFormat {
                     _subHeaders[index]._entryCount - 1));
     }
 
+    @Override
     public int mapCharCode(int charCode) {
 
         // Get the appropriate subheader

@@ -42,10 +42,12 @@ public class Point implements Cloneable, PointImmutable {
         this(0, 0);
     }
 
+    @Override
     public Object cloneMutable() {
       return clone();
     }
 
+    @Override
     public Object clone() {
         try {
             return super.clone();
@@ -95,6 +97,7 @@ public class Point implements Cloneable, PointImmutable {
         return hash;
     }
 
+    @Override
     public String toString() {
         return new String( x + " / " + y );
     }

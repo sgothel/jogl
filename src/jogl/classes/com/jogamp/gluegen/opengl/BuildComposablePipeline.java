@@ -402,6 +402,7 @@ public class BuildComposablePipeline {
                     ifNames,
                     null,
                     new CodeGenUtils.EmissionCallback() {
+                        @Override
                         public void emit(PrintWriter w) {
                             emitClassDocComment(w);
                         }
@@ -752,18 +753,22 @@ public class BuildComposablePipeline {
             this.mode = mode;
         }
 
+        @Override
         protected String getOutputName() {
             return className;
         }
 
+        @Override
         protected int getMode() {
             return mode;
         }
 
+        @Override
         protected boolean emptyMethodAllowed() {
             return true;
         }
 
+        @Override
         protected boolean emptyDownstreamAllowed() {
             return true;
         }
@@ -773,6 +778,7 @@ public class BuildComposablePipeline {
             super.preMethodEmissionHook(output);
         }
 
+        @Override
         protected void constructorHook(PrintWriter output) {
             output.print("  public " + getOutputName() + "(");
             output.print(downstreamName + " " + getDownstreamObjectName());
@@ -803,6 +809,7 @@ public class BuildComposablePipeline {
             }
         }
 
+        @Override
         protected void emitClassDocComment(PrintWriter output) {
             output.println("/**");
             output.println(" * Composable pipeline {@link " + outputPackage + "." + outputName + "}, implementing the interface");
@@ -837,10 +844,12 @@ public class BuildComposablePipeline {
             output.println("*/");
         }
 
+        @Override
         protected boolean hasPreDownstreamCallHook(Method m) {
             return null != getMethod(prologClassOpt, m);
         }
 
+        @Override
         protected void preDownstreamCallHook(PrintWriter output, Method m) {
             if (null != prologNameOpt) {
                 output.print(getPrologObjectNameOpt());
@@ -852,10 +861,12 @@ public class BuildComposablePipeline {
             }
         }
 
+        @Override
         protected boolean hasPostDownstreamCallHook(Method m) {
             return false;
         }
 
+        @Override
         protected void postDownstreamCallHook(PrintWriter output, Method m) {
         }
     } // end class CustomPipeline
@@ -869,18 +880,22 @@ public class BuildComposablePipeline {
             className = "Debug" + getBaseInterfaceName();
         }
 
+        @Override
         protected String getOutputName() {
             return className;
         }
 
+        @Override
         protected int getMode() {
             return 0;
         }
 
+        @Override
         protected boolean emptyMethodAllowed() {
             return false;
         }
 
+        @Override
         protected boolean emptyDownstreamAllowed() {
             return false;
         }
@@ -890,6 +905,7 @@ public class BuildComposablePipeline {
             super.preMethodEmissionHook(output);
         }
 
+        @Override
         protected void constructorHook(PrintWriter output) {
             output.print("  public " + getOutputName() + "(");
             output.println(downstreamName + " " + getDownstreamObjectName() + ")");
@@ -971,6 +987,7 @@ public class BuildComposablePipeline {
             output.println("  private GLContext _context;");
         }
 
+        @Override
         protected void emitClassDocComment(PrintWriter output) {
             output.println("/**");
             output.println(" * <p>");
@@ -988,18 +1005,22 @@ public class BuildComposablePipeline {
             output.println(" */");
         }
 
+        @Override
         protected boolean hasPreDownstreamCallHook(Method m) {
             return true;
         }
 
+        @Override
         protected void preDownstreamCallHook(PrintWriter output, Method m) {
             output.println("    checkContext();");
         }
 
+        @Override
         protected boolean hasPostDownstreamCallHook(Method m) {
             return true;
         }
 
+        @Override
         protected void postDownstreamCallHook(PrintWriter output, Method m) {
             if (m.getName().equals("glBegin")) {
                 output.println("    insideBeginEndPair = true;");
@@ -1041,18 +1062,22 @@ public class BuildComposablePipeline {
             className = "Trace" + getBaseInterfaceName();
         }
 
+        @Override
         protected String getOutputName() {
             return className;
         }
 
+        @Override
         protected int getMode() {
             return 0;
         }
 
+        @Override
         protected boolean emptyMethodAllowed() {
             return false;
         }
 
+        @Override
         protected boolean emptyDownstreamAllowed() {
             return false;
         }
@@ -1062,6 +1087,7 @@ public class BuildComposablePipeline {
             super.preMethodEmissionHook(output);
         }
 
+        @Override
         protected void constructorHook(PrintWriter output) {
             output.print("  public " + getOutputName() + "(");
             output.println(downstreamName + " " + getDownstreamObjectName() + ", PrintStream " + getOutputStreamName() + ")");
@@ -1112,6 +1138,7 @@ public class BuildComposablePipeline {
             output.println("}");
         }
 
+        @Override
         protected void emitClassDocComment(PrintWriter output) {
             output.println("/**");
             output.println(" * <p>");
@@ -1129,10 +1156,12 @@ public class BuildComposablePipeline {
             output.println(" */");
         }
 
+        @Override
         protected boolean hasPreDownstreamCallHook(Method m) {
             return true;
         }
 
+        @Override
         protected void preDownstreamCallHook(PrintWriter output, Method m) {
             if (m.getName().equals("glEnd") || m.getName().equals("glEndList")) {
                 output.println("indent-=2;");
@@ -1146,10 +1175,12 @@ public class BuildComposablePipeline {
             output.println(");");
         }
 
+        @Override
         protected boolean hasPostDownstreamCallHook(Method m) {
             return true;
         }
 
+        @Override
         protected void postDownstreamCallHook(PrintWriter output, Method m) {
             Class<?> ret = m.getReturnType();
             if (ret != Void.TYPE) {

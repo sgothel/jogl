@@ -271,7 +271,7 @@ public class OSXUtil implements ToolkitProperties {
         RunLater0(onMain, new RunnableTask( runnable, null, true, System.err ), delay);
     }
 
-    private static Runnable _nop = new Runnable() { public void run() {}; };
+    private static Runnable _nop = new Runnable() { @Override public void run() {}; };
 
     /** Issues a {@link #RunOnMainThread(boolean, Runnable)} w/ an <i>NOP</i> runnable, while waiting until done. */
     public static void WaitUntilFinish() {

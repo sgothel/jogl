@@ -201,10 +201,14 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
     protected final void setTextureType(int t) { textureType=t; }
 
+    @Override
     public final void setTextureMinMagFilter(int[] minMagFilter) { texMinMagFilter[0] = minMagFilter[0]; texMinMagFilter[1] = minMagFilter[1];}
+    @Override
     public final int[] getTextureMinMagFilter() { return texMinMagFilter; }
 
+    @Override
     public final void setTextureWrapST(int[] wrapST) { texWrapST[0] = wrapST[0]; texWrapST[1] = wrapST[1];}
+    @Override
     public final int[] getTextureWrapST() { return texWrapST; }
 
     private final void checkGLInit() {
@@ -1043,6 +1047,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         public boolean isActive() { return isActive; }
         public StreamException getStreamErr() { return streamErr; }
 
+        @Override
         public void run() {
             setName(getName()+"-StreamWorker_"+StreamWorkerInstanceId);
             StreamWorkerInstanceId++;

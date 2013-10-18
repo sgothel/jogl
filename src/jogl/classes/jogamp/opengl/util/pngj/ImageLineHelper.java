@@ -92,6 +92,7 @@ public class ImageLineHelper {
 		public double[] maxdif = { BIG_VALUE_NEG, BIG_VALUE_NEG, BIG_VALUE_NEG, BIG_VALUE }; // maxima
 		public final int channels; // diferencia
 
+		@Override
 		public String toString() {
 			return channels == 3 ? String.format(
 					"prom=%.1f (%.1f %.1f %.1f) max=%.1f (%.1f %.1f %.1f) min=%.1f (%.1f %.1f %.1f)", promlum, prom[0],

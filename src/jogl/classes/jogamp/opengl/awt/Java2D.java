@@ -116,6 +116,7 @@ public class Java2D {
 
   static {
     AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        @Override
         public Object run() {
           if (DEBUG) {
             System.err.println("Checking for Java2D/OpenGL support");
@@ -565,6 +566,7 @@ public class Java2D {
 
   private static int getOGLUtilitiesIntField(final String name) {
     Integer i = AccessController.doPrivileged(new PrivilegedAction<Integer>() {
+        @Override
         public Integer run() {
           try {
             Class<?> utils = Class.forName("sun.java2d.opengl.OGLUtilities");
@@ -608,6 +610,7 @@ public class Java2D {
         System.err.println("Starting initialization of J2D FBO share context");
       }
       invokeWithOGLSharedContextCurrent(device.getDefaultConfiguration(), new Runnable() {
+          @Override
           public void run() {
             j2dFBOShareContext = GLDrawableFactory.getFactory(GLProfile.getDefault(GLProfile.getDefaultDevice())).createExternalGLContext();
           }
