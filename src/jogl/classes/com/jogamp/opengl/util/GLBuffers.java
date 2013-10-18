@@ -619,8 +619,6 @@ public class GLBuffers extends Buffers {
             case GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV:
             case GL2GL3.GL_UNSIGNED_SHORT_5_5_5_1:
             case GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV:
-              compSize = 2;
-              compCount = 1;
             case GL2.GL_UNSIGNED_SHORT_8_8_APPLE:
             case GL2.GL_UNSIGNED_SHORT_8_8_REV_APPLE:
               compSize = 2;
