@@ -612,21 +612,4 @@ public class OutlineShape implements Comparable<OutlineShape> {
         }
         return true;
     }
-
-    /**
-     * @return deep clone of this OutlineShape w/o Region
-     */
-    @Override
-    public OutlineShape clone() {
-        OutlineShape o;
-        try {
-            o = (OutlineShape) super.clone();
-        } catch (CloneNotSupportedException e) { throw new InternalError(); }
-        o.bbox = bbox.clone();
-        o.outlines = new ArrayList<Outline>(outlines.size());
-        for(int i=0; i<outlines.size(); i++) {
-            o.outlines.add(outlines.get(i).clone());
-        }
-        return o;
-    }
 }
