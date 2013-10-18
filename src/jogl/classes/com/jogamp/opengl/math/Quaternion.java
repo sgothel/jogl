@@ -361,7 +361,7 @@ public class Quaternion {
             y = (m[6] - m[2]) * S;
             z = (m[1] - m[3]) * S;
         } else {
-            if ((m[0] > m[4]) & (m[0] > m[8])) {
+            if ((m[0] > m[4]) && (m[0] > m[8])) {
                 final float S = FloatUtil.sqrt(1.0f + m[0] - m[4] - m[8]) * 2f; // S=4*qx
                 w = (m[7] - m[5]) / S;
                 x = 0.25f * S;
