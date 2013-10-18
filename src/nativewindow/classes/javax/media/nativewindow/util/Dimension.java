@@ -87,7 +87,7 @@ public class Dimension implements Cloneable, DimensionImmutable {
 
     @Override
     public String toString() {
-        return new String(width+" x "+height);
+        return width + " x " + height;
     }
 
     @Override

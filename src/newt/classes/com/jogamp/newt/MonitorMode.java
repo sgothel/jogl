@@ -176,7 +176,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
         }
         @Override
         public final String toString() {
-            return new String(surfaceSize+" @ "+refreshRate+" Hz, flags ["+flags2String(flags).toString()+"]");
+            return surfaceSize+" @ "+refreshRate+" Hz, flags ["+flags2String(flags).toString()+"]";
         }
 
         /**

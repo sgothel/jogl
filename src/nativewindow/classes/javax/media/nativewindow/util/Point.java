@@ -99,7 +99,7 @@ public class Point implements Cloneable, PointImmutable {
 
     @Override
     public String toString() {
-        return new String( x + " / " + y );
+        return x + " / " + y;
     }
 
     public final void set(int x, int y) { this.x = x; this.y = y; }
