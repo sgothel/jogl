@@ -52,51 +52,51 @@ public class GlyphString {
      * <p>The actual font size shall be accomplished by the GL PMV matrix.</p>
      */
     public static final int STATIC_FONT_SIZE = 10;
-    
+
     private ArrayList<GlyphShape> glyphs = new ArrayList<GlyphShape>();
     private CharSequence str;
     private String fontname;
     private GLRegion region;
-    
+
     private SVertex origin = new SVertex();
 
     /**
      * <p>Uses {@link #STATIC_FONT_SIZE}.</p>
      * <p>No caching is performed.</p>
-     * 
+     *
      * @param shape is not null, add all {@link GlyphShape}'s {@link Outline} to this instance.
      * @param vertexFactory vertex impl factory {@link Factory}
-     * @param font the target {@link Font} 
+     * @param font the target {@link Font}
      * @param str string text
      * @return the created {@link GlyphString} instance
      */
     public static GlyphString createString(OutlineShape shape, Factory<? extends Vertex> vertexFactory, Font font, String str) {
-        return createString(shape, vertexFactory, font, STATIC_FONT_SIZE, str); 
+        return createString(shape, vertexFactory, font, STATIC_FONT_SIZE, str);
     }
-    
+
     /**
      * <p>No caching is performed.</p>
-     * 
+     *
      * @param shape is not null, add all {@link GlyphShape}'s {@link Outline} to this instance.
      * @param vertexFactory vertex impl factory {@link Factory}
-     * @param font the target {@link Font} 
+     * @param font the target {@link Font}
      * @param fontSize font size
      * @param str string text
      * @return the created {@link GlyphString} instance
      */
     public static GlyphString createString(OutlineShape shape, Factory<? extends Vertex> vertexFactory, Font font, int fontSize, String str) {
     	ArrayList<OutlineShape> shapes = ((FontInt)font).getOutlineShapes(str, fontSize, vertexFactory);
-        
+
         GlyphString glyphString = new GlyphString(font.getName(Font.NAME_UNIQUNAME), str);
         glyphString.createfromOutlineShapes(vertexFactory, shapes);
         if(null != shape) {
             for(int i=0; i<glyphString.glyphs.size(); i++) {
                 shape.addOutlineShape(glyphString.glyphs.get(i).getShape());
-            }    
+            }
         }
         return glyphString;
     }
-    
+
     /** Create a new GlyphString object
      * @param fontname the name of the font that this String is
      * associated with
@@ -106,18 +106,18 @@ public class GlyphString {
         this.fontname = fontname;
         this.str = str;
     }
-    
+
     public void addGlyphShape(GlyphShape glyph){
         glyphs.add(glyph);
     }
-    
+
     public CharSequence getString(){
         return str;
     }
 
-    /**Creates the Curve based Glyphs from a list of {@link OutlineShape} 
+    /**Creates the Curve based Glyphs from a list of {@link OutlineShape}
      * @param vertexFactory vertex impl factory {@link Factory}
-     * @param shapes list of {@link OutlineShape} 
+     * @param shapes list of {@link OutlineShape}
      */
     public void createfromOutlineShapes(Factory<? extends Vertex> vertexFactory, ArrayList<OutlineShape> shapes) {
         final int numGlyps = shapes.size();
@@ -126,31 +126,31 @@ public class GlyphString {
                 continue;
             }
             GlyphShape glyphShape = new GlyphShape(vertexFactory, shapes.get(index));
-            
+
             if(glyphShape.getNumVertices() < 3) {
                 continue;
-            }            
+            }
             addGlyphShape(glyphShape);
         }
     }
-    
-    
+
+
     /** Generate a OGL Region to represent this Object.
      * @param gl the current gl object
      * @param rs the current attached RenderState
-     * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, {@link Region#VBAA_RENDERING_BIT} 
+     * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, {@link Region#VBAA_RENDERING_BIT}
      */
     public GLRegion createRegion(GL2ES2 gl, int renderModes){
         region = RegionFactory.create(renderModes);
         // region.setFlipped(true);
-        
+
         int numVertices = region.getNumVertices();
-        
+
         for(int i=0; i< glyphs.size(); i++) {
             final GlyphShape glyph = glyphs.get(i);
             ArrayList<Triangle> gtris = glyph.triangulate();
             region.addTriangles(gtris);
-            
+
             final ArrayList<Vertex> gVertices = glyph.getVertices();
             for(int j=0; j<gVertices.size(); j++) {
                 final Vertex gVert = gVertices.get(j);
@@ -160,8 +160,8 @@ public class GlyphString {
         }
         return region;
     }
-    
-    /** Generate a Hashcode for this object 
+
+    /** Generate a Hashcode for this object
      * @return a string defining the hashcode
      */
     public String getTextHashCode(){
@@ -180,15 +180,15 @@ public class GlyphString {
      * @param rs the RenderState to be used
      * @param vp_width current screen width
      * @param vp_height current screen height
-     * @param texWidth desired texture width for multipass-rendering. 
+     * @param texWidth desired texture width for multipass-rendering.
      *        The actual used texture-width is written back when mp rendering is enabled, otherwise the store is untouched.
      */
     public void renderString3D(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int[/*1*/] texWidth) {
         region.draw(gl, rs, vp_width, vp_height, texWidth);
     }
-    
+
     /** Get the Origin of this GlyphString
-     * @return 
+     * @return
      */
     public Vertex getOrigin() {
         return origin;
@@ -206,7 +206,7 @@ public class GlyphString {
         }
         glyphs.clear();
     }
-    
+
     public AABBox getBounds(){
         return region.getBounds();
     }

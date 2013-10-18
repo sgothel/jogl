@@ -35,7 +35,7 @@ package jogamp.opengl.glu.nurbs;
  */
 
 /**
- * Class holding rendering params 
+ * Class holding rendering params
  * @author Tomas Hrasky
  *
  */

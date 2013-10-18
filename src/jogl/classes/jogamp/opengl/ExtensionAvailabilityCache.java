@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -59,7 +59,7 @@ final class ExtensionAvailabilityCache {
   }
 
   /**
-   * Flush the cache. 
+   * Flush the cache.
    */
   final void flush()
   {
@@ -87,7 +87,7 @@ final class ExtensionAvailabilityCache {
     validateInitialization();
     return availableExtensionCache.size();
   }
-  
+
   final boolean isExtensionAvailable(String glExtensionName) {
     validateInitialization();
     return availableExtensionCache.contains(glExtensionName);
@@ -97,7 +97,7 @@ final class ExtensionAvailabilityCache {
     validateInitialization();
     return glXExtensionCount;
   }
-  
+
   final String getPlatformExtensionsString() {
     validateInitialization();
     return glXExtensions;
@@ -107,7 +107,7 @@ final class ExtensionAvailabilityCache {
     validateInitialization();
     return glExtensionCount;
   }
-  
+
   final String getGLExtensionsString() {
     validateInitialization();
     if(DEBUG) {
@@ -151,7 +151,7 @@ final class ExtensionAvailabilityCache {
                   ", use "+ ( useGetStringi ? "glGetStringi" : "glGetString" ) );
       }
 
-      HashSet<String> glExtensionSet = new HashSet<String>(gl.isGLES() ? 50 : 320); // far less gl extension expected on mobile 
+      HashSet<String> glExtensionSet = new HashSet<String>(gl.isGLES() ? 50 : 320); // far less gl extension expected on mobile
       if(useGetStringi) {
           GL2GL3 gl2gl3 = gl.getGL2GL3();
           final int count;
@@ -163,7 +163,7 @@ final class ExtensionAvailabilityCache {
           StringBuilder sb = new StringBuilder();
           for (int i = 0; i < count; i++) {
               if(i > 0) {
-                  sb.append(" ");                
+                  sb.append(" ");
               }
               final String ext = gl2gl3.glGetStringi(GL.GL_EXTENSIONS, i);
               glExtensionSet.add(ext);
@@ -185,7 +185,7 @@ final class ExtensionAvailabilityCache {
               }
           }
       }
-      glExtensionCount = glExtensionSet.size(); 
+      glExtensionCount = glExtensionSet.size();
       if (DEBUG) {
           System.err.println(getThreadName() + ":ExtensionAvailabilityCache: GL_EXTENSIONS: "+glExtensionCount+
                                                ", used "+ ( useGetStringi ? "glGetStringi" : "glGetString" ) );
@@ -193,17 +193,17 @@ final class ExtensionAvailabilityCache {
 
       // Platform Extensions
       HashSet<String> glXExtensionSet = new HashSet<String>(50);
-      {         
-          // unify platform extension .. might have duplicates          
+      {
+          // unify platform extension .. might have duplicates
           StringTokenizer tok = new StringTokenizer(context.getPlatformExtensionsStringImpl().toString());
           while (tok.hasMoreTokens()) {
-              glXExtensionSet.add(tok.nextToken().trim());              
+              glXExtensionSet.add(tok.nextToken().trim());
           }
           final StringBuilder sb = new StringBuilder();
           for(Iterator<String> iter = glXExtensionSet.iterator(); iter.hasNext(); ) {
               sb.append(iter.next());
               if(iter.hasNext()) {
-                  sb.append(" ");                
+                  sb.append(" ");
               }
           }
           glXExtensions = sb.toString();
@@ -222,7 +222,7 @@ final class ExtensionAvailabilityCache {
       final int ctxOptions = context.getCtxOptions();
       final VersionNumber version = context.getGLVersionNumber();
       int major[] = new int[] { version.getMajor() };
-      int minor[] = new int[] { version.getMinor() };          
+      int minor[] = new int[] { version.getMinor() };
       while (GLContext.isValidGLVersion(ctxOptions, major[0], minor[0])) {
           final String GL_XX_VERSION = ( context.isGLES() ? "GL_ES_VERSION_" : "GL_VERSION_" ) + major[0] + "_" + minor[0];
           availableExtensionCache.add(GL_XX_VERSION);

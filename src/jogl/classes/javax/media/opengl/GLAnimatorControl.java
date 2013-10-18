@@ -29,7 +29,7 @@
 package javax.media.opengl;
 
 /**
- * An animator control interface, 
+ * An animator control interface,
  * which implementation may drive a {@link javax.media.opengl.GLAutoDrawable} animation.
  */
 public interface GLAnimatorControl extends FPSCounter {
@@ -56,8 +56,8 @@ public interface GLAnimatorControl extends FPSCounter {
     boolean isAnimating();
 
     /**
-     * Indicates whether this animator {@link #isStarted() is started} 
-     * and either {@link #pause() manually paused} or paused 
+     * Indicates whether this animator {@link #isStarted() is started}
+     * and either {@link #pause() manually paused} or paused
      * automatically due to no {@link #add(GLAutoDrawable) added} {@link GLAutoDrawable}s.
      *
      * @see #start()
@@ -157,15 +157,15 @@ public interface GLAnimatorControl extends FPSCounter {
     /**
      * Adds a drawable to this animator's list of rendering drawables.
      * <p>
-     * This allows the animator thread to become {@link #isAnimating() animating}, 
+     * This allows the animator thread to become {@link #isAnimating() animating},
      * in case the first drawable is added and the animator {@link #isStarted() is started}.
      * </p>
-     * 
+     *
      * @param drawable the drawable to be added
      * @throws IllegalArgumentException if drawable was already added to this animator
      */
     void add(GLAutoDrawable drawable);
-    
+
     /**
      * Removes a drawable from the animator's list of rendering drawables.
      * <p>
@@ -173,10 +173,10 @@ public interface GLAnimatorControl extends FPSCounter {
      * and will not be recovered.
      * </p>
      * <p>
-     * This allows the animator thread to become {@link #isAnimating() not animating}, 
+     * This allows the animator thread to become {@link #isAnimating() not animating},
      * in case the last drawable has been removed.
      * </p>
-     * 
+     *
      * @param drawable the drawable to be removed
      * @throws IllegalArgumentException if drawable was not added to this animator
      */

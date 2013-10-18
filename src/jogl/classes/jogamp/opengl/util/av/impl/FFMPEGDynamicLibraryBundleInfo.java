@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package jogamp.opengl.util.av.impl;
 
 import java.security.AccessController;
@@ -48,9 +48,9 @@ import com.jogamp.common.util.VersionNumber;
  */
 class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     private static final boolean DEBUG = FFMPEGMediaPlayer.DEBUG || DynamicLibraryBundleInfo.DEBUG;
-    
+
     private static final List<String> glueLibNames = new ArrayList<String>(); // none
-    
+
     private static final int symbolCount = 65;
     private static final String[] symbolNames = {
          "avutil_version",
@@ -61,10 +61,10 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
 
          // libavcodec
          "avcodec_register_all",
-         "avcodec_close", 
-         "avcodec_string", 
-         "avcodec_find_decoder", 
-         "avcodec_open2",             // 53.6.0    (opt) 
+         "avcodec_close",
+         "avcodec_string",
+         "avcodec_find_decoder",
+         "avcodec_open2",             // 53.6.0    (opt)
          "avcodec_alloc_frame",
          "avcodec_get_frame_defaults",
          "avcodec_free_frame",        // 54.28.0   (opt)
@@ -79,10 +79,10 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "av_init_packet",
          "av_new_packet",
          "av_destruct_packet",
-         "av_free_packet", 
+         "av_free_packet",
          "avcodec_decode_audio4",     // 53.25.0   (opt)
 /* 27 */ "avcodec_decode_video2",     // 52.23.0
-        
+
          // libavutil
          "av_pix_fmt_descriptors",
          "av_frame_unref",            // 55.0.0 (opt)
@@ -101,10 +101,10 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "avformat_alloc_context",
          "avformat_free_context",     // 52.96.0   (opt)
          "avformat_close_input",      // 53.17.0   (opt)
-         "av_register_all", 
+         "av_register_all",
          "av_find_input_format",
-         "avformat_open_input", 
-         "av_dump_format", 
+         "avformat_open_input",
+         "av_dump_format",
          "av_read_frame",
          "av_seek_frame",
          "avformat_seek_file",        // ???       (opt)
@@ -115,24 +115,24 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
 /* 54 */ "avformat_find_stream_info", // 53.3.0    (opt)
 
          // libavdevice
-/* 55 */ "avdevice_register_all",     // ??? 
-         
+/* 55 */ "avdevice_register_all",     // ???
+
          // libavresample
          "avresample_alloc_context",  //  1.0.1
          "avresample_open",
          "avresample_close",
          "avresample_free",
 /* 60 */ "avresample_convert",
-                  
+
          // libavresample
          "av_opt_set_sample_fmt",     // actually lavu .. but exist only w/ swresample!
          "swr_alloc",
-         "swr_init",       
+         "swr_init",
          "swr_free",
 /* 65 */ "swr_convert",
 
     };
-    
+
     // optional symbol names
     private static final String[] optionalSymbolNames = {
          "avformat_seek_file",        // ???       (opt)
@@ -145,7 +145,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
 
          // libavdevice
          "avdevice_register_all",     // 53.0.0 (opt)
-         
+
          // libavresample
          "avresample_version",        //  1.0.1
          "avresample_alloc_context",  //  1.0.1
@@ -153,43 +153,43 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "avresample_close",
          "avresample_free",
          "avresample_convert",
-         
+
          // libavresample
          "av_opt_set_sample_fmt",     // actually lavu .. but exist only w/ swresample!
          "swresample_version",        //  0
          "swr_alloc",
-         "swr_init",       
+         "swr_init",
          "swr_free",
          "swr_convert",
     };
-    
+
     private static final long[] symbolAddr = new long[symbolCount];
     private static final boolean ready;
     private static final boolean libsUFCLoaded;
     private static final boolean avresampleLoaded;  // optional
     private static final boolean swresampleLoaded;  // optional
     private static final boolean avdeviceLoaded; // optional
-    static final VersionNumber avCodecVersion;    
+    static final VersionNumber avCodecVersion;
     static final VersionNumber avFormatVersion;
     static final VersionNumber avUtilVersion;
     static final VersionNumber avResampleVersion;
     static final VersionNumber swResampleVersion;
     private static final FFMPEGNatives natives;
-    
+
     private static final int LIB_IDX_UTI = 0;
     private static final int LIB_IDX_FMT = 1;
     private static final int LIB_IDX_COD = 2;
     private static final int LIB_IDX_DEV = 3;
     private static final int LIB_IDX_AVR = 4;
     private static final int LIB_IDX_SWR = 5;
-    
+
     static {
-        // native ffmpeg media player implementation is included in jogl_desktop and jogl_mobile     
+        // native ffmpeg media player implementation is included in jogl_desktop and jogl_mobile
         GLProfile.initSingleton();
         boolean _ready = false;
-        /** util, format, codec, device, avresample, swresample */  
-        boolean[] _loaded= new boolean[6]; 
-        /** util, format, codec, avresample, swresample */  
+        /** util, format, codec, device, avresample, swresample */
+        boolean[] _loaded= new boolean[6];
+        /** util, format, codec, avresample, swresample */
         VersionNumber[] _versions = new VersionNumber[5];
         try {
             _ready = initSymbols(_loaded, _versions);
@@ -226,7 +226,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
             } else {
                 System.err.println("LIB_AV No Version/Native-Impl Match");
                 natives = null;
-            }            
+            }
             if( null != natives && FFMPEGStaticNatives.initIDs0() ) {
                 ready = natives.initSymbols0(symbolAddr, symbolCount);
             } else {
@@ -234,7 +234,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
             }
         }
     }
-    
+
     static boolean libsLoaded() { return libsUFCLoaded; }
     static boolean avDeviceLoaded() { return avdeviceLoaded; }
     static boolean avResampleLoaded() { return avresampleLoaded; }
@@ -265,11 +265,11 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         if(symbolNames.length != symbolCount) {
             throw new InternalError("XXX0 "+symbolNames.length+" != "+symbolCount);
         }
-        
+
         // optional symbol name set
         final Set<String> optionalSymbolNameSet = new HashSet<String>();
         optionalSymbolNameSet.addAll(Arrays.asList(optionalSymbolNames));
-        
+
         // lookup
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
@@ -278,9 +278,9 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
                 }
                 return null;
             } } );
-        
+
         // validate results
-        boolean res = true; 
+        boolean res = true;
         for(int i = 0; i<symbolCount; i++) {
             if( 0 == symbolAddr[i] ) {
                 // no symbol, check optional and alternative symbols
@@ -298,10 +298,10 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         versions[2] = FFMPEGStaticNatives.getAVVersion(FFMPEGStaticNatives.getAvVersion0(symbolAddr[2]));
         versions[3] = FFMPEGStaticNatives.getAVVersion(FFMPEGStaticNatives.getAvVersion0(symbolAddr[3]));
         versions[4] = FFMPEGStaticNatives.getAVVersion(FFMPEGStaticNatives.getAvVersion0(symbolAddr[4]));
-        
+
         return res;
     }
-    
+
     protected FFMPEGDynamicLibraryBundleInfo() {
     }
 
@@ -313,12 +313,12 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
      * <p>
      * Returns <code>true</code>.
      * </p>
-     */ 
+     */
     @Override
     public final boolean shallLookupGlobal() {
-        return true; 
+        return true;
     }
-    
+
     @Override
     public final List<String> getGlueLibNames() {
         return glueLibNames;
@@ -329,7 +329,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         List<List<String>> libsList = new ArrayList<List<String>>();
 
         // 6: util, format, codec, device, avresample, swresample
-        
+
         final List<String> avutil = new ArrayList<String>();
         avutil.add("avutil");        // default
 
@@ -337,13 +337,13 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         avutil.add("libavutil.so.52");     // ffmpeg 1.2 + 2 / libav 9 + 10
         avutil.add("libavutil.so.51");     // 0.8
         avutil.add("libavutil.so.50");     // 0.7
-        
+
         avutil.add("avutil-53");     // dummy future proof
         avutil.add("avutil-52");     // ffmpeg 1.2 + 2 / libav 9 + 10
         avutil.add("avutil-51");     // 0.8
         avutil.add("avutil-50");     // 0.7
         libsList.add(avutil);
-        
+
         final List<String> avformat = new ArrayList<String>();
         avformat.add("avformat");    // default
 
@@ -352,14 +352,14 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         avformat.add("libavformat.so.54"); // ffmpeg 1.2 / libav 9
         avformat.add("libavformat.so.53"); // 0.8
         avformat.add("libavformat.so.52"); // 0.7
-        
+
         avformat.add("avformat-56"); // dummy future proof
         avformat.add("avformat-55"); // ffmpeg 2 / libav 10
         avformat.add("avformat-54"); // ffmpeg 1.2 / libav 9
         avformat.add("avformat-53"); // 0.8
-        avformat.add("avformat-52"); // 0.7        
+        avformat.add("avformat-52"); // 0.7
         libsList.add(avformat);
-        
+
         final List<String> avcodec = new ArrayList<String>();
         avcodec.add("avcodec");      // default
 
@@ -367,15 +367,15 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         avcodec.add("libavcodec.so.55");   // ffmpeg 2/ libav 10
         avcodec.add("libavcodec.so.54");   // ffmpeg 1.2 / libav 9
         avcodec.add("libavcodec.so.53");   // 0.8
-        avcodec.add("libavcodec.so.52");   // 0.7        
-        
+        avcodec.add("libavcodec.so.52");   // 0.7
+
         avcodec.add("avcodec-56");   // dummy future proof
         avcodec.add("avcodec-55");   // ffmpeg 2/ libav 10
         avcodec.add("avcodec-54");   // ffmpeg 1.2 / libav 9
         avcodec.add("avcodec-53");   // 0.8
-        avcodec.add("avcodec-52");   // 0.7 
+        avcodec.add("avcodec-52");   // 0.7
         libsList.add(avcodec);
-        
+
         final List<String> avdevice = new ArrayList<String>();
         avdevice.add("avdevice");        // default
 
@@ -383,19 +383,19 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         avdevice.add("libavdevice.so.55");     // ffmpeg 2
         avdevice.add("libavdevice.so.54");     // ffmpeg 1.2 / libav 10
         avdevice.add("libavdevice.so.53");     // 0.8 && libav 9
-        
+
         avdevice.add("avdevice-56");     // dummy future proof
         avdevice.add("avdevice-55");     // ffmpeg 2
         avdevice.add("avdevice-54");     // ffmpeg 1.2 / libav 10
         avdevice.add("avdevice-53");     // 0.8 && libav 9
         libsList.add(avdevice);
-        
+
         final List<String> avresample = new ArrayList<String>();
         avresample.add("avresample");        // default
 
         avresample.add("libavresample.so.2");     // dummy future proof
         avresample.add("libavresample.so.1");     // libav 9 + 10
-        
+
         avresample.add("avresample-2");     // dummy future proof
         avresample.add("avresample-1");     // libav 9 + 10
         libsList.add(avresample);
@@ -405,11 +405,11 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
 
         swresample.add("libswresample.so.1");     // dummy future proof
         swresample.add("libswresample.so.0");     // ffmpeg 1.2 + 2.x
-        
+
         swresample.add("swresample-1");     // dummy future proof
         swresample.add("swresample-0");     // ffmpeg 1.2 + 2.x
         libsList.add(swresample);
-        
+
         return libsList;
     }
 
@@ -431,5 +431,5 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     @Override
     public final RunnableExecutor getLibLoaderExecutor() {
         return DynamicLibraryBundle.getDefaultRunnableExecutor();
-    }    
+    }
 }

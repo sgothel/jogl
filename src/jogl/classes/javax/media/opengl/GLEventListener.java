@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,11 +28,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -49,7 +49,7 @@ import java.util.EventListener;
 public interface GLEventListener extends EventListener {
   /** Called by the drawable immediately after the OpenGL context is
       initialized. Can be used to perform one-time OpenGL
-      initialization per GLContext, such as setup of lights and display lists.<p> 
+      initialization per GLContext, such as setup of lights and display lists.<p>
 
       Note that this method may be called more than once if the underlying
       OpenGL context for the GLAutoDrawable is destroyed and
@@ -57,7 +57,7 @@ public interface GLEventListener extends EventListener {
       hierarchy and later added again.
   */
   public void init(GLAutoDrawable drawable);
-  
+
   /** Notifies the listener to perform the release of all OpenGL
       resources per GLContext, such as memory buffers and GLSL programs.<P>
 
@@ -68,11 +68,11 @@ public interface GLEventListener extends EventListener {
 
       Note that this event does not imply the end of life of the application.
       It could be produced with a followup call to {@link #init(GLAutoDrawable)}
-      in case the GLContext has been recreated, 
+      in case the GLContext has been recreated,
       e.g. due to a pixel configuration change in a multihead environment.
   */
   public void dispose(GLAutoDrawable drawable);
-  
+
   /** Called by the drawable to initiate OpenGL rendering by the
       client. After all GLEventListeners have been notified of a
       display event, the drawable will swap its buffers if {@link

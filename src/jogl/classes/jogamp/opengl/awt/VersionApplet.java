@@ -42,7 +42,7 @@ public class VersionApplet extends Applet {
     va.init();
     frame.add(va, BorderLayout.CENTER);
     frame.validate();
-        
+
     frame.setVisible(true);
     va.start();
   }
@@ -68,7 +68,7 @@ public class VersionApplet extends Applet {
     if(null != canvas) { return; }
 
     setEnabled(true);
-    
+
     GLProfile glp = GLProfile.getDefault();
     GLCapabilities glcaps = new GLCapabilities(glp);
 
@@ -87,7 +87,7 @@ public class VersionApplet extends Applet {
     /*
     s = NativeWindowVersion.getInstance().toString();
     System.err.println(s);
-    tareaVersion.append(NativeWindowVersion.getInstance().toString()); 
+    tareaVersion.append(NativeWindowVersion.getInstance().toString());
     */
 
     s = JoglVersion.getInstance().toString();

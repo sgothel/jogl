@@ -129,7 +129,7 @@ import jogamp.opengl.Debug;
 */
 public class TextRenderer {
     private static final boolean DEBUG;
-    
+
     static {
         Debug.initSingleton();
         DEBUG = Debug.isPropertyDefined("jogl.debug.TextRenderer", true);
@@ -200,10 +200,10 @@ public class TextRenderer {
     // Debugging purposes only
     private boolean debugged;
     Pipelined_QuadRenderer mPipelinedQuadRenderer;
-    
+
     //emzic: added boolean flag
     private boolean useVertexArrays = true;
-    
+
     //emzic: added boolean flag
     private boolean isExtensionAvailable_GL_VERSION_1_5;
     private boolean checkFor_isExtensionAvailable_GL_VERSION_1_5;
@@ -707,7 +707,7 @@ public class TextRenderer {
     /**
      * emzic: here the call to glBindBuffer crashes on certain graphicscard/driver combinations
      * this is why the ugly try-catch block has been added, which falls back to the old textrenderer
-     * 
+     *
      * @param ortho
      * @throws GLException
      */
@@ -891,7 +891,7 @@ public class TextRenderer {
         data.markUsed();
 
         Rectangle2D origRect = data.origRect();
-        
+
         // Align the leftmost point of the baseline to the (x, y, z) coordinate requested
         renderer.draw3DRect(x - (scaleFactor * data.origOriginX()),
                             y - (scaleFactor * ((float) origRect.getHeight() - data.origOriginY())), z,
@@ -1715,7 +1715,7 @@ public class TextRenderer {
             return glyph;
         }
     }
-    
+
     private static class CharacterCache {
         private CharacterCache() {
         }

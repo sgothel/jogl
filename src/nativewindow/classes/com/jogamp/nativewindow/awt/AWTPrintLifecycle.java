@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -69,15 +69,15 @@ import jogamp.nativewindow.awt.AWTMisc;
     } finally {
        ctx.releasePrint();
     }
- * 
+ *
  * </pre>
  * </p>
  */
 public interface AWTPrintLifecycle {
 
     public static final int DEFAULT_PRINT_TILE_SIZE = 1024;
-    
-    
+
+
     /**
      * Shall be called before {@link PrinterJob#print()}.
      * <p>
@@ -85,12 +85,12 @@ public interface AWTPrintLifecycle {
      * </p>
      * @param scaleMatX {@link Graphics2D} {@link Graphics2D#scale(double, double) scaling factor}, i.e. rendering 1/scaleMatX * width pixels
      * @param scaleMatY {@link Graphics2D} {@link Graphics2D#scale(double, double) scaling factor}, i.e. rendering 1/scaleMatY * height pixels
-     * @param numSamples multisampling value: < 0 turns off, == 0 leaves as-is, > 0 enables using given num samples 
+     * @param numSamples multisampling value: < 0 turns off, == 0 leaves as-is, > 0 enables using given num samples
      * @param tileWidth custom tile width for {@link com.jogamp.opengl.util.TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
      * @param tileHeight custom tile height for {@link com.jogamp.opengl.util.TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
      */
     void setupPrint(double scaleMatX, double scaleMatY, int numSamples, int tileWidth, int tileHeight);
-    
+
     /**
      * Shall be called after {@link PrinterJob#print()}.
      * <p>
@@ -111,11 +111,11 @@ public interface AWTPrintLifecycle {
          * <p>
          * See <a href="#usage">Usage</a>.
          * </p>
-         * 
+         *
          * @param c container to be traversed through to perform {@link AWTPrintLifecycle#setupPrint(double, double, int, int, int) setupPrint(..)} on all {@link AWTPrintLifecycle} elements.
          * @param scaleMatX {@link Graphics2D} {@link Graphics2D#scale(double, double) scaling factor}, i.e. rendering 1/scaleMatX * width pixels
          * @param scaleMatY {@link Graphics2D} {@link Graphics2D#scale(double, double) scaling factor}, i.e. rendering 1/scaleMatY * height pixels
-         * @param numSamples multisampling value: < 0 turns off, == 0 leaves as-is, > 0 enables using given num samples 
+         * @param numSamples multisampling value: < 0 turns off, == 0 leaves as-is, > 0 enables using given num samples
          * @param tileWidth custom tile width for {@link TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
          * @param tileHeight custom tile height for {@link TileRenderer#setTileSize(int, int, int) tile renderer}, pass -1 for default.
          * @return the context
@@ -139,7 +139,7 @@ public interface AWTPrintLifecycle {
          * @return count of performed actions of last {@link #setupPrint(Container, double, double, int, int, int) setupPrint(..)} or {@link #releasePrint()}.
          */
         public int getCount() { return count; }
-        
+
         private final Container cont;
         private final double scaleMatX;
         private final double scaleMatY;
@@ -147,7 +147,7 @@ public interface AWTPrintLifecycle {
         private final int tileWidth;
         private final int tileHeight;
         private int count;
-        
+
         private final AWTMisc.ComponentAction setupAction = new AWTMisc.ComponentAction() {
             @Override
             public void run(Component c) {

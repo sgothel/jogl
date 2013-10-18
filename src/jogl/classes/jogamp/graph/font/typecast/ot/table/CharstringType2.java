@@ -28,7 +28,7 @@ import jogamp.graph.font.typecast.ot.table.CffTable;
  * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
  */
 public class CharstringType2 extends Charstring {
-    
+
     private static final String[] _oneByteOperators = {
         "-Reserved-",
         "hstem",
@@ -105,7 +105,7 @@ public class CharstringType2 extends Charstring {
         "flex1",
         "-Reserved-"
     };
-    
+
     private int _index;
     private String _name;
     private int[] _data;
@@ -132,7 +132,7 @@ public class CharstringType2 extends Charstring {
         _localSubrIndex = localSubrIndex;
         _globalSubrIndex = globalSubrIndex;
     }
-    
+
     public int getIndex() {
         return _index;
     }
@@ -140,7 +140,7 @@ public class CharstringType2 extends Charstring {
     public String getName() {
         return _name;
     }
-    
+
     private void disassemble(StringBuilder sb) {
         Number operand = null;
         while (isOperandAtIndex()) {
@@ -151,7 +151,7 @@ public class CharstringType2 extends Charstring {
         String mnemonic;
         if (operator == 12) {
             operator = nextByte();
-            
+
             // Check we're not exceeding the upper limit of our mnemonics
             if (operator > 38) {
                 operator = 38;
@@ -162,7 +162,7 @@ public class CharstringType2 extends Charstring {
         }
         sb.append(mnemonic);
     }
-    
+
     public void resetIP() {
         _ip = _offset;
     }
@@ -214,15 +214,15 @@ public class CharstringType2 extends Charstring {
             return null;
         }
     }
-    
+
     public int nextByte() {
         return _data[_ip++];
     }
-    
+
     public boolean moreBytes() {
         return _ip < _offset + _length;
     }
-    
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
         resetIP();

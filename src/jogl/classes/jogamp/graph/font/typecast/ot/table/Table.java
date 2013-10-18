@@ -1,9 +1,9 @@
 /*****************************************************************************
  * Copyright (C) The Apache Software Foundation. All rights reserved.        *
- * ------------------------------------------------------------------------- * 
- * This software is published under the terms of the Apache Software License * 
- * version 1.1, a copy of which has been included with this distribution in  * 
- * the LICENSE file.                                                         * 
+ * ------------------------------------------------------------------------- *
+ * This software is published under the terms of the Apache Software License *
+ * version 1.1, a copy of which has been included with this distribution in  *
+ * the LICENSE file.                                                         *
  *****************************************************************************/
 
 package jogamp.graph.font.typecast.ot.table;
@@ -51,7 +51,7 @@ public interface Table {
     public static final int vmtx = 0x766d7478; // Vertical Metrics
 
     public static final String notAvailable = "n/a";
-    
+
     /**
      * Get the table type, as a table directory value.
      * @return The table type
@@ -65,5 +65,5 @@ public interface Table {
      * @return A directory entry
      */
     public DirectoryEntry getDirectoryEntry();
-    
+
 }

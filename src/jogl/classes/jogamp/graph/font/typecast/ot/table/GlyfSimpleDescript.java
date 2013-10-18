@@ -73,7 +73,7 @@ public class GlyfSimpleDescript extends GlyfDescript {
             short numberOfContours,
             DataInput di) throws IOException {
         super(parentTable, glyphIndex, numberOfContours, di);
-        
+
         // Simple glyph description
         _endPtsOfContours = new int[numberOfContours];
         for (int i = 0; i < numberOfContours; i++) {
@@ -184,7 +184,7 @@ public class GlyfSimpleDescript extends GlyfDescript {
             System.out.println("error: array index out of bounds");
         }
     }
-    
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(super.toString());

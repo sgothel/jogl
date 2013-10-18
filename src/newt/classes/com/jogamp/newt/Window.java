@@ -58,8 +58,8 @@ import javax.media.nativewindow.util.RectangleImmutable;
  *   <li>... and more</li>
  * </ul>
  * <p>
- * One use case is {@link com.jogamp.newt.opengl.GLWindow}, which delegates 
- * window operation to an instance of this interface while providing OpenGL 
+ * One use case is {@link com.jogamp.newt.opengl.GLWindow}, which delegates
+ * window operation to an instance of this interface while providing OpenGL
  * functionality.
  * </p>
  */
@@ -90,14 +90,14 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     Screen getScreen();
 
     /**
-     * Returns the {@link MonitorDevice} which {@link MonitorDevice#getViewport() viewport} 
+     * Returns the {@link MonitorDevice} which {@link MonitorDevice#getViewport() viewport}
      * {@link MonitorDevice#coverage(RectangleImmutable) covers} this window the most.
      * <p>
-     * If no coverage is detected the first {@link MonitorDevice} is returned. 
+     * If no coverage is detected the first {@link MonitorDevice} is returned.
      * </p>
      */
     MonitorDevice getMainMonitor();
-    
+
     /**
      * Set the CapabilitiesChooser to help determine the native visual type.
      *
@@ -129,7 +129,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * Visibility is set to false.
      * </p>
      * <p>
-     * Method sends out {@link WindowEvent#EVENT_WINDOW_DESTROY_NOTIFY pre-} and 
+     * Method sends out {@link WindowEvent#EVENT_WINDOW_DESTROY_NOTIFY pre-} and
      * {@link WindowEvent#EVENT_WINDOW_DESTROYED post-} destruction events
      * to all of it's {@link WindowListener}.
      * </p>
@@ -151,7 +151,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * Set a custom action handling destruction issued by a {@link WindowImpl#windowDestroyNotify(boolean) toolkit triggered window destroy}
      * replacing the default {@link #destroy()} action.
      * <p>
-     * The custom action shall call {@link #destroy()} 
+     * The custom action shall call {@link #destroy()}
      * but may perform further tasks before and after.
      * </p>
      */
@@ -369,7 +369,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * @param x new top-level position, use -1 for default position.
      * @param y new top-level position, use -1 for default position.
      * @param forceDestroyCreate if true, uses re-creation strategy for reparenting, default is <code>false</code>.
-     * 
+     *
      * @return The issued reparent action type (strategy) as defined in Window.ReparentAction
      * @see #reparentWindow(NativeWindow)
      */
@@ -378,7 +378,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     /**
      * Enable or disable fullscreen mode for this window.
      * <p>
-     * Fullscreen mode is established on the {@link #getMainMonitor() main monitor}. 
+     * Fullscreen mode is established on the {@link #getMainMonitor() main monitor}.
      * </p>
      * @param fullscreen enable or disable fullscreen mode
      * @return success
@@ -393,14 +393,14 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * <p>
      * Disable fullscreen via {@link #setFullscreen(boolean)}.
      * </p>
-     * @param monitors if <code>null</code> fullscreen will be spanned across all {@link MonitorDevice}s, 
+     * @param monitors if <code>null</code> fullscreen will be spanned across all {@link MonitorDevice}s,
      *                 otherwise across the given list of {@link MonitorDevice}.
      * @return success
      * @see #setFullscreen(boolean)
      * @see #isFullscreen()
      */
     boolean setFullscreen(List<MonitorDevice> monitors);
-    
+
     boolean isFullscreen();
 
     static interface FocusRunnable {
@@ -429,7 +429,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * and to perform focus traversal with a 3rd party toolkit.
      * </p>
      * <p>
-     * The {@link KeyListener} methods are not invoked for {@link KeyEvent#isAutoRepeat() auto-repeat} events. 
+     * The {@link KeyListener} methods are not invoked for {@link KeyEvent#isAutoRepeat() auto-repeat} events.
      * </p>
      * @param l
      */
@@ -469,7 +469,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
 
     /**
      * Send a {@link WindowEvent} to all {@link WindowListener}.
-     * @param eventType a {@link WindowEvent} type, e.g. {@link WindowEvent#EVENT_WINDOW_REPAINT}. 
+     * @param eventType a {@link WindowEvent} type, e.g. {@link WindowEvent#EVENT_WINDOW_REPAINT}.
      */
     public void sendWindowEvent(int eventType);
 
@@ -585,8 +585,8 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * Returns all {@link MouseListener}
      */
     MouseListener[] getMouseListeners();
-    
-    /** Enable or disable default {@link GestureHandler}. Default is enabled. */  
+
+    /** Enable or disable default {@link GestureHandler}. Default is enabled. */
     void setDefaultGesturesEnabled(boolean enable);
     /** Return true if default {@link GestureHandler} are enabled. */
     boolean areDefaultGesturesEnabled();
@@ -627,5 +627,5 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     /**
      * Removes the given {@link GestureHandler.GestureListener} from the list.
      */
-    void removeGestureListener(GestureHandler.GestureListener gl);    
+    void removeGestureListener(GestureHandler.GestureListener gl);
 }

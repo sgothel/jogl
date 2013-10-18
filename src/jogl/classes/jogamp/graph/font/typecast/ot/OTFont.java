@@ -104,10 +104,10 @@ public class OTFont {
     public StringBuilder getName(int nameIndex, StringBuilder sb) {
         if(null == sb) {
             sb = new StringBuilder();
-        }        
+        }
         return _name.getRecordsRecordString(sb, nameIndex);
     }
-    
+
     public StringBuilder getAllNames(StringBuilder sb, String separator) {
         if(null != _name) {
             if(null == sb) {
@@ -117,9 +117,9 @@ public class OTFont {
                 _name.getRecord(i).getRecordString(sb).append(separator);
             }
         }
-        return sb;  
+        return sb;
     }
-    
+
     public Table getTable(int tableType) {
         for (int i = 0; i < _tables.length; i++) {
             if ((_tables[i] != null) && (_tables[i].getType() == tableType)) {
@@ -132,31 +132,31 @@ public class OTFont {
     public Os2Table getOS2Table() {
         return _os2;
     }
-    
+
     public CmapTable getCmapTable() {
         return _cmap;
     }
-    
+
     public HeadTable getHeadTable() {
         return _head;
     }
-    
+
     public HheaTable getHheaTable() {
         return _hhea;
     }
-    
+
     public HdmxTable getHdmxTable() {
         return _hdmx;
     }
-    
+
     public HmtxTable getHmtxTable() {
         return _hmtx;
     }
-    
+
     public LocaTable getLocaTable() {
         return _loca;
     }
-    
+
     public MaxpTable getMaxpTable() {
         return _maxp;
     }
@@ -186,8 +186,8 @@ public class OTFont {
     }
 
     public OTGlyph getGlyph(int i) {
-        
-        final GlyfDescript _glyfDescr = _glyf.getDescription(i); 
+
+        final GlyfDescript _glyfDescr = _glyf.getDescription(i);
         return (null != _glyfDescr)
             ? new OTGlyph(
                 _glyfDescr,
@@ -195,11 +195,11 @@ public class OTFont {
                 _hmtx.getAdvanceWidth(i))
             : null;
     }
-    
+
     public TableDirectory getTableDirectory() {
         return _tableDirectory;
     }
-    
+
     private Table readTable(
             DataInputStream dis,
             int tablesOrigin,
@@ -228,13 +228,13 @@ public class OTFont {
             DataInputStream dis,
             int directoryOffset,
             int tablesOrigin) throws IOException {
-        
+
         // Load the table directory
         dis.reset();
         dis.skip(directoryOffset);
         _tableDirectory = new TableDirectory(dis);
         _tables = new Table[_tableDirectory.getNumTables()];
-        
+
         // Load some prerequisite tables
         _head = (HeadTable) readTable(dis, tablesOrigin, Table.head);
         _hhea = (HheaTable) readTable(dis, tablesOrigin, Table.hhea);
@@ -252,7 +252,7 @@ public class OTFont {
         if (_vhea != null) {
             _tables[index++] = _vhea;
         }
-        
+
         // Load all other tables
         for (int i = 0; i < _tableDirectory.getNumTables(); i++) {
             DirectoryEntry entry = _tableDirectory.getEntry(i);

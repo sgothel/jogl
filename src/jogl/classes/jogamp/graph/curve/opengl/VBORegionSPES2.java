@@ -44,13 +44,13 @@ public class VBORegionSPES2 extends GLRegion {
     private GLArrayDataServer texCoordAttr = null;
     private GLArrayDataServer indices = null;
 
-    protected VBORegionSPES2(int renderModes) { 
+    protected VBORegionSPES2(int renderModes) {
         super(renderModes);
     }
 
     protected void update(GL2ES2 gl, RenderState rs) {
         if(!isDirty()) {
-            return; 
+            return;
         }
 
         if(null == indices) {
@@ -59,11 +59,11 @@ public class VBORegionSPES2 extends GLRegion {
 
             indices = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialElementCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
 
-            verticeAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL2ES2.GL_FLOAT, 
-                    false, initialElementCount, GL.GL_STATIC_DRAW);         
+            verticeAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL2ES2.GL_FLOAT,
+                    false, initialElementCount, GL.GL_STATIC_DRAW);
             st.ownAttribute(verticeAttr, true);
 
-            texCoordAttr = GLArrayDataServer.createGLSL(AttributeNames.TEXCOORD_ATTR_NAME, 2, GL2ES2.GL_FLOAT, 
+            texCoordAttr = GLArrayDataServer.createGLSL(AttributeNames.TEXCOORD_ATTR_NAME, 2, GL2ES2.GL_FLOAT,
                     false, initialElementCount, GL.GL_STATIC_DRAW);
             st.ownAttribute(texCoordAttr, true);
 
@@ -74,7 +74,7 @@ public class VBORegionSPES2 extends GLRegion {
 
         // process triangles
         indices.seal(gl, false);
-        indices.rewind();        
+        indices.rewind();
         for(int i=0; i<triangles.size(); i++) {
             final Triangle t = triangles.get(i);
             final Vertex[] t_vertices = t.getVertices();
@@ -102,7 +102,7 @@ public class VBORegionSPES2 extends GLRegion {
 
         // process vertices and update bbox
         box.reset();
-        verticeAttr.seal(gl, false); 
+        verticeAttr.seal(gl, false);
         verticeAttr.rewind();
         texCoordAttr.seal(gl, false);
         texCoordAttr.rewind();
@@ -110,14 +110,14 @@ public class VBORegionSPES2 extends GLRegion {
             final Vertex v = vertices.get(i);
             verticeAttr.putf(v.getX());
             verticeAttr.putf(v.getY());
-            verticeAttr.putf(v.getZ());            
+            verticeAttr.putf(v.getZ());
             box.resize(v.getX(), v.getY(), v.getZ());
 
             final float[] tex = v.getTexCoord();
             texCoordAttr.putf(tex[0]);
             texCoordAttr.putf(tex[1]);
         }
-        verticeAttr.seal(gl, true);        
+        verticeAttr.seal(gl, true);
         verticeAttr.enableBuffer(gl, false);
         texCoordAttr.seal(gl, true);
         texCoordAttr.enableBuffer(gl, false);
@@ -126,21 +126,21 @@ public class VBORegionSPES2 extends GLRegion {
     }
 
     protected void drawImpl(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int[/*1*/] texWidth) {
-        verticeAttr.enableBuffer(gl, true);       
-        texCoordAttr.enableBuffer(gl, true);        
+        verticeAttr.enableBuffer(gl, true);
+        texCoordAttr.enableBuffer(gl, true);
         indices.bindBuffer(gl, true); // keeps VBO binding
-        
+
         gl.glDrawElements(GL2ES2.GL_TRIANGLES, indices.getElementCount() * indices.getComponentCount(), GL2ES2.GL_UNSIGNED_SHORT, 0);
-        
+
         indices.bindBuffer(gl, false);
         texCoordAttr.enableBuffer(gl, false);
-        verticeAttr.enableBuffer(gl, false);       
-    }    
+        verticeAttr.enableBuffer(gl, false);
+    }
 
     public final void destroy(GL2ES2 gl, RenderState rs) {
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegionSPES2 Destroy: " + this);
-        }        
+        }
         final ShaderState st = rs.getShaderState();
         if(null != verticeAttr) {
             st.ownAttribute(verticeAttr, false);
@@ -156,5 +156,5 @@ public class VBORegionSPES2 extends GLRegion {
             indices.destroy(gl);
             indices = null;
         }
-    }    
+    }
 }

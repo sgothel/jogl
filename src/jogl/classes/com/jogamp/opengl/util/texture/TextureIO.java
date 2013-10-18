@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2011 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -161,11 +161,11 @@ public class TextureIO {
     /** Constant which can be used as a file suffix to indicate a PAM
         file, NetPbm magic 7 - binary RGB and RGBA. Write support only. */
     public static final String PAM     = "pam";
-    
+
     /** Constant which can be used as a file suffix to indicate a PAM
         file, NetPbm magic 6 - binary RGB. Write support only. */
     public static final String PPM     = "ppm";
-    
+
     private static final boolean DEBUG = Debug.debug("TextureIO");
 
     // For manually disabling the use of the texture rectangle
@@ -421,7 +421,7 @@ public class TextureIO {
     // methods that *do* require a current context
     //
 
-    /** 
+    /**
      * Creates an OpenGL texture object from the specified TextureData
      * using the current OpenGL context.
      *
@@ -434,7 +434,7 @@ public class TextureIO {
         return newTexture(GLContext.getCurrentGL(), data);
     }
 
-    /** 
+    /**
      * Creates an OpenGL texture object from the specified TextureData
      * using the given OpenGL context.
      *
@@ -449,8 +449,8 @@ public class TextureIO {
         }
         return new Texture(gl, data);
     }
-    
-    /** 
+
+    /**
      * Creates an OpenGL texture object from the specified file using
      * the current OpenGL context.
      *
@@ -474,7 +474,7 @@ public class TextureIO {
         return texture;
     }
 
-    /** 
+    /**
      * Creates an OpenGL texture object from the specified stream using
      * the current OpenGL context.
      *
@@ -503,7 +503,7 @@ public class TextureIO {
         return texture;
     }
 
-    /** 
+    /**
      * Creates an OpenGL texture object from the specified URL using the
      * current OpenGL context.
      *
@@ -535,13 +535,13 @@ public class TextureIO {
         return texture;
     }
 
-    /** 
+    /**
      * Creates an OpenGL texture object associated with the given OpenGL
      * texture target. The texture has
      * no initial data. This is used, for example, to construct cube
      * maps out of multiple TextureData objects.
      *
-     * @param target the OpenGL target type, eg GL.GL_TEXTURE_2D, 
+     * @param target the OpenGL target type, eg GL.GL_TEXTURE_2D,
      *               GL.GL_TEXTURE_RECTANGLE_ARB
      */
     public static Texture newTexture(int target) {
@@ -556,7 +556,7 @@ public class TextureIO {
      * undefined results.
      *
      * @param textureID the OpenGL texture object to wrap
-     * @param target the OpenGL texture target, eg GL.GL_TEXTURE_2D, 
+     * @param target the OpenGL texture target, eg GL.GL_TEXTURE_2D,
      *               GL2.GL_TEXTURE_RECTANGLE
      * @param texWidth the width of the texture in pixels
      * @param texHeight the height of the texture in pixels
@@ -689,7 +689,7 @@ public class TextureIO {
             gl.glPixelStorei(GL2.GL_PACK_SKIP_ROWS, packSkipRows);
             gl.glPixelStorei(GL2.GL_PACK_SKIP_PIXELS, packSkipPixels);
             gl.glPixelStorei(GL2.GL_PACK_SWAP_BYTES, packSwapBytes);
-      
+
             data = new TextureData(gl.getGLProfile(), internalFormat, width, height, border, fetchedFormat, GL.GL_UNSIGNED_BYTE,
                                    false, false, false, res, null);
 
@@ -701,7 +701,7 @@ public class TextureIO {
 
         write(data, file);
     }
-  
+
     public static void write(TextureData data, File file) throws IOException, GLException {
         for (Iterator<TextureWriter> iter = textureWriters.iterator(); iter.hasNext(); ) {
             TextureWriter writer = iter.next();
@@ -712,12 +712,12 @@ public class TextureIO {
 
         throw new IOException("No suitable texture writer found for "+file.getAbsolutePath());
     }
-  
+
     //----------------------------------------------------------------------
     // SPI support
     //
 
-    /** 
+    /**
      * Adds a TextureProvider to support reading of a new file format.
      * <p>
      * The last provider added, will be the first provider to be tested.
@@ -730,7 +730,7 @@ public class TextureIO {
         textureProviders.add(0, provider);
     }
 
-    /** 
+    /**
      * Adds a TextureWriter to support writing of a new file format.
      * <p>
      * The last provider added, will be the first provider to be tested.
@@ -779,7 +779,7 @@ public class TextureIO {
     private static List<TextureProvider> textureProviders = new ArrayList<TextureProvider>();
     private static List<TextureWriter>   textureWriters   = new ArrayList<TextureWriter>();
 
-    static {        
+    static {
         // ImageIO provider, the fall-back, must be the first one added
         if(GLProfile.isAWTAvailable()) {
             try {
@@ -1221,7 +1221,7 @@ public class TextureIO {
             return null;
         }
     }
-    
+
     //----------------------------------------------------------------------
     // DDS texture writer
     //
@@ -1249,7 +1249,7 @@ public class TextureIO {
                     case GL.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT: d3dFormat = DDSImage.D3DFMT_DXT5; break;
                     default: throw new IOException("Unsupported pixel format 0x" + Integer.toHexString(pixelFormat) + " by DDS writer");
                 }
-        
+
                 ByteBuffer[] mipmaps = null;
                 if (data.getMipmapData() != null) {
                     mipmaps = new ByteBuffer[data.getMipmapData().length];
@@ -1319,7 +1319,7 @@ public class TextureIO {
 
     //----------------------------------------------------------------------
     // TGA (Targa) texture writer
-  
+
     static class TGATextureWriter implements TextureWriter {
         public boolean write(File file,
                              TextureData data) throws IOException {
@@ -1329,19 +1329,19 @@ public class TextureIO {
                 final int pixelFormat = pixelAttribs.format;
                 final int pixelType   = pixelAttribs.type;
                 if ((pixelFormat == GL.GL_RGB ||
-                     pixelFormat == GL.GL_RGBA || 
+                     pixelFormat == GL.GL_RGBA ||
                      pixelFormat == GL2.GL_BGR ||
                      pixelFormat == GL.GL_BGRA ) &&
                     (pixelType == GL.GL_BYTE ||
                      pixelType == GL.GL_UNSIGNED_BYTE)) {
-                    
+
                     ByteBuffer buf = (ByteBuffer) data.getBuffer();
                     if (null == buf) {
                         buf = (ByteBuffer) data.getMipmapData()[0];
                     }
                     buf.rewind();
-                    
-                    if( pixelFormat == GL.GL_RGB || pixelFormat == GL.GL_RGBA ) { 
+
+                    if( pixelFormat == GL.GL_RGB || pixelFormat == GL.GL_RGBA ) {
                         // Must reverse order of red and blue channels to get correct results
                         int skip = ((pixelFormat == GL.GL_RGB) ? 3 : 4);
                         for (int i = 0; i < buf.remaining(); i += skip) {
@@ -1364,12 +1364,12 @@ public class TextureIO {
             }
 
             return false;
-        }    
+        }
     }
 
     //----------------------------------------------------------------------
     // PNG texture writer
-  
+
     static class PNGTextureWriter implements TextureWriter {
         public boolean write(File file, TextureData data) throws IOException {
             if (PNG.equals(IOUtil.getFileSuffix(file))) {
@@ -1402,13 +1402,13 @@ public class TextureIO {
                         break;
                 }
                 if ( ( 1 == bytesPerPixel || 3 == bytesPerPixel || 4 == bytesPerPixel) &&
-                     ( pixelType == GL.GL_BYTE || pixelType == GL.GL_UNSIGNED_BYTE)) {                    
+                     ( pixelType == GL.GL_BYTE || pixelType == GL.GL_UNSIGNED_BYTE)) {
                     ByteBuffer buf = (ByteBuffer) data.getBuffer();
                     if (null == buf) {
                         buf = (ByteBuffer) data.getMipmapData()[0];
                     }
                     buf.rewind();
-                    
+
                     PNGImage image = PNGImage.createFromData(data.getWidth(), data.getHeight(), -1f, -1f,
                                                              bytesPerPixel, reversedChannels, !data.getMustFlipVertically(), buf);
                     image.write(file, true);
@@ -1418,9 +1418,9 @@ public class TextureIO {
                                       " / type 0x"+Integer.toHexString(pixelFormat)+" (only GL_RGB/A, GL_BGR/A + bytes)");
             }
             return false;
-        }    
+        }
     }
-    
+
     //----------------------------------------------------------------------
     // Helper routines
     //

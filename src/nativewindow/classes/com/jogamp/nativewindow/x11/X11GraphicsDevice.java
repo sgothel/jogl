@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -87,12 +87,12 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         handleOwner = owner;
         isXineramaEnabled = X11Util.XineramaIsEnabled(this);
     }
-    
+
 
     private static int getDefaultScreenImpl(long dpy) {
         return X11Lib.DefaultScreen(dpy);
     }
-    
+
     /**
      * Returns the default screen number as referenced by the display connection, i.e. 'somewhere:0.1' -> 1
      * <p>
@@ -110,7 +110,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         }
         return ds;
     }
-    
+
     public int getDefaultVisualID() {
         final long display = getHandle();
         if(0==display) {
@@ -118,11 +118,11 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         }
         return X11Lib.DefaultVisualID(display, getDefaultScreenImpl(display));
     }
-    
+
     public final boolean isXineramaEnabled() {
         return isXineramaEnabled;
     }
-    
+
     @Override
     public Object clone() {
       return super.clone();
@@ -142,7 +142,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         }
         return false;
     }
-        
+
     @Override
     public boolean close() {
         if(handleOwner && 0 != handle) {
@@ -153,11 +153,11 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         }
         return super.close();
     }
-    
+
     @Override
     public boolean isHandleOwner() {
         return handleOwner;
-    }    
+    }
     @Override
     public void clearHandleOwner() {
         handleOwner = false;
@@ -168,8 +168,8 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
     }
     @Override
     protected Object setHandleOwnership(Object newOwnership) {
-        final Boolean oldOwnership = Boolean.valueOf(handleOwner); 
+        final Boolean oldOwnership = Boolean.valueOf(handleOwner);
         handleOwner = ((Boolean) newOwnership).booleanValue();
         return oldOwnership;
-    }        
+    }
 }

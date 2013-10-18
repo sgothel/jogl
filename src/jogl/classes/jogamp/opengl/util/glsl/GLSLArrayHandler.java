@@ -41,23 +41,23 @@ import com.jogamp.opengl.util.GLArrayDataEditable;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 /**
- * Used for 1:1 GLSL arrays, i.e. where the buffer data 
- * represents this array only. 
+ * Used for 1:1 GLSL arrays, i.e. where the buffer data
+ * represents this array only.
  */
-public class GLSLArrayHandler extends GLVBOArrayHandler implements GLArrayHandler {    
-  
+public class GLSLArrayHandler extends GLVBOArrayHandler implements GLArrayHandler {
+
   public GLSLArrayHandler(GLArrayDataEditable ad) {
     super(ad);
   }
-  
+
   public final void setSubArrayVBOName(int vboName) {
       throw new UnsupportedOperationException();
   }
-  
+
   public final void addSubHandler(GLArrayHandlerFlat handler) {
       throw new UnsupportedOperationException();
   }
-  
+
   public final void enableState(GL gl, boolean enable, Object ext) {
     final GL2ES2 glsl = gl.getGL2ES2();
     if( null != ext ) {
@@ -66,12 +66,12 @@ public class GLSLArrayHandler extends GLVBOArrayHandler implements GLArrayHandle
         enableSimple(glsl, enable);
     }
   }
-  
+
   private final void enableShaderState(GL2ES2 glsl, boolean enable, ShaderState st) {
     if(enable) {
         /*
          * This would be the non optimized code path:
-         * 
+         *
         if(ad.isVBO()) {
             glsl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
             if(!ad.isVBOWritten()) {
@@ -108,13 +108,13 @@ public class GLSLArrayHandler extends GLVBOArrayHandler implements GLArrayHandle
         } else if(null!=buffer) {
             st.vertexAttribPointer(glsl, ad);
         }
-        
+
         st.enableVertexAttribArray(glsl, ad);
     } else {
         st.disableVertexAttribArray(glsl, ad);
     }
   }
-  
+
   private final void enableSimple(GL2ES2 glsl, boolean enable) {
     final int location = ad.getLocation();
     if( 0 > location ) {
@@ -123,7 +123,7 @@ public class GLSLArrayHandler extends GLVBOArrayHandler implements GLArrayHandle
     if(enable) {
         /*
          * This would be the non optimized code path:
-         * 
+         *
         if(ad.isVBO()) {
             glsl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
             if(!ad.isVBOWritten()) {

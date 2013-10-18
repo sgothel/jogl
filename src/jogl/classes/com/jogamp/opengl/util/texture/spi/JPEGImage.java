@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -40,12 +40,12 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.texture.TextureData.ColorSpace;
 
 public class JPEGImage {
-    private static final boolean DEBUG = Debug.debug("JPEGImage");    
-    
-    
+    private static final boolean DEBUG = Debug.debug("JPEGImage");
+
+
     /**
      * Reads a JPEG image from the specified InputStream, using the given color space for storage.
-     * 
+     *
      * @param in
      * @param cs Storage color space, either {@link ColorSpace#RGB} or {@link ColorSpace#YCbCr}. {@link ColorSpace#YCCK} and {@link ColorSpace#CMYK} will throw an exception!
      * @return
@@ -54,12 +54,12 @@ public class JPEGImage {
     public static JPEGImage read(InputStream in, ColorSpace cs) throws IOException {
         return new JPEGImage(in, cs);
     }
-    
+
     /** Reads a JPEG image from the specified InputStream, using the {@link ColorSpace#RGB}. */
     public static JPEGImage read(InputStream in) throws IOException {
         return new JPEGImage(in, ColorSpace.RGB);
     }
-    
+
     private static class JPEGColorSink implements JPEGDecoder.ColorSink  {
         int width=0, height=0;
         int sourceComponents=0;
@@ -67,7 +67,7 @@ public class JPEGImage {
         int storageComponents;
         final ColorSpace storageCS;
         ByteBuffer data = null;
-        
+
         JPEGColorSink(ColorSpace storageCM) {
             this.storageCS = storageCM;
             switch(storageCS) {
@@ -79,7 +79,7 @@ public class JPEGImage {
                 throw new IllegalArgumentException("Unsupported storage color-space: "+storageCS);
             }
         }
-        
+
         @Override
         public final ColorSpace allocate(int width, int height, ColorSpace sourceCM, int sourceComponents) throws RuntimeException {
             this.width = width;
@@ -96,7 +96,7 @@ public class JPEGImage {
             data.put(i++, r);
             data.put(i++, g);
             data.put(i++, b);
-            // data.put(i++, (byte)0xff);            
+            // data.put(i++, (byte)0xff);
         }
 
         @Override
@@ -111,12 +111,12 @@ public class JPEGImage {
             data.put(i++, Cb);
             data.put(i++, Cr);
         }
-        
+
         public String toString() {
             return "JPEGPixels["+width+"x"+height+", sourceComp "+sourceComponents+", sourceCS "+sourceCS+", storageCS "+storageCS+", storageComp "+storageComponents+"]";
         }
     };
-    
+
     private JPEGImage(InputStream in, ColorSpace cs) throws IOException {
         pixelStorage = new JPEGColorSink(cs);
         final JPEGDecoder decoder = new JPEGDecoder();
@@ -126,7 +126,7 @@ public class JPEGImage {
         decoder.getPixel(pixelStorage, pixelWidth, pixelHeight);
         data = pixelStorage.data;
         final boolean hasAlpha = false;
-        
+
         bytesPerPixel = 3;
         glFormat = GL.GL_RGB;
         reversedChannels = false; // RGB[A]
@@ -142,7 +142,7 @@ public class JPEGImage {
     private final int pixelWidth, pixelHeight, glFormat, bytesPerPixel;
     private boolean reversedChannels;
     private final ByteBuffer data;
-    
+
     /** Returns the color space of the pixel data */
     public ColorSpace getColorSpace() { return pixelStorage.storageCS; }
 
@@ -157,10 +157,10 @@ public class JPEGImage {
 
     /** Returns true if data has the channels reversed to BGR or BGRA, otherwise RGB or RGBA is expected. */
     public boolean getHasReversedChannels() { return reversedChannels; }
-    
+
     /** Returns the OpenGL format for this texture; e.g. GL.GL_LUMINANCE, GL.GL_RGB or GL.GL_RGBA. */
     public int getGLFormat() { return glFormat; }
-    
+
     /** Returns the OpenGL data type: GL.GL_UNSIGNED_BYTE. */
     public int getGLType() { return GL.GL_UNSIGNED_BYTE; }
 
@@ -170,6 +170,6 @@ public class JPEGImage {
     /** Returns the raw data for this texture in the correct
         (bottom-to-top) order for calls to glTexImage2D. */
     public ByteBuffer getData()  { return data; }
-    
+
     public String toString() { return "JPEGImage["+pixelWidth+"x"+pixelHeight+", bytesPerPixel "+bytesPerPixel+", reversedChannels "+reversedChannels+", "+pixelStorage+", "+data+"]"; }
 }

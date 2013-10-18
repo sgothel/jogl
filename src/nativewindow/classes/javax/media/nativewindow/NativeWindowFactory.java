@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008-2009 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -90,13 +90,13 @@ public abstract class NativeWindowFactory {
 
     private static final String nativeWindowingTypePure;   // canonical String via String.intern()
     private static final String nativeWindowingTypeCustom; // canonical String via String.intern()
-    
+
     private static NativeWindowFactory defaultFactory;
     private static Map<Class<?>, NativeWindowFactory> registeredFactories;
-    
+
     private static Class<?> nativeWindowClass;
     private static boolean isAWTAvailable;
-    
+
     private static final String JAWTUtilClassName = "jogamp.nativewindow.jawt.JAWTUtil" ;
     /** {@link jogamp.nativewindow.x11.X11Util} implements {@link ToolkitProperties}. */
     private static final String X11UtilClassName = "jogamp.nativewindow.x11.X11Util";
@@ -104,16 +104,16 @@ public abstract class NativeWindowFactory {
     private static final String OSXUtilClassName = "jogamp.nativewindow.macosx.OSXUtil";
     /** {@link jogamp.nativewindow.windows.GDIUtil} implements {@link ToolkitProperties}. */
     private static final String GDIClassName = "jogamp.nativewindow.windows.GDIUtil";
-    
+
     private static ToolkitLock jawtUtilJAWTToolkitLock;
-    
+
     private static boolean requiresToolkitLock;
     private static boolean desktopHasThreadingIssues;
 
     // Shutdown hook mechanism for the factory
     private static volatile boolean isJVMShuttingDown = false;
     private static final List<Runnable> customShutdownHooks = new ArrayList<Runnable>();
-    
+
     /** Creates a new NativeWindowFactory instance. End users do not
         need to call this method. */
     protected NativeWindowFactory() {
@@ -139,10 +139,10 @@ public abstract class NativeWindowFactory {
             case MACOS:
               return TYPE_MACOSX;
             case WINDOWS:
-              return TYPE_WINDOWS;                
+              return TYPE_WINDOWS;
             case OPENKODE:
               return TYPE_EGL;
-                
+
             case LINUX:
             case FREEBSD:
             case SUNOS:
@@ -158,7 +158,7 @@ public abstract class NativeWindowFactory {
     static {
         final boolean[] _DEBUG = new boolean[] { false };
         final String[] _tmp = new String[] { null };
-        
+
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
                 Platform.initSingleton(); // last resort ..
@@ -168,16 +168,16 @@ public abstract class NativeWindowFactory {
                     new Thread(new Runnable() {
                                 public void run() {
                                     NativeWindowFactory.shutdown(true);
-                                } }, "NativeWindowFactory_ShutdownHook" ) ) ;                        
+                                } }, "NativeWindowFactory_ShutdownHook" ) ) ;
                 return null;
             } } ) ;
-        
+
         DEBUG = _DEBUG[0];
         if(DEBUG) {
             System.err.println(Thread.currentThread().getName()+" - Info: NativeWindowFactory.<init>");
             // Thread.dumpStack();
         }
-        
+
         // Gather the windowing TK first
         nativeWindowingTypePure = _getNativeWindowingType();
         if(null==_tmp[0] || _tmp[0].length()==0) {
@@ -202,23 +202,23 @@ public abstract class NativeWindowFactory {
         }
         if( null != clazzName ) {
             ReflectionUtil.callStaticMethod(clazzName, "initSingleton", null, null, cl );
-            
+
             final Boolean res1 = (Boolean) ReflectionUtil.callStaticMethod(clazzName, "requiresToolkitLock", null, null, cl);
             requiresToolkitLock = res1.booleanValue();
             final Boolean res2 = (Boolean) ReflectionUtil.callStaticMethod(clazzName, "hasThreadingIssues", null, null, cl);
             desktopHasThreadingIssues = res2.booleanValue();
-        } else {            
+        } else {
             requiresToolkitLock = false;
             desktopHasThreadingIssues = false;
         }
     }
 
-    /** Returns true if the JVM is shutting down, otherwise false. */ 
+    /** Returns true if the JVM is shutting down, otherwise false. */
     public static final boolean isJVMShuttingDown() { return isJVMShuttingDown; }
-    
-    /** 
+
+    /**
      * Add a custom shutdown hook to be performed at JVM shutdown before shutting down NativeWindowFactory instance.
-     *  
+     *
      * @param head if true add runnable at the start, otherwise at the end
      * @param runnable runnable to be added.
      */
@@ -234,7 +234,7 @@ public abstract class NativeWindowFactory {
         }
     }
 
-    /** 
+    /**
      * Cleanup resources at JVM shutdown
      */
     public static synchronized void shutdown(boolean _isJVMShuttingDown) {
@@ -246,14 +246,14 @@ public abstract class NativeWindowFactory {
             final int cshCount = customShutdownHooks.size();
             for(int i=0; i < cshCount; i++) {
                 try {
-                    if( DEBUG ) { 
+                    if( DEBUG ) {
                         System.err.println("NativeWindowFactory.shutdown - customShutdownHook #"+(i+1)+"/"+cshCount);
                     }
                     customShutdownHooks.get(i).run();
                 } catch(Throwable t) {
                     System.err.println("NativeWindowFactory.shutdown: Catched "+t.getClass().getName()+" during customShutdownHook #"+(i+1)+"/"+cshCount);
-                    if( DEBUG ) { 
-                        t.printStackTrace(); 
+                    if( DEBUG ) {
+                        t.printStackTrace();
                     }
                 }
             }
@@ -262,7 +262,7 @@ public abstract class NativeWindowFactory {
         if(DEBUG) {
             System.err.println("NativeWindowFactory.shutdown(): Post customShutdownHook");
         }
-        
+
         if(initialized) {
             initialized = false;
             if(null != registeredFactories) {
@@ -271,14 +271,14 @@ public abstract class NativeWindowFactory {
             }
             GraphicsConfigurationFactory.shutdown();
         }
-        
+
         shutdownNativeImpl(NativeWindowFactory.class.getClassLoader()); // always re-shutdown
         // SharedResourceToolkitLock.shutdown(DEBUG); // not used yet
         if(DEBUG) {
             System.err.println(Thread.currentThread().getName()+" - NativeWindowFactory.shutdown() END JVM Shutdown "+isJVMShuttingDown);
         }
     }
-    
+
     private static void shutdownNativeImpl(final ClassLoader cl) {
         final String clazzName;
         if( TYPE_X11 == nativeWindowingTypePure ) {
@@ -292,11 +292,11 @@ public abstract class NativeWindowFactory {
         }
         if( null != clazzName ) {
             ReflectionUtil.callStaticMethod(clazzName, "shutdown", null, null, cl );
-        }        
+        }
     }
-    
+
     /** Returns true if {@link #initSingleton()} has been called w/o subsequent {@link #shutdown(boolean)}. */
-    public static synchronized boolean isInitialized() { return initialized; }    
+    public static synchronized boolean isInitialized() { return initialized; }
 
     /**
      * Static one time initialization of this factory.<br>
@@ -316,7 +316,7 @@ public abstract class NativeWindowFactory {
 
             if( Platform.AWT_AVAILABLE &&
                 ReflectionUtil.isClassAvailable("com.jogamp.nativewindow.awt.AWTGraphicsDevice", cl) ) {
-                
+
                 Method[] jawtUtilMethods = AccessController.doPrivileged(new PrivilegedAction<Method[]>() {
                     public Method[] run() {
                         try {
@@ -327,7 +327,7 @@ public abstract class NativeWindowFactory {
                             jawtUtilInitMethod.setAccessible(true);
                             Method jawtUtilGetJAWTToolkitLockMethod = _jawtUtilClass.getDeclaredMethod("getJAWTToolkitLock", new Class[]{});
                             jawtUtilGetJAWTToolkitLockMethod.setAccessible(true);
-                            return new Method[] { jawtUtilInitMethod, jawtUtilIsHeadlessMethod, jawtUtilGetJAWTToolkitLockMethod }; 
+                            return new Method[] { jawtUtilInitMethod, jawtUtilIsHeadlessMethod, jawtUtilGetJAWTToolkitLockMethod };
                         } catch (Exception e) {
                             if(DEBUG) {
                                 e.printStackTrace();
@@ -340,7 +340,7 @@ public abstract class NativeWindowFactory {
                     final Method jawtUtilInitMethod = jawtUtilMethods[0];
                     final Method jawtUtilIsHeadlessMethod = jawtUtilMethods[1];
                     final Method jawtUtilGetJAWTToolkitLockMethod = jawtUtilMethods[2];
-                    
+
                     ReflectionUtil.callMethod(null, jawtUtilInitMethod);
 
                     Object resO = ReflectionUtil.callMethod(null, jawtUtilIsHeadlessMethod);
@@ -351,21 +351,21 @@ public abstract class NativeWindowFactory {
                     } else {
                         throw new RuntimeException("JAWTUtil.isHeadlessMode() didn't return a Boolean");
                     }
-                    resO = ReflectionUtil.callMethod(null, jawtUtilGetJAWTToolkitLockMethod);            
+                    resO = ReflectionUtil.callMethod(null, jawtUtilGetJAWTToolkitLockMethod);
                     if(resO instanceof ToolkitLock) {
                         jawtUtilJAWTToolkitLock = (ToolkitLock) resO;
                     } else {
                         throw new RuntimeException("JAWTUtil.getJAWTToolkitLock() didn't return a ToolkitLock");
-                    }                    
+                    }
                 }
             }
-            
+
             // X11 initialization after possible AWT initialization
             // This is performed post AWT initialization, allowing AWT to complete the same,
-            // which may have been triggered before NativeWindow initialization. 
-            // This way behavior is more uniforms across configurations (Applet/RCP, applications, ..). 
+            // which may have been triggered before NativeWindow initialization.
+            // This way behavior is more uniforms across configurations (Applet/RCP, applications, ..).
             initSingletonNativeImpl(cl);
-            
+
             registeredFactories = Collections.synchronizedMap(new HashMap<Class<?>, NativeWindowFactory>());
 
             // register our default factory -> NativeWindow
@@ -373,17 +373,17 @@ public abstract class NativeWindowFactory {
             nativeWindowClass = javax.media.nativewindow.NativeWindow.class;
             registerFactory(nativeWindowClass, factory);
             defaultFactory = factory;
-        
+
             if ( isAWTAvailable ) {
                 // register either our default factory or (if exist) the X11/AWT one -> AWT Component
                 registerFactory(ReflectionUtil.getClass(ReflectionUtil.AWTNames.ComponentClass, false, cl), factory);
             }
-            
+
             if(DEBUG) {
                 System.err.println("NativeWindowFactory requiresToolkitLock "+requiresToolkitLock+", desktopHasThreadingIssues "+desktopHasThreadingIssues);
                 System.err.println("NativeWindowFactory isAWTAvailable "+isAWTAvailable+", defaultFactory "+factory);
             }
-            
+
             GraphicsConfigurationFactory.initSingleton();
         }
     }
@@ -392,20 +392,20 @@ public abstract class NativeWindowFactory {
     public static boolean requiresToolkitLock() {
         return requiresToolkitLock;
     }
-    
+
     /** @return true if not headless, AWT Component and NativeWindow's AWT part available */
     public static boolean isAWTAvailable() { return isAWTAvailable; }
 
     /**
      * @param useCustom if false return the native value, if true return a custom value if set, otherwise fallback to the native value.
-     * @return the native window type, e.g. {@link #TYPE_X11}, which is canonical via {@link String#intern()}. 
+     * @return the native window type, e.g. {@link #TYPE_X11}, which is canonical via {@link String#intern()}.
      *        Hence {@link String#equals(Object)} and <code>==</code> produce the same result.
      */
     public static String getNativeWindowType(boolean useCustom) {
         return useCustom?nativeWindowingTypeCustom:nativeWindowingTypePure;
     }
 
-    /** Don't know if we shall add this factory here .. 
+    /** Don't know if we shall add this factory here ..
     public static AbstractGraphicsDevice createGraphicsDevice(String type, String connection, int unitID, long handle, ToolkitLock locker) {
         if(TYPE_EGL == type) {
             return new
@@ -427,13 +427,13 @@ public abstract class NativeWindowFactory {
         return defaultFactory;
     }
 
-    /** 
+    /**
      * Returns the AWT {@link ToolkitLock} (JAWT based) if {@link #isAWTAvailable}, otherwise null.
      * <p>
      * The JAWT based {@link ToolkitLock} also locks the global lock,
      * which matters if the latter is required.
-     * </p> 
-     */ 
+     * </p>
+     */
     public static ToolkitLock getAWTToolkitLock() {
         return jawtUtilJAWTToolkitLock;
     }
@@ -441,7 +441,7 @@ public abstract class NativeWindowFactory {
     public static ToolkitLock getNullToolkitLock() {
         return NativeWindowFactoryImpl.getNullToolkitLock();
     }
-    
+
     /**
      * Provides the system default {@link ToolkitLock} for the default system windowing type.
      * @see #getNativeWindowType(boolean)
@@ -486,7 +486,7 @@ public abstract class NativeWindowFactory {
         }
         return NativeWindowFactoryImpl.getNullToolkitLock();
     }
-    
+
     /**
      * @param device
      * @param screen -1 is default screen of the given device, e.g. maybe 0 or determined by native API. >= 0 is specific screen
@@ -510,7 +510,7 @@ public abstract class NativeWindowFactory {
         }
         return new DefaultGraphicsScreen(device, screen);
     }
-    
+
     /** Returns the appropriate NativeWindowFactory to handle window
         objects of the given type. The windowClass might be {@link
         NativeWindow NativeWindow}, in which case the client has
@@ -543,7 +543,7 @@ public abstract class NativeWindowFactory {
     }
 
     /** Converts the given window object and it's
-        {@link AbstractGraphicsConfiguration AbstractGraphicsConfiguration} into a 
+        {@link AbstractGraphicsConfiguration AbstractGraphicsConfiguration} into a
         {@link NativeWindow NativeWindow} which can be operated upon by a custom
         toolkit, e.g. {@link javax.media.opengl.GLDrawableFactory javax.media.opengl.GLDrawableFactory}.<br>
         The object may be a component for a particular window toolkit, such as an AWT
@@ -554,7 +554,7 @@ public abstract class NativeWindowFactory {
         NativeWindowFactory is responsible for handling objects from a
         particular window toolkit. The built-in NativeWindowFactory
         handles NativeWindow instances as well as AWT Components.<br>
-    
+
         @throws IllegalArgumentException if the given window object
         could not be handled by any of the registered
         NativeWindowFactory instances
@@ -573,22 +573,22 @@ public abstract class NativeWindowFactory {
         NativeWindow. Implementors of concrete NativeWindowFactory
         subclasses should override this method. */
     protected abstract NativeWindow getNativeWindowImpl(Object winObj, AbstractGraphicsConfiguration config) throws IllegalArgumentException;
-    
+
     /**
      * Returns the {@link OffscreenLayerSurface} instance of this {@link NativeSurface}.
      * <p>
-     * In case this surface is a {@link NativeWindow}, we traverse from the given surface 
+     * In case this surface is a {@link NativeWindow}, we traverse from the given surface
      * up to root until an implementation of {@link OffscreenLayerSurface} is found.
      * In case <code>ifEnabled</code> is true, the surface must also implement {@link OffscreenLayerOption}
-     * where {@link OffscreenLayerOption#isOffscreenLayerSurfaceEnabled()} is <code>true</code>.  
+     * where {@link OffscreenLayerOption#isOffscreenLayerSurfaceEnabled()} is <code>true</code>.
      * </p>
-     * 
+     *
      * @param surface The surface to query.
-     * @param ifEnabled If true, only return the enabled {@link OffscreenLayerSurface}, see {@link OffscreenLayerOption#isOffscreenLayerSurfaceEnabled()}. 
+     * @param ifEnabled If true, only return the enabled {@link OffscreenLayerSurface}, see {@link OffscreenLayerOption#isOffscreenLayerSurfaceEnabled()}.
      * @return
      */
     public static OffscreenLayerSurface getOffscreenLayerSurface(NativeSurface surface, boolean ifEnabled) {
-        if(surface instanceof OffscreenLayerSurface && 
+        if(surface instanceof OffscreenLayerSurface &&
            ( !ifEnabled || surface instanceof OffscreenLayerOption ) ) {
             final OffscreenLayerSurface ols = (OffscreenLayerSurface) surface;
             return ( !ifEnabled || ((OffscreenLayerOption)ols).isOffscreenLayerSurfaceEnabled() ) ? ols : null;
@@ -601,12 +601,12 @@ public abstract class NativeWindowFactory {
                     final OffscreenLayerSurface ols = (OffscreenLayerSurface) nw;
                     return ( !ifEnabled || ((OffscreenLayerOption)ols).isOffscreenLayerSurfaceEnabled() ) ? ols : null;
                 }
-                nw = nw.getParent();                
+                nw = nw.getParent();
             }
         }
-        return null;            
+        return null;
     }
-    
+
     /**
      * Returns true if the given visualID is valid for further processing, i.e. OpenGL usage,
      * otherwise return false.
@@ -619,8 +619,8 @@ public abstract class NativeWindowFactory {
      * </p>
      */
     public static boolean isNativeVisualIDValidForProcessing(int visualID) {
-        return NativeWindowFactory.TYPE_X11 != NativeWindowFactory.getNativeWindowType(false) || 
+        return NativeWindowFactory.TYPE_X11 != NativeWindowFactory.getNativeWindowType(false) ||
                VisualIDHolder.VID_UNDEFINED != visualID ;
     }
-        
+
 }

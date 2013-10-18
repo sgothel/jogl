@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -45,10 +45,10 @@ import java.util.TimerTask;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLException;
 
-/** 
+/**
  * An Animator subclass which attempts to achieve a target
  * frames-per-second rate to avoid using all CPU time. The target FPS
- * is only an estimate and is not guaranteed. 
+ * is only an estimate and is not guaranteed.
  * <p>
  * The Animator execution thread does not run as a daemon thread,
  * so it is able to keep an application from terminating.<br>
@@ -105,45 +105,45 @@ public class FPSAnimator extends AnimatorBase {
      * @param fps
      * @throws GLException if the animator has already been started
      */
-    public final synchronized void setFPS(int fps) throws GLException { 
+    public final synchronized void setFPS(int fps) throws GLException {
         if ( isStartedImpl() ) {
             throw new GLException("Animator already started.");
         }
-        this.fps = fps; 
+        this.fps = fps;
     }
     public final int getFPS() { return fps; }
-    
+
     class MainTask extends TimerTask {
         private boolean justStarted;
         private boolean alreadyStopped;
         private boolean alreadyPaused;
-        
+
         public MainTask() {
         }
-        
+
         public void start(Timer timer) {
             fpsCounter.resetFPSCounter();
             shouldRun = true;
             shouldStop = false;
-            
+
             justStarted = true;
             alreadyStopped = false;
             alreadyPaused = false;
 
-            final long period = 0 < fps ? (long) (1000.0f / (float) fps) : 1; // 0 -> 1: IllegalArgumentException: Non-positive period         
+            final long period = 0 < fps ? (long) (1000.0f / (float) fps) : 1; // 0 -> 1: IllegalArgumentException: Non-positive period
             if (scheduleAtFixedRate) {
                 timer.scheduleAtFixedRate(this, 0, period);
             } else {
                 timer.schedule(this, 0, period);
             }
         }
-        
+
         public boolean isActive() { return !alreadyStopped && !alreadyPaused; }
-        
+
         public String toString() {
             return "Task[thread "+animThread+", stopped "+alreadyStopped+", paused "+alreadyPaused+" shouldRun "+shouldRun+", shouldStop "+shouldStop+" -- started "+isStartedImpl()+", animating "+isAnimatingImpl()+", paused "+isPausedImpl()+", drawable "+drawables.size()+", drawablesEmpty "+drawablesEmpty+"]";
         }
-                    
+
         public void run() {
             if( justStarted ) {
                 justStarted = false;
@@ -167,8 +167,8 @@ public class FPSAnimator extends AnimatorBase {
                 display();
             } else if( shouldStop ) { // STOP
                 System.err.println("FPSAnimator P4: "+alreadyStopped+", "+ Thread.currentThread() + ": " + toString());
-                this.cancel();                
-                
+                this.cancel();
+
                 if( !alreadyStopped ) {
                     alreadyStopped = true;
                     if( exclusiveContext && !drawablesEmpty ) {
@@ -184,23 +184,23 @@ public class FPSAnimator extends AnimatorBase {
                         FPSAnimator.this.notifyAll();
                     }
                 }
-            } else { 
+            } else {
                 System.err.println("FPSAnimator P5: "+alreadyPaused+", "+ Thread.currentThread() + ": " + toString());
                 this.cancel();
-                
+
                 if( !alreadyPaused ) { // PAUSE
                     alreadyPaused = true;
                     if( exclusiveContext && !drawablesEmpty ) {
                         setDrawablesExclCtxState(false);
                         display(); // propagate exclusive change!
                     }
-                    synchronized (FPSAnimator.this) {                        
+                    synchronized (FPSAnimator.this) {
                         if(DEBUG) {
                             System.err.println("FPSAnimator pause " + Thread.currentThread() + ": " + toString());
                         }
                         isAnimating = false;
                         FPSAnimator.this.notifyAll();
-                    }    
+                    }
                 }
             }
         }
@@ -230,7 +230,7 @@ public class FPSAnimator extends AnimatorBase {
     }
 
     static int timerNo = 0;
-    
+
     public synchronized boolean start() {
         if ( null != timer || null != task || isStartedImpl() ) {
             return false;
@@ -241,8 +241,8 @@ public class FPSAnimator extends AnimatorBase {
             System.err.println("FPSAnimator.start() START: "+task+", "+ Thread.currentThread() + ": " + toString());
         }
         task.start(timer);
-        
-        final boolean res = finishLifecycleAction( drawablesEmpty ? waitForStartedEmptyCondition : waitForStartedAddedCondition, 
+
+        final boolean res = finishLifecycleAction( drawablesEmpty ? waitForStartedEmptyCondition : waitForStartedAddedCondition,
                                                    POLLP_WAIT_FOR_FINISH_LIFECYCLE_ACTION);
         if(DEBUG) {
             System.err.println("FPSAnimator.start() END: "+task+", "+ Thread.currentThread() + ": " + toString());
@@ -256,11 +256,11 @@ public class FPSAnimator extends AnimatorBase {
     private final Condition waitForStartedAddedCondition = new Condition() {
         public boolean eval() {
             return !isStartedImpl() || !isAnimating ;
-        } };    
+        } };
     private final Condition waitForStartedEmptyCondition = new Condition() {
         public boolean eval() {
             return !isStartedImpl() || isAnimating ;
-        } };    
+        } };
 
     /** Stops this FPSAnimator. Due to the implementation of the
     FPSAnimator it is not guaranteed that the FPSAnimator will be
@@ -268,7 +268,7 @@ public class FPSAnimator extends AnimatorBase {
     public synchronized boolean stop() {
         if ( null == timer || !isStartedImpl() ) {
             return false;
-        }        
+        }
         if(DEBUG) {
             System.err.println("FPSAnimator.stop() START: "+task+", "+ Thread.currentThread() + ": " + toString());
         }
@@ -281,7 +281,7 @@ public class FPSAnimator extends AnimatorBase {
             shouldStop = true;
             res = finishLifecycleAction(waitForStoppedCondition, POLLP_WAIT_FOR_FINISH_LIFECYCLE_ACTION);
         }
-        
+
         if(DEBUG) {
             System.err.println("FPSAnimator.stop() END: "+task+", "+ Thread.currentThread() + ": " + toString());
         }
@@ -316,7 +316,7 @@ public class FPSAnimator extends AnimatorBase {
             shouldRun = false;
             res = finishLifecycleAction(waitForPausedCondition, POLLP_WAIT_FOR_FINISH_LIFECYCLE_ACTION);
         }
-        
+
         if(DEBUG) {
             System.err.println("FPSAnimator.pause() END: "+task+", "+ Thread.currentThread() + ": " + toString());
         }

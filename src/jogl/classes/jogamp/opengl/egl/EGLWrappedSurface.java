@@ -19,16 +19,16 @@ public class EGLWrappedSurface extends WrappedSurface {
         }
         return new EGLWrappedSurface(surface);
     }
-    
+
     public EGLWrappedSurface(NativeSurface surface) {
         super(surface.getGraphicsConfiguration(), EGL.EGL_NO_SURFACE, new EGLUpstreamSurfaceHook(surface), false /* tbd in UpstreamSurfaceHook */);
         if(EGLDrawableFactory.DEBUG) {
-            System.err.println("EGLWrappedSurface.ctor(): "+this);            
+            System.err.println("EGLWrappedSurface.ctor(): "+this);
         }
     }
 
     @Override
-    public final NativeSurface getUpstreamSurface() { 
-        return ((EGLUpstreamSurfaceHook)super.getUpstreamSurfaceHook()).getUpstreamSurface(); 
-    }    
+    public final NativeSurface getUpstreamSurface() {
+        return ((EGLUpstreamSurfaceHook)super.getUpstreamSurfaceHook()).getUpstreamSurface();
+    }
 }

@@ -30,12 +30,12 @@ import java.io.IOException;
  * @version $Id: CmapFormatUnknown.java,v 1.1 2004-12-21 10:21:23 davidsch Exp $
  */
 public class CmapFormatUnknown extends CmapFormat {
-    
+
     /** Creates a new instance of CmapFormatUnknown */
     protected CmapFormatUnknown(int format, DataInput di) throws IOException {
         super(di);
         _format = format;
-        
+
         // We don't know how to handle this data, so we'll just skip over it
         di.skipBytes(_length - 4);
     }
@@ -43,7 +43,7 @@ public class CmapFormatUnknown extends CmapFormat {
     public int getRangeCount() {
         return 0;
     }
-    
+
     public Range getRange(int index) throws ArrayIndexOutOfBoundsException {
         throw new ArrayIndexOutOfBoundsException();
     }

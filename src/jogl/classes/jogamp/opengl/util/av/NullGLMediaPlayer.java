@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -54,10 +54,10 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     private TextureData texData = null;
     private int pos_ms = 0;
     private long pos_start = 0;
-    
+
     public NullGLMediaPlayer() {
         super();
-        
+
     }
 
     @Override
@@ -82,16 +82,16 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
         validatePos();
         return pos_ms;
     }
-    
+
     @Override
     protected final int getNextTextureImpl(GL gl, TextureFrame nextFrame) {
         final int pts = getAudioPTSImpl();
         nextFrame.setPTS( pts );
         return pts;
     }
-    
+
     @Override
-    protected final int getAudioPTSImpl() { 
+    protected final int getAudioPTSImpl() {
         pos_ms = (int) ( Platform.currentTimeMillis() - pos_start );
         validatePos();
         return pos_ms;
@@ -102,9 +102,9 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
         if(null != texData) {
             texData.destroy();
             texData = null;
-        }                      
+        }
     }
-    
+
     public final static TextureData createTestTextureData() {
         TextureData res = null;
         try {
@@ -125,28 +125,28 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
             buffer.rewind();
             res = new TextureData(GLProfile.getGL2ES2(),
                    GL.GL_RGBA, w, h, 0,
-                   GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, false, 
+                   GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, false,
                    false, false, buffer, null);
         }
         return res;
     }
-        
+
     @Override
     protected final void initStreamImpl(int vid, int aid) throws IOException {
         texData = createTestTextureData();
         final float _fps = 24f;
         final int _duration = 10*60*1000; // msec
         final int _totalFrames = (int) ( (_duration/1000)*_fps );
-        updateAttributes(0 /* fake */, GLMediaPlayer.STREAM_ID_NONE, 
-                         texData.getWidth(), texData.getHeight(), 0, 
-                         0, 0, _fps, 
+        updateAttributes(0 /* fake */, GLMediaPlayer.STREAM_ID_NONE,
+                         texData.getWidth(), texData.getHeight(), 0,
+                         0, 0, _fps,
                          _totalFrames, 0, _duration, "png-static", null);
-    }    
+    }
     @Override
     protected final void initGLImpl(GL gl) throws IOException, GLException {
         isInGLOrientation = true;
     }
-    
+
     /**
      * {@inheritDoc}
      * <p>
@@ -157,21 +157,21 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     protected int validateTextureCount(int desiredTextureCount) {
         return 2;
     }
-    
+
     @Override
     protected final TextureSequence.TextureFrame createTexImage(GL gl, int texName) {
         final Texture texture = super.createTexImageImpl(gl, texName, width, height);
         if(null != texData) {
             texture.updateImage(gl, texData);
-        }                      
+        }
         return new TextureSequence.TextureFrame( texture );
     }
-    
+
     @Override
     protected final void destroyTexFrame(GL gl, TextureSequence.TextureFrame frame) {
         super.destroyTexFrame(gl, frame);
     }
-    
+
     private void validatePos() {
         boolean considerPausing = false;
         if( 0 > pos_ms) {

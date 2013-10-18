@@ -73,7 +73,7 @@ public class GlyfCompositeDescript extends GlyfDescript {
             int glyphIndex,
             DataInput di) throws IOException {
         super(parentTable, glyphIndex, (short) -1, di);
-        
+
         // Get all of the composite components
         GlyfCompositeComp comp;
         int firstIndex = 0;

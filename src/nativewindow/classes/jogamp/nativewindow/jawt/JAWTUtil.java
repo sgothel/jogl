@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
@@ -63,13 +63,13 @@ public class JAWTUtil {
 
   /** OSX JAWT version option to use CALayer */
   public static final int JAWT_MACOSX_USE_CALAYER = 0x80000000;
-  
+
   /** OSX JAWT CALayer availability on Mac OS X >= 10.6 Update 4 (recommended) */
   public static final VersionNumber JAWT_MacOSXCALayerMinVersion = new VersionNumber(10,6,4);
-  
+
   /** OSX JAWT CALayer required with Java >= 1.7.0 (implies OS X >= 10.7  */
   public static final VersionNumber JAWT_MacOSXCALayerRequiredForJavaVersion = Platform.Version17;
-  
+
   // See whether we're running in headless mode
   private static final boolean headlessMode;
   private static final JAWT jawtLockObject;
@@ -81,27 +81,27 @@ public class JAWTUtil {
   private static final Method  sunToolkitAWTLockMethod;
   private static final Method  sunToolkitAWTUnlockMethod;
   private static final boolean hasSunToolkitAWTLock;
-  
+
   private static final RecursiveLock jawtLock;
   private static final ToolkitLock jawtToolkitLock;
 
   private static class PrivilegedDataBlob1 {
     PrivilegedDataBlob1() {
         ok = false;
-    }  
+    }
     Method  sunToolkitAWTLockMethod;
     Method  sunToolkitAWTUnlockMethod;
     boolean ok;
   }
-  
+
   /**
    * Returns true if this platform's JAWT implementation supports offscreen layer.
    */
   public static boolean isOffscreenLayerSupported() {
     return Platform.OS_TYPE == Platform.OSType.MACOS &&
-           Platform.OS_VERSION_NUMBER.compareTo(JAWTUtil.JAWT_MacOSXCALayerMinVersion) >= 0;      
+           Platform.OS_VERSION_NUMBER.compareTo(JAWTUtil.JAWT_MacOSXCALayerMinVersion) >= 0;
   }
- 
+
   /**
    * Returns true if this platform's JAWT implementation requires using offscreen layer.
    */
@@ -109,8 +109,8 @@ public class JAWTUtil {
     return Platform.OS_TYPE == Platform.OSType.MACOS &&
            Platform.JAVA_VERSION_NUMBER.compareTo(JAWT_MacOSXCALayerRequiredForJavaVersion)>=0;
   }
- 
-  /** 
+
+  /**
    * CALayer size needs to be set using the AWT component size.
    * <p>
    * AWT's super-calayer, i.e. the AWT's own component CALayer,
@@ -120,13 +120,13 @@ public class JAWTUtil {
    * <p>
    * As of today, this flag is enabled for all known AWT versions.
    * </p>
-   * <p> 
+   * <p>
    * Sync w/ NativeWindowProtocols.h
-   * </p> 
+   * </p>
    */
   public static final int JAWT_OSX_CALAYER_QUIRK_SIZE     = 1 << 0;
-  
-  /** 
+
+  /**
    * CALayer position needs to be set to zero.
    * <p>
    * AWT's super-calayer, i.e. the AWT's own component CALayer,
@@ -137,19 +137,19 @@ public class JAWTUtil {
    * </p>
    * <p>
    * Further more a re-layout seems to be required in this case,
-   * i.e. a programmatic forced resize +1 and it's inverted resize -1. 
+   * i.e. a programmatic forced resize +1 and it's inverted resize -1.
    * </p>
    * <p>
-   * This flag is enabled w/ AWT < 1.7.0_40. 
+   * This flag is enabled w/ AWT < 1.7.0_40.
    * </p>
-   * <p> 
+   * <p>
    * Sync w/ NativeWindowProtocols.h
-   * </p> 
+   * </p>
    */
   public static final int JAWT_OSX_CALAYER_QUIRK_POSITION = 1 << 1;
-  
-  /** 
-   * CALayer position needs to be derived from AWT position 
+
+  /**
+   * CALayer position needs to be derived from AWT position
    * in relation to super CALayer.
    * <p>
    * AWT's super-calayer, i.e. the AWT top-container's CALayer,
@@ -165,7 +165,7 @@ public class JAWTUtil {
    * </p>
    * <p>
    * The super-calayer lies within the AWT top-container client space (content).
-   * </p>    
+   * </p>
    * <p>
    * Component's location in super-calayer:
    * <pre>
@@ -188,12 +188,12 @@ public class JAWTUtil {
    * <p>
    * As of today, this flag is enabled for w/ AWT >= 1.7.0_40.
    * </p>
-   * <p> 
+   * <p>
    * Sync w/ NativeWindowProtocols.h
-   * </p> 
+   * </p>
    */
   public static final int JAWT_OSX_CALAYER_QUIRK_LAYOUT = 1 << 2;
-  
+
   /**
    * Returns bitfield of required JAWT OSX CALayer quirks to mediate AWT impl. bugs.
    * <p>
@@ -211,12 +211,12 @@ public class JAWTUtil {
    */
   public static int getOSXCALayerQuirks() {
     int res = 0;
-    if( Platform.OS_TYPE == Platform.OSType.MACOS && 
+    if( Platform.OS_TYPE == Platform.OSType.MACOS &&
         Platform.OS_VERSION_NUMBER.compareTo(JAWTUtil.JAWT_MacOSXCALayerMinVersion) >= 0 ) {
-        
+
         /** Knowing impl. all expose the SIZE bug */
         res |= JAWT_OSX_CALAYER_QUIRK_SIZE;
-        
+
         final int c = Platform.JAVA_VERSION_NUMBER.compareTo(Platform.Version17);
         if( c < 0 || c == 0 && Platform.JAVA_VERSION_UPDATE < 40 ) {
             res |= JAWT_OSX_CALAYER_QUIRK_POSITION;
@@ -226,20 +226,20 @@ public class JAWTUtil {
     }
     return res;
   }
-  
+
   /**
    * @param useOffscreenLayerIfAvailable
    * @return
    */
   public static JAWT getJAWT(boolean useOffscreenLayerIfAvailable) {
-    final int jawt_version_flags = JAWTFactory.JAWT_VERSION_1_4;    
+    final int jawt_version_flags = JAWTFactory.JAWT_VERSION_1_4;
     JAWT jawt = JAWT.create();
-    
+
     // default queries
     boolean tryOffscreenLayer;
     boolean tryOnscreen;
     int jawt_version_flags_offscreen = jawt_version_flags;
-    
+
     if(isOffscreenLayerRequired()) {
         if(Platform.OS_TYPE == Platform.OSType.MACOS) {
             if(Platform.OS_VERSION_NUMBER.compareTo(JAWTUtil.JAWT_MacOSXCALayerMinVersion) >= 0) {
@@ -263,11 +263,11 @@ public class JAWTUtil {
     } else {
         tryOffscreenLayer = false;
         tryOnscreen = true;
-    }    
+    }
     if(DEBUG) {
         System.err.println("JAWTUtil.getJAWT(tryOffscreenLayer "+tryOffscreenLayer+", tryOnscreen "+tryOnscreen+")");
     }
-    
+
     StringBuilder errsb = new StringBuilder();
     if(tryOffscreenLayer) {
         errsb.append("Offscreen 0x").append(Integer.toHexString(jawt_version_flags_offscreen));
@@ -282,15 +282,15 @@ public class JAWTUtil {
         errsb.append("Onscreen 0x").append(Integer.toHexString(jawt_version_flags));
         if( JAWT.getJAWT(jawt, jawt_version_flags) ) {
             return jawt;
-        }        
+        }
     }
     throw new RuntimeException("Unable to initialize JAWT, trials: "+errsb.toString());
   }
-  
+
   public static boolean isJAWTUsingOffscreenLayer(JAWT jawt) {
       return 0 != ( jawt.getCachedVersion() & JAWTUtil.JAWT_MACOSX_USE_CALAYER );
   }
-  
+
   static {
     if(DEBUG) {
         System.err.println("JAWTUtil initialization (JAWT/JNI/...");
@@ -319,10 +319,10 @@ public class JAWTUtil {
     isQueueFlusherThread = m;
     j2dExist = ok;
 
-    PrivilegedDataBlob1 pdb1 = (PrivilegedDataBlob1) AccessController.doPrivileged(new PrivilegedAction<Object>() {        
+    PrivilegedDataBlob1 pdb1 = (PrivilegedDataBlob1) AccessController.doPrivileged(new PrivilegedAction<Object>() {
         public Object run() {
             PrivilegedDataBlob1 d = new PrivilegedDataBlob1();
-            try {                
+            try {
                 final Class<?> sunToolkitClass = Class.forName("sun.awt.SunToolkit");
                 d.sunToolkitAWTLockMethod = sunToolkitClass.getDeclaredMethod("awtLock", new Class[]{});
                 d.sunToolkitAWTLockMethod.setAccessible(true);
@@ -337,7 +337,7 @@ public class JAWTUtil {
     });
     sunToolkitAWTLockMethod = pdb1.sunToolkitAWTLockMethod;
     sunToolkitAWTUnlockMethod = pdb1.sunToolkitAWTUnlockMethod;
-    
+
     boolean _hasSunToolkitAWTLock = false;
     if ( pdb1.ok ) {
         try {
@@ -351,10 +351,10 @@ public class JAWTUtil {
     // hasSunToolkitAWTLock = false;
     jawtLock = LockFactory.createRecursiveLock();
 
-    jawtToolkitLock = new ToolkitLock() {          
+    jawtToolkitLock = new ToolkitLock() {
           public final void lock() {
               JAWTUtil.lockToolkit();
-          }    
+          }
           public final void unlock() {
               JAWTUtil.unlockToolkit();
           }
@@ -411,11 +411,11 @@ public class JAWTUtil {
   public static void initSingleton() {
       // just exist to ensure static init has been run
   }
-  
+
   /**
    * Called by {@link NativeWindowFactory#shutdown()}
    */
-  public static void shutdown() {      
+  public static void shutdown() {
   }
 
   public static boolean hasJava2D() {
@@ -443,7 +443,7 @@ public class JAWTUtil {
    * which just uses AWT's global ReentrantLock.
    * </p>
    * <p>
-   * AWT locking is wrapped through a recursive lock object. 
+   * AWT locking is wrapped through a recursive lock object.
    * </p>
    */
   public static void lockToolkit() throws NativeWindowException {
@@ -471,11 +471,11 @@ public class JAWTUtil {
    * which just uses AWT's global ReentrantLock.
    * </p>
    * <p>
-   * AWT unlocking is wrapped through a recursive lock object. 
+   * AWT unlocking is wrapped through a recursive lock object.
    * </p>
    */
   public static void unlockToolkit() {
-    jawtLock.validateLocked();    
+    jawtLock.validateLocked();
     if(ToolkitLock.TRACE_LOCK) { System.err.println("JAWTUtil-ToolkitLock.unlock(): "+jawtLock); }
     if( 1 == jawtLock.getHoldCount() ) {
         if(!headlessMode && !isJava2DQueueFlusherThread()) {
@@ -492,14 +492,14 @@ public class JAWTUtil {
     }
     jawtLock.unlock();
   }
-  
+
   public static final void validateLocked() throws RuntimeException {
     jawtLock.validateLocked();
-  }  
+  }
 
   public static ToolkitLock getJAWTToolkitLock() {
     return jawtToolkitLock;
   }
-  
+
 }
 

@@ -39,7 +39,7 @@ public abstract class OutputEvent extends NEWTEvent
  public String toString() {
      return toString(null).toString();
  }
- 
+
  public StringBuilder toString(StringBuilder sb) {
      if(null == sb) {
          sb = new StringBuilder();

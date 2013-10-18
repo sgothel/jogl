@@ -78,7 +78,7 @@ public class AWTWindowClosingProtocol implements WindowClosingProtocol {
   /**
    * Adds this closing listener to the components Window if exist and only one time.
    * <p>
-   * If the closing listener is already added, and {@link IllegalStateException} is thrown. 
+   * If the closing listener is already added, and {@link IllegalStateException} is thrown.
    * </p>
    *
    * @return true if added, otherwise false.

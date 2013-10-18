@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2012 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  */
 
 package jogamp.newt.driver.bcm.egl;
@@ -56,7 +56,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
         if(0!=getParentWindowHandle()) {
             throw new RuntimeException("Window parenting not supported (yet)");
         }
-        // query a good configuration, however chose the final one by the native queried egl-cfg-id  
+        // query a good configuration, however chose the final one by the native queried egl-cfg-id
         // after creation at {@link #windowCreated(int, int, int)}.
         final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice(), capsRequested).chooseGraphicsConfiguration(
                 capsRequested, capsRequested, capabilitiesChooser, getScreen().getGraphicsScreen(), VisualIDHolder.VID_UNDEFINED);
@@ -89,8 +89,8 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
         }
     }
 
-    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) { 
-        if(0!=getWindowHandle()) {            
+    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
+        if(0!=getWindowHandle()) {
             if(0 != ( FLAG_CHANGE_FULLSCREEN & flags)) {
                 if( 0 != ( FLAG_IS_FULLSCREEN & flags) ) {
                     // n/a in BroadcomEGL
@@ -110,7 +110,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
         if(x>=0 || y>=0) {
             System.err.println("BCEGL Window.setPositionImpl n/a in BroadcomEGL");
         }
-        
+
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
             visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));
         }
@@ -122,7 +122,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
     }
 
     protected void updateInsetsImpl(Insets insets) {
-        // nop ..        
+        // nop ..
     }
 
     @Override

@@ -43,7 +43,7 @@ public interface GLArrayData {
      * Implementation and type dependent object association.
      * <p>
      * One currently known use case is to associate a {@link com.jogamp.opengl.util.glsl.ShaderState ShaderState}
-     * to an GLSL aware vertex attribute object, allowing to use the ShaderState to handle it's 
+     * to an GLSL aware vertex attribute object, allowing to use the ShaderState to handle it's
      * data persistence, location and state change.<br/>
      * This is implicitly done via {@link com.jogamp.opengl.util.glsl.ShaderState#ownAttribute(GLArrayData, boolean) shaderState.ownAttribute(GLArrayData, boolean)}.
      * </p>
@@ -51,7 +51,7 @@ public interface GLArrayData {
      * @param enable pass true to enable the association and false to disable it.
      */
     public void associate(Object obj, boolean enable);
-    
+
     /**
      * Returns true if this data set is intended for a GLSL vertex shader attribute,
      * otherwise false, ie intended for fixed function vertex pointer
@@ -110,7 +110,7 @@ public interface GLArrayData {
      *         &lt;0 denotes an invalid location, i.e. not found or used in the given shader program.
      */
     public int setLocation(GL2ES2 gl, int program);
-    
+
     /**
      * Binds the location of the shader attribute to the given location for the unlinked shader program.
      * <p>
@@ -121,7 +121,7 @@ public interface GLArrayData {
      * @return the given location
      */
     public int setLocation(GL2ES2 gl, int program, int location);
-    
+
     /**
      * Determines whether the data is server side (VBO) and enabled,
      * or a client side array (false).
@@ -150,7 +150,7 @@ public interface GLArrayData {
      */
     public int getVBOTarget();
 
-    
+
     /**
      * The Buffer holding the data, may be null if a GPU buffer without client bound data
      */
@@ -179,7 +179,7 @@ public interface GLArrayData {
      * In case the buffer's position is 0 (sealed, flipped), it's based on it's limit instead of it's position.
      */
     public int getElementCount();
-    
+
     /**
      * The currently used size in bytes.<br>
      * In case the buffer's position is 0 (sealed, flipped), it's based on it's limit instead of it's position.
@@ -187,18 +187,18 @@ public interface GLArrayData {
     public int getSizeInBytes();
 
     /**
-     * True, if GL shall normalize fixed point data while converting 
+     * True, if GL shall normalize fixed point data while converting
      * them into float.
-     * <p> 
+     * <p>
      * Default behavior (of the fixed function pipeline) is <code>true</code>
      * for fixed point data type and <code>false</code> for floating point data types.
      * </p>
      */
     public boolean getNormalized();
 
-    /** 
+    /**
      * @return the byte offset between consecutive components
-     */      
+     */
     public int getStride();
 
     public String toString();

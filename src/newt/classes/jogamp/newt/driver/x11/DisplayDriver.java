@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  */
 
 package jogamp.newt.driver.x11;
@@ -83,7 +83,7 @@ public class DisplayDriver extends DisplayImpl {
             CompleteDisplay0(aDevice.getHandle());
         } catch(RuntimeException e) {
             closeNativeImpl(aDevice);
-            throw e;                
+            throw e;
         }
     }
 
@@ -114,14 +114,14 @@ public class DisplayDriver extends DisplayImpl {
     protected long getJavaObjectAtom() { return javaObjectAtom; }
     protected long getWindowDeleteAtom() { return windowDeleteAtom; }
     // protected long getKbdHandle() { return kbdHandle; } // XKB disabled for now
-    
-    /** Returns <code>null</code> if !{@link #isNativeValid()}, otherwise the Boolean value of {@link X11GraphicsDevice#isXineramaEnabled()}. */ 
+
+    /** Returns <code>null</code> if !{@link #isNativeValid()}, otherwise the Boolean value of {@link X11GraphicsDevice#isXineramaEnabled()}. */
     protected Boolean isXineramaEnabled() { return isNativeValid() ? Boolean.valueOf(((X11GraphicsDevice)aDevice).isXineramaEnabled()) : null; }
-    
+
     //----------------------------------------------------------------------
     // Internals only
     //
-    
+
     private static native boolean initIDs0(boolean debug);
 
     private native void CompleteDisplay0(long handle);
@@ -137,10 +137,10 @@ public class DisplayDriver extends DisplayImpl {
 
     /** X11 Window delete atom marker used on EDT */
     private long windowDeleteAtom;
-    
+
     /** X11 Window java object property used on EDT */
-    private long javaObjectAtom;    
-    
+    private long javaObjectAtom;
+
     /** X11 Keyboard handle used on EDT */
     // private long kbdHandle; // XKB disabled for now
 }

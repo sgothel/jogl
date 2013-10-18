@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -75,10 +75,10 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
     static GraphicsConfigurationFactory nativeGraphicsConfigurationFactory = null;
     static GraphicsConfigurationFactory kdeglGraphicsConfigurationFactory = null;
     static GraphicsConfigurationFactory fallbackGraphicsConfigurationFactory = null;
-    
+
     static void registerFactory() {
         GraphicsConfigurationFactory eglFactory = new EGLGraphicsConfigurationFactory();
-        
+
         // become the pre-selector for X11/.. to match the native visual id w/ EGL, if native ES is selected
         final String nwType = NativeWindowFactory.getNativeWindowType(false);
         if(NativeWindowFactory.TYPE_X11 == nwType) {
@@ -86,32 +86,32 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
             if(null != nativeGraphicsConfigurationFactory) {
                 fallbackGraphicsConfigurationFactory = nativeGraphicsConfigurationFactory;
             } else {
-                fallbackGraphicsConfigurationFactory = GraphicsConfigurationFactory.getFactory(com.jogamp.nativewindow.x11.X11GraphicsDevice.class, CapabilitiesImmutable.class);                
+                fallbackGraphicsConfigurationFactory = GraphicsConfigurationFactory.getFactory(com.jogamp.nativewindow.x11.X11GraphicsDevice.class, CapabilitiesImmutable.class);
             }
         } /* else if(NativeWindowFactory.TYPE_WINDOWS == NativeWindowFactory.getNativeWindowType(false)) {
             nativeGraphicsConfigurationFactory = GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.windows.WindowsGraphicsDevice.class, eglFactory);
-        } else if(NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(false)) {            
+        } else if(NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(false)) {
         } */
-        
+
         // become the selector for KD/EGL ..
-        kdeglGraphicsConfigurationFactory = GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.egl.EGLGraphicsDevice.class, GLCapabilitiesImmutable.class, eglFactory);                
+        kdeglGraphicsConfigurationFactory = GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.egl.EGLGraphicsDevice.class, GLCapabilitiesImmutable.class, eglFactory);
     }
-    
+
     static void unregisterFactory() {
         final String nwType = NativeWindowFactory.getNativeWindowType(false);
         if(NativeWindowFactory.TYPE_X11 == nwType) {
-            GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.x11.X11GraphicsDevice.class, GLCapabilitiesImmutable.class, nativeGraphicsConfigurationFactory);                    
+            GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.x11.X11GraphicsDevice.class, GLCapabilitiesImmutable.class, nativeGraphicsConfigurationFactory);
         } /* else if(NativeWindowFactory.TYPE_WINDOWS == NativeWindowFactory.getNativeWindowType(false)) {
             GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.windows.WindowsGraphicsDevice.class, nativeGraphicsConfigurationFactory);
-        } else if(NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(false)) {            
+        } else if(NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(false)) {
         } */
         nativeGraphicsConfigurationFactory = null;
         fallbackGraphicsConfigurationFactory = null;
-        
+
         GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.egl.EGLGraphicsDevice.class, GLCapabilitiesImmutable.class, kdeglGraphicsConfigurationFactory);
         kdeglGraphicsConfigurationFactory = null;
     }
-    
+
     private EGLGraphicsConfigurationFactory() {
     }
 
@@ -139,21 +139,21 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         AbstractGraphicsDevice absDevice = absScreen.getDevice();
         if(null==absDevice) {
             throw new GLException("Null AbstractGraphicsDevice");
-        }        
-        
+        }
+
         AbstractGraphicsConfiguration cfg = null;
-        
+
         if( absDevice instanceof EGLGraphicsDevice ) {
             cfg = chooseGraphicsConfigurationStatic((GLCapabilitiesImmutable) capsChosen,
                                                     (GLCapabilitiesImmutable) capsRequested,
                                                     (GLCapabilitiesChooser) chooser,
-                                                    absScreen, nativeVisualID, false);            
+                                                    absScreen, nativeVisualID, false);
         } else {
-            // handle non native cases (X11, ..) 
+            // handle non native cases (X11, ..)
             if(null == fallbackGraphicsConfigurationFactory) {
                 throw new InternalError("Native fallback GraphicsConfigurationFactory is null, but call issued for device: "+absDevice+" of type "+absDevice.getClass().getSimpleName());
             }
-            
+
             if(glCapsChosen.getGLProfile().usesNativeGLES()) {
                 if(DEBUG) {
                     System.err.println("EGLGraphicsConfigurationFactory.choose..: Handle native device "+absDevice.getClass().getSimpleName());
@@ -175,7 +175,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
                     System.err.println("EGLGraphicsConfigurationFactory.choose..: Delegate to "+fallbackGraphicsConfigurationFactory.getClass().getSimpleName());
                 }
                 cfg = fallbackGraphicsConfigurationFactory.chooseGraphicsConfiguration(capsChosen, capsRequested, chooser, absScreen, nativeVisualID);
-            }            
+            }
         }
         return cfg;
     }
@@ -219,7 +219,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
     public static EGLGraphicsConfiguration chooseGraphicsConfigurationStatic(GLCapabilitiesImmutable capsChosen,
                                                                              GLCapabilitiesImmutable capsReq,
                                                                              GLCapabilitiesChooser chooser,
-                                                                             AbstractGraphicsScreen absScreen, int nativeVisualID, 
+                                                                             AbstractGraphicsScreen absScreen, int nativeVisualID,
                                                                              boolean forceTransparentFlag) {
         if (capsChosen == null) {
             capsChosen = new GLCapabilities(null);
@@ -232,7 +232,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         if(null==absDevice) {
             throw new GLException("Null AbstractGraphicsDevice");
         }
-        
+
         final EGLGraphicsDevice eglDevice;
         final boolean ownEGLDisplay;
         if( absDevice instanceof EGLGraphicsDevice ) {
@@ -253,7 +253,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
             if(DEBUG) {
                 System.err.println("eglChooseConfig failed with given capabilities "+capsChosen);
             }
-    
+
             // Last try .. add a fixed embedded profile [ATI, Nokia, Intel, ..]
             //
             // rgb888 - d16, s4
@@ -268,7 +268,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
                 fixedCaps.setOnscreen(false);
                 fixedCaps.setPBuffer(capsChosen.isPBuffer());
                 fixedCaps.setFBO(capsChosen.isFBO());
-            }            
+            }
             if(DEBUG) {
                 System.err.println("trying fixed caps (1): "+fixedCaps);
             }
@@ -286,7 +286,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
                 fixedCaps.setOnscreen(false);
                 fixedCaps.setPBuffer(capsChosen.isPBuffer());
                 fixedCaps.setFBO(capsChosen.isFBO());
-            }            
+            }
             if(DEBUG) {
                 System.err.println("trying fixed caps (2): "+fixedCaps);
             }
@@ -306,7 +306,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
                 fixedCaps.setOnscreen(false);
                 fixedCaps.setPBuffer(capsChosen.isPBuffer());
                 fixedCaps.setFBO(capsChosen.isFBO());
-            }            
+            }
             if(DEBUG) {
                 System.err.println("trying fixed caps (3): "+fixedCaps);
             }
@@ -322,8 +322,8 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         return res;
     }
 
-    
-    static EGLGraphicsConfiguration eglChooseConfig(EGLGraphicsDevice device, 
+
+    static EGLGraphicsConfiguration eglChooseConfig(EGLGraphicsDevice device,
                                                     GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested,
                                                     GLCapabilitiesChooser chooser,
                                                     AbstractGraphicsScreen absScreen,
@@ -354,7 +354,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         final IntBuffer attrs = EGLGraphicsConfiguration.GLCapabilities2AttribList(capsChosen);
         PointerBuffer configs = PointerBuffer.allocateDirect(numConfigs.get(0));
 
-        // 1st choice: get GLCapabilities based on users GLCapabilities 
+        // 1st choice: get GLCapabilities based on users GLCapabilities
         //             setting recommendedIndex as preferred choice
         // skipped if nativeVisualID is given
         if( VisualIDHolder.VID_UNDEFINED != nativeVisualID || !EGL.eglChooseConfig(eglDisplay, attrs, configs, configs.capacity(), numConfigs) ) {
@@ -387,7 +387,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
                 throw new GLException("EGLGraphicsConfiguration.eglChooseConfig: #2 Get all configs (eglGetConfigs) call failed, error "+toHexString(EGL.eglGetError()));
             }
             if (numConfigs.get(0) > 0) {
-                availableCaps = eglConfigs2GLCaps(device, glp, configs, numConfigs.get(0), winattrmask, forceTransparentFlag);                
+                availableCaps = eglConfigs2GLCaps(device, glp, configs, numConfigs.get(0), winattrmask, forceTransparentFlag);
             }
         }
 
@@ -400,7 +400,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
             }
             return null;
         }
-        
+
         if(DEBUG) {
             System.err.println("EGLGraphicsConfiguration.eglChooseConfig: got configs: "+availableCaps.size());
             for(int i=0; i<availableCaps.size(); i++) {

@@ -40,7 +40,7 @@ import com.jogamp.common.os.Platform;
  * <p>
  * Derived from ProjectFloat.java - Created 11-jan-2004
  * </p>
- * 
+ *
  * @author Erik Duijs
  * @author Kenneth Russell
  * @author Sven Gothel
@@ -95,7 +95,7 @@ public class FloatUtil {
     m.put(ZERO_MATRIX);
     m.position(oldPos);
   }
-  
+
   /**
    * @param a 4x4 matrix in column-major order
    * @param b 4x4 matrix in column-major order
@@ -111,7 +111,7 @@ public class FloatUtil {
         d[d_off+i+3*4] = ai0 * b[b_off+0+3*4] + ai1 * b[b_off+1+3*4] + ai2 * b[b_off+2+3*4] + ai3 * b[b_off+3+3*4] ;
      }
   }
-  
+
   /**
    * @param a 4x4 matrix in column-major order (also result)
    * @param b 4x4 matrix in column-major order
@@ -127,7 +127,7 @@ public class FloatUtil {
         a[a_off_i+3*4] = ai0 * b[b_off+0+3*4] + ai1 * b[b_off+1+3*4] + ai2 * b[b_off+2+3*4] + ai3 * b[b_off+3+3*4] ;
      }
   }
-  
+
   /**
    * @param a 4x4 matrix in column-major order
    * @param b 4x4 matrix in column-major order
@@ -151,7 +151,7 @@ public class FloatUtil {
    * @param d result a*b in column-major order
    */
   public static final void multMatrixf(final FloatBuffer a, final float[] b, int b_off, FloatBuffer d) {
-     final int aP = a.position(); 
+     final int aP = a.position();
      final int dP = d.position();
      for (int i = 0; i < 4; i++) {
         // one row in column-major order
@@ -162,13 +162,13 @@ public class FloatUtil {
         d.put(dP+i+3*4 , ai0 * b[b_off+0+3*4] + ai1 * b[b_off+1+3*4] + ai2 * b[b_off+2+3*4] + ai3 * b[b_off+3+3*4] );
      }
   }
-  
+
   /**
    * @param a 4x4 matrix in column-major order (also result)
    * @param b 4x4 matrix in column-major order
    */
   public static final void multMatrixf(final FloatBuffer a, final float[] b, int b_off) {
-     final int aP = a.position(); 
+     final int aP = a.position();
      for (int i = 0; i < 4; i++) {
         // one row in column-major order
         final int aP_i = aP+i;
@@ -186,7 +186,7 @@ public class FloatUtil {
    * @param d result a*b in column-major order
    */
   public static final void multMatrixf(final FloatBuffer a, final FloatBuffer b, FloatBuffer d) {
-     final int aP = a.position(); 
+     final int aP = a.position();
      final int bP = b.position();
      final int dP = d.position();
      for (int i = 0; i < 4; i++) {
@@ -198,13 +198,13 @@ public class FloatUtil {
         d.put(dP+i+3*4 , ai0 * b.get(bP+0+3*4) + ai1 * b.get(bP+1+3*4) + ai2 * b.get(bP+2+3*4) + ai3 * b.get(bP+3+3*4) );
      }
   }
-  
+
   /**
    * @param a 4x4 matrix in column-major order (also result)
    * @param b 4x4 matrix in column-major order
    */
   public static final void multMatrixf(final FloatBuffer a, final FloatBuffer b) {
-     final int aP = a.position(); 
+     final int aP = a.position();
      final int bP = b.position();
      for (int i = 0; i < 4; i++) {
         // one row in column-major order
@@ -216,14 +216,14 @@ public class FloatUtil {
         a.put(aP_i+3*4 , ai0 * b.get(bP+0+3*4) + ai1 * b.get(bP+1+3*4) + ai2 * b.get(bP+2+3*4) + ai3 * b.get(bP+3+3*4) );
      }
   }
-  
+
   /**
    * @param a 4x4 matrix in column-major order
    * @param b 4x4 matrix in column-major order
    * @param d result a*b in column-major order
    */
   public static final void multMatrixf(final FloatBuffer a, final FloatBuffer b, float[] d, int d_off) {
-     final int aP = a.position(); 
+     final int aP = a.position();
      final int bP = b.position();
      for (int i = 0; i < 4; i++) {
         // one row in column-major order
@@ -234,7 +234,7 @@ public class FloatUtil {
         d[d_off+i+3*4] = ai0 * b.get(bP+0+3*4) + ai1 * b.get(bP+1+3*4) + ai2 * b.get(bP+2+3*4) + ai3 * b.get(bP+3+3*4) ;
      }
   }
-  
+
   /**
    * Normalize vector
    *
@@ -242,7 +242,7 @@ public class FloatUtil {
    */
   public static final void normalize(float[] v) {
     float r = (float) Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-    
+
     if ( r == 0.0 || r == 1.0) {
       return;
     }
@@ -265,7 +265,7 @@ public class FloatUtil {
     float r = (float) Math.sqrt(v.get(0+vPos) * v.get(0+vPos) +
                                 v.get(1+vPos) * v.get(1+vPos) +
                                 v.get(2+vPos) * v.get(2+vPos));
-    
+
     if ( r == 0.0 || r == 1.0) {
       return;
     }
@@ -341,7 +341,7 @@ public class FloatUtil {
         v_in[3] * m_in[3*4+i];
     }
   }
-  
+
   /**
    * @param m_in 4x4 matrix in column-major order
    * @param v_in 4-component column-vector
@@ -355,10 +355,10 @@ public class FloatUtil {
         v_in[0+v_in_off] * m_in.get(0*4+i+matrixPos) +
         v_in[1+v_in_off] * m_in.get(1*4+i+matrixPos) +
         v_in[2+v_in_off] * m_in.get(2*4+i+matrixPos) +
-        v_in[3+v_in_off] * m_in.get(3*4+i+matrixPos);      
+        v_in[3+v_in_off] * m_in.get(3*4+i+matrixPos);
     }
   }
-  
+
   /**
    * @param m_in 4x4 matrix in column-major order
    * @param v_in 4-component column-vector
@@ -372,10 +372,10 @@ public class FloatUtil {
         v_in[0] * m_in.get(0*4+i+matrixPos) +
         v_in[1] * m_in.get(1*4+i+matrixPos) +
         v_in[2] * m_in.get(2*4+i+matrixPos) +
-        v_in[3] * m_in.get(3*4+i+matrixPos);      
+        v_in[3] * m_in.get(3*4+i+matrixPos);
     }
   }
-  
+
   /**
    * @param m_in 4x4 matrix in column-major order
    * @param v_in 4-component column-vector
@@ -395,7 +395,7 @@ public class FloatUtil {
     }
   }
 
-  /** 
+  /**
    * @param sb optional passed StringBuilder instance to be used
    * @param f the format string of one floating point, i.e. "%10.5f", see {@link java.util.Formatter}
    * @param a mxn matrix (rows x columns)
@@ -403,7 +403,7 @@ public class FloatUtil {
    * @param rows
    * @param columns
    * @param rowMajorOrder if true floats are layed out in row-major-order, otherwise column-major-order (OpenGL)
-   * @param row row number to print 
+   * @param row row number to print
    * @return matrix row string representation
    */
   public static StringBuilder matrixRowToString(StringBuilder sb, String f, FloatBuffer a, int aOffset, int rows, int columns, boolean rowMajorOrder, int row) {
@@ -413,17 +413,17 @@ public class FloatUtil {
       final int a0 = aOffset + a.position();
       if(rowMajorOrder) {
           for(int c=0; c<columns; c++) {
-              sb.append( String.format( f+" ", a.get( a0 + row*columns + c ) ) ); 
+              sb.append( String.format( f+" ", a.get( a0 + row*columns + c ) ) );
           }
       } else {
           for(int r=0; r<columns; r++) {
-              sb.append( String.format( f+" ", a.get( a0 + row + r*rows ) ) ); 
+              sb.append( String.format( f+" ", a.get( a0 + row + r*rows ) ) );
           }
       }
       return sb;
   }
 
-  /** 
+  /**
    * @param sb optional passed StringBuilder instance to be used
    * @param f the format string of one floating point, i.e. "%10.5f", see {@link java.util.Formatter}
    * @param a mxn matrix (rows x columns)
@@ -431,7 +431,7 @@ public class FloatUtil {
    * @param rows
    * @param columns
    * @param rowMajorOrder if true floats are layed out in row-major-order, otherwise column-major-order (OpenGL)
-   * @param row row number to print 
+   * @param row row number to print
    * @return matrix row string representation
    */
   public static StringBuilder matrixRowToString(StringBuilder sb, String f, float[] a, int aOffset, int rows, int columns, boolean rowMajorOrder, int row) {
@@ -440,19 +440,19 @@ public class FloatUtil {
       }
       if(rowMajorOrder) {
           for(int c=0; c<columns; c++) {
-              sb.append( String.format( f+" ", a[ aOffset + row*columns + c ] ) ); 
+              sb.append( String.format( f+" ", a[ aOffset + row*columns + c ] ) );
           }
       } else {
           for(int r=0; r<columns; r++) {
-              sb.append( String.format( f+" ", a[ aOffset + row + r*rows ] ) ); 
+              sb.append( String.format( f+" ", a[ aOffset + row + r*rows ] ) );
           }
       }
       return sb;
   }
-  
-  /** 
+
+  /**
    * @param sb optional passed StringBuilder instance to be used
-   * @param rowPrefix optional prefix for each row 
+   * @param rowPrefix optional prefix for each row
    * @param f the format string of one floating point, i.e. "%10.5f", see {@link java.util.Formatter}
    * @param a mxn matrix (rows x columns)
    * @param aOffset offset to <code>a</code>'s current position
@@ -469,14 +469,14 @@ public class FloatUtil {
       for(int i=0; i<rows; i++) {
           sb.append(prefix).append("[ ");
           matrixRowToString(sb, f, a, aOffset, rows, columns, rowMajorOrder, i);
-          sb.append("]").append(Platform.getNewline());      
+          sb.append("]").append(Platform.getNewline());
       }
       return sb;
   }
 
-  /** 
+  /**
    * @param sb optional passed StringBuilder instance to be used
-   * @param rowPrefix optional prefix for each row 
+   * @param rowPrefix optional prefix for each row
    * @param f the format string of one floating point, i.e. "%10.5f", see {@link java.util.Formatter}
    * @param a mxn matrix (rows x columns)
    * @param aOffset offset to <code>a</code>'s current position
@@ -493,14 +493,14 @@ public class FloatUtil {
       for(int i=0; i<rows; i++) {
           sb.append(prefix).append("[ ");
           matrixRowToString(sb, f, a, aOffset, rows, columns, rowMajorOrder, i);
-          sb.append("]").append(Platform.getNewline());      
+          sb.append("]").append(Platform.getNewline());
       }
       return sb;
   }
-  
-  /** 
+
+  /**
    * @param sb optional passed StringBuilder instance to be used
-   * @param rowPrefix optional prefix for each row 
+   * @param rowPrefix optional prefix for each row
    * @param f the format string of one floating point, i.e. "%10.5f", see {@link java.util.Formatter}
    * @param a 4x4 matrix in column major order (OpenGL)
    * @param aOffset offset to <code>a</code>'s current position
@@ -521,14 +521,14 @@ public class FloatUtil {
           matrixRowToString(sb, f, a, aOffset, rows, columns, rowMajorOrder, i);
           sb.append("=?= ");
           matrixRowToString(sb, f, b, bOffset, rows, columns, rowMajorOrder, i);
-          sb.append("]").append(Platform.getNewline());      
+          sb.append("]").append(Platform.getNewline());
       }
       return sb;
   }
 
-  /** 
+  /**
    * @param sb optional passed StringBuilder instance to be used
-   * @param rowPrefix optional prefix for each row 
+   * @param rowPrefix optional prefix for each row
    * @param f the format string of one floating point, i.e. "%10.5f", see {@link java.util.Formatter}
    * @param a 4x4 matrix in column major order (OpenGL)
    * @param aOffset offset to <code>a</code>'s current position
@@ -549,11 +549,11 @@ public class FloatUtil {
           matrixRowToString(sb, f, a, aOffset, rows, columns, rowMajorOrder, i);
           sb.append("=?= ");
           matrixRowToString(sb, f, b, bOffset, rows, columns, rowMajorOrder, i);
-          sb.append("]").append(Platform.getNewline());      
+          sb.append("]").append(Platform.getNewline());
       }
       return sb;
   }
-  
+
   public static final float E = 2.7182818284590452354f;
 
   public static final float PI = 3.14159265358979323846f;
@@ -569,5 +569,5 @@ public class FloatUtil {
   public static float acos(float a) { return (float) java.lang.Math.acos(a);  }
 
   public static float sqrt(float a) { return (float) java.lang.Math.sqrt(a);  }
-  
+
 }

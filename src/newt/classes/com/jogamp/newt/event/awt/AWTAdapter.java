@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.newt.event.awt;
 
 import jogamp.newt.Debug;
@@ -48,10 +48,10 @@ import jogamp.newt.Debug;
  * Common:<br>
  * <pre>
     // your demo/render code
-    javax.media.opengl.GLEvenListener demo1 = new javax.media.opengl.GLEvenListener() { ... } ; 
+    javax.media.opengl.GLEvenListener demo1 = new javax.media.opengl.GLEvenListener() { ... } ;
 
     // your AWT agnostic NEWT mouse listener code
-    com.jogamp.newt.event.MouseListener mouseListener = new com.jogamp.newt.event.MouseAdapter() { ... } ; 
+    com.jogamp.newt.event.MouseListener mouseListener = new com.jogamp.newt.event.MouseAdapter() { ... } ;
  * </pre> </p>
  * <p>
  * Default NEWT use case, without using the AWTAdapter:<br>
@@ -96,7 +96,7 @@ import jogamp.newt.Debug;
     <br>
     new AWTMouseAdapter(mouseListener, glWindow).addTo(comp);<br>
  * </pre> </p>
- * 
+ *
  * Last but not least, the AWTAdapter maybe used as a general AWT event forwarder to NEWT.<br>
  *
  * <p>
@@ -108,7 +108,7 @@ import jogamp.newt.Debug;
     <br>
     new AWTMouseAdapter(glWindow).addTo(comp); // forward all AWT events to glWindow, as NEWT events<br>
  * </pre> </p>
- * 
+ *
  * @see #attachTo
  */
 public abstract class AWTAdapter implements java.util.EventListener
@@ -118,7 +118,7 @@ public abstract class AWTAdapter implements java.util.EventListener
     com.jogamp.newt.event.NEWTEventListener newtListener;
     com.jogamp.newt.Window newtWindow;
 
-    /** 
+    /**
      * Simply wrap aroung a NEWT EventListener, exposed as an AWT EventListener.<br>
      * The NEWT EventListener will be called when an event happens.<br>
      */
@@ -130,7 +130,7 @@ public abstract class AWTAdapter implements java.util.EventListener
         this.newtWindow = null;
     }
 
-    /** 
+    /**
      * Wrap aroung a NEWT EventListener, exposed as an AWT EventListener,<br>
      * where the given NEWT Window impersonates as the event's source.
      * The NEWT EventListener will be called when an event happens.<br>
@@ -146,7 +146,7 @@ public abstract class AWTAdapter implements java.util.EventListener
         this.newtWindow = newtProxy;
     }
 
-    /** 
+    /**
      * Create a pipeline adapter, AWT EventListener.<br>
      * Once attached to an AWT component, it sends the converted AWT events to the NEWT downstream window.<br>
      * This is only supported with EDT enabled!
@@ -162,15 +162,15 @@ public abstract class AWTAdapter implements java.util.EventListener
         }
     }
 
-    public final com.jogamp.newt.Window getNewtWindow() { 
-        return newtWindow; 
+    public final com.jogamp.newt.Window getNewtWindow() {
+        return newtWindow;
     }
-    
+
     public final com.jogamp.newt.event.NEWTEventListener getNewtEventListener() {
-        return newtListener; 
+        return newtListener;
     }
-    
-    /** 
+
+    /**
      * Due to the fact that some NEWT {@link com.jogamp.newt.event.NEWTEventListener}
      * are mapped to more than one {@link java.util.EventListener},
      * this method is for your convenience to use this Adapter as a listener for all types.<br>

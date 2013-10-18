@@ -29,17 +29,17 @@ public class Crossing {
      * Allowable tolerance for bounds comparison
      */
     static final float DELTA = (float) 1E-5;
-    
+
     /**
      * If roots have distance less then <code>ROOT_DELTA</code> they are double
      */
     static final float ROOT_DELTA = (float) 1E-10;
-    
+
     /**
      * Rectangle cross segment
      */
     public static final int CROSSING = 255;
-    
+
     /**
      * Unknown crossing result
      */
@@ -130,8 +130,8 @@ public class Crossing {
     }
 
     /**
-     * Excludes float roots. Roots are float if they lies enough close with each other. 
-     * @param res - the roots 
+     * Excludes float roots. Roots are float if they lies enough close with each other.
+     * @param res - the roots
      * @param rc - the roots count
      * @return new roots count
      */
@@ -384,12 +384,12 @@ public class Crossing {
 
         // START
         if (x == x1) {
-            return x1 < x2 ? 0 : -1;        
+            return x1 < x2 ? 0 : -1;
         }
-        
+
         // END
         if (x == x2) {
-            return x1 < x2 ? 1 : 0;        
+            return x1 < x2 ? 1 : 0;
         }
 
         // INSIDE-DOWN
@@ -493,10 +493,10 @@ public class Crossing {
                     }
                     break;
                 default:
-                    throw new IllegalArgumentException("Unhandled Segment Type: "+segmentType);                
+                    throw new IllegalArgumentException("Unhandled Segment Type: "+segmentType);
             }
-            
-            // checks if the point (x,y) is the vertex of shape with PathIterator p           
+
+            // checks if the point (x,y) is the vertex of shape with PathIterator p
             if (x == cx && y == cy) {
                 cross = 0;
                 cy = my;
@@ -554,9 +554,9 @@ public class Crossing {
             }
         }
     }
-    
+
     /**
-     * Returns are bounds intersect or not intersect rectangle 
+     * Returns are bounds intersect or not intersect rectangle
      */
     static int crossBound(float bound[], int bc, float py1, float py2) {
 

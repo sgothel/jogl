@@ -48,7 +48,7 @@ public class GposTable implements Table {
     public int getType() {
         return GPOS;
     }
-    
+
     public String toString() {
         return "GPOS";
     }
@@ -62,5 +62,5 @@ public class GposTable implements Table {
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }
-    
+
 }

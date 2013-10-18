@@ -35,7 +35,7 @@ import javax.media.opengl.fixedfunc.GLPointerFunc;
 import com.jogamp.opengl.util.GLArrayDataWrapper;
 
 /**
- * Used for interleaved fixed function arrays, i.e. where the buffer data itself is handled 
+ * Used for interleaved fixed function arrays, i.e. where the buffer data itself is handled
  * separately and interleaves many arrays.
  */
 public class GLFixedArrayHandlerFlat implements GLArrayHandlerFlat {
@@ -48,7 +48,7 @@ public class GLFixedArrayHandlerFlat implements GLArrayHandlerFlat {
   public GLArrayDataWrapper getData() {
       return ad;
   }
-  
+
   public final void syncData(GL gl, Object ext) {
     final GLPointerFunc glp = gl.getGL2ES1();
     switch(ad.getIndex()) {
@@ -65,14 +65,14 @@ public class GLFixedArrayHandlerFlat implements GLArrayHandlerFlat {
             glp.glTexCoordPointer(ad);
             break;
         default:
-            throw new GLException("invalid glArrayIndex: "+ad.getIndex()+":\n\t"+ad); 
+            throw new GLException("invalid glArrayIndex: "+ad.getIndex()+":\n\t"+ad);
     }
   }
 
   public final void enableState(GL gl, boolean enable, Object ext) {
     final GLPointerFunc glp = gl.getGL2ES1();
     if(enable) {
-        glp.glEnableClientState(ad.getIndex());        
+        glp.glEnableClientState(ad.getIndex());
     } else {
         glp.glDisableClientState(ad.getIndex());
     }

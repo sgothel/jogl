@@ -84,7 +84,7 @@ public class SingleSubstFormat1 extends SingleSubst {
         }
         return glyphId;
     }
-    
+
     public String getTypeAsString() {
         return "SingleSubstFormat1";
     }

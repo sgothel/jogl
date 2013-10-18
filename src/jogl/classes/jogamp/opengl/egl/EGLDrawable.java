@@ -59,15 +59,15 @@ public abstract class EGLDrawable extends GLDrawableImpl {
     @Override
     public abstract GLContext createContext(GLContext shareWith);
 
-    protected abstract long createSurface(EGLGraphicsConfiguration config, int width, int height, long nativeSurfaceHandle);    
+    protected abstract long createSurface(EGLGraphicsConfiguration config, int width, int height, long nativeSurfaceHandle);
 
     private final long createEGLSurface() {
         final EGLWrappedSurface eglws = (EGLWrappedSurface) surface;
-        final EGLGraphicsConfiguration eglConfig = (EGLGraphicsConfiguration) eglws.getGraphicsConfiguration();        
+        final EGLGraphicsConfiguration eglConfig = (EGLGraphicsConfiguration) eglws.getGraphicsConfiguration();
         final NativeSurface upstreamSurface = eglws.getUpstreamSurface();
-        
+
         long eglSurface = createSurface(eglConfig, eglws.getWidth(), eglws.getHeight(), upstreamSurface.getSurfaceHandle());
-        
+
         int eglError0;
         if (EGL.EGL_NO_SURFACE == eglSurface) {
             eglError0 = EGL.eglGetError();
@@ -104,7 +104,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
         final EGLWrappedSurface eglws = (EGLWrappedSurface) surface;
         if(DEBUG) {
             System.err.println(getThreadName() + ": createHandle of "+eglws);
-        }        
+        }
         if( eglws.containsUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE ) ) {
             if( EGL.EGL_NO_SURFACE != eglws.getSurfaceHandle() ) {
                 throw new InternalError("Set surface but claimed to be invalid: "+eglws);
@@ -114,12 +114,12 @@ public abstract class EGLDrawable extends GLDrawableImpl {
             throw new InternalError("Nil surface but claimed to be valid: "+eglws);
         }
     }
-    
-    protected void destroyHandle() {    
+
+    protected void destroyHandle() {
         final EGLWrappedSurface eglws = (EGLWrappedSurface) surface;
         if(DEBUG) {
             System.err.println(getThreadName() + ": destroyHandle of "+eglws);
-        }        
+        }
         if( EGL.EGL_NO_SURFACE == eglws.getSurfaceHandle() ) {
             throw new InternalError("Nil surface but claimed to be valid: "+eglws);
         }
@@ -134,7 +134,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
         if( 0 == surfaceHandle ) {
             return false;
         }
-        final IntBuffer val = Buffers.newDirectIntBuffer(1);        
+        final IntBuffer val = Buffers.newDirectIntBuffer(1);
         final boolean eglSurfaceValid = EGL.eglQuerySurface(eglDisplayHandle, surfaceHandle, EGL.EGL_CONFIG_ID, val);
         if( !eglSurfaceValid ) {
             final int eglErr = EGL.eglGetError();
@@ -144,7 +144,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
         }
         return eglSurfaceValid;
     }
-    
+
     @Override
     protected final void setRealizedImpl() {
         if(DEBUG) {

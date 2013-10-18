@@ -49,7 +49,7 @@ public class PngHelperInternal {
 
 	/**
 	 * -1 if eof
-	 * 
+	 *
 	 * PNG uses "network byte order"
 	 */
 	public static int readInt2(InputStream is) {

@@ -36,32 +36,32 @@ import com.jogamp.graph.geom.Triangle;
 /** Interface to the triangulation algorithms provided
  *  A triangulation of 2D outlines where you can
  *  provides an easy one or more outlines to be triangulated
- *  
+ *
  *  example usage:
  *      addCurve(o1);
  *      addCurve(o2);
  *      addCurve(o3);
  *      generate();
  *      reset();
- *      
+ *
  * @see Outline
  * @see Triangulation
  */
 public interface Triangulator {
-    
+
     /** Add a curve to the list of Outlines
      * describing the shape
      * @param outline a bounding {@link Outline}
      */
     public void addCurve(Outline outline);
-    
-    /** Generate the triangulation of the provided 
+
+    /** Generate the triangulation of the provided
      *  List of {@link Outline}s
      * @return an arraylist of {@link Triangle}s resembling the
      * final shape.
      */
     public ArrayList<Triangle> generate();
-    
+
     /** Reset the triangulation to initial state
      *  Clearing cached data
      */

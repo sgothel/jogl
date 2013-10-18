@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -125,7 +125,7 @@ public class GLEmitter extends ProcAddressEmitter {
             }
             if(JavaConfiguration.DEBUG_RENAMES) {
                 System.err.println("RenameExtensionIntoCore: "+extension+" END>");
-            }            
+            }
         }
     }
 
@@ -279,7 +279,7 @@ public class GLEmitter extends ProcAddressEmitter {
         int j=0;
         while( j < bindings.size() ) {
             final MethodBinding cur = bindings.get(j);
-            
+
             // Some of these routines (glBitmap) take strongly-typed
             // primitive pointers as arguments which are expanded into
             // non-void* arguments
@@ -306,7 +306,7 @@ public class GLEmitter extends ProcAddressEmitter {
             // Now need to flag this MethodBinding so that we generate the
             // correct flags in the emitters later
             bufferObjectMethodBindings.put(result, result);
-            
+
             if( bufferObjectOnly ) {
                 bindings.remove(j);
             } else {
@@ -397,7 +397,7 @@ public class GLEmitter extends ProcAddressEmitter {
     }
     private int addExtensionListOfAliasedSymbols2Buffer(BuildStaticGLInfo glInfo, StringBuilder buf, String sep1, String sep2, String name, Collection<String> exclude) {
         int num = 0;
-        if(null != name) { 
+        if(null != name) {
             num += addExtensionListOfSymbol2Buffer(glInfo, buf, sep1, name); // extensions of given name
             boolean needsSep2 = 0<num;
             Set<String> origNames = cfg.getRenamedJavaSymbols(name);
@@ -406,7 +406,7 @@ public class GLEmitter extends ProcAddressEmitter {
                     if(!exclude.contains(origName)) {
                         if (needsSep2) {
                             buf.append(sep2); // diff-name seperator
-                        }            
+                        }
                         int num2 = addExtensionListOfSymbol2Buffer(glInfo, buf, sep1, origName); // extensions of orig-name
                         needsSep2 = num<num2;
                         num += num2;
@@ -416,7 +416,7 @@ public class GLEmitter extends ProcAddressEmitter {
         }
         return num;
     }
-    
+
     public int addExtensionsOfSymbols2Buffer(StringBuilder buf, String sep1, String sep2, String first, Collection<String> col) {
         BuildStaticGLInfo glInfo = getGLConfig().getGLInfo();
         if (null == glInfo) {
@@ -469,16 +469,16 @@ public class GLEmitter extends ProcAddressEmitter {
 
     /**
      * {@inheritDoc}
-     */   
+     */
     @Override
     protected void endProcAddressTable() throws Exception {
         PrintWriter w = tableWriter;
-        
+
         w.println("  @Override");
         w.println("  protected boolean isFunctionAvailableImpl(String functionNameUsr) throws IllegalArgumentException  {");
         w.println("    final String functionNameBase = "+GLNameResolver.class.getName()+".normalizeVEN(com.jogamp.gluegen.runtime.opengl.GLNameResolver.normalizeARB(functionNameUsr, true), true);");
         w.println("    final String addressFieldNameBase = \"" + PROCADDRESS_VAR_PREFIX + "\" + functionNameBase;");
-        w.println("    final int funcNamePermNum = "+GLNameResolver.class.getName()+".getFuncNamePermutationNumber(functionNameBase);");        
+        w.println("    final int funcNamePermNum = "+GLNameResolver.class.getName()+".getFuncNamePermutationNumber(functionNameBase);");
         w.println("    final java.lang.reflect.Field addressField = java.security.AccessController.doPrivileged(new java.security.PrivilegedAction<java.lang.reflect.Field>() {");
         w.println("        public final java.lang.reflect.Field run() {");
         w.println("            java.lang.reflect.Field addressField = null;");
@@ -510,7 +510,7 @@ public class GLEmitter extends ProcAddressEmitter {
         w.println("          \"function\", e);");
         w.println("    }");
         w.println("  }");
-        
+
         w.println("  @Override");
         w.println("  public long getAddressFor(String functionNameUsr) throws SecurityException, IllegalArgumentException {");
         w.println("    SecurityUtil.checkAllLinkPermission();");

@@ -92,6 +92,6 @@ public class SingleSubstFormat2 extends SingleSubst {
 
     public String getTypeAsString() {
         return "SingleSubstFormat2";
-    }    
+    }
 }
 

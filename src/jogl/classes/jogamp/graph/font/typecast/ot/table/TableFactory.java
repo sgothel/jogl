@@ -47,7 +47,7 @@
  Apache Software Foundation, please see <http://www.apache.org/>.
 
 */
- 
+
 package jogamp.graph.font.typecast.ot.table;
 
 import java.io.DataInputStream;
@@ -56,7 +56,7 @@ import java.io.IOException;
 import jogamp.graph.font.typecast.ot.OTFont;
 import jogamp.graph.font.typecast.ot.OTFontCollection;
 
-/** 
+/**
  *
  * @version $Id: TableFactory.java,v 1.7 2007-02-05 12:39:51 davidsch Exp $
  * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
@@ -69,7 +69,7 @@ public class TableFactory {
             DirectoryEntry de,
             DataInputStream dis) throws IOException {
         Table t = null;
-        
+
         // First, if we have a font collection, look for the table there
         if (fc != null) {
             t = fc.getTable(de);
@@ -77,7 +77,7 @@ public class TableFactory {
                 return t;
             }
         }
-        
+
         // Create the table
         switch (de.getTag()) {
         case Table.BASE:
@@ -175,7 +175,7 @@ public class TableFactory {
             t = new VmtxTable(de, dis, font.getVheaTable(), font.getMaxpTable());
             break;
         }
-        
+
         // If we have a font collection, add this table to it
         if ((fc != null) && (t != null)) {
             fc.addTable(t);

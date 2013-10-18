@@ -32,23 +32,23 @@ import com.jogamp.opengl.math.VectorUtil;
 
 /**
  * Axis Aligned Bounding Box. Defined by two 3D coordinates (low and high)
- * The low being the the lower left corner of the box, and the high being the upper 
+ * The low being the the lower left corner of the box, and the high being the upper
  * right corner of the box.
- * 
+ *
  */
 public class AABBox implements Cloneable {
     private float[] low = new float[3];
     private float[] high = new float[3];
     private float[] center = new float[3];
 
-    /** Create a Axis Aligned bounding box (AABBox) 
+    /** Create a Axis Aligned bounding box (AABBox)
      * where the low and and high MAX float Values.
      */
     public AABBox() {
         reset();
     }
 
-    /** Create an AABBox specifying the coordinates 
+    /** Create an AABBox specifying the coordinates
      * of the low and high
      * @param lx min x-coordinate
      * @param ly min y-coordnate
@@ -61,7 +61,7 @@ public class AABBox implements Cloneable {
                   float hx, float hy, float hz) {
         setSize(lx, ly, lz, hx, hy, hz);
     }
-    
+
     /** Create a AABBox defining the low and high
      * @param low min xyz-coordinates
      * @param high max xyz-coordinates
@@ -78,27 +78,27 @@ public class AABBox implements Cloneable {
         center[1] = 0f;
         center[2] = 0f;
     }
-    
+
     /** Get the max xyz-coordinates
      * @return a float array containing the max xyz coordinates
      */
     public final float[] getHigh() {
         return high;
     }
-    
+
     private final void setHigh(float hx, float hy, float hz) {
         this.high[0] = hx;
         this.high[1] = hy;
         this.high[2] = hz;
     }
-    
+
     /** Get the min xyz-coordinates
      * @return a float array containing the min xyz coordinates
      */
     public final float[] getLow() {
         return low;
     }
-    
+
     private final void setLow(float lx, float ly, float lz) {
         this.low[0] = lx;
         this.low[1] = ly;
@@ -111,10 +111,10 @@ public class AABBox implements Cloneable {
         center[2] = (high[2] + low[2])/2;
     }
 
-    /** 
-     * Set size of the AABBox specifying the coordinates 
+    /**
+     * Set size of the AABBox specifying the coordinates
      * of the low and high.
-     * 
+     *
      * @param lx min x-coordinate
      * @param ly min y-coordnate
      * @param lz min z-coordinate
@@ -123,7 +123,7 @@ public class AABBox implements Cloneable {
      * @param hz max z-coordinate
      */
     public final void setSize(float lx, float ly, float lz,
-                              float hx, float hy, float hz) {        
+                              float hx, float hy, float hz) {
         this.low[0] = lx;
         this.low[1] = ly;
         this.low[2] = lz;
@@ -132,7 +132,7 @@ public class AABBox implements Cloneable {
         this.high[2] = hz;
         computeCenter();
     }
-    
+
     /** Resize the AABBox to encapsulate another AABox
      * @param newBox AABBox to be encapsulated in
      */
@@ -160,12 +160,12 @@ public class AABBox implements Cloneable {
     }
 
     /** Resize the AABBox to encapsulate the passed
-     * xyz-coordinates. 
+     * xyz-coordinates.
      * @param x x-axis coordinate value
      * @param y y-axis coordinate value
      * @param z z-axis coordinate value
      */
-    public final void resize(float x, float y, float z) {    
+    public final void resize(float x, float y, float z) {
         /** test low */
         if (x < low[0])
             low[0] = x;
@@ -181,12 +181,12 @@ public class AABBox implements Cloneable {
             high[1] = y;
         if (z > high[2])
             high[2] = z;
-        
+
         computeCenter();
     }
 
     /** Resize the AABBox to encapsulate the passed
-     * xyz-coordinates. 
+     * xyz-coordinates.
      * @param xyz xyz-axis coordinate values
      * @param offset of the array
      */
@@ -210,7 +210,7 @@ public class AABBox implements Cloneable {
         }
         return true;
     }
-    
+
     /** Check if the xyz coordinates are bounded/contained
      *  by this AABBox.
      * @param x x-axis coordinate value
@@ -231,7 +231,7 @@ public class AABBox implements Cloneable {
         }
         return true;
     }
-    
+
     /** Check if there is a common region between this AABBox and the passed
      *     2D region irrespective of z range
      * @param x lower left x-coord
@@ -244,13 +244,13 @@ public class AABBox implements Cloneable {
         if (w <= 0 || h <= 0) {
             return false;
         }
-        
+
         final float _w = getWidth();
-        final float _h = getHeight();        
+        final float _h = getHeight();
         if (_w <= 0 || _h <= 0) {
             return false;
         }
-        
+
         final float x0 = getMinX();
         final float y0 = getMinY();
         return (x + w > x0 &&
@@ -259,8 +259,8 @@ public class AABBox implements Cloneable {
                 y < y0 + _h);
     }
 
-    
-    /** Get the size of the Box where the size is represented by the 
+
+    /** Get the size of the Box where the size is represented by the
      * length of the vector between low and high.
      * @return a float representing the size of the AABBox
      */
@@ -283,16 +283,16 @@ public class AABBox implements Cloneable {
         diffH[0] = high[0] - center[0];
         diffH[1] = high[1] - center[1];
         diffH[2] = high[2] - center[2];
-        
+
         diffH = VectorUtil.scale(diffH, size);
-        
+
         float[] diffL = new float[3];
         diffL[0] = low[0] - center[0];
         diffL[1] = low[1] - center[1];
         diffL[2] = low[2] - center[2];
-        
+
         diffL = VectorUtil.scale(diffL, size);
-        
+
         high = VectorUtil.vectorAdd(center, diffH);
         low = VectorUtil.vectorAdd(center, diffL);
     }
@@ -300,43 +300,43 @@ public class AABBox implements Cloneable {
     public final float getMinX() {
         return low[0];
     }
-    
+
     public final float getMinY() {
         return low[1];
     }
-    
+
     public final float getMinZ() {
         return low[2];
     }
-    
+
     public final float getMaxX() {
         return high[0];
     }
-    
+
     public final float getMaxY() {
         return high[1];
     }
-    
+
     public final float getMaxZ() {
         return high[2];
     }
-    
+
     public final float getWidth(){
         return high[0] - low[0];
     }
-    
+
     public final float getHeight() {
         return high[1] - low[1];
     }
-    
+
     public final float getDepth() {
         return high[2] - low[2];
     }
-    
+
     public final AABBox clone() {
         return new AABBox(this.low, this.high);
     }
-    
+
     public final boolean equals(Object obj) {
         if( obj == this ) {
             return true;
@@ -344,11 +344,11 @@ public class AABBox implements Cloneable {
         if( null == obj || !(obj instanceof AABBox) ) {
             return false;
         }
-        final AABBox other = (AABBox) obj; 
-        return VectorUtil.checkEquality(low, other.low) &&          
+        final AABBox other = (AABBox) obj;
+        return VectorUtil.checkEquality(low, other.low) &&
                VectorUtil.checkEquality(high, other.high) ;
     }
-    
+
     public final String toString() {
         return "[ "+low[0]+"/"+low[1]+"/"+low[1]+" .. "+high[0]+"/"+high[0]+"/"+high[0]+", ctr "+
                     center[0]+"/"+center[1]+"/"+center[1]+" ]";

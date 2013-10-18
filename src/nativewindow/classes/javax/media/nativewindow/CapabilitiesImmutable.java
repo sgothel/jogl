@@ -70,12 +70,12 @@ public interface CapabilitiesImmutable extends VisualIDHolder, WriteCloneable, C
      * Returns whether an opaque or translucent surface is requested, supported or chosen.
      * <p>
      * Default is true, i.e. opaque.
-     * </p> 
+     * </p>
      */
     boolean isBackgroundOpaque();
 
     /**
-     * Returns whether an on- or offscreen surface is requested, available or chosen. 
+     * Returns whether an on- or offscreen surface is requested, available or chosen.
      * <p>
      * Default is true, i.e. onscreen.
      * </p>
@@ -83,7 +83,7 @@ public interface CapabilitiesImmutable extends VisualIDHolder, WriteCloneable, C
      * Mind that an capabilities intance w/ <i>available</i> semantics
      * may show onscreen, but also the offscreen modes FBO, Pbuffer or {@link #setBitmap(boolean) bitmap}.
      * This is valid, since one native configuration maybe used for either functionality.
-     * </p> 
+     * </p>
      */
     boolean isOnscreen();
 
@@ -97,7 +97,7 @@ public interface CapabilitiesImmutable extends VisualIDHolder, WriteCloneable, C
      * </p>
      */
     boolean isBitmap();
-    
+
     /**
      * Gets the transparent red value for the frame buffer configuration. This
      * value is undefined if; equals true.

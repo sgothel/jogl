@@ -39,23 +39,23 @@ import com.jogamp.graph.font.FontFactory;
 import java.net.URLConnection;
 
 public class UbuntuFontLoader implements FontSet {
-    
-    // FIXME: Add cache size to limit memory usage 
+
+    // FIXME: Add cache size to limit memory usage
     private static final IntObjectHashMap fontMap = new IntObjectHashMap();
-        
-    private static final String relPath = "fonts/ubuntu/" ;    
-    
+
+    private static final String relPath = "fonts/ubuntu/" ;
+
     private static final FontSet fontLoader = new UbuntuFontLoader();
 
     public static final FontSet get() {
         return fontLoader;
     }
-    
+
     final static String availableFontFileNames[] =
     {
         /* 00 */ "Ubuntu-R.ttf",   // regular
         /* 01 */ "Ubuntu-RI.ttf",  // regular italic
-        /* 02 */ "Ubuntu-B.ttf",   // bold     
+        /* 02 */ "Ubuntu-B.ttf",   // bold
         /* 03 */ "Ubuntu-BI.ttf",  // bold italic
         /* 04 */ "Ubuntu-L.ttf",   // light
         /* 05 */ "Ubuntu-LI.ttf",  // light italic
@@ -63,18 +63,18 @@ public class UbuntuFontLoader implements FontSet {
         /* 07 */ "Ubuntu-MI.ttf",  // medium italic
 
     };
-        
+
     private UbuntuFontLoader() {
     }
 
     static boolean is(int bits, int bit) {
         return 0 != ( bits & bit ) ;
     }
-    
+
     public Font getDefault() throws IOException {
-        return get(FAMILY_REGULAR, 0) ; // Sans Serif Regular 
+        return get(FAMILY_REGULAR, 0) ; // Sans Serif Regular
     }
-    
+
     public Font get(int family, int style) throws IOException {
         Font font = (Font)fontMap.get( ( family << 8 ) | style );
         if (font != null) {
@@ -97,7 +97,7 @@ public class UbuntuFontLoader implements FontSet {
                     font = abspath(availableFontFileNames[0], family, style);
                 }
                 break;
-                
+
             case FAMILY_LIGHT:
                 if( is(style, STYLE_ITALIC) ) {
                     font = abspath(availableFontFileNames[5], family, style);
@@ -105,19 +105,19 @@ public class UbuntuFontLoader implements FontSet {
                     font = abspath(availableFontFileNames[4], family, style);
                 }
                 break;
-                
+
             case FAMILY_MEDIUM:
                 if( is(style, STYLE_ITALIC) ) {
                     font = abspath(availableFontFileNames[6], family, style);
                 } else {
                     font = abspath(availableFontFileNames[7], family, style);
                 }
-                break;                
+                break;
         }
 
         return font;
     }
-        
+
     Font abspath(String fname, int family, int style) throws IOException {
         final String err = "Problem loading font "+fname+", stream "+relPath+fname;
         try {
@@ -129,10 +129,10 @@ public class UbuntuFontLoader implements FontSet {
             if(null != f) {
                 fontMap.put( ( family << 8 ) | style, f );
                 return f;
-            }        
+            }
             throw new IOException(err);
         } catch(IOException ioe) {
-            throw new IOException(err, ioe);            
+            throw new IOException(err, ioe);
         }
-    }           
+    }
 }

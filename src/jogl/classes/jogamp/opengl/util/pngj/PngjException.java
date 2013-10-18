@@ -2,9 +2,9 @@ package jogamp.opengl.util.pngj;
 
 /**
  * Generic exception
- * 
+ *
  * @author Hernan J Gonzalez
- * 
+ *
  */
 public class PngjException extends RuntimeException {
 	private static final long serialVersionUID = 1L;

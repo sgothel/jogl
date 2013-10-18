@@ -54,8 +54,8 @@ public class SharedResourceToolkitLock implements ToolkitLock {
         handle2Lock = new LongObjectHashMap();
         handle2Lock.setKeyNotFoundValue(null);
     }
-    
-    /** 
+
+    /**
      * @return number of unclosed EGL Displays.<br>
      */
     public static int shutdown(boolean verbose) {
@@ -70,7 +70,7 @@ public class SharedResourceToolkitLock implements ToolkitLock {
         }
         return handle2Lock.size();
     }
-    
+
     public static void dumpOpenDisplayConnections() {
         System.err.println("SharedResourceToolkitLock: Open ResourceToolkitLock's: "+handle2Lock.size());
         int i=0;
@@ -79,7 +79,7 @@ public class SharedResourceToolkitLock implements ToolkitLock {
             System.err.println("SharedResourceToolkitLock: Open["+i+"]: "+e.value);
         }
     }
-    
+
     public static final SharedResourceToolkitLock get(long handle) {
         SharedResourceToolkitLock res;
         synchronized(handle2Lock) {
@@ -106,8 +106,8 @@ public class SharedResourceToolkitLock implements ToolkitLock {
         this.handle = handle;
         this.refCount = 0;
     }
-    
-    
+
+
     @Override
     public final void lock() {
         lock.lock();
@@ -119,12 +119,12 @@ public class SharedResourceToolkitLock implements ToolkitLock {
         if(TRACE_LOCK) { System.err.println("SharedResourceToolkitLock.unlock()"); }
         lock.unlock();
     }
-    
+
     @Override
     public final void validateLocked() throws RuntimeException {
         lock.validateLocked();
     }
-    
+
     @Override
     public final void dispose() {
         if(0 < refCount) { // volatile OK
@@ -141,7 +141,7 @@ public class SharedResourceToolkitLock implements ToolkitLock {
             if(DEBUG || TRACE_LOCK) { System.err.println("SharedResourceToolkitLock.dispose() * NULL  *: "+this); }
         }
     }
-    
+
     public String toString() {
         return "SharedResourceToolkitLock[refCount "+refCount+", handle 0x"+Long.toHexString(handle)+", obj 0x"+Integer.toHexString(hashCode())+", isOwner "+lock.isOwner(Thread.currentThread())+", "+lock.toString()+"]";
     }

@@ -58,21 +58,21 @@ import java.io.IOException;
  * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
  */
 public abstract class CmapFormat {
-    
+
     public class Range {
-        
+
         private int _startCode;
         private int _endCode;
-        
+
         protected Range(int startCode, int endCode) {
             _startCode = startCode;
             _endCode = endCode;
         }
-        
+
         public int getStartCode() {
             return _startCode;
         }
-        
+
         public int getEndCode() {
             return _endCode;
         }
@@ -116,12 +116,12 @@ public abstract class CmapFormat {
     }
 
     public abstract int getRangeCount();
-    
+
     public abstract Range getRange(int index)
         throws ArrayIndexOutOfBoundsException;
 
     public abstract int mapCharCode(int charCode);
-    
+
     public String toString() {
         return new StringBuilder()
         .append("format: ")

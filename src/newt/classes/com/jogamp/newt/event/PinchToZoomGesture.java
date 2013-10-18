@@ -35,7 +35,7 @@ import jogamp.newt.Debug;
  * 2 pointer zoom, a.k.a. <i>pinch to zoom</i>, gesture handler processing {@link MouseEvent}s
  * while producing {@link ZoomEvent}s if gesture is completed.
  * <p>
- * Zoom value lies within [0..2], with 1 as <i>1:1</i>. 
+ * Zoom value lies within [0..2], with 1 as <i>1:1</i>.
  * </p>
  * <pre>
  *   - choosing the smallest surface edge (width/height -> x/y)
@@ -44,7 +44,7 @@ import jogamp.newt.Debug;
  */
 public class PinchToZoomGesture implements GestureHandler {
     public static final boolean DEBUG = Debug.debug("Window.MouseEvent");
-    
+
     /** A {@link GestureHandler.GestureEvent} denominating zoom. */
     @SuppressWarnings("serial")
     public static class ZoomEvent extends GestureEvent {
@@ -57,10 +57,10 @@ public class PinchToZoomGesture implements GestureHandler {
         }
         /** Triggering {@link MouseEvent} */
         public final MouseEvent getTrigger() { return pe; }
-        /** Zoom value lies within [0..2], with 1 as <i>1:1</i>. */ 
+        /** Zoom value lies within [0..2], with 1 as <i>1:1</i>. */
         public final float getZoom() { return zoom; }
     }
-    
+
     private final NativeSurface surface;
     private float zoom;
     private int zoomLastEdgeDist;
@@ -68,7 +68,7 @@ public class PinchToZoomGesture implements GestureHandler {
     private boolean zoomMode;
     private ZoomEvent zoomEvent;
     private short[] pIds = new short[] { -1, -1 };
-    
+
     public PinchToZoomGesture(NativeSurface surface) {
         clear(true);
         this.surface = surface;
@@ -80,10 +80,10 @@ public class PinchToZoomGesture implements GestureHandler {
     }
 
     private int gesturePointers(final MouseEvent e, final int excludeIndex) {
-        int j = 0;       
+        int j = 0;
         for(int i=e.getPointerCount()-1; i>=0; i--) {
             if( excludeIndex != i ) {
-                final int id = e.getPointerId(i); 
+                final int id = e.getPointerId(i);
                 if( pIds[0] == id || pIds[1] == id ) {
                     j++;
                 }
@@ -91,7 +91,7 @@ public class PinchToZoomGesture implements GestureHandler {
         }
         return j;
     }
-    
+
     @Override
     public void clear(boolean clearStarted) {
         zoomEvent = null;
@@ -103,31 +103,31 @@ public class PinchToZoomGesture implements GestureHandler {
             pIds[1] = -1;
         }
     }
-    
+
     @Override
     public boolean isWithinGesture() {
         return zoomMode;
     }
-    
+
     @Override
     public boolean hasGesture() {
         return null != zoomEvent;
     }
-    
+
     @Override
     public InputEvent getGestureEvent() {
         return zoomEvent;
     }
-    
-    /** Zoom value lies within [0..2], with 1 as <i>1:1</i>. */ 
+
+    /** Zoom value lies within [0..2], with 1 as <i>1:1</i>. */
     public final float getZoom() {
         return zoom;
     }
-    /** Set zoom value within [0..2], with 1 as <i>1:1</i>. */ 
+    /** Set zoom value within [0..2], with 1 as <i>1:1</i>. */
     public final void setZoom(float zoom) {
         this.zoom=zoom;
     }
-    
+
     @Override
     public boolean process(final InputEvent in) {
         if( null != zoomEvent || !(in instanceof MouseEvent) ) {
@@ -137,15 +137,15 @@ public class PinchToZoomGesture implements GestureHandler {
         if( pe.getPointerType(0).getPointerClass() != MouseEvent.PointerClass.Onscreen ) {
             return false;
         }
-        
+
         final int pointerDownCount = pe.getPointerCount();
         final int eventType = pe.getEventType();
         final boolean useY = surface.getWidth() >= surface.getHeight(); // use smallest dimension
         switch ( eventType ) {
             case MouseEvent.EVENT_MOUSE_PRESSED: {
                 if( 1 == pointerDownCount ) {
-                    pIds[0] = pe.getPointerId(0);                    
-                    pIds[1] = -1;                    
+                    pIds[0] = pe.getPointerId(0);
+                    pIds[1] = -1;
                 } else if ( 2 <= pointerDownCount ) { // && 1 == gesturePointers(pe, 0) /* w/o pressed pointer */) {
                     pIds[0] = pe.getPointerId(0);
                     pIds[1] = pe.getPointerId(1);
@@ -155,13 +155,13 @@ public class PinchToZoomGesture implements GestureHandler {
                     System.err.println(this+".pressed: down "+pointerDownCount+", gPtr "+gesturePointers(pe, -1)+", event "+pe);
                 }
             } break;
-            
+
             case MouseEvent.EVENT_MOUSE_RELEASED: {
                 final int gPtr = gesturePointers(pe, 0); // w/o lifted pointer
                 if ( 1 == gPtr ) {
                     zoomFirstTouch = true;
                     zoomMode = false;
-                } else if( 0 == gPtr ) { 
+                } else if( 0 == gPtr ) {
                     // all lifted
                     clear(true);
                 }
@@ -169,7 +169,7 @@ public class PinchToZoomGesture implements GestureHandler {
                     System.err.println(this+".released: down "+pointerDownCount+", gPtr "+gPtr+", event "+pe);
                 }
             } break;
-            
+
             case MouseEvent.EVENT_MOUSE_DRAGGED: {
                 if( 2 <= pointerDownCount ) {
                     final int gPtr = gesturePointers(pe, -1);
@@ -187,13 +187,13 @@ public class PinchToZoomGesture implements GestureHandler {
                                 zoomMode = true;
                             } else if( zoomMode ) {
                                 final int d = Math.abs(edge0-edge1);
-                                final int dd = d - zoomLastEdgeDist;                        
+                                final int dd = d - zoomLastEdgeDist;
                                 final float screenEdge = useY ? surface.getHeight() : surface.getWidth();
                                 final float incr = (float)dd / screenEdge; // [-1..1]
                                 if(DEBUG) {
                                     System.err.println("XXX2: id0 "+pIds[0]+" -> idx0 "+p0Idx+", id1 "+pIds[1]+" -> idx1 "+p1Idx);
                                     System.err.println("XXX3: d "+d+", ld "+zoomLastEdgeDist+", dd "+dd+", screen "+screenEdge+" -> incr "+incr+", zoom "+zoom+" -> "+(zoom+incr));
-                                }        
+                                }
                                 zoom += incr;
                                 // clip value
                                 if( 2f < zoom ) {
@@ -211,7 +211,7 @@ public class PinchToZoomGesture implements GestureHandler {
                     }
                 }
             } break;
-            
+
             default:
         }
         return null != zoomEvent;

@@ -71,12 +71,12 @@ public class GlyfTable implements Table {
             LocaTable loca) throws IOException {
         _de = (DirectoryEntry) de.clone();
         _descript = new GlyfDescript[maxp.getNumGlyphs()];
-        
+
         // Buffer the whole table so we can randomly access it
         byte[] buf = new byte[de.getLength()];
         di.readFully(buf);
         ByteArrayInputStream bais = new ByteArrayInputStream(buf);
-        
+
         // Process all the simple glyphs
         for (int i = 0; i < maxp.getNumGlyphs(); i++) {
             int len = loca.getOffset(i + 1) - loca.getOffset(i);
@@ -119,7 +119,7 @@ public class GlyfTable implements Table {
     public int getType() {
         return glyf;
     }
-    
+
     /**
      * Get a directory entry for this table.  This uniquely identifies the
      * table in collections where there may be more than one instance of a

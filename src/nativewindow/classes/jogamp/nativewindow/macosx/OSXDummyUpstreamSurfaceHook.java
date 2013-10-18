@@ -9,12 +9,12 @@ import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSize;
 
 public class OSXDummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize {
     long nsWindow;
-    
+
     /**
-     * @param width the initial width as returned by {@link NativeSurface#getWidth()} via {@link UpstreamSurfaceHook#getWidth(ProxySurface)}, 
-     *        not the actual dummy surface width. 
+     * @param width the initial width as returned by {@link NativeSurface#getWidth()} via {@link UpstreamSurfaceHook#getWidth(ProxySurface)},
+     *        not the actual dummy surface width.
      *        The latter is platform specific and small
-     * @param height the initial height as returned by {@link NativeSurface#getHeight()} via {@link UpstreamSurfaceHook#getHeight(ProxySurface)}, 
+     * @param height the initial height as returned by {@link NativeSurface#getHeight()} via {@link UpstreamSurfaceHook#getHeight(ProxySurface)},
      *        not the actual dummy surface height,
      *        The latter is platform specific and small
      */
@@ -22,7 +22,7 @@ public class OSXDummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize 
         super(width, height);
         nsWindow = 0;
     }
-    
+
     @Override
     public final void create(ProxySurface s) {
         if(0 == nsWindow && 0 == s.getSurfaceHandle()) {
@@ -35,11 +35,11 @@ public class OSXDummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize 
                 throw new NativeWindowException("Error NS view 0");
             }
             s.setSurfaceHandle(nsView);
-            s.addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE );            
+            s.addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE );
         }
         s.addUpstreamOptionBits(ProxySurface.OPT_UPSTREAM_WINDOW_INVISIBLE);
     }
-    
+
     @Override
     public final void destroy(ProxySurface s) {
         if( s.containsUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE ) ) {

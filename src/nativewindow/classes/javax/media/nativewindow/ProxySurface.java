@@ -33,44 +33,44 @@ import jogamp.nativewindow.Debug;
 /**
  * Provides a mutable {@link NativeSurface}, i.e. {@link MutableSurface}, while allowing an
  * {@link UpstreamSurfaceHook} to influence the lifecycle and information.
- * 
+ *
  * @see UpstreamSurfaceHook
  * @see MutableSurface
  * @see NativeSurface
  */
-public interface ProxySurface extends MutableSurface {    
+public interface ProxySurface extends MutableSurface {
     public static final boolean DEBUG = Debug.debug("ProxySurface");
-    
-    /** 
+
+    /**
      * Implementation specific bit-value stating this {@link ProxySurface} owns the upstream's surface handle
      * @see #addUpstreamOptionBits(int)
      * @see #clearUpstreamOptionBits(int)
      * @see #getUpstreamOptionBits()
-     */ 
+     */
     public static final int OPT_PROXY_OWNS_UPSTREAM_SURFACE = 1 << 6;
-    
-    /** 
+
+    /**
      * Implementation specific bit-value stating this {@link ProxySurface} owns the upstream's {@link AbstractGraphicsDevice}.
      * @see #addUpstreamOptionBits(int)
      * @see #clearUpstreamOptionBits(int)
      * @see #getUpstreamOptionBits()
-     */ 
+     */
     public static final int OPT_PROXY_OWNS_UPSTREAM_DEVICE = 1 << 7;
-    
-    /** 
+
+    /**
      * Implementation specific bitvalue stating the upstream's {@link NativeSurface} is an invisible window, i.e. maybe incomplete.
      * @see #addUpstreamOptionBits(int)
      * @see #clearUpstreamOptionBits(int)
      * @see #getUpstreamOptionBits()
-     */ 
+     */
     public static final int OPT_UPSTREAM_WINDOW_INVISIBLE = 1 << 8;
 
     /** Allow redefining the AbstractGraphicsConfiguration */
-    public void setGraphicsConfiguration(AbstractGraphicsConfiguration cfg);    
+    public void setGraphicsConfiguration(AbstractGraphicsConfiguration cfg);
 
     /**
      * Return the upstream {@link NativeSurface} if used, otherwise <code>null</code>.
-     * <p> 
+     * <p>
      * An upstream {@link NativeSurface} may backup this {@link ProxySurface} instance's representation,
      * e.g. via a {@link #setUpstreamSurfaceHook(UpstreamSurfaceHook) set} {@link UpstreamSurfaceHook}.
      * </p>
@@ -80,47 +80,47 @@ public interface ProxySurface extends MutableSurface {
      * </p>
      */
     public NativeSurface getUpstreamSurface();
-    
+
     /** Returns the {@link UpstreamSurfaceHook} if {@link #setUpstreamSurfaceHook(UpstreamSurfaceHook) set}, otherwise <code>null</code>. */
     public UpstreamSurfaceHook getUpstreamSurfaceHook();
-    
+
     /**
      * Sets the {@link UpstreamSurfaceHook} and returns the previous value.
      */
     public void setUpstreamSurfaceHook(UpstreamSurfaceHook hook);
-    
-    /** 
-     * Enables or disables the {@link UpstreamSurfaceHook} lifecycle functions 
+
+    /**
+     * Enables or disables the {@link UpstreamSurfaceHook} lifecycle functions
      * {@link UpstreamSurfaceHook#create(ProxySurface)} and {@link UpstreamSurfaceHook#destroy(ProxySurface)}.
      * <p>
      * Use this for small code blocks where the native resources shall not change,
      * i.e. resizing a derived (OpenGL) drawable.
-     * </p> 
+     * </p>
      */
     public void enableUpstreamSurfaceHookLifecycle(boolean enable);
-    
-    /** 
+
+    /**
      * {@link UpstreamSurfaceHook#create(ProxySurface)} is being issued and the proxy surface/window handles shall be set.
-     */ 
+     */
     public void createNotify();
-    
-    /** 
+
+    /**
      * {@link UpstreamSurfaceHook#destroy(ProxySurface)} is being issued and all proxy surface/window handles shall be cleared.
-     */ 
+     */
     public void destroyNotify();
-    
+
     public StringBuilder getUpstreamOptionBits(StringBuilder sink);
     public int getUpstreamOptionBits();
-    
+
     /** Returns <code>true</code> if the give bit-mask <code>v</code> is set in this instance upstream-option-bits, otherwise <code>false</code>.*/
     public boolean containsUpstreamOptionBits(int v);
-    
+
     /** Add the given bit-mask to this instance upstream-option-bits using bit-or w/ <code>v</code>.*/
     public void addUpstreamOptionBits(int v);
-    
+
     /** Clear the given bit-mask from this instance upstream-option-bits using bit-and w/ <code>~v</code>*/
     public void clearUpstreamOptionBits(int v);
-    
+
     public StringBuilder toString(StringBuilder sink);
     public String toString();
 }

@@ -124,7 +124,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   protected final boolean isComplete() {
       return null != macOSXCGLDynamicLookupHelper;
   }
-    
+
   @Override
   protected final void destroy() {
     if(null != sharedMap) {
@@ -194,7 +194,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
       }
       @Override
       public GLRendererQuirks getRendererQuirks() {
-          return glRendererQuirks;      
+          return glRendererQuirks;
       }
   }
 
@@ -251,12 +251,12 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
             final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
             final GLDrawableImpl sharedDrawable = createOnscreenDrawableImpl(createDummySurfaceImpl(sharedDevice, false, caps, caps, null, 64, 64));
             sharedDrawable.setRealized(true);
-            
+
             final MacOSXCGLContext sharedContext = (MacOSXCGLContext) sharedDrawable.createContext(null);
             if (null == sharedContext) {
                 throw new GLException("Couldn't create shared context for drawable: "+sharedDrawable);
             }
-            
+
             try {
                 sharedContext.makeCurrent(); // could cause exception
                 isValid = sharedContext.isCurrent();
@@ -342,8 +342,8 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  protected ProxySurface createMutableSurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice, 
-                                                  GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, 
+  protected ProxySurface createMutableSurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice,
+                                                  GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested,
                                                   GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstreamHook) {
     final MacOSXGraphicsDevice device;
     if( createNewDevice || !(deviceReq instanceof MacOSXGraphicsDevice) ) {
@@ -354,24 +354,24 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     final AbstractGraphicsScreen screen = new DefaultGraphicsScreen(device, 0);
     final MacOSXCGLGraphicsConfiguration config = MacOSXCGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, screen, true);
     if(null == config) {
-        throw new GLException("Choosing GraphicsConfiguration failed w/ "+capsChosen+" on "+screen); 
-    }    
+        throw new GLException("Choosing GraphicsConfiguration failed w/ "+capsChosen+" on "+screen);
+    }
     return new WrappedSurface(config, 0, upstreamHook, createNewDevice);
   }
 
   @Override
-  public final ProxySurface createDummySurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice, 
+  public final ProxySurface createDummySurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice,
                                                    GLCapabilitiesImmutable chosenCaps, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height) {
     chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(chosenCaps);
-    return createMutableSurfaceImpl(deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser, 
-                                    new OSXDummyUpstreamSurfaceHook(width, height)); 
-  }  
-  
+    return createMutableSurfaceImpl(deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser,
+                                    new OSXDummyUpstreamSurfaceHook(width, height));
+  }
+
   @Override
   protected ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice deviceReq, int screenIdx, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstream) {
     final MacOSXGraphicsDevice device = new MacOSXGraphicsDevice(deviceReq.getUnitID());
     final AbstractGraphicsScreen screen = new DefaultGraphicsScreen(device, screenIdx);
-    final MacOSXCGLGraphicsConfiguration config = MacOSXCGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsRequested, capsRequested, chooser, screen, true); 
+    final MacOSXCGLGraphicsConfiguration config = MacOSXCGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsRequested, capsRequested, chooser, screen, true);
     return new WrappedSurface(config, windowHandle, upstream, true);
   }
 

@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -65,7 +65,7 @@ public class WindowDriver extends WindowImpl {
         final EGLGraphicsDevice aDevice = (EGLGraphicsDevice) aScreen.getDevice();
         final EGLGraphicsDevice eglDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(aDevice.getNativeDisplayID(), aDevice.getConnection(), aDevice.getUnitID());
         final DefaultGraphicsScreen eglScreen = new DefaultGraphicsScreen(eglDevice, aScreen.getIndex());
-        
+
         final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice(), capsRequested).chooseGraphicsConfiguration(
                 capsRequested, capsRequested, capabilitiesChooser, eglScreen, VisualIDHolder.VID_UNDEFINED);
         if (null == cfg) {
@@ -89,24 +89,24 @@ public class WindowDriver extends WindowImpl {
         windowHandleClose = nativeWindowHandle;
         addWindowListener(LinuxMouseTracker.getSingleton());
         addWindowListener(LinuxEventDeviceTracker.getSingleton());
-        focusChanged(false, true);        
+        focusChanged(false, true);
     }
 
     protected void closeNativeImpl() {
         final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) getGraphicsConfiguration().getScreen().getDevice();
-        
+
         removeWindowListener(LinuxMouseTracker.getSingleton());
         removeWindowListener(LinuxEventDeviceTracker.getSingleton());
-        
+
         if(0!=windowHandleClose) {
             CloseWindow(windowHandleClose, windowUserData);
             windowUserData=0;
         }
-        
+
         eglDevice.close();
     }
 
-    protected void requestFocusImpl(boolean reparented) { 
+    protected void requestFocusImpl(boolean reparented) {
         focusChanged(false, true);
     }
 
@@ -115,7 +115,7 @@ public class WindowDriver extends WindowImpl {
             setVisible0(nativeWindowHandle, 0 != ( FLAG_IS_VISIBLE & flags));
             visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));
         }
-        
+
         if(0!=nativeWindowHandle) {
             if(0 != ( FLAG_CHANGE_FULLSCREEN & flags)) {
                 final boolean fs = 0 != ( FLAG_IS_FULLSCREEN & flags) ;
@@ -135,11 +135,11 @@ public class WindowDriver extends WindowImpl {
                 System.err.println("setPosition n/a in KD");
             }
         }
-        
+
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
             visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));
         }
-        
+
         return true;
     }
 
@@ -148,9 +148,9 @@ public class WindowDriver extends WindowImpl {
     }
 
     protected void updateInsetsImpl(Insets insets) {
-        // nop ..        
+        // nop ..
     }
-        
+
     //----------------------------------------------------------------------
     // Internals only
     //

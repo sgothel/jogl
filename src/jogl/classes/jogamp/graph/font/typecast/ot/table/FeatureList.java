@@ -66,11 +66,11 @@ public class FeatureList {
 
     /** Creates new FeatureList */
     public FeatureList(DataInputStream dis, int offset) throws IOException {
-        
+
         // Ensure we're in the right place
         dis.reset();
         dis.skipBytes(offset);
-        
+
         // Start reading
         _featureCount = dis.readUnsignedShort();
         _featureRecords = new FeatureRecord[_featureCount];
@@ -88,11 +88,11 @@ public class FeatureList {
     public int getFeatureCount() {
         return _featureCount;
     }
-    
+
     public FeatureRecord getFeatureRecord(int i) {
         return _featureRecords[i];
     }
-    
+
     public Feature getFeature(int i) {
         return _features[i];
     }

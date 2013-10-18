@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -57,7 +57,7 @@ import javax.media.opengl.GLException;
  * Call {@link #stop() } to terminate the animation and it's execution thread.
  * </p>
  */
-public class Animator extends AnimatorBase {    
+public class Animator extends AnimatorBase {
     protected ThreadGroup threadGroup;
     private Runnable runnable;
     private boolean runAsFastAsPossible;
@@ -75,7 +75,7 @@ public class Animator extends AnimatorBase {
         }
     }
 
-    /** 
+    /**
      * Creates a new Animator w/ an associated ThreadGroup.
      */
     public Animator(ThreadGroup tg) {
@@ -86,7 +86,7 @@ public class Animator extends AnimatorBase {
         }
     }
 
-    /** 
+    /**
      * Creates a new Animator for a particular drawable.
      */
     public Animator(GLAutoDrawable drawable) {
@@ -97,7 +97,7 @@ public class Animator extends AnimatorBase {
         }
     }
 
-    /** 
+    /**
      * Creates a new Animator w/ an associated ThreadGroup for a particular drawable.
      */
     public Animator(ThreadGroup tg, GLAutoDrawable drawable) {
@@ -127,7 +127,7 @@ public class Animator extends AnimatorBase {
             stateSync.unlock();
         }
     }
-    
+
     private final void setIsAnimatingSynced(boolean v) {
         stateSync.lock();
         try {
@@ -185,7 +185,7 @@ public class Animator extends AnimatorBase {
                         }
                         if (!stopIssued && !isAnimating) {
                             // Wakes up 'waitForStartedCondition' sync
-                            // - and - 
+                            // - and -
                             // Resume from pause or drawablesEmpty,
                             // implies !pauseIssued and !drawablesEmpty
                             setIsAnimatingSynced(true); // barrier
@@ -251,7 +251,7 @@ public class Animator extends AnimatorBase {
 
     /**
      * Set a {@link ThreadGroup} for the {@link #getThread() animation thread}.
-     * 
+     *
      * @param tg the {@link ThreadGroup}
      * @throws GLException if the animator has already been started
      */
@@ -261,7 +261,7 @@ public class Animator extends AnimatorBase {
         }
         threadGroup = tg;
     }
-    
+
     public synchronized boolean start() {
         if ( isStartedImpl() ) {
             return false;
@@ -277,7 +277,7 @@ public class Animator extends AnimatorBase {
         } else {
             thread = new Thread(threadGroup, runnable, threadName);
         }
-        thread.setDaemon(false); // force to be non daemon, regardless of parent thread 
+        thread.setDaemon(false); // force to be non daemon, regardless of parent thread
         if(DEBUG) {
             final Thread ct = Thread.currentThread();
             System.err.println("Animator "+ct.getName()+"[daemon "+ct.isDaemon()+"]: starting "+thread.getName()+"[daemon "+thread.isDaemon()+"]");
@@ -288,7 +288,7 @@ public class Animator extends AnimatorBase {
     private final Condition waitForStartedCondition = new Condition() {
         public boolean eval() {
             return !isStartedImpl() || (!drawablesEmpty && !isAnimating) ;
-        } };    
+        } };
 
     public synchronized boolean stop() {
         if ( !isStartedImpl() ) {

@@ -40,16 +40,16 @@ import com.jogamp.newt.util.EDTUtil;
  */
 public class SWTEDTUtil implements EDTUtil {
     public static final boolean DEBUG = Debug.debug("EDT");
-        
+
     private final Object edtLock = new Object(); // locking the EDT start/stop state
-    private final ThreadGroup threadGroup; 
+    private final ThreadGroup threadGroup;
     private final String name;
     private final Runnable dispatchMessages;
     private final org.eclipse.swt.widgets.Display swtDisplay;
     private NEDT nedt = null;
     private int start_iter=0;
     private static long pollPeriod = EDTUtil.defaultEDTPollPeriod;
-    
+
     public SWTEDTUtil(final com.jogamp.newt.Display newtDisplay, org.eclipse.swt.widgets.Display swtDisplay) {
         this.threadGroup = Thread.currentThread().getThreadGroup();
         this.name=Thread.currentThread().getName()+"-SWTDisplay-"+newtDisplay.getFQName()+"-EDT-";
@@ -61,11 +61,11 @@ public class SWTEDTUtil implements EDTUtil {
         this.nedt = new NEDT(threadGroup, name);
         this.nedt.setDaemon(true); // don't stop JVM from shutdown ..
     }
-    
+
     public final org.eclipse.swt.widgets.Display getDisplay() {
         return swtDisplay;
     }
-    
+
     @Override
     public long getPollPeriod() {
         return pollPeriod;
@@ -116,7 +116,7 @@ public class SWTEDTUtil implements EDTUtil {
         }
         nedt.start();
     }
-    
+
     @Override
     public boolean isCurrentThreadEDT() {
         return !swtDisplay.isDisposed() && swtDisplay.getThread() == Thread.currentThread();
@@ -126,18 +126,18 @@ public class SWTEDTUtil implements EDTUtil {
     public final boolean isCurrentThreadNEDT() {
         return nedt == Thread.currentThread();
     }
-    
+
     @Override
     public final boolean isCurrentThreadEDTorNEDT() {
         final Thread ct = Thread.currentThread();
         return ( !swtDisplay.isDisposed() && ct == swtDisplay.getThread() ) || ct == nedt ;
     }
-    
+
     @Override
     public boolean isRunning() {
         return nedt.isRunning();
     }
-    
+
     @Override
     public final boolean invokeStop(boolean wait, Runnable task) {
         return invokeImpl(wait, task, true);
@@ -147,12 +147,12 @@ public class SWTEDTUtil implements EDTUtil {
     public final boolean invoke(boolean wait, Runnable task) {
         return invokeImpl(wait, task, false);
     }
-    
+
     private static Runnable nullTask = new Runnable() {
         @Override
-        public void run() { }        
+        public void run() { }
     };
-    
+
     private final boolean invokeImpl(boolean wait, Runnable task, boolean stop) {
         Throwable throwable = null;
         RunnableTask rTask = null;
@@ -165,12 +165,12 @@ public class SWTEDTUtil implements EDTUtil {
                         System.err.println(Thread.currentThread()+": Warning: SWT-EDT about (1) to stop, won't enqueue new task: "+nedt+", isRunning "+nedt.isRunning+", shouldStop "+nedt.shouldStop);
                         Thread.dumpStack();
                     }
-                    return false; 
+                    return false;
                 }
                 if( swtDisplay.isDisposed() ) {
                     stop = true;
                 }
-                
+
                 if( isCurrentThreadEDT() ) {
                     if(null != task) {
                         task.run();
@@ -179,7 +179,7 @@ public class SWTEDTUtil implements EDTUtil {
                     if( stop ) {
                         nedt.shouldStop = true;
                     }
-                } else {                
+                } else {
                     if( !nedt.isRunning && !swtDisplay.isDisposed() ) {
                         if( null != task ) {
                             if( stop ) {
@@ -210,11 +210,11 @@ public class SWTEDTUtil implements EDTUtil {
                             return false;
                         }
                     }
-                    
+
                     if( null != task ) {
                         rTask = new RunnableTask(task,
                                                  wait ? rTaskLock : null,
-                                                 true /* always catch and report Exceptions, don't disturb EDT */, 
+                                                 true /* always catch and report Exceptions, don't disturb EDT */,
                                                  wait ? null : System.err);
                         swtDisplay.asyncExec(rTask);
                     }
@@ -238,7 +238,7 @@ public class SWTEDTUtil implements EDTUtil {
             }
             return true;
         }
-    }    
+    }
 
     @Override
     final public boolean waitUntilIdle() {
@@ -278,7 +278,7 @@ public class SWTEDTUtil implements EDTUtil {
             }
         }
     }
-    
+
     class NEDT extends Thread {
         volatile boolean shouldStop = false;
         volatile boolean isRunning = false;
@@ -298,7 +298,7 @@ public class SWTEDTUtil implements EDTUtil {
             super.start();
         }
 
-        /** 
+        /**
          * Utilizing locking only on tasks and its execution,
          * not for event dispatching.
          */
@@ -315,7 +315,7 @@ public class SWTEDTUtil implements EDTUtil {
                         // EDT invoke thread is SWT-EDT,
                         // hence dispatching is required to run on SWT-EDT as well.
                         // Otherwise a deadlock may happen due to dispatched event's
-                        // triggering a locking action.                        
+                        // triggering a locking action.
                         if ( !swtDisplay.isDisposed() ) {
                             swtDisplay.syncExec(dispatchMessages);
                         } else {
@@ -343,7 +343,7 @@ public class SWTEDTUtil implements EDTUtil {
                 }
             } finally {
                 if(DEBUG) {
-                    System.err.println(getName()+": SWT-EDT run() END "+ getName()+", "+error); 
+                    System.err.println(getName()+": SWT-EDT run() END "+ getName()+", "+error);
                 }
                 synchronized(edtLock) {
                     isRunning = false;
@@ -358,5 +358,5 @@ public class SWTEDTUtil implements EDTUtil {
             } // finally
         } // run()
     } // EventDispatchThread
-    
+
 }

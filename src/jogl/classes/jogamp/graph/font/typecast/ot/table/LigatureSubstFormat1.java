@@ -91,5 +91,5 @@ public class LigatureSubstFormat1 extends LigatureSubst {
 
     public String getTypeAsString() {
         return "LigatureSubstFormat1";
-    }    
+    }
 }

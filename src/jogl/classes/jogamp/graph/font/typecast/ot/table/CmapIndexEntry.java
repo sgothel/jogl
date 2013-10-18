@@ -85,7 +85,7 @@ public class CmapIndexEntry implements Comparable {
     public CmapFormat getFormat() {
         return _format;
     }
-    
+
     public void setFormat(CmapFormat format) {
         _format = format;
     }

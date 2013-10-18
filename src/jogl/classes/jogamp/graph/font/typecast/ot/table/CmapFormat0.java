@@ -74,7 +74,7 @@ public class CmapFormat0 extends CmapFormat {
     public int getRangeCount() {
         return 1;
     }
-    
+
     public Range getRange(int index) throws ArrayIndexOutOfBoundsException {
         if (index != 0) {
             throw new ArrayIndexOutOfBoundsException();

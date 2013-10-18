@@ -57,7 +57,7 @@ import com.jogamp.opengl.util.Animator;
 
 public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
     public static final boolean DEBUG = Debug.debug("Applet");
-    
+
     String glEventListenerClazzName;
     int glSwapInterval;
     boolean noDefaultKeyListener;
@@ -71,13 +71,13 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
     boolean isValid = false;
     NativeWindow awtParent;
 
-    public JOGLNewtAppletBase(String glEventListenerClazzName, 
+    public JOGLNewtAppletBase(String glEventListenerClazzName,
                               int glSwapInterval,
                               boolean noDefaultKeyListener,
                               boolean glClosable,
                               boolean glDebug,
                               boolean glTrace) {
-    
+
         this.glEventListenerClazzName=glEventListenerClazzName;
         this.glSwapInterval=glSwapInterval;
         this.noDefaultKeyListener = noDefaultKeyListener;
@@ -174,8 +174,8 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
                                     glWindow.reparentWindow(awtParent);
                                 }
                                }
-                            }).start();                         
-                        }                        
+                            }).start();
+                        }
                     }
                 } } );
 
@@ -203,7 +203,7 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
             if(glEventListener instanceof KeyListener) {
                 glWindow.addKeyListener((KeyListener)glEventListener);
             }
-            
+
             if(!noDefaultKeyListener) {
                 glWindow.addKeyListener(this);
             }
@@ -216,7 +216,7 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
             glAnimator.setThreadGroup(tg);
             glAnimator.add(glWindow);
             glAnimator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, null);
-            
+
         } catch (Throwable t) {
             throw new RuntimeException(t);
         }
@@ -262,14 +262,14 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
         if(glDebug) {
             try {
                 _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", null, _gl, null) );
-            } catch (Exception e) {e.printStackTrace();} 
+            } catch (Exception e) {e.printStackTrace();}
         }
 
         if(glTrace) {
             try {
                 // Trace ..
                 _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", null, _gl, new Object[] { System.err } ) );
-            } catch (Exception e) {e.printStackTrace();} 
+            } catch (Exception e) {e.printStackTrace();}
         }
 
         if(glSwapInterval>=0) {
@@ -317,9 +317,9 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
             }
        }
     }
-    
+
     @Override
-    public void keyReleased(KeyEvent e) { 
+    public void keyReleased(KeyEvent e) {
     }
 }
 

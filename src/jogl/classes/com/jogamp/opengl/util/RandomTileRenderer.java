@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -35,14 +35,14 @@ import javax.media.opengl.GLException;
 import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
 
 /**
- * Variation of {@link TileRenderer} w/o using fixed tiles but arbitrary rectangular regions. 
+ * Variation of {@link TileRenderer} w/o using fixed tiles but arbitrary rectangular regions.
  * <p>
  * See {@link TileRendererBase} for details.
  * </p>
  */
 public class RandomTileRenderer extends TileRendererBase {
     private boolean tileRectSet = false;
-    
+
     /**
      * Creates a new TileRenderer object
      */
@@ -72,15 +72,15 @@ public class RandomTileRenderer extends TileRendererBase {
 
     /**
      * Set the tile rectangle for the subsequent rendering calls.
-     * 
-     * @throws IllegalArgumentException is tile x/y are < 0 or tile size is <= 0x0                              
+     *
+     * @throws IllegalArgumentException is tile x/y are < 0 or tile size is <= 0x0
      */
     public void setTileRect(int tX, int tY, int tWidth, int tHeight) throws IllegalStateException, IllegalArgumentException {
         if( 0 > tX || 0 > tX ) {
-            throw new IllegalArgumentException("Tile pos must be >= 0/0");        
+            throw new IllegalArgumentException("Tile pos must be >= 0/0");
         }
         if( 0 >= tWidth || 0 >= tHeight ) {
-            throw new IllegalArgumentException("Tile size must be > 0x0");        
+            throw new IllegalArgumentException("Tile size must be > 0x0");
         }
         this.currentTileXPos = tX;
         this.currentTileYPos = tY;
@@ -88,57 +88,57 @@ public class RandomTileRenderer extends TileRendererBase {
         this.currentTileHeight = tHeight;
         tileRectSet = true;
     }
-    
+
     @Override
     public final boolean isSetup() {
         return 0 < imageSize.getWidth() && 0 < imageSize.getHeight() && tileRectSet;
     }
-    
+
     /**
      * {@inheritDoc}
-     * 
-     * <p> 
+     *
+     * <p>
      * <i>end of tiling</i> is never reached w/ {@link RandomRileRenderer},
      * i.e. method always returns false.
      * </p>
      */
     @Override
     public final boolean eot() { return false; }
-    
+
     /**
      * {@inheritDoc}
-     * 
+     *
      * Reset internal states of {@link RandomTileRenderer} are: <i>none</i>.
      */
     @Override
     public final void reset() { }
-    
+
     /**
      * {@inheritDoc}
-     * 
-     * @throws IllegalStateException if {@link #setImageSize(int, int) image-size} has not been set or 
+     *
+     * @throws IllegalStateException if {@link #setImageSize(int, int) image-size} has not been set or
      *         {@link #setTileRect(int, int, int, int) tile-rect} has not been set.
      */
     @Override
     public final void beginTile(GL gl) throws IllegalStateException, GLException {
         if( 0 >= imageSize.getWidth() || 0 >= imageSize.getHeight() ) {
-            throw new IllegalStateException("Image size has not been set");        
+            throw new IllegalStateException("Image size has not been set");
         }
         if( !tileRectSet ) {
             throw new IllegalStateException("tileRect has not been set");
         }
         validateGL(gl);
-        
+
         gl.glViewport( 0, 0, currentTileWidth, currentTileHeight );
-        
+
         if( DEBUG ) {
             System.err.println("TileRenderer.begin.X: "+this.toString());
         }
-                
+
         // Do not forget to issue:
         //    reshape( 0, 0, tW, tH );
         // which shall reflect tile renderer fileds: currentTileXPos, currentTileYPos and imageSize
-        
+
         beginCalled = true;
     }
 
@@ -148,7 +148,7 @@ public class RandomTileRenderer extends TileRendererBase {
             throw new IllegalStateException("beginTile(..) has not been called");
         }
         validateGL(gl);
-        
+
         // be sure OpenGL rendering is finished
         gl.glFlush();
 
@@ -220,13 +220,13 @@ public class RandomTileRenderer extends TileRendererBase {
 
         /* restore previous glPixelStore values */
         psm.restore(gl);
-        
+
         beginCalled = false;
     }
-    
+
     /**
      * Rendering one tile, by simply calling {@link GLAutoDrawable#display()}.
-     * 
+     *
      * @throws IllegalStateException if no {@link GLAutoDrawable} is {@link #attachAutoDrawable(GLAutoDrawable) attached}
      *                               or imageSize is not set
      */

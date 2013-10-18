@@ -35,7 +35,7 @@ public class ResourceMap {
     private int fileReferenceNumber;
     private int attributes;
     private ResourceType[] types;
-    
+
     /** Creates new ResourceMap */
     public ResourceMap(DataInput di) throws IOException {
         di.readFully(headerCopy);
@@ -45,18 +45,18 @@ public class ResourceMap {
         int typeOffset = di.readUnsignedShort();
         int nameOffset = di.readUnsignedShort();
         int typeCount = di.readUnsignedShort() + 1;
-        
+
         // Read types
         types = new ResourceType[typeCount];
         for (int i = 0; i < typeCount; i++) {
             types[i] = new ResourceType(di);
         }
-        
+
         // Read the references
         for (int i = 0; i < typeCount; i++) {
             types[i].readRefs(di);
         }
-        
+
         // Read the names
         for (int i = 0; i < typeCount; i++) {
             types[i].readNames(di);
@@ -76,7 +76,7 @@ public class ResourceMap {
     public ResourceType getResourceType(int i) {
         return types[i];
     }
-    
+
     public int getResourceTypeCount() {
         return types.length;
     }

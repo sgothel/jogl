@@ -29,20 +29,20 @@ package com.jogamp.opengl;
 
 import java.util.List;
 
-/** 
- * GLRendererQuirks contains information of known bugs of various GL renderer. 
+/**
+ * GLRendererQuirks contains information of known bugs of various GL renderer.
  * This information allows us to workaround them.
  * <p>
  * Using centralized quirk identifier enables us to
- * locate code dealing w/ it and hence eases it's maintenance.   
+ * locate code dealing w/ it and hence eases it's maintenance.
  * </p>
  * <p>
  * <i>Some</i> <code>GL_VENDOR</code> and <code>GL_RENDERER</code> strings are
- * listed here <http://feedback.wildfiregames.com/report/opengl/feature/GL_VENDOR>. 
+ * listed here <http://feedback.wildfiregames.com/report/opengl/feature/GL_VENDOR>.
  * </p>
  */
 public class GLRendererQuirks {
-    /** 
+    /**
      * Crashes XServer when using double buffered PBuffer with GL_RENDERER:
      * <ul>
      *  <li>Mesa DRI Intel(R) Sandybridge Desktop</li>
@@ -52,23 +52,23 @@ public class GLRendererQuirks {
      * For now, it is safe to disable it w/ hw-acceleration.
      */
     public static final int NoDoubleBufferedPBuffer = 0;
-    
+
     /** On Windows no double buffered bitmaps are guaranteed to be available. */
     public static final int NoDoubleBufferedBitmap  = 1;
 
     /** Crashes application when trying to set EGL swap interval on Android 4.0.3 / Pandaboard ES / PowerVR SGX 540 */
     public static final int NoSetSwapInterval       = 2;
-    
+
     /** No offscreen bitmap available, currently true for JOGL's OSX implementation. */
     public static final int NoOffscreenBitmap       = 3;
-    
+
     /** SIGSEGV on setSwapInterval() after changing the context's drawable w/ 'Mesa 8.0.4' dri2SetSwapInterval/DRI2 (soft & intel) */
     public static final int NoSetSwapIntervalPostRetarget = 4;
 
     /** GLSL <code>discard</code> command leads to undefined behavior or won't get compiled if being used. Appears to <i>have</i> happened on Nvidia Tegra2, but seems to be fine now. FIXME: Constrain version. */
     public static final int GLSLBuggyDiscard = 5;
-    
-    /** 
+
+    /**
      * Non compliant GL context due to a buggy implementation not suitable for use.
      * <p>
      * Currently, Mesa >= 9.1.3 (may extend back as far as 9.0) OpenGL 3.1 compatibility
@@ -82,19 +82,19 @@ public class GLRendererQuirks {
      * </ul>
      * </p>
      * <p>
-     * It still has to be verified whether the AMD OpenGL 3.1 core driver is compliant enought. 
+     * It still has to be verified whether the AMD OpenGL 3.1 core driver is compliant enought.
      */
     public static final int GLNonCompliant = 6;
-    
+
     /**
      * The OpenGL Context needs a <code>glFlush()</code> before releasing it, otherwise driver may freeze:
      * <ul>
      *   <li>OSX < 10.7.3 - NVidia Driver. Bug 533 and Bug 548 @ https://jogamp.org/bugzilla/.</li>
-     * </ul>  
+     * </ul>
      */
     public static final int GLFlushBeforeRelease = 7;
-    
-    /** 
+
+    /**
      * Closing X11 displays may cause JVM crashes or X11 errors with some buggy drivers
      * while being used in concert w/ OpenGL.
      * <p>
@@ -123,14 +123,14 @@ public class GLRendererQuirks {
      * </p>
      */
     public static final int DontCloseX11Display = 8;
-    
+
     /**
-     * Need current GL Context when calling new ARB <i>pixel format query</i> functions, 
+     * Need current GL Context when calling new ARB <i>pixel format query</i> functions,
      * otherwise driver crashes the VM.
      * <p>
      * Drivers known exposing such bug:
      * <ul>
-     *   <li>ATI proprietary Catalyst driver on Windows version &le; XP. 
+     *   <li>ATI proprietary Catalyst driver on Windows version &le; XP.
      *       TODO: Validate if bug actually relates to 'old' ATI Windows drivers for old GPU's like X300
      *             regardless of the Windows version.</li>
      * </ul>
@@ -139,7 +139,7 @@ public class GLRendererQuirks {
      * </p>
      */
     public static final int NeedCurrCtx4ARBPixFmtQueries = 9;
-    
+
     /**
      * Need current GL Context when calling new ARB <i>CreateContext</i> function,
      * otherwise driver crashes the VM.
@@ -159,14 +159,14 @@ public class GLRendererQuirks {
      * </p>
      */
     public static final int NeedCurrCtx4ARBCreateContext = 10;
-    
+
     /**
      * No full FBO support, i.e. not compliant w/
-     * <ul> 
+     * <ul>
      *   <li>GL_ARB_framebuffer_object</li>
-     *   <li>EXT_framebuffer_object</li> 
-     *   <li>EXT_framebuffer_multisample</li> 
-     *   <li>EXT_framebuffer_blit</li> 
+     *   <li>EXT_framebuffer_object</li>
+     *   <li>EXT_framebuffer_multisample</li>
+     *   <li>EXT_framebuffer_blit</li>
      *   <li>EXT_packed_depth_stencil</li>
      * </ul>.
      * Drivers known exposing such bug:
@@ -180,18 +180,18 @@ public class GLRendererQuirks {
      * Quirk can also be enabled via property: <code>jogl.fbo.force.min</code>.
      */
     public static final int NoFullFBOSupport = 11;
-    
+
     /**
      * GLSL is not compliant or even not stable (crash)
      * <ul>
      *   <li>OSX < 10.7.0 (?) - NVidia Driver. Bug 818 @ https://jogamp.org/bugzilla/.</li>
-     * </ul>  
+     * </ul>
      */
     public static final int GLSLNonCompliant = 12;
-        
+
     /** Number of quirks known. */
     public static final int COUNT = 13;
-    
+
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
                                                           "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard",
                                                           "GLNonCompliant", "GLFlushBeforeRelease", "DontCloseX11Display",
@@ -218,7 +218,7 @@ public class GLRendererQuirks {
             bitmask |= 1 << quirk;
         }
         _bitmask = bitmask;
-    }      
+    }
 
     /**
      * @param quirks a list of valid quirks
@@ -233,7 +233,7 @@ public class GLRendererQuirks {
         }
         _bitmask = bitmask;
     }
-    
+
     /**
      * @param quirk the quirk to be tested
      * @return true if quirk exist, otherwise false
@@ -261,7 +261,7 @@ public class GLRendererQuirks {
         sb.append("]");
         return sb;
     }
-    
+
     public final String toString() {
         return toString(null).toString();
     }
@@ -273,7 +273,7 @@ public class GLRendererQuirks {
     public static void validateQuirk(int quirk) throws IllegalArgumentException {
         if( !( 0 <= quirk && quirk < COUNT ) ) {
             throw new IllegalArgumentException("Quirks must be in range [0.."+COUNT+"[, but quirk: "+quirk);
-        }        
+        }
     }
 
     /**

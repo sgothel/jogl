@@ -58,7 +58,7 @@ public class WGLGLCapabilities extends GLCapabilities {
       setRedBits(pfd.getCRedBits());
       setGreenBits(pfd.getCGreenBits());
       setBlueBits(pfd.getCBlueBits());
-      setAlphaBits(pfd.getCAlphaBits()); 
+      setAlphaBits(pfd.getCAlphaBits());
       setAccumRedBits(pfd.getCAccumRedBits());
       setAccumGreenBits(pfd.getCAccumGreenBits());
       setAccumBlueBits(pfd.getCAccumBlueBits());
@@ -77,12 +77,12 @@ public class WGLGLCapabilities extends GLCapabilities {
 
       return true;
   }
-    
+
   public static final String PFD2String(PIXELFORMATDESCRIPTOR pfd, int pfdID) {
       final int dwFlags = pfd.getDwFlags();
       StringBuilder sb = new StringBuilder();
       boolean sep = false;
-      
+
       if( 0 != (GDI.PFD_DRAW_TO_WINDOW & dwFlags ) ) {
           sep = true;
           sb.append("window");
@@ -106,7 +106,7 @@ public class WGLGLCapabilities extends GLCapabilities {
       if( 0 == (GDI.PFD_GENERIC_FORMAT & dwFlags ) || 0 == (GDI.PFD_GENERIC_ACCELERATED & dwFlags ) ) {
           if(sep) { sb.append(CSEP); } sep=true;
           sb.append("hw-accel");
-      }        
+      }
       return "PFD[id = "+pfdID+" (0x"+Integer.toHexString(pfdID)+
               "), colorBits "+pfd.getCColorBits()+", rgba "+pfd.getCRedBits()+ESEP+pfd.getCGreenBits()+ESEP+pfd.getCBlueBits()+ESEP+pfd.getCAlphaBits()+
               ", accum-rgba "+pfd.getCAccumRedBits()+ESEP+pfd.getCAccumGreenBits()+ESEP+pfd.getCAccumBlueBits()+ESEP+pfd.getCAccumAlphaBits()+

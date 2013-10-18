@@ -55,8 +55,8 @@ public abstract class CompileShader {
         URL resourceURL = IOUtil.getResource(null, resourceName).getURL();
         String dirName = dirname(resourceURL.getPath());
 
-        outName = dirName + File.separator + "bin" + File.separator + 
-                  ShaderCode.getBinarySubPath(getBinaryFormat()) + File.separator + 
+        outName = dirName + File.separator + "bin" + File.separator +
+                  ShaderCode.getBinarySubPath(getBinaryFormat()) + File.separator +
                   outName;
         processOneShader(resourceName, outName, type);
     }

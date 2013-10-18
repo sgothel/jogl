@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,7 +28,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
@@ -46,7 +46,7 @@ import java.nio.channels.*;
  * class; can also be used in conjunction with the {@link com.jogamp.opengl.util.gl2.TileRenderer} class.
  */
 public class TGAWriter {
-    
+
   private static final int TARGA_HEADER_SIZE = 18;
 
   private FileChannel ch;
@@ -91,7 +91,7 @@ public class TGAWriter {
     image.put(14, (byte) (height & 0xFF)); // height
     image.put(15, (byte) (height >> 8)); // height
     image.put(16, (byte) pixelSize); // pixel size
-             
+
     // go to image data position
     image.position(TARGA_HEADER_SIZE);
     // jogl needs a sliced buffer

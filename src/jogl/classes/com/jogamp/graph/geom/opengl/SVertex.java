@@ -39,11 +39,11 @@ public class SVertex implements Vertex {
     protected float[] coord = new float[3];
     protected boolean onCurve;
     private float[] texCoord = new float[2];
-    
+
     static final Factory factory = new Factory();
-    
-    public static Factory factory() { return factory; } 
-    
+
+    public static Factory factory() { return factory; }
+
     public static class Factory implements Vertex.Factory<SVertex> {
         public SVertex create() {
             return new SVertex();
@@ -55,9 +55,9 @@ public class SVertex implements Vertex {
 
         public SVertex create(float[] coordsBuffer, int offset, int length, boolean onCurve) {
             return new SVertex(coordsBuffer, offset, length, onCurve);
-        }        
+        }
     }
-    
+
     public SVertex() {
     }
 
@@ -65,19 +65,19 @@ public class SVertex implements Vertex {
         setCoord(x, y, z);
         setOnCurve(onCurve);
     }
-    
+
     public SVertex(float[] coordsBuffer, int offset, int length, boolean onCurve) {
         setCoord(coordsBuffer, offset, length);
         setOnCurve(onCurve);
     }
-        
-    public SVertex(float[] coordsBuffer, int offset, int length, 
+
+    public SVertex(float[] coordsBuffer, int offset, int length,
                    float[] texCoordsBuffer, int offsetTC, int lengthTC, boolean onCurve) {
         setCoord(coordsBuffer, offset, length);
         setTexCoord(texCoordsBuffer, offsetTC, lengthTC);
         setOnCurve(onCurve);
     }
-    
+
     public final void setCoord(float x, float y, float z) {
         this.coord[0] = x;
         this.coord[1] = y;
@@ -87,12 +87,12 @@ public class SVertex implements Vertex {
     public final void setCoord(float[] coordsBuffer, int offset, int length) {
         System.arraycopy(coordsBuffer, offset, coord, 0, length);
     }
-        
+
     @Override
     public int getCoordCount() {
         return 3;
     }
-    
+
     @Override
     public final float[] getCoord() {
         return coord;
@@ -133,11 +133,11 @@ public class SVertex implements Vertex {
     public final int getId(){
         return id;
     }
-    
+
     public final void setId(int id){
         this.id = id;
     }
-    
+
     public boolean equals(Object obj) {
         if( obj == this) {
             return true;
@@ -146,12 +146,12 @@ public class SVertex implements Vertex {
             return false;
         }
         final Vertex v = (Vertex) obj;
-        return this == v || 
-               isOnCurve() == v.isOnCurve() && 
+        return this == v ||
+               isOnCurve() == v.isOnCurve() &&
                VectorUtil.checkEqualityVec2(getTexCoord(), v.getTexCoord()) &&
                VectorUtil.checkEquality(getCoord(), v.getCoord()) ;
     }
-    
+
     public final float[] getTexCoord() {
         return texCoord;
     }
@@ -164,16 +164,16 @@ public class SVertex implements Vertex {
     public final void setTexCoord(float[] texCoordsBuffer, int offset, int length) {
         System.arraycopy(texCoordsBuffer, offset, texCoord, 0, length);
     }
-        
+
     /**
      * @return deep clone of this Vertex, but keeping the id blank
      */
     public SVertex clone(){
         return new SVertex(this.coord, 0, 3, this.texCoord, 0, 2, this.onCurve);
     }
-    
+
     public String toString() {
-        return "[ID: " + id + ", onCurve: " + onCurve + 
+        return "[ID: " + id + ", onCurve: " + onCurve +
                ": p " + coord[0] + ", " + coord[1] + ", " + coord[2] +
                ", t " + texCoord[0] + ", " + texCoord[1] + "]";
     }

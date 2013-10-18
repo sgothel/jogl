@@ -46,12 +46,12 @@ public interface DimensionImmutable extends WriteCloneable, Comparable<Dimension
     /**
      * <p>
      * Compares square of size.
-     * </p> 
+     * </p>
      * {@inheritDoc}
      */
     @Override
     public int compareTo(final DimensionImmutable d);
-    
+
     /**
      * Checks whether two dimensions objects are equal. Two instances
      * of <code>DimensionReadOnly</code> are equal if two components

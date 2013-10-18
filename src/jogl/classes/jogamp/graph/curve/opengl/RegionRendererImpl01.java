@@ -43,12 +43,12 @@ import com.jogamp.opengl.util.glsl.ShaderState;
 public class RegionRendererImpl01 extends RegionRenderer {
     public RegionRendererImpl01(RenderState rs, int renderModes) {
         super(rs, renderModes);
-        
+
     }
-    
+
     protected boolean initShaderProgram(GL2ES2 gl) {
         final ShaderState st = rs.getShaderState();
-        
+
         final ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, RegionRendererImpl01.class, "shader",
                                                   "shader/bin", getVertexShaderName(), true);
         final ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, RegionRendererImpl01.class, "shader",
@@ -57,29 +57,29 @@ public class RegionRendererImpl01 extends RegionRenderer {
         // rsFp.defaultShaderCustomization(gl, true, true);
         int pos = rsFp.addGLSLVersion(gl);
         if( gl.isGLES2() ) {
-            pos = rsFp.insertShaderSource(0, pos, ShaderCode.extOESDerivativesEnable);            
+            pos = rsFp.insertShaderSource(0, pos, ShaderCode.extOESDerivativesEnable);
         }
         final String rsFpDefPrecision =  getFragmentShaderPrecision(gl);
         if( null != rsFpDefPrecision ) {
             rsFp.insertShaderSource(0, pos, rsFpDefPrecision);
         }
-        
+
         final ShaderProgram sp = new ShaderProgram();
         sp.add(rsVp);
         sp.add(rsFp);
 
-        if( !sp.init(gl) ) { 
+        if( !sp.init(gl) ) {
             throw new GLException("RegionRenderer: Couldn't init program: "+sp);
         }
-        st.attachShaderProgram(gl, sp, false);        
+        st.attachShaderProgram(gl, sp, false);
         st.bindAttribLocation(gl, AttributeNames.VERTEX_ATTR_IDX, AttributeNames.VERTEX_ATTR_NAME);
-        st.bindAttribLocation(gl, AttributeNames.TEXCOORD_ATTR_IDX, AttributeNames.TEXCOORD_ATTR_NAME);        
-        
+        st.bindAttribLocation(gl, AttributeNames.TEXCOORD_ATTR_IDX, AttributeNames.TEXCOORD_ATTR_NAME);
+
         if(!sp.link(gl, System.err)) {
             throw new GLException("RegionRenderer: Couldn't link program: "+sp);
-        }    
+        }
         st.useProgram(gl, true);
-    
+
         if(DEBUG) {
             System.err.println("RegionRendererImpl01 initialized: " + Thread.currentThread()+" "+st);
         }
@@ -94,5 +94,5 @@ public class RegionRendererImpl01 extends RegionRenderer {
     @Override
     protected void drawImpl(GL2ES2 gl, Region region, float[] position, int[] texSize) {
         ((GLRegion)region).draw(gl, rs, vp_width, vp_height, texSize);
-    }    
+    }
 }

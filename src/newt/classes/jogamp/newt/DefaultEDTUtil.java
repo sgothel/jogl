@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2009 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
@@ -51,7 +51,7 @@ public class DefaultEDTUtil implements EDTUtil {
     public static final boolean DEBUG = Debug.debug("EDT");
 
     private final Object edtLock = new Object(); // locking the EDT start/stop state
-    private /* final */ ThreadGroup threadGroup; 
+    private /* final */ ThreadGroup threadGroup;
     private final String name;
     private final Runnable dispatchMessages;
     private NEDT edt = null;
@@ -75,7 +75,7 @@ public class DefaultEDTUtil implements EDTUtil {
     final public void setPollPeriod(long ms) {
         pollPeriod = ms;
     }
-    
+
     @Override
     public final boolean start() throws IllegalStateException {
         synchronized(edtLock) {
@@ -117,7 +117,7 @@ public class DefaultEDTUtil implements EDTUtil {
     public final boolean isCurrentThreadEDT() {
         return edt == Thread.currentThread(); // EDT == NEDT
     }
-    
+
     @Override
     public final boolean isCurrentThreadNEDT() {
         return edt == Thread.currentThread(); // EDT == NEDT
@@ -126,8 +126,8 @@ public class DefaultEDTUtil implements EDTUtil {
     @Override
     public final boolean isCurrentThreadEDTorNEDT() {
         return edt == Thread.currentThread(); // EDT == NEDT
-    }    
-    
+    }
+
     @Override
     public final boolean isRunning() {
         return edt.isRunning() ;
@@ -149,9 +149,9 @@ public class DefaultEDTUtil implements EDTUtil {
 
     private static Runnable nullTask = new Runnable() {
         @Override
-        public void run() { }        
+        public void run() { }
     };
-    
+
     private final boolean invokeImpl(boolean wait, Runnable task, boolean stop) {
         Throwable throwable = null;
         RunnableTask rTask = null;
@@ -201,7 +201,7 @@ public class DefaultEDTUtil implements EDTUtil {
                         synchronized(edt.tasks) {
                             rTask = new RunnableTask(task,
                                                      wait ? rTaskLock : null,
-                                                     true /* always catch and report Exceptions, don't disturb EDT */, 
+                                                     true /* always catch and report Exceptions, don't disturb EDT */,
                                                      wait ? null : System.err);
                             if(stop) {
                                 rTask.setAttachment(new Boolean(true)); // mark final task, will imply shouldStop:=true
@@ -305,8 +305,8 @@ public class DefaultEDTUtil implements EDTUtil {
                 throw new InternalError("XXX");
             }
         }
-        
-        /** 
+
+        /**
          * Utilizing locking only on tasks and its execution,
          * not for event dispatching.
          */
@@ -315,7 +315,7 @@ public class DefaultEDTUtil implements EDTUtil {
             if(DEBUG) {
                 System.err.println(getName()+": Default-EDT run() START "+ getName());
             }
-            if(Lock.DEBUG) {            
+            if(Lock.DEBUG) {
                 validateNoRecursiveLocksHold();
             }
             RuntimeException error = null;
@@ -368,7 +368,7 @@ public class DefaultEDTUtil implements EDTUtil {
             } finally {
                 if(DEBUG) {
                     RunnableTask rt = ( tasks.size() > 0 ) ? tasks.get(0) : null ;
-                    System.err.println(getName()+": Default-EDT run() END "+ getName()+", tasks: "+tasks.size()+", "+rt+", "+error); 
+                    System.err.println(getName()+": Default-EDT run() END "+ getName()+", tasks: "+tasks.size()+", "+rt+", "+error);
                 }
                 synchronized(edtLock) {
                     isRunning = false;

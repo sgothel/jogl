@@ -135,7 +135,7 @@ public class VheaTable implements Table {
             .append("\n        numOf_LongVerMetrics: ").append(_numberOfLongVerMetrics)
             .toString();
     }
-    
+
     /**
      * Get a directory entry for this table.  This uniquely identifies the
      * table in collections where there may be more than one instance of a

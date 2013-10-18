@@ -115,7 +115,7 @@ public class EGLContext extends GLContextImpl {
         if (EGL.eglGetCurrentContext() != contextHandle) {
             final long dpy = drawable.getNativeSurface().getDisplayHandle();
             if (!EGL.eglMakeCurrent(dpy, drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
-                throw new GLException("Error making context " + toHexString(contextHandle) + 
+                throw new GLException("Error making context " + toHexString(contextHandle) +
                                       " current on Thread " + getThreadName() +
                                       " with display " + toHexString(dpy) +
                                       ", drawableWrite " + toHexString(drawable.getHandle()) +
@@ -128,7 +128,7 @@ public class EGLContext extends GLContextImpl {
     @Override
     protected void releaseImpl() throws GLException {
       if (!EGL.eglMakeCurrent(drawable.getNativeSurface().getDisplayHandle(), EGL.EGL_NO_SURFACE, EGL.EGL_NO_SURFACE, EGL.EGL_NO_CONTEXT)) {
-            throw new GLException("Error freeing OpenGL context " + toHexString(contextHandle) + 
+            throw new GLException("Error freeing OpenGL context " + toHexString(contextHandle) +
                                   ": error code " + toHexString(EGL.eglGetError()));
       }
     }
@@ -138,7 +138,7 @@ public class EGLContext extends GLContextImpl {
       if (!EGL.eglDestroyContext(drawable.getNativeSurface().getDisplayHandle(), contextHandle)) {
           final int eglError = EGL.eglGetError();
           if(EGL.EGL_SUCCESS != eglError) { /* oops, Mesa EGL impl. may return false, but has no EGL error */
-              throw new GLException("Error destroying OpenGL context " + toHexString(contextHandle) + 
+              throw new GLException("Error destroying OpenGL context " + toHexString(contextHandle) +
                                     ": error code " + toHexString(eglError));
           }
       }
@@ -285,11 +285,11 @@ public class EGLContext extends GLContextImpl {
     //
     // Accessible ..
     //
-    
+
     /* pp */ void mapCurrentAvailableGLVersion(AbstractGraphicsDevice device) {
         mapStaticGLVersion(device, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
     }
-    /* pp */ int getContextOptions() { return ctxOptions; }    
+    /* pp */ int getContextOptions() { return ctxOptions; }
     /* pp */ static void mapStaticGLESVersion(AbstractGraphicsDevice device, GLCapabilitiesImmutable caps) {
         final GLProfile glp = caps.getGLProfile();
         final int[] reqMajorCTP = new int[2];
@@ -305,7 +305,7 @@ public class EGLContext extends GLContextImpl {
             reqMajorCTP[1] |= GLContext.CTX_IMPL_ACCEL_SOFT;
         }
         mapStaticGLVersion(device, reqMajorCTP[0], 0, reqMajorCTP[1]);
-    }    
+    }
     /* pp */ static void mapStaticGLESVersion(AbstractGraphicsDevice device, final int major) {
         int ctp = GLContext.CTX_PROFILE_ES;
         if( major >= 3 ) {
@@ -324,20 +324,20 @@ public class EGLContext extends GLContextImpl {
             if(! ( device instanceof EGLGraphicsDevice ) ) {
                 final EGLGraphicsDevice eglDevice = new EGLGraphicsDevice(device.getHandle(), EGL.EGL_NO_DISPLAY, device.getConnection(), device.getUnitID(), null);
                 GLContext.mapAvailableGLVersion(eglDevice, reqMajor, reqProfile, major, minor, ctp);
-            }            
+            }
         }
     }
     protected static String getGLVersion(int major, int minor, int ctp, String gl_version) {
         return GLContext.getGLVersion(major, minor, ctp, gl_version);
     }
-    
+
     protected static boolean getAvailableGLVersionsSet(AbstractGraphicsDevice device) {
         return GLContext.getAvailableGLVersionsSet(device);
     }
     protected static void setAvailableGLVersionsSet(AbstractGraphicsDevice device) {
         GLContext.setAvailableGLVersionsSet(device);
     }
-    
+
     protected static String toHexString(int hex) {
         return GLContext.toHexString(hex);
     }
@@ -358,7 +358,7 @@ public class EGLContext extends GLContextImpl {
     public final ByteBuffer glAllocateMemoryNV(int size, float readFrequency, float writeFrequency, float priority) {
         throw new GLException("Should not call this");
     }
-    
+
     @Override
     public final void glFreeMemoryNV(ByteBuffer pointer) {
         throw new GLException("Should not call this");

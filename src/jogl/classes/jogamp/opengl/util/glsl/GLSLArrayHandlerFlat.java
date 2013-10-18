@@ -37,7 +37,7 @@ import com.jogamp.opengl.util.GLArrayDataWrapper;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 /**
- * Used for interleaved GLSL arrays, i.e. where the buffer data itself is handled 
+ * Used for interleaved GLSL arrays, i.e. where the buffer data itself is handled
  * separately and interleaves many arrays.
  */
 public class GLSLArrayHandlerFlat implements GLArrayHandlerFlat {
@@ -50,7 +50,7 @@ public class GLSLArrayHandlerFlat implements GLArrayHandlerFlat {
   public GLArrayDataWrapper getData() {
       return ad;
   }
-    
+
   public final void syncData(GL gl, Object ext) {
     final GL2ES2 glsl = gl.getGL2ES2();
     if( null != ext ) {
@@ -62,7 +62,7 @@ public class GLSLArrayHandlerFlat implements GLArrayHandlerFlat {
     }
     /**
      * Due to probable application VBO switching, this might not make any sense ..
-     * 
+     *
     if(!written) {
         st.vertexAttribPointer(glsl, ad);
     } else if(st.getAttribLocation(glsl, ad) >= 0) {
@@ -94,7 +94,7 @@ public class GLSLArrayHandlerFlat implements GLArrayHandlerFlat {
             } else {
                 glsl.glDisableVertexAttribArray(location);
             }
-        }        
+        }
     }
-  }  
+  }
 }

@@ -62,7 +62,7 @@ public class LangSysRecord {
 
     private int _tag;
     private int _offset;
-    
+
     /** Creates new LangSysRecord */
     public LangSysRecord(DataInput di) throws IOException {
         _tag = di.readInt();

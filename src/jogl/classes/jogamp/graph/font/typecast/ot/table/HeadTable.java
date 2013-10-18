@@ -192,7 +192,7 @@ public class HeadTable implements Table {
             .append("\n  glyphDataFormat:     ").append(_glyphDataFormat)
             .toString();
     }
-    
+
     /**
      * Get a directory entry for this table.  This uniquely identifies the
      * table in collections where there may be more than one instance of a
@@ -202,5 +202,5 @@ public class HeadTable implements Table {
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }
-    
+
 }

@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,11 +28,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -163,7 +163,7 @@ public class GLUT {
 
   public void glutSolidCylinder(double radius, double height, int slices, int stacks) {
     GL2 gl = GLUgl2.getCurrentGL2();
-      
+
     // Prepare table of points for drawing end caps
     double [] x = new double[slices];
     double [] y = new double[slices];
@@ -174,7 +174,7 @@ public class GLUT {
       x[i] = Math.cos(angle) * radius;
       y[i] = Math.sin(angle) * radius;
     }
-      
+
     // Draw bottom cap
     gl.glBegin(GL2.GL_TRIANGLE_FAN);
     gl.glNormal3d(0,0,-1);
@@ -184,7 +184,7 @@ public class GLUT {
     }
     gl.glVertex3d(x[0], y[0], 0);
     gl.glEnd();
-      
+
     // Draw top cap
     gl.glBegin(GL2.GL_TRIANGLE_FAN);
     gl.glNormal3d(0,0,1);
@@ -194,7 +194,7 @@ public class GLUT {
     }
     gl.glVertex3d(x[0], y[0], height);
     gl.glEnd();
-      
+
     // Draw walls
     quadObjInit(glu);
     glu.gluQuadricDrawStyle(quadObj, GLU.GLU_FILL);
@@ -262,7 +262,7 @@ public class GLUT {
 /**
    * Renders the teapot as a solid shape of the specified size. The teapot is
    * created in a way that replicates the C GLUT implementation.
-   * 
+   *
    * @param scale
    *        the factor by which to scale the teapot
    */
@@ -278,7 +278,7 @@ public class GLUT {
    * instead of the y=-1 plane). Both surface normals and texture coordinates
    * for the teapot are generated. The teapot is generated with OpenGL
    * evaluators.
-   * 
+   *
    * @param scale
    *        the factor by which to scale the teapot
    * @param cStyle
@@ -292,14 +292,14 @@ public class GLUT {
   /**
    * Renders the teapot as a wireframe shape of the specified size. The teapot
    * is created in a way that replicates the C GLUT implementation.
-   * 
+   *
    * @param scale
    *        the factor by which to scale the teapot
    */
   public void glutWireTeapot(double scale) {
     glutWireTeapot(scale, true);
   }
-  
+
   /**
    * Renders the teapot as a wireframe shape of the specified size. The teapot
    * can either be created in a way that is backward-compatible with the
@@ -308,7 +308,7 @@ public class GLUT {
    * plane, instead of the y=-1 plane). Both surface normals and texture
    * coordinates for the teapot are generated. The teapot is generated with
    * OpenGL evaluators.
-   * 
+   *
    * @param scale
    *        the factor by which to scale the teapot
    * @param cStyle
@@ -356,7 +356,7 @@ public class GLUT {
     int[] skiprows   = new int[1];
     int[] skippixels = new int[1];
     int[] alignment  = new int[1];
-    beginBitmap(gl, 
+    beginBitmap(gl,
                 swapbytes,
                 lsbfirst,
                 rowlength,
@@ -367,7 +367,7 @@ public class GLUT {
     for (int i = 0; i < len; i++) {
       bitmapCharacterImpl(gl, font, string.charAt(i));
     }
-    endBitmap(gl, 
+    endBitmap(gl,
               swapbytes,
               lsbfirst,
               rowlength,
@@ -502,7 +502,7 @@ public class GLUT {
       gl.glEnd( );
     }
   }
-  
+
   /**
    This function draws a solid-shaded dodecahedron
    whose facets are rhombic and
@@ -522,7 +522,7 @@ public class GLUT {
     }
     gl.glEnd( );
   }
-  
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //
@@ -879,7 +879,7 @@ public class GLUT {
   }
 
   /* rhombic dodecahedron data: */
-  
+
   private static final double rdod_r[][] =
   {
     { 0.0, 0.0, 1.0 },
@@ -897,7 +897,7 @@ public class GLUT {
     {  0.000000000000, -0.707106781187, -0.5 },
     {  0.0, 0.0, -1.0 }
   };
-  
+
   private static final int rdod_v[][] =
   {
     { 0,  1,  5,  2 },
@@ -913,7 +913,7 @@ public class GLUT {
     { 7, 11, 13, 12 },
     { 8, 12, 13,  9 }
   };
-  
+
   private static final double rdod_n[][] =
   {
     {  0.353553390594,  0.353553390594,  0.5 },
@@ -929,7 +929,7 @@ public class GLUT {
     { -0.353553390594, -0.353553390594, -0.5 },
     {  0.353553390594, -0.353553390594, -0.5 }
   };
-  
+
   /* tetrahedron data: */
 
   private static final float T = 1.73205080756887729f;
@@ -1124,7 +1124,7 @@ public class GLUT {
     float[] r = new float[4*4*3];
     float[] s = new float[4*4*3];
     int i, j, k, l;
-  
+
     gl.glPushAttrib(GL2.GL_ENABLE_BIT | GL2.GL_EVAL_BIT | GL2.GL_POLYGON_BIT);
     gl.glEnable(GL2.GL_AUTO_NORMAL);
     gl.glEnable(GL2.GL_NORMALIZE);
@@ -1183,7 +1183,7 @@ public class GLUT {
     gl.glPopMatrix();
     gl.glPopAttrib();
   }
-  
+
   private static void evaluateTeapotMesh(GL2 gl,
                                          int grid,
                                          int type,

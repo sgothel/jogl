@@ -72,7 +72,7 @@ public class Arc {
 
   /**
    * Makes new arc at specified side
-   * 
+   *
    * @param side
    *            which side doeas this arc form
    */
@@ -86,7 +86,7 @@ public class Arc {
 
   /**
    * Sets side the arc is at
-   * 
+   *
    * @param side
    *            arc side
    */
@@ -104,7 +104,7 @@ public class Arc {
     type &= ~(0x7 << 8);
   }
 
-  // this one replaces enum arc_side 
+  // this one replaces enum arc_side
   /**
    * Side not specified
    */
@@ -147,7 +147,7 @@ public class Arc {
 
   /**
    * Appends arc to the list
-   * 
+   *
    * @param jarc
    *            arc to be append
    * @return this
@@ -169,7 +169,7 @@ public class Arc {
 
   /**
    * Unused
-   * 
+   *
    * @return true
    */
   public boolean check() {
@@ -187,7 +187,7 @@ public class Arc {
 
   /**
    * Returns tail of linked list coords
-   * 
+   *
    * @return tail coords
    */
   public float[] tail() {
@@ -197,7 +197,7 @@ public class Arc {
 
   /**
    * Returns head of linked list coords
-   * 
+   *
    * @return head coords
    */
   public float[] head() {
@@ -207,7 +207,7 @@ public class Arc {
 
   /**
    * Returns whether arc is marked with arc_tag
-   * 
+   *
    * @return is arc marked with arc_tag
    */
   public boolean ismarked() {
@@ -241,7 +241,7 @@ public class Arc {
 
   /**
    * Returns whether arc is marked tail
-   * 
+   *
    * @return is tail
    */
   public boolean getitail() {

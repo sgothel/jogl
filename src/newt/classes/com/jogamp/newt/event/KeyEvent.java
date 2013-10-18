@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  */
 
 package com.jogamp.newt.event;
@@ -37,8 +37,8 @@ package com.jogamp.newt.event;
 import com.jogamp.common.util.IntBitfield;
 
 /**
- * <a name="eventDelivery"><h5>KeyEvent Delivery</h5></a> 
- * 
+ * <a name="eventDelivery"><h5>KeyEvent Delivery</h5></a>
+ *
  * Key events are delivered in the following order:
  * <p>
  * <table border="0">
@@ -48,10 +48,10 @@ import com.jogamp.common.util.IntBitfield;
  * </table>
  * </p>
  * In case the native platform does not
- * deliver keyboard events in the above order or skip events, 
- * the NEWT driver will reorder and inject synthetic events if required. 
+ * deliver keyboard events in the above order or skip events,
+ * the NEWT driver will reorder and inject synthetic events if required.
  * <p>
- * Besides regular modifiers like {@link InputEvent#SHIFT_MASK} etc., 
+ * Besides regular modifiers like {@link InputEvent#SHIFT_MASK} etc.,
  * the {@link InputEvent#AUTOREPEAT_MASK} bit is added if repetition is detected, following above constraints.
  * </p>
  * <p>
@@ -60,38 +60,38 @@ import com.jogamp.common.util.IntBitfield;
     P = pressed, R = released
     0 = normal, 1 = auto-repeat
 
-    P(0), [ R(1), P(1), R(1), ..], R(0)    
+    P(0), [ R(1), P(1), R(1), ..], R(0)
  * </pre>
  * The idea is if you mask out auto-repeat in your event listener
  * you just get one long pressed P/R tuple for {@link #isPrintableKey() printable} and {@link #isActionKey() Action} keys.
  * </p>
  * <p>
- * {@link #isActionKey() Action} keys will produce {@link #EVENT_KEY_PRESSED pressed} 
+ * {@link #isActionKey() Action} keys will produce {@link #EVENT_KEY_PRESSED pressed}
  * and {@link #EVENT_KEY_RELEASED released} events including {@link #isAutoRepeat() auto-repeat}.
  * </p>
  * <p>
  * {@link #isPrintableKey() Printable} keys will produce {@link #EVENT_KEY_PRESSED pressed} and {@link #EVENT_KEY_RELEASED released} events.
  * </p>
  * <p>
- * {@link #isModifierKey() Modifier} keys will produce {@link #EVENT_KEY_PRESSED pressed} and {@link #EVENT_KEY_RELEASED released} events 
+ * {@link #isModifierKey() Modifier} keys will produce {@link #EVENT_KEY_PRESSED pressed} and {@link #EVENT_KEY_RELEASED released} events
  * excluding {@link #isAutoRepeat() auto-repeat}.
  * They will also influence subsequent event's {@link #getModifiers() modifier} bits while pressed.
  * </p>
- * 
+ *
  * <a name="unicodeMapping"><h5>Unicode Mapping</h5></a>
  * <p>
- * {@link #getKeyChar() Key-chars}, as well as 
+ * {@link #getKeyChar() Key-chars}, as well as
  * {@link #isPrintableKey() printable} {@link #getKeyCode() key-codes} and {@link #getKeySymbol() key-symbols}
- * use the UTF-16 unicode space w/o collision. 
- * 
+ * use the UTF-16 unicode space w/o collision.
+ *
  * </p>
  * <p>
- * Non-{@link #isPrintableKey() printable} {@link #getKeyCode() key-codes} and {@link #getKeySymbol() key-symbols}, 
+ * Non-{@link #isPrintableKey() printable} {@link #getKeyCode() key-codes} and {@link #getKeySymbol() key-symbols},
  * i.e. {@link #isModifierKey() modifier-} and {@link #isActionKey() action-}keys,
  * are mapped to unicode's control and private range and do not collide w/ {@link #isPrintableKey() printable} unicode values
  * with the following exception.
  * </p>
- * 
+ *
  * <a name="unicodeCollision"><h5>Unicode Collision</h5></a>
  * <p>
  * The following {@link #getKeyCode() Key-code}s and {@link #getKeySymbol() key-symbol}s collide w/ unicode space:<br/>
@@ -103,9 +103,9 @@ import com.jogamp.common.util.IntBitfield;
  * <p>
  * Collision was chosen for {@link #getKeyCode() Key-code} and {@link #getKeySymbol() key-symbol} mapping
  * to allow a minimal code range, i.e. <code>[0..255]</code>.
- * The reduced code range in turn allows the implementation to utilize fast and small lookup tables, 
- * e.g. to implement a key-press state tracker. 
- * </p>  
+ * The reduced code range in turn allows the implementation to utilize fast and small lookup tables,
+ * e.g. to implement a key-press state tracker.
+ * </p>
  * <pre>
  * http://www.utf8-chartable.de/unicode-utf8-table.pl
  * http://www.unicode.org/Public/5.1.0/ucd/PropList.txt
@@ -136,7 +136,7 @@ public class KeyEvent extends InputEvent
                 }
             }
             flags = _flags;
-            
+
             //
             // Validate flags
             //
@@ -147,12 +147,12 @@ public class KeyEvent extends InputEvent
             }
         }
     }
-    
+
     public static KeyEvent create(short eventType, Object source, long when, int modifiers, short keyCode, short keySym, char keyChar) {
         return new KeyEvent(eventType, source, when, modifiers, keyCode, keySym, getModifierMask(keySym), keyChar);
     }
 
-    /** 
+    /**
      * Returns the <i>UTF-16</i> character reflecting the {@link #getKeySymbol() key symbol}
      * incl. active {@link #isModifierKey() modifiers}.
      * @see #getKeySymbol()
@@ -162,12 +162,12 @@ public class KeyEvent extends InputEvent
         return keyChar;
     }
 
-    /** 
+    /**
      * Returns the virtual <i>key symbol</i> reflecting the current <i>keyboard layout</i>.
      * <p>
      * For {@link #isPrintableKey() printable keys}, the <i>key symbol</i> is the {@link #isModifierKey() unmodified}
-     * representation of the UTF-16 {@link #getKeyChar() key char}.<br/> 
-     * E.g. symbol [{@link #VK_A}, 'A'] for char 'a'. 
+     * representation of the UTF-16 {@link #getKeyChar() key char}.<br/>
+     * E.g. symbol [{@link #VK_A}, 'A'] for char 'a'.
      * </p>
      * @see #isPrintableKey()
      * @see #getKeyChar()
@@ -176,18 +176,18 @@ public class KeyEvent extends InputEvent
     public final short getKeySymbol() {
         return keySym;
     }
-    
-    /** 
+
+    /**
      * Returns the virtual <i>key code</i> using a fixed mapping to the <i>US keyboard layout</i>.
      * <p>
-     * In contrast to {@link #getKeySymbol() key symbol}, <i>key code</i> 
-     * uses a fixed <i>US keyboard layout</i> and therefore is keyboard layout independent. 
+     * In contrast to {@link #getKeySymbol() key symbol}, <i>key code</i>
+     * uses a fixed <i>US keyboard layout</i> and therefore is keyboard layout independent.
      * </p>
      * <p>
-     * E.g. <i>virtual key code</i> {@link #VK_Y} denotes the same physical key 
-     * regardless whether <i>keyboard layout</i> <code>QWERTY</code> or 
+     * E.g. <i>virtual key code</i> {@link #VK_Y} denotes the same physical key
+     * regardless whether <i>keyboard layout</i> <code>QWERTY</code> or
      * <code>QWERTZ</code> is active. The {@link #getKeySymbol() key symbol} of the former is
-     * {@link #VK_Y}, where the latter produces {@link #VK_Y}. 
+     * {@link #VK_Y}, where the latter produces {@link #VK_Y}.
      * </p>
      * @see #getKeyChar()
      * @see #getKeySymbol()
@@ -228,9 +228,9 @@ public class KeyEvent extends InputEvent
         }
         return (short) keyChar;
     }
-    
-    /** 
-     * Returns <code>true</code> if the given <code>virtualKey</code> represents a modifier key, otherwise <code>false</code>. 
+
+    /**
+     * Returns <code>true</code> if the given <code>virtualKey</code> represents a modifier key, otherwise <code>false</code>.
      * <p>
      * A modifier key is one of {@link #VK_SHIFT}, {@link #VK_CONTROL}, {@link #VK_ALT}, {@link #VK_ALT_GRAPH}, {@link #VK_META}.
      * </p>
@@ -247,10 +247,10 @@ public class KeyEvent extends InputEvent
                 return false;
         }
     }
-    
+
     /**
      * If <code>vKey</code> is a {@link #isModifierKey() modifier key}, method returns the corresponding modifier mask,
-     * otherwise 0. 
+     * otherwise 0.
      */
     public static int getModifierMask(short vKey) {
         switch (vKey) {
@@ -266,10 +266,10 @@ public class KeyEvent extends InputEvent
         }
         return 0;
     }
-    
-    /** 
+
+    /**
      * Returns <code>true</code> if {@link #getKeySymbol() key symbol} represents a modifier key,
-     * otherwise <code>false</code>. 
+     * otherwise <code>false</code>.
      * <p>
      * See {@link #isModifierKey(short)} for details.
      * </p>
@@ -280,8 +280,8 @@ public class KeyEvent extends InputEvent
     public final boolean isModifierKey() {
         return 0 != ( F_MODIFIER_MASK & flags ) ;
     }
-    
-    /** 
+
+    /**
      * Returns <code>true</code> if {@link #getKeySymbol() key symbol} represents a non-printable and
      * non-{@link #isModifierKey(short) modifier} action key, otherwise <code>false</code>.
      * <p>
@@ -289,12 +289,12 @@ public class KeyEvent extends InputEvent
      * <code> A = U - ( P + M ) </code>
      * </p>
      * @see #isPrintableKey()
-     * @see #isModifierKey() 
+     * @see #isModifierKey()
      */
     public final boolean isActionKey() {
         return 0 != ( F_ACTION_MASK & flags ) ;
     }
-    
+
     /**
      * Returns <code>true</code> if given <code>uniChar</code> represents a printable character,
      * i.e. a value other than {@link #VK_UNDEFINED} and not a control or non-printable private code.
@@ -307,7 +307,7 @@ public class KeyEvent extends InputEvent
      * <p>
      * Distinction of key character and virtual key code is made due to <a href="#unicodeCollision">unicode collision</a>.
      * </p>
-     * 
+     *
      * @param uniChar the UTF-16 unicode value, which maybe a virtual key code or key character.
      * @param isKeyChar true if <code>uniChar</code> is a key character, otherwise a virtual key code
      */
@@ -333,9 +333,9 @@ public class KeyEvent extends InputEvent
         return VK_UNDEFINED != uniChar;
     }
 
-    /** 
-     * Returns <code>true</code> if {@link #getKeySymbol() key symbol} and {@link #getKeyChar() key char} 
-     * represents a printable character, i.e. a value other than {@link #VK_UNDEFINED} 
+    /**
+     * Returns <code>true</code> if {@link #getKeySymbol() key symbol} and {@link #getKeyChar() key char}
+     * represents a printable character, i.e. a value other than {@link #VK_UNDEFINED}
      * and not a control or non-printable private code.
      * <p>
      * A printable character is neither a {@link #isModifierKey(short) modifier key}, nor an {@link #isActionKey(short) action key}.
@@ -347,7 +347,7 @@ public class KeyEvent extends InputEvent
     public final boolean isPrintableKey() {
         return 0 != ( F_PRINTABLE_MASK & flags ) ;
     }
-    
+
     private final short keyCode;
     private final short keySym;
     private final char keyChar;
@@ -370,7 +370,7 @@ public class KeyEvent extends InputEvent
 
     public static class NonPrintableRange {
         /** min. unicode value, inclusive */
-        public short min; 
+        public short min;
         /** max. unicode value, inclusive */
         public short max;
         /** true if valid for keyChar values as well, otherwise only valid for keyCode and keySym due to collision. */
@@ -381,7 +381,7 @@ public class KeyEvent extends InputEvent
             this.inclKeyChar = inclKeyChar;
         }
     };
-    /** 
+    /**
      * Non printable key ranges, currently fixed to an array of size 4.
      * <p>
      * Not included, queried upfront:
@@ -390,98 +390,98 @@ public class KeyEvent extends InputEvent
      *  <li>{@link #VK_TAB}</li>
      *  <li>{@link #VK_ENTER}</li>
      * </ul>
-     * </p> 
+     * </p>
      */
-    public final static NonPrintableRange[] nonPrintableKeys = { 
+    public final static NonPrintableRange[] nonPrintableKeys = {
         new NonPrintableRange( (short)0x0000, (short)0x001F, true ),  // Unicode: Non printable controls: [0x00 - 0x1F], see exclusion above
         new NonPrintableRange( (short)0x0061, (short)0x0078, false),  // Small 'a' thru 'z' (0x61 - 0x7a) - Not used for keyCode / keySym - Re-used for Fn (collision)
-        new NonPrintableRange( (short)0x008F, (short)0x009F, true ),  // Unicode: Non printable controls: [0x7F - 0x9F], Numpad keys [0x7F - 0x8E] are printable! 
+        new NonPrintableRange( (short)0x008F, (short)0x009F, true ),  // Unicode: Non printable controls: [0x7F - 0x9F], Numpad keys [0x7F - 0x8E] are printable!
         new NonPrintableRange( (short)0xE000, (short)0xF8FF, true )   // Unicode: Private 0xE000 - 0xF8FF (Marked Non-Printable)
     };
-    
+
     //
     // Unicode: Non printable controls: [0x00 - 0x1F]
     //
-    
+
     /**
      * This value, {@value}, is used to indicate that the keyCode is unknown.
      */
     public static final short VK_UNDEFINED      = (short) 0x0;
-    
+
            static final short VK_FREE01         = (short) 0x01;
-    
+
     /** Constant for the HOME function key. ASCII: Start Of Text. */
     public static final short VK_HOME           = (short) 0x02;
-    
+
     /** Constant for the END function key. ASCII: End Of Text. */
     public static final short VK_END            = (short) 0x03;
-    
+
     /** Constant for the END function key. ASCII: End Of Transmission. */
     public static final short VK_FINAL          = (short) 0x04;
 
     /** Constant for the PRINT function key. ASCII: Enquiry. */
     public static final short VK_PRINTSCREEN    = (short) 0x05;
-    
+
            static final short VK_FREE06         = (short) 0x06;
            static final short VK_FREE07         = (short) 0x07;
-    
+
     /** Constant for the BACK SPACE key "\b", matching ASCII. Printable! */
     public static final short VK_BACK_SPACE     = (short) 0x08;
-    
+
     /** Constant for the HORIZ TAB key "\t", matching ASCII. Printable! */
     public static final short VK_TAB            = (short) 0x09;
-    
+
            /** LINE_FEED "\n", matching ASCII, n/a on keyboard. */
            static final short VK_FREE0A         = (short) 0x0A;
-    
+
     /** Constant for the PAGE DOWN function key. ASCII: Vertical Tabulation. */
     public static final short VK_PAGE_DOWN      = (short) 0x0B;
-    
+
     /** Constant for the CLEAR key, i.e. FORM FEED, matching ASCII. */
     public static final short VK_CLEAR          = (short) 0x0C;
-    
+
     /** Constant for the ENTER key, i.e. CARRIAGE RETURN, matching ASCII. Printable! */
     public static final short VK_ENTER          = (short) 0x0D;
-    
+
            static final short VK_FREE0E         = (short) 0x0E;
-    
+
     /** Constant for the CTRL function key. ASCII: shift-in. */
     public static final short VK_SHIFT          = (short) 0x0F;
 
     /** Constant for the PAGE UP function key. ASCII: Data Link Escape. */
     public static final short VK_PAGE_UP        = (short) 0x10;
-    
+
     /** Constant for the CTRL function key. ASCII: device-ctrl-one. */
     public static final short VK_CONTROL        = (short) 0x11;
-    
+
     /** Constant for the left ALT function key. ASCII: device-ctrl-two. */
     public static final short VK_ALT            = (short) 0x12;
-    
+
     /** Constant for the ALT_GRAPH function key, i.e. right ALT key. ASCII: device-ctrl-three. */
     public static final short VK_ALT_GRAPH      = (short) 0x13;
-    
+
     /** Constant for the CAPS LOCK function key. ASCII: device-ctrl-four. */
     public static final short VK_CAPS_LOCK      = (short) 0x14;
-    
+
            static final short VK_FREE15         = (short) 0x15;
-    
+
     /** Constant for the PAUSE function key. ASCII: sync-idle. */
     public static final short VK_PAUSE          = (short) 0x16;
-    
+
     /** <b>scroll lock</b> key. ASCII: End Of Transmission Block. */
     public static final short VK_SCROLL_LOCK    = (short) 0x17;
-        
+
     /** Constant for the CANCEL function key. ASCII: Cancel. */
     public static final short VK_CANCEL         = (short) 0x18;
-    
+
            static final short VK_FREE19         = (short) 0x19;
-    
+
     /** Constant for the INSERT function key. ASCII: Substitute. */
     public static final short VK_INSERT         = (short) 0x1A;
-    
+
     /** Constant for the ESCAPE function key. ASCII: Escape. */
     public static final short VK_ESCAPE         = (short) 0x1B;
-        
+
     /** Constant for the Convert function key, Japanese "henkan". ASCII: File Separator. */
     public static final short VK_CONVERT        = (short) 0x1C;
 
@@ -496,48 +496,48 @@ public class KeyEvent extends InputEvent
 
     //
     // Unicode: Printable [0x20 - 0x7E]
-    // NOTE: Collision of 'a' - 'x' [0x61 .. 0x78], used for keyCode/keySym Fn function keys 
+    // NOTE: Collision of 'a' - 'x' [0x61 .. 0x78], used for keyCode/keySym Fn function keys
     //
-        
+
     /** Constant for the SPACE function key. ASCII: SPACE. */
     public static final short VK_SPACE          = (short) 0x20;
-    
+
     /** Constant for the "!" key. */
     public static final short VK_EXCLAMATION_MARK = (short) 0x21;
 
     /** Constant for the """ key. */
     public static final short VK_QUOTEDBL       = (short) 0x22;
-    
+
     /** Constant for the "#" key. */
     public static final short VK_NUMBER_SIGN    = (short) 0x23;
 
     /** Constant for the "$" key. */
     public static final short VK_DOLLAR         = (short) 0x24;
-    
+
     /** Constant for the "%" key. */
     public static final short VK_PERCENT        = (short) 0x25;
-    
+
     /** Constant for the "&" key. */
     public static final short VK_AMPERSAND      = (short) 0x26;
-    
+
     /** Constant for the "'" key. */
     public static final short VK_QUOTE          = (short) 0x27;
-    
+
     /** Constant for the "(" key. */
     public static final short VK_LEFT_PARENTHESIS  = (short) 0x28;
-    
+
     /** Constant for the ")" key. */
     public static final short VK_RIGHT_PARENTHESIS = (short) 0x29;
-    
+
     /** Constant for the "*" key */
     public static final short VK_ASTERISK       = (short) 0x2A;
-    
+
     /** Constant for the "+" key. */
     public static final short VK_PLUS           = (short) 0x2B;
-    
+
     /** Constant for the comma key, "," */
     public static final short VK_COMMA          = (short) 0x2C;
-    
+
     /** Constant for the minus key, "-" */
     public static final short VK_MINUS          = (short) 0x2D;
 
@@ -582,13 +582,13 @@ public class KeyEvent extends InputEvent
 
     /** Constant for the equals key, ">" */
     public static final short VK_GREATER        = (short) 0x3E;
-    
+
     /** Constant for the equals key, "?" */
     public static final short VK_QUESTIONMARK   = (short) 0x3F;
-    
+
     /** Constant for the equals key, "@" */
     public static final short VK_AT             = (short) 0x40;
-    
+
     /** VK_A thru VK_Z are the same as Capital UTF16/ASCII 'A' thru 'Z' (0x41 - 0x5A) */
     public static final short VK_A              = (short) 0x41;
     /** See {@link #VK_A}. */
@@ -656,17 +656,17 @@ public class KeyEvent extends InputEvent
 
     /** Constant for the "_" key */
     public static final short VK_UNDERSCORE     = (short) 0x5F;
-    
+
     /** Constant for the "`" key */
     public static final short VK_BACK_QUOTE     = (short) 0x60;
-    
+
     /** Small UTF/ASCII 'a' thru 'z' (0x61 - 0x7a) - Not used for keyCode / keySym. */
-    
-    /** 
-     * Constant for the F<i>n</i> function keys. 
+
+    /**
+     * Constant for the F<i>n</i> function keys.
      * <p>
      * F1..F24, i.e. F<i>n</i>, are mapped from on <code>0x60+n</code> -> <code>[0x61 .. 0x78]</code>.
-     * </p> 
+     * </p>
      * <p>
      * <b>Warning:</b> The F<i>n</i> function keys <b>do collide</b> with unicode characters small 'a' thru 'x'!<br/>
      * See <a href="#unicodeCollision">Unicode Collision</a> for details.
@@ -743,26 +743,26 @@ public class KeyEvent extends InputEvent
     /** Constant for the F24 function key. See {@link #VK_F1}. */
     public static final short VK_F24            = (short) ( 0x60+24 );
 
-    
+
     /** Constant for the "{" key */
     public static final short VK_LEFT_BRACE     = (short) 0x7B;
     /** Constant for the "|" key */
     public static final short VK_PIPE           = (short) 0x7C;
     /** Constant for the "}" key */
     public static final short VK_RIGHT_BRACE    = (short) 0x7D;
-    
+
     /** Constant for the "~" key, matching ASCII */
     public static final short VK_TILDE          = (short) 0x7E;
-    
+
     //
     // Unicode: Non printable controls: [0x7F - 0x9F]
     //
     // Numpad keys [0x7F - 0x8E] are printable
     //
-    
+
     /** Numeric keypad <b>decimal separator</b> key. Non printable UTF control. */
     public static final short VK_SEPARATOR      = (short) 0x7F;
-    
+
     /** Numeric keypad VK_NUMPAD0 thru VK_NUMPAD9 are mapped to UTF control (0x80 - 0x89). Non printable UTF control. */
     public static final short VK_NUMPAD0        = (short) 0x80;
     /** See {@link #VK_NUMPAD0}. */
@@ -783,28 +783,28 @@ public class KeyEvent extends InputEvent
     public static final short VK_NUMPAD8        = (short) 0x88;
     /** See {@link #VK_NUMPAD0}. */
     public static final short VK_NUMPAD9        = (short) 0x89;
-    
+
     /** Numeric keypad <b>decimal separator</b> key. Non printable UTF control. */
     public static final short VK_DECIMAL        = (short) 0x8A;
-        
+
     /** Numeric keypad <b>add</b> key. Non printable UTF control. */
     public static final short VK_ADD            = (short) 0x8B;
 
     /** Numeric keypad <b>subtract</b> key. Non printable UTF control. */
     public static final short VK_SUBTRACT       = (short) 0x8C;
-    
+
     /** Numeric keypad <b>multiply</b> key. Non printable UTF control. */
     public static final short VK_MULTIPLY       = (short) 0x8D;
-    
+
     /** Numeric keypad <b>divide</b> key. Non printable UTF control. */
     public static final short VK_DIVIDE         = (short) 0x8E;
-    
+
     /** Constant for the DEL key, matching ASCII. Non printable UTF control. */
     public static final short VK_DELETE         = (short) 0x93;
-    
+
     /** Numeric keypad <b>num lock</b> key. Non printable UTF control. */
     public static final short VK_NUM_LOCK       = (short) 0x94;
-    
+
     /** Constant for the cursor- or numerical-pad <b>left</b> arrow key. Non printable UTF control. */
     public static final short VK_LEFT           = (short) 0x95;
 
@@ -816,22 +816,22 @@ public class KeyEvent extends InputEvent
 
     /** Constant for the cursor- or numerical pad <b>down</b> arrow key. Non printable UTF control. */
     public static final short VK_DOWN           = (short) 0x98;
-        
+
     /** Constant for the Context Menu key. Non printable UTF control. */
     public static final short VK_CONTEXT_MENU   = (short) 0x99;
 
     /**
      * Constant for the MS "Windows" function key.
-     * It is used for both the left and right version of the key.  
+     * It is used for both the left and right version of the key.
      */
     public static final short VK_WINDOWS        = (short) 0x9A;
 
     /** Constant for the Meta function key. */
     public static final short VK_META           = (short) 0x9B;
-    
+
     /** Constant for the Help function key. */
     public static final short VK_HELP           = (short) 0x9C;
-    
+
     /** Constant for the Compose function key. */
     public static final short VK_COMPOSE        = (short) 0x9D;
 
@@ -840,21 +840,21 @@ public class KeyEvent extends InputEvent
 
     /** Constant for the Stop function key. */
     public static final short VK_STOP           = (short) 0x9F;
-    
+
     //
     // Unicode: Printable [0x00A0 - 0xDFFF]
     //
-    
+
     /** Constant for the inverted exclamation mark key. */
     public static final short VK_INVERTED_EXCLAMATION_MARK = (short) 0xA1;
-    
+
     /** Constant for the Euro currency sign key. */
     public static final short VK_EURO_SIGN                = (short) 0x20AC;
 
     //
     // Unicode: Private 0xE000 - 0xF8FF (Marked Non-Printable)
     //
-    
+
     /* for Sun keyboards */
     public static final short VK_CUT            = (short) 0xF879;
     public static final short VK_COPY           = (short) 0xF87A;
@@ -871,7 +871,7 @@ public class KeyEvent extends InputEvent
      */
     /* Japanese PC 106 keyboard: kanji. Japanese Solaris keyboard: nihongo */
     public static final short VK_INPUT_METHOD_ON_OFF = (short) 0xF890;
-    
+
     /**
      * Constant for the Code Input function key.
      */

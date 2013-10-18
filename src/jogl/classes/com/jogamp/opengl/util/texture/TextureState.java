@@ -43,55 +43,55 @@ import javax.media.opengl.GLException;
  *   - GL.GL_TEXTURE_MAG_FILTER
  *   - GL.GL_TEXTURE_MIN_FILTER
  *   - GL.GL_TEXTURE_WRAP_S
- *   - GL.GL_TEXTURE_WRAP_T            
+ *   - GL.GL_TEXTURE_WRAP_T
  * </pre>
  */
 public class TextureState {
-    /** 
+    /**
      * Returns the <code>pname</code> to query the <code>textureTarget</code> currently bound to the active texture-unit.
      * <p>
      * Returns <code>0</code> is <code>textureTarget</code> is not supported.
-     * </p> 
-     */ 
+     * </p>
+     */
     public static final int getTextureTargetQueryName(int textureTarget) {
         final int texBindQName;
         switch(textureTarget) {
-            case GL.GL_TEXTURE_2D: texBindQName = GL.GL_TEXTURE_BINDING_2D; break; 
-            case GL.GL_TEXTURE_CUBE_MAP: texBindQName = GL.GL_TEXTURE_BINDING_CUBE_MAP; break; 
-            case GL2ES2.GL_TEXTURE_3D: texBindQName = GL2ES2.GL_TEXTURE_BINDING_3D; break; 
-            case GL2GL3.GL_TEXTURE_1D: texBindQName = GL2GL3.GL_TEXTURE_BINDING_1D; break; 
-            case GL2GL3.GL_TEXTURE_1D_ARRAY: texBindQName = GL2GL3.GL_TEXTURE_BINDING_1D_ARRAY; break; 
-            case GL2GL3.GL_TEXTURE_2D_ARRAY: texBindQName = GL2GL3.GL_TEXTURE_BINDING_2D_ARRAY; break; 
-            case GL2GL3.GL_TEXTURE_RECTANGLE: texBindQName = GL2GL3.GL_TEXTURE_BINDING_RECTANGLE; break; 
-            case GL2GL3.GL_TEXTURE_BUFFER: texBindQName = GL2GL3.GL_TEXTURE_BINDING_BUFFER; break; 
-            case GL3.GL_TEXTURE_2D_MULTISAMPLE: texBindQName = GL3.GL_TEXTURE_BINDING_2D_MULTISAMPLE; break; 
+            case GL.GL_TEXTURE_2D: texBindQName = GL.GL_TEXTURE_BINDING_2D; break;
+            case GL.GL_TEXTURE_CUBE_MAP: texBindQName = GL.GL_TEXTURE_BINDING_CUBE_MAP; break;
+            case GL2ES2.GL_TEXTURE_3D: texBindQName = GL2ES2.GL_TEXTURE_BINDING_3D; break;
+            case GL2GL3.GL_TEXTURE_1D: texBindQName = GL2GL3.GL_TEXTURE_BINDING_1D; break;
+            case GL2GL3.GL_TEXTURE_1D_ARRAY: texBindQName = GL2GL3.GL_TEXTURE_BINDING_1D_ARRAY; break;
+            case GL2GL3.GL_TEXTURE_2D_ARRAY: texBindQName = GL2GL3.GL_TEXTURE_BINDING_2D_ARRAY; break;
+            case GL2GL3.GL_TEXTURE_RECTANGLE: texBindQName = GL2GL3.GL_TEXTURE_BINDING_RECTANGLE; break;
+            case GL2GL3.GL_TEXTURE_BUFFER: texBindQName = GL2GL3.GL_TEXTURE_BINDING_BUFFER; break;
+            case GL3.GL_TEXTURE_2D_MULTISAMPLE: texBindQName = GL3.GL_TEXTURE_BINDING_2D_MULTISAMPLE; break;
             case GL3.GL_TEXTURE_2D_MULTISAMPLE_ARRAY: texBindQName = GL3.GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY; break;
             default: texBindQName = 0;
         }
         return texBindQName;
     }
-    
+
     private final int target;
-    /** 
+    /**
      * <pre>
      *   0 - unit
      *   1 - texture object
      *   2 - GL.GL_TEXTURE_MAG_FILTER
      *   3 - GL.GL_TEXTURE_MIN_FILTER
      *   4 - GL.GL_TEXTURE_WRAP_S
-     *   5 - GL.GL_TEXTURE_WRAP_T            
+     *   5 - GL.GL_TEXTURE_WRAP_T
      * </pre>
      */
     private final int[] state = new int[] { 0, 0, 0, 0, 0, 0 };
-    
+
     private static final String toHexString(int i) { return "0x"+Integer.toHexString(i); }
-    
+
     private static final int activeTexture(GL gl) {
         final int[] vi = { 0 };
         gl.glGetIntegerv(GL.GL_ACTIVE_TEXTURE, vi, 0);
         return vi[0];
     }
-    
+
     /**
      * Creates a texture state for the retrieved active texture-unit and the given texture-target.
      * See {@link TextureState}.
@@ -102,7 +102,7 @@ public class TextureState {
     public TextureState(GL gl, int textureTarget) throws GLException {
         this(gl, activeTexture(gl), textureTarget);
     }
-    
+
     /**
      * Creates a texture state for the given active texture-unit and the given texture-target.
      * See {@link TextureState}.
@@ -124,7 +124,7 @@ public class TextureState {
         gl.glGetTexParameteriv(target, GL.GL_TEXTURE_WRAP_S, state, 4);
         gl.glGetTexParameteriv(target, GL.GL_TEXTURE_WRAP_T, state, 5);
     }
-    
+
     /**
      * Restores the texture-unit's texture-target state.
      * <p>
@@ -140,12 +140,12 @@ public class TextureState {
         gl.glTexParameteri(target, GL.GL_TEXTURE_WRAP_S, state[4]);
         gl.glTexParameteri(target, GL.GL_TEXTURE_WRAP_T, state[5]);
     }
-    
+
     /** Returns the texture-unit of this state, key value. Unit is of range [ {@link GL#GL_TEXTURE0}.. ]. */
     public final int getUnit() { return state[0]; }
     /** Returns the texture-target of this state, key value. */
     public final int getTarget() { return target; }
-    
+
     /** Returns the state's texture-object. */
     public final int getObject() { return state[1]; }
     /** Returns the state's mag-filter param. */
@@ -156,12 +156,12 @@ public class TextureState {
     public final int getWrapS() { return state[4]; }
     /** Returns the state's wrap-t param. */
     public final int getWrapT() { return state[5]; }
-    
-    
+
+
     public final String toString() {
         return "TextureState[unit "+(state[0] - GL.GL_TEXTURE0)+", target "+toHexString(target)+
                 ": obj "+toHexString(state[1])+
-                ", filter[mag "+toHexString(state[2])+", min "+toHexString(state[3])+"], "+ 
+                ", filter[mag "+toHexString(state[2])+", min "+toHexString(state[3])+"], "+
                 ": wrap[s "+toHexString(state[4])+", t "+toHexString(state[5])+"]]";
     }
 }

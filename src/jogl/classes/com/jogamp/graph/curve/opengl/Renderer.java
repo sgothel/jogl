@@ -52,8 +52,8 @@ public abstract class Renderer {
     protected int vp_height;
     protected boolean initialized;
     protected final RenderState rs;
-    private boolean vboSupported = false; 
-    
+    private boolean vboSupported = false;
+
     public final boolean isInitialized() { return initialized; }
 
     public final int getWidth() { return vp_width; }
@@ -62,29 +62,29 @@ public abstract class Renderer {
     public float getWeight() { return rs.getWeight().floatValue(); }
     public float getAlpha() { return rs.getAlpha().floatValue(); }
     public final PMVMatrix getMatrix() { return rs.pmvMatrix(); }
-    
+
     /**
      * Implementation shall load, compile and link the shader program and leave it active.
      * @param gl referencing the current GLContext to which the ShaderState is bound to
      * @return
      */
     protected abstract boolean initShaderProgram(GL2ES2 gl);
-    
+
     protected abstract void destroyImpl(GL2ES2 gl);
-   
+
     /**
-     * @param rs the used {@link RenderState} 
+     * @param rs the used {@link RenderState}
      * @param renderModes bit-field of modes
      */
     protected Renderer(RenderState rs, int renderModes) {
         this.rs = rs;
         this.renderModes = renderModes;
     }
-    
+
     public final int getRenderModes() {
         return renderModes;
     }
-    
+
     public boolean usesVariableCurveWeight() { return Region.isNonUniformWeight(renderModes); }
 
     /**
@@ -93,17 +93,17 @@ public abstract class Renderer {
      */
     public final boolean areRenderModesCompatible(Region region) {
         final int cleanRenderModes = getRenderModes() & ( Region.VARIABLE_CURVE_WEIGHT_BIT );
-        return cleanRenderModes == ( region.getRenderModes() & cleanRenderModes ); 
+        return cleanRenderModes == ( region.getRenderModes() & cleanRenderModes );
     }
-    
+
     public final boolean isVBOSupported() { return vboSupported; }
-    
-    /** 
+
+    /**
      * Initialize shader and bindings for GPU based rendering bound to the given GL object's GLContext
      * if not initialized yet.
      * <p>Leaves the renderer enabled, ie ShaderState.</p>
      * <p>Shall be called by a {@code draw()} method, e.g. {@link RegionRenderer#draw(GL2ES2, Region, float[], int)}</p>
-     *  
+     *
      * @param gl referencing the current GLContext to which the ShaderState is bound to
      * @throws GLException if initialization failed
      */
@@ -117,48 +117,48 @@ public abstract class Renderer {
                         gl.isFunctionAvailable("glDrawElements") &&
                         gl.isFunctionAvailable("glVertexAttribPointer") &&
                         gl.isFunctionAvailable("glDeleteBuffers");
-    
+
         if(DEBUG) {
             System.err.println("TextRendererImpl01: VBO Supported = " + isVBOSupported());
         }
-        
+
         if(!vboSupported){
             throw new GLException("VBO not supported");
         }
-        
+
         rs.attachTo(gl);
-        
+
         gl.glEnable(GL2ES2.GL_BLEND);
         gl.glBlendFunc(GL2ES2.GL_SRC_ALPHA, GL2ES2.GL_ONE_MINUS_SRC_ALPHA); // FIXME: alpha blending stage ?
-        
+
         initialized = initShaderProgram(gl);
         if(!initialized) {
             throw new GLException("Shader initialization failed");
         }
-        
+
         if(!rs.getShaderState().uniform(gl, rs.getPMVMatrix())) {
             throw new GLException("Error setting PMVMatrix in shader: "+rs.getShaderState());
         }
-        
+
         if( Region.isNonUniformWeight( getRenderModes() ) ) {
             if(!rs.getShaderState().uniform(gl, rs.getWeight())) {
                 throw new GLException("Error setting weight in shader: "+rs.getShaderState());
             }
         }
-                
+
         if(!rs.getShaderState().uniform(gl, rs.getAlpha())) {
             throw new GLException("Error setting global alpha in shader: "+rs.getShaderState());
-        }        
-        
+        }
+
         if(!rs.getShaderState().uniform(gl, rs.getColorStatic())) {
             throw new GLException("Error setting global color in shader: "+rs.getShaderState());
-        }        
+        }
     }
 
-    public final void flushCache(GL2ES2 gl) {  
+    public final void flushCache(GL2ES2 gl) {
         // FIXME: REMOVE !
     }
-        
+
     public void destroy(GL2ES2 gl) {
         if(!initialized){
             if(DEBUG_INSTANCE) {
@@ -169,13 +169,13 @@ public abstract class Renderer {
         rs.getShaderState().useProgram(gl, false);
         destroyImpl(gl);
         rs.destroy(gl);
-        initialized = false;        
+        initialized = false;
     }
-    
+
     public final RenderState getRenderState() { return rs; }
     public final ShaderState getShaderState() { return rs.getShaderState(); }
-    
-    public final void enable(GL2ES2 gl, boolean enable) { 
+
+    public final void enable(GL2ES2 gl, boolean enable) {
         rs.getShaderState().useProgram(gl, enable);
     }
 
@@ -188,7 +188,7 @@ public abstract class Renderer {
             rs.getShaderState().uniform(gl, rs.getWeight());
         }
     }
-    
+
     public void setAlpha(GL2ES2 gl, float alpha_t) {
         rs.getAlpha().setData(alpha_t);
         if(null != gl && rs.getShaderState().inUse()) {
@@ -199,11 +199,11 @@ public abstract class Renderer {
 
     public void getColorStatic(GL2ES2 gl, float[] rgb) {
         FloatBuffer fb = (FloatBuffer) rs.getColorStatic().getBuffer();
-        rgb[0] = fb.get(0); 
-        rgb[1] = fb.get(1); 
-        rgb[2] = fb.get(2); 
+        rgb[0] = fb.get(0);
+        rgb[1] = fb.get(1);
+        rgb[2] = fb.get(2);
     }
-    
+
     public void setColorStatic(GL2ES2 gl, float r, float g, float b){
         FloatBuffer fb = (FloatBuffer) rs.getColorStatic().getBuffer();
         fb.put(0, r);
@@ -213,7 +213,7 @@ public abstract class Renderer {
             rs.getShaderState().uniform(gl, rs.getColorStatic());
         }
     }
-    
+
     public void rotate(GL2ES2 gl, float angle, float x, float y, float z) {
         rs.pmvMatrix().glRotatef(angle, x, y, z);
         updateMatrix(gl);
@@ -223,7 +223,7 @@ public abstract class Renderer {
         rs.pmvMatrix().glTranslatef(x, y, z);
         updateMatrix(gl);
     }
-    
+
     public void scale(GL2ES2 gl, float x, float y, float z) {
         rs.pmvMatrix().glScalef(x, y, z);
         updateMatrix(gl);
@@ -261,15 +261,15 @@ public abstract class Renderer {
         p.glLoadIdentity();
         p.glOrthof(0, width, 0, height, near, far);
         updateMatrix(gl);
-        return true;        
+        return true;
     }
 
     protected String getVertexShaderName() {
         return "curverenderer" + getImplVersion();
     }
-    
+
     protected String getFragmentShaderName() {
-        final String version = getImplVersion(); 
+        final String version = getImplVersion();
         final String pass = Region.isVBAA(renderModes) ? "-2pass" : "-1pass" ;
         final String weight = Region.isNonUniformWeight(renderModes) ? "-weight" : "" ;
         return "curverenderer" + version + pass + weight;
@@ -277,7 +277,7 @@ public abstract class Renderer {
 
     // FIXME: Really required to have sampler2D def. precision ? If not, we can drop getFragmentShaderPrecision(..) and use default ShaderCode ..
     public static final String es2_precision_fp = "\nprecision mediump float;\nprecision mediump int;\nprecision mediump sampler2D;\n";
-    
+
     protected String getFragmentShaderPrecision(GL2ES2 gl) {
         if( gl.isGLES2() ) {
             return es2_precision_fp;
@@ -287,7 +287,7 @@ public abstract class Renderer {
         }
         return null;
     }
-    
+
     protected String getImplVersion() {
         return "01";
     }

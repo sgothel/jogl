@@ -77,7 +77,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
      * @param mode TODO
      * @param pmvMatrix optional pass through PMVMatrix for the {@link FixedFuncHook} and {@link FixedFuncPipeline}
      */
-    public FixedFuncHook(GL2ES2 gl, ShaderSelectionMode mode, PMVMatrix pmvMatrix, 
+    public FixedFuncHook(GL2ES2 gl, ShaderSelectionMode mode, PMVMatrix pmvMatrix,
                          Class<?> shaderRootClass, String shaderSrcRoot, String shaderBinRoot,
                          String vertexColorFile, String vertexColorLightFile,
                          String fragmentColorFile, String fragmentColorTextureFile) {
@@ -90,14 +90,14 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
             this.pmvMatrix = new PMVMatrix();
         }
 
-        fixedFunction = new FixedFuncPipeline(this.gl, mode, this.pmvMatrix, shaderRootClass, shaderSrcRoot, 
+        fixedFunction = new FixedFuncPipeline(this.gl, mode, this.pmvMatrix, shaderRootClass, shaderSrcRoot,
                                               shaderBinRoot, vertexColorFile, vertexColorLightFile, fragmentColorFile, fragmentColorTextureFile);
     }
 
     public boolean verbose() { return fixedFunction.verbose(); }
 
     public void setVerbose(boolean v) { fixedFunction.setVerbose(v); }
-    
+
     public void destroy() {
         fixedFunction.destroy(gl);
         fixedFunction = null;
@@ -111,16 +111,16 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     public PMVMatrix getMatrix() { return pmvMatrix; }
 
     //
-    // FixedFuncHookIf - hooks 
+    // FixedFuncHookIf - hooks
     //
     public void glDrawArrays(int mode, int first, int count) {
         fixedFunction.glDrawArrays(gl, mode, first, count);
     }
     public void glDrawElements(int mode, int count, int type, java.nio.Buffer indices) {
-        fixedFunction.glDrawElements(gl, mode, count, type, indices);        
+        fixedFunction.glDrawElements(gl, mode, count, type, indices);
     }
     public void glDrawElements(int mode, int count, int type, long indices_buffer_offset) {
-        fixedFunction.glDrawElements(gl, mode, count, type, indices_buffer_offset); 
+        fixedFunction.glDrawElements(gl, mode, count, type, indices_buffer_offset);
     }
 
     public void glActiveTexture(int texture) {
@@ -136,7 +136,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
         if(fixedFunction.glEnable(cap, false)) {
             gl.glDisable(cap);
         }
-    }    
+    }
     public void glGetFloatv(int pname, java.nio.FloatBuffer params) {
         if(PMVMatrix.isMatrixGetName(pname)) {
             pmvMatrix.glGetFloatv(pname, params);
@@ -165,7 +165,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
         }
         gl.glGetIntegerv(pname, params, params_offset);
     }
-    
+
     public void glTexEnvi(int target, int pname, int value) {
         fixedFunction.glTexEnvi(target, pname, value);
     }
@@ -179,7 +179,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
         fixedFunction.glBindTexture(target, texture);
         gl.glBindTexture(target, texture);
     }
-    public void glTexImage2D(int target, int level, int internalformat, int width, int height, int border, 
+    public void glTexImage2D(int target, int level, int internalformat, int width, int height, int border,
                              int format, int type,  Buffer pixels) {
         // align internalformat w/ format, an ES2 requirement
         switch(internalformat) {
@@ -212,8 +212,8 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     public  void glPointParameterfv(int pname, java.nio.FloatBuffer params) {
         fixedFunction.glPointParameterfv(pname, params);
     }
-    
-    // 
+
+    //
     // MatrixIf
     //
     public int  glGetMatrixMode() {
@@ -253,29 +253,29 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
         pmvMatrix.glScalef(x, y, z);
     }
     public void glOrtho(double left, double right, double bottom, double top, double near_val, double far_val) {
-        glOrthof((float) left, (float) right, (float) bottom, (float) top, (float) near_val, (float) far_val); 
+        glOrthof((float) left, (float) right, (float) bottom, (float) top, (float) near_val, (float) far_val);
     }
     public void glOrthof(float left, float right, float bottom, float top, float zNear, float zFar) {
         pmvMatrix.glOrthof(left, right, bottom, top, zNear, zFar);
     }
     public void glFrustum(double left, double right, double bottom, double top, double zNear, double zFar) {
-        glFrustumf((float) left, (float) right, (float) bottom, (float) top, (float) zNear, (float) zFar); 
+        glFrustumf((float) left, (float) right, (float) bottom, (float) top, (float) zNear, (float) zFar);
     }
     public void glFrustumf(float left, float right, float bottom, float top, float zNear, float zFar) {
         pmvMatrix.glFrustumf(left, right, bottom, top, zNear, zFar);
     }
 
-    // 
+    //
     // LightingIf
     //
     public void glColor4f(float red, float green, float blue, float alpha) {
       fixedFunction.glColor4f(gl, red, green, blue, alpha);
     }
-    
+
     public  void glColor4ub(byte red, byte green, byte blue, byte alpha) {
-      glColor4f(ValueConv.byte_to_float(red, false), 
-                ValueConv.byte_to_float(green, false), 
-                ValueConv.byte_to_float(blue, false), 
+      glColor4f(ValueConv.byte_to_float(red, false),
+                ValueConv.byte_to_float(green, false),
+                ValueConv.byte_to_float(blue, false),
                 ValueConv.byte_to_float(alpha, false) );
     }
     public void glLightfv(int light, int pname, java.nio.FloatBuffer params) {
@@ -299,17 +299,17 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     //
     public void glShadeModel(int mode) {
       fixedFunction.glShadeModel(gl, mode);
-    }    
+    }
     public  void glAlphaFunc(int func, float ref) {
         fixedFunction.glAlphaFunc(func, ref);
     }
-    
-    /** ES2 supports CullFace implicit 
+
+    /** ES2 supports CullFace implicit
     public void glCullFace(int faceName) {
         fixedFunction.glCullFace(faceName);
         gl.glCullFace(faceName);
     } */
-    
+
     //
     // PointerIf
     //
@@ -340,7 +340,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     }
 
     public void glVertexPointer(int size, int type, int stride, java.nio.Buffer pointer) {
-      glVertexPointer(GLArrayDataWrapper.createFixed(GL_VERTEX_ARRAY, size, type, GLBuffers.isGLTypeFixedPoint(type), stride, 
+      glVertexPointer(GLArrayDataWrapper.createFixed(GL_VERTEX_ARRAY, size, type, GLBuffers.isGLTypeFixedPoint(type), stride,
                                                      pointer, 0, 0, 0, GL.GL_ARRAY_BUFFER));
     }
     public void glVertexPointer(int size, int type, int stride, long pointer_buffer_offset) {
@@ -348,7 +348,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
       if(vboName==0) {
         throw new GLException("no GL_ARRAY_BUFFER VBO bound");
       }
-      glVertexPointer(GLArrayDataWrapper.createFixed(GL_VERTEX_ARRAY, size, type, GLBuffers.isGLTypeFixedPoint(type), stride, 
+      glVertexPointer(GLArrayDataWrapper.createFixed(GL_VERTEX_ARRAY, size, type, GLBuffers.isGLTypeFixedPoint(type), stride,
                                                      null, vboName, pointer_buffer_offset, GL.GL_STATIC_DRAW, GL.GL_ARRAY_BUFFER));
     }
 
@@ -368,7 +368,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
       fixedFunction.glColorPointer(gl, array);
     }
     public void glColorPointer(int size, int type, int stride, java.nio.Buffer pointer) {
-      glColorPointer(GLArrayDataWrapper.createFixed(GL_COLOR_ARRAY, size, type, GLBuffers.isGLTypeFixedPoint(type), stride, 
+      glColorPointer(GLArrayDataWrapper.createFixed(GL_COLOR_ARRAY, size, type, GLBuffers.isGLTypeFixedPoint(type), stride,
                                                     pointer, 0, 0, 0, GL.GL_ARRAY_BUFFER));
     }
     public void glColorPointer(int size, int type, int stride, long pointer_buffer_offset) {
@@ -376,7 +376,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
       if(vboName==0) {
         throw new GLException("no GL_ARRAY_BUFFER VBO bound");
       }
-      glColorPointer(GLArrayDataWrapper.createFixed(GL_COLOR_ARRAY, size, type, GLBuffers.isGLTypeFixedPoint(type), stride, 
+      glColorPointer(GLArrayDataWrapper.createFixed(GL_COLOR_ARRAY, size, type, GLBuffers.isGLTypeFixedPoint(type), stride,
                                                    null, vboName, pointer_buffer_offset, GL.GL_STATIC_DRAW, GL.GL_ARRAY_BUFFER));
     }
 
@@ -399,7 +399,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
       fixedFunction.glNormalPointer(gl, array);
     }
     public void glNormalPointer(int type, int stride, java.nio.Buffer pointer) {
-      glNormalPointer(GLArrayDataWrapper.createFixed(GL_NORMAL_ARRAY, 3, type, GLBuffers.isGLTypeFixedPoint(type), stride, 
+      glNormalPointer(GLArrayDataWrapper.createFixed(GL_NORMAL_ARRAY, 3, type, GLBuffers.isGLTypeFixedPoint(type), stride,
                                                      pointer, 0, 0, 0, GL.GL_ARRAY_BUFFER));
     }
     public void glNormalPointer(int type, int stride, long pointer_buffer_offset) {
@@ -407,7 +407,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
       if(vboName==0) {
         throw new GLException("no GL_ARRAY_BUFFER VBO bound");
       }
-      glNormalPointer(GLArrayDataWrapper.createFixed(GL_NORMAL_ARRAY, 3, type, GLBuffers.isGLTypeFixedPoint(type), stride, 
+      glNormalPointer(GLArrayDataWrapper.createFixed(GL_NORMAL_ARRAY, 3, type, GLBuffers.isGLTypeFixedPoint(type), stride,
                                                      null, vboName, pointer_buffer_offset, GL.GL_STATIC_DRAW, GL.GL_ARRAY_BUFFER));
     }
 
@@ -428,7 +428,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     }
     public void glTexCoordPointer(int size, int type, int stride, java.nio.Buffer pointer) {
       glTexCoordPointer(
-        GLArrayDataWrapper.createFixed(GL_TEXTURE_COORD_ARRAY, size, type, GLBuffers.isGLTypeFixedPoint(type), stride, 
+        GLArrayDataWrapper.createFixed(GL_TEXTURE_COORD_ARRAY, size, type, GLBuffers.isGLTypeFixedPoint(type), stride,
                                        pointer, 0, 0, 0, GL.GL_ARRAY_BUFFER));
     }
     public void glTexCoordPointer(int size, int type, int stride, long pointer_buffer_offset) {
@@ -437,7 +437,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
         throw new GLException("no GL_ARRAY_BUFFER VBO bound");
       }
       glTexCoordPointer(
-        GLArrayDataWrapper.createFixed(GL_TEXTURE_COORD_ARRAY, size, type, GLBuffers.isGLTypeFixedPoint(type), stride, 
+        GLArrayDataWrapper.createFixed(GL_TEXTURE_COORD_ARRAY, size, type, GLBuffers.isGLTypeFixedPoint(type), stride,
                                        null, vboName, pointer_buffer_offset, GL.GL_STATIC_DRAW, GL.GL_ARRAY_BUFFER) );
     }
 

@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -126,7 +126,7 @@ public class LinuxEventDeviceTracker implements WindowListener {
         try {
             while(true) {
                 Thread.sleep(1000);
-            } 
+            }
         } catch (InterruptedException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -186,7 +186,7 @@ public class LinuxEventDeviceTracker implements WindowListener {
             /**
              * The Linux input event interface.
              * http://www.kernel.org/doc/Documentation/input/input.txt
-             * 
+             *
              * struct input_event {
              *  struct timeval time;
              *	unsigned short type;
@@ -262,7 +262,7 @@ public class LinuxEventDeviceTracker implements WindowListener {
                         break;
                     case 1: // EV_KEY
                         keyCode = LinuxEVKey2NewtVKey(code); // The device independent code.
-                        keyChar = NewtVKey2Unicode(keyCode, modifiers); // The printable character w/ key modifiers.						
+                        keyChar = NewtVKey2Unicode(keyCode, modifiers); // The printable character w/ key modifiers.
                         if(Window.DEBUG_KEY_EVENT) {
                             System.out.println("[EV_KEY: [time "+timeSeconds+":"+timeSecondFraction+"] type "+type+" / code "+code+" = value "+value);
                         }
@@ -946,7 +946,7 @@ public class LinuxEventDeviceTracker implements WindowListener {
             case 248: // mic mute
                 break; // FIXME
 
-            default: 
+            default:
             }
 
             if(Window.DEBUG_KEY_EVENT) {

@@ -34,7 +34,7 @@ public class ResourceType {
     private int count;
     private int offset;
     private ResourceReference[] references;
-    
+
     /** Creates new ResourceType */
     protected ResourceType(DataInput di) throws IOException {
         type = di.readInt();
@@ -42,7 +42,7 @@ public class ResourceType {
         offset = di.readUnsignedShort();
         references = new ResourceReference[count];
     }
-    
+
     protected void readRefs(DataInput di) throws IOException {
         for (int i = 0; i < count; i++) {
             references[i] = new ResourceReference(di);
@@ -58,7 +58,7 @@ public class ResourceType {
     public int getType() {
         return type;
     }
-    
+
     public String getTypeAsString() {
         return new StringBuilder()
             .append((char)((type>>24)&0xff))
@@ -67,11 +67,11 @@ public class ResourceType {
             .append((char)((type)&0xff))
             .toString();
     }
-    
+
     public int getCount() {
         return count;
     }
-    
+
     public int getOffset() {
         return offset;
     }

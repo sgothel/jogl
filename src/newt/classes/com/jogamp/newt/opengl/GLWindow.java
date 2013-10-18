@@ -127,7 +127,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                 }
 
                 @Override
-                public void windowResized(WindowEvent e) {                    
+                public void windowResized(WindowEvent e) {
                     defaultWindowResizedOp(getWidth(), getHeight());
                 }
 
@@ -139,7 +139,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     public final Object getUpstreamWidget() {
         return window;
     }
-    
+
     /**
      * Creates a new GLWindow attaching a new Window referencing a
      * new default Screen and default Display with the given GLCapabilities.
@@ -218,7 +218,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     @Override
     public final CapabilitiesImmutable getChosenCapabilities() {
         final GLDrawable _drawable = drawable;
-        return null != _drawable ? _drawable.getChosenGLCapabilities() : window.getChosenCapabilities();        
+        return null != _drawable ? _drawable.getChosenGLCapabilities() : window.getChosenCapabilities();
     }
 
     @Override
@@ -339,7 +339,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     public final int getY() {
         return window.getY();
     }
-    
+
     @Override
     public final int getWidth() {
         return window.getWidth();
@@ -349,7 +349,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     public final int getHeight() {
         return window.getHeight();
     }
-    
+
     @Override
     public final void setPosition(int x, int y) {
         window.setPosition(x, y);
@@ -363,7 +363,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     public final boolean setFullscreen(boolean fullscreen) {
         return window.setFullscreen(fullscreen);
     }
-    
+
     @Override
     public boolean setFullscreen(List<MonitorDevice> monitors) {
         return window.setFullscreen(monitors);
@@ -418,7 +418,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     public void setWindowDestroyNotifyAction(Runnable r) {
         window.setWindowDestroyNotifyAction(r);
     }
-    
+
     @Override
     public final void setVisible(boolean visible) {
         window.setVisible(visible);
@@ -450,7 +450,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         public void preserveGLStateAtDestroy(boolean value) {
             GLWindow.this.preserveGLStateAtDestroy(value);
         }
-        
+
         @Override
         public synchronized void destroyActionPreLock() {
             // nop
@@ -464,7 +464,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                 //Exception e1 = new Exception(msg);
                 //e1.printStackTrace();
             }
-                    
+
             destroyImplInLock();
 
             if(Window.DEBUG_IMPLEMENTATION) {
@@ -493,7 +493,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
             } else {
                 t0 = 0;
             }
-            
+
             if (null == drawable && visible && 0 != window.getWindowHandle() && 0<getWidth()*getHeight()) {
                 if( ( null != context ) ) {
                     throw new InternalError("GLWindow.LifecycleHook.setVisiblePost: "+WindowImpl.getThreadName()+" - Null drawable, but valid context - "+GLWindow.this);
@@ -509,7 +509,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                 }
                 drawable = (GLDrawableImpl) factory.createGLDrawable(ns);
                 drawable.setRealized(true);
-                
+
                 if( !GLWindow.this.pushGLEventListenerState() ) {
                     context = (GLContextImpl) drawable.createContext(sharedContext);
                     context.setContextCreationFlags(additionalCtxCreationFlags);
@@ -538,7 +538,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                 savedAnimator.resume();
             }
         }
-        
+
         @SuppressWarnings("deprecation")
         @Override
         public void shutdownRenderingAction() {
@@ -572,12 +572,12 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     //
 
     private GLContext sharedContext = null;
-    
+
     @Override
     protected final RecursiveLock getLock() {
         return window.getLock();
     }
-    
+
     /**
      * Specifies an {@link javax.media.opengl.GLContext OpenGL context} to share with.<br>
      * At native creation, {@link #setVisible(boolean) setVisible(true)},
@@ -619,7 +619,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
             setVisible(true);
         }
     }
-    
+
     /**
      * {@inheritDoc}
      * <p>
@@ -643,7 +643,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     public final void swapBuffers() throws GLException {
          defaultSwapBuffers();
     }
-    
+
     //----------------------------------------------------------------------
     // NEWTEventConsumer
     //
@@ -807,7 +807,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     public final void removeGestureListener(GestureHandler.GestureListener gl) {
         window.removeGestureListener(gl);
     }
-    
+
     //----------------------------------------------------------------------
     // NativeWindow completion
     //
@@ -893,7 +893,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                         _forceGL3 = true;
                     } else if(args[i].equals("-gl4es3")) {
                         _forceGL4ES3 = true;
-                    }            
+                    }
                 }
             }
             forceES2 = _forceES2;
@@ -905,7 +905,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         System.err.println("forceES3    "+forceES3);
         System.err.println("forceGL3    "+forceGL3);
         System.err.println("forceGL4ES3 "+forceGL4ES3);
-        
+
         System.err.println(VersionUtil.getPlatformInfo());
         System.err.println(GlueGenVersion.getInstance());
         System.err.println(JoglVersion.getInstance());

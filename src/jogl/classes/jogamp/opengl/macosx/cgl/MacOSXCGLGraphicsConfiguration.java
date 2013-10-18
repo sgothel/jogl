@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -54,7 +54,7 @@ import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 
 public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration implements Cloneable {
 
-    MacOSXCGLGraphicsConfiguration(AbstractGraphicsScreen screen, 
+    MacOSXCGLGraphicsConfiguration(AbstractGraphicsScreen screen,
                                    GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested) {
         super(screen, capsChosen, capsRequested);
     }
@@ -71,10 +71,10 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
         // MacOSXGraphicsDevice osxDevice = sharedResource.getDevice();
         return new ArrayList<GLCapabilitiesImmutable>(0);
     }
-    
+
     static final IntBuffer cglInternalAttributeToken = Buffers.newDirectIntBuffer(new int[] {
         CGL.kCGLPFAOpenGLProfile,    // >= lion
-        CGL.NSOpenGLPFAAccelerated,  // query only (prefer accelerated, but allow non accelerated), ignored for createPixelformat 
+        CGL.NSOpenGLPFAAccelerated,  // query only (prefer accelerated, but allow non accelerated), ignored for createPixelformat
         CGL.NSOpenGLPFANoRecovery,
         CGL.kCGLPFAColorFloat,
         CGL.NSOpenGLPFAPixelBuffer,
@@ -96,13 +96,13 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
         for (int idx = 0; idx < len; idx++) {
           final int attr = attrToken.get(idx+off);
           switch (attr) {
-              case CGL.kCGLPFAOpenGLProfile: 
+              case CGL.kCGLPFAOpenGLProfile:
                 ivalues.put(idx, MacOSXCGLContext.GLProfile2CGLOGLProfileValue(ctp, major, minor));
                 break;
               case CGL.NSOpenGLPFANoRecovery:
                 ivalues.put(idx, caps.getHardwareAccelerated() ? 1 : 0);
                 break;
-                  
+
               case CGL.kCGLPFAColorFloat:
                 // ivalues.put(idx, ( !caps.isOnscreen() && caps.isPBuffer() && caps.getPbufferFloatingPointBuffers() ) ? 1 : 0);
                   ivalues.put(idx, 0);
@@ -160,7 +160,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
         if ( !MacOSXCGLContext.isLionOrLater ) {
             // no OpenGLProfile
             attrToken.position(1);
-        }        
+        }
         final IntBuffer ivalues = GLCapabilities2NSAttribList(attrToken, caps, ctp, major, minor);
         return CGL.createPixelFormat(attrToken, attrToken.remaining(), ivalues);
     }
@@ -174,7 +174,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
       final IntBuffer attrs = Buffers.newDirectIntBuffer(256);
       int i = 0;
       if(MacOSXCGLContext.isLionOrLater) {
-          attrs.put(i++, CGL.kCGLPFAOpenGLProfile); 
+          attrs.put(i++, CGL.kCGLPFAOpenGLProfile);
           attrs.put(i++, MacOSXCGLContext.GLProfile2CGLOGLProfileValue(ctp, major, minor));
       }
       /**
@@ -222,8 +222,8 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
       }
       return fmt.get(0);
     }
-    
-    static GLCapabilities CGLPixelFormat2GLCapabilities(long pixelFormat) {        
+
+    static GLCapabilities CGLPixelFormat2GLCapabilities(long pixelFormat) {
         return PixelFormat2GLCapabilities(null, pixelFormat, false);
     }
 
@@ -235,7 +235,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
             off = 1;
         } else {
             off = 0;
-        }        
+        }
         attrToken.position(off);
         final int len = attrToken.remaining();
         final IntBuffer ivalues = Buffers.newDirectIntBuffer(len);
@@ -243,7 +243,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
         // On this platform the pixel format is associated with the
         // context and not the drawable. However it's a reasonable
         // approximation to just store the chosen pixel format up in the
-        // NativeSurface's AbstractGraphicsConfiguration, 
+        // NativeSurface's AbstractGraphicsConfiguration,
         // since the public API doesn't provide for a different GLCapabilities per context.
         // Note: These restrictions of the platform's API might be considered as a bug anyways.
 
@@ -253,7 +253,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
         } else {
             CGL.CGLQueryPixelFormat(pixelFormat, attrToken, len, ivalues);
         }
-        
+
         if(null == glp && MacOSXCGLContext.isLionOrLater) {
             // pre-scan for OpenGL Profile
             for (int i = 0; i < len; i++) {
@@ -265,11 +265,11 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
                             break;
                         case CGL.kCGLOGLPVersion_Legacy:
                             glp = GLProfile.get(GLProfile.GL2);
-                            break;                            
+                            break;
                         default:
                             throw new RuntimeException("Unhandled OSX OpenGL Profile: 0x"+Integer.toHexString(ivalue));
                     }
-                }            
+                }
             }
         }
         if(null == glp) {
@@ -284,7 +284,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
               case CGL.NSOpenGLPFAAccelerated:
                 caps.setHardwareAccelerated(ivalue != 0);
                 break;
-                
+
               case CGL.kCGLPFAColorFloat:
                 // caps.setPbufferFloatingPointBuffers(ivalue != 0);
                 break;
@@ -346,7 +346,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
           }
         }
         caps.setAlphaBits(alphaBits);
-        
+
         return caps;
       }
 }

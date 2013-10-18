@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -47,10 +47,10 @@ import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactory {
     public static void registerFactory() {
         GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.x11.X11GraphicsDevice.class, CapabilitiesImmutable.class, new X11GraphicsConfigurationFactory());
-    }    
+    }
     private X11GraphicsConfigurationFactory() {
     }
-    
+
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
         CapabilitiesImmutable  capsChosen, CapabilitiesImmutable capsRequested, CapabilitiesChooser chooser, AbstractGraphicsScreen screen, int nativeVisualID)
         throws IllegalArgumentException, NativeWindowException {
@@ -109,7 +109,7 @@ public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactor
         XVisualInfo best=null;
         int rdepth = capabilities.getRedBits() + capabilities.getGreenBits() + capabilities.getBlueBits() + capabilities.getAlphaBits();
         for (int i = 0; vinfos!=null && i < num[0]; i++) {
-            if ( best == null || 
+            if ( best == null ||
                  best.getDepth() < vinfos[i].getDepth() )
             {
                 best = vinfos[i];

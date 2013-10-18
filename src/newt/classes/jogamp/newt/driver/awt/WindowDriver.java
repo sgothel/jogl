@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  */
 
 package jogamp.newt.driver.awt;
@@ -109,33 +109,33 @@ public class WindowDriver extends WindowImpl {
         } else {
             owningFrame=false;
             defineSize(awtContainer.getWidth(), awtContainer.getHeight());
-            definePosition(awtContainer.getX(), awtContainer.getY());            
+            definePosition(awtContainer.getX(), awtContainer.getY());
         }
         if(null!=awtFrame) {
             awtFrame.setTitle(getTitle());
         }
         awtContainer.setLayout(new BorderLayout());
-        
+
         if( null == awtCanvas ) {
             awtCanvas = new AWTCanvas(capsRequested, WindowDriver.this.capabilitiesChooser);
 
             // canvas.addComponentListener(listener);
             awtContainer.add(awtCanvas, BorderLayout.CENTER);
-        
+
             // via EDT ..
             new AWTMouseAdapter(this).addTo(awtCanvas); // fwd all AWT Mouse events to here
             new AWTKeyAdapter(this).addTo(awtCanvas); // fwd all AWT Key events to here
-        
+
             // direct w/o EDT
             new AWTWindowAdapter(new LocalWindowListener(), this).addTo(awtCanvas); // fwd all AWT Window events to here
         }
 
         reconfigureWindowImpl(getX(), getY(), getWidth(), getHeight(), getReconfigureFlags(FLAG_CHANGE_VISIBILITY | FLAG_CHANGE_DECORATION, true));
         // throws exception if failed ..
-        
+
         final NativeWindow nw = awtCanvas.getNativeWindow();
         if( null != nw ) {
-            setGraphicsConfiguration( awtCanvas.getAWTGraphicsConfiguration() );            
+            setGraphicsConfiguration( awtCanvas.getAWTGraphicsConfiguration() );
             setWindowHandle( nw.getWindowHandle() );
         }
     }
@@ -153,7 +153,7 @@ public class WindowDriver extends WindowImpl {
             owningFrame=false;
         }
         awtCanvas = null;
-        awtFrame = null;            
+        awtFrame = null;
         awtContainer = null;
     }
 
@@ -166,11 +166,11 @@ public class WindowDriver extends WindowImpl {
                 throw new NativeWindowException("Error Device change null GraphicsConfiguration: "+this);
             }
             setGraphicsConfiguration(cfg);
-            
+
             // propagate new info ..
             ((ScreenDriver)getScreen()).setAWTGraphicsScreen((AWTGraphicsScreen)cfg.getScreen());
             ((DisplayDriver)getScreen().getDisplay()).setAWTGraphicsDevice((AWTGraphicsDevice)cfg.getScreen().getDevice());
-    
+
             ((ScreenDriver)getScreen()).updateVirtualScreenOriginAndSize();
         }
         return res;
@@ -213,7 +213,7 @@ public class WindowDriver extends WindowImpl {
         awtCanvas.invalidate();
         awtContainer.validate();
     }
-    
+
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("AWTWindow reconfig: "+x+"/"+y+" "+width+"x"+height+", "+
@@ -228,7 +228,7 @@ public class WindowDriver extends WindowImpl {
                 }
             }
         }
-        
+
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
             if( 0 != ( FLAG_IS_VISIBLE & flags) ) {
                 setCanvasSizeImpl(width, height);
@@ -244,15 +244,15 @@ public class WindowDriver extends WindowImpl {
             }
         }
         defineSize(width, height); // we are on AWT-EDT .. change values immediately
-        
+
         if( awtContainer.getX() != x || awtContainer.getY() != y ) {
             awtContainer.setLocation(x, y);
         }
-        
+
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
             if( 0 != ( FLAG_IS_VISIBLE & flags ) ) {
                 if( !hasDeviceChanged() ) {
-                    // oops ??                   
+                    // oops ??
                     final AWTGraphicsConfiguration cfg = awtCanvas.getAWTGraphicsConfiguration();
                     if(null == cfg) {
                         throw new NativeWindowException("Error: !hasDeviceChanged && null == GraphicsConfiguration: "+this);
@@ -262,7 +262,7 @@ public class WindowDriver extends WindowImpl {
             }
             visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));
         }
-        
+
         return true;
     }
 
@@ -271,13 +271,13 @@ public class WindowDriver extends WindowImpl {
         ap.translate(x, y);
         return new Point((int)(ap.getX()+0.5),(int)(ap.getY()+0.5));
     }
-   
+
     @Override
     public NativeSurface getWrappedSurface() {
         return ( null != awtCanvas ) ? awtCanvas.getNativeWindow() : null;
     }
 
-    class LocalWindowListener implements com.jogamp.newt.event.WindowListener { 
+    class LocalWindowListener implements com.jogamp.newt.event.WindowListener {
         @Override
         public void windowMoved(com.jogamp.newt.event.WindowEvent e) {
             if(null!=awtContainer) {
@@ -304,11 +304,11 @@ public class WindowDriver extends WindowImpl {
         }
         @Override
         public void windowGainedFocus(WindowEvent e) {
-            WindowDriver.this.focusChanged(false, true);            
+            WindowDriver.this.focusChanged(false, true);
         }
         @Override
         public void windowLostFocus(WindowEvent e) {
-            WindowDriver.this.focusChanged(false, false);            
+            WindowDriver.this.focusChanged(false, false);
         }
         @Override
         public void windowRepaint(WindowUpdateEvent e) {

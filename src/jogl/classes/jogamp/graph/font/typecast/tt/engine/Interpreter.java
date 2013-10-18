@@ -570,7 +570,7 @@ public class Interpreter {
     private void _mps() {
         push(0);
     }
-    
+
     private void _msirp(short param) {
         pop();
         pop();
@@ -1190,7 +1190,7 @@ public class Interpreter {
         while (ip < ((ip & 0xffff0000) | parser.getISLength(ip >> 16))) {
             short opcode = parser.getOpcode(ip);
             if (inFuncDef) {
-                
+
                 // We're within a function definition, so don't execute the code
                 if (opcode == Mnemonic.ENDF) {
                     inFuncDef = false;

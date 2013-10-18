@@ -142,7 +142,7 @@ public class X11GLXContext extends GLContextImpl {
     if(null != glXServerVersion) {
         return isGLXVersionGreaterEqualOneThree;
     }
-    glXServerVersion = ((X11GLXDrawableFactory)drawable.getFactoryImpl()).getGLXVersionNumber(drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice()); 
+    glXServerVersion = ((X11GLXDrawableFactory)drawable.getFactoryImpl()).getGLXVersionNumber(drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice());
     isGLXVersionGreaterEqualOneThree = null != glXServerVersion ? glXServerVersion.compareTo(X11GLXDrawableFactory.versionOneThree) >= 0 : false;
     return isGLXVersionGreaterEqualOneThree;
   }
@@ -262,7 +262,7 @@ public class X11GLXContext extends GLContextImpl {
           t.printStackTrace();
         }
     }
-    
+
     if(0!=ctx) {
         if (!glXMakeContextCurrent(display, drawable.getHandle(), drawableRead.getHandle(), ctx)) {
             if(DEBUG) {
@@ -419,7 +419,7 @@ public class X11GLXContext extends GLContextImpl {
 
     if (GLX.glXGetCurrentContext() != contextHandle) {
         if (!glXMakeContextCurrent(dpy, drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
-            throw new GLException("Error making context " + toHexString(contextHandle) + 
+            throw new GLException("Error making context " + toHexString(contextHandle) +
                                   " current on Thread " + getThreadName() +
                                   " with display " + toHexString(dpy) +
                                   ", drawableWrite " + toHexString(drawable.getHandle()) +
@@ -525,7 +525,7 @@ public class X11GLXContext extends GLContextImpl {
 
   @Override
   protected boolean setSwapIntervalImpl(int interval) {
-    if( !drawable.getChosenGLCapabilities().isOnscreen() ) { return false; } 
+    if( !drawable.getChosenGLCapabilities().isOnscreen() ) { return false; }
 
     final GLXExt glXExt = getGLXExt();
     if(0==hasSwapInterval) {
@@ -534,7 +534,7 @@ public class X11GLXContext extends GLContextImpl {
             if( glXExt.isExtensionAvailable(GLXExtensions.GLX_MESA_swap_control) ) {
                 if(DEBUG) { System.err.println("X11GLXContext.setSwapInterval using: "+GLXExtensions.GLX_MESA_swap_control); }
                 hasSwapInterval =  1;
-            } else */ 
+            } else */
             if ( glXExt.isExtensionAvailable(GLXExtensions.GLX_SGI_swap_control) ) {
                 if(DEBUG) { System.err.println("X11GLXContext.setSwapInterval using: "+GLXExtensions.GLX_SGI_swap_control); }
                 hasSwapInterval =  2;
@@ -542,7 +542,7 @@ public class X11GLXContext extends GLContextImpl {
                 hasSwapInterval = -1;
             }
         } catch (Throwable t) { hasSwapInterval=-1; }
-    } 
+    }
     /* try {
         switch( hasSwapInterval ) {
             case 1:
@@ -581,7 +581,7 @@ public class X11GLXContext extends GLContextImpl {
         try {
             final IntBuffer maxGroupsNIO = Buffers.newDirectIntBuffer(maxGroups.length - maxGroups_offset);
             final IntBuffer maxBarriersNIO = Buffers.newDirectIntBuffer(maxBarriers.length - maxBarriers_offset);
-            
+
             if( glXExt.glXQueryMaxSwapGroupsNV(ns.getDisplayHandle(), ns.getScreenIndex(),
                                                maxGroupsNIO, maxBarriersNIO) ) {
                 maxGroupsNIO.get(maxGroups, maxGroups_offset, maxGroupsNIO.remaining());
@@ -623,7 +623,7 @@ public class X11GLXContext extends GLContextImpl {
   }
 
   @Override
-  public final ByteBuffer glAllocateMemoryNV(int size, float readFrequency, float writeFrequency, float priority) {  
+  public final ByteBuffer glAllocateMemoryNV(int size, float readFrequency, float writeFrequency, float priority) {
     return getGLXExt().glXAllocateMemoryNV(size, readFrequency, writeFrequency, priority);
   }
 
@@ -631,7 +631,7 @@ public class X11GLXContext extends GLContextImpl {
   public final void glFreeMemoryNV(ByteBuffer pointer) {
     getGLXExt().glXFreeMemoryNV(pointer);
   }
-    
+
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();

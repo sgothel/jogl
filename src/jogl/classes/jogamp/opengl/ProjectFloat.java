@@ -6,9 +6,9 @@
 ** this file except in compliance with the License. You may obtain a copy
 ** of the License at Silicon Graphics, Inc., attn: Legal Services, 1600
 ** Amphitheatre Parkway, Mountain View, CA 94043-1351, or at:
-** 
+**
 ** http://oss.sgi.com/projects/FreeB
-** 
+**
 ** Note that, as provided in the License, the Software is distributed on an
 ** "AS IS" basis, with ALL EXPRESS AND IMPLIED WARRANTIES AND CONDITIONS
 ** DISCLAIMED, INCLUDING, WITHOUT LIMITATION, ANY IMPLIED WARRANTIES AND
@@ -24,13 +24,13 @@
 ** except that Section 2.2 and 11 are omitted.  Any differences between
 ** the Alternative License and the SGI License are offered solely by Sun
 ** and not by SGI.
-** 
+**
 ** Original Code. The Original Code is: OpenGL Sample Implementation,
 ** Version 1.2.1, released January 26, 2000, developed by Silicon Graphics,
 ** Inc. The Original Code is Copyright (c) 1991-2000 Silicon Graphics, Inc.
 ** Copyright in any portions created by third parties is as indicated
 ** elsewhere herein. All Rights Reserved.
-** 
+**
 ** Additional Notice Provisions: The application programming interfaces
 ** established by SGI in conjunction with the Original Code are The
 ** OpenGL(R) Graphics System: A Specification (Version 1.2.1), released
@@ -45,34 +45,34 @@
 ** $Header$
 */
 
-/* 
+/*
  * Copyright (c) 2002-2004 LWJGL Project
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are 
+ * modification, are permitted provided that the following conditions are
  * met:
- * 
- * * Redistributions of source code must retain the above copyright 
+ *
+ * * Redistributions of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
  *
  * * Redistributions in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
  *
- * * Neither the name of 'LWJGL' nor the names of 
- *   its contributors may be used to endorse or promote products derived 
+ * * Neither the name of 'LWJGL' nor the names of
+ *   its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
  * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
@@ -80,22 +80,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2011 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -108,7 +108,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
@@ -129,14 +129,14 @@ import com.jogamp.opengl.math.FloatUtil;
  * <p>
  * Created 11-jan-2004
  * </p>
- * 
+ *
  * @author Erik Duijs
  * @author Kenneth Russell
  * @author Sven Gothel
  */
 public class ProjectFloat {
   public static final int getRequiredFloatBufferSize() { return 1*16; }
-  
+
   // Note that we have cloned parts of the implementation in order to
   // support incoming Buffers. The reason for this is to avoid loading
   // non-direct buffer subclasses unnecessarily, because doing so can
@@ -162,22 +162,22 @@ public class ProjectFloat {
   public ProjectFloat() {
       this(true);
   }
-  
+
   public ProjectFloat(boolean useBackingArray) {
-      this(useBackingArray ? null : Buffers.newDirectByteBuffer(getRequiredFloatBufferSize() * Buffers.SIZEOF_FLOAT), 
-           useBackingArray ? new float[getRequiredFloatBufferSize()] : null, 
+      this(useBackingArray ? null : Buffers.newDirectByteBuffer(getRequiredFloatBufferSize() * Buffers.SIZEOF_FLOAT),
+           useBackingArray ? new float[getRequiredFloatBufferSize()] : null,
            0);
   }
 
   /**
    * @param floatBuffer source buffer, may be ByteBuffer (recommended) or FloatBuffer or <code>null</code>.
-   *                    If used, shall be &ge; {@link #getRequiredFloatBufferSize()} + floatOffset. 
+   *                    If used, shall be &ge; {@link #getRequiredFloatBufferSize()} + floatOffset.
    *                    Buffer's position is ignored and floatPos is being used.
    * @param floatArray source float array or <code>null</code>.
    *                   If used, size shall be &ge; {@link #getRequiredFloatBufferSize()} + floatOffset.
    * @param floatOffset Offset for either of the given sources (buffer or array)
    */
-  public ProjectFloat(Buffer floatBuffer, float[] floatArray, int floatOffset) {    
+  public ProjectFloat(Buffer floatBuffer, float[] floatArray, int floatOffset) {
     matrixBuf = Buffers.slice2Float(floatBuffer, floatArray, floatOffset, 16);
   }
 
@@ -259,7 +259,7 @@ public class ProjectFloat {
   /**
    * @param src
    * @param inverse
-   * 
+   *
    * @return
    */
   public boolean gluInvertMatrixf(FloatBuffer src, FloatBuffer inverse) {
@@ -268,7 +268,7 @@ public class ProjectFloat {
 
     final int srcPos = src.position();
     final int invPos = inverse.position();
-    
+
     final float[][] temp = tempInvertMatrix;
 
     for (i = 0; i < 4; i++) {
@@ -297,7 +297,7 @@ public class ProjectFloat {
           t = temp[i][k];
           temp[i][k] = temp[swap][k];
           temp[swap][k] = t;
-          
+
           t = inverse.get(i*4+k + invPos);
           inverse.put(i*4+k + invPos, inverse.get(swap*4+k + invPos));
           inverse.put(swap*4+k + invPos, t);
@@ -335,7 +335,7 @@ public class ProjectFloat {
 
   /**
    * Method gluOrtho2D.
-   * 
+   *
    * @param left
    * @param right
    * @param bottom
@@ -347,7 +347,7 @@ public class ProjectFloat {
 
   /**
    * Method gluPerspective.
-   * 
+   *
    * @param fovy
    * @param aspect
    * @param zNear
@@ -380,7 +380,7 @@ public class ProjectFloat {
 
   /**
    * Method gluLookAt
-   * 
+   *
    * @param eyex
    * @param eyey
    * @param eyez
@@ -436,7 +436,7 @@ public class ProjectFloat {
 
   /**
    * Map object coordinates to window coordinates.
-   * 
+   *
    * @param objx
    * @param objy
    * @param objz
@@ -444,7 +444,7 @@ public class ProjectFloat {
    * @param projMatrix
    * @param viewport
    * @param win_pos
-   * 
+   *
    * @return
    */
   public boolean gluProject(float objx, float objy, float objz,
@@ -518,13 +518,13 @@ public class ProjectFloat {
     win_pos[0+win_pos_offset] = in[0] * viewport[2+viewport_offset] + viewport[0+viewport_offset];
     win_pos[1+win_pos_offset] = in[1] * viewport[3+viewport_offset] + viewport[1+viewport_offset];
     win_pos[2+win_pos_offset] = in[2];
-    
+
     return true;
   }
-  
+
   /**
    * Map object coordinates to window coordinates.
-   * 
+   *
    * @param objx
    * @param objy
    * @param objz
@@ -532,7 +532,7 @@ public class ProjectFloat {
    * @param projMatrix
    * @param viewport
    * @param win_pos
-   * 
+   *
    * @return
    */
   public boolean gluProject(float objx, float objy, float objz,
@@ -576,7 +576,7 @@ public class ProjectFloat {
 
   /**
    * Map window coordinates to object coordinates.
-   * 
+   *
    * @param winx
    * @param winy
    * @param winz
@@ -584,7 +584,7 @@ public class ProjectFloat {
    * @param projMatrix
    * @param viewport
    * @param obj_pos
-   * 
+   *
    * @return
    */
   public boolean gluUnProject(float winx, float winy, float winz,
@@ -633,7 +633,7 @@ public class ProjectFloat {
 
   /**
    * Map window coordinates to object coordinates.
-   * 
+   *
    * @param winx
    * @param winy
    * @param winz
@@ -646,7 +646,7 @@ public class ProjectFloat {
    * @return
    */
   public boolean gluUnProject(float winx, float winy, float winz,
-                              FloatBuffer modelMatrix, 
+                              FloatBuffer modelMatrix,
                               FloatBuffer projMatrix,
                               int[] viewport, int viewport_offset,
                               float[] obj_pos, int obj_pos_offset) {
@@ -674,7 +674,7 @@ public class ProjectFloat {
     in[2] = in[2] * 2 - 1;
 
     FloatUtil.multMatrixVecf(matrixBuf, in, out);
-    
+
     if (out[3] == 0.0) {
       return false;
     }
@@ -687,10 +687,10 @@ public class ProjectFloat {
 
     return true;
   }
-  
+
   /**
    * Map window coordinates to object coordinates.
-   * 
+   *
    * @param winx
    * @param winy
    * @param winz
@@ -698,11 +698,11 @@ public class ProjectFloat {
    * @param projMatrix
    * @param viewport
    * @param obj_pos
-   * 
+   *
    * @return
    */
   public boolean gluUnProject(float winx, float winy, float winz,
-                              FloatBuffer modelMatrix, 
+                              FloatBuffer modelMatrix,
                               FloatBuffer projMatrix,
                               IntBuffer viewport,
                               FloatBuffer obj_pos) {
@@ -722,7 +722,7 @@ public class ProjectFloat {
 
     // Map x and y from window coordinates
     final int vPos = viewport.position();
-    final int oPos = obj_pos.position();    
+    final int oPos = obj_pos.position();
     in[0] = (in[0] - viewport.get(0+vPos)) / viewport.get(2+vPos);
     in[1] = (in[1] - viewport.get(1+vPos)) / viewport.get(3+vPos);
 
@@ -749,7 +749,7 @@ public class ProjectFloat {
 
   /**
    * Map window coordinates to object coordinates.
-   * 
+   *
    * @param winx
    * @param winy
    * @param winz
@@ -760,7 +760,7 @@ public class ProjectFloat {
    * @param near
    * @param far
    * @param obj_pos
-   * 
+   *
    * @return
    */
   public boolean gluUnProject4(float winx,
@@ -815,7 +815,7 @@ public class ProjectFloat {
 
   /**
    * Map window coordinates to object coordinates.
-   * 
+   *
    * @param winx
    * @param winy
    * @param winz
@@ -826,7 +826,7 @@ public class ProjectFloat {
    * @param near
    * @param far
    * @param obj_pos
-   * 
+   *
    * @return
    */
   public boolean gluUnProject4(float winx,
@@ -857,7 +857,7 @@ public class ProjectFloat {
     in[0] = (in[0] - viewport.get(0+vPos)) / viewport.get(2+vPos);
     in[1] = (in[1] - viewport.get(1+vPos)) / viewport.get(3+vPos);
     in[2] = (in[2] - near) / (far - near);
-    
+
     // Map to range -1 to 1
     in[0] = in[0] * 2 - 1;
     in[1] = in[1] * 2 - 1;
@@ -873,14 +873,14 @@ public class ProjectFloat {
     obj_pos.put(0+oPos, out[0]);
     obj_pos.put(1+oPos, out[1]);
     obj_pos.put(2+oPos, out[2]);
-    obj_pos.put(3+oPos, out[3]);    
+    obj_pos.put(3+oPos, out[3]);
     return true;
   }
 
 
   /**
    * Method gluPickMatrix
-   * 
+   *
    * @param x
    * @param y
    * @param deltaX
@@ -907,7 +907,7 @@ public class ProjectFloat {
 
   /**
    * Method gluPickMatrix
-   * 
+   *
    * @param x
    * @param y
    * @param deltaX

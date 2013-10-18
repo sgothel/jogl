@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -49,9 +49,9 @@ import com.jogamp.opengl.util.TimeFrameI;
  * using the appropriate <a href="#streamIDs">stream id</a>'s.
  * </p>
  * <p>
- * Camera input can be selected using the {@link #CameraInputScheme} URI. 
+ * Camera input can be selected using the {@link #CameraInputScheme} URI.
  * </p>
- *   
+ *
  * <a name="streamworker"><h5><i>StreamWorker</i> Decoding Thread</h5></a>
  * <p>
  * Most of the stream processing is performed on the decoding thread, a.k.a. <i>StreamWorker</i>:
@@ -61,7 +61,7 @@ import com.jogamp.opengl.util.TimeFrameI;
  *   <li>Caught <a href="#streamerror">exceptions on the decoding thread</a> are delivered as {@link StreamException}s.</li>
  * </ul>
  * <i>StreamWorker</i> generates it's own {@link GLContext}, shared with the one passed to {@link #initGL(GL)}.
- * The shared {@link GLContext} allows the decoding thread to push the video frame data directly into 
+ * The shared {@link GLContext} allows the decoding thread to push the video frame data directly into
  * the designated {@link TextureFrame}, later returned via {@link #getNextTexture(GL)} and used by the user.
  * </p>
  * <a name="streamerror"><h7><i>StreamWorker</i> Error Handling</h7></a>
@@ -71,12 +71,12 @@ import com.jogamp.opengl.util.TimeFrameI;
  * </p>
  * <p>
  * An occurring {@link StreamException} triggers a {@link GLMediaEventListener#EVENT_CHANGE_ERR EVENT_CHANGE_ERR} event,
- * which can be listened to via {@link GLMediaEventListener#attributesChanged(GLMediaPlayer, int, long)}. 
+ * which can be listened to via {@link GLMediaEventListener#attributesChanged(GLMediaPlayer, int, long)}.
  * </p>
  * <p>
- * An occurred {@link StreamException} can be read via {@link #getStreamException()}. 
+ * An occurred {@link StreamException} can be read via {@link #getStreamException()}.
  * </p>
- * 
+ *
  * </p>
  * <a name="lifecycle"><h5>GLMediaPlayer Lifecycle</h5></a>
  * <p>
@@ -94,7 +94,7 @@ import com.jogamp.opengl.util.TimeFrameI;
  *   <tr><td>{@link #destroy(GL)}</td>                                 <td>ANY</td>                                                         <td>{@link State#Uninitialized Uninitialized}</td>                                                                                 <td>{@link GLMediaEventListener#EVENT_CHANGE_UNINIT EVENT_CHANGE_UNINIT}</td></tr>
  * </table>
  * </p>
- * 
+ *
  * <a name="streamIDs"><h5>Audio and video Stream IDs</h5></a>
  * <p>
  * <table border="1">
@@ -110,7 +110,7 @@ import com.jogamp.opengl.util.TimeFrameI;
  *   <li>{@link jogamp.opengl.util.av.NullGLMediaPlayer}</li>
  *   <li>{@link jogamp.opengl.util.av.impl.OMXGLMediaPlayer}</li>
  *   <li>{@link jogamp.opengl.util.av.impl.FFMPEGMediaPlayer}</li>
- *   <li>{@link jogamp.opengl.android.av.AndroidGLMediaPlayerAPI14}</li> 
+ *   <li>{@link jogamp.opengl.android.av.AndroidGLMediaPlayerAPI14}</li>
  * </ul>
  * </p>
  * <p>
@@ -127,7 +127,7 @@ import com.jogamp.opengl.util.TimeFrameI;
  * Timestamp type and value range has been chosen to suit embedded CPUs
  * and characteristics of audio and video streaming. See {@link TimeFrameI}.
  * </p>
- * 
+ *
  * <a name="synchronization"><h5>Audio and video synchronization</h5></a>
  * <p>
  * The class follows a passive A/V synchronization pattern.
@@ -158,7 +158,7 @@ import com.jogamp.opengl.util.TimeFrameI;
  *   <li>Film:       +22ms and -22ms. audio ahead video / audio after video.</li>
  * </ul>
  * </p>
- * 
+ *
  * <a name="teststreams"><h5>Test Streams</h5></a>
  * <p>
  * <table border="1">
@@ -185,16 +185,16 @@ import com.jogamp.opengl.util.TimeFrameI;
 public interface GLMediaPlayer extends TextureSequence {
     public static final boolean DEBUG = Debug.debug("GLMediaPlayer");
     public static final boolean DEBUG_NATIVE = Debug.debug("GLMediaPlayer.Native");
-    
+
     /** Minimum texture count, value {@value}. */
     public static final int TEXTURE_COUNT_MIN = 4;
-    
+
     /** Constant {@value} for <i>mute</i> or <i>not available</i>. See <a href="#streamIDs">Audio and video Stream IDs</a>. */
     public static final int STREAM_ID_NONE = -2;
     /** Constant {@value} for <i>auto</i> or <i>unspecified</i>. See <a href="#streamIDs">Audio and video Stream IDs</a>. */
     public static final int STREAM_ID_AUTO = -1;
-    
-    /** 
+
+    /**
      * {@link URI#getScheme() URI scheme} name {@value} for camera input. E.g. <code>camera:/0</code>
      * for the 1st camera device.
      * <p>
@@ -203,7 +203,7 @@ public interface GLMediaPlayer extends TextureSequence {
      * </p>
      * <p>
      * The <i>ID</i> is usually an integer value indexing the camera
-     * ranging from [0..<i>max-number</i>]. 
+     * ranging from [0..<i>max-number</i>].
      * </p>
      * <p>
      * The {@link URI#getRawQuery() URI query} is used to pass options to the camera
@@ -220,7 +220,7 @@ public interface GLMediaPlayer extends TextureSequence {
      *  w/ authority: [user-info@]host[:port]
      *  Note: 'path' starts w/ fwd slash
      * </pre>
-     * </p> 
+     * </p>
      */
     public static final String CameraInputScheme = "camera";
     /** Camera property {@value}, size as string, e.g. <code>1280x720</code>, <code>hd720</code>. May not be supported on all platforms. See {@link #CameraInputScheme}. */
@@ -231,10 +231,10 @@ public interface GLMediaPlayer extends TextureSequence {
     public static final String CameraPropHeight = "height";
     /** Camera property {@value}. See {@link #CameraInputScheme}. */
     public static final String CameraPropRate = "rate";
-    
+
     /** Maximum video frame async of {@value} milliseconds. */
     public static final int MAXIMUM_VIDEO_ASYNC = 22;
-        
+
     /**
      * A StreamException encapsulates a caught exception in the decoder thread, a.k.a <i>StreamWorker</i>,
      * see See <a href="#streamerror"><i>StreamWorker</i> Error Handling</a>.
@@ -248,15 +248,15 @@ public interface GLMediaPlayer extends TextureSequence {
             super(message, cause);
         }
     }
-    
+
     /**
      * {@inheritDoc}
      * <p>
      * See {@link TexSeqEventListener} for semantics and usage.
      * </p>
-     */    
+     */
     public interface GLMediaEventListener extends TexSeqEventListener<GLMediaPlayer> {
-    
+
         /** State changed to {@link State#Initialized}. See <a href="#lifecycle">Lifecycle</a>.*/
         static final int EVENT_CHANGE_INIT   = 1<<0;
         /** State changed to {@link State#Uninitialized}. See <a href="#lifecycle">Lifecycle</a>.*/
@@ -269,7 +269,7 @@ public interface GLMediaPlayer extends TextureSequence {
         static final int EVENT_CHANGE_EOS    = 1<<4;
         /** An error occurred, e.g. during off-thread initialization. See {@link StreamException} and <a href="#lifecycle">Lifecycle</a>. */
         static final int EVENT_CHANGE_ERR    = 1<<5;
-        
+
         /** Stream video id change. */
         static final int EVENT_CHANGE_VID    = 1<<16;
         /** Stream audio id change. */
@@ -284,55 +284,55 @@ public interface GLMediaPlayer extends TextureSequence {
         static final int EVENT_CHANGE_LENGTH = 1<<21;
         /** Stream codec change. */
         static final int EVENT_CHANGE_CODEC  = 1<<22;
-    
+
         /**
-         * @param mp the event source 
+         * @param mp the event source
          * @param event_mask the changes attributes
-         * @param when system time in msec. 
+         * @param when system time in msec.
          */
-        public void attributesChanged(GLMediaPlayer mp, int event_mask, long when);    
+        public void attributesChanged(GLMediaPlayer mp, int event_mask, long when);
     }
-    
+
     /**
      * See <a href="#lifecycle">Lifecycle</a>.
      */
     public enum State {
         /** Uninitialized player, no resources shall be hold. */
         Uninitialized(0),
-        /** Stream has been initialized, user may play or call {@link #initGL(GL)}. */ 
-        Initialized(1), 
+        /** Stream has been initialized, user may play or call {@link #initGL(GL)}. */
+        Initialized(1),
         /** Stream is playing. */
         Playing(2),
         /** Stream is pausing. */
         Paused(3);
-        
+
         public final int id;
 
         State(int id){
             this.id = id;
         }
     }
-    
+
     public int getTextureCount();
-    
+
     /** Returns the texture target used by implementation. */
     public int getTextureTarget();
 
     /** Sets the texture unit. Defaults to 0. */
     public void setTextureUnit(int u);
-    
+
     /** Sets the texture min-mag filter, defaults to {@link GL#GL_NEAREST}. */
     public void setTextureMinMagFilter(int[] minMagFilter);
     /** Sets the texture min-mag filter, defaults to {@link GL#GL_CLAMP_TO_EDGE}. */
     public void setTextureWrapST(int[] wrapST);
-    
-    /** 
+
+    /**
      * Issues asynchronous stream initialization.
      * <p>
      * <a href="#lifecycle">Lifecycle</a>: {@link State#Uninitialized} -> {@link State#Initialized}<sup><a href="#streamworker">1</a></sup> or {@link State#Uninitialized}
      * </p>
      * <p>
-     * {@link State#Initialized} is reached asynchronous, 
+     * {@link State#Initialized} is reached asynchronous,
      * i.e. user gets notified via {@link GLMediaEventListener#attributesChanged(GLMediaPlayer, int, long) attributesChanges(..)}.
      * </p>
      * <p>
@@ -344,7 +344,7 @@ public interface GLMediaPlayer extends TextureSequence {
      * </p>
      * <p>
      * Muted video can be achieved by passing {@link #STREAM_ID_NONE} to <code>vid</code>,
-     * in which case <code>textureCount</code> is ignored as well as the passed GL object of the subsequent {@link #initGL(GL)} call. 
+     * in which case <code>textureCount</code> is ignored as well as the passed GL object of the subsequent {@link #initGL(GL)} call.
      * </p>
      * @param streamLoc the stream location
      * @param vid video stream id, see <a href="#streamIDs">audio and video Stream IDs</a>
@@ -352,41 +352,41 @@ public interface GLMediaPlayer extends TextureSequence {
      * @param textureCount desired number of buffered textures to be decoded off-thread, will be validated by implementation.
      *        The minimum value is {@link #TEXTURE_COUNT_MIN}.
      *        Ignored if video is muted.
-     * @throws IllegalStateException if not invoked in {@link State#Uninitialized} 
+     * @throws IllegalStateException if not invoked in {@link State#Uninitialized}
      * @throws IllegalArgumentException if arguments are invalid
      */
     public void initStream(URI streamLoc, int vid, int aid, int textureCount) throws IllegalStateException, IllegalArgumentException;
-    
+
     /**
      * Returns the {@link StreamException} caught in the decoder thread, or <code>null</code>.
      * @see GLMediaEventListener#EVENT_CHANGE_ERR
      * @see StreamException
      */
     public StreamException getStreamException();
-    
-    /** 
+
+    /**
      * Initializes OpenGL related resources.
      * <p>
      * <a href="#lifecycle">Lifecycle</a>: {@link State#Initialized} -> {@link State#Paused} or {@link State#Initialized}
      * </p>
      * Argument <code>gl</code> is ignored if video is muted, see {@link #initStream(URI, int, int, int)}.
-     * 
+     *
      * @param gl current GL object. Maybe <code>null</code>, for audio only.
-     * @throws IllegalStateException if not invoked in {@link State#Initialized}. 
+     * @throws IllegalStateException if not invoked in {@link State#Initialized}.
      * @throws StreamException forwarded from the off-thread stream initialization
      * @throws GLException in case of difficulties to initialize the GL resources
      */
     public void initGL(GL gl) throws IllegalStateException, StreamException, GLException;
-    
-    /** 
+
+    /**
      * If implementation uses a {@link AudioSink}, it's instance will be returned.
-     * <p> 
-     * The {@link AudioSink} instance is available after {@link #initStream(URI, int, int, int)}, 
+     * <p>
+     * The {@link AudioSink} instance is available after {@link #initStream(URI, int, int, int)},
      * if used by implementation.
-     * </p> 
+     * </p>
      */
     public AudioSink getAudioSink();
-    
+
     /**
      * Releases the GL and stream resources.
      * <p>
@@ -399,11 +399,11 @@ public interface GLMediaPlayer extends TextureSequence {
      * Sets the playback speed.
      * <p>
      * To simplify test, play speed is  <i>normalized</i>, i.e.
-     * <ul> 
-     *   <li><code>1.0f</code>: if <code> Math.abs(1.0f - rate) < 0.01f </code></li> 
+     * <ul>
+     *   <li><code>1.0f</code>: if <code> Math.abs(1.0f - rate) < 0.01f </code></li>
      * </ul>
      * </p>
-     * @return true if successful, otherwise false, i.e. due to unsupported value range of implementation. 
+     * @return true if successful, otherwise false, i.e. due to unsupported value range of implementation.
      */
     public boolean setPlaySpeed(float rate);
 
@@ -414,18 +414,18 @@ public interface GLMediaPlayer extends TextureSequence {
      * Sets the audio volume, [0f..1f].
      * <p>
      * To simplify test, volume is <i>normalized</i>, i.e.
-     * <ul> 
-     *   <li><code>0.0f</code>: if <code> Math.abs(v) < 0.01f </code></li> 
-     *   <li><code>1.0f</code>: if <code> Math.abs(1.0f - v) < 0.01f </code></li> 
+     * <ul>
+     *   <li><code>0.0f</code>: if <code> Math.abs(v) < 0.01f </code></li>
+     *   <li><code>1.0f</code>: if <code> Math.abs(1.0f - v) < 0.01f </code></li>
      * </ul>
      * </p>
-     * @return true if successful, otherwise false, i.e. due to unsupported value range of implementation. 
+     * @return true if successful, otherwise false, i.e. due to unsupported value range of implementation.
      */
     public boolean setAudioVolume(float v);
-    
+
     /** Returns the audio volume. */
     public float getAudioVolume();
-    
+
     /**
      * Starts or resumes the <i>StreamWorker</i> decoding thread.
      * <p>
@@ -441,9 +441,9 @@ public interface GLMediaPlayer extends TextureSequence {
      * </p>
      * <p>
      * If a <i>new</i> frame is desired after the next {@link #play()} call,
-     * e.g. to make a snapshot of a camera input stream, 
+     * e.g. to make a snapshot of a camera input stream,
      * <code>flush</code> shall be set to <code>true</code>.
-     * </p> 
+     * </p>
      * @param flush if <code>true</code> flushes the video and audio buffers, otherwise keep them intact.
      */
     public State pause(boolean flush);
@@ -454,10 +454,10 @@ public interface GLMediaPlayer extends TextureSequence {
      * <p>
      * Allowed in state {@link State#Playing} and {@link State#Paused}, otherwise ignored,
      * see <a href="#lifecycle">Lifecycle</a>.
-     * </p> 
-     * 
-     * @param msec absolute desired time position in milliseconds 
-     * @return time current position in milliseconds, after seeking to the desired position  
+     * </p>
+     *
+     * @param msec absolute desired time position in milliseconds
+     * @return time current position in milliseconds, after seeking to the desired position
      **/
     public int seek(int msec);
 
@@ -466,39 +466,39 @@ public interface GLMediaPlayer extends TextureSequence {
      * @return the current state, either {@link State#Uninitialized}, {@link State#Initialized}, {@link State#Playing} or {@link State#Paused}
      */
     public State getState();
-    
+
     /**
      * Return the video stream id, see <a href="#streamIDs">audio and video Stream IDs</a>.
      */
     public int getVID();
-    
+
     /**
      * Return the audio stream id, see <a href="#streamIDs">audio and video Stream IDs</a>.
      */
     public int getAID();
-    
+
     /**
-     * @return the current decoded frame count since {@link #play()} and {@link #seek(int)} 
+     * @return the current decoded frame count since {@link #play()} and {@link #seek(int)}
      *         as increased by {@link #getNextTexture(GL)} or the decoding thread.
      */
     public int getDecodedFrameCount();
-    
+
     /**
-     * @return the current presented frame count since {@link #play()} and {@link #seek(int)} 
+     * @return the current presented frame count since {@link #play()} and {@link #seek(int)}
      *         as increased by {@link #getNextTexture(GL)} for new frames.
      */
     public int getPresentedFrameCount();
-    
+
     /**
-     * @return current video presentation timestamp (PTS) in milliseconds of {@link #getLastTexture()} 
+     * @return current video presentation timestamp (PTS) in milliseconds of {@link #getLastTexture()}
      **/
     public int getVideoPTS();
-    
+
     /**
-     * @return current audio presentation timestamp (PTS) in milliseconds. 
+     * @return current audio presentation timestamp (PTS) in milliseconds.
      **/
     public int getAudioPTS();
-    
+
     /**
      * {@inheritDoc}
      * <p>
@@ -511,7 +511,7 @@ public interface GLMediaPlayer extends TextureSequence {
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * <p>
      * In case the current state is not {@link State#Playing}, {@link #getLastTexture()} is returned.
      * </p>
@@ -519,25 +519,25 @@ public interface GLMediaPlayer extends TextureSequence {
      * See <a href="#synchronization">audio and video synchronization</a>.
      * </p>
      * @throws IllegalStateException if not invoked in {@link State#Paused} or {@link State#Playing}
-     * 
+     *
      * @see #addEventListener(GLMediaEventListener)
      * @see GLMediaEventListener#newFrameAvailable(GLMediaPlayer, TextureFrame, long)
      */
     @Override
     public TextureSequence.TextureFrame getNextTexture(GL gl) throws IllegalStateException;
-    
+
     /** Return the stream location, as set by {@link #initStream(URI, int, int, int)}. */
     public URI getURI();
 
     /**
      * <i>Warning:</i> Optional information, may not be supported by implementation.
-     * @return the code of the video stream, if available 
+     * @return the code of the video stream, if available
      */
     public String getVideoCodec();
 
     /**
      * <i>Warning:</i> Optional information, may not be supported by implementation.
-     * @return the code of the audio stream, if available 
+     * @return the code of the audio stream, if available
      */
     public String getAudioCodec();
 
@@ -557,25 +557,25 @@ public interface GLMediaPlayer extends TextureSequence {
      * @return total duration of stream in msec.
      */
     public int getDuration();
-    
+
     /**
      * <i>Warning:</i> Optional information, may not be supported by implementation.
-     * @return the overall bitrate of the stream.  
+     * @return the overall bitrate of the stream.
      */
     public long getStreamBitrate();
 
     /**
      * <i>Warning:</i> Optional information, may not be supported by implementation.
-     * @return video bitrate  
+     * @return video bitrate
      */
     public int getVideoBitrate();
-    
+
     /**
      * <i>Warning:</i> Optional information, may not be supported by implementation.
-     * @return the audio bitrate  
+     * @return the audio bitrate
      */
     public int getAudioBitrate();
-    
+
     /**
      * <i>Warning:</i> Optional information, may not be supported by implementation.
      * @return the framerate of the video
@@ -583,10 +583,10 @@ public interface GLMediaPlayer extends TextureSequence {
     public float getFramerate();
 
     /**
-     * Returns <code>true</code> if the video frame is oriented in 
+     * Returns <code>true</code> if the video frame is oriented in
      * OpenGL's coordinate system, <i>origin at bottom left</i>.
      * <p>
-     * Otherwise returns <code>false</code>, i.e. 
+     * Otherwise returns <code>false</code>, i.e.
      * video frame is oriented <i>origin at top left</i>.
      * </p>
      * <p>
@@ -594,14 +594,14 @@ public interface GLMediaPlayer extends TextureSequence {
      * but user shall not rely on.
      * </p>
      * <p>
-     * <code>false</code> GL orientation leads to 
+     * <code>false</code> GL orientation leads to
      * {@link Texture#getMustFlipVertically()} == <code>true</code>,
      * as reflected by all {@link TextureFrame}'s {@link Texture}s
-     * retrieved via {@link #getLastTexture()} or {@link #getNextTexture(GL)}. 
+     * retrieved via {@link #getLastTexture()} or {@link #getNextTexture(GL)}.
      * </p>
      */
     public boolean isGLOriented();
-    
+
     /** Returns the width of the video. */
     public int getWidth();
 
@@ -613,7 +613,7 @@ public interface GLMediaPlayer extends TextureSequence {
 
     /** Returns a string represantation of this player's performance values. */
     public String getPerfString();
-    
+
     /** Adds a {@link GLMediaEventListener} to this player. */
     public void addEventListener(GLMediaEventListener l);
 

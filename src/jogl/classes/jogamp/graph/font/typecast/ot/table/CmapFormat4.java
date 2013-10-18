@@ -102,7 +102,7 @@ public class CmapFormat4 extends CmapFormat {
         for (int i = 0; i < count; i++) {
             _glyphIdArray[i] = di.readUnsignedShort();
         } // + 2*count (8*segCount + 2*count + 18)
-        
+
         // Are there any padding bytes we need to consume?
 //        int leftover = length - (8*segCount + 2*count + 18);
 //        if (leftover > 0) {
@@ -113,7 +113,7 @@ public class CmapFormat4 extends CmapFormat {
     public int getRangeCount() {
         return _segCount;
     }
-    
+
     public Range getRange(int index) throws ArrayIndexOutOfBoundsException {
         if (index < 0 || index >= _segCount) {
             throw new ArrayIndexOutOfBoundsException();

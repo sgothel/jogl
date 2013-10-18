@@ -30,9 +30,9 @@ import java.io.IOException;
  * @version $Id: HdmxTable.java,v 1.2 2007-07-26 11:12:30 davidsch Exp $
  */
 public class HdmxTable implements Table {
-    
+
     public class DeviceRecord {
-        
+
         private short _pixelSize;
         private short _maxWidth;
         private short[] _widths;
@@ -49,11 +49,11 @@ public class HdmxTable implements Table {
         public short getPixelSize() {
             return _pixelSize;
         }
-        
+
         public short getMaxWidth() {
             return _maxWidth;
         }
-        
+
         public short[] getWidths() {
             return _widths;
         }
@@ -61,9 +61,9 @@ public class HdmxTable implements Table {
         public short getWidth(int glyphidx) {
             return _widths[glyphidx];
         }
-        
+
     }
-    
+
     private DirectoryEntry _de;
     private int _version;
     private short _numRecords;
@@ -78,7 +78,7 @@ public class HdmxTable implements Table {
         _numRecords = di.readShort();
         _sizeDeviceRecords = di.readInt();
         _records = new DeviceRecord[_numRecords];
-        
+
         // Read the device records
         for (int i = 0; i < _numRecords; ++i) {
             _records[i] = new DeviceRecord(maxp.getNumGlyphs(), di);
@@ -88,15 +88,15 @@ public class HdmxTable implements Table {
     public int getNumberOfRecords() {
         return _numRecords;
     }
-    
+
     public DeviceRecord getRecord(int i) {
         return _records[i];
     }
-    
+
     public int getType() {
         return hdmx;
     }
-    
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("'hdmx' Table - Horizontal Device Metrics\n----------------------------------------\n");

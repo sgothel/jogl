@@ -41,39 +41,39 @@ public class FPSCounterImpl implements FPSCounter {
     private long fpsStartTime, fpsLastUpdateTime, fpsLastPeriod, fpsTotalDuration;
     private int  fpsTotalFrames;
     private float fpsLast, fpsTotal;
-    
+
     /** Creates a disabled instance */
     public FPSCounterImpl() {
         setUpdateFPSFrames(0, null);
     }
-    
+
     /**
      * Increases total frame count and updates values if feature is enabled and
      * update interval is reached.<br>
-     * 
+     *
      * Shall be called by actual FPSCounter implementing renderer, after display a new frame.
-     *  
+     *
      */
     public final synchronized void tickFPS() {
         fpsTotalFrames++;
         if(fpsUpdateFramesInterval>0 && fpsTotalFrames%fpsUpdateFramesInterval == 0) {
             final long now = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
             fpsLastPeriod = now - fpsLastUpdateTime;
-            fpsLastPeriod = Math.max(fpsLastPeriod, 1); // div 0 
-            fpsLast = ( (float)fpsUpdateFramesInterval * 1000f ) / ( (float) fpsLastPeriod ) ; 
-            
+            fpsLastPeriod = Math.max(fpsLastPeriod, 1); // div 0
+            fpsLast = ( (float)fpsUpdateFramesInterval * 1000f ) / ( (float) fpsLastPeriod ) ;
+
             fpsTotalDuration = now - fpsStartTime;
             fpsTotalDuration = Math.max(fpsTotalDuration, 1); // div 0
             fpsTotal= ( (float)fpsTotalFrames * 1000f ) / ( (float) fpsTotalDuration ) ;
-            
+
             if(null != fpsOutputStream) {
                 fpsOutputStream.println(toString());
             }
-            
+
             fpsLastUpdateTime = now;
         }
     }
-    
+
     public StringBuilder toString(StringBuilder sb) {
         if(null==sb) {
             sb = new StringBuilder();
@@ -81,22 +81,22 @@ public class FPSCounterImpl implements FPSCounter {
         String fpsLastS = String.valueOf(fpsLast);
         fpsLastS = fpsLastS.substring(0, fpsLastS.indexOf('.') + 2);
         String fpsTotalS = String.valueOf(fpsTotal);
-        fpsTotalS = fpsTotalS.substring(0, fpsTotalS.indexOf('.') + 2);                
+        fpsTotalS = fpsTotalS.substring(0, fpsTotalS.indexOf('.') + 2);
         sb.append(fpsTotalDuration/1000 +" s: "+ fpsUpdateFramesInterval+" f / "+ fpsLastPeriod+" ms, " + fpsLastS+" fps, "+ fpsLastPeriod/fpsUpdateFramesInterval+" ms/f; "+
                   "total: "+ fpsTotalFrames+" f, "+ fpsTotalS+ " fps, "+ fpsTotalDuration/fpsTotalFrames+" ms/f");
         return sb;
     }
-    
+
     public String toString() {
         return toString(null).toString();
     }
-    
+
     public final synchronized void setUpdateFPSFrames(int frames, PrintStream out) {
         fpsUpdateFramesInterval = frames;
         fpsOutputStream = out;
         resetFPSCounter();
     }
-    
+
     public final synchronized void resetFPSCounter() {
         fpsStartTime = TimeUnit.NANOSECONDS.toMillis(System.nanoTime()); // overwrite startTime to real init one
         fpsLastUpdateTime   = fpsStartTime;
@@ -109,9 +109,9 @@ public class FPSCounterImpl implements FPSCounter {
     public final synchronized int getUpdateFPSFrames() {
         return fpsUpdateFramesInterval;
     }
-    
-    public final synchronized long getFPSStartTime()   { 
-        return fpsStartTime; 
+
+    public final synchronized long getFPSStartTime()   {
+        return fpsStartTime;
     }
 
     public final synchronized long getLastFPSUpdateTime() {
@@ -121,20 +121,20 @@ public class FPSCounterImpl implements FPSCounter {
     public final synchronized long getLastFPSPeriod() {
         return fpsLastPeriod;
     }
-    
+
     public final synchronized float getLastFPS() {
         return fpsLast;
     }
-    
-    public final synchronized int getTotalFPSFrames() { 
-        return fpsTotalFrames; 
+
+    public final synchronized int getTotalFPSFrames() {
+        return fpsTotalFrames;
     }
 
-    public final synchronized long getTotalFPSDuration() { 
-        return fpsTotalDuration; 
+    public final synchronized long getTotalFPSDuration() {
+        return fpsTotalDuration;
     }
-    
+
     public final synchronized float getTotalFPS() {
         return fpsTotal;
-    }        
+    }
 }

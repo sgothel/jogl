@@ -47,13 +47,13 @@
  Apache Software Foundation, please see <http://www.apache.org/>.
 
 */
- 
+
 package jogamp.graph.font.typecast.ot.table;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 
-/** 
+/**
  *
  * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
  * @version $Id: LookupSubtableFactory.java,v 1.2 2007-01-24 09:47:46 davidsch Exp $

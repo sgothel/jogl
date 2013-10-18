@@ -41,15 +41,15 @@ import jogamp.newt.Debug;
  *
  *    - touchSlop (scaled in pixels):
  *       - Min. movement w/ 2 pointer within ScaledDoubleTapSlop starting 'scroll' mode
- *       
+ *
  *    - Avoid computation if not within gesture, especially for MOVE/DRAG
- *    
+ *
  *    - Only allow gesture to start with PRESS
- *    
- *    - Leave gesture completely with RELEASE of both/all fingers, or dist-diff exceeds doubleTapSlop 
- *    
+ *
+ *    - Leave gesture completely with RELEASE of both/all fingers, or dist-diff exceeds doubleTapSlop
+ *
  *    - Tolerate temporary lift 1 of 2 pointer
- *    
+ *
  *     - Always validate pointer-id
  * </pre>
  * </p>
@@ -74,27 +74,27 @@ public class DoubleTapScrollGesture implements GestureHandler {
     public static final int SCROLL_SLOP_PIXEL;
     /** Two pointer 'double tap' slop in pixels (fallback), defaults to 104 pixels. Can be overriden by integer property <code>newt.event.double_tap_slop_pixel</code>.*/
     public static final int DOUBLE_TAP_SLOP_PIXEL;
-    
+
     /** Scroll threshold in millimeter, defaults to 3 mm. Can be overriden by integer property <code>newt.event.scroll_slop_mm</code>.*/
     public static final float SCROLL_SLOP_MM;
     /** Two pointer 'double tap' slop in millimeter, defaults to 20 mm. Can be overriden by integer property <code>newt.event.double_tap_slop_mm</code>.*/
     public static final float DOUBLE_TAP_SLOP_MM;
-    
+
     static {
         Debug.initSingleton();
-        
+
         SCROLL_SLOP_PIXEL = Debug.getIntProperty("newt.event.scroll_slop_pixel", true, 16);
         DOUBLE_TAP_SLOP_PIXEL = Debug.getIntProperty("newt.event.double_tap_slop_pixel", true, 104);
         SCROLL_SLOP_MM = Debug.getIntProperty("newt.event.scroll_slop_mm", true, 3);
         DOUBLE_TAP_SLOP_MM = Debug.getIntProperty("newt.event.double_tap_slop_mm", true, 20);
     }
-    
+
     private static final int ST_NONE = 0;
     private static final int ST_1PRESS = 1;
     private static final int ST_2PRESS_T = 2;
     private static final int ST_2PRESS_C = 3;
     private static final int ST_SCROLL = 4;
-    
+
     private final int scrollSlop, scrollSlopSquare, doubleTapSlop, doubleTapSlopSquare;
     private final float[] scrollDistance = new float[] { 0f, 0f };
     private int[] pIds = new int[] { -1, -1 };
@@ -104,18 +104,18 @@ public class DoubleTapScrollGesture implements GestureHandler {
     private int lastX, lastY;
     private int pointerDownCount;
     private MouseEvent hitGestureEvent;
-        
+
     private static final int getSquareDistance(float x1, float y1, float x2, float y2) {
         final int deltaX = (int) x1 - (int) x2;
         final int deltaY = (int) y1 - (int) y2;
         return deltaX * deltaX + deltaY * deltaY;
     }
-    
+
     private int gesturePointers(final MouseEvent e, final int excludeIndex) {
-        int j = 0;       
+        int j = 0;
         for(int i=e.getPointerCount()-1; i>=0; i--) {
             if( excludeIndex != i ) {
-                final int id = e.getPointerId(i); 
+                final int id = e.getPointerId(i);
                 if( pIds[0] == id || pIds[1] == id ) {
                     j++;
                 }
@@ -123,10 +123,10 @@ public class DoubleTapScrollGesture implements GestureHandler {
         }
         return j;
     }
-    
+
     /**
      * scaledScrollSlop < scaledDoubleTapSlop
-     * @param scaledScrollSlop Distance a pointer can wander before we think the user is scrolling in <i>pixels</i>. 
+     * @param scaledScrollSlop Distance a pointer can wander before we think the user is scrolling in <i>pixels</i>.
      * @param scaledDoubleTapSlop Distance in <i>pixels</i> between the first touch and second touch to still be considered a double tap.
      */
     public DoubleTapScrollGesture(int scaledScrollSlop, int scaledDoubleTapSlop) {
@@ -137,9 +137,9 @@ public class DoubleTapScrollGesture implements GestureHandler {
         pointerDownCount = 0;
         clear(true);
         if(DEBUG) {
-            System.err.println("DoubleTapScroll    scrollSlop (scaled) "+scrollSlop);                               
-            System.err.println("DoubleTapScroll doubleTapSlop (scaled) "+doubleTapSlop);                               
-        }        
+            System.err.println("DoubleTapScroll    scrollSlop (scaled) "+scrollSlop);
+            System.err.println("DoubleTapScroll doubleTapSlop (scaled) "+doubleTapSlop);
+        }
     }
 
     public String toString() {
@@ -160,17 +160,17 @@ public class DoubleTapScrollGesture implements GestureHandler {
             lastY = 0;
         }
     }
-    
+
     @Override
     public boolean isWithinGesture() {
         return ST_2PRESS_C <= gestureState;
     }
-    
+
     @Override
     public boolean hasGesture() {
         return null != hitGestureEvent;
     }
-    
+
     @Override
     public InputEvent getGestureEvent() {
         if( null != hitGestureEvent ) {
@@ -184,17 +184,17 @@ public class DoubleTapScrollGesture implements GestureHandler {
                 modifiers |= com.jogamp.newt.event.InputEvent.SHIFT_MASK;
             }
             return new MouseEvent(MouseEvent.EVENT_MOUSE_WHEEL_MOVED, ge.getSource(), ge.getWhen(), modifiers,
-                                  ge.getAllPointerTypes(), ge.getAllPointerIDs(), 
-                                  ge.getAllX(), ge.getAllY(), ge.getAllPressures(), ge.getMaxPressure(), 
+                                  ge.getAllPointerTypes(), ge.getAllPointerIDs(),
+                                  ge.getAllX(), ge.getAllY(), ge.getAllPressures(), ge.getMaxPressure(),
                                   ge.getButton(), ge.getClickCount(), rotationXYZ, scrollSlop);
         }
         return null;
     }
-    
+
     public final float[] getScrollDistanceXY() {
         return scrollDistance;
     }
-    
+
     @Override
     public boolean process(final InputEvent in) {
         if( null != hitGestureEvent || !(in instanceof MouseEvent) ) {
@@ -220,7 +220,7 @@ public class DoubleTapScrollGesture implements GestureHandler {
                     final int y1 = pe.getY(1);
                     final int xm = (x0+x1)/2;
                     final int ym = (y0+y1)/2;
-                   
+
                     if( ST_1PRESS == gestureState ) {
                         final int sqDist = getSquareDistance(x0, y0, x1, y1);
                         final boolean isDistWithinDoubleTapSlop = sqDist < doubleTapSlopSquare;
@@ -254,7 +254,7 @@ public class DoubleTapScrollGesture implements GestureHandler {
                     System.err.println(this+".pressed: gPtr "+gPtr+", this "+lastX+"/"+lastY+", "+pe);
                 }
             } break;
-            
+
             case MouseEvent.EVENT_MOUSE_RELEASED: {
                 pointerDownCount--; // lifted
                 final int gPtr = gesturePointers(pe, 0); // w/o lifted pointer
@@ -269,7 +269,7 @@ public class DoubleTapScrollGesture implements GestureHandler {
                     System.err.println(this+".released: gPtr "+gPtr+", "+pe);
                 }
             } break;
-            
+
             case MouseEvent.EVENT_MOUSE_DRAGGED: {
                 if( 2 == pointerDownCount && ST_1PRESS < gestureState ) {
                     final int gPtr = gesturePointers(pe, -1);
@@ -289,11 +289,11 @@ public class DoubleTapScrollGesture implements GestureHandler {
                                         gestureState = ST_SCROLL;
                                     }
                                 } break;
-                                
+
                                 case ST_2PRESS_C:
                                     gestureState = ST_SCROLL;
                                     break;
-                                
+
                                 case ST_SCROLL:
                                     scrollDistance[0] = lastX - xm;
                                     scrollDistance[1] = lastY - ym;
@@ -338,7 +338,7 @@ public class DoubleTapScrollGesture implements GestureHandler {
                     }
                 }
             } break;
-            
+
             default:
         }
         return null != hitGestureEvent;

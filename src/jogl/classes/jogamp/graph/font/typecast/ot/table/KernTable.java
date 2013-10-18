@@ -1,9 +1,9 @@
 /*****************************************************************************
  * Copyright (C) The Apache Software Foundation. All rights reserved.        *
- * ------------------------------------------------------------------------- * 
- * This software is published under the terms of the Apache Software License * 
- * version 1.1, a copy of which has been included with this distribution in  * 
- * the LICENSE file.                                                         * 
+ * ------------------------------------------------------------------------- *
+ * This software is published under the terms of the Apache Software License *
+ * version 1.1, a copy of which has been included with this distribution in  *
+ * the LICENSE file.                                                         *
  *****************************************************************************/
 
 package jogamp.graph.font.typecast.ot.table;
@@ -17,7 +17,7 @@ import java.io.IOException;
  * @version $Id: KernTable.java,v 1.1.1.1 2004-12-05 23:14:48 davidsch Exp $
  */
 public class KernTable implements Table {
-    
+
     private DirectoryEntry de;
     private int version;
     private int nTables;
@@ -37,7 +37,7 @@ public class KernTable implements Table {
     public int getSubtableCount() {
         return nTables;
     }
-    
+
     public KernSubtable getSubtable(int i) {
         return tables[i];
     }
@@ -58,5 +58,5 @@ public class KernTable implements Table {
     public DirectoryEntry getDirectoryEntry() {
         return de;
     }
-    
+
 }

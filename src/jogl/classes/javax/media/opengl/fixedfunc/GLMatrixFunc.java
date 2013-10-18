@@ -58,18 +58,18 @@ public interface GLMatrixFunc {
      *        which is the same behavior than the native JOGL GL impl
      */
     public void glGetFloatv(int pname, java.nio.FloatBuffer params);
-    
+
     /**
      * Copy the named matrix to the given storage at offset.
      * @param pname {@link #GL_MODELVIEW_MATRIX}, {@link #GL_PROJECTION_MATRIX} or {@link #GL_TEXTURE_MATRIX}
      * @param params storage
      * @param params_offset storage offset
-     */ 
+     */
     public void glGetFloatv(int pname, float[] params, int params_offset);
-    
+
     /**
      * glGetIntegerv
-     * @param pname {@link #GL_MATRIX_MODE} to receive the current matrix mode 
+     * @param pname {@link #GL_MATRIX_MODE} to receive the current matrix mode
      * @param params the FloatBuffer's position remains unchanged
      *        which is the same behavior than the native JOGL GL impl
      */
@@ -89,7 +89,7 @@ public interface GLMatrixFunc {
      * </p>
      */
     public void glPushMatrix();
-    
+
     /**
      * Pop the current matrix from it's stack.
      * @see #glPushMatrix()
@@ -97,19 +97,19 @@ public interface GLMatrixFunc {
     public void glPopMatrix();
 
     /**
-     * Load the current matrix with the identity matrix 
+     * Load the current matrix with the identity matrix
      */
     public void glLoadIdentity() ;
 
     /**
-     * Load the current matrix w/ the provided one. 
+     * Load the current matrix w/ the provided one.
      * @param params the FloatBuffer's position remains unchanged,
      *        which is the same behavior than the native JOGL GL impl
      */
-    public void glLoadMatrixf(java.nio.FloatBuffer m) ;    
+    public void glLoadMatrixf(java.nio.FloatBuffer m) ;
     /**
      * Load the current matrix w/ the provided one.
-     */ 
+     */
     public void glLoadMatrixf(float[] m, int m_offset);
 
     /**

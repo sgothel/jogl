@@ -41,13 +41,13 @@ public interface InsetsImmutable extends WriteCloneable {
 
     /** @return total width, ie. <code>left_width + right_width</code> */
     int getTotalWidth();
-    
+
     /** @return top inset height */
     int getTopHeight();
 
     /** @return bottom inset height */
     int getBottomHeight();
-    
+
     /** @return total height, ie. <code>top_height + bottom_height</code> */
     int getTotalHeight();
 

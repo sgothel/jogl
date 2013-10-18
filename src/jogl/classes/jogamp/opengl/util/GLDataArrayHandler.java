@@ -35,8 +35,8 @@ import com.jogamp.opengl.util.GLArrayDataEditable;
 
 
 /**
- * Used for pure VBO data arrays, i.e. where the buffer data 
- * does not represents a specific array name. 
+ * Used for pure VBO data arrays, i.e. where the buffer data
+ * does not represents a specific array name.
  */
 public class GLDataArrayHandler extends GLVBOArrayHandler implements GLArrayHandler {
 
@@ -47,12 +47,12 @@ public class GLDataArrayHandler extends GLVBOArrayHandler implements GLArrayHand
   public final void setSubArrayVBOName(int vboName) {
       throw new UnsupportedOperationException();
   }
-  
+
   public final void addSubHandler(GLArrayHandlerFlat handler) {
       throw new UnsupportedOperationException();
   }
-  
-  public final void enableState(GL gl, boolean enable, Object ext) { 
+
+  public final void enableState(GL gl, boolean enable, Object ext) {
     if(enable) {
         if(!ad.isVBO()) {
             // makes no sense otherwise

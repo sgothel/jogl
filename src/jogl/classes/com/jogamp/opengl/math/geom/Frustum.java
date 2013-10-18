@@ -30,11 +30,11 @@ package com.jogamp.opengl.math.geom;
 import com.jogamp.common.os.Platform;
 
 /**
- * Providing frustum {@link #getPlanes() planes} derived by different inputs 
+ * Providing frustum {@link #getPlanes() planes} derived by different inputs
  * ({@link #updateByPMV(float[], int) P*MV}, ..)
- * used to {@link #classifySphere(float[], float) classify objects} and to test 
+ * used to {@link #classifySphere(float[], float) classify objects} and to test
  * whether they are {@link #isOutside(AABBox) outside}.
- * 
+ *
  * <p>
  * Extracting the world-frustum planes from the P*Mv:
  * <pre>
@@ -54,7 +54,7 @@ import com.jogamp.common.os.Platform;
  * Lighthouse3d.com
  * http://www.lighthouse3d.com/tutorials/view-frustum-culling/
  * </pre>
- * 
+ *
  * Fundamentals about Planes, Half-Spaces and Frustum-Culling:<br/>
  * <pre>
  * Planes and Half-Spaces,  Max Wagner <mwagner@digipen.edu>
@@ -69,7 +69,7 @@ import com.jogamp.common.os.Platform;
 public class Frustum {
     /** Normalized planes[l, r, b, t, n, f] */
 	protected Plane[] planes = new Plane[6];
-	
+
 	/**
 	 * Creates an undefined instance w/o calculating the frustum.
 	 * <p>
@@ -83,35 +83,35 @@ public class Frustum {
             planes[i] = new Plane();
         }
     }
-    
-	/** 
+
+	/**
 	 * Plane equation := dot(n, x - p) = 0 ->  ax + bc + cx + d == 0
 	 * <p>
 	 * In order to work w/ {@link Frustum#isOutside(AABBox) isOutside(..)} methods,
 	 * the normals have to point to the inside of the frustum.
-	 * </p> 
+	 * </p>
 	 */
     public static class Plane {
         /** Normal of the plane */
         public final float[] n = new float[3];
-        
+
         /** Distance to origin */
         public float d;
 
-        /** 
+        /**
          * Return signed distance of plane to given point.
          * <ul>
          *   <li>If dist &lt; 0 , then the point p lies in the negative halfspace.</li>
          *   <li>If dist = 0 , then the point p lies in the plane.</li>
          *   <li>If dist &gt; 0 , then the point p lies in the positive halfspace.</li>
-         * </ul> 
+         * </ul>
          * A plane cuts 3D space into 2 half spaces.
          * <p>
          * Positive halfspace is where the plane’s normals vector points into.
-         * </p> 
+         * </p>
          * <p>
          * Negative halfspace is the <i>other side</i> of the plane, i.e. *-1
-         * </p> 
+         * </p>
          **/
         public final float distanceTo(float x, float y, float z) {
             return n[0] * x + n[1] * y + n[2] * z + d;
@@ -121,13 +121,13 @@ public class Frustum {
         public final float distanceTo(float[] p) {
             return n[0] * p[0] + n[1] * p[1] + n[2] * p[2] + d;
         }
-        
+
         @Override
         public String toString() {
             return "Plane[ [ " + n[0] + ", " + n[1] + ", " + n[2] + " ], " + d + "]";
         }
     }
-    
+
     /** Index for left plane: {@value} */
     public static final int LEFT   = 0;
     /** Index for right plane: {@value} */
@@ -140,7 +140,7 @@ public class Frustum {
     public static final int NEAR   = 4;
     /** Index for far plane: {@value} */
     public static final int FAR    = 5;
-    
+
     /**
      * {@link Plane}s are ordered in the returned array as follows:
      * <ul>
@@ -154,17 +154,17 @@ public class Frustum {
      * <p>
      * {@link Plane}'s normals are pointing to the inside of the frustum
      * in order to work w/ {@link #isOutside(AABBox) isOutside(..)} methods.
-     * </p> 
-     * 
-     * @return array of normalized {@link Plane}s, order see above. 
+     * </p>
+     *
+     * @return array of normalized {@link Plane}s, order see above.
      */
     public final Plane[] getPlanes() { return planes; }
-    
+
     /**
      * Copy the given <code>src</code> planes into this this instance's planes.
      * @param src the 6 source planes
      */
-    public final void updateByPlanes(Plane[] src) { 
+    public final void updateByPlanes(Plane[] src) {
         for (int i = 0; i < 6; ++i) {
             final Plane p0 = planes[i];
             final float[] p0_n = p0.n;
@@ -176,7 +176,7 @@ public class Frustum {
             p0.d = p1.d;
         }
     }
-    
+
     /**
      * Calculate the frustum planes in world coordinates
      * using the passed float[16] as premultiplied P*MV (column major order).
@@ -185,7 +185,7 @@ public class Frustum {
      * as required by this class.
      * </p>
      */
-    public void updateByPMV(float[] pmv, int pmv_off) {        
+    public void updateByPMV(float[] pmv, int pmv_off) {
         // Left:   a = m41 + m11, b = m42 + m12, c = m43 + m13, d = m44 + m14  - [1..4] row-major
         // Left:   a = m30 + m00, b = m31 + m01, c = m32 + m02, d = m33 + m03  - [0..3] row-major
         {
@@ -264,11 +264,11 @@ public class Frustum {
             p.d /= invl;
         }
     }
-    
+
 	private static final boolean isOutsideImpl(Plane p, AABBox box) {
 	    final float[] low = box.getLow();
 	    final float[] high = box.getHigh();
-	    
+
 		if ( p.distanceTo(low[0],  low[1],  low[2])  > 0.0f ||
 		     p.distanceTo(high[0], low[1],  low[2])  > 0.0f ||
 		     p.distanceTo(low[0],  high[1], low[2])  > 0.0f ||
@@ -298,19 +298,19 @@ public class Frustum {
         // We make no attempt to determine whether it's fully inside or not.
         return false;
     }
-    
-    
+
+
     public static enum Location { OUTSIDE, INSIDE, INTERSECT };
-    
+
     /**
      * Check to see if a point is outside, inside or on a plane of the frustum.
-     * 
+     *
      * @param p the point
      * @return {@link Location} of point related to frustum planes
      */
     public final Location classifyPoint(float[] p) {
         Location res = Location.INSIDE;
-        
+
         for (int i = 0; i < 6; ++i) {
             final float d = planes[i].distanceTo(p);
             if ( d < 0.0f ) {
@@ -321,43 +321,43 @@ public class Frustum {
         }
         return res;
     }
-    
+
     /**
      * Check to see if a point is outside of the frustum.
-     * 
+     *
      * @param p the point
      * @return true if outside of the frustum, otherwise inside or on a plane
      */
     public final boolean isPointOutside(float[] p) {
         return Location.OUTSIDE == classifyPoint(p);
     }
-    
+
     /**
      * Check to see if a sphere is outside, intersecting or inside of the frustum.
-     * 
+     *
      * @param p center of the sphere
      * @param radius radius of the sphere
      * @return {@link Location} of point related to frustum planes
      */
     public final Location classifySphere(float[] p, float radius) {
         Location res = Location.INSIDE; // fully inside
-        
+
         for (int i = 0; i < 6; ++i) {
             final float d = planes[i].distanceTo(p);
-            if ( d < -radius ) { 
+            if ( d < -radius ) {
                 // fully outside
                 return Location.OUTSIDE;
             } else if (d < radius ) {
                 // intersecting
                 res = Location.INTERSECT;
             }
-        }        
+        }
         return res;
     }
-    
+
     /**
      * Check to see if a sphere is outside of the frustum.
-     * 
+     *
      * @param p center of the sphere
      * @param radius radius of the sphere
      * @return true if outside of the frustum, otherwise inside or intersecting
@@ -365,7 +365,7 @@ public class Frustum {
     public final boolean isSphereOutside(float[] p, float radius) {
         return Location.OUTSIDE == classifySphere(p, radius);
     }
-    
+
     public StringBuilder toString(StringBuilder sb) {
         if( null == sb ) {
             sb = new StringBuilder();
@@ -380,7 +380,7 @@ public class Frustum {
         .append("]");
         return sb;
     }
-    
+
 	@Override
 	public String toString() {
 	    return toString(null).toString();

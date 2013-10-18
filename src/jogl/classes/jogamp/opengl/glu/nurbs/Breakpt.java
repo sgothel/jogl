@@ -36,9 +36,9 @@ package jogamp.opengl.glu.nurbs;
 
 /**
  * Class holding break point parameters
- * 
+ *
  * @author Tomas Hrasky
- * 
+ *
  */
 public class Breakpt {
 

@@ -6,15 +6,15 @@
  * this file except in compliance with the License. You may obtain a copy
  * of the License at Silicon Graphics, Inc., attn: Legal Services, 1600
  * Amphitheatre Parkway, Mountain View, CA 94043-1351, or at:
- * 
+ *
  * http://oss.sgi.com/projects/FreeB
- * 
+ *
  * Note that, as provided in the License, the Software is distributed on an
  * "AS IS" basis, with ALL EXPRESS AND IMPLIED WARRANTIES AND CONDITIONS
  * DISCLAIMED, INCLUDING, WITHOUT LIMITATION, ANY IMPLIED WARRANTIES AND
  * CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY, FITNESS FOR A
  * PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
- * 
+ *
  * NOTE:  The Original Code (as defined below) has been licensed to Sun
  * Microsystems, Inc. ("Sun") under the SGI Free Software License B
  * (Version 1.1), shown above ("SGI License").   Pursuant to Section
@@ -30,7 +30,7 @@
  * Inc. The Original Code is Copyright (c) 1991-2000 Silicon Graphics, Inc.
  * Copyright in any portions created by third parties is as indicated
  * elsewhere herein. All Rights Reserved.
- * 
+ *
  * Additional Notice Provisions: The application programming interfaces
  * established by SGI in conjunction with the Original Code are The
  * OpenGL(R) Graphics System: A Specification (Version 1.2.1), released
@@ -51,38 +51,38 @@ import java.nio.*;
  * @author Administrator
  */
 public class Extract565 implements Extract {
-  
+
   /** Creates a new instance of Extract565 */
   public Extract565() {
   }
-  
+
   public void extract( boolean isSwap, ByteBuffer packedPixel, float[] extractComponents ) {
     int ushort = 0;
-    
+
     if( isSwap ) {
       ushort = 0x0000FFFF & Mipmap.GLU_SWAP_2_BYTES( packedPixel.getShort() );
     } else {
       ushort = 0x0000FFFF & packedPixel.getShort();
     }
-    
+
     // 11111000,00000000 == 0xF800
     // 00000111,11100000 == 0x07E0
     // 00000000,00111111 == 0x001F
-    
+
     extractComponents[0] = (float)( ( ushort & 0xF800 ) >> 11 ) / 31.0f;
     extractComponents[1] = (float)( ( ushort & 0x07E0 ) >> 5 ) / 63.0f;
     extractComponents[2] = (float)( ( ushort & 0x001F ) ) / 31.0f;
   }
-  
+
   public void shove( float[] shoveComponents, int index, ByteBuffer packedPixel ) {
     // 11111000,00000000 == 0xF800
     // 00000111,11100000 == 0x07E0
     // 00000000,00111111 == 0x001F
-    
+
     assert( 0.0f <= shoveComponents[0] && shoveComponents[0] <= 1.0f );
     assert( 0.0f <= shoveComponents[1] && shoveComponents[1] <= 1.0f );
     assert( 0.0f <= shoveComponents[2] && shoveComponents[2] <= 1.0f );
-    
+
     // due to limited precision, need to round before shoving
     int ushort = (((int)((shoveComponents[0] * 31) + 0.5f) << 11) & 0x0000F800 );
     ushort |= (((int)((shoveComponents[1] * 63) + 0.5f) << 5) & 0x000007E0 );

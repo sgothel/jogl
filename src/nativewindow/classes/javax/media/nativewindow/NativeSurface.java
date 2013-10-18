@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package javax.media.nativewindow;
 
 /** Provides low-level information required for
@@ -54,10 +54,10 @@ public interface NativeSurface extends SurfaceUpdatedListener {
    * <p>
    * The surface handle shall be valid after a successfull call,
    * ie return a value other than {@link #LOCK_SURFACE_UNLOCKED} and {@link #LOCK_SURFACE_NOT_READY},
-   * which is 
-   * <pre> 
-   *    boolean ok = LOCK_SURFACE_NOT_READY < lockSurface(); 
-   * </pre> 
+   * which is
+   * <pre>
+   *    boolean ok = LOCK_SURFACE_NOT_READY < lockSurface();
+   * </pre>
    * </p>
    * <p>
    * The caller may need to take care of the result {@link #LOCK_SURFACE_CHANGED},
@@ -71,7 +71,7 @@ public interface NativeSurface extends SurfaceUpdatedListener {
    * This call allows recursion from the same thread.
    * </p>
    * <p>
-   * The implementation may want to aquire the 
+   * The implementation may want to aquire the
    * application level {@link com.jogamp.common.util.locks.RecursiveLock}
    * first before proceeding with a native surface lock.
    * </p>
@@ -115,7 +115,7 @@ public interface NativeSurface extends SurfaceUpdatedListener {
    * </pre>
    */
   public boolean isSurfaceLockedByOtherThread();
-  
+
   /**
    * Return the locking owner's Thread, or null if not locked.
    */
@@ -123,15 +123,15 @@ public interface NativeSurface extends SurfaceUpdatedListener {
 
   /**
    * Provide a mechanism to utilize custom (pre-) swap surface
-   * code. This method is called before the render toolkit (e.g. JOGL) 
+   * code. This method is called before the render toolkit (e.g. JOGL)
    * swaps the buffer/surface if double buffering is enabled.
-   * <p> 
+   * <p>
    * The implementation may itself apply the swapping,
    * in which case true shall be returned.
    * </p>
    *
    * @return true if this method completed swapping the surface,
-   *         otherwise false, in which case eg the GLDrawable 
+   *         otherwise false, in which case eg the GLDrawable
    *         implementation has to swap the code.
    */
   public boolean surfaceSwap();
@@ -153,13 +153,13 @@ public interface NativeSurface extends SurfaceUpdatedListener {
 
   /** Remove the specified {@link SurfaceUpdatedListener} from the list. */
   public void removeSurfaceUpdatedListener(SurfaceUpdatedListener l);
-  
+
   /**
    * Returns the handle to the surface for this NativeSurface. <P>
-   * 
+   *
    * The surface handle should be set/update by {@link #lockSurface()},
    * where {@link #unlockSurface()} is not allowed to modify it.
-   * After {@link #unlockSurface()} it is no more guaranteed 
+   * After {@link #unlockSurface()} it is no more guaranteed
    * that the surface handle is still valid.
    *
    * The surface handle shall reflect the platform one
@@ -195,16 +195,16 @@ public interface NativeSurface extends SurfaceUpdatedListener {
   public AbstractGraphicsConfiguration getGraphicsConfiguration();
 
   /**
-   * Convenience: Get display handle from 
+   * Convenience: Get display handle from
    *   AbstractGraphicsConfiguration . AbstractGraphicsScreen . AbstractGraphicsDevice
    */
   public long getDisplayHandle();
 
   /**
-   * Convenience: Get display handle from 
+   * Convenience: Get display handle from
    *   AbstractGraphicsConfiguration . AbstractGraphicsScreen
    */
   public int  getScreenIndex();
-  
+
 }
 

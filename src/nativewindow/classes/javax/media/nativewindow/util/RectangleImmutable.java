@@ -49,7 +49,7 @@ public interface RectangleImmutable extends WriteCloneable, Comparable<Rectangle
     RectangleImmutable intersection(RectangleImmutable r);
     /** Returns the intersection of this rectangleand the given coordinates. */
     RectangleImmutable intersection(final int rx1, final int ry1, final int rx2, final int ry2);
-    /** 
+    /**
      * Returns the coverage of given rectangle w/ this this one, i.e. between <code>0.0</code> and <code>1.0</code>.
      * <p>
      * Coverage is computed by:
@@ -57,19 +57,19 @@ public interface RectangleImmutable extends WriteCloneable, Comparable<Rectangle
      *    isect = this.intersection(r);
      *    coverage = area( isect ) / area( this ) ;
      * </pre>
-     * </p> 
+     * </p>
      */
     float coverage(RectangleImmutable r);
-    
+
     /**
      * <p>
      * Compares square of size 1st, if equal the square of position.
-     * </p> 
+     * </p>
      * {@inheritDoc}
      */
     @Override
     public int compareTo(final RectangleImmutable d);
-    
+
     /**
      * Checks whether two rect objects are equal. Two instances
      * of <code>Rectangle</code> are equal if the four integer values

@@ -34,9 +34,9 @@ import javax.media.nativewindow.NativeWindowException;
 
 public class RegisteredClassFactory {
     private static final boolean DEBUG = Debug.debug("RegisteredClass");
-    private static final ArrayList<RegisteredClassFactory> registeredFactories;    
+    private static final ArrayList<RegisteredClassFactory> registeredFactories;
     private static final long hInstance;
-    
+
     static {
         hInstance = GDI.GetApplicationHandle();
         if( 0 == hInstance ) {
@@ -44,7 +44,7 @@ public class RegisteredClassFactory {
         }
         registeredFactories = new ArrayList<RegisteredClassFactory>();
     }
-    
+
     private String classBaseName;
     private long wndProc;
 
@@ -52,9 +52,9 @@ public class RegisteredClassFactory {
     private int classIter = 0;
     private int sharedRefCount = 0;
     private final Object sync = new Object();
-    
+
     /**
-     * Release the {@link RegisteredClass} of all {@link RegisteredClassFactory}. 
+     * Release the {@link RegisteredClass} of all {@link RegisteredClassFactory}.
      */
     public static void shutdownSharedClasses() {
         synchronized(registeredFactories) {
@@ -65,7 +65,7 @@ public class RegisteredClassFactory {
                         GDIUtil.DestroyWindowClass(rcf.sharedClass.getHInstance(), rcf.sharedClass.getName());
                         rcf.sharedClass = null;
                         rcf.sharedRefCount = 0;
-                        rcf.classIter = 0;                 
+                        rcf.classIter = 0;
                         if(DEBUG) {
                           System.err.println("RegisteredClassFactory #"+j+"/"+registeredFactories.size()+" shutdownSharedClasses : "+rcf.sharedClass);
                         }
@@ -74,7 +74,7 @@ public class RegisteredClassFactory {
             }
         }
     }
-    
+
     /** Application handle. */
     public static long getHInstance() { return hInstance; }
 
@@ -94,7 +94,7 @@ public class RegisteredClassFactory {
               }
               String clazzName = null;
               boolean registered = false;
-              final int classIterMark = classIter - 1; 
+              final int classIterMark = classIter - 1;
               while ( !registered && classIterMark != classIter ) {
                   // Retry with next clazz name, this could happen if more than one JVM is running
                   clazzName = classBaseName + classIter;

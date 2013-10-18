@@ -28,24 +28,24 @@
 
 package javax.media.nativewindow;
 
-/** 
- * Interface allowing upstream caller to pass lifecycle actions and size info 
- * to a {@link ProxySurface} instance. 
- */ 
+/**
+ * Interface allowing upstream caller to pass lifecycle actions and size info
+ * to a {@link ProxySurface} instance.
+ */
 public interface UpstreamSurfaceHook {
     /** called within {@link ProxySurface#createNotify()} within lock, before using surface. */
     public void create(ProxySurface s);
     /** called within {@link ProxySurface#destroyNotify()} within lock, before clearing fields. */
     public void destroy(ProxySurface s);
 
-    /** Returns the width of the upstream surface, used if {@link ProxySurface#UPSTREAM_PROVIDES_SIZE} is set. */ 
+    /** Returns the width of the upstream surface, used if {@link ProxySurface#UPSTREAM_PROVIDES_SIZE} is set. */
     public int getWidth(ProxySurface s);
-    /** Returns the height of the upstream surface, used if {@link ProxySurface#UPSTREAM_PROVIDES_SIZE} is set. */ 
+    /** Returns the height of the upstream surface, used if {@link ProxySurface#UPSTREAM_PROVIDES_SIZE} is set. */
     public int getHeight(ProxySurface s);
-    
+
     /**
-     * {@link UpstreamSurfaceHook} w/ mutable size, allowing it's {@link ProxySurface} user to resize.  
-     */ 
+     * {@link UpstreamSurfaceHook} w/ mutable size, allowing it's {@link ProxySurface} user to resize.
+     */
     public interface MutableSize extends UpstreamSurfaceHook {
         public void setSize(int width, int height);
     }

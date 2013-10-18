@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -35,10 +35,10 @@ import jogamp.opengl.Debug;
 
 public interface AudioSink {
     public static final boolean DEBUG = Debug.debug("AudioSink");
-    
+
     /** Default frame duration in millisecond, i.e. 1 frame per {@value} ms. */
     public static final int DefaultFrameDuration = 32;
-        
+
     /** Initial audio queue size in milliseconds. {@value} ms, i.e. 16 frames per 32 ms. See {@link #init(AudioFormat, float, int, int, int)}.*/
     public static final int DefaultInitialQueueSize = 16 * 32; // 512 ms
     /** Audio queue grow size in milliseconds. {@value} ms, i.e. 16 frames per 32 ms. See {@link #init(AudioFormat, float, int, int, int)}.*/
@@ -47,7 +47,7 @@ public interface AudioSink {
     public static final int DefaultQueueLimitWithVideo =  96 * 32; // 3072 ms
     /** Audio queue limit w/o video in milliseconds. {@value} ms, i.e. 32 frames per 32 ms. See {@link #init(AudioFormat, float, int, int, int)}.*/
     public static final int DefaultQueueLimitAudioOnly =  32 * 32; // 1024 ms
-    
+
     /**
      * Specifies the linear audio PCM format.
      */
@@ -78,7 +78,7 @@ public interface AudioSink {
                 }
             }
         }
-        
+
         /** Sample rate in Hz (1/s). */
         public final int sampleRate;
         /** Sample size in bits. */
@@ -91,36 +91,36 @@ public interface AudioSink {
         /** Planar or packed samples. If planar, each channel has their own data buffer. If packed, channel data is interleaved in one buffer. */
         public final boolean planar;
         public final boolean littleEndian;
-        
-        
+
+
         //
         // Time <-> Bytes
         //
-        
-        /** 
-         * Returns the byte size of the given milliseconds 
+
+        /**
+         * Returns the byte size of the given milliseconds
          * according to {@link #sampleSize}, {@link #channelCount} and {@link #sampleRate}.
          * <p>
          * Time -> Byte Count
-         * </p> 
+         * </p>
          */
         public final int getDurationsByteSize(int millisecs) {
             final int bytesPerSample = sampleSize >>> 3; // /8
             return millisecs * ( channelCount * bytesPerSample * ( sampleRate / 1000 ) );
         }
-        
-        /** 
-         * Returns the duration in milliseconds of the given byte count 
-         * according to {@link #sampleSize}, {@link #channelCount} and {@link #sampleRate}. 
+
+        /**
+         * Returns the duration in milliseconds of the given byte count
+         * according to {@link #sampleSize}, {@link #channelCount} and {@link #sampleRate}.
          * <p>
          * Byte Count -> Time
-         * </p> 
+         * </p>
          */
         public final int getBytesDuration(int byteCount) {
             final int bytesPerSample = sampleSize >>> 3; // /8
-            return byteCount / ( channelCount * bytesPerSample * ( sampleRate / 1000 ) );        
+            return byteCount / ( channelCount * bytesPerSample * ( sampleRate / 1000 ) );
         }
-        
+
         /**
          * Returns the duration in milliseconds of the given sample count per frame and channel
          * according to the {@link #sampleRate}, i.e.
@@ -129,13 +129,13 @@ public interface AudioSink {
          * </pre>
          * <p>
          * Sample Count -> Time
-         * </p> 
+         * </p>
          * @param sampleCount sample count per frame and channel
          */
         public final float getSamplesDuration(int sampleCount) {
             return ( 1000f * (float) sampleCount ) / (float)sampleRate;
         }
-        
+
         /**
          * Returns the rounded frame count of the given milliseconds and frame duration.
          * <pre>
@@ -147,36 +147,36 @@ public interface AudioSink {
          * </p>
          * <p>
          * Frame Time -> Frame Count
-         * </p> 
+         * </p>
          * @param millisecs time in milliseconds
          * @param frameDuration duration per frame in milliseconds.
          */
         public final int getFrameCount(int millisecs, float frameDuration) {
             return Math.max(1, (int) ( (float)millisecs / frameDuration + 0.5f ));
         }
-        
+
         /**
          * Returns the byte size of given sample count
-         * according to the {@link #sampleSize}, i.e.: 
+         * according to the {@link #sampleSize}, i.e.:
          * <pre>
          *  sampleCount * ( sampleSize / 8 )
          * </pre>
          * <p>
-         * Note: To retrieve the byte size for all channels, 
+         * Note: To retrieve the byte size for all channels,
          * you need to pre-multiply <code>sampleCount</code> with {@link #channelCount}.
          * </p>
          * <p>
          * Sample Count -> Byte Count
-         * </p> 
+         * </p>
          * @param sampleCount sample count
          */
         public final int getSamplesByteCount(int sampleCount) {
             return sampleCount * ( sampleSize >>> 3 );
         }
-        
+
         /**
          * Returns the sample count of given byte count
-         * according to the {@link #sampleSize}, i.e.: 
+         * according to the {@link #sampleSize}, i.e.:
          * <pre>
          *  ( byteCount * 8 ) / sampleSize
          * </pre>
@@ -186,24 +186,24 @@ public interface AudioSink {
          * </p>
          * <p>
          * Byte Count -> Sample Count
-         * </p> 
+         * </p>
          * @param sampleCount sample count
          */
         public final int getBytesSampleCount(int byteCount) {
             return ( byteCount << 3 ) / sampleSize;
         }
-        
-        public String toString() { 
+
+        public String toString() {
             return "AudioDataFormat[sampleRate "+sampleRate+", sampleSize "+sampleSize+", channelCount "+channelCount+
                    ", signed "+signed+", fixedP "+fixedP+", "+(planar?"planar":"packed")+", "+(littleEndian?"little":"big")+"-endian]"; }
     }
-    /** Default {@link AudioFormat}, [type PCM, sampleRate 44100, sampleSize 16, channelCount 2, signed, fixedP, !planar, littleEndian]. */    
-    public static final AudioFormat DefaultFormat = new AudioFormat(44100, 16, 2, true /* signed */, 
+    /** Default {@link AudioFormat}, [type PCM, sampleRate 44100, sampleSize 16, channelCount 2, signed, fixedP, !planar, littleEndian]. */
+    public static final AudioFormat DefaultFormat = new AudioFormat(44100, 16, 2, true /* signed */,
                                           true /* fixed point */, false /* planar */, true /* littleEndian */);
-    
+
     public static abstract class AudioFrame extends TimeFrameI {
         protected int byteSize;
-        
+
         public AudioFrame() {
             this.byteSize = 0;
         }
@@ -211,19 +211,19 @@ public interface AudioSink {
             super(pts, duration);
             this.byteSize=byteCount;
         }
-        
+
         /** Get this frame's size in bytes. */
         public final int getByteSize() { return byteSize; }
         /** Set this frame's size in bytes. */
         public final void setByteSize(int size) { this.byteSize=size; }
-        
-        public String toString() { 
+
+        public String toString() {
             return "AudioFrame[pts " + pts + " ms, l " + duration + " ms, "+byteSize + " bytes]";
         }
     }
     public static class AudioDataFrame extends AudioFrame {
         protected final ByteBuffer data;
-        
+
         public AudioDataFrame(int pts, int duration, ByteBuffer bytes, int byteCount) {
             super(pts, duration, byteCount);
             if( byteCount > bytes.remaining() ) {
@@ -231,62 +231,62 @@ public interface AudioSink {
             }
             this.data=bytes;
         }
-        
+
         /** Get this frame's data. */
         public final ByteBuffer getData() { return data; }
-        
-        public String toString() { 
+
+        public String toString() {
             return "AudioDataFrame[pts " + pts + " ms, l " + duration + " ms, "+byteSize + " bytes, " + data + "]";
         }
     }
-    
-    /** 
+
+    /**
      * Returns the <code>initialized state</code> of this instance.
      * <p>
      * The <code>initialized state</code> is affected by this instance
      * overall availability, i.e. after instantiation,
      * as well as by {@link #destroy()}.
-     * </p> 
+     * </p>
      */
     public boolean isInitialized();
 
     /** Returns the playback speed. */
     public float getPlaySpeed();
-    
-    /** 
+
+    /**
      * Sets the playback speed.
      * <p>
      * To simplify test, play speed is  <i>normalized</i>, i.e.
-     * <ul> 
-     *   <li><code>1.0f</code>: if <code> Math.abs(1.0f - rate) < 0.01f </code></li> 
+     * <ul>
+     *   <li><code>1.0f</code>: if <code> Math.abs(1.0f - rate) < 0.01f </code></li>
      * </ul>
      * </p>
-     * @return true if successful, otherwise false, i.e. due to unsupported value range of implementation. 
+     * @return true if successful, otherwise false, i.e. due to unsupported value range of implementation.
      */
     public boolean setPlaySpeed(float s);
-    
+
     /** Returns the volume. */
     public float getVolume();
-    
-    /** 
+
+    /**
      * Sets the volume [0f..1f].
      * <p>
      * To simplify test, volume is <i>normalized</i>, i.e.
-     * <ul> 
-     *   <li><code>0.0f</code>: if <code> Math.abs(v) < 0.01f </code></li> 
-     *   <li><code>1.0f</code>: if <code> Math.abs(1.0f - v) < 0.01f </code></li> 
+     * <ul>
+     *   <li><code>0.0f</code>: if <code> Math.abs(v) < 0.01f </code></li>
+     *   <li><code>1.0f</code>: if <code> Math.abs(1.0f - v) < 0.01f </code></li>
      * </ul>
      * </p>
-     * @return true if successful, otherwise false, i.e. due to unsupported value range of implementation. 
+     * @return true if successful, otherwise false, i.e. due to unsupported value range of implementation.
      */
     public boolean setVolume(float v);
-    
-    /** 
+
+    /**
      * Returns the preferred {@link AudioFormat} by this sink.
      * <p>
-     * The preferred format is guaranteed to be supported 
+     * The preferred format is guaranteed to be supported
      * and shall reflect this sinks most native format,
-     * i.e. best performance w/o data conversion. 
+     * i.e. best performance w/o data conversion.
      * </p>
      * <p>
      * Known {@link #AudioFormat} attributes considered by implementations:
@@ -295,20 +295,20 @@ public interface AudioSink {
      * </ul>
      * </p>
      * @see #initSink(AudioFormat)
-     * @see #isSupported(AudioFormat) 
+     * @see #isSupported(AudioFormat)
      */
     public AudioFormat getPreferredFormat();
-    
+
     /** Return the maximum number of supported channels. */
     public int getMaxSupportedChannels();
-    
+
     /**
      * Returns true if the given format is supported by the sink, otherwise false.
      * @see #initSink(AudioFormat)
-     * @see #getPreferredFormat() 
+     * @see #getPreferredFormat()
      */
     public boolean isSupported(AudioFormat format);
-    
+
     /**
      * Initializes the sink.
      * <p>
@@ -319,7 +319,7 @@ public interface AudioSink {
      * beforehand and try to find a suitable supported one.
      * {@link #getPreferredFormat()} and {@link #getMaxSupportedChannels()} may help.
      * </p>
-     * @param requestedFormat the requested {@link AudioFormat}. 
+     * @param requestedFormat the requested {@link AudioFormat}.
      * @param frameDuration average or fixed frame duration in milliseconds
      *                      helping a caching {@link AudioFrame} based implementation to determine the frame count in the queue.
      *                      See {@link #DefaultFrameDuration}.
@@ -328,31 +328,31 @@ public interface AudioSink {
      * @param queueLimit maximum time in milliseconds the queue can hold (and grow), see {@link #DefaultQueueLimitWithVideo} and {@link #DefaultQueueLimitAudioOnly}.
      * @return true if successful, otherwise false
      */
-    public boolean init(AudioFormat requestedFormat, float frameDuration, 
+    public boolean init(AudioFormat requestedFormat, float frameDuration,
                         int initialQueueSize, int queueGrowAmount, int queueLimit);
-    
+
     /**
      * Returns true, if {@link #play()} has been requested <i>and</i> the sink is still playing,
      * otherwise false.
      */
     public boolean isPlaying();
-    
-    /** 
+
+    /**
      * Play buffers queued via {@link #enqueueData(AudioFrame)} from current internal position.
      * If no buffers are yet queued or the queue runs empty, playback is being continued when buffers are enqueued later on.
      * @see #enqueueData(AudioFrame)
-     * @see #pause() 
+     * @see #pause()
      */
     public void play();
-    
-    /** 
+
+    /**
      * Pause playing buffers while keeping enqueued data incl. it's internal position.
      * @see #play()
      * @see #flush()
      * @see #enqueueData(AudioFrame)
      */
     public void pause();
-    
+
     /**
      * Flush all queued buffers, implies {@link #pause()}.
      * <p>
@@ -363,28 +363,28 @@ public interface AudioSink {
      * @see #enqueueData(AudioFrame)
      */
     public void flush();
-    
+
     /** Destroys this instance, i.e. closes all streams and devices allocated. */
     public void destroy();
-    
-    /** 
-     * Returns the number of allocated buffers as requested by 
+
+    /**
+     * Returns the number of allocated buffers as requested by
      * {@link #init(AudioFormat, float, int, int, int)}.
      */
     public int getFrameCount();
 
     /** @return the current enqueued frames count since {@link #init(AudioFormat, float, int, int, int)}. */
     public int getEnqueuedFrameCount();
-    
-    /** 
+
+    /**
      * Returns the current number of frames queued for playing.
      * <p>
      * {@link #init(AudioFormat, float, int, int, int)} must be called first.
      * </p>
      */
     public int getQueuedFrameCount();
-    
-    /** 
+
+    /**
      * Returns the current number of bytes queued for playing.
      * <p>
      * {@link #init(AudioFormat, float, int, int, int)} must be called first.
@@ -392,28 +392,28 @@ public interface AudioSink {
      */
     public int getQueuedByteCount();
 
-    /** 
+    /**
      * Returns the current queued frame time in milliseconds for playing.
      * <p>
      * {@link #init(AudioFormat, float, int, int, int)} must be called first.
      * </p>
      */
     public int getQueuedTime();
-    
-    /** 
+
+    /**
      * Return the current audio presentation timestamp (PTS) in milliseconds.
      */
     public int getPTS();
-    
-    /** 
+
+    /**
      * Returns the current number of frames in the sink available for writing.
      * <p>
      * {@link #init(AudioFormat, float, int, int, int)} must be called first.
      * </p>
      */
     public int getFreeFrameCount();
-    
-    /** 
+
+    /**
      * Enqueue the remaining bytes of the given {@link AudioDataFrame}'s direct ByteBuffer to this sink.
      * <p>
      * The data must comply with the chosen {@link AudioFormat} as returned by {@link #initSink(AudioFormat)}.
@@ -426,8 +426,8 @@ public interface AudioSink {
      *             to reuse specialized {@link AudioFrame} instances.
      */
     public AudioFrame enqueueData(AudioDataFrame audioDataFrame);
-    
-    /** 
+
+    /**
      * Enqueue <code>byteCount</code> bytes of the remaining bytes of the given NIO {@link ByteBuffer} to this sink.
      * <p>
      * The data must comply with the chosen {@link AudioFormat} as returned by {@link #initSink(AudioFormat)}.

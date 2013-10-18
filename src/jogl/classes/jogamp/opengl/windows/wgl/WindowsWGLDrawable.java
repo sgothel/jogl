@@ -52,12 +52,12 @@ import jogamp.opengl.GLDynamicLookupHelper;
 
 public abstract class WindowsWGLDrawable extends GLDrawableImpl {
   private static final boolean PROFILING;
-  
+
   static {
       Debug.initSingleton();
       PROFILING = Debug.isPropertyDefined("jogl.debug.GLDrawable.profiling", true);
   }
-  
+
   private static final int PROFILING_TICKS = 200;
   private int  profilingSwapBuffersTicks;
   private long profilingSwapBuffersTime;
@@ -87,11 +87,11 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
         } else {
           t0 = 0;
         }
-    
+
         if (!WGLUtil.SwapBuffers(getHandle()) && (GDI.GetLastError() != GDI.ERROR_SUCCESS)) {
           throw new GLException("Error swapping buffers");
         }
-    
+
         if (PROFILING) {
           profilingSwapBuffersTime += System.currentTimeMillis() - t0;
           if (++profilingSwapBuffersTicks == PROFILING_TICKS) {

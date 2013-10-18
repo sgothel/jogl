@@ -67,7 +67,7 @@ public class ChunksListForWrite extends ChunksList {
 
 	/**
 	 * Remove Chunk: only from queued
-	 * 
+	 *
 	 * WARNING: this depends on c.equals() implementation, which is
 	 * straightforward for SingleChunks. For MultipleChunks, it will normally
 	 * check for reference equality!
@@ -78,9 +78,9 @@ public class ChunksListForWrite extends ChunksList {
 
 	/**
 	 * Adds chunk to queue
-	 * 
+	 *
 	 * Does not check for duplicated or anything
-	 * 
+	 *
 	 * @param c
 	 */
 	public boolean queue(PngChunk c) {

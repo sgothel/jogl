@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2012 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -42,7 +42,7 @@ package javax.media.opengl;
 
 import jogamp.opengl.ThreadingImpl;
 
-/** This API provides access to the threading model for the implementation of 
+/** This API provides access to the threading model for the implementation of
     the classes in this package.
 
     <P>
@@ -59,12 +59,12 @@ import jogamp.opengl.ThreadingImpl;
 
     Due to these limitations, and due to the inherent multithreading
     in the Java platform (in particular, in the Abstract Window
-    Toolkit), it is often necessary to limit the multithreading 
-    occurring in the typical application using the OpenGL API. 
+    Toolkit), it is often necessary to limit the multithreading
+    occurring in the typical application using the OpenGL API.
 
     <P>
 
-    In the current reference implementation, for instance, multithreading 
+    In the current reference implementation, for instance, multithreading
     has been limited by
     forcing all OpenGL-related work for GLAutoDrawables on to a single
     thread. In other words, if an application uses only the
@@ -93,9 +93,9 @@ import jogamp.opengl.ThreadingImpl;
 
     This class also provides mechanisms for querying whether this
     internal serialization of OpenGL work is in effect, and a
-    programmatic way of disabling it.  In the current reference 
-    implementation it is enabled by default, although it could be 
-    disabled in the future if OpenGL drivers become more robust on 
+    programmatic way of disabling it.  In the current reference
+    implementation it is enabled by default, although it could be
+    disabled in the future if OpenGL drivers become more robust on
     all platforms.
 
     <P>
@@ -113,7 +113,7 @@ import jogamp.opengl.ThreadingImpl;
                              platforms, and also the default behavior older releases)
     -Djogl.1thread=worker    Enable single-threading of OpenGL work on newly-created worker thread (not suitable for Mac
                              OS X or X11 platforms, and risky on Windows in applet environments)
-    </PRE>    
+    </PRE>
 */
 
 public class Threading {
@@ -121,9 +121,9 @@ public class Threading {
     /** No reason to ever instantiate this class */
     private Threading() {}
 
-    /** If an implementation of the javax.media.opengl APIs offers a 
-        multithreading option but the default behavior is single-threading, 
-        this API provides a mechanism for end users to disable single-threading 
+    /** If an implementation of the javax.media.opengl APIs offers a
+        multithreading option but the default behavior is single-threading,
+        this API provides a mechanism for end users to disable single-threading
         in this implementation.  Users are strongly discouraged from
         calling this method unless they are aware of all of the
         consequences and are prepared to enforce some amount of
@@ -133,7 +133,7 @@ public class Threading {
         GLPbuffer. Currently there is no supported way to re-enable it
         once disabled, partly to discourage careless use of this
         method. This method should be called as early as possible in an
-        application. */ 
+        application. */
     public static final void disableSingleThreading() {
         ThreadingImpl.disableSingleThreading();
     }
@@ -145,11 +145,11 @@ public class Threading {
     }
 
     /** Indicates whether the current thread is the designated toolkit thread,
-        if such semantics exists. */    
+        if such semantics exists. */
     public static final boolean isToolkitThread() throws GLException {
         return ThreadingImpl.isToolkitThread();
     }
-    
+
     /** Indicates whether the current thread is the single thread on
         which this implementation of the javax.media.opengl APIs
         performs all of its OpenGL-related work. This method should only
@@ -166,12 +166,12 @@ public class Threading {
         thread (i.e., if <code>isOpenGLThread()</code> returns
         false). It is up to the end user to check to see whether the
         current thread is the OpenGL thread and either execute the
-        Runnable directly or perform the work inside it. 
+        Runnable directly or perform the work inside it.
      **/
     public static final void invokeOnOpenGLThread(boolean wait, Runnable r) throws GLException {
         ThreadingImpl.invokeOnOpenGLThread(wait, r);
     }
-    
+
     /**
      * If {@link #isSingleThreaded()} <b>and</b> not {@link #isOpenGLThread()}
      * <b>and</b> the <code>lock</code> is not being hold by this thread,
@@ -179,14 +179,14 @@ public class Threading {
      * <p>
      * Otherwise invoke Runnable <code>r</code> on the current thread.
      * </p>
-     * 
-     * @param wait set to true for waiting until Runnable <code>r</code> is finished, otherwise false. 
+     *
+     * @param wait set to true for waiting until Runnable <code>r</code> is finished, otherwise false.
      * @param r the Runnable to be executed
      * @param lock optional lock object to be tested
      * @throws GLException
      */
     public static final void invoke(boolean wait, Runnable r, Object lock) throws GLException {
-        if ( isSingleThreaded() && !isOpenGLThread() && 
+        if ( isSingleThreaded() && !isOpenGLThread() &&
              ( null == lock || !Thread.holdsLock(lock) ) ) {
             invokeOnOpenGLThread(wait, r);
         } else {

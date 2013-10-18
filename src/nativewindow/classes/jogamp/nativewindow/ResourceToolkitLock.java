@@ -50,7 +50,7 @@ public class ResourceToolkitLock implements ToolkitLock {
     private ResourceToolkitLock() {
         this.lock = LockFactory.createRecursiveLock();
     }
-    
+
     @Override
     public final void lock() {
         lock.lock();
@@ -62,17 +62,17 @@ public class ResourceToolkitLock implements ToolkitLock {
         if(TRACE_LOCK) { System.err.println("ResourceToolkitLock.unlock()"); }
         lock.unlock(); // implicit lock validation
     }
-    
+
     @Override
     public final void validateLocked() throws RuntimeException {
         lock.validateLocked();
     }
-    
+
     @Override
     public final void dispose() {
         // nop
     }
-    
+
     public String toString() {
         return "ResourceToolkitLock[obj 0x"+Integer.toHexString(hashCode())+", isOwner "+lock.isOwner(Thread.currentThread())+", "+lock.toString()+"]";
     }

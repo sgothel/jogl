@@ -112,7 +112,7 @@ public class TableDirectory {
     public int getVersion() {
         return _version;
     }
-    
+
     public String toString() {
         StringBuilder sb = new StringBuilder()
             .append("Offset Table\n------ -----")

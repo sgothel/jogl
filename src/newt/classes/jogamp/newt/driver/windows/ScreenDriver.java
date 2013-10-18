@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  */
 package jogamp.newt.driver.windows;
 
@@ -60,7 +60,7 @@ public class ScreenDriver extends ScreenImpl {
     protected void createNativeImpl() {
         aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), screen_idx);
     }
-    
+
     @Override
     protected void closeNativeImpl() {
     }
@@ -71,7 +71,7 @@ public class ScreenDriver extends ScreenImpl {
     private final String getActiveMonitorName(String adapterName, int monitor_idx) {
         return getActiveMonitorName0(adapterName, monitor_idx);
     }
-    
+
     private final MonitorMode getMonitorModeImpl(MonitorModeProps.Cache cache, String adapterName, int crtModeIdx) {
         if( null == adapterName ) {
             return null;
@@ -107,7 +107,7 @@ public class ScreenDriver extends ScreenImpl {
                     final int[] monitorProps = getMonitorDevice0(adapterName, crtIdx);
                     // merge monitor-props + supported modes
                     MonitorModeProps.streamInMonitorDevice(null, cache, this, supportedModes, currentMode, monitorProps, 0);
-                    
+
                     // next monitor, 1st mode
                     supportedModes= new ArrayHashSet<MonitorMode>();
                 }
@@ -116,7 +116,7 @@ public class ScreenDriver extends ScreenImpl {
             adapterName = getAdapterName(crtIdx);
         }
     }
-    
+
     @Override
     protected Rectangle getNativeMonitorDeviceViewportImpl(MonitorDevice monitor) {
         final String adapterName = getAdapterName(monitor.getId());
@@ -135,7 +135,7 @@ public class ScreenDriver extends ScreenImpl {
     protected MonitorMode queryCurrentMonitorModeImpl(MonitorDevice monitor) {
         return getMonitorModeImpl(null, getAdapterName(monitor.getId()), -1);
     }
-    
+
     @Override
     protected boolean setCurrentMonitorModeImpl(MonitorDevice monitor, MonitorMode mode)  {
         return setMonitorMode0(monitor.getId(),
@@ -150,14 +150,14 @@ public class ScreenDriver extends ScreenImpl {
 
     @Override
     protected int validateScreenIndex(int idx) {
-        return 0; // big-desktop w/ multiple monitor attached, only one screen available 
+        return 0; // big-desktop w/ multiple monitor attached, only one screen available
     }
-        
+
     @Override
     protected void calcVirtualScreenOriginAndSize(Rectangle vOriginSize) {
         vOriginSize.set(getVirtualOriginX0(), getVirtualOriginY0(), getVirtualWidthImpl0(), getVirtualHeightImpl0());
     }
-    
+
     // Native calls
     private native int getVirtualOriginX0();
     private native int getVirtualOriginY0();

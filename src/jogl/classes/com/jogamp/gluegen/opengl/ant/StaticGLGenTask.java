@@ -55,13 +55,13 @@ import org.apache.tools.ant.util.JavaEnvUtils;
 /**
  * <p>An <a href="http://ant.apache.org">ANT</a> {@link org.apache.tools.ant.Task}
  * for using {@link com.jogamp.gluegen.opengl.BuildStaticGLInfo}.</p>
- * 
+ *
  * <p>Usage:</p>
  * <pre>
-    &lt;staticglgen package="[generated files package]" 
+    &lt;staticglgen package="[generated files package]"
                     headers="[file pattern of GL headers]"
                     outputdir="[directory to output the generated files]" /&gt;
- * </pre> 
+ * </pre>
  *
  * @author Rob Grzywinski <a href="mailto:rgrzywinski@realityinteractive.com">rgrzywinski@yahoo.com</a>
  */
@@ -72,7 +72,7 @@ public class StaticGLGenTask extends Task
      * <p>The {@link com.jogamp.gluegen.opengl.BuildStaticGLInfo} classname.</p>
      */
     private static final String GL_GEN = "com.jogamp.gluegen.opengl.BuildStaticGLInfo";
-    
+
     // =========================================================================
     /**
      * <p>The {@link org.apache.tools.ant.types.CommandlineJava} that is used
@@ -90,12 +90,12 @@ public class StaticGLGenTask extends Task
      * <p>The output directory.</p>
      */
     private String outputDirectory;
-    
+
     /**
      * <p>The {@link org.apache.tools.ant.types.FileSet} of GL headers.</p>
      */
     private FileSet headerSet = new FileSet();
-    
+
     // =========================================================================
     /**
      * <p>Create and add the VM and classname to {@link org.apache.tools.ant.types.CommandlineJava}.</p>
@@ -104,7 +104,7 @@ public class StaticGLGenTask extends Task
     {
         // create the CommandlineJava that will be used to call BuildStaticGLInfo
         glgenCommandline = new CommandlineJava();
-        
+
         // set the VM and classname in the commandline
         glgenCommandline.setVm(JavaEnvUtils.getJreExecutable("java"));
         glgenCommandline.setClassname(GL_GEN);
@@ -114,7 +114,7 @@ public class StaticGLGenTask extends Task
     // ANT getters and setters
     /**
      * <p>Set the package name for the generated files.  This is called by ANT.</p>
-     * 
+     *
      * @param  packageName the name of the package for the generated files
      */
     public void setPackage(String packageName)
@@ -125,12 +125,12 @@ public class StaticGLGenTask extends Task
 
     /**
      * <p>Set the output directory.  This is called by ANT.</p>
-     * 
+     *
      * @param  directory the output directory
      */
     public void setOutputDir(String directory)
     {
-        log( ("Setting output directory to: " + directory), 
+        log( ("Setting output directory to: " + directory),
               Project.MSG_VERBOSE);
         this.outputDirectory = directory;
     }
@@ -138,7 +138,7 @@ public class StaticGLGenTask extends Task
     /**
      * <p>Add a header file to the list.  This is called by ANT for a nested
      * element.</p>
-     * 
+     *
      * @return {@link org.apache.tools.ant.types.PatternSet.NameEntry}
      */
     public PatternSet.NameEntry createHeader()
@@ -149,7 +149,7 @@ public class StaticGLGenTask extends Task
     /**
      * <p>Add a header file to the list.  This is called by ANT for a nested
      * element.</p>
-     * 
+     *
      * @return {@link org.apache.tools.ant.types.PatternSet.NameEntry}
      */
     public PatternSet.NameEntry createHeadersFile()
@@ -171,7 +171,7 @@ public class StaticGLGenTask extends Task
     /**
      * <p>Add an optional classpath that defines the location of {@link com.jogamp.gluegen.opengl.BuildStaticGLInfo}
      * and <code>BuildStaticGLInfo</code>'s dependencies.</p>
-     * 
+     *
      * @returns {@link org.apache.tools.ant.types.Path}
      */
      public Path createClasspath()
@@ -183,23 +183,23 @@ public class StaticGLGenTask extends Task
     /**
      * <p>Run the task.  This involves validating the set attributes, creating
      * the command line to be executed and finally executing the command.</p>
-     * 
+     *
      * @see  org.apache.tools.ant.Task#execute()
      */
-    public void execute() 
-        throws BuildException 
+    public void execute()
+        throws BuildException
     {
         // validate that all of the required attributes have been set
         validateAttributes();
-        
+
         // TODO:  add logic to determine if the generated file needs to be
         //        regenerated
-        
+
         // add the attributes to the CommandlineJava
         addAttributes();
 
         log(glgenCommandline.describeCommand(), Project.MSG_VERBOSE);
-        
+
         // execute the command and throw on error
         final int error = execute(glgenCommandline.getCommandline());
         if(error == 1)
@@ -208,11 +208,11 @@ public class StaticGLGenTask extends Task
 
     /**
      * <p>Ensure that the user specified all required arguments.</p>
-     * 
-     * @throws BuildException if there are required arguments that are not 
+     *
+     * @throws BuildException if there are required arguments that are not
      *         present or not valid
      */
-    private void validateAttributes() 
+    private void validateAttributes()
         throws BuildException
     {
         // validate that the package name is set
@@ -223,29 +223,29 @@ public class StaticGLGenTask extends Task
         // TODO:  switch to file and ensure that it exists
         if(!isValid(outputDirectory))
             throw new BuildException("Invalid output directory name: " + outputDirectory);
-            
+
         // TODO:  validate that there are headers set
     }
 
     /**
      * <p>Is the specified string valid?  A valid string is non-<code>null</code>
      * and has a non-zero length.</p>
-     * 
+     *
      * @param  string the string to be tested for validity
      * @return <code>true</code> if the string is valid.  <code>false</code>
-     *         otherwise. 
+     *         otherwise.
      */
     private boolean isValid(String string)
     {
         // check for null
         if(string == null)
             return false;
-            
+
         // ensure that the string has a non-zero length
         // NOTE:  must trim() to remove leading and trailing whitespace
         if(string.trim().length() < 1)
             return false;
-            
+
         // the string is valid
         return true;
     }
@@ -258,10 +258,10 @@ public class StaticGLGenTask extends Task
     {
         // add the package name
         glgenCommandline.createArgument().setValue(packageName);
-        
+
         // add the output directory name
         glgenCommandline.createArgument().setValue(outputDirectory);
-        
+
         // add the header -files- from the FileSet
         headerSet.setDir(getProject().getBaseDir());
         DirectoryScanner directoryScanner = headerSet.getDirectoryScanner(getProject());
@@ -272,25 +272,25 @@ public class StaticGLGenTask extends Task
         }
     }
 
-    /** 
-     * <p>Execute {@link com.jogamp.gluegen.opengl.BuildStaticGLInfo} in a 
+    /**
+     * <p>Execute {@link com.jogamp.gluegen.opengl.BuildStaticGLInfo} in a
      * forked JVM.</p>
-     * 
+     *
      * @throws BuildException
      */
-    private int execute(String[] command) 
+    private int execute(String[] command)
         throws BuildException
     {
         // create the object that will perform the command execution
         Execute execute = new Execute(new LogStreamHandler(this, Project.MSG_INFO,
-                                                           Project.MSG_WARN), 
+                                                           Project.MSG_WARN),
                                       null);
-                                      
+
         // set the project and command line
         execute.setAntRun(project);
         execute.setCommandline(command);
         execute.setWorkingDirectory( project.getBaseDir() );
-        
+
         // execute the command
         try
         {

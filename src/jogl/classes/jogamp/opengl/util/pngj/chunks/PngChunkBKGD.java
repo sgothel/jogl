@@ -70,7 +70,7 @@ public class PngChunkBKGD extends PngChunkSingle {
 
 	/**
 	 * Set gray value (0-255 if bitdept=8)
-	 * 
+	 *
 	 * @param gray
 	 */
 	public void setGray(int gray) {
@@ -87,7 +87,7 @@ public class PngChunkBKGD extends PngChunkSingle {
 
 	/**
 	 * Set pallette index
-	 * 
+	 *
 	 */
 	public void setPaletteIndex(int i) {
 		if (!imgInfo.indexed)
@@ -103,7 +103,7 @@ public class PngChunkBKGD extends PngChunkSingle {
 
 	/**
 	 * Set rgb values
-	 * 
+	 *
 	 */
 	public void setRGB(int r, int g, int b) {
 		if (imgInfo.greyscale || imgInfo.indexed)

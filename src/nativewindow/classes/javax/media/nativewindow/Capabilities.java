@@ -61,7 +61,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
 
   // Switch for on- or offscreen
   private boolean onscreen  = true;
-  
+
   // offscreen bitmap mode
   private boolean isBitmap  = false;
 
@@ -74,7 +74,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
   public Object cloneMutable() {
     return clone();
   }
-  
+
   @Override
   public Object clone() {
     try {
@@ -85,7 +85,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
   }
 
   /**
-   * Copies all {@link Capabilities} values 
+   * Copies all {@link Capabilities} values
    * from <code>source</code> into this instance.
    * @return this instance
    */
@@ -103,7 +103,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
     transparentValueAlpha = other.getTransparentAlphaValue();
     return this;
   }
-  
+
   @Override
   public int hashCode() {
     // 31 * x == (x << 5) - x
@@ -150,15 +150,15 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
    **/
   @Override
   public int compareTo(final CapabilitiesImmutable caps) {
-    /** 
+    /**
     if ( ! ( o instanceof CapabilitiesImmutable ) ) {
         Class<?> c = (null != o) ? o.getClass() : null ;
         throw new ClassCastException("Not a CapabilitiesImmutable object, but " + c);
     }
     final CapabilitiesImmutable caps = (CapabilitiesImmutable) o; */
-        
+
     final int rgba = redBits * greenBits * blueBits * ( alphaBits + 1 );
-    
+
     final int xrgba = caps.getRedBits() * caps.getGreenBits() * caps.getBlueBits() * ( caps.getAlphaBits() + 1 );
 
     if(rgba > xrgba) {
@@ -222,17 +222,17 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
     return alphaBits;
   }
 
-  /** 
+  /**
    * Sets the number of bits requested for the color buffer's alpha
    * component. On some systems only the color depth, which is the
    * sum of the red, green, and blue bits, is considered.
    * <p>
-   * <b>Note:</b> If alpha bits are <code>zero</code>, they are set to <code>one</code> 
+   * <b>Note:</b> If alpha bits are <code>zero</code>, they are set to <code>one</code>
    * by {@link #setBackgroundOpaque(boolean)} and it's OpenGL specialization <code>GLCapabilities::setSampleBuffers(boolean)</code>.<br/>
    * Ensure to call this method after the above to ensure a <code>zero</code> value.</br>
    * The above automated settings takes into account, that the user calls this method to <i>request</i> alpha bits,
    * not to <i>reflect</i> a current state. Nevertheless if this is the case - call it at last.
-   * </p>  
+   * </p>
    */
   public void setAlphaBits(int alphaBits) {
     this.alphaBits = alphaBits;
@@ -271,7 +271,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
    * Defaults to true.
    * </p>
    * <p>
-   * If requesting an offscreen surface without further selection of it's mode, 
+   * If requesting an offscreen surface without further selection of it's mode,
    * e.g. FBO, Pbuffer or {@link #setBitmap(boolean) bitmap},
    * the implementation will choose the best available offscreen mode.
    * </p>
@@ -304,12 +304,12 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
     }
     isBitmap = enable;
   }
-  
+
   @Override
   public boolean isBitmap() {
-    return isBitmap;      
+    return isBitmap;
   }
-  
+
   @Override
   public final int getTransparentRedValue() { return transparentValueRed; }
 
@@ -354,7 +354,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
   public StringBuilder toString(StringBuilder sink) {
       return toString(sink, true);
   }
-  
+
   /** Returns a textual representation of this Capabilities
       object. */
   @Override
@@ -365,7 +365,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
     msg.append("]");
     return msg.toString();
   }
-  
+
   /** Return a textual representation of this object's on/off screen state. Use the given StringBuilder [optional]. */
   protected StringBuilder onoffScreenToString(StringBuilder sink) {
     if(null == sink) {
@@ -381,19 +381,19 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
     } else if(onscreen) {
         sink.append(".");        // no additional off-screen modes besides on-screen
     } else {
-        sink.append("auto-cfg"); // auto-config off-screen mode            
+        sink.append("auto-cfg"); // auto-config off-screen mode
     }
-    sink.append("]");    
-    
+    sink.append("]");
+
     return sink;
   }
-  
+
   /** Element separator */
   protected static final String ESEP = "/";
   /** Component separator */
   protected static final String CSEP = ", ";
-  
-  protected StringBuilder toString(StringBuilder sink, boolean withOnOffScreen) {  
+
+  protected StringBuilder toString(StringBuilder sink, boolean withOnOffScreen) {
     if(null == sink) {
         sink = new StringBuilder();
     }
@@ -409,6 +409,6 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
     }
     return sink;
   }
-  
+
   protected final String toHexString(int val) { return Integer.toHexString(val); }
 }

@@ -134,7 +134,7 @@ public class Os2Table implements Table {
         _usWinDescent = di.readUnsignedShort();
         _ulCodePageRange1 = di.readInt();
         _ulCodePageRange2 = di.readInt();
-        
+
         // OpenType 1.3
         if (_version == 2) {
             _sxHeight = di.readShort();
@@ -276,19 +276,19 @@ public class Os2Table implements Table {
     public short getXHeight() {
         return _sxHeight;
     }
-    
+
     public short getCapHeight() {
         return _sCapHeight;
     }
-    
+
     public int getDefaultChar() {
         return _usDefaultChar;
     }
-    
+
     public int getBreakChar() {
         return _usBreakChar;
     }
-    
+
     public int getMaxContext() {
         return _usMaxContext;
     }
@@ -335,7 +335,7 @@ public class Os2Table implements Table {
             .append("\n  CodePage Range 2( Bits 32- 63 ): ").append(Integer.toHexString(_ulCodePageRange2).toUpperCase())
             .toString();
     }
-    
+
     private String getVendorIDAsString() {
         return new StringBuilder()
             .append((char)((_achVendorID>>24)&0xff))
@@ -344,7 +344,7 @@ public class Os2Table implements Table {
             .append((char)((_achVendorID)&0xff))
             .toString();
     }
-    
+
     /**
      * Get a directory entry for this table.  This uniquely identifies the
      * table in collections where there may be more than one instance of a

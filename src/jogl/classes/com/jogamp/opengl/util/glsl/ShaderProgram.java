@@ -37,7 +37,7 @@ import java.util.Iterator;
 import java.io.PrintStream;
 
 public class ShaderProgram {
-    
+
     public ShaderProgram() {
         id = getNextID();
     }
@@ -111,7 +111,7 @@ public class ShaderProgram {
 
     /**
      * Adds a new shader to this program.
-     * 
+     *
      * <p>This command does not compile and attach the shader,
      * use {@link #add(GL2ES2, ShaderCode)} for this purpose.</p>
      */
@@ -122,7 +122,7 @@ public class ShaderProgram {
     public synchronized boolean contains(ShaderCode shaderCode) {
         return allShaderCode.contains(shaderCode);
     }
-    
+
     /**
      * Warning slow O(n) operation ..
      * @param id
@@ -145,9 +145,9 @@ public class ShaderProgram {
     /**
      * Creates the empty GL program object using {@link GL2ES2#glCreateProgram()},
      * if not already created.
-     *  
+     *
      * @param gl
-     * @return true if shader program is valid, i.e. not zero 
+     * @return true if shader program is valid, i.e. not zero
      */
     public synchronized final boolean init(GL2ES2 gl) {
         if( 0 == shaderProgram ) {
@@ -155,12 +155,12 @@ public class ShaderProgram {
         }
         return 0 != shaderProgram;
     }
-    
+
     /**
      * Adds a new shader to a this non running program.
      *
      * <p>Compiles and attaches the shader, if not done yet.</p>
-     * 
+     *
      * @return true if the shader was successfully added, false if compilation failed.
      */
     public synchronized boolean add(GL2ES2 gl, ShaderCode shaderCode, PrintStream verboseOut) {
@@ -179,11 +179,11 @@ public class ShaderProgram {
     /**
      * Replace a shader in a program and re-links the program.
      *
-     * @param gl 
+     * @param gl
      * @param oldShader   the to be replace Shader
      * @param newShader   the new ShaderCode
      * @param verboseOut  the optional verbose output stream
-     * 
+     *
      * @return true if all steps are valid, shader compilation, attachment and linking; otherwise false.
      *
      * @see ShaderState#glEnableVertexAttribArray
@@ -199,25 +199,25 @@ public class ShaderProgram {
         if(!init(gl) || !newShader.compile(gl, verboseOut)) {
             return false;
         }
-        
+
         boolean shaderWasInUse = inUse();
         if(shaderWasInUse) {
             useProgram(gl, false);
         }
-        
+
         if(null != oldShader && allShaderCode.remove(oldShader)) {
             if(attachedShaderCode.remove(oldShader)) {
                 ShaderUtil.detachShader(gl, shaderProgram, oldShader.shader());
             }
         }
-        
+
         add(newShader);
         if(attachedShaderCode.add(newShader)) {
             ShaderUtil.attachShader(gl, shaderProgram, newShader.shader());
         }
-        
+
         gl.glLinkProgram(shaderProgram);
-        
+
         programLinked = ShaderUtil.isProgramLinkStatusValid(gl, shaderProgram, System.err);
         if ( programLinked && shaderWasInUse )  {
             useProgram(gl, true);
@@ -227,19 +227,19 @@ public class ShaderProgram {
 
     /**
      * Links the shader code to the program.
-     * 
+     *
      * <p>Compiles and attaches the shader code to the program if not done by yet</p>
-     * 
+     *
      * <p>Within this process, all GL resources (shader and program objects) are created if necessary.</p>
-     *  
+     *
      * @param gl
      * @param verboseOut
      * @return true if program was successfully linked and is valid, otherwise false
-     * 
+     *
      * @see #init(GL2ES2)
      */
     public synchronized boolean link(GL2ES2 gl, PrintStream verboseOut) {
-        if( !init(gl) ) { 
+        if( !init(gl) ) {
             programLinked = false; // mark unlinked due to user attempt to [re]link
             return false;
         }
@@ -287,7 +287,7 @@ public class ShaderProgram {
         sb.append("]");
         return sb;
     }
-        
+
     public String toString() {
         return toString(null).toString();
     }
@@ -299,7 +299,7 @@ public class ShaderProgram {
     public synchronized boolean validateProgram(GL2ES2 gl, PrintStream verboseOut) {
         return ShaderUtil.isProgramExecStatusValid(gl, shaderProgram, verboseOut);
     }
-    
+
     public synchronized void useProgram(GL2ES2 gl, boolean on) {
         if(!programLinked) { throw new GLException("Program is not linked"); }
         if(programInUse==on) { return; }

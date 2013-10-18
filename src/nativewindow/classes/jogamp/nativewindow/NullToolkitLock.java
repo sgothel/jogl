@@ -38,7 +38,7 @@ import javax.media.nativewindow.ToolkitLock;
 public class NullToolkitLock implements ToolkitLock {
     /** Singleton via {@link NativeWindowFactoryImpl#getNullToolkitLock()} */
     protected NullToolkitLock() { }
-    
+
     @Override
     public final void lock() {
         if(TRACE_LOCK) {
@@ -51,21 +51,21 @@ public class NullToolkitLock implements ToolkitLock {
     public final void unlock() {
         if(TRACE_LOCK) { System.err.println("NullToolkitLock.unlock()"); }
     }
-    
+
     @Override
     public final void validateLocked() throws RuntimeException {
         if( NativeWindowFactory.requiresToolkitLock() ) {
             throw new RuntimeException("NullToolkitLock does not lock, but locking is required.");
         }
     }
-    
+
     @Override
     public final void dispose() {
         // nop
     }
-    
+
     public String toString() {
         return "NullToolkitLock[]";
     }
-    
+
 }

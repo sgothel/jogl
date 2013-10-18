@@ -88,7 +88,7 @@ public class PngWriter {
 	 * filters) and queue chunks before start writing the pixels.
 	 * <p>
 	 * See also <code>FileHelper.createPngWriter()</code> if available.
-	 * 
+	 *
 	 * @param outputStream
 	 *            Opened stream for binary writing
 	 * @param imgInfo
@@ -422,7 +422,7 @@ public class PngWriter {
 	 * Should be called when creating an image from another, before starting
 	 * writing lines, to copy relevant chunks.
 	 * <p>
-	 * 
+	 *
 	 * @param reader
 	 *            : PngReader object, already opened.
 	 * @param copy_mask
@@ -439,7 +439,7 @@ public class PngWriter {
 	 * Should be called when creating an image from another, after writing all
 	 * lines, before closing the writer, to copy additional chunks.
 	 * <p>
-	 * 
+	 *
 	 * @param reader
 	 *            : PngReader object, already opened and fully read.
 	 * @param copy_mask
@@ -455,7 +455,7 @@ public class PngWriter {
 	 * <p>
 	 * Actually: compressed size = total size of IDAT data , raw size =
 	 * uncompressed pixel bytes = rows * (bytesPerRow + 1).
-	 * 
+	 *
 	 * This must be called after pngw.end()
 	 */
 	public double computeCompressionRatio() {
@@ -512,7 +512,7 @@ public class PngWriter {
 	 * This must be called just after constructor, before starting writing.
 	 * <p>
 	 * See also setFilterType()
-	 * 
+	 *
 	 * @param compLevel
 	 *            between 0 and 9 (default:6 , recommended: 6 or more)
 	 */
@@ -528,7 +528,7 @@ public class PngWriter {
 	 * This must be called just after constructor, before starting writing.
 	 * <p>
 	 * See also setCompLevel()
-	 * 
+	 *
 	 * @param filterType
 	 *            One of the five prediction types or strategy to choose it (see
 	 *            <code>PngFilterType</code>) Recommended values: DEFAULT
@@ -542,7 +542,7 @@ public class PngWriter {
 	 * Sets maximum size of IDAT fragments. This has little effect on
 	 * performance you should rarely call this
 	 * <p>
-	 * 
+	 *
 	 * @param idatMaxSize
 	 *            default=0 : use defaultSize (32K)
 	 */
@@ -572,7 +572,7 @@ public class PngWriter {
 	/**
 	 * Writes line, checks that the row number is consistent with that of the
 	 * ImageLine See writeRow(int[] newrow, int rown)
-	 * 
+	 *
 	 * @deprecated Better use writeRow(ImageLine imgline, int rownumber)
 	 */
 	public void writeRow(ImageLine imgline) {
@@ -581,9 +581,9 @@ public class PngWriter {
 
 	/**
 	 * Writes line. See writeRow(int[] newrow, int rown)
-	 * 
+	 *
 	 * The <tt>packed</tt> flag of the imageline is honoured!
-	 * 
+	 *
 	 * @see #writeRowInt(int[], int)
 	 */
 	public void writeRow(ImageLine imgline, int rownumber) {
@@ -596,7 +596,7 @@ public class PngWriter {
 
 	/**
 	 * Same as writeRow(int[] newrow, int rown), but does not check row number
-	 * 
+	 *
 	 * @param newrow
 	 */
 	public void writeRow(int[] newrow) {
@@ -605,7 +605,7 @@ public class PngWriter {
 
 	/**
 	 * Alias to writeRowInt
-	 * 
+	 *
 	 * @see #writeRowInt(int[], int)
 	 */
 	public void writeRow(int[] newrow, int rown) {
@@ -624,7 +624,7 @@ public class PngWriter {
 	 * Warning: the array might be modified in some cases (unpacked row with low
 	 * bitdepth)
 	 * <p>
-	 * 
+	 *
 	 * @param newrow
 	 *            Array of pixel values. Warning: the array size should be exact
 	 *            (samplesPerRowP)
@@ -642,7 +642,7 @@ public class PngWriter {
 	 * Same semantics as writeRowInt but using bytes. Each byte is still a
 	 * sample. If 16bitdepth, we are passing only the most significant byte (and
 	 * hence losing some info)
-	 * 
+	 *
 	 * @see PngWriter#writeRowInt(int[], int)
 	 */
 	public void writeRowByte(byte[] newrow, int rown) {

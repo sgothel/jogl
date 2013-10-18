@@ -41,32 +41,32 @@ import jogamp.graph.curve.opengl.RegionFactory;
 
 /** A GLRegion is the OGL binding of one or more OutlineShapes
  *  Defined by its vertices and generated triangles. The Region
- *  defines the final shape of the OutlineShape(s), which shall produced a shaded 
+ *  defines the final shape of the OutlineShape(s), which shall produced a shaded
  *  region on the screen.
- *  
- *  Implementations of the GLRegion shall take care of the OGL 
+ *
+ *  Implementations of the GLRegion shall take care of the OGL
  *  binding of the depending on its context, profile.
- * 
+ *
  * @see Region, RegionFactory, OutlineShape
  */
-public abstract class GLRegion extends Region {    
-    
+public abstract class GLRegion extends Region {
+
     /** Create an ogl {@link GLRegion} defining the list of {@link OutlineShape}.
      * Combining the Shapes into single buffers.
      * @return the resulting Region inclusive the generated region
      */
     public static GLRegion create(OutlineShape[] outlineShapes, int renderModes) {
         final GLRegion region = RegionFactory.create(renderModes);
-        
+
         int numVertices = region.getNumVertices();
-        
+
         for(int index=0; index<outlineShapes.length; index++) {
             OutlineShape outlineShape = outlineShapes[index];
             outlineShape.transformOutlines(OutlineShape.VerticesState.QUADRATIC_NURBS);
-    
+
             ArrayList<Triangle> triangles = outlineShape.triangulate();
             region.addTriangles(triangles);
-            
+
             ArrayList<Vertex> vertices = outlineShape.getVertices();
             for(int pos=0; pos < vertices.size(); pos++){
                 Vertex vert = vertices.get(pos);
@@ -74,42 +74,42 @@ public abstract class GLRegion extends Region {
             }
             region.addVertices(vertices);
         }
-        
+
         return region;
     }
 
-    /** 
+    /**
      * Create an ogl {@link GLRegion} defining this {@link OutlineShape}
      * @return the resulting Region.
      */
     public static GLRegion create(OutlineShape outlineShape, int renderModes) {
         final GLRegion region = RegionFactory.create(renderModes);
-        
+
         outlineShape.transformOutlines(OutlineShape.VerticesState.QUADRATIC_NURBS);
         ArrayList<Triangle> triangles = (ArrayList<Triangle>) outlineShape.triangulate();
         ArrayList<Vertex> vertices = (ArrayList<Vertex>) outlineShape.getVertices();
         region.addVertices(vertices);
         region.addTriangles(triangles);
         return region;
-    }        
-    
+    }
+
     protected GLRegion(int renderModes) {
         super(renderModes);
     }
-    
+
     /** Updates a graph region by updating the ogl related
      *  objects for use in rendering if {@link #isDirty()}.
-     *  <p>Allocates the ogl related data and initializes it the 1st time.<p>  
+     *  <p>Allocates the ogl related data and initializes it the 1st time.<p>
      *  <p>Called by {@link #draw(GL2ES2, RenderState, int, int, int)}.</p>
      * @param rs TODO
      */
     protected abstract void update(GL2ES2 gl, RenderState rs);
-    
+
     /** Delete and clean the associated OGL
      *  objects
      */
     public abstract void destroy(GL2ES2 gl, RenderState rs);
-    
+
     /** Renders the associated OGL objects specifying
      * current width/hight of window for multi pass rendering
      * of the region.
@@ -117,13 +117,13 @@ public abstract class GLRegion extends Region {
      * @param rs the RenderState to be used
      * @param vp_width current screen width
      * @param vp_height current screen height
-     * @param texWidth desired texture width for multipass-rendering. 
+     * @param texWidth desired texture width for multipass-rendering.
      *        The actual used texture-width is written back when mp rendering is enabled, otherwise the store is untouched.
      */
     public final void draw(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int[/*1*/] texWidth) {
         update(gl, rs);
         drawImpl(gl, rs, vp_width, vp_height, texWidth);
     }
-    
+
     protected abstract void drawImpl(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int[/*1*/] texWidth);
 }

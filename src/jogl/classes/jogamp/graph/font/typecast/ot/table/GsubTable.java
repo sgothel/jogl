@@ -66,10 +66,10 @@ public class GsubTable implements Table, LookupSubtableFactory {
     private ScriptList _scriptList;
     private FeatureList _featureList;
     private LookupList _lookupList;
-    
+
     protected GsubTable(DirectoryEntry de, DataInput di) throws IOException {
         _de = (DirectoryEntry) de.clone();
-        
+
         // Load into a temporary buffer, and create another input stream
         byte[] buf = new byte[de.getLength()];
         di.readFully(buf);
@@ -86,17 +86,17 @@ public class GsubTable implements Table, LookupSubtableFactory {
 
         // Feature List
         _featureList = new FeatureList(dis, featureListOffset);
-        
+
         // Lookup List
         _lookupList = new LookupList(dis, lookupListOffset, this);
     }
 
     /**
-     * 1 - Single - Replace one glyph with one glyph 
-     * 2 - Multiple - Replace one glyph with more than one glyph 
-     * 3 - Alternate - Replace one glyph with one of many glyphs 
-     * 4 - Ligature - Replace multiple glyphs with one glyph 
-     * 5 - Context - Replace one or more glyphs in context 
+     * 1 - Single - Replace one glyph with one glyph
+     * 2 - Multiple - Replace one glyph with more than one glyph
+     * 3 - Alternate - Replace one glyph with one of many glyphs
+     * 4 - Ligature - Replace multiple glyphs with one glyph
+     * 5 - Context - Replace one or more glyphs in context
      * 6 - Chaining - Context Replace one or more glyphs in chained context
      */
     public LookupSubtable read(
@@ -167,7 +167,7 @@ public class GsubTable implements Table, LookupSubtableFactory {
         }
         return "Unknown";
     }
-    
+
     /**
      * Get a directory entry for this table.  This uniquely identifies the
      * table in collections where there may be more than one instance of a
@@ -177,5 +177,5 @@ public class GsubTable implements Table, LookupSubtableFactory {
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }
-    
+
 }

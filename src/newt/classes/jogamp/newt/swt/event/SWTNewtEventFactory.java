@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package jogamp.newt.swt.event;
 
 import org.eclipse.swt.SWT;
@@ -206,7 +206,7 @@ public class SWTNewtEventFactory {
         }
         return res;
     }
-    
+
     public static final com.jogamp.newt.event.MouseEvent createMouseEvent(org.eclipse.swt.widgets.Event event, Object source) {
         switch(event.type) {
             case SWT.MouseDown:
@@ -229,7 +229,7 @@ public class SWTNewtEventFactory {
             }
 
             int mods = swtModifiers2Newt(event.stateMask, true);
-            
+
             if( source instanceof com.jogamp.newt.Window) {
                 final com.jogamp.newt.Window newtSource = (com.jogamp.newt.Window)source;
                 if(newtSource.isPointerConfined()) {
@@ -239,7 +239,7 @@ public class SWTNewtEventFactory {
                     mods |= InputEvent.INVISIBLE_MASK;
                 }
             }
-            
+
             return new com.jogamp.newt.event.MouseEvent(
                            type, (null==source)?(Object)event.data:source, (0xFFFFFFFFL & (long)event.time),
                            mods, event.x, event.y, (short)event.count, (short)event.button, MouseEvent.getRotationXYZ(rotation, mods), 1f);
@@ -260,32 +260,32 @@ public class SWTNewtEventFactory {
             final short newtKeyCode = swtKeyCode2NewtKeyCode( event.keyCode );
             return com.jogamp.newt.event.KeyEvent.create(
                            type, (null==source)?(Object)event.data:source, (0xFFFFFFFFL & (long)event.time),
-                           swtModifiers2Newt(event.stateMask, false), 
+                           swtModifiers2Newt(event.stateMask, false),
                            newtKeyCode, newtKeyCode, event.character);
         }
         return null; // no mapping ..
     }
-    
+
     //
     //
     //
-    
+
     short dragButtonDown = 0;
-    
+
     public SWTNewtEventFactory() {
         resetButtonsDown();
     }
-    
+
     final void resetButtonsDown() {
         dragButtonDown = 0;
     }
-    
+
     public final boolean dispatchMouseEvent(org.eclipse.swt.widgets.Event event, Object source, com.jogamp.newt.event.MouseListener l) {
         com.jogamp.newt.event.MouseEvent res = createMouseEvent(event, source);
         if(null != res) {
             if(null != l) {
                 switch(event.type) {
-                    case SWT.MouseDown:               
+                    case SWT.MouseDown:
                         dragButtonDown = (short) event.button;
                         l.mousePressed(res); break;
                     case SWT.MouseUp:
@@ -293,7 +293,7 @@ public class SWTNewtEventFactory {
                         l.mouseReleased(res);
                         {
                             final com.jogamp.newt.event.MouseEvent res2 = new com.jogamp.newt.event.MouseEvent(
-                                           com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_CLICKED, 
+                                           com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_CLICKED,
                                            res.getSource(),
                                            res.getWhen(), res.getModifiers(),
                                            res.getX(), res.getY(), res.getClickCount(),
@@ -304,7 +304,7 @@ public class SWTNewtEventFactory {
                     case SWT.MouseMove:
                         if( 0 < dragButtonDown ) {
                             final com.jogamp.newt.event.MouseEvent res2 = new com.jogamp.newt.event.MouseEvent(
-                                           com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_DRAGGED, 
+                                           com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_DRAGGED,
                                            res.getSource(),
                                            res.getWhen(), res.getModifiers(),
                                            res.getX(), res.getY(), res.getClickCount(),
@@ -315,14 +315,14 @@ public class SWTNewtEventFactory {
                         }
                         break;
                     case SWT.MouseEnter:
-                        l.mouseEntered(res); 
+                        l.mouseEntered(res);
                         break;
                     case SWT.MouseExit:
                         resetButtonsDown();
-                        l.mouseExited(res); 
+                        l.mouseExited(res);
                         break;
                     case SWT.MouseVerticalWheel:
-                        l.mouseWheelMoved(res); 
+                        l.mouseWheelMoved(res);
                         break;
                 }
             }
@@ -337,7 +337,7 @@ public class SWTNewtEventFactory {
             if(null != l) {
                 switch(event.type) {
                     case SWT.KeyDown:
-                        l.keyPressed(res); 
+                        l.keyPressed(res);
                         break;
                     case SWT.KeyUp:
                         l.keyReleased(res);
@@ -347,9 +347,9 @@ public class SWTNewtEventFactory {
             return true;
         }
         return false;
-    }  
-    
-    public final void attachDispatchListener(final org.eclipse.swt.widgets.Control ctrl, final Object source, 
+    }
+
+    public final void attachDispatchListener(final org.eclipse.swt.widgets.Control ctrl, final Object source,
                                              final com.jogamp.newt.event.MouseListener ml,
                                              final com.jogamp.newt.event.KeyListener kl) {
       final Listener listener = new Listener () {

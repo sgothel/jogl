@@ -48,7 +48,7 @@ import javax.media.opengl.glu.gl2.GLUgl2;
 class GL2CurveEvaluator implements CurveEvaluator {
 
   /**
-   * Output triangles (for callback) or render curve 
+   * Output triangles (for callback) or render curve
    */
   private boolean output_triangles;
 

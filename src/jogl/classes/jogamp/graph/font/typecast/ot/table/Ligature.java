@@ -73,11 +73,11 @@ public class Ligature {
             _components[i] = di.readUnsignedShort();
         }
     }
-    
+
     public int getGlyphCount() {
         return _compCount;
     }
-    
+
     public int getGlyphId(int i) {
         return (i == 0) ? _ligGlyph : _components[i-1];
     }

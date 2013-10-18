@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package jogamp.newt;
 
 import javax.media.nativewindow.util.DimensionImmutable;
@@ -41,7 +41,7 @@ public class MonitorDeviceImpl extends MonitorDevice {
     public MonitorDeviceImpl(ScreenImpl screen, int nativeId, DimensionImmutable sizeMM, Rectangle viewport, MonitorMode currentMode, ArrayHashSet<MonitorMode> supportedModes) {
         super(screen, nativeId, sizeMM, viewport, currentMode, supportedModes);
     }
-    
+
     @Override
     public final MonitorMode queryCurrentMode() {
         final ScreenImpl screenImpl = (ScreenImpl)screen;
@@ -54,7 +54,7 @@ public class MonitorDeviceImpl extends MonitorDevice {
             }
             MonitorMode mmU = supportedModes.get(mm0); // unified instance
             if( null == mmU ) {
-                // add new mode avoiding exception! 
+                // add new mode avoiding exception!
                 mmU = sms.getMonitorModes().getOrAdd(mm0);
                 mmU = supportedModes.getOrAdd(mmU);
                 if( Screen.DEBUG ) {
@@ -89,21 +89,21 @@ public class MonitorDeviceImpl extends MonitorDevice {
             if( mmU.equals( mmC ) ) {
                 if(Screen.DEBUG) {
                     System.err.println("Screen.setCurrentMode: 0.0 is-current (skip) "+mmU+" == "+mmC);
-                }            
+                }
                 return true;
             }
             final long tStart;
             if(Screen.DEBUG) {
-                tStart = System.currentTimeMillis();                
+                tStart = System.currentTimeMillis();
             } else {
                 tStart = 0;
             }
-            
+
             sms.fireMonitorModeChangeNotify(this, mmU);
             if(Screen.DEBUG) {
                 System.err.println("Screen.setCurrentMode ("+(System.currentTimeMillis()-tStart)+"ms): fireModeChangeNotify() "+mmU);
             }
-            
+
             boolean success = screenImpl.setCurrentMonitorModeImpl(this, mmU);
             if(success) {
                 if(Screen.DEBUG) {
@@ -135,13 +135,13 @@ public class MonitorDeviceImpl extends MonitorDevice {
     private final void setCurrentModeValue(MonitorMode currentMode) {
         this.currentMode = currentMode;
     }
-    
+
     /* pp */ final void setViewportValue(Rectangle viewport) {
         this.viewport = viewport;
     }
-    
+
     /* pp */ ArrayHashSet<MonitorMode> getSupportedModesImpl() {
         return supportedModes;
     }
-    
+
 }

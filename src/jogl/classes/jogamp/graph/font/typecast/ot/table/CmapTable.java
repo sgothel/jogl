@@ -94,7 +94,7 @@ public class CmapTable implements Table {
             } else if (_entries[i].getOffset() > bytesRead) {
                 di.skipBytes(_entries[i].getOffset() - (int) bytesRead);
             } else if (_entries[i].getOffset() != bytesRead) {
-                
+
                 // Something is amiss
                 throw new IOException();
             }
@@ -109,15 +109,15 @@ public class CmapTable implements Table {
     public int getVersion() {
         return _version;
     }
-    
+
     public int getNumTables() {
         return _numTables;
     }
-    
+
     public CmapIndexEntry getCmapIndexEntry(int i) {
         return _entries[i];
     }
-    
+
     public CmapFormat getCmapFormat(short platformId, short encodingId) {
 
         // Find the requested format
@@ -148,7 +148,7 @@ public class CmapTable implements Table {
 //        }
         return sb.toString();
     }
-    
+
     /**
      * Get a directory entry for this table.  This uniquely identifies the
      * table in collections where there may be more than one instance of a
