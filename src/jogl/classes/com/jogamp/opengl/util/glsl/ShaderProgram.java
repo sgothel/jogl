@@ -218,7 +218,7 @@ public class ShaderProgram {
 
         gl.glLinkProgram(shaderProgram);
 
-        programLinked = ShaderUtil.isProgramLinkStatusValid(gl, shaderProgram, System.err);
+        programLinked = ShaderUtil.isProgramLinkStatusValid(gl, shaderProgram, verboseOut);
         if ( programLinked && shaderWasInUse )  {
             useProgram(gl, true);
         }
@@ -258,7 +258,7 @@ public class ShaderProgram {
         // Link the program
         gl.glLinkProgram(shaderProgram);
 
-        programLinked = ShaderUtil.isProgramLinkStatusValid(gl, shaderProgram, System.err);
+        programLinked = ShaderUtil.isProgramLinkStatusValid(gl, shaderProgram, verboseOut);
 
         return programLinked;
     }
