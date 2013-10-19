@@ -62,16 +62,22 @@ public class PinchToZoomGesture implements GestureHandler {
     }
 
     private final NativeSurface surface;
+    private final boolean allowMorePointer;
     private float zoom;
     private int zoomLastEdgeDist;
     private boolean zoomFirstTouch;
     private boolean zoomMode;
     private ZoomEvent zoomEvent;
-    private short[] pIds = new short[] { -1, -1 };
+    private final short[] pIds = new short[] { -1, -1 };
 
-    public PinchToZoomGesture(NativeSurface surface) {
+    /**
+     * @param surface the {@link NativeSurface}, which size is used to compute the relative zoom factor
+     * @param allowMorePointer if false, allow only 2 pressed pointers (safe and recommended), otherwise accept other pointer to be pressed.
+     */
+    public PinchToZoomGesture(NativeSurface surface, boolean allowMorePointer) {
         clear(true);
         this.surface = surface;
+        this.allowMorePointer = allowMorePointer;
         this.zoom = 1f;
     }
 
@@ -135,11 +141,13 @@ public class PinchToZoomGesture implements GestureHandler {
             return true;
         }
         final MouseEvent pe = (MouseEvent)in;
-        if( pe.getPointerType(0).getPointerClass() != MouseEvent.PointerClass.Onscreen ) {
+        final int pointerDownCount = pe.getPointerCount();
+
+        if( pe.getPointerType(0).getPointerClass() != MouseEvent.PointerClass.Onscreen ||
+            ( !allowMorePointer && pointerDownCount > 2 ) ) {
             return false;
         }
 
-        final int pointerDownCount = pe.getPointerCount();
         final int eventType = pe.getEventType();
         final boolean useY = surface.getWidth() >= surface.getHeight(); // use smallest dimension
         switch ( eventType ) {
@@ -190,7 +198,7 @@ public class PinchToZoomGesture implements GestureHandler {
                                 final int d = Math.abs(edge0-edge1);
                                 final int dd = d - zoomLastEdgeDist;
                                 final float screenEdge = useY ? surface.getHeight() : surface.getWidth();
-                                final float incr = (float)dd / screenEdge; // [-1..1]
+                                final float incr = dd / screenEdge; // [-1..1]
                                 if(DEBUG) {
                                     System.err.println("XXX2: id0 "+pIds[0]+" -> idx0 "+p0Idx+", id1 "+pIds[1]+" -> idx1 "+p1Idx);
                                     System.err.println("XXX3: d "+d+", ld "+zoomLastEdgeDist+", dd "+dd+", screen "+screenEdge+" -> incr "+incr+", zoom "+zoom+" -> "+(zoom+incr));

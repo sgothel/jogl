@@ -155,7 +155,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.ExtensionAvailabilityCache"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLProfile -Djogl.debug.GLDrawable -Djogl.debug.EGLDisplayUtil"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLProfile -Djogl.debug.GLDrawable"
-    D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLProfile"
+    #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLProfile"
     #D_ARGS="-Djogl.debug.GLProfile"
     #D_ARGS="-Dnativewindow.debug.NativeWindow -Dnewt.debug.Window -Dnewt.debug.Screen -Dnewt.debug.Display"
     #D_ARGS="-Djogl.debug.GLCanvas -Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.Animator"
@@ -300,7 +300,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelsAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NewtCanvasAWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NEWT $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT $*
@@ -313,7 +313,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsGLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsGLJPanelAWTBug450 $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNewtAWTWrapper $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestTeapotNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl3.newt.TestGeomShader01TextureGL3NEWT $*
 

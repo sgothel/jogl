@@ -20,7 +20,7 @@ set CP_ALL=.;%BLD_DIR%\jar\jogl-all.jar;%BLD_DIR%\jar\jogl-test.jar;..\..\joal\%
 
 echo CP_ALL %CP_ALL%
 
-set D_ARGS="-Djogamp.debug=all"
+REM set D_ARGS="-Djogamp.debug=all"
 REM set D_ARGS="-Djogl.debug.GLContext" "-Djogl.debug.FBObject"
 REM set D_ARGS="-Djogl.debug.GLDrawable" "-Djogl.debug.EGLDrawableFactory.DontQuery"
 REM set D_ARGS="-Djogl.debug.GLDrawable" "-Djogl.debug.EGLDrawableFactory.QueryNativeTK"
@@ -53,7 +53,7 @@ REM set D_ARGS="-Djogl.debug.GLCanvas" "-Djogl.debug.GLJPanel" "-Djogl.debug.Til
 REM set D_ARGS="-Djogl.debug.GLCanvas" "-Djogl.debug.GLJPanel" "-Djogl.debug.TileRenderer"
 REM set D_ARGS="-Dnewt.debug.Window"
 REM set D_ARGS="-Dnewt.debug.Window.KeyEvent"
-REM set D_ARGS="-Dnewt.debug.Window.MouseEvent"
+set D_ARGS="-Dnewt.debug.Window.MouseEvent"
 REM set D_ARGS="-Dnewt.debug.Window.MouseEvent" "-Dnewt.debug.Window.KeyEvent"
 REM set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.Display"
 REM set D_ARGS="-Djogl.debug.GLDebugMessageHandler" "-Djogl.debug.DebugGL" "-Djogl.debug.TraceGL"
