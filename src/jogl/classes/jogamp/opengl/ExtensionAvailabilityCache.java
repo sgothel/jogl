@@ -223,14 +223,13 @@ final class ExtensionAvailabilityCache {
       final VersionNumber version = context.getGLVersionNumber();
       int major[] = new int[] { version.getMajor() };
       int minor[] = new int[] { version.getMinor() };
-      while (GLContext.isValidGLVersion(ctxOptions, major[0], minor[0])) {
+      do{
           final String GL_XX_VERSION = ( context.isGLES() ? "GL_ES_VERSION_" : "GL_VERSION_" ) + major[0] + "_" + minor[0];
           availableExtensionCache.add(GL_XX_VERSION);
           if (DEBUG) {
               System.err.println(getThreadName() + ":ExtensionAvailabilityCache: Added "+GL_XX_VERSION+" to known extensions");
           }
-          if(!GLContext.decrementGLVersion(ctxOptions, major, minor)) break;
-      }
+      } while( GLContext.decrementGLVersion(ctxOptions, major, minor) );
 
       // put a dummy var in here so that the cache is no longer empty even if
       // no extensions are in the GL_EXTENSIONS string
@@ -248,7 +247,7 @@ final class ExtensionAvailabilityCache {
   private int glExtensionCount = 0;
   private String glXExtensions = null;
   private int glXExtensionCount = 0;
-  private HashSet<String> availableExtensionCache = new HashSet<String>(50);
+  private final HashSet<String> availableExtensionCache = new HashSet<String>(50);
 
   static String getThreadName() { return Thread.currentThread().getName(); }
 

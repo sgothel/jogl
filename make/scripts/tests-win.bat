@@ -65,7 +65,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintin
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNewtAWTWrapper %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT -time 30000
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT %*
+scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT -vsync -time 4000 -x 10 -y 10 -width 100 -height 100 -screen 0
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT -vsync -time 40000 -width 100 -height 100 -screen 0 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT -time 5000
@@ -134,7 +134,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02aN
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02bNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.ManualScreenMode03sNEWT %*
 
-scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.TexCubeES2 %*
 
