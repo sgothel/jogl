@@ -1148,7 +1148,13 @@ public abstract class GLContext {
       /* 1.*/ { 0, 1, 2, 3, 4, 5 },
       /* 2.*/ { 0, 1 },
       /* 3.*/ { 0, 1, 2, 3 },
-      /* 4.*/ { 0, 1, 2 } };
+      /* 4.*/ { 0, 1, 2, 3, 4 } };
+
+  public static final int ES_VERSIONS[][] = {
+      /* 0.*/ { -1 },
+      /* 1.*/ { 0, 1 },
+      /* 2.*/ { 0 },
+      /* 3.*/ { 0 } };
 
   public static final int getMaxMajor() {
       return GL_VERSIONS.length-1;
@@ -1159,30 +1165,100 @@ public abstract class GLContext {
       return GL_VERSIONS[major].length-1;
   }
 
-  public static final boolean isValidGLVersion(int major, int minor) {
-      if(1>major || major>=GL_VERSIONS.length) return false;
-      if(0>minor || minor>=GL_VERSIONS[major].length) return false;
+  /**
+   * Returns true, if the major.minor is not inferior to the lowest
+   * valid version and does not exceed the highest known major number by more than one.
+   * <p>
+   * The minor version number is ignored by the upper limit validation
+   * and the major version number may exceed by one.
+   * </p>
+   * <p>
+   * The upper limit check is relaxed since we don't want to cut-off
+   * unforseen new GL version since the release of JOGL.
+   * </p>
+   * <p>
+   * Hence it is important to iterate through GL version from the upper limit
+   * and {@link #decrementGLVersion(int, int[], int[])} until invalid.
+   * </p>
+   */
+  public static final boolean isValidGLVersion(int ctxProfile, int major, int minor) {
+      if( 1>major || 0>minor ) {
+          return false;
+      }
+      if( 0 != ( CTX_PROFILE_ES & ctxProfile ) ) {
+          if( major >= ES_VERSIONS.length + 1 ) return false;
+      } else {
+          if( major>=GL_VERSIONS.length + 1 ) return false;
+      }
       return true;
   }
 
-  public static final boolean decrementGLVersion(int major[], int minor[]) {
-      if(null==major || major.length<1 ||null==minor || minor.length<1) {
-          throw new GLException("invalid array arguments");
-      }
-      int m = major[0];
-      int n = minor[0];
-      if(!isValidGLVersion(m, n)) return false;
+  /**
+   * Clip the given GL version to the maximum known valid version if exceeding.
+   * @return true if clipped, i.e. given value exceeds maximum, otherwise false.
+   */
+  public static final boolean clipGLVersion(int ctxProfile, int major[], int minor[]) {
+      final int m = major[0];
+      final int n = minor[0];
 
-      // decrement ..
-      n -= 1;
-      if(n < 0) {
-          m -= 1;
-          n = GL_VERSIONS[m].length-1;
+      if( 0 != ( CTX_PROFILE_ES & ctxProfile ) ) {
+          if( m >= ES_VERSIONS.length ) {
+              major[0] = ES_VERSIONS.length - 1;
+              minor[0] = ES_VERSIONS[major[0]].length - 1;
+              return true;
+          }
+          if( n  >= ES_VERSIONS[m].length ) {
+              minor[0] = ES_VERSIONS[m].length - 1;
+              return true;
+          }
+      } else if( m >= GL_VERSIONS.length ) { // !isES
+          major[0] = GL_VERSIONS.length - 1;
+          minor[0] = GL_VERSIONS[major[0]].length - 1;
+          return true;
+      } else if( n  >= GL_VERSIONS[m].length ) { // !isES
+          minor[0] = GL_VERSIONS[m].length - 1;
+          return true;
       }
-      if(!isValidGLVersion(m, n)) return false;
-      major[0]=m;
-      minor[0]=n;
+      return false;
+  }
 
+  /**
+   * Decrement the given GL version by one
+   * and return true if still valid, otherwise false.
+   * <p>
+   * If the given version exceeds the maximum known valid version,
+   * it is {@link #clipGLVersion(int, int[], int[]) clipped} and
+   * true is returned.
+   * </p>
+   *
+   * @param ctxProfile
+   * @param major
+   * @param minor
+   * @return
+   */
+  public static final boolean decrementGLVersion(int ctxProfile, int major[], int minor[]) {
+      if( !clipGLVersion(ctxProfile, major, minor) ) {
+          int m = major[0];
+          int n = minor[0] - 1;
+          if(n < 0) {
+              if( 0 != ( CTX_PROFILE_ES & ctxProfile ) ) {
+                  if( m >= 3 ) {
+                      m -= 1;
+                  } else {
+                      m = 0; // major decr [1,2] -> 0
+                  }
+                  n = ES_VERSIONS[m].length-1;
+              } else {
+                  m -= 1;
+                  n = GL_VERSIONS[m].length-1;
+              }
+          }
+          if( !isValidGLVersion(ctxProfile, m, n) ) {
+              return false;
+          }
+          major[0]=m;
+          minor[0]=n;
+      }
       return true;
   }
 
