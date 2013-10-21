@@ -456,8 +456,8 @@ public class BuildComposablePipeline {
         }
 
         protected void emitSignature(PrintWriter output, Method m) {
+            output.println("  @Override");
             output.print("  public ");
-            output.print(' ');
             output.print(JavaType.createForClass(m.getReturnType()).getName());
             output.print(' ');
             output.print(m.getName());
@@ -589,6 +589,7 @@ public class BuildComposablePipeline {
          * closing parenthesis of the class is emitted.
          */
         protected void postMethodEmissionHook(PrintWriter output) {
+            output.println("  @Override");
             output.println("  public String toString() {");
             output.println("    StringBuilder sb = new StringBuilder();");
             output.println("    sb.append(\"" + getOutputName() + " [ implementing " + baseInterfaceClass.getName() + ",\\n\\t\");");
