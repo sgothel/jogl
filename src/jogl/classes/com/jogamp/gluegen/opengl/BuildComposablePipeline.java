@@ -456,14 +456,10 @@ public class BuildComposablePipeline {
         }
 
         protected void emitSignature(PrintWriter output, Method m) {
-            output.println("  @Override");
-            output.print("  public ");
-            output.print(JavaType.createForClass(m.getReturnType()).getName());
-            output.print(' ');
-            output.print(m.getName());
-            output.print('(');
-            output.print(getArgListAsString(m, true, true));
-            output.println(")");
+            output.format("  @Override%n  public %s %s(%s)%n",
+                          JavaType.createForClass(m.getReturnType()).getName(),
+                          m.getName(),
+                          getArgListAsString(m, true, true));
         }
 
         protected void emitBody(PrintWriter output, Method m, boolean runHooks) {
