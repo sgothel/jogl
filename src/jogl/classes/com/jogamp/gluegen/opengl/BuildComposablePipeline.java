@@ -925,23 +925,16 @@ public class BuildComposablePipeline {
         @Override
         protected void postMethodEmissionHook(PrintWriter output) {
             super.postMethodEmissionHook(output);
-            output.println("  private void checkGLGetError(String caller)");
-            output.println("  {");
+            output.println("  private int checkGLError() {");
             if (hasImmediateMode) {
-                output.println("    if (insideBeginEndPair) {");
-                output.println("      return;");
-                output.println("    }");
+                output.println("    if (insideBeginEndPair) return GL_NO_ERROR;");
                 output.println();
             }
-            output.println("    // Debug code to make sure the pipeline is working; leave commented out unless testing this class");
-            output.println("    //System.err.println(\"Checking for GL errors "
-                    + "after call to \" + caller);");
-            output.println();
-            output.println("    int err = "
-                    + getDownstreamObjectName()
-                    + ".glGetError();");
-            output.println("    if (err == GL_NO_ERROR) { return; }");
-            output.println();
+            output.format("    return %s.glGetError();%n", getDownstreamObjectName());
+            output.println("  }");
+            
+            output.println("  private void writeGLError(int err, String caller)");
+            output.println("  {");
             output.println("    StringBuilder buf = new StringBuilder(Thread.currentThread()+");
             output.println("      \" glGetError() returned the following error codes after a call to \" + caller + \": \");");
             output.println();
@@ -1027,6 +1020,8 @@ public class BuildComposablePipeline {
                     output.println("    insideBeginEndPair = false;");
                 }
 
+                output.println("    int err = checkGLError();");
+                output.println("    if (err != GL_NO_ERROR) {");
                 output.println("    String txt = new String(\"" + m.getName() + "(\" +");
                 Class<?>[] params = m.getParameterTypes();
                 for (int i = 0; params != null && i < params.length; i++) {
@@ -1044,7 +1039,8 @@ public class BuildComposablePipeline {
                 }
                 output.println("    \")\");");
                 // calls to glGetError() are only allowed outside of glBegin/glEnd pairs
-                output.println("    checkGLGetError( txt );");
+                output.println("    writeGLError( err, txt );");
+                output.println("    }");
             }
         }
     } // end class DebugPipeline
