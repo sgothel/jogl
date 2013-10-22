@@ -1022,10 +1022,10 @@ public class BuildComposablePipeline {
 
                 output.println("    int err = checkGLError();");
                 output.println("    if (err != GL_NO_ERROR) {");
-                output.println("    String txt = new String(\"" + m.getName() + "(\" +");
+                output.println("      String txt = \"" + m.getName() + "(\" +");
                 Class<?>[] params = m.getParameterTypes();
                 for (int i = 0; params != null && i < params.length; i++) {
-                    output.print("    \"<" + params[i].getName() + ">");
+                    output.print("      \"<" + params[i].getName() + ">");
                     if (params[i].isArray()) {
                         output.print("\" +");
                     } else if (params[i].equals(int.class)) {
@@ -1037,9 +1037,9 @@ public class BuildComposablePipeline {
                         output.println("    \", \" +");
                     }
                 }
-                output.println("    \")\");");
+                output.println("      \")\";");
                 // calls to glGetError() are only allowed outside of glBegin/glEnd pairs
-                output.println("    writeGLError( err, txt );");
+                output.println("      writeGLError( err, txt );");
                 output.println("    }");
             }
         }
