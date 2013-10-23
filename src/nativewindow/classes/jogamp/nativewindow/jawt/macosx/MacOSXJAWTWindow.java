@@ -54,6 +54,7 @@ import javax.media.nativewindow.util.Point;
 
 import com.jogamp.nativewindow.awt.JAWTWindow;
 
+import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.awt.AWTMisc;
 import jogamp.nativewindow.jawt.JAWT;
 import jogamp.nativewindow.jawt.JAWTFactory;
@@ -64,6 +65,14 @@ import jogamp.nativewindow.jawt.macosx.JAWT_MacOSXDrawingSurfaceInfo;
 import jogamp.nativewindow.macosx.OSXUtil;
 
 public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
+  /** May lead to deadlock, due to AWT pos comparison .. don't enable for Applets! */
+  private static final boolean DEBUG_CALAYER_POS_CRITICAL;
+
+  static {
+      Debug.initSingleton();
+      DEBUG_CALAYER_POS_CRITICAL = Debug.isPropertyDefined("nativewindow.debug.JAWT.OSXCALayerPos", true /* jnlpAlias */);
+  }
+
   public MacOSXJAWTWindow(Object comp, AbstractGraphicsConfiguration config) {
     super(comp, config);
     if(DEBUG) {
@@ -122,7 +131,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
                   p1.translate(-outterInsets.left, -outterInsets.top);
               }
 
-              if( DEBUG ) {
+              if( DEBUG_CALAYER_POS_CRITICAL ) {
                   final java.awt.Point pA0 = component.getLocationOnScreen();
                   final Point pA1 = new Point(pA0.x, pA0.y);
                   pA1.translate(-outterComp.getX(), -outterComp.getY());
@@ -131,6 +140,8 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
                   }
                   System.err.println("JAWTWindow.attachSurfaceLayerImpl: "+toHexString(layerHandle) + ", [ins "+outterInsets+"], pA "+pA0+" -> "+pA1+
                           ", p0 "+p0+" -> "+p1+", bounds "+bounds);
+              } else if( DEBUG ) {
+                  System.err.println("JAWTWindow.attachSurfaceLayerImpl: "+toHexString(layerHandle) + ", [ins "+outterInsets+"], p0 "+p0+" -> "+p1+", bounds "+bounds);
               }
               OSXUtil.AddCASublayer(rootSurfaceLayer, layerHandle, p1.getX(), p1.getY(), getWidth(), getHeight(), JAWTUtil.getOSXCALayerQuirks());
           } } );
@@ -152,7 +163,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
           p1.translate(-outterInsets.left, -outterInsets.top);
       }
 
-      if( DEBUG ) {
+      if( DEBUG_CALAYER_POS_CRITICAL ) {
           final java.awt.Point pA0 = component.getLocationOnScreen();
           final Point pA1 = new Point(pA0.x, pA0.y);
           pA1.translate(-outterComp.getX(), -outterComp.getY());
@@ -162,6 +173,9 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
           System.err.println("JAWTWindow.layoutSurfaceLayerImpl: "+toHexString(layerHandle) + ", quirks "+caLayerQuirks+", visible "+visible+
                   ", [ins "+outterInsets+"], pA "+pA0+" -> "+pA1+
                   ", p0 "+p0+" -> "+p1+", bounds "+bounds);
+      } else if( DEBUG ) {
+          System.err.println("JAWTWindow.layoutSurfaceLayerImpl: "+toHexString(layerHandle) + ", quirks "+caLayerQuirks+", visible "+visible+
+                  ", [ins "+outterInsets+"], p0 "+p0+" -> "+p1+", bounds "+bounds);
       }
       OSXUtil.FixCALayerLayout(rootSurfaceLayer, layerHandle, visible, p1.getX(), p1.getY(), getWidth(), getHeight(), caLayerQuirks);
   }
