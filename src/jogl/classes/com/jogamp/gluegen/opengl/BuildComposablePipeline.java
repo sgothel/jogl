@@ -933,10 +933,13 @@ public class BuildComposablePipeline {
             output.format("    return %s.glGetError();%n", getDownstreamObjectName());
             output.println("  }");
 
-            output.println("  private void writeGLError(int err, String caller)");
+            output.println("  private void writeGLError(int err, String fmt, Object... args)");
             output.println("  {");
-            output.println("    StringBuilder buf = new StringBuilder(Thread.currentThread()+");
-            output.println("      \" glGetError() returned the following error codes after a call to \" + caller + \": \");");
+            output.println("    StringBuilder buf = new StringBuilder();");
+            output.println("    buf.append(Thread.currentThread().toString());");
+            output.println("    buf.append(\" glGetError() returned the following error codes after a call to \");");
+            output.println("    buf.append(String.format(fmt, args));");
+            output.println("    buf.append(\": \");");
             output.println();
             output.println("    // Loop repeatedly to allow for distributed GL implementations,");
             output.println("    // as detailed in the glGetError() specification");
@@ -1026,8 +1029,8 @@ public class BuildComposablePipeline {
                 StringBuilder fmtsb = new StringBuilder();
                 StringBuilder argsb = new StringBuilder();
 
-                fmtsb.append("      String txt = String.format(\"%s(");
-                argsb.append("                                 \"").append(m.getName()).append("\"");
+                fmtsb.append("\"%s(");
+                argsb.append("\"").append(m.getName()).append("\"");
                 Class<?>[] params = m.getParameterTypes();
                 for (int i = 0; i < params.length; i++) {
                     if (i > 0) {
@@ -1047,10 +1050,11 @@ public class BuildComposablePipeline {
                 fmtsb.append(")\",");
                 argsb.append(");");
 
-                output.println(fmtsb.toString());
-                output.println(argsb.toString());
                 // calls to glGetError() are only allowed outside of glBegin/glEnd pairs
-                output.println("      writeGLError( err, txt );");
+                output.print("      writeGLError(err, ");
+                output.println(fmtsb.toString());
+                output.print("                   ");
+                output.println(argsb.toString());
                 output.println("    }");
             }
         }
