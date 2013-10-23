@@ -416,7 +416,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
                 if(aCap.getVisualID(VIDType.NATIVE) != nativeVisualID) {
                     if(DEBUG) { System.err.println("Remove["+i+"] (mismatch VisualID): "+aCap); }
                     removedCaps.add(availableCaps.remove(i));
-                } if( 0 == aCap.getDepthBits() && 0 < capsChosen.getDepthBits() ) {
+                } else if( 0 == aCap.getDepthBits() && 0 < capsChosen.getDepthBits() ) {
                     // Hack for HiSilicon/Vivante/Immersion.16 Renderer ..
                     if(DEBUG) { System.err.println("Remove["+i+"] (mismatch depth-bits): "+aCap); }
                     removedCaps.add(availableCaps.remove(i));
