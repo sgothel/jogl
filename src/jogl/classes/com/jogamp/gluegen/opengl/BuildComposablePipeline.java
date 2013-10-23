@@ -932,7 +932,7 @@ public class BuildComposablePipeline {
             }
             output.format("    return %s.glGetError();%n", getDownstreamObjectName());
             output.println("  }");
-            
+
             output.println("  private void writeGLError(int err, String caller)");
             output.println("  {");
             output.println("    StringBuilder buf = new StringBuilder(Thread.currentThread()+");
@@ -1022,22 +1022,33 @@ public class BuildComposablePipeline {
 
                 output.println("    int err = checkGLError();");
                 output.println("    if (err != GL_NO_ERROR) {");
-                output.println("      String txt = \"" + m.getName() + "(\" +");
+
+                StringBuilder fmtsb = new StringBuilder();
+                StringBuilder argsb = new StringBuilder();
+
+                fmtsb.append("      String txt = String.format(\"%s(");
+                argsb.append("                                 \"").append(m.getName()).append("\"");
                 Class<?>[] params = m.getParameterTypes();
-                for (int i = 0; params != null && i < params.length; i++) {
-                    output.print("      \"<" + params[i].getName() + ">");
-                    if (params[i].isArray()) {
-                        output.print("\" +");
-                    } else if (params[i].equals(int.class)) {
-                        output.print(" 0x\"+Integer.toHexString(arg" + i + ").toUpperCase() +");
-                    } else {
-                        output.print(" \"+arg" + i + " +");
+                for (int i = 0; i < params.length; i++) {
+                    if (i > 0) {
+                        fmtsb.append(", ");
                     }
-                    if (i < params.length - 1) {
-                        output.println("    \", \" +");
+                    fmtsb.append("<").append(params[i].getName()).append(">");
+                    if (params[i].isArray()) {
+                        //nothing
+                    } else if (params[i].equals(int.class)) {
+                        fmtsb.append(" 0x%X");
+                        argsb.append(", arg").append(i);
+                    } else {
+                        fmtsb.append(" %s");
+                        argsb.append(", arg").append(i);
                     }
                 }
-                output.println("      \")\";");
+                fmtsb.append(")\",");
+                argsb.append(");");
+
+                output.println(fmtsb.toString());
+                output.println(argsb.toString());
                 // calls to glGetError() are only allowed outside of glBegin/glEnd pairs
                 output.println("      writeGLError( err, txt );");
                 output.println("    }");
