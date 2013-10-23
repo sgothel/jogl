@@ -60,11 +60,9 @@ public class RectanglePacker {
   private int maxWidth  = -1;
   private int maxHeight = -1;
 
-  static class RectHComparator implements Comparator {
+  static class RectHComparator implements Comparator<Rect> {
     @Override
-    public int compare(Object o1, Object o2) {
-      Rect r1 = (Rect) o1;
-      Rect r2 = (Rect) o2;
+    public int compare(Rect r1, Rect r2) {
       return r2.h() - r1.h();
     }
 
@@ -73,7 +71,7 @@ public class RectanglePacker {
       return this == obj;
     }
   }
-  private static final Comparator rectHComparator = new RectHComparator();
+  private static final Comparator<Rect> rectHComparator = new RectHComparator();
 
   public RectanglePacker(BackingStoreManager manager,
                          int initialWidth,
@@ -207,11 +205,11 @@ public class RectanglePacker {
       nextLevelSet = new LevelSet(newWidth, newHeight);
 
       // Make copies of all existing rectangles
-      List/*<Rect>*/ newRects = new ArrayList/*<Rect>*/();
-      for (Iterator i1 = levels.iterator(); i1.hasNext(); ) {
-        Level level = (Level) i1.next();
-        for (Iterator i2 = level.iterator(); i2.hasNext(); ) {
-          Rect cur = (Rect) i2.next();
+      List<Rect> newRects = new ArrayList<Rect>();
+      for (Iterator<Level> i1 = levels.iterator(); i1.hasNext(); ) {
+        Level level = i1.next();
+        for (Iterator<Rect> i2 = level.iterator(); i2.hasNext(); ) {
+          Rect cur = i2.next();
           Rect newRect = new Rect(0, 0, cur.w(), cur.h(), null);
           cur.setNextLocation(newRect);
           // Hook up the reverse mapping too for easier replacement
@@ -224,8 +222,8 @@ public class RectanglePacker {
       Collections.sort(newRects, rectHComparator);
       // Try putting all of these rectangles into the new level set
       done = true;
-      for (Iterator iter = newRects.iterator(); iter.hasNext(); ) {
-        if (!nextLevelSet.add((Rect) iter.next())) {
+      for (Iterator<Rect> iter = newRects.iterator(); iter.hasNext(); ) {
+        if (!nextLevelSet.add(iter.next())) {
           done = false;
           break;
         }
@@ -273,10 +271,10 @@ public class RectanglePacker {
     Object newBackingStore = manager.allocateBackingStore(nextLevelSet.w(),
                                                           nextLevelSet.h());
     manager.beginMovement(backingStore, newBackingStore);
-    for (Iterator i1 = levels.iterator(); i1.hasNext(); ) {
-      Level level = (Level) i1.next();
-      for (Iterator i2 = level.iterator(); i2.hasNext(); ) {
-        Rect cur = (Rect) i2.next();
+    for (Iterator<Level> i1 = levels.iterator(); i1.hasNext(); ) {
+      Level level = i1.next();
+      for (Iterator<Rect> i2 = level.iterator(); i2.hasNext(); ) {
+        Rect cur = i2.next();
         manager.move(backingStore, cur,
                      newBackingStore, cur.getNextLocation());
       }
