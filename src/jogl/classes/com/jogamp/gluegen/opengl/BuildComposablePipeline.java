@@ -1198,6 +1198,9 @@ public class BuildComposablePipeline {
             } else {
                 output.println("    println(\"\");");
             }
+
+            if (m.getName().equals("glBegin"))
+                output.println("    indent+=2;");
         }
 
         private String getOutputStreamName() {
