@@ -464,7 +464,6 @@ public class BuildComposablePipeline {
 
         protected void emitBody(PrintWriter output, Method m, boolean runHooks) {
             output.println("  {");
-            output.print("    ");
             Class<?> retType = m.getReturnType();
 
             boolean callPreDownstreamHook = runHooks && hasPreDownstreamCallHook(m);
@@ -509,6 +508,9 @@ public class BuildComposablePipeline {
                     } else {
                         output.print("    return ");
                     }
+                }
+                else {
+                    output.print("    ");
                 }
                 output.print(getDownstreamObjectName());
                 output.print('.');
@@ -1023,7 +1025,7 @@ public class BuildComposablePipeline {
                     output.println("    insideBeginEndPair = false;");
                 }
 
-                output.println("    int err = checkGLError();");
+                output.println("    final int err = checkGLError();");
                 output.println("    if (err != GL_NO_ERROR) {");
 
                 StringBuilder fmtsb = new StringBuilder();
@@ -1172,10 +1174,10 @@ public class BuildComposablePipeline {
         @Override
         protected void preDownstreamCallHook(PrintWriter output, Method m) {
             if (m.getName().equals("glEnd") || m.getName().equals("glEndList")) {
-                output.println("indent-=2;");
+                output.println("    indent-=2;");
                 output.println("    printIndent();");
             } else {
-                output.println("printIndent();");
+                output.println("    printIndent();");
             }
 
             output.print("    print(");
