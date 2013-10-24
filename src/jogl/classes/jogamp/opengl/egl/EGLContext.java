@@ -222,7 +222,9 @@ public class EGLContext extends GLContextImpl {
             throw new GLException("Error making context " +
                                   toHexString(contextHandle) + " current: error code " + toHexString(EGL.eglGetError()));
         }
-        return setGLFunctionAvailability(true, contextVersionReq, 0, CTX_PROFILE_ES, contextVersionReq>=3); // strict match for es >= 3
+        return setGLFunctionAvailability(true, contextVersionReq, 0, CTX_PROFILE_ES,
+                                         contextVersionReq>=3 /* strictMatch */, // strict match for es >= 3
+                                         false /* withinGLVersionsMapping */);
     }
 
     @Override

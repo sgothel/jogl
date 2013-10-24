@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.demos.es2.newt;
 
 import java.io.IOException;
@@ -70,7 +70,7 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestGearsES2NEWT extends UITestCase {    
+public class TestGearsES2NEWT extends UITestCase {
     static int screenIdx = 0;
     static PointImmutable wpos;
     static DimensionImmutable wsize, rwsize=null;
@@ -92,12 +92,13 @@ public class TestGearsES2NEWT extends UITestCase {
     static boolean forceES2 = false;
     static boolean forceES3 = false;
     static boolean forceGL3 = false;
+    static boolean forceGL2 = false;
     static boolean mainRun = false;
     static boolean exclusiveContext = false;
     static boolean useAnimator = true;
     static enum SysExit { none, testExit, testError, displayExit, displayError };
     static SysExit sysExit = SysExit.none;
-    
+
     @BeforeClass
     public static void initClass() {
         if(null == wsize) {
@@ -129,7 +130,7 @@ public class TestGearsES2NEWT extends UITestCase {
         final GearsES2 demo = new GearsES2(swapInterval);
         demo.setPMVUseBackingArray(pmvUseBackingArray);
         glWindow.addGLEventListener(demo);
-        
+
         final SnapshotGLEventListener snap = new SnapshotGLEventListener();
         glWindow.addGLEventListener(snap);
         if(waitForKey) {
@@ -154,7 +155,7 @@ public class TestGearsES2NEWT extends UITestCase {
             animator.setModeBits(false, Animator.MODE_EXPECT_AWT_RENDERING_THREAD);
             animator.setExclusiveContext(exclusiveContext);
         }
-        
+
         QuitAdapter quitAdapter = new QuitAdapter();
         //glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
         //glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
@@ -167,9 +168,9 @@ public class TestGearsES2NEWT extends UITestCase {
             }
             public void windowMoved(WindowEvent e) {
                 System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight());
-            }            
+            }
         });
-        
+
         glWindow.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(final KeyEvent e) {
@@ -299,7 +300,7 @@ public class TestGearsES2NEWT extends UITestCase {
                                 throw new Error("test error send from GLEventListener");
                             } else if ( SysExit.displayExit == sysExit ) {
                                 System.err.println("exit(0) send from GLEventListener");
-                                System.exit(0);                                
+                                System.exit(0);
                             }
                         }
                     } else {
@@ -307,29 +308,29 @@ public class TestGearsES2NEWT extends UITestCase {
                     }
                 }
                 @Override
-                public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }                    
+                public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
             });
         }
-        
+
         glWindow.setVisible(true);
         if( useAnimator ) {
             animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
         }
-        
+
         System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
         System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
-        
+
         snap.setMakeSnapshot();
 
         if( null != rwsize ) {
-            Thread.sleep(500); // 500ms delay 
+            Thread.sleep(500); // 500ms delay
             glWindow.setSize(rwsize.getWidth(), rwsize.getHeight());
             System.err.println("window resize pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
         }
-        
+
         snap.setMakeSnapshot();
-        
+
         final long t0 = System.currentTimeMillis();
         long t1 = t0;
         while(!quitAdapter.shouldQuit() && t1-t0<duration) {
@@ -341,7 +342,7 @@ public class TestGearsES2NEWT extends UITestCase {
                         throw new Error("test error send from test thread");
                     } else if ( SysExit.testExit == sysExit ) {
                         System.err.println("exit(0) send from test thread");
-                        System.exit(0);                                
+                        System.exit(0);
                     }
                 }
             }
@@ -371,13 +372,15 @@ public class TestGearsES2NEWT extends UITestCase {
                 glp = GLProfile.get(GLProfile.GLES3);
             } else if(forceES2) {
                 glp = GLProfile.get(GLProfile.GLES2);
+            } else if(forceGL2) {
+                glp = GLProfile.get(GLProfile.GL2);
             } else {
                 glp = GLProfile.getGL2ES2();
             }
             final GLCapabilities caps = new GLCapabilities( glp );
             caps.setBackgroundOpaque(opaque);
             if(-1 < forceAlpha) {
-                caps.setAlphaBits(forceAlpha); 
+                caps.setAlphaBits(forceAlpha);
             }
             runTestGL(caps, undecorated);
             if(loop_shutdown) {
@@ -389,7 +392,7 @@ public class TestGearsES2NEWT extends UITestCase {
     @Test
     public void test02_GLES2() throws InterruptedException {
         if(mainRun) return;
-        
+
         if( !GLProfile.isAvailable(GLProfile.GLES2) ) {
             System.err.println("GLES2 n/a");
             return;
@@ -398,11 +401,11 @@ public class TestGearsES2NEWT extends UITestCase {
         final GLCapabilities caps = new GLCapabilities( glp );
         runTestGL(caps, undecorated);
     }
-    
+
     @Test
     public void test03_GL3() throws InterruptedException {
         if(mainRun) return;
-        
+
         if( !GLProfile.isAvailable(GLProfile.GL3) ) {
             System.err.println("GL3 n/a");
             return;
@@ -411,13 +414,13 @@ public class TestGearsES2NEWT extends UITestCase {
         final GLCapabilities caps = new GLCapabilities( glp );
         runTestGL(caps, undecorated);
     }
-    
+
     public static void main(String args[]) throws IOException {
         mainRun = true;
-        
+
         int x=0, y=0, w=640, h=480, rw=-1, rh=-1;
         boolean usePos = false;
-        
+
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
@@ -448,6 +451,8 @@ public class TestGearsES2NEWT extends UITestCase {
                 forceES3 = true;
             } else if(args[i].equals("-gl3")) {
                 forceGL3 = true;
+            } else if(args[i].equals("-gl2")) {
+                forceGL2 = true;
             } else if(args[i].equals("-wait")) {
                 waitForKey = true;
             } else if(args[i].equals("-mouseInvisible")) {
@@ -493,7 +498,7 @@ public class TestGearsES2NEWT extends UITestCase {
         if( 0 < rw && 0 < rh ) {
             rwsize = new Dimension(rw, rh);
         }
-        
+
         if(usePos) {
             wpos = new Point(x, y);
         }
@@ -502,11 +507,11 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("resize "+rwsize);
         System.err.println("screen "+screenIdx);
         System.err.println("translucent "+(!opaque));
-        System.err.println("forceAlpha "+forceAlpha);        
+        System.err.println("forceAlpha "+forceAlpha);
         System.err.println("undecorated "+undecorated);
         System.err.println("atop "+alwaysOnTop);
         System.err.println("fullscreen "+fullscreen);
-        System.err.println("pmvDirect "+(!pmvUseBackingArray));        
+        System.err.println("pmvDirect "+(!pmvUseBackingArray));
         System.err.println("mouseVisible "+mouseVisible);
         System.err.println("mouseConfined "+mouseConfined);
         System.err.println("loops "+loops);
@@ -514,10 +519,11 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("forceES2 "+forceES2);
         System.err.println("forceES3 "+forceES3);
         System.err.println("forceGL3 "+forceGL3);
+        System.err.println("forceGL2 "+forceGL2);
         System.err.println("swapInterval "+swapInterval);
         System.err.println("exclusiveContext "+exclusiveContext);
         System.err.println("useAnimator "+useAnimator);
-        System.err.println("sysExitWithin "+sysExit);        
+        System.err.println("sysExitWithin "+sysExit);
 
         if(waitForKey) {
             UITestCase.waitForKey("Start");

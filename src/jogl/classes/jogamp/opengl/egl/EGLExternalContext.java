@@ -45,7 +45,7 @@ public class EGLExternalContext extends EGLContext {
     public EGLExternalContext(AbstractGraphicsScreen screen) {
         super(null, null);
         GLContextShareSet.contextCreated(this);
-        setGLFunctionAvailability(false, 0, 0, CTX_PROFILE_ES, false);
+        setGLFunctionAvailability(false, 0, 0, CTX_PROFILE_ES, false /* strictMatch */, false /* withinGLVersionsMapping */); // use GL_VERSION
         getGLStateTracker().setEnabled(false); // external context usage can't track state in Java
     }
 
