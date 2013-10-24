@@ -115,7 +115,7 @@ public class JoglVersion extends JogampVersion {
         if(null == device) {
             device = GLProfile.getDefaultDevice();
         }
-        sb.append("Default Profiles on device ").append(device).append(Platform.getNewline());
+        sb.append("GLProfiles on device ").append(device).append(Platform.getNewline());
         if(null!=device) {
             GLProfile.glAvailabilityToString(device, sb, "\t", 1);
         } else {
