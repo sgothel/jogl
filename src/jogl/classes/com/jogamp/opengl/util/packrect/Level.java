@@ -47,15 +47,13 @@ public class Level {
   private int yPos;
   private LevelSet holder;
 
-  private List/*<Rect>*/ rects = new ArrayList/*<Rect>*/();
-  private List/*<Rect>*/ freeList;
+  private List<Rect> rects = new ArrayList<Rect>();
+  private List<Rect> freeList;
   private int nextAddX;
 
-  static class RectXComparator implements Comparator {
+  static class RectXComparator implements Comparator<Rect> {
     @Override
-    public int compare(Object o1, Object o2) {
-      Rect r1 = (Rect) o1;
-      Rect r2 = (Rect) o2;
+    public int compare(Rect r1, Rect r2) {
       return r1.x() - r2.x();
     }
 
@@ -64,7 +62,7 @@ public class Level {
       return this == obj;
     }
   }
-  private static final Comparator rectXComparator = new RectXComparator();
+  private static final Comparator<Rect> rectXComparator = new RectXComparator();
 
   public Level(int width, int height, int yPos, LevelSet holder) {
     this.width = width;
@@ -110,8 +108,8 @@ public class Level {
     // See whether we can add from the free list
     if (freeList != null) {
       Rect candidate = null;
-      for (Iterator iter = freeList.iterator(); iter.hasNext(); ) {
-        Rect cur = (Rect) iter.next();
+      for (Iterator<Rect> iter = freeList.iterator(); iter.hasNext(); ) {
+        Rect cur = iter.next();
         if (cur.canContain(rect)) {
           candidate = cur;
           break;
@@ -151,7 +149,7 @@ public class Level {
       nextAddX -= rect.w();
     } else {
       if (freeList == null) {
-        freeList = new ArrayList/*<Rect>*/();
+        freeList = new ArrayList<Rect>();
       }
       freeList.add(new Rect(rect.x(), rect.y(), rect.w(), height, null));
       coalesceFreeList();
@@ -173,8 +171,8 @@ public class Level {
     if (freeList == null)
       return false;
     int freeListWidth = 0;
-    for (Iterator iter = freeList.iterator(); iter.hasNext(); ) {
-      Rect cur = (Rect) iter.next();
+    for (Iterator<Rect> iter = freeList.iterator(); iter.hasNext(); ) {
+      Rect cur = iter.next();
       freeListWidth += cur.w();
     }
     // Add on the remaining space at the end
@@ -186,8 +184,8 @@ public class Level {
     Collections.sort(rects, rectXComparator);
     int nextCompactionDest = 0;
     manager.beginMovement(backingStore, backingStore);
-    for (Iterator iter = rects.iterator(); iter.hasNext(); ) {
-      Rect cur = (Rect) iter.next();
+    for (Iterator<Rect> iter = rects.iterator(); iter.hasNext(); ) {
+      Rect cur = iter.next();
       if (cur.x() != nextCompactionDest) {
         manager.move(backingStore, cur,
                      backingStore, new Rect(nextCompactionDest, cur.y(), cur.w(), cur.h(), null));
@@ -200,14 +198,14 @@ public class Level {
     manager.endMovement(backingStore, backingStore);
   }
 
-  public Iterator iterator() {
+  public Iterator<Rect> iterator() {
     return rects.iterator();
   }
 
   /** Visits all Rects contained in this Level. */
   public void visit(RectVisitor visitor) {
-    for (Iterator iter = rects.iterator(); iter.hasNext(); ) {
-      Rect rect = (Rect) iter.next();
+    for (Iterator<Rect> iter = rects.iterator(); iter.hasNext(); ) {
+      Rect rect = iter.next();
       visitor.visit(rect);
     }
   }
@@ -218,7 +216,7 @@ public class Level {
       original Rects. */
   public void updateRectangleReferences() {
     for (int i = 0; i < rects.size(); i++) {
-      Rect cur = (Rect) rects.get(i);
+      Rect cur = rects.get(i);
       Rect next = cur.getNextLocation();
       next.setPosition(cur.x(), cur.y());
       if (cur.w() != next.w() || cur.h() != next.h())
@@ -237,8 +235,8 @@ public class Level {
     Collections.sort(freeList, rectXComparator);
     int i = 0;
     while (i < freeList.size() - 1) {
-      Rect r1 = (Rect) freeList.get(i);
-      Rect r2 = (Rect) freeList.get(i+1);
+      Rect r1 = freeList.get(i);
+      Rect r2 = freeList.get(i+1);
       if (r1.maxX() + 1 == r2.x()) {
         // Coalesce r1 and r2 into one block
         freeList.remove(i+1);
@@ -248,7 +246,7 @@ public class Level {
       }
     }
     // See whether the last block bumps up against the addition point
-    Rect last = (Rect) freeList.get(freeList.size() - 1);
+    Rect last = freeList.get(freeList.size() - 1);
     if (last.maxX() + 1 == nextAddX) {
       nextAddX -= last.w();
       freeList.remove(freeList.size() - 1);
@@ -264,8 +262,8 @@ public class Level {
 
   public void dumpFreeSpace() {
     int freeListWidth = 0;
-    for (Iterator iter = freeList.iterator(); iter.hasNext(); ) {
-      Rect cur = (Rect) iter.next();
+    for (Iterator<Rect> iter = freeList.iterator(); iter.hasNext(); ) {
+      Rect cur = iter.next();
       System.err.println(" Free rectangle at " + cur);
       freeListWidth += cur.w();
     }

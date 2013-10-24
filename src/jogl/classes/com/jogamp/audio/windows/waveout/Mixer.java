@@ -50,7 +50,7 @@ public class Mixer {
     // Windows Event object
     private long event;
 
-    private volatile ArrayList/*<Track>*/ tracks = new ArrayList();
+    private volatile ArrayList<Track> tracks = new ArrayList<Track>();
 
     private Vec3f leftSpeakerPosition  = new Vec3f(-1, 0, 0);
     private Vec3f rightSpeakerPosition = new Vec3f( 1, 0, 0);
@@ -74,13 +74,13 @@ public class Mixer {
     }
 
     synchronized void add(Track track) {
-        ArrayList/*<Track>*/ newTracks = (ArrayList) tracks.clone();
+        ArrayList<Track> newTracks = new ArrayList<Track>(tracks);
         newTracks.add(track);
         tracks = newTracks;
     }
 
     synchronized void remove(Track track) {
-        ArrayList/*<Track>*/ newTracks = (ArrayList) tracks.clone();
+        ArrayList<Track> newTracks = new ArrayList<Track>(tracks);
         newTracks.remove(track);
         tracks = newTracks;
     }
@@ -132,10 +132,10 @@ public class Mixer {
         @Override
         public void run() {
             while (!shutdown) {
-                List/*<Track>*/ curTracks = tracks;
+                List<Track> curTracks = tracks;
 
-                for (Iterator iter = curTracks.iterator(); iter.hasNext(); ) {
-                    Track track = (Track) iter.next();
+                for (Iterator<Track> iter = curTracks.iterator(); iter.hasNext(); ) {
+                    Track track = iter.next();
                     try {
                         track.fill();
                     } catch (IOException e) {
@@ -209,10 +209,10 @@ public class Mixer {
                     }
 
                     // Run down all of the registered tracks mixing them in
-                    List/*<Track>*/ curTracks = tracks;
+                    List<Track> curTracks = tracks;
 
-                    for (Iterator iter = curTracks.iterator(); iter.hasNext(); ) {
-                        Track track = (Track) iter.next();
+                    for (Iterator<Track> iter = curTracks.iterator(); iter.hasNext(); ) {
+                        Track track = iter.next();
                         // Consider only playing tracks
                         if (track.isPlaying()) {
                             // First recompute its gain

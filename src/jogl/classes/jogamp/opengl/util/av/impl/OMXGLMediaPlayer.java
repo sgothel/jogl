@@ -183,16 +183,15 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
 
     private String replaceAll(String orig, String search, String repl) {
-        String dest=null;
+        StringBuilder dest = new StringBuilder();
         // In case replaceAll / java.util.regex.* is not supported (-> CVM)
         int i=0,j;
-        dest = new String();
         while((j=orig.indexOf(search, i))>=0) {
-            dest=dest.concat(orig.substring(i, j));
-            dest=dest.concat(repl);
+            dest.append(orig.substring(i, j));
+            dest.append(repl);
             i=j+1;
         }
-        return dest.concat(orig.substring(i, orig.length()));
+        return dest.append(orig.substring(i, orig.length())).toString();
     }
 
     private void errorCheckEGL(String s) {

@@ -456,19 +456,14 @@ public class BuildComposablePipeline {
         }
 
         protected void emitSignature(PrintWriter output, Method m) {
-            output.print("  public ");
-            output.print(' ');
-            output.print(JavaType.createForClass(m.getReturnType()).getName());
-            output.print(' ');
-            output.print(m.getName());
-            output.print('(');
-            output.print(getArgListAsString(m, true, true));
-            output.println(")");
+            output.format("  @Override%n  public %s %s(%s)%n",
+                          JavaType.createForClass(m.getReturnType()).getName(),
+                          m.getName(),
+                          getArgListAsString(m, true, true));
         }
 
         protected void emitBody(PrintWriter output, Method m, boolean runHooks) {
             output.println("  {");
-            output.print("    ");
             Class<?> retType = m.getReturnType();
 
             boolean callPreDownstreamHook = runHooks && hasPreDownstreamCallHook(m);
@@ -513,6 +508,9 @@ public class BuildComposablePipeline {
                     } else {
                         output.print("    return ");
                     }
+                }
+                else {
+                    output.print("    ");
                 }
                 output.print(getDownstreamObjectName());
                 output.print('.');
@@ -589,6 +587,7 @@ public class BuildComposablePipeline {
          * closing parenthesis of the class is emitted.
          */
         protected void postMethodEmissionHook(PrintWriter output) {
+            output.println("  @Override");
             output.println("  public String toString() {");
             output.println("    StringBuilder sb = new StringBuilder();");
             output.println("    sb.append(\"" + getOutputName() + " [ implementing " + baseInterfaceClass.getName() + ",\\n\\t\");");
@@ -928,25 +927,21 @@ public class BuildComposablePipeline {
         @Override
         protected void postMethodEmissionHook(PrintWriter output) {
             super.postMethodEmissionHook(output);
-            output.println("  private void checkGLGetError(String caller)");
-            output.println("  {");
+            output.println("  private int checkGLError() {");
             if (hasImmediateMode) {
-                output.println("    if (insideBeginEndPair) {");
-                output.println("      return;");
-                output.println("    }");
+                output.println("    if (insideBeginEndPair) return GL_NO_ERROR;");
                 output.println();
             }
-            output.println("    // Debug code to make sure the pipeline is working; leave commented out unless testing this class");
-            output.println("    //System.err.println(\"Checking for GL errors "
-                    + "after call to \" + caller);");
-            output.println();
-            output.println("    int err = "
-                    + getDownstreamObjectName()
-                    + ".glGetError();");
-            output.println("    if (err == GL_NO_ERROR) { return; }");
-            output.println();
-            output.println("    StringBuilder buf = new StringBuilder(Thread.currentThread()+");
-            output.println("      \" glGetError() returned the following error codes after a call to \" + caller + \": \");");
+            output.format("    return %s.glGetError();%n", getDownstreamObjectName());
+            output.println("  }");
+
+            output.println("  private void writeGLError(int err, String fmt, Object... args)");
+            output.println("  {");
+            output.println("    StringBuilder buf = new StringBuilder();");
+            output.println("    buf.append(Thread.currentThread().toString());");
+            output.println("    buf.append(\" glGetError() returned the following error codes after a call to \");");
+            output.println("    buf.append(String.format(fmt, args));");
+            output.println("    buf.append(\": \");");
             output.println();
             output.println("    // Loop repeatedly to allow for distributed GL implementations,");
             output.println("    // as detailed in the glGetError() specification");
@@ -1030,24 +1025,39 @@ public class BuildComposablePipeline {
                     output.println("    insideBeginEndPair = false;");
                 }
 
-                output.println("    String txt = new String(\"" + m.getName() + "(\" +");
+                output.println("    final int err = checkGLError();");
+                output.println("    if (err != GL_NO_ERROR) {");
+
+                StringBuilder fmtsb = new StringBuilder();
+                StringBuilder argsb = new StringBuilder();
+
+                fmtsb.append("\"%s(");
+                argsb.append("\"").append(m.getName()).append("\"");
                 Class<?>[] params = m.getParameterTypes();
-                for (int i = 0; params != null && i < params.length; i++) {
-                    output.print("    \"<" + params[i].getName() + ">");
-                    if (params[i].isArray()) {
-                        output.print("\" +");
-                    } else if (params[i].equals(int.class)) {
-                        output.print(" 0x\"+Integer.toHexString(arg" + i + ").toUpperCase() +");
-                    } else {
-                        output.print(" \"+arg" + i + " +");
+                for (int i = 0; i < params.length; i++) {
+                    if (i > 0) {
+                        fmtsb.append(", ");
                     }
-                    if (i < params.length - 1) {
-                        output.println("    \", \" +");
+                    fmtsb.append("<").append(params[i].getName()).append(">");
+                    if (params[i].isArray()) {
+                        //nothing
+                    } else if (params[i].equals(int.class)) {
+                        fmtsb.append(" 0x%X");
+                        argsb.append(", arg").append(i);
+                    } else {
+                        fmtsb.append(" %s");
+                        argsb.append(", arg").append(i);
                     }
                 }
-                output.println("    \")\");");
+                fmtsb.append(")\",");
+                argsb.append(");");
+
                 // calls to glGetError() are only allowed outside of glBegin/glEnd pairs
-                output.println("    checkGLGetError( txt );");
+                output.print("      writeGLError(err, ");
+                output.println(fmtsb.toString());
+                output.print("                   ");
+                output.println(argsb.toString());
+                output.println("    }");
             }
         }
     } // end class DebugPipeline
@@ -1164,10 +1174,10 @@ public class BuildComposablePipeline {
         @Override
         protected void preDownstreamCallHook(PrintWriter output, Method m) {
             if (m.getName().equals("glEnd") || m.getName().equals("glEndList")) {
-                output.println("indent-=2;");
+                output.println("    indent-=2;");
                 output.println("    printIndent();");
             } else {
-                output.println("printIndent();");
+                output.println("    printIndent();");
             }
 
             output.print("    print(");
@@ -1188,6 +1198,9 @@ public class BuildComposablePipeline {
             } else {
                 output.println("    println(\"\");");
             }
+
+            if (m.getName().equals("glBegin"))
+                output.println("    indent+=2;");
         }
 
         private String getOutputStreamName() {

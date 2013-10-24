@@ -47,7 +47,7 @@ import java.util.*;
 
 public class LevelSet {
   // Maintained in sorted order by increasing Y coordinate
-  private List/*<Level>*/ levels = new ArrayList/*<Level>*/();
+  private List<Level> levels = new ArrayList<Level>();
   private int nextAddY;
   private int w;
   private int h;
@@ -73,7 +73,7 @@ public class LevelSet {
     // Go in reverse order through the levels seeing whether we can
     // trivially satisfy the allocation request
     for (int i = levels.size() - 1; i >= 0; --i) {
-      Level level = (Level) levels.get(i);
+      Level level = levels.get(i);
       if (level.add(rect))
         return true;
     }
@@ -82,7 +82,7 @@ public class LevelSet {
     // increases the computational complexity of the addition process,
     // but prevents us from expanding unnecessarily.
     for (int i = levels.size() - 1; i >= 0; --i) {
-      Level level = (Level) levels.get(i);
+      Level level = levels.get(i);
       if (level.couldAllocateIfCompacted(rect))
         return false;
     }
@@ -104,7 +104,7 @@ public class LevelSet {
   /** Removes the given Rect from this LevelSet. */
   public boolean remove(Rect rect) {
     for (int i = levels.size() - 1; i >= 0; --i) {
-      Level level = (Level) levels.get(i);
+      Level level = levels.get(i);
       if (level.remove(rect))
         return true;
     }
@@ -120,7 +120,7 @@ public class LevelSet {
                                Object backingStore,
                                BackingStoreManager manager) {
     for (int i = levels.size() - 1; i >= 0; --i) {
-      Level level = (Level) levels.get(i);
+      Level level = levels.get(i);
       if (level.couldAllocateIfCompacted(rect)) {
         level.compact(backingStore, manager);
         boolean res = level.add(rect);
@@ -173,8 +173,8 @@ public class LevelSet {
     int usedHeight = getUsedHeight();
     if (usedHeight == 0)
       return 0.0f;
-    for (Iterator iter = iterator(); iter.hasNext(); ) {
-      Level level = (Level) iter.next();
+    for (Iterator<Level> iter = iterator(); iter.hasNext(); ) {
+      Level level = iter.next();
       if (level.isEmpty()) {
         freeHeight += level.h();
       }
@@ -182,14 +182,14 @@ public class LevelSet {
     return (float) freeHeight / (float) usedHeight;
   }
 
-  public Iterator iterator() {
+  public Iterator<Level> iterator() {
     return levels.iterator();
   }
 
   /** Visits all Rects contained in this LevelSet. */
   public void visit(RectVisitor visitor) {
-    for (Iterator iter = levels.iterator(); iter.hasNext(); ) {
-      Level level = (Level) iter.next();
+    for (Iterator<Level> iter = levels.iterator(); iter.hasNext(); ) {
+      Level level = iter.next();
       level.visit(visitor);
     }
   }
@@ -199,8 +199,8 @@ public class LevelSet {
       update the new Rects in a newly laid-out LevelSet with the
       original Rects. */
   public void updateRectangleReferences() {
-    for (Iterator iter = levels.iterator(); iter.hasNext(); ) {
-      Level level = (Level) iter.next();
+    for (Iterator<Level> iter = levels.iterator(); iter.hasNext(); ) {
+      Level level = iter.next();
       level.updateRectangleReferences();
     }
   }
