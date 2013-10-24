@@ -61,8 +61,8 @@ import javax.media.opengl.fixedfunc.GLPointerFunc;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Specifies the the OpenGL profile.
@@ -267,138 +267,182 @@ public class GLProfile {
 
         initSingleton();
 
+        int allCount = 0;
+        int nativeCount = 0;
+
         if(null==device) {
             device = defaultDevice;
         }
         final HashMap<String /*GLProfile_name*/, GLProfile> map = getProfileMap(device, false);
 
         if(useIndent) {
-            doIndent(sb, indent, indentCount).append("Native");
+            doIndent(sb, indent, indentCount).append("Natives");
             indentCount++;
-            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL4bc").append(indent);
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append(GL4bc).append(indent);
         } else {
-            sb.append("Native[GL4bc ");
+            sb.append("Natives["+GL4bc+" ");
         }
         avail=isAvailableImpl(map, GL4bc);
         sb.append(avail);
         if(avail) {
+            nativeCount++;
             glAvailabilityToString(device, sb.append(" "), 4, GLContext.CTX_PROFILE_COMPAT);
         }
+        allCount++;
 
         if(useIndent) {
-            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL4").append(indent);
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append(GL4).append(indent);
         } else {
-            sb.append(", GL4 ");
+            sb.append(", "+GL4+" ");
         }
         avail=isAvailableImpl(map, GL4);
         sb.append(avail);
         if(avail) {
+            nativeCount++;
             glAvailabilityToString(device, sb.append(" "), 4, GLContext.CTX_PROFILE_CORE);
         }
+        allCount++;
 
         if(useIndent) {
-            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GLES3").append(indent);
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append(GLES3).append(indent);
         } else {
-            sb.append(", GLES3 ");
+            sb.append(", "+GLES3+" ");
         }
         avail=isAvailableImpl(map, GLES3);
         sb.append(avail);
         if(avail) {
+            nativeCount++;
             glAvailabilityToString(device, sb.append(" "), 3, GLContext.CTX_PROFILE_ES);
         }
+        allCount++;
 
         if(useIndent) {
-            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL3bc").append(indent);
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append(GL3bc).append(indent);
         } else {
-            sb.append(", GL3bc ");
+            sb.append(", "+GL3bc+" ");
         }
         avail=isAvailableImpl(map, GL3bc);
         sb.append(avail);
         if(avail) {
+            nativeCount++;
             glAvailabilityToString(device, sb.append(" "), 3, GLContext.CTX_PROFILE_COMPAT);
         }
+        allCount++;
 
         if(useIndent) {
-            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL3").append(indent);
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append(GL3).append(indent);
         } else {
-            sb.append(", GL3 ");
+            sb.append(", "+GL3+" ");
         }
         avail=isAvailableImpl(map, GL3);
         sb.append(avail);
         if(avail) {
+            nativeCount++;
             glAvailabilityToString(device, sb.append(" "), 3, GLContext.CTX_PROFILE_CORE);
         }
+        allCount++;
 
         if(useIndent) {
-            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL2").append(indent);
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append(GL2).append(indent);
         } else {
-            sb.append(", GL2 ");
+            sb.append(", "+GL2+" ");
         }
         avail=isAvailableImpl(map, GL2);
         sb.append(avail);
         if(avail) {
+            nativeCount++;
             glAvailabilityToString(device, sb.append(" "), 2, GLContext.CTX_PROFILE_COMPAT);
         }
+        allCount++;
 
         if(useIndent) {
-            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GLES2").append(indent);
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append(GLES2).append(indent);
         } else {
-            sb.append(", GLES2 ");
+            sb.append(", "+GLES2+" ");
         }
         avail=isAvailableImpl(map, GLES2);
         sb.append(avail);
         if(avail) {
+            nativeCount++;
             glAvailabilityToString(device, sb.append(" "), 2, GLContext.CTX_PROFILE_ES);
         }
+        allCount++;
 
         if(useIndent) {
-            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GLES1").append(indent);
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append(GLES1).append(indent);
         } else {
-            sb.append(", GLES1 ");
+            sb.append(", "+GLES1+" ");
         }
         avail=isAvailableImpl(map, GLES1);
         sb.append(avail);
         if(avail) {
+            nativeCount++;
             glAvailabilityToString(device, sb.append(" "), 1, GLContext.CTX_PROFILE_ES);
         }
+        allCount++;
 
         if(useIndent) {
-            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL4ES3").append(indent);
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("Count\t"+nativeCount+" / "+allCount);
+            indentCount--;
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("Common");
+            indentCount++;
         } else {
-            sb.append(", GL4ES3 ");
+            sb.append(", count "+nativeCount+" / "+allCount+"], Common[");
+        }
+
+        if(useIndent) {
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append(GL4ES3).append(indent);
+        } else {
+            sb.append(", "+GL4ES3+" ");
         }
         sb.append(isAvailableImpl(map, GL4ES3));
+        allCount++;
 
         if(useIndent) {
-            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL2ES2").append(indent);
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append(GL2GL3).append(indent);
         } else {
-            sb.append(", GL2ES2 ");
+            sb.append(", "+GL2GL3+" ");
+        }
+        sb.append(isAvailableImpl(map, GL2GL3));
+        allCount++;
+
+        if(useIndent) {
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append(GL2ES2).append(indent);
+        } else {
+            sb.append(", "+GL2ES2+" ");
         }
         sb.append(isAvailableImpl(map, GL2ES2));
+        allCount++;
 
         if(useIndent) {
-            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL2ES1").append(indent);
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append(GL2ES1).append(indent);
         } else {
-            sb.append(", GL2ES1 ");
+            sb.append(", "+GL2ES1+" ");
         }
         sb.append(isAvailableImpl(map, GL2ES1));
+        allCount++;
 
         if(useIndent) {
             indentCount--;
-            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("Profiles");
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("Mappings");
             indentCount++;
         } else {
-            sb.append("], Profiles[");
+            sb.append("], Mappings[");
         }
 
+        int profileCount = 0;
+
         if(null != map) {
-            for(Iterator<GLProfile> i=map.values().iterator(); i.hasNext(); ) {
-                if(useIndent) {
-                    doIndent(sb.append(Platform.getNewline()), indent, indentCount);
-                }
-                sb.append(i.next().toString());
-                if(!useIndent) {
-                    sb.append(", ");
+            for (Map.Entry<String,GLProfile> entry : map.entrySet()) {
+                if( !GL_DEFAULT.equals(entry.getKey()) ) {
+                    if(useIndent) {
+                        doIndent(sb.append(Platform.getNewline()), indent, indentCount);
+                    }
+                    sb.append(entry.getKey()+(useIndent?"\t":" ")+entry.getValue());
+                    if(!useIndent) {
+                        sb.append(", ");
+                    }
+                    profileCount++;
                 }
             }
             if(useIndent) {
@@ -413,9 +457,10 @@ public class GLProfile {
             }
         }
         if(useIndent) {
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("Count\t"+profileCount+" / "+allCount);
             sb.append(Platform.getNewline());
         } else {
-            sb.append("]");
+            sb.append(", count "+profileCount+" / "+allCount+"]");
         }
 
         return sb;
@@ -1979,21 +2024,21 @@ public class GLProfile {
                 }
             }
         } else if(GL4bc.equals(profile) && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL4bcAvailable(device, isHardwareRasterizer))) {
-            return GL4bc;
+            return desktopCtxUndef ? GL4bc : GLContext.getAvailableGLProfileName(device, 4, GLContext.CTX_PROFILE_COMPAT);
         } else if(GL4.equals(profile) && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL4Available(device, isHardwareRasterizer))) {
-            return GL4;
+            return desktopCtxUndef ? GL4 : GLContext.getAvailableGLProfileName(device, 4, GLContext.CTX_PROFILE_CORE);
         } else if(GL3bc.equals(profile) && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL3bcAvailable(device, isHardwareRasterizer))) {
-            return GL3bc;
+            return desktopCtxUndef ? GL3bc : GLContext.getAvailableGLProfileName(device, 3, GLContext.CTX_PROFILE_COMPAT);
         } else if(GL3.equals(profile) && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL3Available(device, isHardwareRasterizer))) {
-            return GL3;
+            return desktopCtxUndef ? GL3 : GLContext.getAvailableGLProfileName(device, 3, GLContext.CTX_PROFILE_CORE);
         } else if(GL2.equals(profile) && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL2Available(device, isHardwareRasterizer))) {
-            return GL2;
+            return desktopCtxUndef ? GL2 : GLContext.getAvailableGLProfileName(device, 2, GLContext.CTX_PROFILE_COMPAT);
         } else if(GLES3.equals(profile) && hasGLES3Impl && ( esCtxUndef || GLContext.isGLES3Available(device, isHardwareRasterizer))) {
-            return GLES3;
+            return esCtxUndef ? GLES3 : GLContext.getAvailableGLProfileName(device, 3, GLContext.CTX_PROFILE_ES);
         } else if(GLES2.equals(profile) && hasGLES3Impl && ( esCtxUndef || GLContext.isGLES2Available(device, isHardwareRasterizer))) {
-            return GLES2;
+            return esCtxUndef ? GLES2 : GLContext.getAvailableGLProfileName(device, 2, GLContext.CTX_PROFILE_ES);
         } else if(GLES1.equals(profile) && hasGLES1Impl && ( esCtxUndef || GLContext.isGLES1Available(device, isHardwareRasterizer))) {
-            return GLES1;
+            return esCtxUndef ? GLES1 : GLContext.getAvailableGLProfileName(device, 1, GLContext.CTX_PROFILE_ES);
         }
         return null;
     }
