@@ -826,7 +826,7 @@ public abstract class GLContextImpl extends GLContext {
 
     final GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     final int[] reqMajorCTP = new int[] { 0, 0 };
-    getRequestMajorAndCompat(glCaps.getGLProfile(), reqMajorCTP);
+    GLContext.getRequestMajorAndCompat(glCaps.getGLProfile(), reqMajorCTP);
 
     if(DEBUG) {
         System.err.println(getThreadName() + ": createContextARB: Requested "+GLContext.getGLVersion(reqMajorCTP[0], 0, reqMajorCTP[0], null));

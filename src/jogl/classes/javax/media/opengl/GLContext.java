@@ -1668,7 +1668,8 @@ public abstract class GLContext {
         if(major >= 4)                            { return GLProfile.GL4; }
         else if(major == 3 && minor >= 1)         { return GLProfile.GL3; }
     } else if(0 != ( CTX_PROFILE_ES & ctp )) {
-        if(major == 2)                            { return GLProfile.GLES2; }
+        if(major == 3)                            { return GLProfile.GLES3; }
+        else if(major == 2)                       { return GLProfile.GLES2; }
         else if(major == 1)                       { return GLProfile.GLES1; }
     }
     throw new GLException("Unhandled OpenGL version/profile: "+GLContext.getGLVersion(major, minor, ctp, null));
@@ -1719,15 +1720,27 @@ public abstract class GLContext {
    * @param device the device the profile is being requested
    * @param major Key Value either 1, 2, 3 or 4
    * @param profile Key Value either {@link #CTX_PROFILE_COMPAT}, {@link #CTX_PROFILE_CORE} or {@link #CTX_PROFILE_ES}
-   * @return the highest GLProfile regarding availability, version and profile bits.
+   * @return the highest GLProfile for the device regarding availability, version and profile bits.
    */
   protected static GLProfile getAvailableGLProfile(AbstractGraphicsDevice device, int reqMajor, int reqProfile)
+          throws GLException {
+    final String glpName = getAvailableGLProfileName(device, reqMajor, reqProfile);
+    return null != glpName ? GLProfile.get(device, glpName) : null;
+  }
+
+  /**
+   * @param device the device the profile is being requested
+   * @param major Key Value either 1, 2, 3 or 4
+   * @param profile Key Value either {@link #CTX_PROFILE_COMPAT}, {@link #CTX_PROFILE_CORE} or {@link #CTX_PROFILE_ES}
+   * @return the highest GLProfile name for the device regarding availability, version and profile bits.
+   */
+  /* package */ static String getAvailableGLProfileName(AbstractGraphicsDevice device, int reqMajor, int reqProfile)
           throws GLException {
     int major[] = { 0 };
     int minor[] = { 0 };
     int ctp[] = { 0 };
     if(GLContext.getAvailableGLVersion(device, reqMajor, reqProfile, major, minor, ctp)) {
-        return GLProfile.get(GLContext.getGLProfile(major[0], minor[0], ctp[0]));
+        return GLContext.getGLProfile(major[0], minor[0], ctp[0]);
     }
     return null;
   }
