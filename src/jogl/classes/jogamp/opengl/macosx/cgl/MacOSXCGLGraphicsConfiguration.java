@@ -47,7 +47,6 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
-
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
@@ -89,7 +88,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
         CGL.NSOpenGLPFASampleBuffers,
         CGL.NSOpenGLPFASamples });
 
-    static IntBuffer GLCapabilities2NSAttribList(IntBuffer attrToken, GLCapabilitiesImmutable caps, int ctp, int major, int minor) {
+    static IntBuffer GLCapabilities2NSAttribList(AbstractGraphicsDevice device, IntBuffer attrToken, GLCapabilitiesImmutable caps, int ctp, int major, int minor) {
         final int len = attrToken.remaining();
         final int off = attrToken.position();
         final IntBuffer ivalues = Buffers.newDirectIntBuffer(len);
@@ -98,7 +97,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
           final int attr = attrToken.get(idx+off);
           switch (attr) {
               case CGL.kCGLPFAOpenGLProfile:
-                ivalues.put(idx, MacOSXCGLContext.GLProfile2CGLOGLProfileValue(ctp, major, minor));
+                ivalues.put(idx, MacOSXCGLContext.GLProfile2CGLOGLProfileValue(device, ctp, major, minor));
                 break;
               case CGL.NSOpenGLPFANoRecovery:
                 ivalues.put(idx, caps.getHardwareAccelerated() ? 1 : 0);
@@ -156,13 +155,13 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
         return ivalues;
     }
 
-    static long GLCapabilities2NSPixelFormat(GLCapabilitiesImmutable caps, int ctp, int major, int minor) {
+    static long GLCapabilities2NSPixelFormat(AbstractGraphicsDevice device, GLCapabilitiesImmutable caps, int ctp, int major, int minor) {
         final IntBuffer attrToken = cglInternalAttributeToken.duplicate();
         if ( !MacOSXCGLContext.isLionOrLater ) {
             // no OpenGLProfile
             attrToken.position(1);
         }
-        final IntBuffer ivalues = GLCapabilities2NSAttribList(attrToken, caps, ctp, major, minor);
+        final IntBuffer ivalues = GLCapabilities2NSAttribList(device, attrToken, caps, ctp, major, minor);
         return CGL.createPixelFormat(attrToken, attrToken.remaining(), ivalues);
     }
 
@@ -170,13 +169,13 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
         return PixelFormat2GLCapabilities(glp, pixelFormat, true);
     }
 
-    static long GLCapabilities2CGLPixelFormat(GLCapabilitiesImmutable caps, int ctp, int major, int minor) {
+    static long GLCapabilities2CGLPixelFormat(AbstractGraphicsDevice device, GLCapabilitiesImmutable caps, int ctp, int major, int minor) {
       // Set up pixel format attributes
       final IntBuffer attrs = Buffers.newDirectIntBuffer(256);
       int i = 0;
       if(MacOSXCGLContext.isLionOrLater) {
           attrs.put(i++, CGL.kCGLPFAOpenGLProfile);
-          attrs.put(i++, MacOSXCGLContext.GLProfile2CGLOGLProfileValue(ctp, major, minor));
+          attrs.put(i++, MacOSXCGLContext.GLProfile2CGLOGLProfileValue(device, ctp, major, minor));
       }
       /**
       if(!caps.isOnscreen() && caps.isPBuffer()) {
@@ -261,7 +260,10 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
                 final int ivalue = ivalues.get(i);
                 if(CGL.kCGLPFAOpenGLProfile == attrToken.get(i+off)) {
                     switch(ivalue) {
-                        case CGL.kCGLOGLPVersion_3_2_Core:
+                        case CGL.kCGLOGLPVersion_GL4_Core:
+                            glp = GLProfile.get(GLProfile.GL4);
+                            break;
+                        case CGL.kCGLOGLPVersion_GL3_Core:
                             glp = GLProfile.get(GLProfile.GL3);
                             break;
                         case CGL.kCGLOGLPVersion_Legacy:

@@ -98,11 +98,13 @@ public class MacOSXCGLContext extends GLContextImpl
 
   /* package */ static final boolean isTigerOrLater;
   /* package */ static final boolean isLionOrLater;
+  /* package */ static final boolean isMavericksOrLater;
 
   static {
     final VersionNumber osvn = Platform.getOSVersionNumber();
-    isTigerOrLater = osvn.getMajor() > 10 || ( osvn.getMajor() == 10 && osvn.getMinor() >= 4 );
-    isLionOrLater  = osvn.getMajor() > 10 || ( osvn.getMajor() == 10 && osvn.getMinor() >= 7 );
+    isTigerOrLater = osvn.compareTo(Platform.OSXVersion.Tiger) >= 0;
+    isLionOrLater = osvn.compareTo(Platform.OSXVersion.Lion) >= 0;
+    isMavericksOrLater = osvn.compareTo(Platform.OSXVersion.Mavericks) >= 0;
   }
 
   static boolean isGLProfileSupported(int ctp, int major, int minor) {
@@ -110,30 +112,45 @@ public class MacOSXCGLContext extends GLContextImpl
     boolean ctCore      = 0 != ( CTX_PROFILE_CORE & ctp ) ;
 
     // We exclude 3.0, since we would map it's core to GL2. Hence we force mapping 2.1 to GL2
-    if(3==major && 1<=minor && minor<=2) {
-        // [3.1..3.2] -> GL3*
+    if( 3 < major || 3 == major && 1 <= minor ) {
+        if(ctBwdCompat || !ctCore) {
+            // No compatibility profile on OS X
+            // Only core is supported
+            return false;
+        }
         if(!isLionOrLater) {
-            // no GL3* on pre lion
+            // no GL Profile >= GL3 core on pre lion
             return false;
         }
-        if(ctBwdCompat) {
-            // no compatibility profile on OS X
+        if(3 < major && !isMavericksOrLater) {
+            // no GL Profile >= GL4 core on pre mavericks
             return false;
         }
-        return ctCore;
-    } else if(major<3) {
+        // [3.1..3.x] -> GL3
+        // [4.0..4.x] -> GL4
+        return true;
+    } else if( major < 3 ) {
         // < 3.0 -> GL2
         return true;
     }
     return false; // 3.0 && > 3.2
   }
-  static int GLProfile2CGLOGLProfileValue(int ctp, int major, int minor) {
+  static int GLProfile2CGLOGLProfileValue(AbstractGraphicsDevice device, int ctp, int major, int minor) {
     if(!MacOSXCGLContext.isGLProfileSupported(ctp, major, minor)) {
         throw new GLException("OpenGL profile not supported: "+getGLVersion(major, minor, ctp, "@GLProfile2CGLOGLProfileVersion"));
     }
-    boolean ctCore      = 0 != ( CTX_PROFILE_CORE & ctp ) ;
-    if( major == 3 && minor >= 1 && ctCore ) {
-        return CGL.kCGLOGLPVersion_3_2_Core;
+    final boolean ctCore = 0 != ( CTX_PROFILE_CORE & ctp ) ;
+
+    if( major == 4 && ctCore ) {
+        if( GLRendererQuirks.existStickyDeviceQuirk(device, GLRendererQuirks.GL4NeedsGL3Request) ) {
+            // Thread safe GLRendererQuirks sticky access, since we are only interested of the result _after_ GL version mapping,
+            // i.e. after single threaded initialization!
+            return CGL.kCGLOGLPVersion_GL3_Core;
+        } else {
+            return CGL.kCGLOGLPVersion_GL4_Core;
+        }
+    } else if( major == 3 && minor >= 1 && ctCore ) {
+        return CGL.kCGLOGLPVersion_GL3_Core;
     } else {
         return CGL.kCGLOGLPVersion_Legacy;
     }
@@ -283,7 +300,8 @@ public class MacOSXCGLContext extends GLContextImpl
     MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration();
     GLCapabilitiesImmutable capabilitiesChosen = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     GLProfile glp = capabilitiesChosen.getGLProfile();
-    if(glp.isGLES1() || glp.isGLES2() || glp.isGL4() || glp.isGL3() && !isLionOrLater) {
+    if( glp.isGLES1() || glp.isGLES2() || glp.isGLES3() ||
+        ( glp.isGL3() && !isLionOrLater ) || ( glp.isGL4() && !isMavericksOrLater ) ) {
         throw new GLException("OpenGL profile not supported on MacOSX "+Platform.getOSVersionNumber()+": "+glp);
     }
 
@@ -589,7 +607,7 @@ public class MacOSXCGLContext extends GLContextImpl
               } else {
                   targetCaps = chosenCaps;
               }
-              pixelFormat = MacOSXCGLGraphicsConfiguration.GLCapabilities2NSPixelFormat(targetCaps, ctp, major, minor);
+              pixelFormat = MacOSXCGLGraphicsConfiguration.GLCapabilities2NSPixelFormat(config.getScreen().getDevice(), targetCaps, ctp, major, minor);
           }
           if (pixelFormat == 0) {
               if(DEBUG) {
@@ -617,7 +635,7 @@ public class MacOSXCGLContext extends GLContextImpl
               screenVSyncTimeout = 1000000 / sRefreshRate;
           }
           if(DEBUG) {
-              System.err.println("NS create OSX>=lion "+isLionOrLater);
+              System.err.println("NS create OSX>=lion "+isLionOrLater+", OSX>=mavericks "+isMavericksOrLater);
               System.err.println("NS create incompleteView: "+incompleteView);
               System.err.println("NS create backingLayerHost: "+backingLayerHost);
               System.err.println("NS create share: "+share);
@@ -1117,9 +1135,10 @@ public class MacOSXCGLContext extends GLContextImpl
       @Override
       public long create(long share, int ctp, int major, int minor) {
           long ctx = 0;
-          MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration();
-          GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable)config.getChosenCapabilities();
-          long pixelFormat = MacOSXCGLGraphicsConfiguration.GLCapabilities2CGLPixelFormat(chosenCaps, ctp, major, minor);
+          final MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration();
+          final GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable)config.getChosenCapabilities();
+          final long pixelFormat = MacOSXCGLGraphicsConfiguration.GLCapabilities2CGLPixelFormat(config.getScreen().getDevice(),
+                                                                      chosenCaps, ctp, major, minor);
           if (pixelFormat == 0) {
               throw new GLException("Unable to allocate pixel format with requested GLCapabilities");
           }
