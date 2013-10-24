@@ -27,7 +27,9 @@
  */
 package com.jogamp.opengl;
 
-import java.util.List;
+import java.util.IdentityHashMap;
+
+import javax.media.nativewindow.AbstractGraphicsDevice;
 
 /**
  * GLRendererQuirks contains information of known bugs of various GL renderer.
@@ -189,17 +191,80 @@ public class GLRendererQuirks {
      */
     public static final int GLSLNonCompliant = 12;
 
+    /**
+     * GL4 context needs to be requested via GL3
+     * <ul>
+     *   <li>OSX >= 10.9.0 - kCGLOGLPVersion_GL4_Core may not produce hw-accel context. Bug 867 @ https://jogamp.org/bugzilla/.</li>
+     * </ul>
+     */
+    public static final int GL4NeedsGL3Request = 13;
+
     /** Number of quirks known. */
-    public static final int COUNT = 13;
+    public static final int COUNT = 14;
 
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
                                                           "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard",
                                                           "GLNonCompliant", "GLFlushBeforeRelease", "DontCloseX11Display",
                                                           "NeedCurrCtx4ARBPixFmtQueries", "NeedCurrCtx4ARBCreateContext",
-                                                          "NoFullFBOSupport", "GLSLNonCompliant"
+                                                          "NoFullFBOSupport", "GLSLNonCompliant", "GL4NeedsGL3Request"
                                                         };
 
-    private final int _bitmask;
+    private static final IdentityHashMap<String, GLRendererQuirks> stickyDeviceQuirks = new IdentityHashMap<String, GLRendererQuirks>();
+
+    /**
+     * Retrieval of sticky {@link AbstractGraphicsDevice}'s {@link GLRendererQuirks}.
+     * <p>
+     * Not thread safe.
+     * </p>
+     */
+    public static GLRendererQuirks getStickyDeviceQuirks(AbstractGraphicsDevice device) {
+        final String key = device.getUniqueID();
+        final GLRendererQuirks has = stickyDeviceQuirks.get(key);
+        final GLRendererQuirks res;
+        if( null == has ) {
+            res = new GLRendererQuirks();
+            stickyDeviceQuirks.put(key, res);
+        } else {
+            res = has;
+        }
+        return res;
+    }
+
+    /**
+     * {@link #addQuirks(int[], int, int) Adding given quirks} of sticky {@link AbstractGraphicsDevice}'s {@link GLRendererQuirks}.
+     * <p>
+     * Not thread safe.
+     * </p>
+     */
+    public static void addStickyDeviceQuirks(AbstractGraphicsDevice device, int[] quirks, int offset, int len) throws IllegalArgumentException {
+        final GLRendererQuirks sq = getStickyDeviceQuirks(device);
+        sq.addQuirks(quirks, offset, len);
+    }
+    /**
+     * {@link #exist(int) Query} of sticky {@link AbstractGraphicsDevice}'s {@link GLRendererQuirks}.
+     * <p>
+     * Not thread safe. However, use after changing the sticky quirks is safe.
+     * </p>
+     */
+    public static boolean existStickyDeviceQuirk(AbstractGraphicsDevice device, int quirk) {
+        return getStickyDeviceQuirks(device).exist(quirk);
+    }
+    /**
+     * {@link #addQuirks(GLRendererQuirks) Pushing} the sticky {@link AbstractGraphicsDevice}'s {@link GLRendererQuirks}
+     * to the given {@link GLRendererQuirks destination}.
+     * <p>
+     * Not thread safe. However, use after changing the sticky quirks is safe.
+     * </p>
+     */
+    public static void pushStickyDeviceQuirks(AbstractGraphicsDevice device, GLRendererQuirks dest) {
+        dest.addQuirks(getStickyDeviceQuirks(device));
+    }
+
+    private int _bitmask;
+
+    public GLRendererQuirks() {
+        _bitmask = 0;
+    }
 
     /**
      * @param quirks an array of valid quirks
@@ -208,6 +273,17 @@ public class GLRendererQuirks {
      * @throws IllegalArgumentException if one of the quirks is out of range
      */
     public GLRendererQuirks(int[] quirks, int offset, int len) throws IllegalArgumentException {
+        this();
+        addQuirks(quirks, offset, len);
+    }
+
+    /**
+     * @param quirks an array of valid quirks to be added
+     * @param offset offset in quirks array to start reading
+     * @param len number of quirks to read from offset within quirks array
+     * @throws IllegalArgumentException if one of the quirks is out of range
+     */
+    public final void addQuirks(int[] quirks, int offset, int len) throws IllegalArgumentException {
         int bitmask = 0;
         if( !( 0 <= offset + len && offset + len < quirks.length ) ) {
             throw new IllegalArgumentException("offset and len out of bounds: offset "+offset+", len "+len+", array-len "+quirks.length);
@@ -217,21 +293,14 @@ public class GLRendererQuirks {
             validateQuirk(quirk);
             bitmask |= 1 << quirk;
         }
-        _bitmask = bitmask;
+        _bitmask |= bitmask;
     }
 
     /**
-     * @param quirks a list of valid quirks
-     * @throws IllegalArgumentException if one of the quirks is out of range
+     * @param quirks valid GLRendererQuirks to be added
      */
-    public GLRendererQuirks(List<Integer> quirks) throws IllegalArgumentException {
-        int bitmask = 0;
-        for(int i=0; i<quirks.size(); i++) {
-            final int quirk = quirks.get(i);
-            validateQuirk(quirk);
-            bitmask |= 1 << quirk;
-        }
-        _bitmask = bitmask;
+    public final void addQuirks(GLRendererQuirks quirks) {
+        _bitmask |= quirks._bitmask;
     }
 
     /**
