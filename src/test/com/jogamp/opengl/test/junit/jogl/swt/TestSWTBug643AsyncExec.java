@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -37,6 +37,8 @@ import org.eclipse.swt.layout.FillLayout ;
 import org.eclipse.swt.widgets.Composite ;
 import org.eclipse.swt.widgets.Display ;
 import org.eclipse.swt.widgets.Shell ;
+
+import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
 import org.junit.FixMethodOrder;
@@ -48,7 +50,6 @@ import javax.media.opengl.GLProfile;
 
 import jogamp.newt.swt.SWTEDTUtil;
 import jogamp.newt.swt.event.SWTNewtEventFactory;
-import junit.framework.Assert;
 
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.newt.NewtFactory;
@@ -66,12 +67,12 @@ import com.jogamp.opengl.util.Animator;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestSWTBug643AsyncExec extends UITestCase {
-    
+
     static int duration = 500;
     static boolean useAnimator = false;
-    
+
     ////////////////////////////////////////////////////////////////////////////////
-    
+
     static void resetSWTAndNEWTEDTCounter() {
         synchronized(swtCountSync) {
             swtCount=0;
@@ -103,43 +104,43 @@ public class TestSWTBug643AsyncExec extends UITestCase {
         }
     }
     static Object swtCountSync = new Object();
-    static int swtCount = 0;    
+    static int swtCount = 0;
     static Object edtCountSync = new Object();
-    static int edtCount = 0;    
-    
+    static int edtCount = 0;
+
     ////////////////////////////////////////////////////////////////////////////////
-    
+
     static class AsyncExecEDTFeederThread extends Thread {
         volatile boolean shallStop = false;
-        private Display swtDisplay ;
-        private jogamp.newt.DisplayImpl newtDisplay;
+        private final Display swtDisplay ;
+        private final jogamp.newt.DisplayImpl newtDisplay;
         private int swtN, newtN ;
-    
+
         public AsyncExecEDTFeederThread( Display swtDisplay, com.jogamp.newt.Display newtDisplay )
         {
             super();
             this.swtDisplay = swtDisplay ;
             this.newtDisplay = (jogamp.newt.DisplayImpl)newtDisplay;
         }
-        
+
         final Runnable swtAsyncAction = new Runnable() {
             public void run()
             {
                 ++swtN ; incrSWTCount();
                 System.err.println("[SWT A-i shallStop "+shallStop+"]: Counter[loc "+swtN+", glob: "+getSWTCount()+"]");
             }  };
-            
+
         final Runnable newtAsyncAction = new Runnable() {
             public void run()
             {
                 ++newtN ; incrNEWTCount();
                 System.err.println("[NEWT A-i shallStop "+shallStop+"]: Counter[loc "+newtN+", glob: "+getNEWTCount()+"]");
             }  };
-        
+
         public void run()
         {
             System.err.println("[A-0 shallStop "+shallStop+"]");
-            
+
             while( !shallStop && !swtDisplay.isDisposed() )
             {
                 try
@@ -151,7 +152,7 @@ public class TestSWTBug643AsyncExec extends UITestCase {
                         // only perform async exec on valid and already running NEWT EDT!
                         newtDisplay.runOnEDTIfAvail(false, newtAsyncAction);
                     }
-                    Thread.sleep( 50L ) ;                    
+                    Thread.sleep( 50L ) ;
                 } catch( InterruptedException e ) {
                     break ;
                 }
@@ -159,34 +160,34 @@ public class TestSWTBug643AsyncExec extends UITestCase {
             System.err.println("*R-Exit* shallStop "+shallStop);
         }
     }
-    
+
     ////////////////////////////////////////////////////////////////////////////////
-    
+
     private volatile boolean shallStop = false;
-    
+
     static class SWT_DSC {
         Display display;
         Shell shell;
         Composite composite;
-        
+
         public void init() {
             SWTAccessor.invoke(true, new Runnable() {
-                public void run() {        
+                public void run() {
                     display = new Display();
                     Assert.assertNotNull( display );
                 }});
-            
+
             display.syncExec(new Runnable() {
-                public void run() {        
+                public void run() {
                     shell = new Shell( display );
                     Assert.assertNotNull( shell );
                     shell.setLayout( new FillLayout() );
                     composite = new Composite( shell, SWT.NO_BACKGROUND );
                     composite.setLayout( new FillLayout() );
                     Assert.assertNotNull( composite );
-                }});            
+                }});
         }
-        
+
         public void dispose() {
             Assert.assertNotNull( display );
             Assert.assertNotNull( shell );
@@ -208,21 +209,21 @@ public class TestSWTBug643AsyncExec extends UITestCase {
             }
             display = null;
             shell = null;
-            composite = null;            
+            composite = null;
         }
     }
-    
+
     private void testImpl(boolean useJOGLGLCanvas, boolean useNewtCanvasSWT, boolean glWindowPreVisible) throws InterruptedException, InvocationTargetException {
         resetSWTAndNEWTEDTCounter();
-        
+
         final SWT_DSC dsc = new SWT_DSC();
         dsc.init();
-                
+
         final com.jogamp.newt.Display newtDisplay;
         {
             final GLProfile gl2Profile = GLProfile.get( GLProfile.GL2 ) ;
             final GLCapabilities caps = new GLCapabilities( gl2Profile ) ;
-            
+
             final GLAutoDrawable glad;
             if( useJOGLGLCanvas ) {
                 final GearsES2 demo = new GearsES2();
@@ -230,10 +231,10 @@ public class TestSWTBug643AsyncExec extends UITestCase {
                 final SWTNewtEventFactory swtNewtEventFactory = new SWTNewtEventFactory();
                 swtNewtEventFactory.attachDispatchListener(glc, glc, demo.gearsMouse, demo.gearsKeys);
                 glc.addGLEventListener( demo ) ;
-                glad = glc; 
-                newtDisplay = null;                
+                glad = glc;
+                newtDisplay = null;
             } else if( useNewtCanvasSWT ) {
-                newtDisplay = NewtFactory.createDisplay(null, false); // no-reuse                
+                newtDisplay = NewtFactory.createDisplay(null, false); // no-reuse
                 com.jogamp.newt.Screen screen = NewtFactory.createScreen(newtDisplay, 0);
                 final GLWindow glWindow = GLWindow.create( screen, caps ) ;
                 glWindow.addGLEventListener( new GearsES2() ) ;
@@ -241,10 +242,10 @@ public class TestSWTBug643AsyncExec extends UITestCase {
                     newtDisplay.setEDTUtil(new SWTEDTUtil(newtDisplay, dsc.display)); // Especially Windows requires creation access via same thread!
                     glWindow.setVisible(true);
                     AWTRobotUtil.waitForRealized(glWindow, true);
-                    Thread.sleep(120); // let it render a bit, before consumed by SWT                   
+                    Thread.sleep(120); // let it render a bit, before consumed by SWT
                 }
                 glad = glWindow;
-                NewtCanvasSWT.create( dsc.composite, 0, glWindow ) ;                
+                NewtCanvasSWT.create( dsc.composite, 0, glWindow ) ;
             } else {
                 throw new InternalError("XXX");
             }
@@ -253,7 +254,7 @@ public class TestSWTBug643AsyncExec extends UITestCase {
                 animator.start();
             }
         }
-            
+
         System.err.println("**** Pre Shell Open");
         dsc.display.syncExec( new Runnable() {
             public void run() {
@@ -264,15 +265,15 @@ public class TestSWTBug643AsyncExec extends UITestCase {
         System.err.println("**** Post Shell Open");
 
         shallStop = false;
-                
+
         final int[] counterBeforeExit = new int[] { 0 /* SWT */, 0 /* NEWT */ };
-        
+
         final AsyncExecEDTFeederThread asyncExecFeeder;
         {
             asyncExecFeeder = new AsyncExecEDTFeederThread(dsc.display, newtDisplay) ;
             asyncExecFeeder.start() ;
         }
-        
+
         {
             final Thread t = new Thread(new Runnable() {
                 @Override
@@ -280,7 +281,7 @@ public class TestSWTBug643AsyncExec extends UITestCase {
                     try {
                         Thread.sleep(duration);
                     } catch (InterruptedException e) {}
-                    
+
                     counterBeforeExit[0] = getSWTCount();
                     counterBeforeExit[1] = getNEWTCount();
                     asyncExecFeeder.shallStop = true;
@@ -294,9 +295,9 @@ public class TestSWTBug643AsyncExec extends UITestCase {
             t.setDaemon(true);
             t.start();
         }
-                
+
         try {
-            final Display d = dsc.display;            
+            final Display d = dsc.display;
             while( !shallStop && !d.isDisposed() ) {
                 if( !d.readAndDispatch() && !shallStop ) {
                     // blocks on linux .. dsc.display.sleep();
@@ -307,11 +308,11 @@ public class TestSWTBug643AsyncExec extends UITestCase {
             e0.printStackTrace();
             Assert.assertTrue("Deadlock @ dispatch: "+e0, false);
         }
-                
+
         // canvas is disposed implicit, due to it's disposed listener !
-        
+
         dsc.dispose();
-        
+
         System.err.println("EDT Counter before exit: SWT " + counterBeforeExit[0] + ", NEWT "+counterBeforeExit[1]);
         Assert.assertTrue("SWT EDT Counter not greater zero before dispose!", 0 < counterBeforeExit[0]);
         if( null != newtDisplay ) {
@@ -323,17 +324,17 @@ public class TestSWTBug643AsyncExec extends UITestCase {
     public void test01JOGLGLCanvas() throws InterruptedException, InvocationTargetException {
         testImpl(true /* useJOGLGLCanvas */, false /* useNewtCanvasSWT */, false /* glWindowPreVisible */);
     }
-    
+
     @Test
     public void test02NewtCanvasSWTSimple() throws InterruptedException, InvocationTargetException {
         testImpl(false /* useJOGLGLCanvas */, true /* useNewtCanvasSWT */, false /* glWindowPreVisible */);
     }
-    
+
     @Test
     public void test02NewtCanvasSWTPreVisible() throws InterruptedException, InvocationTargetException {
         testImpl(false /* useJOGLGLCanvas */, true /* useNewtCanvasSWT */, true /* glWindowPreVisible */);
     }
-    
+
     public static void main( String[] args ) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
@@ -343,7 +344,7 @@ public class TestSWTBug643AsyncExec extends UITestCase {
             }
         }
         System.out.println("durationPerTest: "+duration);
-        org.junit.runner.JUnitCore.main(TestSWTBug643AsyncExec.class.getName());        
+        org.junit.runner.JUnitCore.main(TestSWTBug643AsyncExec.class.getName());
     }
-    
+
 }
