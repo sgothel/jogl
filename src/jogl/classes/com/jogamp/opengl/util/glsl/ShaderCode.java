@@ -65,7 +65,6 @@ import com.jogamp.common.util.VersionNumber;
  * </p>
  */
 public class ShaderCode {
-    public static final boolean DEBUG = Debug.debug("GLSLCode");
     public static final boolean DEBUG_CODE = Debug.isPropertyDefined("jogl.debug.GLSLCode", true);
 
     /** Unique resource suffix for {@link GL2ES2#GL_VERTEX_SHADER} in source code: <code>vp</code> */
@@ -484,6 +483,7 @@ public class ShaderCode {
         // Create & Compile the vertex/fragment shader objects
         if(null!=shaderSource) {
             if(DEBUG_CODE) {
+                System.err.println("ShaderCode.compile:");
                 dumpShaderSource(System.err);
             }
             valid=ShaderUtil.createAndCompileShader(gl, shader, shaderType,
@@ -829,9 +829,14 @@ public class ShaderCode {
 
     // Shall we use: #ifdef GL_FRAGMENT_PRECISION_HIGH .. #endif for using highp in fragment shader if avail ?
     /** Default precision of {@link GL#isGLES2() ES2} for {@link GL2ES2#GL_VERTEX_SHADER vertex-shader}: {@value #es2_default_precision_vp} */
-    public static final String es2_default_precision_vp = "\nprecision highp float;\nprecision highp int;\n";
+    public static final String es2_default_precision_vp = "\nprecision highp float;\nprecision highp int;\n/*precision lowp sampler2D;*/\n/*precision lowp samplerCube;*/\n";
     /** Default precision of {@link GL#isGLES2() ES2} for {@link GL2ES2#GL_FRAGMENT_SHADER fragment-shader}: {@value #es2_default_precision_fp} */
-    public static final String es2_default_precision_fp = "\nprecision mediump float;\nprecision mediump int;\n/*precision lowp sampler2D;*/\n";
+    public static final String es2_default_precision_fp = "\nprecision mediump float;\nprecision mediump int;\n/*precision lowp sampler2D;*/\n/*precision lowp samplerCube;*/\n";
+
+    /** Default precision of {@link GL#isGLES3() ES3} for {@link GL2ES2#GL_VERTEX_SHADER vertex-shader}: {@value #es3_default_precision_vp} */
+    public static final String es3_default_precision_vp = es2_default_precision_vp;
+    /** Default precision of {@link GL#isGLES3() ES3} for {@link GL2ES2#GL_FRAGMENT_SHADER fragment-shader}: {@value #es3_default_precision_fp} */
+    public static final String es3_default_precision_fp = es2_default_precision_fp;
 
     /** Default precision of GLSL &ge; 1.30 as required until &lt; 1.50 for {@link GL2ES2#GL_VERTEX_SHADER vertex-shader} or {@link GL3#GL_GEOMETRY_SHADER geometry-shader}: {@value #gl3_default_precision_vp_gp}. See GLSL Spec 1.30-1.50 Section 4.5.3. */
     public static final String gl3_default_precision_vp_gp = "\nprecision highp float;\nprecision highp int;\n";
@@ -872,7 +877,17 @@ public class ShaderCode {
                 case GL2ES2.GL_VERTEX_SHADER:
                     defaultPrecision = es2_default_precision_vp; break;
                 case GL2ES2.GL_FRAGMENT_SHADER:
-                    defaultPrecision = es2_default_precision_vp; break;
+                    defaultPrecision = es2_default_precision_fp; break;
+                default:
+                    defaultPrecision = null;
+                    break;
+            }
+        } else if( gl.isGLES3() ) {
+            switch ( shaderType ) {
+                case GL2ES2.GL_VERTEX_SHADER:
+                    defaultPrecision = es3_default_precision_vp; break;
+                case GL2ES2.GL_FRAGMENT_SHADER:
+                    defaultPrecision = es3_default_precision_fp; break;
                 default:
                     defaultPrecision = null;
                     break;
@@ -900,7 +915,7 @@ public class ShaderCode {
 
     /** Returns true, if GLSL version requires default precision, i.e. ES2 or GLSL [1.30 .. 1.50[. */
     public static final boolean requiresDefaultPrecision(GL2ES2 gl) {
-        if( gl.isGLES2() ) {
+        if( gl.isGLES2() || gl.isGLES3() ) {
             return true;
         }
         return requiresGL3DefaultPrecision(gl);
