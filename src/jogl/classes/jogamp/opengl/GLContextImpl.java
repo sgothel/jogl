@@ -1048,10 +1048,13 @@ public abstract class GLContextImpl extends GLContext {
     major[0]=majorMax;
     minor[0]=minorMax;
     long _context=0;
+    int i=0;
 
     do {
         if (DEBUG) {
-            System.err.println(getThreadName() + ": createContextARBVersions: share "+share+", direct "+direct+", version "+major[0]+"."+minor[0]);
+            i++;
+            System.err.println(getThreadName() + ": createContextARBVersions."+i+": share "+share+", direct "+direct+
+                    ", version "+major[0]+"."+minor[0]+", major["+majorMin+".."+majorMax+"], minor["+minorMin+".."+minorMax+"]");
         }
         _context = createContextARBImpl(share, direct, ctxOptionFlags, major[0], minor[0]);
 
@@ -1064,8 +1067,13 @@ public abstract class GLContextImpl extends GLContext {
             }
         }
 
-    } while ( ( major[0]>majorMin || major[0]==majorMin && minor[0] >=minorMin ) &&
-              GLContext.decrementGLVersion(ctxOptionFlags, major, minor) );
+    } while ( ( major[0]>majorMin || major[0]==majorMin && minor[0] >minorMin ) &&  // #1 check whether version is above lower limit
+              GLContext.decrementGLVersion(ctxOptionFlags, major, minor)            // #2 decrement version
+            );
+    if (DEBUG) {
+        System.err.println(getThreadName() + ": createContextARBVersions.X: ctx "+toHexString(_context)+", share "+share+", direct "+direct+
+                ", version "+major[0]+"."+minor[0]+", major["+majorMin+".."+majorMax+"], minor["+minorMin+".."+minorMax+"]");
+    }
     return _context;
   }
 
