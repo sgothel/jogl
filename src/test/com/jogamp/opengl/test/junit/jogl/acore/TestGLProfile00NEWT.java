@@ -36,6 +36,7 @@ import org.junit.runners.MethodSorters;
 
 import javax.media.opengl.*;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
@@ -45,7 +46,22 @@ public class TestGLProfile00NEWT extends UITestCase {
     @Test
     public void testInitSingleton() throws InterruptedException {
         GLProfile.initSingleton();
-        System.err.println(JoglVersion.getDefaultOpenGLInfo(null, null, false));
+        System.err.println("Desktop");
+        GLDrawableFactory desktopFactory = GLDrawableFactory.getDesktopFactory();
+        if( null != desktopFactory ) {
+            System.err.println(JoglVersion.getDefaultOpenGLInfo(desktopFactory.getDefaultDevice(), null, false));
+            System.err.println(Platform.getNewline()+Platform.getNewline()+Platform.getNewline());
+        } else {
+            System.err.println("\tNULL");
+        }
+
+        System.err.println("EGL");
+        GLDrawableFactory eglFactory = GLDrawableFactory.getEGLFactory();
+        if( null != eglFactory ) {
+            System.err.println(JoglVersion.getDefaultOpenGLInfo(eglFactory.getDefaultDevice(), null, false));
+        } else {
+            System.err.println("\tNULL");
+        }
     }
 
     public static void main(String args[]) throws IOException {
