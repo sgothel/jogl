@@ -173,9 +173,6 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   private final GraphicsDevice device;
   private boolean shallUseOffscreenLayer = false;
 
-  protected GLContext sharedContext = null;
-  protected GLAutoDrawable sharedAutoDrawable = null;
-
   private final AWTWindowClosingProtocol awtWindowClosingProtocol =
           new AWTWindowClosingProtocol(this, new Runnable() {
                 @Override
@@ -293,7 +290,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     // instantiation will be issued in addNotify()
     this.capsReqUser = capsReqUser;
     this.chooser = chooser;
-    this.sharedContext = shareWith;
+    if( null != shareWith ) {
+        helper.setSharedContext(null, shareWith);
+    }
     this.device = device;
   }
 

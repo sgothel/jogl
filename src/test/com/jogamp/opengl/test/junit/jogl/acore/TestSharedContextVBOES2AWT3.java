@@ -88,7 +88,7 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
         frame.add(glCanvas);
         frame.setLocation(x, y);
         frame.setSize(width, height);
-        frame.setTitle("Shared Gears NEWT Test: "+x+"/"+y+" shared true");
+        frame.setTitle("Shared Gears AWT GLCanvas Test: "+x+"/"+y+" shared true");
         return glCanvas;
     }
 

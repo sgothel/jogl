@@ -207,6 +207,7 @@ public class TestSharedContextWithJTabbedPaneAWT extends UITestCase {
     @Test
     public void test01() throws InterruptedException, InvocationTargetException {
         final JFrame f = new JFrame();
+        f.setTitle("Shared GLContext AWT GLCanvas JTabbedPane");
         final DemoInstance demo = new DemoInstance(f);
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
