@@ -82,6 +82,10 @@ public class GLDrawableHelper {
   private GLAnimatorControl animatorCtrl;
   private static Runnable nop = new Runnable() { @Override public void run() {} };
 
+  private GLContext sharedContext;
+  private GLAutoDrawable sharedAutoDrawable;
+
+
   public GLDrawableHelper() {
     reset();
   }
@@ -98,6 +102,60 @@ public class GLDrawableHelper {
         glRunnables.clear();
     }
     animatorCtrl = null;
+    sharedContext = null;
+    sharedAutoDrawable = null;
+  }
+
+  public final void setSharedContext(GLContext thisContext, GLContext sharedContext) throws IllegalStateException {
+      if( null == sharedContext ) {
+          throw new IllegalStateException("Null shared GLContext");
+      }
+      if( thisContext == sharedContext ) {
+          throw new IllegalStateException("Shared GLContext same as local");
+      }
+      if( null != this.sharedContext ) {
+          throw new IllegalStateException("Shared GLContext already set");
+      }
+      if( null != this.sharedAutoDrawable ) {
+          throw new IllegalStateException("Shared GLAutoDrawable already set");
+      }
+      this.sharedContext = sharedContext;
+  }
+
+  public final void setSharedAutoDrawable(GLAutoDrawable thisAutoDrawable, GLAutoDrawable sharedAutoDrawable) throws IllegalStateException {
+      if( null == sharedAutoDrawable ) {
+          throw new IllegalStateException("Null shared GLAutoDrawable");
+      }
+      if( thisAutoDrawable == sharedAutoDrawable ) {
+          throw new IllegalStateException("Shared GLAutoDrawable same as this");
+      }
+      if( null != this.sharedContext ) {
+          throw new IllegalStateException("Shared GLContext already set");
+      }
+      if( null != this.sharedAutoDrawable ) {
+          throw new IllegalStateException("Shared GLAutoDrawable already set");
+      }
+      this.sharedAutoDrawable = sharedAutoDrawable;
+  }
+
+  /**
+   * @param shared returns the shared GLContext, based on set shared GLAutoDrawable
+   *               or GLContext. Maybe null if none is set.
+   * @return true if initialization is pending due to a set shared GLAutoDrawable or GLContext
+   *         which is not ready yet. Otherwise false.
+   */
+  public boolean isSharedGLContextPending(GLContext[] shared) {
+      final GLContext shareWith;
+      final boolean pending;
+      if ( null != sharedAutoDrawable ) {
+          shareWith = sharedAutoDrawable.getContext();
+          pending = null == shareWith || !shareWith.isCreated();
+      } else {
+          shareWith = sharedContext;
+          pending = null != shareWith && !shareWith.isCreated();
+      }
+      shared[0] = shareWith;
+      return pending;
   }
 
   @Override
@@ -612,7 +670,7 @@ public class GLDrawableHelper {
   public final void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
     synchronized(listenersLock) {
         for (int i=0; i < listeners.size(); i++) {
-          reshape((GLEventListener) listeners.get(i), drawable, x, y, width, height, 0==i /* setViewport */, true /* checkInit */);
+          reshape(listeners.get(i), drawable, x, y, width, height, 0==i /* setViewport */, true /* checkInit */);
         }
     }
   }

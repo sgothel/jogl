@@ -313,6 +313,19 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   }
 
   @Override
+  public final GLOffscreenAutoDrawable createOffscreenAutoDrawable(AbstractGraphicsDevice deviceReq,
+                                                             GLCapabilitiesImmutable capsRequested,
+                                                             GLCapabilitiesChooser chooser,
+                                                             int width, int height) {
+    final GLDrawable drawable = createOffscreenDrawable( deviceReq, capsRequested, chooser, width, height );
+    drawable.setRealized(true);
+    if(drawable instanceof GLFBODrawableImpl) {
+        return new GLOffscreenAutoDrawableImpl.FBOImpl( (GLFBODrawableImpl)drawable, null, null, null );
+    }
+    return new GLOffscreenAutoDrawableImpl( drawable, null, null, null);
+  }
+
+  @Override
   public final GLDrawable createOffscreenDrawable(AbstractGraphicsDevice deviceReq,
                                             GLCapabilitiesImmutable capsRequested,
                                             GLCapabilitiesChooser chooser,

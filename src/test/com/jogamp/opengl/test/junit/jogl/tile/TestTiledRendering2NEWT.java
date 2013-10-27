@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -60,14 +60,14 @@ import org.junit.runners.MethodSorters;
  * </p>
  * <p>
  * {@link TileRenderer} buffer allocation is performed
- * within the pre {@link GLEventListener} 
+ * within the pre {@link GLEventListener}
  * set via {@link TileRendererBase#setGLEventListener(GLEventListener, GLEventListener)}
- * on the main thread. 
+ * on the main thread.
  * </p>
   * <p>
  * At tile rendering finish, the viewport and
  * and the original {@link GLEventListener}'s PMV matrix as well.
- * The latter is done by calling it's {@link GLEventListener#reshape(GLAutoDrawable, int, int, int, int) reshape} method. 
+ * The latter is done by calling it's {@link GLEventListener#reshape(GLAutoDrawable, int, int, int, int) reshape} method.
  * </p>
 */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -88,8 +88,8 @@ public class TestTiledRendering2NEWT extends UITestCase {
             return null;
         }
         return glp;
-    }    
-    
+    }
+
     @Test
     public void test001_off_gl2___aa0() throws IOException {
         GLProfile glp = getGLProfile(GLProfile.GL2);
@@ -155,8 +155,8 @@ public class TestTiledRendering2NEWT extends UITestCase {
         doTest(true, new GearsES2(), glp, 8);
     }
 
-    void doTest(boolean onscreen, final GLEventListener demo, GLProfile glp, final int msaaCount) throws IOException {      
-        GLCapabilities caps = new GLCapabilities(glp);        
+    void doTest(boolean onscreen, final GLEventListener demo, GLProfile glp, final int msaaCount) throws IOException {
+        GLCapabilities caps = new GLCapabilities(glp);
         caps.setDoubleBuffered(onscreen);
         if( msaaCount > 0 ) {
             caps.setSampleBuffers(true);
@@ -172,7 +172,7 @@ public class TestTiledRendering2NEWT extends UITestCase {
             glad = glWin;
         } else {
             final GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
-            glad = factory.createOffscreenAutoDrawable(null, caps, null, maxTileSize, maxTileSize, null);
+            glad = factory.createOffscreenAutoDrawable(null, caps, null, maxTileSize, maxTileSize);
         }
 
         glad.addGLEventListener( demo );
@@ -220,7 +220,7 @@ public class TestTiledRendering2NEWT extends UITestCase {
         }
 
         renderer.detachAutoDrawable();
-        
+
         // Restore viewport and Gear's PMV matrix
         // .. even though we close the demo, this is for documentation!
         glad.invoke(true, new GLRunnable() {
@@ -229,7 +229,7 @@ public class TestTiledRendering2NEWT extends UITestCase {
                 drawable.getGL().glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
                 demo.reshape(drawable, 0, 0, drawable.getWidth(), drawable.getHeight());
                 return false;
-            }            
+            }
         });
 
         final GLPixelBuffer imageBuffer = renderer.getImageBuffer();
@@ -237,15 +237,15 @@ public class TestTiledRendering2NEWT extends UITestCase {
                 caps.getGLProfile(),
                 0 /* internalFormat */,
                 imageWidth, imageHeight,
-                0, 
+                0,
                 imageBuffer.pixelAttributes,
-                false, false, 
+                false, false,
                 flipVertically[0],
                 imageBuffer.buffer,
                 null /* Flusher */);
 
         TextureIO.write(textureData, file);
-        
+
         glad.destroy();
     }
 
@@ -259,5 +259,5 @@ public class TestTiledRendering2NEWT extends UITestCase {
             }
         }
         org.junit.runner.JUnitCore.main(TestTiledRendering2NEWT.class.getName());
-    }    
+    }
 }

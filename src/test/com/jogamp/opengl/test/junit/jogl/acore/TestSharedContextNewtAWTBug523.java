@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.awt.Component;
@@ -77,7 +77,7 @@ import com.jogamp.opengl.util.GLBuffers;
 
 /**
  * TestSharedContextNewtAWTBug523
- * 
+ *
  * Opens a single JFrame with two OpenGL windows and sliders to adjust the view orientation.
  *
  * Each window renders a red triangle and a blue triangle.
@@ -91,18 +91,18 @@ import com.jogamp.opengl.util.GLBuffers;
  * so that they share the vertex buffer and array objects and display lists.
  * If shareContext is false, then the two OpenGL windows each have their own context, and the blue
  * triangle fails to render in one of the windows.
- * 
+ *
  * The four test cases run through the four combinations of useNewt and shareContext.
- * 
- * Similar test cases are {@link TestSharedContextListNEWT}, {@link TestSharedContextListAWT}, 
- * {@link TestSharedContextVBOES2NEWT} and {@link TestSharedContextVBOES1NEWT}.
- * 
+ *
+ * Similar test cases are {@link TestSharedContextListNEWT}, {@link TestSharedContextListAWT},
+ * {@link TestSharedContextVBOES2NEWT1} and {@link TestSharedContextVBOES1NEWT}.
+ *
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestSharedContextNewtAWTBug523 extends UITestCase {
 
     static long durationPerTest = 1000;
-    
+
     // counters for instances of event listener TwoTriangles
     // private static int instanceCounter;
     private static int initializationCounter;
@@ -111,7 +111,7 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
     // The main thread waits twice on this semaphore to ensure both canvases have finished cleaning up.
     private static Semaphore disposalCompleteSemaphore = new Semaphore(0);
 
-    // Buffer objects can be shared across shared OpenGL context. 
+    // Buffer objects can be shared across shared OpenGL context.
     // If we run with sharedContext, then the tests will use these shared buffer objects,
     // otherwise each event listener allocates its own buffer objects.
     private static int [] sharedVertexBufferObjects = {0};
@@ -125,9 +125,9 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
             setTestSupported(false);
         }
     }
-    
+
     static private GLOffscreenAutoDrawable initShared(GLCapabilities caps) {
-        final GLOffscreenAutoDrawable sharedDrawable = GLDrawableFactory.getFactory(caps.getGLProfile()).createOffscreenAutoDrawable(null, caps, null, 64, 64, null);        
+        final GLOffscreenAutoDrawable sharedDrawable = GLDrawableFactory.getFactory(caps.getGLProfile()).createOffscreenAutoDrawable(null, caps, null, 64, 64);
         Assert.assertNotNull(sharedDrawable);
         // init and render one frame, which will setup the Gears display lists
         sharedDrawable.display();
@@ -139,34 +139,34 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
             sharedDrawable.destroy();
         }
     }
-    
+
     // inner class that implements the event listener
     static class TwoTriangles implements GLEventListener {
 
         boolean useShared;
         int canvasWidth;
         int canvasHeight;
-        private float boundsRadius = 2f;
+        private final float boundsRadius = 2f;
         private float viewDistance;
         private float viewDistanceFactor = 1.0f;
         private float xAxisRotation;
         private float yAxisRotation;
-        private float viewFovDegrees = 15f;
+        private final float viewFovDegrees = 15f;
 
         // vertex array objects cannot be shared across open gl canvases;
         //
         // However, display lists can be shared across GLCanvas instances (if those canvases are initialized with the same GLContext),
-        // including a display list created in one context that uses a VAO. 
-        private int [] vertexArrayObjects = {0};
+        // including a display list created in one context that uses a VAO.
+        private final int [] vertexArrayObjects = {0};
 
         // Buffer objects can be shared across canvas instances, if those canvases are initialized with the same GLContext.
         // If we run with sharedBufferObjects true, then the tests will use these shared buffer objects.
         // If we run with sharedBufferObjects false, then each event listener allocates its own buffer objects.
-        private int [] privateVertexBufferObjects = {0};
-        private int [] privateIndexBufferObjects = {0};
+        private final int [] privateVertexBufferObjects = {0};
+        private final int [] privateIndexBufferObjects = {0};
         private FloatBuffer privateVertexBuffer;
         private IntBuffer privateIndexBuffer;
-        
+
         TwoTriangles (int canvasWidth, int canvasHeight, boolean useShared) {
             // instanceNum = instanceCounter++;
             this.canvasWidth = canvasWidth;
@@ -205,7 +205,7 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
 
                 gl2.glBindVertexArray(vertexArrayObjects[0]);
 
-                // use either the shared or private vertex buffers, as 
+                // use either the shared or private vertex buffers, as
                 int [] vertexBufferObjects;
                 int [] indexBufferObjects;
                 FloatBuffer vertexBuffer;
@@ -222,7 +222,7 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
                     vertexBuffer = privateVertexBuffer;
                     indexBuffer = privateIndexBuffer;
                 }
-                
+
                 // if buffer sharing is enabled, then the first of the two event listeners to be
                 // initialized will allocate the buffers, and the other will re-use the allocated one
                 if (vertexBufferObjects[0] == 0) {
@@ -241,7 +241,7 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
                     gl2.glBindBuffer(GL2.GL_ARRAY_BUFFER, vertexBufferObjects[0]);
                     gl2.glBufferData(GL2.GL_ARRAY_BUFFER, vertexBuffer.capacity() * Buffers.SIZEOF_FLOAT, vertexBuffer, GL2.GL_STATIC_DRAW);
                 }
-                
+
                 // A check in the case that buffer sharing is enabled but context sharing is not enabled -- in that
                 // case, the buffer objects are not shareable, and the blue triangle cannot be rendereds.
                 // Furthermore, although the calls to bind and draw elements do not cause an error from glGetError
@@ -268,7 +268,7 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
                     gl2.glBufferData(GL2.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.capacity() * Buffers.SIZEOF_INT, indexBuffer, GL2.GL_STATIC_DRAW);
                 }
 
-                // again, a check in the case that buffer sharing is enabled but context sharing is not enabled 
+                // again, a check in the case that buffer sharing is enabled but context sharing is not enabled
                 if (gl2.glIsBuffer(indexBufferObjects[0])) {
                     gl2.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, indexBufferObjects[0]);
                 }
@@ -298,9 +298,9 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
                 vertexArrayObjects[0] = 0;
                 logAnyErrorCodes(gl2, "display");
 
-                // release shared resources 
+                // release shared resources
                 if (initializationCounter == 0 || !useShared) {
-                    // use either the shared or private vertex buffers, as 
+                    // use either the shared or private vertex buffers, as
                     int [] vertexBufferObjects;
                     int [] indexBufferObjects;
                     if (useShared) {
@@ -395,7 +395,7 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
             // synchronizing to deal with potential liveness issues if the data is intialized from one
             // thread and used on another
             boolean vaoBound = false;
-            // use either the shared or private vertex buffers, as 
+            // use either the shared or private vertex buffers, as
             int [] vertexBufferObjects;
             int [] indexBufferObjects;
             synchronized (this) {
@@ -407,20 +407,20 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
                     indexBufferObjects = privateIndexBufferObjects;
                 }
             } // synchronized (this)
-                
+
             // A check in the case that buffer sharing is enabled but context sharing is not enabled -- in that
             // case, the buffer objects are not shareable, and the blue triangle cannot be rendereds.
             // Furthermore, although the calls to bind and draw elements do not cause an error from glGetError
             // when this check is removed, true blue triangle is not rendered anyways, and more importantly,
             // I found that with my system glDrawElements causes a runtime exception 50% of the time. Executing the binds
             // to unshareable buffers sets up glDrawElements for unpredictable crashes -- sometimes it does, sometimes not.
-            if (gl2.glIsVertexArray(vertexArrayObjects[0]) && 
+            if (gl2.glIsVertexArray(vertexArrayObjects[0]) &&
                     gl2.glIsBuffer(indexBufferObjects[0]) && gl2.glIsBuffer(vertexBufferObjects[0])) {
                 gl2.glBindVertexArray(vertexArrayObjects[0]);
                 gl2.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, indexBufferObjects[0]);
                 vaoBound = true;
             }
-        
+
             logAnyErrorCodes(gl2, "drawTwoTriangles");
 
             if (vaoBound) {
@@ -428,12 +428,12 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
                 gl2.glDrawElements(GL2.GL_TRIANGLES, 3, GL2.GL_UNSIGNED_INT, 0);
                 gl2.glBindVertexArray(0);
                 gl2.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, 0);
-            } 
+            }
         }
 
         public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged) {
         }
-        
+
     } // inner class TwoTriangles
 
     public static void logAnyErrorCodes(GL2 gl2, String prefix) {
@@ -522,7 +522,7 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
         glCapabilities.setNumSamples(4);
 
         final GLOffscreenAutoDrawable sharedDrawable;
-        final GLContext sharedContext; 
+        final GLContext sharedContext;
         if(shareContext) {
             sharedDrawable = initShared(glCapabilities);
             sharedContext = sharedDrawable.getContext();
@@ -530,7 +530,7 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
             sharedDrawable = null;
             sharedContext = null;
         }
-        
+
         final TwoTriangles eventListener1 = new TwoTriangles(640, 480, shareContext);
         final TwoTriangles eventListener2 = new TwoTriangles(320, 480, shareContext);
 
@@ -541,7 +541,9 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
 
         if (useNewt) {
             GLWindow glWindow1 = GLWindow.create(glCapabilities);
-            glWindow1.setSharedContext(sharedContext);
+            if(shareContext) {
+                glWindow1.setSharedContext(sharedContext);
+            }
             NewtCanvasAWT newtCanvasAWT1 = new NewtCanvasAWT(glWindow1);
             newtCanvasAWT1.setPreferredSize(new Dimension(eventListener1.canvasWidth, eventListener1.canvasHeight));
             glWindow1.addGLEventListener(eventListener1);
@@ -563,8 +565,10 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
             final GLCanvas canvas2;
 
             if (shareContext) {
-                canvas1 = new GLCanvas(glCapabilities, sharedContext);
-                canvas2 = new GLCanvas(glCapabilities, sharedContext);
+                canvas1 = new GLCanvas(glCapabilities);
+                canvas1.setSharedContext(sharedContext);
+                canvas2 = new GLCanvas(glCapabilities);
+                canvas2.setSharedContext(sharedContext);
             } else {
                 canvas1 = new GLCanvas(glCapabilities);
                 canvas2 = new GLCanvas(glCapabilities);
@@ -622,8 +626,8 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
         viewDistanceFactorSlider.addChangeListener(new ChangeListener() {
 
             public void stateChanged(ChangeEvent e) {
-                eventListener1.setViewDistanceFactor((float) viewDistanceFactorSlider.getValue() / 10.0f);
-                eventListener2.setViewDistanceFactor((float) viewDistanceFactorSlider.getValue() / 10.0f);
+                eventListener1.setViewDistanceFactor(viewDistanceFactorSlider.getValue() / 10.0f);
+                eventListener2.setViewDistanceFactor(viewDistanceFactorSlider.getValue() / 10.0f);
             }
         });
         JLabel viewDistanceFactorLabel = new JLabel("View Distance Factor");
@@ -753,7 +757,7 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
         }
 
         Assert.assertEquals(true, disposalSuccesses == 2);
-        
+
         releaseShared(sharedDrawable);
     }
 
@@ -771,9 +775,9 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
                 if (++i < args.length) {
                     durationPerTest = atoi(args[i]);
                 }
-            } 
+            }
         }
-        
+
         String testname = TestSharedContextNewtAWTBug523.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             testname,

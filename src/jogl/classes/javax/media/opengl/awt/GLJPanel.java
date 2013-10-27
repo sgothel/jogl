@@ -108,22 +108,23 @@ import com.jogamp.opengl.util.texture.TextureState;
     support. Provided for compatibility with Swing user interfaces
     when adding a heavyweight doesn't work either because of
     Z-ordering or LayoutManager problems.
-    <P>
+    <p>
     The GLJPanel can be made transparent by creating it with a
     GLCapabilities object with alpha bits specified and calling {@link
     #setOpaque}(false). Pixels with resulting OpenGL alpha values less
-    than 1.0 will be overlaid on any underlying Swing rendering. </P>
-    <P>
+    than 1.0 will be overlaid on any underlying Swing rendering.
+    </p>
+    <p>
     This component attempts to use hardware-accelerated rendering via FBO or pbuffers and
     falls back on to software rendering if none of the former are available
     using {@link GLDrawableFactory#createOffscreenDrawable(AbstractGraphicsDevice, GLCapabilitiesImmutable, GLCapabilitiesChooser, int, int) GLDrawableFactory.createOffscreenDrawable(..)}.<br/>
-    </P>
-    <P>
+    </p>
+    <p>
     In case FBO is used and GLSL is available, a fragment shader is utilized
     to flip the FBO texture vertically. This hardware-accelerated step can be disabled via system property <code>jogl.gljpanel.noglsl</code>.
     See <a href="#fboGLSLVerticalFlip">details here</a>.
-    </P>
-    <P>
+    </p>
+    <p>
     The OpenGL path is concluded by copying the rendered pixels an {@link BufferedImage} via {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer) glReadPixels(..)}
     for later Java2D composition.
     </p>
@@ -210,7 +211,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       return singleAWTGLPixelBufferProvider;
   }
 
-  private GLDrawableHelper helper = new GLDrawableHelper();
+  private final GLDrawableHelper helper = new GLDrawableHelper();
   private volatile boolean isInitialized;
 
   //
@@ -219,10 +220,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private AWTGLPixelBufferProvider customPixelBufferProvider = null;
   /** Single buffered offscreen caps */
   private GLCapabilitiesImmutable offscreenCaps;
-  private GLProfile             glProfile;
-  private GLDrawableFactoryImpl factory;
-  private GLCapabilitiesChooser chooser;
-  private GLContext             shareWith;
+  private final GLProfile             glProfile;
+  private final GLDrawableFactoryImpl factory;
+  private final GLCapabilitiesChooser chooser;
+  private final GLContext             shareWith;
   private int additionalCtxCreationFlags = 0;
 
   // Lazy reshape notification: reshapeWidth -> panelWidth -> backend.width
@@ -248,13 +249,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private volatile Backend backend;
 
   // Used by all backends either directly or indirectly to hook up callbacks
-  private Updater updater = new Updater();
+  private final Updater updater = new Updater();
 
   private boolean oglPipelineUsable() {
       return null == customPixelBufferProvider &&  useJava2DGLPipeline && java2DGLPipelineOK;
   }
 
-  private AWTWindowClosingProtocol awtWindowClosingProtocol =
+  private final AWTWindowClosingProtocol awtWindowClosingProtocol =
           new AWTWindowClosingProtocol(this, new Runnable() {
                 @Override
                 public void run() {
@@ -289,7 +290,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       GLContext specifies an OpenGL context with which to share
       textures, display lists and other OpenGL state, and may be null
       if sharing is not desired. See the note in the overview documentation on
-      <a href="../../../overview-summary.html#SHARING">context sharing</a>.
+      <a href="../../../spec-summary.html#SHARING">context sharing</a>.
       <P>
       Note: Sharing cannot be enabled using J2D OpenGL FBO sharing,
       since J2D GL Context must be shared and we can only share one context.
@@ -572,8 +573,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
               final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
               printGLAD = factory.createOffscreenAutoDrawable(null, caps, null,
                       printAWTTiles.customTileWidth != -1 ? printAWTTiles.customTileWidth : DEFAULT_PRINT_TILE_SIZE,
-                      printAWTTiles.customTileHeight != -1 ? printAWTTiles.customTileHeight : DEFAULT_PRINT_TILE_SIZE,
-                      null);
+                      printAWTTiles.customTileHeight != -1 ? printAWTTiles.customTileHeight : DEFAULT_PRINT_TILE_SIZE);
               GLDrawableUtil.swapGLContextAndAllGLEventListener(GLJPanel.this, printGLAD);
               printDrawable = printGLAD.getDelegatedDrawable();
           }
@@ -1158,7 +1158,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
   private class DisposeGLEventListenerAction implements Runnable {
       GLEventListener listener;
-      private boolean remove;
+      private final boolean remove;
       private DisposeGLEventListenerAction(GLEventListener listener, boolean remove) {
           this.listener = listener;
           this.remove = remove;
@@ -1268,12 +1268,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     protected IntBuffer readBackIntsForCPUVFlip;
 
     // Implementation using software rendering
-    private GLDrawableImpl offscreenDrawable;
+    private volatile GLDrawableImpl offscreenDrawable;
     private boolean offscreenIsFBO;
     private FBObject fboFlipped;
     private GLSLTextureRaster glslTextureRaster;
 
-    private GLContextImpl offscreenContext;
+    private volatile GLContextImpl offscreenContext;
     private boolean flipVertical;
 
     // For saving/restoring of OpenGL state during ReadPixels
@@ -1694,11 +1694,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     private GLContext  joglContext;
     // State captured from Java2D OpenGL context necessary in order to
     // properly render into Java2D back buffer
-    private int[] drawBuffer   = new int[1];
-    private int[] readBuffer   = new int[1];
+    private final int[] drawBuffer   = new int[1];
+    private final int[] readBuffer   = new int[1];
     // This is required when the FBO option of the Java2D / OpenGL
     // pipeline is active
-    private int[] frameBuffer  = new int[1];
+    private final int[] frameBuffer  = new int[1];
     // Current (as of this writing) NVidia drivers have a couple of bugs
     // relating to the sharing of framebuffer and renderbuffer objects
     // between contexts. It appears we have to (a) reattach the color

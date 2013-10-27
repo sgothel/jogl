@@ -31,7 +31,7 @@ import com.jogamp.opengl.util.texture.TextureIO;
  * <br></br>
  * Bug Reference: https://jogamp.org/bugzilla/show_bug.cgi?id=365
  * <br></br>
- * The bug pertains to mipmap generation from a Texture and exists in {@link ScaleInternal} 
+ * The bug pertains to mipmap generation from a Texture and exists in {@link ScaleInternal}
  * where a {@link java.nio.BufferUnderflowException} is thrown.
  * <br></br>
  * <ul>This suite of test cases test:
@@ -43,14 +43,14 @@ import com.jogamp.opengl.util.texture.TextureIO;
  * <li>{@link ScaleInternal#scale_internal_int(int, int, int, ByteBuffer, int, int, java.nio.IntBuffer, int, int, int, boolean)}</li>
  * <li>{@link ScaleInternal#scale_internal_float(int, int, int, ByteBuffer, int, int, java.nio.FloatBuffer, int, int, int, boolean)}</li>
  * </ul>
- * 
+ *
  * @author Michael Esemplare, et.al.
  *
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBug365TextureGenerateMipMaps extends UITestCase {
 	static GLOffscreenAutoDrawable drawable;
-	
+
 	@BeforeClass
     public static void setup() throws Throwable {
 		// disableNPOT
@@ -61,23 +61,21 @@ public class TestBug365TextureGenerateMipMaps extends UITestCase {
             throw t;
         }
     }
-	
+
     @AfterClass
     public static void teardown() {
         tearDownOffscreenAutoDrawable();
     }
-    
+
     private static void setUpOffscreenAutoDrawable() throws Throwable {
     	GLProfile glp = GLProfile.getDefault();
 		GLCapabilities caps = new GLCapabilities(glp);
-		
-		GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
-		
-		// Make a drawable to get an offscreen context
-	    drawable = factory.createOffscreenAutoDrawable(null, caps, null, 2, 2, null);
-	    
-	    drawable.setRealized(true);
 
+		GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
+
+		// Make a drawable to get an offscreen context
+	    drawable = factory.createOffscreenAutoDrawable(null, caps, null, 2, 2);
+	    drawable.display(); // trigger context creation
 	    GLContext glContext = drawable.getContext();
 	    try {
 	    	Assert.assertTrue("Could not make context current", GLContext.CONTEXT_NOT_CURRENT < glContext.makeCurrent());
@@ -86,7 +84,7 @@ public class TestBug365TextureGenerateMipMaps extends UITestCase {
             throw t;
         }
     }
-    
+
     private static void tearDownOffscreenAutoDrawable() {
         if(drawable != null) {
         	drawable.getContext().release();
@@ -94,30 +92,30 @@ public class TestBug365TextureGenerateMipMaps extends UITestCase {
 	    	drawable = null;
         }
     }
-    
+
     private static void testTextureMipMapGeneration(int width, int height, int pixelFormat, int pixelType) {
 		int internalFormat = pixelFormat;
 		int border = 0;
 		boolean mipmap = true;
 		boolean dataIsCompressed = false;
 		boolean mustFlipVertically = false;
-		
+
 		int memReq = Mipmap.image_size( width, height, pixelFormat, pixelType );
 		ByteBuffer buffer = Buffers.newDirectByteBuffer( memReq );
-		
-		TextureData data = new TextureData(drawable.getGLProfile(), 
-				internalFormat, 
-				width, 
-				height, 
-				border, 
-				pixelFormat, 
-				pixelType, 
-				mipmap, 
-				dataIsCompressed, 
-				mustFlipVertically, 
-				buffer, 
+
+		TextureData data = new TextureData(drawable.getGLProfile(),
+				internalFormat,
+				width,
+				height,
+				border,
+				pixelFormat,
+				pixelType,
+				mipmap,
+				dataIsCompressed,
+				mustFlipVertically,
+				buffer,
 				null);
-		
+
 		Texture texture = TextureIO.newTexture(drawable.getGL(), data);
 		// Cleanup
 		texture.destroy(drawable.getGL());
@@ -125,144 +123,144 @@ public class TestBug365TextureGenerateMipMaps extends UITestCase {
 		buffer.clear();
 		buffer = null;
     }
-    
+
     @Test
     public void test00_MipMap_ScaleInternal_RGB_UBYTE () {
     	int width = 1;
     	int height = 7;
     	int pixelFormat = GL2.GL_RGB;
     	int pixelType = GL2.GL_UNSIGNED_BYTE;
-    	
+
     	testTextureMipMapGeneration(width, height, pixelFormat, pixelType);
     }
-    
+
     @Test
     public void test01_MipMap_ScaleInternal_RGBA_UBYTE () {
     	int width = 1;
     	int height = 7;
     	int pixelFormat = GL2.GL_RGBA;
     	int pixelType = GL2.GL_UNSIGNED_BYTE;
-    	
+
     	testTextureMipMapGeneration(width, height, pixelFormat, pixelType);
     }
-    
+
     @Test
     public void test02_MipMap_ScaleInternal_RGB_BYTE () {
     	int width = 1;
     	int height = 7;
     	int pixelFormat = GL2.GL_RGB;
     	int pixelType = GL2.GL_BYTE;
-    	
+
     	testTextureMipMapGeneration(width, height, pixelFormat, pixelType);
     }
-    
+
     @Test
     public void test03_MipMap_ScaleInternal_RGBA_BYTE () {
     	int width = 1;
     	int height = 7;
     	int pixelFormat = GL2.GL_RGBA;
     	int pixelType = GL2.GL_BYTE;
-    	
+
     	testTextureMipMapGeneration(width, height, pixelFormat, pixelType);
     }
-    
+
     @Test
     public void test04_MipMap_ScaleInternal_RGB_USHORT () {
     	int width = 1;
     	int height = 7;
     	int pixelFormat = GL2.GL_RGB;
     	int pixelType = GL2.GL_UNSIGNED_SHORT;
-    	
+
     	testTextureMipMapGeneration(width, height, pixelFormat, pixelType);
     }
-    
+
     @Test
     public void test05_MipMap_ScaleInternal_RGBA_USHORT () {
     	int width = 1;
     	int height = 7;
     	int pixelFormat = GL2.GL_RGBA;
     	int pixelType = GL2.GL_UNSIGNED_SHORT;
-    	
+
     	testTextureMipMapGeneration(width, height, pixelFormat, pixelType);
     }
-    
+
     @Test
     public void test06_MipMap_ScaleInternal_RGB_SHORT () {
     	int width = 1;
     	int height = 7;
     	int pixelFormat = GL2.GL_RGB;
     	int pixelType = GL2.GL_SHORT;
-    	
+
     	testTextureMipMapGeneration(width, height, pixelFormat, pixelType);
     }
-    
+
     @Test
     public void test07_MipMap_ScaleInternal_RGBA_SHORT () {
     	int width = 1;
     	int height = 7;
     	int pixelFormat = GL2.GL_RGBA;
     	int pixelType = GL2.GL_SHORT;
-    	
+
     	testTextureMipMapGeneration(width, height, pixelFormat, pixelType);
     }
-    
+
     @Test
     public void test08_MipMap_ScaleInternal_RGB_UINT () {
     	int width = 1;
     	int height = 7;
     	int pixelFormat = GL2.GL_RGB;
     	int pixelType = GL2.GL_UNSIGNED_INT;
-    	
+
     	testTextureMipMapGeneration(width, height, pixelFormat, pixelType);
     }
-    
+
     @Test
     public void test09_MipMap_ScaleInternal_RGBA_UINT () {
     	int width = 1;
     	int height = 7;
     	int pixelFormat = GL2.GL_RGBA;
     	int pixelType = GL2.GL_UNSIGNED_INT;
-    	
+
     	testTextureMipMapGeneration(width, height, pixelFormat, pixelType);
     }
-    
+
     @Test
     public void test10_MipMap_ScaleInternal_RGB_INT () {
     	int width = 1;
     	int height = 7;
     	int pixelFormat = GL2.GL_RGB;
     	int pixelType = GL2.GL_INT;
-    	
+
     	testTextureMipMapGeneration(width, height, pixelFormat, pixelType);
     }
-    
+
     @Test
     public void test11_MipMap_ScaleInternal_RGBA_INT () {
     	int width = 1;
     	int height = 7;
     	int pixelFormat = GL2.GL_RGBA;
     	int pixelType = GL2.GL_INT;
-    	
+
     	testTextureMipMapGeneration(width, height, pixelFormat, pixelType);
     }
-    
+
     @Test
     public void test12_MipMap_ScaleInternal_RGB_FLOAT () {
     	int width = 1;
     	int height = 7;
     	int pixelFormat = GL2.GL_RGB;
     	int pixelType = GL2.GL_FLOAT;
-    	
+
     	testTextureMipMapGeneration(width, height, pixelFormat, pixelType);
     }
-    
+
     @Test
     public void test13_MipMap_ScaleInternal_RGBA_FLOAT () {
     	int width = 1;
     	int height = 7;
     	int pixelFormat = GL2.GL_RGBA;
     	int pixelType = GL2.GL_FLOAT;
-    	
+
     	testTextureMipMapGeneration(width, height, pixelFormat, pixelType);
     }
 

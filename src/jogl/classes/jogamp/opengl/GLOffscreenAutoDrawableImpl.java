@@ -48,7 +48,7 @@ public class GLOffscreenAutoDrawableImpl extends GLAutoDrawableDelegate implemen
      * @param context a valid {@link GLContext},
      *                may not have been made current (created) yet,
      *                may not be associated w/ <code>drawable<code> yet,
-     *                may be <code>null</code> for lazy initialization
+     *                may be <code>null</code> for lazy initialization at 1st {@link #display()}.
      * @param upstreamWidget optional UI element holding this instance, see {@link #getUpstreamWidget()}.
      * @param lock optional upstream lock, may be null
      */

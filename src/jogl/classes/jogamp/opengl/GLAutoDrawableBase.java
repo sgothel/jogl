@@ -45,8 +45,10 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
+import javax.media.opengl.GLOffscreenAutoDrawable;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
+import javax.media.opengl.GLSharedContextSetter;
 
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.opengl.GLAutoDrawableDelegate;
@@ -59,17 +61,18 @@ import com.jogamp.opengl.GLStateKeeper;
  *
  * @see GLAutoDrawable
  * @see GLAutoDrawableDelegate
+ * @see GLOffscreenAutoDrawable
+ * @see GLOffscreenAutoDrawableImpl
  * @see GLPBufferImpl
- * @see GLWindow
+ * @see com.jogamp.newt.opengl.GLWindow
  */
-public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeeper, FPSCounter {
+public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeeper, FPSCounter, GLSharedContextSetter {
     public static final boolean DEBUG = GLDrawableImpl.DEBUG;
-
     protected final GLDrawableHelper helper = new GLDrawableHelper();
     protected final FPSCounterImpl fpsCounter = new FPSCounterImpl();
 
     protected volatile GLDrawableImpl drawable; // volatile: avoid locking for read-only access
-    protected GLContextImpl context;
+    protected volatile GLContextImpl context;
     protected boolean preserveGLELSAtDestroy;
     protected GLEventListenerState glels;
     protected GLStateKeeper.Listener glStateKeeperListener;
@@ -79,12 +82,19 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     protected volatile boolean sendDestroy = false; // volatile: maybe written by WindowManager thread w/o locking
 
     /**
+     * <p>
+     * The {@link GLContext} can be assigned later manually via {@link GLAutoDrawable#setContext(GLContext, boolean) setContext(ctx)}
+     * <i>or</i> it will be created <i>lazily</i> at the 1st {@link GLAutoDrawable#display() display()} method call.<br>
+     * <i>Lazy</i> {@link GLContext} creation will take a shared {@link GLContext} into account
+     * which has been set {@link #setSharedContext(GLContext) directly}
+     * or {@link #setSharedAutoDrawable(GLAutoDrawable) via another GLAutoDrawable}.
+     * </p>
      * @param drawable upstream {@link GLDrawableImpl} instance,
      *                 may be <code>null</code> for lazy initialization
      * @param context upstream {@link GLContextImpl} instance,
      *                may not have been made current (created) yet,
      *                may not be associated w/ <code>drawable<code> yet,
-     *                may be <code>null</code> for lazy initialization
+     *                may be <code>null</code> for lazy initialization at 1st {@link #display()}.
      * @param ownsDevice pass <code>true</code> if {@link AbstractGraphicsDevice#close()} shall be issued,
      *                   otherwise pass <code>false</code>. Closing the device is required in case
      *                   the drawable is created w/ it's own new instance, e.g. offscreen drawables,
@@ -101,6 +111,16 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
             context.setGLDrawable(drawable, false);
         }
         resetFPSCounter();
+    }
+
+    @Override
+    public final void setSharedContext(GLContext sharedContext) throws IllegalStateException {
+        helper.setSharedContext(this.context, sharedContext);
+    }
+
+    @Override
+    public final void setSharedAutoDrawable(GLAutoDrawable sharedAutoDrawable) throws IllegalStateException {
+        helper.setSharedAutoDrawable(this, sharedAutoDrawable);
     }
 
     /** Returns the recursive lock object of the upstream implementation, which synchronizes multithreaded access on top of {@link NativeSurface#lockSurface()}. */
@@ -142,16 +162,16 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     }
 
     /**
-     * Pulls the {@link GLEventListenerState} from this {@link GLAutoDrawable}.
+     * Preserves the {@link GLEventListenerState} from this {@link GLAutoDrawable}.
      *
-     * @return <code>true</code> if the {@link GLEventListenerState} is pulled successfully from this {@link GLAutoDrawable},
+     * @return <code>true</code> if the {@link GLEventListenerState} is preserved successfully from this {@link GLAutoDrawable},
      *         otherwise <code>false</code>.
      *
-     * @throws IllegalStateException if the {@link GLEventListenerState} is already pulled
+     * @throws IllegalStateException if the {@link GLEventListenerState} is already preserved
      *
-     * @see #pushGLEventListenerState()
+     * @see #restoreGLEventListenerState()
      */
-    protected final boolean pullGLEventListenerState() throws IllegalStateException {
+    protected final boolean preserveGLEventListenerState() throws IllegalStateException {
         if( null != glels ) {
             throw new IllegalStateException("GLEventListenerState already pulled");
         }
@@ -166,15 +186,15 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     }
 
     /**
-     * Pushes a previously {@link #pullGLEventListenerState() pulled} {@link GLEventListenerState} to this {@link GLAutoDrawable}.
+     * Restores a previously {@link #preserveGLEventListenerState() preserved} {@link GLEventListenerState} to this {@link GLAutoDrawable}.
      *
-     * @return <code>true</code> if the {@link GLEventListenerState} was previously {@link #pullGLEventListenerState() pulled}
-     *         and is pushed successfully to this {@link GLAutoDrawable},
+     * @return <code>true</code> if the {@link GLEventListenerState} was previously {@link #preserveGLEventListenerState() preserved}
+     *         and is moved successfully to this {@link GLAutoDrawable},
      *         otherwise <code>false</code>.
      *
-     * @see #pullGLEventListenerState()
+     * @see #preserveGLEventListenerState()
      */
-    protected final boolean pushGLEventListenerState() {
+    protected final boolean restoreGLEventListenerState() {
         if( null != glels ) {
             glels.moveTo(this);
             glels = null;
@@ -320,7 +340,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     protected void destroyImplInLock() {
         if( preserveGLELSAtDestroy ) {
             preserveGLStateAtDestroy(false);
-            pullGLEventListenerState();
+            preserveGLEventListenerState();
         }
         if( null != context ) {
             if( context.isCreated() ) {
@@ -389,7 +409,25 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
         final RecursiveLock _lock = getLock();
         _lock.lock();
         try {
-            if( null != context ) {
+            if( null == context ) {
+                boolean contextCreated = false;
+                final GLDrawableImpl _drawable = drawable;
+                if ( null != _drawable && _drawable.isRealized() && 0<_drawable.getWidth()*_drawable.getHeight() ) {
+                    final GLContext[] shareWith = { null };
+                    if( !helper.isSharedGLContextPending(shareWith) ) {
+                        if( !restoreGLEventListenerState() ) {
+                            context = (GLContextImpl) _drawable.createContext(shareWith[0]);
+                            context.setContextCreationFlags(additionalCtxCreationFlags);
+                            contextCreated = true;
+                            // surface is locked/unlocked implicit by context's makeCurrent/release
+                            helper.invokeGL(_drawable, context, defaultDisplayAction, defaultInitAction);
+                        }
+                    }
+                }
+                if(DEBUG) {
+                    System.err.println("GLAutoDrawableBase.defaultDisplay: contextCreated "+contextCreated);
+                }
+            } else {
                 // surface is locked/unlocked implicit by context's makeCurrent/release
                 helper.invokeGL(drawable, context, defaultDisplayAction, defaultInitAction);
             }

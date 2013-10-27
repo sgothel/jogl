@@ -119,7 +119,7 @@ public class TestBug605FlippedImageNEWT extends UITestCase {
     private void test(GLCapabilitiesImmutable caps) {
         final GLReadBufferUtil rbu = new GLReadBufferUtil(false, false);
         final GLDrawableFactory glFactory = GLDrawableFactory.getFactory(caps.getGLProfile());
-        final GLAutoDrawable glad = glFactory.createOffscreenAutoDrawable(null, caps, null, 256, 256, null);
+        final GLAutoDrawable glad = glFactory.createOffscreenAutoDrawable(null, caps, null, 256, 256);
         final FlippedImageTest tglel = new FlippedImageTest();
         glad.addGLEventListener(tglel);
         final SnapshotGLEventListener snap = new SnapshotGLEventListener(rbu);

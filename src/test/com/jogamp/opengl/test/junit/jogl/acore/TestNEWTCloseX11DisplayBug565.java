@@ -30,16 +30,16 @@ public class TestNEWTCloseX11DisplayBug565 {
     try {
       for ( int j = 0; j < 10; j++ ) {
         final int open0;
-        if(NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(false)) {        
+        if(NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(false)) {
             open0 = X11Util.getOpenDisplayConnectionNumber();
         } else {
             open0 = 0;
         }
-                
+
         GLCapabilitiesImmutable caps = new GLCapabilities( GLProfile.getDefault( ) );
-        
+
         GLWindow window = GLWindow.create(caps);
-        window.setTitle("NEWT Resource X11 Leak - #" + j );  
+        window.setTitle("NEWT Resource X11 Leak - #" + j );
         window.setSize( 128, 128 );
         window.setVisible(true);
         window.display();
@@ -69,7 +69,7 @@ public class TestNEWTCloseX11DisplayBug565 {
     try {
       for ( int j = 0; j < 10; j++ ) {
         final int open0;
-        if(NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(false)) {        
+        if(NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(false)) {
             open0 = X11Util.getOpenDisplayConnectionNumber();
         } else {
             open0 = 0;
@@ -111,7 +111,7 @@ public class TestNEWTCloseX11DisplayBug565 {
     try {
       for ( int j = 0; j < 10; j++ ) {
         final int open0;
-        if(NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(false)) {        
+        if(NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(false)) {
             open0 = X11Util.getOpenDisplayConnectionNumber();
         } else {
             open0 = 0;
@@ -121,13 +121,7 @@ public class TestNEWTCloseX11DisplayBug565 {
 
 
         GLOffscreenAutoDrawable buffer = GLDrawableFactory.getFactory( glp ).createOffscreenAutoDrawable(
-            null,
-            caps,
-            new DefaultGLCapabilitiesChooser(),
-            256,
-            256,
-            null
-        );
+            null, caps, new DefaultGLCapabilitiesChooser(), 256, 256);
         buffer.display();
         buffer.destroy();
 
@@ -146,10 +140,10 @@ public class TestNEWTCloseX11DisplayBug565 {
       Assert.fail(e.getMessage());
     }
   }
-  
+
   public static void main(String args[]) {
     org.junit.runner.JUnitCore.main(TestNEWTCloseX11DisplayBug565.class.getName());
   }
-  
+
 }
 

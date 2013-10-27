@@ -429,7 +429,7 @@ public abstract class GLContextImpl extends GLContext {
                   contextHandle = 0;
                   glDebugHandler = null;
                   // this maybe impl. in a platform specific way to release remaining shared ctx.
-                  if(GLContextShareSet.contextDestroyed(this) && !GLContextShareSet.hasCreatedSharedLeft(this)) {
+                  if( GLContextShareSet.contextDestroyed(this) && !GLContextShareSet.hasCreatedSharedLeft(this) ) {
                       GLContextShareSet.unregisterSharing(this);
                   }
                   resetStates(false);
@@ -647,7 +647,7 @@ public abstract class GLContextImpl extends GLContext {
             additionalCtxCreationFlags |= GLContext.CTX_OPTION_DEBUG ;
         }
 
-        final GLContextImpl shareWith = (GLContextImpl) GLContextShareSet.getShareContext(this);
+        final GLContextImpl shareWith = (GLContextImpl) GLContextShareSet.getCreatedShare(this);
         if (null != shareWith) {
             shareWith.getDrawableImpl().lockSurface();
         }

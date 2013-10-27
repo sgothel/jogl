@@ -159,20 +159,20 @@ public class TextRenderer {
     static final int kTotalBufferSizeBytesTex = kTotalBufferSizeCoordsTex * 4;
     static final int kSizeInBytes_OneVertices_VertexData = kCoordsPerVertVerts * 4;
     static final int kSizeInBytes_OneVertices_TexData = kCoordsPerVertTex * 4;
-    private Font font;
-    private boolean antialiased;
-    private boolean useFractionalMetrics;
+    private final Font font;
+    private final boolean antialiased;
+    private final boolean useFractionalMetrics;
 
     // Whether we're attempting to use automatic mipmap generation support
     private boolean mipmap;
     private RectanglePacker packer;
     private boolean haveMaxSize;
-    private RenderDelegate renderDelegate;
+    private final RenderDelegate renderDelegate;
     private TextureRenderer cachedBackingStore;
     private Graphics2D cachedGraphics;
     private FontRenderContext cachedFontRenderContext;
-    private Map<String, Rect> stringLocations = new HashMap<String, Rect>();
-    private GlyphProducer mGlyphProducer;
+    private final Map<String, Rect> stringLocations = new HashMap<String, Rect>();
+    private final GlyphProducer mGlyphProducer;
 
     private int numRenderCycles;
 
@@ -905,8 +905,8 @@ public class TextRenderer {
     private void debug(GL gl) {
         dbgFrame = new Frame("TextRenderer Debug Output");
 
-        GLCanvas dbgCanvas = new GLCanvas(new GLCapabilities(gl.getGLProfile()), null,
-                                          GLContext.getCurrent(), null);
+        GLCanvas dbgCanvas = new GLCanvas(new GLCapabilities(gl.getGLProfile()));
+        dbgCanvas.setSharedContext(GLContext.getCurrent());
         dbgCanvas.addGLEventListener(new DebugListener(gl, dbgFrame));
         dbgFrame.add(dbgCanvas);
 
@@ -1085,7 +1085,7 @@ public class TextRenderer {
     static class TextData {
         // Back-pointer to String this TextData describes, if it
         // represents a String rather than a single glyph
-        private String str;
+        private final String str;
 
         // If this TextData represents a single glyph, this is its
         // unicode ID
@@ -1096,7 +1096,7 @@ public class TextRenderer {
         // 2D coordinate system) at which the string must be rasterized in
         // order to fit within the rectangle -- the leftmost point of the
         // baseline.
-        private Point origin;
+        private final Point origin;
 
         // This represents the pre-normalized rectangle, which fits
         // within the rectangle on the backing store. We keep a
@@ -1104,7 +1104,7 @@ public class TextRenderer {
         // prevent bleeding of adjacent letters when using GL_LINEAR
         // filtering for rendering. The origin of this rectangle is
         // equivalent to the origin above.
-        private Rectangle2D origRect;
+        private final Rectangle2D origRect;
 
         private boolean used; // Whether this text was used recently
 
@@ -1375,7 +1375,7 @@ public class TextRenderer {
     //
 
     // A temporary to prevent excessive garbage creation
-    private char[] singleUnicode = new char[1];
+    private final char[] singleUnicode = new char[1];
 
     /** A Glyph represents either a single unicode glyph or a
         substring of characters to be drawn. The reason for the dual
@@ -1497,10 +1497,10 @@ public class TextRenderer {
                 int width = (int) origRect.getWidth();
                 int height = (int) origRect.getHeight();
 
-                float tx1 = xScale * (float) texturex / (float) renderer.getWidth();
+                float tx1 = xScale * texturex / renderer.getWidth();
                 float ty1 = yScale * (1.0f -
                                       ((float) texturey / (float) renderer.getHeight()));
-                float tx2 = xScale * (float) (texturex + width) / (float) renderer.getWidth();
+                float tx2 = xScale * (texturex + width) / renderer.getWidth();
                 float ty2 = yScale * (1.0f -
                                       ((float) (texturey + height) / (float) renderer.getHeight()));
 
@@ -1829,7 +1829,7 @@ public class TextRenderer {
                 GL2 gl = GLContext.getCurrentGL().getGL2();
 
                 TextureRenderer renderer = getBackingStore();
-                Texture texture = renderer.getTexture(); // triggers texture uploads.  Maybe this should be more obvious?
+                renderer.getTexture(); // triggers texture uploads.  Maybe this should be more obvious?
 
                 mVertCoords.rewind();
                 mTexCoords.rewind();
@@ -1872,7 +1872,7 @@ public class TextRenderer {
         private void drawIMMEDIATE() {
             if (mOutstandingGlyphsVerticesPipeline > 0) {
                 TextureRenderer renderer = getBackingStore();
-                Texture texture = renderer.getTexture(); // triggers texture uploads.  Maybe this should be more obvious?
+                renderer.getTexture(); // triggers texture uploads.  Maybe this should be more obvious?
 
                 GL2 gl = GLContext.getCurrentGL().getGL2();
                 gl.glBegin(GL2.GL_QUADS);

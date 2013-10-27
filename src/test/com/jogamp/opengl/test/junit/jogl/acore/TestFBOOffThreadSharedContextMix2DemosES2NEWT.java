@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.io.BufferedReader;
@@ -68,10 +68,10 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 /**
- * Toolkit agnostic {@link GLOffscreenAutoDrawable.FBO} tests using the 
- * {@link GLDrawableFactory#createOffscreenAutoDrawable(javax.media.nativewindow.AbstractGraphicsDevice, GLCapabilitiesImmutable, javax.media.opengl.GLCapabilitiesChooser, int, int, GLContext) factory model}. 
+ * Toolkit agnostic {@link GLOffscreenAutoDrawable.FBO} tests using the
+ * {@link GLDrawableFactory#createOffscreenAutoDrawable(javax.media.nativewindow.AbstractGraphicsDevice, GLCapabilitiesImmutable, javax.media.opengl.GLCapabilitiesChooser, int, int, GLContext) factory model}.
  * <p>
- * The created {@link GLOffscreenAutoDrawable.FBO} is being used to run the {@link GLEventListener}.  
+ * The created {@link GLOffscreenAutoDrawable.FBO} is being used to run the {@link GLEventListener}.
  * </p>
  * <p>
  * This test simulates shared off-thread GL context / texture usage,
@@ -81,7 +81,7 @@ import org.junit.runners.MethodSorters;
  * <ul>
  *   <li>2 {@link GLOffscreenAutoDrawable.FBO} double buffered
  *   <ul>
- *     <li>each with their own {@link GLContext}, which is shares the {@link GLWindow} one (see below)</li> 
+ *     <li>each with their own {@link GLContext}, which is shares the {@link GLWindow} one (see below)</li>
  *     <li>both run within one {@link FPSAnimator} @ 30fps</li>
  *     <li>produce a texture</li>
  *     <li>notify the onscreen renderer about new textureID (swapping double buffer)</li>
@@ -91,18 +91,18 @@ import org.junit.runners.MethodSorters;
  *     <li>shares it's {@link GLContext} w/ above FBOs</li>
  *     <li>running within one {@link Animator} at v-sync</li>
  *     <li>uses the shared FBO textures and blends them onscreen</li>
- *   </ul></li>  
- * </ul> 
- * </p> 
+ *   </ul></li>
+ * </ul>
+ * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {    
+public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
     static long duration = 500; // ms
     static int swapInterval = 1;
     static boolean showFPS = false;
     static boolean forceES2 = false;
     static boolean mainRun = false;
-        
+
     @AfterClass
     public static void releaseClass() {
     }
@@ -110,37 +110,38 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
     protected void runTestGL(GLCapabilitiesImmutable caps) throws InterruptedException {
         final GLReadBufferUtil screenshot = new GLReadBufferUtil(false, false);
         System.err.println("requested: vsync "+swapInterval+", "+caps);
-        
+
         final GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Gears NEWT Test (translucent "+!caps.isBackgroundOpaque()+"), swapInterval "+swapInterval);
         if(mainRun) {
-            glWindow.setSize(512, 512);            
+            glWindow.setSize(512, 512);
         } else {
             glWindow.setSize(256, 256);
         }
         // eager initialization of context
         glWindow.setVisible(true);
-        glWindow.display(); 
+        glWindow.display();
 
         final int fbod1_texUnit = 0;
         final int fbod2_texUnit = 1;
-        
+
         final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
         GLCapabilities fbodCaps = (GLCapabilities) caps.cloneMutable();
         // fbodCaps.setDoubleBuffered(false);
-        
+
         final Mix2TexturesES2 mixerDemo = new Mix2TexturesES2(1, fbod1_texUnit, fbod2_texUnit);
 
-        // FBOD1 
+        // FBOD1
         final GLOffscreenAutoDrawable.FBO fbod1 = (GLOffscreenAutoDrawable.FBO)
-                factory.createOffscreenAutoDrawable(null, fbodCaps, null, glWindow.getWidth(), glWindow.getHeight(), glWindow.getContext());
+                factory.createOffscreenAutoDrawable(null, fbodCaps, null, glWindow.getWidth(), glWindow.getHeight());
+        fbod1.setSharedAutoDrawable(glWindow);
         fbod1.setUpstreamWidget(glWindow); // connect the real GLWindow (mouse/key) to offscreen!
         fbod1.setTextureUnit(fbod1_texUnit);
         {
             GearsES2 demo0 = new GearsES2(-1);
             fbod1.addGLEventListener(demo0);
-            fbod1.addGLEventListener(new GLFinishOnDisplay());            
+            fbod1.addGLEventListener(new GLFinishOnDisplay());
             demo0.setIgnoreFocus(true);
         }
         fbod1.getNativeSurface().addSurfaceUpdatedListener(new SurfaceUpdatedListener() {
@@ -151,13 +152,14 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
         fbod1.display(); // init
         System.err.println("FBOD1 "+fbod1);
         Assert.assertTrue(fbod1.isInitialized());
-        
+
         // FBOD2
         final GLOffscreenAutoDrawable.FBO fbod2 = (GLOffscreenAutoDrawable.FBO)
-                factory.createOffscreenAutoDrawable(null, fbodCaps, null, glWindow.getWidth(), glWindow.getHeight(), glWindow.getContext());        
+                factory.createOffscreenAutoDrawable(null, fbodCaps, null, glWindow.getWidth(), glWindow.getHeight());
+        fbod2.setSharedAutoDrawable(glWindow);
         fbod2.setTextureUnit(fbod2_texUnit);
         fbod2.addGLEventListener(new RedSquareES2(-1));
-        fbod2.addGLEventListener(new GLFinishOnDisplay());        
+        fbod2.addGLEventListener(new GLFinishOnDisplay());
         fbod2.getNativeSurface().addSurfaceUpdatedListener(new SurfaceUpdatedListener() {
             @Override
             public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
@@ -170,7 +172,7 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
         // preinit texIDs
         mixerDemo.setTexID0(fbod1.getTextureBuffer(GL.GL_FRONT).getName());
         mixerDemo.setTexID1(fbod2.getTextureBuffer(GL.GL_FRONT).getName());
-        
+
         glWindow.addGLEventListener(mixerDemo);
         glWindow.addGLEventListener(new GLEventListener() {
             int i=0, c=0;
@@ -178,39 +180,39 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
             public void dispose(GLAutoDrawable drawable) {}
             public void display(GLAutoDrawable drawable) {
                 if(mainRun) return;
-                
+
                 final int dw = drawable.getWidth();
                 final int dh = drawable.getHeight();
                 c++;
-                
+
                 if(dw<800) {
                     System.err.println("XXX: "+dw+"x"+dh+", c "+c);
                     if(8 == c) {
-                        snapshot(i++, "msaa"+fbod1.getNumSamples(), drawable.getGL(), screenshot, TextureIO.PNG, null);                        
+                        snapshot(i++, "msaa"+fbod1.getNumSamples(), drawable.getGL(), screenshot, TextureIO.PNG, null);
                     }
                     if(9 == c) {
                         c=0;
-                        new Thread() { 
+                        new Thread() {
                             @Override
                             public void run() {
                                 glWindow.setSize(dw+256, dh+256);
-                            } }.start();                            
+                            } }.start();
                     }
                 }
             }
-            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { 
+            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
                 fbod1.setSize(width, height);
                 fbod2.setSize(width, height);
             }
         });
-        
+
         final FPSAnimator animator0 = new FPSAnimator(30);
         animator0.add(fbod1);
         animator0.add(fbod2);
-        
+
         final Animator animator1 = new Animator();
         animator1.add(glWindow);
-        
+
         QuitAdapter quitAdapter = new QuitAdapter();
 
         //glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
@@ -224,22 +226,22 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
             }
             public void windowMoved(WindowEvent e) {
                 System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight());
-            }            
+            }
         });
-        
+
         animator0.start();
         animator1.start();
         // glWindow.setSkipContextReleaseThread(animator.getThread());
 
         glWindow.setVisible(true);
-        
+
         System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
         System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
-        
+
         animator0.setUpdateFPSFrames(30, showFPS ? System.err : null);
         animator1.setUpdateFPSFrames(60, showFPS ? System.err : null);
-        
+
         while(!quitAdapter.shouldQuit() && animator1.isAnimating() && animator1.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
         }
@@ -247,14 +249,14 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
         animator0.stop();
         Assert.assertFalse(animator0.isAnimating());
         Assert.assertFalse(animator0.isStarted());
-        
+
         animator1.stop();
         Assert.assertFalse(animator1.isAnimating());
         Assert.assertFalse(animator1.isStarted());
-        
+
         fbod1.destroy();
         fbod2.destroy();
-        
+
         glWindow.destroy();
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false));
     }
@@ -263,14 +265,14 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
     public void test01() throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(forceES2 ? GLProfile.get(GLProfile.GLES2) : GLProfile.getGL2ES2());
         caps.setAlphaBits(1);
-        runTestGL(caps);            
+        runTestGL(caps);
     }
-    
-    public static void main(String args[]) throws IOException {        
+
+    public static void main(String args[]) throws IOException {
         boolean waitForKey = false;
-        
+
         mainRun = true;
-        
+
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
@@ -288,7 +290,7 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
                 mainRun = false;
             }
         }
-        
+
         System.err.println("swapInterval "+swapInterval);
         System.err.println("forceES2 "+forceES2);
 

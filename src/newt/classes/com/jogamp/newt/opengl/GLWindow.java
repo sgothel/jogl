@@ -499,21 +499,24 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                 if( ( null != context ) ) {
                     throw new InternalError("GLWindow.LifecycleHook.setVisiblePost: "+WindowImpl.getThreadName()+" - Null drawable, but valid context - "+GLWindow.this);
                 }
-                final NativeSurface ns;
-                {
-                    final NativeSurface wrapped_ns = window.getWrappedSurface();
-                    ns = null != wrapped_ns ? wrapped_ns : window;
-                }
-                final GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) ns.getGraphicsConfiguration().getChosenCapabilities();
-                if(null==factory) {
-                    factory = GLDrawableFactory.getFactory(glCaps.getGLProfile());
-                }
-                drawable = (GLDrawableImpl) factory.createGLDrawable(ns);
-                drawable.setRealized(true);
+                final GLContext[] shareWith = { null };
+                if( !helper.isSharedGLContextPending(shareWith) ) {
+                    final NativeSurface ns;
+                    {
+                        final NativeSurface wrapped_ns = window.getWrappedSurface();
+                        ns = null != wrapped_ns ? wrapped_ns : window;
+                    }
+                    final GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) ns.getGraphicsConfiguration().getChosenCapabilities();
+                    if(null==factory) {
+                        factory = GLDrawableFactory.getFactory(glCaps.getGLProfile());
+                    }
+                    drawable = (GLDrawableImpl) factory.createGLDrawable(ns);
+                    drawable.setRealized(true);
 
-                if( !GLWindow.this.pushGLEventListenerState() ) {
-                    context = (GLContextImpl) drawable.createContext(sharedContext);
-                    context.setContextCreationFlags(additionalCtxCreationFlags);
+                    if( !GLWindow.this.restoreGLEventListenerState() ) {
+                        context = (GLContextImpl) drawable.createContext(shareWith[0]);
+                        context.setContextCreationFlags(additionalCtxCreationFlags);
+                    }
                 }
             }
             if(Window.DEBUG_IMPLEMENTATION) {
@@ -573,23 +576,9 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     // OpenGL-related methods and state
     //
 
-    private GLContext sharedContext = null;
-
     @Override
     protected final RecursiveLock getLock() {
         return window.getLock();
-    }
-
-    /**
-     * Specifies an {@link javax.media.opengl.GLContext OpenGL context} to share with.<br>
-     * At native creation, {@link #setVisible(boolean) setVisible(true)},
-     * a {@link javax.media.opengl.GLDrawable drawable} and {@link javax.media.opengl.GLContext context} is created besides the native Window itself,<br>
-     * hence you shall set the shared context before.
-     *
-     * @param sharedContext The OpenGL context shared by this GLWindow's one
-     */
-    public void setSharedContext(GLContext sharedContext) {
-        this.sharedContext = sharedContext;
     }
 
     @Override

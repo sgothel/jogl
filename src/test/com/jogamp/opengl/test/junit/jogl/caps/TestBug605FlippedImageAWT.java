@@ -132,7 +132,7 @@ public class TestBug605FlippedImageAWT extends UITestCase {
     private void test(GLCapabilitiesImmutable caps) {
 
         final GLDrawableFactory glFactory = GLDrawableFactory.getFactory(caps.getGLProfile());
-        final GLAutoDrawable glad = glFactory.createOffscreenAutoDrawable(null, caps, null, 256, 256, null);
+        final GLAutoDrawable glad = glFactory.createOffscreenAutoDrawable(null, caps, null, 256, 256);
         final FlippedImageTest tglel = new FlippedImageTest();
         glad.addGLEventListener(tglel);
 

@@ -44,12 +44,14 @@ import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
+import jogamp.opengl.GLContextShareSet;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionNumber;
@@ -205,7 +207,7 @@ public abstract class GLContext {
   protected final RecursiveLock lock = LockFactory.createRecursiveLock();
 
   /** The underlying native OpenGL context */
-  protected long contextHandle;
+  protected volatile long contextHandle;
 
   protected GLContext() {
       resetStates(true);
@@ -240,6 +242,21 @@ public abstract class GLContext {
       currentSwapInterval = -1;
       glRendererQuirks = null;
       drawableRetargeted = false;
+  }
+
+  /** Returns true if this GLContext is shared, otherwise false. */
+  public final boolean isShared() {
+      return GLContextShareSet.isShared(this);
+  }
+
+  /** Returns a new list of created GLContext shared with this GLContext. */
+  public final List<GLContext> getCreatedShares() {
+      return GLContextShareSet.getCreatedShares(this);
+  }
+
+  /** Returns a new list of destroyed GLContext shared with this GLContext. */
+  public final List<GLContext> getDestroyedShares() {
+      return GLContextShareSet.getDestroyedShares(this);
   }
 
   /**
@@ -590,7 +607,7 @@ public abstract class GLContext {
     sb.append(toHexString(hashCode()));
     sb.append(", handle ");
     sb.append(toHexString(contextHandle));
-    sb.append(", ");
+    sb.append(", isShared "+isShared()+", ");
     sb.append(getGL());
     sb.append(",\n\t quirks: ");
     if(null != glRendererQuirks) {

@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -31,7 +31,7 @@ package com.jogamp.opengl.test.junit.jogl.awt;
 import java.awt.Container;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
- 
+
 import java.awt.image.BufferedImage;
 import java.lang.reflect.InvocationTargetException;
 
@@ -68,11 +68,11 @@ public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GL
     JFrame jframe;
     GLOffscreenAutoDrawable offScreenBuffer;
     AWTGLReadBufferUtil awtGLReadBufferUtil;
-    
+
     private void render(GLAutoDrawable drawable) {
         GL2 gl = drawable.getGL().getGL2();
         Assert.assertNotNull(gl);
-        gl.glClear(GL.GL_COLOR_BUFFER_BIT);      
+        gl.glClear(GL.GL_COLOR_BUFFER_BIT);
 
         // draw a triangle filling the window
         gl.glBegin(GL.GL_TRIANGLES);
@@ -84,7 +84,7 @@ public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GL
         gl.glVertex2d(1, -1);
         gl.glEnd();
     }
-    
+
     /* @Override */
     public void init(GLAutoDrawable drawable) {
         awtGLReadBufferUtil = new AWTGLReadBufferUtil(drawable.getGLProfile(), false);
@@ -92,16 +92,16 @@ public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GL
 
     /* @Override */
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-    }    
-    
+    }
+
     /* @Override */
-    public void display(GLAutoDrawable drawable) {             
+    public void display(GLAutoDrawable drawable) {
         render(offScreenBuffer);
         // BufferedImage outputImage = com.jogamp.opengl.util.awt.Screenshot.readToBufferedImage(200, 200, false);
         BufferedImage outputImage = awtGLReadBufferUtil.readPixelsToBufferedImage(drawable.getGL(), 0, 0, 200, 200, true /* awtOrientation */);
         Assert.assertNotNull(outputImage);
         ImageIcon imageIcon = new ImageIcon(outputImage);
-        final JLabel imageLabel = new JLabel(imageIcon);        
+        final JLabel imageLabel = new JLabel(imageIcon);
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
@@ -116,7 +116,7 @@ public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GL
     }
 
     /* @Override */
-    public void dispose(GLAutoDrawable drawable) {  
+    public void dispose(GLAutoDrawable drawable) {
         try {
             awtGLReadBufferUtil.dispose(drawable.getGL());
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
@@ -141,29 +141,29 @@ public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GL
 
         GLProfile glp = GLProfile.get(GLProfile.GL2);
         Assert.assertNotNull(glp);
-        
+
         GLDrawableFactory fac = GLDrawableFactory.getFactory(glp);
         Assert.assertNotNull(fac);
-        
+
         Assert.assertTrue( fac.canCreateGLPbuffer(GLProfile.getDefaultDevice(), glp) );
-        
+
         GLCapabilities glCap = new GLCapabilities(glp);
         Assert.assertNotNull(glCap);
-        
-        // COMMENTING OUT THIS LINE FIXES THE ISSUE. 
+
+        // COMMENTING OUT THIS LINE FIXES THE ISSUE.
         // Setting this in JOGL1 works. Thus this is a JOGL2 issue.
         glCap.setSampleBuffers(true);
-      
+
         // Without line below, there is an error on Windows.
         // glCap.setDoubleBuffered(false); // implicit double buffer -> MSAA + FBO
-        
+
         // Needed for drop shadows
         glCap.setStencilBits(1);
 
         //makes a new buffer
-        offScreenBuffer = fac.createOffscreenAutoDrawable(GLProfile.getDefaultDevice(), glCap, null, 200, 200, null);
+        offScreenBuffer = fac.createOffscreenAutoDrawable(GLProfile.getDefaultDevice(), glCap, null, 200, 200);
         Assert.assertNotNull(offScreenBuffer);
-        offScreenBuffer.addGLEventListener(this);        
+        offScreenBuffer.addGLEventListener(this);
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 jframe.setSize( 300, 300);
@@ -171,7 +171,7 @@ public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GL
             }});
         offScreenBuffer.display(); // read from front buffer due to FBO+MSAA -> double-buffer
         offScreenBuffer.display(); // now we have prev. image in front buffer to be read out
-        
+
         Thread.sleep(durationPerTest);
 
         offScreenBuffer.destroy();

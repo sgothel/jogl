@@ -475,7 +475,58 @@ public abstract class GLDrawableFactory {
    * <p>
    * In case the passed {@link GLCapabilitiesImmutable} contains default values, i.e.
    * {@link GLCapabilitiesImmutable#isOnscreen() caps.isOnscreen()} <code> == true</code>,
-   * it is auto-configured. The latter will set offscreen and also FBO <i>or</i> Pbuffer, whichever is available in that order.
+   * it is auto-configured. Auto configuration will set {@link GLCapabilitiesImmutable caps} to offscreen
+   * and FBO <i>or</i> Pbuffer, whichever is available in that order.
+   * </p>
+   * <p>
+   * A FBO based auto drawable, {@link GLOffscreenAutoDrawable.FBO}, is created if both {@link GLCapabilitiesImmutable#isFBO() caps.isFBO()}
+   * and {@link GLContext#isFBOAvailable(AbstractGraphicsDevice, GLProfile) canCreateFBO(device, caps.getGLProfile())} is true.
+   * </p>
+   * <p>
+   * A Pbuffer based auto drawable is created if both {@link GLCapabilitiesImmutable#isPBuffer() caps.isPBuffer()}
+   * and {@link #canCreateGLPbuffer(AbstractGraphicsDevice, GLProfile) canCreateGLPbuffer(device)} is true.
+   * </p>
+   * <p>
+   * If neither FBO nor Pbuffer is available,
+   * a simple pixmap/bitmap auto drawable is created, which is unlikely to be hardware accelerated.
+   * </p>
+   *
+   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
+   * @param caps the requested GLCapabilties
+   * @param chooser the custom chooser, may be null for default
+   * @param width the requested offscreen width
+   * @param height the requested offscreen height
+   * @return the created and initialized offscreen {@link GLOffscreenAutoDrawable} instance
+   *
+   * @throws GLException if any window system-specific errors caused
+   *         the creation of the Offscreen to fail.
+   *
+   * @see #createOffscreenDrawable(AbstractGraphicsDevice, GLCapabilitiesImmutable, GLCapabilitiesChooser, int, int)
+   * @deprecated Use {@link #createOffscreenAutoDrawable(AbstractGraphicsDevice, GLCapabilitiesImmutable, GLCapabilitiesChooser, int, int)
+   */
+  public abstract GLOffscreenAutoDrawable createOffscreenAutoDrawable(AbstractGraphicsDevice device,
+                                                                      GLCapabilitiesImmutable caps,
+                                                                      GLCapabilitiesChooser chooser,
+                                                                      int width, int height,
+                                                                      GLContext shareWith) throws GLException;
+
+  /**
+   * Creates a {@link GLDrawable#isRealized() realized} {@link GLOffscreenAutoDrawable}
+   * incl it's offscreen {@link javax.media.nativewindow.NativeSurface} with the given capabilites and dimensions.
+   * <p>
+   * The {@link GLOffscreenAutoDrawable}'s {@link GLDrawable} is {@link GLDrawable#isRealized() realized}
+   * <i>without</i> an assigned {@link GLContext}.<br>
+   * The {@link GLContext} can be assigned later manually via {@link GLAutoDrawable#setContext(GLContext, boolean) setContext(ctx)}
+   * <i>or</i> it will be created <i>lazily</i> at the 1st {@link GLAutoDrawable#display() display()} method call.<br>
+   * <i>Lazy</i> {@link GLContext} creation will take a shared {@link GLContext} into account
+   * which has been set {@link GLOffscreenAutoDrawable#setSharedContext(GLContext) directly}
+   * or {@link GLOffscreenAutoDrawable#setSharedAutoDrawable(GLAutoDrawable) via another GLAutoDrawable}.
+   * </p>
+   * <p>
+   * In case the passed {@link GLCapabilitiesImmutable} contains default values, i.e.
+   * {@link GLCapabilitiesImmutable#isOnscreen() caps.isOnscreen()} <code> == true</code>,
+   * it is auto-configured. Auto configuration will set {@link GLCapabilitiesImmutable caps} to offscreen
+   * and FBO <i>or</i> Pbuffer, whichever is available in that order.
    * </p>
    * <p>
    * A FBO based auto drawable, {@link GLOffscreenAutoDrawable.FBO}, is created if both {@link GLCapabilitiesImmutable#isFBO() caps.isFBO()}
@@ -505,8 +556,8 @@ public abstract class GLDrawableFactory {
   public abstract GLOffscreenAutoDrawable createOffscreenAutoDrawable(AbstractGraphicsDevice device,
                                                                       GLCapabilitiesImmutable caps,
                                                                       GLCapabilitiesChooser chooser,
-                                                                      int width, int height,
-                                                                      GLContext shareWith) throws GLException;
+                                                                      int width, int height) throws GLException;
+
   /**
    * Creates an {@link GLDrawable#isRealized() unrealized} offscreen {@link GLDrawable}
    * incl it's offscreen {@link javax.media.nativewindow.NativeSurface} with the given capabilites and dimensions.
@@ -625,7 +676,7 @@ public abstract class GLDrawableFactory {
    * </p>
    *
    * See the note in the overview documentation on
-   * <a href="../../../overview-summary.html#SHARING">context sharing</a>.
+   * <a href="../../../spec-summary.html#SHARING">context sharing</a>.
    *
    * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
    * @param capabilities the requested capabilities

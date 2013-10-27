@@ -64,11 +64,18 @@ import jogamp.opengl.GLDrawableImpl;
  */
 public class GLAutoDrawableDelegate extends GLAutoDrawableBase implements GLAutoDrawable {
     /**
+     * <p>
+     * The {@link GLContext} can be assigned later manually via {@link GLAutoDrawable#setContext(GLContext, boolean) setContext(ctx)}
+     * <i>or</i> it will be created <i>lazily</i> at the 1st {@link GLAutoDrawable#display() display()} method call.<br>
+     * <i>Lazy</i> {@link GLContext} creation will take a shared {@link GLContext} into account
+     * which has been set {@link #setSharedContext(GLContext) directly}
+     * or {@link #setSharedAutoDrawable(GLAutoDrawable) via another GLAutoDrawable}.
+     * </p>
      * @param drawable a valid {@link GLDrawable}, may not be {@link GLDrawable#isRealized() realized} yet.
      * @param context a valid {@link GLContext},
      *                may not have been made current (created) yet,
      *                may not be associated w/ <code>drawable<code> yet,
-     *                may be <code>null</code> for lazy initialization
+     *                may be <code>null</code> for lazy initialization at 1st {@link #display()}.
      * @param upstreamWidget optional UI element holding this instance, see {@link #getUpstreamWidget()}.
      * @param ownDevice pass <code>true</code> if {@link AbstractGraphicsDevice#close()} shall be issued,
      *                  otherwise pass <code>false</code>. Closing the device is required in case

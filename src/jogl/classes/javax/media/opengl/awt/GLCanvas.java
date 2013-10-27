@@ -81,6 +81,7 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
+import javax.media.opengl.GLSharedContextSetter;
 import javax.media.opengl.Threading;
 
 import com.jogamp.common.GlueGenVersion;
@@ -114,7 +115,7 @@ import jogamp.opengl.awt.AWTTilePainter;
     interfaces when adding a heavyweight doesn't work either because
     of Z-ordering or LayoutManager problems.
  *
- * <h5><A NAME="java2dgl">Offscreen Layer Remarks</A></h5>
+ * <h5><a name="offscreenlayer">Offscreen Layer Remarks</a></h5>
  *
  * {@link OffscreenLayerOption#setShallUseOffscreenLayer(boolean) setShallUseOffscreenLayer(true)}
  * maybe called to use an offscreen drawable (FBO or PBuffer) allowing
@@ -124,7 +125,7 @@ import jogamp.opengl.awt.AWTTilePainter;
  * is being called if {@link GLCapabilitiesImmutable#isOnscreen()} is <code>false</code>.
  * </p>
  *
- * <h5><A NAME="java2dgl">Java2D OpenGL Remarks</A></h5>
+ * <h5><a name="java2dgl">Java2D OpenGL Remarks</a></h5>
  *
  * To avoid any conflicts with a potential Java2D OpenGL context,<br>
  * you shall consider setting the following JVM properties:<br>
@@ -141,7 +142,7 @@ import jogamp.opengl.awt.AWTTilePainter;
  *    <li><pre>sun.java2d.noddraw=true</pre></li>
  * </ul>
  *
- * <h5><A NAME="backgrounderase">Disable Background Erase</A></h5>
+ * <h5><a name="backgrounderase">Disable Background Erase</a></h5>
  *
  * GLCanvas tries to disable background erase for the AWT Canvas
  * before native peer creation (X11) and after it (Windows), <br>
@@ -153,7 +154,7 @@ import jogamp.opengl.awt.AWTTilePainter;
  */
 
 @SuppressWarnings("serial")
-public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosingProtocol, OffscreenLayerOption, AWTPrintLifecycle {
+public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosingProtocol, OffscreenLayerOption, AWTPrintLifecycle, GLSharedContextSetter {
 
   private static final boolean DEBUG = Debug.debug("GLCanvas");
 
@@ -162,18 +163,20 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   private AWTGraphicsConfiguration awtConfig;
   private volatile GLDrawableImpl drawable; // volatile: avoid locking for read-only access
   private volatile JAWTWindow jawtWindow; // the JAWTWindow presentation of this AWT Canvas, bound to the 'drawable' lifecycle
-  private GLContextImpl context;
+  private volatile GLContextImpl context;
   private volatile boolean sendReshape = false; // volatile: maybe written by EDT w/o locking
 
   // copy of the cstr args, mainly for recreation
-  private GLCapabilitiesImmutable capsReqUser;
-  private GLCapabilitiesChooser chooser;
-  private GLContext shareWith;
+  private final GLCapabilitiesImmutable capsReqUser;
+  private final GLCapabilitiesChooser chooser;
   private int additionalCtxCreationFlags = 0;
-  private GraphicsDevice device;
+  private final GraphicsDevice device;
   private boolean shallUseOffscreenLayer = false;
 
-  private AWTWindowClosingProtocol awtWindowClosingProtocol =
+  protected GLContext sharedContext = null;
+  protected GLAutoDrawable sharedAutoDrawable = null;
+
+  private final AWTWindowClosingProtocol awtWindowClosingProtocol =
           new AWTWindowClosingProtocol(this, new Runnable() {
                 @Override
                 public void run() {
@@ -207,6 +210,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
    *
    * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
    * @see GLCanvas#GLCanvas(javax.media.opengl.GLCapabilitiesImmutable, javax.media.opengl.GLCapabilitiesChooser, javax.media.opengl.GLContext, java.awt.GraphicsDevice)
+   * @deprecated Use {@link #GLCanvas(GLCapabilitiesImmutable)}
+   *             and set shared GLContext via {@link #setSharedContext(GLContext)} or {@link #setSharedAutoDrawable(GLAutoDrawable)}.
    */
   public GLCanvas(GLCapabilitiesImmutable capsReqUser, GLContext shareWith)
           throws GLException
@@ -219,17 +224,39 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       default set of capabilities is used. The GLCapabilitiesChooser
       specifies the algorithm for selecting one of the available
       GLCapabilities for the component; a DefaultGLCapabilitesChooser
+      is used if null is passed for this argument.
+      The passed GraphicsDevice indicates the screen on
+      which to create the GLCanvas; the GLDrawableFactory uses the
+      default screen device of the local GraphicsEnvironment if null
+      is passed for this argument.
+   * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
+   */
+  public GLCanvas(GLCapabilitiesImmutable capsReqUser,
+                  GLCapabilitiesChooser chooser,
+                  GraphicsDevice device)
+      throws GLException
+  {
+      this(capsReqUser, chooser, null, device);
+  }
+
+  /** Creates a new GLCanvas component. The passed GLCapabilities
+      specifies the OpenGL capabilities for the component; if null, a
+      default set of capabilities is used. The GLCapabilitiesChooser
+      specifies the algorithm for selecting one of the available
+      GLCapabilities for the component; a DefaultGLCapabilitesChooser
       is used if null is passed for this argument. The passed
       GLContext specifies an OpenGL context with which to share
       textures, display lists and other OpenGL state, and may be null
       if sharing is not desired. See the note in the overview
       documentation on <a
-      href="../../../overview-summary.html#SHARING">context
+      href="../../../spec-summary.html#SHARING">context
       sharing</a>. The passed GraphicsDevice indicates the screen on
       which to create the GLCanvas; the GLDrawableFactory uses the
       default screen device of the local GraphicsEnvironment if null
       is passed for this argument.
    * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
+   * @deprecated Use {@link #GLCanvas(GLCapabilitiesImmutable, GLCapabilitiesChooser, GraphicsDevice)}
+   *             and set shared GLContext via {@link #setSharedContext(GLContext)} or {@link #setSharedAutoDrawable(GLAutoDrawable)}.
    */
   public GLCanvas(GLCapabilitiesImmutable capsReqUser,
                   GLCapabilitiesChooser chooser,
@@ -266,8 +293,18 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     // instantiation will be issued in addNotify()
     this.capsReqUser = capsReqUser;
     this.chooser = chooser;
-    this.shareWith = shareWith;
+    this.sharedContext = shareWith;
     this.device = device;
+  }
+
+  @Override
+  public final void setSharedContext(GLContext sharedContext) throws IllegalStateException {
+      helper.setSharedContext(this.context, sharedContext);
+  }
+
+  @Override
+  public final void setSharedAutoDrawable(GLAutoDrawable sharedAutoDrawable) throws IllegalStateException {
+      helper.setSharedAutoDrawable(this, sharedAutoDrawable);
   }
 
   @Override
@@ -383,7 +420,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
               destroyImpl( true );
               // recreation!
               awtConfig = config;
-              createDrawableAndContext( true );
+              createJAWTDrawableAndContext();
               validateGLDrawable();
           } else {
               awtConfig = config;
@@ -592,7 +629,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
             // after native peer is valid: Windows
             disableBackgroundErase();
 
-            createDrawableAndContext( true );
+            createJAWTDrawableAndContext();
 
             // init drawable by paint/display makes the init sequence more equal
             // for all launch flavors (applet/javaws/..)
@@ -608,20 +645,33 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     }
   }
 
-  private void createDrawableAndContext(boolean createJAWTWindow) {
+  private void createJAWTDrawableAndContext() {
     if ( !Beans.isDesignTime() ) {
-        if( createJAWTWindow ) {
-            jawtWindow = (JAWTWindow) NativeWindowFactory.getNativeWindow(this, awtConfig);
-            jawtWindow.setShallUseOffscreenLayer(shallUseOffscreenLayer);
-        }
+        jawtWindow = (JAWTWindow) NativeWindowFactory.getNativeWindow(this, awtConfig);
+        jawtWindow.setShallUseOffscreenLayer(shallUseOffscreenLayer);
         jawtWindow.lockSurface();
         try {
             drawable = (GLDrawableImpl) GLDrawableFactory.getFactory(capsReqUser.getGLProfile()).createGLDrawable(jawtWindow);
-            context = (GLContextImpl) drawable.createContext(shareWith);
-            context.setContextCreationFlags(additionalCtxCreationFlags);
+            createContextImpl(drawable);
         } finally {
             jawtWindow.unlockSurface();
         }
+    }
+  }
+  private boolean createContextImpl(final GLDrawable drawable) {
+    final GLContext[] shareWith = { null };
+    if( !helper.isSharedGLContextPending(shareWith) ) {
+        context = (GLContextImpl) drawable.createContext(shareWith[0]);
+        context.setContextCreationFlags(additionalCtxCreationFlags);
+        if(DEBUG) {
+            System.err.println(getThreadName()+": Context created: has shared "+(null != shareWith[0]));
+        }
+        return true;
+    } else {
+        if(DEBUG) {
+            System.err.println(getThreadName()+": Context !created: pending share");
+        }
+        return false;
     }
   }
 
@@ -631,17 +681,22 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       }
       final GLDrawable _drawable = drawable;
       if ( null != _drawable ) {
-          if( _drawable.isRealized() ) {
-              return true;
+          boolean res = _drawable.isRealized();
+          if( !res ) {
+              // re-try drawable creation
+              if( 0 >= _drawable.getWidth() || 0 >= _drawable.getHeight() ) {
+                  return false; // early out!
+              }
+              setRealized(true);
+              res = _drawable.isRealized();
+              if(DEBUG) {
+                  System.err.println(getThreadName()+": Realized Drawable: isRealized "+res+", "+_drawable.toString());
+                  // Thread.dumpStack();
+              }
           }
-          if( 0 >= _drawable.getWidth() || 0 >= _drawable.getHeight() ) {
-              return false; // early out!
-          }
-          setRealized(true);
-          final boolean res = _drawable.isRealized();
-          if(DEBUG) {
-              System.err.println(getThreadName()+": Realized Drawable: isRealized "+res+", "+_drawable.toString());
-              // Thread.dumpStack();
+          if( res && null == context ) {
+              // re-try context creation
+              res = createContextImpl(_drawable); // pending creation.
           }
           return res;
       }
@@ -791,8 +846,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
               final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
               printGLAD = factory.createOffscreenAutoDrawable(null, caps, null,
                       printAWTTiles.customTileWidth != -1 ? printAWTTiles.customTileWidth : DEFAULT_PRINT_TILE_SIZE,
-                      printAWTTiles.customTileHeight != -1 ? printAWTTiles.customTileHeight : DEFAULT_PRINT_TILE_SIZE,
-                      null);
+                      printAWTTiles.customTileHeight != -1 ? printAWTTiles.customTileHeight : DEFAULT_PRINT_TILE_SIZE);
               GLDrawableUtil.swapGLContextAndAllGLEventListener(GLCanvas.this, printGLAD);
               printDrawable = printGLAD.getDelegatedDrawable();
           }
@@ -1251,7 +1305,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
   private class DisposeGLEventListenerAction implements Runnable {
     GLEventListener listener;
-    private boolean remove;
+    private final boolean remove;
     private DisposeGLEventListenerAction(GLEventListener listener, boolean remove) {
         this.listener = listener;
         this.remove = remove;

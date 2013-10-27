@@ -105,7 +105,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     private AWTAdapter awtMouseAdapter = null;
     private AWTAdapter awtKeyAdapter = null;
 
-    private AWTWindowClosingProtocol awtWindowClosingProtocol =
+    private final AWTWindowClosingProtocol awtWindowClosingProtocol =
           new AWTWindowClosingProtocol(this, new Runnable() {
                 @Override
                 public void run() {
@@ -204,7 +204,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
             return false; // NEWT shall proceed requesting the native focus
         }
     }
-    private FocusAction focusAction = new FocusAction();
+    private final FocusAction focusAction = new FocusAction();
 
     WindowListener clearAWTMenusOnNewtFocus = new WindowAdapter() {
           @Override
@@ -559,8 +559,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
                 printGLAD = factory.createOffscreenAutoDrawable(null, caps, null,
                         printAWTTiles.customTileWidth != -1 ? printAWTTiles.customTileWidth : DEFAULT_PRINT_TILE_SIZE,
-                        printAWTTiles.customTileHeight != -1 ? printAWTTiles.customTileHeight : DEFAULT_PRINT_TILE_SIZE,
-                        null);
+                        printAWTTiles.customTileHeight != -1 ? printAWTTiles.customTileHeight : DEFAULT_PRINT_TILE_SIZE);
                 GLDrawableUtil.swapGLContextAndAllGLEventListener(glad, printGLAD);
                 printDrawable = printGLAD.getDelegatedDrawable();
             }

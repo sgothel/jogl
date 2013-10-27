@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -60,14 +60,14 @@ import org.junit.runners.MethodSorters;
  * </p>
  * <p>
  * {@link RandomTileRenderer} buffer allocation is performed
- * within the pre {@link GLEventListener} 
+ * within the pre {@link GLEventListener}
  * set via {@link TileRendererBase#setGLEventListener(GLEventListener, GLEventListener)}
- * on the main thread. 
+ * on the main thread.
  * </p>
   * <p>
  * At tile rendering finish, the viewport and
  * and the original {@link GLEventListener}'s PMV matrix as well.
- * The latter is done by calling it's {@link GLEventListener#reshape(GLAutoDrawable, int, int, int, int) reshape} method. 
+ * The latter is done by calling it's {@link GLEventListener#reshape(GLAutoDrawable, int, int, int, int) reshape} method.
  * </p>
 */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -83,7 +83,7 @@ public class TestRandomTiledRendering2GL2NEWT extends UITestCase {
         doTest(8);
     }
 
-    void doTest(int msaaCount) throws IOException, InterruptedException, InvocationTargetException {      
+    void doTest(int msaaCount) throws IOException, InterruptedException, InvocationTargetException {
         final GLCapabilities caps = new GLCapabilities(null);
         caps.setDoubleBuffered(true);
         if( msaaCount > 0 ) {
@@ -93,7 +93,7 @@ public class TestRandomTiledRendering2GL2NEWT extends UITestCase {
 
         final int maxTileSize = 64;
         final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
-        final GLOffscreenAutoDrawable glad = factory.createOffscreenAutoDrawable(null, caps, null, maxTileSize, maxTileSize, null);
+        final GLOffscreenAutoDrawable glad = factory.createOffscreenAutoDrawable(null, caps, null, maxTileSize, maxTileSize);
 
         final Gears gears = new Gears();
         glad.addGLEventListener( gears );
@@ -156,7 +156,7 @@ public class TestRandomTiledRendering2GL2NEWT extends UITestCase {
                 drawable.getGL().glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
                 gears.reshape(drawable, 0, 0, drawable.getWidth(), drawable.getHeight());
                 return false;
-            }            
+            }
         });
 
         glad.destroy();
@@ -168,9 +168,9 @@ public class TestRandomTiledRendering2GL2NEWT extends UITestCase {
                 caps.getGLProfile(),
                 0 /* internalFormat */,
                 imageWidth, imageHeight,
-                0, 
+                0,
                 imageBuffer.pixelAttributes,
-                false, false, 
+                false, false,
                 flipVertically[0],
                 imageBuffer.buffer,
                 null /* Flusher */);
@@ -189,5 +189,5 @@ public class TestRandomTiledRendering2GL2NEWT extends UITestCase {
             }
         }
         org.junit.runner.JUnitCore.main(TestRandomTiledRendering2GL2NEWT.class.getName());
-    }    
+    }
 }

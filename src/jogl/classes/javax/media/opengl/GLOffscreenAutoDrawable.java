@@ -40,7 +40,7 @@ import com.jogamp.opengl.FBObject;
  * with it's {@link #setSize(int, int)} functionality.
  * </p>
  */
-public interface GLOffscreenAutoDrawable extends GLAutoDrawable {
+public interface GLOffscreenAutoDrawable extends GLAutoDrawable, GLSharedContextSetter {
 
     /**
      * Resize this auto drawable.

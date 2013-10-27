@@ -242,7 +242,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
    private class DisposeGLEventListenerAction implements Runnable {
        private GLEventListener listener;
-       private boolean remove;
+       private final boolean remove;
        private DisposeGLEventListenerAction(GLEventListener listener, boolean remove) {
            this.listener = listener;
            this.remove = remove;
@@ -677,7 +677,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
    @Override
    public GLContext getContext() {
-      return null != drawable ? context : null;
+      return context;
    }
 
    @Override

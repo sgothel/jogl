@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.acore.glels;
 
 import java.awt.BorderLayout;
@@ -71,7 +71,7 @@ public class TestGLContextDrawableSwitch02AWT extends UITestCase {
         }
         return new GLCapabilities(GLProfile.get(profile));
     }
-    
+
     @BeforeClass
     public static void initClass() {
         width  = 256;
@@ -82,13 +82,13 @@ public class TestGLContextDrawableSwitch02AWT extends UITestCase {
         final GLAutoDrawable glad;
         if( caps.isOnscreen() ) {
             GLCanvas glCanvas = new GLCanvas(caps);
-            Assert.assertNotNull(glCanvas);        
+            Assert.assertNotNull(glCanvas);
             Dimension glc_sz = new Dimension(width, height);
             glCanvas.setMinimumSize(glc_sz);
             glCanvas.setPreferredSize(glc_sz);
             glCanvas.setSize(glc_sz);
             glad = glCanvas;
-            
+
             frame.setLayout(new BorderLayout());
             frame.add(glCanvas, BorderLayout.CENTER);
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
@@ -96,48 +96,48 @@ public class TestGLContextDrawableSwitch02AWT extends UITestCase {
                     frame.pack();
                     frame.setVisible(true);
                 }});
-            
-        } else {                    
+
+        } else {
             final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
-            glad = factory.createOffscreenAutoDrawable(null, caps, null, width, height, null);
+            glad = factory.createOffscreenAutoDrawable(null, caps, null, width, height);
             Assert.assertNotNull(glad);
         }
         return glad;
     }
-        
+
     @Test(timeout=30000)
     public void testSwitch2AWTGLCanvas2OffscreenGL2ES2() throws InterruptedException, InvocationTargetException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2ES2);
         if(null == reqGLCaps) return;
         testSwitch2AWTGLCanvas2OffscreenImpl(reqGLCaps);
     }
-    
+
     private void testSwitch2AWTGLCanvas2OffscreenImpl(GLCapabilities capsOnscreen) throws InterruptedException, InvocationTargetException {
         final GLCapabilities capsOffscreen = (GLCapabilities) capsOnscreen.clone();
         capsOffscreen.setOnscreen(false);
-        
+
         final QuitAdapter quitAdapter = new QuitAdapter();
-        
+
         final Frame frame = new Frame("Gears AWT Test");
         Assert.assertNotNull(frame);
         new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
-        
+
         GLAutoDrawable glCanvas = createGLAutoDrawable(frame, capsOnscreen, width, height);
-        
-        final SnapshotGLEventListener snapshotGLEventListener = new SnapshotGLEventListener();        
+
+        final SnapshotGLEventListener snapshotGLEventListener = new SnapshotGLEventListener();
         GearsES2 gears = new GearsES2(1);
         glCanvas.addGLEventListener(gears);
         glCanvas.addGLEventListener(snapshotGLEventListener);
         snapshotGLEventListener.setMakeSnapshot();
-        
+
         Animator animator = new Animator();
         animator.add(glCanvas);
         animator.start();
-        
+
         int s = 0;
         long t0 = System.currentTimeMillis();
         long t1 = t0;
-        
+
         GLAutoDrawable glOffscreen = createGLAutoDrawable(null,  capsOffscreen, width, height);
         while( !quitAdapter.shouldQuit() && ( t1 - t0 ) < duration ) {
             if( ( t1 - t0 ) / period > s) {
@@ -147,8 +147,8 @@ public class TestGLContextDrawableSwitch02AWT extends UITestCase {
                 // switch context _and_ the demo synchronously
                 GLDrawableUtil.swapGLContextAndAllGLEventListener(glCanvas, glOffscreen);
                 snapshotGLEventListener.setMakeSnapshot();
-                
-                System.err.println(s+" - switch - END "+ ( t1 - t0 ));                
+
+                System.err.println(s+" - switch - END "+ ( t1 - t0 ));
             }
             Thread.sleep(100);
             t1 = System.currentTimeMillis();
@@ -157,14 +157,14 @@ public class TestGLContextDrawableSwitch02AWT extends UITestCase {
         animator.stop();
         // glCanvas.destroy();
         glOffscreen.destroy();
-        
+
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 final Frame _frame = frame;
                 _frame.dispose();
             }});
     }
-    
+
     // default timing for 2 switches
     static long duration = 2900; // ms
     static long period = 1000; // ms
@@ -186,7 +186,7 @@ public class TestGLContextDrawableSwitch02AWT extends UITestCase {
         /**
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
         System.err.println("Press enter to continue");
-        System.err.println(stdin.readLine()); */         
+        System.err.println(stdin.readLine()); */
         org.junit.runner.JUnitCore.main(TestGLContextDrawableSwitch02AWT.class.getName());
     }
 }
