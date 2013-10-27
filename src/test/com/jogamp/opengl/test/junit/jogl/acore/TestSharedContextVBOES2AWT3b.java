@@ -35,7 +35,7 @@ import java.util.List;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLProfile;
-import javax.media.opengl.awt.GLCanvas;
+import javax.media.opengl.awt.GLJPanel;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
@@ -50,19 +50,19 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 /**
- * Sharing the VBO of 3 GearsES2 instances, each in their own GLCanvas.
+ * Sharing the VBO of 3 GearsES2 instances, each in their own GLJPanel.
  * <p>
- * This is achieved by using the 1st GLCanvas as the <i>master</i>
+ * This is achieved by using the 1st GLJPanel as the <i>master</i>
  * and using the build-in blocking mechanism to postpone creation
- * of the 2nd and 3rd GLCanvas until the 1st GLCanvas's GLContext becomes created.
+ * of the 2nd and 3rd GLJPanel until the 1st GLJPanel 's GLContext becomes created.
  * </p>
  * <p>
- * Above method allows random creation of the 1st GLCanvas, which triggers
- * creation of the <i>dependent</i> other GLCanvas sharing it's GLContext.
+ * Above method allows random creation of the 1st GLJPanel, which triggers
+ * creation of the <i>dependent</i> other GLJPanel sharing it's GLContext.
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestSharedContextVBOES2AWT3 extends UITestCase {
+public class TestSharedContextVBOES2AWT3b extends UITestCase {
     static GLProfile glp;
     static GLCapabilities caps;
     static int width, height;
@@ -81,14 +81,14 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
         }
     }
 
-    protected GLCanvas createGLCanvas(final Frame frame, int x, int y, GearsES2 gears) throws InterruptedException {
-        final GLCanvas glCanvas = new GLCanvas(caps);
+    protected GLJPanel createGLJPanel(final Frame frame, int x, int y, GearsES2 gears) throws InterruptedException {
+        final GLJPanel glCanvas = new GLJPanel(caps);
         Assert.assertNotNull(glCanvas);
         glCanvas.addGLEventListener(gears);
         frame.add(glCanvas);
         frame.setLocation(x, y);
         frame.setSize(width, height);
-        frame.setTitle("AWT GLCanvas Shared Gears Test: "+x+"/"+y+" shared true");
+        frame.setTitle("AWT GLJPanel Shared Gears Test: "+x+"/"+y+" shared true");
         return glCanvas;
     }
 
@@ -97,13 +97,13 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
         final Frame f1 = new Frame();
         final Animator animator = new Animator();
         final GearsES2 g1 = new GearsES2(0);
-        final GLCanvas c1 = createGLCanvas(f1, 0, 0, g1);
+        final GLJPanel c1 = createGLJPanel(f1, 0, 0, g1);
         animator.add(c1);
 
         final Frame f2 = new Frame();
         final GearsES2 g2 = new GearsES2(0);
         g2.setSharedGears(g1);
-        final GLCanvas c2 = createGLCanvas(f2, f1.getX()+width,
+        final GLJPanel c2 = createGLJPanel(f2, f1.getX()+width,
                                            f1.getY()+0, g2);
         c2.setSharedAutoDrawable(c1);
         animator.add(c2);
@@ -111,7 +111,7 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
         final Frame f3 = new Frame();
         final GearsES2 g3 = new GearsES2(0);
         g3.setSharedGears(g1);
-        final GLCanvas c3 = createGLCanvas(f3, f1.getX()+0,
+        final GLJPanel c3 = createGLJPanel(f3, f1.getX()+0,
                                            f1.getY()+height, g3);
         c3.setSharedAutoDrawable(c1);
         animator.add(c3);
@@ -195,7 +195,7 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
         final Frame f1 = new Frame();
         final Animator a1 = new Animator();
         final GearsES2 g1 = new GearsES2(0);
-        final GLCanvas c1 = createGLCanvas(f1, 0, 0, g1);
+        final GLJPanel c1 = createGLJPanel(f1, 0, 0, g1);
         a1.add(c1);
         a1.start();
         // f1.setVisible(true); // we do this post f2 .. to test pending creation!
@@ -204,7 +204,7 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
         final Animator a2 = new Animator();
         final GearsES2 g2 = new GearsES2(0);
         g2.setSharedGears(g1);
-        final GLCanvas c2 = createGLCanvas(f2, f1.getX()+width, f1.getY()+0, g2);
+        final GLJPanel c2 = createGLJPanel(f2, f1.getX()+width, f1.getY()+0, g2);
         c2.setSharedAutoDrawable(c1);
         a2.add(c2);
         a2.start();
@@ -224,7 +224,7 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
         final Animator a3 = new Animator();
         final GearsES2 g3 = new GearsES2(0);
         g3.setSharedGears(g1);
-        final GLCanvas c3 = createGLCanvas(f3, f1.getX()+0, f1.getY()+height, g3);
+        final GLJPanel c3 = createGLJPanel(f3, f1.getX()+0, f1.getY()+height, g3);
         c3.setSharedAutoDrawable(c1);
         a3.add(c3);
         a3.start();
@@ -316,6 +316,6 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
         System.err.println("Press enter to continue");
         System.err.println(stdin.readLine()); */
-        org.junit.runner.JUnitCore.main(TestSharedContextVBOES2AWT3.class.getName());
+        org.junit.runner.JUnitCore.main(TestSharedContextVBOES2AWT3b.class.getName());
     }
 }

@@ -77,6 +77,7 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLFBODrawable;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
+import javax.media.opengl.GLSharedContextSetter;
 import javax.media.opengl.Threading;
 import javax.swing.JPanel;
 
@@ -160,7 +161,7 @@ import com.jogamp.opengl.util.texture.TextureState;
 */
 
 @SuppressWarnings("serial")
-public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosingProtocol, AWTPrintLifecycle {
+public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosingProtocol, AWTPrintLifecycle, GLSharedContextSetter {
   private static final boolean DEBUG;
   private static final boolean DEBUG_VIEWPORT;
   private static final boolean USE_GLSL_TEXTURE_RASTERIZER;
@@ -223,7 +224,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private final GLProfile             glProfile;
   private final GLDrawableFactoryImpl factory;
   private final GLCapabilitiesChooser chooser;
-  private final GLContext             shareWith;
   private int additionalCtxCreationFlags = 0;
 
   // Lazy reshape notification: reshapeWidth -> panelWidth -> backend.width
@@ -296,6 +296,29 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       since J2D GL Context must be shared and we can only share one context.
     * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
   */
+  public GLJPanel(GLCapabilitiesImmutable userCapsRequest, GLCapabilitiesChooser chooser)
+          throws GLException
+  {
+      this(userCapsRequest, chooser, null);
+  }
+
+  /** Creates a new GLJPanel component. The passed GLCapabilities
+      specifies the OpenGL capabilities for the component; if null, a
+      default set of capabilities is used. The GLCapabilitiesChooser
+      specifies the algorithm for selecting one of the available
+      GLCapabilities for the component; a DefaultGLCapabilitesChooser
+      is used if null is passed for this argument. The passed
+      GLContext specifies an OpenGL context with which to share
+      textures, display lists and other OpenGL state, and may be null
+      if sharing is not desired. See the note in the overview documentation on
+      <a href="../../../spec-summary.html#SHARING">context sharing</a>.
+      <P>
+      Note: Sharing cannot be enabled using J2D OpenGL FBO sharing,
+      since J2D GL Context must be shared and we can only share one context.
+    * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
+    * @deprecated Use {@link #GLJPanel(GLCapabilitiesImmutable, GLCapabilitiesChooser)}
+    *             and set shared GLContext via {@link #setSharedContext(GLContext)} or {@link #setSharedAutoDrawable(GLAutoDrawable)}.
+    */
   public GLJPanel(GLCapabilitiesImmutable userCapsRequest, GLCapabilitiesChooser chooser, GLContext shareWith)
           throws GLException
   {
@@ -316,9 +339,20 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     this.glProfile = offscreenCaps.getGLProfile();
     this.factory = GLDrawableFactoryImpl.getFactoryImpl(glProfile);
     this.chooser = ((chooser != null) ? chooser : new DefaultGLCapabilitiesChooser());
-    this.shareWith = shareWith;
-
+    if( null != shareWith ) {
+        helper.setSharedContext(null, shareWith);
+    }
     this.setFocusable(true); // allow keyboard input!
+  }
+
+  @Override
+  public final void setSharedContext(GLContext sharedContext) throws IllegalStateException {
+      helper.setSharedContext(this.getContext(), sharedContext);
+  }
+
+  @Override
+  public final void setSharedAutoDrawable(GLAutoDrawable sharedAutoDrawable) throws IllegalStateException {
+      helper.setSharedAutoDrawable(this, sharedAutoDrawable);
   }
 
   public AWTGLPixelBufferProvider getCustomPixelBufferProvider() { return customPixelBufferProvider; }
@@ -1301,13 +1335,17 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           System.err.println(getThreadName()+": OffscreenBackend: initialize()");
       }
       try {
+          final GLContext[] shareWith = { null };
+          if( helper.isSharedGLContextPending(shareWith) ) {
+              return; // pending ..
+          }
           offscreenDrawable = (GLDrawableImpl) factory.createOffscreenDrawable(
                                                     null /* default platform device */,
                                                     offscreenCaps,
                                                     chooser,
                                                     panelWidth, panelHeight);
           offscreenDrawable.setRealized(true);
-          offscreenContext = (GLContextImpl) offscreenDrawable.createContext(shareWith);
+          offscreenContext = (GLContextImpl) offscreenDrawable.createContext(shareWith[0]);
           offscreenContext.setContextCreationFlags(additionalCtxCreationFlags);
           if( GLContext.CONTEXT_NOT_CURRENT < offscreenContext.makeCurrent() ) {
               isInitialized = true;
