@@ -329,17 +329,8 @@ to the underlying native engine.</p>
    
 <h3><a name="SHARING">Sharing of Server-Side OpenGL Objects between GLContexts</a></h3>
 
-Sharing of server-side OpenGL objects such as textures and display
-lists among OpenGL contexts is supported in this specification.
-However, the specification does not guarantee that a request to share
-objects between two contexts will succeed. Certain OpenGL
-implementations restrict sharing in certain ways. Applications should
-assume that sharing is a request more than an assertion.
-Implementations of this specification should, but are not required to,
-provide timely notification of a failure of a request to share objects
-between two GLContexts, perhaps in the form of a GLException. The
-situation in which sharing is most likely to work on all platforms is
-between two GLContexts associated with the same GLDrawable.
+Sharing of server-side OpenGL objects such as buffer objects, e.g. VBOs, 
+and textures among OpenGL contexts is supported in this specification.
 
 <h3>Criteria Used for Inclusion of APIs into the Java Bindings</h3>
    
