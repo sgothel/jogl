@@ -62,14 +62,14 @@ public interface GLStateKeeper {
 
     /**
      * If set to <code>true</code>, the next {@link GLAutoDrawable#destroy()} operation will
-     * {@link #pullGLEventListenerState() pull} to preserve the {@link GLEventListenerState}.
+     * {@link #preserveGLEventListenerState() preserve} the {@link GLEventListenerState}.
      * <p>
      * This is a one-shot flag, i.e. after preserving the {@link GLEventListenerState},
      * the flag is cleared.
      * </p>
      * <p>
-     * A preserved {@link GLEventListenerState} will be {@link #pushGLEventListenerState() pushed}
-     * if realized again.
+     * A preserved {@link GLEventListenerState} will be
+     * {@link #restoreGLEventListenerState() restored} again.
      * </p>
      * @return <code>true</code> if supported and successful, <code>false</code> otherwise.
      * @see #isGLStatePreservationSupported()

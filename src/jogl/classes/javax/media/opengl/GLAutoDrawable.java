@@ -56,21 +56,26 @@ import jogamp.opengl.Debug;
     {@link GLContext} for the GLAutoDrawable can be used for the event
     based rendering mechanism and by end users directly.
     </p>
+    <h5><a name="initialization">GLAutoDrawable Initialization</a></h5>
     <p>
     The implementation shall initialize itself as soon as possible,
-    ie if the attached {@link javax.media.nativewindow.NativeSurface NativeSurface} becomes visible/realized.
-    The following protocol shall be satisfied:
+    which is only possible <i>after</i> the attached {@link javax.media.nativewindow.NativeSurface NativeSurface} becomes visible and and is realized.<br>
+    The following initialization sequence should be implemented:
     <ul>
         <li> Create the  {@link GLDrawable} with the requested {@link GLCapabilities}</li>
         <li> Notify {@link GLDrawable} to validate the {@link GLCapabilities} by calling {@link GLDrawable#setRealized setRealized(true)}.</li>
         <li> Create the new {@link GLContext}.</li>
         <li> Initialize all OpenGL resources by calling {@link GLEventListener#init init(..)} for all
-             registered {@link GLEventListener}s. This can be done immediatly, or with the followup {@link #display display(..)} call.</li>
+             registered {@link GLEventListener}s. This can be done immediately, or with the followup {@link #display display(..)} call.</li>
         <li> Send a reshape event by calling {@link GLEventListener#reshape reshape(..)} for all
              registered {@link GLEventListener}s. This shall be done after the {@link GLEventListener#init init(..)} calls.</li>
-    </ul></P>
+    </ul>
+    Note: The last to {@link GLEventListener} actions shall be also performed, when {@link #addGLEventListener(GLEventListener) adding}
+    a new one to an already initialized {@link GLAutoDrawable}.
+    </p>
+    <h5><a name="reconfiguration">GLAutoDrawable Reconfiguration</a></h5>
     <p>
-    Another implementation detail is the drawable reconfiguration. One use case is where a window is being
+    Another implementation detail is the {@link GLDrawable} reconfiguration. One use case is where a window is being
     dragged to another screen with a different pixel configuration, ie {@link GLCapabilities}. The implementation
     shall be able to detect such cases in conjunction with the associated {@link javax.media.nativewindow.NativeSurface NativeSurface}.<br/>
     For example, AWT's {@link java.awt.Canvas} 's {@link java.awt.Canvas#getGraphicsConfiguration getGraphicsConfiguration()}
@@ -107,14 +112,14 @@ import jogamp.opengl.Debug;
     mentioned above, the <code>boolean</code> system property <code>jogl.screenchange.action</code> will control the
     screen change action as follows:<br/>
     <PRE>
-    -Djogl.screenchange.action=false Disable the drawable reconfiguration (the default)
-    -Djogl.screenchange.action=true  Enable  the drawable reconfiguration
+    -Djogl.screenchange.action=false Disable the {@link GLDrawable} reconfiguration (the default)
+    -Djogl.screenchange.action=true  Enable  the {@link GLDrawable} reconfiguration
     </PRE>
     </p>
   */
 public interface GLAutoDrawable extends GLDrawable {
-  /** Flag reflecting wheather the drawable reconfiguration will be issued in
-    * case a screen device change occured, e.g. in a multihead environment,
+  /** Flag reflecting whether the {@link GLDrawable} reconfiguration will be issued in
+    * case a screen device change occurred, e.g. in a multihead environment,
     * where you drag the window to another monitor. */
   public static final boolean SCREEN_CHANGE_ACTION_ENABLED = Debug.getBooleanProperty("jogl.screenchange.action", true);
 
