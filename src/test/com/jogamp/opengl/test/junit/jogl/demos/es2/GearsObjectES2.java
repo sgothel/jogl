@@ -7,10 +7,10 @@
  * the rights to use, copy, modify, merge, publish, distribute, sublicense,
  * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included
  * in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
@@ -40,12 +40,12 @@ public class GearsObjectES2 extends GearsObject {
     final GLUniformData pmvMatrixUniform;
     final GLUniformData colorUniform;
     final ShaderState st;
-    
+
     public GearsObjectES2(ShaderState st, FloatBuffer gearColor, float inner_radius, float outer_radius,
                           float width, int teeth,
-                          float tooth_depth, 
+                          float tooth_depth,
                           PMVMatrix pmvMatrix,
-                          GLUniformData pmvMatrixUniform, GLUniformData colorUniform) 
+                          GLUniformData pmvMatrixUniform, GLUniformData colorUniform)
     {
         super(gearColor, inner_radius, outer_radius, width, teeth, tooth_depth);
         this.pmvMatrix = pmvMatrix;
@@ -56,9 +56,9 @@ public class GearsObjectES2 extends GearsObject {
     }
 
     public GearsObjectES2(GearsObjectES2 shared,
-                          ShaderState st, 
+                          ShaderState st,
                           PMVMatrix pmvMatrix,
-                          GLUniformData pmvMatrixUniform, GLUniformData colorUniform) 
+                          GLUniformData pmvMatrixUniform, GLUniformData colorUniform)
     {
         super(shared);
         this.pmvMatrix = pmvMatrix;
@@ -67,29 +67,45 @@ public class GearsObjectES2 extends GearsObject {
         this.st = st;
         associate(st);
     }
-    
+
     private void associate(ShaderState st) {
         frontFace.associate(st, true);
         frontSide.associate(st, true);
         backFace.associate(st, true);
         backSide.associate(st, true);
         outwardFace.associate(st, true);
-        insideRadiusCyl.associate(st, true);        
+        insideRadiusCyl.associate(st, true);
+    }
+
+    @Override
+    public GLArrayDataServer createInterleaveClone(GLArrayDataServer ads) {
+      final FloatBuffer fb0 = (FloatBuffer) ads.getBuffer();
+      final FloatBuffer fb1 = fb0.slice();
+      // manual 'unseal'
+      fb1.position(fb1.limit());
+      fb1.limit(fb1.capacity());
+
+      final GLArrayDataServer adsClone = GLArrayDataServer.createGLSLInterleaved(ads.getComponentCount(), ads.getComponentType(), ads.getNormalized(),
+                  ads.getStride(), fb1, ads.getVBOUsage());
+      adsClone.setVBOName(ads.getVBOName());
+      adsClone.seal(true);
+      return adsClone;
     }
 
     @Override
     public GLArrayDataServer createInterleaved(int comps, int dataType, boolean normalized, int initialSize, int vboUsage) {
         return GLArrayDataServer.createGLSLInterleaved(comps, dataType, normalized, initialSize, vboUsage);
     }
-    
+
     @Override
     public void addInterleavedVertexAndNormalArrays(GLArrayDataServer array, int components) {
         array.addGLSLSubArray("vertices", components, GL.GL_ARRAY_BUFFER);
         array.addGLSLSubArray("normals", components, GL.GL_ARRAY_BUFFER);
     }
 
-    private void draw(GL2ES2 gl, GLArrayDataServer array, int mode) {
+    private void draw(GL2ES2 gl, GLArrayDataServer array, int mode, int face) {
         array.enableBuffer(gl, true);
+        // System.err.println("XXX Draw face "+face+" of "+this);
         gl.glDrawArrays(mode, 0, array.getElementCount());
         array.enableBuffer(gl, false);
     }
@@ -109,13 +125,13 @@ public class GearsObjectES2 extends GearsObject {
         colorUniform.setData(gearColor);
         st.uniform(gl, colorUniform);
 
-        draw(gl, frontFace, GL.GL_TRIANGLE_STRIP);
-        draw(gl, frontSide, GL.GL_TRIANGLES);
-        draw(gl, backFace, GL.GL_TRIANGLE_STRIP);
-        draw(gl, backSide, GL.GL_TRIANGLES);
-        draw(gl, outwardFace, GL.GL_TRIANGLE_STRIP);
-        draw(gl, insideRadiusCyl, GL.GL_TRIANGLE_STRIP);
-        
+        draw(gl, frontFace, GL.GL_TRIANGLE_STRIP, 0);
+        draw(gl, frontSide, GL.GL_TRIANGLES, 1);
+        draw(gl, backFace, GL.GL_TRIANGLE_STRIP, 2);
+        draw(gl, backSide, GL.GL_TRIANGLES, 3);
+        draw(gl, outwardFace, GL.GL_TRIANGLE_STRIP, 4);
+        draw(gl, insideRadiusCyl, GL.GL_TRIANGLE_STRIP, 5);
+
         pmvMatrix.glPopMatrix();
-    }    
+    }
 }

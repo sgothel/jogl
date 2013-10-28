@@ -675,8 +675,8 @@ public abstract class GLDrawableFactory {
    * The GLPbuffer drawable is realized and initialized eagerly.
    * </p>
    *
-   * See the note in the overview documentation on
-   * <a href="../../../spec-summary.html#SHARING">context sharing</a>.
+   * See the note in the overview documentation in {@link GLSharedContextSetter} and on
+   * <a href="../../../spec-overview.html#SHARING">context sharing</a>.
    *
    * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
    * @param capabilities the requested capabilities

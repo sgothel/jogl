@@ -231,6 +231,28 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
   }
 
   /**
+   * Create a VBO for fixed function interleaved array data
+   * starting with a given Buffer object incl it's stride
+   * <p>User needs to <i>configure</i> the interleaved segments via {@link #addFixedSubArray(int, int, int)}.</p>
+   *
+   * @param comps The total number of all interleaved components.
+   * @param dataType The array index GL data type
+   * @param normalized Whether the data shall be normalized
+   * @param initialElementCount
+   * @param vboUsage {@link GL2ES2#GL_STREAM_DRAW}, {@link GL#GL_STATIC_DRAW} or {@link GL#GL_DYNAMIC_DRAW}
+   */
+  public static GLArrayDataServer createFixedInterleaved(int comps, int dataType, boolean normalized, int stride, Buffer buffer,
+                                              int vboUsage)
+    throws GLException
+  {
+    GLArrayDataServer ads = new GLArrayDataServer();
+    GLArrayHandler glArrayHandler = new GLArrayHandlerInterleaved(ads);
+    ads.init(GLPointerFuncUtil.mgl_InterleaveArray, -1, comps, dataType, normalized, stride, buffer, buffer.limit(), false, glArrayHandler,
+             0, 0, vboUsage, GL.GL_ARRAY_BUFFER, false);
+    return ads;
+  }
+
+  /**
    * Configure a segment of this fixed function interleaved array (see {@link #createFixedInterleaved(int, int, boolean, int, int)}).
    * <p>
    * This method may be called several times as long the sum of interleaved components does not
@@ -282,6 +304,29 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
     GLArrayDataServer ads = new GLArrayDataServer();
     GLArrayHandler glArrayHandler = new GLSLArrayHandlerInterleaved(ads);
     ads.init(GLPointerFuncUtil.mgl_InterleaveArray, -1, comps, dataType, false, 0, null, initialElementCount, false, glArrayHandler,
+             0, 0, vboUsage, GL.GL_ARRAY_BUFFER, true);
+    return ads;
+  }
+
+  /**
+   * Create a VBO for GLSL interleaved array data
+   * starting with a given Buffer object incl it's stride
+   * <p>User needs to <i>configure</i> the interleaved segments via {@link #addGLSLSubArray(int, int, int)}.</p>
+   *
+   * @param comps The total number of all interleaved components.
+   * @param dataType The array index GL data type
+   * @param normalized Whether the data shall be normalized
+   * @param stride
+   * @param buffer the user define data
+   * @param vboUsage {@link GL2ES2#GL_STREAM_DRAW}, {@link GL#GL_STATIC_DRAW} or {@link GL#GL_DYNAMIC_DRAW}
+   */
+  public static GLArrayDataServer createGLSLInterleaved(int comps, int dataType, boolean normalized, int stride, Buffer buffer,
+                                              int vboUsage)
+    throws GLException
+  {
+    GLArrayDataServer ads = new GLArrayDataServer();
+    GLArrayHandler glArrayHandler = new GLSLArrayHandlerInterleaved(ads);
+    ads.init(GLPointerFuncUtil.mgl_InterleaveArray, -1, comps, dataType, normalized, stride, buffer, buffer.limit(), false, glArrayHandler,
              0, 0, vboUsage, GL.GL_ARRAY_BUFFER, true);
     return ads;
   }

@@ -246,7 +246,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       textures, display lists and other OpenGL state, and may be null
       if sharing is not desired. See the note in the overview
       documentation on <a
-      href="../../../spec-summary.html#SHARING">context
+      href="../../../spec-overview.html#SHARING">context
       sharing</a>. The passed GraphicsDevice indicates the screen on
       which to create the GLCanvas; the GLDrawableFactory uses the
       default screen device of the local GraphicsEnvironment if null

@@ -93,7 +93,17 @@ public class TestSharedContextVBOES2NEWT3 extends UITestCase {
     }
 
     @Test
-    public void test01SyncedCommonAnimatorSharedOffscreen() throws InterruptedException {
+    public void test01SyncedOneAnimatorCleanDtorOrder() throws InterruptedException {
+        syncedOneAnimator(true);
+    }
+
+    // Don't test erroneous test case !
+    // @Test
+    public void test02SyncedOneAnimatorDirtyDtorOrder() throws InterruptedException {
+        syncedOneAnimator(false);
+    }
+
+    public void syncedOneAnimator(boolean destroyCleanOrder) throws InterruptedException {
         final Animator animator = new Animator();
         final GearsES2 g1 = new GearsES2(0);
         final GLWindow f1 = createGLWindow(0, 0, g1);
@@ -123,17 +133,17 @@ public class TestSharedContextVBOES2NEWT3 extends UITestCase {
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, true));
-        Assert.assertTrue(AWTRobotUtil.waitForCreated(f1.getContext(), true));
+        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f1, true));
         Assert.assertTrue("Gears1 not initialized", g1.waitForInit(true));
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f2, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, true));
-        Assert.assertTrue(AWTRobotUtil.waitForCreated(f2.getContext(), true));
+        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f2, true));
         Assert.assertTrue("Gears2 not initialized", g2.waitForInit(true));
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f3, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f3, true));
-        Assert.assertTrue(AWTRobotUtil.waitForCreated(f3.getContext(), true));
+        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f3, true));
         Assert.assertTrue("Gears3 not initialized", g3.waitForInit(true));
 
         final GLContext ctx1 = f1.getContext();
@@ -169,9 +179,17 @@ public class TestSharedContextVBOES2NEWT3 extends UITestCase {
         }
         animator.stop();
 
-        f1.destroy();
-        f2.destroy();
-        f3.destroy();
+        if( destroyCleanOrder ) {
+            System.err.println("XXX Destroy in clean order NOW");
+            f3.destroy();
+            f2.destroy();
+            f1.destroy();
+        } else {
+            System.err.println("XXX Destroy in creation order NOW - Driver Impl. Ma trigger driver Bug i.e. not postponing GL ctx destruction after releasing all refs.");
+            f1.destroy();
+            f2.destroy();
+            f3.destroy();
+        }
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, false));
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, false));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, false));
@@ -181,7 +199,17 @@ public class TestSharedContextVBOES2NEWT3 extends UITestCase {
     }
 
     @Test
-    public void test02AsyncEachWithAnimatorSharedOffscreen() throws InterruptedException {
+    public void test11ASyncEachAnimatorCleanDtorOrder() throws InterruptedException {
+        asyncEachAnimator(true);
+    }
+
+    // Don't test erroneous test case !
+    // @Test
+    public void test12AsyncEachAnimatorDirtyDtorOrder() throws InterruptedException {
+        asyncEachAnimator(false);
+    }
+
+    public void asyncEachAnimator(boolean destroyCleanOrder) throws InterruptedException {
         final Animator a1 = new Animator();
         final GearsES2 g1 = new GearsES2(0);
         final GLWindow f1 = createGLWindow(0, 0, g1);
@@ -217,17 +245,17 @@ public class TestSharedContextVBOES2NEWT3 extends UITestCase {
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, true));
-        Assert.assertTrue(AWTRobotUtil.waitForCreated(f1.getContext(), true));
+        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f1, true));
         Assert.assertTrue("Gears1 not initialized", g1.waitForInit(true));
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f2, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, true));
-        Assert.assertTrue(AWTRobotUtil.waitForCreated(f2.getContext(), true));
+        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f2, true));
         Assert.assertTrue("Gears2 not initialized", g2.waitForInit(true));
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f3, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f3, true));
-        Assert.assertTrue(AWTRobotUtil.waitForCreated(f3.getContext(), true));
+        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f3, true));
         Assert.assertTrue("Gears3 not initialized", g3.waitForInit(true));
 
         final GLContext ctx1 = f1.getContext();
@@ -265,9 +293,17 @@ public class TestSharedContextVBOES2NEWT3 extends UITestCase {
         a2.stop();
         a3.stop();
 
-        f1.destroy();
-        f2.destroy();
-        f3.destroy();
+        if( destroyCleanOrder ) {
+            System.err.println("XXX Destroy in clean order NOW");
+            f3.destroy();
+            f2.destroy();
+            f1.destroy();
+        } else {
+            System.err.println("XXX Destroy in creation order NOW - Driver Impl. May trigger driver Bug i.e. not postponing GL ctx destruction after releasing all refs.");
+            f1.destroy();
+            f2.destroy();
+            f3.destroy();
+        }
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, false));
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, false));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, false));

@@ -286,14 +286,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       default set of capabilities is used. The GLCapabilitiesChooser
       specifies the algorithm for selecting one of the available
       GLCapabilities for the component; a DefaultGLCapabilitesChooser
-      is used if null is passed for this argument. The passed
-      GLContext specifies an OpenGL context with which to share
-      textures, display lists and other OpenGL state, and may be null
-      if sharing is not desired. See the note in the overview documentation on
-      <a href="../../../spec-summary.html#SHARING">context sharing</a>.
-      <P>
-      Note: Sharing cannot be enabled using J2D OpenGL FBO sharing,
-      since J2D GL Context must be shared and we can only share one context.
+      is used if null is passed for this argument.
     * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
   */
   public GLJPanel(GLCapabilitiesImmutable userCapsRequest, GLCapabilitiesChooser chooser)
@@ -311,7 +304,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       GLContext specifies an OpenGL context with which to share
       textures, display lists and other OpenGL state, and may be null
       if sharing is not desired. See the note in the overview documentation on
-      <a href="../../../spec-summary.html#SHARING">context sharing</a>.
+      <a href="../../../spec-overview.html#SHARING">context sharing</a>.
       <P>
       Note: Sharing cannot be enabled using J2D OpenGL FBO sharing,
       since J2D GL Context must be shared and we can only share one context.

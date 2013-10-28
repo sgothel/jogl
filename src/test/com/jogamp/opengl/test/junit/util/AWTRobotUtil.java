@@ -735,12 +735,22 @@ public class AWTRobotUtil {
      *
      * @return True if the GLContext becomes created or not within TIME_OUT
      */
-    public static boolean waitForCreated(GLContext context, boolean created) throws InterruptedException {
-        if( null == context ) {
+    public static boolean waitForContextCreated(GLAutoDrawable autoDrawable, boolean created) throws InterruptedException {
+        if( null == autoDrawable ) {
             return !created;
         }
         int wait;
-        for (wait=0; wait<POLL_DIVIDER && created != context.isCreated() ; wait++) {
+        for (wait=0; wait<POLL_DIVIDER ; wait++) {
+            final GLContext ctx = autoDrawable.getContext();
+            if( created ) {
+                if( null != ctx && ctx.isCreated() ) {
+                    break;
+                }
+            } else {
+                if( null == ctx || !ctx.isCreated() ) {
+                    break;
+                }
+            }
             Thread.sleep(TIME_SLICE);
         }
         return wait<POLL_DIVIDER;

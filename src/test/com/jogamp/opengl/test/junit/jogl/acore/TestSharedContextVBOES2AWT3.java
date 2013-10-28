@@ -93,7 +93,17 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
     }
 
     @Test
-    public void test01SyncedCommonAnimatorSharedOffscreen() throws InterruptedException, InvocationTargetException {
+    public void test01SyncedOneAnimatorCleanDtorOrder() throws InterruptedException, InvocationTargetException {
+        syncedOneAnimator(true);
+    }
+
+    // Don't test erroneous test case !
+    // @Test
+    public void test02SyncedOneAnimatorDirtyDtorOrder() throws InterruptedException, InvocationTargetException {
+        syncedOneAnimator(false);
+    }
+
+    public void syncedOneAnimator(final boolean destroyCleanOrder) throws InterruptedException, InvocationTargetException {
         final Frame f1 = new Frame();
         final Animator animator = new Animator();
         final GearsES2 g1 = new GearsES2(0);
@@ -128,17 +138,17 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(c1, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(c1, true));
-        Assert.assertTrue(AWTRobotUtil.waitForCreated(c1.getContext(), true));
+        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(c1, true));
         Assert.assertTrue("Gears1 not initialized", g1.waitForInit(true));
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(c2, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(c2, true));
-        Assert.assertTrue(AWTRobotUtil.waitForCreated(c2.getContext(), true));
+        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(c2, true));
         Assert.assertTrue("Gears2 not initialized", g2.waitForInit(true));
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(c3, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(c3, true));
-        Assert.assertTrue(AWTRobotUtil.waitForCreated(c3.getContext(), true));
+        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(c3, true));
         Assert.assertTrue("Gears3 not initialized", g3.waitForInit(true));
 
         final GLContext ctx1 = c1.getContext();
@@ -174,12 +184,45 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
         }
         animator.stop();
 
+        if( destroyCleanOrder ) {
+            System.err.println("XXX Destroy in clean order NOW");
+        } else {
+            System.err.println("XXX Destroy in creation order NOW - Driver Impl. Ma trigger driver Bug i.e. not postponing GL ctx destruction after releasing all refs.");
+        }
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 try {
-                    f1.dispose();
-                    f2.dispose();
-                    f3.dispose();
+                    if( destroyCleanOrder ) {
+                        f3.dispose();
+                    } else {
+                        f1.dispose();
+                    }
+                } catch (Throwable t) {
+                    throw new RuntimeException(t);
+                }
+            }});
+
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                try {
+                    if( destroyCleanOrder ) {
+                        f2.dispose();
+                    } else {
+                        f2.dispose();
+                    }
+                } catch (Throwable t) {
+                    throw new RuntimeException(t);
+                }
+            }});
+
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                try {
+                    if( destroyCleanOrder ) {
+                        f1.dispose();
+                    } else {
+                        f3.dispose();
+                    }
                 } catch (Throwable t) {
                     throw new RuntimeException(t);
                 }
@@ -191,7 +234,17 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
     }
 
     @Test
-    public void test02AsyncEachWithAnimatorSharedOffscreen() throws InterruptedException, InvocationTargetException {
+    public void test11SyncEachAnimatorCleanDtorOrder() throws InterruptedException, InvocationTargetException {
+        syncedOneAnimator(true);
+    }
+
+    // Don't test erroneous test case !
+    // @Test
+    public void test12SyncEachAnimatorDirtyDtorOrder() throws InterruptedException, InvocationTargetException {
+        asyncEachOneAnimator(false);
+    }
+
+    public void asyncEachOneAnimator(final boolean destroyCleanOrder) throws InterruptedException, InvocationTargetException {
         final Frame f1 = new Frame();
         final Animator a1 = new Animator();
         final GearsES2 g1 = new GearsES2(0);
@@ -237,17 +290,17 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(c1, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(c1, true));
-        Assert.assertTrue(AWTRobotUtil.waitForCreated(c1.getContext(), true));
+        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(c1, true));
         Assert.assertTrue("Gears1 not initialized", g1.waitForInit(true));
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(c2, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(c2, true));
-        Assert.assertTrue(AWTRobotUtil.waitForCreated(c2.getContext(), true));
+        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(c2, true));
         Assert.assertTrue("Gears2 not initialized", g2.waitForInit(true));
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(c3, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(c3, true));
-        Assert.assertTrue(AWTRobotUtil.waitForCreated(c3.getContext(), true));
+        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(c3, true));
         Assert.assertTrue("Gears3 not initialized", g3.waitForInit(true));
 
         final GLContext ctx1 = c1.getContext();
@@ -285,12 +338,45 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
         a2.stop();
         a3.stop();
 
+        if( destroyCleanOrder ) {
+            System.err.println("XXX Destroy in clean order NOW");
+        } else {
+            System.err.println("XXX Destroy in creation order NOW - Driver Impl. Ma trigger driver Bug i.e. not postponing GL ctx destruction after releasing all refs.");
+        }
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 try {
-                    f1.dispose();
-                    f2.dispose();
-                    f3.dispose();
+                    if( destroyCleanOrder ) {
+                        f3.dispose();
+                    } else {
+                        f1.dispose();
+                    }
+                } catch (Throwable t) {
+                    throw new RuntimeException(t);
+                }
+            }});
+
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                try {
+                    if( destroyCleanOrder ) {
+                        f2.dispose();
+                    } else {
+                        f2.dispose();
+                    }
+                } catch (Throwable t) {
+                    throw new RuntimeException(t);
+                }
+            }});
+
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                try {
+                    if( destroyCleanOrder ) {
+                        f1.dispose();
+                    } else {
+                        f3.dispose();
+                    }
                 } catch (Throwable t) {
                     throw new RuntimeException(t);
                 }

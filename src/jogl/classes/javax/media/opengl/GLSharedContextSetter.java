@@ -31,7 +31,29 @@ package javax.media.opengl;
 /**
  * Adds capabilities to set a shared {@link GLContext} directly or via an {@link GLAutoDrawable}.
  * <p>
- * Warning: Don't reference this interface directly, since it may end up in {@link GLAutoDrawable}
+ * Sharing of server-side OpenGL objects such as buffer objects, e.g. VBOs,
+ * and textures among OpenGL contexts is supported with this interface.
+ * </p>
+ * <p>
+ * A <i>master</i> {@link GLContext} is the {@link GLContext} which is created first,
+ * shared {@link GLContext} w/ this master are referred as slave {@link GLContext}.
+ * </p>
+ * <h5><a name="driverstabilityconstraints">Driver stability constraints</a></h5>
+ * <p>
+ * Be aware that the <i>master</i> {@link GLContext} and related resources, i.e. the {@link GLAutoDrawable},
+ * <i>shall not</i> be destroyed before it's <i>slave</i> {@link GLContext} instances.<br>
+ * Otherwise the OpenGL driver implementation may crash w/ SIGSEGV if shared resources are still used!<br>
+ * Note that this is not specified within OpenGL and <i>should work</i>, however, some drivers
+ * do not seem to handle this situation well, i.e. they do not postpone resource destruction
+ * until the last reference is removed.<br>
+ * Since pending destruction of {@link GLContext} and it's {@link GLDrawable} is complex and nearly impossible
+ * for us at the top level, considering the different windowing systems and {@link GLAutoDrawable} types,
+ * the user shall take care of proper destruction order.
+ * </p>
+ * <p>
+ * Users may use a {@link GLDrawableFactory#createDummyDrawable(javax.media.nativewindow.AbstractGraphicsDevice, boolean, GLProfile) dummy}
+ * {@link GLDrawable} and it's {@link GLContext} as the <i>master</i> of all shared <i>slave</i> {@link GLContext}.
+ * Same constraints as above apply, i.e. it shall be destroyed <i>after</i> all shared slaves.
  * </p>
  */
 public interface GLSharedContextSetter extends GLAutoDrawable {
@@ -45,6 +67,9 @@ public interface GLSharedContextSetter extends GLAutoDrawable {
      * <p>
      * A set <i>sharedContext</i> will block context creation, i.e. {@link GLAutoDrawable#initialization GLAutoDrawable initialization},
      * as long it is not {@link GLContext#isCreated() created natively}.
+     * </p>
+     * <p>
+     * See <a href="#driverstabilityconstraints">driver stability constraints</a>.
      * </p>
      *
      * @param sharedContext The OpenGL context to be shared by this {@link GLAutoDrawable}'s {@link GLContext}.
@@ -66,6 +91,9 @@ public interface GLSharedContextSetter extends GLAutoDrawable {
      * A set <i>sharedAutoDrawable</i> will block context creation, i.e. {@link GLAutoDrawable#initialization GLAutoDrawable initialization},
      * as long it's {@link GLContext} is <code>null</code>
      * or has not been {@link GLContext#isCreated() created natively}.
+     * </p>
+     * <p>
+     * See <a href="#driverstabilityconstraints">driver stability constraints</a>.
      * </p>
      *
      * @param sharedContext The GLAutoDrawable, which OpenGL context shall be shared by this {@link GLAutoDrawable}'s {@link GLContext}.

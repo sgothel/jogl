@@ -104,7 +104,7 @@ public class TestSharedContextVBOES1NEWT extends UITestCase {
         // init and render one frame, which will setup the Gears display lists
         sharedDrawable.display();
         final GLContext ctxM = sharedDrawable.getContext();
-        Assert.assertTrue("Master ctx not created", AWTRobotUtil.waitForCreated(ctxM, true));
+        Assert.assertTrue("Master ctx not created", AWTRobotUtil.waitForContextCreated(sharedDrawable, true));
         Assert.assertTrue("Master Ctx is shared before shared creation", !ctxM.isShared());
         Assert.assertTrue("Master Gears is shared", !sharedGears.usesSharedGears());
     }
@@ -136,7 +136,7 @@ public class TestSharedContextVBOES1NEWT extends UITestCase {
         glWindow.setVisible(true);
         Assert.assertTrue(AWTRobotUtil.waitForRealized(glWindow, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(glWindow, true));
-        Assert.assertTrue(AWTRobotUtil.waitForCreated(glWindow.getContext(), true));
+        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(glWindow, true));
 
         System.err.println("Master Context: ");
         MiscUtils.dumpSharedGLContext(sharedDrawable.getContext());
