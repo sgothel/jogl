@@ -28,41 +28,51 @@
 
 package com.jogamp.opengl.test.junit.jogl.acore;
 
-import java.awt.Frame;
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLProfile;
-import javax.media.opengl.awt.GLCanvas;
 
+import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.swt.GLCanvas;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Assume;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 /**
- * Sharing the VBO of 3 GearsES2 instances, each in their own AWT GLCanvas.
+ * Sharing the VBO of 3 GearsES2 instances, each in their own SWT GLCanvas.
  * <p>
  * This is achieved by using the 1st GLCanvas as the <i>master</i>
  * and using the build-in blocking mechanism to postpone creation
  * of the 2nd and 3rd GLCanvas until the 1st GLCanvas's GLContext becomes created.
  * </p>
  * <p>
- * Above method allows random creation of the 1st GLCanvas, which triggers
- * creation of the <i>dependent</i> other GLCanvas sharing it's GLContext.
+ * Above method allows random creation of the 1st GLCanvas <b>in theory</b>, which triggers
+ * creation of the <i>dependent</i> other GLCanvas sharing it's GLContext.<br>
+ * However, since this test may perform on the <i>main thread</i> we have
+ * to initialize all in order, since otherwise the <i>test main thread</i>
+ * itself blocks SWT GLCanvas creation ..
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestSharedContextVBOES2AWT3 extends UITestCase {
+public class TestSharedContextVBOES2SWT3 extends UITestCase {
     static GLProfile glp;
     static GLCapabilities caps;
     static int width, height;
@@ -81,73 +91,125 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
         }
     }
 
-    protected GLCanvas createGLCanvas(final Frame frame, int x, int y, GearsES2 gears) throws InterruptedException {
-        final GLCanvas glCanvas = new GLCanvas(caps);
-        Assert.assertNotNull(glCanvas);
+    Display display = null;
+    Shell shell1 = null;
+    Composite composite1 = null;
+    Shell shell2 = null;
+    Composite composite2 = null;
+    Shell shell3 = null;
+    Composite composite3 = null;
+
+    @Before
+    public void init() {
+        SWTAccessor.invoke(true, new Runnable() {
+            public void run() {
+                display = new Display();
+                Assert.assertNotNull( display );
+            }});
+        display.syncExec(new Runnable() {
+            public void run() {
+                shell1 = new Shell( display );
+                shell1.setLayout( new FillLayout() );
+                composite1 = new Composite( shell1, SWT.NO_BACKGROUND );
+                composite1.setLayout( new FillLayout() );
+
+                shell2 = new Shell( display );
+                shell2.setLayout( new FillLayout() );
+                composite2 = new Composite( shell2, SWT.NO_BACKGROUND );
+                composite2.setLayout( new FillLayout() );
+
+                shell3 = new Shell( display );
+                shell3.setLayout( new FillLayout() );
+                composite3 = new Composite( shell3, SWT.NO_BACKGROUND );
+                composite3.setLayout( new FillLayout() );
+            }});
+    }
+
+    @After
+    public void release() {
+        Assert.assertNotNull( display );
+        Assert.assertNotNull( shell1 );
+        Assert.assertNotNull( composite1 );
+        Assert.assertNotNull( shell2 );
+        Assert.assertNotNull( composite2 );
+        Assert.assertNotNull( shell3 );
+        Assert.assertNotNull( composite3 );
+        try {
+            display.syncExec(new Runnable() {
+               public void run() {
+                composite3.dispose();
+                shell3.dispose();
+                composite2.dispose();
+                shell2.dispose();
+                composite1.dispose();
+                shell1.dispose();
+               }});
+            SWTAccessor.invoke(true, new Runnable() {
+               public void run() {
+                display.dispose();
+               }});
+        }
+        catch( Throwable throwable ) {
+            throwable.printStackTrace();
+            Assume.assumeNoException( throwable );
+        }
+        display = null;
+        shell1 = null;
+        composite1 = null;
+        shell2 = null;
+        composite2 = null;
+        shell3 = null;
+        composite3 = null;
+    }
+
+    protected GLCanvas createGLCanvas(final Shell shell, final Composite composite, final int x, final int y, GearsES2 gears) throws InterruptedException {
+        final GLCanvas glCanvas = GLCanvas.create( composite, 0, caps, null);
+        Assert.assertNotNull( glCanvas );
         glCanvas.addGLEventListener(gears);
-        frame.add(glCanvas);
-        frame.setLocation(x, y);
-        frame.setSize(width, height);
-        frame.setTitle("AWT GLCanvas Shared Gears Test: "+x+"/"+y+" shared true");
+        display.syncExec(new Runnable() {
+           public void run() {
+            shell.setText("SWT GLCanvas Shared Gears Test");
+            shell.setSize( width, height);
+            shell.setLocation(x, y);
+           } } );
         return glCanvas;
     }
 
     @Test
-    public void test01SyncedOneAnimatorCleanDtorOrder() throws InterruptedException, InvocationTargetException {
-        syncedOneAnimator(true);
-    }
-
-    // Don't test erroneous test case !
-    // @Test
-    public void test02SyncedOneAnimatorDirtyDtorOrder() throws InterruptedException, InvocationTargetException {
-        syncedOneAnimator(false);
-    }
-
-    public void syncedOneAnimator(final boolean destroyCleanOrder) throws InterruptedException, InvocationTargetException {
-        final Frame f1 = new Frame();
+    public void test01SyncedOneAnimator() throws InterruptedException {
         final Animator animator = new Animator();
         final GearsES2 g1 = new GearsES2(0);
-        final GLCanvas c1 = createGLCanvas(f1, 0, 0, g1);
+        final GLCanvas c1 = createGLCanvas(shell1, composite1, 0, 0, g1);
         animator.add(c1);
 
-        final Frame f2 = new Frame();
         final GearsES2 g2 = new GearsES2(0);
         g2.setSharedGears(g1);
-        final GLCanvas c2 = createGLCanvas(f2, f1.getX()+width,
-                                           f1.getY()+0, g2);
+        final GLCanvas c2 = createGLCanvas(shell2, composite2, 0+width, 0+0, g2);
         c2.setSharedAutoDrawable(c1);
         animator.add(c2);
 
-        final Frame f3 = new Frame();
         final GearsES2 g3 = new GearsES2(0);
         g3.setSharedGears(g1);
-        final GLCanvas c3 = createGLCanvas(f3, f1.getX()+0,
-                                           f1.getY()+height, g3);
+        final GLCanvas c3 = createGLCanvas(shell3, composite3, 0, height, g3);
         c3.setSharedAutoDrawable(c1);
         animator.add(c3);
 
-        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-            public void run() {
-                f2.setVisible(true); // shall wait until f1 is ready
-                f1.setVisible(true); // master ..
-                f3.setVisible(true); // shall wait until f1 is ready
-            } } );
+        display.syncExec(new Runnable() {
+           public void run() {
+            shell1.open();  // master ..
+            shell2.open();  // shall wait until f1 is ready
+            shell3.open();  // shall wait until f1 is ready
+           } } );
         animator.start(); // kicks off GLContext .. and hence gears of f2 + f3 completion
 
         Thread.sleep(1000/60*10); // wait ~10 frames giving a chance to create (blocking until master share is valid)
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(c1, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(c1, true));
         Assert.assertTrue(AWTRobotUtil.waitForContextCreated(c1, true));
         Assert.assertTrue("Gears1 not initialized", g1.waitForInit(true));
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(c2, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(c2, true));
         Assert.assertTrue(AWTRobotUtil.waitForContextCreated(c2, true));
         Assert.assertTrue("Gears2 not initialized", g2.waitForInit(true));
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(c3, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(c3, true));
         Assert.assertTrue(AWTRobotUtil.waitForContextCreated(c3, true));
         Assert.assertTrue("Gears3 not initialized", g3.waitForInit(true));
 
@@ -184,122 +246,61 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
         }
         animator.stop();
 
-        if( destroyCleanOrder ) {
-            System.err.println("XXX Destroy in clean order NOW");
-        } else {
-            System.err.println("XXX Destroy in creation order NOW - Driver Impl. Ma trigger driver Bug i.e. not postponing GL ctx destruction after releasing all refs.");
-        }
-        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-            public void run() {
-                try {
-                    if( destroyCleanOrder ) {
-                        f3.dispose();
-                    } else {
-                        f1.dispose();
-                    }
-                } catch (Throwable t) {
-                    throw new RuntimeException(t);
-                }
-            }});
-
-        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-            public void run() {
-                try {
-                    if( destroyCleanOrder ) {
-                        f2.dispose();
-                    } else {
-                        f2.dispose();
-                    }
-                } catch (Throwable t) {
-                    throw new RuntimeException(t);
-                }
-            }});
-
-        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-            public void run() {
-                try {
-                    if( destroyCleanOrder ) {
-                        f1.dispose();
-                    } else {
-                        f3.dispose();
-                    }
-                } catch (Throwable t) {
-                    throw new RuntimeException(t);
-                }
-            }});
-
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(c1, false));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(c2, false));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(c3, false));
+        display.syncExec(new Runnable() {
+           public void run() {
+            c3.dispose();
+            c2.dispose();
+            c1.dispose();
+           } } );
     }
 
     @Test
-    public void test11SyncEachAnimatorCleanDtorOrder() throws InterruptedException, InvocationTargetException {
-        syncedOneAnimator(true);
-    }
-
-    // Don't test erroneous test case !
-    // @Test
-    public void test12SyncEachAnimatorDirtyDtorOrder() throws InterruptedException, InvocationTargetException {
-        asyncEachOneAnimator(false);
-    }
-
-    public void asyncEachOneAnimator(final boolean destroyCleanOrder) throws InterruptedException, InvocationTargetException {
-        final Frame f1 = new Frame();
+    public void test02AsyncEachAnimator() throws InterruptedException {
         final Animator a1 = new Animator();
         final GearsES2 g1 = new GearsES2(0);
-        final GLCanvas c1 = createGLCanvas(f1, 0, 0, g1);
+        final GLCanvas c1 = createGLCanvas(shell1, composite1, 0, 0, g1);
         a1.add(c1);
+        display.syncExec(new Runnable() {
+           public void run() {
+            shell1.open();
+           } } );
         a1.start();
-        // f1.setVisible(true); // we do this post f2 .. to test pending creation!
 
-        final Frame f2 = new Frame();
-        final Animator a2 = new Animator();
-        final GearsES2 g2 = new GearsES2(0);
-        g2.setSharedGears(g1);
-        final GLCanvas c2 = createGLCanvas(f2, f1.getX()+width, f1.getY()+0, g2);
-        c2.setSharedAutoDrawable(c1);
-        a2.add(c2);
-        a2.start();
-        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-            public void run() {
-                f2.setVisible(true);
-            } } );
-
-        Thread.sleep(200); // wait a while ..
-
-        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-            public void run() {
-                f1.setVisible(true); // test pending creation of f2
-            } } );
-
-        final Frame f3 = new Frame();
-        final Animator a3 = new Animator();
-        final GearsES2 g3 = new GearsES2(0);
-        g3.setSharedGears(g1);
-        final GLCanvas c3 = createGLCanvas(f3, f1.getX()+0, f1.getY()+height, g3);
-        c3.setSharedAutoDrawable(c1);
-        a3.add(c3);
-        a3.start();
-        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-            public void run() {
-                f3.setVisible(true);
-            } } );
 
         Thread.sleep(1000/60*10); // wait ~10 frames giving a chance to create (blocking until master share is valid)
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(c1, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(c1, true));
         Assert.assertTrue(AWTRobotUtil.waitForContextCreated(c1, true));
         Assert.assertTrue("Gears1 not initialized", g1.waitForInit(true));
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(c2, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(c2, true));
+        final Animator a2 = new Animator();
+        final GearsES2 g2 = new GearsES2(0);
+        g2.setSharedGears(g1);
+        final GLCanvas c2 = createGLCanvas(shell2, composite2, width, 0, g2);
+        c2.setSharedAutoDrawable(c1);
+        a2.add(c2);
+        display.syncExec(new Runnable() {
+           public void run() {
+            shell2.open();
+           } } );
+        a2.start();
+
+        Thread.sleep(200); // wait a while ..
+
+        final Animator a3 = new Animator();
+        final GearsES2 g3 = new GearsES2(0);
+        g3.setSharedGears(g1);
+        final GLCanvas c3 = createGLCanvas(shell3, composite3, 0, height, g3);
+        c3.setSharedAutoDrawable(c1);
+        a3.add(c3);
+        display.syncExec(new Runnable() {
+           public void run() {
+            shell3.open();
+           } } );
+        a3.start();
+
         Assert.assertTrue(AWTRobotUtil.waitForContextCreated(c2, true));
         Assert.assertTrue("Gears2 not initialized", g2.waitForInit(true));
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(c3, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(c3, true));
         Assert.assertTrue(AWTRobotUtil.waitForContextCreated(c3, true));
         Assert.assertTrue("Gears3 not initialized", g3.waitForInit(true));
 
@@ -338,53 +339,12 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
         a2.stop();
         a3.stop();
 
-        if( destroyCleanOrder ) {
-            System.err.println("XXX Destroy in clean order NOW");
-        } else {
-            System.err.println("XXX Destroy in creation order NOW - Driver Impl. Ma trigger driver Bug i.e. not postponing GL ctx destruction after releasing all refs.");
-        }
-        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-            public void run() {
-                try {
-                    if( destroyCleanOrder ) {
-                        f3.dispose();
-                    } else {
-                        f1.dispose();
-                    }
-                } catch (Throwable t) {
-                    throw new RuntimeException(t);
-                }
-            }});
-
-        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-            public void run() {
-                try {
-                    if( destroyCleanOrder ) {
-                        f2.dispose();
-                    } else {
-                        f2.dispose();
-                    }
-                } catch (Throwable t) {
-                    throw new RuntimeException(t);
-                }
-            }});
-
-        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-            public void run() {
-                try {
-                    if( destroyCleanOrder ) {
-                        f1.dispose();
-                    } else {
-                        f3.dispose();
-                    }
-                } catch (Throwable t) {
-                    throw new RuntimeException(t);
-                }
-            }});
-
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(c1, false));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(c2, false));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(c3, false));
+        display.syncExec(new Runnable() {
+           public void run() {
+            c3.dispose();
+            c2.dispose();
+            c1.dispose();
+           } } );
     }
 
     static long duration = 1000; // ms
@@ -402,6 +362,6 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
         System.err.println("Press enter to continue");
         System.err.println(stdin.readLine()); */
-        org.junit.runner.JUnitCore.main(TestSharedContextVBOES2AWT3.class.getName());
+        org.junit.runner.JUnitCore.main(TestSharedContextVBOES2SWT3.class.getName());
     }
 }

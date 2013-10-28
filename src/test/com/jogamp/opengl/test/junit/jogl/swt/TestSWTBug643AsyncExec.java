@@ -227,7 +227,7 @@ public class TestSWTBug643AsyncExec extends UITestCase {
             final GLAutoDrawable glad;
             if( useJOGLGLCanvas ) {
                 final GearsES2 demo = new GearsES2();
-                final GLCanvas glc = GLCanvas.create(dsc.composite, 0, caps, null, null);
+                final GLCanvas glc = GLCanvas.create(dsc.composite, 0, caps, null);
                 final SWTNewtEventFactory swtNewtEventFactory = new SWTNewtEventFactory();
                 swtNewtEventFactory.attachDispatchListener(glc, glc, demo.gearsMouse, demo.gearsKeys);
                 glc.addGLEventListener( demo ) ;

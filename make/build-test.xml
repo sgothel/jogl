@@ -478,7 +478,7 @@
 
             <batchtest todir="${results.test}">
               <fileset dir="${classes}">
-                  <include name="${java.dir.junit}/**/acore/TestSharedContextVBO**"/>
+                  <include name="${java.dir.junit}/**/acore/TestSharedContext**"/>
                   <exclude name="**/*$$*"/>
               </fileset>
               <formatter usefile="false" type="brief"/>

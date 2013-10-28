@@ -50,7 +50,7 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 /**
- * Sharing the VBO of 3 GearsES2 instances, each in their own GLJPanel.
+ * Sharing the VBO of 3 GearsES2 instances, each in their own AWT GLJPanel.
  * <p>
  * This is achieved by using the 1st GLJPanel as the <i>master</i>
  * and using the build-in blocking mechanism to postpone creation

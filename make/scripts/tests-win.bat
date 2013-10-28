@@ -14,10 +14,10 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedConte
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT1 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT2 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT3 %*
-scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2AWT3 %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2AWT3 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2AWT3b %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextWithJTabbedPaneAWT %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2SWT3 %*
+scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2SWT3 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextNewtAWTBug523 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListAWT %*
 

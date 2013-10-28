@@ -377,10 +377,10 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT1 $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT2 $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT3 $*
-testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2AWT3 $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2AWT3 $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2AWT3b $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2SWT3 $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextWithJTabbedPaneAWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2SWT3 $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextNewtAWTBug523 $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListAWT $*
 
