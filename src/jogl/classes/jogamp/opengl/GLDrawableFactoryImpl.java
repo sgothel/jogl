@@ -49,6 +49,7 @@ import javax.media.nativewindow.OffscreenLayerSurface;
 import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.MutableSurface;
 import javax.media.nativewindow.UpstreamSurfaceHook;
+import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
@@ -64,6 +65,7 @@ import javax.media.opengl.GLProfile;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 import com.jogamp.nativewindow.DelegatedUpstreamSurfaceHookWithSurfaceSize;
 import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSize;
+import com.jogamp.opengl.GLAutoDrawableDelegate;
 import com.jogamp.opengl.GLRendererQuirks;
 
 
@@ -323,6 +325,14 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         return new GLOffscreenAutoDrawableImpl.FBOImpl( (GLFBODrawableImpl)drawable, null, null, null );
     }
     return new GLOffscreenAutoDrawableImpl( drawable, null, null, null);
+  }
+
+  @Override
+  public final GLAutoDrawable createDummyAutoDrawable(AbstractGraphicsDevice deviceReq, boolean createNewDevice, GLProfile glp) {
+      final GLDrawable drawable = createDummyDrawable(deviceReq, createNewDevice, glp);
+      drawable.setRealized(true);
+      final GLAutoDrawable sharedDrawable = new GLAutoDrawableDelegate(drawable, null, null, true /*ownDevice*/, null) { };
+      return sharedDrawable;
   }
 
   @Override
