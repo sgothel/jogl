@@ -38,7 +38,7 @@ import com.jogamp.opengl.util.GLArrayDataEditable;
  * Used for pure VBO data arrays, i.e. where the buffer data
  * does not represents a specific array name.
  */
-public class GLDataArrayHandler extends GLVBOArrayHandler implements GLArrayHandler {
+public class GLDataArrayHandler extends GLVBOArrayHandler {
 
   public GLDataArrayHandler(GLArrayDataEditable ad) {
     super(ad);

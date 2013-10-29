@@ -33,7 +33,6 @@ import java.nio.Buffer;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 
-import jogamp.opengl.util.GLArrayHandler;
 import jogamp.opengl.util.GLArrayHandlerFlat;
 import jogamp.opengl.util.GLVBOArrayHandler;
 
@@ -44,7 +43,7 @@ import com.jogamp.opengl.util.glsl.ShaderState;
  * Used for 1:1 GLSL arrays, i.e. where the buffer data
  * represents this array only.
  */
-public class GLSLArrayHandler extends GLVBOArrayHandler implements GLArrayHandler {
+public class GLSLArrayHandler extends GLVBOArrayHandler {
 
   public GLSLArrayHandler(GLArrayDataEditable ad) {
     super(ad);

@@ -33,7 +33,6 @@ import java.util.List;
 
 import javax.media.opengl.GL;
 
-import jogamp.opengl.util.GLArrayHandler;
 import jogamp.opengl.util.GLArrayHandlerFlat;
 import jogamp.opengl.util.GLVBOArrayHandler;
 
@@ -43,8 +42,8 @@ import com.jogamp.opengl.util.GLArrayDataEditable;
  * Interleaved fixed function arrays, i.e. where this buffer data
  * represents many arrays.
  */
-public class GLSLArrayHandlerInterleaved extends GLVBOArrayHandler implements GLArrayHandler {
-  private List<GLArrayHandlerFlat> subArrays = new ArrayList<GLArrayHandlerFlat>();
+public class GLSLArrayHandlerInterleaved extends GLVBOArrayHandler {
+  private final List<GLArrayHandlerFlat> subArrays = new ArrayList<GLArrayHandlerFlat>();
 
   public GLSLArrayHandlerInterleaved(GLArrayDataEditable ad) {
     super(ad);

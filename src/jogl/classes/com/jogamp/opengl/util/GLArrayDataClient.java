@@ -28,6 +28,7 @@
 
 package com.jogamp.opengl.util;
 
+import java.lang.reflect.Constructor;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -461,7 +462,17 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
     this.bufferWritten = src.bufferWritten;
     this.enableBufferAlways = src.enableBufferAlways;
     this.initialElementCount = src.initialElementCount;
-    this.glArrayHandler = src.glArrayHandler;
+    if( null != src.glArrayHandler ) {
+        final Class<? extends GLArrayHandler> clazz = src.glArrayHandler.getClass();
+        try {
+            final Constructor<? extends GLArrayHandler> ctor = clazz.getConstructor(GLArrayDataEditable.class);
+            this.glArrayHandler = ctor.newInstance(this);
+        } catch (Exception e) {
+            throw new RuntimeException("Could not ctor "+clazz.getName()+"("+this.getClass().getName()+")", e);
+        }
+    } else {
+        this.glArrayHandler = null;
+    }
     this.usesGLSL = src.usesGLSL;
     this.shaderState = src.shaderState;
   }

@@ -38,7 +38,7 @@ import com.jogamp.opengl.util.GLArrayDataEditable;
  * Used for 1:1 fixed function arrays, i.e. where the buffer data
  * represents this array only.
  */
-public class GLFixedArrayHandler extends GLVBOArrayHandler implements GLArrayHandler {
+public class GLFixedArrayHandler extends GLVBOArrayHandler {
   public GLFixedArrayHandler(GLArrayDataEditable ad) {
     super(ad);
   }

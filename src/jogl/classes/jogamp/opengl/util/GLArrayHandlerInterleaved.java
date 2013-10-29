@@ -39,8 +39,8 @@ import com.jogamp.opengl.util.GLArrayDataEditable;
  * Interleaved fixed function arrays, i.e. where this buffer data
  * represents many arrays.
  */
-public class GLArrayHandlerInterleaved extends GLVBOArrayHandler implements GLArrayHandler {
-  private List<GLArrayHandlerFlat> subArrays = new ArrayList<GLArrayHandlerFlat>();
+public class GLArrayHandlerInterleaved extends GLVBOArrayHandler {
+  private final List<GLArrayHandlerFlat> subArrays = new ArrayList<GLArrayHandlerFlat>();
 
   public GLArrayHandlerInterleaved(GLArrayDataEditable ad) {
     super(ad);
