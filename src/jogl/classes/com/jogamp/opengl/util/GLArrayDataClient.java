@@ -444,6 +444,28 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
 
   protected GLArrayDataClient() { }
 
+  /**
+   * Copy Constructor
+   * <p>
+   * Buffer is {@link Buffers#slice(Buffer) sliced}, i.e. sharing content but using own state.
+   * </p>
+   * <p>
+   * All other values are simply copied.
+   * </p>
+   */
+  public GLArrayDataClient(GLArrayDataClient src) {
+    super(src);
+    this.isValidated = src.isValidated;
+    this.sealed = src.sealed;
+    this.bufferEnabled = src.bufferEnabled;
+    this.bufferWritten = src.bufferWritten;
+    this.enableBufferAlways = src.enableBufferAlways;
+    this.initialElementCount = src.initialElementCount;
+    this.glArrayHandler = src.glArrayHandler;
+    this.usesGLSL = src.usesGLSL;
+    this.shaderState = src.shaderState;
+  }
+
   protected boolean sealed;
   protected boolean bufferEnabled;
   protected boolean bufferWritten;

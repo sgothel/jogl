@@ -78,21 +78,6 @@ public class GearsObjectES2 extends GearsObject {
     }
 
     @Override
-    public GLArrayDataServer createInterleaveClone(GLArrayDataServer ads) {
-      final FloatBuffer fb0 = (FloatBuffer) ads.getBuffer();
-      final FloatBuffer fb1 = fb0.slice();
-      // manual 'unseal'
-      fb1.position(fb1.limit());
-      fb1.limit(fb1.capacity());
-
-      final GLArrayDataServer adsClone = GLArrayDataServer.createGLSLInterleaved(ads.getComponentCount(), ads.getComponentType(), ads.getNormalized(),
-                  ads.getStride(), fb1, ads.getVBOUsage());
-      adsClone.setVBOName(ads.getVBOName());
-      adsClone.seal(true);
-      return adsClone;
-    }
-
-    @Override
     public GLArrayDataServer createInterleaved(int comps, int dataType, boolean normalized, int initialSize, int vboUsage) {
         return GLArrayDataServer.createGLSLInterleaved(comps, dataType, normalized, initialSize, vboUsage);
     }

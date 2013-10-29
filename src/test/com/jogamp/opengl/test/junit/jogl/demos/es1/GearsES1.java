@@ -162,6 +162,7 @@ public class GearsES1 implements GLEventListener {
     /* make the gears */
     if(null == gear1) {
         gear1 = new GearsObjectES1(gear1Color, 1.0f, 4.0f, 1.0f, 20, 0.7f);
+        gear1.init(gl);
         System.err.println("gear1 created: "+gear1);
     } else {
         usesSharedGears = true;
@@ -170,6 +171,7 @@ public class GearsES1 implements GLEventListener {
 
     if(null == gear2) {
         gear2 = new GearsObjectES1(gear2Color, 0.5f, 2.0f, 2.0f, 10, 0.7f);
+        gear2.init(gl);
         System.err.println("gear2 created: "+gear2);
     } else {
         usesSharedGears = true;
@@ -178,6 +180,7 @@ public class GearsES1 implements GLEventListener {
 
     if(null == gear3) {
         gear3 = new GearsObjectES1(gear3Color, 1.3f, 2.0f, 0.5f, 10, 0.7f);
+        gear3.init(gl);
         System.err.println("gear3 created: "+gear3);
     } else {
         usesSharedGears = true;

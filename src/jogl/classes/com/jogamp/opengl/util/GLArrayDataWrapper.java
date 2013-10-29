@@ -42,6 +42,8 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.fixedfunc.GLPointerFuncUtil;
 
+import com.jogamp.common.nio.Buffers;
+
 import jogamp.opengl.Debug;
 
 public class GLArrayDataWrapper implements GLArrayData {
@@ -372,6 +374,44 @@ public class GLArrayDataWrapper implements GLArrayData {
   }
 
   protected GLArrayDataWrapper() { }
+
+  /**
+   * Copy Constructor
+   * <p>
+   * Buffer is {@link Buffers#slice(Buffer) sliced}, i.e. sharing content but using own state.
+   * </p>
+   * <p>
+   * All other values are simply copied.
+   * </p>
+   */
+  public GLArrayDataWrapper(GLArrayDataWrapper src) {
+    this.alive = src.alive;
+    this.index = src.index;
+    this.location = src.location;
+    this.name = src.name;
+    this.components = src.components;
+    this.componentType = src.componentType;
+    this.componentClazz = src.componentClazz;
+    this.componentByteSize = src.componentByteSize;
+    this.normalized = src.normalized;
+    this.strideB = src.strideB;
+    this.strideL = src.strideL;
+    if( null != src.buffer ) {
+        if( src.buffer.position() == 0 ) {
+            this.buffer = Buffers.slice(src.buffer);
+        } else {
+            this.buffer = Buffers.slice(src.buffer, 0, src.buffer.limit());
+        }
+    } else {
+        this.buffer = null;
+    }
+    this.isVertexAttribute = src.isVertexAttribute;
+    this.vboOffset = src.vboOffset;
+    this.vboName = src.vboName;
+    this.vboEnabled = src.vboEnabled;
+    this.vboUsage = src.vboUsage;
+    this.vboTarget = src.vboTarget;
+  }
 
   protected boolean alive;
   protected int index;

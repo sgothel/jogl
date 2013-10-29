@@ -23,6 +23,7 @@ package com.jogamp.opengl.test.junit.jogl.demos;
 import java.nio.FloatBuffer;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES2;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.GLArrayDataServer;
@@ -46,10 +47,31 @@ public abstract class GearsObject {
     public GLArrayDataServer insideRadiusCyl;
     public boolean isShared;
 
-    public abstract GLArrayDataServer createInterleaveClone(GLArrayDataServer ads);
     public abstract GLArrayDataServer createInterleaved(int comps, int dataType, boolean normalized, int initialSize, int vboUsage);
     public abstract void addInterleavedVertexAndNormalArrays(GLArrayDataServer array, int components);
     public abstract void draw(GL gl, float x, float y, float angle);
+
+    private GLArrayDataServer createInterleavedClone(GLArrayDataServer ads) {
+      final GLArrayDataServer n = new GLArrayDataServer(ads);
+      n.setInterleavedOffset(0);
+      return n;
+    }
+
+    private void init(GL2ES2 gl, GLArrayDataServer array) {
+        array.enableBuffer(gl, true);
+        array.enableBuffer(gl, false);
+    }
+
+    /** Init VBO and data .. */
+    public final void init(GL _gl) {
+        final GL2ES2 gl = _gl.getGL2ES2();
+        init(gl, frontFace);
+        init(gl, frontSide);
+        init(gl, backFace);
+        init(gl, backSide);
+        init(gl, outwardFace);
+        init(gl, insideRadiusCyl);
+    }
 
     public void destroy(GL gl) {
         if(!isShared) {
@@ -84,17 +106,17 @@ public abstract class GearsObject {
 
     public GearsObject ( GearsObject shared ) {
         isShared = true;
-        frontFace = createInterleaveClone(shared.frontFace);
+        frontFace = createInterleavedClone(shared.frontFace);
         addInterleavedVertexAndNormalArrays(frontFace, 3);
-        backFace = createInterleaveClone(shared.backFace);
+        backFace = createInterleavedClone(shared.backFace);
         addInterleavedVertexAndNormalArrays(backFace, 3);
-        frontSide = createInterleaveClone(shared.frontSide);
+        frontSide = createInterleavedClone(shared.frontSide);
         addInterleavedVertexAndNormalArrays(frontSide, 3);
-        backSide= createInterleaveClone(shared.backSide);
+        backSide= createInterleavedClone(shared.backSide);
         addInterleavedVertexAndNormalArrays(backSide, 3);
-        outwardFace = createInterleaveClone(shared.outwardFace);
+        outwardFace = createInterleavedClone(shared.outwardFace);
         addInterleavedVertexAndNormalArrays(outwardFace, 3);
-        insideRadiusCyl = createInterleaveClone(shared.insideRadiusCyl);
+        insideRadiusCyl = createInterleavedClone(shared.insideRadiusCyl);
         addInterleavedVertexAndNormalArrays(insideRadiusCyl, 3);
         gearColor = shared.gearColor;
     }

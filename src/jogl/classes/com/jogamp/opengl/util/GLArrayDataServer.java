@@ -29,12 +29,15 @@
 package com.jogamp.opengl.util;
 
 import java.nio.Buffer;
+import java.nio.FloatBuffer;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLArrayData;
 import javax.media.opengl.GLException;
 import javax.media.opengl.fixedfunc.GLPointerFuncUtil;
+
+import com.jogamp.common.nio.Buffers;
 
 import jogamp.opengl.util.GLArrayHandler;
 import jogamp.opengl.util.GLArrayHandlerInterleaved;
@@ -364,6 +367,14 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
       return ad;
   }
 
+  public final void setInterleavedOffset(int interleavedOffset) {
+    this.interleavedOffset = interleavedOffset;
+  }
+
+  public final int getInterleavedOffset() {
+    return interleavedOffset;
+  }
+
   //
   // Data matters GLArrayData
   //
@@ -456,6 +467,22 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
             glArrayHandler.setSubArrayVBOName(vboName);
         }
     }
+  }
+
+  protected GLArrayDataServer() { }
+
+  /**
+   * Copy Constructor
+   * <p>
+   * Buffer is {@link Buffers#slice(Buffer) sliced}, i.e. sharing content but using own state.
+   * </p>
+   * <p>
+   * All other values are simply copied.
+   * </p>
+   */
+  public GLArrayDataServer(GLArrayDataServer src) {
+    super(src);
+    this.interleavedOffset = src.interleavedOffset;
   }
 
   private int interleavedOffset = 0;
