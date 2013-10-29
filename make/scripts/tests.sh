@@ -84,8 +84,10 @@ function jrun() {
     #D_ARGS="-Dnativewindow.debug.X11Util.ATI_HAS_NO_XCLOSEDISPLAY_BUG"
     #D_ARGS="-Dnativewindow.debug.X11Util.ATI_HAS_NO_MULTITHREADING_BUG"
     #D_ARGS="-Djogl.disable.opengles"
-    #D_ARGS="-Djogl.debug.DebugGL"
+    #D_ARGS="-Djogl.debug.DebugGL -Dnewt.debug.Window"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.FBObject"
+    #D_ARGS="-Djogl.debug.TraceGL"
+    #D_ARGS="-Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.FBObject -Djogl.debug.TraceGL -Djogl.debug.GLBufferStateTracker"
     #D_ARGS="-Djogl.debug.FBObject"
     #D_ARGS="-Djogl.debug.GLSLCode"
@@ -376,10 +378,10 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT0 $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT1 $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT2 $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT3 $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT3 $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2AWT3 $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2AWT3b $*
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2SWT3 $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2SWT3 $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextWithJTabbedPaneAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextNewtAWTBug523 $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListAWT $*

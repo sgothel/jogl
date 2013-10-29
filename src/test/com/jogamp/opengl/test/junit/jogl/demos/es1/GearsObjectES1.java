@@ -52,9 +52,11 @@ public class GearsObjectES1 extends GearsObject {
     }
 
     private void draw(GL2ES1 gl, GLArrayDataServer array, int mode) {
-        array.enableBuffer(gl, true);
-        gl.glDrawArrays(mode, 0, array.getElementCount());
-        array.enableBuffer(gl, false);
+        if( !isShared || gl.glIsBuffer(array.getVBOName()) ) {
+            array.enableBuffer(gl, true);
+            gl.glDrawArrays(mode, 0, array.getElementCount());
+            array.enableBuffer(gl, false);
+        }
     }
 
     @Override

@@ -34,11 +34,9 @@ import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLProfile;
 
-import com.jogamp.opengl.GLAutoDrawableDelegate;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
@@ -107,9 +105,7 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
             glWindow.setVisible(true);
             sharedDrawable = glWindow;
         } else {
-            GLDrawable dummyDrawable = GLDrawableFactory.getFactory(glp).createDummyDrawable(null, true /* createNewDevice */, caps.getGLProfile());
-            dummyDrawable.setRealized(true);
-            sharedDrawable = new GLAutoDrawableDelegate(dummyDrawable, null, null, true /*ownDevice*/, null) { };
+            sharedDrawable = GLDrawableFactory.getFactory(glp).createDummyAutoDrawable(null, true /* createNewDevice */, caps.getGLProfile());
         }
         Assert.assertNotNull(sharedDrawable);
         Assert.assertTrue(AWTRobotUtil.waitForRealized(sharedDrawable, true));

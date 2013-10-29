@@ -100,8 +100,7 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
         syncedOneAnimator(true);
     }
 
-    // Don't test erroneous test case !
-    // @Test
+    @Test
     public void test02SyncedOneAnimatorDirtyDtorOrder() throws InterruptedException {
         syncedOneAnimator(false);
     }
@@ -215,12 +214,11 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
     }
 
     @Test
-    public void test11ASyncEachAnimatorCleanDtorOrder() throws InterruptedException {
+    public void test11AsyncEachAnimatorCleanDtorOrder() throws InterruptedException {
         asyncEachAnimator(true);
     }
 
-    // Don't test erroneous test case !
-    // @Test
+    @Test
     public void test12AsyncEachAnimatorDirtyDtorOrder() throws InterruptedException {
         asyncEachAnimator(false);
     }

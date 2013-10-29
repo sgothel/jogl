@@ -36,24 +36,40 @@ package javax.media.opengl;
  * </p>
  * <p>
  * A <i>master</i> {@link GLContext} is the {@link GLContext} which is created first,
- * shared {@link GLContext} w/ this master are referred as slave {@link GLContext}.
+ * shared {@link GLContext} w/ this master are referred as slave {@link GLContext}
+ * and controls the shared object's lifecycle, i.e. their construction and destruction.
  * </p>
- * <h5><a name="driverstabilityconstraints">Driver stability constraints</a></h5>
+ * <h5><a name="lifecycle">Lifecycle Considerations</a></h5>
  * <p>
- * Be aware that the <i>master</i> {@link GLContext} and related resources, i.e. the {@link GLAutoDrawable},
- * <i>shall not</i> be destroyed before it's <i>slave</i> {@link GLContext} instances.<br>
- * Otherwise the OpenGL driver implementation may crash w/ SIGSEGV if shared resources are still used!<br>
- * Note that this is not specified within OpenGL and <i>should work</i>, however, some drivers
- * do not seem to handle this situation well, i.e. they do not postpone resource destruction
- * until the last reference is removed.<br>
- * Since pending destruction of {@link GLContext} and it's {@link GLDrawable} is complex and nearly impossible
- * for us at the top level, considering the different windowing systems and {@link GLAutoDrawable} types,
- * the user shall take care of proper destruction order.
+ * Be aware that the <i>master</i> {@link GLContext} and related resources
+ * <i>shall not</i> be destroyed before it's <i>slave</i> {@link GLContext} instances <i>while they are using them</i>.<br>
+ * Otherwise the OpenGL driver implementation may crash w/ SIGSEGV, since using already destroyed resources,
+ * e.g. OpenGL buffer objects, may not be validated by the driver!<br>
  * </p>
  * <p>
- * Users may use a {@link GLDrawableFactory#createDummyDrawable(javax.media.nativewindow.AbstractGraphicsDevice, boolean, GLProfile) dummy}
+ * Either proper lifecycle synchronization is implemented, e.g. by notifying the <i>slaves</i> about the loss of the shared resources,
+ * <i>or</i> the <i>slaves</i> validate whether the resources are still valid.
+ * </p>
+ * <p>
+ * To simplify above lifecycle issues, one may use a {@link GLDrawableFactory#createDummyDrawable(javax.media.nativewindow.AbstractGraphicsDevice, boolean, GLProfile) dummy}
  * {@link GLDrawable} and it's {@link GLContext} as the <i>master</i> of all shared <i>slave</i> {@link GLContext}.
- * Same constraints as above apply, i.e. it shall be destroyed <i>after</i> all shared slaves.
+ * Since this <i>dummy instance</i> does not depend on any native windowing system, it can be controlled easily w/o being <i>in sight</i>.<br>
+ * Below code creates a {@link GLAutoDrawable} based on a <i>dummy GLDrawable</i>:
+ * <pre>
+        // GLProfile and GLCapabilities should be equal across all shared GL drawable/context.
+        final GLCapabilitiesImmutable caps = ... ;
+        final GLProfile glp = caps.getGLProfile();
+        ..
+        final boolean createNewDevice = true; // use 'own' display device!
+        final GLAutoDrawable sharedDrawable = GLDrawableFactory.getFactory(glp).createDummyAutoDrawable(null, createNewDevice, glp);
+        sharedDrawable.display(); // triggers GLContext object creation and native realization.
+        ...
+        // Later a shared 'slave' can be created e.g.:
+        GLWindow glad = GLWindow.create(caps); // or any other GLAutoDrawable supporting GLSharedContextSetter
+        glad.setSharedAutoDrawable(sharedDrawable);
+        glad.addGLEventListener(..);
+        glad.setVisible(true); // GLWindow creation ..
+ * </pre>
  * </p>
  */
 public interface GLSharedContextSetter extends GLAutoDrawable {
@@ -69,7 +85,7 @@ public interface GLSharedContextSetter extends GLAutoDrawable {
      * as long it is not {@link GLContext#isCreated() created natively}.
      * </p>
      * <p>
-     * See <a href="#driverstabilityconstraints">driver stability constraints</a>.
+     * See <a href="#lifecycle">Lifecycle Considerations</a>.
      * </p>
      *
      * @param sharedContext The OpenGL context to be shared by this {@link GLAutoDrawable}'s {@link GLContext}.
@@ -93,7 +109,7 @@ public interface GLSharedContextSetter extends GLAutoDrawable {
      * or has not been {@link GLContext#isCreated() created natively}.
      * </p>
      * <p>
-     * See <a href="#driverstabilityconstraints">driver stability constraints</a>.
+     * See <a href="#lifecycle">Lifecycle Considerations</a>.
      * </p>
      *
      * @param sharedContext The GLAutoDrawable, which OpenGL context shall be shared by this {@link GLAutoDrawable}'s {@link GLContext}.

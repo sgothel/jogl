@@ -89,10 +89,12 @@ public class GearsObjectES2 extends GearsObject {
     }
 
     private void draw(GL2ES2 gl, GLArrayDataServer array, int mode, int face) {
-        array.enableBuffer(gl, true);
-        // System.err.println("XXX Draw face "+face+" of "+this);
-        gl.glDrawArrays(mode, 0, array.getElementCount());
-        array.enableBuffer(gl, false);
+        if( !isShared || gl.glIsBuffer(array.getVBOName()) ) {
+            array.enableBuffer(gl, true);
+            // System.err.println("XXX Draw face "+face+" of "+this);
+            gl.glDrawArrays(mode, 0, array.getElementCount());
+            array.enableBuffer(gl, false);
+        }
     }
 
     @Override
