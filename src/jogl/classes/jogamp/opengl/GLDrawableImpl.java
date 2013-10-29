@@ -344,9 +344,9 @@ public abstract class GLDrawableImpl implements GLDrawable {
 
   protected static String getThreadName() { return Thread.currentThread().getName(); }
 
-  protected GLDrawableFactory factory;
-  protected NativeSurface surface;
-  protected GLCapabilitiesImmutable requestedCapabilities;
+  protected final GLDrawableFactory factory;
+  protected final NativeSurface surface;
+  protected final GLCapabilitiesImmutable requestedCapabilities;
 
   // Indicates whether the surface (if an onscreen context) has been
   // realized. Plausibly, before the surface is realized the JAWT

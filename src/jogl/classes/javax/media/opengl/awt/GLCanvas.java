@@ -163,7 +163,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   private AWTGraphicsConfiguration awtConfig;
   private volatile GLDrawableImpl drawable; // volatile: avoid locking for read-only access
   private volatile JAWTWindow jawtWindow; // the JAWTWindow presentation of this AWT Canvas, bound to the 'drawable' lifecycle
-  private volatile GLContextImpl context;
+  private volatile GLContextImpl context; // volatile: avoid locking for read-only access
   private volatile boolean sendReshape = false; // volatile: maybe written by EDT w/o locking
 
   // copy of the cstr args, mainly for recreation

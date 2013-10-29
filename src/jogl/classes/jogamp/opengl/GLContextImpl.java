@@ -650,6 +650,10 @@ public abstract class GLContextImpl extends GLContext {
         final GLContextImpl shareWith = (GLContextImpl) GLContextShareSet.getCreatedShare(this);
         if (null != shareWith) {
             shareWith.getDrawableImpl().lockSurface();
+            // FIXME:
+            // Contemplate whether we shall 'fail' creating this context
+            // if 0==shareWith.getHandle(), since at this point
+            // both context are locked and current values are available.
         }
         final boolean created;
         try {

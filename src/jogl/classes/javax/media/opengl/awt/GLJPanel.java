@@ -1295,12 +1295,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     protected IntBuffer readBackIntsForCPUVFlip;
 
     // Implementation using software rendering
-    private volatile GLDrawableImpl offscreenDrawable;
+    private volatile GLDrawableImpl offscreenDrawable; // volatile: avoid locking for read-only access
     private boolean offscreenIsFBO;
     private FBObject fboFlipped;
     private GLSLTextureRaster glslTextureRaster;
 
-    private volatile GLContextImpl offscreenContext;
+    private volatile GLContextImpl offscreenContext; // volatile: avoid locking for read-only access
     private boolean flipVertical;
 
     // For saving/restoring of OpenGL state during ReadPixels

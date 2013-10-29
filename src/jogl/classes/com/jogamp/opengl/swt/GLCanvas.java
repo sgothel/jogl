@@ -109,7 +109,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
 
    private volatile Rectangle clientArea;
    private volatile GLDrawableImpl drawable; // volatile: avoid locking for read-only access
-   private volatile GLContextImpl context;
+   private volatile GLContextImpl context; // volatile: avoid locking for read-only access
 
    /* Native window surface */
    private final boolean useX11GTK;

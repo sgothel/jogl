@@ -1,4 +1,9 @@
 
+Don't miss 
+    Current 'violations' of synchronization/memory-barriers
+    using explicit locking:
+below ..
+
 Locking
 =========
 
@@ -91,4 +96,30 @@ Summary:
 
         - swapBuffersImpl
             - [Surface i/o] - if not locked already
+
++++
+
+Complying with synchronization/memory-barriers
+using explicit locking:
+
+- NativeSurface's handle access
+
+Current 'violations' of synchronization/memory-barriers
+using explicit locking:
+
+- Using 'volatile' to avoid locking for read-only access
+  with rare write access
+
+    - GLAutoDrawable's drawable reference
+
+    - GLAutoDrawable's context reference
+        Since 7f7a23dd0ddf106e6f0c69fc2a05ff92ac56200e
+
+    - GLContext's contextHandle
+        Since 7f7a23dd0ddf106e6f0c69fc2a05ff92ac56200e
+
+    - GLDrawableImpl's realized
+        Used for Pre-locking queries, whether drawable is realized
+
+- Misc 'volatile' usage:
 

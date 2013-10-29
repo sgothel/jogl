@@ -207,7 +207,7 @@ public abstract class GLContext {
   protected final RecursiveLock lock = LockFactory.createRecursiveLock();
 
   /** The underlying native OpenGL context */
-  protected volatile long contextHandle;
+  protected volatile long contextHandle; // volatile: avoid locking for read-only access
 
   protected GLContext() {
       resetStates(true);
