@@ -1386,6 +1386,8 @@ public abstract class GLContextImpl extends GLContext {
         }
     }
 
+    boolean isES = ( CTX_PROFILE_ES & ctxProfileBits ) != 0;
+    
     //
     // Validate GL version either by GL-Integer or GL-String
     //
@@ -1424,10 +1426,13 @@ public abstract class GLContextImpl extends GLContext {
                 }
                 return false;
             }
-            // Use returned GL version!
-            major = glIntMajor[0];
-            minor = glIntMinor[0];
-            versionValidated = true;
+            // impose strict matching for ES
+            if ((isES && major == glIntMajor[0]) || !isES) {
+                // Use returned GL version!
+                major = glIntMajor[0];
+                minor = glIntMinor[0];
+                versionValidated = true;
+            }
         } else {
             versionGL3IntFailed = true;
         }
@@ -1455,10 +1460,13 @@ public abstract class GLContextImpl extends GLContext {
                 }
                 return false;
             }
-            // Use returned GL version!
-            major = hasGLVersionNumber.getMajor();
-            minor = hasGLVersionNumber.getMinor();
-            versionValidated = true;
+            // impose strict matching for ES
+            if ((isES && major == hasGLVersionNumber.getMajor()) || !isES) {
+                // Use returned GL version!
+                major = hasGLVersionNumber.getMajor();
+                minor = hasGLVersionNumber.getMinor();
+                versionValidated = true;
+            }
         }
     }
     if( strictMatch && !versionValidated ) {
@@ -1551,7 +1559,7 @@ public abstract class GLContextImpl extends GLContext {
         }
     }
 
-    if( 0 != ( CTX_PROFILE_ES & ctxProfileBits ) ) {
+    if( isES ) {
         if( major >= 3 ) {
             ctxProfileBits |= CTX_IMPL_ES3_COMPAT | CTX_IMPL_ES2_COMPAT ;
             ctxProfileBits |= CTX_IMPL_FBO;
