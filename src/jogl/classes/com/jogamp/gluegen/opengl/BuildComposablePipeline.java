@@ -83,12 +83,12 @@ public class BuildComposablePipeline {
     public static final int GEN_GL_IDENTITY_BY_ASSIGNABLE_CLASS = 1 << 4;
 
     int mode;
-    private String outputDir;
-    private String outputPackage;
-    private String outputName;
-    private Class<?> classToComposeAround;
-    private Class<?> classPrologOpt;
-    private Class<?> classDownstream;
+    private final String outputDir;
+    private final String outputPackage;
+    private final String outputName;
+    private final Class<?> classToComposeAround;
+    private final Class<?> classPrologOpt;
+    private final Class<?> classDownstream;
     // Only desktop OpenGL has immediate mode glBegin / glEnd
     private boolean hasImmediateMode;
     // Desktop OpenGL and GLES1 have GL_STACK_OVERFLOW and GL_STACK_UNDERFLOW errors
@@ -590,7 +590,7 @@ public class BuildComposablePipeline {
             output.println("  @Override");
             output.println("  public String toString() {");
             output.println("    StringBuilder sb = new StringBuilder();");
-            output.println("    sb.append(\"" + getOutputName() + " [ implementing " + baseInterfaceClass.getName() + ",\\n\\t\");");
+            output.println("    sb.append(\"" + getOutputName() + " [this 0x\"+Integer.toHexString(hashCode())+\" implementing " + baseInterfaceClass.getName() + ",\\n\\t\");");
             if (null != prologClassOpt) {
                 output.println("    sb.append(\" prolog: \"+" + getPrologObjectNameOpt() + ".toString()+\",\\n\\t\");");
             }
@@ -646,7 +646,10 @@ public class BuildComposablePipeline {
          * Emits all of the isGL* methods.
          */
         protected void emitGLIsMethods(PrintWriter output) {
-            emitGLIsMethod(output, "GL");
+            output.println("  @Override");
+            output.println("  public final boolean isGL() {");
+            output.println("    return true;");
+            output.println("  }");
             emitGLIsMethod(output, "GL4bc");
             emitGLIsMethod(output, "GL4");
             emitGLIsMethod(output, "GL3bc");
@@ -697,15 +700,16 @@ public class BuildComposablePipeline {
         protected void emitGLGetMethod(PrintWriter output, String type) {
             output.println("  @Override");
             output.println("  public final javax.media.opengl." + type + " get" + type + "() {");
-            if( 0 != (GEN_GL_IDENTITY_BY_ASSIGNABLE_CLASS & getMode() ) ) {
-                final Class<?> clazz = BuildComposablePipeline.getClass("javax.media.opengl." + type);
-                if (clazz.isAssignableFrom(baseInterfaceClass)) {
+            final Class<?> clazz = BuildComposablePipeline.getClass("javax.media.opengl." + type);
+            if (clazz.isAssignableFrom(baseInterfaceClass)) {
+                if( 0 != (GEN_GL_IDENTITY_BY_ASSIGNABLE_CLASS & getMode() ) ) {
                     output.println("    return this;");
                 } else {
+                    output.println("    if( is" + type + "() ) { return this; }");
                     output.println("    throw new GLException(\"Not a " + type + " implementation\");");
                 }
             } else {
-                output.println("    return " + getDownstreamObjectName() + ".get" + type + "();");
+                output.println("    throw new GLException(\"Not a " + type + " implementation\");");
             }
             output.println("  }");
         }
@@ -714,7 +718,10 @@ public class BuildComposablePipeline {
          * Emits all of the getGL* methods.
          */
         protected void emitGLGetMethods(PrintWriter output) {
-            emitGLGetMethod(output, "GL");
+            output.println("  @Override");
+            output.println("  public final javax.media.opengl.GL getGL() {");
+            output.println("    return this;");
+            output.println("  }");
             emitGLGetMethod(output, "GL4bc");
             emitGLGetMethod(output, "GL4");
             emitGLGetMethod(output, "GL3bc");

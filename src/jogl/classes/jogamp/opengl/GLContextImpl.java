@@ -280,11 +280,11 @@ public abstract class GLContextImpl extends GLContext {
 
   @Override
   public GL setGL(GL gl) {
-    if(DEBUG) {
-        String sgl1 = (null!=this.gl)?this.gl.getClass().getSimpleName()+", "+this.gl.toString():"<null>";
-        String sgl2 = (null!=gl)?gl.getClass().getSimpleName()+", "+gl.toString():"<null>";
-        Exception e = new Exception("Info: setGL (OpenGL "+getGLVersion()+"): "+getThreadName()+", "+sgl1+" -> "+sgl2);
-        e.printStackTrace();
+    if( DEBUG ) {
+        final String sgl1 = (null!=this.gl)?this.gl.getClass().getSimpleName()+", "+this.gl.toString():"<null>";
+        final String sgl2 = (null!=gl)?gl.getClass().getSimpleName()+", "+gl.toString():"<null>";
+        System.err.println("Info: setGL (OpenGL "+getGLVersion()+"): "+getThreadName()+", "+sgl1+" -> "+sgl2);
+        Thread.dumpStack();
     }
     this.gl = gl;
     return gl;
@@ -600,13 +600,13 @@ public abstract class GLContextImpl extends GLContext {
         glDebugHandler.init( isGL2GL3() && isGLDebugEnabled() );
 
         if(DEBUG_GL) {
-            gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", null, gl, null) );
+            setGL( GLPipelineFactory.create("javax.media.opengl.Debug", null, gl, null) );
             if(glDebugHandler.isEnabled()) {
                 glDebugHandler.addListener(new GLDebugMessageHandler.StdErrGLDebugListener(true));
             }
         }
         if(TRACE_GL) {
-            gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", null, gl, new Object[] { System.err } ) );
+            setGL( GLPipelineFactory.create("javax.media.opengl.Trace", null, gl, new Object[] { System.err } ) );
         }
 
         forceDrawableAssociation = true;
