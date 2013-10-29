@@ -48,6 +48,7 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.UpstreamSurfaceHook;
+import javax.media.opengl.GL;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLContext;
@@ -662,6 +663,14 @@ public class GLDrawableHelper {
         }
     }
     if(setViewport) {
+        final GL gl = drawable.getGL();
+        final int glerr0 = gl.glGetError();
+        if( GL.GL_NO_ERROR != glerr0 ) {
+            System.err.println("Info: GLDrawableHelper.reshape: pre-exisiting GL error 0x"+Integer.toHexString(glerr0));
+            if(DEBUG) {
+                Thread.dumpStack();
+            }
+        }
         drawable.getGL().glViewport(x, y, width, height);
     }
     listener.reshape(drawable, x, y, width, height);
