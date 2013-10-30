@@ -119,6 +119,7 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
         Assert.assertTrue("Master ctx not created", AWTRobotUtil.waitForContextCreated(sharedDrawable, true));
         Assert.assertTrue("Master Ctx is shared before shared creation", !ctxM.isShared());
         Assert.assertTrue("Master Gears not initialized", sharedGears.waitForInit(true));
+        System.err.println("Master Gears Init done: "+sharedGears);
         Assert.assertTrue("Master Gears is shared", !sharedGears.usesSharedGears());
     }
 
@@ -161,7 +162,8 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
         }
         Assert.assertEquals("New    Context not shared as expected", useShared, glWindow.getContext().isShared());
 
-        Assert.assertTrue("Gears not initialized", sharedGears.waitForInit(true));
+        Assert.assertTrue("Gears not initialized", gears.waitForInit(true));
+        System.err.println("Slave Gears Init done: "+gears);
         Assert.assertEquals("Gears is not shared as expected", useShared, gears.usesSharedGears());
 
         return glWindow;

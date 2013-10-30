@@ -306,8 +306,8 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
 
         gl.glFinish(); // make sure .. for shared context (impacts OSX 10.9)
 
-        System.err.println(Thread.currentThread()+" GearsES2.init "+sid()+" FIN "+this);
         isInit = true;
+        System.err.println(Thread.currentThread()+" GearsES2.init "+sid()+" FIN "+this);
     }
 
     public final boolean isInit() { return isInit; }
@@ -497,7 +497,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
 
     @Override
     public String toString() {
-        return "GearsES2[obj "+sid()+" 1 "+gear1+", 2 "+gear2+", 3 "+gear3+"]";
+        return "GearsES2[obj "+sid()+" isInit "+isInit+", usesShared "+usesSharedGears+", 1 "+gear1+", 2 "+gear2+", 3 "+gear3+"]";
     }
 
     boolean confinedFixedCenter = false;
