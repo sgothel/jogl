@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -61,35 +61,35 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
 
     @Override
     protected int validateScreenIndex(int idx) {
-        return 0; // FIXME: only one screen available ? 
+        return 0; // FIXME: only one screen available ?
     }
-    
+
     private final MonitorMode getModeImpl(final Cache cache, final android.view.Display aDisplay, DisplayMetrics outMetrics, int modeIdx, int screenSizeNRot, int nrot) {
         final int[] props = new int[MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL];
         int i = 0;
         props[i++] = MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL;
         i = getScreenSize(outMetrics, screenSizeNRot, props, i); // width, height
-        i = getBpp(aDisplay, props, i); // bpp 
+        i = getBpp(aDisplay, props, i); // bpp
         props[i++] = (int) ( aDisplay.getRefreshRate() * 100.0f ); // Hz * 100
         props[i++] = 0; // flags
         props[i++] = modeIdx; // modeId;
         props[i++] = nrot;
         return MonitorModeProps.streamInMonitorMode(null, cache, props, 0);
     }
-    
+
     @Override
     protected void collectNativeMonitorModesAndDevicesImpl(Cache cache) {
         // FIXME: Multi Monitor Implementation missing [for newer Android version ?]
-        
+
         final Context ctx = jogamp.common.os.android.StaticContext.getContext();
         final WindowManager wmgr = (WindowManager) ctx.getSystemService(Context.WINDOW_SERVICE);
         final DisplayMetrics outMetrics = new DisplayMetrics();
         final android.view.Display aDisplay = wmgr.getDefaultDisplay();
         aDisplay.getMetrics(outMetrics);
-        
+
         final int arot = aDisplay.getRotation();
         final int nrot = androidRotation2NewtRotation(arot);
-        
+
         final int modeIdx=0; // no native modeId in use - use 0
         MonitorMode currentMode = null;
         for(int r=0; r<4; r++) { // for all rotations
@@ -98,7 +98,7 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
             if( nrot == nrot_i ) {
                 currentMode = mode;
             }
-        }        
+        }
 
         final int[] props = new int[MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES - 1 - MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES];
         int i = 0;
@@ -109,17 +109,17 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
         props[i++] = 0; // rotated viewport y
         props[i++] = outMetrics.widthPixels; // rotated viewport width
         props[i++] = outMetrics.heightPixels; // rotated viewport height
-        MonitorModeProps.streamInMonitorDevice(null, cache, this, cache.monitorModes, currentMode, props, 0);        
+        MonitorModeProps.streamInMonitorDevice(null, cache, this, cache.monitorModes, currentMode, props, 0);
     }
 
     @Override
-    protected MonitorMode queryCurrentMonitorModeImpl(MonitorDevice monitor) {        
+    protected MonitorMode queryCurrentMonitorModeImpl(MonitorDevice monitor) {
         final Context ctx = jogamp.common.os.android.StaticContext.getContext();
         final WindowManager wmgr = (WindowManager) ctx.getSystemService(Context.WINDOW_SERVICE);
         final DisplayMetrics outMetrics = new DisplayMetrics();
         final android.view.Display aDisplay = wmgr.getDefaultDisplay();
         aDisplay.getMetrics(outMetrics);
-        
+
         final int currNRot = androidRotation2NewtRotation(aDisplay.getRotation());
         return getModeImpl(null, aDisplay, outMetrics, 0, currNRot, currNRot);
     }
@@ -128,7 +128,7 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
     protected boolean setCurrentMonitorModeImpl(MonitorDevice monitor, MonitorMode mode) {
         return false;
     }
-    
+
     //----------------------------------------------------------------------
     // Internals only
     //
@@ -151,7 +151,7 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
             props[offset++] = outMetrics.heightPixels;
         }
         return offset;
-    }    
+    }
     static int getBpp(android.view.Display aDisplay, int[] props, int offset) {
         int bpp;
         switch(aDisplay.getPixelFormat()) {
@@ -162,18 +162,28 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
             case PixelFormat.RGBA_5551: bpp=16; break;
             case PixelFormat.RGBA_4444: bpp=16; break;
             case PixelFormat.RGB_332:   bpp= 8; break;
-            default: bpp=32;   
-        }            
-        props[offset++] = bpp;        
+            default: bpp=32;
+        }
+        props[offset++] = bpp;
         return offset;
     }
     static int getScreenSizeMM(DisplayMetrics outMetrics, int[] props, int offset) {
-        final float iw = (float) outMetrics.widthPixels / outMetrics.xdpi;
-        final float ih = (float) outMetrics.heightPixels / outMetrics.xdpi;
+        final float inW = outMetrics.widthPixels / outMetrics.xdpi;
+        final float inH = outMetrics.heightPixels / outMetrics.ydpi;
         final float mmpi = 25.4f;
-        props[offset++] = (int) ((iw * mmpi)+0.5);
-        props[offset++]   = (int) ((ih * mmpi)+0.5);
+        final float mmW = inW * mmpi;
+        final float mmH = inH * mmpi;
+        if( DEBUG ) {
+            System.err.println("Screen A screen "+outMetrics.widthPixels+" x "+outMetrics.heightPixels);
+            System.err.println("Screen A xy dpi "+outMetrics.xdpi+" x "+outMetrics.ydpi);
+            System.err.println("Screen A densityDPI "+outMetrics.densityDpi);
+            System.err.println("Screen A density "+outMetrics.density);
+            System.err.println("Screen N xy inch "+inW+" x "+inH);
+            System.err.println("Screen N xy mm "+mmW+" x "+mmH);
+        }
+        props[offset++] = Math.round(mmW);
+        props[offset++] = Math.round(mmH);
         return offset;
-    }    
+    }
 }
 
