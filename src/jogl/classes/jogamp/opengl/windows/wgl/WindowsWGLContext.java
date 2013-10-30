@@ -325,7 +325,9 @@ public class WindowsWGLContext extends GLContextImpl {
         if ( !WGL.wglMakeCurrent(drawable.getHandle(), temp_ctx) ) {
             throw new GLException("Error making temp context current: 0x" + toHexString(temp_ctx) + ", werr: "+GDI.GetLastError());
         }
-        setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT, false /* strictMatch */, false /* withinGLVersionsMapping */); // use GL_VERSION
+        if( !setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT, false /* strictMatch */, false /* withinGLVersionsMapping */) ) { // use GL_VERSION
+            throw new InternalError("setGLFunctionAvailability !strictMatch failed");
+        }
         WGL.wglMakeCurrent(0, 0); // release temp context
 
         if( !createContextARBTried ) {
