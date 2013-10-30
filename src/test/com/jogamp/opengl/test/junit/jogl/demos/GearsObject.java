@@ -23,7 +23,6 @@ package com.jogamp.opengl.test.junit.jogl.demos;
 import java.nio.FloatBuffer;
 
 import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.GLArrayDataServer;
@@ -57,14 +56,13 @@ public abstract class GearsObject {
       return n;
     }
 
-    private void init(GL2ES2 gl, GLArrayDataServer array) {
+    private void init(GL gl, GLArrayDataServer array) {
         array.enableBuffer(gl, true);
         array.enableBuffer(gl, false);
     }
 
     /** Init VBO and data .. */
-    public final void init(GL _gl) {
-        final GL2ES2 gl = _gl.getGL2ES2();
+    public final void init(GL gl) {
         init(gl, frontFace);
         init(gl, frontSide);
         init(gl, backFace);
