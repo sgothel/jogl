@@ -222,9 +222,19 @@ public class EGLContext extends GLContextImpl {
             throw new GLException("Error making context " +
                                   toHexString(contextHandle) + " current: error code " + toHexString(EGL.eglGetError()));
         }
-        return setGLFunctionAvailability(true, contextVersionReq, 0, CTX_PROFILE_ES,
-                                         contextVersionReq>=3 /* strictMatch */, // strict match for es >= 3
-                                         false /* withinGLVersionsMapping */);
+        if( !setGLFunctionAvailability(true, contextVersionReq, 0, CTX_PROFILE_ES,
+                                       true /* strictMatch */, // always req. strict match
+                                       false /* withinGLVersionsMapping */) ) {
+            if(DEBUG) {
+                System.err.println(getThreadName() + ": createImpl: setGLFunctionAvailability FAILED delete "+toHexString(contextHandle));
+            }
+            EGL.eglMakeCurrent(drawable.getNativeSurface().getDisplayHandle(), EGL.EGL_NO_SURFACE, EGL.EGL_NO_SURFACE, EGL.EGL_NO_CONTEXT);
+            EGL.eglDestroyContext(drawable.getNativeSurface().getDisplayHandle(), contextHandle);
+            contextHandle = 0;
+            return false;
+        } else {
+            return true;
+        }
     }
 
     @Override

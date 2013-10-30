@@ -616,8 +616,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         if( null != eglES2DynamicLookupHelper ) {
             madeCurrentES3 = mapAvailableEGLESConfig(adevice, 3, hasPBufferES3ES2, rendererQuirksES3ES2, ctpES3ES2);
             if( madeCurrentES3 ) {
-                madeCurrentES2 = true;
-                EGLContext.mapStaticGLVersion(adevice, 2, 0, ctpES3ES2[0]);
+                // Only support highest - FIXME: Proper ES2/ES3 profile selection
+                madeCurrentES2 = false;
             } else {
                 madeCurrentES2 = mapAvailableEGLESConfig(adevice, 2, hasPBufferES3ES2, rendererQuirksES3ES2, ctpES3ES2);
             }
