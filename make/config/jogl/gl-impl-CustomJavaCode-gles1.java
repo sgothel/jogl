@@ -12,6 +12,9 @@ public GLES1Impl(GLProfile glp, GLContextImpl context) {
   this.glProfile = glp;
 }
 
+public final void finalizeInit() {
+}
+
 @Override
 public final boolean isGL4bc() {
     return false;
