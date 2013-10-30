@@ -172,7 +172,10 @@ public class TestSharedContextVBOES2AWT3b extends UITestCase {
         } catch(Exception e) {
             e.printStackTrace();
         }
+        // Stopped animator allows native windowing system 'repaint' event
+        // to trigger GLAD 'display'
         animator.stop();
+        Assert.assertEquals(false, animator.isAnimating());
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
@@ -281,9 +284,14 @@ public class TestSharedContextVBOES2AWT3b extends UITestCase {
         } catch(Exception e) {
             e.printStackTrace();
         }
+        // Stopped animator allows native windowing system 'repaint' event
+        // to trigger GLAD 'display'
         a1.stop();
+        Assert.assertEquals(false, a1.isAnimating());
         a2.stop();
+        Assert.assertEquals(false, a2.isAnimating());
         a3.stop();
+        Assert.assertEquals(false, a3.isAnimating());
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {

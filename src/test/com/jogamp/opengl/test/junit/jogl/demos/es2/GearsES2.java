@@ -304,6 +304,8 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
 
         st.useProgram(gl, false);
 
+        gl.glFinish(); // make sure .. for shared context (impacts OSX 10.9)
+
         System.err.println(Thread.currentThread()+" GearsES2.init "+sid()+" FIN "+this);
         isInit = true;
     }
@@ -429,6 +431,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
     @Override
     public void display(GLAutoDrawable drawable) {
         if( !isInit ) { return; }
+        if(null != sharedGears && !sharedGears.isInit() ) { return; }
         GLAnimatorControl anim = drawable.getAnimator();
         if( verbose && ( null == anim || !anim.isAnimating() ) ) {
             System.err.println(Thread.currentThread()+" GearsES2.display "+sid()+" "+drawable.getWidth()+"x"+drawable.getHeight()+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(drawable.getHandle()));

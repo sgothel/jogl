@@ -181,7 +181,10 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
         } catch(Exception e) {
             e.printStackTrace();
         }
+        // Stopped animator allows native windowing system 'repaint' event
+        // to trigger GLAD 'display'
         animator.stop();
+        Assert.assertEquals(false, animator.isAnimating());
 
         if( destroyCleanOrder ) {
             System.err.println("XXX Destroy in clean order NOW");
@@ -332,9 +335,14 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
         } catch(Exception e) {
             e.printStackTrace();
         }
+        // Stopped animator allows native windowing system 'repaint' event
+        // to trigger GLAD 'display'
         a1.stop();
+        Assert.assertEquals(false, a1.isAnimating());
         a2.stop();
+        Assert.assertEquals(false, a2.isAnimating());
         a3.stop();
+        Assert.assertEquals(false, a3.isAnimating());
 
         if( destroyCleanOrder ) {
             System.err.println("XXX Destroy in clean order NOW");

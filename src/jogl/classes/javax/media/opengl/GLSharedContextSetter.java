@@ -41,6 +41,11 @@ package javax.media.opengl;
  * </p>
  * <h5><a name="lifecycle">Lifecycle Considerations</a></h5>
  * <p>
+ * After shared objects are created on the <i>master</i>, the OpenGL pipeline
+ * might need to be synchronized w/ the <i>slaves</i>, e.g. via {@link GL#glFinish()}.
+ * At least this has been experienced w/ OSX 10.9.
+ * </p>
+ * <p>
  * Be aware that the <i>master</i> {@link GLContext} and related resources
  * <i>shall not</i> be destroyed before it's <i>slave</i> {@link GLContext} instances <i>while they are using them</i>.<br>
  * Otherwise the OpenGL driver implementation may crash w/ SIGSEGV, since using already destroyed resources,

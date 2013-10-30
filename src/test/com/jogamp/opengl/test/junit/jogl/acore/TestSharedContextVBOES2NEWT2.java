@@ -308,6 +308,8 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
         } catch(Exception e) {
             e.printStackTrace();
         }
+        // Stopped animator allows native windowing system 'repaint' event
+        // to trigger GLAD 'display'
         a1.stop();
         Assert.assertEquals(false, a1.isAnimating());
         a2.stop();
