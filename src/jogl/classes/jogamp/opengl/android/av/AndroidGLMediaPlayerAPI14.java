@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -65,7 +65,7 @@ import android.view.Surface;
  *   <li>Android API Level 14: {@link Surface#Surface(android.graphics.SurfaceTexture)}</li>
  * </ul>
  * <p>
- * Since the MediaPlayer API can only deal w/ <i>one</i> SurfaceTexture, 
+ * Since the MediaPlayer API can only deal w/ <i>one</i> SurfaceTexture,
  * we enforce <code>textureCount</code> = 2 via {@link #validateTextureCount(int)}
  * and duplicate the single texture via {@link #createTexFrames(GL, int)} .. etc.
  * Two instanceds of TextureFrame are required due our framework implementation w/ Ringbuffer and 'lastFrame' access.
@@ -73,7 +73,7 @@ import android.view.Surface;
  */
 public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     static final boolean available;
-    
+
     static {
         boolean _avail = false;
         if(Platform.OS_TYPE.equals(Platform.OSType.ANDROID)) {
@@ -83,25 +83,25 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
         }
         available = _avail;
     }
-    
+
     public static final boolean isAvailable() { return available; }
-    
+
     private MediaPlayer mp;
     private Camera cam;
     private long playStart = 0;
     private volatile boolean updateSurface = false;
-    private Object updateSurfaceLock = new Object();
+    private final Object updateSurfaceLock = new Object();
     private SurfaceTextureFrame singleSTexFrame = null;
     private int sTexFrameCount = 0;
     private boolean sTexFrameAttached = false;
-    private volatile boolean eos = false;    
+    private volatile boolean eos = false;
 
     /**
     private static String toString(MediaPlayer m) {
         if(null == m) return "<nil>";
         return "MediaPlayer[playing "+m.isPlaying()+", pos "+m.getCurrentPosition()/1000.0f+"s, "+m.getVideoWidth()+"x"+m.getVideoHeight()+"]";
     } */
-    
+
     public AndroidGLMediaPlayerAPI14() {
         super();
         if(!available) {
@@ -118,7 +118,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
 
     @Override
     protected final boolean setAudioVolumeImpl(float v) {
-        if(null != mp) {        
+        if(null != mp) {
             try {
                 mp.setVolume(v, v);
                 return true;
@@ -134,10 +134,10 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     @Override
     protected final boolean playImpl() {
         playStart = Platform.currentTimeMillis();
-        if(null != mp) {        
+        if(null != mp) {
             try {
                 mp.start();
-                eos = false;                
+                eos = false;
                 mp.setOnCompletionListener(onCompletionListener);
                 return true;
             } catch (IllegalStateException ise) {
@@ -203,9 +203,9 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             updateSurfaceLock.notifyAll();
         }
     }
-    
+
     @Override
-    protected final int getAudioPTSImpl() { return null != mp ? mp.getCurrentPosition() : 0; }    
+    protected final int getAudioPTSImpl() { return null != mp ? mp.getCurrentPosition() : 0; }
 
     @Override
     protected final void destroyImpl(GL gl) {
@@ -234,19 +234,19 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             cam = null;
         }
     }
-    
-    public static class SurfaceTextureFrame extends TextureSequence.TextureFrame {        
+
+    public static class SurfaceTextureFrame extends TextureSequence.TextureFrame {
         public SurfaceTextureFrame(Texture t, SurfaceTexture stex) {
             super(t);
             this.surfaceTex = stex;
         }
-        
+
         public String toString() {
             return "SurfaceTextureFrame[pts " + pts + " ms, l " + duration + " ms, texID "+ texture.getTextureObject() + ", " + surfaceTex + "]";
         }
         public final SurfaceTexture surfaceTex;
     }
-    
+
     @Override
     protected final void initStreamImpl(int vid, int aid) throws IOException {
 
@@ -258,7 +258,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                 mp = new MediaPlayer();
             } else {
                 int cameraId = 0;
-                try {                    
+                try {
                     cameraId = Integer.valueOf(cameraPath);
                 } catch (NumberFormatException nfe) {}
                 if( 0 <= cameraId && cameraId < Camera.getNumberOfCameras() ) {
@@ -276,7 +276,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             } // else FIXME: Select aid !
             // Note: Both FIXMEs seem to be n/a via Android's MediaPlayer -> Switch to API level 16 MediaCodec/MediaExtractor ..
             try {
-                final Uri _uri = Uri.parse(streamLoc.toString());        
+                final Uri _uri = Uri.parse(streamLoc.toString());
                 mp.setDataSource(StaticContext.getContext(), _uri);
             } catch (IllegalArgumentException e) {
                 throw new RuntimeException(e);
@@ -293,9 +293,9 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             }
             final int r_aid = GLMediaPlayer.STREAM_ID_NONE == aid ? GLMediaPlayer.STREAM_ID_NONE : 1 /* fake */;
             final String icodec = "android";
-            updateAttributes(0 /* fake */, r_aid, 
-                             mp.getVideoWidth(), mp.getVideoHeight(), 0, 
-                             0, 0, 0f, 
+            updateAttributes(0 /* fake */, r_aid,
+                             mp.getVideoWidth(), mp.getVideoHeight(), 0,
+                             0, 0, 0f,
                              0, 0, mp.getDuration(), icodec, icodec);
         } else if( null != cam ) {
             final String icodec = "android";
@@ -307,26 +307,32 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                 final int picFmt = p.getPictureFormat();
                 final Camera.Size prefSize = p.getPreferredPreviewSizeForVideo();
                 System.err.println("MediaPlayer.Camera: fps "+fpsRange[0]+".."+fpsRange[1]+", size[pref "+camSz2Str(prefSize)+", cur "+camSz2Str(size)+"], fmt "+picFmt);
-                List<Camera.Size> supSizes = p.getSupportedVideoSizes();
-                for(int i=0; i<supSizes.size(); i++) {
-                    System.err.println("size #"+i+": "+camSz2Str(supSizes.get(i)));
+                final List<Camera.Size> supSizes = p.getSupportedVideoSizes();
+                if( null != supSizes  ) {
+                    for(int i=0; i<supSizes.size(); i++) {
+                        System.err.println("size #"+i+": "+camSz2Str(supSizes.get(i)));
+                    }
                 }
             }
-            updateAttributes(0 /* fake */, GLMediaPlayer.STREAM_ID_NONE, 
-                             size.width, size.height, 
-                             0, 0, 0, 
-                             fpsRange[1]/1000f, 
+            updateAttributes(0 /* fake */, GLMediaPlayer.STREAM_ID_NONE,
+                             size.width, size.height,
+                             0, 0, 0,
+                             fpsRange[1]/1000f,
                              0, 0, 0, icodec, icodec);
         }
     }
     private static String camSz2Str(Camera.Size csize) {
-        return csize.width+"x"+csize.height;
+        if( null != csize ) {
+            return csize.width+"x"+csize.height;
+        } else {
+            return "n/a";
+        }
     }
     @Override
     protected final void initGLImpl(GL gl) throws IOException, GLException {
         // NOP
     }
-    
+
     /**
      * {@inheritDoc}
      * <p>
@@ -337,7 +343,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     protected int validateTextureCount(int desiredTextureCount) {
         return 2;
     }
-    
+
     @Override
     protected final int getNextTextureImpl(GL gl, TextureFrame nextFrame) {
         int pts = TimeFrameI.INVALID_PTS;
@@ -371,7 +377,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                 eos = true;
                 pts = TimeFrameI.END_OF_STREAM_PTS;
             } else {
-                // Only block once, no while-loop. 
+                // Only block once, no while-loop.
                 // This relaxes locking code of non crucial resources/events.
                 boolean update = updateSurface;
                 if( !update ) {
@@ -402,7 +408,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
         }
         return pts;
     }
-    
+
     /**
      * {@inheritDoc}
      * <p>
@@ -437,7 +443,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
         }
         return singleSTexFrame;
     }
-    
+
     /**
      * {@inheritDoc}
      * <p>
@@ -455,18 +461,18 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             super.destroyTexFrame(gl, frame);
         }
     }
-    
-    private OnFrameAvailableListener onFrameAvailableListener = new OnFrameAvailableListener() {
+
+    private final OnFrameAvailableListener onFrameAvailableListener = new OnFrameAvailableListener() {
         @Override
         public void onFrameAvailable(SurfaceTexture surfaceTexture) {
             wakeUp(true);
-        }        
+        }
     };
-    
-    private OnCompletionListener onCompletionListener = new OnCompletionListener() {
+
+    private final OnCompletionListener onCompletionListener = new OnCompletionListener() {
         @Override
         public void onCompletion(MediaPlayer mp) {
             eos = true;
-        }        
+        }
     };
 }
