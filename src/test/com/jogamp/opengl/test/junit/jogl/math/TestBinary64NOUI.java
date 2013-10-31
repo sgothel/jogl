@@ -33,7 +33,7 @@ import org.junit.Test;
 
 import com.jogamp.opengl.math.Binary64;
 
-public class Binary64Test
+public class TestBinary64NOUI
 {
   @SuppressWarnings("static-method") @Test public void testInfinityExponent()
   {

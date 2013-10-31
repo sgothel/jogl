@@ -33,7 +33,7 @@ import org.junit.Test;
 
 import com.jogamp.opengl.math.Binary16;
 
-public final class Binary16Test
+public final class TestBinary16NOUI
 {
   /**
    * Exponents in the range [-15, 16] are encoded and decoded correctly.
