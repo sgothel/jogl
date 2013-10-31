@@ -124,18 +124,20 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
         private boolean globalVisibility = localVisibility;
         private boolean visibilityPropagation = false;
 
+        private String id(Object obj) { return "0x"+Integer.toHexString(obj.hashCode()); }
+
         private String s(ComponentEvent e) {
             return "visible[local "+localVisibility+", global "+globalVisibility+", propag. "+visibilityPropagation+"],"+Platform.getNewline()+
-                   "    ** COMP "+e.getComponent()+Platform.getNewline()+
-                   "    ** SOURCE "+e.getSource()+Platform.getNewline()+
+                   "    ** COMP "+id(e.getComponent())+": "+e.getComponent()+Platform.getNewline()+
+                   "    ** SOURCE "+id(e.getSource())+": "+e.getSource()+Platform.getNewline()+
                    "    ** THIS "+component;
         }
         private String s(HierarchyEvent e) {
             return "visible[local "+localVisibility+", global "+globalVisibility+", propag. "+visibilityPropagation+"], changeBits 0x"+Long.toHexString(e.getChangeFlags())+Platform.getNewline()+
-                   "    ** COMP "+e.getComponent()+Platform.getNewline()+
-                   "    ** SOURCE "+e.getSource()+Platform.getNewline()+
-                   "    ** CHANGED "+e.getChanged()+Platform.getNewline()+
-                   "    ** CHANGEDPARENT "+e.getChangedParent()+Platform.getNewline()+
+                   "    ** COMP "+id(e.getComponent())+": "+e.getComponent()+Platform.getNewline()+
+                   "    ** SOURCE "+id(e.getSource())+": "+e.getSource()+Platform.getNewline()+
+                   "    ** CHANGED "+id(e.getChanged())+": "+e.getChanged()+Platform.getNewline()+
+                   "    ** CHANGEDPARENT "+id(e.getChangedParent())+": "+e.getChangedParent()+Platform.getNewline()+
                    "    ** THIS "+component;
         }
 
@@ -177,14 +179,16 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
             final java.awt.Component changed = e.getChanged();
             if( 0 != ( java.awt.event.HierarchyEvent.DISPLAYABILITY_CHANGED & bits ) ) {
                 final boolean displayable = changed.isDisplayable();
-                final boolean resetLocalVisibility = changed == component && !displayable && localVisibility != component.isVisible();
-                if( resetLocalVisibility ) {
-                    // Reset components local state if detached from parent, i.e. 'removeNotify()'
+                final boolean propagateDisplayability = changed == component && ( displayable && localVisibility ) != component.isVisible();
+                if( propagateDisplayability ) {
+                    // Propagate parent's displayability, i.e. 'removeNotify()' and 'addNotify()'
+                    final boolean _visible = displayable && localVisibility;
                     visibilityPropagation = true;
+                    globalVisibility = displayable;
                     if(DEBUG) {
-                        System.err.println("JAWTWindow.hierarchyChanged DISPLAYABILITY_CHANGED (1): displayable "+displayable+", "+s(e));
+                        System.err.println("JAWTWindow.hierarchyChanged DISPLAYABILITY_CHANGED (1): displayable "+displayable+" -> visible "+_visible+", "+s(e));
                     }
-                    component.setVisible(localVisibility);
+                    component.setVisible(_visible);
                 } else if(DEBUG) {
                     System.err.println("JAWTWindow.hierarchyChanged DISPLAYABILITY_CHANGED (x): displayable "+displayable+", "+s(e));
                 }
