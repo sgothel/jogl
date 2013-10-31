@@ -39,6 +39,10 @@ package javax.media.opengl;
  * shared {@link GLContext} w/ this master are referred as slave {@link GLContext}
  * and controls the shared object's lifecycle, i.e. their construction and destruction.
  * </p>
+ * <p>
+ * Using the nearest or same {@link GLCapabilitiesImmutable#getVisualID(javax.media.nativewindow.VisualIDHolder.VIDType) visual ID}
+ * or {@link GLCapabilitiesImmutable caps} across the shared {@link GLDrawable}s will yield best compatibility.
+ * </p>
  * <h5><a name="lifecycle">Lifecycle Considerations</a></h5>
  * <p>
  * After shared objects are created on the <i>master</i>, the OpenGL pipeline
@@ -56,7 +60,7 @@ package javax.media.opengl;
  * <i>or</i> the <i>slaves</i> validate whether the resources are still valid.
  * </p>
  * <p>
- * To simplify above lifecycle issues, one may use a {@link GLDrawableFactory#createDummyDrawable(javax.media.nativewindow.AbstractGraphicsDevice, boolean, GLProfile) dummy}
+ * To simplify above lifecycle issues, one may use a {@link GLDrawableFactory#createDummyDrawable(javax.media.nativewindow.AbstractGraphicsDevice, boolean, GLCapabilitiesImmutable, GLCapabilitiesChooser) dummy}
  * {@link GLDrawable} and it's {@link GLContext} as the <i>master</i> of all shared <i>slave</i> {@link GLContext}.
  * Since this <i>dummy instance</i> does not depend on any native windowing system, it can be controlled easily w/o being <i>in sight</i>.<br>
  * Below code creates a {@link GLAutoDrawable} based on a <i>dummy GLDrawable</i>:
@@ -66,7 +70,7 @@ package javax.media.opengl;
         final GLProfile glp = caps.getGLProfile();
         ..
         final boolean createNewDevice = true; // use 'own' display device!
-        final GLAutoDrawable sharedDrawable = GLDrawableFactory.getFactory(glp).createDummyAutoDrawable(null, createNewDevice, glp);
+        final GLAutoDrawable sharedDrawable = GLDrawableFactory.getFactory(glp).createDummyAutoDrawable(null, createNewDevice, caps, null);
         sharedDrawable.display(); // triggers GLContext object creation and native realization.
         ...
         // Later a shared 'slave' can be created e.g.:
@@ -75,6 +79,21 @@ package javax.media.opengl;
         glad.addGLEventListener(..);
         glad.setVisible(true); // GLWindow creation ..
  * </pre>
+ * </p>
+ * <h5><a name="driverissues">Known Driver Issues</a></h5>
+ * <h7><a name="intelmesa">Intel's Mesa >= 9.1.2 Backend for [Sandybridge/Ivybridge] on GNU/Linux</a></h7>
+ * <p>
+ * <pre>
+ * Error: 'intel_do_flush_locked: No such file or directory'
+ * JogAmp: <https://jogamp.org/bugzilla/show_bug.cgi?id=873>
+ * freedesktop.org: <https://bugs.freedesktop.org/show_bug.cgi?id=41736#c8>
+ * </pre>
+ * Shared context seems not to be supported w/ lock-free bound X11 display connections
+ * per OpenGL drawable/context. The error message above is thrown in this case.
+ * Hence the driver bug renders shared context use w/ JOGL impossible.
+ * </p>
+ * <h7><a name="hisilicon">Hisilicon's Immersion.16</a></h7>
+ * <p>
  * </p>
  */
 public interface GLSharedContextSetter extends GLAutoDrawable {

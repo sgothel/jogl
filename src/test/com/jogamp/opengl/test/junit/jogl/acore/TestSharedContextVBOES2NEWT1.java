@@ -105,7 +105,7 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
             glWindow.setVisible(true);
             sharedDrawable = glWindow;
         } else {
-            sharedDrawable = GLDrawableFactory.getFactory(glp).createDummyAutoDrawable(null, true /* createNewDevice */, caps.getGLProfile());
+            sharedDrawable = GLDrawableFactory.getFactory(glp).createDummyAutoDrawable(null, true /* createNewDevice */, caps, null);
         }
         Assert.assertNotNull(sharedDrawable);
         Assert.assertTrue(AWTRobotUtil.waitForRealized(sharedDrawable, true));

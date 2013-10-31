@@ -74,7 +74,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected static final String unknown = "unknown";
 
     protected volatile State state;
-    private Object stateLock = new Object();
+    private final Object stateLock = new Object();
 
     protected int textureCount;
     protected int textureTarget;
@@ -170,7 +170,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
      */
     protected boolean isInGLOrientation = false;
 
-    private ArrayList<GLMediaEventListener> eventListeners = new ArrayList<GLMediaEventListener>();
+    private final ArrayList<GLMediaEventListener> eventListeners = new ArrayList<GLMediaEventListener>();
 
     protected GLMediaPlayerImpl() {
         this.textureCount=0;
@@ -983,7 +983,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             final GLProfile glp = gl.getGLProfile();
             final GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
             final AbstractGraphicsDevice device = glCtx.getGLDrawable().getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
-            dummyDrawable = factory.createDummyDrawable(device, true, glp); // own device!
+            dummyDrawable = factory.createDummyDrawable(device, true, glCtx.getGLDrawable().getChosenGLCapabilities(), null); // own device!
             dummyDrawable.setRealized(true);
             sharedGLCtx = dummyDrawable.createContext(glCtx);
             makeCurrent(sharedGLCtx);
@@ -1248,7 +1248,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         if( this.fps != fps ) {
             event_mask |= GLMediaEventListener.EVENT_CHANGE_FPS;
             this.fps = fps;
-            this.frame_duration = 1000f / (float)fps;
+            this.frame_duration = 1000f / fps;
         }
         if( this.bps_stream != bps_stream || this.bps_video != bps_video || this.bps_audio != bps_audio ) {
             event_mask |= GLMediaEventListener.EVENT_CHANGE_BPS;
@@ -1431,7 +1431,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         }
     }
 
-    private Object eventListenersLock = new Object();
+    private final Object eventListenersLock = new Object();
 
     protected static final String toHexString(long v) {
         return "0x"+Long.toHexString(v);

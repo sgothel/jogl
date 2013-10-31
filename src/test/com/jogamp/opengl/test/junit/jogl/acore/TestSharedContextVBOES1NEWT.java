@@ -92,7 +92,7 @@ public class TestSharedContextVBOES1NEWT extends UITestCase {
     }
 
     private void initShared() throws InterruptedException {
-        GLDrawable dummyDrawable = GLDrawableFactory.getFactory(glp).createDummyDrawable(null, true /* createNewDevice */, caps.getGLProfile());
+        GLDrawable dummyDrawable = GLDrawableFactory.getFactory(glp).createDummyDrawable(null, true /* createNewDevice */, caps, null);
         dummyDrawable.setRealized(true);
         sharedDrawable = new GLAutoDrawableDelegate(dummyDrawable, null, null, true /*ownDevice*/, null) { };
         Assert.assertNotNull(sharedDrawable);

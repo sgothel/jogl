@@ -561,7 +561,7 @@ public abstract class GLDrawableFactory {
   /**
    * Creates a {@link GLDrawable#isRealized() realized} <i>dummy</i> {@link GLAutoDrawable}
    * incl it's <i>dummy, invisible</i> {@link NativeSurface}
-   * as created with {@link #createDummyDrawable(AbstractGraphicsDevice, boolean, GLProfile)}.
+   * as created with {@link #createDummyDrawable(AbstractGraphicsDevice, boolean, GLCapabilitiesImmutable, GLCapabilitiesChooser)}.
    * <p>
    * The <i>dummy</i> {@link GLAutoDrawable}'s {@link GLDrawable} is {@link GLDrawable#isRealized() realized}
    * <i>without</i> an assigned {@link GLContext}, hence not initialized completely.<br>
@@ -574,12 +574,15 @@ public abstract class GLDrawableFactory {
    *
    * @param deviceReq which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
    * @param createNewDevice if <code>true</code> a new independent device instance is created from the <code>deviceReq</code>, otherwise <code>deviceReq</code> is used as-is and must be valid!
-   * @param glp the desired {@link GLProfile}
+   * @param capsRequested the desired {@link GLCapabilitiesImmutable}, incl. it's {@link GLProfile}.
+   *                      For shared context, same {@link GLCapabilitiesImmutable#getVisualID(javax.media.nativewindow.VisualIDHolder.VIDType)}
+   *                      across shared drawables will yield best compatibility.
+   * @param chooser the custom chooser, may be null for default
    * @return the created and realized <i>dummy</i> {@link GLAutoDrawable} instance
    *
-   * @see #createDummyDrawable(AbstractGraphicsDevice, boolean, GLProfile)
+   * @see #createDummyDrawable(AbstractGraphicsDevice, boolean, GLCapabilitiesImmutable, GLCapabilitiesChooser)
    */
-  public abstract GLAutoDrawable createDummyAutoDrawable(AbstractGraphicsDevice deviceReq, boolean createNewDevice, GLProfile glp);
+  public abstract GLAutoDrawable createDummyAutoDrawable(AbstractGraphicsDevice deviceReq, boolean createNewDevice, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser);
 
   /**
    * Creates an {@link GLDrawable#isRealized() unrealized} offscreen {@link GLDrawable}
@@ -629,10 +632,14 @@ public abstract class GLDrawableFactory {
    * </p>
    * @param deviceReq which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
    * @param createNewDevice if <code>true</code> a new independent device instance is created from the <code>deviceReq</code>, otherwise <code>deviceReq</code> is used as-is and must be valid!
-   * @param glp the desired {@link GLProfile}
+   * @param capsRequested the desired {@link GLCapabilitiesImmutable}, incl. it's {@link GLProfile}.
+   *                      For shared context, same {@link GLCapabilitiesImmutable#getVisualID(javax.media.nativewindow.VisualIDHolder.VIDType) visual ID}
+   *                      or {@link GLCapabilitiesImmutable caps}
+   *                      across shared drawables will yield best compatibility.
+   * @param chooser the custom chooser, may be null for default
    * @return the created unrealized dummy {@link GLDrawable}
    */
-  public abstract GLDrawable createDummyDrawable(AbstractGraphicsDevice deviceReq, boolean createNewDevice, GLProfile glp);
+  public abstract GLDrawable createDummyDrawable(AbstractGraphicsDevice deviceReq, boolean createNewDevice, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser);
 
   /**
    * Creates a proxy {@link NativeSurface} w/ defined surface handle,

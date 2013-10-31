@@ -328,8 +328,8 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   }
 
   @Override
-  public final GLAutoDrawable createDummyAutoDrawable(AbstractGraphicsDevice deviceReq, boolean createNewDevice, GLProfile glp) {
-      final GLDrawable drawable = createDummyDrawable(deviceReq, createNewDevice, glp);
+  public final GLAutoDrawable createDummyAutoDrawable(AbstractGraphicsDevice deviceReq, boolean createNewDevice, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser) {
+      final GLDrawable drawable = createDummyDrawable(deviceReq, createNewDevice, capsRequested, chooser);
       drawable.setRealized(true);
       final GLAutoDrawable sharedDrawable = new GLAutoDrawableDelegate(drawable, null, null, true /*ownDevice*/, null) { };
       return sharedDrawable;
@@ -366,15 +366,14 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   }
 
   @Override
-  public final GLDrawable createDummyDrawable(AbstractGraphicsDevice deviceReq, boolean createNewDevice, GLProfile glp) {
+  public final GLDrawable createDummyDrawable(AbstractGraphicsDevice deviceReq, boolean createNewDevice, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser) {
     final AbstractGraphicsDevice device = createNewDevice ? getOrCreateSharedDevice(deviceReq) : deviceReq;
     if(null == device) {
         throw new GLException("No shared device for requested: "+deviceReq+", createNewDevice "+createNewDevice);
     }
     device.lock();
     try {
-        final GLCapabilities caps = new GLCapabilities(glp);
-        final ProxySurface dummySurface = createDummySurfaceImpl(device, createNewDevice, caps, caps, null, 64, 64);
+        final ProxySurface dummySurface = createDummySurfaceImpl(device, createNewDevice, capsRequested, capsRequested, chooser, 64, 64);
         return createOnscreenDrawableImpl(dummySurface);
     } finally {
         device.unlock();
