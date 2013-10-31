@@ -29,10 +29,8 @@
 package com.jogamp.opengl.test.junit.jogl.awt;
 
 import java.awt.BorderLayout;
-import java.awt.Checkbox;
-import java.awt.Frame;
+import java.awt.Container;
 import java.awt.GridLayout;
-import java.awt.Panel;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.lang.reflect.InvocationTargetException;
@@ -40,6 +38,9 @@ import java.lang.reflect.InvocationTargetException;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
+import javax.swing.JCheckBox;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
@@ -56,9 +57,9 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
 /**
- * AWT Frame BorderLayout w/ Checkbox North, Panel.GLCanvas Center.
+ * AWT JFrame BorderLayout w/ Checkbox North, JPanel.GLCanvas Center.
  * <p>
- * Checkbox toggles GLCanvas's parent panel's visibility state.
+ * Checkbox toggles GLCanvas's parent jpanel's visibility state.
  * </p>
  * <p>
  * Validates bugs:
@@ -73,7 +74,7 @@ import com.jogamp.opengl.util.Animator;
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestBug816OSXCALayerPos03bAWT extends UITestCase {
+public class TestBug816OSXCALayerPos03cB849AWT extends UITestCase {
     static long duration = 1600; // ms    
     static int width=640, height=480;
     
@@ -81,14 +82,15 @@ public class TestBug816OSXCALayerPos03bAWT extends UITestCase {
     public void test() throws InterruptedException, InvocationTargetException {
         final GLCapabilities caps = new GLCapabilities(getGLP());
         
-        final Frame frame = new Frame("TestBug816OSXCALayerPos03bAWT");
+        final JFrame frame = new JFrame("TestBug816OSXCALayerPos03cAWT");
         Assert.assertNotNull(frame);
-
+        final Container framePane = frame.getContentPane();
+        
         final GLCanvas glCanvas1 = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas1);
         glCanvas1.addGLEventListener(new GearsES2(1));
         // Put it in a panel
-        final Panel panel = new Panel(new GridLayout(1, 1));
+        final JPanel panel = new JPanel(new GridLayout(1, 1));
         panel.add(glCanvas1);
         
         final Animator animator = new Animator();
@@ -98,10 +100,10 @@ public class TestBug816OSXCALayerPos03bAWT extends UITestCase {
         new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
 
         // Create a check box that hides / shows canvas
-        final Checkbox checkbox = new Checkbox("Visible canvas", true);
+        final JCheckBox checkbox = new JCheckBox("Visible canvas", true);
         checkbox.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent ev) {
-                panel.setVisible(checkbox.getState());
+                panel.setVisible(checkbox.getSelectedObjects()!=null);
                 System.out.println("Visible: [panel "+panel.isVisible()+", canvas "+glCanvas1.isVisible()+"]; Displayable: [panel "+panel.isDisplayable()+", canvas "+glCanvas1.isDisplayable()+"]");
                 if( panel.isVisible() ) {
                     frame.validate(); // take care of resized frame while hidden
@@ -110,9 +112,9 @@ public class TestBug816OSXCALayerPos03bAWT extends UITestCase {
         });
 
         // Build a GUI that displays canvas and check box
-        frame.setLayout(new BorderLayout());
-        frame.add(panel, BorderLayout.CENTER);
-        frame.add(checkbox, BorderLayout.NORTH);
+        framePane.setLayout(new BorderLayout());
+        framePane.add(panel, BorderLayout.CENTER);
+        framePane.add(checkbox, BorderLayout.NORTH);
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
@@ -149,7 +151,7 @@ public class TestBug816OSXCALayerPos03bAWT extends UITestCase {
         Assert.assertEquals(false, frame.isVisible());
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
-                frame.remove(panel);
+                framePane.remove(panel);
                 frame.dispose();
             }});
     }
@@ -166,6 +168,6 @@ public class TestBug816OSXCALayerPos03bAWT extends UITestCase {
             }
         }
         
-        org.junit.runner.JUnitCore.main(TestBug816OSXCALayerPos03bAWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestBug816OSXCALayerPos03cB849AWT.class.getName());
     }
 }

@@ -202,7 +202,6 @@ public class TestSharedContextWithJTabbedPaneAWT extends UITestCase {
 
     static long durationPerTest = 500*4; // ms
     static boolean manual = false;
-    static volatile boolean shouldStop = false;
 
     @Test
     public void test01() throws InterruptedException, InvocationTargetException {
@@ -216,7 +215,7 @@ public class TestSharedContextWithJTabbedPaneAWT extends UITestCase {
             } });
 
       if(manual) {
-          for(long w=durationPerTest; !shouldStop && w>0; w-=100) {
+          for(long w=durationPerTest; w>0; w-=100) {
               Thread.sleep(100);
           }
       } else {

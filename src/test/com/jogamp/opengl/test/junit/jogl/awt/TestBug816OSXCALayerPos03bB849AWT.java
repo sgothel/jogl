@@ -31,6 +31,8 @@ package com.jogamp.opengl.test.junit.jogl.awt;
 import java.awt.BorderLayout;
 import java.awt.Checkbox;
 import java.awt.Frame;
+import java.awt.GridLayout;
+import java.awt.Panel;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.lang.reflect.InvocationTargetException;
@@ -54,15 +56,16 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
 /**
- * AWT Frame BorderLayout w/ Checkbox North, GLCanvas Center.
+ * AWT Frame BorderLayout w/ Checkbox North, Panel.GLCanvas Center.
  * <p>
- * Checkbox toggles GLCanvas visibility state.
+ * Checkbox toggles GLCanvas's parent panel's visibility state.
  * </p>
  * <p>
  * Validates bugs:
  * <ul>
  *   <li>Bug 816: OSX CALayer Positioning Bug</li>
  *   <li>Bug 729: OSX CALayer shall honor the Component's visibility state</li>
+ *   <li>Bug 849: AWT GLAutoDrawables (JAWTWindow) shall honor it's parent visibility state</li>
  * </ul>
  * </p>
  * <p>
@@ -70,7 +73,7 @@ import com.jogamp.opengl.util.Animator;
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestBug816OSXCALayerPos03aAWT extends UITestCase {
+public class TestBug816OSXCALayerPos03bB849AWT extends UITestCase {
     static long duration = 1600; // ms    
     static int width=640, height=480;
     
@@ -78,12 +81,15 @@ public class TestBug816OSXCALayerPos03aAWT extends UITestCase {
     public void test() throws InterruptedException, InvocationTargetException {
         final GLCapabilities caps = new GLCapabilities(getGLP());
         
-        final Frame frame = new Frame("TestBug816OSXCALayerPos03aAWT");
+        final Frame frame = new Frame("TestBug816OSXCALayerPos03bAWT");
         Assert.assertNotNull(frame);
 
         final GLCanvas glCanvas1 = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas1);
         glCanvas1.addGLEventListener(new GearsES2(1));
+        // Put it in a panel
+        final Panel panel = new Panel(new GridLayout(1, 1));
+        panel.add(glCanvas1);
         
         final Animator animator = new Animator();
         animator.add(glCanvas1);
@@ -95,9 +101,9 @@ public class TestBug816OSXCALayerPos03aAWT extends UITestCase {
         final Checkbox checkbox = new Checkbox("Visible canvas", true);
         checkbox.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent ev) {
-                glCanvas1.setVisible(checkbox.getState());
-                System.out.println("Canvas visible: "+glCanvas1.isVisible());
-                if( glCanvas1.isVisible() ) {
+                panel.setVisible(checkbox.getState());
+                System.out.println("Visible: [panel "+panel.isVisible()+", canvas "+glCanvas1.isVisible()+"]; Displayable: [panel "+panel.isDisplayable()+", canvas "+glCanvas1.isDisplayable()+"]");
+                if( panel.isVisible() ) {
                     frame.validate(); // take care of resized frame while hidden
                 }
             }
@@ -105,7 +111,7 @@ public class TestBug816OSXCALayerPos03aAWT extends UITestCase {
 
         // Build a GUI that displays canvas and check box
         frame.setLayout(new BorderLayout());
-        frame.add(glCanvas1, BorderLayout.CENTER);
+        frame.add(panel, BorderLayout.CENTER);
         frame.add(checkbox, BorderLayout.NORTH);
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
@@ -143,7 +149,7 @@ public class TestBug816OSXCALayerPos03aAWT extends UITestCase {
         Assert.assertEquals(false, frame.isVisible());
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
-                frame.remove(glCanvas1);
+                frame.remove(panel);
                 frame.dispose();
             }});
     }
@@ -160,6 +166,6 @@ public class TestBug816OSXCALayerPos03aAWT extends UITestCase {
             }
         }
         
-        org.junit.runner.JUnitCore.main(TestBug816OSXCALayerPos03aAWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestBug816OSXCALayerPos03bB849AWT.class.getName());
     }
 }

@@ -29,8 +29,8 @@
 package com.jogamp.opengl.test.junit.jogl.awt;
 
 import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.GridLayout;
+import java.awt.Checkbox;
+import java.awt.Frame;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.lang.reflect.InvocationTargetException;
@@ -38,9 +38,6 @@ import java.lang.reflect.InvocationTargetException;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
-import javax.swing.JCheckBox;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
 
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
@@ -57,16 +54,15 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
 /**
- * AWT JFrame BorderLayout w/ Checkbox North, JPanel.GLCanvas Center.
+ * AWT Frame BorderLayout w/ Checkbox North, GLCanvas Center.
  * <p>
- * Checkbox toggles GLCanvas's parent jpanel's visibility state.
+ * Checkbox toggles GLCanvas visibility state.
  * </p>
  * <p>
  * Validates bugs:
  * <ul>
  *   <li>Bug 816: OSX CALayer Positioning Bug</li>
  *   <li>Bug 729: OSX CALayer shall honor the Component's visibility state</li>
- *   <li>Bug 849: AWT GLAutoDrawables (JAWTWindow) shall honor it's parent visibility state</li>
  * </ul>
  * </p>
  * <p>
@@ -74,7 +70,7 @@ import com.jogamp.opengl.util.Animator;
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestBug816OSXCALayerPos03cAWT extends UITestCase {
+public class TestBug816OSXCALayerPos03aB729AWT extends UITestCase {
     static long duration = 1600; // ms    
     static int width=640, height=480;
     
@@ -82,16 +78,12 @@ public class TestBug816OSXCALayerPos03cAWT extends UITestCase {
     public void test() throws InterruptedException, InvocationTargetException {
         final GLCapabilities caps = new GLCapabilities(getGLP());
         
-        final JFrame frame = new JFrame("TestBug816OSXCALayerPos03cAWT");
+        final Frame frame = new Frame("TestBug816OSXCALayerPos03aAWT");
         Assert.assertNotNull(frame);
-        final Container framePane = frame.getContentPane();
-        
+
         final GLCanvas glCanvas1 = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas1);
         glCanvas1.addGLEventListener(new GearsES2(1));
-        // Put it in a panel
-        final JPanel panel = new JPanel(new GridLayout(1, 1));
-        panel.add(glCanvas1);
         
         final Animator animator = new Animator();
         animator.add(glCanvas1);
@@ -100,21 +92,21 @@ public class TestBug816OSXCALayerPos03cAWT extends UITestCase {
         new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
 
         // Create a check box that hides / shows canvas
-        final JCheckBox checkbox = new JCheckBox("Visible canvas", true);
+        final Checkbox checkbox = new Checkbox("Visible canvas", true);
         checkbox.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent ev) {
-                panel.setVisible(checkbox.getSelectedObjects()!=null);
-                System.out.println("Visible: [panel "+panel.isVisible()+", canvas "+glCanvas1.isVisible()+"]; Displayable: [panel "+panel.isDisplayable()+", canvas "+glCanvas1.isDisplayable()+"]");
-                if( panel.isVisible() ) {
+                glCanvas1.setVisible(checkbox.getState());
+                System.out.println("Canvas visible: "+glCanvas1.isVisible());
+                if( glCanvas1.isVisible() ) {
                     frame.validate(); // take care of resized frame while hidden
                 }
             }
         });
 
         // Build a GUI that displays canvas and check box
-        framePane.setLayout(new BorderLayout());
-        framePane.add(panel, BorderLayout.CENTER);
-        framePane.add(checkbox, BorderLayout.NORTH);
+        frame.setLayout(new BorderLayout());
+        frame.add(glCanvas1, BorderLayout.CENTER);
+        frame.add(checkbox, BorderLayout.NORTH);
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
@@ -151,7 +143,7 @@ public class TestBug816OSXCALayerPos03cAWT extends UITestCase {
         Assert.assertEquals(false, frame.isVisible());
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
-                framePane.remove(panel);
+                frame.remove(glCanvas1);
                 frame.dispose();
             }});
     }
@@ -168,6 +160,6 @@ public class TestBug816OSXCALayerPos03cAWT extends UITestCase {
             }
         }
         
-        org.junit.runner.JUnitCore.main(TestBug816OSXCALayerPos03cAWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestBug816OSXCALayerPos03aB729AWT.class.getName());
     }
 }
