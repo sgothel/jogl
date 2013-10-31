@@ -29,12 +29,20 @@
 package com.jogamp.opengl.test.junit.jogl.math;
 
 import org.junit.Assert;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.math.Binary16;
+import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.UITestCase;
 
-public final class TestBinary16NOUI
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+public final class TestBinary16NOUI extends UITestCase  /* due to hardship on machine, we want to run this test exclusively! */
 {
+  static int stepping = 1;
+  static boolean verbose = false;
+
   /**
    * Exponents in the range [-15, 16] are encoded and decoded correctly.
    */
@@ -45,9 +53,9 @@ public final class TestBinary16NOUI
     for (int e = -15; e <= 16; ++e) {
       final char p = Binary16.packSetExponentUnbiasedUnchecked(e);
       final int u = Binary16.unpackGetExponentUnbiased(p);
-      System.out.println("e: " + e);
-      System.out.println("p: " + Integer.toHexString(p));
-      System.out.println("u: " + u);
+      if( verbose ) {
+          System.out.println("e: " + e +", p: "+Integer.toHexString(p)+", u: "+u);
+      }
       Assert.assertEquals(e, u);
     }
   }
@@ -62,7 +70,7 @@ public final class TestBinary16NOUI
     Assert.assertTrue(Binary16.isInfinite(Binary16.NEGATIVE_INFINITY));
     Assert.assertFalse(Binary16.isInfinite(Binary16.exampleNaN()));
 
-    for (int i = 0; i <= 65535; ++i) {
+    for (int i = 0; i <= 65535; i+=stepping) {
       Assert.assertFalse(Binary16.isInfinite(Binary16.packDouble(i)));
     }
   }
@@ -226,16 +234,18 @@ public final class TestBinary16NOUI
     void
     testPackDoubleUnpackFloat()
   {
-    for (int i = 0; i <= 65536; ++i) {
+    for (int i = 0; i <= 65536; i+=stepping) {
       final double in = i;
       final char packed = Binary16.packDouble(in);
       final float r = Binary16.unpackFloat(packed);
-      System.out.println(String.format(
-        "packed: 0x%04x 0b%s in: %f unpacked: %f",
-        (int) packed,
-        Binary16.toRawBinaryString(packed),
-        in,
-        r));
+      if( verbose ) {
+          System.out.println(String.format(
+            "packed: 0x%04x 0b%s in: %f unpacked: %f",
+            (int) packed,
+            Binary16.toRawBinaryString(packed),
+            in,
+            r));
+      }
 
       if (i <= 2048) {
         Assert.assertEquals(in, r, 0.0);
@@ -269,21 +279,23 @@ public final class TestBinary16NOUI
     void
     testPackFloatDoubleEquivalent()
   {
-    for (int i = 0; i <= 65536; ++i) {
+    for (int i = 0; i <= 65536; i+=stepping) {
       final float f_in = i;
       final double d_in = i;
       final char pf = Binary16.packFloat(f_in);
       final char pd = Binary16.packDouble(d_in);
 
-      System.out.println("i: " + i);
-      System.out.println(String.format(
-        "pack_f: 0x%04x 0b%s",
-        (int) pf,
-        Binary16.toRawBinaryString(pf)));
-      System.out.println(String.format(
-        "pack_d: 0x%04x 0b%s",
-        (int) pd,
-        Binary16.toRawBinaryString(pd)));
+      if( verbose ) {
+          System.out.println("i: " + i);
+          System.out.println(String.format(
+            "pack_f: 0x%04x 0b%s",
+            (int) pf,
+            Binary16.toRawBinaryString(pf)));
+          System.out.println(String.format(
+            "pack_d: 0x%04x 0b%s",
+            (int) pd,
+            Binary16.toRawBinaryString(pd)));
+      }
 
       Assert.assertEquals(pf, pd);
     }
@@ -354,16 +366,18 @@ public final class TestBinary16NOUI
     void
     testPackFloatUnpackDouble()
   {
-    for (int i = 0; i <= 65536; ++i) {
+    for (int i = 0; i <= 65536; i+=stepping) {
       final float in = i;
       final char packed = Binary16.packFloat(in);
       final double r = Binary16.unpackDouble(packed);
-      System.out.println(String.format(
-        "packed: 0x%04x 0b%s in: %f unpacked: %f",
-        (int) packed,
-        Binary16.toRawBinaryString(packed),
-        in,
-        r));
+      if( verbose ) {
+          System.out.println(String.format(
+            "packed: 0x%04x 0b%s in: %f unpacked: %f",
+            (int) packed,
+            Binary16.toRawBinaryString(packed),
+            in,
+            r));
+      }
 
       if (i <= 2048) {
         Assert.assertEquals(in, r, 0.0);
@@ -397,16 +411,18 @@ public final class TestBinary16NOUI
     void
     testPackUnpackDouble()
   {
-    for (int i = 0; i <= 65536; ++i) {
+    for (int i = 0; i <= 65536; i+=stepping) {
       final double in = i;
       final char packed = Binary16.packDouble(in);
       final double r = Binary16.unpackDouble(packed);
-      System.out.println(String.format(
-        "packed: 0x%04x 0b%s in: %f unpacked: %f",
-        (int) packed,
-        Binary16.toRawBinaryString(packed),
-        in,
-        r));
+      if( verbose ) {
+          System.out.println(String.format(
+            "packed: 0x%04x 0b%s in: %f unpacked: %f",
+            (int) packed,
+            Binary16.toRawBinaryString(packed),
+            in,
+            r));
+      }
 
       if (i <= 2048) {
         Assert.assertEquals(in, r, 0.0);
@@ -440,16 +456,18 @@ public final class TestBinary16NOUI
     void
     testPackUnpackFloat()
   {
-    for (int i = 0; i <= 65536; ++i) {
+    for (int i = 0; i <= 65536; i+=stepping) {
       final float in = i;
       final char packed = Binary16.packFloat(in);
       final float r = Binary16.unpackFloat(packed);
-      System.out.println(String.format(
-        "packed: 0x%04x 0b%s in: %f unpacked: %f",
-        (int) packed,
-        Binary16.toRawBinaryString(packed),
-        in,
-        r));
+      if( verbose ) {
+          System.out.println(String.format(
+            "packed: 0x%04x 0b%s in: %f unpacked: %f",
+            (int) packed,
+            Binary16.toRawBinaryString(packed),
+            in,
+            r));
+      }
       if (i <= 2048) {
         Assert.assertEquals(in, r, 0.0);
       }
@@ -484,9 +502,9 @@ public final class TestBinary16NOUI
     for (int e = 0; e <= 1; ++e) {
       final char p = Binary16.packSetSignUnchecked(e);
       final int u = Binary16.unpackGetSign(p);
-      System.out.println("e: " + e);
-      System.out.println("p: " + Integer.toHexString(p));
-      System.out.println("u: " + u);
+      if( verbose ) {
+          System.out.println("e: " + e +", p: "+Integer.toHexString(p)+", u: "+u);
+      }
       Assert.assertEquals(e, u);
     }
   }
@@ -503,9 +521,9 @@ public final class TestBinary16NOUI
     for (int e = 0; e <= 1023; ++e) {
       final char p = Binary16.packSetSignificandUnchecked(e);
       final int u = Binary16.unpackGetSignificand(p);
-      System.out.println("e: " + e);
-      System.out.println("p: " + Integer.toHexString(p));
-      System.out.println("u: " + u);
+      if( verbose ) {
+          System.out.println("e: " + e +", p: "+Integer.toHexString(p)+", u: "+u);
+      }
       Assert.assertEquals(e, u);
     }
   }
@@ -682,4 +700,16 @@ public final class TestBinary16NOUI
     System.out.println(String.format("0x%04x -> %f", (int) one, r));
     Assert.assertEquals(r, -1.0, 0.0);
   }
+
+  public static void main(String args[]) {
+      for(int i=0; i<args.length; i++) {
+        if(args[i].equals("-stepping")) {
+            stepping = MiscUtils.atoi(args[++i], stepping);
+        } else if(args[i].equals("-verbose")) {
+            verbose = true;
+        }
+      }
+      org.junit.runner.JUnitCore.main(TestBinary16NOUI.class.getName());
+  }
+
 }
