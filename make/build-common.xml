@@ -280,6 +280,7 @@
         <property name="jogl-glmobile-dbg.jar"          value="${build.jogl}/jogl-glmobile-dbg.jar" />
         <property name="jogl-util.jar"                  value="${build.jogl}/jogl-util.jar" />
         <property name="jogl-util-graph.jar"            value="${build.jogl}/jogl-util-graph.jar" />
+        <property name="jogl-util-graph-fonts-p0.jar"   value="${build.jogl}/jogl-fonts-p0.jar" />
         <property name="jogl-util-fixedfuncemu.jar"     value="${build.jogl}/jogl-util-fixedfuncemu.jar" />
         <property name="jogl-awt.jar"                   value="${build.jogl}/jogl-awt.jar" />
         <property name="jogl-swt.jar"                   value="${build.jogl}/jogl-swt.jar" />

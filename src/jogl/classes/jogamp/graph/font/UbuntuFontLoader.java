@@ -28,22 +28,33 @@
 package jogamp.graph.font;
 
 import java.io.IOException;
-import javax.media.opengl.GLException;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.common.util.IOUtil;
-
+import com.jogamp.common.util.JarUtil;
+import com.jogamp.common.util.cache.TempJarCache;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.font.FontFactory;
+
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLConnection;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 public class UbuntuFontLoader implements FontSet {
 
     // FIXME: Add cache size to limit memory usage
     private static final IntObjectHashMap fontMap = new IntObjectHashMap();
 
-    private static final String relPath = "fonts/ubuntu/" ;
+    private static final String jarSubDir = "atomic/" ;
+    private static final String jarName = "jogl-fonts-p0.jar" ;
+
+    private static final String relFontPath = "fonts/ubuntu/" ;
+    private static final String absFontPath = "jogamp/graph/font/fonts/ubuntu/" ;
 
     private static final FontSet fontLoader = new UbuntuFontLoader();
 
@@ -120,21 +131,77 @@ public class UbuntuFontLoader implements FontSet {
         return font;
     }
 
-    Font abspath(String fname, int family, int style) throws IOException {
-        final String err = "Problem loading font "+fname+", stream "+relPath+fname;
+    private static boolean attemptedJARLoading = false;
+    private static boolean useTempJarCache = false;
+
+    private synchronized Font abspath(String fname, int family, int style) throws IOException {
+        final String err = "Problem loading font "+fname+", stream "+relFontPath+fname;
+        final Exception[] privErr = { null };
         try {
-            URLConnection conn = IOUtil.getResource(UbuntuFontLoader.class, relPath+fname);
-            if(null == conn) {
-                throw new GLException(err);
+            final Font f0 = abspathImpl(fname, family, style);
+            if(null != f0) {
+                return f0;
             }
+            if( !attemptedJARLoading ) {
+                attemptedJARLoading = true;
+                Platform.initSingleton();
+                if( TempJarCache.isInitialized() ) {
+                    final URI uri = JarUtil.getRelativeOf(UbuntuFontLoader.class, jarSubDir, jarName);
+                    AccessController.doPrivileged(new PrivilegedAction<Object>() {
+                        @Override
+                        public Object run() {
+                            try {
+                                TempJarCache.addResources(UbuntuFontLoader.class, uri);
+                            } catch (Exception e) { privErr[0] = e; }
+                            return null;
+                        } } );
+                    if( null == privErr[0] ) {
+                        useTempJarCache = true;
+                        final Font f1 = abspathImpl(fname, family, style);
+                        if(null != f1) {
+                            return f1;
+                        }
+                    }
+                }
+            }
+        } catch(Exception e) {
+            throw new IOException(err, e);
+        }
+        if( null != privErr[0] ) {
+            throw new IOException(err, privErr[0]);
+        }
+        throw new IOException(err);
+    }
+    private Font abspathImpl(final String fname, final int family, final int style) throws IOException {
+        final URLConnection conn;
+        if( useTempJarCache ) {
+            // this code-path throws .. all exceptions
+            final Exception[] privErr = { null };
+            final URLConnection[] privConn = { null };
+            AccessController.doPrivileged(new PrivilegedAction<Object>() {
+                @Override
+                public Object run() {
+                    try {
+                        final URI uri = TempJarCache.getResource(absFontPath+fname);
+                        privConn[0] = null != uri ? uri.toURL().openConnection() : null;
+                    } catch (Exception e) { privErr[0] = e; }
+                    return null;
+                } } );
+            if( null != privErr[0] ) {
+                throw new IOException(privErr[0]);
+            }
+            conn = privConn[0];
+        } else {
+            // no exceptions ..
+            conn = IOUtil.getResource(UbuntuFontLoader.class, relFontPath+fname);
+        }
+        if(null != conn) {
             final Font f= FontFactory.get ( conn ) ;
             if(null != f) {
                 fontMap.put( ( family << 8 ) | style, f );
                 return f;
             }
-            throw new IOException(err);
-        } catch(IOException ioe) {
-            throw new IOException(err, ioe);
         }
+        return null;
     }
 }

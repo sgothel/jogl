@@ -1837,7 +1837,12 @@
         </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-util-graph.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.util.graph}"/>
+                     includes="${java.part.util.graph}"
+                     excludes="${java.part.util.graph.fonts}"/>
+        </jar>
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-util-graph-fonts-p0.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.util.graph.fonts}"/>
         </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-util-fixedfuncemu.jar}" filesonly="true">
             <fileset dir="${classes}"
