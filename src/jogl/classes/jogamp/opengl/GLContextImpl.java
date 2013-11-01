@@ -1638,9 +1638,11 @@ public abstract class GLContextImpl extends GLContext {
 
     final String MesaSP = "Mesa ";
     // final String MesaRendererAMDsp = " AMD ";
-    // final String MesaRendererIntelsp = "Intel(R)";
+    final String MesaRendererIntelsp = "Intel(R)";
     final boolean hwAccel = 0 == ( ctp & GLContext.CTX_IMPL_ACCEL_SOFT );
     final boolean compatCtx = 0 != ( ctp & GLContext.CTX_PROFILE_COMPAT );
+    final boolean isX11 = NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true);
+    final boolean isWindows = Platform.getOSType() == Platform.OSType.WINDOWS;
     final boolean isDriverMesa = glRenderer.contains(MesaSP) || glRenderer.contains("Gallium ");
     final boolean isDriverATICatalyst = !isDriverMesa && ( glVendor.contains("ATI Technologies") || glRenderer.startsWith("ATI ") );
     final boolean isDriverNVIDIAGeForce = !isDriverMesa && ( glVendor.contains("NVIDIA Corporation") || glRenderer.contains("NVIDIA ") );
@@ -1687,7 +1689,7 @@ public abstract class GLContextImpl extends GLContext {
                 quirks[i++] = quirk;
             }
         }
-    } else if( Platform.getOSType() == Platform.OSType.WINDOWS ) {
+    } else if( isWindows ) {
         //
         // WINDOWS
         //
@@ -1731,12 +1733,19 @@ public abstract class GLContextImpl extends GLContext {
             }
             quirks[i++] = quirk;
         }
+        if( glRenderer.contains("Immersion.16") ) {
+          final int quirk = GLRendererQuirks.GLSharedContextBuggy;
+          if(DEBUG) {
+              System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType() + " / Renderer " + glRenderer);
+          }
+          quirks[i++] = quirk;
+        }
     }
 
     //
     // Windowing Toolkit related quirks
     //
-    if( NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true) ) {
+    if( isX11 ) {
         //
         // X11
         //
@@ -1775,6 +1784,8 @@ public abstract class GLContextImpl extends GLContext {
     // RENDERER related quirks
     //
     if( isDriverMesa ) {
+        final VersionNumber mesaIntelBuggySharedCtx921 = new VersionNumber(9, 2, 1);
+
         {
             final int quirk = GLRendererQuirks.NoSetSwapIntervalPostRetarget;
             if(DEBUG) {
@@ -1798,8 +1809,15 @@ public abstract class GLContextImpl extends GLContext {
           }
           quirks[i++] = quirk;
         }
-        if( Platform.getOSType() == Platform.OSType.WINDOWS && glRenderer.contains("SVGA3D") )
-        {
+        if( glRenderer.contains( MesaRendererIntelsp ) &&
+            vendorVersion.compareTo(mesaIntelBuggySharedCtx921) >= 0 && isX11 ) {
+          final int quirk = GLRendererQuirks.GLSharedContextBuggy;
+          if(DEBUG) {
+              System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: X11 / Renderer " + glRenderer + " / Mesa-Version "+vendorVersion);
+          }
+          quirks[i++] = quirk;
+        }
+        if( isWindows && glRenderer.contains("SVGA3D") ) {
             final VersionNumber mesaSafeFBOVersion = new VersionNumber(8, 0, 0);
             if ( vendorVersion.compareTo(mesaSafeFBOVersion) < 0 ) { // includes: vendorVersion.isZero()
                 final int quirk = GLRendererQuirks.NoFullFBOSupport;

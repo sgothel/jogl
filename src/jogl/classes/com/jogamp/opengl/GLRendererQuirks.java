@@ -192,21 +192,58 @@ public class GLRendererQuirks {
     public static final int GLSLNonCompliant = 12;
 
     /**
-     * GL4 context needs to be requested via GL3
+     * GL4 context needs to be requested via GL3 profile attribute
      * <ul>
      *   <li>OSX >= 10.9.0 - kCGLOGLPVersion_GL4_Core may not produce hw-accel context. Bug 867 @ https://jogamp.org/bugzilla/.</li>
      * </ul>
      */
     public static final int GL4NeedsGL3Request = 13;
 
+    /**
+     * Buggy shared OpenGL context support within a multithreaded use-case, not suitable for stable usage.
+     * <p>
+     * <i>X11 Mesa DRI Intel(R) driver >= 9.2.1</i> cannot handle multithreaded shared GLContext usage
+     * with non-blocking exclusive X11 display connections.
+     * References:
+     * <ul>
+     *    <li>Bug 873: https://jogamp.org/bugzilla/show_bug.cgi?id=873</li>
+     *    <li>https://bugs.freedesktop.org/show_bug.cgi?id=41736#c8</li>
+     * </ul>
+     * <p>
+     * However, not all multithreaded use-cases are broken, e.g. our GLMediaPlayer does work.
+     * </p>
+     * The above has been confirmed for the following Mesa 9.* strings:
+     * <ul>
+     *    <li>GL_VENDOR      Intel Open Source Technology Center</li>
+     *    <li>GL_RENDERER    Mesa DRI Intel(R) Sandybridge Desktop</li>
+     *    <li>GL_RENDERER    Mesa DRI Intel(R) Ivybridge Mobile</li>
+     *    <li>GL_VERSION     3.1 (Core Profile) Mesa 9.2.1</li>
+     * </ul>
+     * </p>
+     * <p>
+     * On Android 4.*, <i>Huawei's Ascend G615 w/ Immersion.16</i> could not make a shared context
+     * current, which uses a pbuffer drawable:
+     * <ul>
+     *    <li>Android 4.*</li>
+     *    <li>GL_VENDOR      Hisilicon Technologies</li>
+     *    <li>GL_RENDERER    Immersion.16</li>
+     *    <li>GL_VERSION     OpenGL ES 2.0</li>
+     * </ul>
+     * </p>
+     * <p>
+     * </p>
+     */
+    public static final int GLSharedContextBuggy = 14;
+
     /** Number of quirks known. */
-    public static final int COUNT = 14;
+    public static final int COUNT = 15;
 
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
                                                           "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard",
                                                           "GLNonCompliant", "GLFlushBeforeRelease", "DontCloseX11Display",
                                                           "NeedCurrCtx4ARBPixFmtQueries", "NeedCurrCtx4ARBCreateContext",
-                                                          "NoFullFBOSupport", "GLSLNonCompliant", "GL4NeedsGL3Request"
+                                                          "NoFullFBOSupport", "GLSLNonCompliant", "GL4NeedsGL3Request",
+                                                          "GLSharedContextBuggy"
                                                         };
 
     private static final IdentityHashMap<String, GLRendererQuirks> stickyDeviceQuirks = new IdentityHashMap<String, GLRendererQuirks>();
