@@ -81,7 +81,7 @@ function jrun() {
     swton=$1
     shift
 
-    D_ARGS="-Djogl.debug.DebugGL"
+    #D_ARGS="-Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL"
     #D_ARGS="-Dnativewindow.debug.X11Util.ATI_HAS_NO_XCLOSEDISPLAY_BUG"
@@ -374,7 +374,8 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMapBufferRead01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestBug669RecursiveGLContext01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestBug669RecursiveGLContext02NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestBug692GL3VAONEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestBug692GL3VAONEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestCPUSourcingAPINEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLExtensionQueryOffscreen $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT $*

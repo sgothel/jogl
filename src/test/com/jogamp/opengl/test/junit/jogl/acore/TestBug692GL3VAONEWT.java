@@ -33,7 +33,6 @@ import java.nio.ShortBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.media.opengl.DebugGL3;
 import javax.media.opengl.GL3;
 import javax.media.opengl.GL3bc;
 import javax.media.opengl.GLAutoDrawable;
@@ -237,8 +236,6 @@ public class TestBug692GL3VAONEWT extends UITestCase {
 
         @Override
         public void init(GLAutoDrawable drawable) {
-            drawable.setGL(new DebugGL3(drawable.getGL().getGL3()));
-
             final GL3 gl = drawable.getGL().getGL3();
             gl.glEnable(GL3.GL_DEPTH_TEST);
             gl.glDisable(GL3.GL_CULL_FACE);
