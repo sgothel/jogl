@@ -716,8 +716,15 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_initWindow0
         rectWin = NSMakeRect(x, y, w, h);
     }
 
-    [myWindow setReleasedWhenClosed: YES]; // default
+    [myWindow setReleasedWhenClosed: NO]; // We control NSWindow destruction!
     [myWindow setPreservesContentDuringLiveResize: NO];
+NS_DURING
+        if ( [myWindow respondsToSelector:@selector(setRestorable:)] ) {
+            // Available >= 10.7 - Removes restauration 'feature', really close
+            [myWindow setRestorable: NO];
+        }
+NS_HANDLER
+NS_ENDHANDLER
 
     NSObject* nsParentObj = (NSObject*) ((intptr_t) parent);
     NSWindow* parentWindow = NULL;
@@ -857,8 +864,19 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_close0
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NewtMacWindow* mWin = (NewtMacWindow*) ((intptr_t) window);
+    if( NULL == mWin ) {
+        DBG_PRINT( "windowClose.0 - NULL NEWT win - abort\n");
+        return;
+    }
+    BOOL isNSWin = [mWin isKindOfClass:[NSWindow class]];
+    BOOL isNewtWin = [mWin isKindOfClass:[NewtMacWindow class]];
+    NSWindow *pWin = [mWin parentWindow];
+    DBG_PRINT( "windowClose.0 - %p [isNSWindow %d, isNewtWin %d], parent %p\n", mWin, isNSWin, isNewtWin, pWin);
+    if( !isNewtWin ) {
+        DBG_PRINT( "windowClose.0 - Not a NEWT win - abort\n");
+        return;
+    }
     NewtView* mView = (NewtView *)[mWin contentView];
-    NSWindow* pWin = [mWin parentWindow];
     BOOL destroyNotifySent, isNSView, isNewtView;
     if( NULL != mView ) {
         isNSView = [mView isKindOfClass:[NSView class]];
@@ -905,11 +923,7 @@ NS_ENDHANDLER
 
     DBG_PRINT( "windowClose.1 - %p view %p, parent %p\n", mWin, mView, pWin);
 
-    // Only release window, if release is not yet in process.
-    // E.g. destroyNotifySent:=true set by NewtMacWindow::windowWillClose(), i.e. window-close was clicked.
-    if(!destroyNotifySent) { 
-        [mWin release];
-    }
+    [mWin release];
 
     DBG_PRINT( "windowClose.Xp\n");
 
