@@ -314,7 +314,7 @@ private final boolean checkBufferObject(boolean extensionAvail,
         return true;
     }
     if ( allowVAO ) {
-        buffer = bufferStateTracker.getBoundBufferObject(GL2GL3.GL_VERTEX_ARRAY_BINDING, this);
+        buffer = bufferStateTracker.getBoundBufferObject(GL2ES3.GL_VERTEX_ARRAY_BINDING, this);
         if( 0 != buffer && _context.getDefaultVAO() != buffer ) {
             return true;
         }

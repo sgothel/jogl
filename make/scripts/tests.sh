@@ -81,13 +81,14 @@ function jrun() {
     swton=$1
     shift
 
+    D_ARGS="-Djogl.debug.DebugGL"
+    #D_ARGS="-Djogl.debug.TraceGL"
+    #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL"
     #D_ARGS="-Dnativewindow.debug.X11Util.ATI_HAS_NO_XCLOSEDISPLAY_BUG"
     #D_ARGS="-Dnativewindow.debug.X11Util.ATI_HAS_NO_MULTITHREADING_BUG"
     #D_ARGS="-Djogl.disable.opengles"
     #D_ARGS="-Djogl.debug.DebugGL -Dnewt.debug.Window"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.FBObject"
-    #D_ARGS="-Djogl.debug.TraceGL"
-    #D_ARGS="-Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.FBObject -Djogl.debug.TraceGL -Djogl.debug.GLBufferStateTracker"
     #D_ARGS="-Djogl.debug.FBObject"
     #D_ARGS="-Djogl.debug.GLSLCode"
@@ -373,7 +374,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMapBufferRead01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestBug669RecursiveGLContext01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestBug669RecursiveGLContext02NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestBug692GL3VAO $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestBug692GL3VAONEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLExtensionQueryOffscreen $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT $*
@@ -557,7 +558,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestBug605FlippedImageAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.glsl.TestShaderCompilationBug459AWT
 
-testnoawt com.jogamp.opengl.test.junit.newt.DemoCreateAndDisposeOnCloseNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.DemoCreateAndDisposeOnCloseNEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.DemoCreateAndDisposeOnCloseNEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestCloseNewtAWT
 #testawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol01AWT $*

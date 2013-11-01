@@ -35,6 +35,7 @@ import java.util.logging.Logger;
 
 import javax.media.opengl.DebugGL3;
 import javax.media.opengl.GL3;
+import javax.media.opengl.GL3bc;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLEventListener;
@@ -55,38 +56,56 @@ import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLBuffers;
 
 /**
- * Test Vertex Array Object (VAO) Usage.
+ * Test Vertex Array Object (VAO) Usage and BufferStateTracker
  * <p>
- * testGL3() tests VAO alone, i.e. w/o VBO enable/disabling.
+ * All combinations of CPU_SRC, VBO_ONLY and VBO_VAO are tested
+ * and validate the fix for Bug 692, i.e. <https://jogamp.org/bugzilla/show_bug.cgi?id=692>.
  * </p>
  * <p>
- * testGL3bc() tests VAO and VBO while alternating between both methods.
+ * Test order is important!
+ * </p>
+ * <p>
+ * Note that VAO initialization does unbind the VBO .. since otherwise they are still bound
+ * and the CPU_SRC test will fail!<br/>
+ * The OpenGL spec does not mention that unbinding a VAO will also unbind the bound VBOs
+ * during their setup.<br/>
+ * Local tests here on NV and AMD proprietary driver resulted in <i>no ourput image</i>
+ * when not unbinding said VBOs before the CPU_SRC tests.<br/>
+ * Hence Bug 692 Comment 5 is invalid, i.e. <https://jogamp.org/bugzilla/show_bug.cgi?id=692#c5>,
+ * and we should throw an exception to give users a hint!
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestBug692GL3VAO extends UITestCase {
+public class TestBug692GL3VAONEWT extends UITestCase {
     static long duration = 500; // ms
 
     static class GL3VAODemo implements GLEventListener {
         /** Different modes of displaying the geometry */
         public enum Mode {
-            /** Traditional one without using VAO */
-            NON_VAO {
+            CPU_SRC {
                 @Override
-                void display(GL3VAODemo t, GL3 gl) {
-                    t.displayNonVAO(gl);
+                void display(GL3VAODemo t, GL3bc gl) {
+                    t.displayCPUSourcing(gl);
+                }
+            },
+
+            /** Traditional one without using VAO */
+            VBO_ONLY {
+                @Override
+                void display(GL3VAODemo t, GL3bc gl) {
+                    t.displayVBOOnly(gl);
                 }
             },
 
             /** Using VAOs throws [incorrectly as of JOGL 2.0rc11] a GLException */
-            VAO_NORMAL {
+            VBO_VAO {
                 @Override
-                void display(GL3VAODemo t, GL3 gl) {
-                    t.displayVAONormal(gl);
+                void display(GL3VAODemo t, GL3bc gl) {
+                    t.displayVBOVAO(gl);
                 }
             };
 
-            abstract void display(GL3VAODemo t, GL3 gl);
+            abstract void display(GL3VAODemo t, GL3bc gl);
         }
 
         private final Mode[] allModes;
@@ -99,11 +118,16 @@ public class TestBug692GL3VAO extends UITestCase {
             currentModeIdx = 0;
         }
 
-        private final static float[] vertexData = new float[]{
+        private final static float[] vertexColorData = new float[]{
              0.0f,  0.75f, 0.0f,  1,0,0,
             -0.5f, -0.75f, 0.0f,  0,1,0,
              0.9f, -0.75f, 0.0f,  0,0,1
         };
+        private final FloatBuffer vertexColorDataBuffer = GLBuffers.newDirectFloatBuffer(vertexColorData);
+
+        private final short[] indices = new short[]{0, 1, 2};
+        private final ShortBuffer indicesBuffer = GLBuffers.newDirectShortBuffer(indices);
+
 
         private int ibo = -1;
         private int vbo = -1;
@@ -111,7 +135,7 @@ public class TestBug692GL3VAO extends UITestCase {
         private int fragID = -1;
         private int progID = -1;
 
-        private int vaoNormal  = -1;
+        private int vao  = -1;
 
         private static int createShader(final GL3 gl, int type,
                 final String[] srcLines){
@@ -135,21 +159,16 @@ public class TestBug692GL3VAO extends UITestCase {
 
             // Bind buffer and upload data
             gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, vbo);
-            FloatBuffer buffer = GLBuffers.newDirectFloatBuffer(vertexData);
-            assert buffer.remaining() == vertexData.length;
-            gl.glBufferData(GL3.GL_ARRAY_BUFFER, vertexData.length * Buffers.SIZEOF_FLOAT,
-                    buffer, GL3.GL_STATIC_DRAW);
+            gl.glBufferData(GL3.GL_ARRAY_BUFFER, vertexColorData.length * Buffers.SIZEOF_FLOAT,
+                            vertexColorDataBuffer, GL3.GL_STATIC_DRAW);
             gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, 0);
 
             // Buffer with the 3 indices required for one triangle
             ibo = buffArray[1];
             assert ibo > 0;
-            final short[] indices = new short[]{0, 1, 2};
-            ShortBuffer shortBuffer = GLBuffers.newDirectShortBuffer(indices);
-            assert shortBuffer.remaining() == indices.length;
             gl.glBindBuffer(GL3.GL_ELEMENT_ARRAY_BUFFER, ibo);
             gl.glBufferData(GL3.GL_ELEMENT_ARRAY_BUFFER,indices.length*Buffers.SIZEOF_SHORT,
-                    shortBuffer, GL3.GL_STATIC_DRAW);
+                            indicesBuffer, GL3.GL_STATIC_DRAW);
             gl.glBindBuffer(GL3.GL_ELEMENT_ARRAY_BUFFER, 0);
         }
         private void initShaders(GL3 gl) {
@@ -210,6 +229,9 @@ public class TestBug692GL3VAO extends UITestCase {
             gl.glVertexAttribPointer(colorLoc,3, GL3.GL_FLOAT, false, stride, cOff);
 
             gl.glBindVertexArray(0);
+            // See class documentation above!
+            gl.glBindBuffer(GL3.GL_ARRAY_BUFFER, 0);
+            gl.glBindBuffer(GL3.GL_ELEMENT_ARRAY_BUFFER, 0);
             return vao;
         }
 
@@ -223,7 +245,7 @@ public class TestBug692GL3VAO extends UITestCase {
             initBuffers(gl);
             initShaders(gl);
 
-            vaoNormal  = initVAO(gl);
+            vao  = initVAO(gl);
 
             gl.setSwapInterval(1);
         }
@@ -239,7 +261,26 @@ public class TestBug692GL3VAO extends UITestCase {
             gl.glDeleteShader(vertID);
         }
 
-        private void displayNonVAO(final GL3 gl) {
+        private void displayCPUSourcing(final GL3bc gl) {
+            final int posLoc    = gl.glGetAttribLocation(progID, "vPosition");
+            final int colorLoc = gl.glGetAttribLocation(progID, "vColor");
+            gl.glEnableVertexAttribArray(posLoc);
+            gl.glEnableVertexAttribArray(colorLoc);
+
+            final int stride = 6 * Buffers.SIZEOF_FLOAT;
+            // final int cOff   = 3 * Buffers.SIZEOF_FLOAT;
+            gl.glVertexAttribPointer(posLoc,  3, GL3.GL_FLOAT, false, stride, vertexColorDataBuffer);
+            vertexColorDataBuffer.position(3); // move to cOff
+            gl.glVertexAttribPointer(colorLoc,3, GL3.GL_FLOAT, false, stride, vertexColorDataBuffer);
+            vertexColorDataBuffer.position(0); // rewind cOff
+
+            gl.glDrawElements(GL3.GL_TRIANGLES, 3, GL3.GL_UNSIGNED_SHORT, indicesBuffer);
+
+            gl.glDisableVertexAttribArray(posLoc);
+            gl.glDisableVertexAttribArray(colorLoc);
+        }
+
+        private void displayVBOOnly(final GL3 gl) {
            final int posLoc    = gl.glGetAttribLocation(progID, "vPosition");
             final int colorLoc = gl.glGetAttribLocation(progID, "vColor");
             gl.glEnableVertexAttribArray(posLoc);
@@ -259,19 +300,19 @@ public class TestBug692GL3VAO extends UITestCase {
             gl.glBindBuffer(GL3.GL_ELEMENT_ARRAY_BUFFER, 0);
         }
 
-        private void displayVAONormal(final GL3 gl) {
+        private void displayVBOVAO(final GL3 gl) {
             try {
-                gl.glBindVertexArray(vaoNormal);
+                gl.glBindVertexArray(vao);
                 gl.glDrawElements(GL3.GL_TRIANGLES, 3, GL3.GL_UNSIGNED_SHORT, 0L);
                 gl.glBindVertexArray(0);
             } catch (GLException ex) {
-                Logger.getLogger(TestBug692GL3VAO.class.getName()).log(Level.SEVERE,null,ex);
+                Logger.getLogger(TestBug692GL3VAONEWT.class.getName()).log(Level.SEVERE,null,ex);
             }
         }
 
         @Override
         public void display(GLAutoDrawable drawable) {
-            final GL3 gl = drawable.getGL().getGL3();
+            final GL3bc gl = drawable.getGL().getGL3bc();
             float color = ((float) currentMode.ordinal() + 1) / (Mode.values().length + 2);
             gl.glClearColor(color, color, color, 0);
             gl.glClear(GL3.GL_COLOR_BUFFER_BIT | GL3.GL_DEPTH_BUFFER_BIT);
@@ -321,23 +362,73 @@ public class TestBug692GL3VAO extends UITestCase {
         glWindow.destroy();
     }
 
-    //@Test
-    public void testGL3() throws GLException, InterruptedException {
-        if( ! GLProfile.isAvailable(GLProfile.GL3) ) {
-            System.err.println("GL3 n/a");
-            return;
-        }
-        GL3VAODemo.Mode[] modes = new GL3VAODemo.Mode[] { GL3VAODemo.Mode.VAO_NORMAL };
-        testImpl(GLProfile.get(GLProfile.GL3), modes);
-    }
-
     @Test
-    public void testGL3bc() throws GLException, InterruptedException {
+    public void test01CPUSource() throws GLException, InterruptedException {
         if( ! GLProfile.isAvailable(GLProfile.GL3bc) ) {
             System.err.println("GL3bc n/a");
             return;
         }
-        GL3VAODemo.Mode[] modes = new GL3VAODemo.Mode[] { GL3VAODemo.Mode.VAO_NORMAL, GL3VAODemo.Mode.NON_VAO };
+        GL3VAODemo.Mode[] modes = new GL3VAODemo.Mode[] { GL3VAODemo.Mode.CPU_SRC };
+        testImpl(GLProfile.get(GLProfile.GL3bc), modes);
+    }
+
+    @Test
+    public void test02VBOOnly() throws GLException, InterruptedException {
+        if( ! GLProfile.isAvailable(GLProfile.GL3bc) ) {
+            System.err.println("GL3bc n/a");
+            return;
+        }
+        GL3VAODemo.Mode[] modes = new GL3VAODemo.Mode[] { GL3VAODemo.Mode.VBO_ONLY };
+        testImpl(GLProfile.get(GLProfile.GL3bc), modes);
+    }
+
+    @Test
+    public void test03VBOVAO() throws GLException, InterruptedException {
+        if( ! GLProfile.isAvailable(GLProfile.GL3bc) ) {
+            System.err.println("GL3bc n/a");
+            return;
+        }
+        GL3VAODemo.Mode[] modes = new GL3VAODemo.Mode[] { GL3VAODemo.Mode.VBO_VAO };
+        testImpl(GLProfile.get(GLProfile.GL3bc), modes);
+    }
+
+    @Test
+    public void test12CPUSourceAndVBOOnly() throws GLException, InterruptedException {
+        if( ! GLProfile.isAvailable(GLProfile.GL3bc) ) {
+            System.err.println("GL3bc n/a");
+            return;
+        }
+        GL3VAODemo.Mode[] modes = new GL3VAODemo.Mode[] { GL3VAODemo.Mode.CPU_SRC, GL3VAODemo.Mode.VBO_ONLY };
+        testImpl(GLProfile.get(GLProfile.GL3bc), modes);
+    }
+
+    @Test
+    public void test13CPUSourceAndVBOVAO() throws GLException, InterruptedException {
+        if( ! GLProfile.isAvailable(GLProfile.GL3bc) ) {
+            System.err.println("GL3bc n/a");
+            return;
+        }
+        GL3VAODemo.Mode[] modes = new GL3VAODemo.Mode[] { GL3VAODemo.Mode.CPU_SRC, GL3VAODemo.Mode.VBO_VAO };
+        testImpl(GLProfile.get(GLProfile.GL3bc), modes);
+    }
+
+    @Test
+    public void test23VBOOnlyAndVBOVAO() throws GLException, InterruptedException {
+        if( ! GLProfile.isAvailable(GLProfile.GL3bc) ) {
+            System.err.println("GL3bc n/a");
+            return;
+        }
+        GL3VAODemo.Mode[] modes = new GL3VAODemo.Mode[] { GL3VAODemo.Mode.VBO_ONLY, GL3VAODemo.Mode.VBO_VAO };
+        testImpl(GLProfile.get(GLProfile.GL3bc), modes);
+    }
+
+    @Test
+    public void test88AllModes() throws GLException, InterruptedException {
+        if( ! GLProfile.isAvailable(GLProfile.GL3bc) ) {
+            System.err.println("GL3bc n/a");
+            return;
+        }
+        GL3VAODemo.Mode[] modes = new GL3VAODemo.Mode[] { GL3VAODemo.Mode.CPU_SRC, GL3VAODemo.Mode.VBO_ONLY, GL3VAODemo.Mode.VBO_VAO };
         testImpl(GLProfile.get(GLProfile.GL3bc), modes);
     }
 
@@ -347,7 +438,7 @@ public class TestBug692GL3VAO extends UITestCase {
                 duration = MiscUtils.atoi(args[++i], (int)duration);
             }
         }
-        String tstname = TestBug692GL3VAO.class.getName();
+        String tstname = TestBug692GL3VAONEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

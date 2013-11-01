@@ -101,11 +101,12 @@ public class GLBufferSizeTracker {
   // objects, which is probably sub-optimal. The expected usage
   // pattern of buffer objects indicates that the fact that this map
   // never shrinks is probably not that bad.
-  private IntLongHashMap bufferSizeMap;
+  private final IntLongHashMap bufferSizeMap;
+  private final long keyNotFount = 0xFFFFFFFFFFFFFFFFL;
 
   public GLBufferSizeTracker() {
       bufferSizeMap = new IntLongHashMap();
-      bufferSizeMap.setKeyNotFoundValue(0xFFFFFFFFFFFFFFFFL);
+      bufferSizeMap.setKeyNotFoundValue(keyNotFount);
   }
 
   public final void setBufferSize(GLBufferStateTracker bufferStateTracker,
@@ -142,7 +143,7 @@ public class GLBufferSizeTracker {
     if (DEBUG) {
       System.err.println("GLBufferSizeTracker.getBufferSize(): no cached buffer information");
     }
-    return (long) tmp[0];
+    return tmp[0];
   }
 
   public final long getDirectStateBufferSize(int buffer, GL caller) {
@@ -154,7 +155,7 @@ public class GLBufferSizeTracker {
       // point we almost certainly should if the application is
       // written correctly
       long sz = bufferSizeMap.get(buffer);
-      if (0xFFFFFFFFFFFFFFFFL == sz) {
+      if (keyNotFount == sz) {
         // For robustness, try to query this value from the GL as we used to
         // FIXME: both functions return 'int' types, which is not suitable,
         // since buffer lenght is 64bit ?
@@ -176,7 +177,7 @@ public class GLBufferSizeTracker {
                                 " was zero; probably application error");
         }
         // Assume we just don't know what's happening
-        sz = (long) tmp[0];
+        sz = tmp[0];
         bufferSizeMap.put(buffer, sz);
         if (DEBUG) {
           System.err.println("GLBufferSizeTracker.getBufferSize(): made slow query to cache size " +

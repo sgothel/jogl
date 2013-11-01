@@ -41,6 +41,7 @@
 package jogamp.opengl;
 
 import javax.media.opengl.*;
+
 import com.jogamp.common.util.IntIntHashMap;
 
 /**
@@ -88,16 +89,17 @@ public class GLBufferStateTracker {
   // known that no buffer is bound to the target, according to the
   // OpenGL specifications.
   // http://www.opengl.org/sdk/docs/man/xhtml/glBindBuffer.xml
-  private IntIntHashMap bindingMap;
+  private final IntIntHashMap bindingMap;
+  private final int keyNotFound = 0xFFFFFFFF;
 
-  private int[] bufTmp = new int[1];
+  private final int[] bufTmp = new int[1];
 
   public GLBufferStateTracker() {
     bindingMap = new IntIntHashMap();
-    bindingMap.setKeyNotFoundValue(0xFFFFFFFF);
+    bindingMap.setKeyNotFoundValue(keyNotFound);
 
     // Start with known unbound targets for known keys
-    // setBoundBufferObject(GL2GL3.GL_VERTEX_ARRAY_BINDING, 0); // not using default VAO (removed in GL3 core) - only explicit
+    // setBoundBufferObject(GL2ES3.GL_VERTEX_ARRAY_BINDING, 0); // not using default VAO (removed in GL3 core) - only explicit
     setBoundBufferObject(GL.GL_ARRAY_BUFFER,         0);
     setBoundBufferObject(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
     setBoundBufferObject(GL2.GL_PIXEL_PACK_BUFFER,   0);
@@ -107,6 +109,22 @@ public class GLBufferStateTracker {
 
   public final void setBoundBufferObject(int target, int value) {
     bindingMap.put(target, value);
+    /***
+     * Test for clearing bound buffer states when unbinding VAO,
+     * Bug 692 Comment 5 is invalid, i.e. <https://jogamp.org/bugzilla/show_bug.cgi?id=692#c5>.
+     * However spec doesn't mention such behavior, and rendering w/ CPU sourced data
+     * after unbinding a VAO w/o unbinding the VBOs resulted to no visible image.
+     * Leaving code in here for discussion - in case I am wrong.
+     *
+    final int pre = bindingMap.put(target, value);
+    if( GL2ES3.GL_VERTEX_ARRAY_BINDING == target && keyNotFound != pre && 0 == value ) {
+        // Unbinding a previous bound VAO leads to unbinding of all buffers!
+        bindingMap.put(GL.GL_ARRAY_BUFFER,         0);
+        bindingMap.put(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
+        bindingMap.put(GL2.GL_PIXEL_PACK_BUFFER,   0);
+        bindingMap.put(GL2.GL_PIXEL_UNPACK_BUFFER, 0);
+        bindingMap.put(GL4.GL_DRAW_INDIRECT_BUFFER, 0);
+    } */
     if (DEBUG) {
       System.err.println("GLBufferStateTracker.setBoundBufferObject() target 0x" +
                          Integer.toHexString(target) + " -> mapped bound buffer 0x" +
@@ -121,14 +139,14 @@ public class GLBufferStateTracker {
       return value is valid. */
   public final int getBoundBufferObject(int target, GL caller) {
     int value = bindingMap.get(target);
-    if (0xFFFFFFFF == value) {
+    if (keyNotFound == value) {
       // User probably either called glPushClientAttrib /
       // glPopClientAttrib or is querying an unknown target. See
       // whether we know how to fetch this state.
       boolean gotQueryTarget = true;
       int queryTarget = 0;
       switch (target) {
-        case GL2GL3.GL_VERTEX_ARRAY_BINDING: queryTarget = GL2GL3.GL_VERTEX_ARRAY_BINDING;  break;
+        case GL2ES3.GL_VERTEX_ARRAY_BINDING: queryTarget = GL2ES3.GL_VERTEX_ARRAY_BINDING;  break;
         case GL.GL_ARRAY_BUFFER:          queryTarget = GL.GL_ARRAY_BUFFER_BINDING;         break;
         case GL.GL_ELEMENT_ARRAY_BUFFER:  queryTarget = GL.GL_ELEMENT_ARRAY_BUFFER_BINDING; break;
         case GL2.GL_PIXEL_PACK_BUFFER:    queryTarget = GL2.GL_PIXEL_PACK_BUFFER_BINDING;    break;
