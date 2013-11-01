@@ -56,6 +56,11 @@ import android.view.Surface;
  * Android implementation utilizes API level 14 (4.0.? ICS) features
  * as listed below.
  * <p>
+ * Implementation is single threaded only, since we are not able to utilize multiple textures.
+ * We would need to add an implementation for API level 16 using MediaCodec/MediaExtractor
+ * to expose multithreading on multiple surface/textures.
+ * </p>
+ * <p>
  * We utilize the {@link MediaPlayer} with direct to texture streaming.
  * The MediaPlayer uses <code>libstagefright</code> to access the OpenMAX AL implementation
  * for hardware decoding.
@@ -248,8 +253,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final void initStreamImpl(int vid, int aid) throws IOException {
-
+    protected final void initStreamImpl(final int vid, final int aid) throws IOException {
         if( null == streamLoc ) {
             return;
         }
@@ -297,6 +301,21 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                              mp.getVideoWidth(), mp.getVideoHeight(), 0,
                              0, 0, 0f,
                              0, 0, mp.getDuration(), icodec, icodec);
+            /**
+                mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                    @Override
+                    public void onPrepared(final MediaPlayer mp) {
+                        final int r_aid = GLMediaPlayer.STREAM_ID_NONE == aid ? GLMediaPlayer.STREAM_ID_NONE : 1; // fake
+                        final String icodec = "android";
+                        updateAttributes(0, r_aid, // fake
+                                         mp.getVideoWidth(), mp.getVideoHeight(), 0,
+                                         0, 0, 0f,
+                                         0, 0, mp.getDuration(), icodec, icodec);
+                    }
+                });
+                mp.prepareAsync();
+             *
+             */
         } else if( null != cam ) {
             final String icodec = "android";
             final int[] fpsRange = { 0, 0 };
@@ -336,23 +355,20 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     /**
      * {@inheritDoc}
      * <p>
-     * Returns 2 - implementation duplicates single texture
+     * Returns {@link #TEXTURE_COUNT_MIN}, using a single texture
      * </p>
      */
     @Override
     protected int validateTextureCount(int desiredTextureCount) {
-        return 2;
+        return TEXTURE_COUNT_MIN;
     }
 
     @Override
     protected final int getNextTextureImpl(GL gl, TextureFrame nextFrame) {
         int pts = TimeFrameI.INVALID_PTS;
         if(null != mp || null != cam) {
-            final SurfaceTextureFrame sTexFrame = (SurfaceTextureFrame) nextFrame;
+            final SurfaceTextureFrame sTexFrame = null != nextFrame ? (SurfaceTextureFrame) nextFrame : singleSTexFrame;
             final SurfaceTexture surfTex = sTexFrame.surfaceTex;
-            if( sTexFrame != singleSTexFrame ) {
-                throw new InternalError("XXX: sTexFrame: "+sTexFrame+", singleSTexFrame "+singleSTexFrame);
-            }
             if( !sTexFrameAttached ) {
                 sTexFrameAttached = true;
                 final Surface surface;

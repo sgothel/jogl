@@ -150,12 +150,12 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     /**
      * {@inheritDoc}
      * <p>
-     * Returns 2
+     * Returns {@link GLMediaPlayer#TEXTURE_COUNT_MIN}.
      * </p>
      */
     @Override
     protected int validateTextureCount(int desiredTextureCount) {
-        return 2;
+        return TEXTURE_COUNT_MIN;
     }
 
     @Override

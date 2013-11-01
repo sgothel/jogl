@@ -186,8 +186,11 @@ public interface GLMediaPlayer extends TextureSequence {
     public static final boolean DEBUG = Debug.debug("GLMediaPlayer");
     public static final boolean DEBUG_NATIVE = Debug.debug("GLMediaPlayer.Native");
 
-    /** Minimum texture count, value {@value}. */
-    public static final int TEXTURE_COUNT_MIN = 4;
+    /** Default texture count, value {@value}. */
+    public static final int TEXTURE_COUNT_DEFAULT = 4;
+
+    /** Minimum texture count, value {@value}. Using the minimum texture count disables multi-threaded decoding. */
+    public static final int TEXTURE_COUNT_MIN = 1;
 
     /** Constant {@value} for <i>mute</i> or <i>not available</i>. See <a href="#streamIDs">Audio and video Stream IDs</a>. */
     public static final int STREAM_ID_NONE = -2;
@@ -350,7 +353,7 @@ public interface GLMediaPlayer extends TextureSequence {
      * @param vid video stream id, see <a href="#streamIDs">audio and video Stream IDs</a>
      * @param aid video stream id, see <a href="#streamIDs">audio and video Stream IDs</a>
      * @param textureCount desired number of buffered textures to be decoded off-thread, will be validated by implementation.
-     *        The minimum value is {@link #TEXTURE_COUNT_MIN}.
+     *        The minimum value is {@link #TEXTURE_COUNT_DEFAULT}.
      *        Ignored if video is muted.
      * @throws IllegalStateException if not invoked in {@link State#Uninitialized}
      * @throws IllegalArgumentException if arguments are invalid

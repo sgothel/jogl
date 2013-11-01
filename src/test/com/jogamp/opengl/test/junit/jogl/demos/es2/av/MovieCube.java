@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -58,7 +58,7 @@ import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 /**
- * Simple cube movie player w/ aspect ration true projection on a cube. 
+ * Simple cube movie player w/ aspect ration true projection on a cube.
  */
 public class MovieCube implements GLEventListener {
     private static boolean waitForKey = false;
@@ -68,7 +68,7 @@ public class MovieCube implements GLEventListener {
     private int swapInterval = 1;
     private long lastPerfPos = 0;
     private volatile boolean resetGLState = false;
-    
+
     /** Blender's Big Buck Bunny Trailer: 24f 640p VP8, Vorbis 44100Hz mono, WebM/Matroska Stream. */
     public static final URI defURI;
     static {
@@ -80,18 +80,18 @@ public class MovieCube implements GLEventListener {
         }
         defURI = _defURI;
     }
-        
-    /** 
-     * Default constructor which also issues {@link #initStream(URI, int, int, int)} w/ default values 
+
+    /**
+     * Default constructor which also issues {@link #initStream(URI, int, int, int)} w/ default values
      * and polls until the {@link GLMediaPlayer} is {@link GLMediaPlayer.State#Initialized}.
      * If {@link GLMediaEventListener#EVENT_CHANGE_EOS} is reached, the stream is started over again.
      * <p>
      * This default constructor is merely useful for some <i>drop-in</i> test, e.g. using an applet.
-     * </p> 
+     * </p>
      */
     public MovieCube() throws IOException, URISyntaxException {
         this(-2.3f, 0f, 0f);
-        
+
         mPlayer.addEventListener(new GLMediaEventListener() {
             @Override
             public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) { }
@@ -108,9 +108,9 @@ public class MovieCube implements GLEventListener {
                     mPlayer.seek(0);
                     mPlayer.play();
                 }
-            }            
+            }
         });
-        initStream(defURI, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, 3 /* textureCount */);
+        initStream(defURI, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
         StreamException se = null;
         while( null == se && GLMediaPlayer.State.Initialized != mPlayer.getState() ) {
             try {
@@ -123,7 +123,7 @@ public class MovieCube implements GLEventListener {
             throw new RuntimeException(se);
         }
     }
-    
+
     /** Custom constructor, user needs to issue {@link #initStream(URI, int, int, int)} afterwards. */
     public MovieCube(float zoom0, float rotx, float roty) throws IOException {
         this.zoom0 = zoom0;
@@ -136,20 +136,20 @@ public class MovieCube implements GLEventListener {
         mPlayer.initStream(streamLoc, vid, aid, textureCount);
         System.out.println("pC.1b "+mPlayer);
     }
-    
+
     public void setSwapInterval(int v) { this.swapInterval = v; }
-    
+
     public GLMediaPlayer getGLMediaPlayer() { return mPlayer; }
-    
+
     public void resetGLState() {
         resetGLState = true;
     }
-    
+
     private final KeyListener keyAction = new KeyAdapter() {
         public void keyReleased(KeyEvent e)  {
             if( e.isAutoRepeat() ) {
                 return;
-            }            
+            }
             System.err.println("MC "+e);
             int pts0 = mPlayer.getVideoPTS();
             int pts1 = 0;
@@ -175,7 +175,7 @@ public class MovieCube implements GLEventListener {
                     break;
                 }
                 case KeyEvent.VK_MULTIPLY:
-                      mPlayer.setPlaySpeed(1.0f); 
+                      mPlayer.setPlaySpeed(1.0f);
                       break;
                 case KeyEvent.VK_SUBTRACT: {
                       float playSpeed = mPlayer.getPlaySpeed();
@@ -184,7 +184,7 @@ public class MovieCube implements GLEventListener {
                       } else {
                           playSpeed -= 0.1f;
                       }
-                      mPlayer.setPlaySpeed(playSpeed); 
+                      mPlayer.setPlaySpeed(playSpeed);
                     } break;
                 case KeyEvent.VK_ADD: {
                       float playSpeed = mPlayer.getPlaySpeed();
@@ -193,7 +193,7 @@ public class MovieCube implements GLEventListener {
                       } else {
                           playSpeed += 0.1f;
                       }
-                      mPlayer.setPlaySpeed(playSpeed); 
+                      mPlayer.setPlaySpeed(playSpeed);
                     } break;
                 case KeyEvent.VK_M: {
                       float audioVolume = mPlayer.getAudioVolume();
@@ -202,16 +202,16 @@ public class MovieCube implements GLEventListener {
                       } else {
                           audioVolume = 1f;
                       }
-                      mPlayer.setAudioVolume(audioVolume); 
+                      mPlayer.setAudioVolume(audioVolume);
                     } break;
             }
-            
+
             if( 0 != pts1 ) {
                 mPlayer.seek(pts1);
             }
-        }        
+        }
     };
-    
+
     @Override
     public void init(GLAutoDrawable drawable) {
         if(null == mPlayer) {
@@ -224,16 +224,16 @@ public class MovieCube implements GLEventListener {
             // throw new IllegalStateException("mPlayer has no VID/stream selected: "+mPlayer);
         }
         resetGLState = false;
-        
+
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         System.err.println(JoglVersion.getGLInfo(gl, null));
 
-        cube = new TextureSequenceCubeES2(mPlayer, false, zoom0, rotx, roty);        
-        
+        cube = new TextureSequenceCubeES2(mPlayer, false, zoom0, rotx, roty);
+
         if(waitForKey) {
             UITestCase.waitForKey("Init>");
         }
-    
+
         if( GLMediaPlayer.State.Initialized == mPlayer.getState() ) {
             try {
                 mPlayer.initGL(gl);
@@ -252,11 +252,11 @@ public class MovieCube implements GLEventListener {
 
         boolean added;
         final Object upstreamWidget = drawable.getUpstreamWidget();
-        if (upstreamWidget instanceof Window) {            
+        if (upstreamWidget instanceof Window) {
             final Window window = (Window) upstreamWidget;
             window.addKeyListener(keyAction);
             added = true;
-        } else { added = false; }       
+        } else { added = false; }
         System.err.println("MC.init: kl-added "+added+", "+drawable.getClass().getName());
     }
 
@@ -275,11 +275,11 @@ public class MovieCube implements GLEventListener {
         System.err.println(Thread.currentThread()+" MovieCube.dispose ... ");
         disposeImpl(drawable, true);
     }
-    
+
     private void disposeImpl(GLAutoDrawable drawable, boolean disposePlayer) {
         if(null == mPlayer) { return; }
         final Object upstreamWidget = drawable.getUpstreamWidget();
-        if (upstreamWidget instanceof Window) {            
+        if (upstreamWidget instanceof Window) {
             final Window window = (Window) upstreamWidget;
             window.removeKeyListener(keyAction);
         }
@@ -289,14 +289,14 @@ public class MovieCube implements GLEventListener {
             mPlayer=null;
         }
         cube.dispose(drawable);
-        cube=null;        
+        cube=null;
     }
-    
+
 
     @Override
     public void display(GLAutoDrawable drawable) {
         if(null == mPlayer) { return; }
-        
+
         if( resetGLState ) {
             resetGLState = false;
             System.err.println("XXX resetGLState");
@@ -304,11 +304,11 @@ public class MovieCube implements GLEventListener {
             init(drawable);
             reshape(drawable, 0, 0, drawable.getWidth(), drawable.getHeight());
         }
-        
+
         final long currentPos = System.currentTimeMillis();
         if( currentPos - lastPerfPos > 2000 ) {
             System.err.println( mPlayer.getPerfString() );
-            lastPerfPos = currentPos;  
+            lastPerfPos = currentPos;
         }
         cube.display(drawable);
     }
@@ -317,7 +317,7 @@ public class MovieCube implements GLEventListener {
         int swapInterval = 1;
         int width = 510;
         int height = 300;
-        int textureCount = 3; // default - threaded
+        int textureCount = GLMediaPlayer.TEXTURE_COUNT_DEFAULT; // default - threaded
 
         boolean forceES2 = false;
         boolean forceES3 = false;
@@ -326,10 +326,10 @@ public class MovieCube implements GLEventListener {
         int vid = GLMediaPlayer.STREAM_ID_AUTO;
         int aid = GLMediaPlayer.STREAM_ID_AUTO;
         final boolean origSize;
-        
+
         String url_s=null;
         {
-            boolean _origSize = false;        
+            boolean _origSize = false;
             for(int i=0; i<args.length; i++) {
                 if(args[i].equals("-vid")) {
                     i++;
@@ -382,10 +382,10 @@ public class MovieCube implements GLEventListener {
         System.err.println("forceGL3   "+forceGL3);
         System.err.println("forceGLDef "+forceGLDef);
         System.err.println("swapInterval "+swapInterval);
-        
+
         final MovieCube mc = new MovieCube(-2.3f, 0f, 0f);
         mc.setSwapInterval(swapInterval);
-        
+
         final GLProfile glp;
         if(forceGLDef) {
             glp = GLProfile.getDefault();
@@ -397,19 +397,19 @@ public class MovieCube implements GLEventListener {
             glp = GLProfile.get(GLProfile.GLES2);
         } else {
             glp = GLProfile.getGL2ES2();
-        }        
+        }
         System.err.println("GLProfile: "+glp);
         final GLWindow window = GLWindow.create(new GLCapabilities(glp));
         final Animator anim = new Animator(window);
         window.addWindowListener(new WindowAdapter() {
             public void windowDestroyed(WindowEvent e) {
                 anim.stop();
-            }                
+            }
         });
         window.setSize(width, height);
         window.setVisible(true);
         anim.start();
-        
+
         mc.mPlayer.addEventListener(new GLMediaEventListener() {
             @Override
             public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) {
@@ -434,15 +434,15 @@ public class MovieCube implements GLEventListener {
                 if( 0 != ( ( GLMediaEventListener.EVENT_CHANGE_ERR | GLMediaEventListener.EVENT_CHANGE_EOS ) & event_mask ) ) {
                     final StreamException se = mc.mPlayer.getStreamException();
                     if( null != se ) {
-                        se.printStackTrace();                        
+                        se.printStackTrace();
                     }
                     new Thread() {
                         public void run() {
                             window.destroy();
                         } }.start();
                 }
-            }            
-        });        
+            }
+        });
         mc.initStream(streamLoc, vid, aid, textureCount);
     }
 }
