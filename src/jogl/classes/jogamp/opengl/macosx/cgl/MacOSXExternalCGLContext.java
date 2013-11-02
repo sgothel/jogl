@@ -50,7 +50,6 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 
 import jogamp.nativewindow.WrappedSurface;
-import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLContextShareSet;
 import jogamp.opengl.macosx.cgl.MacOSXCGLDrawable.GLBackendType;
 
@@ -118,7 +117,7 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
   }
 
   @Override
-  protected boolean createImpl(GLContextImpl shareWith) throws GLException {
+  protected boolean createImpl(final long shareWithHandle) throws GLException {
       return true;
   }
 

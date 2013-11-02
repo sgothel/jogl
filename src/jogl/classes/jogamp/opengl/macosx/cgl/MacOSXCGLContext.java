@@ -286,35 +286,19 @@ public class MacOSXCGLContext extends GLContextImpl
     return false;
   }
 
-  protected long createImplPreset(GLContextImpl shareWith) throws GLException {
-    long share = 0;
-    if (shareWith != null) {
-      // Change our OpenGL mode to match that of any share context before we create ourselves
-      setOpenGLMode(((MacOSXCGLContext)shareWith).getOpenGLMode());
-      share = shareWith.getHandle();
-      if (share == 0) {
-        throw new GLException("GLContextShareSet returned a NULL OpenGL context");
-      }
-    }
-
-    MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration();
-    GLCapabilitiesImmutable capabilitiesChosen = (GLCapabilitiesImmutable) config.getChosenCapabilities();
-    GLProfile glp = capabilitiesChosen.getGLProfile();
+  @Override
+  protected boolean createImpl(final long shareWithHandle) throws GLException {
+    final MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration();
+    final GLCapabilitiesImmutable capabilitiesChosen = (GLCapabilitiesImmutable) config.getChosenCapabilities();
+    final GLProfile glp = capabilitiesChosen.getGLProfile();
     if( glp.isGLES1() || glp.isGLES2() || glp.isGLES3() ||
         ( glp.isGL3() && !isLionOrLater ) || ( glp.isGL4() && !isMavericksOrLater ) ) {
         throw new GLException("OpenGL profile not supported on MacOSX "+Platform.getOSVersionNumber()+": "+glp);
     }
-
-    if (DEBUG) {
-      System.err.println("Share context is " + toHexString(share) + " for " + this);
+    if( 0 != shareWithHandle && GLBackendType.NSOPENGL != getOpenGLMode() ) {
+        throw new GLException("Context sharing only supported in mode "+GLBackendType.NSOPENGL+": "+this);
     }
-    return share;
-  }
-
-  @Override
-  protected boolean createImpl(GLContextImpl shareWith) throws GLException {
-    long share = createImplPreset(shareWith);
-    contextHandle = createContextARB(share, true);
+    contextHandle = createContextARB(shareWithHandle, true);
     return 0 != contextHandle;
   }
 

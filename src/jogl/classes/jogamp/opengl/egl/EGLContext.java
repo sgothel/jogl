@@ -155,12 +155,12 @@ public class EGLContext extends GLContextImpl {
     }
 
     @Override
-    protected boolean createImpl(GLContextImpl shareWith) throws GLException {
+    protected boolean createImpl(final long shareWithHandle) throws GLException {
         final EGLGraphicsConfiguration config = (EGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration();
         final long eglDisplay = config.getScreen().getDevice().getHandle();
         final GLProfile glProfile = drawable.getGLProfile();
         final long eglConfig = config.getNativeConfig();
-        long shareWithHandle = EGL.EGL_NO_CONTEXT;
+        // 0 == EGL.EGL_NO_CONTEXT;
 
         if ( 0 == eglDisplay ) {
             throw new GLException("Error: attempted to create an OpenGL context without a display connection");
@@ -177,13 +177,6 @@ public class EGLContext extends GLContextImpl {
         } catch (GLException glex) {
             if (DEBUG) {
                 glex.printStackTrace();
-            }
-        }
-
-        if (shareWith != null) {
-            shareWithHandle = shareWith.getHandle();
-            if (shareWithHandle == 0) {
-                throw new GLException("GLContextShareSet returned an invalid OpenGL context");
             }
         }
 

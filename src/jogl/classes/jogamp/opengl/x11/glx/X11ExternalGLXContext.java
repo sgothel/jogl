@@ -51,7 +51,6 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import jogamp.nativewindow.WrappedSurface;
-import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLContextShareSet;
 
 import com.jogamp.common.nio.Buffers;
@@ -114,7 +113,7 @@ public class X11ExternalGLXContext extends X11GLXContext {
   }
 
   @Override
-  protected boolean createImpl(GLContextImpl shareWith) {
+  protected boolean createImpl(final long shareWithHandle) {
       return true;
   }
 

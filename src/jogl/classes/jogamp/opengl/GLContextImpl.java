@@ -648,16 +648,19 @@ public abstract class GLContextImpl extends GLContext {
         }
 
         final GLContextImpl shareWith = (GLContextImpl) GLContextShareSet.getCreatedShare(this);
+        final long shareWithHandle;
         if (null != shareWith) {
             shareWith.getDrawableImpl().lockSurface();
-            // FIXME:
-            // Contemplate whether we shall 'fail' creating this context
-            // if 0==shareWith.getHandle(), since at this point
-            // both context are locked and current values are available.
+            shareWithHandle = shareWith.getHandle();
+            if (0 == shareWithHandle) {
+                throw new GLException("GLContextShareSet returned an invalid OpenGL context: "+this);
+            }
+        } else {
+            shareWithHandle = 0;
         }
         final boolean created;
         try {
-            created = createImpl(shareWith); // may throws exception if fails!
+            created = createImpl(shareWithHandle); // may throws exception if fails
             if( created && hasNoDefaultVAO() ) {
                 final int[] tmp = new int[1];
                 final GL3ES3 gl3es3 = gl.getRootGL().getGL3ES3();
@@ -748,13 +751,13 @@ public abstract class GLContextImpl extends GLContext {
    * @return the valid and current context if successful, or null
    * @throws GLException
    */
-  protected abstract boolean createImpl(GLContextImpl sharedWith) throws GLException ;
+  protected abstract boolean createImpl(long sharedWithHandle) throws GLException ;
 
   /**
    * Platform dependent but harmonized implementation of the <code>ARB_create_context</code>
    * mechanism to create a context.<br>
    *
-   * This method is called from {@link #createContextARB}, {@link #createImpl(GLContextImpl)} .. {@link #makeCurrent()} .<br>
+   * This method is called from {@link #createContextARB}, {@link #createImpl(long)} .. {@link #makeCurrent()} .<br>
    *
    * The implementation shall verify this context with a
    * <code>MakeContextCurrent</code> call.<br>

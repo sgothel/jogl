@@ -84,7 +84,10 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
   // GLPbuffer, a GLJPanel and a GLCanvas simultaneously) but should
   // be enough to get things off the ground.
   public enum GLBackendType {
-    NSOPENGL(0), CGL(1);
+    /** Default OpenGL Backend */
+    NSOPENGL(0),
+    /** Alternative OpenGL Backend, only used for external context! */
+    CGL(1);
 
     public final int id;
 
