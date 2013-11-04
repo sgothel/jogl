@@ -61,6 +61,31 @@ static void _initClazzAccess(JNIEnv *env) {
 
 /*   Java->C glue code:
  *   Java package: jogamp.opengl.x11.glx.GLX
+ *    Java method: int glXGetFBConfigAttributes(long dpy, long config, IntBuffer attributes, IntBuffer values)
+ */
+JNIEXPORT jint JNICALL 
+Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXGetFBConfigAttributes(JNIEnv *env, jclass _unused, jlong dpy, jlong config, jint attributeCount, jobject attributes, jint attributes_byte_offset, jobject values, jint values_byte_offset, jlong procAddress) {
+  typedef int (APIENTRY*_local_PFNGLXGETFBCONFIGATTRIBPROC)(Display *  dpy, GLXFBConfig config, int attribute, int *  value);
+  _local_PFNGLXGETFBCONFIGATTRIBPROC ptr_glXGetFBConfigAttrib = (_local_PFNGLXGETFBCONFIGATTRIBPROC) (intptr_t) procAddress;
+  assert(ptr_glXGetFBConfigAttrib != NULL);
+
+  int err = 0;
+  if ( attributeCount > 0 && NULL != attributes ) {
+    int i;
+    int * attributes_ptr = (int *) (((char*) (*env)->GetDirectBufferAddress(env, attributes)) + attributes_byte_offset);
+    int * values_ptr = (int *) (((char*) (*env)->GetDirectBufferAddress(env, values)) + values_byte_offset);
+    for(i=0; 0 == err && i<attributeCount; i++) {
+        err = (* ptr_glXGetFBConfigAttrib) ((Display *) (intptr_t) dpy, (GLXFBConfig) (intptr_t) config, attributes_ptr[i], &values_ptr[i]);
+    }
+    if( 0 != err ) {
+        values_ptr[0] = i;
+    }
+  }
+  return (jint)err;
+}
+
+/*   Java->C glue code:
+ *   Java package: jogamp.opengl.x11.glx.GLX
  *    Java method: XVisualInfo glXGetVisualFromFBConfig(long dpy, long config)
  *     C function: XVisualInfo *  glXGetVisualFromFBConfig(Display *  dpy, GLXFBConfig config);
  */

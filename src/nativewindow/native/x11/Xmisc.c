@@ -33,6 +33,8 @@
 
 #include <X11/Xatom.h>
 
+#include <X11/extensions/Xrender.h>
+
 // #define VERBOSE_ON 1
 
 #ifdef VERBOSE_ON
@@ -318,6 +320,19 @@ Java_jogamp_nativewindow_x11_X11Util_shutdown0(JNIEnv *env, jclass _unused) {
 JNIEXPORT void JNICALL 
 Java_jogamp_nativewindow_x11_X11Util_setX11ErrorHandler0(JNIEnv *env, jclass _unused, jboolean onoff, jboolean quiet) {
     NativewindowCommon_x11ErrorHandlerEnable(env, NULL, 1, onoff ? 1 : 0, quiet ? 1 : 0, 0 /* no dpy, force, no sync */);
+}
+
+/*   Java->C glue code:
+ *   Java package: jogamp.nativewindow.x11.X11Lib
+ *    Java method: boolean XRenderFindVisualFormat(long dpy, long visual, XRenderPictFormat dest)
+ */
+JNIEXPORT jboolean JNICALL 
+Java_jogamp_nativewindow_x11_X11Lib_XRenderFindVisualFormat1(JNIEnv *env, jclass _unused, jlong dpy, jlong visual, jobject xRenderPictFormat) {
+  XRenderPictFormat * dest = (XRenderPictFormat *) (*env)->GetDirectBufferAddress(env, xRenderPictFormat);
+  XRenderPictFormat * src = XRenderFindVisualFormat((Display *) (intptr_t) dpy, (Visual *) (intptr_t) visual);
+  if (NULL == src) return JNI_FALSE;
+  memcpy(dest, src, sizeof(XRenderPictFormat));
+  return JNI_TRUE;
 }
 
 /*   Java->C glue code:

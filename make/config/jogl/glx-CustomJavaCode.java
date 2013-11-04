@@ -1,4 +1,26 @@
 
+  /** 
+   * Returns the GLX error value, i.e. 0 for no error. In case of an error values.get(values.getPosition()) contains the attributes index causing the error.
+   * <p>
+   * Entry point to C language function: <code> int glXGetFBConfigAttrib(Display *  dpy, GLXFBConfig config, int attribute, int *  value); </code> <br>Part of <code>GLX_VERSION_1_3</code>
+   * </p>
+   */
+  public static int glXGetFBConfigAttributes(long dpy, long config, IntBuffer attributes, IntBuffer values) {
+    if( attributes == null || values == null ) {
+        throw new RuntimeException("arrays buffers are null");
+    }
+    if( !Buffers.isDirect(attributes) || !Buffers.isDirect(values) ) {
+        throw new RuntimeException("arrays buffers are not direct");
+    }
+    if( attributes.remaining() > values.remaining() ) {
+        throw new RuntimeException("not enough values "+values+" for attributes "+attributes);
+    }
+    final long __addr = glxProcAddressTable._addressof_glXGetFBConfigAttrib;
+    return dispatch_glXGetFBConfigAttributes(dpy, config, attributes.remaining(), attributes, Buffers.getDirectBufferByteOffset(attributes), 
+                                             values, Buffers.getDirectBufferByteOffset(values), __addr);
+  }
+  private static native int dispatch_glXGetFBConfigAttributes(long dpy, long config, int attributeCount, Object attributes, int attributes_byte_offset, Object values, int valuesOffset, long procAddr);
+
   /** Interface to C language function: <br> - Alias for: <br> <code> XVisualInfo *  glXGetVisualFromFBConfigSGIX, glXGetVisualFromFBConfig(Display *  dpy, GLXFBConfig config); </code>    */
   public static XVisualInfo glXGetVisualFromFBConfig(long dpy, long config)
   {
