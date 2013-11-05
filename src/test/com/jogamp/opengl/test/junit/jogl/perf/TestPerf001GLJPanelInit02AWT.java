@@ -187,24 +187,23 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
 
     @Test
     public void test01NopGLJPanel() throws InterruptedException, InvocationTargetException {
-        final int width = 800, height = 600, frameCount = 25;
         test(false /*useGears*/, width, height, frameCount , true /* useGLJPanel */, false /*useAnim*/);
     }
 
     @Test
     public void test02NopGLCanvas() throws InterruptedException, InvocationTargetException {
-        final int width = 800, height = 600, frameCount = 25;
         test(false /*useGears*/, width, height, frameCount , false /* useGLJPanel */, false /*useAnim*/);
     }
 
-    static long duration = 2000; // ms
+    static long duration = 0; // ms
     static boolean wait = false;
+    static int width = 800, height = 600, frameCount = 25;
 
     volatile int initCount = 0;
 
     public static void main(String[] args) {
-        int width = 800, height = 600, frameCount = 25;
         boolean useGLJPanel = true, useGears = false, manual=false;
+        boolean waitMain = false;
 
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
@@ -223,9 +222,15 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
             } else if(args[i].equals("-wait")) {
                 wait = true;
                 manual = true;
+            } else if(args[i].equals("-waitMain")) {
+                waitMain = true;
+                manual = true;
             } else if(args[i].equals("-manual")) {
                 manual = true;
             }
+        }
+        if( waitMain ) {
+            UITestCase.waitForKey("Main-Start");
         }
         if( manual ) {
             GLProfile.initSingleton();

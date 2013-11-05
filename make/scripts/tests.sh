@@ -334,9 +334,9 @@ function testawtswt() {
 #
 # performance tests
 #
-testawt com.jogamp.opengl.test.junit.jogl.perf.TestPerf001RawInit00NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.perf.TestPerf001RawInit00NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLJPanelInit01AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLJPanelInit02AWT $*
+testawt com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLJPanelInit02AWT $*
 
 #
 # tile rendring / printing w/ & w/o AWT

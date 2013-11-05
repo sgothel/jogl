@@ -70,7 +70,7 @@ public class TestPerf001RawInit00NEWT extends UITestCase {
         final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
         final GraphicsConfigurationFactory factory = GraphicsConfigurationFactory.getFactory(screen.getDisplay().getGraphicsDevice(), caps);
 
-        if( wait && 1 == runNum ) {
+        if( wait && 0 == runNum ) {
             UITestCase.waitForKey("Pre-Init");
         }
         System.err.println("INIT START #"+runNum);
@@ -103,7 +103,7 @@ public class TestPerf001RawInit00NEWT extends UITestCase {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
         final GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
-        if( wait && 1 == runNum ) {
+        if( wait && 0 == runNum ) {
             UITestCase.waitForKey("Pre-Init");
         }
         System.err.println("INIT START #"+runNum);
@@ -181,7 +181,6 @@ public class TestPerf001RawInit00NEWT extends UITestCase {
         if( 0 != manualTest && 1 != manualTest ) {
             return;
         }
-        final int count = 50;
         final Display display = NewtFactory.createDisplay(null, false);
         final Screen screen = NewtFactory.createScreen(display, 0);
         screen.addReference();
@@ -199,7 +198,6 @@ public class TestPerf001RawInit00NEWT extends UITestCase {
         if( 0 != manualTest && 2 != manualTest ) {
             return;
         }
-        final int width = 800, height = 600, count = 50;
         testFull(0, width, height, count); // warm-up
         testFull(1, width, height, count);
         testFull(2, width, height, count);
@@ -207,9 +205,10 @@ public class TestPerf001RawInit00NEWT extends UITestCase {
 
     static boolean wait = false;
     static int manualTest = 0;
+    static int width = 800, height = 600, count = 50;
 
     public static void main(String[] args) {
-        int width = 800, height = 600, count = 50;
+        boolean waitMain = false;
 
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-width")) {
@@ -220,12 +219,14 @@ public class TestPerf001RawInit00NEWT extends UITestCase {
                 count = MiscUtils.atoi(args[++i], count);
             } else if(args[i].equals("-wait")) {
                 wait = true;
+            } else if(args[i].equals("-waitMain")) {
+                waitMain = true;
             } else if(args[i].equals("-test")) {
                 manualTest = MiscUtils.atoi(args[++i], manualTest);
             }
         }
-        if( wait ) {
-            UITestCase.waitForKey("Main");
+        if( waitMain ) {
+            UITestCase.waitForKey("Main-Start");
         }
         org.junit.runner.JUnitCore.main(TestPerf001RawInit00NEWT.class.getName());
     }
