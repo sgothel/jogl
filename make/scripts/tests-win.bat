@@ -75,8 +75,9 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintin
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsNewtAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingNIOImageSwingAWT %*
 
-scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.perf.TestPerfGLJPanel01AWT %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.perf.TestPerfGLJPanel02AWT %*
+scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.perf.TestPerf001RawInit00NEWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLJPanelInit01AWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLJPanelInit02AWT %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNewtAWTWrapper %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT -time 30000

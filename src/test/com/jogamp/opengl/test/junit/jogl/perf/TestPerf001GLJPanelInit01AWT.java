@@ -27,9 +27,9 @@
  */
 package com.jogamp.opengl.test.junit.jogl.perf;
 
-import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.lang.reflect.InvocationTargetException;
 
 import javax.media.opengl.GLAnimatorControl;
@@ -55,21 +55,30 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
 /**
- * Multiple GLJPanels in a JFrame
+ * Multiple GLJPanels in a JFrame's Grid
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestPerfGLJPanel02AWT extends UITestCase {
+public class TestPerf001GLJPanelInit01AWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
         GLProfile.initSingleton();
     }
 
-    public void test(final boolean useGears, final int width, final int height, final int frameCount,
+    public void test(final boolean useGears, final int width, final int height, final int rows, final int columns,
                      final boolean useGLJPanel, final boolean useAnim) {
         final GLAnimatorControl animator = useAnim ? new Animator() : null;
 
-        final JFrame[] frame = new JFrame[frameCount];
+        final JFrame frame;
+        final JPanel panel;
+
+        panel = new JPanel();
+        frame = new JFrame("DemoGLJPanelGridAWT");
+
+        panel.setLayout(new GridLayout(rows, columns));
+        // panel.setBounds(0, 0, width, height);
+        final int panelCount = rows*columns;
+        final Dimension eSize = new Dimension(width/columns, height/rows);
         final long[] t = new long[10];
         if( wait ) {
             UITestCase.waitForKey("Pre-Init");
@@ -80,12 +89,7 @@ public class TestPerfGLJPanel02AWT extends UITestCase {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     t[0] = Platform.currentTimeMillis();
-                    for(int i=0; i<frameCount; i++) {
-                        frame[i] = new JFrame("frame_"+i+"/"+frameCount);
-                        final JPanel panel = new JPanel();
-                        panel.setLayout(new BorderLayout());
-                        // panel.setBounds(0, 0, width, height);
-                        final Dimension eSize = new Dimension(width, height);
+                    for(int i=0; i<panelCount; i++) {
                         final GLAutoDrawable glad = useGLJPanel ? createGLJPanel(useGears, animator, eSize) : createGLCanvas(useGears, animator, eSize);
                         glad.addGLEventListener(new GLEventListener() {
                             @Override
@@ -100,22 +104,20 @@ public class TestPerfGLJPanel02AWT extends UITestCase {
                             public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
                         });
                         panel.add((Component)glad);
-                        frame[i].getContentPane().add(panel);
-
-                        // frame.validate();
-                        frame[i].pack();
                     }
                     t[1] = Platform.currentTimeMillis();
-                    for(int i=0; i<frameCount; i++) {
-                        frame[i].setVisible(true);
-                    }
+                    frame.getContentPane().add(panel);
+
+                    // frame.validate();
+                    frame.pack();
+                    frame.setVisible(true);
                     t[2] = Platform.currentTimeMillis();
                 } } );
         } catch( Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
-        while( frameCount > initCount ) {
+        while( panelCount > initCount ) {
             try {
                 Thread.sleep(10);
             } catch (InterruptedException e1) {
@@ -123,14 +125,13 @@ public class TestPerfGLJPanel02AWT extends UITestCase {
             }
         }
         t[3] = Platform.currentTimeMillis();
-        final double panelCountF = frameCount;
+        final double panelCountF = panelCount;
         System.err.printf("P: %d %s:%n\tctor\t%6d/t %6.2f/1%n\tvisible\t%6d/t %6.2f/1%n\tsum-i\t%6d/t %6.2f/1%n",
-                frameCount,
+                panelCount,
                 useGLJPanel?"GLJPanel":"GLCanvas",
                 t[1]-t[0], (t[1]-t[0])/panelCountF,
                 t[3]-t[1], (t[3]-t[1])/panelCountF,
                 t[3]-t[0], (t[3]-t[0])/panelCountF);
-
         System.err.println("INIT END: "+initCount);
         if( wait ) {
             UITestCase.waitForKey("Post-Init");
@@ -144,14 +145,11 @@ public class TestPerfGLJPanel02AWT extends UITestCase {
         try {
             SwingUtilities.invokeAndWait(new Runnable() {
                     public void run() {
-                        for(int i=0; i<frameCount; i++) {
-                            frame[i].dispose();
-                        }
+                        frame.dispose();
                     } } );
         } catch (Exception e1) {
             e1.printStackTrace();
         }
-
         final long ti_net = (t[4]-t[0])-duration;
         System.err.printf("T: duration %d %d%n\ttotal-d\t%6d/t %6.2f/1%n\ttotal-i\t%6d/t %6.2f/1%n",
                 duration, t[4]-t[3],
@@ -187,14 +185,14 @@ public class TestPerfGLJPanel02AWT extends UITestCase {
 
     @Test
     public void test01NopGLJPanel() throws InterruptedException, InvocationTargetException {
-        final int width = 800, height = 600, frameCount = 25;
-        test(false /*useGears*/, width, height, frameCount , true /* useGLJPanel */, false /*useAnim*/);
+        final int width = 800, height = 600, rows = 5, cols = 5;
+        test(false /*useGears*/, width, height, rows, cols, true /* useGLJPanel */, false /*useAnim*/);
     }
 
     @Test
     public void test02NopGLCanvas() throws InterruptedException, InvocationTargetException {
-        final int width = 800, height = 600, frameCount = 25;
-        test(false /*useGears*/, width, height, frameCount , false /* useGLJPanel */, false /*useAnim*/);
+        final int width = 800, height = 600, rows = 5, cols = 5;
+        test(false /*useGears*/, width, height, rows, cols, false /* useGLJPanel */, false /*useAnim*/);
     }
 
     static long duration = 2000; // ms
@@ -203,7 +201,7 @@ public class TestPerfGLJPanel02AWT extends UITestCase {
     volatile int initCount = 0;
 
     public static void main(String[] args) {
-        int width = 800, height = 600, frameCount = 25;
+        int width = 800, height = 600, rows = 5, cols = 5;
         boolean useGLJPanel = true, useGears = false, manual=false;
 
         for(int i=0; i<args.length; i++) {
@@ -214,8 +212,10 @@ public class TestPerfGLJPanel02AWT extends UITestCase {
                 width = MiscUtils.atoi(args[++i], width);
             } else if(args[i].equals("-height")) {
                 height = MiscUtils.atoi(args[++i], height);
-            } else if(args[i].equals("-count")) {
-                frameCount = MiscUtils.atoi(args[++i], frameCount);
+            } else if(args[i].equals("-rows")) {
+                rows = MiscUtils.atoi(args[++i], rows);
+            } else if(args[i].equals("-cols")) {
+                cols = MiscUtils.atoi(args[++i], cols);
             } else if(args[i].equals("-glcanvas")) {
                 useGLJPanel = false;
             } else if(args[i].equals("-gears")) {
@@ -229,10 +229,10 @@ public class TestPerfGLJPanel02AWT extends UITestCase {
         }
         if( manual ) {
             GLProfile.initSingleton();
-            TestPerfGLJPanel02AWT demo = new TestPerfGLJPanel02AWT();
-            demo.test(useGears, width, height, frameCount, useGLJPanel, false /*useAnim*/);
+            TestPerf001GLJPanelInit01AWT demo = new TestPerf001GLJPanelInit01AWT();
+            demo.test(useGears, width, height, rows, cols, useGLJPanel, false /*useAnim*/);
         } else {
-            org.junit.runner.JUnitCore.main(TestPerfGLJPanel02AWT.class.getName());
+            org.junit.runner.JUnitCore.main(TestPerf001GLJPanelInit01AWT.class.getName());
         }
     }
 
