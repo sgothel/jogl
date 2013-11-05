@@ -1275,6 +1275,7 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                         pNIOBufferCurrent->nioRef = (*env)->NewGlobalRef(env, jSampleData);
                         pNIOBufferCurrent->origPtr = data_ptr;
                         pNIOBufferCurrent->size = data_size;
+                        (*env)->DeleteLocalRef(env, jSampleData);
                         if(pAV->verbose) {
                             fprintf(stderr, "A NIO: Alloc ptr %p / ref %p, %d bytes\n", 
                                 pNIOBufferCurrent->origPtr, pNIOBufferCurrent->nioRef, pNIOBufferCurrent->size);
