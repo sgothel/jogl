@@ -157,7 +157,7 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
         } else {
             final AbstractGraphicsScreen eglScreen = new DefaultGraphicsScreen(eglDevice, aConfig.getScreen().getIndex());
             eglConfig = EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
-                    capsRequested, capsRequested, null, eglScreen, aConfig.getVisualID(VIDType.NATIVE), false);
+                    capsRequested, capsRequested, null, eglScreen, aConfig.getVisualID(VIDType.NATIVE), false /* forceTransparencyFlag */);
 
             if (null == eglConfig) {
                 throw new GLException("Couldn't create EGLGraphicsConfiguration from "+eglScreen);

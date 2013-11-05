@@ -354,7 +354,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             final IntBuffer attrs = EGLGraphicsConfiguration.GLCapabilities2AttribList(caps);
             final int winattrmask = GLGraphicsConfigurationUtil.getExclusiveWinAttributeBits(caps);
             if( EGL.eglChooseConfig(eglDisplay.getHandle(), attrs, configs, configs.capacity(), numConfigs) && numConfigs.get(0) > 0) {
-                return EGLGraphicsConfigurationFactory.eglConfigs2GLCaps(eglDisplay, caps.getGLProfile(), configs, numConfigs.get(0), winattrmask, false /* forceTransparentFlag */);
+                return EGLGraphicsConfigurationFactory.eglConfigs2GLCaps(eglDisplay, caps.getGLProfile(), configs, numConfigs.get(0), winattrmask, false /* forceTransparentFlag */, false /* onlyFirstValid */);
             }
         }
         return new ArrayList<GLCapabilitiesImmutable>(0);

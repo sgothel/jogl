@@ -306,11 +306,13 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
                 recommendedIndex = useRecommendedIndex ? 0 : -1;
                 if (DEBUG) {
                     System.err.println("glXChooseFBConfig recommended fbcfg " + toHexString(fbcfgsL.get(0)) + ", idx " + recommendedIndex);
+                    System.err.println("useRecommendedIndex "+useRecommendedIndex+", skipCapsChooser "+skipCapsChooser);
                     System.err.println("user  caps " + capsChosen);
-                    System.err.println("fbcfg caps " + availableCaps.get(0));
+                    System.err.println("fbcfg caps " + fbcfgsL.limit()+", availCaps "+availableCaps.get(0));
                 }
             } else if (DEBUG) {
                 System.err.println("glXChooseFBConfig no caps for recommended fbcfg " + toHexString(fbcfgsL.get(0)));
+                System.err.println("useRecommendedIndex "+useRecommendedIndex+", skipCapsChooser "+skipCapsChooser);
                 System.err.println("user  caps " + capsChosen);
             }
         } else {

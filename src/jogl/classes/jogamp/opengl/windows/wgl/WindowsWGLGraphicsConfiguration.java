@@ -62,7 +62,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
     protected static final int MAX_PFORMATS = 256;
     protected static final int MAX_ATTRIBS  = 256;
 
-    private GLCapabilitiesChooser chooser;
+    private final GLCapabilitiesChooser chooser;
     private boolean isDetermined = false;
     private boolean isExternal = false;
 
@@ -370,7 +370,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
     }
 
     static List <GLCapabilitiesImmutable> wglARBPFIDs2GLCapabilities(WindowsWGLDrawableFactory.SharedResource sharedResource,
-                                                                     AbstractGraphicsDevice device, GLProfile glp, long hdc, int[] pfdIDs, int winattrbits) {
+                                                                     AbstractGraphicsDevice device, GLProfile glp, long hdc, int[] pfdIDs, int winattrbits, boolean onlyFirstValid) {
         if (!sharedResource.hasARBPixelFormat()) {
             return null;
         }
@@ -391,6 +391,9 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
                     if(DEBUG) {
                         final int j = bucket.size() - 1;
                         System.err.println("wglARBPFIDs2GLCapabilities: bucket["+i+" -> "+j+"]: "+caps);
+                    }
+                    if( onlyFirstValid ) {
+                        break;
                     }
                 } else if(DEBUG) {
                     GLCapabilitiesImmutable skipped = AttribList2GLCapabilities(device, glp, hdc, pfdIDs[i], iattributes, niattribs, iresults, GLGraphicsConfigurationUtil.ALL_BITS);
