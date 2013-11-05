@@ -304,8 +304,6 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelsAWT $*
-testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.DemoGLJPanelPerf01AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.DemoGLJPanelPerf02AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NewtCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
@@ -332,6 +330,12 @@ testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.DemoGLJPanelPerf01AWT $*
 #testnoawt jogamp.opengl.openal.av.ALDummyUsage $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
+
+#
+# performance tests
+#
+testawt com.jogamp.opengl.test.junit.jogl.perf.TestPerfGLJPanel01AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.perf.TestPerfGLJPanel02AWT $*
 
 #
 # tile rendring / printing w/ & w/o AWT

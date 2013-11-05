@@ -476,12 +476,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         }
 
         if( isVisible() ) {
-            updater.setGraphics(g);
-            backend.doPaintComponent(g);
+          updater.setGraphics(g);
+          backend.doPaintComponent(g);
         }
     }
   }
-
 
   /** Overridden to track when this component is added to a container.
       Subclasses which override this method must call
@@ -1842,7 +1841,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
     @Override
     public boolean preGL(Graphics g) {
-      GL2 gl = joglContext.getGL().getGL2();
+      final GL2 gl = joglContext.getGL().getGL2();
       // Set up needed state in JOGL context from Java2D context
       gl.glEnable(GL2.GL_SCISSOR_TEST);
       Rectangle r = Java2D.getOGLScissorBox(g);
