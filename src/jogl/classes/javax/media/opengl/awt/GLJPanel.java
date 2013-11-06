@@ -58,6 +58,7 @@ import java.util.List;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GL;
@@ -338,6 +339,51 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     this.setFocusable(true); // allow keyboard input!
   }
 
+  /**
+   * Attempts to initialize the backend, if not initialized yet.
+   * <p>
+   * If backend is already initialized method returns <code>true</code>.
+   * </p>
+   * <p>
+   * If <code>offthread</code> is <code>true</code>, initialization will kicked off
+   * on a <i>short lived</i> arbitrary thread and method returns immediately.<br/>
+   * If platform supports such <i>arbitrary thread</i> initialization method returns
+   * <code>true</code>, otherwise <code>false</code>.
+   * </p>
+   * <p>
+   * Due to threading restrictions, <i>arbitrary thread</i> initialization is <i>not supported</i> on:
+   * <ul>
+   *   <li>{@link NativeWindowFactory.TYPE_WINDOWS}</li>
+   * </ul>
+   * </p>
+   * <p>
+   * If <code>offthread</code> is <code>false</code>, initialization be performed
+   * on the current thread and method returns after initialization.<br/>
+   * Method returns <code>true</code> if initialization was successful, otherwise <code>false</code>.
+   * <p>
+   * @param offthread
+   */
+  public final boolean initializeBackend(boolean offthread) {
+    if( offthread ) {
+        if( NativeWindowFactory.TYPE_WINDOWS == NativeWindowFactory.getNativeWindowType(true) ) {
+            return false;
+        }
+        new Thread(getThreadName()+"-GLJPanel_Init") {
+            public void run() {
+              if( !isInitialized ) {
+                  initializeBackendImpl();
+              }
+            } }.start();
+        return true;
+    } else {
+        if( !isInitialized ) {
+            return initializeBackendImpl();
+        } else {
+            return true;
+        }
+    }
+  }
+
   @Override
   public final void setSharedContext(GLContext sharedContext) throws IllegalStateException {
       helper.setSharedContext(this.getContext(), sharedContext);
@@ -457,8 +503,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       return;
     }
 
-    if (backend == null || !isInitialized) {
-      createAndInitializeBackend();
+    if( !isInitialized ) {
+        initializeBackendImpl();
     }
 
     if (!isInitialized || printActive) {
@@ -552,8 +598,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private final Runnable setupPrintOnEDT = new Runnable() {
       @Override
       public void run() {
-          if (backend == null || !isInitialized) {
-              createAndInitializeBackend();
+          if( !isInitialized ) {
+              initializeBackendImpl();
           }
           if (!isInitialized) {
               if(DEBUG) {
@@ -1020,35 +1066,47 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   // Internals only below this point
   //
 
-  private void createAndInitializeBackend() {
-    if ( 0 >= panelWidth || 0 >= panelHeight ) {
-      // See whether we have a non-zero size yet and can go ahead with
-      // initialization
-      if (0 >= reshapeWidth || 0 >= reshapeHeight ) {
-          return;
-      }
+  private final Object initSync = new Object();
+  private boolean initializeBackendImpl() {
+    if( !isInitialized ) {
+        synchronized(initSync) {
+            if( !isInitialized ) {
+                if ( 0 >= panelWidth || 0 >= panelHeight ) {
+                  // See whether we have a non-zero size yet and can go ahead with
+                  // initialization
+                  if (0 >= reshapeWidth || 0 >= reshapeHeight ) {
+                      return false;
+                  }
 
-      if (DEBUG) {
-          System.err.println(getThreadName()+": GLJPanel.createAndInitializeBackend: " +panelWidth+"x"+panelHeight + " -> " + reshapeWidth+"x"+reshapeHeight);
-      }
-      // Pull down reshapeWidth and reshapeHeight into panelWidth and
-      // panelHeight eagerly in order to complete initialization, and
-      // force a reshape later
-      panelWidth = reshapeWidth;
-      panelHeight = reshapeHeight;
-    }
+                  if (DEBUG) {
+                      System.err.println(getThreadName()+": GLJPanel.createAndInitializeBackend: " +panelWidth+"x"+panelHeight + " -> " + reshapeWidth+"x"+reshapeHeight);
+                  }
+                  // Pull down reshapeWidth and reshapeHeight into panelWidth and
+                  // panelHeight eagerly in order to complete initialization, and
+                  // force a reshape later
+                  panelWidth = reshapeWidth;
+                  panelHeight = reshapeHeight;
+                }
 
-    if ( null == backend ) {
-        if ( oglPipelineUsable() ) {
-            backend = new J2DOGLBackend();
-        } else {
-            backend = new OffscreenBackend(glProfile, customPixelBufferProvider);
+                if ( null == backend ) {
+                    if ( oglPipelineUsable() ) {
+                        backend = new J2DOGLBackend();
+                    } else {
+                        backend = new OffscreenBackend(glProfile, customPixelBufferProvider);
+                    }
+                    isInitialized = false;
+                }
+
+                if (!isInitialized) {
+                    backend.initialize();
+                }
+                return isInitialized;
+            } else {
+                return true;
+            }
         }
-        isInitialized = false;
-    }
-
-    if (!isInitialized) {
-        backend.initialize();
+    } else {
+        return true;
     }
   }
 

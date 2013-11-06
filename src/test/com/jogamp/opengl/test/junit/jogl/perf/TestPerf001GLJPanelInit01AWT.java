@@ -34,6 +34,8 @@ import java.lang.reflect.InvocationTargetException;
 
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
@@ -65,8 +67,8 @@ public class TestPerf001GLJPanelInit01AWT extends UITestCase {
         GLProfile.initSingleton();
     }
 
-    public void test(final boolean useGears, final int width, final int height, final int rows, final int columns,
-                     final boolean useGLJPanel, final boolean useAnim) {
+    public void test(final GLCapabilitiesImmutable caps, final boolean useGears, final int width, final int height, final int rows,
+                     final int columns, final boolean useGLJPanel, final boolean useAnim) {
         final GLAnimatorControl animator = useAnim ? new Animator() : null;
 
         final JFrame frame;
@@ -90,7 +92,7 @@ public class TestPerf001GLJPanelInit01AWT extends UITestCase {
                 public void run() {
                     t[0] = Platform.currentTimeMillis();
                     for(int i=0; i<panelCount; i++) {
-                        final GLAutoDrawable glad = useGLJPanel ? createGLJPanel(useGears, animator, eSize) : createGLCanvas(useGears, animator, eSize);
+                        final GLAutoDrawable glad = useGLJPanel ? createGLJPanel(caps, useGears, animator, eSize) : createGLCanvas(caps, useGears, animator, eSize);
                         glad.addGLEventListener(new GLEventListener() {
                             @Override
                             public void init(GLAutoDrawable drawable) {
@@ -158,8 +160,8 @@ public class TestPerf001GLJPanelInit01AWT extends UITestCase {
         System.err.println("Total: "+(t[4]-t[0]));
     }
 
-    private GLAutoDrawable createGLCanvas(boolean useGears, GLAnimatorControl anim, Dimension size) {
-        GLCanvas canvas = new GLCanvas();
+    private GLAutoDrawable createGLCanvas(GLCapabilitiesImmutable caps, boolean useGears, GLAnimatorControl anim, Dimension size) {
+        GLCanvas canvas = new GLCanvas(caps);
         canvas.setSize(size);
         canvas.setPreferredSize(size);
         if( useGears ) {
@@ -170,8 +172,8 @@ public class TestPerf001GLJPanelInit01AWT extends UITestCase {
         }
         return canvas;
     }
-    private GLAutoDrawable createGLJPanel(boolean useGears, GLAnimatorControl anim, Dimension size) {
-        GLJPanel canvas = new GLJPanel();
+    private GLAutoDrawable createGLJPanel(GLCapabilitiesImmutable caps, boolean useGears, GLAnimatorControl anim, Dimension size) {
+        GLJPanel canvas = new GLJPanel(caps);
         canvas.setSize(size);
         canvas.setPreferredSize(size);
         if( useGears ) {
@@ -184,13 +186,20 @@ public class TestPerf001GLJPanelInit01AWT extends UITestCase {
     }
 
     @Test
-    public void test01NopGLJPanel() throws InterruptedException, InvocationTargetException {
-        test(false /*useGears*/, width, height, rows, cols, true /* useGLJPanel */, false /*useAnim*/);
+    public void test01NopGLJPanelDef() throws InterruptedException, InvocationTargetException {
+        test(new GLCapabilities(null), false /*useGears*/, width, height, rows, cols, true /* useGLJPanel */, false /*useAnim*/);
     }
 
     @Test
-    public void test02NopGLCanvas() throws InterruptedException, InvocationTargetException {
-        test(false /*useGears*/, width, height, rows, cols, false /* useGLJPanel */, false /*useAnim*/);
+    public void test02NopGLJPanelBitmap() throws InterruptedException, InvocationTargetException {
+        GLCapabilities caps = new GLCapabilities(null);
+        caps.setBitmap(true);
+        test(caps, false /*useGears*/, width, height, rows, cols, true /* useGLJPanel */, false /*useAnim*/);
+    }
+
+    @Test
+    public void test11NopGLCanvasDef() throws InterruptedException, InvocationTargetException {
+        test(new GLCapabilities(null), false /*useGears*/, width, height, rows, cols, false /* useGLJPanel */, false /*useAnim*/);
     }
 
     static long duration = 0; // ms
@@ -235,7 +244,7 @@ public class TestPerf001GLJPanelInit01AWT extends UITestCase {
         if( manual ) {
             GLProfile.initSingleton();
             TestPerf001GLJPanelInit01AWT demo = new TestPerf001GLJPanelInit01AWT();
-            demo.test(useGears, width, height, rows, cols, useGLJPanel, false /*useAnim*/);
+            demo.test(null, useGears, width, height, rows, cols, useGLJPanel, false /*useAnim*/);
         } else {
             org.junit.runner.JUnitCore.main(TestPerf001GLJPanelInit01AWT.class.getName());
         }
