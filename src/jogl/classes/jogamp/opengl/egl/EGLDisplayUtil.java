@@ -34,6 +34,7 @@ import java.util.Iterator;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.ToolkitLock;
 import javax.media.opengl.GLException;
 
 import jogamp.opengl.Debug;
@@ -260,6 +261,7 @@ public class EGLDisplayUtil {
     };
 
     /**
+     * Using the default {@link ToolkitLock}, via {@link NativeWindowFactory#getDefaultToolkitLock(String, long)}.
      * @param nativeDisplayID
      * @param connection
      * @param unitID

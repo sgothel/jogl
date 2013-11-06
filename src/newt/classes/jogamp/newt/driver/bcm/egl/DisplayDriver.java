@@ -39,7 +39,6 @@ import javax.media.nativewindow.NativeWindowException;
 
 import jogamp.newt.NEWTJNILibLoader;
 import jogamp.opengl.egl.EGL;
-import jogamp.opengl.egl.EGLDisplayUtil;
 
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 

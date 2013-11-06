@@ -151,7 +151,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   static class SharedResource implements SharedResourceRunner.Resource {
       // private MacOSXCGLDrawable drawable;
       // private MacOSXCGLContext context;
-      private GLRendererQuirks glRendererQuirks;
+      private final GLRendererQuirks glRendererQuirks;
       MacOSXGraphicsDevice device;
       boolean valid;
       boolean hasNPOTTextures;
@@ -211,7 +211,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
       return false;
   }
 
-  private HashSet<String> devicesTried = new HashSet<String>();
+  private final HashSet<String> devicesTried = new HashSet<String>();
 
   private boolean getDeviceTried(String connection) {
       synchronized (devicesTried) {

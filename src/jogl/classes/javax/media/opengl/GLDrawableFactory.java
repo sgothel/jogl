@@ -490,6 +490,9 @@ public abstract class GLDrawableFactory {
    * If neither FBO nor Pbuffer is available,
    * a simple pixmap/bitmap auto drawable is created, which is unlikely to be hardware accelerated.
    * </p>
+   * <p>
+   * The resulting {@link GLOffscreenAutoDrawable} has it's own independent device instance using <code>device</code> details.
+   * </p>
    *
    * @param device which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
    * @param caps the requested GLCapabilties
@@ -539,6 +542,9 @@ public abstract class GLDrawableFactory {
    * <p>
    * If neither FBO nor Pbuffer is available,
    * a simple pixmap/bitmap auto drawable is created, which is unlikely to be hardware accelerated.
+   * </p>
+   * <p>
+   * The resulting {@link GLOffscreenAutoDrawable} has it's own independent device instance using <code>device</code> details.
    * </p>
    *
    * @param device which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
@@ -604,6 +610,9 @@ public abstract class GLDrawableFactory {
    * If neither FBO nor Pbuffer is available,
    * a simple pixmap/bitmap drawable is created, which is unlikely to be hardware accelerated.
    * </p>
+   * <p>
+   * The resulting {@link GLDrawable} has it's own independent device instance using <code>device</code> details.
+   * </p>
    *
    * @param device which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
    * @param caps the requested GLCapabilties
@@ -656,6 +665,10 @@ public abstract class GLDrawableFactory {
    * Such surface can be used to instantiate a GLDrawable. With the help of {@link GLAutoDrawableDelegate}
    * you will be able to implement a new native windowing system  binding almost on-the-fly,
    * see {@link com.jogamp.opengl.swt.GLCanvas}.
+   * </p>
+   * <p>
+   * The resulting {@link GLOffscreenAutoDrawable} has it's own independent device instance using <code>device</code> details
+   * which may be blocking depending on platform and windowing-toolkit requirements.
    * </p>
    *
    * @param device which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.

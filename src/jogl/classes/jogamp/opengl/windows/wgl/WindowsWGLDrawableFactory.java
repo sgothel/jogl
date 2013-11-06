@@ -41,7 +41,6 @@
 package jogamp.opengl.windows.wgl;
 
 import java.nio.Buffer;
-
 import java.nio.ShortBuffer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -171,8 +170,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   private HashMap<String /*connection*/, SharedResourceRunner.Resource> sharedMap;
 
   private long processAffinityChanges = 0;
-  private PointerBuffer procMask = PointerBuffer.allocateDirect(1);
-  private PointerBuffer sysMask = PointerBuffer.allocateDirect(1);
+  private final PointerBuffer procMask = PointerBuffer.allocateDirect(1);
+  private final PointerBuffer sysMask = PointerBuffer.allocateDirect(1);
 
   @Override
   protected void enterThreadCriticalZone() {
