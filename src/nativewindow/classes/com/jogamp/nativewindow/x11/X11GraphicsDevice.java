@@ -65,13 +65,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
      *  @see DefaultGraphicsDevice#DefaultGraphicsDevice(String, String, int, long)
      */
     public X11GraphicsDevice(long display, int unitID, boolean owner) {
-        // FIXME: derive unitID from connection could be buggy, one DISPLAY for all screens for example..
-        super(NativeWindowFactory.TYPE_X11, X11Lib.XDisplayString(display), unitID, display);
-        if(0==display) {
-            throw new NativeWindowException("null display");
-        }
-        handleOwner = owner;
-        isXineramaEnabled = X11Util.XineramaIsEnabled(this);
+        this(display, unitID, NativeWindowFactory.getDefaultToolkitLock(NativeWindowFactory.TYPE_X11, display), owner);
     }
 
     /**

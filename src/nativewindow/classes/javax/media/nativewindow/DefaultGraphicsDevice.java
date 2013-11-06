@@ -50,12 +50,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
      * @param type
      */
     public DefaultGraphicsDevice(String type, String connection, int unitID) {
-        this.type = type;
-        this.connection = connection;
-        this.unitID = unitID;
-        this.uniqueID = getUniqueID(type, connection, unitID);
-        this.handle = 0;
-        this.toolkitLock = NativeWindowFactory.getDefaultToolkitLock(type);
+        this(type, connection, unitID, 0, NativeWindowFactory.getDefaultToolkitLock(type));
     }
 
     /**
@@ -65,19 +60,14 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
      * @param handle
      */
     public DefaultGraphicsDevice(String type, String connection, int unitID, long handle) {
-        this.type = type;
-        this.connection = connection;
-        this.unitID = unitID;
-        this.uniqueID = getUniqueID(type, connection, unitID);
-        this.handle = handle;
-        this.toolkitLock = NativeWindowFactory.getDefaultToolkitLock(type, handle);
+        this(type, connection, unitID, handle, NativeWindowFactory.getDefaultToolkitLock(type, handle));
     }
 
     /**
-     * Create an instance with the given {@link ToolkitLock} instance.
+     * Create an instance with the given {@link ToolkitLock} instance, or <i>null</i> {@link ToolkitLock} if null.
      * @param type
      * @param handle
-     * @param locker
+     * @param locker if null, a non blocking <i>null</i> lock is used.
      */
     public DefaultGraphicsDevice(String type, String connection, int unitID, long handle, ToolkitLock locker) {
         this.type = type;
