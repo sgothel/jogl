@@ -426,6 +426,11 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
+    public void setVisible(boolean wait, boolean visible) {
+        window.setVisible(wait, visible);
+    }
+
+    @Override
     public final void setSize(int width, int height) {
         window.setSize(width, height);
     }

@@ -158,10 +158,21 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     void setWindowDestroyNotifyAction(Runnable r);
 
     /**
-     * <code>setVisible</code> makes the window and children visible if <code>visible</code> is true,
+     * Calls {@link #setVisible(boolean, boolean) setVisible(true, visible)},
+     * i.e. blocks until the window becomes visible.
+     * @see #setVisible(boolean, boolean)
+     */
+    void setVisible(boolean visible);
+
+    /**
+     * <code>setVisible(..)</code> makes the window and children visible if <code>visible</code> is true,
      * otherwise the window and children becomes invisible.
      * <p>
-     * The <code>setVisible(true)</code> is responsible to actual create the native window.
+     * <code>setVisible(wait, true)</code> is responsible to actual create the native window.
+     * </p>
+     * <p>
+     * If <code>wait</code> is true, method blocks until window is {@link #isVisible() visible} and {@link #isNativeValid() valid},
+     * otherwise method returns immediately.
      * </p>
      * <p>
      * Zero size semantics are respected, see {@link #setSize(int,int)}:<br>
@@ -178,12 +189,12 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * </pre></p>
      * <p>
      * In case this window is a child window and has a {@link javax.media.nativewindow.NativeWindow} parent,<br>
-     * <code>setVisible(true)</code> has no effect as long the parent's is not valid yet,
+     * <code>setVisible(wait, true)</code> has no effect as long the parent's is not valid yet,
      * i.e. {@link javax.media.nativewindow.NativeWindow#getWindowHandle()} returns <code>null</code>.<br>
-     * <code>setVisible(true)</code> shall be repeated when the parent becomes valid.
+     * <code>setVisible(wait, true)</code> shall be repeated when the parent becomes valid.
      * </p>
      */
-    void setVisible(boolean visible);
+    void setVisible(boolean wait, boolean visible);
 
     boolean isVisible();
 

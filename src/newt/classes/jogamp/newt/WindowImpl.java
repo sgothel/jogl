@@ -148,7 +148,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private volatile int x = 64, y = 64; // client-area pos w/o insets
     private volatile Insets insets = new Insets(); // insets of decoration (if top-level && decorated)
 
-    private RecursiveLock windowLock = LockFactory.createRecursiveLock();  // Window instance wide lock
+    private final RecursiveLock windowLock = LockFactory.createRecursiveLock();  // Window instance wide lock
     private int surfaceLockCount = 0; // surface lock recursion count
 
     private ScreenImpl screen; // never null after create - may change reference though (reparent)
@@ -177,10 +177,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private FocusRunnable focusAction = null;
     private KeyListener keyboardFocusHandler = null;
 
-    private SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
+    private final SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
 
-    private Object childWindowsLock = new Object();
-    private ArrayList<NativeWindow> childWindows = new ArrayList<NativeWindow>();
+    private final Object childWindowsLock = new Object();
+    private final ArrayList<NativeWindow> childWindows = new ArrayList<NativeWindow>();
 
     private ArrayList<MouseListener> mouseListeners = new ArrayList<MouseListener>();
 
@@ -196,7 +196,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             lastButtonPressTime = 0;
         }
     }
-    private PointerState0 pState0 = new PointerState0();
+    private final PointerState0 pState0 = new PointerState0();
 
     /** from direct input: {@link WindowImpl#doPointerEvent(boolean, boolean, int[], short, int, int, boolean, short[], int[], int[], float[], float, float[], float)}. */
     private static class PointerState1 extends PointerState0 {
@@ -227,7 +227,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             return null;
         }
     }
-    private PointerState1 pState1 = new PointerState1();
+    private final PointerState1 pState1 = new PointerState1();
 
     /** pointer names -> pointer ID (consecutive index, starting w/ 0) */
     private final ArrayHashSet<Integer> pName2pID = new ArrayHashSet<Integer>();
@@ -534,7 +534,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     //----------------------------------------------------------------------
     // WindowClosingProtocol implementation
     //
-    private Object closingListenerLock = new Object();
+    private final Object closingListenerLock = new Object();
     private WindowClosingMode defaultCloseOperation = WindowClosingMode.DISPOSE_ON_CLOSE;
 
     @Override
@@ -965,7 +965,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
-    protected void setVisible(boolean wait, boolean visible) {
+    @Override
+    public void setVisible(boolean wait, boolean visible) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window setVisible: START ("+getThreadName()+") "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+this.visible+" -> "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+(null!=parentWindow));
         }
@@ -3007,7 +3008,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private final IntBitfield keyPressedState = new IntBitfield( keyTrackingRange + 1 );
 
     protected final boolean isKeyCodeTracked(final short keyCode) {
-        return ( 0xFFFF & (int)keyCode ) <= keyTrackingRange;
+        return ( 0xFFFF & keyCode ) <= keyTrackingRange;
     }
 
     /**
@@ -3016,7 +3017,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @return the previus pressed value
      */
     protected final boolean setKeyPressed(short keyCode, boolean pressed) {
-        final int v = 0xFFFF & (int)keyCode;
+        final int v = 0xFFFF & keyCode;
         if( v <= keyTrackingRange ) {
             return keyPressedState.put(v, pressed);
         }
@@ -3027,7 +3028,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @return true if pressed, otherwise false
      */
     protected final boolean isKeyPressed(short keyCode) {
-        final int v = 0xFFFF & (int)keyCode;
+        final int v = 0xFFFF & keyCode;
         if( v <= keyTrackingRange ) {
             return keyPressedState.get(v);
         }
