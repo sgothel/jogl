@@ -149,6 +149,10 @@ public class TestPerf001GLWindowInit03NEWT extends UITestCase {
 
     @Test
     public void test01NopGLWindowNoReuse() throws InterruptedException, InvocationTargetException {
+        if(!mainRun) {
+            System.err.println("Disabled for auto unit test until further analysis - Windows/ATI driver crash");
+            return;
+        }
         test(new GLCapabilities(null), false /*useGears*/, width, height , frameCount, false /* reuseDevice */);
     }
     @Test
@@ -157,12 +161,13 @@ public class TestPerf001GLWindowInit03NEWT extends UITestCase {
     }
 
     static long duration = 0; // ms
-    static boolean wait = false;
+    static boolean wait = false, mainRun = false;
     static int width = 800, height = 600, frameCount = 25;
 
     volatile int initCount = 0;
 
     public static void main(String[] args) {
+        mainRun = true;
         boolean useGears = false, manual=false;
         boolean waitMain = false;
 
