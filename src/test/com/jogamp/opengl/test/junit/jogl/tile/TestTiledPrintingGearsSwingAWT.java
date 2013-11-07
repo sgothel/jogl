@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.tile;
 
 import java.awt.BorderLayout;
@@ -81,7 +81,7 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
     static boolean allow600dpi = false;
     static GLProfile glp;
     static int width, height;
-    
+
     @BeforeClass
     public static void initClass() {
         if(GLProfile.isAvailable(GLProfile.GL2)) {
@@ -99,12 +99,12 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
     @AfterClass
     public static void releaseClass() {
     }
-    
+
     protected void runTestGL(GLCapabilities caps, boolean layered) throws InterruptedException, InvocationTargetException {
         final int layerStepX = width/6, layerStepY = height/6;
         final Dimension glc_sz = new Dimension(layered ? width - 2*layerStepX : width/2, layered ? height - 2*layerStepY : height);
         final GLJPanel glJPanel1 = new GLJPanel(caps);
-        Assert.assertNotNull(glJPanel1);        
+        Assert.assertNotNull(glJPanel1);
         glJPanel1.setMinimumSize(glc_sz);
         glJPanel1.setPreferredSize(glc_sz);
         if( layered ) {
@@ -113,9 +113,9 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
             glJPanel1.setBounds(0, 0, glc_sz.width, glc_sz.height);
         }
         glJPanel1.addGLEventListener(new Gears());
-        
+
         final GLJPanel glJPanel2 = new GLJPanel(caps);
-        Assert.assertNotNull(glJPanel2);        
+        Assert.assertNotNull(glJPanel2);
         glJPanel2.setMinimumSize(glc_sz);
         glJPanel2.setPreferredSize(glc_sz);
         if( layered ) {
@@ -125,7 +125,7 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
         }
         glJPanel2.addGLEventListener(new RedSquareES1());
         // glJPanel2.addGLEventListener(new Gears());
-        
+
         final JComponent demoPanel;
         if( layered ) {
             glJPanel1.setOpaque(true);
@@ -146,10 +146,10 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
             demoPanel.add(glJPanel1);
             demoPanel.add(glJPanel2);
         }
-        
+
         final JFrame frame = new JFrame("Swing Print");
         Assert.assertNotNull(frame);
-        
+
         final ActionListener print72DPIAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 doPrintManual(frame, 72, 0, -1, -1);
@@ -168,7 +168,7 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
         print300DPIButton.addActionListener(print300DPIAction);
         final Button print600DPIButton = new Button("600dpi");
         print600DPIButton.addActionListener(print600DPIAction);
-            
+
         final JPanel printPanel = new JPanel();
         printPanel.add(print72DPIButton);
         printPanel.add(print300DPIButton);
@@ -179,7 +179,7 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
         eastPanel.add(new Label("East"));
         final JPanel westPanel = new JPanel();
         westPanel.add(new Label("West"));
-        
+
         Animator animator = new Animator();
         animator.add(glJPanel1);
         animator.add(glJPanel2);
@@ -202,12 +202,12 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
                     frame.pack();
                     frame.setVisible(true);
                 } } ) ;
-        
+
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel1, true));
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel2, true));
-        
-        animator.setUpdateFPSFrames(60, System.err);        
+
+        animator.setUpdateFPSFrames(60, System.err);
         animator.start();
         Assert.assertEquals(true, animator.isAnimating());
 
@@ -223,7 +223,7 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
                 {
                     final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, -1 /* offscreen-type */, 72, 8, -1, -1, false /* resizeWithinPrint */);
                     waitUntilPrintJobsIdle(p);
-                } 
+                }
                 {
                     // No AA needed for 150 dpi and greater :)
                     final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, -1 /* offscreen-type */, 150, -1, -1, -1, false /* resizeWithinPrint */);
@@ -258,7 +258,7 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
                     // No AA needed for 150 dpi and greater :)
                     final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, BufferedImage.TYPE_INT_BGR /* offscreen-type */, 150, -1, -1, -1, false /* resizeWithinPrint */);
                     waitUntilPrintJobsIdle(p);
-                } 
+                }
                 {
                     // No AA needed for 150 dpi and greater :)
                     final PrintableBase p = doPrintAuto(frame, PageFormat.LANDSCAPE, null, BufferedImage.TYPE_INT_ARGB_PRE /* offscreen-type */, 150, -1, -1, -1, true /* resizeWithinPrint */);
@@ -271,7 +271,7 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
                 }
             }
         }
-        
+
         Assert.assertNotNull(frame);
         Assert.assertNotNull(glJPanel1);
         Assert.assertNotNull(glJPanel2);
@@ -297,14 +297,14 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
         GLCapabilities caps = new GLCapabilities(glp);
         runTestGL(caps, false);
     }
-    
+
     @Test
     public void test01_aa0_layered() throws InterruptedException, InvocationTargetException {
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(8);
         runTestGL(caps, true);
     }
-    
+
     @Test
     public void test01_aa0_bitmap() throws InterruptedException, InvocationTargetException {
         if( Platform.OSType.WINDOWS == Platform.getOSType() ) {
@@ -313,7 +313,7 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
             runTestGL(caps, false);
         } // issues w/ AMD catalyst driver and pixmap surface ..
     }
-    
+
     @Test
     public void test01_aa0_bitmap_layered() throws InterruptedException, InvocationTargetException {
         if( Platform.OSType.WINDOWS == Platform.getOSType() ) {
@@ -323,7 +323,7 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
             runTestGL(caps, true);
         } // issues w/ AMD catalyst driver and pixmap surface ..
     }
-    
+
     @Test
     public void test02_aa8() throws InterruptedException, InvocationTargetException {
         GLCapabilities caps = new GLCapabilities(glp);
@@ -331,7 +331,7 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
         caps.setNumSamples(8);
         runTestGL(caps, false);
     }
-    
+
     static long duration = 500; // ms
 
     public static void main(String args[]) {
