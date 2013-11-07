@@ -253,7 +253,7 @@ public class WGLGLCapabilities extends GLCapabilities {
     if(null == sink) {
         sink = new StringBuilder();
     }
-    sink.append("wgl vid 0x").append(Integer.toHexString(pfdID)).append(" ");
+    sink.append("wgl vid ").append(pfdID).append(" ");
     switch (arb_pixelformat) {
         case -1:
             sink.append("gdi");
