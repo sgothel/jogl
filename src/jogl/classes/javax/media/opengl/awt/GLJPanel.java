@@ -1068,45 +1068,41 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
   private final Object initSync = new Object();
   private boolean initializeBackendImpl() {
-    if( !isInitialized ) {
-        synchronized(initSync) {
-            if( !isInitialized ) {
-                if ( 0 >= panelWidth || 0 >= panelHeight ) {
-                  // See whether we have a non-zero size yet and can go ahead with
-                  // initialization
-                  if (0 >= reshapeWidth || 0 >= reshapeHeight ) {
-                      return false;
-                  }
+    synchronized(initSync) {
+        if( !isInitialized ) {
+            if ( 0 >= panelWidth || 0 >= panelHeight ) {
+              // See whether we have a non-zero size yet and can go ahead with
+              // initialization
+              if (0 >= reshapeWidth || 0 >= reshapeHeight ) {
+                  return false;
+              }
 
-                  if (DEBUG) {
-                      System.err.println(getThreadName()+": GLJPanel.createAndInitializeBackend: " +panelWidth+"x"+panelHeight + " -> " + reshapeWidth+"x"+reshapeHeight);
-                  }
-                  // Pull down reshapeWidth and reshapeHeight into panelWidth and
-                  // panelHeight eagerly in order to complete initialization, and
-                  // force a reshape later
-                  panelWidth = reshapeWidth;
-                  panelHeight = reshapeHeight;
-                }
-
-                if ( null == backend ) {
-                    if ( oglPipelineUsable() ) {
-                        backend = new J2DOGLBackend();
-                    } else {
-                        backend = new OffscreenBackend(glProfile, customPixelBufferProvider);
-                    }
-                    isInitialized = false;
-                }
-
-                if (!isInitialized) {
-                    backend.initialize();
-                }
-                return isInitialized;
-            } else {
-                return true;
+              if (DEBUG) {
+                  System.err.println(getThreadName()+": GLJPanel.createAndInitializeBackend: " +panelWidth+"x"+panelHeight + " -> " + reshapeWidth+"x"+reshapeHeight);
+              }
+              // Pull down reshapeWidth and reshapeHeight into panelWidth and
+              // panelHeight eagerly in order to complete initialization, and
+              // force a reshape later
+              panelWidth = reshapeWidth;
+              panelHeight = reshapeHeight;
             }
+
+            if ( null == backend ) {
+                if ( oglPipelineUsable() ) {
+                    backend = new J2DOGLBackend();
+                } else {
+                    backend = new OffscreenBackend(glProfile, customPixelBufferProvider);
+                }
+                isInitialized = false;
+            }
+
+            if (!isInitialized) {
+                backend.initialize();
+            }
+            return isInitialized;
+        } else {
+            return true;
         }
-    } else {
-        return true;
     }
   }
 
