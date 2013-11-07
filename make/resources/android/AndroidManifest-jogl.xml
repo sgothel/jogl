@@ -20,8 +20,20 @@
                   android:finishOnTaskLaunch="true"
                   android:launchMode="singleTop"
                   android:configChanges="keyboardHidden|orientation"
-                  android:label="@string/activity_v_name"
-                  android:description="@string/activity_v_descr"
+                  android:label="@string/activity_version_name"
+                  android:description="@string/activity_version_descr"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="jogamp.newt.driver.android.NewtDebugActivityLauncher"
+                  android:finishOnTaskLaunch="true"
+                  android:launchMode="singleTop"
+                  android:configChanges="keyboardHidden|orientation"
+                  android:label="@string/activity_debug_name"
+                  android:description="@string/activity_debug_descr"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
