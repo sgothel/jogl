@@ -332,7 +332,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
     this.glProfile = offscreenCaps.getGLProfile();
     this.factory = GLDrawableFactoryImpl.getFactoryImpl(glProfile);
-    this.chooser = ((chooser != null) ? chooser : new DefaultGLCapabilitiesChooser());
+    this.chooser = chooser;
     if( null != shareWith ) {
         helper.setSharedContext(null, shareWith);
     }
