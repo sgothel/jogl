@@ -49,9 +49,11 @@ import com.jogamp.common.net.URIQueryProps;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.LFRingbuffer;
 import com.jogamp.common.util.Ringbuffer;
+import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.util.TimeFrameI;
 import com.jogamp.opengl.util.av.AudioSink;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
+import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
 import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
@@ -221,7 +223,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     public String getRequiredExtensionsShaderStub() throws IllegalStateException {
         checkGLInit();
         if(GLES2.GL_TEXTURE_EXTERNAL_OES == textureTarget) {
-            return TextureSequence.GL_OES_EGL_image_external_Required_Prelude;
+            return ShaderCode.createExtensionDirective(GLExtensions.OES_EGL_image_external, ShaderCode.ENABLE);
         }
         return "";
     }

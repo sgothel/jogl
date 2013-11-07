@@ -166,7 +166,9 @@ public abstract class EGLDrawable extends GLDrawableImpl {
 
     @Override
     public GLDynamicLookupHelper getGLDynamicLookupHelper() {
-        if (getGLProfile().usesNativeGLES2()) {
+        if (getGLProfile().usesNativeGLES3()) {
+            return getFactoryImpl().getGLDynamicLookupHelper(3);
+        } else if (getGLProfile().usesNativeGLES2()) {
             return getFactoryImpl().getGLDynamicLookupHelper(2);
         } else if (getGLProfile().usesNativeGLES1()) {
             return getFactoryImpl().getGLDynamicLookupHelper(1);

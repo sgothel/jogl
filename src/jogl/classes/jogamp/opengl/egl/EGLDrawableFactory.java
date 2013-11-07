@@ -615,12 +615,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
         if( null != eglES2DynamicLookupHelper ) {
             madeCurrentES3 = mapAvailableEGLESConfig(adevice, 3, hasPBufferES3ES2, rendererQuirksES3ES2, ctpES3ES2);
-            if( madeCurrentES3 ) {
-                // Only support highest - FIXME: Proper ES2/ES3 profile selection
-                madeCurrentES2 = false;
-            } else {
-                madeCurrentES2 = mapAvailableEGLESConfig(adevice, 2, hasPBufferES3ES2, rendererQuirksES3ES2, ctpES3ES2);
-            }
+            madeCurrentES2 = mapAvailableEGLESConfig(adevice, 2, hasPBufferES3ES2, rendererQuirksES3ES2, ctpES3ES2);
         } else {
             madeCurrentES2 = false;
             madeCurrentES3 = false;
@@ -668,7 +663,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     @Override
     public GLDynamicLookupHelper getGLDynamicLookupHelper(int esProfile) {
-        if (2==esProfile) {
+        if ( 2==esProfile || 3==esProfile ) {
             return eglES2DynamicLookupHelper;
         } else if (1==esProfile) {
             return eglES1DynamicLookupHelper;

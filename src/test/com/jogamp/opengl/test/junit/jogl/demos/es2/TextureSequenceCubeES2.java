@@ -43,6 +43,7 @@ import com.jogamp.newt.Window;
 import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
+import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -196,8 +197,8 @@ public class TextureSequenceCubeES2 implements GLEventListener {
         final Texture tex= frame.getTexture();
         
         final boolean useExternalTexture = GLES2.GL_TEXTURE_EXTERNAL_OES == tex.getTarget();
-        if(useExternalTexture && !gl.isExtensionAvailable("GL_OES_EGL_image_external")) {
-            throw new GLException("GL_OES_EGL_image_external requested but not available");
+        if(useExternalTexture && !gl.isExtensionAvailable(GLExtensions.OES_EGL_image_external)) {
+            throw new GLException(GLExtensions.OES_EGL_image_external+" requested but not available");
         }
         
         initShader(gl);

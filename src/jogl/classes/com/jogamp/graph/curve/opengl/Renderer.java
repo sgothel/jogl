@@ -279,7 +279,7 @@ public abstract class Renderer {
     public static final String es2_precision_fp = "\nprecision mediump float;\nprecision mediump int;\nprecision mediump sampler2D;\n";
 
     protected String getFragmentShaderPrecision(GL2ES2 gl) {
-        if( gl.isGLES2() ) {
+        if( gl.isGLES() ) {
             return es2_precision_fp;
         }
         if( ShaderCode.requiresGL3DefaultPrecision(gl) ) {

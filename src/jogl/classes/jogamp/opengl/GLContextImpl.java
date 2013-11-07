@@ -1305,11 +1305,8 @@ public abstract class GLContextImpl extends GLContext {
    * <p>
    * If the GL query fails, major will be zero.
    * </p>
-   * <p>
-   * Note: Non ARB ctx is limited to GL 3.0.
-   * </p>
    */
-  private final boolean getGLIntVersion(int[] glIntMajor, int[] glIntMinor, int ctp)  {
+  private final boolean getGLIntVersion(int[] glIntMajor, int[] glIntMinor)  {
     glIntMajor[0] = 0; // clear
     final GLDynamicLookupHelper glDynLookupHelper = getDrawableImpl().getGLDynamicLookupHelper();
     final long _glGetIntegerv = glDynLookupHelper.dynamicLookupFunction("glGetIntegerv");
@@ -1408,14 +1405,15 @@ public abstract class GLContextImpl extends GLContext {
     if (DEBUG) {
         System.err.println(getThreadName() + ": GLContext.setGLFuncAvail: Pre version verification - expected "+GLContext.getGLVersion(major, minor, ctxProfileBits, null)+", strictMatch "+strictMatch+", glVersionsMapping " +withinGLVersionsMapping);
     }
-    boolean versionValidated = false;
-    boolean versionGL3IntFailed = false;
+
+    final boolean versionGL3IntOK;
     {
-        // Validate the requested version w/ the GL-version from an integer query.
+        // Validate the requested version w/ the GL-version from an integer query,
+        // as supported by GL [ES] >= 3.0 implementation.
         final VersionNumber hasGLVersionByInt;
         {
             final int[] glIntMajor = new int[] { 0 }, glIntMinor = new int[] { 0 };
-            final boolean getGLIntVersionOK = getGLIntVersion(glIntMajor, glIntMinor, ctxProfileBits);
+            final boolean getGLIntVersionOK = getGLIntVersion(glIntMajor, glIntMinor);
             if( !getGLIntVersionOK ) {
                 final String errMsg = "Fetching GL Integer Version failed. "+adevice+" - "+GLContext.getGLVersion(major, minor, ctxProfileBits, null);
                 if( strictMatch ) {
@@ -1432,7 +1430,7 @@ public abstract class GLContextImpl extends GLContext {
             hasGLVersionByInt = new VersionNumber(glIntMajor[0], glIntMinor[0], 0);
         }
         if (DEBUG) {
-            System.err.println(getThreadName() + ": GLContext.setGLFuncAvail: Version verification (Int): "+glVersion+", "+hasGLVersionByInt);
+            System.err.println(getThreadName() + ": GLContext.setGLFuncAvail: Version verification (Int): String "+glVersion+", Number "+hasGLVersionByInt);
         }
 
         // Only validate if a valid int version was fetched, otherwise cont. w/ version-string method -> 3.0 > Version || Version > MAX!
@@ -1455,16 +1453,20 @@ public abstract class GLContextImpl extends GLContext {
             // Use returned GL version!
             major = hasGLVersionByInt.getMajor();
             minor = hasGLVersionByInt.getMinor();
-            versionValidated = true;
+            versionGL3IntOK = true;
         } else {
-            versionGL3IntFailed = true;
+            versionGL3IntOK = false;
         }
     }
-    if( !versionValidated ) {
+    final boolean versionValidated;
+
+    if( versionGL3IntOK ) {
+        versionValidated = true;
+    } else {
         // Validate the requested version w/ the GL-version from the version string.
         final VersionNumber hasGLVersionByString = getGLVersionNumber(ctxProfileBits, glVersion);
         if (DEBUG) {
-            System.err.println(getThreadName() + ": GLContext.setGLFuncAvail: Version verification (String): "+glVersion+", "+hasGLVersionByString);
+            System.err.println(getThreadName() + ": GLContext.setGLFuncAvail: Version verification (String): String "+glVersion+", Number "+hasGLVersionByString);
         }
 
         // Only validate if a valid string version was fetched -> MIN > Version || Version > MAX!
@@ -1484,7 +1486,7 @@ public abstract class GLContextImpl extends GLContext {
                 }
                 return false;
             }
-            if( strictMatch && versionGL3IntFailed && major >= 3 ) {
+            if( strictMatch && !versionGL3IntOK && major >= 3 ) {
                 if(DEBUG) {
                     System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.X: FAIL, GL3/ES3 version Int failed, String: "+GLContext.getGLVersion(major, minor, ctxProfileBits, null)+" -> "+glVersion+", "+hasGLVersionByString);
                 }
@@ -1494,6 +1496,8 @@ public abstract class GLContextImpl extends GLContext {
             major = hasGLVersionByString.getMajor();
             minor = hasGLVersionByString.getMinor();
             versionValidated = true;
+        } else {
+            versionValidated = false;
         }
     }
     if( strictMatch && !versionValidated ) {
@@ -1506,7 +1510,7 @@ public abstract class GLContextImpl extends GLContext {
         System.err.println(getThreadName() + ": GLContext.setGLFuncAvail: Post version verification req "+
                 GLContext.getGLVersion(reqGLVersion.getMajor(), reqGLVersion.getMinor(), reqCtxProfileBits, null)+" -> has "+
                 GLContext.getGLVersion(major, minor, ctxProfileBits, null)+
-                ", strictMatch "+strictMatch+", versionValidated "+versionValidated+", versionGL3IntFailed "+versionGL3IntFailed);
+                ", strictMatch "+strictMatch+", versionValidated "+versionValidated+", versionGL3IntOK "+versionGL3IntOK);
     }
 
     if( major < 2 ) { // there is no ES2/3-compat for a profile w/ major < 2

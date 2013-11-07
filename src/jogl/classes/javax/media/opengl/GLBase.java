@@ -150,7 +150,7 @@ public interface GLBase {
 
   /**
    * Indicates whether this GL object conforms to one of the OpenGL ES profiles,
-   * see {@link #isGLES1()} and {@link #isGLES2()}.
+   * see {@link #isGLES1()}, {@link #isGLES2()} and {@link #isGLES3()}.
    * @see GLContext#isGLES()
    */
   public boolean isGLES();

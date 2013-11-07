@@ -843,8 +843,28 @@ public class ShaderCode {
     /** Default precision of GLSL &ge; 1.30 as required until &lt; 1.50 for {@link GL2ES2#GL_FRAGMENT_SHADER fragment-shader}: {@value #gl3_default_precision_fp}. See GLSL Spec 1.30-1.50 Section 4.5.3. */
     public static final String gl3_default_precision_fp = "\nprecision highp float;\nprecision mediump int;\n/*precision mediump sampler2D;*/\n";
 
-    /** Prefer <code>enable</code> over <code>require</code>, since it won't force a failure. */
-    public static final String extOESDerivativesEnable = "#extension GL_OES_standard_derivatives : enable\n";
+    /** <i>Behavior</i> for GLSL extension directive, see {@link #createExtensionDirective(String, String)}, value {@value}. */
+    public static final String REQUIRE = "require";
+    /** <i>Behavior</i> for GLSL extension directive, see {@link #createExtensionDirective(String, String)}, value {@value}. */
+    public static final String ENABLE = "enable";
+    /** <i>Behavior</i> for GLSL extension directive, see {@link #createExtensionDirective(String, String)}, value {@value}. */
+    public static final String DISABLE = "disable";
+    /** <i>Behavior</i> for GLSL extension directive, see {@link #createExtensionDirective(String, String)}, value {@value}. */
+    public static final String WARN = "warn";
+
+    /**
+     * Creates a GLSL extension directive.
+     * <p>
+     * Prefer {@link #ENABLE} over {@link #REQUIRE}, since the latter will force a failure if not supported.
+     * </p>
+     *
+     * @param extensionName
+     * @param behavior shall be either {@link #REQUIRE}, {@link #ENABLE}, {@link #DISABLE} or {@link #WARN}
+     * @return the complete extension directive
+     */
+    public static String createExtensionDirective(String extensionName, String behavior) {
+        return "#extension " + extensionName + " : " + behavior;
+    }
 
     /**
      * Add GLSL version at the head of this shader source code.
@@ -915,7 +935,7 @@ public class ShaderCode {
 
     /** Returns true, if GLSL version requires default precision, i.e. ES2 or GLSL [1.30 .. 1.50[. */
     public static final boolean requiresDefaultPrecision(GL2ES2 gl) {
-        if( gl.isGLES2() || gl.isGLES3() ) {
+        if( gl.isGLES() ) {
             return true;
         }
         return requiresGL3DefaultPrecision(gl);
@@ -979,7 +999,7 @@ public class ShaderCode {
         } else {
             pos = 0;
         }
-        if( gl.isGLES2() && null != esDefaultPrecision ) {
+        if( gl.isGLES() && null != esDefaultPrecision ) {
             pos = insertShaderSource(0, pos, esDefaultPrecision);
         } else {
             pos = addDefaultShaderPrecision(gl, pos);

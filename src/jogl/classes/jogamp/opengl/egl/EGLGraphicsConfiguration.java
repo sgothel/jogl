@@ -415,6 +415,8 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
             attrs.put(idx++, EGL.EGL_OPENGL_ES_BIT);
         } else if(caps.getGLProfile().usesNativeGLES2()) {
             attrs.put(idx++, EGL.EGL_OPENGL_ES2_BIT);
+        } else if(caps.getGLProfile().usesNativeGLES3()) {
+            attrs.put(idx++, EGLExt.EGL_OPENGL_ES3_BIT_KHR);
         } else {
             attrs.put(idx++, EGL.EGL_OPENGL_BIT);
         }

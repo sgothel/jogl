@@ -135,13 +135,7 @@ public class EGLContext extends GLContextImpl {
 
     @Override
     protected void destroyImpl() throws GLException {
-      if (!EGL.eglDestroyContext(drawable.getNativeSurface().getDisplayHandle(), contextHandle)) {
-          final int eglError = EGL.eglGetError();
-          if(EGL.EGL_SUCCESS != eglError) { /* oops, Mesa EGL impl. may return false, but has no EGL error */
-              throw new GLException("Error destroying OpenGL context " + toHexString(contextHandle) +
-                                    ": error code " + toHexString(eglError));
-          }
-      }
+        destroyContextARBImpl(contextHandle);
     }
 
     @Override
@@ -151,7 +145,13 @@ public class EGLContext extends GLContextImpl {
 
     @Override
     protected void destroyContextARBImpl(long _context) {
-        // FIXME
+        if (!EGL.eglDestroyContext(drawable.getNativeSurface().getDisplayHandle(), _context)) {
+            final int eglError = EGL.eglGetError();
+            if(EGL.EGL_SUCCESS != eglError) { /* oops, Mesa EGL impl. may return false, but has no EGL error */
+                throw new GLException("Error destroying OpenGL context " + toHexString(_context) +
+                        ": error code " + toHexString(eglError));
+            }
+        }
     }
 
     @Override
@@ -180,12 +180,14 @@ public class EGLContext extends GLContextImpl {
             }
         }
 
+        // Cannot check extension 'EGL_KHR_create_context' before having one current!
+
         final IntBuffer contextAttrsNIO;
         final int contextVersionReq, contextVersionAttr;
         {
             if ( glProfile.usesNativeGLES3() ) {
                 contextVersionReq = 3;
-                contextVersionAttr = 2;
+                contextVersionAttr = 3;
             } else if ( glProfile.usesNativeGLES2() ) {
                 contextVersionReq = 2;
                 contextVersionAttr = 2;
@@ -195,6 +197,7 @@ public class EGLContext extends GLContextImpl {
             } else {
                 throw new GLException("Error creating OpenGL context - invalid GLProfile: "+glProfile);
             }
+            // EGLExt.EGL_CONTEXT_MAJOR_VERSION_KHR == EGL.EGL_CONTEXT_CLIENT_VERSION
             final int[] contextAttrs = new int[] { EGL.EGL_CONTEXT_CLIENT_VERSION, contextVersionAttr, EGL.EGL_NONE };
             contextAttrsNIO = Buffers.newDirectIntBuffer(contextAttrs);
         }

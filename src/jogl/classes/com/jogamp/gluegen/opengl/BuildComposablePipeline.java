@@ -667,7 +667,7 @@ public class BuildComposablePipeline {
             if( 0 != (GEN_GL_IDENTITY_BY_ASSIGNABLE_CLASS & getMode() ) ) {
                 output.println("  @Override");
                 output.println("  public final boolean isGLES() {");
-                output.println("    return isGLES2() || isGLES1();");
+                output.println("    return isGLES3() || isGLES2() || isGLES1();");
                 output.println("  }");
             } else {
                 emitGLIsMethod(output, "GLES");

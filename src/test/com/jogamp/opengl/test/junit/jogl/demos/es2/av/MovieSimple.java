@@ -54,6 +54,7 @@ import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -386,8 +387,8 @@ public class MovieSimple implements GLEventListener {
             }
             tex = mPlayer.getLastTexture().getTexture();
             useExternalTexture = GLES2.GL_TEXTURE_EXTERNAL_OES == tex.getTarget();
-            if(useExternalTexture && !gl.isExtensionAvailable("GL_OES_EGL_image_external")) {
-                throw new GLException("GL_OES_EGL_image_external requested but not available");
+            if(useExternalTexture && !gl.isExtensionAvailable(GLExtensions.OES_EGL_image_external)) {
+                throw new GLException(GLExtensions.OES_EGL_image_external+" requested but not available");
             }
             if(!mPlayerShared) {
                 mPlayer.setTextureMinMagFilter( new int[] { GL.GL_NEAREST, GL.GL_LINEAR } );

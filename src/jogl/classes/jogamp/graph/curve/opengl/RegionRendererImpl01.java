@@ -36,6 +36,7 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
@@ -57,8 +58,8 @@ public class RegionRendererImpl01 extends RegionRenderer {
         rsVp.defaultShaderCustomization(gl, true, true);
         // rsFp.defaultShaderCustomization(gl, true, true);
         int pos = rsFp.addGLSLVersion(gl);
-        if( gl.isGLES2() ) {
-            pos = rsFp.insertShaderSource(0, pos, ShaderCode.extOESDerivativesEnable);
+        if( gl.isGLES() ) {
+            pos = rsFp.insertShaderSource(0, pos, ShaderCode.createExtensionDirective(GLExtensions.OES_standard_derivatives, ShaderCode.ENABLE));
         }
         final String rsFpDefPrecision =  getFragmentShaderPrecision(gl);
         if( null != rsFpDefPrecision ) {

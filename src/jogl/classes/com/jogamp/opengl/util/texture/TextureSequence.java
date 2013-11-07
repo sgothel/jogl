@@ -105,7 +105,6 @@ import com.jogamp.opengl.util.TimeFrameI;
  *
  */
 public interface TextureSequence {
-    public static final String GL_OES_EGL_image_external_Required_Prelude = "#extension GL_OES_EGL_image_external : enable\n";
     public static final String samplerExternalOES = "samplerExternalOES";
     public static final String sampler2D = "sampler2D";
 
