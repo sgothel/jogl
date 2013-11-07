@@ -523,29 +523,51 @@ public abstract class AnimatorBase implements GLAnimatorControl {
      * @return <code>true</code> if {@link Condition#eval() waitCondition.eval()} returned <code>false</code>, otherwise <code>false</code>.
      */
     protected synchronized boolean finishLifecycleAction(Condition waitCondition, long pollPeriod) {
-        // It's hard to tell whether the thread which changes the lifecycle has
-        // dependencies on the Animator's internal thread. Currently we
-        // use a couple of heuristics to determine whether we should do
-        // the blocking wait().
+        /**
+         * It's hard to tell whether the thread which changes the lifecycle has
+         * dependencies on the Animator's internal thread. Currently we
+         * use a couple of heuristics to determine whether we should do
+         * the blocking wait().
+         */
         initImpl(false);
-        final boolean blocking = impl.blockUntilDone(animThread);
-        long remaining = blocking ? TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION : 0;
-        if( 0 >= pollPeriod ) {
-            pollPeriod = remaining;
-        }
-        boolean nok = waitCondition.eval();
-        while ( nok && remaining>0 ) {
-            final long t1 = System.currentTimeMillis();
-            if( pollPeriod > remaining ) { pollPeriod = remaining; }
-            notifyAll();
-            try {
-                wait(pollPeriod);
-            } catch (InterruptedException ie) {  }
-            remaining -= System.currentTimeMillis() - t1 ;
+        final boolean blocking;
+        long remaining;
+        boolean nok;
+        if( impl.blockUntilDone(animThread) ) {
+            blocking = true;
+            remaining = TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION;
+            if( 0 >= pollPeriod ) {
+                pollPeriod = remaining;
+            }
             nok = waitCondition.eval();
+            while ( nok && remaining>0 ) {
+                final long t1 = System.currentTimeMillis();
+                if( pollPeriod > remaining ) { pollPeriod = remaining; }
+                notifyAll();
+                try {
+                    wait(pollPeriod);
+                } catch (InterruptedException ie) {  }
+                remaining -= System.currentTimeMillis() - t1 ;
+                nok = waitCondition.eval();
+            }
+        } else {
+            /**
+             * Even though we are not able to block until operation is completed at this point,
+             * best effort shall be made to preserve functionality.
+             * Here: Issue notifyAll() if waitCondition still holds and test again.
+             *
+             * Non blocking reason could be utilizing AWT Animator while operation is performed on AWT-EDT.
+             */
+            blocking = false;
+            remaining = 0;
+            nok = waitCondition.eval();
+            if( nok ) {
+                notifyAll();
+                nok = waitCondition.eval();
+            }
         }
         if(DEBUG || blocking && nok) { // Info only if DEBUG or ( blocking && not-ok ) ; !blocking possible if AWT
-            if( remaining<=0 && nok ) {
+            if( blocking && remaining<=0 && nok ) {
                 System.err.println("finishLifecycleAction(" + waitCondition.getClass().getName() + "): ++++++ timeout reached ++++++ " + getThreadName());
             }
             stateSync.lock(); // avoid too many lock/unlock ops

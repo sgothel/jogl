@@ -308,7 +308,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NewtCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile00NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NEWT $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT $*
@@ -483,6 +483,7 @@ testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile00NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestPBufferDeadlockAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.x11.TestGLXCallsOnAWT $*
+testawt com.jogamp.opengl.test.junit.jogl.awt.Bug898AnimatorFromEDTAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos02AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos03aB729AWT $*
