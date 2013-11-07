@@ -27,5 +27,12 @@
  */
 package jogamp.newt.driver.android;
 
-public class NewtDebugActivity extends NewtVersionActivity {
+import android.os.Bundle;
+
+public class NewtDebugActivity extends NewtVersionBaseActivity {
+
+   @Override
+   public void onCreate(Bundle savedInstanceState) {
+       super.onCreate("NewtDebugActivity - DEBUG MODE", savedInstanceState);
+   }
 }
