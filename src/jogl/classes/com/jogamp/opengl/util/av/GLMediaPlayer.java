@@ -318,9 +318,6 @@ public interface GLMediaPlayer extends TextureSequence {
 
     public int getTextureCount();
 
-    /** Returns the texture target used by implementation. */
-    public int getTextureTarget();
-
     /** Sets the texture unit. Defaults to 0. */
     public void setTextureUnit(int u);
 

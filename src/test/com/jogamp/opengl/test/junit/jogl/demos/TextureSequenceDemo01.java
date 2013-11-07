@@ -13,16 +13,16 @@ import com.jogamp.opengl.util.texture.TextureIO;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 public class TextureSequenceDemo01 implements TextureSequence {
-    TextureSequence.TextureFrame frame = null;    
+    TextureSequence.TextureFrame frame = null;
     int textureUnit = 0;
     protected int[] texMinMagFilter = { GL.GL_NEAREST, GL.GL_NEAREST };
     protected int[] texWrapST = { GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE };
     final boolean useBuildInTexLookup;
-    
+
     public TextureSequenceDemo01(boolean useBuildInTexLookup) {
         this.useBuildInTexLookup = useBuildInTexLookup;
     }
-    
+
     public void initGLResources(GL gl) throws GLException {
         if(null == frame) {
             TextureData texData = null;
@@ -38,24 +38,29 @@ public class TextureSequenceDemo01 implements TextureSequence {
             frame = new TextureSequence.TextureFrame(tex);
             tex.bind(gl);
             gl.glTexParameteri(tex.getTarget(), GL.GL_TEXTURE_MIN_FILTER, texMinMagFilter[0]);
-            gl.glTexParameteri(tex.getTarget(), GL.GL_TEXTURE_MAG_FILTER, texMinMagFilter[1]);        
+            gl.glTexParameteri(tex.getTarget(), GL.GL_TEXTURE_MAG_FILTER, texMinMagFilter[1]);
             gl.glTexParameteri(tex.getTarget(), GL.GL_TEXTURE_WRAP_S, texWrapST[0]);
             gl.glTexParameteri(tex.getTarget(), GL.GL_TEXTURE_WRAP_T, texWrapST[1]);
         }
     }
-    
+
     public void destroyGLResources(GL gl) {
         if(null != frame) {
             frame.getTexture().destroy(gl);
             frame = null;
         }
     }
-    
+
     public void destroy(GL gl) throws GLException {
         frame.getTexture().destroy(gl);
-        frame = null;        
+        frame = null;
     }
-    
+
+    @Override
+    public int getTextureTarget() {
+        return GL.GL_TEXTURE_2D;
+    }
+
     @Override
     public int getTextureUnit() {
         return textureUnit;
@@ -80,19 +85,19 @@ public class TextureSequenceDemo01 implements TextureSequence {
     public TextureSequence.TextureFrame getNextTexture(GL gl) throws IllegalStateException {
         return frame;
     }
-    
+
     @Override
     public String getRequiredExtensionsShaderStub() throws IllegalStateException {
         return "// TextTextureSequence: No extensions required\n";
     }
-    
+
     @Override
     public String getTextureSampler2DType() throws IllegalStateException {
         return "sampler2D" ;
-    }    
-    
+    }
+
     private String textureLookupFunctionName = "myTexture2D";
-    
+
     @Override
     public String getTextureLookupFunctionName(String desiredFuncName) throws IllegalStateException {
         if(useBuildInTexLookup) {
@@ -103,7 +108,7 @@ public class TextureSequenceDemo01 implements TextureSequence {
         }
         return textureLookupFunctionName;
     }
-    
+
     @Override
     public String getTextureLookupFragmentShaderImpl() throws IllegalStateException {
         if(useBuildInTexLookup) {

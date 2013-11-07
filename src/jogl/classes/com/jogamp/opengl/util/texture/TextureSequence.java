@@ -163,6 +163,9 @@ public interface TextureSequence {
         public void newFrameAvailable(T ts, TextureFrame newFrame, long when);
     }
 
+    /** Returns the texture target used by implementation. */
+    public int getTextureTarget();
+
     /** Return the texture unit used to render the current frame. */
     public int getTextureUnit();
 
