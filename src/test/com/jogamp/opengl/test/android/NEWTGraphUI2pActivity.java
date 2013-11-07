@@ -52,7 +52,7 @@ public class NEWTGraphUI2pActivity extends NewtBaseActivity {
        super.onCreate(savedInstanceState);
        
        // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
-       GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
+       GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2ES2));
        caps.setAlphaBits(4);
        caps.setNumSamples(4);
        caps.setSampleBuffers(true);

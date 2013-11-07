@@ -51,7 +51,7 @@ public class NEWTRedSquareES2Activity extends NewtBaseActivity {
        super.onCreate(savedInstanceState);
        
        // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
-       GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
+       GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2ES2));
        Log.d(TAG, "req caps: "+caps);
        GLWindow glWindow = GLWindow.create(caps);
        // glWindow.setSize(200, 200);
