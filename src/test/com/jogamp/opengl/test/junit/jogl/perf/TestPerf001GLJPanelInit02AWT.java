@@ -70,12 +70,19 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
     }
 
     public void test(final GLCapabilitiesImmutable caps, final boolean useGears, final int width, final int height,
-                     final int frameCount, final boolean initMT, final boolean useGLJPanel, final boolean useGLCanvas, final boolean useAnim, final boolean overlap) {
+                     final int frameCount, final boolean initMT, final boolean useGLJPanel, final boolean useGLCanvas,
+                     final boolean useAnim, final boolean overlap) {
         final GLAnimatorControl animator = useAnim ? new Animator() : null;
         final int cols = (int)Math.round(Math.sqrt(frameCount));
         final int rows = frameCount / cols;
-        final int eWidth = width/cols-32;
-        final int eHeight = height/rows-32;
+        final int eWidth, eHeight;
+        if( overlap ) {
+            eWidth = width;
+            eHeight = height;
+        } else {
+            eWidth = width/cols-32;
+            eHeight = height/rows-32;
+        }
 
         final JFrame[] frame = new JFrame[frameCount];
         final long[] t = new long[10];
@@ -262,6 +269,30 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
              false /* useGLCanvas */, false /*useAnim*/, false /* overlap */);
     }
 
+    @Test
+    public void test10NopNoGLDefOverlap() throws InterruptedException, InvocationTargetException {
+        test(null, false /*useGears*/, width, height , frameCount, false /* initMT */, false /* useGLJPanel */,
+             false /* useGLCanvas */, false /*useAnim*/, true /* overlap */);
+    }
+
+    @Test
+    public void test11NopGLCanvasDefOverlap() throws InterruptedException, InvocationTargetException {
+        test(new GLCapabilities(null), false /*useGears*/, width, height , frameCount, false /* initMT */, false /* useGLJPanel */,
+             true /* useGLCanvas */, false /*useAnim*/, true /* overlap */);
+    }
+
+    @Test
+    public void test12NopGLJPanelDefOverlapSingle() throws InterruptedException, InvocationTargetException {
+        test(new GLCapabilities(null), false /*useGears*/, width, height , frameCount, false /* initMT */, true /* useGLJPanel */,
+             false /* useGLCanvas */, false /*useAnim*/, true /* overlap */);
+    }
+
+    @Test
+    public void test13NopGLJPanelDefOverlapMT() throws InterruptedException, InvocationTargetException {
+        test(new GLCapabilities(null), false /*useGears*/, width, height , frameCount, true  /* initMT */, true /* useGLJPanel */,
+             false /* useGLCanvas */, false /*useAnim*/, true /* overlap */);
+    }
+
     // @Test
     public void test04NopGLJPanelDefOverlapSingle() throws InterruptedException, InvocationTargetException {
         test(new GLCapabilities(null), false /*useGears*/, width, height , frameCount, false /* initMT */, true /* useGLJPanel */,
@@ -284,6 +315,7 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
 
     public static void main(String[] args) {
         boolean useGLJPanel = true, initMT = false, useGLCanvas = false, useGears = false, manual=false;
+        boolean overlap = false;
         boolean waitMain = false;
 
         for(int i=0; i<args.length; i++) {
@@ -309,6 +341,8 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
                 manual = true;
             } else if(args[i].equals("-gears")) {
                 useGears = true;
+            } else if(args[i].equals("-overlap")) {
+                overlap = true;
             } else if(args[i].equals("-wait")) {
                 wait = true;
                 manual = true;
@@ -325,7 +359,7 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
         if( manual ) {
             GLProfile.initSingleton();
             TestPerf001GLJPanelInit02AWT demo = new TestPerf001GLJPanelInit02AWT();
-            demo.test(null, useGears, width, height, frameCount, initMT, useGLJPanel, useGLCanvas, false /*useAnim*/, false /* overlap */);
+            demo.test(null, useGears, width, height, frameCount, initMT, useGLJPanel, useGLCanvas, false /*useAnim*/, overlap /* overlap */);
         } else {
             org.junit.runner.JUnitCore.main(TestPerf001GLJPanelInit02AWT.class.getName());
         }
