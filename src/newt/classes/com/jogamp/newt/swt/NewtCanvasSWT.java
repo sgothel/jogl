@@ -145,6 +145,8 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
                                 newtChild.setSize(clientArea.width, clientArea.height);
                                 postSetSize = false;
                             }
+
+							newtChild.setPosition(parent.getLocation().x,parent.getLocation().y);
                             newtChild.windowRepaint(0, 0, clientArea.width, clientArea.height);
                         }
                     }
@@ -251,7 +253,10 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
         nativeWindow = null;
         super.dispose();
     }
-
+    
+	public Rectangle getSWTCanvasPosition() {
+		return super.getBounds();
+	}
     /** @return this SWT Canvas NativeWindow representation, may be null in case it has not been realized. */
     public NativeWindow getNativeWindow() { return nativeWindow; }
 
@@ -498,9 +503,10 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
         @Override
         public Point getLocationOnScreen(Point point) {
             if( isOSX ) {
+            	final Rectangle SWTCanvasPosition = getSWTCanvasPosition();
                 final Point los = OSXUtil.GetLocationOnScreen(nativeWindowHandle, false, 0, 0);
                 // top-level position -> client window position
-                los.set(los.getX() + insets.getLeftWidth(), los.getY() + insets.getTopHeight());
+                los.set(SWTCanvasPosition.x + los.getX() + insets.getLeftWidth(), SWTCanvasPosition.y + los.getY() + insets.getTopHeight());
                 if(null!=point) {
                   return point.translate(los);
                 } else {
