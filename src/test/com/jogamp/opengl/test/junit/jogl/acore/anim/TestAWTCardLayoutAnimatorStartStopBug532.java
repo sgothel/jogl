@@ -1,4 +1,4 @@
-package com.jogamp.opengl.test.junit.jogl.awt;
+package com.jogamp.opengl.test.junit.jogl.acore.anim;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;

@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.test.junit.jogl.awt;
+package com.jogamp.opengl.test.junit.jogl.acore.anim;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
