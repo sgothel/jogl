@@ -73,16 +73,14 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
                      final int frameCount, final boolean initMT, final boolean useGLJPanel, final boolean useGLCanvas,
                      final boolean useAnim, final boolean overlap) {
         final GLAnimatorControl animator = useAnim ? new Animator() : null;
-        final int cols = (int)Math.round(Math.sqrt(frameCount));
-        final int rows = frameCount / cols;
         final int eWidth, eHeight;
-        if( overlap ) {
-            eWidth = width;
-            eHeight = height;
-        } else {
+        {
+            final int cols = (int)Math.round(Math.sqrt(frameCount));
+            final int rows = frameCount / cols;
             eWidth = width/cols-32;
             eHeight = height/rows-32;
         }
+        System.err.println("Frame size: "+width+"x"+height+" -> "+frameCount+" x "+eWidth+"x"+eHeight+", overlap "+overlap);
 
         final JFrame[] frame = new JFrame[frameCount];
         final long[] t = new long[10];
