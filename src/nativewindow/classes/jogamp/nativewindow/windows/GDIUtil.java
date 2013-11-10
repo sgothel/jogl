@@ -60,6 +60,9 @@ public class GDIUtil implements ToolkitProperties {
                         throw new NativeWindowException("GDI: Could not initialized native stub");
                     }
                     dummyWindowClassFactory = new RegisteredClassFactory(dummyWindowClassNameBase, getDummyWndProc0());
+                    if(DEBUG) {
+                        System.out.println("GDI.initSingleton() dummyWindowClassFactory "+dummyWindowClassFactory);
+                    }
                     isInit = true;
                 }
             }
@@ -91,6 +94,10 @@ public class GDIUtil implements ToolkitProperties {
     public static long CreateDummyWindow(int x, int y, int width, int height) {
         synchronized(dummyWindowSync) {
             dummyWindowClass = dummyWindowClassFactory.getSharedClass();
+            if(DEBUG) {
+                System.out.println("GDI.CreateDummyWindow() dummyWindowClassFactory "+dummyWindowClassFactory);
+                System.out.println("GDI.CreateDummyWindow() dummyWindowClass "+dummyWindowClass);
+            }
             return CreateDummyWindow0(dummyWindowClass.getHInstance(), dummyWindowClass.getName(), dummyWindowClass.getName(), x, y, width, height);
         }
     }

@@ -29,7 +29,9 @@
 package jogamp.nativewindow.windows;
 
 import jogamp.nativewindow.Debug;
+
 import java.util.ArrayList;
+
 import javax.media.nativewindow.NativeWindowException;
 
 public class RegisteredClassFactory {
@@ -45,13 +47,19 @@ public class RegisteredClassFactory {
         registeredFactories = new ArrayList<RegisteredClassFactory>();
     }
 
-    private String classBaseName;
-    private long wndProc;
+    private final String classBaseName;
+    private final long wndProc;
 
     private RegisteredClass sharedClass = null;
     private int classIter = 0;
     private int sharedRefCount = 0;
     private final Object sync = new Object();
+
+    private String toHexString(long l) { return "0x"+Long.toHexString(l); }
+
+    @Override
+    public final String toString() { return "RegisteredClassFactory[moduleHandle "+toHexString(hInstance)+", "+classBaseName+
+            ", wndProc "+toHexString(wndProc)+", shared[refCount "+sharedRefCount+", class "+sharedClass+"]]"; }
 
     /**
      * Release the {@link RegisteredClass} of all {@link RegisteredClassFactory}.
