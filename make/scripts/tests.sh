@@ -462,11 +462,10 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestNEWTCloseX11DisplayBug565 $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestAWTCloseX11DisplayBug565 $*
 
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.anim.TestAnimatorGLWindow01NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.anim.TestAnimatorGLWindow01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.anim.TestAnimatorGLJPanel01AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.acore.anim.TestAnimatorGLCanvas01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.anim.TestAWTCardLayoutAnimatorStartStopBug532 $*
-testawt com.jogamp.opengl.test.junit.jogl.acore.anim.Bug898AnimatorFromEDTAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.anim.Bug898AnimatorFromEDTAWT $*
 
 #
 # NEWT

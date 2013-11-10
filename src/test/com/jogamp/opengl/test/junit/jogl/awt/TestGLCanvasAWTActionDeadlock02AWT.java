@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -63,12 +63,12 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 /**
- * Sample program that relies on JOGL's mechanism to handle the OpenGL context  
+ * Sample program that relies on JOGL's mechanism to handle the OpenGL context
  * and rendering loop when using an AWT canvas attached to an Applet.
  * <p>
- * BUG on OSX/CALayer w/ Java6: 
+ * BUG on OSX/CALayer w/ Java6:
  * If frame.setTitle() is issued right after initialization the call hangs in
- * <pre> 
+ * <pre>
  * at apple.awt.CWindow._setTitle(Native Method)
  *  at apple.awt.CWindow.setTitle(CWindow.java:765) [1.6.0_37, build 1.6.0_37-b06-434-11M3909]
  * </pre>
@@ -81,7 +81,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  * e.g. setResizable*().
  * </p>
  * <p>
- * Users shall make sure all mutable AWT calls are performed on the EDT, even before 1st setVisible(true) ! 
+ * Users shall make sure all mutable AWT calls are performed on the EDT, even before 1st setVisible(true) !
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -90,89 +90,89 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
 
   static class MiniPApplet extends Applet implements MouseMotionListener, KeyListener {
       private static final long serialVersionUID = 1L;
-    
+
       /////////////////////////////////////////////////////////////
       //
-      // Test parameters  
-      
+      // Test parameters
+
       public int frameRate           = 120;
       public int numSamples          = 4;
-      
-      public boolean fullScreen      = false;  
+
+      public boolean fullScreen      = false;
       public boolean useAnimator     = true;
       public boolean resizeableFrame = true;
-    
+
       public boolean restartCanvas   = true;
       public int restartTimeout      = 100; // in number of frames.
-      
+
       public boolean printThreadInfo = false;
       public boolean printEventInfo  = false;
-      
+
       /////////////////////////////////////////////////////////////
       //
       // Internal variables
-      
+
       int width;
       int height;
-    
-      String OPENGL_VENDOR;  
+
+      String OPENGL_VENDOR;
       String OPENGL_RENDERER;
-      String OPENGL_VERSION;    
-      String OPENGL_EXTENSIONS; 
-    
+      String OPENGL_VERSION;
+      String OPENGL_EXTENSIONS;
+
       int currentSamples = -1;
-      
+
       private Frame frame;
       private GLProfile profile;
       private GLCapabilities capabilities;
       private GLCanvas canvas;
-    
+
       private SimpleListener listener;
       private CustomAnimator animator;
-      
+
       private long beforeTime;
       private long overSleepTime;
-      private long frameRatePeriod = 1000000000L / frameRate;
-      
-      private boolean initialized = false;  
+      private final long frameRatePeriod = 1000000000L / frameRate;
+
+      private boolean initialized = false;
       private boolean osxCALayerAWTModBug = false;
       boolean justInitialized = true;
 
       private double theta = 0;
       private double s = 0;
-      private double c = 0;  
-      
+      private double c = 0;
+
       private long millisOffset;
       private int fcount, lastm;
       private float frate;
-      private int fint = 3;
-      
+      private final int fint = 3;
+
       private boolean setFramerate = false;
       private boolean restarted = false;
-      
+
       private int frameCount = 0;
-      
+
       void run() throws InterruptedException, InvocationTargetException {
         // Thread loop = new Thread("Animation Thread") {
-          // public void run() {        
+          // public void run() {
             frameCount = 0;
             while ( frameCount < framesPerTest ) {
               if (!initialized) {
-                setup();            
+                setup();
               }
-              
+
               if (restartCanvas && restartTimeout == frameCount) {
                 restart();
               }
-              
+
               if (useAnimator) {
                 animator.requestRender();
               } else {
-                canvas.display();            
+                canvas.display();
               }
-              
+
               clock();
-              
+
               frameCount++;
               if( null == frame ) {
                   break;
@@ -181,32 +181,32 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
             dispose();
           // }
         // };
-        // loop.start();        
+        // loop.start();
       }
-    
+
       void setup() throws InterruptedException, InvocationTargetException {
         if (printThreadInfo) System.out.println("Current thread at setup(): " + Thread.currentThread());
-        
-        millisOffset = System.currentTimeMillis();    
-    
+
+        millisOffset = System.currentTimeMillis();
+
         final VersionNumber version170 = new VersionNumber(1, 7, 0);
-        osxCALayerAWTModBug = Platform.OSType.MACOS == Platform.getOSType() && 
+        osxCALayerAWTModBug = Platform.OSType.MACOS == Platform.getOSType() &&
                               0 > Platform.getJavaVersionNumber().compareTo(version170);
         System.err.println("OSX CALayer AWT-Mod Bug "+osxCALayerAWTModBug);
         System.err.println("OSType "+Platform.getOSType());
         System.err.println("Java Version "+Platform.getJavaVersionNumber());
-        
+
         // Frame setup ----------------------------------------------------------
-        
+
         width = 300;
-        height = 300;    
+        height = 300;
         final MiniPApplet applet = this;
-        
+
         GraphicsEnvironment environment =
           GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice displayDevice = environment.getDefaultScreenDevice();
         frame = new Frame(displayDevice.getDefaultConfiguration());
-        
+
         final Rectangle fullScreenRect;
         if (fullScreen) {
           DisplayMode mode = displayDevice.getDisplayMode();
@@ -231,7 +231,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
             } catch (Throwable t) {
                 t.printStackTrace();
                 Assume.assumeNoException(t);
-            }            
+            }
         }
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
@@ -252,25 +252,25 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
                                        applet.width, applet.height);
                     } else {
                       Insets insets = frame.getInsets();
-                
+
                       int windowW = applet.width + insets.left + insets.right;
                       int windowH = applet.height + insets.top + insets.bottom;
-                      int locationX = 100; 
+                      int locationX = 100;
                       int locationY = 100;
-                      
+
                       frame.setSize(windowW, windowH);
                       frame.setLocation(locationX, locationY);
-                      
+
                       int usableWindowH = windowH - insets.top - insets.bottom;
-                      applet.setBounds((windowW - width)/2, insets.top + (usableWindowH - height)/2, width, height);      
+                      applet.setBounds((windowW - width)/2, insets.top + (usableWindowH - height)/2, width, height);
                     }
                 }});
         } catch (Throwable t) {
             t.printStackTrace();
             Assume.assumeNoException(t);
         }
-        
-        
+
+
         frame.add(this);
         frame.addWindowListener(new WindowAdapter() {
           public void windowClosing(WindowEvent e) {
@@ -280,63 +280,63 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
                   Assume.assumeNoException(ex);
               }
           }
-        });    
-        
+        });
+
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 frame.setVisible(true);
             } } );
-    
+
         // Canvas setup ----------------------------------------------------------
-        
+
         profile = GLProfile.getDefault();
-        capabilities = new GLCapabilities(profile); 
+        capabilities = new GLCapabilities(profile);
         capabilities.setSampleBuffers(true);
         capabilities.setNumSamples(numSamples);
         capabilities.setDepthBits(24);
         // capabilities.setStencilBits(8); // No Stencil on OSX w/ hw-accel !
         capabilities.setAlphaBits(8);
-        
+
         canvas = new GLCanvas(capabilities);
         canvas.setBounds(0, 0, width, height);
-            
+
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 MiniPApplet.this.setLayout(new BorderLayout());
                 MiniPApplet.this.add(canvas, BorderLayout.CENTER);
                 MiniPApplet.this.validate();
             } } );
-        canvas.addMouseMotionListener(this); 
+        canvas.addMouseMotionListener(this);
         canvas.addKeyListener(this);
-        
+
         // Setting up animation
         listener = new SimpleListener();
         canvas.addGLEventListener(listener);
         if (useAnimator) {
           animator = new CustomAnimator(canvas);
           animator.start();
-        }    
-        initialized = true;    
+        }
+        initialized = true;
       }
-      
+
       void restart() throws InterruptedException, InvocationTargetException {
         System.out.println("Restarting surface...");
-        
+
         // Stopping animation, removing current canvas.
         if (useAnimator) {
           animator.stop();
           animator.remove(canvas);
         }
         canvas.disposeGLEventListener(listener, true);
-        this.remove(canvas);    
-           
-        capabilities = new GLCapabilities(profile); 
+        this.remove(canvas);
+
+        capabilities = new GLCapabilities(profile);
         capabilities.setSampleBuffers(true);
         capabilities.setNumSamples(numSamples);
-        
+
         canvas = new GLCanvas(capabilities);
         canvas.setBounds(0, 0, width, height);
-        
+
         // Setting up animation again
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
@@ -346,24 +346,24 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
             } } );
         canvas.addMouseMotionListener(this);
         canvas.addKeyListener(this);
-        
+
         canvas.addGLEventListener(listener);
         if (useAnimator) {
           animator.add(canvas);
           animator.start();
-        }    
-           
+        }
+
         setFramerate = false;
         restarted = true;
-        
+
         System.out.println("Done");
       }
-      
+
       void dispose() throws InterruptedException, InvocationTargetException {
         if( null == frame ) {
             return;
         }
-        
+
         // Stopping animation, removing current canvas.
         if (useAnimator) {
           animator.stop();
@@ -387,7 +387,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
                 }});
         }
       }
-            
+
       void draw(GL2 gl) {
         if( !osxCALayerAWTModBug || !justInitialized ) {
             AWTEDTExecutor.singleton.invoke(true, new Runnable() {
@@ -395,19 +395,19 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
                     frame.setTitle("frame " + frameCount);
                 } } );
         }
-        
-        if (printThreadInfo) System.out.println("Current thread at draw(): " + Thread.currentThread());      
-        
+
+        if (printThreadInfo) System.out.println("Current thread at draw(): " + Thread.currentThread());
+
         if (OPENGL_VENDOR == null) {
-          OPENGL_VENDOR     = gl.glGetString(GL.GL_VENDOR);  
+          OPENGL_VENDOR     = gl.glGetString(GL.GL_VENDOR);
           OPENGL_RENDERER   = gl.glGetString(GL.GL_RENDERER);
-          OPENGL_VERSION    = gl.glGetString(GL.GL_VERSION);    
+          OPENGL_VERSION    = gl.glGetString(GL.GL_VERSION);
           OPENGL_EXTENSIONS = gl.glGetString(GL.GL_EXTENSIONS);
           System.out.println(OPENGL_VENDOR);
           System.out.println(OPENGL_RENDERER);
           System.out.println(OPENGL_VERSION);
           System.out.println(OPENGL_EXTENSIONS);
-          
+
           int[] temp = { 0 };
           gl.glGetIntegerv(GL2.GL_MAX_SAMPLES, temp, 0);
           System.out.println("Maximum number of samples supported by the hardware: " + temp[0]);
@@ -416,43 +416,43 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
           System.out.println("GLCanvas: "+canvas);
           System.out.println("GLDrawable: "+canvas.getDelegatedDrawable());
         }
-        
+
         if (currentSamples == -1) {
           int[] temp = { 0 };
           gl.glGetIntegerv(GL.GL_SAMPLES, temp, 0);
           currentSamples = temp[0];
           if (numSamples != currentSamples) {
             System.err.println("Requested sampling level " + numSamples + " not supported. Using " + currentSamples + " samples instead.");
-          } 
+          }
         }
-        
-        if (!setFramerate) {      
+
+        if (!setFramerate) {
           if (60 < frameRate) {
             // Disables vsync
-            gl.setSwapInterval(0);  
-          } else if (30 < frameRate) {        
-            gl.setSwapInterval(1); 
+            gl.setSwapInterval(0);
+          } else if (30 < frameRate) {
+            gl.setSwapInterval(1);
           } else {
             gl.setSwapInterval(2);
-          }      
-          setFramerate = true;      
+          }
+          setFramerate = true;
         }
-        
+
         if (restarted) {
           int[] temp = { 0 };
-          gl.glGetIntegerv(GL.GL_SAMPLES, temp, 0);    
+          gl.glGetIntegerv(GL.GL_SAMPLES, temp, 0);
           if (numSamples != temp[0]) {
             System.err.println("Multisampling level requested " + numSamples + " not supported. Using " + temp[0] + "samples instead.");
-          }    
+          }
         }
-        
+
         gl.glClearColor(0, 0, 0, 1);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT);
-        
+
         theta += 0.01;
         s = Math.sin(theta);
-        c = Math.cos(theta);      
-        
+        c = Math.cos(theta);
+
         gl.glBegin(GL.GL_TRIANGLES);
         gl.glColor3f(1, 0, 0);
         gl.glVertex2d(-c, -c);
@@ -460,135 +460,125 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
         gl.glVertex2d(0, c);
         gl.glColor3f(0, 0, 1);
         gl.glVertex2d(s, -s);
-        gl.glEnd();     
-        
+        gl.glEnd();
+
         gl.glFlush();
-        
+
         fcount += 1;
         int m = (int) (System.currentTimeMillis() - millisOffset);
         if (m - lastm > 1000 * fint) {
           frate = (float)(fcount) / fint;
           fcount = 0;
           lastm = m;
-          System.err.println("fps: " + frate); 
-        }     
+          System.err.println("fps: " + frate);
+        }
       }
-      
+
       void clock() {
         long afterTime = System.nanoTime();
         long timeDiff = afterTime - beforeTime;
         long sleepTime = (frameRatePeriod - timeDiff) - overSleepTime;
-    
+
         if (sleepTime > 0) {  // some time left in this cycle
           try {
             Thread.sleep(sleepTime / 1000000L, (int) (sleepTime % 1000000L));
           } catch (InterruptedException ex) { }
-    
+
           overSleepTime = (System.nanoTime() - afterTime) - sleepTime;
-    
+
         } else {    // sleepTime <= 0; the frame took longer than the period
           overSleepTime = 0L;
         }
-    
-        beforeTime = System.nanoTime();    
-      }  
-      
+
+        beforeTime = System.nanoTime();
+      }
+
       class SimpleListener implements GLEventListener {
         @Override
         public void display(GLAutoDrawable drawable) {
             draw(drawable.getGL().getGL2());
             justInitialized = false;
         }
-    
+
         @Override
         public void dispose(GLAutoDrawable drawable) { }
-    
+
         @Override
         public void init(GLAutoDrawable drawable) {
             justInitialized = true;
         }
-    
+
         @Override
-        public void reshape(GLAutoDrawable drawable, int x, int y, int w, int h) { }    
+        public void reshape(GLAutoDrawable drawable, int x, int y, int w, int h) { }
       }
-      
+
       public void mouseDragged(MouseEvent ev) {
         if (printEventInfo) {
           System.err.println("Mouse dragged event: " + ev);
         }
       }
-    
+
       public void mouseMoved(MouseEvent ev) {
         if (printEventInfo) {
           System.err.println("Mouse moved event: " + ev);
         }
-      }  
-      
-      public void keyPressed(KeyEvent ev) { 
+      }
+
+      public void keyPressed(KeyEvent ev) {
         if (printEventInfo) {
           System.err.println("Key pressed event: " + ev);
         }
       }
-      
-      public void keyReleased(KeyEvent ev) { 
+
+      public void keyReleased(KeyEvent ev) {
         if (printEventInfo) {
           System.err.println("Key released event: " + ev);
-        }   
+        }
       }
-    
-      public void keyTyped(KeyEvent ev) { 
+
+      public void keyTyped(KeyEvent ev) {
         if (printEventInfo) {
           System.err.println("Key typed event: " + ev);
-        }   
+        }
       }
-      
+
       /** An Animator subclass which renders one frame at the time
-       *  upon calls to the requestRender() method. 
+       *  upon calls to the requestRender() method.
        **/
-      public class CustomAnimator extends AnimatorBase {    
+      public class CustomAnimator extends AnimatorBase {
           private Timer timer = null;
           private TimerTask task = null;
           private volatile boolean shouldRun;
-    
+
           protected String getBaseName(String prefix) {
               return "Custom" + prefix + "Animator" ;
           }
-    
-          /** Creates an CustomAnimator with an initial drawable to 
+
+          /** Creates an CustomAnimator with an initial drawable to
            * animate. */
           public CustomAnimator(GLAutoDrawable drawable) {
               if (drawable != null) {
                   add(drawable);
               }
           }
-    
+
           public synchronized void requestRender() {
               shouldRun = true;
           }
-    
-          public final boolean isStarted() {
-              stateSync.lock();
-              try {
-                  return (timer != null);
-              } finally {
-                  stateSync.unlock();
-              }
+
+          public final synchronized boolean isStarted() {
+              return (timer != null);
           }
-    
-          public final boolean isAnimating() {
-              stateSync.lock();
-              try {
-                  return (timer != null) && (task != null);
-              } finally {
-                  stateSync.unlock();
-              }
+
+          public final synchronized boolean isAnimating() {
+              return (timer != null) && (task != null);
           }
-    
+
           private void startTask() {
               if(null != task) {
                   return;
               }
-              
+
               task = new TimerTask() {
                   private boolean firstRun = true;
                   public void run() {
@@ -599,67 +589,57 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
                       if(CustomAnimator.this.shouldRun) {
                          CustomAnimator.this.animThread = Thread.currentThread();
                           // display impl. uses synchronized block on the animator instance
-                          display();                
+                          display();
                           synchronized (this) {
                             // done with current frame.
                             shouldRun = false;
-                          }                    
+                          }
                       }
                   }
               };
-    
+
               fpsCounter.resetFPSCounter();
               shouldRun = false;
-              
+
               timer.schedule(task, 0, 1);
           }
-          
+
           public synchronized boolean  start() {
               if (timer != null) {
                   return false;
               }
-              stateSync.lock();
-              try {
-                  timer = new Timer();
-                  startTask();
-              } finally {
-                  stateSync.unlock();
-              }
+              timer = new Timer();
+              startTask();
               return true;
           }
-    
+
           /** Stops this CustomAnimator. */
           public synchronized boolean stop() {
               if (timer == null) {
                   return false;
               }
-              stateSync.lock();
-              try {
-                  shouldRun = false;
-                  if(null != task) {
-                      task.cancel();
-                      task = null;
-                  }
-                  if(null != timer) {
-                      timer.cancel();
-                      timer = null;
-                  }
-                  animThread = null;
-                  try {
-                      Thread.sleep(20); // ~ 1/60 hz wait, since we can't ctrl stopped threads
-                  } catch (InterruptedException e) { }
-              } finally {
-                  stateSync.unlock();
+              shouldRun = false;
+              if(null != task) {
+                  task.cancel();
+                  task = null;
               }
+              if(null != timer) {
+                  timer.cancel();
+                  timer = null;
+              }
+              animThread = null;
+              try {
+                  Thread.sleep(20); // ~ 1/60 hz wait, since we can't ctrl stopped threads
+              } catch (InterruptedException e) { }
               return true;
           }
-          
-          public final boolean isPaused() { return false; }
+
+          public final synchronized boolean isPaused() { return false; }
           public synchronized boolean resume() { return false; }
-          public synchronized boolean pause() { return false; }    
+          public synchronized boolean pause() { return false; }
       }
   }
-  
+
   @Test
   public void test00() {
     TestGLCanvasAWTActionDeadlock02AWT.MiniPApplet mini;
@@ -668,7 +648,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
       mini = (TestGLCanvasAWTActionDeadlock02AWT.MiniPApplet) c.newInstance();
     } catch (Exception e) {
       throw new RuntimeException(e);
-    }    
+    }
     if (mini != null) {
       try {
           mini.run();
@@ -677,7 +657,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
       }
     }
   }
-  
+
   public static void main(String args[]) {
     for(int i=0; i<args.length; i++) {
         if(args[i].equals("-frames")) {
@@ -686,5 +666,5 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
     }
     org.junit.runner.JUnitCore.main(TestGLCanvasAWTActionDeadlock02AWT.class.getName());
   }
-  
+
 }

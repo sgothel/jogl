@@ -28,8 +28,6 @@
 
 package com.jogamp.opengl.util;
 
-import com.jogamp.common.util.locks.LockFactory;
-import com.jogamp.common.util.locks.RecursiveLock;
 import jogamp.opengl.Debug;
 import jogamp.opengl.FPSCounterImpl;
 
@@ -86,7 +84,6 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     protected boolean exclusiveContext;
     protected Thread userExclusiveContextThread;
     protected FPSCounterImpl fpsCounter = new FPSCounterImpl();
-    protected RecursiveLock stateSync = LockFactory.createRecursiveLock();
 
     private final static Class<?> awtAnimatorImplClazz;
     static {
@@ -129,7 +126,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
      *
      * @throws GLException if Animator is {@link #isStarted()}
      */
-    protected synchronized void initImpl(boolean force) {
+    protected final synchronized void initImpl(boolean force) {
         if( force || null == impl ) {
             if( useAWTAnimatorImpl( modeBits ) ) {
                 try {
@@ -157,7 +154,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
      * @throws GLException if Animator is {@link #isStarted()} and {@link #MODE_EXPECT_AWT_RENDERING_THREAD} about to change
      * @see AnimatorBase#MODE_EXPECT_AWT_RENDERING_THREAD
      */
-    public synchronized void setModeBits(boolean enable, int bitValues) throws GLException {
+    public final synchronized void setModeBits(boolean enable, int bitValues) throws GLException {
         final int _oldModeBits = modeBits;
         if(enable) {
             modeBits |=  bitValues;
@@ -175,7 +172,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
 
 
     @Override
-    public synchronized void add(final GLAutoDrawable drawable) {
+    public final synchronized void add(final GLAutoDrawable drawable) {
         if(DEBUG) {
             System.err.println("Animator add: 0x"+Integer.toHexString(drawable.hashCode())+" - "+toString()+" - "+getThreadName());
         }
@@ -207,7 +204,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     }
 
     @Override
-    public synchronized void remove(final GLAutoDrawable drawable) {
+    public final synchronized void remove(final GLAutoDrawable drawable) {
         if(DEBUG) {
             System.err.println("Animator remove: 0x"+Integer.toHexString(drawable.hashCode())+" - "+toString()+" - "+getThreadName());
         }
@@ -270,17 +267,11 @@ public abstract class AnimatorBase implements GLAnimatorControl {
      * @see #isExclusiveContextEnabled()
      */
     // @Override
-    public final Thread setExclusiveContext(Thread t) {
-        final Thread old;
+    public final synchronized Thread setExclusiveContext(Thread t) {
         final boolean enable = null != t;
-        stateSync.lock();
-        try {
-            old = userExclusiveContextThread;
-            if( enable && t != animThread ) { // disable: will be cleared at end after propagation && filter out own animThread usae
-                userExclusiveContextThread=t;
-            }
-        } finally {
-            stateSync.unlock();
+        final Thread old = userExclusiveContextThread;
+        if( enable && t != animThread ) { // disable: will be cleared at end after propagation && filter out own animThread usae
+            userExclusiveContextThread=t;
         }
         setExclusiveContext(enable);
         return old;
@@ -340,11 +331,8 @@ public abstract class AnimatorBase implements GLAnimatorControl {
                         pause();
                     }
                 }
-                stateSync.lock();
-                try {
+                synchronized(AnimatorBase.this) {
                     userExclusiveContextThread=null;
-                } finally {
-                    stateSync.unlock();
                 }
             }
         }
@@ -361,13 +349,8 @@ public abstract class AnimatorBase implements GLAnimatorControl {
      * @see #setExclusiveContext(Thread)
      */
     // @Override
-    public final boolean isExclusiveContextEnabled() {
-        stateSync.lock();
-        try {
-            return exclusiveContext;
-        } finally {
-            stateSync.unlock();
-        }
+    public final synchronized boolean isExclusiveContextEnabled() {
+        return exclusiveContext;
     }
 
     /**
@@ -384,13 +367,8 @@ public abstract class AnimatorBase implements GLAnimatorControl {
      * @see #setExclusiveContext(Thread)
      */
     // @Override
-    public final Thread getExclusiveContextThread() {
-        stateSync.lock();
-        try {
-            return ( isStartedImpl() && exclusiveContext ) ? ( null != userExclusiveContextThread ? userExclusiveContextThread : animThread ) : null ;
-        } finally {
-            stateSync.unlock();
-        }
+    public final synchronized Thread getExclusiveContextThread() {
+        return ( isStarted() && exclusiveContext ) ? ( null != userExclusiveContextThread ? userExclusiveContextThread : animThread ) : null ;
     }
 
     /**
@@ -425,13 +403,8 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     }
 
     @Override
-    public final Thread getThread() {
-        stateSync.lock();
-        try {
-            return animThread;
-        } finally {
-            stateSync.unlock();
-        }
+    public final synchronized Thread getThread() {
+        return animThread;
     }
 
     /** Called every frame to cause redrawing of all of the
@@ -439,7 +412,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         this to get the most optimized painting behavior for the set of
         components this Animator manages, in particular when multiple
         lightweight widgets are continually being redrawn. */
-    protected void display() {
+    protected final void display() {
         impl.display(drawables, ignoreExceptions, printExceptions);
         fpsCounter.tickFPS();
     }
@@ -497,7 +470,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     /** Sets a flag causing this Animator to ignore exceptions produced
     while redrawing the drawables. By default this flag is set to
     false, causing any exception thrown to halt the Animator. */
-    public void setIgnoreExceptions(boolean ignoreExceptions) {
+    public final void setIgnoreExceptions(boolean ignoreExceptions) {
         this.ignoreExceptions = ignoreExceptions;
     }
 
@@ -505,7 +478,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     this Animator (see {@link #setIgnoreExceptions}), to print the
     exceptions' stack traces for diagnostic information. Defaults to
     false. */
-    public void setPrintExceptions(boolean printExceptions) {
+    public final void setPrintExceptions(boolean printExceptions) {
         this.printExceptions = printExceptions;
     }
 
@@ -522,7 +495,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
      *                   if &gt; <code>0</code>, method will wait for the given <code>pollPeriod</code> in milliseconds.
      * @return <code>true</code> if {@link Condition#eval() waitCondition.eval()} returned <code>false</code>, otherwise <code>false</code>.
      */
-    protected synchronized boolean finishLifecycleAction(Condition waitCondition, long pollPeriod) {
+    protected final synchronized boolean finishLifecycleAction(Condition waitCondition, long pollPeriod) {
         /**
          * It's hard to tell whether the thread which changes the lifecycle has
          * dependencies on the Animator's internal thread. Currently we
@@ -570,16 +543,11 @@ public abstract class AnimatorBase implements GLAnimatorControl {
             if( blocking && remaining<=0 && nok ) {
                 System.err.println("finishLifecycleAction(" + waitCondition.getClass().getName() + "): ++++++ timeout reached ++++++ " + getThreadName());
             }
-            stateSync.lock(); // avoid too many lock/unlock ops
-            try {
-                System.err.println("finishLifecycleAction(" + waitCondition.getClass().getName() + "): OK "+(!nok)+
-                        "- pollPeriod "+pollPeriod+", blocking "+blocking+
-                        ", waited " + (blocking ? ( TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION - remaining ) : 0 ) + "/" + TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION +
-                        " - " + getThreadName());
-                System.err.println(" - "+toString());
-            } finally {
-                stateSync.unlock();
-            }
+            System.err.println("finishLifecycleAction(" + waitCondition.getClass().getName() + "): OK "+(!nok)+
+                    "- pollPeriod "+pollPeriod+", blocking "+blocking+
+                    ", waited " + (blocking ? ( TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION - remaining ) : 0 ) + "/" + TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION +
+                    " - " + getThreadName());
+            System.err.println(" - "+toString());
             if(nok) {
                 Thread.dumpStack();
             }
@@ -587,17 +555,9 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         return !nok;
     }
 
-    protected final boolean isStartedImpl() {
-        return animThread != null ;
-    }
     @Override
-    public boolean isStarted() {
-        stateSync.lock();
-        try {
-            return animThread != null ;
-        } finally {
-            stateSync.unlock();
-        }
+    public synchronized boolean isStarted() {
+        return animThread != null ;
     }
 
     protected static String getThreadName() { return Thread.currentThread().getName(); }

@@ -110,7 +110,7 @@ public class Animator extends AnimatorBase {
     }
 
     @Override
-    protected String getBaseName(String prefix) {
+    protected final String getBaseName(String prefix) {
         return prefix + "Animator" ;
     }
 
@@ -120,40 +120,28 @@ public class Animator extends AnimatorBase {
      * animation loop which prevents the CPU from getting swamped.
      * This method may not have an effect on subclasses.
      */
-    public final void setRunAsFastAsPossible(boolean runFast) {
-        stateSync.lock();
-        try {
-            runAsFastAsPossible = runFast;
-        } finally {
-            stateSync.unlock();
-        }
-    }
-
-    private final void setIsAnimatingSynced(boolean v) {
-        stateSync.lock();
-        try {
-            isAnimating = v;
-        } finally {
-            stateSync.unlock();
-        }
+    public final synchronized void setRunAsFastAsPossible(boolean runFast) {
+        runAsFastAsPossible = runFast;
     }
 
     class MainLoop implements Runnable {
         @Override
         public String toString() {
-            return "[started "+isStartedImpl()+", animating "+isAnimatingImpl()+", paused "+isPausedImpl()+", drawable "+drawables.size()+", drawablesEmpty "+drawablesEmpty+"]";
+            return "[started "+isStarted()+", animating "+isAnimating()+", paused "+isPaused()+", drawable "+drawables.size()+", drawablesEmpty "+drawablesEmpty+"]";
         }
 
         @Override
         public void run() {
             try {
-                if(DEBUG) {
-                    System.err.println("Animator start on " + getThreadName() + ": " + toString());
+                synchronized (Animator.this) {
+                    if(DEBUG) {
+                        System.err.println("Animator start on " + getThreadName() + ": " + toString());
+                    }
+                    fpsCounter.resetFPSCounter();
+                    animThread = Thread.currentThread();
+                    isAnimating = false;
+                    // 'waitForStartedCondition' wake-up is handled below!
                 }
-                fpsCounter.resetFPSCounter();
-                animThread = Thread.currentThread();
-                setIsAnimatingSynced(false); // barrier
-                // 'waitForStartedCondition' wake-up is handled below!
 
                 while (!stopIssued) {
                     synchronized (Animator.this) {
@@ -172,7 +160,7 @@ public class Animator extends AnimatorBase {
                                 setDrawablesExclCtxState(false);
                                 display(); // propagate exclusive change!
                             }
-                            setIsAnimatingSynced(false); // barrier
+                            isAnimating = false;
                             Animator.this.notifyAll();
                             try {
                                 Animator.this.wait();
@@ -191,7 +179,7 @@ public class Animator extends AnimatorBase {
                             // - and -
                             // Resume from pause or drawablesEmpty,
                             // implies !pauseIssued and !drawablesEmpty
-                            setIsAnimatingSynced(true); // barrier
+                            isAnimating = true;
                             setDrawablesExclCtxState(exclusiveContext);
                             Animator.this.notifyAll();
                         }
@@ -221,37 +209,21 @@ public class Animator extends AnimatorBase {
                     stopIssued = false;
                     pauseIssued = false;
                     animThread = null;
-                    setIsAnimatingSynced(false); // barrier
+                    isAnimating = false;
                     Animator.this.notifyAll();
                 }
             }
         }
     }
 
-    private final boolean isAnimatingImpl() {
+    @Override
+    public final synchronized boolean isAnimating() {
         return animThread != null && isAnimating ;
     }
-    @Override
-    public final boolean isAnimating() {
-        stateSync.lock();
-        try {
-            return animThread != null && isAnimating ;
-        } finally {
-            stateSync.unlock();
-        }
-    }
 
-    private final boolean isPausedImpl() {
-        return animThread != null && pauseIssued ;
-    }
     @Override
-    public final boolean isPaused() {
-        stateSync.lock();
-        try {
-            return animThread != null && pauseIssued ;
-        } finally {
-            stateSync.unlock();
-        }
+    public final synchronized boolean isPaused() {
+        return animThread != null && pauseIssued ;
     }
 
     /**
@@ -260,16 +232,16 @@ public class Animator extends AnimatorBase {
      * @param tg the {@link ThreadGroup}
      * @throws GLException if the animator has already been started
      */
-    public synchronized void setThreadGroup(ThreadGroup tg) throws GLException {
-        if ( isStartedImpl() ) {
+    public final synchronized void setThreadGroup(ThreadGroup tg) throws GLException {
+        if ( isStarted() ) {
             throw new GLException("Animator already started.");
         }
         threadGroup = tg;
     }
 
     @Override
-    public synchronized boolean start() {
-        if ( isStartedImpl() ) {
+    public final synchronized boolean start() {
+        if ( isStarted() ) {
             return false;
         }
         if (runnable == null) {
@@ -294,12 +266,12 @@ public class Animator extends AnimatorBase {
     private final Condition waitForStartedCondition = new Condition() {
         @Override
         public boolean eval() {
-            return !isStartedImpl() || (!drawablesEmpty && !isAnimating) ;
+            return !isStarted() || (!drawablesEmpty && !isAnimating) ;
         } };
 
     @Override
-    public synchronized boolean stop() {
-        if ( !isStartedImpl() ) {
+    public final synchronized boolean stop() {
+        if ( !isStarted() ) {
             return false;
         }
         stopIssued = true;
@@ -308,12 +280,12 @@ public class Animator extends AnimatorBase {
     private final Condition waitForStoppedCondition = new Condition() {
         @Override
         public boolean eval() {
-            return isStartedImpl();
+            return isStarted();
         } };
 
     @Override
-    public synchronized boolean pause() {
-        if ( !isStartedImpl() || pauseIssued ) {
+    public final synchronized boolean pause() {
+        if ( !isStarted() || pauseIssued ) {
             return false;
         }
         pauseIssued = true;
@@ -323,12 +295,12 @@ public class Animator extends AnimatorBase {
         @Override
         public boolean eval() {
             // end waiting if stopped as well
-            return isStartedImpl() && isAnimating;
+            return isStarted() && isAnimating;
         } };
 
     @Override
-    public synchronized boolean resume() {
-        if ( !isStartedImpl() || !pauseIssued ) {
+    public final synchronized boolean resume() {
+        if ( !isStarted() || !pauseIssued ) {
             return false;
         }
         pauseIssued = false;
@@ -338,6 +310,6 @@ public class Animator extends AnimatorBase {
         @Override
         public boolean eval() {
             // end waiting if stopped as well
-            return isStartedImpl() && ( !drawablesEmpty && !isAnimating || drawablesEmpty && !pauseIssued ) ;
+            return isStarted() && ( !drawablesEmpty && !isAnimating || drawablesEmpty && !pauseIssued ) ;
         } };
 }
