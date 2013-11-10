@@ -124,21 +124,32 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
         private boolean globalVisibility = localVisibility;
         private boolean visibilityPropagation = false;
 
-        private String id(Object obj) { return "0x"+Integer.toHexString(obj.hashCode()); }
+        private String id(Object obj) { return "0x" + ( null!=obj ? Integer.toHexString(obj.hashCode()) : "nil" ); }
+        private String str(Object obj) {
+            if( null == obj ) {
+                return "null";
+            } else if( obj instanceof Component ) {
+                final Component c = (Component)obj;
+                return c.getClass().getSimpleName()+"[visible "+c.isVisible()+", showing "+c.isShowing()+", valid "+c.isValid()+
+                        ", displayable "+c.isDisplayable()+", "+c.getX()+"/"+c.getY()+" "+c.getWidth()+"x"+c.getHeight()+"]";
+            } else {
+                return obj.getClass().getSimpleName()+"[..]";
+            }
+        }
 
         private String s(ComponentEvent e) {
             return "visible[local "+localVisibility+", global "+globalVisibility+", propag. "+visibilityPropagation+"],"+Platform.getNewline()+
-                   "    ** COMP "+id(e.getComponent())+": "+e.getComponent()+Platform.getNewline()+
-                   "    ** SOURCE "+id(e.getSource())+": "+e.getSource()+Platform.getNewline()+
-                   "    ** THIS "+component;
+                   "    ** COMP "+id(e.getComponent())+": "+str(e.getComponent())+Platform.getNewline()+
+                   "    ** SOURCE "+id(e.getSource())+": "+str(e.getSource())+Platform.getNewline()+
+                   "    ** THIS "+id(component)+": "+str(component);
         }
         private String s(HierarchyEvent e) {
             return "visible[local "+localVisibility+", global "+globalVisibility+", propag. "+visibilityPropagation+"], changeBits 0x"+Long.toHexString(e.getChangeFlags())+Platform.getNewline()+
-                   "    ** COMP "+id(e.getComponent())+": "+e.getComponent()+Platform.getNewline()+
-                   "    ** SOURCE "+id(e.getSource())+": "+e.getSource()+Platform.getNewline()+
-                   "    ** CHANGED "+id(e.getChanged())+": "+e.getChanged()+Platform.getNewline()+
-                   "    ** CHANGEDPARENT "+id(e.getChangedParent())+": "+e.getChangedParent()+Platform.getNewline()+
-                   "    ** THIS "+component;
+                   "    ** COMP "+id(e.getComponent())+": "+str(e.getComponent())+Platform.getNewline()+
+                   "    ** SOURCE "+id(e.getSource())+": "+str(e.getSource())+Platform.getNewline()+
+                   "    ** CHANGED "+id(e.getChanged())+": "+str(e.getChanged())+Platform.getNewline()+
+                   "    ** CHANGEDPARENT "+id(e.getChangedParent())+": "+str(e.getChangedParent())+Platform.getNewline()+
+                   "    ** THIS "+id(component)+": "+str(component);
         }
 
         @Override
@@ -207,7 +218,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
                 } else if( changed == component ) {
                     // Update component's local visibility state
                     if(!visibilityPropagation) {
-                        localVisibility = showing;
+                        localVisibility = component.isVisible();
                     }
                     visibilityPropagation = false;
                     if(DEBUG) {
