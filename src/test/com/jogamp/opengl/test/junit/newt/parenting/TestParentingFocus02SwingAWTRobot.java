@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,13 +20,13 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
-package com.jogamp.opengl.test.junit.newt;
+
+package com.jogamp.opengl.test.junit.newt.parenting;
 
 import java.lang.reflect.*;
 
@@ -59,16 +59,16 @@ import com.jogamp.opengl.test.junit.util.*;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 /**
- * Testing focus traversal of an AWT component tree with {@link NewtCanvasAWT} attached.
- * <p> 
- * {@link JFrame} . {@link JPanel}+ . {@link Container} . {@link NewtCanvasAWT} . {@link GLWindow}
+ * Testing focus <i>mouse-click</i> and <i>programmatic</i> traversal of an AWT component tree with {@link NewtCanvasAWT} attached.
+ * <p>
+ * {@link JFrame} . {@link JPanel}+ . {@link Container} [ Button*, {@link NewtCanvasAWT} . {@link GLWindow} ]
  * </p>
  * <p>
- * <i>+ JPanel is set as JFrame's root content pane</i><br/> 
+ * <i>+ JPanel is set as JFrame's root content pane</i><br/>
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestFocus02SwingAWTRobot extends UITestCase {
+public class TestParentingFocus02SwingAWTRobot extends UITestCase {
     static int width, height;
     static long durationPerTest = 10;
     static long awtWaitTimeout = 1000;
@@ -96,8 +96,8 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
     @AfterClass
     public static void release() {
     }
-    
-    private void testFocus01ProgrFocusImpl(Robot robot) 
+
+    private void testFocus01ProgrFocusImpl(Robot robot)
         throws AWTException, InterruptedException, InvocationTargetException {
 
         ArrayList<EventCountAdapter> eventCountAdapters = new ArrayList<EventCountAdapter>();
@@ -169,7 +169,7 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
                 jFrame1.setVisible(true);
             } } );
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(jFrame1, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow1, true));                
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow1, true));
         AWTRobotUtil.clearAWTFocus(robot);
         Assert.assertTrue(AWTRobotUtil.toFrontAndRequestFocus(robot, jFrame1));
 
@@ -184,7 +184,7 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         animator1.start();
 
         Thread.sleep(durationPerTest); // manual testing
-        
+
         // Button Outer Focus
         Thread.sleep(100); // allow event sync
         System.err.println("FOCUS AWT  Button Outer request");
@@ -195,10 +195,10 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         Assert.assertEquals(false, buttonNorthInnerFA.focusGained());
         System.err.println("FOCUS AWT  Button Outer sync");
         AWTRobotUtil.assertKeyType(robot, java.awt.event.KeyEvent.VK_A, 2, buttonNorthOuter, buttonNorthOuterKA); // OSX sporadically won't receive the keyboard input - major UI failure
-        AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 1, 
+        AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 1,
                                       buttonNorthOuter, buttonNorthOuterMA);
-        AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 2, 
-                                      buttonNorthOuter, buttonNorthOuterMA);                                     
+        AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 2,
+                                      buttonNorthOuter, buttonNorthOuterMA);
 
         // NEWT Focus
         Thread.sleep(100); // allow event sync
@@ -207,7 +207,7 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         AWTRobotUtil.assertRequestFocusAndWait(robot, newtCanvasAWT, newtCanvasAWT.getNEWTChild(), glWindow1FA, buttonNorthOuterFA);
         // Manually tested on Java7/[Linux,Windows] (where this assertion failed),
         // Should be OK to have the AWT component assume it also has the focus.
-        // Assert.assertTrue("Focus prev. gained, but NewtCanvasAWT didn't loose it. Gainer: "+glWindow1FA+"; Looser "+newtCanvasAWTFA, 
+        // Assert.assertTrue("Focus prev. gained, but NewtCanvasAWT didn't loose it. Gainer: "+glWindow1FA+"; Looser "+newtCanvasAWTFA,
         //        AWTRobotUtil.waitForFocus(glWindow1FA, newtCanvasAWTFA));
         if( !AWTRobotUtil.waitForFocus(glWindow1FA, newtCanvasAWTFA) ) {
             System.err.println("Info: Focus prev. gained, but NewtCanvasAWT didn't loose it. Gainer: "+glWindow1FA+"; Looser "+newtCanvasAWTFA);
@@ -216,9 +216,9 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         System.err.println("FOCUS NEWT Canvas/GLWindow sync");
         AWTRobotUtil.assertKeyType(robot, java.awt.event.KeyEvent.VK_A, 2, glWindow1, glWindow1KA);
         Assert.assertEquals("AWT parent canvas received keyboard events", 0, newtCanvasAWTKA.getCount());
-        AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 1, 
+        AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 1,
                                       glWindow1, glWindow1MA);
-        AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 2, 
+        AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 2,
                                       glWindow1, glWindow1MA);
         Assert.assertEquals("AWT parent canvas received mouse events", 0, newtCanvasAWTMA.getCount());
 
@@ -232,9 +232,9 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         Assert.assertEquals(false, buttonNorthOuterFA.focusGained());
         System.err.println("FOCUS AWT  Button sync");
         AWTRobotUtil.assertKeyType(robot, java.awt.event.KeyEvent.VK_A, 2, buttonNorthInner, buttonNorthInnerKA);
-        AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 1, 
+        AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 1,
                                       buttonNorthInner, buttonNorthInnerMA);
-        AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 2, 
+        AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 2,
                                       buttonNorthInner, buttonNorthInnerMA);
 
         // NEWT Focus
@@ -244,19 +244,19 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         AWTRobotUtil.assertRequestFocusAndWait(robot, newtCanvasAWT, newtCanvasAWT.getNEWTChild(), glWindow1FA, buttonNorthInnerFA);
         // Manually tested on Java7/[Linux,Windows] (where this assertion failed),
         // Should be OK to have the AWT component assume it also has the focus.
-        // Assert.assertTrue("Focus prev. gained, but NewtCanvasAWT didn't loose it. Gainer: "+glWindow1FA+"; Looser "+newtCanvasAWTFA, 
+        // Assert.assertTrue("Focus prev. gained, but NewtCanvasAWT didn't loose it. Gainer: "+glWindow1FA+"; Looser "+newtCanvasAWTFA,
         //        AWTRobotUtil.waitForFocus(glWindow1FA, newtCanvasAWTFA));
         if( !AWTRobotUtil.waitForFocus(glWindow1FA, newtCanvasAWTFA) ) {
             System.err.println("Info: Focus prev. gained, but NewtCanvasAWT didn't loose it. Gainer: "+glWindow1FA+"; Looser "+newtCanvasAWTFA);
         }
-        
+
         Assert.assertEquals(false, buttonNorthOuterFA.focusGained());
         System.err.println("FOCUS NEWT Canvas/GLWindow sync");
         AWTRobotUtil.assertKeyType(robot, java.awt.event.KeyEvent.VK_A, 2, glWindow1, glWindow1KA);
         Assert.assertEquals("AWT parent canvas received keyboard events", 0, newtCanvasAWTKA.getCount());
-        AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 1, 
+        AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 1,
                                       glWindow1, glWindow1MA);
-        AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 2, 
+        AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 2,
                                       glWindow1, glWindow1MA);
         Assert.assertEquals("AWT parent canvas received mouse events", 0, newtCanvasAWTMA.getCount());
 
@@ -295,8 +295,8 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
     }
 
     @SuppressWarnings("unused")
-    public static void main(String args[]) 
-        throws IOException, AWTException, InterruptedException, InvocationTargetException 
+    public static void main(String args[])
+        throws IOException, AWTException, InterruptedException, InvocationTargetException
     {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
@@ -304,14 +304,14 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
             }
         }
         if(true) {
-            String tstname = TestFocus02SwingAWTRobot.class.getName();
+            String tstname = TestParentingFocus02SwingAWTRobot.class.getName();
             org.junit.runner.JUnitCore.main(tstname);
-        } else {       
-            TestFocus02SwingAWTRobot.initClass();
-            TestFocus02SwingAWTRobot test = new TestFocus02SwingAWTRobot();        
+        } else {
+            TestParentingFocus02SwingAWTRobot.initClass();
+            TestParentingFocus02SwingAWTRobot test = new TestParentingFocus02SwingAWTRobot();
             test.testFocus01ProgrFocus();
             test.testFocus02RobotFocus();
-            TestFocus02SwingAWTRobot.release();
+            TestParentingFocus02SwingAWTRobot.release();
         }
     }
 }

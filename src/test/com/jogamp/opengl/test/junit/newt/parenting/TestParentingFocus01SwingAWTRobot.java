@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,13 +20,13 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
-package com.jogamp.opengl.test.junit.newt;
+
+package com.jogamp.opengl.test.junit.newt.parenting;
 
 import org.junit.Assert;
 import org.junit.AfterClass;
@@ -55,20 +55,20 @@ import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
-
+import com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT;
 import com.jogamp.opengl.test.junit.util.*;
 
 /**
- * Testing focus traversal of an AWT component tree with {@link NewtCanvasAWT} attached.
- * <p> 
- * {@link JFrame} . {@link Container}+ . {@link NewtCanvasAWT} . {@link GLWindow}
+ * Testing focus <i>mouse-click</i> and <i>programmatic</i> traversal of an AWT component tree with {@link NewtCanvasAWT} attached.
+ * <p>
+ * {@link JFrame} . {@link Container}+ [ Button*, {@link NewtCanvasAWT} . {@link GLWindow} ]
  * </p>
  * <p>
- * <i>+ Container is the JFrame's implicit root content pane</i><br/> 
+ * <i>+ Container is the JFrame's implicit root content pane</i><br/>
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestFocus01SwingAWTRobot extends UITestCase {
+public class TestParentingFocus01SwingAWTRobot extends UITestCase {
     static int width, height;
     static long durationPerTest = 10;
     static long awtWaitTimeout = 1000;
@@ -119,7 +119,7 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         // Wrap the window in a canvas.
         final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
         // newtCanvasAWT.setShallUseOffscreenLayer(true);
-        
+
         // Monitor AWT focus and keyboard events.
         AWTKeyAdapter newtCanvasAWTKA = new AWTKeyAdapter("NewtCanvasAWT");
         newtCanvasAWT.addKeyListener(newtCanvasAWTKA);
@@ -140,7 +140,7 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         AWTMouseAdapter buttonMA = new AWTMouseAdapter("Button");
         button.addMouseListener(buttonMA);
         eventCountAdapters.add(buttonMA);
-        
+
         frame1.getContentPane().add(button, BorderLayout.NORTH);
         frame1.setSize(width, height);
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
@@ -148,12 +148,12 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
                 frame1.setVisible(true);
             } } );
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame1, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow1, true)); 
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow1, true));
         AWTRobotUtil.clearAWTFocus(robot);
         Assert.assertTrue(AWTRobotUtil.toFrontAndRequestFocus(robot, frame1));
 
         Thread.sleep(durationPerTest); // manual testing
-        
+
         int wait=0;
         while(wait<awtWaitTimeout/100 && glWindow1.getTotalFPSFrames()<1) { Thread.sleep(awtWaitTimeout/10); wait++; }
         System.err.println("Frames for initial setVisible(true): "+glWindow1.getTotalFPSFrames());
@@ -166,7 +166,7 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
 
         // Button Focus
         Thread.sleep(200); // allow event sync
-        
+
         System.err.println("FOCUS AWT  Button request");
         EventCountAdapterUtil.reset(eventCountAdapters);
         AWTRobotUtil.assertRequestFocusAndWait(robot, button, button, buttonFA, null); // OSX sporadically button did not gain - major UI failure
@@ -174,9 +174,9 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         Assert.assertEquals(false, newtCanvasAWTFA.focusGained());
         System.err.println("FOCUS AWT  Button sync");
         AWTRobotUtil.assertKeyType(robot, java.awt.event.KeyEvent.VK_A, 2, button, buttonKA);
-        AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 1, 
+        AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 1,
                                       button, buttonMA);
-        AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 2, 
+        AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 2,
                                       button, buttonMA);
 
         // Request the AWT focus, which should automatically provide the NEWT window with focus.
@@ -186,7 +186,7 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         AWTRobotUtil.assertRequestFocusAndWait(robot, newtCanvasAWT, newtCanvasAWT.getNEWTChild(), glWindow1FA, buttonFA); // OSX sporadically button did not loose - minor UI failure
         // Manually tested on Java7/[Linux,Windows] (where this assertion failed),
         // Should be OK to have the AWT component assume it also has the focus.
-        // Assert.assertTrue("Focus prev. gained, but NewtCanvasAWT didn't loose it. Gainer: "+glWindow1FA+"; Looser "+newtCanvasAWTFA, 
+        // Assert.assertTrue("Focus prev. gained, but NewtCanvasAWT didn't loose it. Gainer: "+glWindow1FA+"; Looser "+newtCanvasAWTFA,
         //         AWTRobotUtil.waitForFocus(glWindow1FA, newtCanvasAWTFA));
         if( !AWTRobotUtil.waitForFocus(glWindow1FA, newtCanvasAWTFA) ) {
             System.err.println("Info: Focus prev. gained, but NewtCanvasAWT didn't loose it. Gainer: "+glWindow1FA+"; Looser "+newtCanvasAWTFA);
@@ -212,7 +212,7 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         } catch( Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
-        }        
+        }
         glWindow1.destroy();
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow1, false));
     }
@@ -234,10 +234,10 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         /**
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
         System.err.println("Press enter to continue");
-        System.err.println(stdin.readLine()); 
+        System.err.println(stdin.readLine());
         */
         System.out.println("durationPerTest: "+durationPerTest);
-        String tstname = TestFocus01SwingAWTRobot.class.getName();
+        String tstname = TestParentingFocus01SwingAWTRobot.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 
