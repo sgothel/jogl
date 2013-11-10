@@ -59,6 +59,11 @@
     #define strdup(s) _strdup(s)
 #endif
 
+/* GetProcAddress doesn't exist in A/W variants under desktop Windows */
+#ifndef UNDER_CE
+#define GetProcAddressA GetProcAddress
+#endif
+
 #ifndef WM_MOUSEWHEEL
 #define WM_MOUSEWHEEL                   0x020A
 #endif //WM_MOUSEWHEEL
@@ -156,6 +161,19 @@ static jmethodID sendMouseEventID = NULL;
 static jmethodID sendTouchScreenEventID = NULL;
 static jmethodID sendKeyEventID = NULL;
 static jmethodID requestFocusID = NULL;
+
+typedef WINBOOL (WINAPI *CloseTouchInputHandlePROCADDR)(HANDLE hTouchInput);
+typedef WINBOOL (WINAPI *GetTouchInputInfoPROCADDR)(HANDLE hTouchInput, UINT cInputs, PTOUCHINPUT pInputs, int cbSize);
+typedef WINBOOL (WINAPI *IsTouchWindowPROCADDR)(HWND hWnd,PULONG pulFlags);
+typedef WINBOOL (WINAPI *RegisterTouchWindowPROCADDR)(HWND hWnd,ULONG ulFlags);
+typedef WINBOOL (WINAPI *UnregisterTouchWindowPROCADDR)(HWND hWnd);
+
+static int WinTouch_func_avail = 0;
+static CloseTouchInputHandlePROCADDR WinTouch_CloseTouchInputHandle = NULL;
+static GetTouchInputInfoPROCADDR WinTouch_GetTouchInputInfo = NULL;
+static IsTouchWindowPROCADDR WinTouch_IsTouchWindow = NULL;
+static RegisterTouchWindowPROCADDR WinTouch_RegisterTouchWindow = NULL;
+static UnregisterTouchWindowPROCADDR WinTouch_UnregisterTouchWindow = NULL;
 
 static RECT* UpdateInsets(JNIEnv *env, jobject window, HWND hwnd);
 
@@ -1164,7 +1182,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
         HTOUCHINPUT hTouch = (HTOUCHINPUT)lParam;
         PTOUCHINPUT pInputs = (PTOUCHINPUT) calloc(cInputs, sizeof(TOUCHINPUT));
         if (NULL != pInputs) {
-            if (GetTouchInputInfo(hTouch, cInputs, pInputs, sizeof(TOUCHINPUT))) {
+            if ( WinTouch_GetTouchInputInfo(hTouch, cInputs, pInputs, sizeof(TOUCHINPUT)) ) {
                 UINT i;
                 short eventType[cInputs];
                 jint modifiers = GetModifiers( 0 );
@@ -1276,7 +1294,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                     cInputs, actionIdx, updownCount, moveCount, sentCount, wud->mouseInside, wud->touchDownCount, wud->touchDownLastUp);
 
                 // Message processed - close it
-                CloseTouchInputHandle(hTouch);
+                WinTouch_CloseTouchInputHandle(hTouch);
             } else {
                 useDefWindowProc = 1;
             }
@@ -1818,6 +1836,22 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowDriver_initIDs0
     }
     InitKeyMapTableScanCode(env);
 
+    {
+        HANDLE shell = LoadLibrary(TEXT("user32.dll"));
+        if (shell) {
+            WinTouch_CloseTouchInputHandle = (CloseTouchInputHandlePROCADDR) GetProcAddressA(shell, "CloseTouchInputHandle");
+            WinTouch_GetTouchInputInfo = (GetTouchInputInfoPROCADDR) GetProcAddressA(shell, "GetTouchInputInfo");
+            WinTouch_IsTouchWindow = (IsTouchWindowPROCADDR) GetProcAddressA(shell, "IsTouchWindow");
+            WinTouch_RegisterTouchWindow = (RegisterTouchWindowPROCADDR) GetProcAddressA(shell, "RegisterTouchWindow");
+            WinTouch_UnregisterTouchWindow = (UnregisterTouchWindowPROCADDR) GetProcAddressA(shell, "UnregisterTouchWindow");
+            if(NULL != WinTouch_CloseTouchInputHandle && NULL != WinTouch_GetTouchInputInfo && 
+               NULL != WinTouch_IsTouchWindow && NULL != WinTouch_RegisterTouchWindow && NULL != WinTouch_UnregisterTouchWindow) {
+                WinTouch_func_avail = 1;
+            } else {
+                WinTouch_func_avail = 0;
+            }
+        }
+    }
     return JNI_TRUE;
 }
 
@@ -1933,7 +1967,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
         wud->touchDownCount = 0;
         wud->touchDownLastUp = 0;
         wud->supportsMTouch = 0;
-        if ( winMajor > 6 || ( winMajor == 6 && winMinor >= 1 ) ) {
+        if ( WinTouch_func_avail && winMajor > 6 || ( winMajor == 6 && winMinor >= 1 ) ) {
             int value = GetSystemMetrics(SM_DIGITIZER);
             if (value & NID_READY) { /* ready */
                 if (value  & NID_MULTI_INPUT) { /* multitouch */
@@ -1943,7 +1977,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
                 }
             }
         }
-        DBG_PRINT("*** WindowsWindow: CreateWindow supportsMTouch %d\n", wud->supportsMTouch);
+        DBG_PRINT("*** WindowsWindow: CreateWindow winTouchFuncAvail %d, supportsMTouch %d\n", WinTouch_func_avail, wud->supportsMTouch);
 
 #if !defined(__MINGW64__) && ( defined(UNDER_CE) || _MSC_VER <= 1200 )
         SetWindowLong(window, GWL_USERDATA, (intptr_t) wud);
@@ -1978,7 +2012,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
             NewtWindow_setVisiblePosSize(window, TST_FLAG_IS_ALWAYSONTOP(flags), TRUE, x, y, width, height);
         }
         if( wud->supportsMTouch ) {
-            RegisterTouchWindow(window, 0);
+            WinTouch_RegisterTouchWindow(window, 0);
         }
     }
 
