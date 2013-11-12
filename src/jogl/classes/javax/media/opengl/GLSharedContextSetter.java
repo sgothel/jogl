@@ -85,15 +85,16 @@ package javax.media.opengl;
  * <p>
  * <pre>
  * Error: 'intel_do_flush_locked: No such file or directory'
- * JogAmp: <https://jogamp.org/bugzilla/show_bug.cgi?id=873>
- * freedesktop.org: <https://bugs.freedesktop.org/show_bug.cgi?id=41736#c8>
+ * JogAmp: https://jogamp.org/bugzilla/show_bug.cgi?id=873
+ * freedesktop.org: https://bugs.freedesktop.org/show_bug.cgi?id=41736#c8
  * </pre>
  * Shared context seems not to be supported w/ lock-free bound X11 display connections
  * per OpenGL drawable/context. The error message above is thrown in this case.
  * Hence the driver bug renders shared context use w/ JOGL impossible.
  * </p>
- * <h7><a name="hisilicon">Hisilicon's Immersion.16</a></h7>
+ * <h7><a name="hisilicon">Hisilicon's Immersion.16 on Android</a></h7>
  * <p>
+ * We failed to create a shared ES2 context on another thread.
  * </p>
  */
 public interface GLSharedContextSetter extends GLAutoDrawable {

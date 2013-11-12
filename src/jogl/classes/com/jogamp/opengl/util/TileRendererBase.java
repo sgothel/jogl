@@ -151,7 +151,7 @@ public abstract class TileRendererBase {
          * {@link TileRendererBase#getAttachedDrawable() attached} {@link GLAutoDrawable}'s
          * {@link GLAutoDrawable#display()} call for each tile before {@link #display(GLAutoDrawable)}.
          * <p>
-         * The <a href="#pmvmatrix">PMV Matrix</a> shall be reshaped
+         * The <a href="TileRendererBase#pmvmatrix">PMV Matrix</a> shall be reshaped
          * according to the given
          * <ul>
          *   <li>current tile-position</li>
@@ -350,7 +350,7 @@ public abstract class TileRendererBase {
      * i.e. after very last call of {@link #endTile(GL)}!
      * </p>
      * <p>
-     * The <a href="#pmvmatrix">PMV Matrix</a>
+     * The <a href="TileRendererBase.html#pmvmatrix">PMV Matrix</a>
      * must be reshaped after this call using:
      * <ul>
      *   <li>Current Viewport
@@ -371,7 +371,7 @@ public abstract class TileRendererBase {
      * this renderer {@link #endTile(GL)}.
      * </p>
      * <p>
-     * User has to comply with the <a href="#glprequirement">GL profile requirement</a>.
+     * User has to comply with the <a href="TileRendererBase.html#glprequirement">GL profile requirement</a>.
      * </p>
      * <p>
      * If {@link #eot() end of tiling} has been reached,
@@ -398,7 +398,7 @@ public abstract class TileRendererBase {
      * calling this method!
      * </p>
      * <p>
-     * User has to comply with the <a href="#glprequirement">GL profile requirement</a>.
+     * User has to comply with the <a href="TileRendererBase.html#glprequirement">GL profile requirement</a>.
      * </p>
      *
      * @param gl the gl context
