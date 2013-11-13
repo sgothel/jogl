@@ -2416,6 +2416,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * using a hash-map if <code>normalPNames</code> is <code>false</code>.
      * Otherwise a simple <code>int</code> to <code>short</code> type cast is performed.
      * </p>
+     * <p>
+     * See {@link #doPointerEvent(boolean, boolean, PointerType[], short, int, int, short[], int[], int[], float[], float, float[], float)}
+     * for details!
+     * </p>
      *
      * @param enqueue if true, event will be {@link #enqueueEvent(boolean, NEWTEvent) enqueued},
      *                otherwise {@link #consumeEvent(NEWTEvent) consumed} directly.
@@ -2469,10 +2473,28 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     /**
-     * Send multiple-pointer event either to be directly consumed or to be enqueued
+     * Send multiple-pointer event either to be directly consumed or to be enqueued.
+     * <p>
+     * Pointer/Mouse Processing Pass 1 (Pass 2 is performed in {@link #consumePointerEvent(MouseEvent)}.
+     * </p>
+     * <p>
+     * Usually directly called by event source to enqueue and process event.
+     * </p>
      * <p>
      * The index for the element of multiple-pointer arrays represents the pointer which triggered the event
      * is passed via <i>actionIdx</i>.
+     * </p>
+     * <p>
+     * <ul>
+     * <li>Determine ENTERED/EXITED state</li>
+     * <li>Remove redundant move/drag events</li>
+     * <li>Reset states if applicable</li>
+     * <li>Drop exterior events</li>
+     * <li>Determine CLICK COUNT</li>
+     * <li>Ignore sent CLICKED</li>
+     * <li>Track buttonPressed incl. buttonPressedMask</li>
+     * <li>Synthesize DRAGGED event (from MOVED if pointer is pressed)</li>
+     * </ul>
      * </p>
      *
      * @param enqueue if true, event will be {@link #enqueueEvent(boolean, NEWTEvent) enqueued},
@@ -2584,6 +2606,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
         }
 
+        //
+        // Drop exterior events
+        //
         if( x < 0 || y < 0 || x >= getWidth() || y >= getHeight() ) {
             if(DEBUG_MOUSE_EVENT) {
                 System.err.println("doPointerEvent: drop: "+MouseEvent.getEventTypeString(eventType)+
@@ -2614,7 +2639,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         // - Determine CLICK COUNT
         // - Ignore sent CLICKED
         // - Track buttonPressed incl. buttonPressedMask
-        // - Fix MOVED/DRAGGED event
+        // - Synthesize DRAGGED event (from MOVED if pointer is pressed)
         //
         final MouseEvent e;
         switch( eventType ) {
@@ -2795,13 +2820,22 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     /**
-     * Consume the {@link MouseEvent}, i.e.
-     * <pre>
-     *   - validate
-     *   - handle gestures
-     *   - synthesize events if applicable (like gestures)
-     *   - dispatch event to listener
-     * </pre>
+     * Consume the {@link MouseEvent}.
+     * <p>
+     * Pointer/Mouse Processing Pass 2 (Pass 1 is performed in {@link #doPointerEvent(boolean, boolean, PointerType[], short, int, int, short[], int[], int[], float[], float, float[], float)}).
+     * </p>
+     * <p>
+     * Invoked before dispatching the dequeued event.
+     * </p>
+     * <p>
+     * <ul>
+     * <li>Validate</li>
+     * <li>Handle gestures</li>
+     * <li>Synthesize events ENTERED, CLICK and gestures.</li>
+     * <li>Drop exterior events</li>
+     * <li>Dispatch event to listener</li>
+     * </ul>
+     * </p>
      */
     protected void consumePointerEvent(MouseEvent pe) {
         int x = pe.getX();
@@ -2845,6 +2879,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             }
             dispatchMouseEvent(eEntered);
         } else if( x < 0 || y < 0 || x >= getWidth() || y >= getHeight() ) {
+            //
+            // Drop exterior events
+            //
             if(DEBUG_MOUSE_EVENT) {
                 System.err.println("consumePointerEvent.drop: "+pe);
             }
