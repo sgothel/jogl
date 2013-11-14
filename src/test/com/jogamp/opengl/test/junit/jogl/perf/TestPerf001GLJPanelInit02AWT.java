@@ -239,7 +239,9 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
         canvas.setSize(size);
         canvas.setPreferredSize(size);
         canvas.setDoubleBuffered(useSwingDoubleBuffer);
-        canvas.setSkipGLOrientationVerticalFlip(skipGLOrientationVerticalFlip);
+        if( skipGLOrientationVerticalFlip ) { // don't fiddle w/ default ..
+            canvas.setSkipGLOrientationVerticalFlip(skipGLOrientationVerticalFlip);
+        }
         if( useGears ) {
             final GearsES2 g = new GearsES2(0);
             g.setVerbose(false);

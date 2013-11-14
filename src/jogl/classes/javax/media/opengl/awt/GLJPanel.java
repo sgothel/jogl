@@ -170,6 +170,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private static final boolean DEBUG;
   private static final boolean DEBUG_VIEWPORT;
   private static final boolean USE_GLSL_TEXTURE_RASTERIZER;
+  private static final boolean SKIP_VERTICAL_FLIP_DEFAULT;
 
   /** Indicates whether the Java 2D OpenGL pipeline is requested by user. */
   private static final boolean java2dOGLEnabledByProp;
@@ -185,7 +186,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       DEBUG = Debug.debug("GLJPanel");
       DEBUG_VIEWPORT = Debug.isPropertyDefined("jogl.debug.GLJPanel.Viewport", true);
       USE_GLSL_TEXTURE_RASTERIZER = !Debug.isPropertyDefined("jogl.gljpanel.noglsl", true);
-
+      SKIP_VERTICAL_FLIP_DEFAULT = Debug.isPropertyDefined("jogl.gljpanel.noverticalflip", true);
       boolean enabled = Debug.getBooleanProperty("sun.java2d.opengl", false);
       java2dOGLEnabledByProp = enabled && !Debug.isPropertyDefined("jogl.gljpanel.noogl", true);
 
@@ -203,6 +204,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       useJava2DGLPipeline = enabled;
       java2DGLPipelineOK = enabled;
       if( DEBUG ) {
+          System.err.println("GLJPanel: DEBUG_VIEWPORT "+DEBUG_VIEWPORT);
+          System.err.println("GLJPanel: USE_GLSL_TEXTURE_RASTERIZER "+USE_GLSL_TEXTURE_RASTERIZER);
+          System.err.println("GLJPanel: SKIP_VERTICAL_FLIP_DEFAULT "+SKIP_VERTICAL_FLIP_DEFAULT);
           System.err.println("GLJPanel: java2dOGLEnabledByProp "+java2dOGLEnabledByProp);
           System.err.println("GLJPanel: useJava2DGLPipeline "+useJava2DGLPipeline);
           System.err.println("GLJPanel: java2DGLPipelineOK "+java2DGLPipelineOK);
@@ -253,7 +257,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   // The backend in use
   private volatile Backend backend;
 
-  private boolean skipGLOrientationVerticalFlip = false;
+  private boolean skipGLOrientationVerticalFlip = SKIP_VERTICAL_FLIP_DEFAULT;
 
   // Used by all backends either directly or indirectly to hook up callbacks
   private final Updater updater = new Updater();
