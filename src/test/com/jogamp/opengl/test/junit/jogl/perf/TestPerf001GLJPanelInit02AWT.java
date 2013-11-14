@@ -288,7 +288,7 @@ public class TestPerf001GLJPanelInit02AWT extends UITestCase {
     }
 
     @Test
-    public void test04GearsGLJPanelDefGridMTManualFlip() throws InterruptedException, InvocationTargetException {
+    public void test04NopGLJPanelDefGridMTManualFlip() throws InterruptedException, InvocationTargetException {
         test(new GLCapabilities(null), false /*useGears*/, true /*skipGLOrientationVerticalFlip*/, width , height, frameCount, true  /* initMT */,
              true /* useGLJPanel */, false /*useSwingDoubleBuffer*/, false /* useGLCanvas */, false /*useAnim*/, false /* overlap */);
     }
