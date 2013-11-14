@@ -121,16 +121,17 @@ import com.jogamp.opengl.util.texture.TextureState;
     using {@link GLDrawableFactory#createOffscreenDrawable(AbstractGraphicsDevice, GLCapabilitiesImmutable, GLCapabilitiesChooser, int, int) GLDrawableFactory.createOffscreenDrawable(..)}.<br/>
     </p>
     <p>
-    In case FBO is used and GLSL is available, a fragment shader is utilized
-    to flip the FBO texture vertically. This hardware-accelerated step can be disabled via system property <code>jogl.gljpanel.noglsl</code>.
-    See <a href="#fboGLSLVerticalFlip">details here</a>.
+    <a name="verticalFlip">
+    In case</a> the drawable {@link #isGLOriented()} and {@link #setSkipGLOrientationVerticalFlip(boolean) vertical flip is not skipped},
+    this component performs the required vertical flip to bring the content from OpenGL's orientation into AWT's orientation.
+    See details about <a href="#fboGLSLVerticalFlip">FBO and GLSL vertical flipping</a>.
     </p>
     <p>
     The OpenGL path is concluded by copying the rendered pixels an {@link BufferedImage} via {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer) glReadPixels(..)}
     for later Java2D composition.
     </p>
     <p>
-    In case the above mentioned GLSL vertical-flipping is not performed,
+    In case {@link #setSkipGLOrientationVerticalFlip(boolean) vertical-flip is not skipped} and <a href="#fboGLSLVerticalFlip">GLSL based vertical-flip</a> is not performed,
     {@link System#arraycopy(Object, int, Object, int, int) System.arraycopy(..)} is used line by line.
     This step causes more CPU load per frame and is not hardware-accelerated.
     </p>
@@ -143,8 +144,12 @@ import com.jogamp.opengl.util.texture.TextureState;
  *  </P>
  *
     <a name="fboGLSLVerticalFlip"><h5>FBO / GLSL Vertical Flip</h5></a>
+    In case FBO is used and GLSL is available and {@link #setSkipGLOrientationVerticalFlip(boolean) vertical flip is not skipped}, a fragment shader is utilized
+    to flip the FBO texture vertically. This hardware-accelerated step can be disabled via system property <code>jogl.gljpanel.noglsl</code>.
+    <p>
     The FBO / GLSL code path uses one texture-unit and binds the FBO texture to it's active texture-target,
     see {@link #setTextureUnit(int)} and {@link #getTextureUnit()}.
+    </p>
     <p>
     The active and dedicated texture-unit's {@link GL#GL_TEXTURE_2D} state is preserved via {@link TextureState}.
     See also {@link Texture#textureCallOrder Order of Texture Commands}.
@@ -247,6 +252,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
   // The backend in use
   private volatile Backend backend;
+
+  private boolean skipGLOrientationVerticalFlip = false;
 
   // Used by all backends either directly or indirectly to hook up callbacks
   private final Updater updater = new Updater();
@@ -648,7 +655,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
               GLDrawableUtil.swapGLContextAndAllGLEventListener(GLJPanel.this, printGLAD);
               printDrawable = printGLAD.getDelegatedDrawable();
           }
-          printAWTTiles.setIsGLOriented(printGLAD.isGLOriented());
+          printAWTTiles.setIsGLOriented( !GLJPanel.this.skipGLOrientationVerticalFlip && printGLAD.isGLOriented() );
           printAWTTiles.renderer.setTileSize(printDrawable.getWidth(), printDrawable.getHeight(), 0);
           printAWTTiles.renderer.attachAutoDrawable(printGLAD);
           if( DEBUG ) {
@@ -981,6 +988,15 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     return oglPipelineUsable();
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Method returns a valid value only <i>after</i>
+   * the backend has been initialized, either {@link #initializeBackend(boolean) eagerly}
+   * or manually via the first display call.<br/>
+   * Method always returns a valid value when called from within a {@link GLEventListener}.
+   * </p>
+   */
   @Override
   public boolean isGLOriented() {
     final Backend b = backend;
@@ -988,6 +1004,25 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         return true;
     }
     return b.getDrawable().isGLOriented();
+  }
+
+  /**
+   * Set skipping {@link #isGLOriented()} based vertical flip,
+   * which usually is required by the offscreen backend,
+   * see details about <a href="#verticalFlip">vertical flip</a>
+   * and <a href="#fboGLSLVerticalFlip">FBO / GLSL vertical flip</a>.
+   * <p>
+   * If set to <code>true</code>, user needs to flip the OpenGL rendered scene
+   * <i>if {@link #isGLOriented()} == true</i>, e.g. via the PMV matrix.<br/>
+   * See constraints of {@link #isGLOriented()}.
+   * </p>
+   */
+  public final void setSkipGLOrientationVerticalFlip(boolean v) {
+      skipGLOrientationVerticalFlip = v;
+  }
+  /** See {@link #setSkipGLOrientationVerticalFlip(boolean)}. */
+  public final boolean getSkipGLOrientationVerticalFlip() {
+      return skipGLOrientationVerticalFlip;
   }
 
   @Override
@@ -1372,10 +1407,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public boolean isUsingOwnLifecycle() { return false; }
+    public final boolean isUsingOwnLifecycle() { return false; }
 
     @Override
-    public void initialize() {
+    public final void initialize() {
       if(DEBUG) {
           System.err.println(getThreadName()+": OffscreenBackend: initialize()");
       }
@@ -1395,7 +1430,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           if( GLContext.CONTEXT_NOT_CURRENT < offscreenContext.makeCurrent() ) {
               isInitialized = true;
               final GL gl = offscreenContext.getGL();
-              flipVertical = offscreenDrawable.isGLOriented();
+              flipVertical = !GLJPanel.this.skipGLOrientationVerticalFlip && offscreenDrawable.isGLOriented();
               final GLCapabilitiesImmutable chosenCaps = offscreenDrawable.getChosenGLCapabilities();
               offscreenIsFBO = chosenCaps.isFBO();
               final boolean glslCompliant = !offscreenContext.hasRendererQuirk(GLRendererQuirks.GLSLNonCompliant);
@@ -1454,7 +1489,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public void destroy() {
+    public final void destroy() {
       if(DEBUG) {
           System.err.println(getThreadName()+": OffscreenBackend: destroy() - offscreenContext: "+(null!=offscreenContext)+" - offscreenDrawable: "+(null!=offscreenDrawable));
       }
@@ -1502,7 +1537,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public void setOpaque(boolean opaque) {
+    public final void setOpaque(boolean opaque) {
       if ( opaque != isOpaque() && !useSingletonBuffer ) {
           pixelBuffer.dispose();
           pixelBuffer = null;
@@ -1511,13 +1546,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public boolean preGL(Graphics g) {
+    public final boolean preGL(Graphics g) {
       // Empty in this implementation
       return true;
     }
 
     @Override
-    public void postGL(Graphics g, boolean isDisplay) {
+    public final void postGL(Graphics g, boolean isDisplay) {
       if (isDisplay) {
         final GL gl = offscreenContext.getGL();
 
@@ -1671,7 +1706,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public int getTextureUnit() {
+    public final int getTextureUnit() {
         if(null != glslTextureRaster && null != offscreenDrawable) { // implies flippedVertical
             return ((GLFBODrawable)offscreenDrawable).getTextureUnit();
         }
@@ -1679,7 +1714,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public void doPaintComponent(Graphics g) {
+    public final void doPaintComponent(Graphics g) {
       helper.invokeGL(offscreenDrawable, offscreenContext, updaterDisplayAction, updaterInitAction);
 
       if ( null != alignedImage ) {
@@ -1689,12 +1724,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public void doPlainPaint() {
+    public final void doPlainPaint() {
       helper.invokeGL(offscreenDrawable, offscreenContext, updaterPlainDisplayAction, updaterInitAction);
     }
 
     @Override
-    public boolean handleReshape() {
+    public final boolean handleReshape() {
         GLDrawableImpl _drawable = offscreenDrawable;
         {
             final GLDrawableImpl _drawableNew = GLDrawableHelper.resizeOffscreenDrawable(_drawable, offscreenContext, panelWidth, panelHeight);
@@ -1725,27 +1760,27 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public GLContext createContext(GLContext shareWith) {
+    public final GLContext createContext(GLContext shareWith) {
       return (null != offscreenDrawable) ? offscreenDrawable.createContext(shareWith) : null;
     }
 
     @Override
-    public void setContext(GLContext ctx) {
+    public final void setContext(GLContext ctx) {
       offscreenContext=(GLContextImpl)ctx;
     }
 
     @Override
-    public GLContext getContext() {
+    public final GLContext getContext() {
       return offscreenContext;
     }
 
     @Override
-    public GLDrawable getDrawable() {
+    public final GLDrawable getDrawable() {
         return offscreenDrawable;
     }
 
     @Override
-    public GLCapabilitiesImmutable getChosenGLCapabilities() {
+    public final GLCapabilitiesImmutable getChosenGLCapabilities() {
       if (offscreenDrawable == null) {
         return null;
       }
@@ -1753,7 +1788,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public GLProfile getGLProfile() {
+    public final GLProfile getGLProfile() {
       if (offscreenDrawable == null) {
         return null;
       }
@@ -1811,10 +1846,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     private GraphicsConfiguration workaroundConfig;
 
     @Override
-    public boolean isUsingOwnLifecycle() { return true; }
+    public final boolean isUsingOwnLifecycle() { return true; }
 
     @Override
-    public void initialize() {
+    public final void initialize() {
       if(DEBUG) {
           System.err.println(getThreadName()+": J2DOGL: initialize()");
       }
@@ -1823,7 +1858,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public void destroy() {
+    public final void destroy() {
       Java2D.invokeWithOGLContextCurrent(null, new Runnable() {
           @Override
           public void run() {
@@ -1844,12 +1879,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public void setOpaque(boolean opaque) {
+    public final void setOpaque(boolean opaque) {
       // Empty in this implementation
     }
 
     @Override
-    public GLContext createContext(GLContext shareWith) {
+    public final GLContext createContext(GLContext shareWith) {
       if(null != shareWith) {
           throw new GLException("J2DOGLBackend cannot create context w/ additional shared context, since it already needs to share the context w/ J2D.");
       }
@@ -1857,43 +1892,43 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public void setContext(GLContext ctx) {
+    public final void setContext(GLContext ctx) {
         joglContext=ctx;
     }
 
     @Override
-    public GLContext getContext() {
+    public final GLContext getContext() {
       return joglContext;
     }
 
     @Override
-    public GLDrawable getDrawable() {
+    public final GLDrawable getDrawable() {
         return joglDrawable;
     }
 
     @Override
-    public int getTextureUnit() { return -1; }
+    public final int getTextureUnit() { return -1; }
 
     @Override
-    public GLCapabilitiesImmutable getChosenGLCapabilities() {
+    public final GLCapabilitiesImmutable getChosenGLCapabilities() {
       // FIXME: should do better than this; is it possible to using only platform-independent code?
       return new GLCapabilities(null);
     }
 
     @Override
-    public GLProfile getGLProfile() {
+    public final GLProfile getGLProfile() {
       // FIXME: should do better than this; is it possible to using only platform-independent code?
       return GLProfile.getDefault(GLProfile.getDefaultDevice());
     }
 
     @Override
-    public boolean handleReshape() {
+    public final boolean handleReshape() {
       // Empty in this implementation
       return true;
     }
 
     @Override
-    public boolean preGL(Graphics g) {
+    public final boolean preGL(Graphics g) {
       final GL2 gl = joglContext.getGL().getGL2();
       // Set up needed state in JOGL context from Java2D context
       gl.glEnable(GL2.GL_SCISSOR_TEST);
@@ -2030,7 +2065,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public void postGL(Graphics g, boolean isDisplay) {
+    public final void postGL(Graphics g, boolean isDisplay) {
       // Cause OpenGL pipeline to flush its results because
       // otherwise it's possible we will buffer up multiple frames'
       // rendering results, resulting in apparent mouse lag
@@ -2047,7 +2082,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public void doPaintComponent(final Graphics g) {
+    public final void doPaintComponent(final Graphics g) {
       // This is a workaround for an issue in the Java 2D / JOGL
       // bridge (reported by an end user as JOGL Issue 274) where Java
       // 2D can occasionally leave its internal OpenGL context current
@@ -2196,11 +2231,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     @Override
-    public void doPlainPaint() {
+    public final void doPlainPaint() {
       helper.invokeGL(joglDrawable, joglContext, updaterPlainDisplayAction, updaterInitAction);
     }
 
-    private void captureJ2DState(GL gl, Graphics g) {
+    private final void captureJ2DState(GL gl, Graphics g) {
       gl.glGetIntegerv(GL2.GL_DRAW_BUFFER, drawBuffer, 0);
       gl.glGetIntegerv(GL2.GL_READ_BUFFER, readBuffer, 0);
       if (Java2D.isFBOEnabled() &&

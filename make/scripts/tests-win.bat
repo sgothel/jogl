@@ -24,7 +24,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.TexCubeES2 
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.perf.TestPerf001RawInit00NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLJPanelInit01AWT %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLJPanelInit02AWT %*
+scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLJPanelInit02AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLWindowInit03NEWT %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledRendering1GL2NEWT %*
@@ -138,7 +138,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.parenting.TestTranslu
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentChildWindowBug632NEWT %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocus01SwingAWTRobot %*
-scripts\java-win.bat com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocus02SwingAWTRobot %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocus02SwingAWTRobot %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocus03KeyTraversalAWT %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor03AWTGLn %*
