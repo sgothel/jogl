@@ -113,127 +113,153 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     this.component = (Component)comp;
     this.config = (AWTGraphicsConfiguration) config;
     this.jawtComponentListener = new JAWTComponentListener();
-    this.component.addComponentListener(jawtComponentListener);
-    this.component.addHierarchyListener(jawtComponentListener);
     invalidate();
     this.isApplet = false;
     this.offscreenSurfaceLayer = 0;
   }
+  private static String id(Object obj) { return "0x" + ( null!=obj ? Integer.toHexString(obj.hashCode()) : "nil" ); }
+  private String jawtStr() { return "JAWTWindow["+id(JAWTWindow.this)+"]"; }
+
   private class JAWTComponentListener implements ComponentListener, HierarchyListener {
         private boolean localVisibility = component.isVisible();
         private boolean globalVisibility = localVisibility;
         private boolean visibilityPropagation = false;
 
-        private String id(Object obj) { return "0x" + ( null!=obj ? Integer.toHexString(obj.hashCode()) : "nil" ); }
         private String str(Object obj) {
             if( null == obj ) {
-                return "null";
+                return "0xnil: null";
             } else if( obj instanceof Component ) {
                 final Component c = (Component)obj;
-                return c.getClass().getSimpleName()+"[visible "+c.isVisible()+", showing "+c.isShowing()+", valid "+c.isValid()+
+                return id(obj)+": "+c.getClass().getSimpleName()+"[visible "+c.isVisible()+", showing "+c.isShowing()+", valid "+c.isValid()+
                         ", displayable "+c.isDisplayable()+", "+c.getX()+"/"+c.getY()+" "+c.getWidth()+"x"+c.getHeight()+"]";
             } else {
-                return obj.getClass().getSimpleName()+"[..]";
+                return id(obj)+": "+obj.getClass().getSimpleName()+"[..]";
             }
         }
-
         private String s(ComponentEvent e) {
             return "visible[local "+localVisibility+", global "+globalVisibility+", propag. "+visibilityPropagation+"],"+Platform.getNewline()+
-                   "    ** COMP "+id(e.getComponent())+": "+str(e.getComponent())+Platform.getNewline()+
-                   "    ** SOURCE "+id(e.getSource())+": "+str(e.getSource())+Platform.getNewline()+
-                   "    ** THIS "+id(component)+": "+str(component);
+                   "    ** COMP "+str(e.getComponent())+Platform.getNewline()+
+                   "    ** SOURCE "+str(e.getSource())+Platform.getNewline()+
+                   "    ** THIS "+str(component)+Platform.getNewline()+
+                   "    ** THREAD "+getThreadName();
         }
         private String s(HierarchyEvent e) {
             return "visible[local "+localVisibility+", global "+globalVisibility+", propag. "+visibilityPropagation+"], changeBits 0x"+Long.toHexString(e.getChangeFlags())+Platform.getNewline()+
-                   "    ** COMP "+id(e.getComponent())+": "+str(e.getComponent())+Platform.getNewline()+
-                   "    ** SOURCE "+id(e.getSource())+": "+str(e.getSource())+Platform.getNewline()+
-                   "    ** CHANGED "+id(e.getChanged())+": "+str(e.getChanged())+Platform.getNewline()+
-                   "    ** CHANGEDPARENT "+id(e.getChangedParent())+": "+str(e.getChangedParent())+Platform.getNewline()+
-                   "    ** THIS "+id(component)+": "+str(component);
+                   "    ** COMP "+str(e.getComponent())+Platform.getNewline()+
+                   "    ** SOURCE "+str(e.getSource())+Platform.getNewline()+
+                   "    ** CHANGED "+str(e.getChanged())+Platform.getNewline()+
+                   "    ** CHANGEDPARENT "+str(e.getChangedParent())+Platform.getNewline()+
+                   "    ** THIS "+str(component)+Platform.getNewline()+
+                   "    ** THREAD "+getThreadName();
+        }
+        @Override
+        public final String toString() {
+            return "visible[local "+localVisibility+", global "+globalVisibility+", propag. "+visibilityPropagation+"],"+Platform.getNewline()+
+                   "    ** THIS "+str(component)+Platform.getNewline()+
+                   "    ** THREAD "+getThreadName();
+        }
+
+        public JAWTComponentListener() {
+            if(DEBUG) {
+                System.err.println(jawtStr()+".attach: "+toString());
+            }
+            component.addComponentListener(jawtComponentListener);
+            component.addHierarchyListener(jawtComponentListener);
+        }
+
+        public final void detach() {
+            if(DEBUG) {
+                System.err.println(jawtStr()+".detach: "+toString());
+            }
+            component.removeComponentListener(jawtComponentListener);
+            component.removeHierarchyListener(jawtComponentListener);
         }
 
         @Override
-        public void componentResized(ComponentEvent e) {
+        public final void componentResized(ComponentEvent e) {
             if(DEBUG) {
-                System.err.println("JAWTWindow.componentResized: "+s(e));
+                System.err.println(jawtStr()+".componentResized: "+s(e));
             }
             layoutSurfaceLayerIfEnabled(globalVisibility && localVisibility);
         }
 
         @Override
-        public void componentMoved(ComponentEvent e) {
+        public final void componentMoved(ComponentEvent e) {
             if(DEBUG) {
-                System.err.println("JAWTWindow.componentMoved: "+s(e));
+                System.err.println(jawtStr()+".componentMoved: "+s(e));
             }
             layoutSurfaceLayerIfEnabled(globalVisibility && localVisibility);
         }
 
         @Override
-        public void componentShown(ComponentEvent e) {
+        public final void componentShown(ComponentEvent e) {
             if(DEBUG) {
-                System.err.println("JAWTWindow.componentShown: "+s(e));
+                System.err.println(jawtStr()+".componentShown: "+s(e));
             }
             layoutSurfaceLayerIfEnabled(globalVisibility && localVisibility);
         }
 
         @Override
-        public void componentHidden(ComponentEvent e) {
+        public final void componentHidden(ComponentEvent e) {
             if(DEBUG) {
-                System.err.println("JAWTWindow.componentHidden: "+s(e));
+                System.err.println(jawtStr()+".componentHidden: "+s(e));
             }
             layoutSurfaceLayerIfEnabled(globalVisibility && localVisibility);
         }
 
         @Override
-        public void hierarchyChanged(HierarchyEvent e) {
+        public final void hierarchyChanged(HierarchyEvent e) {
             final long bits = e.getChangeFlags();
             final java.awt.Component changed = e.getChanged();
+            final boolean compIsVisible = component.isVisible();
             if( 0 != ( java.awt.event.HierarchyEvent.DISPLAYABILITY_CHANGED & bits ) ) {
                 final boolean displayable = changed.isDisplayable();
-                final boolean propagateDisplayability = changed == component && ( displayable && localVisibility ) != component.isVisible();
+                final boolean propagateDisplayability = changed == component && ( displayable && localVisibility ) != compIsVisible;
                 if( propagateDisplayability ) {
                     // Propagate parent's displayability, i.e. 'removeNotify()' and 'addNotify()'
                     final boolean _visible = displayable && localVisibility;
                     visibilityPropagation = true;
                     globalVisibility = displayable;
                     if(DEBUG) {
-                        System.err.println("JAWTWindow.hierarchyChanged DISPLAYABILITY_CHANGED (1): displayable "+displayable+" -> visible "+_visible+", "+s(e));
+                        System.err.println(jawtStr()+".hierarchyChanged DISPLAYABILITY_CHANGED (1): displayable "+displayable+" -> visible "+_visible+", "+s(e));
                     }
                     component.setVisible(_visible);
                 } else if(DEBUG) {
-                    System.err.println("JAWTWindow.hierarchyChanged DISPLAYABILITY_CHANGED (x): displayable "+displayable+", "+s(e));
+                    System.err.println(jawtStr()+".hierarchyChanged DISPLAYABILITY_CHANGED (x): displayable "+displayable+", "+s(e));
                 }
             } else if( 0 != ( java.awt.event.HierarchyEvent.SHOWING_CHANGED & bits ) ) {
                 final boolean showing = changed.isShowing();
-                final boolean propagateVisibility = changed != component && ( showing && localVisibility ) != component.isVisible();
+                final boolean propagateVisibility = changed != component && ( showing && localVisibility ) != compIsVisible;
                 if( propagateVisibility ) {
                     // Propagate parent's visibility
                     final boolean _visible = showing && localVisibility;
                     visibilityPropagation = true;
                     globalVisibility = showing;
                     if(DEBUG) {
-                        System.err.println("JAWTWindow.hierarchyChanged SHOWING_CHANGED (1): showing "+showing+" -> visible "+_visible+", "+s(e));
+                        System.err.println(jawtStr()+".hierarchyChanged SHOWING_CHANGED (1): showing "+showing+" -> visible "+_visible+", "+s(e));
                     }
                     component.setVisible(_visible);
                 } else if( changed == component ) {
                     // Update component's local visibility state
                     if(!visibilityPropagation) {
-                        localVisibility = component.isVisible();
+                        localVisibility = compIsVisible;
                     }
                     visibilityPropagation = false;
                     if(DEBUG) {
-                        System.err.println("JAWTWindow.hierarchyChanged SHOWING_CHANGED (0): showing "+showing+" -> visible "+(showing && localVisibility)+", "+s(e));
+                        System.err.println(jawtStr()+".hierarchyChanged SHOWING_CHANGED (0): showing "+showing+" -> visible "+(showing && localVisibility)+", "+s(e));
                     }
                 } else if(DEBUG) {
-                    System.err.println("JAWTWindow.hierarchyChanged SHOWING_CHANGED (x): showing "+showing+" -> visible "+(showing && localVisibility)+", "+s(e));
+                    System.err.println(jawtStr()+".hierarchyChanged SHOWING_CHANGED (x): showing "+showing+" -> visible "+(showing && localVisibility)+", "+s(e));
                 }
             }
         }
   }
 
+  private static String getThreadName() { return Thread.currentThread().getName(); }
+
   protected synchronized void invalidate() {
     if(DEBUG) {
-        System.err.println("JAWTWindow.invalidate() - "+Thread.currentThread().getName());
+        System.err.println(jawtStr()+".invalidate() - "+jawtComponentListener.toString());
         if( isSurfaceLayerAttached() ) {
             System.err.println("OffscreenSurfaceLayer still attached: 0x"+Long.toHexString(offscreenSurfaceLayer));
         }
@@ -571,6 +597,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   public void destroy() {
     surfaceLock.lock();
     try {
+        jawtComponentListener.detach();
         invalidate();
     } finally {
         surfaceLock.unlock();
@@ -713,7 +740,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   public String toString() {
     StringBuilder sb = new StringBuilder();
 
-    sb.append("JAWT-Window[");
+    sb.append(jawtStr()+"[");
     jawt2String(sb);
     sb.append(  ", shallUseOffscreenLayer "+shallUseOffscreenLayer+", isOffscreenLayerSurface "+isOffscreenLayerSurface+
                 ", attachedSurfaceLayer "+toHexString(getAttachedSurfaceLayer())+

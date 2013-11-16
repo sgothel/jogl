@@ -583,6 +583,15 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     }
   }
 
+  @Override
+  public void setVisible(boolean b) {
+      if(DEBUG) {
+          System.err.println(getThreadName()+": Info: setVisible("+b+")");
+          Thread.dumpStack();
+      }
+      super.setVisible(b);
+  }
+
   /** Overridden to track when this component is added to a container.
       Subclasses which override this method must call
       super.addNotify() in their addNotify() method in order to
