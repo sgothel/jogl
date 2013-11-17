@@ -589,7 +589,9 @@ public class MouseEvent extends InputEvent
     private static final PointerType[] constMousePointerTypes = new PointerType[] { PointerType.Mouse };
 
     public static final short EVENT_MOUSE_CLICKED  = 200;
+    /** Only generated for {@link PointerType#Mouse} */
     public static final short EVENT_MOUSE_ENTERED  = 201;
+    /** Only generated for {@link PointerType#Mouse} */
     public static final short EVENT_MOUSE_EXITED   = 202;
     public static final short EVENT_MOUSE_PRESSED  = 203;
     public static final short EVENT_MOUSE_RELEASED = 204;

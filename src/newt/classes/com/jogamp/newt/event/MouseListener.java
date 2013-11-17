@@ -44,7 +44,9 @@ import com.jogamp.newt.event.MouseEvent.PointerType;
 public interface MouseListener extends NEWTEventListener
 {
  public void mouseClicked(MouseEvent e);
+ /** Only generated for {@link PointerType#Mouse} */
  public void mouseEntered(MouseEvent e);
+ /** Only generated for {@link PointerType#Mouse} */
  public void mouseExited(MouseEvent e);
  public void mousePressed(MouseEvent e);
  public void mouseReleased(MouseEvent e);

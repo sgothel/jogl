@@ -21,6 +21,7 @@ echo CP_ALL %CP_ALL%
 
 REM set D_ARGS=""
 REM set D_ARGS="-Djogl.gljpanel.noverticalflip"
+set D_ARGS="-Dnewt.debug.Window.MouseEvent"
 
 set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true"
 
