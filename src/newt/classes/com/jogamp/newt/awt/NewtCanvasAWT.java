@@ -190,23 +190,22 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
             if(DEBUG) {
                 System.err.println("NewtCanvasAWT.FocusAction: "+Display.getThreadName()+", isOnscreen "+isOnscreen+", hasFocus "+hasFocus()+", isParent "+isParent+", isFS "+isFullscreen);
             }
-            if(isParent && !isFullscreen) {
-                // Newt-EDT -> AWT-EDT may freeze Window's native peer requestFocus.
-                if(!hasFocus()) {
-                    // Acquire the AWT focus 1st for proper AWT traversal
-                    NewtCanvasAWT.super.requestFocus();
-                }
-                if(isOnscreen) {
-                    // Remove the AWT focus in favor of the native NEWT focus
-                    KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
-                }
+            if( isParent && !isFullscreen && isOnscreen ) {
+                // Remove the AWT focus in favor of the native NEWT focus
+                KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
             }
             return false; // NEWT shall proceed requesting the native focus
         }
     }
     private final FocusAction focusAction = new FocusAction();
 
-    WindowListener clearAWTMenusOnNewtFocus = new WindowAdapter() {
+    /** Must run on AWT-EDT non-blocking, since it invokes tasks on AWT-EDT w/ waiting otherwise. */
+    private final Runnable awtClearSelectedMenuPath = new Runnable() {
+        public void run() {
+            MenuSelectionManager.defaultManager().clearSelectedPath();
+        }
+    };
+    private final WindowListener clearAWTMenusOnNewtFocus = new WindowAdapter() {
           @Override
           public void windowResized(WindowEvent e) {
               updateLayoutSize();
@@ -214,7 +213,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
           @Override
           public void windowGainedFocus(WindowEvent arg0) {
               if( isParent() && !isFullscreen() ) {
-                  MenuSelectionManager.defaultManager().clearSelectedPath();
+                  AWTEDTExecutor.singleton.invoke(false, awtClearSelectedMenuPath);
               }
           }
     };
