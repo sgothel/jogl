@@ -35,6 +35,9 @@
 
 #include <X11/extensions/Xrender.h>
 
+/** Remove memcpy GLIBC > 2.4 dependencies */
+#include <glibc-compat-symbols.h>
+
 // #define VERBOSE_ON 1
 
 #ifdef VERBOSE_ON
