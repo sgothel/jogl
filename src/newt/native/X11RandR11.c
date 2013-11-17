@@ -335,7 +335,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_RandR11_setCurrentScreenM
     int rot;
     do {
         if ( 0 >= XEventsQueued(dpy, QueuedAfterFlush) ) {
-            return;
+            return JNI_FALSE; // not done
         }
         XNextEvent(dpy, &evt);
 
@@ -366,5 +366,6 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_RandR11_setCurrentScreenM
 
     XSync(dpy, False);
 
+    return done ? JNI_TRUE : JNI_FALSE;
 }
 

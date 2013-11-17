@@ -387,7 +387,7 @@ Java_jogamp_nativewindow_x11_X11Lib_GetVisualIDFromWindow(JNIEnv *env, jclass _u
 
     if(NULL==dpy) {
         NativewindowCommon_throwNewRuntimeException(env, "invalid display connection..");
-        return;
+        return 0;
     }
 
     NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 1, errorHandlerQuiet, 1);
