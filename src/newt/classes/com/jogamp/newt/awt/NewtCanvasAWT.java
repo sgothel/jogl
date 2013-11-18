@@ -228,6 +228,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
 
     /** Must run on AWT-EDT non-blocking, since it invokes tasks on AWT-EDT w/ waiting otherwise. */
     private final Runnable awtClearSelectedMenuPath = new Runnable() {
+        @Override
         public void run() {
             MenuSelectionManager.defaultManager().clearSelectedPath();
         }
@@ -460,6 +461,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
      */
     public final void destroy() {
         AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+            @Override
             public void run() {
                 destroyImpl(false /* removeNotify */, false /* windowClosing */);
             } } );
