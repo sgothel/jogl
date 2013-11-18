@@ -49,21 +49,28 @@ public class AWTKeyAdapter extends AWTAdapter implements java.awt.event.KeyListe
         super(downstream);
     }
 
+    public AWTKeyAdapter() {
+        super();
+    }
+
     @Override
-    public AWTAdapter addTo(java.awt.Component awtComponent) {
+    public synchronized AWTAdapter addTo(java.awt.Component awtComponent) {
         awtComponent.addKeyListener(this);
         return this;
     }
 
     @Override
-    public AWTAdapter removeFrom(java.awt.Component awtComponent) {
+    public synchronized AWTAdapter removeFrom(java.awt.Component awtComponent) {
         awtComponent.removeKeyListener(this);
         return this;
     }
 
     @Override
-    public void keyPressed(java.awt.event.KeyEvent e) {
+    public synchronized void keyPressed(java.awt.event.KeyEvent e) {
         final com.jogamp.newt.event.KeyEvent event = AWTNewtEventFactory.createKeyEvent(com.jogamp.newt.event.KeyEvent.EVENT_KEY_PRESSED, e, newtWindow);
+        if( consumeAWTEvent ) {
+            e.consume();
+        }
         if(null!=newtListener) {
             ((com.jogamp.newt.event.KeyListener)newtListener).keyPressed(event);
         } else {
@@ -72,8 +79,11 @@ public class AWTKeyAdapter extends AWTAdapter implements java.awt.event.KeyListe
     }
 
     @Override
-    public void keyReleased(java.awt.event.KeyEvent e) {
+    public synchronized void keyReleased(java.awt.event.KeyEvent e) {
         final com.jogamp.newt.event.KeyEvent event = AWTNewtEventFactory.createKeyEvent(com.jogamp.newt.event.KeyEvent.EVENT_KEY_RELEASED, e, newtWindow);
+        if( consumeAWTEvent ) {
+            e.consume();
+        }
         if(null!=newtListener) {
             ((com.jogamp.newt.event.KeyListener)newtListener).keyReleased(event);
         } else {
@@ -82,7 +92,10 @@ public class AWTKeyAdapter extends AWTAdapter implements java.awt.event.KeyListe
     }
 
     @Override
-    public void keyTyped(java.awt.event.KeyEvent e) {
+    public synchronized void keyTyped(java.awt.event.KeyEvent e) {
+        if( consumeAWTEvent ) {
+            e.consume();
+        }
     }
 }
 

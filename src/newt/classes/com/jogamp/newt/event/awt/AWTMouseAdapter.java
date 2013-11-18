@@ -46,8 +46,12 @@ public class AWTMouseAdapter extends AWTAdapter implements java.awt.event.MouseL
         super(downstream);
     }
 
+    public AWTMouseAdapter() {
+        super();
+    }
+
     @Override
-    public AWTAdapter addTo(java.awt.Component awtComponent) {
+    public synchronized AWTAdapter addTo(java.awt.Component awtComponent) {
         awtComponent.addMouseListener(this);
         awtComponent.addMouseMotionListener(this);
         awtComponent.addMouseWheelListener(this);
@@ -55,7 +59,7 @@ public class AWTMouseAdapter extends AWTAdapter implements java.awt.event.MouseL
     }
 
     @Override
-    public AWTAdapter removeFrom(java.awt.Component awtComponent) {
+    public synchronized AWTAdapter removeFrom(java.awt.Component awtComponent) {
         awtComponent.removeMouseListener(this);
         awtComponent.removeMouseMotionListener(this);
         awtComponent.removeMouseWheelListener(this);
@@ -63,8 +67,11 @@ public class AWTMouseAdapter extends AWTAdapter implements java.awt.event.MouseL
     }
 
     @Override
-    public void mouseClicked(java.awt.event.MouseEvent e) {
+    public synchronized void mouseClicked(java.awt.event.MouseEvent e) {
         com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, newtWindow);
+        if( consumeAWTEvent ) {
+            e.consume();
+        }
         if(null!=newtListener) {
             ((com.jogamp.newt.event.MouseListener)newtListener).mouseClicked(event);
         } else {
@@ -73,8 +80,11 @@ public class AWTMouseAdapter extends AWTAdapter implements java.awt.event.MouseL
     }
 
     @Override
-    public void mouseEntered(java.awt.event.MouseEvent e) {
+    public synchronized void mouseEntered(java.awt.event.MouseEvent e) {
         com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, newtWindow);
+        if( consumeAWTEvent ) {
+            e.consume();
+        }
         if(null!=newtListener) {
             ((com.jogamp.newt.event.MouseListener)newtListener).mouseEntered(event);
         } else {
@@ -83,8 +93,11 @@ public class AWTMouseAdapter extends AWTAdapter implements java.awt.event.MouseL
     }
 
     @Override
-    public void mouseExited(java.awt.event.MouseEvent e) {
+    public synchronized void mouseExited(java.awt.event.MouseEvent e) {
         com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, newtWindow);
+        if( consumeAWTEvent ) {
+            e.consume();
+        }
         if(null!=newtListener) {
             ((com.jogamp.newt.event.MouseListener)newtListener).mouseExited(event);
         } else {
@@ -93,8 +106,11 @@ public class AWTMouseAdapter extends AWTAdapter implements java.awt.event.MouseL
     }
 
     @Override
-    public void mousePressed(java.awt.event.MouseEvent e) {
+    public synchronized void mousePressed(java.awt.event.MouseEvent e) {
         com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, newtWindow);
+        if( consumeAWTEvent ) {
+            e.consume();
+        }
         if(null!=newtListener) {
             ((com.jogamp.newt.event.MouseListener)newtListener).mousePressed(event);
         } else {
@@ -103,8 +119,11 @@ public class AWTMouseAdapter extends AWTAdapter implements java.awt.event.MouseL
     }
 
     @Override
-    public void mouseReleased(java.awt.event.MouseEvent e) {
+    public synchronized void mouseReleased(java.awt.event.MouseEvent e) {
         com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, newtWindow);
+        if( consumeAWTEvent ) {
+            e.consume();
+        }
         if(null!=newtListener) {
             ((com.jogamp.newt.event.MouseListener)newtListener).mouseReleased(event);
         } else {
@@ -113,8 +132,11 @@ public class AWTMouseAdapter extends AWTAdapter implements java.awt.event.MouseL
     }
 
     @Override
-    public void mouseDragged(java.awt.event.MouseEvent e) {
+    public synchronized void mouseDragged(java.awt.event.MouseEvent e) {
         com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, newtWindow);
+        if( consumeAWTEvent ) {
+            e.consume();
+        }
         if(null!=newtListener) {
             ((com.jogamp.newt.event.MouseListener)newtListener).mouseDragged(event);
         } else {
@@ -123,8 +145,11 @@ public class AWTMouseAdapter extends AWTAdapter implements java.awt.event.MouseL
     }
 
     @Override
-    public void mouseMoved(java.awt.event.MouseEvent e) {
+    public synchronized void mouseMoved(java.awt.event.MouseEvent e) {
         com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, newtWindow);
+        if( consumeAWTEvent ) {
+            e.consume();
+        }
         if(null!=newtListener) {
             ((com.jogamp.newt.event.MouseListener)newtListener).mouseMoved(event);
         } else {
@@ -133,8 +158,11 @@ public class AWTMouseAdapter extends AWTAdapter implements java.awt.event.MouseL
     }
 
     @Override
-    public void mouseWheelMoved(java.awt.event.MouseWheelEvent e) {
+    public synchronized void mouseWheelMoved(java.awt.event.MouseWheelEvent e) {
         com.jogamp.newt.event.MouseEvent event = AWTNewtEventFactory.createMouseEvent(e, newtWindow);
+        if( consumeAWTEvent ) {
+            e.consume();
+        }
         if(null!=newtListener) {
             ((com.jogamp.newt.event.MouseListener)newtListener).mouseWheelMoved(event);
         } else {

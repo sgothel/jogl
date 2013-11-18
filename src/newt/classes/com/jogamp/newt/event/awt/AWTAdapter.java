@@ -117,17 +117,19 @@ public abstract class AWTAdapter implements java.util.EventListener
 
     com.jogamp.newt.event.NEWTEventListener newtListener;
     com.jogamp.newt.Window newtWindow;
+    boolean consumeAWTEvent;
 
     /**
      * Simply wrap aroung a NEWT EventListener, exposed as an AWT EventListener.<br>
      * The NEWT EventListener will be called when an event happens.<br>
      */
-    public AWTAdapter(com.jogamp.newt.event.NEWTEventListener newtListener) {
+    protected AWTAdapter(com.jogamp.newt.event.NEWTEventListener newtListener) {
         if(null==newtListener) {
             throw new RuntimeException("Argument newtListener is null");
         }
         this.newtListener = newtListener;
         this.newtWindow = null;
+        this.consumeAWTEvent = false;
     }
 
     /**
@@ -135,7 +137,7 @@ public abstract class AWTAdapter implements java.util.EventListener
      * where the given NEWT Window impersonates as the event's source.
      * The NEWT EventListener will be called when an event happens.<br>
      */
-    public AWTAdapter(com.jogamp.newt.event.NEWTEventListener newtListener, com.jogamp.newt.Window newtProxy) {
+    protected AWTAdapter(com.jogamp.newt.event.NEWTEventListener newtListener, com.jogamp.newt.Window newtProxy) {
         if(null==newtListener) {
             throw new RuntimeException("Argument newtListener is null");
         }
@@ -144,6 +146,7 @@ public abstract class AWTAdapter implements java.util.EventListener
         }
         this.newtListener = newtListener;
         this.newtWindow = newtProxy;
+        this.consumeAWTEvent = false;
     }
 
     /**
@@ -151,22 +154,51 @@ public abstract class AWTAdapter implements java.util.EventListener
      * Once attached to an AWT component, it sends the converted AWT events to the NEWT downstream window.<br>
      * This is only supported with EDT enabled!
      */
-    public AWTAdapter(com.jogamp.newt.Window downstream) {
+    protected AWTAdapter(com.jogamp.newt.Window downstream) {
+        this();
+        setDownstream(downstream);
+    }
+
+    public AWTAdapter() {
+        this.newtListener = null;
+        this.newtWindow = null;
+        this.consumeAWTEvent = false;
+    }
+
+    /**
+     * Setup a pipeline adapter, AWT EventListener.<br>
+     * Once attached to an AWT component, it sends the converted AWT events to the NEWT downstream window.<br>
+     * This is only supported with EDT enabled!
+     */
+    public synchronized AWTAdapter setDownstream(com.jogamp.newt.Window downstream) {
         if(null==downstream) {
             throw new RuntimeException("Argument downstream is null");
         }
         this.newtListener = null;
         this.newtWindow = downstream;
+        this.consumeAWTEvent = false;
         if( null == newtWindow.getScreen().getDisplay().getEDTUtil() ) {
             throw new RuntimeException("EDT not enabled");
         }
+        return this;
     }
 
-    public final com.jogamp.newt.Window getNewtWindow() {
+    /** Removes all references, downstream and NEWT-EventListener. */
+    public synchronized AWTAdapter clear() {
+        this.newtListener = null;
+        this.newtWindow = null;
+        return this;
+    }
+
+    public final synchronized void setConsumeAWTEvent(boolean v) {
+        this.consumeAWTEvent = v;
+    }
+
+    public final synchronized com.jogamp.newt.Window getNewtWindow() {
         return newtWindow;
     }
 
-    public final com.jogamp.newt.event.NEWTEventListener getNewtEventListener() {
+    public final synchronized com.jogamp.newt.event.NEWTEventListener getNewtEventListener() {
         return newtListener;
     }
 
