@@ -2751,115 +2751,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         doEvent(enqueue, wait, e); // actual mouse event
     }
 
-    @Override
-    public final void addMouseListener(MouseListener l) {
-        addMouseListener(-1, l);
-    }
-
-    @Override
-    public final void addMouseListener(int index, MouseListener l) {
-        if(l == null) {
-            return;
-        }
-        @SuppressWarnings("unchecked")
-        ArrayList<MouseListener> clonedListeners = (ArrayList<MouseListener>) mouseListeners.clone();
-        if(0>index) {
-            index = clonedListeners.size();
-        }
-        clonedListeners.add(index, l);
-        mouseListeners = clonedListeners;
-    }
-
-    @Override
-    public final void removeMouseListener(MouseListener l) {
-        if (l == null) {
-            return;
-        }
-        @SuppressWarnings("unchecked")
-        ArrayList<MouseListener> clonedListeners = (ArrayList<MouseListener>) mouseListeners.clone();
-        clonedListeners.remove(l);
-        mouseListeners = clonedListeners;
-    }
-
-    @Override
-    public final MouseListener getMouseListener(int index) {
-        @SuppressWarnings("unchecked")
-        ArrayList<MouseListener> clonedListeners = (ArrayList<MouseListener>) mouseListeners.clone();
-        if(0>index) {
-            index = clonedListeners.size()-1;
-        }
-        return clonedListeners.get(index);
-    }
-
-    @Override
-    public final MouseListener[] getMouseListeners() {
-        return mouseListeners.toArray(new MouseListener[mouseListeners.size()]);
-    }
-
-    @Override
-    public final void setDefaultGesturesEnabled(boolean enable) {
-        defaultGestureHandlerEnabled = enable;
-    }
-    @Override
-    public final boolean areDefaultGesturesEnabled() {
-        return defaultGestureHandlerEnabled;
-    }
-
-    @Override
-    public final void addGestureHandler(GestureHandler gh) {
-        addGestureHandler(-1, gh);
-    }
-    @Override
-    public final void addGestureHandler(int index, GestureHandler gh) {
-        if(gh == null) {
-            return;
-        }
-        @SuppressWarnings("unchecked")
-        ArrayList<GestureHandler> cloned = (ArrayList<GestureHandler>) pointerGestureHandler.clone();
-        if(0>index) {
-            index = cloned.size();
-        }
-        cloned.add(index, gh);
-        pointerGestureHandler = cloned;
-    }
-    @Override
-    public final void removeGestureHandler(GestureHandler gh) {
-        if (gh == null) {
-            return;
-        }
-        @SuppressWarnings("unchecked")
-        ArrayList<GestureHandler> cloned = (ArrayList<GestureHandler>) pointerGestureHandler.clone();
-        cloned.remove(gh);
-        pointerGestureHandler = cloned;
-    }
-    @Override
-    public final void addGestureListener(GestureHandler.GestureListener gl) {
-        addGestureListener(-1, gl);
-    }
-    @Override
-    public final void addGestureListener(int index, GestureHandler.GestureListener gl) {
-        if(gl == null) {
-            return;
-        }
-        @SuppressWarnings("unchecked")
-        ArrayList<GestureHandler.GestureListener> cloned = (ArrayList<GestureHandler.GestureListener>) gestureListeners.clone();
-        if(0>index) {
-            index = cloned.size();
-        }
-        cloned.add(index, gl);
-        gestureListeners = cloned;
-    }
-    @Override
-    public final void removeGestureListener(GestureHandler.GestureListener gl) {
-        if (gl == null) {
-            return;
-        }
-        @SuppressWarnings("unchecked")
-        ArrayList<GestureHandler.GestureListener> cloned = (ArrayList<GestureHandler.GestureListener>) gestureListeners.clone();
-        cloned.remove(gl);
-        gestureListeners= cloned;
-    }
-
     private static int step(int lower, int edge, int value) {
         return value < edge ? lower : value;
     }
@@ -3086,6 +2977,115 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             }
             dispatchMouseEvent(eExited);
         }
+    }
+
+    @Override
+    public final void addMouseListener(MouseListener l) {
+        addMouseListener(-1, l);
+    }
+
+    @Override
+    public final void addMouseListener(int index, MouseListener l) {
+        if(l == null) {
+            return;
+        }
+        @SuppressWarnings("unchecked")
+        ArrayList<MouseListener> clonedListeners = (ArrayList<MouseListener>) mouseListeners.clone();
+        if(0>index) {
+            index = clonedListeners.size();
+        }
+        clonedListeners.add(index, l);
+        mouseListeners = clonedListeners;
+    }
+
+    @Override
+    public final void removeMouseListener(MouseListener l) {
+        if (l == null) {
+            return;
+        }
+        @SuppressWarnings("unchecked")
+        ArrayList<MouseListener> clonedListeners = (ArrayList<MouseListener>) mouseListeners.clone();
+        clonedListeners.remove(l);
+        mouseListeners = clonedListeners;
+    }
+
+    @Override
+    public final MouseListener getMouseListener(int index) {
+        @SuppressWarnings("unchecked")
+        ArrayList<MouseListener> clonedListeners = (ArrayList<MouseListener>) mouseListeners.clone();
+        if(0>index) {
+            index = clonedListeners.size()-1;
+        }
+        return clonedListeners.get(index);
+    }
+
+    @Override
+    public final MouseListener[] getMouseListeners() {
+        return mouseListeners.toArray(new MouseListener[mouseListeners.size()]);
+    }
+
+    @Override
+    public final void setDefaultGesturesEnabled(boolean enable) {
+        defaultGestureHandlerEnabled = enable;
+    }
+    @Override
+    public final boolean areDefaultGesturesEnabled() {
+        return defaultGestureHandlerEnabled;
+    }
+
+    @Override
+    public final void addGestureHandler(GestureHandler gh) {
+        addGestureHandler(-1, gh);
+    }
+    @Override
+    public final void addGestureHandler(int index, GestureHandler gh) {
+        if(gh == null) {
+            return;
+        }
+        @SuppressWarnings("unchecked")
+        ArrayList<GestureHandler> cloned = (ArrayList<GestureHandler>) pointerGestureHandler.clone();
+        if(0>index) {
+            index = cloned.size();
+        }
+        cloned.add(index, gh);
+        pointerGestureHandler = cloned;
+    }
+    @Override
+    public final void removeGestureHandler(GestureHandler gh) {
+        if (gh == null) {
+            return;
+        }
+        @SuppressWarnings("unchecked")
+        ArrayList<GestureHandler> cloned = (ArrayList<GestureHandler>) pointerGestureHandler.clone();
+        cloned.remove(gh);
+        pointerGestureHandler = cloned;
+    }
+    @Override
+    public final void addGestureListener(GestureHandler.GestureListener gl) {
+        addGestureListener(-1, gl);
+    }
+    @Override
+    public final void addGestureListener(int index, GestureHandler.GestureListener gl) {
+        if(gl == null) {
+            return;
+        }
+        @SuppressWarnings("unchecked")
+        ArrayList<GestureHandler.GestureListener> cloned = (ArrayList<GestureHandler.GestureListener>) gestureListeners.clone();
+        if(0>index) {
+            index = cloned.size();
+        }
+        cloned.add(index, gl);
+        gestureListeners = cloned;
+    }
+    @Override
+    public final void removeGestureListener(GestureHandler.GestureListener gl) {
+        if (gl == null) {
+            return;
+        }
+        @SuppressWarnings("unchecked")
+        ArrayList<GestureHandler.GestureListener> cloned = (ArrayList<GestureHandler.GestureListener>) gestureListeners.clone();
+        cloned.remove(gl);
+        gestureListeners= cloned;
     }
 
     private final void dispatchMouseEvent(MouseEvent e) {
