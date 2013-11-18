@@ -212,7 +212,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
             if( isParent && !isFullscreen ) { // must be parent of newtChild _and_ newtChild not fullscreen
                 if( isOnscreen ) {
                     // Remove the AWT focus in favor of the native NEWT focus
-                    KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+                    AWTEDTExecutor.singleton.invoke(false, awtClearGlobalFocusOwner);
                 }
                 else {
                     // In offscreen mode we require the focus!
@@ -226,6 +226,14 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         }
     }
     private final FocusAction focusAction = new FocusAction();
+
+    private static class ClearFocusOwner implements Runnable {
+        @Override
+        public void run() {
+            KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+        }
+    }
+    private static final Runnable awtClearGlobalFocusOwner = new ClearFocusOwner();
 
     /** Must run on AWT-EDT non-blocking, since it invokes tasks on AWT-EDT w/ waiting otherwise. */
     private final Runnable awtClearSelectedMenuPath = new Runnable() {
