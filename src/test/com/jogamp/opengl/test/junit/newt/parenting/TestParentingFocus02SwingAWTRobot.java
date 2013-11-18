@@ -220,7 +220,10 @@ public class TestParentingFocus02SwingAWTRobot extends UITestCase {
                                       glWindow1, glWindow1MA);
         AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 2,
                                       glWindow1, glWindow1MA);
-        Assert.assertEquals("AWT parent canvas received mouse events", 0, newtCanvasAWTMA.getCount());
+        if( !newtCanvasAWT.isAWTEventPassThrough() ) {
+            Assert.assertEquals("AWT parent canvas received consumed keyboard events", 0, newtCanvasAWTKA.getConsumedCount());
+            Assert.assertEquals("AWT parent canvas received mouse events", 0, newtCanvasAWTMA.getCount());
+        }
 
         // Button Inner Focus
         Thread.sleep(100); // allow event sync
@@ -258,7 +261,10 @@ public class TestParentingFocus02SwingAWTRobot extends UITestCase {
                                       glWindow1, glWindow1MA);
         AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 2,
                                       glWindow1, glWindow1MA);
-        Assert.assertEquals("AWT parent canvas received mouse events", 0, newtCanvasAWTMA.getCount());
+        if( !newtCanvasAWT.isAWTEventPassThrough() ) {
+            Assert.assertEquals("AWT parent canvas received consumed keyboard events", 0, newtCanvasAWTKA.getConsumedCount());
+            Assert.assertEquals("AWT parent canvas received mouse events", 0, newtCanvasAWTMA.getCount());
+        }
 
         animator1.stop();
         Assert.assertEquals(false, animator1.isAnimating());

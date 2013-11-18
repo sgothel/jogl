@@ -735,6 +735,20 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         }
     }
 
+    /**
+     * Returns <code>true</code> if Key and Mouse input events will be passed through AWT,
+     * otherwise only the {@link #getNEWTChild() NEWT child} will receive them.
+     * <p>
+     * Normally only the {@link #getNEWTChild() NEWT child} will receive Key and Mouse input events.
+     * In offscreen mode, e.g. OSX/CALayer, the AWT events will be received and translated into NEWT events
+     * and delivered to the NEWT child window.<br/>
+     * Note: AWT key events will {@link java.awt.event.InputEvent#consume() consumed} in pass-through mode.
+     * </p>
+     */
+    public final boolean isAWTEventPassThrough() {
+        return !isOnscreen;
+    }
+
     private final void attachNewtChild() {
       if( null == newtChild || null == jawtWindow || newtChildAttached ) {
           return; // nop

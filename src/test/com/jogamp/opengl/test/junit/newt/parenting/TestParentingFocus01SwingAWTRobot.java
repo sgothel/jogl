@@ -194,6 +194,9 @@ public class TestParentingFocus01SwingAWTRobot extends UITestCase {
         System.err.println("FOCUS NEWT Canvas/GLWindow sync");
         AWTRobotUtil.assertKeyType(robot, java.awt.event.KeyEvent.VK_A, 2, glWindow1, glWindow1KA);
         Assert.assertEquals("AWT parent canvas received non consumed keyboard events", newtCanvasAWTKA.getConsumedCount(), newtCanvasAWTKA.getCount());
+        if( !newtCanvasAWT.isAWTEventPassThrough() ) {
+            Assert.assertEquals("AWT parent canvas received consumed keyboard events", 0, newtCanvasAWTKA.getConsumedCount());
+        }
 
         // Remove listeners to avoid logging during dispose/destroy.
         glWindow1.removeKeyListener(glWindow1KA);
