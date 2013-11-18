@@ -118,6 +118,7 @@ public abstract class AWTAdapter implements java.util.EventListener
     com.jogamp.newt.event.NEWTEventListener newtListener;
     com.jogamp.newt.Window newtWindow;
     boolean consumeAWTEvent;
+    protected boolean isSetup;
 
     /**
      * Simply wrap aroung a NEWT EventListener, exposed as an AWT EventListener.<br>
@@ -130,6 +131,7 @@ public abstract class AWTAdapter implements java.util.EventListener
         this.newtListener = newtListener;
         this.newtWindow = null;
         this.consumeAWTEvent = false;
+        this.isSetup = true;
     }
 
     /**
@@ -147,6 +149,7 @@ public abstract class AWTAdapter implements java.util.EventListener
         this.newtListener = newtListener;
         this.newtWindow = newtProxy;
         this.consumeAWTEvent = false;
+        this.isSetup = true;
     }
 
     /**
@@ -160,8 +163,7 @@ public abstract class AWTAdapter implements java.util.EventListener
     }
 
     public AWTAdapter() {
-        this.newtListener = null;
-        this.newtWindow = null;
+        clear();
         this.consumeAWTEvent = false;
     }
 
@@ -180,6 +182,7 @@ public abstract class AWTAdapter implements java.util.EventListener
         if( null == newtWindow.getScreen().getDisplay().getEDTUtil() ) {
             throw new RuntimeException("EDT not enabled");
         }
+        this.isSetup = true;
         return this;
     }
 
@@ -187,6 +190,7 @@ public abstract class AWTAdapter implements java.util.EventListener
     public synchronized AWTAdapter clear() {
         this.newtListener = null;
         this.newtWindow = null;
+        this.isSetup = false;
         return this;
     }
 

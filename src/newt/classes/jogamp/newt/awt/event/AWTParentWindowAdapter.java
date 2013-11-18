@@ -80,6 +80,7 @@ public class AWTParentWindowAdapter extends AWTWindowAdapter implements java.awt
 
     @Override
     public synchronized void focusGained(java.awt.event.FocusEvent e) {
+        if( !isSetup ) { return; }
         // forward focus to NEWT child
         final com.jogamp.newt.Window newtChild = getNewtWindow();
         if( null != newtChild ) {
@@ -100,6 +101,7 @@ public class AWTParentWindowAdapter extends AWTWindowAdapter implements java.awt
 
     @Override
     public synchronized void focusLost(java.awt.event.FocusEvent e) {
+        if( !isSetup ) { return; }
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("AWT: focusLost: "+ e);
         }
@@ -107,6 +109,7 @@ public class AWTParentWindowAdapter extends AWTWindowAdapter implements java.awt
 
     @Override
     public synchronized void componentResized(java.awt.event.ComponentEvent e) {
+        if( !isSetup ) { return; }
         // Need to resize the NEWT child window
         // the resized event will be send via the native window feedback.
         final java.awt.Component comp = e.getComponent();
@@ -136,6 +139,7 @@ public class AWTParentWindowAdapter extends AWTWindowAdapter implements java.awt
 
     @Override
     public synchronized void componentMoved(java.awt.event.ComponentEvent e) {
+        if( !isSetup ) { return; }
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("AWT: componentMoved: "+e);
         }
@@ -157,6 +161,7 @@ public class AWTParentWindowAdapter extends AWTWindowAdapter implements java.awt
 
     @Override
     public synchronized void hierarchyChanged(java.awt.event.HierarchyEvent e) {
+        if( !isSetup ) { return; }
         final Window newtChild = getNewtWindow();
         if( null != newtChild && null == getNewtEventListener() ) {
             long bits = e.getChangeFlags();

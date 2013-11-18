@@ -67,6 +67,7 @@ public class AWTKeyAdapter extends AWTAdapter implements java.awt.event.KeyListe
 
     @Override
     public synchronized void keyPressed(java.awt.event.KeyEvent e) {
+        if( !isSetup ) { return; }
         final com.jogamp.newt.event.KeyEvent event = AWTNewtEventFactory.createKeyEvent(com.jogamp.newt.event.KeyEvent.EVENT_KEY_PRESSED, e, newtWindow);
         if( consumeAWTEvent ) {
             e.consume();
@@ -80,6 +81,7 @@ public class AWTKeyAdapter extends AWTAdapter implements java.awt.event.KeyListe
 
     @Override
     public synchronized void keyReleased(java.awt.event.KeyEvent e) {
+        if( !isSetup ) { return; }
         final com.jogamp.newt.event.KeyEvent event = AWTNewtEventFactory.createKeyEvent(com.jogamp.newt.event.KeyEvent.EVENT_KEY_RELEASED, e, newtWindow);
         if( consumeAWTEvent ) {
             e.consume();
@@ -93,6 +95,7 @@ public class AWTKeyAdapter extends AWTAdapter implements java.awt.event.KeyListe
 
     @Override
     public synchronized void keyTyped(java.awt.event.KeyEvent e) {
+        if( !isSetup ) { return; }
         if( consumeAWTEvent ) {
             e.consume();
         }
