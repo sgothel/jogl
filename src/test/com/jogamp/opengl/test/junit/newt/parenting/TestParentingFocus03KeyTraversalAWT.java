@@ -283,7 +283,15 @@ public class TestParentingFocus03KeyTraversalAWT extends UITestCase {
 
             System.err.println("Test: Direct NEWT-Child request focus");
             glWindow1.requestFocus();
-            Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(glWindow1, glWindow1FA, bWestFA));
+            {
+                // Short: Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(glWindow1, glWindow1FA, bWestFA));
+                // More verbose:
+                final boolean ok = AWTRobotUtil.waitForFocus(glWindow1, glWindow1FA, bWestFA);
+                System.err.println("glWindow hasFocus "+glWindow1.hasFocus());
+                System.err.println("glWindow1FA "+glWindow1FA);
+                System.err.println("bWestFA "+bWestFA);
+                Assert.assertTrue("Did not gain focus", ok);
+            }
             Assert.assertEquals(true,  glWindow1FA.focusGained());
             Assert.assertEquals(true,  bWestFA.focusLost());
             Thread.sleep(durationPerTest/numFocus);
