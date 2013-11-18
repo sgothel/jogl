@@ -1378,6 +1378,7 @@ public abstract class GLContextImpl extends GLContext {
     final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
     final int reqCtxProfileBits = ctxProfileBits;
     final VersionNumber reqGLVersion = new VersionNumber(major, minor, 0);
+    final VersionNumber hasGLVersionByString;
     {
         final boolean initGLRendererAndGLVersionStringsOK = initGLRendererAndGLVersionStrings();
         if( !initGLRendererAndGLVersionStringsOK ) {
@@ -1392,8 +1393,13 @@ public abstract class GLContextImpl extends GLContext {
                 // unusable GL context - non query mode - hard fail!
                 throw new GLException(errMsg);
             }
-        } else if(DEBUG) {
-            System.err.println(getThreadName() + ": GLContext.setGLFuncAvail: Given "+adevice+" - "+GLContext.getGLVersion(major, minor, ctxProfileBits, glVersion));
+        } else {
+            hasGLVersionByString = getGLVersionNumber(ctxProfileBits, glVersion);
+            if(DEBUG) {
+                System.err.println(getThreadName() + ": GLContext.setGLFuncAvail: Given "+adevice+
+                                   " - "+GLContext.getGLVersion(major, minor, ctxProfileBits, glVersion)+
+                                   ", Number(Str) "+hasGLVersionByString);
+            }
         }
     }
 
@@ -1430,11 +1436,16 @@ public abstract class GLContextImpl extends GLContext {
             hasGLVersionByInt = new VersionNumber(glIntMajor[0], glIntMinor[0], 0);
         }
         if (DEBUG) {
-            System.err.println(getThreadName() + ": GLContext.setGLFuncAvail: Version verification (Int): String "+glVersion+", Number "+hasGLVersionByInt);
+            System.err.println(getThreadName() + ": GLContext.setGLFuncAvail: Version verification (Int): String "+glVersion+", Number(Int) "+hasGLVersionByInt);
         }
 
-        // Only validate if a valid int version was fetched, otherwise cont. w/ version-string method -> 3.0 > Version || Version > MAX!
-        if ( GLContext.isValidGLVersion(ctxProfileBits, hasGLVersionByInt.getMajor(), hasGLVersionByInt.getMinor()) ) {
+        // Only validate integer based version if:
+        //    - ctx >= 3.0 is requested _or_ string-version >= 3.0
+        //    - _and_ a valid int version was fetched,
+        // otherwise cont. w/ version-string method -> 3.0 > Version || Version > MAX!
+        //
+        if ( ( major >= 3 || hasGLVersionByString.compareTo(Version300) >= 0 ) &&
+             GLContext.isValidGLVersion(ctxProfileBits, hasGLVersionByInt.getMajor(), hasGLVersionByInt.getMinor()) ) {
             // Strict Match (GLVersionMapping):
             //   Relaxed match for versions ( !isES && major < 3 ) requests, last resort!
             //   Otherwise:
@@ -1464,9 +1475,8 @@ public abstract class GLContextImpl extends GLContext {
         versionValidated = true;
     } else {
         // Validate the requested version w/ the GL-version from the version string.
-        final VersionNumber hasGLVersionByString = getGLVersionNumber(ctxProfileBits, glVersion);
         if (DEBUG) {
-            System.err.println(getThreadName() + ": GLContext.setGLFuncAvail: Version verification (String): String "+glVersion+", Number "+hasGLVersionByString);
+            System.err.println(getThreadName() + ": GLContext.setGLFuncAvail: Version verification (String): String "+glVersion+", Number(Str) "+hasGLVersionByString);
         }
 
         // Only validate if a valid string version was fetched -> MIN > Version || Version > MAX!
