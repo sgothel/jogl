@@ -213,13 +213,10 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 if( isOnscreen ) {
                     // Remove the AWT focus in favor of the native NEWT focus
                     AWTEDTExecutor.singleton.invoke(false, awtClearGlobalFocusOwner);
-                }
-                else {
+                } else if( !hasFocus() ) {
                     // In offscreen mode we require the focus!
-                    if( !hasFocus() ) {
-                        // Newt-EDT -> AWT-EDT may freeze Window's native peer requestFocus.
-                        NewtCanvasAWT.super.requestFocus();
-                    }
+                    // Newt-EDT -> AWT-EDT may freeze Window's native peer requestFocus.
+                    NewtCanvasAWT.super.requestFocus();
                 }
             }
             return false; // NEWT shall proceed requesting the native focus
