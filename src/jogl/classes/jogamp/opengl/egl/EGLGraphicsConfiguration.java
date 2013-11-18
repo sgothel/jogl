@@ -58,6 +58,10 @@ import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 
 public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration implements Cloneable {
 
+    private static final String dbgCfgFailIntro = "Info: EGLConfig could not retrieve ";
+    private static final String dbgCfgFailForConfig = " for config ";
+    private static final String dbgCfgFailError = ", error ";
+
     public final long getNativeConfig() {
         return ((EGLGLCapabilities)capabilitiesChosen).getEGLConfig();
     }
@@ -145,7 +149,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         if(!EGL.eglGetConfigAttrib(display, config, EGL.EGL_CONFIG_ID, val)) {
             final int eglErr = EGL.eglGetError();
             if(DEBUG) {
-                System.err.println("Info: Couldn't retrieve EGL ConfigID for config "+toHexString(config)+", error "+toHexString(eglErr));
+                System.err.println(dbgCfgFailIntro+"EGL_CONFIG_ID"+dbgCfgFailForConfig+toHexString(config)+dbgCfgFailError+toHexString(eglErr));
             }
             return false;
         }
@@ -216,7 +220,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         if( EGL.EGL_CONFIG_ID != attributes.get(0) ) {
             if(DEBUG) {
                 // FIXME: this happens on a ATI PC Emulation ..
-                System.err.println("EGL couldn't retrieve ConfigID for config "+toHexString(config)+", error "+toHexString(EGL.eglGetError()));
+                System.err.println(dbgCfgFailIntro+"ConfigID"+dbgCfgFailForConfig+toHexString(config)+dbgCfgFailError+toHexString(EGL.eglGetError()));
             }
             return null;
         }
@@ -224,7 +228,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
 
         if( EGL.EGL_RENDERABLE_TYPE != attributes.get(1) ) {
             if(DEBUG) {
-                System.err.println("EGL couldn't retrieve EGL_RENDERABLE_TYPE for config "+toHexString(config)+", error "+toHexString(EGL.eglGetError()));
+                System.err.println(dbgCfgFailIntro+"EGL_RENDERABLE_TYPE"+dbgCfgFailForConfig+toHexString(config)+dbgCfgFailError+toHexString(EGL.eglGetError()));
             }
             return null;
         }
@@ -233,6 +237,9 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         if( EGL.EGL_NATIVE_VISUAL_ID == attributes.get(2) ) {
             visualID = values.get(2);
         } else {
+            if(DEBUG) {
+                System.err.println(dbgCfgFailIntro+"EGL_NATIVE_VISUAL_ID"+dbgCfgFailForConfig+toHexString(config)+dbgCfgFailError+toHexString(EGL.eglGetError()));
+            }
             visualID = VisualIDHolder.VID_UNDEFINED;
         }
 
@@ -260,54 +267,80 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
             if( EGL.EGL_SLOW_CONFIG == values.get(3) ) {
                 caps.setHardwareAccelerated(false);
             }
+        } else if(DEBUG) {
+            System.err.println(dbgCfgFailIntro+"EGL_CONFIG_CAVEAT"+dbgCfgFailForConfig+toHexString(config)+dbgCfgFailError+toHexString(EGL.eglGetError()));
         }
         // ALPHA shall be set at last - due to it's auto setting by the above (!opaque / samples)
         if( EGL.EGL_RED_SIZE == attributes.get(4) ) {
             caps.setRedBits(values.get(4));
+        } else if(DEBUG) {
+            System.err.println(dbgCfgFailIntro+"EGL_RED_SIZE"+dbgCfgFailForConfig+toHexString(config)+dbgCfgFailError+toHexString(EGL.eglGetError()));
         }
         if( EGL.EGL_GREEN_SIZE == attributes.get(5) ) {
             caps.setGreenBits(values.get(5));
+        } else if(DEBUG) {
+            System.err.println(dbgCfgFailIntro+"EGL_GREEN_SIZE"+dbgCfgFailForConfig+toHexString(config)+dbgCfgFailError+toHexString(EGL.eglGetError()));
         }
         if( EGL.EGL_BLUE_SIZE == attributes.get(6) ) {
             caps.setBlueBits(values.get(6));
+        } else if(DEBUG) {
+            System.err.println(dbgCfgFailIntro+"EGL_BLUE_SIZE"+dbgCfgFailForConfig+toHexString(config)+dbgCfgFailError+toHexString(EGL.eglGetError()));
         }
         if( EGL.EGL_ALPHA_SIZE == attributes.get(7) ) {
             caps.setAlphaBits(values.get(7));
+        } else if(DEBUG) {
+            System.err.println(dbgCfgFailIntro+"EGL_ALPHA_SIZE"+dbgCfgFailForConfig+toHexString(config)+dbgCfgFailError+toHexString(EGL.eglGetError()));
         }
         if( EGL.EGL_STENCIL_SIZE == attributes.get(8) ) {
             caps.setStencilBits(values.get(8));
+        } else if(DEBUG) {
+            System.err.println(dbgCfgFailIntro+"EGL_STENCIL_SIZE"+dbgCfgFailForConfig+toHexString(config)+dbgCfgFailError+toHexString(EGL.eglGetError()));
         }
         if( EGL.EGL_DEPTH_SIZE == attributes.get(9) ) {
             caps.setDepthBits(values.get(9));
+        } else if(DEBUG) {
+            System.err.println(dbgCfgFailIntro+"EGL_DEPTH_SIZE"+dbgCfgFailForConfig+toHexString(config)+dbgCfgFailError+toHexString(EGL.eglGetError()));
         }
         if( forceTransparentFlag ) {
             caps.setBackgroundOpaque(false);
         } else if( EGL.EGL_TRANSPARENT_TYPE == attributes.get(10) ) {
             caps.setBackgroundOpaque(values.get(10) != EGL.EGL_TRANSPARENT_RGB);
+        } else if(DEBUG) {
+            System.err.println(dbgCfgFailIntro+"EGL_TRANSPARENT_TYPE"+dbgCfgFailForConfig+toHexString(config)+dbgCfgFailError+toHexString(EGL.eglGetError()));
         }
         if(!caps.isBackgroundOpaque()) {
             if( EGL.EGL_TRANSPARENT_RED_VALUE == attributes.get(11) ) {
                 final int v = values.get(11);
                 caps.setTransparentRedValue(EGL.EGL_DONT_CARE==v?-1:v);
+            } else if(DEBUG) {
+                System.err.println(dbgCfgFailIntro+"EGL_TRANSPARENT_RED_VALUE"+dbgCfgFailForConfig+toHexString(config)+dbgCfgFailError+toHexString(EGL.eglGetError()));
             }
             if( EGL.EGL_TRANSPARENT_GREEN_VALUE == attributes.get(12) ) {
                 final int v = values.get(12);
                 caps.setTransparentGreenValue(EGL.EGL_DONT_CARE==v?-1:v);
+            } else if(DEBUG) {
+                System.err.println(dbgCfgFailIntro+"EGL_TRANSPARENT_GREEN_VALUE"+dbgCfgFailForConfig+toHexString(config)+dbgCfgFailError+toHexString(EGL.eglGetError()));
             }
             if( EGL.EGL_TRANSPARENT_BLUE_VALUE == attributes.get(13) ) {
                 final int v = values.get(13);
                 caps.setTransparentBlueValue(EGL.EGL_DONT_CARE==v?-1:v);
+            } else if(DEBUG) {
+                System.err.println(dbgCfgFailIntro+"EGL_TRANSPARENT_BLUE_VALUE"+dbgCfgFailForConfig+toHexString(config)+dbgCfgFailError+toHexString(EGL.eglGetError()));
             }
             /** Not defined in EGL
             if( EGL.EGL_TRANSPARENT_ALPHA_VALUE == attributes.get(??) ) {
                 final int v = values.get(??);
                 caps.setTransparentAlphaValue(EGL.EGL_DONT_CARE==v?-1:v);
+            } else if(DEBUG) {
+                System.err.println(dbgStr01+"EGL_TRANSPARENT_ALPHA_VALUE"+dbgStr02+toHexString(config)+dbgEGLCfgFailError+toHexString(EGL.eglGetError()));
             } */
         }
         if( EGL.EGL_SAMPLES == attributes.get(14) ) {
             final int numSamples = values.get(14);
             caps.setSampleBuffers(numSamples>0?true:false);
             caps.setNumSamples(numSamples);
+        } else if(DEBUG) {
+            System.err.println(dbgCfgFailIntro+"EGL_SAMPLES"+dbgCfgFailForConfig+toHexString(config)+dbgCfgFailError+toHexString(EGL.eglGetError()));
         }
         if(!caps.getSampleBuffers()) {
             // try NV_coverage_sample extension
@@ -317,8 +350,12 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
                     caps.setSampleExtension(GLGraphicsConfigurationUtil.NV_coverage_sample);
                     caps.setSampleBuffers(true);
                     caps.setNumSamples(values.get(16));
+                } else if(DEBUG) {
+                    System.err.println(dbgCfgFailIntro+"EGL_COVERAGE_SAMPLES_NV"+dbgCfgFailForConfig+toHexString(config)+dbgCfgFailError+toHexString(EGL.eglGetError()));
                 }
-            }
+            } /** else if(DEBUG) { // Not required - vendor extension - don't be verbose!
+                System.err.println(dbgCfgFailIntro+"EGL_COVERAGE_BUFFERS_NV"+dbgCfgFailForConfig+toHexString(config)+dbgCfgFailError+toHexString(EGL.eglGetError()));
+            } */
         }
 
         // Since the passed GLProfile may be null,
