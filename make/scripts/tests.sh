@@ -608,9 +608,9 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentParentingAWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentChildWindowBug632NEWT $*
 
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocus01SwingAWTRobot $*
+testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocus01SwingAWTRobot $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocus02SwingAWTRobot $*
-testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocus03KeyTraversalAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocus03KeyTraversalAWT $*
 
 #
 # Misc Utils

@@ -101,9 +101,9 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     private boolean newtChildAttached = false;
     private boolean isOnscreen = true;
     private WindowClosingMode newtChildCloseOp;
-    private AWTParentWindowAdapter awtAdapter = null;
-    private AWTAdapter awtMouseAdapter = null;
-    private AWTAdapter awtKeyAdapter = null;
+    private final AWTParentWindowAdapter awtAdapter;
+    private final AWTAdapter awtMouseAdapter;
+    private final AWTAdapter awtKeyAdapter;
 
     private final AWTWindowClosingProtocol awtWindowClosingProtocol =
           new AWTWindowClosingProtocol(this, new Runnable() {
@@ -125,6 +125,10 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
      */
     public NewtCanvasAWT() {
         super();
+        awtMouseAdapter = new AWTMouseAdapter().addTo(this);
+        awtKeyAdapter = new AWTKeyAdapter().addTo(this);
+        awtAdapter = (AWTParentWindowAdapter) new AWTParentWindowAdapter().addTo(this);
+        awtAdapter.removeWindowClosingFrom(this); // we utilize AWTWindowClosingProtocol triggered destruction!
     }
 
     /**
@@ -132,6 +136,10 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
      */
     public NewtCanvasAWT(GraphicsConfiguration gc) {
         super(gc);
+        awtMouseAdapter = new AWTMouseAdapter().addTo(this);
+        awtKeyAdapter = new AWTKeyAdapter().addTo(this);
+        awtAdapter = (AWTParentWindowAdapter) new AWTParentWindowAdapter().addTo(this);
+        awtAdapter.removeWindowClosingFrom(this); // we utilize AWTWindowClosingProtocol triggered destruction!
     }
 
     /**
@@ -139,6 +147,10 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
      */
     public NewtCanvasAWT(Window child) {
         super();
+        awtMouseAdapter = new AWTMouseAdapter().addTo(this);
+        awtKeyAdapter = new AWTKeyAdapter().addTo(this);
+        awtAdapter = (AWTParentWindowAdapter) new AWTParentWindowAdapter().addTo(this);
+        awtAdapter.removeWindowClosingFrom(this); // we utilize AWTWindowClosingProtocol triggered destruction!
         setNEWTChild(child);
     }
 
@@ -147,6 +159,10 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
      */
     public NewtCanvasAWT(GraphicsConfiguration gc, Window child) {
         super(gc);
+        awtMouseAdapter = new AWTMouseAdapter().addTo(this);
+        awtKeyAdapter = new AWTKeyAdapter().addTo(this);
+        awtAdapter = (AWTParentWindowAdapter) new AWTParentWindowAdapter().addTo(this);
+        awtAdapter.removeWindowClosingFrom(this); // we utilize AWTWindowClosingProtocol triggered destruction!
         setNEWTChild(child);
     }
 
@@ -671,18 +687,12 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     }
 
     private final void configureNewtChild(boolean attach) {
-        if(null!=awtAdapter) {
-          awtAdapter.removeFrom(this);
-          awtAdapter=null;
-        }
-        if(null!=awtMouseAdapter) {
-            awtMouseAdapter.removeFrom(this);
-            awtMouseAdapter = null;
-        }
-        if(null!=awtKeyAdapter) {
-            awtKeyAdapter.removeFrom(this);
-            awtKeyAdapter = null;
-        }
+        awtAdapter.clear();
+        awtMouseAdapter.clear();
+        awtKeyAdapter.setConsumeAWTEvent(false);
+        awtMouseAdapter.clear();
+        awtKeyAdapter.setConsumeAWTEvent(false);
+
         if(null != keyboardFocusManager) {
             keyboardFocusManager.removePropertyChangeListener("focusOwner", focusPropertyChangeListener);
             keyboardFocusManager = null;
@@ -695,8 +705,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                     throw new InternalError("XXX");
                 }
                 isOnscreen = jawtWindow.getGraphicsConfiguration().getChosenCapabilities().isOnscreen();
-                awtAdapter = (AWTParentWindowAdapter) new AWTParentWindowAdapter(jawtWindow, newtChild).addTo(this);
-                awtAdapter.removeWindowClosingFrom(this); // we utilize AWTWindowClosingProtocol triggered destruction!
+                awtAdapter.setDownstream(jawtWindow, newtChild);
                 newtChild.addWindowListener(clearAWTMenusOnNewtFocus);
                 newtChild.setFocusAction(focusAction); // enable AWT focus traversal
                 newtChildCloseOp = newtChild.setDefaultCloseOperation(WindowClosingMode.DO_NOTHING_ON_CLOSE);
@@ -710,8 +719,12 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                     newtChild.setKeyboardFocusHandler(newtFocusTraversalKeyListener);
                 } else {
                     // offscreen newt child requires AWT to fwd AWT key/mouse event
-                    awtMouseAdapter = new AWTMouseAdapter(newtChild).addTo(this);
-                    awtKeyAdapter = new AWTKeyAdapter(newtChild).addTo(this);
+                    awtMouseAdapter.setDownstream(newtChild);
+                    // We cannot consume AWT mouse click, since it would disable focus via mouse click!
+                    // awtMouseAdapter.setConsumeAWTEvent(true);
+                    awtKeyAdapter.setDownstream(newtChild);
+                    // We manually transfer the focus via NEWT KeyListener, hence we can mark AWT keys as consumed!
+                    awtKeyAdapter.setConsumeAWTEvent(true);
                 }
             } else {
                 newtChild.removeWindowListener(clearAWTMenusOnNewtFocus);
