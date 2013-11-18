@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
 
-package com.jogamp.opengl.test.junit.newt.parenting;
+package com.jogamp.opengl.test.junit.newt.event;
 
 import java.lang.reflect.*;
 import java.util.HashSet;
@@ -63,6 +63,7 @@ import jogamp.newt.driver.DriverClearFocus;
 
 import com.jogamp.opengl.test.junit.util.*;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import com.jogamp.opengl.test.junit.newt.parenting.NewtAWTReparentingKeyAdapter;
 
 /**
  * Testing focus <i>key</i> traversal of an AWT component tree with {@link NewtCanvasAWT} attached.

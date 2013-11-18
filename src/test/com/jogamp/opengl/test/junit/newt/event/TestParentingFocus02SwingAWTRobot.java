@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
 
-package com.jogamp.opengl.test.junit.newt.parenting;
+package com.jogamp.opengl.test.junit.newt.event;
 
 import java.lang.reflect.*;
 

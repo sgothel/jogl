@@ -123,6 +123,9 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtEventMo
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasSWTAWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestParentingFocus01SwingAWTRobot %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestParentingFocus02SwingAWTRobot %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestParentingFocus03KeyTraversalAWT %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT %*
@@ -136,10 +139,6 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenti
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting04SWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentParentingAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentChildWindowBug632NEWT %*
-
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocus01SwingAWTRobot %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocus02SwingAWTRobot %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocus03KeyTraversalAWT %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor03AWTGLn %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn %*

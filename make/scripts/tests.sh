@@ -568,6 +568,10 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersAWTCanvas $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasAWT $*
 #testawtswt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasSWTAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.event.TestParentingFocus01SwingAWTRobot $*
+testawt com.jogamp.opengl.test.junit.newt.event.TestParentingFocus02SwingAWTRobot $*
+#testawt com.jogamp.opengl.test.junit.newt.event.TestParentingFocus03KeyTraversalAWT $*
+
 
 #testawt com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1AWT $*
@@ -607,10 +611,6 @@ function testawtswt() {
 #testawtswt com.jogamp.opengl.test.junit.newt.parenting.TestParenting04SWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentParentingAWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentChildWindowBug632NEWT $*
-
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocus01SwingAWTRobot $*
-testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocus02SwingAWTRobot $*
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocus03KeyTraversalAWT $*
 
 #
 # Misc Utils
