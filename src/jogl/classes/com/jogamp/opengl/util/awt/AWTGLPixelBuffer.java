@@ -101,20 +101,24 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
         if( width * height > image.getWidth() * image.getHeight() ) {
             throw new IllegalArgumentException("Requested size exceeds image size: "+width+"x"+height+" > "+image.getWidth()+"x"+image.getHeight());
         }
-        if( width == image.getWidth() ) {
-            if( height == image.getHeight() ) {
-                return image;
-            }
-            return image.getSubimage(0, 0, width, height);
+        if( width == image.getWidth() && height == image.getHeight() ) {
+            return image;
+        } else {
+            final ColorModel cm = image.getColorModel();
+            final WritableRaster raster0 = image.getRaster();
+            final DataBuffer dataBuffer = raster0.getDataBuffer();
+            final SinglePixelPackedSampleModel sppsm0 = (SinglePixelPackedSampleModel) raster0.getSampleModel();
+            final SinglePixelPackedSampleModel sppsm1 = new SinglePixelPackedSampleModel(dataBuffer.getDataType(),
+                        width, height, width /* scanLineStride */, sppsm0.getBitMasks());
+            final WritableRaster raster1 = WritableRaster.createWritableRaster(sppsm1, dataBuffer, null);
+            return new BufferedImage (cm, raster1, cm.isAlphaPremultiplied(), null);
         }
-        final ColorModel cm = image.getColorModel();
-        final WritableRaster raster = image.getRaster();
-        final DataBuffer dataBuffer = raster.getDataBuffer();
-        final SinglePixelPackedSampleModel sppsm0 = (SinglePixelPackedSampleModel) raster.getSampleModel();
-        final SinglePixelPackedSampleModel sppsm1 = new SinglePixelPackedSampleModel(dataBuffer.getDataType(),
-                    width, height, width /* scanLineStride */, sppsm0.getBitMasks());
-        final WritableRaster raster1 = WritableRaster.createWritableRaster(sppsm1, dataBuffer, null);
-        return new BufferedImage (cm, raster1, cm.isAlphaPremultiplied(), null);
+    }
+
+    public final boolean isDataBufferSource(BufferedImage imageU) {
+        final DataBuffer dataBuffer0 = image.getRaster().getDataBuffer();
+        final DataBuffer dataBufferU = imageU.getRaster().getDataBuffer();
+        return dataBufferU == dataBuffer0;
     }
 
     @Override

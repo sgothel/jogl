@@ -580,7 +580,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     super.reshape(x, y, width, height);
 
     if( DEBUG ) {
-        System.err.println(getThreadName()+": GLJPanel.reshape resize"+(printActive?"WithinPrint":"")+" [ panel "+
+        System.err.println(getThreadName()+": GLJPanel.reshape.0 "+this.getName()+" resize"+(printActive?"WithinPrint":"")+" [ this "+getWidth()+"x"+getHeight()+", panel "+
                 panelWidth+"x"+panelHeight +
                 ", reshape: " +reshapeWidth+"x"+reshapeHeight +
                 "] -> "+(printActive?"skipped":"") + width+"x"+height);
@@ -1588,19 +1588,21 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           }
           pixelBuffer = pixelBufferProvider.allocate(gl, pixelAttribs, panelWidth, panelHeight, 1, true, 0);
           if(DEBUG) {
-              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: pixelBufferProvider isSingletonBufferProvider "+useSingletonBuffer+", 0x"+Integer.toHexString(pixelBufferProvider.hashCode())+", "+pixelBufferProvider.getClass().getSimpleName());
-              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: pixelBuffer 0x"+Integer.toHexString(pixelBuffer.hashCode())+", "+pixelBuffer+", alignment "+alignment);
-              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: flippedVertical "+flipVertical+", glslTextureRaster "+(null!=glslTextureRaster));
-              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: panelSize "+panelWidth+"x"+panelHeight);
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: "+GLJPanel.this.getName()+" pixelBufferProvider isSingletonBufferProvider "+useSingletonBuffer+", 0x"+Integer.toHexString(pixelBufferProvider.hashCode())+", "+pixelBufferProvider.getClass().getSimpleName());
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: "+GLJPanel.this.getName()+" pixelBuffer 0x"+Integer.toHexString(pixelBuffer.hashCode())+", "+pixelBuffer+", alignment "+alignment);
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: "+GLJPanel.this.getName()+" flippedVertical "+flipVertical+", glslTextureRaster "+(null!=glslTextureRaster));
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: "+GLJPanel.this.getName()+" panelSize "+panelWidth+"x"+panelHeight);
           }
         }
         if( offscreenDrawable.getWidth() != panelWidth || offscreenDrawable.getHeight() != panelHeight ) {
             throw new InternalError("OffscreenDrawable panelSize mismatch (reshape missed): panelSize "+panelWidth+"x"+panelHeight+" != drawable "+offscreenDrawable.getWidth()+"x"+offscreenDrawable.getHeight()+", on thread "+getThreadName());
         }
-        if( null == alignedImage || panelWidth != alignedImage.getWidth() || panelHeight != alignedImage.getHeight() ) {
+        if( null == alignedImage ||
+            panelWidth != alignedImage.getWidth() || panelHeight != alignedImage.getHeight() ||
+            !pixelBuffer.isDataBufferSource(alignedImage) ) {
             alignedImage = pixelBuffer.getAlignedImage(panelWidth, panelHeight);
             if(DEBUG) {
-                System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: alignedImage "+alignedImage.getWidth()+"x"+alignedImage.getHeight()+", pixelBuffer "+pixelBuffer.width+"x"+pixelBuffer.height);
+                System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: "+GLJPanel.this.getName()+" new alignedImage "+alignedImage.getWidth()+"x"+alignedImage.getHeight()+", "+alignedImage+", pixelBuffer "+pixelBuffer.width+"x"+pixelBuffer.height+", "+pixelBuffer);
             }
         }
         final IntBuffer readBackInts;
@@ -1652,7 +1654,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             viewportChange = 0 != usrViewport[0] || 0 != usrViewport[1] ||
                              offscreenDrawable.getWidth() != usrViewport[2] || offscreenDrawable.getHeight() != usrViewport[3];
             if( DEBUG_VIEWPORT ) {
-                System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL: Viewport: change "+viewportChange+
+                System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL: "+GLJPanel.this.getName()+" Viewport: change "+viewportChange+
                          ", "+usrViewport[0]+"/"+usrViewport[1]+" "+usrViewport[2]+"x"+usrViewport[3]+
                          " -> 0/0 "+offscreenDrawable.getWidth()+"x"+offscreenDrawable.getHeight());
             }
