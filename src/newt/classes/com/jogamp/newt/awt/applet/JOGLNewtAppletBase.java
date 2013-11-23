@@ -166,18 +166,19 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
                 // Closing action: back to parent!
                 @Override
                 public void windowDestroyNotify(WindowEvent e) {
-                    if( isValid() && WindowClosingMode.DO_NOTHING_ON_CLOSE == glWindow.getDefaultCloseOperation() ) {
-                        if(null == glWindow.getParent()) {
-                            // we may be called directly by the native EDT
-                            new Thread(new Runnable() {
-                               @Override
-                               public void run() {
-                                if( glWindow.isNativeValid() ) {
-                                    glWindow.reparentWindow(awtParent);
-                                }
-                               }
-                            }).start();
-                        }
+                    if( isValid() && WindowClosingMode.DO_NOTHING_ON_CLOSE == glWindow.getDefaultCloseOperation() &&
+                        null == glWindow.getParent() && null != awtParent && 0 != awtParent.getWindowHandle() )
+                    {
+                        Thread.dumpStack();
+                        // we may be called directly by the native EDT
+                        new Thread(new Runnable() {
+                           @Override
+                           public void run() {
+                            if( glWindow.isNativeValid() && null != awtParent && 0 != awtParent.getWindowHandle() ) {
+                                glWindow.reparentWindow(awtParent);
+                            }
+                           }
+                        }).start();
                     }
                 } } );
 
