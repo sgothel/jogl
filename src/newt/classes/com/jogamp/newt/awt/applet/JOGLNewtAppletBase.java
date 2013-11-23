@@ -162,26 +162,6 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
     public void init(ThreadGroup tg, final GLWindow glWindow) {
         isValid = false;
         this.glWindow = glWindow;
-        this.glWindow.addWindowListener(new WindowAdapter() {
-                // Closing action: back to parent!
-                @Override
-                public void windowDestroyNotify(WindowEvent e) {
-                    if( isValid() && WindowClosingMode.DO_NOTHING_ON_CLOSE == glWindow.getDefaultCloseOperation() &&
-                        null == glWindow.getParent() && null != awtParent && 0 != awtParent.getWindowHandle() )
-                    {
-                        Thread.dumpStack();
-                        // we may be called directly by the native EDT
-                        new Thread(new Runnable() {
-                           @Override
-                           public void run() {
-                            if( glWindow.isNativeValid() && null != awtParent && 0 != awtParent.getWindowHandle() ) {
-                                glWindow.reparentWindow(awtParent);
-                            }
-                           }
-                        }).start();
-                    }
-                } } );
-
         glEventListener = createInstance(glEventListenerClazzName);
         if(null == glEventListener) {
             return;
@@ -226,17 +206,38 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
         isValid = true;
     }
 
+    private final WindowListener reparentHomeListener = new WindowAdapter() {
+        // Closing action: back to parent!
+        @Override
+        public void windowDestroyNotify(WindowEvent e) {
+            if( isValid() && WindowClosingMode.DO_NOTHING_ON_CLOSE == glWindow.getDefaultCloseOperation() &&
+                null == glWindow.getParent() && null != awtParent && 0 != awtParent.getWindowHandle() )
+            {
+                // we may be called directly by the native EDT
+                new Thread(new Runnable() {
+                   @Override
+                   public void run() {
+                    if( glWindow.isNativeValid() && null != awtParent && 0 != awtParent.getWindowHandle() ) {
+                        glWindow.reparentWindow(awtParent);
+                    }
+                   }
+                }).start();
+            }
+        } };
+
     public void start() {
         if(isValid) {
             glWindow.setVisible(true);
             glWindow.sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
             glAnimator.start();
             awtParent = glWindow.getParent();
+            glWindow.addWindowListener(reparentHomeListener);
         }
     }
 
     public void stop() {
         if(null!=glAnimator) {
+            glWindow.removeWindowListener(reparentHomeListener);
             glAnimator.stop();
             glWindow.setVisible(false);
         }
