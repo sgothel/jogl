@@ -29,6 +29,7 @@
 
 package com.jogamp.newt.awt;
 
+import java.applet.Applet;
 import java.awt.AWTKeyStroke;
 import java.awt.Canvas;
 import java.awt.Component;
@@ -97,6 +98,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
 
     private final Object sync = new Object();
     private JAWTWindow jawtWindow = null;
+    private boolean isApplet = false;
     private boolean shallUseOffscreenLayer = false;
     private Window newtChild = null;
     private boolean newtChildAttached = false;
@@ -106,16 +108,26 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     private final AWTAdapter awtMouseAdapter;
     private final AWTAdapter awtKeyAdapter;
 
+    /** Mitigates Bug 910 (IcedTea-Web), i.e. crash via removeNotify() from 'other' AWT-EDT. */
+    private boolean addedOnAWTEDT = false;
+    /** Mitigates Bug 910 (IcedTea-Web), i.e. crash via removeNotify() from 'other' AWT-EDT. */
+    private boolean destroyJAWTPending = false;
+
+    /** Safeguard for AWTWindowClosingProtocol and 'removeNotify()' on other thread than AWT-EDT. */
+    private volatile boolean componentAdded = false;
+
     private final AWTWindowClosingProtocol awtWindowClosingProtocol =
           new AWTWindowClosingProtocol(this, new Runnable() {
                 @Override
                 public void run() {
-                    NewtCanvasAWT.this.destroyImpl(false /* removeNotify */, true /* windowClosing */);
+                    if( componentAdded ) {
+                        NewtCanvasAWT.this.destroyImpl(false /* removeNotify */, true /* windowClosing */);
+                    }
                 }
             }, new Runnable() {
                 @Override
                 public void run() {
-                    if( newtChild != null ) {
+                    if( componentAdded && newtChild != null ) {
                         newtChild.sendWindowEvent(WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
                     }
                 }
@@ -185,20 +197,20 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
 
     /**
      * Returns true if the AWT component is parented to an {@link java.applet.Applet},
-     * otherwise false. This information is valid only after {@link #addNotify()} is issued,
-     * ie. before adding the component to the AWT tree and make it visible.
+     * otherwise false. This information is valid only after {@link #addNotify()} is issued.
      */
-    public boolean isApplet() {
-        final JAWTWindow w = jawtWindow;
-        return null != w && w.isApplet();
+    public final boolean isApplet() {
+        return isApplet;
     }
 
-    boolean isParent() {
-        return null!=newtChild && jawtWindow == newtChild.getParent();
+    private final boolean isParent() {
+        final Window nw = newtChild;
+        return null!=nw && jawtWindow == nw.getParent();
     }
 
-    boolean isFullscreen() {
-        return null != newtChild && newtChild.isFullscreen();
+    private final boolean isFullscreen() {
+        final Window nw = newtChild;
+        return null != nw && nw.isFullscreen();
     }
 
     class FocusAction implements Window.FocusRunnable {
@@ -413,6 +425,15 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         return awtWindowClosingProtocol.setDefaultCloseOperation(op);
     }
 
+    private final void determineIfApplet() {
+        isApplet = false;
+        Component c = this;
+        while(!isApplet && null != c) {
+            isApplet = c instanceof Applet;
+            c = c.getParent();
+        }
+    }
+
     @Override
     public void addNotify() {
         if( Beans.isDesignTime() ) {
@@ -428,30 +449,43 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
             disableBackgroundErase();
 
             synchronized(sync) {
-                jawtWindow = NewtFactoryAWT.getNativeWindow(this, null != newtChild ? newtChild.getRequestedCapabilities() : null);
+                determineIfApplet();
+                addedOnAWTEDT = EventQueue.isDispatchThread();
+                if(DEBUG) {
+                    System.err.println("NewtCanvasAWT.addNotify.0 - isApplet "+isApplet+", addedOnAWTEDT "+addedOnAWTEDT+" @ "+currentThreadName());
+                    Thread.dumpStack();
+                }
+                jawtWindow = NewtFactoryAWT.getNativeWindow(NewtCanvasAWT.this, null != newtChild ? newtChild.getRequestedCapabilities() : null);
                 jawtWindow.setShallUseOffscreenLayer(shallUseOffscreenLayer);
-
+                awtWindowClosingProtocol.addClosingListener();
+                componentAdded = true; // Bug 910
                 if(DEBUG) {
                     // if ( isShowing() == false ) -> Container was not visible yet.
                     // if ( isShowing() == true  ) -> Container is already visible.
-                    System.err.println("NewtCanvasAWT.addNotify: win "+newtWinHandleToHexString(newtChild)+
+                    System.err.println("NewtCanvasAWT.addNotify.X: twin "+newtWinHandleToHexString(newtChild)+
                                        ", comp "+this+", visible "+isVisible()+", showing "+isShowing()+
                                        ", displayable "+isDisplayable()+", cont "+AWTMisc.getContainer(this));
                 }
             }
         }
-        awtWindowClosingProtocol.addClosingListener();
     }
 
     @Override
     public void removeNotify() {
-        awtWindowClosingProtocol.removeClosingListener();
-
         if( Beans.isDesignTime() ) {
             super.removeNotify();
         } else {
+            if(DEBUG) {
+                System.err.println("NewtCanvasAWT.removeNotify.0 - isApplet "+isApplet+" @ "+currentThreadName());
+                Thread.dumpStack();
+            }
+            componentAdded = false; // Bug 910
+            awtWindowClosingProtocol.removeClosingListener();
             destroyImpl(true /* removeNotify */, false /* windowClosing */);
             super.removeNotify();
+            if(DEBUG) {
+                System.err.println("NewtCanvasAWT.removeNotify.X @ "+currentThreadName());
+            }
         }
     }
 
@@ -466,6 +500,10 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
      * @see Window#destroy()
      */
     public final void destroy() {
+        if(DEBUG) {
+            System.err.println("NewtCanvasAWT.destroy() @ "+currentThreadName());
+            Thread.dumpStack();
+        }
         AWTEDTExecutor.singleton.invoke(true, new Runnable() {
             @Override
             public void run() {
@@ -475,11 +513,24 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
 
     private final void destroyImpl(boolean removeNotify, boolean windowClosing) {
         synchronized(sync) {
+            final java.awt.Container cont = AWTMisc.getContainer(this);
+            /**
+             * Mitigates Bug 910 (IcedTea-Web), i.e. crash via removeNotify() from 'other' AWT-EDT.
+             *
+             * 'destroyJAWT' defaults to 'true' - however, IcedTea-Web (Applet) issues removeNotify() from
+             * a different AWT-EDT thread, which is not recognized as an AWT-EDT thread!
+             * This 'different AWT-EDT thread' maybe caused due to a AppContext issue in IcedTea-Web.
+             */
+            final boolean isOnAWTEDT = EventQueue.isDispatchThread();
+            final boolean destroyJAWTOK = !isApplet || !addedOnAWTEDT || isOnAWTEDT;
+            if(DEBUG) {
+                System.err.println("NewtCanvasAWT.destroyImpl @ "+currentThreadName());
+                System.err.println("NewtCanvasAWT.destroyImpl.0 - isApplet "+isApplet+", addedOnAWTEDT "+addedOnAWTEDT+", isOnAWTEDT "+isOnAWTEDT+" -> destroyJAWTOK "+destroyJAWTOK+
+                                    "; removeNotify "+removeNotify+", windowClosing "+windowClosing+", destroyJAWTPending "+destroyJAWTPending+
+                                    ", hasJAWT "+(null!=jawtWindow)+", hasNEWT "+(null!=newtChild)+
+                                    "): nw "+newtWinHandleToHexString(newtChild)+", from "+cont);
+            }
             if( null !=newtChild ) {
-                java.awt.Container cont = AWTMisc.getContainer(this);
-                if(DEBUG) {
-                    System.err.println("NewtCanvasAWT.destroy(removeNotify "+removeNotify+", windowClosing "+windowClosing+"): nw "+newtWinHandleToHexString(newtChild)+", from "+cont);
-                }
                 detachNewtChild(cont);
 
                 if( !removeNotify ) {
@@ -493,9 +544,16 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                     }
                 }
             }
-            if( ( removeNotify || windowClosing ) && null!=jawtWindow ) {
-                NewtFactoryAWT.destroyNativeWindow(jawtWindow);
-                jawtWindow=null;
+            if( ( destroyJAWTPending || removeNotify || windowClosing ) && null!=jawtWindow ) {
+                if( destroyJAWTOK ) {
+                    NewtFactoryAWT.destroyNativeWindow(jawtWindow);
+                    jawtWindow=null;
+                    destroyJAWTPending = false;
+                } else {
+                    // Bug 910 - See above FIXME
+                    destroyJAWTPending = true;
+                    System.err.println("Info: JAWT destruction pending due to: isApplet "+isApplet+", addedOnAWTEDT "+addedOnAWTEDT+", isOnAWTEDT "+isOnAWTEDT+" -> destroyJAWTOK "+destroyJAWTOK);
+                }
             }
         }
     }
@@ -555,14 +613,14 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
             synchronized(sync) {
                 if( !validateComponent(true) ) {
                     if(DEBUG) {
-                        System.err.println(getThreadName()+": Info: NewtCanvasAWT setupPrint - skipped GL render, drawable not valid yet");
+                        System.err.println(currentThreadName()+": Info: NewtCanvasAWT setupPrint - skipped GL render, drawable not valid yet");
                     }
                     printActive = false;
                     return; // not yet available ..
                 }
                 if( !isVisible() ) {
                     if(DEBUG) {
-                        System.err.println(getThreadName()+": Info: NewtCanvasAWT setupPrint - skipped GL render, drawable visible");
+                        System.err.println(currentThreadName()+": Info: NewtCanvasAWT setupPrint - skipped GL render, drawable visible");
                     }
                     printActive = false;
                     return; // not yet available ..
@@ -665,7 +723,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 throw new IllegalStateException("setupPrint() not called");
             }
             if(DEBUG && !EventQueue.isDispatchThread()) {
-                System.err.println(getThreadName()+": Warning: GLCanvas print - not called from AWT-EDT");
+                System.err.println(currentThreadName()+": Warning: GLCanvas print - not called from AWT-EDT");
                 // we cannot dispatch print on AWT-EDT due to printing internal locking ..
             }
 
@@ -787,7 +845,8 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
       if(DEBUG) {
           // if ( isShowing() == false ) -> Container was not visible yet.
           // if ( isShowing() == true  ) -> Container is already visible.
-          System.err.println("NewtCanvasAWT.attachNewtChild.0 @ "+Thread.currentThread().getName()+": win "+newtWinHandleToHexString(newtChild)+
+          System.err.println("NewtCanvasAWT.attachNewtChild.0 @ "+currentThreadName());
+          System.err.println("\twin "+newtWinHandleToHexString(newtChild)+
                              ", EDTUtil: cur "+newtChild.getScreen().getDisplay().getEDTUtil()+
                              ", comp "+this+", visible "+isVisible()+", showing "+isShowing()+", displayable "+isDisplayable()+
                              ", cont "+AWTMisc.getContainer(this));
@@ -913,7 +972,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     }
   }
 
-  protected static String getThreadName() { return Thread.currentThread().getName(); }
+  protected static String currentThreadName() { return "["+Thread.currentThread().getName()+", isAWT-EDT "+EventQueue.isDispatchThread()+"]"; }
 
   static String newtWinHandleToHexString(Window w) {
       return null != w ? toHexString(w.getWindowHandle()) : "nil";
