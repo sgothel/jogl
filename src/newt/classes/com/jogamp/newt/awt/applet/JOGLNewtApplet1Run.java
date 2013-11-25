@@ -220,6 +220,7 @@ public class JOGLNewtApplet1Run extends Applet {
                 AWTEDTExecutor.singleton.invoke(true, new Runnable() {
                     public void run() {
                         newtCanvasAWT = new NewtCanvasAWT(glWindow);
+                        newtCanvasAWT.setSkipJAWTDestroy(true); // Bug 910
                         container.add(newtCanvasAWT, BorderLayout.CENTER);
                         container.validate();
                     } } );
@@ -307,6 +308,7 @@ public class JOGLNewtApplet1Run extends Applet {
             public void run() {
                 glWindow.setVisible(false); // hide 1st
                 if( null != newtCanvasAWT ) {
+                    newtCanvasAWT.setSkipJAWTDestroy(false); // Bug 910
                     remove(newtCanvasAWT); // remove newtCanvasAWT incl. glWindow.reparentWindow(null) if not done yet!
                     newtCanvasAWT.destroy();
                 }

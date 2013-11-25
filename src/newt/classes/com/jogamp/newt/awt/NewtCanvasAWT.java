@@ -108,10 +108,10 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     private final AWTAdapter awtMouseAdapter;
     private final AWTAdapter awtKeyAdapter;
 
-    /** Mitigates Bug 910 (IcedTea-Web), i.e. crash via removeNotify() from 'other' AWT-EDT. */
-    private boolean addedOnAWTEDT = false;
-    /** Mitigates Bug 910 (IcedTea-Web), i.e. crash via removeNotify() from 'other' AWT-EDT. */
+    /** Mitigates Bug 910 (IcedTea-Web), i.e. crash via removeNotify() invoked before Applet.destroy(). */
     private boolean destroyJAWTPending = false;
+    /** Mitigates Bug 910 (IcedTea-Web), i.e. crash via removeNotify() invoked before Applet.destroy(). */
+    private boolean skipJAWTDestroy = false;
 
     /** Safeguard for AWTWindowClosingProtocol and 'removeNotify()' on other thread than AWT-EDT. */
     private volatile boolean componentAdded = false;
@@ -425,6 +425,20 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         return awtWindowClosingProtocol.setDefaultCloseOperation(op);
     }
 
+    /**
+     * Mitigates Bug 910 (IcedTea-Web), i.e. crash via removeNotify() invoked before Applet.destroy().
+     * <p>
+     * <code>skipJAWTDestroy</code> defaults to <code>false</code>.
+     * Due to above IcedTea-Web issue the <code>Applet</code> code needs to avoid JAWT destruction before
+     * <code>Applet.destroy()</code> is reached by setting <code>skipJAWTDestroy</code> to <code>true</code>.
+     * Afterwards the value should be reset to <code>false</code> and {@link #destroy()} needs to be called,
+     * which finally will perform the pending JAWT destruction.
+     * </p>
+     */
+    public final void setSkipJAWTDestroy(boolean v) { skipJAWTDestroy = v; }
+    /** See {@link #setSkipJAWTDestroy(boolean)}. */
+    public final boolean getSkipJAWTDestroy() { return skipJAWTDestroy; }
+
     private final void determineIfApplet() {
         isApplet = false;
         Component c = this;
@@ -450,9 +464,8 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
 
             synchronized(sync) {
                 determineIfApplet();
-                addedOnAWTEDT = EventQueue.isDispatchThread();
                 if(DEBUG) {
-                    System.err.println("NewtCanvasAWT.addNotify.0 - isApplet "+isApplet+", addedOnAWTEDT "+addedOnAWTEDT+" @ "+currentThreadName());
+                    System.err.println("NewtCanvasAWT.addNotify.0 - isApplet "+isApplet+", addedOnAWTEDT "+EventQueue.isDispatchThread()+" @ "+currentThreadName());
                     Thread.dumpStack();
                 }
                 jawtWindow = NewtFactoryAWT.getNativeWindow(NewtCanvasAWT.this, null != newtChild ? newtChild.getRequestedCapabilities() : null);
@@ -514,18 +527,9 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     private final void destroyImpl(boolean removeNotify, boolean windowClosing) {
         synchronized(sync) {
             final java.awt.Container cont = AWTMisc.getContainer(this);
-            /**
-             * Mitigates Bug 910 (IcedTea-Web), i.e. crash via removeNotify() from 'other' AWT-EDT.
-             *
-             * 'destroyJAWT' defaults to 'true' - however, IcedTea-Web (Applet) issues removeNotify() from
-             * a different AWT-EDT thread, which is not recognized as an AWT-EDT thread!
-             * This 'different AWT-EDT thread' maybe caused due to a AppContext issue in IcedTea-Web.
-             */
-            final boolean isOnAWTEDT = EventQueue.isDispatchThread();
-            final boolean destroyJAWTOK = !isApplet || !addedOnAWTEDT || isOnAWTEDT;
             if(DEBUG) {
                 System.err.println("NewtCanvasAWT.destroyImpl @ "+currentThreadName());
-                System.err.println("NewtCanvasAWT.destroyImpl.0 - isApplet "+isApplet+", addedOnAWTEDT "+addedOnAWTEDT+", isOnAWTEDT "+isOnAWTEDT+" -> destroyJAWTOK "+destroyJAWTOK+
+                System.err.println("NewtCanvasAWT.destroyImpl.0 - isApplet "+isApplet+", isOnAWTEDT "+EventQueue.isDispatchThread()+", skipJAWTDestroy "+skipJAWTDestroy+
                                     "; removeNotify "+removeNotify+", windowClosing "+windowClosing+", destroyJAWTPending "+destroyJAWTPending+
                                     ", hasJAWT "+(null!=jawtWindow)+", hasNEWT "+(null!=newtChild)+
                                     "): nw "+newtWinHandleToHexString(newtChild)+", from "+cont);
@@ -545,14 +549,13 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 }
             }
             if( ( destroyJAWTPending || removeNotify || windowClosing ) && null!=jawtWindow ) {
-                if( destroyJAWTOK ) {
+                if( skipJAWTDestroy ) {
+                    // Bug 910 - See setSkipJAWTDestroy(boolean)
+                    destroyJAWTPending = true;
+                } else {
                     NewtFactoryAWT.destroyNativeWindow(jawtWindow);
                     jawtWindow=null;
                     destroyJAWTPending = false;
-                } else {
-                    // Bug 910 - See above FIXME
-                    destroyJAWTPending = true;
-                    System.err.println("Info: JAWT destruction pending due to: isApplet "+isApplet+", addedOnAWTEDT "+addedOnAWTEDT+", isOnAWTEDT "+isOnAWTEDT+" -> destroyJAWTOK "+destroyJAWTOK);
                 }
             }
         }
