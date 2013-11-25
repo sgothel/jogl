@@ -682,53 +682,97 @@ public class AWTRobotUtil {
     }
 
     /**
+     * @param obj the component to wait for
+     * @param realized true if waiting for component to become realized, otherwise false
      * @return True if the Component becomes realized (not displayable, native invalid) within TIME_OUT
+     * @throws InterruptedException
      */
     public static boolean waitForRealized(Object obj, boolean realized) throws InterruptedException {
-        int wait;
+        return waitForRealized(obj, null, realized);
+    }
+
+    /**
+     * @param obj the component to wait for
+     * @param waitAction if not null, Runnable shall wait {@link #TIME_SLICE} ms, if appropriate
+     * @param realized true if waiting for component to become realized, otherwise false
+     * @return True if the Component becomes realized (not displayable, native invalid) within TIME_OUT
+     * @throws InterruptedException
+     */
+    public static boolean waitForRealized(Object obj, Runnable waitAction, boolean realized) throws InterruptedException {
+        long t0 = System.currentTimeMillis();
+        long t1 = t0;
         if(obj instanceof com.jogamp.newt.Screen) {
             com.jogamp.newt.Screen screen = (com.jogamp.newt.Screen) obj;
-            for (wait=0; wait<POLL_DIVIDER && realized != screen.isNativeValid(); wait++) {
-                Thread.sleep(TIME_SLICE);
+            while( (t1-t0) < TIME_OUT && realized != screen.isNativeValid() ) {
+                if( null != waitAction ) {
+                    waitAction.run();
+                } else {
+                    Thread.sleep(TIME_SLICE);
+                }
+                t1 = System.currentTimeMillis();
             }
         } else if(obj instanceof com.jogamp.newt.Window) {
             com.jogamp.newt.Window win = (com.jogamp.newt.Window) obj;
-            for (wait=0; wait<POLL_DIVIDER && realized != win.isNativeValid(); wait++) {
-                Thread.sleep(TIME_SLICE);
+            while( (t1-t0) < TIME_OUT && realized != win.isNativeValid() ) {
+                if( null != waitAction ) {
+                    waitAction.run();
+                } else {
+                    Thread.sleep(TIME_SLICE);
+                }
+                t1 = System.currentTimeMillis();
             }
         } else if (NativeWindowFactory.isAWTAvailable() && obj instanceof java.awt.Component) {
             java.awt.Component comp = (java.awt.Component) obj;
-            for (wait=0; wait<POLL_DIVIDER && realized != comp.isDisplayable(); wait++) {
-                Thread.sleep(TIME_SLICE);
-            }
-            // if GLCanvas, ensure it got also painted -> drawable.setRealized(true);
-            if(wait<POLL_DIVIDER && comp instanceof GLAutoDrawable) {
-                GLAutoDrawable glad = (GLAutoDrawable) comp;
-                for (wait=0; wait<POLL_DIVIDER && realized != glad.isRealized(); wait++) {
+            while( (t1-t0) < TIME_OUT && realized != comp.isDisplayable() ) {
+                if( null != waitAction ) {
+                    waitAction.run();
+                } else {
                     Thread.sleep(TIME_SLICE);
                 }
-                if(wait>=POLL_DIVIDER) {
+                t1 = System.currentTimeMillis();
+            }
+            // if GLCanvas, ensure it got also painted -> drawable.setRealized(true);
+            if( (t1-t0) < TIME_OUT && comp instanceof GLAutoDrawable) {
+                GLAutoDrawable glad = (GLAutoDrawable) comp;
+                t0 = System.currentTimeMillis();
+                while( (t1-t0) < TIME_OUT && realized != glad.isRealized() ) {
+                    if( null != waitAction ) {
+                        waitAction.run();
+                    } else {
+                        Thread.sleep(TIME_SLICE);
+                    }
+                    t1 = System.currentTimeMillis();
+                }
+                if( (t1-t0) >= TIME_OUT ) {
                     // for some reason GLCanvas hasn't been painted yet, force it!
                     System.err.println("XXX: FORCE REPAINT PRE - glad: "+glad);
                     comp.repaint();
-                    for (wait=0; wait<POLL_DIVIDER && realized != glad.isRealized(); wait++) {
-                        Thread.sleep(TIME_SLICE);
+                    t0 = System.currentTimeMillis();
+                    while( (t1-t0) < TIME_OUT && realized != glad.isRealized() ) {
+                        if( null != waitAction ) {
+                            waitAction.run();
+                        } else {
+                            Thread.sleep(TIME_SLICE);
+                        }
+                        t1 = System.currentTimeMillis();
                     }
                     System.err.println("XXX: FORCE REPAINT POST - glad: "+glad);
-                }
-                for (wait=0; wait<POLL_DIVIDER && realized != glad.isRealized(); wait++) {
-                    Thread.sleep(TIME_SLICE);
                 }
             }
         } else if(obj instanceof GLAutoDrawable) {
             GLAutoDrawable glad = (GLAutoDrawable) obj;
-            for (wait=0; wait<POLL_DIVIDER && realized != glad.isRealized(); wait++) {
-                Thread.sleep(TIME_SLICE);
+            while( (t1-t0) < TIME_OUT && realized != glad.isRealized() ) {
+                if( null != waitAction ) {
+                    waitAction.run();
+                } else {
+                    Thread.sleep(TIME_SLICE);
+                }
+                t1 = System.currentTimeMillis();
             }
         } else {
             throw new RuntimeException("Neither AWT nor NEWT nor GLAutoDrawable: "+obj);
         }
-        return wait<POLL_DIVIDER;
+        return (t1-t0) < TIME_OUT;
     }
 
     /**

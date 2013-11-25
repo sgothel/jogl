@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.swt;
 
 import java.io.IOException;
@@ -43,17 +43,13 @@ import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
-
 import com.jogamp.opengl.util.Animator;
-
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
-import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.util.Dimension;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.PointImmutable;
 import javax.media.nativewindow.util.DimensionImmutable;
-
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLProfile;
@@ -75,28 +71,15 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestBug672NewtCanvasSWTSashForm extends UITestCase {    
+public class TestBug672NewtCanvasSWTSashForm extends UITestCase {
     static int screenIdx = 0;
     static PointImmutable wpos;
     static DimensionImmutable wsize, rwsize = null;
 
     static long duration = 500; // ms
-    static boolean opaque = true;
-    static int forceAlpha = -1;
-    static boolean fullscreen = false;
-    static boolean pmvUseBackingArray = true;
-    static int swapInterval = 1;
-    static boolean showFPS = false;
-    static int loops = 1;
-    static boolean loop_shutdown = false;
-    static boolean forceES2 = false;
-    static boolean forceGL3 = false;
-    static boolean mainRun = false;
-    static boolean exclusiveContext = false;
-    
+
     @BeforeClass
     public static void initClass() {
-        setTestSupported(NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(false));
         if(null == wsize) {
             wsize = new Dimension(640, 480);
         }
@@ -109,23 +92,28 @@ public class TestBug672NewtCanvasSWTSashForm extends UITestCase {
     Display display = null;
     Shell shell = null;
     Composite composite = null;
+    SashForm sash = null;
     com.jogamp.newt.Display swtNewtDisplay = null;
-    
+
     @Before
     public void init() {
         SWTAccessor.invoke(true, new Runnable() {
-            public void run() {        
+            public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
             }});
         display.syncExec(new Runnable() {
-            public void run() {        
+            public void run() {
                 shell = new Shell( display );
                 Assert.assertNotNull( shell );
                 shell.setLayout( new FillLayout() );
                 composite = new Composite( shell, SWT.NONE );
                 composite.setLayout( new FillLayout() );
                 Assert.assertNotNull( composite );
+                sash = new SashForm(composite, SWT.NONE);
+                Assert.assertNotNull( sash );
+                final org.eclipse.swt.widgets.Label c = new org.eclipse.swt.widgets.Label(sash, SWT.NONE);
+                c.setText("Left cell");
             }});
         swtNewtDisplay = NewtFactory.createDisplay(null, false); // no-reuse
     }
@@ -135,9 +123,11 @@ public class TestBug672NewtCanvasSWTSashForm extends UITestCase {
         Assert.assertNotNull( display );
         Assert.assertNotNull( shell );
         Assert.assertNotNull( composite );
+        Assert.assertNotNull( sash );
         try {
             display.syncExec(new Runnable() {
                public void run() {
+                sash.dispose();
                 composite.dispose();
                 shell.dispose();
                }});
@@ -154,22 +144,38 @@ public class TestBug672NewtCanvasSWTSashForm extends UITestCase {
         display = null;
         shell = null;
         composite = null;
+        sash = null;
     }
-    
+
+    class WaitAction implements Runnable {
+        private final long sleepMS;
+
+        WaitAction(long sleepMS) {
+            this.sleepMS = sleepMS;
+        }
+        public void run() {
+            if( !display.readAndDispatch() ) {
+                // blocks on linux .. display.sleep();
+                try {
+                    Thread.sleep(sleepMS);
+                } catch (InterruptedException e) { }
+            }
+        }
+    }
+    final WaitAction awtRobotWaitAction = new WaitAction(AWTRobotUtil.TIME_SLICE);
+    final WaitAction generalWaitAction = new WaitAction(10);
+
     protected void runTestGL(GLCapabilitiesImmutable caps) throws InterruptedException, InvocationTargetException {
-        System.err.println("requested: vsync "+swapInterval+", "+caps);
         com.jogamp.newt.Screen screen = NewtFactory.createScreen(swtNewtDisplay, screenIdx);
         final GLWindow glWindow = GLWindow.create(screen, caps);
         Assert.assertNotNull(glWindow);
-        
-        final GearsES2 demo = new GearsES2(swapInterval);
-        demo.setPMVUseBackingArray(pmvUseBackingArray);
+
+        final GearsES2 demo = new GearsES2(1);
         glWindow.addGLEventListener(demo);
-        
+
         Animator animator = new Animator();
         animator.setModeBits(false, Animator.MODE_EXPECT_AWT_RENDERING_THREAD);
-        animator.setExclusiveContext(exclusiveContext);
-        
+
         QuitAdapter quitAdapter = new QuitAdapter();
         //glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
         //glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
@@ -182,14 +188,14 @@ public class TestBug672NewtCanvasSWTSashForm extends UITestCase {
             }
             public void windowMoved(WindowEvent e) {
                 System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight());
-            }            
+            }
         });
-        
+
         glWindow.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
                 if( !e.isPrintableKey() || e.isAutoRepeat() ) {
                     return;
-                }            
+                }
                 if(e.getKeyChar()=='f') {
                     new Thread() {
                         public void run() {
@@ -207,10 +213,7 @@ public class TestBug672NewtCanvasSWTSashForm extends UITestCase {
         animator.start();
         Assert.assertTrue(animator.isStarted());
         Assert.assertTrue(animator.isAnimating());
-        Assert.assertEquals(exclusiveContext ? animator.getThread() : null, glWindow.getExclusiveContextThread());
-        final SashForm sash = new SashForm(composite, SWT.NONE);
-        org.eclipse.swt.widgets.Label c = new org.eclipse.swt.widgets.Label(sash, SWT.NONE);
-        c.setText("Left cell");
+        animator.setUpdateFPSFrames(60, null);
         final NewtCanvasSWT canvas1 = NewtCanvasSWT.create( sash, 0, glWindow );
         Assert.assertNotNull( canvas1 );
 
@@ -224,116 +227,68 @@ public class TestBug672NewtCanvasSWTSashForm extends UITestCase {
               shell.open();
            }
         });
-        
-        animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
-        
+        Assert.assertTrue("GLWindow didn't become visible natively!", AWTRobotUtil.waitForRealized(glWindow, awtRobotWaitAction, true));
+        Assert.assertNotNull( canvas1.getNativeWindow() );
+
         System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
-        System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
-                
+        System.err.println("window pos/siz.0: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
+        System.err.println("GLWindow LOS.0: "+glWindow.getLocationOnScreen(null));
+        System.err.println("NewtCanvasSWT LOS.0: "+canvas1.getNativeWindow().getLocationOnScreen(null));
+
         if( null != rwsize ) {
             for(int i=0; i<50; i++) { // 500 ms dispatched delay
-                if( !display.readAndDispatch() ) {
-                    // blocks on linux .. display.sleep();
-                    Thread.sleep(10);
-                }
+                generalWaitAction.run();
             }
             display.syncExec( new Runnable() {
                public void run() {
                   shell.setSize( rwsize.getWidth(), rwsize.getHeight() );
                }
             });
-            System.err.println("window resize pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
-        }
-        
-        Assert.assertNotNull( canvas1.getNativeWindow() );
-        Assert.assertNotEquals( canvas1.getNativeWindow().getLocationOnScreen(null), 0 );
-
-        while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
-            if( !display.readAndDispatch() ) {
-                // blocks on linux .. display.sleep();
-                Thread.sleep(10);
-            }
+            System.err.println("window resize pos/siz.1: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
+            System.err.println("GLWindow LOS.1: "+glWindow.getLocationOnScreen(null));
+            System.err.println("NewtCanvasSWT LOS.1: "+canvas1.getNativeWindow().getLocationOnScreen(null));
         }
 
-        Assert.assertEquals(exclusiveContext ? animator.getThread() : null, glWindow.getExclusiveContextThread());
+        final PointImmutable pSashRightClient = new Point(wsize.getWidth(), 0);
+        final PointImmutable pNatWinLOS = canvas1.getNativeWindow().getLocationOnScreen(null);
+        final PointImmutable pGLWinLOS = glWindow.getLocationOnScreen(null);
+
+        System.err.println("GLWindow LOS: "+pGLWinLOS);
+        System.err.println("NewtCanvasSWT LOS: "+pNatWinLOS);
+
+        Assert.assertTrue( "NewtCanvasAWT LOS "+pNatWinLOS+" not >= sash-right "+pSashRightClient, pNatWinLOS.compareTo(pSashRightClient) >= 0 );
+        Assert.assertTrue( "GLWindow LOS "+pGLWinLOS+" not >= sash-right "+pSashRightClient, pGLWinLOS.compareTo(pSashRightClient) >= 0 );
+
+        while( !quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration ) {
+            generalWaitAction.run();
+        }
+
         animator.stop();
         Assert.assertFalse(animator.isAnimating());
         Assert.assertFalse(animator.isStarted());
         Assert.assertEquals(null, glWindow.getExclusiveContextThread());
-        
+
         canvas1.dispose();
         glWindow.destroy();
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false));
     }
 
     @Test
-    public void test01GL2ES2() throws InterruptedException, InvocationTargetException {
-        for(int i=1; i<=loops; i++) {
-            System.err.println("Loop "+i+"/"+loops);
-            final GLProfile glp;
-            if(forceGL3) {
-                glp = GLProfile.get(GLProfile.GL3);
-            } else if(forceES2) {
-                glp = GLProfile.get(GLProfile.GLES2);
-            } else {
-                glp = GLProfile.getGL2ES2();
-            }
-            final GLCapabilities caps = new GLCapabilities( glp );
-            caps.setBackgroundOpaque(opaque);
-            if(-1 < forceAlpha) {
-                caps.setAlphaBits(forceAlpha); 
-            }
-            runTestGL(caps);
-            if(loop_shutdown) {
-                GLProfile.shutdown();
-            }
-        }
-    }
-
-    @Test
-    public void test02GL3() throws InterruptedException, InvocationTargetException {
-        if(mainRun) return;
-        
-        if( !GLProfile.isAvailable(GLProfile.GL3) ) {
-            System.err.println("GL3 n/a");
-            return;
-        }
-        final GLProfile glp = GLProfile.get(GLProfile.GL3);
+    public void test01() throws InterruptedException, InvocationTargetException {
+        final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities( glp );
         runTestGL(caps);
     }
-    
+
     public static void main(String args[]) throws IOException {
-        mainRun = true;
-        
         int x=0, y=0, w=640, h=480, rw=-1, rh=-1;
         boolean usePos = false;
-        
+
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 duration = MiscUtils.atol(args[i], duration);
-            } else if(args[i].equals("-translucent")) {
-                opaque = false;
-            } else if(args[i].equals("-forceAlpha")) {
-                i++;
-                forceAlpha = MiscUtils.atoi(args[i], 0);
-            } else if(args[i].equals("-fullscreen")) {
-                fullscreen = true;
-            } else if(args[i].equals("-pmvDirect")) {
-                pmvUseBackingArray = false;
-            } else if(args[i].equals("-vsync")) {
-                i++;
-                swapInterval = MiscUtils.atoi(args[i], swapInterval);
-            } else if(args[i].equals("-exclctx")) {
-                exclusiveContext = true;
-            } else if(args[i].equals("-es2")) {
-                forceES2 = true;
-            } else if(args[i].equals("-gl3")) {
-                forceGL3 = true;
-            } else if(args[i].equals("-showFPS")) {
-                showFPS = true;
             } else if(args[i].equals("-width")) {
                 i++;
                 w = MiscUtils.atoi(args[i], w);
@@ -357,35 +312,20 @@ public class TestBug672NewtCanvasSWTSashForm extends UITestCase {
             } else if(args[i].equals("-screen")) {
                 i++;
                 screenIdx = MiscUtils.atoi(args[i], 0);
-            } else if(args[i].equals("-loops")) {
-                i++;
-                loops = MiscUtils.atoi(args[i], 1);
-            } else if(args[i].equals("-loop-shutdown")) {
-                loop_shutdown = true;
             }
         }
         wsize = new Dimension(w, h);
         if( 0 < rw && 0 < rh ) {
             rwsize = new Dimension(rw, rh);
         }
-        
+
         if(usePos) {
             wpos = new Point(x, y);
         }
         System.err.println("position "+wpos);
         System.err.println("size "+wsize);
-        System.err.println("resize "+rwsize);        
+        System.err.println("resize "+rwsize);
         System.err.println("screen "+screenIdx);
-        System.err.println("translucent "+(!opaque));
-        System.err.println("forceAlpha "+forceAlpha);        
-        System.err.println("fullscreen "+fullscreen);
-        System.err.println("pmvDirect "+(!pmvUseBackingArray));        
-        System.err.println("loops "+loops);
-        System.err.println("loop shutdown "+loop_shutdown);
-        System.err.println("forceES2 "+forceES2);
-        System.err.println("forceGL3 "+forceGL3);
-        System.err.println("swapInterval "+swapInterval);
-        System.err.println("exclusiveContext "+exclusiveContext);
 
         org.junit.runner.JUnitCore.main(TestBug672NewtCanvasSWTSashForm.class.getName());
     }

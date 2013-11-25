@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.swt;
 
 import javax.media.opengl.GLAutoDrawable;
@@ -39,7 +39,6 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
@@ -56,6 +55,7 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.swt.NewtCanvasSWT;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.MultisampleDemoES2;
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
@@ -64,14 +64,14 @@ import com.jogamp.opengl.util.texture.TextureIO;
 
 /**
  * Tests that a basic SWT app can open without crashing under different GL profiles
- * _and_ custom GLCapabilities. 
- * <p> 
+ * _and_ custom GLCapabilities.
+ * <p>
  * Uses JOGL's NewtCanvasSWT, which allows to be a native container of a NEWT Window.<br/>
  * This method allows utilizing custom GLCapability settings,
  * independent from the already instantiated SWT visual.
  * </p>
  * <p>
- * Note that {@link SWTAccessor#invoke(boolean, Runnable)} is still used to comply w/ 
+ * Note that {@link SWTAccessor#invoke(boolean, Runnable)} is still used to comply w/
  * SWT running on Mac OSX, i.e. to enforce UI action on the main thread.
  * </p>
  */
@@ -87,7 +87,7 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
     Shell shell = null;
     Composite composite = null;
     com.jogamp.newt.Display swtNewtDisplay = null;
-    
+
     @BeforeClass
     public static void startup() {
         System.out.println( "GLProfile " + GLProfile.glAvailabilityToString() );
@@ -96,12 +96,12 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
     @Before
     public void init() {
         SWTAccessor.invoke(true, new Runnable() {
-            public void run() {        
+            public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
             }});
         display.syncExec(new Runnable() {
-            public void run() {        
+            public void run() {
                 shell = new Shell( display );
                 Assert.assertNotNull( shell );
                 shell.setLayout( new FillLayout() );
@@ -138,10 +138,28 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
         composite = null;
     }
 
-    protected void runTestAGL( GLCapabilitiesImmutable caps, GLEventListener demo, 
+    class WaitAction implements Runnable {
+        private final long sleepMS;
+
+        WaitAction(long sleepMS) {
+            this.sleepMS = sleepMS;
+        }
+        public void run() {
+            if( !display.readAndDispatch() ) {
+                // blocks on linux .. display.sleep();
+                try {
+                    Thread.sleep(sleepMS);
+                } catch (InterruptedException e) { }
+            }
+        }
+    }
+    final WaitAction awtRobotWaitAction = new WaitAction(AWTRobotUtil.TIME_SLICE);
+    final WaitAction generalWaitAction = new WaitAction(10);
+
+    protected void runTestAGL( GLCapabilitiesImmutable caps, GLEventListener demo,
                                boolean postAttach, boolean useAnimator ) throws InterruptedException {
         final GLReadBufferUtil screenshot = new GLReadBufferUtil(false, false);
-        
+
         final Screen screen = NewtFactory.createScreen(swtNewtDisplay, 0);
         final GLWindow glWindow1 = GLWindow.create(screen, caps);
         Assert.assertNotNull(glWindow1);
@@ -151,7 +169,7 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
         glWindow1.addGLEventListener(demo);
         glWindow1.addGLEventListener(new GLEventListener() {
            int displayCount = 0;
-           public void init(final GLAutoDrawable drawable) { } 
+           public void init(final GLAutoDrawable drawable) { }
            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
            public void display(final GLAutoDrawable drawable) {
               if(displayCount < 3) {
@@ -159,8 +177,8 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
               }
            }
            public void dispose(final GLAutoDrawable drawable) { }
-        });       
-        
+        });
+
         final NewtCanvasSWT canvas1 = NewtCanvasSWT.create( composite, 0, postAttach ? null : glWindow1 );
         Assert.assertNotNull( canvas1 );
 
@@ -171,13 +189,18 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
               shell.open();
            }
         });
-        
+
         if(postAttach) {
             canvas1.setNEWTChild(glWindow1);
         }
-        
+
+        Assert.assertTrue("GLWindow didn't become visible natively!", AWTRobotUtil.waitForRealized(glWindow1, awtRobotWaitAction, true));
+
+        System.err.println("GLWindow LOS.0: "+glWindow1.getLocationOnScreen(null));
+        System.err.println("NewtCanvasSWT LOS.0: "+canvas1.getNativeWindow().getLocationOnScreen(null));
+
         // canvas1.update();
-        
+
         Animator anim;
         if(useAnimator) {
             anim = new Animator(glWindow1);
@@ -185,15 +208,12 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
         } else {
             anim = null;
         }
-        
+
         long lStartTime = System.currentTimeMillis();
         long lEndTime = lStartTime + duration;
         try {
             while( (System.currentTimeMillis() < lEndTime) && !canvas1.isDisposed() ) {
-                if( !display.readAndDispatch() ) {
-                    // blocks on linux .. display.sleep();
-                    Thread.sleep(10);
-                }
+                generalWaitAction.run();
             }
         } catch( Throwable throwable ) {
             throwable.printStackTrace();
@@ -202,7 +222,7 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
         if(null != anim) {
             anim.stop();
         }
-        
+
         canvas1.dispose();
     }
 
@@ -220,7 +240,7 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
     public void postAttach_WithAnimator() throws InterruptedException {
         runTestAGL( new GLCapabilities(GLProfile.getGL2ES2()), new GearsES2(), true /* postAttach */, true /* animator */);
     }
-    
+
     @Test
     public void test_MultisampleAndAlpha() throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());

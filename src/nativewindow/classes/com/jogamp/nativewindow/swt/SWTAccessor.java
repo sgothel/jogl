@@ -63,10 +63,10 @@ public class SWTAccessor {
     private static Field swt_osx_view_id = null;
 
     private static final String nwt;
-    private static final boolean isOSX;
-    private static final boolean isWindows;
-    private static final boolean isX11;
-    private static final boolean isX11GTK;
+    public static final boolean isOSX;
+    public static final boolean isWindows;
+    public static final boolean isX11;
+    public static final boolean isX11GTK;
 
     // X11/GTK, Windows/GDI, ..
     private static final String str_handle = "handle";

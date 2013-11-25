@@ -204,7 +204,7 @@ function jrun() {
     #D_ARGS="-Dnativewindow.debug=all"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.Java2D -Djogl.debug.GLJPanel"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.Java2D -Djogl.debug.GLJPanel -Djogl.gljpanel.noglsl"
-    D_ARGS="-Djogl.debug.GLJPanel -Djogl.debug.DebugGL"
+    #D_ARGS="-Djogl.debug.GLJPanel -Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.gljpanel.noverticalflip"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.Animator"
     #D_ARGS="-Djogl.debug.GLContext -Dnativewindow.debug.X11Util.XSync"
@@ -529,7 +529,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAWTActionDeadlock01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAWTActionDeadlock02AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelTextureStateAWT $*
-testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelResize01AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelResize01AWT $*
 
 #testawt com.jogamp.opengl.test.bugs.Bug735Inv0AppletAWT $*
 #testawt com.jogamp.opengl.test.bugs.Bug735Inv1AppletAWT $*
@@ -542,7 +542,9 @@ testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelResize01AWT $*
 #
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTEclipseGLCanvas01GLn $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn $*
-#testswt com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn $*
+testswt com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn $*
+#testswt com.jogamp.opengl.test.junit.jogl.swt.TestBug672NewtCanvasSWTSashForm $*
+#testswt com.jogamp.opengl.test.junit.jogl.swt.TestBug672NewtCanvasSWTSashFormComposite $*
 
 #
 # awtswt (testawtswt) 

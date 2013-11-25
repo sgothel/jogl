@@ -46,6 +46,8 @@ import javax.media.nativewindow.util.Point;
 import javax.media.opengl.GLCapabilities;
 
 import jogamp.nativewindow.macosx.OSXUtil;
+import jogamp.nativewindow.windows.GDIUtil;
+import jogamp.nativewindow.x11.X11Lib;
 import jogamp.newt.Debug;
 import jogamp.newt.swt.SWTEDTUtil;
 
@@ -70,7 +72,6 @@ import com.jogamp.newt.util.EDTUtil;
  */
 public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
     private static final boolean DEBUG = Debug.debug("Window");
-    private static final boolean isOSX = NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(false);
 
     private final AbstractGraphicsScreen screen;
 
@@ -145,7 +146,9 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
                                 newtChild.setSize(clientArea.width, clientArea.height);
                                 postSetSize = false;
                             }
-                            if( isOSX ) newtChild.setPosition(parent.getLocation().x,parent.getLocation().y);
+                            if( SWTAccessor.isOSX ) {
+                                newtChild.setPosition(parent.getLocation().x,parent.getLocation().y);
+                            }
                             newtChild.windowRepaint(0, 0, clientArea.width, clientArea.height);
                         }
                     }
@@ -398,7 +401,7 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
         public SWTNativeWindow(AbstractGraphicsConfiguration config, long nativeWindowHandle) {
             this.config = config;
             this.nativeWindowHandle = nativeWindowHandle;
-            if(isOSX) {
+            if( SWTAccessor.isOSX ) {
                 this.insets = OSXUtil.GetInsets(nativeWindowHandle);
             } else {
                 this.insets = new Insets(0, 0, 0, 0);
@@ -501,22 +504,25 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
 
         @Override
         public Point getLocationOnScreen(Point point) {
-            if( isOSX ) {
-                final Point los = OSXUtil.GetLocationOnScreen(nativeWindowHandle, false, 0, 0);
-                // top-level position -> client window position
-               	final Rectangle swtCanvasPosition = getSWTCanvasPosition();
-            	los.set(swtCanvasPosition.x + los.getX() + insets.getLeftWidth(), swtCanvasPosition.y + los.getY() + insets.getTopHeight());
-                if(null!=point) {
-                  return point.translate(los);
-                } else {
-                  return los;
-                }
+            final Point los; // client window location on screen
+            if( SWTAccessor.isOSX ) {
+                los = OSXUtil.GetLocationOnScreen(nativeWindowHandle, false, 0, 0);
+                // top-level position -> client window position: OSX needs to add SWT parent position incl. insets
+                final Rectangle swtCanvasPosition = getSWTCanvasPosition();
+                los.translate(swtCanvasPosition.x + insets.getLeftWidth(), swtCanvasPosition.y + insets.getTopHeight());
+            } else if (SWTAccessor.isX11) {
+                final AbstractGraphicsScreen s = config.getScreen();
+                los = X11Lib.GetRelativeLocation(s.getDevice().getHandle(), s.getIndex(), nativeWindowHandle, 0 /*root win*/, 0, 0);
+            } else if (SWTAccessor.isWindows) {
+                los = GDIUtil.GetRelativeLocation( nativeWindowHandle, 0 /*root win*/, 0, 0);
             } else {
-                // client position on 'normal' windowing systems is 0/0
-                if(null == point) {
-                    point = new Point(0, 0);
-                }
-                return point;
+                // fall-back to 0/0
+                los = new Point(0, 0);
+            }
+            if(null!=point) {
+              return point.translate(los);
+            } else {
+              return los;
             }
         }
 

@@ -33,13 +33,10 @@ import java.awt.Robot;
 import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.swt.SWT ;
-
 import org.eclipse.swt.layout.FillLayout ;
-
 import org.eclipse.swt.widgets.Composite ;
 import org.eclipse.swt.widgets.Display ;
 import org.eclipse.swt.widgets.Shell ;
-
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
@@ -299,6 +296,22 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
             shell = null;
             composite = null;
         }
+        class WaitAction implements Runnable {
+            private final long sleepMS;
+
+            WaitAction(long sleepMS) {
+                this.sleepMS = sleepMS;
+            }
+            public void run() {
+                if( !display.readAndDispatch() ) {
+                    // blocks on linux .. display.sleep();
+                    try {
+                        Thread.sleep(sleepMS);
+                    } catch (InterruptedException e) { }
+                }
+            }
+        }
+        final WaitAction awtRobotWaitAction = new WaitAction(AWTRobotUtil.TIME_SLICE);
     }
 
     @Test
@@ -334,6 +347,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
                dsc.shell.setSize( 400, 450 ) ;
                dsc.shell.open() ;
             } } );
+        Assert.assertTrue("GLWindow didn't become visible natively!", AWTRobotUtil.waitForRealized(glWindow, dsc.awtRobotWaitAction, true));
 
         AWTRobotUtil.requestFocus(robot, glWindow, false);
         AWTRobotUtil.setMouseToClientLocation(robot, glWindow, 50, 50);
