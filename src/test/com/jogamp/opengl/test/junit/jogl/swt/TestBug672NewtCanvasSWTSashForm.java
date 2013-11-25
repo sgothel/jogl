@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.jogl.demos.es2.newt;
+package com.jogamp.opengl.test.junit.jogl.swt;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -75,7 +75,7 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class Bug672NewtCanvasSWTSashFormComposite extends UITestCase {    
+public class TestBug672NewtCanvasSWTSashForm extends UITestCase {    
     static int screenIdx = 0;
     static PointImmutable wpos;
     static DimensionImmutable wsize, rwsize = null;
@@ -211,9 +211,7 @@ public class Bug672NewtCanvasSWTSashFormComposite extends UITestCase {
         final SashForm sash = new SashForm(composite, SWT.NONE);
         org.eclipse.swt.widgets.Label c = new org.eclipse.swt.widgets.Label(sash, SWT.NONE);
         c.setText("Left cell");
-        Composite innerComposite = new Composite(sash, SWT.NONE);
-        innerComposite.setLayout( new FillLayout() );
-        final NewtCanvasSWT canvas1 = NewtCanvasSWT.create( innerComposite, 0, glWindow );
+        final NewtCanvasSWT canvas1 = NewtCanvasSWT.create( sash, 0, glWindow );
         Assert.assertNotNull( canvas1 );
 
         display.syncExec( new Runnable() {
@@ -249,7 +247,7 @@ public class Bug672NewtCanvasSWTSashFormComposite extends UITestCase {
         }
         
         Assert.assertNotNull( canvas1.getNativeWindow() );
-        Assert.assertTrue( canvas1.getNEWTChild().getX() - canvas1.getNEWTChild().getLocationOnScreen(null).getX() > 0 );
+        Assert.assertNotEquals( canvas1.getNativeWindow().getLocationOnScreen(null), 0 );
 
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             if( !display.readAndDispatch() ) {
@@ -389,6 +387,6 @@ public class Bug672NewtCanvasSWTSashFormComposite extends UITestCase {
         System.err.println("swapInterval "+swapInterval);
         System.err.println("exclusiveContext "+exclusiveContext);
 
-        org.junit.runner.JUnitCore.main(Bug672NewtCanvasSWTSashFormComposite.class.getName());
+        org.junit.runner.JUnitCore.main(TestBug672NewtCanvasSWTSashForm.class.getName());
     }
 }
