@@ -93,6 +93,7 @@ public class GDIUtil implements ToolkitProperties {
 
     public static long CreateDummyWindow(int x, int y, int width, int height) {
         synchronized(dummyWindowSync) {
+            dummyWindowClass = dummyWindowClassFactory.getSharedClass();
             if(DEBUG) {
                 System.out.println("GDI.CreateDummyWindow() dummyWindowClassFactory "+dummyWindowClassFactory);
                 System.out.println("GDI.CreateDummyWindow() dummyWindowClass "+dummyWindowClass);
