@@ -28,6 +28,7 @@
 
 package com.jogamp.opengl.test.junit.jogl.demos.es2.av;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -39,6 +40,7 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
+import com.jogamp.common.util.IOUtil;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -327,7 +329,7 @@ public class MovieCube implements GLEventListener {
         int aid = GLMediaPlayer.STREAM_ID_AUTO;
         final boolean origSize;
 
-        String url_s=null;
+        String url_s=null, file_s=null;
         {
             boolean _origSize = false;
             for(int i=0; i<args.length; i++) {
@@ -351,6 +353,9 @@ public class MovieCube implements GLEventListener {
                 } else if(args[i].equals("-url")) {
                     i++;
                     url_s = args[i];
+                } else if(args[i].equals("-file")) {
+                    i++;
+                    file_s = args[i];
                 } else if(args[i].equals("-es2")) {
                     forceES2 = true;
                 } else if(args[i].equals("-es3")) {
@@ -369,11 +374,15 @@ public class MovieCube implements GLEventListener {
             origSize = _origSize;
         }
         final URI streamLoc;
-        if( null == url_s ) {
-            streamLoc = defURI;
-        } else {
+        if( null != url_s ) {
             streamLoc = new URI(url_s);
+        } else if( null != file_s ) {
+            streamLoc = IOUtil.toURISimple(new File(file_s));
+        } else {
+            streamLoc = defURI;
         }
+        System.err.println("url_s "+url_s);
+        System.err.println("file_s "+file_s);
         System.err.println("stream "+streamLoc);
         System.err.println("vid "+vid+", aid "+aid);
         System.err.println("textureCount "+textureCount);

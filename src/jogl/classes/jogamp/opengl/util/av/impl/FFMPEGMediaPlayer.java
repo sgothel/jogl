@@ -232,7 +232,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     private int vBytesPerPixelPerPlane = 0;
     private int texWidth, texHeight; // overall (stuffing planes in one texture)
     private String singleTexComp = "r";
-    private GLPixelStorageModes psm;
+    private final GLPixelStorageModes psm;
 
     //
     // Audio
@@ -280,7 +280,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             System.err.println("initStream: p1 "+this);
         }
 
-        final String streamLocS=IOUtil.decodeFromURI(streamLoc.toString());
+        final String streamLocS = IOUtil.decodeURIIfFilePath(streamLoc);
         destroyAudioSink();
         if( GLMediaPlayer.STREAM_ID_NONE == aid ) {
             audioSink = AudioSinkFactory.createNull();
@@ -331,6 +331,11 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         final int aMaxChannelCount = audioSink.getMaxSupportedChannels();
         final int aPrefSampleRate = preferredAudioFormat.sampleRate;
          // setStream(..) issues updateAttributes*(..), and defines avChosenAudioFormat, vid, aid, .. etc
+        if(DEBUG) {
+            System.err.println("initStream: p3 cameraPath "+cameraPath+", isCameraInput "+isCameraInput);
+            System.err.println("initStream: p3 stream "+streamLoc+" -> "+streamLocS+" -> "+resStreamLocS);
+            System.err.println("initStream: p3 vid "+vid+", sizes "+sizes+", reqVideo "+rw+"x"+rh+"@"+rr+", aid "+aid+", aMaxChannelCount "+aMaxChannelCount+", aPrefSampleRate "+aPrefSampleRate);
+        }
         natives.setStream0(moviePtr, resStreamLocS, isCameraInput, vid, sizes, rw, rh, rr, aid, aMaxChannelCount, aPrefSampleRate);
     }
 
