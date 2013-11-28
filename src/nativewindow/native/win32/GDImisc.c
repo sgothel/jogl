@@ -31,7 +31,7 @@ static const char * const ClazzNamePointCstrSignature = "(II)V";
 static jclass pointClz = NULL;
 static jmethodID pointCstr = NULL;
 
-static DWORD threadid = 0;
+static volatile DWORD threadid = 0;
 
 typedef struct ThreadParam_s
 {
@@ -42,8 +42,8 @@ typedef struct ThreadParam_s
   jint y;
   jint width;
   jint height;
-  volatile HWND *hWndPtr;
-  volatile BOOL *threadReady;
+  volatile HWND hWnd;
+  volatile BOOL threadReady;
 } ThreadParam;
 
 #define TM_OPENWIN WM_APP+1
@@ -52,69 +52,60 @@ typedef struct ThreadParam_s
 
 DWORD WINAPI ThreadFunc(LPVOID param)
 {
- MSG msg;
- BOOL bRet;
- ThreadParam *startupThreadParam = (ThreadParam*)param;
+    MSG msg;
+    BOOL bRet;
+    ThreadParam *startupThreadParam = (ThreadParam*)param;
 
-  /* there can not be any messages for us now, as the creator waits for
-     threadReady before continuing, but we must use this PeekMessage() to
-     create the thread message queue */
-  PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE);
+    /* there can not be any messages for us now, as the creator waits for
+       threadReady before continuing, but we must use this PeekMessage() to
+       create the thread message queue */
+    PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE);
 
-  /* now we can safely say: we have a qeue and are ready to receive messages */
-  *(startupThreadParam->threadReady) = TRUE;
+    /* now we can safely say: we have a qeue and are ready to receive messages */
+    startupThreadParam->threadReady = TRUE;
 
-  while( (bRet = GetMessage( &msg, NULL, 0, 0 )) != 0)
-    {
-      if (bRet == -1)
-	{
-	  return 0;
-	}
-      else
-	{
-	  switch(msg.message)
-	    {
-	    case TM_OPENWIN:
-	      {
-		ThreadParam *tParam = (ThreadParam*)msg.wParam;
-		HINSTANCE hInstance = (HINSTANCE) (intptr_t) tParam->jHInstance;
-		DWORD dwExStyle;
-		DWORD dwStyle;
-
-		dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-		dwStyle = WS_OVERLAPPEDWINDOW;
-
-		HWND hwnd = CreateWindowEx( dwExStyle,
-					    tParam->wndClassName,
-					    tParam->wndName,
-				dwStyle | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
-			  tParam->x, tParam->y, tParam->width, tParam->height,
-					    NULL, NULL, hInstance, NULL );
-
-		*(tParam->hWndPtr) = hwnd;
-		*(tParam->threadReady) = TRUE;
-	      }
-	      break;
-	    case TM_CLOSEWIN:
-	      {
-		ThreadParam *tParam = (ThreadParam*)msg.wParam;
-		HWND hwnd = *(tParam->hWndPtr);
-		DestroyWindow(hwnd);
-		*(tParam->threadReady) = TRUE;
-	      }
-	      break;
-	    case TM_STOP:
-	      return 0;
-	      break;	    
-	    default:
-	      TranslateMessage(&msg); 
-	      DispatchMessage(&msg); 
-	      break;
-	    }
-	}
+    while( (bRet = GetMessage( &msg, NULL, 0, 0 )) != 0) {
+        if (bRet == -1) {
+            return 0;
+        } else {
+            switch(msg.message) {
+                case TM_OPENWIN: {
+                    ThreadParam *tParam = (ThreadParam*)msg.wParam;
+                    HINSTANCE hInstance = (HINSTANCE) (intptr_t) tParam->jHInstance;
+                    DWORD dwExStyle;
+                    DWORD dwStyle;
+        
+                    dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
+                    dwStyle = WS_OVERLAPPEDWINDOW;
+        
+                    HWND hwnd = CreateWindowEx( dwExStyle,
+                                    tParam->wndClassName,
+                                    tParam->wndName,
+                                    dwStyle | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+                                    tParam->x, tParam->y, tParam->width, tParam->height,
+                                    NULL, NULL, hInstance, NULL );
+        
+                    tParam->hWnd = hwnd;
+                    tParam->threadReady = TRUE;
+                  }
+                  break;
+                case TM_CLOSEWIN: {
+                    ThreadParam *tParam = (ThreadParam*)msg.wParam;
+                    HWND hwnd = tParam->hWnd;
+                    DestroyWindow(hwnd);
+                    tParam->threadReady = TRUE;
+                  }
+                  break;
+                case TM_STOP:
+                  return 0;
+                default:
+                  TranslateMessage(&msg); 
+                  DispatchMessage(&msg); 
+                  break;
+            }
+        }
     }
-
- return 0;
+    return 0;
 } /* ThreadFunc */
 
 
@@ -129,12 +120,17 @@ HINSTANCE GetApplicationHandle() {
  */
 JNIEXPORT jboolean JNICALL
 Java_jogamp_nativewindow_windows_GDIUtil_CreateWindowClass
-    (JNIEnv *env, jclass _unused, jlong jHInstance, jstring jClazzName, jlong wndProc) 
+    (JNIEnv *env, jclass _unused, jlong jHInstance, jstring jClazzName, jlong wndProc)
 {
     HINSTANCE hInstance = (HINSTANCE) (intptr_t) jHInstance;
     const TCHAR* clazzName = NULL;
     WNDCLASS  wc;
     jboolean res;
+
+    if( 0 != threadid ) {
+        NativewindowCommon_throwNewRuntimeException(env, "Native threadid already created 0x%X", (int)threadid);
+        return JNI_FALSE;
+    }
 
 #ifdef UNICODE
     clazzName = NewtCommon_GetNullTerminatedStringChars(env, jClazzName);
@@ -146,7 +142,7 @@ Java_jogamp_nativewindow_windows_GDIUtil_CreateWindowClass
     if( GetClassInfo( hInstance,  clazzName, &wc ) ) {
         // registered already
         res = JNI_TRUE;
-    } else {      
+    } else {
         // register now
         ZeroMemory( &wc, sizeof( wc ) );
         wc.style = CS_HREDRAW | CS_VREDRAW ;
@@ -168,26 +164,16 @@ Java_jogamp_nativewindow_windows_GDIUtil_CreateWindowClass
     (*env)->ReleaseStringUTFChars(env, jClazzName, clazzName);
 #endif
 
-    if(res == JNI_TRUE)
-      {
-	volatile BOOL threadReady = FALSE;
-	ThreadParam tParam = {0};
-	tParam.threadReady = &threadReady;
+    if( JNI_TRUE == res ) {
+        ThreadParam tParam = {0};
 
-	CreateThread(NULL, 0, ThreadFunc, (LPVOID)&tParam, 0, &(threadid));
-	if(threadid)
-	  {
-	    while(1)
-	      {
-		if(threadReady)
-		  break;
-	      }
-	  }
-	else
-	  {
-	    res = JNI_FALSE;
-	  }
-      }
+        CreateThread(NULL, 0, ThreadFunc, (LPVOID)&tParam, 0, (DWORD *)&threadid);
+        if(threadid) {
+            while(!tParam.threadReady) { /* nop */ }
+        } else {
+            res = JNI_FALSE;
+        }
+    }
 
     return res;
 }
@@ -219,6 +205,11 @@ Java_jogamp_nativewindow_windows_GDIUtil_DestroyWindowClass
     (*env)->ReleaseStringUTFChars(env, jClazzName, clazzName);
 #endif
 
+    if( 0 == threadid ) {
+        NativewindowCommon_throwNewRuntimeException(env, "Native threadid zero 0x%X", (int)threadid);
+        return JNI_FALSE;
+    }
+
     PostThreadMessage(threadid, TM_STOP, 0, 0);
 
     return res;
@@ -233,17 +224,21 @@ JNIEXPORT jlong JNICALL
 Java_jogamp_nativewindow_windows_GDIUtil_CreateDummyWindowAndMessageLoop
     (JNIEnv *env, jclass _unused, jlong jHInstance, jstring jWndClassName, jstring jWndName, jint x, jint y, jint width, jint height) 
 {
-  volatile HWND hWnd = 0;
-  volatile BOOL threadReady = FALSE;
-  ThreadParam tParam = {0};
+    volatile HWND hWnd = 0;
+    ThreadParam tParam = {0};
 
-  tParam.jHInstance = jHInstance;
-  tParam.x = x;
-  tParam.y = y;
-  tParam.width = width;
-  tParam.height = height;
-  tParam.hWndPtr = &hWnd;
-  tParam.threadReady = &threadReady;
+    if( 0 == threadid ) {
+        NativewindowCommon_throwNewRuntimeException(env, "Native threadid zero 0x%X", (int)threadid);
+        return JNI_FALSE;
+    }
+
+    tParam.jHInstance = jHInstance;
+    tParam.x = x;
+    tParam.y = y;
+    tParam.width = width;
+    tParam.height = height;
+    tParam.hWnd = hWnd;
+    tParam.threadReady = FALSE;
 
 #ifdef UNICODE
     tParam.wndClassName = NewtCommon_GetNullTerminatedStringChars(env, jWndClassName);
@@ -253,13 +248,9 @@ Java_jogamp_nativewindow_windows_GDIUtil_CreateDummyWindowAndMessageLoop
     tParam.wndName = (*env)->GetStringUTFChars(env, jWndName, NULL);
 #endif
 
-  PostThreadMessage(threadid, TM_OPENWIN, (WPARAM)&tParam, 0);
+    PostThreadMessage(threadid, TM_OPENWIN, (WPARAM)&tParam, 0);
 
-  while(1)
-    {
-      if(threadReady)
-	break;
-    }
+    while(!tParam.threadReady) { /* nop */ }
 
 #ifdef UNICODE
     free((void*) tParam.wndClassName);
@@ -269,7 +260,7 @@ Java_jogamp_nativewindow_windows_GDIUtil_CreateDummyWindowAndMessageLoop
     (*env)->ReleaseStringUTFChars(env, jWndName, tParam.wndName);
 #endif
 
-  return (jlong) (intptr_t) hWnd;
+    return (jlong) (intptr_t) hWnd;
 }
 
 /*   Java->C glue code:
@@ -345,9 +336,8 @@ JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_windows_GDIUtil_initIDs0
     return JNI_TRUE;
 }
 
-LRESULT CALLBACK DummyWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-  return DefWindowProc(hWnd,uMsg,wParam,lParam);
+LRESULT CALLBACK DummyWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+    return DefWindowProc(hWnd,uMsg,wParam,lParam);
 }
 
 /*
@@ -358,7 +348,7 @@ LRESULT CALLBACK DummyWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_windows_GDIUtil_getDummyWndProc0
   (JNIEnv *env, jclass clazz)
 {
-  return (jlong) (intptr_t) DummyWndProc;
+    return (jlong) (intptr_t) DummyWndProc;
 }
 
 /*
@@ -415,21 +405,21 @@ JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_windows_GDIUtil_IsUndecorate
 JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_windows_GDIUtil_SendCloseMessage
 (JNIEnv *env, jclass unused, jlong jwin)
 {
-  ThreadParam tParam = {0};
-  volatile HWND hwnd = (HWND) (intptr_t) jwin;
-  volatile BOOL threadReady = FALSE;
+    ThreadParam tParam = {0};
+    volatile HWND hwnd = (HWND) (intptr_t) jwin;
 
-  tParam.hWndPtr = &(hwnd);
-  tParam.threadReady = &(threadReady);
-
-  PostThreadMessage(threadid, TM_CLOSEWIN, (WPARAM)&tParam, 0);
-
-  while(1)
-    {
-      if(threadReady)
-	break;
+    if( 0 == threadid ) {
+        NativewindowCommon_throwNewRuntimeException(env, "Native threadid zero 0x%X", (int)threadid);
+        return JNI_FALSE;
     }
 
-  return JNI_TRUE;
+    tParam.hWnd = hwnd;
+    tParam.threadReady = FALSE;
+
+    PostThreadMessage(threadid, TM_CLOSEWIN, (WPARAM)&tParam, 0);
+
+    while(!tParam.threadReady) { /* nop */ }
+
+    return JNI_TRUE;
 }
 

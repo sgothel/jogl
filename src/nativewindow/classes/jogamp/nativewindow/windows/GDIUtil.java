@@ -59,8 +59,10 @@ public class GDIUtil implements ToolkitProperties {
                     if( !initIDs0() ) {
                         throw new NativeWindowException("GDI: Could not initialized native stub");
                     }
-		    long a = getDummyWndProc0();
-                    dummyWindowClassFactory = new RegisteredClassFactory(dummyWindowClassNameBase, a);
+                    dummyWindowClassFactory = new RegisteredClassFactory(dummyWindowClassNameBase, getDummyWndProc0());
+                    if(DEBUG) {
+                        System.out.println("GDI.initSingleton() dummyWindowClassFactory "+dummyWindowClassFactory);
+                    }
                     isInit = true;
                 }
             }
@@ -91,7 +93,11 @@ public class GDIUtil implements ToolkitProperties {
 
     public static long CreateDummyWindow(int x, int y, int width, int height) {
         synchronized(dummyWindowSync) {
-            dummyWindowClass = dummyWindowClassFactory.getSharedClass();
+            if(DEBUG) {
+                System.out.println("GDI.CreateDummyWindow() dummyWindowClassFactory "+dummyWindowClassFactory);
+                System.out.println("GDI.CreateDummyWindow() dummyWindowClass "+dummyWindowClass);
+            }
+            // FIXME return CreateDummyWindow0(dummyWindowClass.getHInstance(), dummyWindowClass.getName(), dummyWindowClass.getName(), x, y, width, height);
             return CreateDummyWindowAndMessageLoop(dummyWindowClass.getHInstance(), dummyWindowClass.getName(), dummyWindowClass.getName(), x, y, width, height);
         }
     }
@@ -102,6 +108,7 @@ public class GDIUtil implements ToolkitProperties {
             if( null == dummyWindowClass ) {
                 throw new InternalError("GDI Error ("+dummyWindowClassFactory.getSharedRefCount()+"): SharedClass is null");
             }
+            // FIXME res = GDI.DestroyWindow(hwnd);
             res = SendCloseMessage(hwnd);
             dummyWindowClassFactory.releaseSharedClass();
         }
@@ -124,13 +131,13 @@ public class GDIUtil implements ToolkitProperties {
     public static native boolean DestroyWindowClass(long hInstance, String className);
 
     private static native boolean initIDs0();
-    static native long getDummyWndProc0();
+    private static native long getDummyWndProc0();
     private static native Object GetRelativeLocation0(long src_win, long dest_win, int src_x, int src_y);
     private static native boolean IsChild0(long win);
     private static native boolean IsUndecorated0(long win);
 
-    static native long CreateDummyWindow0(long hInstance, String className, String windowName, int x, int y, int width, int height);
+    private static native long CreateDummyWindow0(long hInstance, String className, String windowName, int x, int y, int width, int height);
 
-    static native long CreateDummyWindowAndMessageLoop(long hInstance, String className, String windowName, int x, int y, int width, int height);
-    static native boolean SendCloseMessage(long win);
+    private static native long CreateDummyWindowAndMessageLoop(long hInstance, String className, String windowName, int x, int y, int width, int height);
+    private static native boolean SendCloseMessage(long win);
 }
