@@ -126,7 +126,10 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  protected final void destroy() {
+  protected final void shutdownImpl() {
+    if( DEBUG ) {
+        System.err.println("MacOSXCGLDrawableFactory.shutdown");
+    }
     if(null != sharedMap) {
         sharedMap.clear();
         sharedMap = null;

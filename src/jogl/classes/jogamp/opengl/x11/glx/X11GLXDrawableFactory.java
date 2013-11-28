@@ -137,7 +137,10 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  protected final void destroy() {
+  protected final void shutdownImpl() {
+    if( DEBUG ) {
+        System.err.println("X11GLXDrawableFactory.shutdown");
+    }
     if(null != sharedResourceRunner) {
         sharedResourceRunner.stop();
         sharedResourceRunner = null;

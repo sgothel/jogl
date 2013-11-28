@@ -140,7 +140,10 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
 
 
   @Override
-  protected final void destroy() {
+  protected final void shutdownImpl() {
+    if( DEBUG ) {
+        System.err.println("WindowsWGLDrawableFactory.shutdown");
+    }
     if(null != sharedResourceRunner) {
         sharedResourceRunner.stop();
         sharedResourceRunner = null;

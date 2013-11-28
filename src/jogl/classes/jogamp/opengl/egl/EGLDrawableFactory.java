@@ -207,17 +207,19 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
 
     @Override
-    protected final void destroy() {
+    protected final void shutdownImpl() {
+        if( DEBUG ) {
+            System.err.println("EGLDrawableFactory.shutdown");
+        }
         if(null != sharedMap) {
             if(DEBUG) {
-                System.err.println("EGLDrawableFactory.destroy() .. ");
                 dumpMap();
             }
             Collection<SharedResource> srl = sharedMap.values();
             for(Iterator<SharedResource> sri = srl.iterator(); sri.hasNext(); ) {
                 SharedResource sr = sri.next();
                 if(DEBUG) {
-                    System.err.println("EGLDrawableFactory.destroy(): "+sr.device.toString());
+                    System.err.println("EGLDrawableFactory.shutdown: "+sr.device.toString());
                 }
                 sr.device.close();
             }

@@ -220,7 +220,7 @@ public abstract class GLDrawableFactory {
             }
             try {
                 gldf.resetDisplayGamma();
-                gldf.destroy();
+                gldf.shutdownImpl();
             } catch (Throwable t) {
                 System.err.println("GLDrawableFactory.shutdownImpl: Catched "+t.getClass().getName()+" during factory shutdown #"+(i+1)+"/"+gldfCount+" "+gldf.getClass().getName());
                 if( DEBUG ) {
@@ -251,7 +251,7 @@ public abstract class GLDrawableFactory {
   protected void enterThreadCriticalZone() {};
   protected void leaveThreadCriticalZone() {};
 
-  protected abstract void destroy();
+  protected abstract void shutdownImpl();
 
   public abstract void resetDisplayGamma();
 
