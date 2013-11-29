@@ -235,6 +235,9 @@ public abstract class GLDrawableFactory {
         eglFactory = null;
     }
     GLContext.shutdown();
+    if( DEBUG ) {
+        System.err.println("GLDrawableFactory.shutdownAll.X on thread "+getThreadName());
+    }
   }
 
   protected GLDrawableFactory() {
