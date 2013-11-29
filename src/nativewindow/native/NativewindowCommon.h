@@ -4,6 +4,7 @@
 
 #include <jni.h>
 #include <stdlib.h>
+#include <gluegen_stdint.h>
 
 int NativewindowCommon_init(JNIEnv *env);
 
@@ -14,5 +15,7 @@ void NativewindowCommon_FatalError(JNIEnv *env, const char* msg, ...);
 void NativewindowCommon_throwNewRuntimeException(JNIEnv *env, const char* msg, ...);
 
 JNIEnv* NativewindowCommon_GetJNIEnv (JavaVM * jvmHandle, int jvmVersion, int asDaemon, int * shallBeDetached);
+
+int64_t NativewindowCommon_CurrentTimeMillis();
 
 #endif

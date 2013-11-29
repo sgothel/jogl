@@ -49,6 +49,7 @@ public class RegisteredClassFactory {
 
     private final String classBaseName;
     private final long wndProc;
+    private final boolean useDummyDispatchThread;
 
     private RegisteredClass sharedClass = null;
     private int classIter = 0;
@@ -59,24 +60,29 @@ public class RegisteredClassFactory {
 
     @Override
     public final String toString() { return "RegisteredClassFactory[moduleHandle "+toHexString(hInstance)+", "+classBaseName+
-            ", wndProc "+toHexString(wndProc)+", shared[refCount "+sharedRefCount+", class "+sharedClass+"]]"; }
+            ", wndProc "+toHexString(wndProc)+", useDDT "+useDummyDispatchThread+", shared[refCount "+sharedRefCount+", class "+sharedClass+"]]"; }
 
     /**
      * Release the {@link RegisteredClass} of all {@link RegisteredClassFactory}.
      */
     public static void shutdownSharedClasses() {
         synchronized(registeredFactories) {
+            if( DEBUG ) {
+                System.err.println("RegisteredClassFactory.shutdownSharedClasses: "+registeredFactories.size());
+            }
             for(int j=0; j<registeredFactories.size(); j++) {
                 final RegisteredClassFactory rcf = registeredFactories.get(j);
                 synchronized(rcf.sync) {
                     if(null != rcf.sharedClass) {
-                        GDIUtil.DestroyWindowClass(rcf.sharedClass.getHInstance(), rcf.sharedClass.getName());
+                        GDIUtil.DestroyWindowClass0(rcf.sharedClass.getHInstance(), rcf.sharedClass.getName(), rcf.sharedClass.getHDispThreadContext());
                         rcf.sharedClass = null;
                         rcf.sharedRefCount = 0;
                         rcf.classIter = 0;
                         if(DEBUG) {
-                          System.err.println("RegisteredClassFactory #"+j+"/"+registeredFactories.size()+" shutdownSharedClasses : "+rcf.sharedClass);
+                            System.err.println("RegisteredClassFactory #"+j+"/"+registeredFactories.size()+": shutdownSharedClasses : "+rcf.sharedClass);
                         }
+                    } else if(DEBUG) {
+                        System.err.println("RegisteredClassFactory #"+j+"/"+registeredFactories.size()+": null");
                     }
                 }
             }
@@ -86,9 +92,10 @@ public class RegisteredClassFactory {
     /** Application handle. */
     public static long getHInstance() { return hInstance; }
 
-    public RegisteredClassFactory(String classBaseName, long wndProc) {
+    public RegisteredClassFactory(String classBaseName, long wndProc, boolean useDummyDispatchThread) {
         this.classBaseName = classBaseName;
         this.wndProc = wndProc;
+        this.useDummyDispatchThread = useDummyDispatchThread;
         synchronized(registeredFactories) {
             registeredFactories.add(this);
         }
@@ -107,12 +114,21 @@ public class RegisteredClassFactory {
                   // Retry with next clazz name, this could happen if more than one JVM is running
                   clazzName = classBaseName + classIter;
                   classIter++;
-                  registered = GDIUtil.CreateWindowClass(hInstance, clazzName, wndProc);
+                  registered = GDIUtil.CreateWindowClass0(hInstance, clazzName, wndProc);
               }
               if( !registered ) {
                   throw new NativeWindowException("Error: Could not create WindowClass: "+clazzName);
               }
-              sharedClass = new RegisteredClass(hInstance, clazzName);
+              final long hDispatchThread;
+              if( useDummyDispatchThread ) {
+                  hDispatchThread = GDIUtil.CreateDummyDispatchThread0();
+                  if( 0 == hDispatchThread ) {
+                      throw new NativeWindowException("Error: Could not create DDT "+clazzName);
+                  }
+              } else {
+                  hDispatchThread = 0;
+              }
+              sharedClass = new RegisteredClass(hInstance, clazzName, hDispatchThread);
               if(DEBUG) {
                   System.err.println("RegisteredClassFactory getSharedClass ("+sharedRefCount+") initialized: "+sharedClass);
               }
@@ -137,7 +153,7 @@ public class RegisteredClassFactory {
               throw new InternalError("Error ("+sharedRefCount+"): SharedClass is null");
           }
           if( 0 == sharedRefCount ) {
-              GDIUtil.DestroyWindowClass(sharedClass.getHInstance(), sharedClass.getName());
+              GDIUtil.DestroyWindowClass0(sharedClass.getHInstance(), sharedClass.getName(), sharedClass.getHDispThreadContext());
               if(DEBUG) {
                   System.err.println("RegisteredClassFactory releaseSharedClass ("+sharedRefCount+") released: "+sharedClass);
               }

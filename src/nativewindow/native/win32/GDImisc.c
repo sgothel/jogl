@@ -20,8 +20,10 @@
 
 #ifdef VERBOSE_ON
     #define DBG_PRINT(args...) fprintf(stderr, args);
+    #define DBG_PRINT_FLUSH(args...) fprintf(stderr, args); fflush(stderr);
 #else
     #define DBG_PRINT(args...)
+    #define DBG_PRINT_FLUSH(args...)
 #endif
 
 static const char * const ClazzNamePoint = "javax/media/nativewindow/util/Point";
@@ -30,12 +32,17 @@ static const char * const ClazzNamePointCstrSignature = "(II)V";
 
 static jclass pointClz = NULL;
 static jmethodID pointCstr = NULL;
+static jmethodID dumpStackID = NULL;
 
-static volatile DWORD threadid = 0;
+typedef struct {
+  HANDLE threadHandle;
+  DWORD threadId;
+  volatile BOOL threadReady;
+  volatile BOOL threadDead;
+} DummyThreadContext;
 
-typedef struct ThreadParam_s
-{
-  jlong jHInstance;
+typedef struct {
+  HINSTANCE hInstance;
   const TCHAR* wndClassName;
   const TCHAR* wndName;
   jint x;
@@ -44,17 +51,88 @@ typedef struct ThreadParam_s
   jint height;
   volatile HWND hWnd;
   volatile BOOL threadReady;
-} ThreadParam;
+} DummyThreadCommand;
 
 #define TM_OPENWIN WM_APP+1
 #define TM_CLOSEWIN WM_APP+2
 #define TM_STOP WM_APP+3
 
-DWORD WINAPI ThreadFunc(LPVOID param)
+static const char * sTM_OPENWIN = "TM_OPENWIN";
+static const char * sTM_CLOSEWIN = "TM_CLOSEWIN";
+static const char * sTM_STOP = "TM_STOP";
+
+/**  3s timeout */
+static const int64_t TIME_OUT = 3000000;
+
+static jboolean DDT_CheckAlive(JNIEnv *env, const char *msg, DummyThreadContext *ctx) {
+    if( ctx->threadDead ) {
+        NativewindowCommon_throwNewRuntimeException(env, "DDT is dead at %s", msg);
+        return JNI_FALSE;
+    } else {
+        DBG_PRINT_FLUSH("*** DDT-Check ALIVE @ %s\n", msg);
+        return JNI_TRUE;
+    }
+}
+
+static jboolean DDT_WaitUntilCreated(JNIEnv *env, DummyThreadContext *ctx, BOOL created) {
+    const int64_t t0 = NativewindowCommon_CurrentTimeMillis();
+    int64_t t1 = t0;
+    if( created ) {
+        while( !ctx->threadReady && t1-t0 < TIME_OUT ) {
+            t1 = NativewindowCommon_CurrentTimeMillis();
+        }
+        if( !ctx->threadReady ) {
+            NativewindowCommon_throwNewRuntimeException(env, "TIMEOUT (%d ms) while waiting for DDT CREATED", (int)(t1-t0));
+            return JNI_FALSE;
+        }
+        DBG_PRINT_FLUSH("*** DDT-Check CREATED\n");
+    } else {
+        while( !ctx->threadDead && t1-t0 < TIME_OUT ) {
+            t1 = NativewindowCommon_CurrentTimeMillis();
+        }
+        if( !ctx->threadDead ) {
+            NativewindowCommon_throwNewRuntimeException(env, "TIMEOUT (%d ms) while waiting for DDT DESTROYED", (int)(t1-t0));
+            return JNI_FALSE;
+        }
+        DBG_PRINT_FLUSH("*** DDT-Check DEAD\n");
+    }
+    return JNI_TRUE;
+}
+
+static jboolean DDT_WaitUntilReady(JNIEnv *env, const char *msg, DummyThreadCommand *cmd) {
+    const int64_t t0 = NativewindowCommon_CurrentTimeMillis();
+    int64_t t1 = t0;
+    while( !cmd->threadReady && t1-t0 < TIME_OUT ) {
+        t1 = NativewindowCommon_CurrentTimeMillis();
+    }
+    if( !cmd->threadReady ) {
+        NativewindowCommon_throwNewRuntimeException(env, "TIMEOUT (%d ms) while waiting for DDT %s", (int)(t1-t0), msg);
+        return JNI_FALSE;
+    }
+    DBG_PRINT_FLUSH("*** DDT-Check READY @ %s\n", msg);
+    return JNI_TRUE;
+}
+
+static HWND DummyWindowCreate
+    (HINSTANCE hInstance, const TCHAR* wndClassName, const TCHAR* wndName, jint x, jint y, jint width, jint height) 
+{
+    DWORD dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
+    DWORD dwStyle = WS_OVERLAPPEDWINDOW;
+    HWND hWnd = CreateWindowEx( dwExStyle,
+                                wndClassName,
+                                wndName,
+                                dwStyle | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+                                x, y, width, height,
+                                NULL, NULL, hInstance, NULL );
+    return hWnd;
+}
+
+static DWORD WINAPI DummyDispatchThreadFunc(LPVOID param)
 {
     MSG msg;
     BOOL bRet;
-    ThreadParam *startupThreadParam = (ThreadParam*)param;
+    BOOL bEOL=FALSE;
+    DummyThreadContext *threadContext = (DummyThreadContext*)param;
 
     /* there can not be any messages for us now, as the creator waits for
        threadReady before continuing, but we must use this PeekMessage() to
@@ -62,42 +140,40 @@ DWORD WINAPI ThreadFunc(LPVOID param)
     PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE);
 
     /* now we can safely say: we have a qeue and are ready to receive messages */
-    startupThreadParam->threadReady = TRUE;
+    // threadContext->threadId = GetCurrentThreadId();
+    threadContext->threadDead = FALSE;
+    threadContext->threadReady = TRUE;
 
-    while( (bRet = GetMessage( &msg, NULL, 0, 0 )) != 0) {
-        if (bRet == -1) {
-            return 0;
+    while( !bEOL && (bRet = GetMessage( &msg, NULL, 0, 0 )) != 0 ) {
+        if ( -1 == bRet ) {
+            fprintf(stderr, "DummyDispatchThread (id %d): GetMessage Error %d, werr %d\n", 
+                (int)threadContext->threadId, (int)bRet, (int)GetLastError());
+            fflush(stderr);
+            bEOL = TRUE;
+            break; // EOL
         } else {
             switch(msg.message) {
                 case TM_OPENWIN: {
-                    ThreadParam *tParam = (ThreadParam*)msg.wParam;
-                    HINSTANCE hInstance = (HINSTANCE) (intptr_t) tParam->jHInstance;
-                    DWORD dwExStyle;
-                    DWORD dwStyle;
-        
-                    dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-                    dwStyle = WS_OVERLAPPEDWINDOW;
-        
-                    HWND hwnd = CreateWindowEx( dwExStyle,
-                                    tParam->wndClassName,
-                                    tParam->wndName,
-                                    dwStyle | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
-                                    tParam->x, tParam->y, tParam->width, tParam->height,
-                                    NULL, NULL, hInstance, NULL );
-        
-                    tParam->hWnd = hwnd;
+                    DummyThreadCommand *tParam = (DummyThreadCommand*)msg.wParam;
+                    DBG_PRINT_FLUSH("*** DDT-Dispatch OPENWIN\n");
+                    tParam->hWnd = DummyWindowCreate(tParam->hInstance, tParam->wndClassName, tParam->wndName, tParam->x, tParam->y, tParam->width, tParam->height);
                     tParam->threadReady = TRUE;
                   }
                   break;
                 case TM_CLOSEWIN: {
-                    ThreadParam *tParam = (ThreadParam*)msg.wParam;
-                    HWND hwnd = tParam->hWnd;
-                    DestroyWindow(hwnd);
+                    DummyThreadCommand *tParam = (DummyThreadCommand*)msg.wParam;
+                    DBG_PRINT_FLUSH("*** DDT-Dispatch CLOSEWIN\n");
+                    DestroyWindow(tParam->hWnd);
                     tParam->threadReady = TRUE;
                   }
                   break;
-                case TM_STOP:
-                  return 0;
+                case TM_STOP: {
+                    DummyThreadCommand *tParam = (DummyThreadCommand*)msg.wParam;
+                    DBG_PRINT_FLUSH("*** DDT-Dispatch STOP -> DEAD\n");
+                    tParam->threadReady = TRUE;
+                    bEOL = TRUE;
+                  }
+                  break; // EOL
                 default:
                   TranslateMessage(&msg); 
                   DispatchMessage(&msg); 
@@ -105,8 +181,12 @@ DWORD WINAPI ThreadFunc(LPVOID param)
             }
         }
     }
+    /* dead */
+    DBG_PRINT_FLUSH("*** DDT-Dispatch DEAD\n");
+    threadContext->threadDead = TRUE;
+    ExitThread(0);
     return 0;
-} /* ThreadFunc */
+}
 
 
 HINSTANCE GetApplicationHandle() {
@@ -115,22 +195,54 @@ HINSTANCE GetApplicationHandle() {
 
 /*   Java->C glue code:
  *   Java package: jogamp.nativewindow.windows.GDIUtil
- *    Java method: boolean CreateWindowClass(long hInstance, java.lang.String clazzName, long wndProc)
- *     C function: BOOL CreateWindowClass(HANDLE hInstance, LPCSTR clazzName, HANDLE wndProc);
+ *   Java method: long CreateDummyDispatchThread0()
+ */
+JNIEXPORT jlong JNICALL
+Java_jogamp_nativewindow_windows_GDIUtil_CreateDummyDispatchThread0
+    (JNIEnv *env, jclass _unused)
+{
+    DWORD threadId = 0;
+    DummyThreadContext * dispThreadCtx = calloc(1, sizeof(DummyThreadContext));
+
+    dispThreadCtx->threadHandle = CreateThread(NULL, 0, DummyDispatchThreadFunc, (LPVOID)dispThreadCtx, 0, &threadId);
+    if( NULL == dispThreadCtx->threadHandle || 0 == threadId ) {
+        const HANDLE threadHandle = dispThreadCtx->threadHandle;
+        if( NULL != threadHandle ) {
+            TerminateThread(threadHandle, 0);
+        }
+        free(dispThreadCtx);
+        NativewindowCommon_throwNewRuntimeException(env, "DDT CREATE failed handle %p, id %d, werr %d", 
+            (void*)threadHandle, (int)threadId, (int)GetLastError());
+        return (jlong)0;
+    }
+    if( JNI_FALSE == DDT_WaitUntilCreated(env, dispThreadCtx, TRUE) ) {
+        const HANDLE threadHandle = dispThreadCtx->threadHandle;
+        if( NULL != threadHandle ) {
+            TerminateThread(threadHandle, 0);
+        }
+        free(dispThreadCtx);
+        NativewindowCommon_throwNewRuntimeException(env, "DDT CREATE (ack) failed handle %p, id %d, werr %d", 
+            (void*)threadHandle, (int)threadId, (int)GetLastError());
+        return (jlong)0;
+    }
+    DBG_PRINT_FLUSH("*** DDT Created %d\n", (int)threadId);
+    dispThreadCtx->threadId = threadId;
+    return (jlong) (intptr_t) dispThreadCtx;
+}
+
+/*   Java->C glue code:
+ *   Java package: jogamp.nativewindow.windows.GDIUtil
+ *    Java method: boolean CreateWindowClass0(long hInstance, java.lang.String clazzName, long wndProc)
+ *     C function: BOOL CreateWindowClass0(HANDLE hInstance, LPCSTR clazzName, HANDLE wndProc);
  */
 JNIEXPORT jboolean JNICALL
-Java_jogamp_nativewindow_windows_GDIUtil_CreateWindowClass
+Java_jogamp_nativewindow_windows_GDIUtil_CreateWindowClass0
     (JNIEnv *env, jclass _unused, jlong jHInstance, jstring jClazzName, jlong wndProc)
 {
     HINSTANCE hInstance = (HINSTANCE) (intptr_t) jHInstance;
     const TCHAR* clazzName = NULL;
     WNDCLASS  wc;
     jboolean res;
-
-    if( 0 != threadid ) {
-        NativewindowCommon_throwNewRuntimeException(env, "Native threadid already created 0x%X", (int)threadid);
-        return JNI_FALSE;
-    }
 
 #ifdef UNICODE
     clazzName = NewtCommon_GetNullTerminatedStringChars(env, jClazzName);
@@ -164,31 +276,20 @@ Java_jogamp_nativewindow_windows_GDIUtil_CreateWindowClass
     (*env)->ReleaseStringUTFChars(env, jClazzName, clazzName);
 #endif
 
-    if( JNI_TRUE == res ) {
-        ThreadParam tParam = {0};
-
-        CreateThread(NULL, 0, ThreadFunc, (LPVOID)&tParam, 0, (DWORD *)&threadid);
-        if(threadid) {
-            while(!tParam.threadReady) { /* nop */ }
-        } else {
-            res = JNI_FALSE;
-        }
-    }
-
     return res;
 }
 
 /*   Java->C glue code:
  *   Java package: jogamp.nativewindow.windows.GDIUtil
- *    Java method: boolean DestroyWindowClass(long hInstance, java.lang.String className)
- *     C function: BOOL DestroyWindowClass(HANDLE hInstance, LPCSTR className);
+ *   Java method: boolean DestroyWindowClass0(long hInstance, java.lang.String className, long dispThreadCtx)
  */
 JNIEXPORT jboolean JNICALL
-Java_jogamp_nativewindow_windows_GDIUtil_DestroyWindowClass
-    (JNIEnv *env, jclass _unused, jlong jHInstance, jstring jClazzName) 
+Java_jogamp_nativewindow_windows_GDIUtil_DestroyWindowClass0
+    (JNIEnv *env, jclass gdiClazz, jlong jHInstance, jstring jClazzName, jlong jDispThreadCtx) 
 {
     HINSTANCE hInstance = (HINSTANCE) (intptr_t) jHInstance;
     const TCHAR* clazzName = NULL;
+    DummyThreadContext * dispThreadCtx = (DummyThreadContext *) (intptr_t) jDispThreadCtx;
     jboolean res;
 
 #ifdef UNICODE
@@ -205,39 +306,73 @@ Java_jogamp_nativewindow_windows_GDIUtil_DestroyWindowClass
     (*env)->ReleaseStringUTFChars(env, jClazzName, clazzName);
 #endif
 
-    if( 0 == threadid ) {
-        NativewindowCommon_throwNewRuntimeException(env, "Native threadid zero 0x%X", (int)threadid);
-        return JNI_FALSE;
-    }
+    if( NULL != dispThreadCtx) {
+        const HANDLE threadHandle = dispThreadCtx->threadHandle;
+        const DWORD threadId = dispThreadCtx->threadId;
+        DummyThreadCommand tParam = {0};
+        tParam.threadReady = FALSE;
+        DBG_PRINT_FLUSH("*** DDT Destroy %d\n", (int)threadId);
+#ifdef VERBOSE_ON
+        (*env)->CallStaticVoidMethod(env, gdiClazz, dumpStackID);
+#endif
 
-    PostThreadMessage(threadid, TM_STOP, 0, 0);
+        if( JNI_FALSE == DDT_CheckAlive(env, sTM_STOP, dispThreadCtx) ) {
+            free(dispThreadCtx);
+            NativewindowCommon_throwNewRuntimeException(env, "DDT %s (alive) failed handle %p, id %d, werr %d", 
+                sTM_STOP, (void*)threadHandle, (int)threadId, (int)GetLastError());
+            return JNI_FALSE;
+        }
+        if ( 0 != PostThreadMessage(dispThreadCtx->threadId, TM_STOP, (WPARAM)&tParam, 0) ) {
+            if( JNI_FALSE == DDT_WaitUntilReady(env, sTM_STOP, &tParam) ) {
+                if( NULL != threadHandle ) {
+                    TerminateThread(threadHandle, 0);
+                }
+                free(dispThreadCtx);
+                NativewindowCommon_throwNewRuntimeException(env, "DDT Post %s (ack) failed handle %p, id %d, werr %d",
+                    sTM_STOP, (void*)threadHandle, (int)threadId, (int)GetLastError());
+                return JNI_FALSE;
+            }
+            if( JNI_FALSE == DDT_WaitUntilCreated(env, dispThreadCtx, FALSE) ) {
+                if( NULL != threadHandle ) {
+                    TerminateThread(threadHandle, 0);
+                }
+                free(dispThreadCtx);
+                NativewindowCommon_throwNewRuntimeException(env, "DDT KILL %s (ack) failed handle %p, id %d, werr %d",
+                    sTM_STOP, (void*)threadHandle, (int)threadId, (int)GetLastError());
+                return JNI_FALSE;
+            }
+            free(dispThreadCtx); // free after proper DDT shutdown!
+        } else {
+            if( NULL != threadHandle ) {
+                TerminateThread(threadHandle, 0);
+            }
+            free(dispThreadCtx);
+            NativewindowCommon_throwNewRuntimeException(env, "DDT Post %s failed handle %p, id %d, werr %d",
+                sTM_STOP, (void*)threadHandle, (int)threadId, (int)GetLastError());
+            return JNI_FALSE;
+        }
+    }
 
     return res;
 }
 
 /*   Java->C glue code:
  *   Java package: jogamp.nativewindow.windows.GDIUtil
- *    Java method: long CreateDummyWindowAndMessageLoop(long hInstance, java.lang.String className, java.lang.String windowName, int x, int y, int width, int height)
- *     C function: HANDLE CreateDummyWindowAndMessageLoop(HANDLE hInstance, LPCSTR className, LPCSTR windowName, int x, int y, int width, int height);
+ *   Java method: long CreateDummyWindow0(long hInstance, java.lang.String className, jlong dispThreadCtx, java.lang.String windowName, int x, int y, int width, int height)
  */
 JNIEXPORT jlong JNICALL
-Java_jogamp_nativewindow_windows_GDIUtil_CreateDummyWindowAndMessageLoop
-    (JNIEnv *env, jclass _unused, jlong jHInstance, jstring jWndClassName, jstring jWndName, jint x, jint y, jint width, jint height) 
+Java_jogamp_nativewindow_windows_GDIUtil_CreateDummyWindow0
+    (JNIEnv *env, jclass _unused, jlong jHInstance, jstring jWndClassName, jlong jDispThreadCtx, jstring jWndName, jint x, jint y, jint width, jint height) 
 {
-    volatile HWND hWnd = 0;
-    ThreadParam tParam = {0};
+    DummyThreadContext * dispThreadCtx = (DummyThreadContext *) (intptr_t) jDispThreadCtx;
+    DummyThreadCommand tParam = {0};
 
-    if( 0 == threadid ) {
-        NativewindowCommon_throwNewRuntimeException(env, "Native threadid zero 0x%X", (int)threadid);
-        return JNI_FALSE;
-    }
-
-    tParam.jHInstance = jHInstance;
+    tParam.hInstance = (HINSTANCE) (intptr_t) jHInstance;
     tParam.x = x;
     tParam.y = y;
     tParam.width = width;
     tParam.height = height;
-    tParam.hWnd = hWnd;
+    tParam.hWnd = 0;
     tParam.threadReady = FALSE;
 
 #ifdef UNICODE
@@ -248,9 +383,37 @@ Java_jogamp_nativewindow_windows_GDIUtil_CreateDummyWindowAndMessageLoop
     tParam.wndName = (*env)->GetStringUTFChars(env, jWndName, NULL);
 #endif
 
-    PostThreadMessage(threadid, TM_OPENWIN, (WPARAM)&tParam, 0);
-
-    while(!tParam.threadReady) { /* nop */ }
+    if( NULL == dispThreadCtx ) {
+        tParam.hWnd = DummyWindowCreate(tParam.hInstance, tParam.wndClassName, tParam.wndName, tParam.x, tParam.y, tParam.width, tParam.height);
+    } else {
+        const HANDLE threadHandle = dispThreadCtx->threadHandle;
+        const DWORD threadId = dispThreadCtx->threadId;
+        if( JNI_FALSE == DDT_CheckAlive(env, sTM_OPENWIN, dispThreadCtx) ) {
+            free(dispThreadCtx);
+            NativewindowCommon_throwNewRuntimeException(env, "DDT %s (alive) failed handle %p, id %d, werr %d", 
+                sTM_OPENWIN, (void*)threadHandle, (int)threadId, (int)GetLastError());
+        } else {
+            if( 0 != PostThreadMessage(dispThreadCtx->threadId, TM_OPENWIN, (WPARAM)&tParam, 0) ) {
+                if( JNI_FALSE == DDT_WaitUntilReady(env, sTM_OPENWIN, &tParam) ) {
+                    if( NULL != threadHandle ) {
+                        TerminateThread(threadHandle, 0);
+                    }
+                    free(dispThreadCtx);
+                    tParam.hWnd = 0;
+                    NativewindowCommon_throwNewRuntimeException(env, "DDT Post %s (ack) failed handle %p, id %d, werr %d", 
+                        sTM_OPENWIN, (void*)threadHandle, (int)threadId, (int)GetLastError());
+                }
+            } else {
+                if( NULL != threadHandle ) {
+                    TerminateThread(threadHandle, 0);
+                }
+                free(dispThreadCtx);
+                tParam.hWnd = 0;
+                NativewindowCommon_throwNewRuntimeException(env, "DDT Post %s to handle %p, id %d failed, werr %d", 
+                    sTM_OPENWIN, (void*)threadHandle, (int)threadId, (int)GetLastError());
+            }
+        }
+    }
 
 #ifdef UNICODE
     free((void*) tParam.wndClassName);
@@ -260,54 +423,58 @@ Java_jogamp_nativewindow_windows_GDIUtil_CreateDummyWindowAndMessageLoop
     (*env)->ReleaseStringUTFChars(env, jWndName, tParam.wndName);
 #endif
 
-    return (jlong) (intptr_t) hWnd;
+    return (jlong) (intptr_t) tParam.hWnd;
 }
 
-/*   Java->C glue code:
- *   Java package: jogamp.nativewindow.windows.GDIUtil
- *    Java method: long CreateDummyWindow0(long hInstance, java.lang.String className, java.lang.String windowName, int x, int y, int width, int height)
- *     C function: HANDLE CreateDummyWindow0(HANDLE hInstance, LPCSTR className, LPCSTR windowName, int x, int y, int width, int height);
+/*
+ * Class:     jogamp_nativewindow_windows_GDIUtil
+ * Method:    DestroyWindow0
  */
-JNIEXPORT jlong JNICALL
-Java_jogamp_nativewindow_windows_GDIUtil_CreateDummyWindow0
-    (JNIEnv *env, jclass _unused, jlong jHInstance, jstring jWndClassName, jstring jWndName, jint x, jint y, jint width, jint height) 
+JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_windows_GDIUtil_DestroyWindow0
+(JNIEnv *env, jclass unused, jlong jDispThreadCtx, jlong jwin)
 {
-    HINSTANCE hInstance = (HINSTANCE) (intptr_t) jHInstance;
-    const TCHAR* wndClassName = NULL;
-    const TCHAR* wndName = NULL;
-    DWORD     dwExStyle;
-    DWORD     dwStyle;
-    HWND      hWnd;
+    jboolean res = JNI_TRUE;
+    DummyThreadContext * dispThreadCtx = (DummyThreadContext *) (intptr_t) jDispThreadCtx;
+    HWND hWnd = (HWND) (intptr_t) jwin;
+    if( NULL == dispThreadCtx ) {
+        DestroyWindow(hWnd);
+    } else {
+        const HANDLE threadHandle = dispThreadCtx->threadHandle;
+        const DWORD threadId = dispThreadCtx->threadId;
+        DummyThreadCommand tParam = {0};
 
-#ifdef UNICODE
-    wndClassName = NewtCommon_GetNullTerminatedStringChars(env, jWndClassName);
-    wndName = NewtCommon_GetNullTerminatedStringChars(env, jWndName);
-#else
-    wndClassName = (*env)->GetStringUTFChars(env, jWndClassName, NULL);
-    wndName = (*env)->GetStringUTFChars(env, jWndName, NULL);
-#endif
+        tParam.hWnd = hWnd;
+        tParam.threadReady = FALSE;
 
-    dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-    dwStyle = WS_OVERLAPPEDWINDOW;
-
-    hWnd = CreateWindowEx( dwExStyle,
-                           wndClassName,
-                           wndName,
-                           dwStyle | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
-                           x, y, width, height,
-                           NULL, NULL, hInstance, NULL );
-
-#ifdef UNICODE
-    free((void*) wndClassName);
-    free((void*) wndName);
-#else
-    (*env)->ReleaseStringUTFChars(env, jWndClassName, wndClassName);
-    (*env)->ReleaseStringUTFChars(env, jWndName, wndName);
-#endif
-
-    return (jlong) (intptr_t) hWnd;
+        if( JNI_FALSE == DDT_CheckAlive(env, sTM_CLOSEWIN, dispThreadCtx) ) {
+            free(dispThreadCtx);
+            res = JNI_FALSE;
+            NativewindowCommon_throwNewRuntimeException(env, "DDT %s (alive) failed handle %p, id %d, werr %d", 
+                sTM_CLOSEWIN, (void*)threadHandle, (int)threadId, (int)GetLastError());
+        } else {
+            if ( 0 != PostThreadMessage(dispThreadCtx->threadId, TM_CLOSEWIN, (WPARAM)&tParam, 0) ) {
+                if( JNI_FALSE == DDT_WaitUntilReady(env, sTM_CLOSEWIN, &tParam) ) {
+                    if( NULL != threadHandle ) {
+                        TerminateThread(threadHandle, 0);
+                    }
+                    free(dispThreadCtx);
+                    res = JNI_FALSE;
+                    NativewindowCommon_throwNewRuntimeException(env, "DDT Post %s (ack) failed handle %p, id %d, werr %d", 
+                        sTM_CLOSEWIN, (void*)threadHandle, (int)threadId, (int)GetLastError());
+                }
+            } else {
+                if( NULL != threadHandle ) {
+                    TerminateThread(threadHandle, 0);
+                }
+                free(dispThreadCtx);
+                res = JNI_FALSE;
+                NativewindowCommon_throwNewRuntimeException(env, "DDT Post %s to handle %p, id %d failed, werr %d", 
+                    sTM_CLOSEWIN, (void*)threadHandle, (int)threadId, (int)GetLastError());
+            }
+        }
+    }
+    return res;
 }
-
 
 /*
  * Class:     jogamp_nativewindow_windows_GDIUtil
@@ -315,7 +482,7 @@ Java_jogamp_nativewindow_windows_GDIUtil_CreateDummyWindow0
  * Signature: ()Z
  */
 JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_windows_GDIUtil_initIDs0
-  (JNIEnv *env, jclass clazz)
+  (JNIEnv *env, jclass gdiClazz)
 {
     if(NativewindowCommon_init(env)) {
         jclass c = (*env)->FindClass(env, ClazzNamePoint);
@@ -332,11 +499,15 @@ JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_windows_GDIUtil_initIDs0
             NativewindowCommon_FatalError(env, "FatalError jogamp_nativewindow_windows_GDIUtil: can't fetch %s.%s %s",
                 ClazzNamePoint, ClazzAnyCstrName, ClazzNamePointCstrSignature);
         }
+        dumpStackID = (*env)->GetStaticMethodID(env, gdiClazz, "dumpStack", "()V");
+        if(NULL==dumpStackID) {
+            NativewindowCommon_FatalError(env, "FatalError jogamp_nativewindow_windows_GDIUtil: can't get method dumpStack");
+        }
     }
     return JNI_TRUE;
 }
 
-LRESULT CALLBACK DummyWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+static LRESULT CALLBACK DummyWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     return DefWindowProc(hWnd,uMsg,wParam,lParam);
 }
 
@@ -379,8 +550,8 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_windows_GDIUtil_GetRelativeLo
 JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_windows_GDIUtil_IsChild0
   (JNIEnv *env, jclass unused, jlong jwin)
 {
-    HWND hwnd = (HWND) (intptr_t) jwin;
-    LONG style = GetWindowLong(hwnd, GWL_STYLE);
+    HWND hWnd = (HWND) (intptr_t) jwin;
+    LONG style = GetWindowLong(hWnd, GWL_STYLE);
     BOOL bIsChild = 0 != (style & WS_CHILD) ;
     return bIsChild ? JNI_TRUE : JNI_FALSE;
 }
@@ -392,34 +563,9 @@ JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_windows_GDIUtil_IsChild0
 JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_windows_GDIUtil_IsUndecorated0
   (JNIEnv *env, jclass unused, jlong jwin)
 {
-    HWND hwnd = (HWND) (intptr_t) jwin;
-    LONG style = GetWindowLong(hwnd, GWL_STYLE);
+    HWND hWnd = (HWND) (intptr_t) jwin;
+    LONG style = GetWindowLong(hWnd, GWL_STYLE);
     BOOL bIsUndecorated = 0 != (style & (WS_CHILD|WS_POPUP)) ;
     return bIsUndecorated ? JNI_TRUE : JNI_FALSE;
-}
-
-/*
- * Class:     jogamp_nativewindow_windows_GDIUtil
- * Method:    SendCloseMessage
- */
-JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_windows_GDIUtil_SendCloseMessage
-(JNIEnv *env, jclass unused, jlong jwin)
-{
-    ThreadParam tParam = {0};
-    volatile HWND hwnd = (HWND) (intptr_t) jwin;
-
-    if( 0 == threadid ) {
-        NativewindowCommon_throwNewRuntimeException(env, "Native threadid zero 0x%X", (int)threadid);
-        return JNI_FALSE;
-    }
-
-    tParam.hWnd = hwnd;
-    tParam.threadReady = FALSE;
-
-    PostThreadMessage(threadid, TM_CLOSEWIN, (WPARAM)&tParam, 0);
-
-    while(!tParam.threadReady) { /* nop */ }
-
-    return JNI_TRUE;
 }
 

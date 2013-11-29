@@ -51,7 +51,7 @@ public class DisplayDriver extends DisplayImpl {
     static {
         NEWTJNILibLoader.loadNEWT();
 
-        sharedClassFactory = new RegisteredClassFactory(newtClassBaseName, WindowDriver.getNewtWndProc0());
+        sharedClassFactory = new RegisteredClassFactory(newtClassBaseName, WindowDriver.getNewtWndProc0(), false /* useDummyDispatchThread */);
 
         if (!WindowDriver.initIDs0(RegisteredClassFactory.getHInstance())) {
             throw new NativeWindowException("Failed to initialize WindowsWindow jmethodIDs");

@@ -1,6 +1,7 @@
 
 #include "NativewindowCommon.h"
 #include <string.h>
+#include <sys/time.h>
 
 static const char * const ClazzNameRuntimeException = "java/lang/RuntimeException";
 static jclass    runtimeExceptionClz=NULL;
@@ -104,5 +105,11 @@ JNIEnv* NativewindowCommon_GetJNIEnv (JavaVM * jvmHandle, int jvmVersion, int as
     }
     *shallBeDetached = NULL != newEnv;
     return curEnv;
+}
+
+int64_t NativewindowCommon_CurrentTimeMillis() {
+    struct timeval tv;
+    gettimeofday(&tv,NULL);
+    return (int64_t)tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
 
