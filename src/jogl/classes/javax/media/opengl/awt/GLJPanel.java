@@ -58,7 +58,6 @@ import java.util.List;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
@@ -361,12 +360,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
    * <code>true</code>, otherwise <code>false</code>.
    * </p>
    * <p>
-   * Due to threading restrictions, <i>arbitrary thread</i> initialization is <i>not supported</i> on:
-   * <ul>
-   *   <li>{@link NativeWindowFactory.TYPE_WINDOWS}</li>
-   * </ul>
-   * </p>
-   * <p>
    * If <code>offthread</code> is <code>false</code>, initialization be performed
    * on the current thread and method returns after initialization.<br/>
    * Method returns <code>true</code> if initialization was successful, otherwise <code>false</code>.
@@ -375,9 +368,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
    */
   public final boolean initializeBackend(boolean offthread) {
     if( offthread ) {
-        if( NativeWindowFactory.TYPE_WINDOWS == NativeWindowFactory.getNativeWindowType(true) ) {
-            return false;
-        }
         new Thread(getThreadName()+"-GLJPanel_Init") {
             public void run() {
               if( !isInitialized ) {
