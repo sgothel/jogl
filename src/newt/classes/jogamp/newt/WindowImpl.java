@@ -164,6 +164,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private boolean autoPosition = true; // default: true (allow WM to choose top-level position, if not set by user)
 
     private int nfs_width, nfs_height, nfs_x, nfs_y; // non fullscreen client-area size/pos w/o insets
+    private boolean nfs_alwaysOnTop; // non fullscreen alwaysOnTop setting
     private NativeWindow nfs_parent = null;          // non fullscreen parent, in case explicit reparenting is performed (offscreen)
     private String title = "Newt Window";
     private boolean undecorated = false;
@@ -1610,7 +1611,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public final void setAlwaysOnTop(boolean value) {
-        runOnEDTIfAvail(true, new AlwaysOnTopAction(value));
+        if( isFullscreen() ) {
+            nfs_alwaysOnTop = value;
+        } else {
+            runOnEDTIfAvail(true, new AlwaysOnTopAction(value));
+        }
     }
 
     @Override
@@ -2012,6 +2017,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 final RectangleImmutable sviewport = screen.getViewport();
                 final RectangleImmutable viewport;
                 final int fs_span_flag;
+                final boolean alwaysOnTopChange;
                 if(fullscreen) {
                     if( null == fullscreenMonitors ) {
                         if( fullscreenUseMainMonitor ) {
@@ -2032,10 +2038,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     nfs_y = oldY;
                     nfs_width = oldWidth;
                     nfs_height = oldHeight;
+                    nfs_alwaysOnTop = alwaysOnTop;
                     x = viewport.getX();
                     y = viewport.getY();
                     w = viewport.getWidth();
                     h = viewport.getHeight();
+                    alwaysOnTop = false;
+                    alwaysOnTopChange = nfs_alwaysOnTop != alwaysOnTop;
                 } else {
                     fullscreenUseMainMonitor = true;
                     fullscreenMonitors = null;
@@ -2045,6 +2054,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     y = nfs_y;
                     w = nfs_width;
                     h = nfs_height;
+                    alwaysOnTopChange = nfs_alwaysOnTop != alwaysOnTop;
+                    alwaysOnTop = nfs_alwaysOnTop;
 
                     if(null!=parentWindow) {
                         // reset position to 0/0 within parent space
@@ -2063,7 +2074,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("Window fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h+", "+isUndecorated()+
                                        ", virtl-screenSize: "+sviewport+", monitorsViewport "+viewport+
-                                       ", spanning "+(0!=fs_span_flag)+" @ "+Thread.currentThread().getName());
+                                       ", spanning "+(0!=fs_span_flag)+
+                                       ", alwaysOnTop "+alwaysOnTop+(alwaysOnTopChange?"*":"")+
+                                       " @ "+Thread.currentThread().getName());
                 }
 
                 final DisplayImpl display = (DisplayImpl) screen.getDisplay();
@@ -2090,9 +2103,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     parentWindowLocked = null;
                 }
                 try {
+                    if(alwaysOnTopChange && fullscreen) {
+                        // Enter fullscreen - Disable alwaysOnTop
+                        reconfigureWindowImpl(nfs_x, nfs_y, nfs_width, nfs_height, getReconfigureFlags(FLAG_CHANGE_ALWAYSONTOP, isVisible()));
+                    }
                     reconfigureWindowImpl(x, y, w, h,
                                           getReconfigureFlags( ( ( null != parentWindowLocked ) ? FLAG_CHANGE_PARENTING : 0 ) |
                                                                fs_span_flag | FLAG_CHANGE_FULLSCREEN | FLAG_CHANGE_DECORATION, isVisible()) );
+                    if(alwaysOnTopChange && !fullscreen) {
+                        // Leave fullscreen - Restore alwaysOnTop
+                        reconfigureWindowImpl(x, y, w, h, getReconfigureFlags(FLAG_CHANGE_ALWAYSONTOP, isVisible()));
+                    }
                 } finally {
                     if(null!=parentWindowLocked) {
                         parentWindowLocked.unlockSurface();

@@ -6,7 +6,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestMainVersion
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNewtAWTWrapper %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT -time 30000
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT %*
+scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT -vsync -time 4000 -x 10 -y 10 -width 100 -height 100 -screen 0
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT -vsync -time 40000 -width 100 -height 100 -screen 0 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT -time 5000
@@ -24,7 +24,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.TexCubeES2 
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.perf.TestPerf001RawInit00NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLJPanelInit01AWT %*
-scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLJPanelInit02AWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLJPanelInit02AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLWindowInit03NEWT %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledRendering1GL2NEWT %*
