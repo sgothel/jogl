@@ -827,8 +827,21 @@ NS_ENDHANDLER
 NS_DURING
     // Available >= 10.5 - Makes the menubar disapear
     if( fullscreen ) {
+        /** 
+         * See Bug 914: We don't use exclusive fullscreen anymore (capturing display)
+         * allowing ALT-TAB to allow process/app switching!
+         * Shall have no penalty on modern GPU and is also recommended, see bottom box @
+         * <https://developer.apple.com/library/mac/documentation/graphicsimaging/Conceptual/QuartzDisplayServicesConceptual/Articles/DisplayCapture.html>
+         *
         if ( [myView respondsToSelector:@selector(enterFullScreenMode:withOptions:)] ) {
             [myView enterFullScreenMode: myScreen withOptions:NULL];
+        } */
+        if ( 0 != myView->fullscreenPresentationOptions ) {
+            [NSApp setPresentationOptions: myView->fullscreenPresentationOptions];
+        }
+    } else {
+        if ( 0 != myView->defaultPresentationOptions ) {
+            [NSApp setPresentationOptions: myView->defaultPresentationOptions];
         }
     }
 NS_HANDLER

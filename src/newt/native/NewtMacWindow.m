@@ -129,6 +129,27 @@ static jmethodID windowRepaintID = NULL;
     */
     myCursor = NULL;
 
+    // OSX 10.6
+    if ( [NSApp respondsToSelector:@selector(currentSystemPresentationOptions)] &&
+         [NSApp respondsToSelector:@selector(setPresentationOptions:)] ) {
+        defaultPresentationOptions = [NSApp currentSystemPresentationOptions];
+        fullscreenPresentationOptions = 
+                // NSApplicationPresentationDefault|
+                // NSApplicationPresentationAutoHideDock|
+                NSApplicationPresentationHideDock|
+                // NSApplicationPresentationAutoHideMenuBar|
+                NSApplicationPresentationHideMenuBar|
+                NSApplicationPresentationDisableAppleMenu|
+                // NSApplicationPresentationDisableProcessSwitching|
+                // NSApplicationPresentationDisableSessionTermination|
+                NSApplicationPresentationDisableHideApplication|
+                // NSApplicationPresentationDisableMenuBarTransparency|
+                0 ;
+    } else {
+        defaultPresentationOptions = 0;
+        fullscreenPresentationOptions = 0; 
+    }
+
     DBG_PRINT("NewtView::create: %p (refcnt %d)\n", res, (int)[res retainCount]);
     return res;
 }

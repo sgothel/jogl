@@ -64,6 +64,9 @@
     volatile NSTrackingRectTag ptrTrackingTag;
     NSRect ptrRect;
     NSCursor * myCursor;
+@public
+    NSUInteger defaultPresentationOptions;
+    NSUInteger fullscreenPresentationOptions;
 }
 
 - (id)initWithFrame:(NSRect)frameRect;
