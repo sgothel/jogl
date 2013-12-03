@@ -186,6 +186,8 @@ typedef struct {
     int height;
     /** Tristate: -1 HIDE, 0 NOP, 1 SHOW */
     int setPointerVisible;
+    /** Bool: 0 NOP, 1 FULLSCREEN */
+    int setFullscreen;
     int pointerCaptured;
     int pointerInside;
     int touchDownCount;
@@ -607,6 +609,24 @@ static void NewtWindows_trackPointerLeave(HWND hwnd) {
     (void)ok;
 }
 
+static jboolean NewtWindows_setFullScreen(jboolean fullscreen)
+{
+    int flags = 0;
+    DEVMODE dm;
+
+    // initialize the DEVMODE structure
+    ZeroMemory(&dm, sizeof(dm));
+    dm.dmSize = sizeof(dm);
+
+    if (0 == EnumDisplaySettings(NULL /*current display device*/, ENUM_CURRENT_SETTINGS, &dm))
+    {
+        return JNI_FALSE;
+    }
+    flags = ( JNI_TRUE == fullscreen ) ? CDS_FULLSCREEN : CDS_RESET ;
+
+    return ( DISP_CHANGE_SUCCESSFUL == ChangeDisplaySettings(&dm, flags) ) ? JNI_TRUE : JNI_FALSE;
+}
+
 #if 0
 
 static RECT* UpdateInsets(JNIEnv *env, jobject window, HWND hwnd)
@@ -926,8 +946,30 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
             }
             break;
 
-        case WM_SIZE:
-            WmSize(env, wud, wnd, (UINT)wParam);
+        case WM_ACTIVATE: {
+                HWND wndPrev = (HWND) lParam;
+                BOOL fMinimized = (BOOL) HIWORD(wParam);
+                int fActive = LOWORD(wParam);
+                BOOL inactive = WA_INACTIVE==fActive;
+                #ifdef VERBOSE_ON
+                    BOOL anyActive = WA_ACTIVE==fActive, clickActive = WA_CLICKACTIVE==fActive;
+                    DBG_PRINT("*** WindowsWindow: WM_ACTIVATE window %p, prev %p, minimized %d, active %d (any %d, click %d, inactive %d), FS %d\n", 
+                        wnd, wndPrev, fMinimized, fActive, anyActive, clickActive, inactive, wud->setFullscreen);
+                #endif
+                if( wud->setFullscreen ) {
+                    // Bug 916 - NEWT Fullscreen Mode on Windows ALT-TAB doesn't allow Application Switching
+                    // Remedy for 'some' display drivers, i.e. Intel HD: 
+                    // Explicitly push fullscreen window to BOTTOM when inactive (ALT-TAB)
+                    UINT flags = SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOMOVE;
+                    if( inactive ) {
+                        SetWindowPos(wnd, HWND_BOTTOM, 0, 0, 0, 0, flags);
+                    } else {
+                        SetWindowPos(wnd, HWND_TOP, 0, 0, 0, 0, flags);
+                        SetForegroundWindow(wnd);  // Slightly Higher Priority
+                    }
+                }
+                useDefWindowProc = 1;
+            }
             break;
 
         case WM_SETTINGCHANGE:
@@ -938,6 +980,10 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
             } else {
                 useDefWindowProc = 1;
             }
+            break;
+
+        case WM_SIZE:
+            WmSize(env, wud, wnd, (UINT)wParam);
             break;
 
         case WM_SHOWWINDOW:
@@ -2008,6 +2054,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
         wud->width = width;
         wud->height = height;
         wud->setPointerVisible = 0;
+        wud->setFullscreen = 0;
         wud->pointerCaptured = 0;
         wud->pointerInside = 0;
         wud->touchDownCount = 0;
@@ -2094,24 +2141,6 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_MonitorFrom
     #endif
 }
 
-static jboolean NewtWindows_setFullScreen(jboolean fullscreen)
-{
-    int flags = 0;
-    DEVMODE dm;
-    // initialize the DEVMODE structure
-    ZeroMemory(&dm, sizeof(dm));
-    dm.dmSize = sizeof(dm);
-
-    if (0 == EnumDisplaySettings(NULL /*current display device*/, ENUM_CURRENT_SETTINGS, &dm))
-    {
-        return JNI_FALSE;
-    }
-    
-    flags = ( JNI_TRUE == fullscreen ) ? CDS_FULLSCREEN : CDS_RESET ;
-
-    return ( DISP_CHANGE_SUCCESSFUL == ChangeDisplaySettings(&dm, flags) ) ? JNI_TRUE : JNI_FALSE;
-}
-
 /*
  * Class:     jogamp_newt_driver_windows_WindowDriver
  * Method:    reconfigureWindow0
@@ -2125,6 +2154,13 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
     HWND hwnd = (HWND) (intptr_t) window;
     DWORD windowStyle = WS_DEFAULT_STYLES;
     BOOL styleChange = TST_FLAG_CHANGE_DECORATION(flags) || TST_FLAG_CHANGE_FULLSCREEN(flags) || TST_FLAG_CHANGE_PARENTING(flags) ;
+    WindowUserData * wud;
+#if !defined(__MINGW64__) && ( defined(UNDER_CE) || _MSC_VER <= 1200 )
+    wud = (WindowUserData *) GetWindowLong(hwnd, GWL_USERDATA);
+#else
+    wud = (WindowUserData *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
+#endif
+
 
     DBG_PRINT( "*** WindowsWindow: reconfigureWindow0 parent %p, window %p, %d/%d %dx%d, parentChange %d, hasParent %d, decorationChange %d, undecorated %d, fullscreenChange %d, fullscreen %d, alwaysOnTopChange %d, alwaysOnTop %d, visibleChange %d, visible %d -> styleChange %d\n",
         parent, window, x, y, width, height,
@@ -2159,6 +2195,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
     
     if( TST_FLAG_CHANGE_FULLSCREEN(flags) && TST_FLAG_IS_FULLSCREEN(flags) ) { // FS on
         // TOP: in -> out
+        wud->setFullscreen = 1;
         NewtWindows_setFullScreen(JNI_TRUE);
     }
 
@@ -2176,6 +2213,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
 
     if( TST_FLAG_CHANGE_FULLSCREEN(flags) && !TST_FLAG_IS_FULLSCREEN(flags) ) { // FS off
         // CHILD: out -> in
+        wud->setFullscreen = 0;
         NewtWindows_setFullScreen(JNI_FALSE);
     }
 
