@@ -693,11 +693,12 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_createWindow
  */
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_initWindow0
   (JNIEnv *env, jobject jthis, jlong parent, jlong window, jint x, jint y, jint w, jint h, 
-   jboolean opaque, jboolean fullscreen, jboolean visible, jlong jview)
+   jboolean opaque, jboolean visible, jlong jview)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NewtMacWindow* myWindow = (NewtMacWindow*) ((intptr_t) window);
     NewtView* myView = (NewtView*) (intptr_t) jview ;
+    BOOL fullscreen = myWindow->isFullscreenWindow;
 
     DBG_PRINT( "initWindow0 - %p (this), %p (parent), %p (window), %d/%d %dx%d, opaque %d, fs %d, visible %d, view %p (START)\n",
         (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, (int)x, (int)y, (int)w, (int)h, 
@@ -824,29 +825,6 @@ NS_ENDHANDLER
     // [myView lockFocus];
     // [myView unlockFocus];
 
-NS_DURING
-    // Available >= 10.5 - Makes the menubar disapear
-    if( fullscreen ) {
-        /** 
-         * See Bug 914: We don't use exclusive fullscreen anymore (capturing display)
-         * allowing ALT-TAB to allow process/app switching!
-         * Shall have no penalty on modern GPU and is also recommended, see bottom box @
-         * <https://developer.apple.com/library/mac/documentation/graphicsimaging/Conceptual/QuartzDisplayServicesConceptual/Articles/DisplayCapture.html>
-         *
-        if ( [myView respondsToSelector:@selector(enterFullScreenMode:withOptions:)] ) {
-            [myView enterFullScreenMode: myScreen withOptions:NULL];
-        } */
-        if ( 0 != myView->fullscreenPresentationOptions ) {
-            [NSApp setPresentationOptions: myView->fullscreenPresentationOptions];
-        }
-    } else {
-        if ( 0 != myView->defaultPresentationOptions ) {
-            [NSApp setPresentationOptions: myView->defaultPresentationOptions];
-        }
-    }
-NS_HANDLER
-NS_ENDHANDLER
-
     // Set the next responder to be the window so that we can forward
     // right mouse button down events
     [myView setNextResponder: myWindow];
@@ -856,6 +834,30 @@ NS_ENDHANDLER
 
     [myView setDestroyNotifySent: false];
     setJavaWindowObject(env, jthis, myView, YES);
+
+    DBG_PRINT( "initWindow0.%d - %p (this), %p (parent): new window: %p, view %p\n",
+        dbgIdx++, (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, myView);
+
+NS_DURING
+    if( fullscreen ) {
+        /** 
+         * See Bug 914: We don't use exclusive fullscreen anymore (capturing display)
+         * allowing ALT-TAB to allow process/app switching!
+         * Shall have no penalty on modern GPU and is also recommended, see bottom box @
+         * <https://developer.apple.com/library/mac/documentation/graphicsimaging/Conceptual/QuartzDisplayServicesConceptual/Articles/DisplayCapture.html>
+         *
+        if ( [myView respondsToSelector:@selector(enterFullScreenMode:withOptions:)] ) {
+            // Available >= 10.5 - Makes the menubar disapear
+            [myView enterFullScreenMode: myScreen withOptions:NULL];
+        } */
+        if( myWindow->hasPresentationSwitch ) {
+            DBG_PRINT( "initWindow0.%d - %p view %p, setPresentationOptions 0x%X\n", 
+                dbgIdx++, myWindow, myView, (int)myWindow->fullscreenPresentationOptions);
+            [NSApp setPresentationOptions: myWindow->fullscreenPresentationOptions];
+        }
+    }
+NS_HANDLER
+NS_ENDHANDLER
 
     DBG_PRINT( "initWindow0.%d - %p (this), %p (parent): new window: %p, view %p\n",
         dbgIdx++, (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, myView);
@@ -890,6 +892,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_close0
         return;
     }
     NewtView* mView = (NewtView *)[mWin contentView];
+    BOOL fullscreen = mWin->isFullscreenWindow;
     BOOL destroyNotifySent, isNSView, isNewtView;
     if( NULL != mView ) {
         isNSView = [mView isKindOfClass:[NSView class]];
@@ -901,8 +904,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_close0
         destroyNotifySent = false;
     }
 
-    DBG_PRINT( "windowClose.0 - %p, destroyNotifySent %d, view %p [isNSView %d, isNewtView %d], parent %p\n", 
-        mWin, destroyNotifySent, mView, isNSView, isNewtView, pWin);
+    DBG_PRINT( "windowClose.0 - %p, destroyNotifySent %d, view %p [isNSView %d, isNewtView %d], fullscreen %d, parent %p\n", 
+        mWin, destroyNotifySent, mView, isNSView, isNewtView, (int)fullscreen, pWin);
 
     [mWin setRealized: NO];
 
@@ -913,8 +916,10 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_close0
     }
 
 NS_DURING
+    /** 
+     * See Bug 914: We don't use exclusive fullscreen anymore (capturing display)
+     * See initWindow0(..) above ..
     if(NULL!=mView) {
-        // Available >= 10.5 - Makes the menubar disapear
         BOOL iifs;
         if ( [mView respondsToSelector:@selector(isInFullScreenMode)] ) {
             iifs = [mView isInFullScreenMode];
@@ -924,7 +929,15 @@ NS_DURING
         if(iifs && [mView respondsToSelector:@selector(exitFullScreenModeWithOptions:)] ) {
             [mView exitFullScreenModeWithOptions: NULL];
         }
-        // Note: mWin's release will also release it's mView!
+    } */
+    // Note: mWin's release will also release it's mView!
+    DBG_PRINT( "windowClose.1a - %p view %p, fullscreen %d, hasPresSwitch %d, defaultPresentationOptions 0x%X\n", 
+        mWin, mView, (int)fullscreen, (int)mWin->hasPresentationSwitch, (int)mWin->defaultPresentationOptions);
+
+    if( fullscreen && mWin->hasPresentationSwitch ) {
+        DBG_PRINT( "windowClose.1b - %p view %p, setPresentationOptions 0x%X\n", 
+            mWin, mView, (int)mWin->defaultPresentationOptions);
+        [NSApp setPresentationOptions: mWin->defaultPresentationOptions];
     }
 NS_HANDLER
 NS_ENDHANDLER
@@ -934,7 +947,7 @@ NS_ENDHANDLER
     }
     [mWin orderOut: mWin];
 
-    DBG_PRINT( "windowClose.1 - %p view %p, parent %p\n", mWin, mView, pWin);
+    DBG_PRINT( "windowClose.2 - %p view %p, parent %p\n", mWin, mView, pWin);
 
     [mWin release];
 
@@ -1208,7 +1221,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setAlwaysOnTo
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* win = (NSWindow*) ((intptr_t) window);
 
-    DBG_PRINT( "setAlwaysOnTop0 - window: %p (START)\n", win);
+    DBG_PRINT( "setAlwaysOnTop0 - window: %p, atop %d (START)\n", win, (int)atop);
 
     if(atop) {
         [win setLevel:NSFloatingWindowLevel];
@@ -1216,7 +1229,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setAlwaysOnTo
         [win setLevel:NSNormalWindowLevel];
     }
 
-    DBG_PRINT( "setAlwaysOnTop0 - window: %p (END)\n", win);
+    DBG_PRINT( "setAlwaysOnTop0 - window: %p, atop %d (END)\n", win, (int)atop);
 
     [pool release];
 }

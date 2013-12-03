@@ -64,9 +64,6 @@
     volatile NSTrackingRectTag ptrTrackingTag;
     NSRect ptrRect;
     NSCursor * myCursor;
-@public
-    NSUInteger defaultPresentationOptions;
-    NSUInteger fullscreenPresentationOptions;
 }
 
 - (id)initWithFrame:(NSRect)frameRect;
@@ -113,7 +110,6 @@
 @interface NewtMacWindow : NSWindow 
 #endif
 {
-    BOOL isFullscreenWindow;
     BOOL mouseConfined;
     BOOL mouseVisible;
     BOOL mouseInside;
@@ -122,6 +118,10 @@
     BOOL modsDown[4]; // shift, ctrl, alt/option, win/command
     NSPoint lastInsideMousePosition;
 @public
+    BOOL hasPresentationSwitch;
+    NSUInteger defaultPresentationOptions;
+    NSUInteger fullscreenPresentationOptions;
+    BOOL isFullscreenWindow;
     int cachedInsets[4]; // l, r, t, b
 }
 

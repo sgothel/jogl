@@ -170,14 +170,20 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
 
     @Override
     protected void requestFocusImpl(final boolean force) {
+        final boolean _isFullscreen = isFullscreen();
+        final boolean _isOffscreenInstance = isOffscreenInstance;
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("MacWindow: requestFocusImpl(), isOffscreenInstance "+isOffscreenInstance);
+            System.err.println("MacWindow: requestFocusImpl(), isOffscreenInstance "+_isOffscreenInstance+", isFullscreen "+_isFullscreen);
         }
-        if(!isOffscreenInstance) {
+        if(!_isOffscreenInstance) {
             OSXUtil.RunOnMainThread(false, new Runnable() {
                 @Override
                 public void run() {
                     requestFocus0(getWindowHandle(), force);
+                    if(_isFullscreen) {
+                        // 'NewtMacWindow::windowDidBecomeKey()' is not always called in fullscreen-mode!
+                        focusChanged(false, true);
+                    }
                 } } );
         } else {
             focusChanged(false, true);
@@ -516,7 +522,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 @Override
                 public void run() {
                     initWindow0( parentWinHandle, newWin, pS.getX(), pS.getY(), width, height,
-                                 isOpaque, fullscreen, visible && !offscreenInstance, surfaceHandle);
+                                 isOpaque, visible && !offscreenInstance, surfaceHandle);
                     if( offscreenInstance ) {
                         orderOut0(0!=parentWinHandle ? parentWinHandle : newWin);
                     } else {
@@ -534,8 +540,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     private native long createView0(int x, int y, int w, int h, boolean fullscreen);
     private native long createWindow0(int x, int y, int w, int h, boolean fullscreen, int windowStyle, int backingStoreType, long view);
     /** Must be called on Main-Thread */
-    private native void initWindow0(long parentWindow, long window, int x, int y, int w, int h,
-                                    boolean opaque, boolean fullscreen, boolean visible, long view);
+    private native void initWindow0(long parentWindow, long window, int x, int y, int w, int h, boolean opaque, boolean visible, long view);
     private native boolean lockSurface0(long window, long view);
     private native boolean unlockSurface0(long window, long view);
     /** Must be called on Main-Thread */

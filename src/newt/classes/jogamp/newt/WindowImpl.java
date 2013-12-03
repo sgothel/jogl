@@ -674,37 +674,37 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if( 0 != ( FLAG_CHANGE_PARENTING & flags) ) {
             sb.append("*");
         }
-        sb.append("PARENT_");
+        sb.append("PARENT ");
         sb.append(0 != ( FLAG_HAS_PARENT & flags));
         sb.append(", ");
 
         if( 0 != ( FLAG_CHANGE_FULLSCREEN & flags) ) {
             sb.append("*");
         }
-        sb.append("FS_");
+        sb.append("FS ");
         sb.append(0 != ( FLAG_IS_FULLSCREEN & flags));
-        sb.append("_span_");
+        sb.append("[span ");
         sb.append(0 != ( FLAG_IS_FULLSCREEN_SPAN & flags));
-        sb.append(", ");
+        sb.append("], ");
 
         if( 0 != ( FLAG_CHANGE_DECORATION & flags) ) {
             sb.append("*");
         }
-        sb.append("UNDECOR_");
+        sb.append("UNDECOR ");
         sb.append(0 != ( FLAG_IS_UNDECORATED & flags));
         sb.append(", ");
 
         if( 0 != ( FLAG_CHANGE_ALWAYSONTOP & flags) ) {
             sb.append("*");
         }
-        sb.append("ALWAYSONTOP_");
+        sb.append("ALWAYSONTOP ");
         sb.append(0 != ( FLAG_IS_ALWAYSONTOP & flags));
         sb.append(", ");
 
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
             sb.append("*");
         }
-        sb.append("VISIBLE_");
+        sb.append("VISIBLE ");
         sb.append(0 != ( FLAG_IS_VISIBLE & flags));
 
         sb.append("]");

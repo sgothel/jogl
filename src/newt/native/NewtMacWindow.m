@@ -129,27 +129,6 @@ static jmethodID windowRepaintID = NULL;
     */
     myCursor = NULL;
 
-    // OSX 10.6
-    if ( [NSApp respondsToSelector:@selector(currentSystemPresentationOptions)] &&
-         [NSApp respondsToSelector:@selector(setPresentationOptions:)] ) {
-        defaultPresentationOptions = [NSApp currentSystemPresentationOptions];
-        fullscreenPresentationOptions = 
-                // NSApplicationPresentationDefault|
-                // NSApplicationPresentationAutoHideDock|
-                NSApplicationPresentationHideDock|
-                // NSApplicationPresentationAutoHideMenuBar|
-                NSApplicationPresentationHideMenuBar|
-                NSApplicationPresentationDisableAppleMenu|
-                // NSApplicationPresentationDisableProcessSwitching|
-                // NSApplicationPresentationDisableSessionTermination|
-                NSApplicationPresentationDisableHideApplication|
-                // NSApplicationPresentationDisableMenuBarTransparency|
-                0 ;
-    } else {
-        defaultPresentationOptions = 0;
-        fullscreenPresentationOptions = 0; 
-    }
-
     DBG_PRINT("NewtView::create: %p (refcnt %d)\n", res, (int)[res retainCount]);
     return res;
 }
@@ -466,6 +445,29 @@ static UniChar CKCH_CharForKeyCode(jshort keyCode) {
                     styleMask: windowStyle
                     backing: bufferingType
                     defer: deferCreation];
+    // OSX 10.6
+    if ( [NSApp respondsToSelector:@selector(currentSystemPresentationOptions)] &&
+         [NSApp respondsToSelector:@selector(setPresentationOptions:)] ) {
+        hasPresentationSwitch = YES;
+        defaultPresentationOptions = [NSApp currentSystemPresentationOptions];
+        fullscreenPresentationOptions = 
+                // NSApplicationPresentationDefault|
+                // NSApplicationPresentationAutoHideDock|
+                NSApplicationPresentationHideDock|
+                // NSApplicationPresentationAutoHideMenuBar|
+                NSApplicationPresentationHideMenuBar|
+                NSApplicationPresentationDisableAppleMenu|
+                // NSApplicationPresentationDisableProcessSwitching|
+                // NSApplicationPresentationDisableSessionTermination|
+                NSApplicationPresentationDisableHideApplication|
+                // NSApplicationPresentationDisableMenuBarTransparency|
+                // NSApplicationPresentationFullScreen| // OSX 10.7
+                0 ;
+    } else {
+        hasPresentationSwitch = NO;
+        defaultPresentationOptions = 0;
+        fullscreenPresentationOptions = 0; 
+    }
     isFullscreenWindow = isfs;
     // Why is this necessary? Without it we don't get any of the
     // delegate methods like resizing and window movement.
@@ -483,7 +485,8 @@ static UniChar CKCH_CharForKeyCode(jshort keyCode) {
     mouseInside = NO;
     cursorIsHidden = NO;
     realized = YES;
-    DBG_PRINT("NewtWindow::create: %p, realized %d (refcnt %d)\n", res, realized, (int)[res retainCount]);
+    DBG_PRINT("NewtWindow::create: %p, realized %d, hasPresentationSwitch %d[defaultOptions 0x%X, fullscreenOptions 0x%X], (refcnt %d)\n", 
+        res, realized, (int)hasPresentationSwitch, (int)defaultPresentationOptions, (int)fullscreenPresentationOptions, (int)[res retainCount]);
     return res;
 }
 
