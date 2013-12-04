@@ -161,6 +161,7 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
 
         keyAdapter.reset();
         int firstIdx = 0;
+        // final ArrayList<EventObject> keyEvents = new ArrayList<EventObject>();
         for(int i=0; i<loops; i++) {
             System.err.println("+++ KEY Event Auto-Repeat START Input Loop: "+i);
             AWTRobotUtil.waitForIdle(robot);
@@ -188,10 +189,10 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
             AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_B, 10);
             AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_B, 250);
             AWTRobotUtil.waitForIdle(robot);
-            for(int j=0; j < NEWTKeyUtil.POLL_DIVIDER && keyAdapter.getQueueSize() < firstIdx+3; j++) { // wait until events are collected
+            for(int j=0; j < NEWTKeyUtil.POLL_DIVIDER && keyAdapter.getQueueSize() < firstIdx+2; j++) { // wait until events are collected
                 robot.delay(NEWTKeyUtil.TIME_SLICE);
             }
-            firstIdx = keyEvents.size();
+            firstIdx = keyAdapter.getQueueSize();
         }
         // dumpKeyEvents(keyEvents);
         final List<EventObject> keyEvents = keyAdapter.copyQueue();
