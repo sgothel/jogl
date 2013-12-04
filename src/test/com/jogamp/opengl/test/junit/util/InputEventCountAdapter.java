@@ -36,7 +36,7 @@ public interface InputEventCountAdapter extends  EventCountAdapter {
     int getCount();
     boolean isPressed();
 
-    public List<EventObject> getQueued();
+    public List<EventObject> copyQueue();
     public int getQueueSize();
 }
 

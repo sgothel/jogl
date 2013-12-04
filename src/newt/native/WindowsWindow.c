@@ -487,8 +487,8 @@ static void ParseWmVKeyAndScanCode(USHORT winVKey, BYTE winScanCode, BYTE flags,
     *outJavaVKeyXX = javaVKeyXX;
 
 #ifdef DEBUG_KEYS
-    STD_PRINT("*** WindowsWindow: ParseWmVKeyAndScanCode winVKey 0x%X, winScanCode 0x%X, winScanCodeExt 0x%X, flags 0x%X -> UTF(0x%X, %c, res %d, sizeof %d), vKeys( US(win 0x%X, java 0x%X), XX(win 0x%X, java 0x%X))\n", 
-        (int)winVKey, (int)winScanCode, winScanCodeExt, (int)flags,
+    STD_PRINT("*** WindowsWindow: ParseWmVKeyAndScanCode winVKey 0x%X, winScanCode 0x%X, flags 0x%X -> UTF(0x%X, %c, res %d, sizeof %d), vKeys( US(win 0x%X, java 0x%X), XX(win 0x%X, java 0x%X))\n", 
+        (int)winVKey, (int)winScanCode, (int)flags,
         *outUTF16Char, *outUTF16Char, nUniChars, sizeof(uniChars[0]),
         winVKeyUS, javaVKeyUS, winVKey, javaVKeyXX);
 #endif

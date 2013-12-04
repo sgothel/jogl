@@ -49,7 +49,7 @@ public class NEWTMouseAdapter extends MouseAdapter implements InputEventCountAda
         reset();
     }
 
-    public synchronized void setVerbose(boolean v) { verbose = false; }
+    public synchronized void setVerbose(boolean v) { verbose = v; }
 
     public synchronized boolean isPressed() {
         return pressed;
@@ -63,8 +63,8 @@ public class NEWTMouseAdapter extends MouseAdapter implements InputEventCountAda
         return consumed;
     }
 
-    public synchronized List<EventObject> getQueued() {
-        return queue;
+    public synchronized List<EventObject> copyQueue() {
+        return new ArrayList<EventObject>(queue);
     }
 
     public synchronized int getQueueSize() {

@@ -190,7 +190,7 @@ public class TestNewtKeyEventOrderAWT extends UITestCase {
         robot.delay(250);
         // dumpKeyEvents(keyAdapter.getQueued());
         
-        NEWTKeyUtil.validateKeyEventOrder(keyAdapter.getQueued());
+        NEWTKeyUtil.validateKeyEventOrder(keyAdapter.copyQueue());
         
         final int expTotal = 6*loops; // all typed events
         NEWTKeyUtil.validateKeyAdapterStats(keyAdapter, 

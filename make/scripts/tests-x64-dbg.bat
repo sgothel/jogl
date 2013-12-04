@@ -21,7 +21,7 @@ set CP_ALL=.;%BLD_DIR%\jar\jogl-all.jar;%BLD_DIR%\jar\jogl-test.jar;..\..\joal\%
 echo CP_ALL %CP_ALL%
 
 REM set D_ARGS="-Djogamp.debug=all"
-set D_ARGS="-Djogl.debug=all" "-Dnativewindow.debug=all"
+REM set D_ARGS="-Djogl.debug=all" "-Dnativewindow.debug=all"
 REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all"
 REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all" "-Djogamp.debug=all" "-Djogl.debug.EGLDrawableFactory.DontQuery"
 REM set D_ARGS="-Dnativewindow.debug.GDIUtil" "-Dnativewindow.debug.RegisteredClass"
@@ -57,6 +57,7 @@ REM set D_ARGS="-Djogl.debug.GLCanvas" "-Djogl.debug.GLJPanel" "-Djogl.debug.Til
 REM set D_ARGS="-Djogl.gljpanel.noverticalflip"
 REM set D_ARGS="-Dnewt.debug.Window"
 REM set D_ARGS="-Dnewt.debug.Window.KeyEvent"
+set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.Window.KeyEvent" "-Dnewt.debug.EDT"
 REM set D_ARGS="-Dnewt.debug.Window.MouseEvent"
 REM set D_ARGS="-Dnewt.debug.Window.MouseEvent" "-Dnewt.debug.Window.KeyEvent"
 REM set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.Display"

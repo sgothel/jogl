@@ -47,7 +47,7 @@ public class AWTKeyAdapter extends java.awt.event.KeyAdapter implements KeyEvent
         reset();
     }
 
-    public synchronized void setVerbose(boolean v) { verbose = false; }
+    public synchronized void setVerbose(boolean v) { verbose = v; }
 
     public synchronized boolean isPressed() {
         return pressed;
@@ -69,8 +69,8 @@ public class AWTKeyAdapter extends java.awt.event.KeyAdapter implements KeyEvent
         return keyReleased;
     }
 
-    public synchronized List<EventObject> getQueued() {
-        return queue;
+    public synchronized List<EventObject> copyQueue() {
+        return new ArrayList<EventObject>(queue);
     }
 
     public synchronized int getQueueSize() {

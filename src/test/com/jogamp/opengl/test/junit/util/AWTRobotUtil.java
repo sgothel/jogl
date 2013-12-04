@@ -59,9 +59,6 @@ public class AWTRobotUtil {
     public static final int TIME_SLICE   = TIME_OUT / POLL_DIVIDER ;
     public static Integer AWT_CLICK_TO = null;
 
-    static Object awtEDTAliveSync = new Object();
-    static volatile boolean awtEDTAliveFlag = false;
-
     static class OurUncaughtExceptionHandler implements UncaughtExceptionHandler {
         @Override
         public void uncaughtException(Thread t, Throwable e) {
@@ -82,12 +79,7 @@ public class AWTRobotUtil {
         }
         synchronized ( awtEDTAliveSync ) {
             awtEDTAliveFlag = false;
-            EventQueue.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    awtEDTAliveFlag = true;
-                }
-            });
+            EventQueue.invokeLater(aliveRun);
             for (int wait=0; wait<POLL_DIVIDER && !awtEDTAliveFlag; wait++) {
                 try {
                     Thread.sleep(TIME_SLICE);
@@ -98,6 +90,10 @@ public class AWTRobotUtil {
             return awtEDTAliveFlag;
         }
     }
+    private static Runnable aliveRun = new Runnable() { public void run() { awtEDTAliveFlag = true; } };
+    private static Object awtEDTAliveSync = new Object();
+    private static volatile boolean awtEDTAliveFlag = false;
+
     /** Throws Error if {@link #isAWTEDTAlive()} returns false. */
     public static void validateAWTEDTIsAlive() {
         if( !isAWTEDTAlive() ) {
@@ -184,6 +180,11 @@ public class AWTRobotUtil {
         return new int[] { (int)p0.getX(), (int)p0.getY() };
     }
 
+    public static void awtRobotMouseMove(Robot robot, int x, int y) {
+        robot.mouseMove( x, y );
+        robot.delay(ROBOT_DELAY);
+    }
+
     /**
      * toFront, call setVisible(true) and toFront(),
      * after positioning the mouse in the middle of the window via robot.
@@ -203,9 +204,8 @@ public class AWTRobotUtil {
             robot.setAutoWaitForIdle(true);
         }
         int[] p0 = getCenterLocation(window, false);
-        System.err.println("toFront: robot pos: "+p0[0]+"x"+p0[1]);
-        robot.mouseMove( p0[0], p0[1] );
-        robot.delay(ROBOT_DELAY);
+        System.err.println("toFront: robot pos: "+p0[0]+"/"+p0[1]);
+        awtRobotMouseMove(robot, p0[0], p0[1] );
 
         int wait=0;
         do {
@@ -247,9 +247,7 @@ public class AWTRobotUtil {
 
         int[] p0 = getCenterLocation(obj, onTitleBarIfWindow);
         System.err.println("centerMouse: robot pos: "+p0[0]+"x"+p0[1]+", onTitleBarIfWindow: "+onTitleBarIfWindow);
-
-        robot.mouseMove( p0[0], p0[1] );
-        robot.delay(ROBOT_DELAY);
+        awtRobotMouseMove(robot, p0[0], p0[1] );
     }
 
     public static void setMouseToClientLocation(Robot robot, Object obj, int x, int y)
@@ -261,9 +259,7 @@ public class AWTRobotUtil {
         }
 
         int[] p0 = getClientLocation(obj, x, y);
-
-        robot.mouseMove( p0[0], p0[1] );
-        robot.delay(ROBOT_DELAY);
+        awtRobotMouseMove(robot, p0[0], p0[1] );
     }
 
     public static int getClickTimeout(Object obj) {

@@ -51,7 +51,7 @@ public class NEWTKeyAdapter extends KeyAdapter implements KeyEventCountAdapter {
         reset();
     }
 
-    public synchronized void setVerbose(boolean v) { verbose = false; }
+    public synchronized void setVerbose(boolean v) { verbose = v; }
 
     public synchronized boolean isPressed() {
         return pressed;
@@ -73,8 +73,8 @@ public class NEWTKeyAdapter extends KeyAdapter implements KeyEventCountAdapter {
         return autoRepeatOnly ? keyReleasedAR: keyReleased;
     }
 
-    public synchronized List<EventObject> getQueued() {
-        return queue;
+    public synchronized List<EventObject> copyQueue() {
+        return new ArrayList<EventObject>(queue);
     }
 
     public synchronized int getQueueSize() {
@@ -118,6 +118,6 @@ public class NEWTKeyAdapter extends KeyAdapter implements KeyEventCountAdapter {
         }
     }
 
-    public String toString() { return prefix+"[pressed "+pressed+", keyReleased "+keyReleased+", consumed "+consumed+"]"; }
+    public String toString() { return prefix+"[pressed "+pressed+", keysPressed "+keyPressed+" (AR "+keyPressedAR+"), keyReleased "+keyReleased+" (AR "+keyReleasedAR+"), consumed "+consumed+"]"; }
 }
 
