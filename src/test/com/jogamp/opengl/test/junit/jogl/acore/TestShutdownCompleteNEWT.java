@@ -92,37 +92,43 @@ public class TestShutdownCompleteNEWT extends UITestCase {
         if(waitForEach) {
             UITestCase.waitForKey("Start One Life");
         }
-        long t0 = Platform.currentTimeMicros();
+        final long t0 = Platform.currentTimeMicros();
         GLProfile.initSingleton();
-        long t1 = Platform.currentTimeMicros();
+        final long t1 = Platform.currentTimeMicros();
         if(!initOnly) {
             runTestGL(true);
         }
-        long t2 = Platform.currentTimeMicros();
+        final long t2 = Platform.currentTimeMicros();
         if(glInfo) {
             System.err.println(JoglVersion.getDefaultOpenGLInfo(null, null, false).toString());
         }
-        long t3 = Platform.currentTimeMicros();
+        final long t3 = Platform.currentTimeMicros();
         GLProfile.shutdown();
-        long t4 = Platform.currentTimeMicros();
-        System.err.println("Total:                          "+ (t3-t0)/1e3 +"ms");
+        final long t4 = Platform.currentTimeMicros();
+        System.err.println("Total:                          "+ (t4-t0)/1e3 +"ms");
         System.err.println("  GLProfile.initSingleton():    "+ (t1-t0)/1e3 +"ms");
         System.err.println("  Demo Code:                    "+ (t2-t1)/1e3 +"ms");
+        System.err.println("  GLInfo:                       "+ (t3-t2)/1e3 +"ms");
         System.err.println("  GLProfile.shutdown():         "+ (t4-t3)/1e3 +"ms");
     }
 
     @Test
     public void test01OneLife() throws InterruptedException {
-        oneLife(true);
-    }
-
-    @Test
-    public void test01AnotherLife() throws InterruptedException {
         oneLife(false);
     }
 
     @Test
-    public void test01TwoLifes() throws InterruptedException {
+    public void test02AnotherLifeWithGLInfo() throws InterruptedException {
+        oneLife(true);
+    }
+
+    @Test
+    public void test03AnotherLife() throws InterruptedException {
+        oneLife(true);
+    }
+
+    @Test
+    public void test03TwoLifes() throws InterruptedException {
         oneLife(false);
         oneLife(false);
     }

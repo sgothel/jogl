@@ -32,14 +32,14 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledRenderi
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestRandomTiledRendering2GL2NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestRandomTiledRendering3GL2AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsAWT %*
-scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsSwingAWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsSwingAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsSwingAWT2 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsNewtAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingNIOImageSwingAWT %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLCapabilities01NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteAWT %*
+scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT -time 5000
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT %*
