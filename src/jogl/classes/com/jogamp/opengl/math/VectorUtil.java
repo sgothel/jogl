@@ -70,19 +70,47 @@ public class VectorUtil {
         return newVector;
     }
 
-    /** Scales a vector by param
+    /** Scales a vector by param creating a new float[] for the result!
      * @param vector input vector
      * @param scale constant to scale by
-     * @return scaled vector
+     * @return new scaled vector
+     * @deprecated Use {@link #scale(float[], float[], float)}
      */
     public static float[] scale(float[] vector, float scale)
     {
         final float[] newVector = new float[3];
 
-        newVector[0] = vector[0]*scale;
-        newVector[1] = vector[1]*scale;
-        newVector[2] = vector[2]*scale;
+        newVector[0] = vector[0] * scale;
+        newVector[1] = vector[1] * scale;
+        newVector[2] = vector[2] * scale;
         return newVector;
+    }
+
+    /** Scales a vector by param using given result float[]
+     * @param result vector for the result
+     * @param vector input vector
+     * @param scale single scale constant for all vector components
+     */
+    public static float[] scale(float[] result, float[] vector, float scale)
+    {
+        result[0] = vector[0] * scale;
+        result[1] = vector[1] * scale;
+        result[2] = vector[2] * scale;
+        return result;
+    }
+
+    /** Scales a vector by param using given result float[]
+     * @param result vector for the result
+     * @param vector input vector
+     * @param scale 3 component scale constant for each vector component
+     * @return given result vector
+     */
+    public static float[] scale(float[] result, float[] vector, float[] scale)
+    {
+        result[0] = vector[0] * scale[0];
+        result[1] = vector[1] * scale[1];
+        result[2] = vector[2] * scale[2];
+        return result;
     }
 
     /** Adds to vectors
