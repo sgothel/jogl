@@ -673,7 +673,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                     GLDrawableUtil.swapGLContextAndAllGLEventListener(glad, printGLAD);
                     printDrawable = printGLAD.getDelegatedDrawable();
                 }
-                printAWTTiles.setIsGLOriented(printGLAD.isGLOriented());
+                printAWTTiles.setGLOrientation(printGLAD.isGLOriented(), printGLAD.isGLOriented());
                 printAWTTiles.renderer.setTileSize(printDrawable.getWidth(), printDrawable.getHeight(), 0);
                 printAWTTiles.renderer.attachAutoDrawable(printGLAD);
                 if( DEBUG ) {

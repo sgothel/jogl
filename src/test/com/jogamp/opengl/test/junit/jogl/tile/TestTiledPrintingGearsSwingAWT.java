@@ -100,11 +100,12 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
     public static void releaseClass() {
     }
 
-    protected void runTestGL(GLCapabilities caps, boolean layered) throws InterruptedException, InvocationTargetException {
+    protected void runTestGL(GLCapabilities caps, boolean layered, boolean skipGLOrientationVerticalFlip) throws InterruptedException, InvocationTargetException {
         final int layerStepX = width/6, layerStepY = height/6;
         final Dimension glc_sz = new Dimension(layered ? width - 2*layerStepX : width/2, layered ? height - 2*layerStepY : height);
         final GLJPanel glJPanel1 = new GLJPanel(caps);
         Assert.assertNotNull(glJPanel1);
+        glJPanel1.setSkipGLOrientationVerticalFlip(skipGLOrientationVerticalFlip);
         glJPanel1.setMinimumSize(glc_sz);
         glJPanel1.setPreferredSize(glc_sz);
         if( layered ) {
@@ -112,10 +113,15 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
         } else {
             glJPanel1.setBounds(0, 0, glc_sz.width, glc_sz.height);
         }
-        glJPanel1.addGLEventListener(new Gears());
+        {
+            final Gears demo = new Gears();
+            demo.setFlipVerticalInGLOrientation(skipGLOrientationVerticalFlip);
+            glJPanel1.addGLEventListener(demo);
+        }
 
         final GLJPanel glJPanel2 = new GLJPanel(caps);
         Assert.assertNotNull(glJPanel2);
+        glJPanel2.setSkipGLOrientationVerticalFlip(skipGLOrientationVerticalFlip);
         glJPanel2.setMinimumSize(glc_sz);
         glJPanel2.setPreferredSize(glc_sz);
         if( layered ) {
@@ -123,8 +129,11 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
         } else {
             glJPanel2.setBounds(0, 0, glc_sz.width, glc_sz.height);
         }
-        glJPanel2.addGLEventListener(new RedSquareES1());
-        // glJPanel2.addGLEventListener(new Gears());
+        {
+            final RedSquareES1 demo = new RedSquareES1();
+            demo.setFlipVerticalInGLOrientation(skipGLOrientationVerticalFlip);
+            glJPanel2.addGLEventListener(demo);
+        }
 
         final JComponent demoPanel;
         if( layered ) {
@@ -293,43 +302,83 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
     }
 
     @Test
-    public void test01_aa0() throws InterruptedException, InvocationTargetException {
+    public void test01_flip1_aa0() throws InterruptedException, InvocationTargetException {
         GLCapabilities caps = new GLCapabilities(glp);
-        runTestGL(caps, false);
+        runTestGL(caps, false, false);
     }
 
     @Test
-    public void test01_aa0_layered() throws InterruptedException, InvocationTargetException {
+    public void test01_flip1_aa0_layered() throws InterruptedException, InvocationTargetException {
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(8);
-        runTestGL(caps, true);
+        runTestGL(caps, true, false);
     }
 
     @Test
-    public void test01_aa0_bitmap() throws InterruptedException, InvocationTargetException {
+    public void test01_flip1_aa0_bitmap() throws InterruptedException, InvocationTargetException {
         if( Platform.OSType.WINDOWS == Platform.getOSType() ) {
             GLCapabilities caps = new GLCapabilities(glp);
             caps.setBitmap(true);
-            runTestGL(caps, false);
+            runTestGL(caps, false, false);
         } // issues w/ AMD catalyst driver and pixmap surface ..
     }
 
     @Test
-    public void test01_aa0_bitmap_layered() throws InterruptedException, InvocationTargetException {
+    public void test01_flip1_aa0_bitmap_layered() throws InterruptedException, InvocationTargetException {
         if( Platform.OSType.WINDOWS == Platform.getOSType() ) {
             GLCapabilities caps = new GLCapabilities(glp);
             caps.setBitmap(true);
             caps.setAlphaBits(8);
-            runTestGL(caps, true);
+            runTestGL(caps, true, false);
         } // issues w/ AMD catalyst driver and pixmap surface ..
     }
 
     @Test
-    public void test02_aa8() throws InterruptedException, InvocationTargetException {
+    public void test02_flip1_aa8() throws InterruptedException, InvocationTargetException {
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setSampleBuffers(true);
         caps.setNumSamples(8);
-        runTestGL(caps, false);
+        runTestGL(caps, false, false);
+    }
+
+    @Test
+    public void test11_flip0_aa0() throws InterruptedException, InvocationTargetException {
+        GLCapabilities caps = new GLCapabilities(glp);
+        runTestGL(caps, false, true);
+    }
+
+    @Test
+    public void test11_flip0_aa0_layered() throws InterruptedException, InvocationTargetException {
+        GLCapabilities caps = new GLCapabilities(glp);
+        caps.setAlphaBits(8);
+        runTestGL(caps, true, true);
+    }
+
+    @Test
+    public void test11_flip0_aa0_bitmap() throws InterruptedException, InvocationTargetException {
+        if( Platform.OSType.WINDOWS == Platform.getOSType() ) {
+            GLCapabilities caps = new GLCapabilities(glp);
+            caps.setBitmap(true);
+            runTestGL(caps, false, true);
+        } // issues w/ AMD catalyst driver and pixmap surface ..
+    }
+
+    @Test
+    public void test11_flip0_aa0_bitmap_layered() throws InterruptedException, InvocationTargetException {
+        if( Platform.OSType.WINDOWS == Platform.getOSType() ) {
+            GLCapabilities caps = new GLCapabilities(glp);
+            caps.setBitmap(true);
+            caps.setAlphaBits(8);
+            runTestGL(caps, true, true);
+        } // issues w/ AMD catalyst driver and pixmap surface ..
+    }
+
+    @Test
+    public void test12_flip0_aa8() throws InterruptedException, InvocationTargetException {
+        GLCapabilities caps = new GLCapabilities(glp);
+        caps.setSampleBuffers(true);
+        caps.setNumSamples(8);
+        runTestGL(caps, false, true);
     }
 
     static long duration = 500; // ms

@@ -649,7 +649,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
               GLDrawableUtil.swapGLContextAndAllGLEventListener(GLJPanel.this, printGLAD);
               printDrawable = printGLAD.getDelegatedDrawable();
           }
-          printAWTTiles.setIsGLOriented( !GLJPanel.this.skipGLOrientationVerticalFlip && printGLAD.isGLOriented() );
+          printAWTTiles.setGLOrientation( !GLJPanel.this.skipGLOrientationVerticalFlip && printGLAD.isGLOriented(), printGLAD.isGLOriented() );
           printAWTTiles.renderer.setTileSize(printDrawable.getWidth(), printDrawable.getHeight(), 0);
           printAWTTiles.renderer.attachAutoDrawable(printGLAD);
           if( DEBUG ) {

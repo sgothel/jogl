@@ -74,7 +74,10 @@ public class AWTTilePainter {
     public final int customTileWidth, customTileHeight, customNumSamples;
     public final boolean verbose;
 
+    /** Default for OpenGL: True */
     public boolean flipVertical;
+    /** Default for OpenGL: True */
+    public boolean originBottomLeft;
     private AWTGLPixelBuffer tBuffer = null;
     private BufferedImage vFlipImage = null;
     private Graphics2D g2d = null;
@@ -148,10 +151,18 @@ public class AWTTilePainter {
     }
 
     @Override
-    public String toString() { return renderer.toString(); }
+    public String toString() {
+        return "AWTTilePainter[flipVertical "+flipVertical+", startFromBottom "+originBottomLeft+", "+
+                renderer.toString()+"]";
+    }
 
-    public void setIsGLOriented(boolean v) {
-        flipVertical = v;
+    /**
+     * @param flipVertical if <code>true</code>, the image will be flipped vertically (Default for OpenGL).
+     * @param originBottomLeft if <code>true</code>, the image's origin is on the bottom left (Default for OpenGL).
+     */
+    public void setGLOrientation(boolean flipVertical, boolean originBottomLeft) {
+        this.flipVertical = flipVertical;
+        this.originBottomLeft = originBottomLeft;
     }
 
     private static Rectangle2D getClipBounds2D(Graphics2D g) {
@@ -307,7 +318,7 @@ public class AWTTilePainter {
             final int tHeight = renderer.getParam(TileRendererBase.TR_CURRENT_TILE_HEIGHT);
             final int tY = renderer.getParam(TileRendererBase.TR_CURRENT_TILE_Y_POS);
             final int tYOff = renderer.getParam(TileRenderer.TR_TILE_Y_OFFSET);
-            final int imgYOff = flipVertical ? 0 : renderer.getParam(TileRenderer.TR_TILE_HEIGHT) - tHeight; // imgYOff will be cut-off via sub-image
+            final int imgYOff = originBottomLeft ? 0 : renderer.getParam(TileRenderer.TR_TILE_HEIGHT) - tHeight; // imgYOff will be cut-off via sub-image
             final int pX = renderer.getParam(TileRendererBase.TR_CURRENT_TILE_X_POS); // tileX == pX
             final int pY = cis.getHeight() - ( tY - tYOff + tHeight ) + scaledYOffset;
 
@@ -380,7 +391,7 @@ public class AWTTilePainter {
                 System.err.println("XXX tile-post.X "+renderer);
                 System.err.println("XXX tile-post.X dst-img "+dstImage.getWidth()+"x"+dstImage.getHeight());
                 System.err.println("XXX tile-post.X out-img "+outImage.getWidth()+"x"+outImage.getHeight());
-                System.err.println("XXX tile-post.X y-flip "+flipVertical+" -> "+pX+"/"+pY+", drawDone "+drawDone);
+                System.err.println("XXX tile-post.X y-flip "+flipVertical+", originBottomLeft "+originBottomLeft+" -> "+pX+"/"+pY+", drawDone "+drawDone);
             }
         }
         @Override

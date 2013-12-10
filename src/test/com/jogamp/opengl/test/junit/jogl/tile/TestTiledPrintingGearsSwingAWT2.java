@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.tile;
 
 import java.awt.BorderLayout;
@@ -77,7 +77,7 @@ public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
     static boolean waitForKey = false;
     static GLProfile glp;
     static int width, height;
-    
+
     @BeforeClass
     public static void initClass() {
         if(GLProfile.isAvailable(GLProfile.GL2)) {
@@ -95,16 +95,21 @@ public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
     @AfterClass
     public static void releaseClass() {
     }
-    
-    protected void runTestGL(GLCapabilities caps, final boolean addLayout, boolean layered, boolean useAnim) throws InterruptedException, InvocationTargetException {
+
+    protected void runTestGL(GLCapabilities caps, final boolean addLayout, boolean layered, boolean skipGLOrientationVerticalFlip, boolean useAnim) throws InterruptedException, InvocationTargetException {
         final Dimension glc_sz = new Dimension(width, height);
         final GLJPanel glJPanel1 = new GLJPanel(caps);
-        Assert.assertNotNull(glJPanel1);        
+        Assert.assertNotNull(glJPanel1);
+        glJPanel1.setSkipGLOrientationVerticalFlip(skipGLOrientationVerticalFlip);
         glJPanel1.setMinimumSize(glc_sz);
         glJPanel1.setPreferredSize(glc_sz);
         glJPanel1.setBounds(0, 0, glc_sz.width, glc_sz.height);
-        glJPanel1.addGLEventListener(new Gears());
-        
+        {
+            final Gears demo = new Gears();
+            demo.setFlipVerticalInGLOrientation(skipGLOrientationVerticalFlip);
+            glJPanel1.addGLEventListener(demo);
+        }
+
         final JComponent tPanel, demoPanel;
         if( layered ) {
             glJPanel1.setOpaque(true);
@@ -133,13 +138,13 @@ public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
                 demoPanel = new JPanel();
                 demoPanel.add(glJPanel1);
             } else {
-                demoPanel = glJPanel1;                
+                demoPanel = glJPanel1;
             }
         }
-        
+
         final JFrame frame = new JFrame("Swing Print");
         Assert.assertNotNull(frame);
-        
+
         final ActionListener print72DPIAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 doPrintManual(frame, 72, 0, -1, -1);
@@ -158,7 +163,7 @@ public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
         print150DPIButton.addActionListener(print150DPIAction);
         final Button print300DPIButton = new Button("300dpi");
         print300DPIButton.addActionListener(print300DPIAction);
-            
+
         final JPanel printPanel = new JPanel();
         printPanel.add(print72DPIButton);
         printPanel.add(print150DPIButton);
@@ -169,7 +174,7 @@ public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
         eastPanel.add(new Label("East"));
         final JPanel westPanel = new JPanel();
         westPanel.add(new Label("West"));
-        
+
         final Animator animator = useAnim ? new Animator() : null;
         if( null != animator ) {
             animator.add(glJPanel1);
@@ -181,7 +186,7 @@ public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    final Container fcont = frame.getContentPane();        
+                    final Container fcont = frame.getContentPane();
                     if( addLayout ) {
                         fcont.setLayout(new BorderLayout());
                         fcont.add(printPanel, BorderLayout.NORTH);
@@ -201,12 +206,12 @@ public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
                     }
                     frame.setVisible(true);
                 } } ) ;
-        
+
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel1, true));
-        
+
         if( null != animator ) {
-            animator.setUpdateFPSFrames(60, System.err);        
+            animator.setUpdateFPSFrames(60, System.err);
             animator.start();
             Assert.assertEquals(true, animator.isAnimating());
         }
@@ -226,11 +231,11 @@ public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
             }
             t1 = System.currentTimeMillis();
         }
-        
+
         Assert.assertNotNull(frame);
         Assert.assertNotNull(glJPanel1);
 
-        if( null != animator ) {        
+        if( null != animator ) {
             animator.stop();
             Assert.assertEquals(false, animator.isAnimating());
         }
@@ -248,69 +253,133 @@ public class TestTiledPrintingGearsSwingAWT2 extends TiledPrintingAWTBase  {
     }
 
     @Test
-    public void test01_norm_layout0_layered0() throws InterruptedException, InvocationTargetException {
+    public void test001_flip1_norm_layout0_layered0() throws InterruptedException, InvocationTargetException {
         GLCapabilities caps = new GLCapabilities(glp);
-        runTestGL(caps, false /* addLayout */, false /* layered */, false /* useAnim */);
+        runTestGL(caps, false /* addLayout */, false /* layered */, false /* skipGLOrientationVerticalFlip */, false /* useAnim */);
     }
-    
+
     @Test
-    public void test02_norm_layout1_layered0() throws InterruptedException, InvocationTargetException {
+    public void test002_flip1_norm_layout1_layered0() throws InterruptedException, InvocationTargetException {
         GLCapabilities caps = new GLCapabilities(glp);
-        runTestGL(caps, true /* addLayout */, false /* layered */, false /* useAnim */);
+        runTestGL(caps, true /* addLayout */, false /* layered */, false /* skipGLOrientationVerticalFlip */, false /* useAnim */);
     }
-    
+
     @Test
-    public void test03_norm_layout0_layered1() throws InterruptedException, InvocationTargetException {
+    public void test003_flip1_norm_layout0_layered1() throws InterruptedException, InvocationTargetException {
         GLCapabilities caps = new GLCapabilities(glp);
-        runTestGL(caps, false /* addLayout */, true /* layered */, false /* useAnim */);
+        runTestGL(caps, false /* addLayout */, true /* layered */, false /* skipGLOrientationVerticalFlip */, false /* useAnim */);
     }
-    
+
     @Test
-    public void test04_norm_layout1_layered1() throws InterruptedException, InvocationTargetException {
+    public void test004_flip1_norm_layout1_layered1() throws InterruptedException, InvocationTargetException {
         GLCapabilities caps = new GLCapabilities(glp);
-        runTestGL(caps, true /* addLayout */, true /* layered */, false /* useAnim */);
+        runTestGL(caps, true /* addLayout */, true /* layered */, false /* skipGLOrientationVerticalFlip */, false /* useAnim */);
     }
-    
+
     @Test
-    public void test11_bitm_layout0_layered0() throws InterruptedException, InvocationTargetException {
+    public void test011_flip1_bitm_layout0_layered0() throws InterruptedException, InvocationTargetException {
         if( Platform.OSType.WINDOWS != Platform.getOSType() ) {
             return;
         }
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setBitmap(true);
-        runTestGL(caps, false /* addLayout */, false /* layered */, false /* useAnim */);
+        runTestGL(caps, false /* addLayout */, false /* layered */, false /* skipGLOrientationVerticalFlip */, false /* useAnim */);
     }
-    
+
     @Test
-    public void test12_bitm_layout1_layered0() throws InterruptedException, InvocationTargetException {
+    public void test012_flip1_bitm_layout1_layered0() throws InterruptedException, InvocationTargetException {
         if( Platform.OSType.WINDOWS != Platform.getOSType() ) {
             return;
         }
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setBitmap(true);
-        runTestGL(caps, true /* addLayout */, false /* layered */, false /* useAnim */);
+        runTestGL(caps, true /* addLayout */, false /* layered */, false /* skipGLOrientationVerticalFlip */, false /* useAnim */);
     }
-    
+
     @Test
-    public void test13_bitm_layout0_layered1() throws InterruptedException, InvocationTargetException {
+    public void test013_flip1_bitm_layout0_layered1() throws InterruptedException, InvocationTargetException {
         if( Platform.OSType.WINDOWS != Platform.getOSType() ) {
             return;
         }
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setBitmap(true);
-        runTestGL(caps, false /* addLayout */, true /* layered */, false /* useAnim */);
+        runTestGL(caps, false /* addLayout */, true /* layered */, false /* skipGLOrientationVerticalFlip */, false /* useAnim */);
     }
-    
+
     @Test
-    public void test14_bitm_layout1_layered1() throws InterruptedException, InvocationTargetException {
+    public void test014_flip1_bitm_layout1_layered1() throws InterruptedException, InvocationTargetException {
         if( Platform.OSType.WINDOWS != Platform.getOSType() ) {
             return;
         }
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setBitmap(true);
-        runTestGL(caps, true /* addLayout */, true /* layered */, false /* useAnim */);
+        runTestGL(caps, true /* addLayout */, true /* layered */, false /* skipGLOrientationVerticalFlip */, false /* useAnim */);
     }
-    
+
+    @Test
+    public void test101_flip1_norm_layout0_layered0() throws InterruptedException, InvocationTargetException {
+        GLCapabilities caps = new GLCapabilities(glp);
+        runTestGL(caps, false /* addLayout */, false /* layered */, true /* skipGLOrientationVerticalFlip */, false /* useAnim */);
+    }
+
+    @Test
+    public void test102_flip1_norm_layout1_layered0() throws InterruptedException, InvocationTargetException {
+        GLCapabilities caps = new GLCapabilities(glp);
+        runTestGL(caps, true /* addLayout */, false /* layered */, true /* skipGLOrientationVerticalFlip */, false /* useAnim */);
+    }
+
+    @Test
+    public void test103_flip1_norm_layout0_layered1() throws InterruptedException, InvocationTargetException {
+        GLCapabilities caps = new GLCapabilities(glp);
+        runTestGL(caps, false /* addLayout */, true /* layered */, true /* skipGLOrientationVerticalFlip */, false /* useAnim */);
+    }
+
+    @Test
+    public void test104_flip1_norm_layout1_layered1() throws InterruptedException, InvocationTargetException {
+        GLCapabilities caps = new GLCapabilities(glp);
+        runTestGL(caps, true /* addLayout */, true /* layered */, true /* skipGLOrientationVerticalFlip */, false /* useAnim */);
+    }
+
+    @Test
+    public void test111_flip1_bitm_layout0_layered0() throws InterruptedException, InvocationTargetException {
+        if( Platform.OSType.WINDOWS != Platform.getOSType() ) {
+            return;
+        }
+        GLCapabilities caps = new GLCapabilities(glp);
+        caps.setBitmap(true);
+        runTestGL(caps, false /* addLayout */, false /* layered */, true /* skipGLOrientationVerticalFlip */, false /* useAnim */);
+    }
+
+    @Test
+    public void test112_flip1_bitm_layout1_layered0() throws InterruptedException, InvocationTargetException {
+        if( Platform.OSType.WINDOWS != Platform.getOSType() ) {
+            return;
+        }
+        GLCapabilities caps = new GLCapabilities(glp);
+        caps.setBitmap(true);
+        runTestGL(caps, true /* addLayout */, false /* layered */, true /* skipGLOrientationVerticalFlip */, false /* useAnim */);
+    }
+
+    @Test
+    public void test113_flip1_bitm_layout0_layered1() throws InterruptedException, InvocationTargetException {
+        if( Platform.OSType.WINDOWS != Platform.getOSType() ) {
+            return;
+        }
+        GLCapabilities caps = new GLCapabilities(glp);
+        caps.setBitmap(true);
+        runTestGL(caps, false /* addLayout */, true /* layered */, true /* skipGLOrientationVerticalFlip */, false /* useAnim */);
+    }
+
+    @Test
+    public void test114_flip1_bitm_layout1_layered1() throws InterruptedException, InvocationTargetException {
+        if( Platform.OSType.WINDOWS != Platform.getOSType() ) {
+            return;
+        }
+        GLCapabilities caps = new GLCapabilities(glp);
+        caps.setBitmap(true);
+        runTestGL(caps, true /* addLayout */, true /* layered */, true /* skipGLOrientationVerticalFlip */, false /* useAnim */);
+    }
+
     static long duration = 500; // ms
 
     public static void main(String args[]) {

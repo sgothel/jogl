@@ -32,7 +32,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledRenderi
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestRandomTiledRendering2GL2NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestRandomTiledRendering3GL2AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsAWT %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsSwingAWT %*
+scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsSwingAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsSwingAWT2 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingGearsNewtAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingNIOImageSwingAWT %*
@@ -115,7 +115,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyEventOrderAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodeModifiersAWT %*
-scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyEventAutoRepeatAWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyEventAutoRepeatAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyPressReleaseUnmaskRepeatAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodesAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNEWTWindowAWT %*
