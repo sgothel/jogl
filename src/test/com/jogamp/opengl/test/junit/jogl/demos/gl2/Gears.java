@@ -27,17 +27,19 @@ import com.jogamp.opengl.util.TileRendererBase;
  * This version is equal to Brian Paul's version 1.2 1999/10/21
  */
 public class Gears implements GLEventListener, TileRendererBase.TileRendererListener {
-  private float view_rotx = 20.0f, view_roty = 30.0f, view_rotz = 0.0f;
+  private float view_rotx = 20.0f, view_roty = 30.0f;
+  private final float view_rotz = 0.0f;
   private int gear1=0, gear2=0, gear3=0;
   private float angle = 0.0f;
   private boolean doRotate = true;
-  private int swapInterval;
-  private MouseListener gearsMouse = new GearsMouseAdapter();    
-  private KeyListener gearsKeys = new GearsKeyAdapter();
+  private final int swapInterval;
+  private final MouseListener gearsMouse = new GearsMouseAdapter();
+  private final KeyListener gearsKeys = new GearsKeyAdapter();
   private TileRendererBase tileRendererInUse = null;
   private boolean doRotateBeforePrinting;
   private boolean verbose = true;
-  
+  private boolean flipVerticalInGLOrientation = false;
+
   // private boolean mouseRButtonDown = false;
   private int prevMouseX, prevMouseY;
 
@@ -48,17 +50,17 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
   public Gears() {
     this.swapInterval = 1;
   }
-  
+
   @Override
   public void addTileRendererNotify(TileRendererBase tr) {
       tileRendererInUse = tr;
       doRotateBeforePrinting = doRotate;
-      setDoRotation(false);      
+      setDoRotation(false);
   }
   @Override
   public void removeTileRendererNotify(TileRendererBase tr) {
       tileRendererInUse = null;
-      setDoRotation(doRotateBeforePrinting);      
+      setDoRotation(doRotateBeforePrinting);
   }
   @Override
   public void startTileRendering(TileRendererBase tr) {
@@ -68,10 +70,11 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
   public void endTileRendering(TileRendererBase tr) {
       System.err.println("Gears.endTileRendering: "+tr);
   }
-  
+
   public void setDoRotation(boolean rotate) { doRotate = rotate; }
   public void setVerbose(boolean v) { verbose = v; }
-  
+  public void setFlipVerticalInGLOrientation(boolean v) { flipVerticalInGLOrientation=v; }
+
   public void setGears(int g1, int g2, int g3) {
       gear1 = g1;
       gear2 = g2;
@@ -98,24 +101,24 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
     GL2 gl = drawable.getGL().getGL2();
 
     init(gl);
-    
+
     final Object upstreamWidget = drawable.getUpstreamWidget();
-    if (upstreamWidget instanceof Window) {            
+    if (upstreamWidget instanceof Window) {
         final Window window = (Window) upstreamWidget;
         window.addMouseListener(gearsMouse);
         window.addKeyListener(gearsKeys);
     } else if (GLProfile.isAWTAvailable() && upstreamWidget instanceof java.awt.Component) {
         final java.awt.Component comp = (java.awt.Component) upstreamWidget;
         new AWTMouseAdapter(gearsMouse).addTo(comp);
-        new AWTKeyAdapter(gearsKeys).addTo(comp);    
+        new AWTKeyAdapter(gearsKeys).addTo(comp);
     }
   }
-    
+
   public void init(GL2 gl) {
-    float pos[] = { 5.0f, 5.0f, 10.0f, 0.0f };
-    float red[] = { 0.8f, 0.1f, 0.0f, 0.7f };
-    float green[] = { 0.0f, 0.8f, 0.2f, 0.7f };
-    float blue[] = { 0.2f, 0.2f, 1.0f, 0.7f };
+    final float lightPos[] = { 5.0f, 5.0f, 10.0f, 0.0f };
+    final float red[] = { 0.8f, 0.1f, 0.0f, 0.7f };
+    final float green[] = { 0.0f, 0.8f, 0.2f, 0.7f };
+    final float blue[] = { 0.2f, 0.2f, 1.0f, 0.7f };
 
     System.err.println(Thread.currentThread()+" Gears.init: tileRendererInUse "+tileRendererInUse);
     if(verbose) {
@@ -124,13 +127,16 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
         System.err.println("INIT GL IS: " + gl.getClass().getName());
         System.err.println(JoglVersion.getGLStrings(gl, null, false).toString());
     }
-    
-    gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, pos, 0);
-    gl.glEnable(GL2.GL_CULL_FACE);
+
+    gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, lightPos, 0);
+    if( ! ( flipVerticalInGLOrientation && gl.getContext().getGLDrawable().isGLOriented() ) ) {
+        // Only possible if we do not flip the projection matrix
+        gl.glEnable(GL2.GL_CULL_FACE);
+    }
     gl.glEnable(GL2.GL_LIGHTING);
     gl.glEnable(GL2.GL_LIGHT0);
     gl.glEnable(GL2.GL_DEPTH_TEST);
-            
+
     /* make the gears */
     if(0>=gear1) {
         gear1 = gl.glGenLists(1);
@@ -142,7 +148,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
     } else {
         System.err.println("gear1 list reused: "+gear1);
     }
-            
+
     if(0>=gear2) {
         gear2 = gl.glGenLists(1);
         gl.glNewList(gear2, GL2.GL_COMPILE);
@@ -153,7 +159,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
     } else {
         System.err.println("gear2 list reused: "+gear2);
     }
-            
+
     if(0>=gear3) {
         gear3 = gl.glGenLists(1);
         gl.glNewList(gear3, GL2.GL_COMPILE);
@@ -164,14 +170,14 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
     } else {
         System.err.println("gear3 list reused: "+gear3);
     }
-            
+
     gl.glEnable(GL2.GL_NORMALIZE);
   }
-  
+
   @Override
   public void reshape(GLAutoDrawable glad, int x, int y, int width, int height) {
       final GL2 gl = glad.getGL().getGL2();
-      if(-1 != swapInterval) {        
+      if(-1 != swapInterval) {
           gl.setSwapInterval(swapInterval);
       }
       reshape(gl, x, y, width, height, width, height);
@@ -179,7 +185,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
 
   @Override
   public void reshapeTile(TileRendererBase tr,
-          int tileX, int tileY, int tileWidth, int tileHeight, 
+          int tileX, int tileY, int tileWidth, int tileHeight,
           int imageWidth, int imageHeight) {
       final GL2 gl = tr.getAttachedDrawable().getGL().getGL2();
       gl.setSwapInterval(0);
@@ -193,13 +199,9 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
     if( msaa ) {
         gl.glEnable(GL.GL_MULTISAMPLE);
     }
-    
-    gl.glMatrixMode(GL2.GL_PROJECTION);
 
-    gl.glLoadIdentity();
-    
     // compute projection parameters 'normal'
-    float left, right, bottom, top; 
+    float left, right, bottom, top;
     if( imageHeight > imageWidth ) {
         float a = (float)imageHeight / (float)imageWidth;
         left = -1.0f;
@@ -215,24 +217,31 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
     }
     final float w = right - left;
     final float h = top - bottom;
-    
+
     // compute projection parameters 'tiled'
     final float l = left + tileX * w / imageWidth;
     final float r = l + tileWidth * w / imageWidth;
+
     final float b = bottom + tileY * h / imageHeight;
     final float t = b + tileHeight * h / imageHeight;
 
     final float _w = r - l;
     final float _h = t - b;
     if(verbose) {
-        System.err.println(">> angle "+angle+", [l "+left+", r "+right+", b "+bottom+", t "+top+"] "+w+"x"+h+" -> [l "+l+", r "+r+", b "+b+", t "+t+"] "+_w+"x"+_h);
+        System.err.println(">> Gears angle "+angle+", [l "+left+", r "+right+", b "+bottom+", t "+top+"] "+w+"x"+h+" -> [l "+l+", r "+r+", b "+b+", t "+t+"] "+_w+"x"+_h+", v-flip "+flipVerticalInGLOrientation);
+    }
+
+    gl.glMatrixMode(GL2.GL_PROJECTION);
+    gl.glLoadIdentity();
+    if( flipVerticalInGLOrientation && gl.getContext().getGLDrawable().isGLOriented() ) {
+        gl.glScalef(1f, -1f, 1f);
     }
     gl.glFrustum(l, r, b, t, 5.0f, 60.0f);
 
-    gl.glMatrixMode(GL2.GL_MODELVIEW);        
+    gl.glMatrixMode(GL2.GL_MODELVIEW);
     gl.glLoadIdentity();
     gl.glTranslatef(0.0f, 0.0f, -40.0f);
-    
+
     if( msaa ) {
         gl.glDisable(GL.GL_MULTISAMPLE);
     }
@@ -243,7 +252,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
     System.err.println(Thread.currentThread()+" Gears.dispose: tileRendererInUse "+tileRendererInUse);
     try {
         final Object upstreamWidget = drawable.getUpstreamWidget();
-        if (upstreamWidget instanceof Window) {            
+        if (upstreamWidget instanceof Window) {
             final Window window = (Window) upstreamWidget;
             window.removeMouseListener(gearsMouse);
             window.removeKeyListener(gearsKeys);
@@ -261,7 +270,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
     if( msaa ) {
         gl.glEnable(GL.GL_MULTISAMPLE);
     }
-    
+
     if( null == tileRendererInUse ) {
         gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     } else {
@@ -270,7 +279,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
 
     // Special handling for the case where the GLJPanel is translucent
     // and wants to be composited with other Java 2D content
-    if (GLProfile.isAWTAvailable() && 
+    if (GLProfile.isAWTAvailable() &&
         (drawable instanceof javax.media.opengl.awt.GLJPanel) &&
         !((javax.media.opengl.awt.GLJPanel) drawable).isOpaque() &&
         ((javax.media.opengl.awt.GLJPanel) drawable).shouldPreserveColorBufferIfTranslucent()) {
@@ -310,31 +319,31 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
     gl.glRotatef(view_rotx, 1.0f, 0.0f, 0.0f);
     gl.glRotatef(view_roty, 0.0f, 1.0f, 0.0f);
     gl.glRotatef(view_rotz, 0.0f, 0.0f, 1.0f);
-            
+
     // Place the first gear and call its display list
     gl.glPushMatrix();
     gl.glTranslatef(-3.0f, -2.0f, 0.0f);
     gl.glRotatef(angle, 0.0f, 0.0f, 1.0f);
     gl.glCallList(gear1);
     gl.glPopMatrix();
-            
+
     // Place the second gear and call its display list
     gl.glPushMatrix();
     gl.glTranslatef(3.1f, -2.0f, 0.0f);
     gl.glRotatef(-2.0f * angle - 9.0f, 0.0f, 0.0f, 1.0f);
     gl.glCallList(gear2);
     gl.glPopMatrix();
-            
+
     // Place the third gear and call its display list
     gl.glPushMatrix();
     gl.glTranslatef(-3.1f, 4.2f, 0.0f);
     gl.glRotatef(-2.0f * angle - 25.0f, 0.0f, 0.0f, 1.0f);
     gl.glCallList(gear3);
     gl.glPopMatrix();
-            
+
     // Remember that every push needs a pop; this one is paired with
     // rotating the entire gear assembly
-    gl.glPopMatrix();      
+    gl.glPopMatrix();
   }
 
   public static void gear(GL2 gl,
@@ -352,9 +361,9 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
     r0 = inner_radius;
     r1 = outer_radius - tooth_depth / 2.0f;
     r2 = outer_radius + tooth_depth / 2.0f;
-            
+
     da = 2.0f * (float) Math.PI / teeth / 4.0f;
-            
+
     gl.glShadeModel(GL2.GL_FLAT);
 
     gl.glNormal3f(0.0f, 0.0f, 1.0f);
@@ -385,7 +394,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
         gl.glVertex3f(r1 * (float)Math.cos(angle + 3.0f * da), r1 * (float)Math.sin(angle + 3.0f * da), width * 0.5f);
       }
     gl.glEnd();
-    
+
     /* draw back face */
     gl.glBegin(GL2.GL_QUAD_STRIP);
     for (i = 0; i <= teeth; i++)
@@ -397,7 +406,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
         gl.glVertex3f(r0 * (float)Math.cos(angle), r0 * (float)Math.sin(angle), -width * 0.5f);
       }
     gl.glEnd();
-    
+
     /* draw back sides of teeth */
     gl.glBegin(GL2.GL_QUADS);
     for (i = 0; i < teeth; i++)
@@ -409,7 +418,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
         gl.glVertex3f(r1 * (float)Math.cos(angle), r1 * (float)Math.sin(angle), -width * 0.5f);
       }
     gl.glEnd();
-    
+
     /* draw outward faces of teeth */
     gl.glBegin(GL2.GL_QUAD_STRIP);
     for (i = 0; i < teeth; i++)
@@ -438,9 +447,9 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
     gl.glVertex3f(r1 * (float)Math.cos(0), r1 * (float)Math.sin(0), width * 0.5f);
     gl.glVertex3f(r1 * (float)Math.cos(0), r1 * (float)Math.sin(0), -width * 0.5f);
     gl.glEnd();
-    
+
     gl.glShadeModel(GL2.GL_SMOOTH);
-    
+
     /* draw inside radius cylinder */
     gl.glBegin(GL2.GL_QUAD_STRIP);
     for (i = 0; i <= teeth; i++)
@@ -453,7 +462,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
     gl.glEnd();
   }
 
-  class GearsKeyAdapter extends KeyAdapter {      
+  class GearsKeyAdapter extends KeyAdapter {
     public void keyPressed(KeyEvent e) {
         int kc = e.getKeyCode();
         if(KeyEvent.VK_LEFT == kc) {
@@ -467,7 +476,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
         }
     }
   }
-  
+
   class GearsMouseAdapter extends MouseAdapter {
       public void mousePressed(MouseEvent e) {
         prevMouseX = e.getX();
@@ -476,13 +485,13 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
           // mouseRButtonDown = true;
         }
       }
-        
+
       public void mouseReleased(MouseEvent e) {
         if ((e.getModifiers() & InputEvent.BUTTON3_MASK) != 0) {
           // mouseRButtonDown = false;
         }
       }
-        
+
       public void mouseDragged(MouseEvent e) {
         int x = e.getX();
         int y = e.getY();
@@ -501,7 +510,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
         }
         float thetaY = 360.0f * ( (float)(x-prevMouseX)/(float)width);
         float thetaX = 360.0f * ( (float)(prevMouseY-y)/(float)height);
-        
+
         prevMouseX = x;
         prevMouseY = y;
 

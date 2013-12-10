@@ -356,8 +356,6 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
         }
 
         st.useProgram(gl, true);
-        pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
-        pmvMatrix.glLoadIdentity();
 
         // compute projection parameters 'normal'
         float left, right, bottom, top;
@@ -386,17 +384,19 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
         final float _w = r - l;
         final float _h = t - b;
         if(verbose) {
-            System.err.println(">> angle "+sid()+" "+angle+", [l "+left+", r "+right+", b "+bottom+", t "+top+"] "+w+"x"+h+" -> [l "+l+", r "+r+", b "+b+", t "+t+"] "+_w+"x"+_h);
+            System.err.println(">> GearsES2 "+sid()+", angle "+angle+", [l "+left+", r "+right+", b "+bottom+", t "+top+"] "+w+"x"+h+" -> [l "+l+", r "+r+", b "+b+", t "+t+"] "+_w+"x"+_h+", v-flip "+flipVerticalInGLOrientation);
         }
 
+        pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
+        pmvMatrix.glLoadIdentity();
+        if( flipVerticalInGLOrientation && gl.getContext().getGLDrawable().isGLOriented() ) {
+            pmvMatrix.glScalef(1f, -1f, 1f);
+        }
         pmvMatrix.glFrustumf(l, r, b, t, 5.0f, 200.0f);
 
         pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0.0f, 0.0f, -40.0f);
-        if(flipVerticalInGLOrientation && gl.getContext().getGLDrawable().isGLOriented() ) {
-            pmvMatrix.glRotatef(180f, 1.0f, 0.0f, 0.0f);
-        }
         st.uniform(gl, pmvMatrixUniform);
         st.useProgram(gl, false);
 
@@ -490,15 +490,18 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
             return;
         }
 
-        gl.glEnable(GL.GL_CULL_FACE);
+        // Only possible if we do not flip the projection matrix
+        final boolean enableCullFace = ! ( flipVerticalInGLOrientation && gl.getContext().getGLDrawable().isGLOriented() );
+        if( enableCullFace ) {
+            gl.glEnable(GL.GL_CULL_FACE);
+        }
 
         st.useProgram(gl, true);
         pmvMatrix.glPushMatrix();
         pmvMatrix.glTranslatef(panX, panY, panZ);
-        final float flipVF = ( flipVerticalInGLOrientation && drawable.isGLOriented() ) ? -1f : 1f;
-        pmvMatrix.glRotatef(flipVF*view_rotx, 1.0f, 0.0f, 0.0f);
-        pmvMatrix.glRotatef(flipVF*view_roty, 0.0f, 1.0f, 0.0f);
-        pmvMatrix.glRotatef(flipVF*view_rotz, 0.0f, 0.0f, 1.0f);
+        pmvMatrix.glRotatef(view_rotx, 1.0f, 0.0f, 0.0f);
+        pmvMatrix.glRotatef(view_roty, 0.0f, 1.0f, 0.0f);
+        pmvMatrix.glRotatef(view_rotz, 0.0f, 0.0f, 1.0f);
 
         gear1.draw(gl, -3.0f, -2.0f,  1f * angle -    0f);
         gear2.draw(gl,  3.1f, -2.0f, -2f * angle -  9.0f);
@@ -506,7 +509,9 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
         pmvMatrix.glPopMatrix();
         st.useProgram(gl, false);
 
-        gl.glDisable(GL.GL_CULL_FACE);
+        if( enableCullFace ) {
+            gl.glDisable(GL.GL_CULL_FACE);
+        }
     }
 
     @Override

@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.demos.es2.awt;
 
 import java.awt.AWTException;
@@ -63,12 +63,14 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
     static Dimension wsize, rwsize=null;
     static boolean forceES2 = false;
     static boolean forceGL3 = false;
+    static boolean forceGLFFP = false;
     static boolean shallUsePBuffer = false;
     static boolean shallUseBitmap = false;
     static boolean useMSAA = false;
     static int swapInterval = 0;
     static boolean useAnimator = true;
     static boolean manualTest = false;
+    static boolean skipGLOrientationVerticalFlip = false;
 
     @BeforeClass
     public static void initClass() {
@@ -93,9 +95,9 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         } catch( Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
-        }       
+        }
     }
-    
+
     protected void runTestGL(GLCapabilities caps)
             throws AWTException, InterruptedException, InvocationTargetException
     {
@@ -104,13 +106,18 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
 
         final GLJPanel glJPanel = new GLJPanel(caps);
         Assert.assertNotNull(glJPanel);
+        glJPanel.setSkipGLOrientationVerticalFlip(skipGLOrientationVerticalFlip);
         glJPanel.setMinimumSize(wsize);
         glJPanel.setPreferredSize(wsize);
         glJPanel.setSize(wsize);
-        if( caps.isBitmap() ) {
-            glJPanel.addGLEventListener(new Gears(swapInterval));
+        if( caps.isBitmap() || caps.getGLProfile().isGL2() ) {
+            final Gears gears = new Gears(swapInterval);
+            gears.setFlipVerticalInGLOrientation(skipGLOrientationVerticalFlip);
+            glJPanel.addGLEventListener(gears);
         } else {
-            glJPanel.addGLEventListener(new GearsES2(swapInterval));
+            final GearsES2 gears = new GearsES2(swapInterval);
+            gears.setFlipVerticalInGLOrientation(skipGLOrientationVerticalFlip);
+            glJPanel.addGLEventListener(gears);
         }
         final SnapshotGLEventListener snap = new SnapshotGLEventListener();
         glJPanel.addGLEventListener(snap);
@@ -135,17 +142,17 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
 
         new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glJPanel);
         new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
-        
+
         snap.setMakeSnapshot();
-        
+
         if( null != rwsize ) {
-            Thread.sleep(500); // 500ms delay 
+            Thread.sleep(500); // 500ms delay
             setFrameSize(frame, true, rwsize);
             System.err.println("window resize pos/siz: "+glJPanel.getX()+"/"+glJPanel.getY()+" "+glJPanel.getWidth()+"x"+glJPanel.getHeight());
         }
-        
+
         snap.setMakeSnapshot();
-        
+
         final long t0 = System.currentTimeMillis();
         long t1 = t0;
         boolean triggerSnap = false;
@@ -187,6 +194,8 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
             glp = GLProfile.get(GLProfile.GL3);
         } else if(forceES2) {
             glp = GLProfile.get(GLProfile.GLES2);
+        } else if(forceGLFFP) {
+            glp = GLProfile.getMaxFixedFunc(true);
         } else {
             glp = GLProfile.getGL2ES2();
         }
@@ -216,7 +225,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         caps.setSampleBuffers(true);
         runTestGL(caps);
     }
-    
+
     @Test
     public void test03_PbufferNorm()
             throws AWTException, InterruptedException, InvocationTargetException
@@ -228,7 +237,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         caps.setPBuffer(true);
         runTestGL(caps);
     }
-    
+
     @Test
     public void test04_PbufferMsaa()
             throws AWTException, InterruptedException, InvocationTargetException
@@ -242,7 +251,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         caps.setPBuffer(true);
         runTestGL(caps);
     }
-    
+
     @Test
     public void test05_BitmapNorm()
             throws AWTException, InterruptedException, InvocationTargetException
@@ -254,7 +263,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         caps.setBitmap(true);
         runTestGL(caps);
     }
-    
+
     @Test
     public void test06_BitmapMsaa()
             throws AWTException, InterruptedException, InvocationTargetException
@@ -268,7 +277,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         caps.setBitmap(true);
         runTestGL(caps);
     }
-    
+
     @Test
     public void test20_GLES2()
             throws AWTException, InterruptedException, InvocationTargetException
@@ -276,7 +285,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         if( manualTest ) {
             return;
         }
-        
+
         if( !GLProfile.isAvailable(GLProfile.GLES2) ) {
             System.err.println("GLES2 n/a");
             return;
@@ -285,7 +294,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         final GLCapabilities caps = new GLCapabilities( glp );
         runTestGL(caps);
     }
-    
+
     @Test
     public void test30_GL3()
             throws AWTException, InterruptedException, InvocationTargetException
@@ -293,7 +302,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         if( manualTest ) {
             return;
         }
-        
+
         if( !GLProfile.isAvailable(GLProfile.GL3) ) {
             System.err.println("GL3 n/a");
             return;
@@ -302,12 +311,12 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         final GLCapabilities caps = new GLCapabilities( glp );
         runTestGL(caps);
     }
-    
+
     static long duration = 500; // ms
 
     public static void main(String args[]) {
         int w=640, h=480, rw=-1, rh=-1;
-        
+
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
@@ -316,6 +325,8 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
                 forceES2 = true;
             } else if(args[i].equals("-gl3")) {
                 forceGL3 = true;
+            } else if(args[i].equals("-glFFP")) {
+                forceGLFFP = true;
             } else if(args[i].equals("-width")) {
                 i++;
                 w = MiscUtils.atoi(args[i], w);
@@ -328,6 +339,8 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
             } else if(args[i].equals("-rheight")) {
                 i++;
                 rh = MiscUtils.atoi(args[i], rh);
+            } else if(args[i].equals("-userVFlip")) {
+                skipGLOrientationVerticalFlip = true;
             } else if(args[i].equals("-vsync")) {
                 i++;
                 swapInterval = MiscUtils.atoi(args[i], swapInterval);
@@ -347,18 +360,20 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         if( 0 < rw && 0 < rh ) {
             rwsize = new Dimension(rw, rh);
         }
-        
+
         System.err.println("size "+wsize);
         System.err.println("resize "+rwsize);
+        System.err.println("userVFlip "+skipGLOrientationVerticalFlip);
         System.err.println("swapInterval "+swapInterval);
         System.err.println("forceES2 "+forceES2);
         System.err.println("forceGL3 "+forceGL3);
+        System.err.println("forceGLFFP "+forceGLFFP);
         System.err.println("useMSAA "+useMSAA);
         System.err.println("useAnimator "+useAnimator);
         System.err.println("shallUsePBuffer "+shallUsePBuffer);
         System.err.println("shallUseBitmap "+shallUseBitmap);
         System.err.println("manualTest "+manualTest);
-        
+
         org.junit.runner.JUnitCore.main(TestGearsES2GLJPanelAWT.class.getName());
     }
 }
