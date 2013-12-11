@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -42,24 +42,24 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
     final NewtCanvasAWT newtCanvasAWT;
     final GLWindow glWindow;
     final QuitAdapter quitAdapter;
-    
+
     public NewtAWTReparentingKeyAdapter(Frame frame, NewtCanvasAWT newtCanvasAWT, GLWindow glWindow, QuitAdapter quitAdapter) {
         this.frame = frame;
         this.newtCanvasAWT = newtCanvasAWT;
         this.glWindow = glWindow;
         this.quitAdapter = quitAdapter;
     }
-    
+
     public void keyReleased(KeyEvent e) {
         if( !e.isPrintableKey() || e.isAutoRepeat() ) {
             return;
-        }            
+        }
         if( e.getKeySymbol() == KeyEvent.VK_I ) {
             System.err.println(glWindow);
         } else if( e.getKeySymbol() == KeyEvent.VK_L ) {
             javax.media.nativewindow.util.Point p0 = newtCanvasAWT.getNativeWindow().getLocationOnScreen(null);
             javax.media.nativewindow.util.Point p1 = glWindow.getLocationOnScreen(null);
-            System.err.println("NewtCanvasAWT position: "+p0+", "+p1);                                    
+            System.err.println("NewtCanvasAWT position: "+p0+", "+p1);
         } else if( e.getKeySymbol() == KeyEvent.VK_D ) {
             glWindow.setUndecorated(!glWindow.isUndecorated());
         } else if( e.getKeySymbol() == KeyEvent.VK_S ) {
@@ -68,7 +68,7 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
                 glWindow.setPosition(100, 100);
             } else {
                 System.err.println("XXX glWin to 0/0");
-                glWindow.setPosition(0, 0);                
+                glWindow.setPosition(0, 0);
             }
         } else if( e.getKeySymbol() == KeyEvent.VK_F ) {
             if( null != quitAdapter ) {
@@ -92,8 +92,8 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
                     if(glWindow.getAnimator().isPaused()) {
                         glWindow.getAnimator().resume();
                     } else {
-                        glWindow.getAnimator().pause();    
-                    }                                
+                        glWindow.getAnimator().pause();
+                    }
                 }
             }.run();
         } else if( e.getKeySymbol() == KeyEvent.VK_R ) {
@@ -105,7 +105,7 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
                     final Thread t = glWindow.setExclusiveContextThread(null);
                     if(glWindow.getParent()==null) {
                         System.err.println("XXX glWin to HOME");
-                        glWindow.reparentWindow(newtCanvasAWT.getNativeWindow());
+                        glWindow.reparentWindow(newtCanvasAWT.getNativeWindow(), -1, -1, 0 /* hints */);
                     } else {
                         if( null != frame ) {
                             final InsetsImmutable nInsets = glWindow.getInsets();
@@ -121,10 +121,10 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
                             final int topLevelX = frame.getX()+frame.getWidth()+dx;
                             final int topLevelY = frame.getY()+dy;
                             System.err.println("XXX glWin to TOP.1 "+topLevelX+"/"+topLevelY+" - insets " + nInsets + ", " + aInsets);
-                            glWindow.reparentWindow(null, topLevelX, topLevelY, false);
+                            glWindow.reparentWindow(null, topLevelX, topLevelY, 0 /* hint */);
                         } else {
                             System.err.println("XXX glWin to TOP.0");
-                            glWindow.reparentWindow(null);
+                            glWindow.reparentWindow(null, -1, -1, 0 /* hints */);
                         }
                     }
                     glWindow.requestFocus();

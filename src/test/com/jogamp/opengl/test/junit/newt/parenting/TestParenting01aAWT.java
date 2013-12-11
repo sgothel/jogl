@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -68,7 +68,7 @@ public class TestParenting01aAWT extends UITestCase {
     }
 
     @Test
-    public void testWindowParenting01CreateVisibleDestroy1() throws InterruptedException, InvocationTargetException {
+    public void test01WindowParenting01CreateVisibleDestroy1() throws InterruptedException, InvocationTargetException {
         final GLWindow glWindow1 = GLWindow.create(glCaps);
         Assert.assertNotNull(glWindow1);
         Assert.assertEquals(false, glWindow1.isVisible());
@@ -112,11 +112,11 @@ public class TestParenting01aAWT extends UITestCase {
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
         final Animator animator1 = new Animator(glWindow1);
-        animator1.setUpdateFPSFrames(1, null);        
+        animator1.setUpdateFPSFrames(1, null);
         animator1.start();
         Assert.assertTrue(AWTRobotUtil.waitForRealized(glWindow1, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(glWindow1, true));
-        
+
         while(animator1.isAnimating() && animator1.getTotalFPSDuration()<durationPerTest) {
             Thread.sleep(100);
         }
@@ -126,17 +126,17 @@ public class TestParenting01aAWT extends UITestCase {
         SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                frame1.setVisible(false);
-           } } );        
+           } } );
         Assert.assertEquals(true, glWindow1.isNativeValid());
 
         SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                frame1.setVisible(true);
-           } } );        
+           } } );
         Assert.assertEquals(true, glWindow1.isNativeValid());
 
         final boolean wasOnscreen = glWindow1.getChosenCapabilities().isOnscreen();
-        
+
         SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                frame1.remove(newtCanvasAWT);
@@ -159,7 +159,7 @@ public class TestParenting01aAWT extends UITestCase {
     }
 
     @Test
-    public void testWindowParenting02CreateVisibleDestroy2Defered() throws InterruptedException, InvocationTargetException {
+    public void test02WindowParenting02CreateVisibleDestroy2Defered() throws InterruptedException, InvocationTargetException {
         final GLWindow glWindow1 = GLWindow.create(glCaps);
         Assert.assertNotNull(glWindow1);
         Assert.assertEquals(false, glWindow1.isVisible());
@@ -211,7 +211,7 @@ public class TestParenting01aAWT extends UITestCase {
     }
 
     @Test
-    public void testWindowParenting02CreateVisibleDestroy3Odd() throws InterruptedException, InvocationTargetException {
+    public void test03WindowParenting02CreateVisibleDestroy3Odd() throws InterruptedException, InvocationTargetException {
         GLWindow glWindow1 = GLWindow.create(glCaps);
         GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
@@ -256,7 +256,7 @@ public class TestParenting01aAWT extends UITestCase {
     }
 
     @Test
-    public void testWindowParenting03ReparentNewtWin2Top() throws InterruptedException, InvocationTargetException {
+    public void test04WindowParenting03ReparentNewtWin2Top() throws InterruptedException, InvocationTargetException {
         GLWindow glWindow1 = GLWindow.create(glCaps);
         GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
@@ -283,7 +283,7 @@ public class TestParenting01aAWT extends UITestCase {
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
         Animator animator1 = new Animator(glWindow1);
-        animator1.setUpdateFPSFrames(1, null);        
+        animator1.setUpdateFPSFrames(1, null);
         animator1.start();
 
         int state = 0;
@@ -291,12 +291,12 @@ public class TestParenting01aAWT extends UITestCase {
             Thread.sleep(durationPerTest);
             switch(state) {
                 case 0:
-                    glWindow1.reparentWindow(null);
+                    System.err.println("Reparent CHILD -> TOP: "+glWindow1.reparentWindow(null, -1, -1, 0 /* hints */));
                     Assert.assertEquals(true, glWindow1.isNativeValid());
                     Assert.assertNull(glWindow1.getParent());
                     break;
                 case 1:
-                    glWindow1.reparentWindow(newtCanvasAWT.getNativeWindow());
+                    System.err.println("Reparent TOP -> CHILD: "+glWindow1.reparentWindow(newtCanvasAWT.getNativeWindow(), -1, -1, 0 /* hints */));
                     Assert.assertEquals(true, glWindow1.isNativeValid());
                     Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
                     break;
@@ -315,7 +315,7 @@ public class TestParenting01aAWT extends UITestCase {
     }
 
     @Test
-    public void testWindowParenting04ReparentNewtWin2TopLayouted() throws InterruptedException, InvocationTargetException {
+    public void test05WindowParenting04ReparentNewtWin2TopLayouted() throws InterruptedException, InvocationTargetException {
         GLWindow glWindow1 = GLWindow.create(glCaps);
         GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
@@ -329,7 +329,7 @@ public class TestParenting01aAWT extends UITestCase {
         frame.add(new Button("South"), BorderLayout.SOUTH);
         frame.add(new Button("East"), BorderLayout.EAST);
         frame.add(new Button("West"), BorderLayout.WEST);
-        
+
         SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                frame.setSize(width, height);
@@ -344,11 +344,11 @@ public class TestParenting01aAWT extends UITestCase {
                frame.validate();
            }
         });
-        
+
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
         Animator animator1 = new Animator(glWindow1);
-        animator1.setUpdateFPSFrames(1, null);        
+        animator1.setUpdateFPSFrames(1, null);
         animator1.start();
 
         int state = 0;
@@ -356,12 +356,12 @@ public class TestParenting01aAWT extends UITestCase {
             Thread.sleep(durationPerTest);
             switch(state) {
                 case 0:
-                    glWindow1.reparentWindow(null);
+                    System.err.println("Reparent CHILD -> TOP: "+glWindow1.reparentWindow(null, -1, -1, 0 /* hints */));
                     Assert.assertEquals(true, glWindow1.isNativeValid());
                     Assert.assertNull(glWindow1.getParent());
                     break;
                 case 1:
-                    glWindow1.reparentWindow(newtCanvasAWT.getNativeWindow());
+                    System.err.println("Reparent TOP -> CHILD: "+glWindow1.reparentWindow(newtCanvasAWT.getNativeWindow(), -1, -1, 0 /* hints */));
                     Assert.assertEquals(true, glWindow1.isNativeValid());
                     Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
                     break;
@@ -380,7 +380,7 @@ public class TestParenting01aAWT extends UITestCase {
     }
 
     @Test
-    public void testWindowParenting05ReparentAWTWinHopFrame2Frame() throws InterruptedException, InvocationTargetException {
+    public void test06WindowParenting05ReparentAWTWinHopFrame2Frame() throws InterruptedException, InvocationTargetException {
         GLWindow glWindow1 = GLWindow.create(glCaps);
         glWindow1.setUndecorated(true);
         GLEventListener demo1 = new RedSquareES2();
@@ -427,7 +427,7 @@ public class TestParenting01aAWT extends UITestCase {
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
         Animator animator1 = new Animator(glWindow1);
-        animator1.setUpdateFPSFrames(1, null);        
+        animator1.setUpdateFPSFrames(1, null);
         animator1.start();
 
         int state = 0;
@@ -442,7 +442,7 @@ public class TestParenting01aAWT extends UITestCase {
                             frame1.validate();
                             frame2.validate();
                         }
-                    });                    
+                    });
                     break;
                 case 1:
                     SwingUtilities.invokeAndWait(new Runnable() {
@@ -452,7 +452,7 @@ public class TestParenting01aAWT extends UITestCase {
                             frame2.validate();
                             frame1.validate();
                         }
-                    });                    
+                    });
                     break;
             }
             state++;
@@ -471,7 +471,7 @@ public class TestParenting01aAWT extends UITestCase {
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
         Assert.assertNotNull(demo);
-        Assert.assertNotNull(glWindow);        
+        Assert.assertNotNull(glWindow);
         if(debug) {
             MiscUtils.setFieldIfExists(demo, "glDebug", true);
             MiscUtils.setFieldIfExists(demo, "glTrace", true);
@@ -498,17 +498,7 @@ public class TestParenting01aAWT extends UITestCase {
             }
         }
         String tstname = TestParenting01aAWT.class.getName();
-        org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
-            tstname,
-            "filtertrace=true",
-            "haltOnError=false",
-            "haltOnFailure=false",
-            "showoutput=true",
-            "outputtoformatters=true",
-            "logfailedtests=true",
-            "logtestlistenerevents=true",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } );
+        org.junit.runner.JUnitCore.main(tstname);
     }
 
 }

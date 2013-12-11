@@ -121,7 +121,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
     }
     
     @Test
-    public void testWindowParenting01CreateVisibleDestroy1() throws InterruptedException, InvocationTargetException {
+    public void test01CreateVisibleDestroy1() throws InterruptedException, InvocationTargetException {
         /**
          * JFrame . JPanel . Container . NewtCanvasAWT . GLWindow
          */
@@ -236,7 +236,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
     }
 
     @Test
-    public void testWindowParenting05ReparentAWTWinHopFrame2Frame() throws InterruptedException, InvocationTargetException {
+    public void test02AWTWinHopFrame2Frame() throws InterruptedException, InvocationTargetException {
         /**
          * JFrame . JPanel . Container . NewtCanvasAWT . GLWindow
          */

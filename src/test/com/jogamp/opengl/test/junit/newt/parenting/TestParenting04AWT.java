@@ -70,13 +70,13 @@ public class TestParenting04AWT extends UITestCase {
     }
 
     @Test
-    public void winHopFrame2FrameDirectHop() throws InterruptedException, InvocationTargetException {
+    public void test01WinHopFrame2FrameDirectHop() throws InterruptedException, InvocationTargetException {
         // Will produce some artifacts .. resizing etc
         winHopFrame2Frame(false);
     }
     
     @Test
-    public void winHopFrame2FrameDetachFirst() throws InterruptedException, InvocationTargetException {
+    public void test02WinHopFrame2FrameDetachFirst() throws InterruptedException, InvocationTargetException {
         // Note: detaching first setNEWTChild(null) is much cleaner visually 
         winHopFrame2Frame(true);
     }

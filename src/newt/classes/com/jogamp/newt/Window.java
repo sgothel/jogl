@@ -353,6 +353,11 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
         ACTION_NATIVE_CREATION_PENDING;
     }
 
+    /** Reparenting hint (bitfield value): Force destroy and hence {@link ReparentOperation#ACTION_NATIVE_CREATION re-creating} the window. */
+    public static final int REPARENT_HINT_FORCE_RECREATION = 1 << 0;
+    /** Reparenting hint (bitfield value): Claim window becomes visible after reparenting, which is important for e.g. preserving the GL-states in case window is invisible while reparenting. */
+    public static final int REPARENT_HINT_BECOMES_VISIBLE = 1 << 1;
+
     /**
      * Change this window's parent window.<br>
      * <P>
@@ -365,6 +370,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      *
      * @return The issued reparent action type (strategy) as defined in Window.ReparentAction
      * @see #reparentWindow(NativeWindow, int, int, boolean)
+     * @deprecated Use {@link #reparentWindow(NativeWindow, int, int, int)}
      */
     ReparentOperation reparentWindow(NativeWindow newParent);
 
@@ -382,9 +388,26 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * @param forceDestroyCreate if true, uses re-creation strategy for reparenting, default is <code>false</code>.
      *
      * @return The issued reparent action type (strategy) as defined in Window.ReparentAction
-     * @see #reparentWindow(NativeWindow)
+     * @deprecated Use {@link #reparentWindow(NativeWindow, int, int, int)}
      */
     ReparentOperation reparentWindow(NativeWindow newParent, int x, int y, boolean forceDestroyCreate);
+
+    /**
+     * Change this window's parent window.<br>
+     * <P>
+     * In case the old parent is not null and a Window,
+     * this window is removed from it's list of children.<br>
+     * In case the new parent is not null and a Window,
+     * this window is added to it's list of children.<br></P>
+     *
+     * @param newParent The new parent NativeWindow. If null, this Window becomes a top level window.
+     * @param x new top-level position, use -1 for default position.
+     * @param y new top-level position, use -1 for default position.
+     * @param hints May contain hints (bitfield values) like {@link #REPARENT_HINT_FORCE_RECREATION} or {@link #REPARENT_HINT_BECOMES_VISIBLE}.
+     *
+     * @return The issued reparent action type (strategy) as defined in Window.ReparentAction
+     */
+    ReparentOperation reparentWindow(NativeWindow newParent, int x, int y, int hints);
 
     /**
      * Enable or disable fullscreen mode for this window.

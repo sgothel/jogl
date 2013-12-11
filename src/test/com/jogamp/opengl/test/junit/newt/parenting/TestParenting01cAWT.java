@@ -66,7 +66,7 @@ public class TestParenting01cAWT extends UITestCase {
     }
 
     @Test
-    public void testWindowParenting01CreateVisibleDestroy1() throws InterruptedException, InvocationTargetException {
+    public void test01CreateVisibleDestroy1() throws InterruptedException, InvocationTargetException {
         int i;
 
         GLWindow glWindow1 = GLWindow.create(glCaps);
@@ -154,7 +154,7 @@ public class TestParenting01cAWT extends UITestCase {
     }
 
     @Test
-    public void testWindowParenting05ReparentAWTWinHopFrame2Frame() throws InterruptedException, InvocationTargetException {
+    public void test02AWTWinHopFrame2Frame() throws InterruptedException, InvocationTargetException {
         GLWindow glWindow1 = GLWindow.create(glCaps);
         glWindow1.setUndecorated(true);
         GLEventListener demo1 = new RedSquareES2();

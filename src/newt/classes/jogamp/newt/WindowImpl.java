@@ -1186,14 +1186,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private class ReparentAction implements Runnable {
         final NativeWindow newParentWindow;
         final int topLevelX, topLevelY;
-        boolean forceDestroyCreate;
+        final int hints;
         ReparentOperation operation;
 
-        private ReparentAction(NativeWindow newParentWindow, int topLevelX, int topLevelY, boolean forceDestroyCreate) {
+        private ReparentAction(NativeWindow newParentWindow, int topLevelX, int topLevelY, int hints) {
             this.newParentWindow = newParentWindow;
             this.topLevelX = topLevelX;
             this.topLevelY = topLevelY;
-            this.forceDestroyCreate = forceDestroyCreate | DEBUG_TEST_REPARENT_INCOMPATIBLE;
+            if( DEBUG_TEST_REPARENT_INCOMPATIBLE ) {
+                hints |=  REPARENT_HINT_FORCE_RECREATION;
+            }
+            this.hints = hints;
             this.operation = ReparentOperation.ACTION_INVALID; // ensure it's set
         }
 
@@ -1227,17 +1230,25 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             final int x, y;
             int width = oldWidth;
             int height = oldHeight;
-            boolean wasVisible;
+
+            final boolean wasVisible;
+            final boolean becomesVisible;
+            final boolean forceDestroyCreate;
 
             final RecursiveLock _lock = windowLock;
             _lock.lock();
             try {
-                if(isNativeValid()) {
-                    // force recreation if offscreen, since it may become onscreen
-                    forceDestroyCreate |= isOffscreenInstance(WindowImpl.this, newParentWindow);
+                {
+                    boolean v = 0 != ( REPARENT_HINT_FORCE_RECREATION & hints );
+                    if(isNativeValid()) {
+                        // force recreation if offscreen, since it may become onscreen
+                        v |= isOffscreenInstance(WindowImpl.this, newParentWindow);
+                    }
+                    forceDestroyCreate = v;
                 }
 
                 wasVisible = isVisible();
+                becomesVisible = wasVisible || 0 != ( REPARENT_HINT_BECOMES_VISIBLE & hints );
 
                 Window newParentWindowNEWT = null;
                 if(newParentWindow instanceof Window) {
@@ -1246,8 +1257,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
                 long newParentWindowHandle = 0 ;
 
-                if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.reparent: START ("+getThreadName()+") valid "+isNativeValid()+", windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle)+", visible "+wasVisible+", old parentWindow: "+Display.hashCodeNullSafe(parentWindow)+", new parentWindow: "+Display.hashCodeNullSafe(newParentWindow)+", forceDestroyCreate "+forceDestroyCreate);
+                if( DEBUG_IMPLEMENTATION) {
+                    System.err.println("Window.reparent: START ("+getThreadName()+") valid "+isNativeValid()+
+                                       ", windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle)+
+                                       ", visible "+wasVisible+", becomesVisible "+becomesVisible+
+                                       ", forceDestroyCreate "+forceDestroyCreate+
+                                       ", HINT_FORCE_RECREATION "+( 0 != ( REPARENT_HINT_FORCE_RECREATION & hints ) )+
+                                       ", HINT_BECOMES_VISIBLE "+( 0 != ( REPARENT_HINT_BECOMES_VISIBLE & hints ) ) +
+                                       ", old parentWindow: "+Display.hashCodeNullSafe(parentWindow)+
+                                       ", new parentWindow: "+Display.hashCodeNullSafe(newParentWindow) );
                 }
 
                 if(null!=newParentWindow) {
@@ -1274,7 +1292,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         }
                         // Destroy this window and use parent's Screen.
                         // It may be created properly when the parent is made visible.
-                        destroy( false );
+                        destroy( becomesVisible );
                         setScreen( (ScreenImpl) newParentWindowNEWT.getScreen() );
                         operation = ReparentOperation.ACTION_NATIVE_CREATION_PENDING;
                     } else if(newParentWindow != getParent()) {
@@ -1298,7 +1316,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                             }
                         } else if ( forceDestroyCreate || !NewtFactory.isScreenCompatible(newParentWindow, screen) ) {
                             // Destroy this window, may create a new compatible Screen/Display, while trying to preserve resources if becoming visible again.
-                            destroy( wasVisible );
+                            destroy( becomesVisible );
                             if(null!=newParentWindowNEWT) {
                                 setScreen( (ScreenImpl) newParentWindowNEWT.getScreen() );
                             } else {
@@ -1336,7 +1354,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     } else if( !isNativeValid() || forceDestroyCreate ) {
                         // Destroy this window and mark it for [pending] creation.
                         // If isNativeValid() and becoming visible again - try to preserve resources, i.e. b/c on-/offscreen switch.
-                        destroy( isNativeValid() && wasVisible );
+                        destroy( becomesVisible );
                         if( 0 < width && 0 < height ) {
                             operation = ReparentOperation.ACTION_NATIVE_CREATION;
                         } else {
@@ -1437,7 +1455,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         if(DEBUG_IMPLEMENTATION) {
                             System.err.println("Window.reparent: native reparenting failed ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle)+" -> "+toHexString(newParentWindowHandle)+" - Trying recreation");
                         }
-                        destroy( wasVisible );
+                        destroy( becomesVisible );
                         operation = ReparentOperation.ACTION_NATIVE_CREATION ;
                     }
                 } else {
@@ -1500,12 +1518,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public final ReparentOperation reparentWindow(NativeWindow newParent) {
-        return reparentWindow(newParent, -1, -1, false);
+        return reparentWindow(newParent, -1, -1, 0);
     }
 
     @Override
     public ReparentOperation reparentWindow(NativeWindow newParent, int x, int y, boolean forceDestroyCreate) {
-        final ReparentAction reparentAction = new ReparentAction(newParent, x, y, forceDestroyCreate);
+        return reparentWindow(newParent, x, y, forceDestroyCreate ? REPARENT_HINT_FORCE_RECREATION : 0);
+    }
+
+    @Override
+    public ReparentOperation reparentWindow(NativeWindow newParent, int x, int y, int hints) {
+        final ReparentAction reparentAction = new ReparentAction(newParent, x, y, hints);
         runOnEDTIfAvail(true, reparentAction);
         return reparentAction.getOp();
     }
@@ -2161,7 +2184,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             fullscreenMonitors = monitors;
             fullscreenUseMainMonitor = useMainMonitor;
             if( fullScreenAction.init(fullscreen) ) {
-                if(fullScreenAction.fsOn() && isOffscreenInstance(WindowImpl.this, parentWindow)) {
+                if( fullScreenAction.fsOn() && isOffscreenInstance(WindowImpl.this, parentWindow) ) {
                     // enable fullscreen on offscreen instance
                     if(null != parentWindow) {
                         nfs_parent = parentWindow;

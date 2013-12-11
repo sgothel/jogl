@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.newt.parenting;
 
 import org.junit.Assert;
@@ -68,16 +68,16 @@ public class TestParenting01bAWT extends UITestCase {
     }
 
     @Test
-    public void testWindowParenting05ReparentAWTWinHopFrame2FrameFPS25Animator() throws InterruptedException, InvocationTargetException {
-        testWindowParenting05ReparentAWTWinHopFrame2FrameImpl(25);
+    public void test01AWTWinHopFrame2FrameFPS25Animator() throws InterruptedException, InvocationTargetException {
+        testAWTWinHopFrame2FrameImpl(25);
     }
 
     @Test
-    public void testWindowParenting05ReparentAWTWinHopFrame2FrameStdAnimator() throws InterruptedException, InvocationTargetException {
-        testWindowParenting05ReparentAWTWinHopFrame2FrameImpl(0);
+    public void test02AWTWinHopFrame2FrameStdAnimator() throws InterruptedException, InvocationTargetException {
+        testAWTWinHopFrame2FrameImpl(0);
     }
 
-    public void testWindowParenting05ReparentAWTWinHopFrame2FrameImpl(int fps) throws InterruptedException, InvocationTargetException {
+    public void testAWTWinHopFrame2FrameImpl(int fps) throws InterruptedException, InvocationTargetException {
         GLWindow glWindow1 = GLWindow.create(glCaps);
         glWindow1.setUndecorated(true);
         GLEventListener demo1 = new RedSquareES2();
@@ -85,7 +85,7 @@ public class TestParenting01bAWT extends UITestCase {
         glWindow1.addGLEventListener(demo1);
 
         final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
-        
+
         final Frame frame1 = new Frame("AWT Parent Frame");
         frame1.setLayout(new BorderLayout());
         frame1.add(new Button("North"), BorderLayout.NORTH);
@@ -96,7 +96,7 @@ public class TestParenting01bAWT extends UITestCase {
            public void run() {
                frame1.setSize(width, height);
                frame1.setLocation(0, 0);
-               frame1.setVisible(true);               
+               frame1.setVisible(true);
            }
         });
 
@@ -110,7 +110,7 @@ public class TestParenting01bAWT extends UITestCase {
            public void run() {
                frame2.setSize(width, height);
                frame2.setLocation(640, 480);
-               frame2.setVisible(true);               
+               frame2.setVisible(true);
            }
         });
 
@@ -142,7 +142,7 @@ public class TestParenting01bAWT extends UITestCase {
                             frame1.validate();
                             frame2.validate();
                         }
-                    });                    
+                    });
                     break;
                 case 1:
                     SwingUtilities.invokeAndWait(new Runnable() {
@@ -152,7 +152,7 @@ public class TestParenting01bAWT extends UITestCase {
                             frame2.validate();
                             frame1.validate();
                         }
-                    });                    
+                    });
                     break;
             }
         }
