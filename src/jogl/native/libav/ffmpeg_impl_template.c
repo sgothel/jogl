@@ -846,14 +846,9 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
         pAV->frames_audio = pAV->pAStream->nb_frames;
         pAV->aSinkSupport = _isAudioFormatSupported(env, pAV->ffmpegMediaPlayer, pAV->aSampleFmt, pAV->aSampleRate, pAV->aChannels);
         if( pAV->verbose ) {
-            fprintf(stderr, "A channels %d [l %"PRId64"], sample_rate %d, frame_size %d, frame_number %d, [afps %f, rfps %f, cfps %f, sfps %f], nb_frames %"PRId64", [maxChan %d, prefRate %d, req_chan_layout %"PRId64", req_chan %d], sink-support %d \n", 
+            fprintf(stderr, "A channels %d [l %"PRId64"], sample_rate %d, frame_size %d, frame_number %d, [afps %f, cfps %f, sfps %f], nb_frames %"PRId64", [maxChan %d, prefRate %d, req_chan_layout %"PRId64", req_chan %d], sink-support %d \n", 
                 pAV->aChannels, pAV->pACodecCtx->channel_layout, pAV->aSampleRate, pAV->aFrameSize, pAV->pACodecCtx->frame_number,
                 my_av_q2f(pAV->pAStream->avg_frame_rate),
-                #if LIBAVCODEC_VERSION_MAJOR < 55
-                    my_av_q2f(pAV->pVStream->r_frame_rate),
-                #else
-                    0.0f,
-                #endif
                 my_av_q2f_r(pAV->pAStream->codec->time_base),
                 my_av_q2f_r(pAV->pAStream->time_base),
                 pAV->pAStream->nb_frames,

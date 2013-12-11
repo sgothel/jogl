@@ -528,7 +528,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             this.vid = vid;
             this.aid = aid;
             if ( this.streamLoc != null ) {
-                if( TEXTURE_COUNT_MIN < textureCount ) {
+                if( TEXTURE_COUNT_MIN < textureCount || STREAM_ID_NONE == vid ) { // Enable StreamWorker for 'audio only' as well (Bug 918).
                     streamWorker = new StreamWorker();
                 } else {
                     new Thread() {
