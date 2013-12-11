@@ -358,7 +358,10 @@ public interface GLMediaPlayer extends TextureSequence {
     public void initStream(URI streamLoc, int vid, int aid, int textureCount) throws IllegalStateException, IllegalArgumentException;
 
     /**
-     * Returns the {@link StreamException} caught in the decoder thread, or <code>null</code>.
+     * Returns the {@link StreamException} caught in the decoder thread, or <code>null</code> if none occured.
+     * <p>
+     * Method clears the cached {@link StreamException}, hence an immediate subsequent call will return <code>null</code>.
+     * </p>
      * @see GLMediaEventListener#EVENT_CHANGE_ERR
      * @see StreamException
      */

@@ -153,7 +153,7 @@ public class MovieCube implements GLEventListener {
                 return;
             }
             System.err.println("MC "+e);
-            int pts0 = mPlayer.getVideoPTS();
+            final int pts0 = GLMediaPlayer.STREAM_ID_NONE != mPlayer.getVID() ? mPlayer.getVideoPTS() : mPlayer.getAudioPTS();
             int pts1 = 0;
             switch(e.getKeyCode()) {
                 case KeyEvent.VK_RIGHT:      pts1 = pts0 +  1000; break;

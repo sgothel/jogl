@@ -1144,6 +1144,11 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
     pkt_odata = packet.data;
     pkt_osize = packet.size;
     if( AVERROR_EOF == avRes || ( pAV->pFormatCtx->pb && pAV->pFormatCtx->pb->eof_reached ) ) {
+        if( pAV->verbose ) {
+            fprintf(stderr, "EOS: avRes[res %d, eos %d], pb-EOS %d\n", 
+                avRes, AVERROR_EOF == avRes, 
+                ( pAV->pFormatCtx->pb && pAV->pFormatCtx->pb->eof_reached ) );
+        }
         resPTS = END_OF_STREAM_PTS;
     } else if( 0 <= avRes ) {
         if( pAV->verbose ) {
@@ -1475,15 +1480,16 @@ JNIEXPORT jint JNICALL FF_FUNC(seek0)
   (JNIEnv *env, jobject instance, jlong ptr, jint pos1)
 {
     const FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
-    const int64_t pos0 = pAV->vPTS;
-    int64_t pts0;
+    int64_t pos0, pts0;
     int streamID;
     AVRational time_base;
     if( pAV->vid >= 0 ) {
+        pos0 = pAV->vPTS;
         streamID = pAV->vid;
         time_base = pAV->pVStream->time_base;
         pts0 = pAV->pVFrame->pkt_pts;
     } else if( pAV->aid >= 0 ) {
+        pos0 = pAV->aPTS;
         streamID = pAV->aid;
         time_base = pAV->pAStream->time_base;
         pts0 = pAV->pAFrames[pAV->aFrameCurrent]->pkt_pts;
@@ -1493,16 +1499,16 @@ JNIEXPORT jint JNICALL FF_FUNC(seek0)
     int64_t pts1 = (int64_t) (pos1 * (int64_t) time_base.den)
                            / (1000 * (int64_t) time_base.num);
     if(pAV->verbose) {
-        fprintf(stderr, "SEEK: vid %d, aid %d, pos1 %d, pts: %"PRId64" -> %"PRId64"\n", pAV->vid, pAV->aid, pos1, pts0, pts1);
+        fprintf(stderr, "SEEK: vid %d, aid %d, pos0 %d, pos1 %d, pts: %"PRId64" -> %"PRId64"\n", pAV->vid, pAV->aid, pos0, pos1, pts0, pts1);
     }
     int flags = 0;
     if(pos1 < pos0) {
         flags |= AVSEEK_FLAG_BACKWARD;
     }
-    int res;
+    int res = -2;
     if(HAS_FUNC(sp_av_seek_frame)) {
         if(pAV->verbose) {
-            fprintf(stderr, "SEEK.0: pre  : s %"PRId64" / %"PRId64" -> t %d / %"PRId64"\n", pos0, pts0, pos1, pts1);
+            fprintf(stderr, "SEEK.0: pre  : s %d / %"PRId64" -> t %d / %"PRId64"\n", pos0, pts0, pos1, pts1);
         }
         sp_av_seek_frame(pAV->pFormatCtx, streamID, pts1, flags);
     } else if(HAS_FUNC(sp_avformat_seek_file)) {

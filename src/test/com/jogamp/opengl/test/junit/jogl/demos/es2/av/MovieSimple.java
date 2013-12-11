@@ -150,7 +150,8 @@ public class MovieSimple implements GLEventListener {
 
             if(y>winHeight/2) {
                 final float dp  = (float)(x-prevMouseX)/(float)winWidth;
-                mPlayer.seek(mPlayer.getVideoPTS() + (int) (mPlayer.getDuration() * dp));
+                final int pts0 = GLMediaPlayer.STREAM_ID_NONE != mPlayer.getVID() ? mPlayer.getVideoPTS() : mPlayer.getAudioPTS();
+                mPlayer.seek(pts0 + (int) (mPlayer.getDuration() * dp));
             } else {
                 mPlayer.play();
                 rotate = 1;
@@ -174,7 +175,7 @@ public class MovieSimple implements GLEventListener {
                 return;
             }
             System.err.println("MC "+e);
-            int pts0 = mPlayer.getVideoPTS();
+            final int pts0 = GLMediaPlayer.STREAM_ID_NONE != mPlayer.getVID() ? mPlayer.getVideoPTS() : mPlayer.getAudioPTS();
             int pts1 = 0;
             switch(e.getKeyCode()) {
                 case KeyEvent.VK_RIGHT:      pts1 = pts0 +  1000; break;
@@ -372,9 +373,7 @@ public class MovieSimple implements GLEventListener {
         if( GLMediaPlayer.State.Uninitialized == mPlayer.getState() ) {
             throw new IllegalStateException("mPlayer in uninitialized state: "+mPlayer);
         }
-        if( GLMediaPlayer.STREAM_ID_NONE == mPlayer.getVID() ) {
-            throw new IllegalStateException("mPlayer has no VID/stream selected: "+mPlayer);
-        }
+        final boolean hasVideo = GLMediaPlayer.STREAM_ID_NONE != mPlayer.getVID();
         resetGLState = false;
 
         zoom0 =  orthoProjection ? 0f : -2.5f;
@@ -397,10 +396,20 @@ public class MovieSimple implements GLEventListener {
             }
             System.out.println("p1 "+mPlayer+", shared "+mPlayerShared);
             final TextureFrame frame = mPlayer.getLastTexture();
-            if( null == frame ) {
-                throw new InternalError("XXX: "+mPlayer);
+            if( null != frame ) {
+                if( !hasVideo ) {
+                    throw new InternalError("XXX: "+mPlayer);
+                }
+                tex = frame.getTexture();
+                if( null == tex ) {
+                    throw new InternalError("XXX: "+mPlayer);
+                }
+            } else {
+                tex = null;
+                if( hasVideo ) {
+                    throw new InternalError("XXX: "+mPlayer);
+                }
             }
-            tex = mPlayer.getLastTexture().getTexture();
             if(!mPlayerShared) {
                 mPlayer.setTextureMinMagFilter( new int[] { GL.GL_NEAREST, GL.GL_LINEAR } );
             }
@@ -413,74 +422,76 @@ public class MovieSimple implements GLEventListener {
             throw new GLException(glex);
         }
 
-        initShader(gl);
+        if( hasVideo ) {
+            initShader(gl);
 
-        // Push the 1st uniform down the path
-        st.useProgram(gl, true);
+            // Push the 1st uniform down the path
+            st.useProgram(gl, true);
 
-        int[] viewPort = new int[] { 0, 0, drawable.getWidth(), drawable.getHeight()};
-        pmvMatrix = new PMVMatrix();
-        reshapePMV(viewPort[2], viewPort[3]);
-        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
-        if(!st.uniform(gl, pmvMatrixUniform)) {
-            throw new GLException("Error setting PMVMatrix in shader: "+st);
-        }
-        if(!st.uniform(gl, new GLUniformData("mgl_ActiveTexture", mPlayer.getTextureUnit()))) {
-            throw new GLException("Error setting mgl_ActiveTexture in shader: "+st);
-        }
-
-        float dWidth = drawable.getWidth();
-        float dHeight = drawable.getHeight();
-        float mWidth = mPlayer.getWidth();
-        float mHeight = mPlayer.getHeight();
-        float mAspect = mWidth/mHeight;
-        System.err.println("XXX0: mov aspect: "+mAspect);
-        float xs, ys;
-        if(orthoProjection) {
-            if(mPlayerScaleOrig && mWidth < dWidth && mHeight < dHeight) {
-                xs   = mWidth/2f;                ys   = xs / mAspect;
-            } else {
-                xs   = dWidth/2f;                ys   = xs / mAspect; // w>h
+            int[] viewPort = new int[] { 0, 0, drawable.getWidth(), drawable.getHeight()};
+            pmvMatrix = new PMVMatrix();
+            reshapePMV(viewPort[2], viewPort[3]);
+            pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
+            if(!st.uniform(gl, pmvMatrixUniform)) {
+                throw new GLException("Error setting PMVMatrix in shader: "+st);
             }
-        } else {
-            if(mPlayerScaleOrig && mWidth < dWidth && mHeight < dHeight) {
-                xs   = mAspect * ( mWidth / dWidth ) ; ys   =  xs / mAspect ;
-            } else {
-                xs   = mAspect; ys   = 1f; // b>h
+            if(!st.uniform(gl, new GLUniformData("mgl_ActiveTexture", mPlayer.getTextureUnit()))) {
+                throw new GLException("Error setting mgl_ActiveTexture in shader: "+st);
             }
+
+            float dWidth = drawable.getWidth();
+            float dHeight = drawable.getHeight();
+            float mWidth = mPlayer.getWidth();
+            float mHeight = mPlayer.getHeight();
+            float mAspect = mWidth/mHeight;
+            System.err.println("XXX0: mov aspect: "+mAspect);
+            float xs, ys;
+            if(orthoProjection) {
+                if(mPlayerScaleOrig && mWidth < dWidth && mHeight < dHeight) {
+                    xs   = mWidth/2f;                ys   = xs / mAspect;
+                } else {
+                    xs   = dWidth/2f;                ys   = xs / mAspect; // w>h
+                }
+            } else {
+                if(mPlayerScaleOrig && mWidth < dWidth && mHeight < dHeight) {
+                    xs   = mAspect * ( mWidth / dWidth ) ; ys   =  xs / mAspect ;
+                } else {
+                    xs   = mAspect; ys   = 1f; // b>h
+                }
+            }
+            verts = new float[] { -1f*xs, -1f*ys, 0f, // LB
+                                   1f*xs,  1f*ys, 0f  // RT
+                                };
+            {
+                System.err.println("XXX0: pixel  LB: "+verts[0]+", "+verts[1]+", "+verts[2]);
+                System.err.println("XXX0: pixel  RT: "+verts[3]+", "+verts[4]+", "+verts[5]);
+                float[] winLB = new float[3];
+                float[] winRT = new float[3];
+                pmvMatrix.gluProject(verts[0], verts[1], verts[2], viewPort, 0, winLB, 0);
+                pmvMatrix.gluProject(verts[3], verts[4], verts[5], viewPort, 0, winRT, 0);
+                System.err.println("XXX0: win   LB: "+winLB[0]+", "+winLB[1]+", "+winLB[2]);
+                System.err.println("XXX0: win   RT: "+winRT[0]+", "+winRT[1]+", "+winRT[2]);
+            }
+
+            interleavedVBO = GLArrayDataServer.createGLSLInterleaved(3+4+2, GL.GL_FLOAT, false, 3*4, GL.GL_STATIC_DRAW);
+            {
+                interleavedVBO.addGLSLSubArray("mgl_Vertex",        3, GL.GL_ARRAY_BUFFER);
+                interleavedVBO.addGLSLSubArray("mgl_Color",         4, GL.GL_ARRAY_BUFFER);
+                interleavedVBO.addGLSLSubArray("mgl_MultiTexCoord", 2, GL.GL_ARRAY_BUFFER);
+            }
+            updateInterleavedVBO(gl, tex);
+
+            st.ownAttribute(interleavedVBO, true);
+            gl.glClearColor(0.3f, 0.3f, 0.3f, 0.3f);
+
+            gl.glEnable(GL2ES2.GL_DEPTH_TEST);
+
+            st.useProgram(gl, false);
+
+            // Let's show the completed shader state ..
+            System.out.println("iVBO: "+interleavedVBO);
+            System.out.println(st);
         }
-        verts = new float[] { -1f*xs, -1f*ys, 0f, // LB
-                               1f*xs,  1f*ys, 0f  // RT
-                            };
-        {
-            System.err.println("XXX0: pixel  LB: "+verts[0]+", "+verts[1]+", "+verts[2]);
-            System.err.println("XXX0: pixel  RT: "+verts[3]+", "+verts[4]+", "+verts[5]);
-            float[] winLB = new float[3];
-            float[] winRT = new float[3];
-            pmvMatrix.gluProject(verts[0], verts[1], verts[2], viewPort, 0, winLB, 0);
-            pmvMatrix.gluProject(verts[3], verts[4], verts[5], viewPort, 0, winRT, 0);
-            System.err.println("XXX0: win   LB: "+winLB[0]+", "+winLB[1]+", "+winLB[2]);
-            System.err.println("XXX0: win   RT: "+winRT[0]+", "+winRT[1]+", "+winRT[2]);
-        }
-
-        interleavedVBO = GLArrayDataServer.createGLSLInterleaved(3+4+2, GL.GL_FLOAT, false, 3*4, GL.GL_STATIC_DRAW);
-        {
-            interleavedVBO.addGLSLSubArray("mgl_Vertex",        3, GL.GL_ARRAY_BUFFER);
-            interleavedVBO.addGLSLSubArray("mgl_Color",         4, GL.GL_ARRAY_BUFFER);
-            interleavedVBO.addGLSLSubArray("mgl_MultiTexCoord", 2, GL.GL_ARRAY_BUFFER);
-        }
-        updateInterleavedVBO(gl, tex);
-
-        st.ownAttribute(interleavedVBO, true);
-        gl.glClearColor(0.3f, 0.3f, 0.3f, 0.3f);
-
-        gl.glEnable(GL2ES2.GL_DEPTH_TEST);
-
-        st.useProgram(gl, false);
-
-        // Let's show the completed shader state ..
-        System.out.println("iVBO: "+interleavedVBO);
-        System.out.println(st);
 
         if(!mPlayerShared) {
             mPlayer.play();
@@ -697,6 +708,7 @@ public class MovieSimple implements GLEventListener {
         int textureCount = 3; // default - threaded
         boolean ortho = true;
         boolean zoom = false;
+        boolean _loopEOS = false;
 
         boolean forceES2 = false;
         boolean forceES3 = false;
@@ -742,6 +754,8 @@ public class MovieSimple implements GLEventListener {
                     ortho=false;
                 } else if(args[i].equals("-zoom")) {
                     zoom=true;
+                } else if(args[i].equals("-loop")) {
+                    _loopEOS=true;
                 } else if(args[i].equals("-url")) {
                     i++;
                     url_s = args[i];
@@ -757,6 +771,7 @@ public class MovieSimple implements GLEventListener {
             }
             origSize = _origSize;
         }
+        final boolean loopEOS = _loopEOS;
         final URI streamLoc;
         if( null != url_s ) {
             streamLoc = new URI(url_s);
@@ -827,6 +842,7 @@ public class MovieSimple implements GLEventListener {
                     System.err.println("MovieSimple AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
                     System.err.println("MovieSimple State: "+mp);
                     if( 0 != ( GLMediaEventListener.EVENT_CHANGE_SIZE & event_mask ) ) {
+                        System.err.println("MovieSimple State: CHANGE_SIZE");
                         if( origSize ) {
                             window.setSize(mp.getWidth(), mp.getHeight());
                         }
@@ -834,11 +850,14 @@ public class MovieSimple implements GLEventListener {
                         ms.resetGLState();
                     }
                     if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
-                        if( GLMediaPlayer.STREAM_ID_NONE != ms.mPlayer.getVID() ) {
-                            window.addGLEventListener(ms);
-                            anim.setUpdateFPSFrames(60, System.err);
-                            anim.resetFPSCounter();
-                        } else {
+                        System.err.println("MovieSimple State: INIT");
+                        // Use GLEventListener in all cases [A+V, V, A]
+                        window.addGLEventListener(ms);
+                        anim.setUpdateFPSFrames(60, System.err);
+                        anim.resetFPSCounter();
+                        /**
+                         * Kick off player w/o GLEventListener, i.e. for audio only.
+                         *
                             try {
                                 ms.mPlayer.initGL(null);
                             } catch (Exception e) {
@@ -848,12 +867,38 @@ public class MovieSimple implements GLEventListener {
                             }
                             ms.mPlayer.play();
                             System.out.println("play.1 "+ms.mPlayer);
+                        */
+                    }
+                    boolean destroy = false;
+                    Throwable err = null;
+
+                    if( 0 != ( GLMediaEventListener.EVENT_CHANGE_EOS & event_mask ) ) {
+                        err = ms.mPlayer.getStreamException();
+                        if( null != err ) {
+                            System.err.println("MovieSimple State: EOS + Exception");
+                            destroy = true;
+                        } else {
+                            System.err.println("MovieSimple State: EOS");
+                            if( loopEOS ) {
+                                ms.mPlayer.seek(0);
+                                ms.mPlayer.play();
+                            } else {
+                                destroy = true;
+                            }
                         }
                     }
-                    if( 0 != ( ( GLMediaEventListener.EVENT_CHANGE_ERR | GLMediaEventListener.EVENT_CHANGE_EOS ) & event_mask ) ) {
-                        final StreamException se = ms.mPlayer.getStreamException();
-                        if( null != se ) {
-                            se.printStackTrace();
+                    if( 0 != ( GLMediaEventListener.EVENT_CHANGE_ERR & event_mask ) ) {
+                        err = ms.mPlayer.getStreamException();
+                        if( null != err ) {
+                            System.err.println("MovieSimple State: ERR + Exception");
+                        } else {
+                            System.err.println("MovieSimple State: ERR");
+                        }
+                        destroy = true;
+                    }
+                    if( destroy ) {
+                        if( null != err ) {
+                            err.printStackTrace();
                         }
                         destroyWindow();
                     }
