@@ -385,7 +385,9 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     if( null != audioSink && State.Playing == _state ) {
                         audioSink.play(); // cont. w/ new data
                     }
-                    System.err.println("SEEK XXX: "+getPerfString());
+                    if(DEBUG) {
+                        System.err.println("Seek("+msec+"): "+getPerfString());
+                    }
                     if( null != streamWorker ) {
                         streamWorker.doResume();
                     }
@@ -1073,7 +1075,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 shallPause = false;
                 if( Thread.currentThread() != this ) {
                     while( !isActive ) {
-                        this.notify();  // wake-up pause-block
+                        this.notifyAll();  // wake-up pause-block
                         try {
                             this.wait(); // wait until resumed
                         } catch (InterruptedException e) {
@@ -1091,7 +1093,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                         this.interrupt();
                     }
                     while( isRunning ) {
-                        this.notify();  // wake-up pause-block (opt)
+                        this.notifyAll();  // wake-up pause-block (opt)
                         try {
                             this.wait();  // wait until stopped
                         } catch (InterruptedException e) {
@@ -1133,7 +1135,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                         }
                         while( shallPause && !shallStop ) {
                             isActive = false;
-                            this.notify();   // wake-up doPause()
+                            this.notifyAll();   // wake-up doPause()
                             try {
                                 this.wait(); // wait until resumed
                             } catch (InterruptedException e) {
@@ -1147,7 +1149,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                             preNextTextureImpl(sharedGLCtx.getGL());
                         }
                         isActive = true;
-                        this.notify(); // wake-up doResume()
+                        this.notifyAll(); // wake-up doResume()
                     }
                 }
                 if( !sharedGLCtxCurrent && null != sharedGLCtx ) {
@@ -1191,8 +1193,11 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                 // audio only
                                 if( TimeFrameI.END_OF_STREAM_PTS == vPTS ) {
                                     // state transition incl. notification
-                                    shallPause = true;
-                                    isActive = false;
+                                    synchronized ( this ) {
+                                        shallPause = true;
+                                        isActive = false;
+                                        this.notifyAll(); // wake-up potential do*()
+                                    }
                                     pauseImpl(true, GLMediaEventListener.EVENT_CHANGE_EOS);
                                 }
                             }
@@ -1215,8 +1220,11 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                 t.printStackTrace();
                             }
                             // state transition incl. notification
-                            shallPause = true;
-                            isActive = false;
+                            synchronized ( this ) {
+                                shallPause = true;
+                                isActive = false;
+                                this.notifyAll(); // wake-up potential do*()
+                            }
                             pauseImpl(true, GLMediaEventListener.EVENT_CHANGE_ERR);
                         }
                     }
@@ -1229,7 +1237,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 destroySharedGL();
                 isRunning = false;
                 isActive = false;
-                this.notify(); // wake-up doStop()
+                this.notifyAll(); // wake-up doStop()
             }
         }
     }
