@@ -42,6 +42,7 @@ import javax.media.opengl.GLPipelineFactory;
 
 import jogamp.newt.Debug;
 
+import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseListener;
@@ -218,7 +219,7 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
                    @Override
                    public void run() {
                     if( glWindow.isNativeValid() && null != awtParent && 0 != awtParent.getWindowHandle() ) {
-                        glWindow.reparentWindow(awtParent);
+                        glWindow.reparentWindow(awtParent, -1, -1, Window.REPARENT_HINT_BECOMES_VISIBLE);
                     }
                    }
                 }).start();
@@ -308,7 +309,7 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
             glWindow.setAlwaysOnTop(!glWindow.isAlwaysOnTop());
        } else if(e.getKeyChar()=='r' && null!=awtParent) {
             if(null == glWindow.getParent()) {
-                glWindow.reparentWindow(awtParent);
+                glWindow.reparentWindow(awtParent, -1, -1, 0 /* hints */);
             } else {
                 final InsetsImmutable insets = glWindow.getInsets();
                 final int x, y;
@@ -320,7 +321,7 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
                     x = insets.getLeftWidth();
                     y = insets.getTopHeight();
                 }
-                glWindow.reparentWindow(null, x, y, false /* forceDestroyCreate */);
+                glWindow.reparentWindow(null, x, y, 0 /* hints */);
                 glWindow.setDefaultCloseOperation( glClosable ? WindowClosingMode.DISPOSE_ON_CLOSE : WindowClosingMode.DO_NOTHING_ON_CLOSE );
             }
        }

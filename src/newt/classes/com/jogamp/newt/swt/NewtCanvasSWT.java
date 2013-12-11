@@ -247,7 +247,7 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
             }
             configureNewtChild(false);
             newtChild.setVisible(false);
-            newtChild.reparentWindow(null);
+            newtChild.reparentWindow(null, -1, -1, 0 /* hint */);
             newtChild.destroy();
             newtChild = null;
         }
@@ -361,7 +361,7 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
             }
 
             newtChild.setSize(w, h);
-            newtChild.reparentWindow(nativeWindow);
+            newtChild.reparentWindow(nativeWindow, -1, -1, Window.REPARENT_HINT_BECOMES_VISIBLE);
             newtChild.setVisible(true);
             configureNewtChild(true);
             newtChild.sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
@@ -372,7 +372,7 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
         } else {
             configureNewtChild(false);
             newtChild.setVisible(false);
-            newtChild.reparentWindow(null);
+            newtChild.reparentWindow(null, -1, -1, 0 /* hints */);
         }
         if(DEBUG) {
             System.err.println("NewtCanvasSWT.reparentWindow.X: add="+add+", win "+newtWinHandleToHexString(newtChild)+", EDTUtil: cur "+newtChild.getScreen().getDisplay().getEDTUtil());

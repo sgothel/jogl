@@ -867,7 +867,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
       }
       newtChild.setVisible(false);
       newtChild.setSize(w, h);
-      newtChild.reparentWindow(jawtWindow);
+      newtChild.reparentWindow(jawtWindow, -1, -1, Window.REPARENT_HINT_BECOMES_VISIBLE);
       newtChild.addSurfaceUpdatedListener(jawtWindow);
       if( jawtWindow.isOffscreenLayerSurfaceEnabled() &&
           0 != ( JAWTUtil.JAWT_OSX_CALAYER_QUIRK_POSITION & JAWTUtil.getOSXCALayerQuirks() ) ) {
@@ -917,7 +917,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
       configureNewtChild(false);
       newtChild.setVisible(false);
 
-      newtChild.reparentWindow(null); // will destroy context (offscreen -> onscreen) and implicit detachSurfaceLayer
+      newtChild.reparentWindow(null, -1, -1, 0 /* hint */); // will destroy context (offscreen -> onscreen) and implicit detachSurfaceLayer
 
       if(DEBUG) {
           System.err.println("NewtCanvasAWT.detachNewtChild.X: win "+newtWinHandleToHexString(newtChild)+", EDTUtil: cur "+newtChild.getScreen().getDisplay().getEDTUtil()+", comp "+this);

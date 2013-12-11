@@ -2188,7 +2188,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     // enable fullscreen on offscreen instance
                     if(null != parentWindow) {
                         nfs_parent = parentWindow;
-                        reparentWindow(null, -1, -1, true /* forceDestroyCreate */);
+                        reparentWindow(null, -1, -1, REPARENT_HINT_FORCE_RECREATION | REPARENT_HINT_BECOMES_VISIBLE);
                     } else {
                         throw new InternalError("Offscreen instance w/o parent unhandled");
                     }
@@ -2198,7 +2198,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
                 if(!fullScreenAction.fsOn() && null != nfs_parent) {
                     // disable fullscreen on offscreen instance
-                    reparentWindow(nfs_parent, -1, -1, true /* forceDestroyCreate */);
+                    reparentWindow(nfs_parent, -1, -1, REPARENT_HINT_FORCE_RECREATION | REPARENT_HINT_BECOMES_VISIBLE);
                     nfs_parent = null;
                 }
             }
