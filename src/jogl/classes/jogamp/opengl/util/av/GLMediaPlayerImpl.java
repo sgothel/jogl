@@ -816,7 +816,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                         final long currentTimeMillis = Platform.currentTimeMillis();
 
                         if( TimeFrameI.END_OF_STREAM_PTS == video_pts ||
-                            duration <= video_pts || maxNullFrameCountUntilEOS <= nullFrameCount )
+                            ( duration > 0 && duration <= video_pts ) || maxNullFrameCountUntilEOS <= nullFrameCount )
                         {
                             // EOS
                             if( DEBUG ) {
@@ -1245,7 +1245,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                 nextFrame = null;
                             } else {
                                 // audio only
-                                if( TimeFrameI.END_OF_STREAM_PTS == vPTS || duration < vPTS ) {
+                                if( TimeFrameI.END_OF_STREAM_PTS == vPTS || ( duration > 0 && duration < vPTS ) ) {
                                     audioEOS = true;
                                 } else {
                                     nullFrameCount = 0;

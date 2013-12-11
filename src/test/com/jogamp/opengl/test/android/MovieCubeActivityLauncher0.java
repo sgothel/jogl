@@ -58,7 +58,7 @@ public class MovieCubeActivityLauncher0 extends LauncherUtil.BaseActivityLaunche
        // props.setProperty("jogl.debug.GLProfile", "true");
        // props.setProperty("jogl.debug.GLDrawable", "true");
        // props.setProperty("jogl.debug.GLContext", "true");
-       // props.setProperty("jogl.debug.GLMediaPlayer", "true");
+       props.setProperty("jogl.debug.GLMediaPlayer", "true");
        props.setProperty("jogl.debug.GLSLCode", "true");
        // props.setProperty("jogl.debug.CapabilitiesChooser", "true");
        // props.setProperty("jogl.debug.GLSLState", "true");
