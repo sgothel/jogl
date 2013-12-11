@@ -766,6 +766,8 @@ public class DDSImage {
 
         // Now check the mipmaps against this size
         int curSize = topmostMipmapSize;
+        int mipmapWidth = width;
+        int mipmapHeight = height;
         int totalSize = 0;
         for (int i = 0; i < mipmapData.length; i++) {
             if (mipmapData[i].remaining() != curSize) {
@@ -773,7 +775,10 @@ public class DDSImage {
                                                    " didn't match expected data size (expected " + curSize + ", got " +
                                                    mipmapData[i].remaining() + ")");
             }
-            curSize /= 4;
+            // Compute next mipmap size
+            if (mipmapWidth > 1) mipmapWidth /= 2;
+            if (mipmapHeight > 1) mipmapHeight /= 2;
+            curSize = computeBlockSize(mipmapWidth, mipmapHeight, 1, d3dFormat);
             totalSize += mipmapData[i].remaining();
         }
 
@@ -850,6 +855,32 @@ public class DDSImage {
         default:           blockSize *= 16; break;
         }
         return blockSize;
+    }
+
+    private static int computeBlockSize(int width,
+                                        int height,
+                                        int depth,
+                                        int pixelFormat) {
+        int blocksize;
+        switch (pixelFormat) {
+        case D3DFMT_R8G8B8:
+            blocksize = width*height*3;
+            break;
+        case D3DFMT_A8R8G8B8:
+        case D3DFMT_X8R8G8B8:
+            blocksize = width*height*4;
+            break;
+        case D3DFMT_DXT1:
+        case D3DFMT_DXT2:
+        case D3DFMT_DXT3:
+        case D3DFMT_DXT4:
+        case D3DFMT_DXT5:
+            blocksize = computeCompressedBlockSize(width, height, 1, pixelFormat);
+            break;
+        default:
+            throw new IllegalArgumentException("d3dFormat must be one of the known formats");
+        }
+        return blocksize;
     }
 
     private int mipMapWidth(int map) {
