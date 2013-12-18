@@ -185,6 +185,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             final boolean avResampleLoaded = FFMPEGDynamicLibraryBundleInfo.avResampleLoaded();
             final VersionNumber swResampleVersion = FFMPEGDynamicLibraryBundleInfo.swResampleVersion;
             final boolean swResampleLoaded = FFMPEGDynamicLibraryBundleInfo.swResampleLoaded();
+            if( DEBUG ) {
             System.err.println("LIB_AV Codec   : "+avCodecVersion+" [cc "+avCodecMajorVersionCC+"]");
             System.err.println("LIB_AV Format  : "+avFormatVersion+" [cc "+avFormatMajorVersionCC+"]");
             System.err.println("LIB_AV Util    : "+avUtilVersion+" [cc "+avUtilMajorVersionCC+"]");
@@ -192,6 +193,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             System.err.println("LIB_SW Resample: "+swResampleVersion+" [cc "+swResampleMajorVersionCC+", loaded "+swResampleLoaded+"]");
             System.err.println("LIB_AV Device  : [loaded "+FFMPEGDynamicLibraryBundleInfo.avDeviceLoaded()+"]");
             System.err.println("LIB_AV Class   : "+(null!= natives ? natives.getClass().getSimpleName() : "n/a"));
+            }
             libAVVersionGood = avCodecMajorVersionCC  == avCodecVersion.getMajor() &&
                                avFormatMajorVersionCC == avFormatVersion.getMajor() &&
                                avUtilMajorVersionCC   == avUtilVersion.getMajor() &&

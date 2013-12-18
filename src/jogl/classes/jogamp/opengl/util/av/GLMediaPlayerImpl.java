@@ -757,7 +757,9 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     }
                     texFrames[i] = null;
                 }
-                System.err.println(Thread.currentThread().getName()+"> Clear TexFrame["+i+"]: "+frame+" -> null");
+                if( DEBUG ) {
+                    System.err.println(Thread.currentThread().getName()+"> Clear TexFrame["+i+"]: "+frame+" -> null");
+                }
             }
         }
     }
