@@ -487,7 +487,7 @@ public class ALAudioSink implements AudioSink {
                     // clip wait at [2 .. 100] ms
                     final int avgBufferDura = chosenFormat.getBytesDuration( alBufferBytesQueued / alFramesPlaying.size() );
                     final int sleep = Math.max(2, Math.min(100, releaseBufferLimes * avgBufferDura));
-                    if( DEBUG || true ) {
+                    if( DEBUG ) {
                         System.err.println(getThreadName()+": ALAudioSink: Dequeue.wait["+i+"]: avgBufferDura "+avgBufferDura+", releaseBufferLimes "+releaseBufferLimes+", sleep "+sleep+" ms, playImpl "+(AL.AL_PLAYING == getSourceState())+", processed "+val[0]+", "+this);
                     }
                     unlockContext();
