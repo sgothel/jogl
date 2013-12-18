@@ -159,20 +159,21 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
                    "    ** THREAD "+getThreadName();
         }
 
-        public JAWTComponentListener() {
+        private JAWTComponentListener() {
             if(DEBUG) {
-                System.err.println(jawtStr()+".attach: "+toString());
+                System.err.println(jawtStr()+".attach @ Thread "+getThreadName()+": "+toString());
             }
-            component.addComponentListener(jawtComponentListener);
-            component.addHierarchyListener(jawtComponentListener);
+            component.addComponentListener(this);
+            component.addHierarchyListener(this);
         }
 
-        public final void detach() {
+        private final void detach() {
             if(DEBUG) {
-                System.err.println(jawtStr()+".detach: "+toString());
+                System.err.println(jawtStr()+".detach @ Thread "+getThreadName()+": "+toString());
             }
-            component.removeComponentListener(jawtComponentListener);
-            component.removeHierarchyListener(jawtComponentListener);
+            component.removeComponentListener(this);
+            component.removeHierarchyListener(this);
+            component.setVisible(localVisibility); // restore component's original local state
         }
 
         @Override
@@ -251,6 +252,11 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
                 } else if(DEBUG) {
                     System.err.println(jawtStr()+".hierarchyChanged SHOWING_CHANGED (x): showing "+showing+" -> visible "+(showing && localVisibility)+", "+s(e));
                 }
+            } else if(DEBUG) {
+                final boolean displayable = changed.isDisplayable();
+                final boolean _visible = displayable && localVisibility;
+                final boolean showing = changed.isShowing();
+                System.err.println(jawtStr()+".hierarchyChanged OTHER: displayable "+displayable+", showing "+showing+" -> visible "+_visible+", "+s(e));
             }
         }
   }

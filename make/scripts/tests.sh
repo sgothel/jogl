@@ -192,7 +192,7 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.EDT"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.GLContext"
     #D_ARGS="-Dnewt.debug.Window -Djogl.debug.Animator -Dnewt.debug.Screen"
-    #D_ARGS="-Dnativewindow.debug.JAWT -Dnewt.debug.Window"
+    D_ARGS="-Dnativewindow.debug.JAWT -Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Window.KeyEvent"
     #D_ARGS="-Dnewt.debug.Window.MouseEvent"
     #D_ARGS="-Dnewt.debug.Window.MouseEvent -Dnewt.debug.Window.KeyEvent"
@@ -345,7 +345,7 @@ function testawtswt() {
 #
 #testnoawt jogamp.opengl.openal.av.ALDummyUsage $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 
 #
 # performance tests
@@ -505,8 +505,8 @@ testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos03aB729AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos03bB849AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos03cB849AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816JTabbedPanelVisibilityB849B878AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816GLCanvasFrameHoppingB849B889AWT $*
+##testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816JTabbedPanelVisibilityB849B878AWT $*
+testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816GLCanvasFrameHoppingB849B889AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos04aAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos04bAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug675BeansInDesignTimeAWT $*
