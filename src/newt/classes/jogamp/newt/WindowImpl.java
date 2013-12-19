@@ -1211,6 +1211,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
         @Override
         public final void run() {
+            if( WindowImpl.this.isFullscreen() ) {
+                // Bug 924: Ignore reparent when in fullscreen - otherwise may confuse WM
+                if( DEBUG_IMPLEMENTATION) {
+                    System.err.println("Window.reparent: NOP (in fullscreen, "+getThreadName()+") valid "+isNativeValid()+
+                                       ", windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+                }
+                return;
+            }
             boolean animatorPaused = false;
             if(null!=lifecycleHook) {
                 animatorPaused = lifecycleHook.pauseRenderingAction();
