@@ -389,6 +389,9 @@ static Bool NewtWindows_setStackingEWMHFlags (Display *dpy, Window root, Window 
             XSendEvent ( dpy, root, False, mask, &xev );
         }
         // Also change _NET_WM_BYPASS_COMPOSITOR!
+        //   A value of 0 indicates no preference. 
+        //   A value of 1 hints the compositor to disabling compositing of this window. 
+        //   A value of 2 hints the compositor to not disabling compositing of this window
         {
             Atom _NET_WM_BYPASS_COMPOSITOR = XInternAtom( dpy, "_NET_WM_BYPASS_COMPOSITOR", False );
             unsigned long value = enable ? 1 : 0;
@@ -704,9 +707,19 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CloseWindow0
     DBG_PRINT( "X11: CloseWindow END\n");
 }
 
-#if 0
+// #define REPARENT_WAIT_FOR_REPARENT_NOTIFY 1
+
+#ifdef REPARENT_WAIT_FOR_REPARENT_NOTIFY
 static Bool WaitForReparentNotify( Display *dpy, XEvent *event, XPointer arg ) {
-    return (event->type == ReparentNotify) && (event->xreparent.window == (Window) arg);
+    Bool res = (event->type == ReparentNotify) && (event->xreparent.window == (Window) arg);
+    #ifdef VERBOSE_ON
+    if( event->type == ReparentNotify ) {
+        DBG_PRINT( "X11.WaitForReparentNotify: Event ReparentNotify: Result %d, exp %p, has %p\n", (int)res, arg, event->xreparent.window);
+    } else {
+        DBG_PRINT( "X11.WaitForReparentNotify: Event 0x%X: Result %d, exp %p, has %p\n", (int)event->type, (int)res, arg, event->xreparent.window);
+    }
+    #endif
+    return res;
 }
 #endif
 
@@ -778,8 +791,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         // no need to notify the java side .. just temp change
     }
 
-    if( fsEWMHFlags && ( ( TST_FLAG_CHANGE_FULLSCREEN(flags)  && !TST_FLAG_IS_FULLSCREEN(flags) ) || 
-                         ( TST_FLAG_CHANGE_ALWAYSONTOP(flags) && !TST_FLAG_IS_ALWAYSONTOP(flags) ) ) ) { // FS off
+    if( fsEWMHFlags && ( ( TST_FLAG_CHANGE_FULLSCREEN(flags)  && !TST_FLAG_IS_FULLSCREEN(flags) ) ||     // FS off
+                         ( TST_FLAG_CHANGE_ALWAYSONTOP(flags) && !TST_FLAG_IS_ALWAYSONTOP(flags) ) ) ) { // AlwaysOnTop off
         NewtWindows_setStackingEWMHFlags(dpy, root, w, fsEWMHFlags, isVisible, False);
     }
 
@@ -787,7 +800,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         // TOP: in -> out
         DBG_PRINT( "X11: reconfigureWindow0 PARENTING in->out\n");
         XReparentWindow( dpy, w, parent, x, y ); // actual reparent call
-        // XIfEvent( dpy, &event, WaitForReparentNotify, (XPointer) w );
+        #ifdef REPARENT_WAIT_FOR_REPARENT_NOTIFY
+            XIfEvent( dpy, &event, WaitForReparentNotify, (XPointer) w );
+        #endif
         XSync(dpy, False);
         XSetWMProtocols(dpy, w, &wm_delete_atom, 1); // windowDeleteAtom
     }
@@ -804,7 +819,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         // CHILD: out -> in
         DBG_PRINT( "X11: reconfigureWindow0 PARENTING out->in\n");
         XReparentWindow( dpy, w, parent, x, y ); // actual reparent call
-        // XIfEvent( dpy, &event, WaitForReparentNotify, (XPointer) w );
+        #ifdef REPARENT_WAIT_FOR_REPARENT_NOTIFY
+            XIfEvent( dpy, &event, WaitForReparentNotify, (XPointer) w );
+        #endif
         XSync(dpy, False);
     }
 
@@ -828,8 +845,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         }
     }
 
-    if( fsEWMHFlags && ( ( TST_FLAG_CHANGE_FULLSCREEN(flags)  && TST_FLAG_IS_FULLSCREEN(flags) ) || 
-                         ( TST_FLAG_CHANGE_ALWAYSONTOP(flags) && TST_FLAG_IS_ALWAYSONTOP(flags) ) ) ) { // FS on
+    if( fsEWMHFlags && ( ( TST_FLAG_CHANGE_FULLSCREEN(flags)  && TST_FLAG_IS_FULLSCREEN(flags) ) ||     // FS on
+                         ( TST_FLAG_CHANGE_ALWAYSONTOP(flags) && TST_FLAG_IS_ALWAYSONTOP(flags) ) ) ) { // AlwaysOnTop on
         NewtWindows_requestFocus (dpy, w, True);
         NewtWindows_setStackingEWMHFlags(dpy, root, w, fsEWMHFlags, isVisible, True);
     }
