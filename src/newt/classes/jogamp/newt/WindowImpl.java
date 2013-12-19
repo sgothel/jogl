@@ -1442,9 +1442,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                 ok = WindowImpl.this.waitForSize(width, height, false, TIMEOUT_NATIVEWINDOW);
                             }
                             if(ok) {
-                                ok = WindowImpl.this.waitForPosition(true, x, y, TIMEOUT_NATIVEWINDOW);
-                            }
-                            if(ok) {
+                                // Position mismatch shall not lead to reparent failure
+                                WindowImpl.this.waitForPosition(true, x, y, TIMEOUT_NATIVEWINDOW);
+
                                 requestFocusInt( 0 == parentWindowHandle /* skipFocusAction if top-level */);
                                 display.dispatchMessagesNative(); // status up2date
                             }
@@ -2158,8 +2158,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     if(ok) {
                         ok = WindowImpl.this.waitForSize(w, h, false, TIMEOUT_NATIVEWINDOW);
                     }
-                    if(ok && !fullscreen) {
-                        ok = WindowImpl.this.waitForPosition(true, x, y, TIMEOUT_NATIVEWINDOW);
+                    if(ok && !_fullscreen) {
+                        // Position mismatch shall not lead to fullscreen failure
+                        WindowImpl.this.waitForPosition(true, x, y, TIMEOUT_NATIVEWINDOW);
                     }
                     if(ok) {
                         requestFocusInt(fullscreen /* skipFocusAction if fullscreen */);
