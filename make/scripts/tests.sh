@@ -93,6 +93,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all"
     #D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
+    D_ARGS="-Dnativewindow.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all -Djogamp.debug.Lock"
 
     #D_ARGS="-Dnativewindow.debug.X11Util.ATI_HAS_NO_XCLOSEDISPLAY_BUG"
@@ -192,7 +193,7 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.EDT"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.GLContext"
     #D_ARGS="-Dnewt.debug.Window -Djogl.debug.Animator -Dnewt.debug.Screen"
-    D_ARGS="-Dnativewindow.debug.JAWT -Dnewt.debug.Window"
+    #D_ARGS="-Dnativewindow.debug.JAWT -Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Window.KeyEvent"
     #D_ARGS="-Dnewt.debug.Window.MouseEvent"
     #D_ARGS="-Dnewt.debug.Window.MouseEvent -Dnewt.debug.Window.KeyEvent"
@@ -320,7 +321,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelsAWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
+testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NewtCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile00NEWT $*
@@ -506,7 +507,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos03bB849AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos03cB849AWT $*
 ##testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816JTabbedPanelVisibilityB849B878AWT $*
-testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816GLCanvasFrameHoppingB849B889AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816GLCanvasFrameHoppingB849B889AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos04aAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos04bAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug675BeansInDesignTimeAWT $*

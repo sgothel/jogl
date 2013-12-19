@@ -2018,27 +2018,24 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     private class FullScreenAction implements Runnable {
-        boolean fullscreen;
+        boolean _fullscreen;
 
         private boolean init(boolean fullscreen) {
             if(isNativeValid()) {
-                this.fullscreen = fullscreen;
+                this._fullscreen = fullscreen;
                 return isFullscreen() != fullscreen;
             } else {
                 WindowImpl.this.fullscreen = fullscreen; // set current state for createNative(..)
                 return false;
             }
         }
-        public boolean fsOn() { return fullscreen; }
+        public boolean fsOn() { return _fullscreen; }
 
         @Override
         public final void run() {
             final RecursiveLock _lock = windowLock;
             _lock.lock();
             try {
-                // set current state
-                WindowImpl.this.fullscreen = fullscreen;
-
                 final int oldX = getX();
                 final int oldY = getY();
                 final int oldWidth = getWidth();
@@ -2050,7 +2047,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 final RectangleImmutable viewport;
                 final int fs_span_flag;
                 final boolean alwaysOnTopChange;
-                if(fullscreen) {
+                if(_fullscreen) {
                     if( null == fullscreenMonitors ) {
                         if( fullscreenUseMainMonitor ) {
                             fullscreenMonitors = new ArrayList<MonitorDevice>();
@@ -2103,30 +2100,33 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         }
                     }
                 }
-                if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h+", "+isUndecorated()+
-                                       ", virtl-screenSize: "+sviewport+", monitorsViewport "+viewport+
-                                       ", spanning "+(0!=fs_span_flag)+
-                                       ", alwaysOnTop "+alwaysOnTop+(alwaysOnTopChange?"*":"")+
-                                       " @ "+Thread.currentThread().getName());
-                }
 
                 final DisplayImpl display = (DisplayImpl) screen.getDisplay();
                 display.dispatchMessagesNative(); // status up2date
                 final boolean wasVisible = isVisible();
+                final boolean tempInvisible = !_fullscreen && wasVisible && NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true);
+
+                if(DEBUG_IMPLEMENTATION) {
+                    System.err.println("Window fs: "+_fullscreen+" "+x+"/"+y+" "+w+"x"+h+", "+isUndecorated()+
+                                       ", virtl-screenSize: "+sviewport+", monitorsViewport "+viewport+
+                                       ", spanning "+(0!=fs_span_flag)+
+                                       ", alwaysOnTop "+alwaysOnTop+(alwaysOnTopChange?"*":"")+
+                                       ", wasVisible "+wasVisible+", tempInvisible "+tempInvisible+
+                                       ", hasParent "+(null!=parentWindow)+
+                                       " @ "+Thread.currentThread().getName());
+                }
+
+                // fullscreen off: !visible first (fixes X11 unsuccessful return to parent window _and_ wrong window size propagation)
+                if( tempInvisible ) {
+                    setVisibleImpl(false, oldX, oldY, oldWidth, oldHeight);
+                    WindowImpl.this.waitForVisible(false, false);
+                    try { Thread.sleep(100); } catch (InterruptedException e) { }
+                    display.dispatchMessagesNative(); // status up2date
+                }
 
                 // Lock parentWindow only during reparenting (attempt)
                 final NativeWindow parentWindowLocked;
                 if( null != parentWindow ) {
-                    // fullscreen off: !visible first (fixes X11 unsuccessful return to parent window)
-                    if( !fullscreen && wasVisible && NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true) ) {
-                        setVisibleImpl(false, oldX, oldY, oldWidth, oldHeight);
-                        WindowImpl.this.waitForVisible(false, false);
-                        // FIXME: Some composite WM behave slacky .. give 'em chance to change state -> invisible,
-                        // even though we do exactly that (KDE+Composite)
-                        try { Thread.sleep(100); } catch (InterruptedException e) { }
-                        display.dispatchMessagesNative(); // status up2date
-                    }
                     parentWindowLocked = parentWindow;
                     if( NativeSurface.LOCK_SURFACE_NOT_READY >= parentWindowLocked.lockSurface() ) {
                         throw new NativeWindowException("Parent surface lock: not ready: "+parentWindow);
@@ -2135,14 +2135,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     parentWindowLocked = null;
                 }
                 try {
-                    if(alwaysOnTopChange && fullscreen) {
+                    if(alwaysOnTopChange && _fullscreen) {
                         // Enter fullscreen - Disable alwaysOnTop
-                        reconfigureWindowImpl(nfs_x, nfs_y, nfs_width, nfs_height, getReconfigureFlags(FLAG_CHANGE_ALWAYSONTOP, isVisible()));
+                        reconfigureWindowImpl(oldX, oldY, oldWidth, oldHeight, getReconfigureFlags(FLAG_CHANGE_ALWAYSONTOP, isVisible()));
                     }
+
+                    WindowImpl.this.fullscreen = _fullscreen;
                     reconfigureWindowImpl(x, y, w, h,
                                           getReconfigureFlags( ( ( null != parentWindowLocked ) ? FLAG_CHANGE_PARENTING : 0 ) |
                                                                fs_span_flag | FLAG_CHANGE_FULLSCREEN | FLAG_CHANGE_DECORATION, isVisible()) );
-                    if(alwaysOnTopChange && !fullscreen) {
+                    if(alwaysOnTopChange && !_fullscreen) {
                         // Leave fullscreen - Restore alwaysOnTop
                         reconfigureWindowImpl(x, y, w, h, getReconfigureFlags(FLAG_CHANGE_ALWAYSONTOP, isVisible()));
                     }
@@ -2164,7 +2166,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         WindowImpl.this.waitForPosition(true, x, y, TIMEOUT_NATIVEWINDOW);
                     }
                     if(ok) {
-                        requestFocusInt(fullscreen /* skipFocusAction if fullscreen */);
+                        requestFocusInt(_fullscreen /* skipFocusAction if fullscreen */);
                         display.dispatchMessagesNative(); // status up2date
                     }
                     if(DEBUG_IMPLEMENTATION) {
