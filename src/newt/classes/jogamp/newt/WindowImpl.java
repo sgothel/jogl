@@ -1270,6 +1270,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                        ", windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle)+
                                        ", visible "+wasVisible+", becomesVisible "+becomesVisible+
                                        ", forceDestroyCreate "+forceDestroyCreate+
+                                       ", DEBUG_TEST_REPARENT_INCOMPATIBLE "+DEBUG_TEST_REPARENT_INCOMPATIBLE+
                                        ", HINT_FORCE_RECREATION "+( 0 != ( REPARENT_HINT_FORCE_RECREATION & hints ) )+
                                        ", HINT_BECOMES_VISIBLE "+( 0 != ( REPARENT_HINT_BECOMES_VISIBLE & hints ) ) +
                                        ", old parentWindow: "+Display.hashCodeNullSafe(parentWindow)+
@@ -3596,17 +3597,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      */
     protected void insetsChanged(boolean defer, int left, int right, int top, int bottom) {
         if ( left >= 0 && right >= 0 && top >= 0 && bottom >= 0 ) {
-            if(isUndecorated()) {
+            if( isUndecorated() ) {
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.insetsChanged: skip insets change for undecoration mode");
+                    System.err.println("Window.insetsChanged (defer: "+defer+"): Skip insets change "+insets+" -> "+new Insets(left, right, top, bottom)+" (undecoration mode)");
                 }
             } else if ( (left != insets.getLeftWidth() || right != insets.getRightWidth() ||
                          top != insets.getTopHeight() || bottom != insets.getBottomHeight() )
                        ) {
-                insets.set(left, right, top, bottom);
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.insetsChanged: (defer: "+defer+") "+insets);
+                    System.err.println("Window.insetsChanged (defer: "+defer+"): Changed "+insets+" -> "+new Insets(left, right, top, bottom));
                 }
+                insets.set(left, right, top, bottom);
             }
         }
     }
