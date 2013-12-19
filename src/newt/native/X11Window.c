@@ -754,8 +754,13 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         } else if( !TST_FLAG_IS_ALWAYSONTOP(flags) ) {
             fsEWMHFlags |= _NET_WM_STATE_FLAG_ABOVE;     // fs off, above off
         } // else { }                                    // fs off, above on
-    }
-    if( TST_FLAG_CHANGE_ALWAYSONTOP(flags) ) {
+    } else if( TST_FLAG_CHANGE_PARENTING(flags) ) {
+        // Fix for Unity WM, i.e. _remove_ persistent previous set states
+        fsEWMHFlags |= _NET_WM_STATE_FLAG_FULLSCREEN;
+        if( !TST_FLAG_IS_ALWAYSONTOP(flags) ) {
+            fsEWMHFlags |= _NET_WM_STATE_FLAG_ABOVE;
+        }
+    } else if( TST_FLAG_CHANGE_ALWAYSONTOP(flags) ) {
         fsEWMHFlags |= _NET_WM_STATE_FLAG_ABOVE;         // toggle above
     }
 
@@ -769,8 +774,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         TST_FLAG_CHANGE_VISIBILITY(flags),  TST_FLAG_IS_VISIBLE(flags), tempInvisible, fsEWMHFlags);
 
     // FS Note: To toggle FS, utilizing the _NET_WM_STATE_FULLSCREEN WM state shall be enough.
-    //          However, we have to consider other cases like reparenting and WM which don't support it.
-
+    //          However, we have to consider other cases like reparenting and WM which don't support it, i.e. Unity WM is sluggy.
+    #if 0    // Doesn't work properly w/ Unity WM
     if( fsEWMHFlags && !TST_FLAG_CHANGE_PARENTING(flags) && isVisible &&
         !TST_FLAG_IS_FULLSCREEN_SPAN(flags) &&
         ( TST_FLAG_CHANGE_FULLSCREEN(flags) || TST_FLAG_CHANGE_ALWAYSONTOP(flags) ) ) {
@@ -783,6 +788,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
             return;
         }
     }
+    #endif
 
     if( tempInvisible ) {
         DBG_PRINT( "X11: reconfigureWindow0 TEMP VISIBLE OFF\n");
@@ -805,6 +811,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         #endif
         XSync(dpy, False);
         XSetWMProtocols(dpy, w, &wm_delete_atom, 1); // windowDeleteAtom
+        // Fix for Unity WM, i.e. _remove_ persistent previous set states
+        NewtWindows_setStackingEWMHFlags(dpy, root, w, fsEWMHFlags, isVisible, False);
     }
 
     if( TST_FLAG_CHANGE_DECORATION(flags) ) {
