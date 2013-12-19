@@ -771,7 +771,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         TST_FLAG_CHANGE_DECORATION(flags),  TST_FLAG_IS_UNDECORATED(flags),
         TST_FLAG_CHANGE_FULLSCREEN(flags),  TST_FLAG_IS_FULLSCREEN(flags), TST_FLAG_IS_FULLSCREEN_SPAN(flags),
         TST_FLAG_CHANGE_ALWAYSONTOP(flags), TST_FLAG_IS_ALWAYSONTOP(flags),
-        TST_FLAG_CHANGE_VISIBILITY(flags),  TST_FLAG_IS_VISIBLE(flags), tempInvisible, fsEWMHFlags);
+        TST_FLAG_CHANGE_VISIBILITY(flags),  TST_FLAG_IS_VISIBLE(flags), 
+        tempInvisible, fsEWMHFlags);
 
     // FS Note: To toggle FS, utilizing the _NET_WM_STATE_FULLSCREEN WM state shall be enough.
     //          However, we have to consider other cases like reparenting and WM which don't support it, i.e. Unity WM is sluggy.
@@ -789,6 +790,14 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         }
     }
     #endif
+    // Toggle ALWAYSONTOP (only) w/o visibility or window stacking sideffects
+    if( isVisible && fsEWMHFlags && TST_FLAG_CHANGE_ALWAYSONTOP(flags) &&
+        !TST_FLAG_CHANGE_PARENTING(flags) && !TST_FLAG_CHANGE_FULLSCREEN(flags) ) {
+        if( NewtWindows_setStackingEWMHFlags(dpy, root, w, fsEWMHFlags, isVisible, TST_FLAG_IS_ALWAYSONTOP(flags)) ) {
+            DBG_PRINT( "X11: reconfigureWindow0 X (atop.fast)\n");
+            return;
+        }
+    }
 
     if( tempInvisible ) {
         DBG_PRINT( "X11: reconfigureWindow0 TEMP VISIBLE OFF\n");
@@ -813,6 +822,10 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         XSetWMProtocols(dpy, w, &wm_delete_atom, 1); // windowDeleteAtom
         // Fix for Unity WM, i.e. _remove_ persistent previous set states
         NewtWindows_setStackingEWMHFlags(dpy, root, w, fsEWMHFlags, isVisible, False);
+        if( TST_FLAG_IS_ALWAYSONTOP(flags) ) {
+            // Reinforce always-on-top, lost by WM during reparenting
+            NewtWindows_setStackingEWMHFlags(dpy, root, w, _NET_WM_STATE_FLAG_ABOVE, isVisible, True);
+        }
     }
 
     if( TST_FLAG_CHANGE_DECORATION(flags) ) {
