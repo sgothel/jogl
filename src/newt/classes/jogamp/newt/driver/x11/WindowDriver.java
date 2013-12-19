@@ -148,19 +148,20 @@ public class WindowDriver extends WindowImpl {
 
     @Override
     protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, int flags) {
-        if(DEBUG_IMPLEMENTATION) {
-            System.err.println("X11Window reconfig: "+x+"/"+y+" "+width+"x"+height+", "+ getReconfigureFlagsAsString(null, flags));
-        }
         final int _x, _y;
-        if(0 == ( FLAG_IS_UNDECORATED & flags)) {
-            final InsetsImmutable i = getInsets();
-
+        final InsetsImmutable _insets;
+        if( 0 == ( FLAG_IS_UNDECORATED & flags) ) {
             // client position -> top-level window position
-            _x = x - i.getLeftWidth() ;
-            _y = y - i.getTopHeight() ;
+            _insets = getInsets();
+            _x = x - _insets.getLeftWidth() ;
+            _y = y - _insets.getTopHeight() ;
         } else {
+            _insets = null;
             _x = x;
             _y = y;
+        }
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("X11Window reconfig: "+x+"/"+y+" -> "+_x+"/"+_y+" "+width+"x"+height+", insets "+_insets+", "+ getReconfigureFlagsAsString(null, flags));
         }
         if( 0 != ( FLAG_CHANGE_FULLSCREEN & flags ) ) {
             if( 0 != ( FLAG_IS_FULLSCREEN & flags) && 0 == ( FLAG_IS_ALWAYSONTOP & flags) ) {
@@ -196,7 +197,7 @@ public class WindowDriver extends WindowImpl {
      */
     @Override
     protected void focusChanged(boolean defer, boolean focusGained) {
-        if( tempFSAlwaysOnTop && hasFocus() != focusGained && isNativeValid() ) {
+        if( isNativeValid() && isFullscreen() && tempFSAlwaysOnTop && hasFocus() != focusGained ) {
             final int flags = getReconfigureFlags(FLAG_CHANGE_ALWAYSONTOP, isVisible()) | ( focusGained ? FLAG_IS_ALWAYSONTOP : 0 );
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("X11Window reconfig.3 (focus): temporary "+getReconfigureFlagsAsString(null, flags));
