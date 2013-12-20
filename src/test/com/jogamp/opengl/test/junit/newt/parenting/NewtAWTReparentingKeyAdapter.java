@@ -96,6 +96,12 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
                     }
                 }
             }.run();
+        } else if( e.getKeySymbol() == KeyEvent.VK_A ) {
+            new Thread() {
+                public void run() {
+                    glWindow.setAlwaysOnTop(!glWindow.isAlwaysOnTop());
+                }
+            }.run();
         } else if( e.getKeySymbol() == KeyEvent.VK_R ) {
             if( null != quitAdapter ) {
                 quitAdapter.enable(false);

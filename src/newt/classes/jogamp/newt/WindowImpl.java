@@ -1440,6 +1440,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                             setVisibleImpl(true, x, y, width, height);
                             ok = 0 <= WindowImpl.this.waitForVisible(true, false);
                             if(ok) {
+                                if( isAlwaysOnTop() && 0 == parentWindowHandle && NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true) ) {
+                                    // Reinforce ALWAYSONTOP when CHILD -> TOP reparenting, since reparenting itself cause X11 WM to loose it's state.
+                                    reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_ALWAYSONTOP, isVisible()));
+                                }
                                 ok = WindowImpl.this.waitForSize(width, height, false, TIMEOUT_NATIVEWINDOW);
                             }
                             if(ok) {

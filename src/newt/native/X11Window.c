@@ -822,10 +822,6 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         XSetWMProtocols(dpy, w, &wm_delete_atom, 1); // windowDeleteAtom
         // Fix for Unity WM, i.e. _remove_ persistent previous states
         NewtWindows_setStackingEWMHFlags(dpy, root, w, fsEWMHFlags, isVisible, False);
-        if( TST_FLAG_IS_ALWAYSONTOP(flags) ) {
-            // Reinforce always-on-top, lost by WM during reparenting
-            NewtWindows_setStackingEWMHFlags(dpy, root, w, _NET_WM_STATE_FLAG_ABOVE, isVisible, True);
-        }
     }
 
     if( TST_FLAG_CHANGE_DECORATION(flags) ) {
