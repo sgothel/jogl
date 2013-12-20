@@ -147,6 +147,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private volatile int width = 128, height = 128; // client-area size w/o insets, default: may be overwritten by user
     private volatile int x = 64, y = 64; // client-area pos w/o insets
     private volatile Insets insets = new Insets(); // insets of decoration (if top-level && decorated)
+    private boolean blockInsetsChange = false; // block insets change (from same thread)
 
     private final RecursiveLock windowLock = LockFactory.createRecursiveLock();  // Window instance wide lock
     private int surfaceLockCount = 0; // surface lock recursion count
@@ -2039,6 +2040,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         public final void run() {
             final RecursiveLock _lock = windowLock;
             _lock.lock();
+            blockInsetsChange = true;
             try {
                 final int oldX = getX();
                 final int oldY = getY();
@@ -2160,6 +2162,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 display.dispatchMessagesNative(); // status up2date
 
                 if(wasVisible) {
+                    if( NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true) ) {
+                        // Give sluggy WM's (e.g. Unity) a chance to properly restore window ..
+                        try { Thread.sleep(100); } catch (InterruptedException e) { }
+                        display.dispatchMessagesNative(); // status up2date
+                    }
                     setVisibleImpl(true, x, y, w, h);
                     boolean ok = 0 <= WindowImpl.this.waitForVisible(true, false);
                     if(ok) {
@@ -2178,6 +2185,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     }
                 }
             } finally {
+                blockInsetsChange = false;
                 _lock.unlock();
             }
             sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
@@ -3603,9 +3611,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      */
     protected void insetsChanged(boolean defer, int left, int right, int top, int bottom) {
         if ( left >= 0 && right >= 0 && top >= 0 && bottom >= 0 ) {
-            if( isUndecorated() ) {
+            if( blockInsetsChange || isUndecorated() ) {
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.insetsChanged (defer: "+defer+"): Skip insets change "+insets+" -> "+new Insets(left, right, top, bottom)+" (undecoration mode)");
+                    System.err.println("Window.insetsChanged (defer: "+defer+"): Skip insets change "+insets+" -> "+new Insets(left, right, top, bottom)+" (blocked "+blockInsetsChange+", undecoration "+isUndecorated()+")");
                 }
             } else if ( (left != insets.getLeftWidth() || right != insets.getRightWidth() ||
                          top != insets.getTopHeight() || bottom != insets.getBottomHeight() )
