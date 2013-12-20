@@ -755,10 +755,10 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
             fsEWMHFlags |= _NET_WM_STATE_FLAG_ABOVE;     // fs off, above off
         } // else { }                                    // fs off, above on
     } else if( TST_FLAG_CHANGE_PARENTING(flags) ) {
-        // Fix for Unity WM, i.e. _remove_ persistent previous set states
-        fsEWMHFlags |= _NET_WM_STATE_FLAG_FULLSCREEN;
+        // Fix for Unity WM, i.e. _remove_ persistent previous states
+        fsEWMHFlags |= _NET_WM_STATE_FLAG_FULLSCREEN;    // fs off
         if( !TST_FLAG_IS_ALWAYSONTOP(flags) ) {
-            fsEWMHFlags |= _NET_WM_STATE_FLAG_ABOVE;
+            fsEWMHFlags |= _NET_WM_STATE_FLAG_ABOVE;     // above off
         }
     } else if( TST_FLAG_CHANGE_ALWAYSONTOP(flags) ) {
         fsEWMHFlags |= _NET_WM_STATE_FLAG_ABOVE;         // toggle above
@@ -774,9 +774,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         TST_FLAG_CHANGE_VISIBILITY(flags),  TST_FLAG_IS_VISIBLE(flags), 
         tempInvisible, fsEWMHFlags);
 
-    // FS Note: To toggle FS, utilizing the _NET_WM_STATE_FULLSCREEN WM state shall be enough.
-    //          However, we have to consider other cases like reparenting and WM which don't support it, i.e. Unity WM is sluggy.
-    #if 0    // Doesn't work properly w/ Unity WM
+    // FS Note: To toggle FS, utilizing the _NET_WM_STATE_FULLSCREEN WM state should be enough.
+    //          However, we have to consider other cases like reparenting and WM which don't support it.
+    #if 0    // Also doesn't work work properly w/ Unity WM
     if( fsEWMHFlags && !TST_FLAG_CHANGE_PARENTING(flags) && isVisible &&
         !TST_FLAG_IS_FULLSCREEN_SPAN(flags) &&
         ( TST_FLAG_CHANGE_FULLSCREEN(flags) || TST_FLAG_CHANGE_ALWAYSONTOP(flags) ) ) {
@@ -785,7 +785,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
             if ( TST_FLAG_CHANGE_FULLSCREEN(flags) && !TST_FLAG_IS_FULLSCREEN(flags) ) { // FS off - restore decoration
                 NewtWindows_setDecorations (dpy, w, TST_FLAG_IS_UNDECORATED(flags) ? False : True);
             }
-            DBG_PRINT( "X11: reconfigureWindow0 X (fast)\n");
+            DBG_PRINT( "X11: reconfigureWindow0 X (fs.atop.fast)\n");
             return;
         }
     }
@@ -820,7 +820,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         #endif
         XSync(dpy, False);
         XSetWMProtocols(dpy, w, &wm_delete_atom, 1); // windowDeleteAtom
-        // Fix for Unity WM, i.e. _remove_ persistent previous set states
+        // Fix for Unity WM, i.e. _remove_ persistent previous states
         NewtWindows_setStackingEWMHFlags(dpy, root, w, fsEWMHFlags, isVisible, False);
         if( TST_FLAG_IS_ALWAYSONTOP(flags) ) {
             // Reinforce always-on-top, lost by WM during reparenting
