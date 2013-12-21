@@ -1147,9 +1147,9 @@ public class GLProfile {
         return GLES1 == profile;
     }
 
-    /** Indicates whether this profile is capable of GLES2.  <p>Includes [ GLES2 ].</p> */
+    /** Indicates whether this profile is capable of GLES2.  <p>Includes [ GLES2, GLES3 ].</p> */
     public final boolean isGLES2() {
-        return GLES2 == profile;
+        return isGLES3() || GLES2 == profile;
     }
 
     /** Indicates whether this profile is capable of GLES3.  <p>Includes [ GLES3 ].</p> */
@@ -1157,7 +1157,7 @@ public class GLProfile {
         return GLES3 == profile;
     }
 
-    /** Indicates whether this profile is capable of GLES.  <p>Includes [ GLES3, GLES1, GLES2 ].</p> */
+    /** Indicates whether this profile is capable of GLES.  <p>Includes [ GLES1, GLES2, GLES3 ].</p> */
     public final boolean isGLES() {
         return GLES3 == profile || GLES2 == profile || GLES1 == profile;
     }

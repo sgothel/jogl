@@ -624,13 +624,15 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             // ES3 Query
             final int[] esProfile = { 3 };
             madeCurrentES3 = mapAvailableEGLESConfig(adevice, esProfile, hasPBufferES3ES2, rendererQuirksES3ES2, ctpES3ES2) && 3 == esProfile[0];
-            // ES2 Query, may result in ES3
-            esProfile[0] = 2;
-            if( mapAvailableEGLESConfig(adevice, esProfile, hasPBufferES3ES2, rendererQuirksES3ES2, ctpES3ES2) ) {
-                switch( esProfile[0] ) {
-                    case 2: madeCurrentES2 = true; break;
-                    case 3: madeCurrentES3 = true; break;
-                    default: throw new InternalError("XXXX Got "+esProfile[0]);
+            if( !madeCurrentES3 ) {
+                // ES2 Query, may result in ES3
+                esProfile[0] = 2;
+                if( mapAvailableEGLESConfig(adevice, esProfile, hasPBufferES3ES2, rendererQuirksES3ES2, ctpES3ES2) ) {
+                    switch( esProfile[0] ) {
+                        case 2: madeCurrentES2 = true; break;
+                        case 3: madeCurrentES3 = true; break;
+                        default: throw new InternalError("XXXX Got "+esProfile[0]);
+                    }
                 }
             }
         }

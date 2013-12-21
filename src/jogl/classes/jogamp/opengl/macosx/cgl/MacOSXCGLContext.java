@@ -291,7 +291,7 @@ public class MacOSXCGLContext extends GLContextImpl
     final MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration();
     final GLCapabilitiesImmutable capabilitiesChosen = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     final GLProfile glp = capabilitiesChosen.getGLProfile();
-    if( glp.isGLES1() || glp.isGLES2() || glp.isGLES3() ||
+    if( glp.isGLES() ||
         ( glp.isGL3() && !isLionOrLater ) || ( glp.isGL4() && !isMavericksOrLater ) ) {
         throw new GLException("OpenGL profile not supported on MacOSX "+Platform.getOSVersionNumber()+": "+glp);
     }

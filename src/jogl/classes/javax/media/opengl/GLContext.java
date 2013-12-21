@@ -1109,11 +1109,15 @@ public abstract class GLContext {
   }
 
   /**
-   * Indicates whether this GLContext is capable of GLES2.  <p>Includes [ GLES2 ].</p>
+   * Indicates whether this GLContext is capable of GLES2.  <p>Includes [ GLES2, GLES3 ].</p>
    * @see GLProfile#isGLES2()
    */
   public final boolean isGLES2() {
-      return 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() == 2 ;
+      if( 0 != ( ctxOptions & CTX_PROFILE_ES ) ) {
+          final int major = ctxVersion.getMajor();
+          return 2 == major || 3 == major;
+      }
+      return false;
   }
 
   /**
@@ -1121,7 +1125,7 @@ public abstract class GLContext {
    * @see GLProfile#isGLES3()
    */
   public final boolean isGLES3() {
-      return 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() >= 3 ;
+      return 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() == 3 ;
   }
 
   /**

@@ -319,25 +319,21 @@ public class EGLContext extends GLContextImpl {
         }
         mapStaticGLVersion(device, reqMajorCTP[0], 0, reqMajorCTP[1]);
     }
-    /* pp */ static void mapStaticGLESVersion(AbstractGraphicsDevice device, final int major) {
-        int ctp = GLContext.CTX_PROFILE_ES;
-        if( major >= 3 ) {
-            ctp |= GLContext.CTX_IMPL_ES3_COMPAT | GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_FBO ;
-        } else if( major >= 2 ) {
-            ctp |= GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_FBO ;
-        }
-        mapStaticGLVersion(device, major, 0, ctp);
-    }
     /* pp */ static void mapStaticGLVersion(AbstractGraphicsDevice device, int major, int minor, int ctp) {
         if( 0 != ( ctp & GLContext.CTX_PROFILE_ES) ) {
-            // ES1 or ES2
-            final int reqMajor = major;
-            final int reqProfile = GLContext.CTX_PROFILE_ES;
-            GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile, major, minor, ctp);
-            if(! ( device instanceof EGLGraphicsDevice ) ) {
-                final EGLGraphicsDevice eglDevice = new EGLGraphicsDevice(device.getHandle(), EGL.EGL_NO_DISPLAY, device.getConnection(), device.getUnitID(), null);
-                GLContext.mapAvailableGLVersion(eglDevice, reqMajor, reqProfile, major, minor, ctp);
+            // ES1, ES2, ES3, ..
+            mapStaticGLVersion(device, major /* reqMajor */, major, minor, ctp);
+            if( 3 == major ) {
+                // map ES2 -> ES3
+                mapStaticGLVersion(device, 2 /* reqMajor */, major, minor, ctp);
             }
+        }
+    }
+    private static void mapStaticGLVersion(AbstractGraphicsDevice device, int reqMajor, int major, int minor, int ctp) {
+        GLContext.mapAvailableGLVersion(device, reqMajor, GLContext.CTX_PROFILE_ES, major, minor, ctp);
+        if(! ( device instanceof EGLGraphicsDevice ) ) {
+            final EGLGraphicsDevice eglDevice = new EGLGraphicsDevice(device.getHandle(), EGL.EGL_NO_DISPLAY, device.getConnection(), device.getUnitID(), null);
+            GLContext.mapAvailableGLVersion(eglDevice, reqMajor, GLContext.CTX_PROFILE_ES, major, minor, ctp);
         }
     }
     protected static String getGLVersion(int major, int minor, int ctp, String gl_version) {
