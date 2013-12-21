@@ -74,6 +74,7 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDebugListener;
 import javax.media.opengl.GLDebugMessage;
 import javax.media.opengl.GLDrawable;
+import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLPipelineFactory;
 import javax.media.opengl.GLProfile;
@@ -1452,12 +1453,12 @@ public abstract class GLContextImpl extends GLContext {
             // Strict Match (GLVersionMapping):
             //   Relaxed match for versions ( !isES && major < 3 ) requests, last resort!
             //   Otherwise:
-            //     - fail if hasVersion < reqVersion
-            //     - fail if ES major-version mismatch
+            //     - fail if hasVersion < reqVersion (desktop and ES)
+            //     - fail if ES 1.0 major-version mismatch
             //
             if( strictMatch &&
                 ( ( ( isES || major >= 3 ) && hasGLVersionByInt.compareTo(reqGLVersion) < 0 ) ||
-                  ( isES && major != hasGLVersionByInt.getMajor() )
+                  ( isES && 1 == major && major != hasGLVersionByInt.getMajor() )
                 ) ) {
                 if(DEBUG) {
                     System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.X: FAIL, GL version mismatch (Int): "+GLContext.getGLVersion(major, minor, ctxProfileBits, null)+" -> "+glVersion+", "+hasGLVersionByInt);
@@ -1487,12 +1488,12 @@ public abstract class GLContextImpl extends GLContext {
             // Strict Match (GLVersionMapping):
             //   Relaxed match for versions ( !isES && major < 3 ) requests, last resort!
             //   Otherwise:
-            //     - fail if hasVersion < reqVersion
-            //     - fail if ES major-version mismatch
+            //     - fail if hasVersion < reqVersion (desktop and ES)
+            //     - fail if ES 1.0 major-version mismatch
             //
             if( strictMatch &&
                 ( ( ( isES || major >= 3 ) && hasGLVersionByString.compareTo(reqGLVersion) < 0 ) ||
-                  ( isES && major != hasGLVersionByString.getMajor() )
+                  ( isES && 1 == major && major != hasGLVersionByString.getMajor() )
                 ) ) {
                 if(DEBUG) {
                     System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.X: FAIL, GL version mismatch (String): "+GLContext.getGLVersion(major, minor, ctxProfileBits, null)+" -> "+glVersion+", "+hasGLVersionByString);
@@ -1661,11 +1662,40 @@ public abstract class GLContextImpl extends GLContext {
     final String MesaRendererIntelsp = "Intel(R)";
     final boolean hwAccel = 0 == ( ctp & GLContext.CTX_IMPL_ACCEL_SOFT );
     final boolean compatCtx = 0 != ( ctp & GLContext.CTX_PROFILE_COMPAT );
+    final boolean esCtx = 0 != ( ctp & GLContext.CTX_PROFILE_ES );
     final boolean isX11 = NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true);
     final boolean isWindows = Platform.getOSType() == Platform.OSType.WINDOWS;
     final boolean isDriverMesa = glRenderer.contains(MesaSP) || glRenderer.contains("Gallium ");
     final boolean isDriverATICatalyst = !isDriverMesa && ( glVendor.contains("ATI Technologies") || glRenderer.startsWith("ATI ") );
     final boolean isDriverNVIDIAGeForce = !isDriverMesa && ( glVendor.contains("NVIDIA Corporation") || glRenderer.contains("NVIDIA ") );
+
+    //
+    // General Quirks
+    //
+    if( esCtx ) {
+        final int quirk = GLRendererQuirks.GLES3ViaEGLES2Config;
+        if( GLRendererQuirks.existStickyDeviceQuirk( GLDrawableFactory.getEGLFactory().getDefaultDevice(), GLRendererQuirks.GLES3ViaEGLES2Config) ) {
+            // Merge default sticky quirk!
+            if(DEBUG) {
+                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Default EGL Device");
+            }
+            quirks[i++] = quirk;
+        } else if( 2 == reqMajor && 2 < major ) {
+            if(DEBUG) {
+                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: ES req "+reqMajor+" and 2 < "+major);
+            }
+            quirks[i++] = quirk;
+            if( withinGLVersionsMapping ) {
+                // Thread safe due to single threaded initialization!
+                GLRendererQuirks.addStickyDeviceQuirks(adevice, quirks, i-1, 1);
+            } else {
+                // FIXME: Remove when moving EGL/ES to ARB ctx creation
+                synchronized(GLContextImpl.class) {
+                    GLRendererQuirks.addStickyDeviceQuirks(adevice, quirks, i-1, 1);
+                }
+            }
+        }
+    }
 
     //
     // OS related quirks

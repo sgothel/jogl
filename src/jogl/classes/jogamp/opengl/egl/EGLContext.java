@@ -44,6 +44,7 @@ import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
@@ -187,7 +188,11 @@ public class EGLContext extends GLContextImpl {
         {
             if ( glProfile.usesNativeGLES3() ) {
                 contextVersionReq = 3;
-                contextVersionAttr = 3;
+                if( GLRendererQuirks.existStickyDeviceQuirk( GLDrawableFactory.getEGLFactory().getDefaultDevice(), GLRendererQuirks.GLES3ViaEGLES2Config) ) {
+                    contextVersionAttr = 2;
+                } else {
+                    contextVersionAttr = 3;
+                }
             } else if ( glProfile.usesNativeGLES2() ) {
                 contextVersionReq = 2;
                 contextVersionAttr = 2;

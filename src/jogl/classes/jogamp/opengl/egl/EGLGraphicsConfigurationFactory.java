@@ -53,6 +53,7 @@ import javax.media.opengl.GLDrawableFactory;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
+import com.jogamp.opengl.GLRendererQuirks;
 
 import jogamp.opengl.GLGraphicsConfigurationFactory;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
@@ -476,9 +477,10 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
     }
 
     static List<GLCapabilitiesImmutable> eglConfigs2GLCaps(EGLGraphicsDevice device, GLProfile glp, PointerBuffer configs, int num, int winattrmask, boolean forceTransparentFlag, boolean onlyFirstValid) {
+        final GLRendererQuirks defaultQuirks = GLRendererQuirks.getStickyDeviceQuirks( GLDrawableFactory.getEGLFactory().getDefaultDevice() );
         List<GLCapabilitiesImmutable> bucket = new ArrayList<GLCapabilitiesImmutable>(num);
         for(int i=0; i<num; i++) {
-            final GLCapabilitiesImmutable caps = EGLGraphicsConfiguration.EGLConfig2Capabilities(device, glp, configs.get(i), winattrmask, forceTransparentFlag);
+            final GLCapabilitiesImmutable caps = EGLGraphicsConfiguration.EGLConfig2Capabilities(defaultQuirks, device, glp, configs.get(i), winattrmask, forceTransparentFlag);
             if(null != caps) {
                 bucket.add(caps);
                 if(onlyFirstValid) {

@@ -362,10 +362,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return new ArrayList<GLCapabilitiesImmutable>(0);
     }
 
-    private boolean mapAvailableEGLESConfig(AbstractGraphicsDevice adevice, int esProfile,
+    private boolean mapAvailableEGLESConfig(AbstractGraphicsDevice adevice, int[] esProfile,
                                             boolean[] hasPBuffer, GLRendererQuirks[] rendererQuirks, int[] ctp) {
         final String profileString;
-        switch( esProfile ) {
+        switch( esProfile[0] ) {
             case 3:
                 profileString = GLProfile.GLES3; break;
             case 2:
@@ -413,7 +413,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                     if(null == defaultSharedResource) {
                         return false;
                     }
-                    switch(esProfile) {
+                    switch(esProfile[0]) {
                         case 3:
                             if( !defaultSharedResource.wasES3ContextCreated ) {
                                 return false;
@@ -436,7 +436,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                             ctp[0] = defaultSharedResource.ctpES1;
                             break;
                     }
-                    EGLContext.mapStaticGLVersion(adevice, esProfile, 0, ctp[0]);
+                    if( null != rendererQuirks[0] ) {
+                        GLRendererQuirks.addStickyDeviceQuirks(adevice, rendererQuirks[0]);
+                    }
+                    EGLContext.mapStaticGLVersion(adevice, esProfile[0], 0, ctp[0]);
                     return true;
                 }
 
@@ -491,6 +494,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                                 }
                                 rendererQuirks[0] = context.getRendererQuirks();
                                 ctp[0] = context.getContextOptions();
+                                esProfile[0] = context.getGLVersionNumber().getMajor();
                                 success = true;
                             } else {
                                 // Oops .. something is wrong
@@ -499,10 +503,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                                 }
                             }
                         }
-                    } catch (GLException gle) {
+                    } catch (Throwable t) {
                         if (DEBUG) {
                             System.err.println("EGLDrawableFactory.mapAvailableEGLESConfig: INFO: context create/makeCurrent failed");
-                            gle.printStackTrace();
+                            t.printStackTrace();
                         }
                     } finally {
                         context.destroy();
@@ -594,8 +598,6 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     private SharedResource createEGLSharedResourceImpl(AbstractGraphicsDevice adevice) {
         final boolean madeCurrentES1;
-        final boolean madeCurrentES2;
-        final boolean madeCurrentES3;
         boolean[] hasPBufferES1 = new boolean[] { false };
         boolean[] hasPBufferES3ES2 = new boolean[] { false };
         // EGLContext[] eglCtxES1 = new EGLContext[] { null };
@@ -611,18 +613,27 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
 
         if( null != eglES1DynamicLookupHelper ) {
-            madeCurrentES1 = mapAvailableEGLESConfig(adevice, 1, hasPBufferES1, rendererQuirksES1, ctpES1);
+            final int[] esProfile = { 1 };
+            madeCurrentES1 = mapAvailableEGLESConfig(adevice, esProfile, hasPBufferES1, rendererQuirksES1, ctpES1) && 1 == esProfile[0];
         } else {
             madeCurrentES1 = false;
         }
+        boolean madeCurrentES2 = false;
+        boolean madeCurrentES3 = false;
         if( null != eglES2DynamicLookupHelper ) {
-            madeCurrentES3 = mapAvailableEGLESConfig(adevice, 3, hasPBufferES3ES2, rendererQuirksES3ES2, ctpES3ES2);
-            madeCurrentES2 = mapAvailableEGLESConfig(adevice, 2, hasPBufferES3ES2, rendererQuirksES3ES2, ctpES3ES2);
-        } else {
-            madeCurrentES2 = false;
-            madeCurrentES3 = false;
+            // ES3 Query
+            final int[] esProfile = { 3 };
+            madeCurrentES3 = mapAvailableEGLESConfig(adevice, esProfile, hasPBufferES3ES2, rendererQuirksES3ES2, ctpES3ES2) && 3 == esProfile[0];
+            // ES2 Query, may result in ES3
+            esProfile[0] = 2;
+            if( mapAvailableEGLESConfig(adevice, esProfile, hasPBufferES3ES2, rendererQuirksES3ES2, ctpES3ES2) ) {
+                switch( esProfile[0] ) {
+                    case 2: madeCurrentES2 = true; break;
+                    case 3: madeCurrentES3 = true; break;
+                    default: throw new InternalError("XXXX Got "+esProfile[0]);
+                }
+            }
         }
-
         if( !EGLContext.getAvailableGLVersionsSet(adevice) ) {
             // Even though we override the non EGL native mapping intentionally,
             // avoid exception due to double 'set' - carefull exception of the rule.
@@ -640,9 +651,9 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
         if (DEBUG) {
             System.err.println("EGLDrawableFactory.createShared: devices: queried nativeTK "+QUERY_EGL_ES_NATIVE_TK+", adevice " + adevice + ", defaultDevice " + defaultDevice);
-            System.err.println("EGLDrawableFactory.createShared: context ES1: " + madeCurrentES1 + ", hasPBuffer "+hasPBufferES1[0]);
-            System.err.println("EGLDrawableFactory.createShared: context ES2: " + madeCurrentES2 + ", hasPBuffer "+hasPBufferES3ES2[0]);
-            System.err.println("EGLDrawableFactory.createShared: context ES3: " + madeCurrentES3 + ", hasPBuffer "+hasPBufferES3ES2[0]);
+            System.err.println("EGLDrawableFactory.createShared: context ES1: " + madeCurrentES1 + ", hasPBuffer "+hasPBufferES1[0]+", quirks "+rendererQuirksES1[0]);
+            System.err.println("EGLDrawableFactory.createShared: context ES2: " + madeCurrentES2 + ", hasPBuffer "+hasPBufferES3ES2[0]+", quirks "+rendererQuirksES3ES2[0]);
+            System.err.println("EGLDrawableFactory.createShared: context ES3: " + madeCurrentES3 + ", hasPBuffer "+hasPBufferES3ES2[0]+", quirks "+rendererQuirksES3ES2[0]);
             dumpMap();
         }
         return sr;

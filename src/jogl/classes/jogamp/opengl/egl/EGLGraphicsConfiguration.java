@@ -46,6 +46,7 @@ import javax.media.nativewindow.VisualIDHolder;
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
@@ -55,6 +56,7 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
+import com.jogamp.opengl.GLRendererQuirks;
 
 public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration implements Cloneable {
 
@@ -94,8 +96,9 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         }
         final long cfg = EGLConfigId2EGLConfig(dpy, eglConfigID);
         if(0 < cfg) {
+            final GLRendererQuirks defaultQuirks = GLRendererQuirks.getStickyDeviceQuirks( GLDrawableFactory.getEGLFactory().getDefaultDevice() );
             final int winattrmask = GLGraphicsConfigurationUtil.getExclusiveWinAttributeBits(capsRequested);
-            final EGLGLCapabilities caps = EGLConfig2Capabilities((EGLGraphicsDevice)absDevice, capsRequested.getGLProfile(), cfg, winattrmask, false);
+            final EGLGLCapabilities caps = EGLConfig2Capabilities(defaultQuirks, (EGLGraphicsDevice)absDevice, capsRequested.getGLProfile(), cfg, winattrmask, false);
             return new EGLGraphicsConfiguration(absScreen, caps, capsRequested, new DefaultGLCapabilitiesChooser());
         }
         return null;
@@ -179,6 +182,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
     }
 
     /**
+     * @param defaultQuirks GLRendererQuirks of the EGLDrawableFactory's defaultDevice
      * @param device
      * @param glp desired GLProfile, may be null
      * @param config
@@ -186,8 +190,8 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
      * @param forceTransparentFlag
      * @return
      */
-    public static EGLGLCapabilities EGLConfig2Capabilities(EGLGraphicsDevice device, GLProfile glp, long config,
-                                                           int winattrmask, boolean forceTransparentFlag) {
+    public static EGLGLCapabilities EGLConfig2Capabilities(GLRendererQuirks defaultQuirks, EGLGraphicsDevice device, GLProfile glp,
+                                                           long config, int winattrmask, boolean forceTransparentFlag) {
         final long display = device.getHandle();
         final int cfgID;
         final int rType;
@@ -232,7 +236,14 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
             }
             return null;
         }
-        rType = values.get(1);
+        {
+            final int rTypeOrig = values.get(1);
+            if( defaultQuirks.exist(GLRendererQuirks.GLES3ViaEGLES2Config) && 0 != ( EGL.EGL_OPENGL_ES2_BIT & rTypeOrig ) ) {
+                rType = rTypeOrig | EGLExt.EGL_OPENGL_ES3_BIT_KHR;
+            } else {
+                rType = rTypeOrig;
+            }
+        }
 
         if( EGL.EGL_NATIVE_VISUAL_ID == attributes.get(2) ) {
             visualID = values.get(2);
@@ -251,7 +262,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
             if(!EGLGLCapabilities.isCompatible(glp, rType)) {
                 if(DEBUG) {
                     System.err.println("config "+toHexString(config)+": Requested GLProfile "+glp+
-                                " not compatible with EGL-RenderableType["+EGLGLCapabilities.renderableTypeToString(null, rType)+"]");
+                                " with quirks "+defaultQuirks+" not compatible with EGL-RenderableType["+EGLGLCapabilities.renderableTypeToString(null, rType)+"]");
                 }
                 return null;
             }
@@ -453,7 +464,11 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         } else if(caps.getGLProfile().usesNativeGLES2()) {
             attrs.put(idx++, EGL.EGL_OPENGL_ES2_BIT);
         } else if(caps.getGLProfile().usesNativeGLES3()) {
-            attrs.put(idx++, EGLExt.EGL_OPENGL_ES3_BIT_KHR);
+            if( GLRendererQuirks.existStickyDeviceQuirk(GLDrawableFactory.getEGLFactory().getDefaultDevice(), GLRendererQuirks.GLES3ViaEGLES2Config) ) {
+                attrs.put(idx++, EGL.EGL_OPENGL_ES2_BIT);
+            } else {
+                attrs.put(idx++, EGLExt.EGL_OPENGL_ES3_BIT_KHR);
+            }
         } else {
             attrs.put(idx++, EGL.EGL_OPENGL_BIT);
         }

@@ -31,6 +31,9 @@ import java.util.IdentityHashMap;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 
+import jogamp.opengl.egl.EGL;
+import jogamp.opengl.egl.EGLExt;
+
 /**
  * GLRendererQuirks contains information of known bugs of various GL renderer.
  * This information allows us to workaround them.
@@ -235,15 +238,33 @@ public class GLRendererQuirks {
      */
     public static final int GLSharedContextBuggy = 14;
 
+    /**
+     * Bug 925 - Accept an ES3 Context, if reported via GL-Version-String w/o {@link EGLExt#EGL_OPENGL_ES3_BIT_KHR}.
+     * <p>
+     * The ES3 Context can be used via {@link EGL#EGL_OPENGL_ES2_BIT}.
+     * </p>
+     * <p>
+     * The ES3 Context {@link EGL#eglCreateContext(long, long, long, java.nio.IntBuffer) must be created} with version attributes:
+     * <pre>
+     *  EGL.EGL_CONTEXT_CLIENT_VERSION, 2, ..
+     * </pre>
+     * </p>
+     * <ul>
+     *   <li>Mesa/AMD >= 9.2.1</li>
+     *   <li>Some Android ES3 drivers ..</li>
+     * </ul>
+     */
+    public static final int GLES3ViaEGLES2Config = 15;
+
     /** Number of quirks known. */
-    public static final int COUNT = 15;
+    public static final int COUNT = 16;
 
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
                                                           "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard",
                                                           "GLNonCompliant", "GLFlushBeforeRelease", "DontCloseX11Display",
                                                           "NeedCurrCtx4ARBPixFmtQueries", "NeedCurrCtx4ARBCreateContext",
                                                           "NoFullFBOSupport", "GLSLNonCompliant", "GL4NeedsGL3Request",
-                                                          "GLSharedContextBuggy"
+                                                          "GLSharedContextBuggy", "GLES3ViaEGLES2Config"
                                                         };
 
     private static final IdentityHashMap<String, GLRendererQuirks> stickyDeviceQuirks = new IdentityHashMap<String, GLRendererQuirks>();
@@ -276,6 +297,16 @@ public class GLRendererQuirks {
     public static void addStickyDeviceQuirks(AbstractGraphicsDevice device, int[] quirks, int offset, int len) throws IllegalArgumentException {
         final GLRendererQuirks sq = getStickyDeviceQuirks(device);
         sq.addQuirks(quirks, offset, len);
+    }
+    /**
+     * {@link #addQuirks(GLRendererQuirks) Adding given quirks} of sticky {@link AbstractGraphicsDevice}'s {@link GLRendererQuirks}.
+     * <p>
+     * Not thread safe.
+     * </p>
+     */
+    public static void addStickyDeviceQuirks(AbstractGraphicsDevice device, GLRendererQuirks quirks) throws IllegalArgumentException {
+        final GLRendererQuirks sq = getStickyDeviceQuirks(device);
+        sq.addQuirks(quirks);
     }
     /**
      * {@link #exist(int) Query} of sticky {@link AbstractGraphicsDevice}'s {@link GLRendererQuirks}.
