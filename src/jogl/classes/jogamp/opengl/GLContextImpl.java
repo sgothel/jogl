@@ -1454,11 +1454,17 @@ public abstract class GLContextImpl extends GLContext {
             //   Relaxed match for versions ( !isES && major < 3 ) requests, last resort!
             //   Otherwise:
             //     - fail if hasVersion < reqVersion (desktop and ES)
-            //     - fail if ES 1.0 major-version mismatch
+            //     - fail if ES major-version mismatch:
+            //       - request 1, >= 3 must be equal
+            //       - request 2 must be [2..3]
             //
+            final int hasMajor = hasGLVersionByInt.getMajor();
             if( strictMatch &&
                 ( ( ( isES || major >= 3 ) && hasGLVersionByInt.compareTo(reqGLVersion) < 0 ) ||
-                  ( isES && 1 == major && major != hasGLVersionByInt.getMajor() )
+                  ( isES &&
+                    ( 2 == major && ( 2 > hasMajor || hasMajor > 3 ) ) ||  // 2      -> [2..3]
+                    ( ( 1 == major || 3 <= major ) && major != hasMajor )  // 1,3,.. -> equal
+                  )
                 ) ) {
                 if(DEBUG) {
                     System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.X: FAIL, GL version mismatch (Int): "+GLContext.getGLVersion(major, minor, ctxProfileBits, null)+" -> "+glVersion+", "+hasGLVersionByInt);
@@ -1489,11 +1495,17 @@ public abstract class GLContextImpl extends GLContext {
             //   Relaxed match for versions ( !isES && major < 3 ) requests, last resort!
             //   Otherwise:
             //     - fail if hasVersion < reqVersion (desktop and ES)
-            //     - fail if ES 1.0 major-version mismatch
+            //     - fail if ES major-version mismatch:
+            //       - request 1, >= 3 must be equal
+            //       - request 2 must be [2..3]
             //
+            final int hasMajor = hasGLVersionByString.getMajor();
             if( strictMatch &&
                 ( ( ( isES || major >= 3 ) && hasGLVersionByString.compareTo(reqGLVersion) < 0 ) ||
-                  ( isES && 1 == major && major != hasGLVersionByString.getMajor() )
+                  ( isES &&
+                    ( 2 == major && ( 2 > hasMajor || hasMajor > 3 ) ) ||  // 2      -> [2..3]
+                    ( ( 1 == major || 3 <= major ) && major != hasMajor )  // 1,3,.. -> equal
+                  )
                 ) ) {
                 if(DEBUG) {
                     System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.X: FAIL, GL version mismatch (String): "+GLContext.getGLVersion(major, minor, ctxProfileBits, null)+" -> "+glVersion+", "+hasGLVersionByString);
