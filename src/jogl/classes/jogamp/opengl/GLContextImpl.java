@@ -67,8 +67,8 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GL2GL3;
-import javax.media.opengl.GL3ES3;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDebugListener;
@@ -415,9 +415,9 @@ public abstract class GLContextImpl extends GLContext {
                   }
                   if ( 0 != defaultVAO ) {
                       final int[] tmp = new int[] { defaultVAO };
-                      final GL3ES3 gl3es3 = gl.getRootGL().getGL3ES3();
-                      gl3es3.glBindVertexArray(0);
-                      gl3es3.glDeleteVertexArrays(1, tmp, 0);
+                      final GL2ES3 gl2es3 = gl.getRootGL().getGL2ES3();
+                      gl2es3.glBindVertexArray(0);
+                      gl2es3.glDeleteVertexArrays(1, tmp, 0);
                       defaultVAO = 0;
                   }
                   glDebugHandler.enable(false);
@@ -663,10 +663,13 @@ public abstract class GLContextImpl extends GLContext {
             created = createImpl(shareWithHandle); // may throws exception if fails
             if( created && hasNoDefaultVAO() ) {
                 final int[] tmp = new int[1];
-                final GL3ES3 gl3es3 = gl.getRootGL().getGL3ES3();
-                gl3es3.glGenVertexArrays(1, tmp, 0);
-                defaultVAO = tmp[0];
-                gl3es3.glBindVertexArray(defaultVAO);
+                final GL rootGL = gl.getRootGL();
+                if( rootGL.isGL2ES3() ) { // FIXME remove if ES2 == ES3 later
+                    final GL2ES3 gl2es3 = rootGL.getGL2ES3();
+                    gl2es3.glGenVertexArrays(1, tmp, 0);
+                    defaultVAO = tmp[0];
+                    gl2es3.glBindVertexArray(defaultVAO);
+                }
             }
         } finally {
             if (null != shareWith) {
