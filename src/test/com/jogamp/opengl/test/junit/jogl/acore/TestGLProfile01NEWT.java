@@ -62,8 +62,14 @@ public class TestGLProfile01NEWT extends UITestCase {
         System.err.println(JoglVersion.getInstance());
         System.err.println(NewtVersion.getInstance());
 
-        System.err.println(JoglVersion.getDefaultOpenGLInfo(GLDrawableFactory.getDesktopFactory().getDefaultDevice(), null, true).toString());
-        System.err.println(JoglVersion.getDefaultOpenGLInfo(GLDrawableFactory.getEGLFactory().getDefaultDevice(), null, true).toString());
+        final GLDrawableFactory deskFactory = GLDrawableFactory.getDesktopFactory();
+        if( null != deskFactory ) {
+            System.err.println(JoglVersion.getDefaultOpenGLInfo(deskFactory.getDefaultDevice(), null, true).toString());
+        }
+        final GLDrawableFactory eglFactory = GLDrawableFactory.getEGLFactory();
+        if( null != eglFactory ) {
+            System.err.println(JoglVersion.getDefaultOpenGLInfo(eglFactory.getDefaultDevice(), null, true).toString());
+        }
     }
 
     static void validate(GLProfile glp) {
