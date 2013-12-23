@@ -1462,8 +1462,10 @@ public abstract class GLContextImpl extends GLContext {
             if( strictMatch &&
                 ( ( ( isES || major >= 3 ) && hasGLVersionByInt.compareTo(reqGLVersion) < 0 ) ||
                   ( isES &&
-                    ( 2 == major && ( 2 > hasMajor || hasMajor > 3 ) ) ||  // 2      -> [2..3]
-                    ( ( 1 == major || 3 <= major ) && major != hasMajor )  // 1,3,.. -> equal
+                    (
+                      ( 2 == major && ( 2 > hasMajor || hasMajor > 3 ) ) ||  // 2      -> [2..3]
+                      ( ( 1 == major || 3 <= major ) && major != hasMajor )  // 1,3,.. -> equal
+                    )
                   )
                 ) ) {
                 if(DEBUG) {
@@ -1503,8 +1505,10 @@ public abstract class GLContextImpl extends GLContext {
             if( strictMatch &&
                 ( ( ( isES || major >= 3 ) && hasGLVersionByString.compareTo(reqGLVersion) < 0 ) ||
                   ( isES &&
-                    ( 2 == major && ( 2 > hasMajor || hasMajor > 3 ) ) ||  // 2      -> [2..3]
-                    ( ( 1 == major || 3 <= major ) && major != hasMajor )  // 1,3,.. -> equal
+                    (
+                      ( 2 == major && ( 2 > hasMajor || hasMajor > 3 ) ) ||  // 2      -> [2..3]
+                      ( ( 1 == major || 3 <= major ) && major != hasMajor )  // 1,3,.. -> equal
+                    )
                   )
                 ) ) {
                 if(DEBUG) {

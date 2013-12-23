@@ -510,7 +510,7 @@ public class GLProfile {
     /** The intersection of the desktop GL3 and GL2 profile */
     public static final String GL2GL3 = "GL2GL3";
 
-    /** The intersection of the desktop GL4 and ES3 profile */
+    /** The intersection of the desktop GL4 and ES3 profile, available only if either ES3 or GL4 w/ <code>GL_ARB_ES3_compatibility</code> is available. */
     public static final String GL4ES3 = "GL4ES3";
 
     /** The default profile, used for the device default profile map  */
