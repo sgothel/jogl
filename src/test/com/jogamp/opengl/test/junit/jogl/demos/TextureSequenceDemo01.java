@@ -27,7 +27,7 @@ public class TextureSequenceDemo01 implements TextureSequence {
         if(null == frame) {
             TextureData texData = null;
             try {
-                URLConnection urlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-160x90.png", this.getClass().getClassLoader());
+                URLConnection urlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-57x32.png", this.getClass().getClassLoader());
                 if(null != urlConn) {
                     texData = TextureIO.newTextureData(GLProfile.getGL2ES2(), urlConn.getInputStream(), false, TextureIO.PNG);
                 }

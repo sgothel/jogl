@@ -95,7 +95,7 @@ public class DemoGL2ES1TextureImmModeSink implements GLEventListener, TextureDra
         }
         GL2ES1 gl = FixedFuncUtil.wrapFixedFuncEmul(_gl, ShaderSelectionMode.AUTO, null, forceFFPEmu, verboseFFPEmu);
 
-        URLConnection testTextureUrlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-160x90.png", this.getClass().getClassLoader());
+        URLConnection testTextureUrlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-57x32.png", this.getClass().getClassLoader());
         try {
             InputStream  testTextureStream = testTextureUrlConn.getInputStream();
             textureData = TextureIO.newTextureData(gl.getGLProfile(), testTextureStream , false /* mipmap */, TextureIO.PNG);

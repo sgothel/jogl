@@ -50,7 +50,7 @@ public class TestPNGImage00NEWT extends UITestCase {
         final File out2F_f=new File(getSimpleTestName(".")+"-PNGImageTest2Flipped.png");
         final File out2R_f=new File(getSimpleTestName(".")+"-PNGImageTest2Reversed.png");
         final File out2RF_f=new File(getSimpleTestName(".")+"-PNGImageTest2ReversedFlipped.png");
-        final String url_s="jogl/util/data/av/test-ntsc01-160x90.png";
+        final String url_s="jogl/util/data/av/test-ntsc01-57x32.png";
         URLConnection urlConn = IOUtil.getResource(url_s, this.getClass().getClassLoader());
         PNGImage image1 = PNGImage.read(urlConn.getInputStream());
         System.err.println("PNGImage - Orig: "+image1);        

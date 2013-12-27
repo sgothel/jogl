@@ -33,7 +33,7 @@ public class Teapot implements GLEventListener {
         gl.glClearColor(0.5f, 0.5f, 0.5f, 0.0f);
 
         try {
-            URLConnection urlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-160x90.png", this.getClass().getClassLoader());
+            URLConnection urlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-57x32.png", this.getClass().getClassLoader());
             tex = TextureIO.newTexture(gl, TextureIO.newTextureData(gl.getGLProfile(), urlConn.getInputStream(), false, TextureIO.PNG));
         } catch (Exception e) {
             e.printStackTrace();
