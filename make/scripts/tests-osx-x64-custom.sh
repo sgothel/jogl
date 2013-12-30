@@ -1,6 +1,6 @@
 #! /bin/bash
 
-export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
+export DYLD_LIBRARY_PATH=/usr/local/libav:$DYLD_LIBRARY_PATH
 
 spath=`dirname $0`
 
