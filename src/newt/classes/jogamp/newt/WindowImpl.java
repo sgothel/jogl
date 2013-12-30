@@ -550,14 +550,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private WindowClosingMode defaultCloseOperation = WindowClosingMode.DISPOSE_ON_CLOSE;
 
     @Override
-    public WindowClosingMode getDefaultCloseOperation() {
+    public final WindowClosingMode getDefaultCloseOperation() {
         synchronized (closingListenerLock) {
             return defaultCloseOperation;
         }
     }
 
     @Override
-    public WindowClosingMode setDefaultCloseOperation(WindowClosingMode op) {
+    public final WindowClosingMode setDefaultCloseOperation(WindowClosingMode op) {
         synchronized (closingListenerLock) {
             WindowClosingMode _op = defaultCloseOperation;
             defaultCloseOperation = op;
@@ -978,7 +978,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public void setVisible(boolean wait, boolean visible) {
+    public final void setVisible(boolean wait, boolean visible) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window setVisible: START ("+getThreadName()+") "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+this.visible+" -> "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+(null!=parentWindow));
         }
@@ -986,7 +986,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public void setVisible(boolean visible) {
+    public final void setVisible(boolean visible) {
         setVisible(true, visible);
     }
 
@@ -1044,11 +1044,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         runOnEDTIfAvail(true, new SetSizeAction(width, height, true));
     }
     @Override
-    public void setSize(int width, int height) {
+    public final void setSize(int width, int height) {
         runOnEDTIfAvail(true, new SetSizeAction(width, height, false));
     }
     @Override
-    public void setTopLevelSize(int width, int height) {
+    public final void setTopLevelSize(int width, int height) {
         setSize(width - getInsets().getTotalWidth(), height - getInsets().getTotalHeight());
     }
 
@@ -1536,19 +1536,19 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public ReparentOperation reparentWindow(NativeWindow newParent, int x, int y, boolean forceDestroyCreate) {
+    public final ReparentOperation reparentWindow(NativeWindow newParent, int x, int y, boolean forceDestroyCreate) {
         return reparentWindow(newParent, x, y, forceDestroyCreate ? REPARENT_HINT_FORCE_RECREATION : 0);
     }
 
     @Override
-    public ReparentOperation reparentWindow(NativeWindow newParent, int x, int y, int hints) {
+    public final ReparentOperation reparentWindow(NativeWindow newParent, int x, int y, int hints) {
         final ReparentAction reparentAction = new ReparentAction(newParent, x, y, hints);
         runOnEDTIfAvail(true, reparentAction);
         return reparentAction.getOp();
     }
 
     @Override
-    public CapabilitiesChooser setCapabilitiesChooser(CapabilitiesChooser chooser) {
+    public final CapabilitiesChooser setCapabilitiesChooser(CapabilitiesChooser chooser) {
         CapabilitiesChooser old = this.capabilitiesChooser;
         this.capabilitiesChooser = chooser;
         return old;
@@ -1601,7 +1601,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public void setUndecorated(boolean value) {
+    public final void setUndecorated(boolean value) {
         runOnEDTIfAvail(true, new DecorationAction(value));
     }
 
@@ -1661,11 +1661,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public String getTitle() {
+    public final String getTitle() {
         return title;
     }
     @Override
-    public void setTitle(String title) {
+    public final void setTitle(String title) {
         if (title == null) {
             title = "";
         }
@@ -1676,11 +1676,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public boolean isPointerVisible() {
+    public final boolean isPointerVisible() {
         return pointerVisible;
     }
     @Override
-    public void setPointerVisible(boolean pointerVisible) {
+    public final void setPointerVisible(boolean pointerVisible) {
         if(this.pointerVisible != pointerVisible) {
             boolean setVal = 0 == getWindowHandle();
             if(!setVal) {
@@ -1692,12 +1692,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
     @Override
-    public boolean isPointerConfined() {
+    public final boolean isPointerConfined() {
         return pointerConfined;
     }
-
     @Override
-    public void confinePointer(boolean confine) {
+    public final void confinePointer(boolean confine) {
         if(this.pointerConfined != confine) {
             boolean setVal = 0 == getWindowHandle();
             if(!setVal) {
@@ -1721,7 +1720,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public void warpPointer(int x, int y) {
+    public final void warpPointer(int x, int y) {
         if(0 != getWindowHandle()) {
             warpPointerImpl(x, y);
         }
@@ -1808,11 +1807,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return false;
     }
 
-    public LifecycleHook getLifecycleHook() {
+    public final LifecycleHook getLifecycleHook() {
         return lifecycleHook;
     }
 
-    public LifecycleHook setLifecycleHook(LifecycleHook hook) {
+    public final LifecycleHook setLifecycleHook(LifecycleHook hook) {
         LifecycleHook old = lifecycleHook;
         lifecycleHook = hook;
         return old;
@@ -1827,7 +1826,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public void setWindowDestroyNotifyAction(Runnable r) {
+    public final void setWindowDestroyNotifyAction(Runnable r) {
         windowDestroyNotifyAction = r;
     }
 
@@ -1843,7 +1842,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public String toString() {
+    public final String toString() {
         StringBuilder sb = new StringBuilder();
 
         sb.append(getClass().getName()+"[Config "+config+
@@ -1888,7 +1887,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public void runOnEDTIfAvail(boolean wait, final Runnable task) {
+    public final void runOnEDTIfAvail(boolean wait, final Runnable task) {
         if( windowLock.isOwner( Thread.currentThread() ) ) {
             task.run();
         } else {
@@ -1921,12 +1920,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public void requestFocus() {
+    public final void requestFocus() {
         requestFocus(true);
     }
 
     @Override
-    public void requestFocus(boolean wait) {
+    public final void requestFocus(boolean wait) {
         requestFocus(wait /* wait */, false /* skipFocusAction */, brokenFocusChange /* force */);
     }
 
@@ -1949,7 +1948,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public void setFocusAction(FocusRunnable focusAction) {
+    public final void setFocusAction(FocusRunnable focusAction) {
         this.focusAction = focusAction;
     }
 
@@ -1969,12 +1968,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return res;
     }
 
-    protected void setBrokenFocusChange(boolean v) {
+    protected final void setBrokenFocusChange(boolean v) {
         brokenFocusChange = v;
     }
 
     @Override
-    public void setKeyboardFocusHandler(KeyListener l) {
+    public final void setKeyboardFocusHandler(KeyListener l) {
         keyboardFocusHandler = l;
     }
 
@@ -2018,7 +2017,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public void setTopLevelPosition(int x, int y) {
+    public final void setTopLevelPosition(int x, int y) {
         setPosition(x + getInsets().getLeftWidth(), y + getInsets().getTopHeight());
     }
 
@@ -2357,7 +2356,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public void enqueueEvent(boolean wait, com.jogamp.newt.event.NEWTEvent event) {
+    public final void enqueueEvent(boolean wait, com.jogamp.newt.event.NEWTEvent event) {
         if(isNativeValid()) {
             ((DisplayImpl)screen.getDisplay()).enqueueEvent(wait, event);
         }
@@ -2416,22 +2415,22 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // SurfaceUpdatedListener Support
     //
     @Override
-    public void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+    public final void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
         surfaceUpdatedHelper.addSurfaceUpdatedListener(l);
     }
 
     @Override
-    public void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
+    public final void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
         surfaceUpdatedHelper.addSurfaceUpdatedListener(index, l);
     }
 
     @Override
-    public void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+    public final void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
         surfaceUpdatedHelper.removeSurfaceUpdatedListener(l);
     }
 
     @Override
-    public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
+    public final void surfaceUpdated(Object updater, NativeSurface ns, long when) {
         surfaceUpdatedHelper.surfaceUpdated(updater, ns, when);
     }
 
@@ -3274,12 +3273,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected boolean keyboardVisible = false;
 
     @Override
-    public void addKeyListener(KeyListener l) {
+    public final void addKeyListener(KeyListener l) {
         addKeyListener(-1, l);
     }
 
     @Override
-    public void addKeyListener(int index, KeyListener l) {
+    public final void addKeyListener(int index, KeyListener l) {
         if(l == null) {
             return;
         }
@@ -3293,7 +3292,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public void removeKeyListener(KeyListener l) {
+    public final void removeKeyListener(KeyListener l) {
         if (l == null) {
             return;
         }
@@ -3304,7 +3303,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public KeyListener getKeyListener(int index) {
+    public final KeyListener getKeyListener(int index) {
         @SuppressWarnings("unchecked")
         ArrayList<KeyListener> clonedListeners = (ArrayList<KeyListener>) keyListeners.clone();
         if(0>index) {
@@ -3314,7 +3313,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public KeyListener[] getKeyListeners() {
+    public final KeyListener[] getKeyListeners() {
         return keyListeners.toArray(new KeyListener[keyListeners.size()]);
     }
 
@@ -3356,21 +3355,21 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // WindowListener/Event Support
     //
     @Override
-    public void sendWindowEvent(int eventType) {
+    public final void sendWindowEvent(int eventType) {
         consumeWindowEvent( new WindowEvent((short)eventType, this, System.currentTimeMillis()) );
     }
 
-    public void enqueueWindowEvent(boolean wait, int eventType) {
+    public final void enqueueWindowEvent(boolean wait, int eventType) {
         enqueueEvent( wait, new WindowEvent((short)eventType, this, System.currentTimeMillis()) );
     }
 
     @Override
-    public void addWindowListener(WindowListener l) {
+    public final void addWindowListener(WindowListener l) {
         addWindowListener(-1, l);
     }
 
     @Override
-    public void addWindowListener(int index, WindowListener l)
+    public final void addWindowListener(int index, WindowListener l)
         throws IndexOutOfBoundsException
     {
         if(l == null) {
@@ -3397,7 +3396,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public WindowListener getWindowListener(int index) {
+    public final WindowListener getWindowListener(int index) {
         @SuppressWarnings("unchecked")
         ArrayList<WindowListener> clonedListeners = (ArrayList<WindowListener>) windowListeners.clone();
         if(0>index) {
@@ -3407,7 +3406,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public WindowListener[] getWindowListeners() {
+    public final WindowListener[] getWindowListeners() {
         return windowListeners.toArray(new WindowListener[windowListeners.size()]);
     }
 
@@ -3464,7 +3463,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     /** Triggered by implementation's WM events to update the visibility state. */
-    protected void visibleChanged(boolean defer, boolean visible) {
+    protected final void visibleChanged(boolean defer, boolean visible) {
         if(this.visible != visible) {
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("Window.visibleChanged ("+getThreadName()+"): (defer: "+defer+") "+this.visible+" -> "+visible+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
@@ -3546,7 +3545,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     /** Triggered by implementation's WM events to update the position. */
-    protected void positionChanged(boolean defer, int newX, int newY) {
+    protected final void positionChanged(boolean defer, int newX, int newY) {
         if ( getX() != newX || getY() != newY ) {
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("Window.positionChanged: ("+getThreadName()+"): (defer: "+defer+") "+getX()+"/"+getY()+" -> "+newX+"/"+newY+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
@@ -3633,7 +3632,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      *              and hence force destruction. Otherwise is follows the user settings.
      * @return true if this window is no more valid and hence has been destroyed, otherwise false.
      */
-    public boolean windowDestroyNotify(boolean force) {
+    public final boolean windowDestroyNotify(boolean force) {
         final WindowClosingMode defMode = getDefaultCloseOperation();
         final WindowClosingMode mode = force ? WindowClosingMode.DISPOSE_ON_CLOSE : defMode;
         if(DEBUG_IMPLEMENTATION) {
@@ -3677,14 +3676,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public void windowRepaint(int x, int y, int width, int height) {
+    public final void windowRepaint(int x, int y, int width, int height) {
         windowRepaint(false, x, y, width, height);
     }
 
     /**
      * Triggered by implementation's WM events to update the content
      */
-    protected void windowRepaint(boolean defer, int x, int y, int width, int height) {
+    protected final void windowRepaint(boolean defer, int x, int y, int width, int height) {
         width = ( 0 >= width ) ? getWidth() : width;
         height = ( 0 >= height ) ? getHeight() : height;
         if(DEBUG_IMPLEMENTATION) {
@@ -3743,10 +3742,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             }
         }
         return sb.toString();
-    }
-
-    protected final void shouldNotCallThis() {
-        throw new NativeWindowException("Should not call this");
     }
 
     public static String getThreadName() {
