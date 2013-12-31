@@ -47,6 +47,8 @@ import jogamp.newt.driver.PNGIcon;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.Point;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;
@@ -107,7 +109,8 @@ public class DisplayDriver extends DisplayImpl {
             final int[] width = { 0 }, height = { 0 }, data_size = { 0 }, elem_bytesize = { 0 };
             if( null != pngResource && 0 < pngResource.resourceCount() ) {
                 final ByteBuffer data = PNGIcon.singleToRGBAImage(pngResource, 0, true /* toBGRA */, width, height, data_size, elem_bytesize);
-                return new PointerIconImpl( createBGRA8888Icon0(data, width[0], height[0], true, hotX, hotY) );
+                return new PointerIconImpl( createBGRA8888Icon0(data, width[0], height[0], true, hotX, hotY),
+                                            new Dimension(width[0], height[0]), new Point(hotX, hotY));
             }
         }
         return null;

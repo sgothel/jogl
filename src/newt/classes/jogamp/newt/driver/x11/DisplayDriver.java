@@ -41,6 +41,8 @@ import java.nio.ByteBuffer;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.Point;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;
@@ -146,7 +148,7 @@ public class DisplayDriver extends DisplayImpl {
                         return Long.valueOf(h);
                     }
                 }).longValue();
-                return new PointerIconImpl(handle);
+                return new PointerIconImpl(handle, new Dimension(width[0], height[0]), new Point(hotX, hotY));
             }
         }
         return null;

@@ -37,6 +37,8 @@ import java.util.Iterator;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.util.DimensionImmutable;
+import javax.media.nativewindow.util.PointImmutable;
 
 import jogamp.newt.Debug;
 
@@ -71,7 +73,15 @@ public abstract class Display {
      * PointerIcons can be used via {@link Window#setPointerIcon(PointerIcon)}.
      * </p>
      */
-    public static interface PointerIcon { }
+    public static interface PointerIcon {
+        /** Returns the size, i.e. width and height. */
+        DimensionImmutable getSize();
+        /** Returns the hotspot. */
+        PointImmutable getHotspot();
+
+        @Override
+        String toString();
+    }
 
     /**
      * Returns the created {@link PointerIcon} or <code>null</code> if not implemented on platform.

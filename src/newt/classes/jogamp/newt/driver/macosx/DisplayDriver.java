@@ -41,6 +41,8 @@ import java.nio.ByteBuffer;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.Point;
 
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice;
@@ -115,7 +117,8 @@ public class DisplayDriver extends DisplayImpl {
             final int[] width = { 0 }, height = { 0 }, data_size = { 0 }, elem_bytesize = { 0 };
             if( null != pngResource && 0 < pngResource.resourceCount() ) {
                 final ByteBuffer data = PNGIcon.singleToRGBAImage(pngResource, 0, true /* toBGRA */, width, height, data_size, elem_bytesize);
-                return new PointerIconImpl( createPointerIcon0(data, width[0], height[0], hotX, hotY) );
+                return new PointerIconImpl( createPointerIcon0(data, width[0], height[0], hotX, hotY),
+                                            new Dimension(width[0], height[0]), new Point(hotX, hotY));
             }
         }
         return null;

@@ -51,6 +51,8 @@ import java.util.ArrayList;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.util.DimensionImmutable;
+import javax.media.nativewindow.util.PointImmutable;
 
 public abstract class DisplayImpl extends Display {
     private static int serialno = 1;
@@ -68,8 +70,24 @@ public abstract class DisplayImpl extends Display {
 
     public static class PointerIconImpl implements PointerIcon {
         public final long handle;
-        public PointerIconImpl(long handle) {
+        private final DimensionImmutable size;
+        private final PointImmutable hotspot;
+        public PointerIconImpl(final long handle, final DimensionImmutable size, final PointImmutable hotspot) {
             this.handle=handle;
+            this.size = size;
+            this.hotspot = hotspot;
+        }
+        @Override
+        public final DimensionImmutable getSize() {
+            return size;
+        }
+        @Override
+        public final PointImmutable getHotspot() {
+            return hotspot;
+        }
+        @Override
+        public final String toString() {
+            return "PointerIcon[0x"+Long.toHexString(handle)+", "+size+", "+hotspot+"]";
         }
     }
 
