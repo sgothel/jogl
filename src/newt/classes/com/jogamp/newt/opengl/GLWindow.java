@@ -77,6 +77,7 @@ import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
+import com.jogamp.newt.Display.PointerIcon;
 import com.jogamp.newt.event.GestureHandler;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseListener;
@@ -265,6 +266,16 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     @Override
     public final void setPointerVisible(boolean mouseVisible) {
         window.setPointerVisible(mouseVisible);
+    }
+
+    @Override
+    public final PointerIcon getPointerIcon() {
+        return window.getPointerIcon();
+    }
+
+    @Override
+    public final void setPointerIcon(final PointerIcon pi) {
+        window.setPointerIcon(pi);
     }
 
     @Override

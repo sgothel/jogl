@@ -34,9 +34,13 @@
 
 package jogamp.newt.driver.windows;
 
+import java.nio.ByteBuffer;
+
 import jogamp.nativewindow.windows.GDI;
 import jogamp.nativewindow.windows.GDIUtil;
 import jogamp.newt.WindowImpl;
+import jogamp.newt.DisplayImpl.PointerIconImpl;
+import jogamp.newt.driver.PNGIcon;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
@@ -47,22 +51,45 @@ import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.VersionNumber;
+import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseEvent.PointerType;
 
 public class WindowDriver extends WindowImpl {
+    private static final long[] defaultIconHandles;
+
+    static {
+        DisplayDriver.initSingleton();
+        {
+            long[] _defaultIconHandle = { 0, 0 };
+            if( PNGIcon.isAvailable() ) {
+                try {
+                    final int[] width = { 0 }, height = { 0 }, data_size = { 0 }, elem_bytesize = { 0 };
+                    final IOUtil.ClassResources iconRes = NewtFactory.getWindowIcons();
+                    {
+                        final ByteBuffer icon_data_small = PNGIcon.singleToRGBAImage(iconRes, 0, true /* toBGRA */, width, height, data_size, elem_bytesize);
+                        _defaultIconHandle[0] = DisplayDriver.createBGRA8888Icon0(icon_data_small, width[0], height[0], false, 0, 0);
+                    }
+                    {
+                        final ByteBuffer icon_data_big = PNGIcon.singleToRGBAImage(iconRes, iconRes.resourceCount()-1, true /* toBGRA */, width, height, data_size, elem_bytesize);
+                        _defaultIconHandle[1] = DisplayDriver.createBGRA8888Icon0(icon_data_big, width[0], height[0], false, 0, 0);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            defaultIconHandles = _defaultIconHandle;
+        }
+    }
 
     private long hmon;
     private long hdc;
     private long hdc_old;
     private long windowHandleClose;
-
-    static {
-        DisplayDriver.initSingleton();
-    }
 
     public WindowDriver() {
     }
@@ -142,7 +169,8 @@ public class WindowDriver extends WindowImpl {
                           ( FLAG_IS_ALWAYSONTOP | FLAG_IS_UNDECORATED ) ;
         final long _windowHandle = CreateWindow0(DisplayDriver.getHInstance(), display.getWindowClassName(), display.getWindowClassName(),
                                                  winVer.getMajor(), winVer.getMinor(),
-                                                 getParentWindowHandle(), getX(), getY(), getWidth(), getHeight(), autoPosition(), flags);
+                                                 getParentWindowHandle(), getX(), getY(), getWidth(), getHeight(), autoPosition(), flags,
+                                                 defaultIconHandles[0], defaultIconHandles[1]);
         if ( 0 == _windowHandle ) {
             throw new NativeWindowException("Error creating window");
         }
@@ -159,8 +187,8 @@ public class WindowDriver extends WindowImpl {
 
     @Override
     protected void closeNativeImpl() {
-        if(windowHandleClose != 0) {
-            if (hdc != 0) {
+        if( 0 != windowHandleClose ) {
+            if ( 0 != hdc ) {
                 try {
                     GDI.ReleaseDC(windowHandleClose, hdc);
                 } catch (Throwable t) {
@@ -177,10 +205,9 @@ public class WindowDriver extends WindowImpl {
                     Exception e = new Exception("Warning: closeNativeImpl failed - "+Thread.currentThread().getName(), t);
                     e.printStackTrace();
                 }
-            } finally {
-                windowHandleClose = 0;
             }
         }
+        windowHandleClose = 0;
         hdc = 0;
         hdc_old = 0;
     }
@@ -221,6 +248,11 @@ public class WindowDriver extends WindowImpl {
     @Override
     protected void setTitleImpl(final String title) {
         setTitle0(getWindowHandle(), title);
+    }
+
+    @Override
+    protected void setPointerIconImpl(final PointerIconImpl pi) {
+        setPointerIcon0(getWindowHandle(), null != pi ? pi.handle : 0);
     }
 
     @Override
@@ -361,7 +393,8 @@ public class WindowDriver extends WindowImpl {
     protected static native boolean initIDs0(long hInstance);
 
     private native long CreateWindow0(long hInstance, String wndClassName, String wndName, int winMajor, int winMinor,
-                                      long parentWindowHandle, int x, int y, int width, int height, boolean autoPosition, int flags);
+                                      long parentWindowHandle, int x, int y, int width, int height, boolean autoPosition, int flags,
+                                      long iconSmallHandle, long iconBigHandle);
     private native long MonitorFromWindow0(long windowHandle);
     private native void reconfigureWindow0(long parentWindowHandle, long windowHandle,
                                            int x, int y, int width, int height, int flags);
@@ -371,4 +404,7 @@ public class WindowDriver extends WindowImpl {
     private static native boolean setPointerVisible0(long windowHandle, boolean visible);
     private static native boolean confinePointer0(long windowHandle, boolean grab, int l, int t, int r, int b);
     private static native void warpPointer0(long windowHandle, int x, int y);
+    private static native ByteBuffer newDirectByteBuffer(long addr, long capacity);
+
+    private static native void setPointerIcon0(long windowHandle, long iconHandle);
 }

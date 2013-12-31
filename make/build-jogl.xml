@@ -1833,7 +1833,7 @@
             <fileset dir="${classes}"
                      includes="${java.part.util} ${java.part.util.glsl} ${java.part.openal}"
                      excludes="${java.part.util.awt} ${java.part.util.gldesktop} ${java.part.util.fixedfuncemu} ${java.part.util.graph}"/>
-            <fileset dir="resources/assets" includes="jogl/util/**" />
+            <fileset dir="resources/assets" includes="jogl/util/data/**" />
         </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-util-graph.jar}" filesonly="true">
             <fileset dir="${classes}"

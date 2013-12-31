@@ -46,6 +46,7 @@ import javax.media.nativewindow.util.PointImmutable;
 
 import jogamp.nativewindow.macosx.OSXUtil;
 import jogamp.newt.WindowImpl;
+import jogamp.newt.DisplayImpl.PointerIconImpl;
 import jogamp.newt.driver.DriverClearFocus;
 import jogamp.newt.driver.DriverUpdatePosition;
 
@@ -392,6 +393,15 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
 
     @Override
+    protected void setPointerIconImpl(final PointerIconImpl pi) {
+        OSXUtil.RunOnMainThread(false, new Runnable() {
+            @Override
+            public void run() {
+                setPointerIcon0(getWindowHandle(), null != pi ? pi.handle : 0);
+            } } );
+    }
+
+    @Override
     protected boolean setPointerVisibleImpl(final boolean pointerVisible) {
         if( !isOffscreenInstance ) {
             return setPointerVisible0(getWindowHandle(), hasFocus(), pointerVisible);
@@ -568,6 +578,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     private static native boolean setPointerVisible0(long windowHandle, boolean hasFocus, boolean visible);
     private static native boolean confinePointer0(long windowHandle, boolean confine);
     private static native void warpPointer0(long windowHandle, int x, int y);
+    private static native void setPointerIcon0(long windowHandle, long handle);
 
     // Window styles
     private static final int NSBorderlessWindowMask     = 0;

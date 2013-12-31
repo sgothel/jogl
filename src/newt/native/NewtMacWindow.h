@@ -114,6 +114,7 @@
     BOOL mouseVisible;
     BOOL mouseInside;
     BOOL cursorIsHidden;
+    NSCursor * customCursor;
     BOOL realized;
     BOOL modsDown[4]; // shift, ctrl, alt/option, win/command
     NSPoint lastInsideMousePosition;
@@ -151,7 +152,8 @@
 - (NSPoint) screenPos2NewtClientWinPos: (NSPoint) p;
 
 - (BOOL) isMouseInside;
-- (void) cursorHide:(BOOL)v;
+- (void) cursorHide:(BOOL)v enter:(int)enterState; 
+- (void) setCustomCursor:(NSCursor*)c;
 - (void) setMouseVisible:(BOOL)v hasFocus:(BOOL)focus;
 - (void) setMouseConfined:(BOOL)v;
 - (void) setMousePosition:(NSPoint)p;

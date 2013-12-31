@@ -28,14 +28,20 @@
 
 package com.jogamp.newt;
 
-import com.jogamp.newt.util.EDTUtil;
-import jogamp.newt.Debug;
-
+import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.*;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
+
+import jogamp.newt.Debug;
+
+import com.jogamp.common.util.IOUtil;
+import com.jogamp.newt.util.EDTUtil;
 
 public abstract class Display {
     public static final boolean DEBUG = Debug.debug("Display");
@@ -54,6 +60,42 @@ public abstract class Display {
         }
         return false;
     }
+
+    /**
+     * Native PointerIcon handle.
+     * <p>
+     * Instances can be created via {@link Display#createPointerIcon(com.jogamp.common.util.IOUtil.ClassResources, int, int)}
+     * and released via {@link Display#destroyPointerIcon(PointerIcon)}.
+     * </p>
+     * <p>
+     * PointerIcons can be used via {@link Window#setPointerIcon(PointerIcon)}.
+     * </p>
+     */
+    public static interface PointerIcon { }
+
+    /**
+     * Returns the created {@link PointerIcon} or <code>null</code> if not implemented on platform.
+     *
+     * @param pngResource PNG resource
+     * @param hotX pointer hotspot x-coord, origin is upper-left corner
+     * @param hotY pointer hotspot y-coord, origin is upper-left corner
+     * @throws MalformedURLException
+     * @throws InterruptedException
+     * @throws IOException
+     *
+     * @see PointerIcon
+     * @see #destroyPointerIcon(PointerIcon)
+     * @see Window#setPointerIcon(PointerIcon)
+     */
+
+    public abstract PointerIcon createPointerIcon(final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws MalformedURLException, InterruptedException, IOException;
+
+    /**
+     * @param pi
+     *
+     * @see #createPointerIcon(com.jogamp.common.util.IOUtil.ClassResources, int, int)
+     */
+    public abstract void destroyPointerIcon(PointerIcon pi);
 
     /**
      * Manual trigger the native creation, if it is not done yet.<br>

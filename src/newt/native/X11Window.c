@@ -497,6 +497,12 @@ static void NewtWindows_setPosSize(Display *dpy, Window w, jint x, jint y, jint 
     }
 }
 
+static void NewtWindows_setIcon(Display *dpy, Window w, int data_size, const unsigned char * data_ptr) {
+    Atom _NET_WM_ICON = XInternAtom(dpy, "_NET_WM_ICON", False);
+    Atom CARDINAL = XInternAtom(dpy, "CARDINAL", False);
+    XChangeProperty(dpy, w, _NET_WM_ICON, CARDINAL, 32, PropModeReplace, data_ptr, data_size);
+}
+
 /*
  * Class:     jogamp_newt_driver_x11_WindowDriver
  * Method:    CreateWindow
@@ -505,7 +511,8 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWindow0
   (JNIEnv *env, jobject obj, jlong parent, jlong display, jint screen_index, 
                              jint visualID, 
                              jlong javaObjectAtom, jlong windowDeleteAtom, 
-                             jint x, jint y, jint width, jint height, jboolean autoPosition, int flags)
+                             jint x, jint y, jint width, jint height, jboolean autoPosition, int flags,
+                             jint iconDataSize, jobject iconData)
 {
     Display * dpy = (Display *)(intptr_t)display;
     Atom wm_delete_atom = (Atom)windowDeleteAtom;
@@ -625,6 +632,11 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWindow0
     {
         XEvent event;
         int left=0, right=0, top=0, bottom=0;
+
+        if( 0 < iconDataSize && NULL != iconData ) {
+            const unsigned char * iconDataPtr = (const unsigned char *) (*env)->GetDirectBufferAddress(env, iconData);
+            NewtWindows_setIcon(dpy, window, (int)iconDataSize, iconDataPtr);
+        }
 
         XMapWindow(dpy, window);
         XIfEvent( dpy, &event, WaitForMapNotify, (XPointer) window ); // wait to get proper insets values
@@ -942,6 +954,27 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_setTitle0
         }
     }
 #endif
+}
+
+/*
+ * Class:     Java_jogamp_newt_driver_x11_WindowDriver
+ * Method:    setPointerIcon0
+ * Signature: (JJILjava/lang/Object;I)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_setPointerIcon0
+  (JNIEnv *env, jclass clazz, jlong display, jlong window, jlong handle)
+{
+    Display * dpy = (Display *) (intptr_t) display;
+    Window w = (Window)window;
+
+    if( 0 == handle ) {
+        DBG_PRINT( "X11: setPointerIcon0: reset\n");
+        XUndefineCursor(dpy, w);
+    } else {
+        Cursor c = (Cursor) (intptr_t) handle;
+        DBG_PRINT( "X11: setPointerIcon0: %p\n", (void*)c);
+        XDefineCursor(dpy, w, c);
+    }
 }
 
 /*

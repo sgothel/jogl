@@ -30,6 +30,7 @@ package com.jogamp.newt;
 
 import java.util.List;
 
+import com.jogamp.newt.Display.PointerIcon;
 import com.jogamp.newt.event.GestureHandler;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowListener;
@@ -306,6 +307,20 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * @see #confinePointer(boolean)
      */
     void setPointerVisible(boolean pointerVisible);
+
+    /**
+     * Returns the current {@link PointerIcon}, which maybe <code>null</code> for the default.
+     * @see #setPointerIcon(PointerIcon)
+     */
+    PointerIcon getPointerIcon();
+
+    /**
+     * @param pi Valid {@link PointerIcon} reference or <code>null</code> to reset the pointer icon to default.
+     *
+     * @see PointerIcon
+     * @see Display#createPointerIcon(com.jogamp.common.util.IOUtil.ClassResources, int, int)
+     */
+    void setPointerIcon(final PointerIcon pi);
 
     /** @see #confinePointer(boolean) */
     boolean isPointerConfined();

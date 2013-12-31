@@ -139,7 +139,7 @@
 
 #include "NewtCommon.h"
 
-// #define VERBOSE_ON 1
+#define VERBOSE_ON 1
 // #define DEBUG_KEYS 1
 
 #ifdef VERBOSE_ON
@@ -186,6 +186,10 @@ typedef struct {
     int height;
     /** Tristate: -1 HIDE, 0 NOP, 1 SHOW */
     int setPointerVisible;
+    /** Tristate: -1 RESET, 0 NOP, 1 SET-NEW */
+    int setPointerAction;
+    HCURSOR setPointerHandle;
+    HCURSOR defPointerHandle;
     /** Bool: 0 NOP, 1 FULLSCREEN */
     int setFullscreen;
     int pointerCaptured;
@@ -1023,10 +1027,22 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                 } else /* -1 == wud->setPointerVisible */ {
                     visibilityChangeSuccessful = SafeShowCursor(FALSE);
                 }
-                useDefWindowProc = visibilityChangeSuccessful ? 1 : 0;
                 DBG_PRINT("*** WindowsWindow: WM_SETCURSOR requested visibility: %d success: %d\n", wud->setPointerVisible, visibilityChangeSuccessful);
                 wud->setPointerVisible = 0;
-                // own signal, consumed
+                // own signal, consumed, no further processing
+                useDefWindowProc = 0;
+                res = 1;
+            } else if( 0 != wud->setPointerAction ) {
+                if( -1 == wud->setPointerAction ) {
+                    wud->setPointerHandle = wud->defPointerHandle;
+                }
+                HCURSOR preHandle = SetCursor(wud->setPointerHandle);
+                DBG_PRINT("*** WindowsWindow: WM_SETCURSOR requested change %d: pre %p -> set %p, def %p\n", 
+                    wud->setPointerAction, (void*)preHandle, (void*)wud->setPointerHandle, (void*)wud->defPointerHandle);
+                wud->setPointerAction = 0;
+                // own signal, consumed, no further processing
+                useDefWindowProc = 0;
+                res = 1;
             } else {
                 useDefWindowProc = 1; // NOP for us, allow parent to act
             }
@@ -1246,6 +1262,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                     if( 0 == wud->pointerInside ) {
                         wud->pointerInside = 1;
                         NewtWindows_trackPointerLeave(wnd);
+                        SetCursor(wud->setPointerHandle);
                     }
                     (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                            (jshort) EVENT_MOUSE_MOVED,
@@ -1997,7 +2014,8 @@ static void NewtWindow_setVisiblePosSize(HWND hwnd, BOOL atop, BOOL visible,
 JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindow0
   (JNIEnv *env, jobject obj, 
    jlong hInstance, jstring jWndClassName, jstring jWndName, jint winMajor, jint winMinor,
-   jlong parent, jint jx, jint jy, jint defaultWidth, jint defaultHeight, jboolean autoPosition, jint flags)
+   jlong parent, jint jx, jint jy, jint defaultWidth, jint defaultHeight, jboolean autoPosition, jint flags,
+   jlong iconSmallHandle, jlong iconBigHandle)
 {
     HWND parentWindow = (HWND) (intptr_t) parent;
     const TCHAR* wndClassName = NULL;
@@ -2054,6 +2072,9 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
         wud->width = width;
         wud->height = height;
         wud->setPointerVisible = 0;
+        wud->setPointerAction = 0;
+        wud->defPointerHandle = LoadCursor( NULL, IDC_ARROW);
+        wud->setPointerHandle = wud->defPointerHandle;
         wud->setFullscreen = 0;
         wud->pointerCaptured = 0;
         wud->pointerInside = 0;
@@ -2083,6 +2104,12 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
             RECT rc;
             RECT * insets;
 
+            if( 0 != iconSmallHandle ) {
+                SendMessage(window, WM_SETICON, ICON_SMALL, (LPARAM) iconSmallHandle ); 
+            }
+            if( 0 != iconBigHandle ) {
+                SendMessage(window, WM_SETICON, ICON_BIG, (LPARAM) iconBigHandle ); 
+            }
             ShowWindow(window, SW_SHOW);
 
             // send insets before visibility, allowing java code a proper sync point!
@@ -2319,5 +2346,85 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_warpPointer0
 {
     DBG_PRINT( "*** WindowsWindow: warpPointer0: %d/%d\n", x, y);
     SetCursorPos(x, y);
+}
+
+JNIEXPORT jlong JNICALL
+Java_jogamp_newt_driver_windows_DisplayDriver_createBGRA8888Icon0(JNIEnv *env, jobject _unused, 
+    jobject data, jint data_offset, jint width, jint height, jboolean isCursor, jint hotX, jint hotY) {
+
+    const unsigned char * data_ptr = (const unsigned char *) (*env)->GetDirectBufferAddress(env, data) + data_offset;
+    const int bytes = 4 * width * height; // BGRA8888
+
+    DWORD dwWidth, dwHeight;
+    BITMAPV5HEADER bi;
+    HBITMAP hBitmap;
+    void *lpBits;
+    HICON handle = NULL;
+
+    dwWidth  = width;  // width of cursor
+    dwHeight = height;  // height of cursor
+
+    ZeroMemory(&bi,sizeof(BITMAPV5HEADER));
+    bi.bV5Size           = sizeof(BITMAPV5HEADER);
+    bi.bV5Width           = dwWidth;
+    bi.bV5Height          = -1 * dwHeight;
+    bi.bV5Planes = 1;
+    bi.bV5BitCount = 32;
+    bi.bV5Compression = BI_BITFIELDS;
+    // The following mask specification specifies a supported 32 BPP
+    // alpha format for Windows XP.
+    bi.bV5RedMask   =  0x00FF0000;
+    bi.bV5GreenMask =  0x0000FF00;
+    bi.bV5BlueMask  =  0x000000FF;
+    bi.bV5AlphaMask =  0xFF000000; 
+
+    HDC hdc;
+    hdc = GetDC(NULL);
+
+    // Create the DIB section with an alpha channel.
+    hBitmap = CreateDIBSection(hdc, (BITMAPINFO *)&bi, DIB_RGB_COLORS, 
+        (void **)&lpBits, NULL, (DWORD)0);
+
+    memcpy(lpBits, data_ptr, bytes);
+
+    ReleaseDC(NULL,hdc);
+
+    // Create an empty mask bitmap.
+    HBITMAP hMonoBitmap = CreateBitmap(dwWidth,dwHeight,1,1,NULL);
+
+    ICONINFO ii;
+    ii.fIcon = isCursor ? FALSE : TRUE;
+    ii.xHotspot = hotX;
+    ii.yHotspot = hotY;
+    ii.hbmMask = hMonoBitmap;
+    ii.hbmColor = hBitmap;
+
+    // Create the alpha cursor with the alpha DIB section.
+    handle = CreateIconIndirect(&ii);
+
+    DeleteObject(hBitmap);          
+    DeleteObject(hMonoBitmap); 
+
+    return (jlong) (intptr_t) handle;
+}
+
+JNIEXPORT void JNICALL
+Java_jogamp_newt_driver_windows_DisplayDriver_destroyIcon0(JNIEnv *env, jobject _unused, jlong jhandle) {
+    HICON handle = (HICON) (intptr_t) jhandle;
+    DestroyIcon(handle);
+}
+
+JNIEXPORT void JNICALL
+Java_jogamp_newt_driver_windows_WindowDriver_setPointerIcon0(JNIEnv *env, jobject _unused, jlong window, jlong iconHandle) {
+    HWND hwnd = (HWND) (intptr_t) window;
+    WindowUserData * wud;
+#if !defined(__MINGW64__) && ( defined(UNDER_CE) || _MSC_VER <= 1200 )
+    wud = (WindowUserData *) GetWindowLong(hwnd, GWL_USERDATA);
+#else
+    wud = (WindowUserData *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
+#endif
+    wud->setPointerAction = 0 != iconHandle ? 1 : -1;
+    wud->setPointerHandle = (HCURSOR) (intptr_t) iconHandle;
+    SendMessage(hwnd, WM_SETCURSOR, 0, 0);
 }
 

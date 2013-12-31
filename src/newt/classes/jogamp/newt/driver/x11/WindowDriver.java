@@ -34,11 +34,16 @@
 
 package jogamp.newt.driver.x11;
 
+import java.nio.Buffer;
+
 import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.DisplayImpl.DisplayRunnable;
+import jogamp.newt.DisplayImpl.PointerIconImpl;
 import jogamp.newt.WindowImpl;
+import jogamp.newt.driver.PNGIcon;
+
 import javax.media.nativewindow.*;
 import javax.media.nativewindow.VisualIDHolder.VIDType;
 import javax.media.nativewindow.util.Insets;
@@ -47,6 +52,7 @@ import javax.media.nativewindow.util.Point;
 
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsScreen;
+import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.MouseEvent;
@@ -58,8 +64,29 @@ public class WindowDriver extends WindowImpl {
     private static final int X11_WHEEL_TWO_UP_BUTTON   = 6;
     private static final int X11_WHEEL_TWO_DOWN_BUTTON = 7;
 
+    private static final int defaultIconDataSize;
+    private static final Buffer defaultIconData;
+
     static {
         ScreenDriver.initSingleton();
+
+        int _icon_data_size=0, _icon_elem_bytesize=0;
+        Buffer _icon_data=null;
+        if( PNGIcon.isAvailable() ) {
+            try {
+                final int[] data_size = { 0 }, elem_bytesize = { 0 };
+                _icon_data = PNGIcon.arrayToX11BGRAImages(NewtFactory.getWindowIcons(), data_size, elem_bytesize);
+                _icon_data_size = data_size[0];
+                _icon_elem_bytesize = elem_bytesize[0];
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        defaultIconDataSize = _icon_data_size;
+        defaultIconData = _icon_data;
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("Def. Icon: data_size "+defaultIconDataSize+" * elem_size "+_icon_elem_bytesize+" = data "+defaultIconData);
+        }
     }
 
     public WindowDriver() {
@@ -100,7 +127,8 @@ public class WindowDriver extends WindowImpl {
             setWindowHandle(CreateWindow0(getParentWindowHandle(),
                                    edtDevice.getHandle(), screen.getIndex(), visualID,
                                    display.getJavaObjectAtom(), display.getWindowDeleteAtom(),
-                                   getX(), getY(), getWidth(), getHeight(), autoPosition(), flags));
+                                   getX(), getY(), getWidth(), getHeight(), autoPosition(), flags,
+                                   defaultIconDataSize, defaultIconData));
         } finally {
             edtDevice.unlock();
         }
@@ -246,6 +274,21 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
+    protected void setPointerIconImpl(final PointerIconImpl pi) {
+        runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
+            @Override
+            public Object run(long dpy) {
+                try {
+                    setPointerIcon0(dpy, getWindowHandle(), null != pi ? pi.handle : 0);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        });
+    }
+
+    @Override
     protected boolean setPointerVisibleImpl(final boolean pointerVisible) {
         return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Boolean>() {
             @Override
@@ -381,13 +424,17 @@ public class WindowDriver extends WindowImpl {
 
     private native long CreateWindow0(long parentWindowHandle, long display, int screen_index,
                                       int visualID, long javaObjectAtom, long windowDeleteAtom,
-                                      int x, int y, int width, int height, boolean autoPosition, int flags);
+                                      int x, int y, int width, int height, boolean autoPosition, int flags,
+                                      int iconDataSize, Object iconData);
     private native void CloseWindow0(long display, long windowHandle, long javaObjectAtom, long windowDeleteAtom /*, long kbdHandle*/ ); // XKB disabled for now
     private native void reconfigureWindow0(long display, int screen_index, long parentWindowHandle, long windowHandle,
                                            long windowDeleteAtom, int x, int y, int width, int height, int flags);
     private native void requestFocus0(long display, long windowHandle, boolean force);
 
     private static native void setTitle0(long display, long windowHandle, String title);
+
+    private static native void setPointerIcon0(long display, long windowHandle, long handle);
+
     private static native long getParentWindow0(long display, long windowHandle);
     private static native boolean setPointerVisible0(long display, long windowHandle, boolean visible);
     private static native boolean confinePointer0(long display, long windowHandle, boolean grab);

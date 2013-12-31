@@ -263,7 +263,7 @@ Java_jogamp_nativewindow_windows_GDIUtil_CreateWindowClass0
         wc.cbWndExtra = 0;
         wc.hInstance = hInstance;
         wc.hIcon = NULL;
-        wc.hCursor = LoadCursor( NULL, IDC_ARROW);
+        wc.hCursor = NULL;
         wc.hbrBackground = NULL; // no background paint - GetStockObject(BLACK_BRUSH);
         wc.lpszMenuName = NULL;
         wc.lpszClassName = clazzName;

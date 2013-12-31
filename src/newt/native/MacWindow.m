@@ -285,6 +285,76 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_DisplayDriver_stopNSApplic
     [pool release];
 }
 
+static NSImage * createNSImageFromData(JNIEnv *env, jobject jiconData, jint jiconWidth, jint jiconHeight) {
+    if( NULL != jiconData ) {
+        unsigned char * iconData = (unsigned char *) (*env)->GetDirectBufferAddress(env, jiconData);
+        NSInteger iconWidth = (NSInteger) jiconWidth;
+        NSInteger iconHeight = (NSInteger) jiconHeight;
+        const NSInteger bpc = 8 /* bits per component */, spp=4 /* RGBA */, bpp = bpc * spp;
+        const NSBitmapFormat bfmt = NSAlphaNonpremultipliedBitmapFormat;
+        const BOOL hasAlpha = YES;
+
+        NSBitmapImageRep* bir = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes: &iconData
+                                    pixelsWide: iconWidth
+                                    pixelsHigh: iconHeight
+                                    bitsPerSample: bpc
+                                    samplesPerPixel: spp
+                                    hasAlpha: hasAlpha
+                                    isPlanar: NO
+                                    colorSpaceName: NSCalibratedRGBColorSpace
+                                    bitmapFormat: bfmt
+                                    bytesPerRow: iconWidth*4
+                                    bitsPerPixel: bpp];
+        [bir autorelease];
+        NSImage* nsImage = [[NSImage alloc] initWithCGImage: [bir CGImage] size:NSZeroSize];
+        return nsImage;
+    }
+    return NULL;
+}
+
+/*
+ * Class:     jogamp_newt_driver_macosx_DisplayDriver
+ * Method:    setAppIcon0
+ */
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_DisplayDriver_setAppIcon0
+  (JNIEnv *env, jobject unused, jobject jiconData, jint jiconWidth, jint jiconHeight)
+{
+    NSImage * nsImage = createNSImageFromData(env, jiconData, jiconWidth, jiconHeight);
+    if( NULL != nsImage ) {
+        [nsImage autorelease];
+        [NSApp setApplicationIconImage: nsImage];
+    }
+}
+
+JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_DisplayDriver_createPointerIcon0
+  (JNIEnv *env, jobject unused, jobject jiconData, jint jiconWidth, jint jiconHeight, jint hotX, jint hotY) 
+{
+    NSImage * nsImage = createNSImageFromData(env, jiconData, jiconWidth, jiconHeight);
+    if( NULL != nsImage ) {
+        [nsImage autorelease];
+        NSPoint hotP = { hotX, hotY };
+        NSCursor * c = [[NSCursor alloc] initWithImage: nsImage hotSpot: hotP];
+        return (jlong) (intptr_t) c;
+    }
+    return 0;
+}
+
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_DisplayDriver_destroyPointerIcon0
+  (JNIEnv *env, jobject unused, jlong handle)
+{
+    NSCursor * c = (NSCursor*) (intptr_t) handle ;
+    [c release];
+}
+
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setPointerIcon0
+  (JNIEnv *env, jobject unused, jlong window, jlong handle)
+{
+    NewtMacWindow *mWin = (NewtMacWindow*) (intptr_t) window;
+    NSCursor * c = (NSCursor*) (intptr_t) handle ;
+
+    [mWin setCustomCursor: c];
+}
+
 static NSScreen * NewtScreen_getNSScreenByIndex(int screen_idx, BOOL cap) {
     NSArray *screens = [NSScreen screens];
     if( screen_idx<0 || screen_idx>=[screens count] ) {
@@ -632,7 +702,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_createView0
 
     [pool release];
 
-    return (jlong) ((intptr_t) myView);
+    return (jlong) (intptr_t) myView;
 }
 
 /**
@@ -674,7 +744,6 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_createWindow
                                                backing: (NSBackingStoreType) bufferingType
                                                defer: YES
                                                isFullscreenWindow: fullscreen];
-
     // DBG_PRINT( "createWindow0.1 - %p, isVisible %d\n", myWindow, [myWindow isVisible]);
 
     DBG_PRINT( "createWindow0.X - %p, isVisible %d\n", myWindow, [myWindow isVisible]);

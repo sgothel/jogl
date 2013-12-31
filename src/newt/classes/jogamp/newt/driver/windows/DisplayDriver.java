@@ -34,13 +34,22 @@
 
 package jogamp.newt.driver.windows;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+
 import jogamp.nativewindow.windows.RegisteredClass;
 import jogamp.nativewindow.windows.RegisteredClassFactory;
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.NEWTJNILibLoader;
+import jogamp.newt.driver.PNGIcon;
+
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
 
+import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.util.IOUtil;
 import com.jogamp.nativewindow.windows.WindowsGraphicsDevice;
 
 public class DisplayDriver extends DisplayImpl {
@@ -92,9 +101,38 @@ public class DisplayDriver extends DisplayImpl {
         return sharedClass.getName();
     }
 
+    @Override
+    protected PointerIcon createPointerIconImpl(final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws MalformedURLException, InterruptedException, IOException {
+        if( PNGIcon.isAvailable() ) {
+            final int[] width = { 0 }, height = { 0 }, data_size = { 0 }, elem_bytesize = { 0 };
+            if( null != pngResource && 0 < pngResource.resourceCount() ) {
+                final ByteBuffer data = PNGIcon.singleToRGBAImage(pngResource, 0, true /* toBGRA */, width, height, data_size, elem_bytesize);
+                return new PointerIconImpl( createBGRA8888Icon0(data, width[0], height[0], true, hotX, hotY) );
+            }
+        }
+        return null;
+    }
+
+    @Override
+    protected final void destroyPointerIconImpl(final long displayHandle, final PointerIcon pi) {
+        destroyIcon0(((PointerIconImpl)pi).handle);
+    }
+
     //----------------------------------------------------------------------
     // Internals only
     //
     private static native void DispatchMessages0();
+
+    static long createBGRA8888Icon0(Buffer data, int width, int height, boolean isCursor, int hotX, int hotY) {
+        if( null == data ) {
+            throw new IllegalArgumentException("data buffer/size");
+        }
+        if( !Buffers.isDirect(data) ) {
+            throw new IllegalArgumentException("data buffer is not direct "+data);
+        }
+        return createBGRA8888Icon0(data, Buffers.getDirectBufferByteOffset(data), width, height, isCursor, hotX, hotY);
+    }
+    private static native long createBGRA8888Icon0(Object data, int data_offset, int width, int height, boolean isCursor, int hotX, int hotY);
+    private static native void destroyIcon0(long handle);
 }
 

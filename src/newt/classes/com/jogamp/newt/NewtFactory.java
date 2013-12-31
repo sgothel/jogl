@@ -36,6 +36,7 @@ package com.jogamp.newt;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.Arrays;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -43,6 +44,8 @@ import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowFactory;
+
+import com.jogamp.common.util.IOUtil;
 
 import jogamp.newt.Debug;
 import jogamp.newt.DisplayImpl;
@@ -54,14 +57,44 @@ public class NewtFactory {
 
     public static final String DRIVER_DEFAULT_ROOT_PACKAGE = "jogamp.newt.driver";
 
+    private static IOUtil.ClassResources defaultWindowIcons;
+
     static {
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
             @Override
             public Object run() {
                 NativeWindowFactory.initSingleton(); // last resort ..
+                {
+                    final String[] paths = Debug.getProperty("newt.window.icons", true, "newt/data/jogamp-16x16.png newt/data/jogamp-32x32.png").split("\\s");
+                    if( paths.length < 2 ) {
+                        throw new IllegalArgumentException("Property 'newt.window.icons' did not specify at least two PNG icons, but "+Arrays.toString(paths));
+                    }
+                    final Class<?> clazz = NewtFactory.class;
+                    defaultWindowIcons = new IOUtil.ClassResources(clazz, paths);
+                }
                 return null;
             } } );
     }
+
+    /**
+     * Returns the application window icon resources to be used.
+     * <p>
+     * Property <code>newt.window.icons</code> may define a list of PNG icons separated by a whitespace character.
+     * Shall reference at least two PNG icons, from lower (16x16) to higher (>= 32x32) resolution.
+     * </p>
+     * <p>
+     * Users may also specify application window icons using {@link #setWindowIcons(com.jogamp.common.util.IOUtil.ClassResources)}.
+     * </p>
+     */
+    public static IOUtil.ClassResources getWindowIcons() { return defaultWindowIcons; }
+
+    /**
+     * Allow user to set custom window icons, only applicable at application start before creating any NEWT instance.
+     * <p>
+     * Shall reference at least two PNG icons, from lower (16x16) to higher (>= 32x32) resolution.
+     * </p>
+     */
+    public static void setWindowIcons(IOUtil.ClassResources cres) { defaultWindowIcons = cres; }
 
     public static Class<?> getCustomClass(String packageName, String classBaseName) {
         Class<?> clazz = null;

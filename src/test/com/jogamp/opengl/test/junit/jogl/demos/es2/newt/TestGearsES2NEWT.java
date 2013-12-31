@@ -30,7 +30,9 @@ package com.jogamp.opengl.test.junit.jogl.demos.es2.newt;
 
 import java.io.IOException;
 
+import com.jogamp.common.util.IOUtil;
 import com.jogamp.newt.Display;
+import com.jogamp.newt.Display.PointerIcon;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.event.KeyAdapter;
@@ -44,9 +46,7 @@ import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
-
 import com.jogamp.opengl.util.Animator;
-
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 import javax.media.nativewindow.NativeWindowFactory;
@@ -54,7 +54,6 @@ import javax.media.nativewindow.util.Dimension;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.PointImmutable;
 import javax.media.nativewindow.util.DimensionImmutable;
-
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
@@ -171,6 +170,20 @@ public class TestGearsES2NEWT extends UITestCase {
             }
         });
 
+        final PointerIcon pointerIconOne;
+        {
+            PointerIcon _pointerIconOne = null;
+            final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "jogamp-pointer-64x64.png" } );
+            final Display disp = glWindow.getScreen().getDisplay();
+            disp.createNative();
+            try {
+                _pointerIconOne = disp.createPointerIcon(res, 32, 0);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            pointerIconOne = _pointerIconOne;
+        }
+
         glWindow.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(final KeyEvent e) {
@@ -201,6 +214,16 @@ public class TestGearsES2NEWT extends UITestCase {
                             System.err.println("[set alwaysontop pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                             glWindow.setAlwaysOnTop(!glWindow.isAlwaysOnTop());
                             System.err.println("[set alwaysontop post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
+                            glWindow.setExclusiveContextThread(t);
+                    } }.start();
+                } else if(e.getKeyChar()=='c') {
+                    new Thread() {
+                        public void run() {
+                            final Thread t = glWindow.setExclusiveContextThread(null);
+                            System.err.println("[set pointer-icon pre]");
+                            final PointerIcon currentPI = glWindow.getPointerIcon();
+                            glWindow.setPointerIcon( currentPI == pointerIconOne ? null : pointerIconOne);
+                            System.err.println("[set pointer-icon post] "+currentPI+" -> "+glWindow.getPointerIcon());
                             glWindow.setExclusiveContextThread(t);
                     } }.start();
                 } else if(e.getKeyChar()=='d') {

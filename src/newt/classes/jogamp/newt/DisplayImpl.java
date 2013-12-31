@@ -34,14 +34,18 @@
 
 package jogamp.newt;
 
+import com.jogamp.common.util.IOUtil;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.event.NEWTEvent;
 import com.jogamp.newt.event.NEWTEventConsumer;
 
 import jogamp.newt.event.NEWTEventTask;
+
 import com.jogamp.newt.util.EDTUtil;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -61,6 +65,67 @@ public abstract class DisplayImpl extends Display {
            }
         });
     }
+
+    public static class PointerIconImpl implements PointerIcon {
+        public final long handle;
+        public PointerIconImpl(long handle) {
+            this.handle=handle;
+        }
+    }
+
+    private void addPointerIconToList(final PointerIcon pi) {
+        synchronized(pointerIconList) {
+            pointerIconList.add(pi);
+        }
+    }
+    private void delPointerIconFromList(final PointerIcon pi) {
+        synchronized(pointerIconList) {
+            pointerIconList.remove(pi);
+        }
+    }
+    private final ArrayList<PointerIcon> pointerIconList = new ArrayList<PointerIcon>();
+
+    /** Executed from EDT! */
+    private void destroyAllPointerIconFromList(final long dpy) {
+        synchronized(pointerIconList) {
+            for( int i=0; i < pointerIconList.size(); i++ ) {
+                final PointerIcon item = pointerIconList.get(i);
+                if( null != item ) {
+                    // destroy!
+                    destroyPointerIconImpl(dpy, item);
+                }
+            }
+            pointerIconList.clear();
+        }
+    }
+
+    @Override
+    public final PointerIcon createPointerIcon(final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws MalformedURLException, InterruptedException, IOException {
+        final PointerIcon res = createPointerIconImpl(pngResource, hotX, hotY);
+        addPointerIconToList(res);
+        return res;
+    }
+    protected PointerIcon createPointerIconImpl(final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws MalformedURLException, InterruptedException, IOException {
+        return null;
+    }
+
+    @Override
+    public final void destroyPointerIcon(final PointerIcon pi) {
+        delPointerIconFromList(pi);
+        runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
+            @Override
+            public Object run(long dpy) {
+                try {
+                    destroyPointerIconImpl(dpy, pi);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        });
+    }
+    /** Executed from EDT! */
+    protected void destroyPointerIconImpl(final long displayHandle, final PointerIcon pi) { }
 
     /** Ensure static init has been run. */
     /* pp */static void initSingleton() { }
@@ -283,6 +348,7 @@ public abstract class DisplayImpl extends Display {
             @Override
             public void run() {
                 if ( null != f_aDevice ) {
+                    f_dpy.destroyAllPointerIconFromList(f_aDevice.getHandle());
                     f_dpy.closeNativeImpl(f_aDevice);
                 }
             }
@@ -453,7 +519,7 @@ public abstract class DisplayImpl extends Display {
     /** Dispatch native Toolkit messageges */
     protected abstract void dispatchMessagesNative();
 
-    private Object eventsLock = new Object();
+    private final Object eventsLock = new Object();
     private ArrayList<NEWTEventTask> events = new ArrayList<NEWTEventTask>();
     private volatile boolean haveEvents = false;
 

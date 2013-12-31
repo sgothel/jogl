@@ -42,6 +42,7 @@ import java.lang.reflect.Method;
 import com.jogamp.common.util.ArrayHashSet;
 import com.jogamp.common.util.IntBitfield;
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.newt.Display.PointerIcon;
 import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Display;
@@ -83,6 +84,7 @@ import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
 
 import jogamp.nativewindow.SurfaceUpdatedHelper;
+import jogamp.newt.DisplayImpl.PointerIconImpl;
 
 public abstract class WindowImpl implements Window, NEWTEventConsumer
 {
@@ -170,6 +172,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private String title = "Newt Window";
     private boolean undecorated = false;
     private boolean alwaysOnTop = false;
+    private PointerIcon pointerIcon = null;
     private boolean pointerVisible = true;
     private boolean pointerConfined = false;
     private LifecycleHook lifecycleHook = null;
@@ -436,6 +439,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     createNativeImpl();
                     screen.addMonitorModeListener(monitorModeListenerImpl);
                     setTitleImpl(title);
+                    if( null != pointerIcon ) {
+                        setPointerIcon(pointerIcon);
+                    }
                     setPointerVisibleImpl(pointerVisible);
                     confinePointerImpl(pointerConfined);
                     setKeyboardVisible(keyboardVisible);
@@ -725,6 +731,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected boolean setPointerVisibleImpl(boolean pointerVisible) { return false; }
     protected boolean confinePointerImpl(boolean confine) { return false; }
     protected void warpPointerImpl(int x, int y) { }
+    protected void setPointerIconImpl(final PointerIconImpl pi) { }
 
     //----------------------------------------------------------------------
     // NativeSurface
@@ -1675,6 +1682,21 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             }
         }
     }
+
+    @Override
+    public final PointerIcon getPointerIcon() { return pointerIcon; }
+
+    @Override
+    public final void setPointerIcon(final PointerIcon pi) {
+        if( this.pointerIcon != pi ) {
+            setPointerIcon(pointerIcon);
+            if( isNativeValid() ) {
+                setPointerIconImpl((PointerIconImpl)pi);
+            }
+            this.pointerIcon = pi;
+        }
+    }
+
     @Override
     public final boolean isPointerConfined() {
         return pointerConfined;

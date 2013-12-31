@@ -41,6 +41,8 @@
 
 #include <math.h>
 
+#define PRINTF(...) NSLog(@ __VA_ARGS__)
+
 static jfloat GetDelta(NSEvent *event, jint javaMods[]) {
     CGEventRef cgEvent = [event CGEvent];
     CGFloat deltaY = 0.0;
@@ -468,6 +470,7 @@ static UniChar CKCH_CharForKeyCode(jshort keyCode) {
         defaultPresentationOptions = 0;
         fullscreenPresentationOptions = 0; 
     }
+
     isFullscreenWindow = isfs;
     // Why is this necessary? Without it we don't get any of the
     // delegate methods like resizing and window movement.
@@ -484,6 +487,7 @@ static UniChar CKCH_CharForKeyCode(jshort keyCode) {
     mouseVisible = YES;
     mouseInside = NO;
     cursorIsHidden = NO;
+    customCursor = NULL;
     realized = YES;
     DBG_PRINT("NewtWindow::create: %p, realized %d, hasPresentationSwitch %d[defaultOptions 0x%X, fullscreenOptions 0x%X], (refcnt %d)\n", 
         res, realized, (int)hasPresentationSwitch, (int)defaultPresentationOptions, (int)fullscreenPresentationOptions, (int)[res retainCount]);
@@ -678,13 +682,36 @@ static UniChar CKCH_CharForKeyCode(jshort keyCode) {
     DBG_PRINT( "setMouseVisible: confined %d, visible %d (current: %d), mouseInside %d, hasFocus %d\n", 
         mouseConfined, mouseVisible, !cursorIsHidden, mouseInside, focus);
     if(YES == focus && YES == mouseInside) {
-        [self cursorHide: !mouseVisible];
+        [self cursorHide: !mouseVisible enter: 0];
     }
 }
 
-- (void) cursorHide:(BOOL)v
+- (void) setCustomCursor:(NSCursor*)c
 {
-    DBG_PRINT( "cursorHide: %d -> %d\n", cursorIsHidden, v);
+    if(YES == mouseInside) {
+        if( NULL != c ) {
+            DBG_PRINT( "setCustomCursor push: %p\n", c);
+            [c push];
+        } else if( NULL != customCursor && [NSCursor currentCursor] == customCursor ) {
+            DBG_PRINT( "setCustomCursor pop: %p\n", customCursor);
+            [customCursor pop];
+        }
+    }
+    customCursor = c;
+}
+
+- (void) cursorHide:(BOOL)v enter:(int)enterState
+{
+    DBG_PRINT( "cursorHide: %d -> %d, enter %d\n", cursorIsHidden, v, enterState);
+    if( NULL != customCursor ) {
+        if( 1 == enterState && [NSCursor currentCursor] != customCursor ) {
+            DBG_PRINT( "cursorHide.customCursor push: %p\n", customCursor);
+            [customCursor push];
+        } else if( -1 == enterState && [NSCursor currentCursor] == customCursor ) {
+            DBG_PRINT( "cursorHide.customCursor pop: %p\n", customCursor);
+            [customCursor pop];
+        }
+    }
     if(v) {
         if(!cursorIsHidden) {
             [NSCursor hide];
@@ -941,7 +968,7 @@ static jint mods2JavaMods(NSUInteger mods)
     DBG_PRINT( "*************** windowDidBecomeKey\n");
     mouseInside = [self isMouseInside];
     if(YES == mouseInside) {
-        [self cursorHide: !mouseVisible];
+        [self cursorHide: !mouseVisible enter: 0];
     }
     [self focusChanged: YES];
 }
@@ -995,7 +1022,7 @@ static jint mods2JavaMods(NSUInteger mods)
 {
     DBG_PRINT( "mouseEntered: confined %d, visible %d\n", mouseConfined, mouseVisible);
     mouseInside = YES;
-    [self cursorHide: !mouseVisible];
+    [self cursorHide: !mouseVisible enter: 1];
     if(NO == mouseConfined) {
         [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_ENTERED];
     }
@@ -1006,7 +1033,7 @@ static jint mods2JavaMods(NSUInteger mods)
     DBG_PRINT( "mouseExited: confined %d, visible %d\n", mouseConfined, mouseVisible);
     if(NO == mouseConfined) {
         mouseInside = NO;
-        [self cursorHide: NO];
+        [self cursorHide: NO enter: -1];
         [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_EXITED];
     } else {
         [self setMousePosition: lastInsideMousePosition];
@@ -1160,7 +1187,7 @@ static jint mods2JavaMods(NSUInteger mods)
     jboolean closed = JNI_FALSE;
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
-    [self cursorHide: NO];
+    [self cursorHide: NO enter: -1];
 
     NSView* nsview = [self contentView];
     if( ! [nsview isKindOfClass:[NewtView class]] ) {

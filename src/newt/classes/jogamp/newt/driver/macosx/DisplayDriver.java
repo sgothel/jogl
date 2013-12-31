@@ -34,15 +34,26 @@
 
 package jogamp.newt.driver.macosx;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
 
+import com.jogamp.common.util.IOUtil;
 import com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice;
+import com.jogamp.newt.NewtFactory;
 
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.NEWTJNILibLoader;
+import jogamp.newt.driver.PNGIcon;
 
 public class DisplayDriver extends DisplayImpl {
+    private static final int defaultIconWidth, defaultIconHeight;
+    private static final Buffer defaultIconData;
+
     static {
         NEWTJNILibLoader.loadNEWT();
 
@@ -52,6 +63,25 @@ public class DisplayDriver extends DisplayImpl {
         if(!WindowDriver.initIDs0()) {
             throw new NativeWindowException("Failed to initialize jmethodIDs");
         }
+        {
+            final int[] width = { 0 }, height = { 0 }, data_size = { 0 }, elem_bytesize = { 0 };
+            Buffer data=null;
+            if( PNGIcon.isAvailable() ) {
+                try {
+                    final IOUtil.ClassResources iconRes = NewtFactory.getWindowIcons();
+                    data = PNGIcon.singleToRGBAImage(iconRes, iconRes.resourceCount()-1, false /* toBGRA */, width, height, data_size, elem_bytesize);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            defaultIconWidth = width[0];
+            defaultIconHeight = height[0];
+            defaultIconData = data;
+            if( null != defaultIconData ) {
+                DisplayDriver.setAppIcon0(defaultIconData, defaultIconWidth, defaultIconHeight);
+            }
+        }
+
         if(DEBUG) {
             System.err.println("MacDisplay.init App and IDs OK "+Thread.currentThread().getName());
         }
@@ -79,6 +109,23 @@ public class DisplayDriver extends DisplayImpl {
         aDevice.close();
     }
 
+    @Override
+    protected PointerIcon createPointerIconImpl(final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws MalformedURLException, InterruptedException, IOException {
+        if( PNGIcon.isAvailable() ) {
+            final int[] width = { 0 }, height = { 0 }, data_size = { 0 }, elem_bytesize = { 0 };
+            if( null != pngResource && 0 < pngResource.resourceCount() ) {
+                final ByteBuffer data = PNGIcon.singleToRGBAImage(pngResource, 0, true /* toBGRA */, width, height, data_size, elem_bytesize);
+                return new PointerIconImpl( createPointerIcon0(data, width[0], height[0], hotX, hotY) );
+            }
+        }
+        return null;
+    }
+
+    @Override
+    protected final void destroyPointerIconImpl(final long displayHandle, final PointerIcon pi) {
+        destroyPointerIcon0(((PointerIconImpl)pi).handle);
+    }
+
     public static void runNSApplication() {
         runNSApplication0();
     }
@@ -89,5 +136,9 @@ public class DisplayDriver extends DisplayImpl {
     private static native boolean initNSApplication0();
     private static native void runNSApplication0();
     private static native void stopNSApplication0();
+    /* pp */ static native void setAppIcon0(Object iconData, int iconWidth, int iconHeight);
+    private static native long createPointerIcon0(Object iconData, int iconWidth, int iconHeight, int hotX, int hotY);
+    private static native long destroyPointerIcon0(long handle);
+
 }
 
