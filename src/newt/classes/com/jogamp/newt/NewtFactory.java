@@ -59,11 +59,6 @@ public class NewtFactory {
             @Override
             public Object run() {
                 NativeWindowFactory.initSingleton(); // last resort ..
-
-                // Work-around for initialization order problems on Mac OS X
-                // between native Newt and (apparently) Fmod
-                WindowImpl.init(NativeWindowFactory.getNativeWindowType(true));
-
                 return null;
             } } );
     }
@@ -320,9 +315,9 @@ public class NewtFactory {
 
     public static boolean isScreenCompatible(NativeWindow parent, Screen childScreen) {
       // Get parent's NativeWindow details
-      AbstractGraphicsConfiguration parentConfig = (AbstractGraphicsConfiguration) parent.getGraphicsConfiguration();
-      AbstractGraphicsScreen parentScreen = (AbstractGraphicsScreen) parentConfig.getScreen();
-      AbstractGraphicsDevice parentDevice = (AbstractGraphicsDevice) parentScreen.getDevice();
+      AbstractGraphicsConfiguration parentConfig = parent.getGraphicsConfiguration();
+      AbstractGraphicsScreen parentScreen = parentConfig.getScreen();
+      AbstractGraphicsDevice parentDevice = parentScreen.getDevice();
 
       DisplayImpl childDisplay = (DisplayImpl) childScreen.getDisplay();
       String parentDisplayName = childDisplay.validateDisplayName(null, parentDevice.getHandle());
@@ -343,9 +338,9 @@ public class NewtFactory {
 
     public static Screen createCompatibleScreen(NativeWindow parent, Screen childScreen) {
       // Get parent's NativeWindow details
-      AbstractGraphicsConfiguration parentConfig = (AbstractGraphicsConfiguration) parent.getGraphicsConfiguration();
-      AbstractGraphicsScreen parentScreen = (AbstractGraphicsScreen) parentConfig.getScreen();
-      AbstractGraphicsDevice parentDevice = (AbstractGraphicsDevice) parentScreen.getDevice();
+      AbstractGraphicsConfiguration parentConfig = parent.getGraphicsConfiguration();
+      AbstractGraphicsScreen parentScreen = parentConfig.getScreen();
+      AbstractGraphicsDevice parentDevice = parentScreen.getDevice();
 
       if(null != childScreen) {
         // check if child Display/Screen is compatible already

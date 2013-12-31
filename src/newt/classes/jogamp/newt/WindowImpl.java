@@ -255,22 +255,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private ArrayList<WindowListener> windowListeners  = new ArrayList<WindowListener>();
     private boolean repaintQueued = false;
 
-    /**
-     * Workaround for initialization order problems on Mac OS X
-     * between native Newt and (apparently) Fmod -- if Fmod is
-     * initialized first then the connection to the window server
-     * breaks, leading to errors from deep within the AppKit
-     */
-    public static void init(String type) {
-        if (NativeWindowFactory.TYPE_MACOSX.equals(type)) {
-            try {
-                getWindowClass(type);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     //
     // Construction Methods
     //

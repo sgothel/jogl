@@ -222,7 +222,7 @@ public abstract class Display {
         synchronized(displayList) {
             int i = fromIndex >= 0 ? fromIndex : displayList.size() - 1 ;
             while( ( incr > 0 ) ? i < displayList.size() : i >= 0 ) {
-                final Display display = (Display) displayList.get(i).get();
+                final Display display = displayList.get(i).get();
                 if( null == display ) {
                     // Clear GC'ed dead reference entry!
                     displayList.remove(i);
