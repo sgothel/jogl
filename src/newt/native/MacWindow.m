@@ -319,40 +319,48 @@ static NSImage * createNSImageFromData(JNIEnv *env, jobject jiconData, jint jico
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_DisplayDriver_setAppIcon0
   (JNIEnv *env, jobject unused, jobject jiconData, jint jiconWidth, jint jiconHeight)
 {
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSImage * nsImage = createNSImageFromData(env, jiconData, jiconWidth, jiconHeight);
     if( NULL != nsImage ) {
         [nsImage autorelease];
         [NSApp setApplicationIconImage: nsImage];
     }
+    [pool release];
 }
 
 JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_DisplayDriver_createPointerIcon0
   (JNIEnv *env, jobject unused, jobject jiconData, jint jiconWidth, jint jiconHeight, jint hotX, jint hotY) 
 {
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSImage * nsImage = createNSImageFromData(env, jiconData, jiconWidth, jiconHeight);
+    NSCursor * res = NULL;
     if( NULL != nsImage ) {
         [nsImage autorelease];
         NSPoint hotP = { hotX, hotY };
-        NSCursor * c = [[NSCursor alloc] initWithImage: nsImage hotSpot: hotP];
-        return (jlong) (intptr_t) c;
+        res = [[NSCursor alloc] initWithImage: nsImage hotSpot: hotP];
     }
-    return 0;
+    [pool release];
+    return (jlong) (intptr_t) res;
 }
 
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_DisplayDriver_destroyPointerIcon0
   (JNIEnv *env, jobject unused, jlong handle)
 {
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSCursor * c = (NSCursor*) (intptr_t) handle ;
     [c release];
+    [pool release];
 }
 
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setPointerIcon0
   (JNIEnv *env, jobject unused, jlong window, jlong handle)
 {
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NewtMacWindow *mWin = (NewtMacWindow*) (intptr_t) window;
     NSCursor * c = (NSCursor*) (intptr_t) handle ;
 
     [mWin setCustomCursor: c];
+    [pool release];
 }
 
 static NSScreen * NewtScreen_getNSScreenByIndex(int screen_idx, BOOL cap) {
@@ -1332,9 +1340,11 @@ JNIEXPORT jobject JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_getLocatio
 JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setPointerVisible0
   (JNIEnv *env, jclass clazz, jlong window, jboolean hasFocus, jboolean mouseVisible)
 {
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NewtMacWindow *mWin = (NewtMacWindow*) ((intptr_t) window);
     [mWin setMouseVisible: ( JNI_TRUE == mouseVisible ) ? YES : NO 
                  hasFocus: ( JNI_TRUE == hasFocus ) ? YES : NO];
+    [pool release];
     return JNI_TRUE;
 }
 
@@ -1346,8 +1356,10 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setPointe
 JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_confinePointer0
   (JNIEnv *env, jclass clazz, jlong window, jboolean confine)
 {
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NewtMacWindow *mWin = (NewtMacWindow*) ((intptr_t) window);
     [mWin setMouseConfined: ( JNI_TRUE == confine ) ? YES : NO];
+    [pool release];
     return JNI_TRUE;
 }
 
@@ -1359,7 +1371,9 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_confinePo
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_warpPointer0
   (JNIEnv *env, jclass clazz, jlong window, jint x, jint y)
 {
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NewtMacWindow *mWin = (NewtMacWindow*) ((intptr_t) window);
     [mWin setMousePosition: [mWin newtRelClientTLWinPos2AbsBLScreenPos: NSMakePoint(x, y)]];
+    [pool release];
 }
 
