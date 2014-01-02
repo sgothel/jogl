@@ -63,7 +63,6 @@
 
     volatile NSTrackingRectTag ptrTrackingTag;
     NSRect ptrRect;
-    NSCursor * myCursor;
 }
 
 - (id)initWithFrame:(NSRect)frameRect;
@@ -86,7 +85,6 @@
 
 - (void) rightMouseDown: (NSEvent*) theEvent;
 - (void) resetCursorRects;
-- (NSCursor *) cursor;
 
 - (void) setDestroyNotifySent: (BOOL) v;
 - (BOOL) getDestroyNotifySent;

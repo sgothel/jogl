@@ -123,14 +123,6 @@ static jmethodID windowRepaintID = NULL;
 
     ptrTrackingTag = 0;
 
-    /**
-    NSCursor crs = [NSCursor arrowCursor];
-    NSImage crsImg = [crs image];
-    NSPoint crsHot = [crs hotSpot];
-    myCursor = [[NSCursor alloc] initWithImage: crsImg hotSpot:crsHot];
-    */
-    myCursor = NULL;
-
     DBG_PRINT("NewtView::create: %p (refcnt %d)\n", res, (int)[res retainCount]);
     return res;
 }
@@ -153,7 +145,6 @@ static jmethodID windowRepaintID = NULL;
         NSLog(@"NewtView::dealloc: softLock still hold @ dealloc!\n");
     }
     if(0 != ptrTrackingTag) {
-        // [self removeCursorRect: ptrRect cursor: myCursor];
         [self removeTrackingRect: ptrTrackingTag];
         ptrTrackingTag = 0;
     }
@@ -204,18 +195,11 @@ static jmethodID windowRepaintID = NULL;
     [super resetCursorRects];
 
     if(0 != ptrTrackingTag) {
-        // [self removeCursorRect: ptrRect cursor: myCursor];
         [self removeTrackingRect: ptrTrackingTag];
         ptrTrackingTag = 0;
     }
     ptrRect = [self bounds]; 
-    // [self addCursorRect: ptrRect cursor: myCursor];
     ptrTrackingTag = [self addTrackingRect: ptrRect owner: self userData: nil assumeInside: NO];
-}
-
-- (NSCursor *) cursor
-{
-    return myCursor;
 }
 
 - (void) setDestroyNotifySent: (BOOL) v
