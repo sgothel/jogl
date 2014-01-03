@@ -41,7 +41,7 @@
 // #define VERBOSE_ON 1
 
 #ifdef VERBOSE_ON
-    #define DBG_PRINT(...) NSLog(@ __VA_ARGS__)
+    #define DBG_PRINT(...) NSLog(@ __VA_ARGS__) ; fflush(stderr)
     // #define DBG_PRINT(...) fprintf(stderr, __VA_ARGS__); fflush(stderr)
 #else
     #define DBG_PRINT(...)
@@ -151,7 +151,7 @@
 
 - (BOOL) isMouseInside;
 - (void) cursorHide:(BOOL)v enter:(int)enterState; 
-- (void) setCustomCursor:(NSCursor*)c;
+- (void) setPointerIcon:(NSCursor*)c;
 - (void) setMouseVisible:(BOOL)v hasFocus:(BOOL)focus;
 - (void) setMouseConfined:(BOOL)v;
 - (void) setMousePosition:(NSPoint)p;

@@ -340,6 +340,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_DisplayDriver_createPoint
         res = [[NSCursor alloc] initWithImage: nsImage hotSpot: hotP];
     }
     [pool release];
+    DBG_PRINT( "createPointerIcon0 %p\n", res);
     return (jlong) (intptr_t) res;
 }
 
@@ -348,7 +349,14 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_DisplayDriver_destroyPoint
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSCursor * c = (NSCursor*) (intptr_t) handle ;
-    [c release];
+    if( NULL != c ) {
+        if ( NO == [c isKindOfClass:[NSCursor class]] ) {
+            DBG_PRINT( "destroyPointerIcon0 NSCursor %p - is of invalid type\n", c);
+        } else {
+            DBG_PRINT( "destroyPointerIcon0 %p\n", c);
+            [c release];
+        }
+    }
     [pool release];
 }
 
@@ -358,8 +366,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setPointerIco
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NewtMacWindow *mWin = (NewtMacWindow*) (intptr_t) window;
     NSCursor * c = (NSCursor*) (intptr_t) handle ;
-
-    [mWin setCustomCursor: c];
+    if ( NULL != c && NO == [c isKindOfClass:[NSCursor class]] ) {
+        DBG_PRINT( "setPointerIcon0 NSCursor %p - is of invalid type (1)\n", c);
+    } else {
+        [mWin setPointerIcon: c];
+    }
     [pool release];
 }
 

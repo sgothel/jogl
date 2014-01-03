@@ -670,15 +670,23 @@ static UniChar CKCH_CharForKeyCode(jshort keyCode) {
     }
 }
 
-- (void) setCustomCursor:(NSCursor*)c
+- (void) setPointerIcon:(NSCursor*)c
 {
+    DBG_PRINT( "setPointerIcon: mouseInside cursor: %p -> %p (glob %p), mouseInside %d\n", customCursor, c, [NSCursor currentCursor], (int)mouseInside);
     if(YES == mouseInside) {
         if( NULL != c ) {
-            DBG_PRINT( "setCustomCursor push: %p\n", c);
+            DBG_PRINT( "setPointerIcon push: %p\n", c);
             [c push];
-        } else if( NULL != customCursor && [NSCursor currentCursor] == customCursor ) {
-            DBG_PRINT( "setCustomCursor pop: %p\n", customCursor);
-            [customCursor pop];
+        } else if( NULL != customCursor ) {
+            if ( NO == [customCursor isKindOfClass:[NSCursor class]] ) {
+                DBG_PRINT( "setPointerIcon0 NSCursor %p - is of invalid type (2)\n", customCursor);
+                if( [NSCursor currentCursor] == customCursor ) {
+                    [NSCursor pop];
+                }
+            } else if( [NSCursor currentCursor] == customCursor ) {
+                DBG_PRINT( "setPointerIcon pop: %p\n", customCursor);
+                [customCursor pop];
+            }
         }
     }
     customCursor = c;
@@ -688,12 +696,19 @@ static UniChar CKCH_CharForKeyCode(jshort keyCode) {
 {
     DBG_PRINT( "cursorHide: %d -> %d, enter %d\n", cursorIsHidden, v, enterState);
     if( NULL != customCursor ) {
-        if( 1 == enterState && [NSCursor currentCursor] != customCursor ) {
-            DBG_PRINT( "cursorHide.customCursor push: %p\n", customCursor);
-            [customCursor push];
-        } else if( -1 == enterState && [NSCursor currentCursor] == customCursor ) {
-            DBG_PRINT( "cursorHide.customCursor pop: %p\n", customCursor);
-            [customCursor pop];
+        if ( NO == [customCursor isKindOfClass:[NSCursor class]] ) {
+            DBG_PRINT( "setPointerIcon0 NSCursor %p - is of invalid type (3)\n", customCursor);
+            if( [NSCursor currentCursor] == customCursor ) {
+                [NSCursor pop];
+            }
+        } else {
+            if( 1 == enterState && [NSCursor currentCursor] != customCursor ) {
+                DBG_PRINT( "cursorHide.PointerIcon push: %p\n", customCursor);
+                [customCursor push];
+            } else if( -1 == enterState && [NSCursor currentCursor] == customCursor ) {
+                DBG_PRINT( "cursorHide.PointerIcon pop: %p\n", customCursor);
+                [customCursor pop];
+            }
         }
     }
     if(v) {
