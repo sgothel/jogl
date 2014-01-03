@@ -68,14 +68,14 @@ public class WindowDriver extends WindowImpl {
             long[] _defaultIconHandle = { 0, 0 };
             if( PNGIcon.isAvailable() ) {
                 try {
-                    final int[] width = { 0 }, height = { 0 }, data_size = { 0 }, elem_bytesize = { 0 };
+                    final int[] width = { 0 }, height = { 0 }, data_size = { 0 };
                     final IOUtil.ClassResources iconRes = NewtFactory.getWindowIcons();
                     {
-                        final ByteBuffer icon_data_small = PNGIcon.singleToRGBAImage(iconRes, 0, true /* toBGRA */, width, height, data_size, elem_bytesize);
+                        final ByteBuffer icon_data_small = PNGIcon.singleToRGBAImage(iconRes, 0, true /* toBGRA */, width, height, data_size);
                         _defaultIconHandle[0] = DisplayDriver.createBGRA8888Icon0(icon_data_small, width[0], height[0], false, 0, 0);
                     }
                     {
-                        final ByteBuffer icon_data_big = PNGIcon.singleToRGBAImage(iconRes, iconRes.resourceCount()-1, true /* toBGRA */, width, height, data_size, elem_bytesize);
+                        final ByteBuffer icon_data_big = PNGIcon.singleToRGBAImage(iconRes, iconRes.resourceCount()-1, true /* toBGRA */, width, height, data_size);
                         _defaultIconHandle[1] = DisplayDriver.createBGRA8888Icon0(icon_data_big, width[0], height[0], false, 0, 0);
                     }
                 } catch (Exception e) {
