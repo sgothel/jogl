@@ -106,11 +106,11 @@ public class DisplayDriver extends DisplayImpl {
     @Override
     protected PointerIcon createPointerIconImpl(final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws MalformedURLException, InterruptedException, IOException {
         if( PNGIcon.isAvailable() ) {
-            final int[] width = { 0 }, height = { 0 }, data_size = { 0 }, elem_bytesize = { 0 };
+            final int[] width = { 0 }, height = { 0 }, data_size = { 0 };
             if( null != pngResource && 0 < pngResource.resourceCount() ) {
-                final ByteBuffer data = PNGIcon.singleToRGBAImage(pngResource, 0, true /* toBGRA */, width, height, data_size, elem_bytesize);
                 return new PointerIconImpl( createBGRA8888Icon0(data, width[0], height[0], true, hotX, hotY),
                                             new Dimension(width[0], height[0]), new Point(hotX, hotY));
+                final ByteBuffer data = PNGIcon.singleToRGBAImage(pngResource, 0, true /* toBGRA */, width, height, data_size);
             }
         }
         return null;

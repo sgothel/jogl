@@ -81,7 +81,6 @@ public class PNGIcon {
      * @param width
      * @param height
      * @param data_size
-     * @param elem_bytesize
      * @param resourcesIdx
      * @return pixels with origin at upper-left corner.
      *         If storing RGBA8888, component R is located on the lowest 8-bit.
@@ -93,9 +92,9 @@ public class PNGIcon {
      * @throws IOException
      * @throws MalformedURLException
      */
-    public static ByteBuffer singleToRGBAImage(IOUtil.ClassResources resources, int resourceIdx, boolean toBGRA, int[] width, int[] height, int[] data_size, int[] elem_bytesize) throws UnsupportedOperationException, InterruptedException, IOException, MalformedURLException {
+    public static ByteBuffer singleToRGBAImage(IOUtil.ClassResources resources, int resourceIdx, boolean toBGRA, int[] width, int[] height, int[] data_size) throws UnsupportedOperationException, InterruptedException, IOException, MalformedURLException {
         if( avail ) {
-            return jogamp.newt.driver.opengl.JoglUtilPNGIcon.singleToRGBAImage(resources, resourceIdx, toBGRA, width, height, data_size, elem_bytesize);
+            return jogamp.newt.driver.opengl.JoglUtilPNGIcon.singleToRGBAImage(resources, resourceIdx, toBGRA, width, height, data_size);
         }
         throw new UnsupportedOperationException(err0);
     }

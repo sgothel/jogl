@@ -90,7 +90,7 @@ public class JoglUtilPNGIcon {
         return buffer;
     }
 
-    public static ByteBuffer singleToRGBAImage(IOUtil.ClassResources resources, int resourceIdx, boolean toBGRA, int[] width, int[] height, int[] data_size, int[] elem_bytesize) throws UnsupportedOperationException, InterruptedException, IOException, MalformedURLException {
+    public static ByteBuffer singleToRGBAImage(IOUtil.ClassResources resources, int resourceIdx, boolean toBGRA, int[] width, int[] height, int[] data_size) throws UnsupportedOperationException, InterruptedException, IOException, MalformedURLException {
         width[0] = 0;
         height[0] = 0;
         data_size[0] = 0;
@@ -100,8 +100,8 @@ public class JoglUtilPNGIcon {
         height[0] = image.getHeight();
         data_size[0] = image.getWidth() * image.getHeight();
 
-        elem_bytesize[0] = 4; // BGRA
-        final ByteBuffer buffer = Buffers.newDirectByteBuffer( data_size[0] * elem_bytesize[0] );
+        final int elem_bytesize = 4; // BGRA
+        final ByteBuffer buffer = Buffers.newDirectByteBuffer( data_size[0] * elem_bytesize );
 
         final ByteBuffer bb = image.getData();
         final int bpp = image.getBytesPerPixel();

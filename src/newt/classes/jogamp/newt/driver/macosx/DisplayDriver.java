@@ -66,12 +66,12 @@ public class DisplayDriver extends DisplayImpl {
             throw new NativeWindowException("Failed to initialize jmethodIDs");
         }
         {
-            final int[] width = { 0 }, height = { 0 }, data_size = { 0 }, elem_bytesize = { 0 };
+            final int[] width = { 0 }, height = { 0 }, data_size = { 0 };
             Buffer data=null;
             if( PNGIcon.isAvailable() ) {
                 try {
                     final IOUtil.ClassResources iconRes = NewtFactory.getWindowIcons();
-                    data = PNGIcon.singleToRGBAImage(iconRes, iconRes.resourceCount()-1, false /* toBGRA */, width, height, data_size, elem_bytesize);
+                    data = PNGIcon.singleToRGBAImage(iconRes, iconRes.resourceCount()-1, false /* toBGRA */, width, height, data_size);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -114,11 +114,11 @@ public class DisplayDriver extends DisplayImpl {
     @Override
     protected PointerIcon createPointerIconImpl(final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws MalformedURLException, InterruptedException, IOException {
         if( PNGIcon.isAvailable() ) {
-            final int[] width = { 0 }, height = { 0 }, data_size = { 0 }, elem_bytesize = { 0 };
+            final int[] width = { 0 }, height = { 0 }, data_size = { 0 };
             if( null != pngResource && 0 < pngResource.resourceCount() ) {
-                final ByteBuffer data = PNGIcon.singleToRGBAImage(pngResource, 0, true /* toBGRA */, width, height, data_size, elem_bytesize);
                 return new PointerIconImpl( createPointerIcon0(data, width[0], height[0], hotX, hotY),
                                             new Dimension(width[0], height[0]), new Point(hotX, hotY));
+                final ByteBuffer data = PNGIcon.singleToRGBAImage(pngResource, 0, true /* toBGRA */, width, height, data_size);
             }
         }
         return null;
