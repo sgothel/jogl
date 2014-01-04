@@ -85,6 +85,7 @@ public class TestGearsES2NEWT extends UITestCase {
     static boolean waitForKey = false;
     static boolean mouseVisible = true;
     static boolean mouseConfined = false;
+    static boolean setPointerIcon = false;
     static boolean showFPS = false;
     static int loops = 1;
     static boolean loop_shutdown = false;
@@ -183,6 +184,10 @@ public class TestGearsES2NEWT extends UITestCase {
             }
             pointerIconOne = _pointerIconOne;
         }
+        if( setPointerIcon ) {
+            glWindow.setPointerIcon(pointerIconOne);
+            System.err.println("Set PointerIcon: "+glWindow.getPointerIcon());
+        }
 
         glWindow.addKeyListener(new KeyAdapter() {
             @Override
@@ -216,16 +221,6 @@ public class TestGearsES2NEWT extends UITestCase {
                             System.err.println("[set alwaysontop post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                             glWindow.setExclusiveContextThread(t);
                     } }.start();
-                } else if(e.getKeyChar()=='c') {
-                    new Thread() {
-                        public void run() {
-                            final Thread t = glWindow.setExclusiveContextThread(null);
-                            System.err.println("[set pointer-icon pre]");
-                            final PointerIcon currentPI = glWindow.getPointerIcon();
-                            glWindow.setPointerIcon( currentPI == pointerIconOne ? null : pointerIconOne);
-                            System.err.println("[set pointer-icon post] "+currentPI+" -> "+glWindow.getPointerIcon());
-                            glWindow.setExclusiveContextThread(t);
-                    } }.start();
                 } else if(e.getKeyChar()=='d') {
                     new Thread() {
                         public void run() {
@@ -243,6 +238,16 @@ public class TestGearsES2NEWT extends UITestCase {
                             System.err.println("[set position  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
                             glWindow.setPosition(100, 100);
                             System.err.println("[set position post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
+                            glWindow.setExclusiveContextThread(t);
+                    } }.start();
+                } else if(e.getKeyChar()=='c') {
+                    new Thread() {
+                        public void run() {
+                            final Thread t = glWindow.setExclusiveContextThread(null);
+                            System.err.println("[set pointer-icon pre]");
+                            final PointerIcon currentPI = glWindow.getPointerIcon();
+                            glWindow.setPointerIcon( currentPI == pointerIconOne ? null : pointerIconOne);
+                            System.err.println("[set pointer-icon post] "+currentPI+" -> "+glWindow.getPointerIcon());
                             glWindow.setExclusiveContextThread(t);
                     } }.start();
                 } else if(e.getKeyChar()=='i') {
@@ -482,6 +487,8 @@ public class TestGearsES2NEWT extends UITestCase {
                 mouseVisible = false;
             } else if(args[i].equals("-mouseConfine")) {
                 mouseConfined = true;
+            } else if(args[i].equals("-pointerIcon")) {
+                setPointerIcon = true;
             } else if(args[i].equals("-showFPS")) {
                 showFPS = true;
             } else if(args[i].equals("-width")) {
@@ -537,6 +544,7 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("pmvDirect "+(!pmvUseBackingArray));
         System.err.println("mouseVisible "+mouseVisible);
         System.err.println("mouseConfined "+mouseConfined);
+        System.err.println("pointerIcon "+setPointerIcon);
         System.err.println("loops "+loops);
         System.err.println("loop shutdown "+loop_shutdown);
         System.err.println("forceES2 "+forceES2);

@@ -51,6 +51,7 @@ import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 import jogamp.nativewindow.x11.X11Util;
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.NEWTJNILibLoader;
+import jogamp.newt.PointerIconImpl;
 import jogamp.newt.driver.PNGIcon;
 
 public class DisplayDriver extends DisplayImpl {
@@ -131,32 +132,21 @@ public class DisplayDriver extends DisplayImpl {
     protected Boolean isXineramaEnabled() { return isNativeValid() ? Boolean.valueOf(((X11GraphicsDevice)aDevice).isXineramaEnabled()) : null; }
 
     @Override
-    protected PointerIcon createPointerIconImpl(final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws MalformedURLException, InterruptedException, IOException {
+    protected PointerIconImpl createPointerIconImpl(final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws MalformedURLException, InterruptedException, IOException {
         if( PNGIcon.isAvailable() ) {
             final int[] width = { 0 }, height = { 0 }, data_size = { 0 };
             if( null != pngResource && 0 < pngResource.resourceCount() ) {
                 final ByteBuffer data = PNGIcon.singleToRGBAImage(pngResource, 0, false /* toBGRA */, width, height, data_size);
-                final long handle = runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Long>() {
-                    @Override
-                    public Long run(long dpy) {
-                        long h = 0;
-                        try {
-                            h = createPointerIcon0(dpy, data, width[0], height[0], hotX, hotY);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        return Long.valueOf(h);
-                    }
-                }).longValue();
-                return new PointerIconImpl(handle, new Dimension(width[0], height[0]), new Point(hotX, hotY));
+                final long handle = createPointerIcon0(getHandle(), data, width[0], height[0], hotX, hotY);
+                return new PointerIconImpl(DisplayDriver.this, pngResource, new Dimension(width[0], height[0]), new Point(hotX, hotY), handle);
             }
         }
         return null;
     }
 
     @Override
-    protected final void destroyPointerIconImpl(final long displayHandle, final PointerIcon pi) {
-        destroyPointerIcon0(displayHandle, ((PointerIconImpl)pi).handle);
+    protected final void destroyPointerIconImpl(final long displayHandle, long piHandle) {
+        destroyPointerIcon0(displayHandle, piHandle);
     }
 
     //----------------------------------------------------------------------

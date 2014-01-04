@@ -40,7 +40,7 @@ import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.DisplayImpl.DisplayRunnable;
-import jogamp.newt.DisplayImpl.PointerIconImpl;
+import jogamp.newt.PointerIconImpl;
 import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.PNGIcon;
 
@@ -279,7 +279,7 @@ public class WindowDriver extends WindowImpl {
             @Override
             public Object run(long dpy) {
                 try {
-                    setPointerIcon0(dpy, getWindowHandle(), null != pi ? pi.handle : 0);
+                    setPointerIcon0(dpy, getWindowHandle(), null != pi ? pi.validatedHandle() : 0);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -293,7 +293,15 @@ public class WindowDriver extends WindowImpl {
         return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Boolean>() {
             @Override
             public Boolean run(long dpy) {
-                return Boolean.valueOf(setPointerVisible0(dpy, getWindowHandle(), pointerVisible));
+                final PointerIconImpl pi = (PointerIconImpl)getPointerIcon();
+                final boolean res;
+                if( pointerVisible && null != pi ) {
+                    setPointerIcon0(dpy, getWindowHandle(), null != pi ? pi.validatedHandle() : 0);
+                    res = true;
+                } else {
+                    res = setPointerVisible0(dpy, getWindowHandle(), pointerVisible);
+                }
+                return Boolean.valueOf(res);
             }
         }).booleanValue();
     }

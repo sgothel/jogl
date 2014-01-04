@@ -45,8 +45,8 @@ import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.PointImmutable;
 
 import jogamp.nativewindow.macosx.OSXUtil;
+import jogamp.newt.PointerIconImpl;
 import jogamp.newt.WindowImpl;
-import jogamp.newt.DisplayImpl.PointerIconImpl;
 import jogamp.newt.driver.DriverClearFocus;
 import jogamp.newt.driver.DriverUpdatePosition;
 
@@ -394,17 +394,29 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
 
     @Override
     protected void setPointerIconImpl(final PointerIconImpl pi) {
-        OSXUtil.RunOnMainThread(false, new Runnable() {
-            @Override
-            public void run() {
-                setPointerIcon0(getWindowHandle(), null != pi ? pi.handle : 0);
-            } } );
+        if( !isOffscreenInstance ) {
+            final long piHandle = null != pi ? pi.validatedHandle() : 0;
+            OSXUtil.RunOnMainThread(true, new Runnable() { // waitUntildone due to PointerIconImpl's Lifecycle !
+                @Override
+                public void run() {
+                    if( !setPointerIcon0(getWindowHandle(), piHandle) ) {
+                        throw new RuntimeException("Failed: "+pi+", "+WindowDriver.this);
+                    }
+                } } );
+        }  // else may need offscreen solution ? FIXME
     }
 
     @Override
     protected boolean setPointerVisibleImpl(final boolean pointerVisible) {
         if( !isOffscreenInstance ) {
-            return setPointerVisible0(getWindowHandle(), hasFocus(), pointerVisible);
+            OSXUtil.RunOnMainThread(false, new Runnable() {
+                @Override
+                public void run() {
+                    if( !setPointerVisible0(getWindowHandle(), hasFocus(), pointerVisible) ) {
+                        throw new RuntimeException("Failed");
+                    }
+                } } );
+            return true; // setPointerVisible0 always returns true ..
         } // else may need offscreen solution ? FIXME
         return false;
     }
@@ -420,7 +432,9 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     @Override
     protected void warpPointerImpl(final int x, final int y) {
         if( !isOffscreenInstance ) {
-            warpPointer0(getWindowHandle(), x, y);
+            if( !warpPointer0(getWindowHandle(), x, y) ) {
+                throw new RuntimeException("Failed");
+            }
         } // else may need offscreen solution ? FIXME
     }
 
@@ -575,10 +589,10 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     /** Must be called on Main-Thread */
     private native void setAlwaysOnTop0(long window, boolean atop);
     private static native Object getLocationOnScreen0(long windowHandle, int src_x, int src_y);
+    private static native boolean setPointerIcon0(long windowHandle, long handle);
     private static native boolean setPointerVisible0(long windowHandle, boolean hasFocus, boolean visible);
     private static native boolean confinePointer0(long windowHandle, boolean confine);
-    private static native void warpPointer0(long windowHandle, int x, int y);
-    private static native void setPointerIcon0(long windowHandle, long handle);
+    private static native boolean warpPointer0(long windowHandle, int x, int y);
 
     // Window styles
     private static final int NSBorderlessWindowMask     = 0;

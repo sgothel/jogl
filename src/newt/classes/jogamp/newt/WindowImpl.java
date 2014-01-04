@@ -84,7 +84,6 @@ import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
 
 import jogamp.nativewindow.SurfaceUpdatedHelper;
-import jogamp.newt.DisplayImpl.PointerIconImpl;
 
 public abstract class WindowImpl implements Window, NEWTEventConsumer
 {
@@ -440,7 +439,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     screen.addMonitorModeListener(monitorModeListenerImpl);
                     setTitleImpl(title);
                     if( null != pointerIcon ) {
-                        setPointerIcon(pointerIcon);
+                        setPointerIconImpl((PointerIconImpl)pointerIcon);
                     }
                     setPointerVisibleImpl(pointerVisible);
                     confinePointerImpl(pointerConfined);
@@ -1689,9 +1688,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     @Override
     public final void setPointerIcon(final PointerIcon pi) {
         if( this.pointerIcon != pi ) {
-            setPointerIcon(pointerIcon);
             if( isNativeValid() ) {
-                setPointerIconImpl((PointerIconImpl)pi);
+                runOnEDTIfAvail(true, new Runnable() {
+                    public void run() {
+                        setPointerIconImpl((PointerIconImpl)pi);
+                    } } );
             }
             this.pointerIcon = pi;
         }

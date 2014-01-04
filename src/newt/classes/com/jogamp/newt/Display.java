@@ -66,16 +66,60 @@ public abstract class Display {
     /**
      * Native PointerIcon handle.
      * <p>
-     * Instances can be created via {@link Display#createPointerIcon(com.jogamp.common.util.IOUtil.ClassResources, int, int)}
-     * and released via {@link Display#destroyPointerIcon(PointerIcon)}.
+     * Instances can be created via {@link Display}'s {@link Display#createPointerIcon(com.jogamp.common.util.IOUtil.ClassResources, int, int) createPointerIcon(..)}.
+     * </p>
+     * <p>
+     * Instance is {@link #destroy()}'ed automatically if it's {@link #getDisplay() associated Display} is destroyed.
+     * </p>
+     * <p>
+     * Instance can be re-validated after destruction via {@link #validate()}.
+     * </p>
+     * <p>
+     * {@link PointerIcon} may be {@link #destroy() destroyed} manually after use,
+     * i.e. when no {@link Window} {@link Window#setPointerIcon(PointerIcon) uses them} anymore.
      * </p>
      * <p>
      * PointerIcons can be used via {@link Window#setPointerIcon(PointerIcon)}.
      * </p>
      */
     public static interface PointerIcon {
+        /**
+         * @return the associated Display
+         */
+        Display getDisplay();
+
+        /**
+         * @return the single {@link IOUtil.ClassResources}.
+         */
+        IOUtil.ClassResources getResource();
+
+        /**
+         * Returns true if valid, otherwise false.
+         * <p>
+         * A PointerIcon instance becomes invalid if it's {@link #getDisplay() associated Display} is destroyed.
+         * </p>
+         */
+        boolean isValid();
+
+        /**
+         * Returns true if instance {@link #isValid()} or validation was successful, otherwise false.
+         * <p>
+         * Validation, i.e. recreation, is required if instance became invalid, see {@link #isValid()}.
+         * </p>
+         */
+        boolean validate();
+
+        /**
+         * Destroys this instance.
+         * <p>
+         * Will be called automatically if it's {@link #getDisplay() associated Display} is destroyed.
+         * </p>
+         */
+        void destroy();
+
         /** Returns the size, i.e. width and height. */
         DimensionImmutable getSize();
+
         /** Returns the hotspot. */
         PointImmutable getHotspot();
 
@@ -84,28 +128,23 @@ public abstract class Display {
     }
 
     /**
-     * Returns the created {@link PointerIcon} or <code>null</code> if not implemented on platform.
+     * Returns the newly created {@link PointerIcon} or <code>null</code> if not implemented on platform.
+     * <p>
+     * See {@link PointerIcon} for lifecycle semantics.
+     * </p>
      *
-     * @param pngResource PNG resource
+     * @param pngResource single PNG resource, only the first entry of {@link IOUtil.ClassResources#resourcePaths} is used.
      * @param hotX pointer hotspot x-coord, origin is upper-left corner
      * @param hotY pointer hotspot y-coord, origin is upper-left corner
+     * @throws IllegalStateException if this Display instance is not {@link #isNativeValid() valid yet}.
      * @throws MalformedURLException
      * @throws InterruptedException
      * @throws IOException
      *
      * @see PointerIcon
-     * @see #destroyPointerIcon(PointerIcon)
      * @see Window#setPointerIcon(PointerIcon)
      */
-
-    public abstract PointerIcon createPointerIcon(final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws MalformedURLException, InterruptedException, IOException;
-
-    /**
-     * @param pi
-     *
-     * @see #createPointerIcon(com.jogamp.common.util.IOUtil.ClassResources, int, int)
-     */
-    public abstract void destroyPointerIcon(PointerIcon pi);
+    public abstract PointerIcon createPointerIcon(final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws IllegalStateException, MalformedURLException, InterruptedException, IOException;
 
     /**
      * Manual trigger the native creation, if it is not done yet.<br>

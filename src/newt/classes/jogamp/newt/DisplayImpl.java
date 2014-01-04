@@ -51,8 +51,6 @@ import java.util.ArrayList;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.util.DimensionImmutable;
-import javax.media.nativewindow.util.PointImmutable;
 
 public abstract class DisplayImpl extends Display {
     private static int serialno = 1;
@@ -68,49 +66,19 @@ public abstract class DisplayImpl extends Display {
         });
     }
 
-    public static class PointerIconImpl implements PointerIcon {
-        public final long handle;
-        private final DimensionImmutable size;
-        private final PointImmutable hotspot;
-        public PointerIconImpl(final long handle, final DimensionImmutable size, final PointImmutable hotspot) {
-            this.handle=handle;
-            this.size = size;
-            this.hotspot = hotspot;
-        }
-        @Override
-        public final DimensionImmutable getSize() {
-            return size;
-        }
-        @Override
-        public final PointImmutable getHotspot() {
-            return hotspot;
-        }
-        @Override
-        public final String toString() {
-            return "PointerIcon[0x"+Long.toHexString(handle)+", "+size+", "+hotspot+"]";
-        }
-    }
-
-    private void addPointerIconToList(final PointerIcon pi) {
-        synchronized(pointerIconList) {
-            pointerIconList.add(pi);
-        }
-    }
-    private void delPointerIconFromList(final PointerIcon pi) {
-        synchronized(pointerIconList) {
-            pointerIconList.remove(pi);
-        }
-    }
-    private final ArrayList<PointerIcon> pointerIconList = new ArrayList<PointerIcon>();
+    final ArrayList<PointerIconImpl> pointerIconList = new ArrayList<PointerIconImpl>();
 
     /** Executed from EDT! */
     private void destroyAllPointerIconFromList(final long dpy) {
         synchronized(pointerIconList) {
-            for( int i=0; i < pointerIconList.size(); i++ ) {
-                final PointerIcon item = pointerIconList.get(i);
-                if( null != item ) {
-                    // destroy!
-                    destroyPointerIconImpl(dpy, item);
+            final int count = pointerIconList.size();
+            for( int i=0; i < count; i++ ) {
+                final PointerIconImpl item = pointerIconList.get(i);
+                if(DEBUG) {
+                    System.err.println("destroyAllPointerIconFromList: dpy "+toHexString(dpy)+", # "+i+"/"+count+": "+item+" @ "+getThreadName());
+                }
+                if( null != item && item.isValid() ) {
+                    item.destroyOnEDT(dpy);
                 }
             }
             pointerIconList.clear();
@@ -119,31 +87,37 @@ public abstract class DisplayImpl extends Display {
 
     @Override
     public final PointerIcon createPointerIcon(final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws MalformedURLException, InterruptedException, IOException {
-        final PointerIcon res = createPointerIconImpl(pngResource, hotX, hotY);
-        addPointerIconToList(res);
-        return res;
+        return createPointerIcon(false /* isTemp */, pngResource, hotX, hotY);
     }
-    protected PointerIcon createPointerIconImpl(final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws MalformedURLException, InterruptedException, IOException {
-        return null;
-    }
-
-    @Override
-    public final void destroyPointerIcon(final PointerIcon pi) {
-        delPointerIconFromList(pi);
-        runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
-            @Override
-            public Object run(long dpy) {
+    PointerIcon createPointerIcon(final boolean isTemp, final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws MalformedURLException, InterruptedException, IOException {
+        if( !isNativeValid() ) {
+            throw new IllegalStateException("Display.createPointerIcon(1): Display invalid "+this);
+        }
+        final PointerIconImpl[] res = { null };
+        runOnEDTIfAvail(true, new Runnable() {
+            public void run() {
                 try {
-                    destroyPointerIconImpl(dpy, pi);
+                    if( !DisplayImpl.this.isNativeValid() ) {
+                        throw new IllegalStateException("Display.createPointerIcon(2): Display invalid "+DisplayImpl.this);
+                    }
+                    res[0] = createPointerIconImpl(pngResource, hotX, hotY);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                return null;
+            } } );
+        if( !isTemp ) {
+            synchronized(pointerIconList) {
+                pointerIconList.add(res[0]);
             }
-        });
+        }
+        return res[0];
     }
     /** Executed from EDT! */
-    protected void destroyPointerIconImpl(final long displayHandle, final PointerIcon pi) { }
+    protected PointerIconImpl createPointerIconImpl(final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws MalformedURLException, InterruptedException, IOException {
+        return null;
+    }
+    /** Executed from EDT! */
+    protected void destroyPointerIconImpl(final long displayHandle, long piHandle) { }
 
     /** Ensure static init has been run. */
     /* pp */static void initSingleton() { }
@@ -399,6 +373,7 @@ public abstract class DisplayImpl extends Display {
                     @Override
                     public void run() {
                         if ( null != d.getGraphicsDevice() ) {
+                            d.destroyAllPointerIconFromList(f_aDevice.getHandle());
                             d.closeNativeImpl(f_aDevice);
                         }
                     }

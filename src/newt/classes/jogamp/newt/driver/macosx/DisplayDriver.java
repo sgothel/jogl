@@ -50,6 +50,7 @@ import com.jogamp.newt.NewtFactory;
 
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.NEWTJNILibLoader;
+import jogamp.newt.PointerIconImpl;
 import jogamp.newt.driver.PNGIcon;
 
 public class DisplayDriver extends DisplayImpl {
@@ -112,21 +113,21 @@ public class DisplayDriver extends DisplayImpl {
     }
 
     @Override
-    protected PointerIcon createPointerIconImpl(final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws MalformedURLException, InterruptedException, IOException {
+    protected PointerIconImpl createPointerIconImpl(final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws MalformedURLException, InterruptedException, IOException {
         if( PNGIcon.isAvailable() ) {
             final int[] width = { 0 }, height = { 0 }, data_size = { 0 };
             if( null != pngResource && 0 < pngResource.resourceCount() ) {
-                return new PointerIconImpl( createPointerIcon0(data, width[0], height[0], hotX, hotY),
-                                            new Dimension(width[0], height[0]), new Point(hotX, hotY));
                 final ByteBuffer data = PNGIcon.singleToRGBAImage(pngResource, 0, true /* toBGRA */, width, height, data_size);
+                return new PointerIconImpl( this, pngResource, new Dimension(width[0], height[0]),
+                                            new Point(hotX, hotY), createPointerIcon0(data, width[0], height[0], hotX, hotY));
             }
         }
         return null;
     }
 
     @Override
-    protected final void destroyPointerIconImpl(final long displayHandle, final PointerIcon pi) {
-        destroyPointerIcon0(((PointerIconImpl)pi).handle);
+    protected final void destroyPointerIconImpl(final long displayHandle, long piHandle) {
+        destroyPointerIcon0(piHandle);
     }
 
     public static void runNSApplication() {

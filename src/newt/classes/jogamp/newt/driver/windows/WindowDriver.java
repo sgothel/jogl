@@ -38,8 +38,8 @@ import java.nio.ByteBuffer;
 
 import jogamp.nativewindow.windows.GDI;
 import jogamp.nativewindow.windows.GDIUtil;
+import jogamp.newt.PointerIconImpl;
 import jogamp.newt.WindowImpl;
-import jogamp.newt.DisplayImpl.PointerIconImpl;
 import jogamp.newt.driver.PNGIcon;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
@@ -252,7 +252,7 @@ public class WindowDriver extends WindowImpl {
 
     @Override
     protected void setPointerIconImpl(final PointerIconImpl pi) {
-        setPointerIcon0(getWindowHandle(), null != pi ? pi.handle : 0);
+        setPointerIcon0(getWindowHandle(), null != pi ? pi.validatedHandle() : 0);
     }
 
     @Override

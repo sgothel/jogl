@@ -31,6 +31,10 @@ import java.awt.Frame;
 
 import javax.media.nativewindow.util.InsetsImmutable;
 
+import com.jogamp.common.util.IOUtil;
+import com.jogamp.newt.Display;
+import com.jogamp.newt.Window;
+import com.jogamp.newt.Display.PointerIcon;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -42,6 +46,7 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
     final NewtCanvasAWT newtCanvasAWT;
     final GLWindow glWindow;
     final QuitAdapter quitAdapter;
+    PointerIcon pointerIconTest = null;
 
     public NewtAWTReparentingKeyAdapter(Frame frame, NewtCanvasAWT newtCanvasAWT, GLWindow glWindow, QuitAdapter quitAdapter) {
         this.frame = frame;
@@ -54,9 +59,7 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
         if( !e.isPrintableKey() || e.isAutoRepeat() ) {
             return;
         }
-        if( e.getKeySymbol() == KeyEvent.VK_I ) {
-            System.err.println(glWindow);
-        } else if( e.getKeySymbol() == KeyEvent.VK_L ) {
+        if( e.getKeySymbol() == KeyEvent.VK_L ) {
             javax.media.nativewindow.util.Point p0 = newtCanvasAWT.getNativeWindow().getLocationOnScreen(null);
             javax.media.nativewindow.util.Point p1 = glWindow.getLocationOnScreen(null);
             System.err.println("NewtCanvasAWT position: "+p0+", "+p1);
@@ -140,6 +143,50 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
                         quitAdapter.enable(true);
                     }
             } }.start();
+        } else if(e.getKeySymbol() == KeyEvent.VK_C ) {
+            if( null == pointerIconTest ) {
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "newt/data/jogamp-32x32.png" } );
+                final Display disp = glWindow.getScreen().getDisplay();
+                try {
+                    pointerIconTest = disp.createPointerIcon(res, 16, 0);
+                } catch (Exception err) {
+                    err.printStackTrace();
+                }
+            }
+            new Thread() {
+                public void run() {
+                    final Thread t = glWindow.setExclusiveContextThread(null);
+                    System.err.println("[set pointer-icon pre]");
+                    final PointerIcon currentPI = glWindow.getPointerIcon();
+                    glWindow.setPointerIcon( currentPI == pointerIconTest ? null : pointerIconTest);
+                    System.err.println("[set pointer-icon post] "+currentPI+" -> "+glWindow.getPointerIcon());
+                    glWindow.setExclusiveContextThread(t);
+            } }.start();
+        } else if( e.getKeySymbol() == KeyEvent.VK_I ) {
+            new Thread() {
+                public void run() {
+                    final Thread t = glWindow.setExclusiveContextThread(null);
+                    System.err.println("[set mouse visible pre]: "+glWindow.isPointerVisible());
+                    glWindow.setPointerVisible(!glWindow.isPointerVisible());
+                    System.err.println("[set mouse visible post]: "+glWindow.isPointerVisible());
+                    glWindow.setExclusiveContextThread(t);
+            } }.start();
+        } else if(e.getKeySymbol() == KeyEvent.VK_J ) {
+            new Thread() {
+                public void run() {
+                    final Thread t = glWindow.setExclusiveContextThread(null);
+                    System.err.println("[set mouse confined pre]: "+glWindow.isPointerConfined());
+                    glWindow.confinePointer(!glWindow.isPointerConfined());
+                    System.err.println("[set mouse confined post]: "+glWindow.isPointerConfined());
+                    glWindow.setExclusiveContextThread(t);
+            } }.start();
+        } else if(e.getKeySymbol() == KeyEvent.VK_W ) {
+            new Thread() {
+               public void run() {
+                   System.err.println("[set mouse pos pre]");
+                   glWindow.warpPointer(glWindow.getWidth()/2, glWindow.getHeight()/2);
+                   System.err.println("[set mouse pos post]");
+               } }.start();
         }
     }
 }

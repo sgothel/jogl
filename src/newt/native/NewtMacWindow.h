@@ -63,6 +63,14 @@
 
     volatile NSTrackingRectTag ptrTrackingTag;
     NSRect ptrRect;
+    NSCursor * myCursor;
+    BOOL modsDown[4]; // shift, ctrl, alt/option, win/command
+
+    BOOL mouseConfined;
+    BOOL mouseInside;
+    BOOL mouseVisible;
+    BOOL cursorIsHidden;
+    NSPoint lastInsideMousePosition;
 }
 
 - (id)initWithFrame:(NSRect)frameRect;
@@ -83,9 +91,6 @@
 - (void) setJavaWindowObject: (jobject) javaWindowObj;
 - (jobject) getJavaWindowObject;
 
-- (void) rightMouseDown: (NSEvent*) theEvent;
-- (void) resetCursorRects;
-
 - (void) setDestroyNotifySent: (BOOL) v;
 - (BOOL) getDestroyNotifySent;
 
@@ -99,6 +104,41 @@
 - (void) viewDidHide;
 - (void) viewDidUnhide;
 - (BOOL) acceptsFirstResponder;
+- (BOOL) becomeFirstResponder;
+- (BOOL) resignFirstResponder;
+
+- (void) removeCursorRects;
+- (void) addCursorRects;
+- (void) removeMyCursor;
+- (void) resetCursorRects;
+- (void) setPointerIcon: (NSCursor*)c;
+- (void) mouseEntered: (NSEvent*) theEvent;
+- (void) mouseExited: (NSEvent*) theEvent;
+- (BOOL) updateMouseInside;
+- (void) cursorHide:(BOOL)v enter:(int)enterState; 
+- (void) setPointerIcon:(NSCursor*)c;
+- (void) setMouseVisible:(BOOL)v hasFocus:(BOOL)focus;
+- (BOOL) isMouseVisible;
+- (void) setMouseConfined:(BOOL)v;
+- (void) setMousePosition:(NSPoint)p;
+- (void) mouseMoved: (NSEvent*) theEvent;
+- (void) scrollWheel: (NSEvent*) theEvent;
+- (void) mouseDown: (NSEvent*) theEvent;
+- (void) mouseDragged: (NSEvent*) theEvent;
+- (void) mouseUp: (NSEvent*) theEvent;
+- (void) rightMouseDown: (NSEvent*) theEvent;
+- (void) rightMouseDragged: (NSEvent*) theEvent;
+- (void) rightMouseUp: (NSEvent*) theEvent;
+- (void) otherMouseDown: (NSEvent*) theEvent;
+- (void) otherMouseDragged: (NSEvent*) theEvent;
+- (void) otherMouseUp: (NSEvent*) theEvent;
+- (void) sendMouseEvent: (NSEvent*) event eventType: (jshort) evType;
+- (NSPoint) screenPos2NewtClientWinPos: (NSPoint) p;
+
+- (void) handleFlagsChanged:(NSUInteger) mods;
+- (void) handleFlagsChanged:(int) keyMask keyIndex: (int) keyIdx keyCode: (int) keyCode modifiers: (NSUInteger) mods;
+- (void) sendKeyEvent: (NSEvent*) event eventType: (jshort) evType;
+- (void) sendKeyEvent: (jshort) keyCode characters: (NSString*) chars modifiers: (NSUInteger)mods eventType: (jshort) evType;
 
 @end
 
@@ -108,14 +148,7 @@
 @interface NewtMacWindow : NSWindow 
 #endif
 {
-    BOOL mouseConfined;
-    BOOL mouseVisible;
-    BOOL mouseInside;
-    BOOL cursorIsHidden;
-    NSCursor * customCursor;
     BOOL realized;
-    BOOL modsDown[4]; // shift, ctrl, alt/option, win/command
-    NSPoint lastInsideMousePosition;
 @public
     BOOL hasPresentationSwitch;
     NSUInteger defaultPresentationOptions;
@@ -147,20 +180,14 @@
 - (NSPoint) newtRelClientTLWinPos2AbsBLScreenPos: (NSPoint) p;
 - (NSSize) newtClientSize2TLSize: (NSSize) nsz;
 - (NSPoint) getLocationOnScreen: (NSPoint) p;
-- (NSPoint) screenPos2NewtClientWinPos: (NSPoint) p;
 
-- (BOOL) isMouseInside;
-- (void) cursorHide:(BOOL)v enter:(int)enterState; 
-- (void) setPointerIcon:(NSCursor*)c;
-- (void) setMouseVisible:(BOOL)v hasFocus:(BOOL)focus;
-- (void) setMouseConfined:(BOOL)v;
-- (void) setMousePosition:(NSPoint)p;
-
-- (void) sendKeyEvent: (NSEvent*) event eventType: (jshort) evType;
-- (void) sendKeyEvent: (jshort) keyCode characters: (NSString*) chars modifiers: (NSUInteger)mods eventType: (jshort) evType;
-- (void) sendMouseEvent: (NSEvent*) event eventType: (jshort) evType;
 - (void) focusChanged: (BOOL) gained;
 
+- (void) keyDown: (NSEvent*) theEvent;
+- (void) keyUp: (NSEvent*) theEvent;
+- (void) flagsChanged: (NSEvent *) theEvent;
+- (BOOL) acceptsMouseMovedEvents;
+- (BOOL) acceptsFirstResponder;
 - (BOOL) becomeFirstResponder;
 - (BOOL) resignFirstResponder;
 - (BOOL) canBecomeKeyWindow;
@@ -168,22 +195,7 @@
 - (void) resignKeyWindow;
 - (void) windowDidBecomeKey: (NSNotification *) notification;
 - (void) windowDidResignKey: (NSNotification *) notification;
-- (void) keyDown: (NSEvent*) theEvent;
-- (void) keyUp: (NSEvent*) theEvent;
-- (void) handleFlagsChanged:(int) keyMask keyIndex: (int) keyIdx keyCode: (int) keyCode modifiers: (NSUInteger) mods;
-- (void) flagsChanged: (NSEvent *) theEvent;
-- (void) mouseEntered: (NSEvent*) theEvent;
-- (void) mouseExited: (NSEvent*) theEvent;
-- (void) mouseMoved: (NSEvent*) theEvent;
-- (void) scrollWheel: (NSEvent*) theEvent;
-- (void) mouseDown: (NSEvent*) theEvent;
-- (void) mouseDragged: (NSEvent*) theEvent;
-- (void) mouseUp: (NSEvent*) theEvent;
-- (void) rightMouseDown: (NSEvent*) theEvent;
-- (void) rightMouseDragged: (NSEvent*) theEvent;
-- (void) rightMouseUp: (NSEvent*) theEvent;
-- (void) otherMouseDown: (NSEvent*) theEvent;
-- (void) otherMouseUp: (NSEvent*) theEvent;
+
 - (void) windowDidResize: (NSNotification*) notification;
 - (void) windowDidMove: (NSNotification*) notification;
 - (BOOL) windowClosingImpl: (BOOL) force;

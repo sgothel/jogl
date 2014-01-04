@@ -43,6 +43,7 @@ import jogamp.nativewindow.windows.RegisteredClass;
 import jogamp.nativewindow.windows.RegisteredClassFactory;
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.NEWTJNILibLoader;
+import jogamp.newt.PointerIconImpl;
 import jogamp.newt.driver.PNGIcon;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -104,21 +105,21 @@ public class DisplayDriver extends DisplayImpl {
     }
 
     @Override
-    protected PointerIcon createPointerIconImpl(final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws MalformedURLException, InterruptedException, IOException {
+    protected PointerIconImpl createPointerIconImpl(final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws MalformedURLException, InterruptedException, IOException {
         if( PNGIcon.isAvailable() ) {
             final int[] width = { 0 }, height = { 0 }, data_size = { 0 };
             if( null != pngResource && 0 < pngResource.resourceCount() ) {
-                return new PointerIconImpl( createBGRA8888Icon0(data, width[0], height[0], true, hotX, hotY),
-                                            new Dimension(width[0], height[0]), new Point(hotX, hotY));
                 final ByteBuffer data = PNGIcon.singleToRGBAImage(pngResource, 0, true /* toBGRA */, width, height, data_size);
+                return new PointerIconImpl( this, pngResource, new Dimension(width[0], height[0]),
+                                            new Point(hotX, hotY), createBGRA8888Icon0(data, width[0], height[0], true, hotX, hotY));
             }
         }
         return null;
     }
 
     @Override
-    protected final void destroyPointerIconImpl(final long displayHandle, final PointerIcon pi) {
-        destroyIcon0(((PointerIconImpl)pi).handle);
+    protected final void destroyPointerIconImpl(final long displayHandle, long piHandle) {
+        destroyIcon0(piHandle);
     }
 
     //----------------------------------------------------------------------
