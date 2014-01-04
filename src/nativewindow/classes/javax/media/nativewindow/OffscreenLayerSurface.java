@@ -27,6 +27,11 @@
  */
 package javax.media.nativewindow;
 
+import java.io.IOException;
+
+import javax.media.nativewindow.util.PointImmutable;
+
+import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.locks.RecursiveLock;
 
 /**
@@ -65,4 +70,19 @@ public interface OffscreenLayerSurface {
   /** Returns the recursive lock object of this surface, which synchronizes multithreaded access. */
   public RecursiveLock getLock();
 
+  /**
+   * Optional method setting cursor in the corresponding on-screen surface/window, if exists.
+   *
+   * @param resources maybe null for default cursor
+   * @param hotSpot maybe null for default cursor
+   * @return true if successful, i.e. on-screen surface/window w/ cursor capabilities exists. Otherwise false.
+   * @throws IOException
+   */
+  public boolean setCursor(IOUtil.ClassResources resources, PointImmutable hotSpot) throws IOException;
+  /**
+   * Optional method hiding the cursor in the corresponding on-screen surface/window, if exists.
+   *
+   * @return true if successful, i.e. on-screen surface/window w/ cursor capabilities exists. Otherwise false.
+   */
+  public boolean hideCursor();
 }

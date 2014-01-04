@@ -27,20 +27,30 @@
  */
 package jogamp.nativewindow.awt;
 
+import java.awt.Cursor;
 import java.awt.FocusTraversalPolicy;
 import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Frame;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.net.URLConnection;
+import java.util.HashMap;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JRootPane;
 import javax.swing.WindowConstants;
+import javax.imageio.ImageIO;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.swing.MenuSelectionManager;
+
+import com.jogamp.common.util.IOUtil;
 
 public class AWTMisc {
 
@@ -161,6 +171,33 @@ public class AWTMisc {
      */
     public static void clearAWTMenus() {
         MenuSelectionManager.defaultManager().clearSelectedPath();
+    }
+
+    static final HashMap<String, Cursor> cursorMap = new HashMap<String, Cursor>();
+    static final Cursor nulCursor;
+    static {
+        final Toolkit toolkit = Toolkit.getDefaultToolkit();
+        BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
+        nulCursor = toolkit.createCustomCursor(img, new Point(0,0), "nullCursor");
+    }
+
+    public static synchronized Cursor getNullCursor() { return nulCursor; }
+
+    public static synchronized Cursor getCursor(IOUtil.ClassResources resources, Point hotSpot) throws IOException {
+        final String key = resources.getClass().getName()+":"+resources.resourcePaths[0];
+        Cursor cursor = cursorMap.get(key);
+        if( null == cursor ) {
+            cursor = createAWTCursor(resources, hotSpot);
+            cursorMap.put(key, cursor);
+        }
+        return cursor;
+    }
+    private static synchronized Cursor createAWTCursor(IOUtil.ClassResources resources, Point hotSpot) throws IOException {
+        final URLConnection urlConn = resources.resolve(0);
+        BufferedImage img = ImageIO.read(urlConn.getInputStream());
+
+        final Toolkit toolkit = Toolkit.getDefaultToolkit();
+        return toolkit.createCustomCursor(img, hotSpot, resources.resourcePaths[0]);
     }
 
     public static WindowClosingProtocol.WindowClosingMode AWT2NWClosingOperation(int awtClosingOperation) {

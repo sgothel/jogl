@@ -38,18 +38,21 @@
 package com.jogamp.nativewindow.awt;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Cursor;
 import java.awt.Window;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
 import java.applet.Applet;
+import java.io.IOException;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -63,6 +66,7 @@ import javax.media.nativewindow.SurfaceUpdatedListener;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
+import javax.media.nativewindow.util.PointImmutable;
 import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
 
@@ -425,6 +429,30 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   @Override
   public final RecursiveLock getLock() {
       return surfaceLock;
+  }
+
+  @Override
+  public final boolean setCursor(IOUtil.ClassResources resources, PointImmutable hotSpot) throws IOException {
+      final Cursor c;
+      if( null == resources || null == hotSpot ) {
+          c = Cursor.getDefaultCursor();
+      } else {
+          final java.awt.Point awtHotspot = new java.awt.Point(hotSpot.getX(), hotSpot.getY());
+          c = AWTMisc.getCursor(resources, awtHotspot);
+      }
+      if( null != c ) {
+          component.setCursor(c);
+          return true;
+      } else {
+          return false;
+      }
+  }
+
+  @Override
+  public boolean hideCursor() {
+      final Cursor c = AWTMisc.getNullCursor();
+      component.setCursor(c);
+      return true;
   }
 
   //
