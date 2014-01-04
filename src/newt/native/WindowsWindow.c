@@ -2217,6 +2217,10 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
     //
     if( TST_FLAG_CHANGE_PARENTING(flags) && NULL == hwndP ) {
         // TOP: in -> out
+
+        // HIDE to allow setting ICONs (Windows bug?) .. WS_VISIBLE (style) will reset visibility
+        ShowWindow(hwnd, SW_HIDE);
+
         SetParent(hwnd, NULL);
     }
     
