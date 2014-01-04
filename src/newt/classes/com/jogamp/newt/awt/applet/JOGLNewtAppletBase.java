@@ -364,6 +364,15 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
                    glWindow.setPointerVisible(!glWindow.isPointerVisible());
                    System.err.println("[set mouse visible post]: "+glWindow.isPointerVisible());
                } }.start();
+       } else if(e.getKeyChar()=='j') {
+           new Thread() {
+               public void run() {
+                    final Thread t = glWindow.setExclusiveContextThread(null);
+                    System.err.println("[set mouse confined pre]: "+glWindow.isPointerConfined());
+                    glWindow.confinePointer(!glWindow.isPointerConfined());
+                    System.err.println("[set mouse confined post]: "+glWindow.isPointerConfined());
+                    glWindow.setExclusiveContextThread(t);
+               } }.start();
        } else if(e.getKeyChar()=='w') {
            new Thread() {
                public void run() {
