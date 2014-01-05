@@ -177,7 +177,7 @@ public class AWTMisc {
     static final Cursor nulCursor;
     static {
         final Toolkit toolkit = Toolkit.getDefaultToolkit();
-        BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
+        final BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
         nulCursor = toolkit.createCustomCursor(img, new Point(0,0), "nullCursor");
     }
 
@@ -194,7 +194,7 @@ public class AWTMisc {
     }
     private static synchronized Cursor createAWTCursor(IOUtil.ClassResources resources, Point hotSpot) throws IOException {
         final URLConnection urlConn = resources.resolve(0);
-        BufferedImage img = ImageIO.read(urlConn.getInputStream());
+        final BufferedImage img = ImageIO.read(urlConn.getInputStream());
 
         final Toolkit toolkit = Toolkit.getDefaultToolkit();
         return toolkit.createCustomCursor(img, hotSpot, resources.resourcePaths[0]);

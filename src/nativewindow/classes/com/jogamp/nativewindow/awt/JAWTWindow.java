@@ -39,6 +39,7 @@ package com.jogamp.nativewindow.awt;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
@@ -432,26 +433,33 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   }
 
   @Override
-  public final boolean setCursor(IOUtil.ClassResources resources, PointImmutable hotSpot) throws IOException {
-      final Cursor c;
-      if( null == resources || null == hotSpot ) {
-          c = Cursor.getDefaultCursor();
-      } else {
-          final java.awt.Point awtHotspot = new java.awt.Point(hotSpot.getX(), hotSpot.getY());
-          c = AWTMisc.getCursor(resources, awtHotspot);
-      }
-      if( null != c ) {
-          component.setCursor(c);
-          return true;
-      } else {
-          return false;
-      }
+  public final boolean setCursor(final IOUtil.ClassResources resources, final PointImmutable hotSpot) throws IOException {
+      AWTEDTExecutor.singleton.invoke(false, new Runnable() {
+          public void run() {
+              Cursor c = null;
+              if( null == resources || null == hotSpot ) {
+                  c = Cursor.getDefaultCursor();
+              } else {
+                  final java.awt.Point awtHotspot = new java.awt.Point(hotSpot.getX(), hotSpot.getY());
+                  try {
+                    c = AWTMisc.getCursor(resources, awtHotspot);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+              }
+              if( null != c ) {
+                  component.setCursor(c);
+              }
+          } } );
+      return true;
   }
 
   @Override
   public boolean hideCursor() {
-      final Cursor c = AWTMisc.getNullCursor();
-      component.setCursor(c);
+      AWTEDTExecutor.singleton.invoke(false, new Runnable() {
+          public void run() {
+              component.setCursor(AWTMisc.getNullCursor());
+          } } );
       return true;
   }
 
