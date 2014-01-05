@@ -39,8 +39,6 @@ import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.MutableSurface;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.OffscreenLayerSurface;
 import javax.media.nativewindow.VisualIDHolder;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
@@ -403,22 +401,6 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 public void run() {
                     setPointerIcon0(getWindowHandle(), piHandle);
                 } } );
-        } else {
-            final OffscreenLayerSurface ols = NativeWindowFactory.getOffscreenLayerSurface(this, true);
-            if( null != ols ) {
-                try {
-                    setOLSPointer(ols, pi);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-    private static void setOLSPointer(final OffscreenLayerSurface ols, final PointerIconImpl pi) throws Exception {
-        if( null != pi ) {
-            ols.setCursor(pi.getResource(), pi.getHotspot());
-        } else {
-            ols.setCursor(null, null); // default
         }
     }
 
@@ -430,21 +412,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 public void run() {
                     setPointerVisible0(getWindowHandle(), hasFocus(), pointerVisible);
                 } } );
-            return true; // setPointerVisible0 always returns true ..
-        } else {
-            final OffscreenLayerSurface ols = NativeWindowFactory.getOffscreenLayerSurface(this, true);
-            if( null != ols ) {
-                try {
-                    if( pointerVisible ) {
-                        setOLSPointer(ols, (PointerIconImpl)getPointerIcon());
-                    } else {
-                        ols.hideCursor();
-                    }
-                    return true;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
+            return true;
         }
         return false;
     }

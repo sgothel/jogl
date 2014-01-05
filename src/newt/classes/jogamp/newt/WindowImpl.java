@@ -34,37 +34,10 @@
 
 package jogamp.newt;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
-
-import com.jogamp.common.util.ArrayHashSet;
-import com.jogamp.common.util.IntBitfield;
-import com.jogamp.common.util.ReflectionUtil;
-import com.jogamp.newt.Display.PointerIcon;
-import com.jogamp.newt.MonitorDevice;
-import com.jogamp.newt.NewtFactory;
-import com.jogamp.newt.Display;
-import com.jogamp.newt.Screen;
-import com.jogamp.newt.Window;
-import com.jogamp.common.util.locks.LockFactory;
-import com.jogamp.common.util.locks.RecursiveLock;
-import com.jogamp.newt.event.DoubleTapScrollGesture;
-import com.jogamp.newt.event.GestureHandler;
-import com.jogamp.newt.event.InputEvent;
-import com.jogamp.newt.event.KeyEvent;
-import com.jogamp.newt.event.KeyListener;
-import com.jogamp.newt.event.MonitorEvent;
-import com.jogamp.newt.event.MouseEvent;
-import com.jogamp.newt.event.MouseListener;
-import com.jogamp.newt.event.NEWTEvent;
-import com.jogamp.newt.event.NEWTEventConsumer;
-import com.jogamp.newt.event.MonitorModeListener;
-import com.jogamp.newt.event.WindowEvent;
-import com.jogamp.newt.event.WindowListener;
-import com.jogamp.newt.event.WindowUpdateEvent;
-import com.jogamp.newt.event.MouseEvent.PointerType;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -74,16 +47,46 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.OffscreenLayerSurface;
 import javax.media.nativewindow.SurfaceUpdatedListener;
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
+import javax.media.nativewindow.util.PointImmutable;
 import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
 
 import jogamp.nativewindow.SurfaceUpdatedHelper;
+
+import com.jogamp.common.util.ArrayHashSet;
+import com.jogamp.common.util.IOUtil;
+import com.jogamp.common.util.IntBitfield;
+import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.common.util.locks.LockFactory;
+import com.jogamp.common.util.locks.RecursiveLock;
+import com.jogamp.newt.Display;
+import com.jogamp.newt.Display.PointerIcon;
+import com.jogamp.newt.MonitorDevice;
+import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.Screen;
+import com.jogamp.newt.Window;
+import com.jogamp.newt.event.DoubleTapScrollGesture;
+import com.jogamp.newt.event.GestureHandler;
+import com.jogamp.newt.event.InputEvent;
+import com.jogamp.newt.event.KeyEvent;
+import com.jogamp.newt.event.KeyListener;
+import com.jogamp.newt.event.MonitorEvent;
+import com.jogamp.newt.event.MonitorModeListener;
+import com.jogamp.newt.event.MouseEvent;
+import com.jogamp.newt.event.MouseEvent.PointerType;
+import com.jogamp.newt.event.MouseListener;
+import com.jogamp.newt.event.NEWTEvent;
+import com.jogamp.newt.event.NEWTEventConsumer;
+import com.jogamp.newt.event.WindowEvent;
+import com.jogamp.newt.event.WindowListener;
+import com.jogamp.newt.event.WindowUpdateEvent;
 
 public abstract class WindowImpl implements Window, NEWTEventConsumer
 {
@@ -171,7 +174,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private String title = "Newt Window";
     private boolean undecorated = false;
     private boolean alwaysOnTop = false;
-    private PointerIcon pointerIcon = null;
+    private PointerIconImpl pointerIcon = null;
     private boolean pointerVisible = true;
     private boolean pointerConfined = false;
     private LifecycleHook lifecycleHook = null;
@@ -438,10 +441,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     createNativeImpl();
                     screen.addMonitorModeListener(monitorModeListenerImpl);
                     setTitleImpl(title);
-                    if( null != pointerIcon ) {
-                        setPointerIconImpl((PointerIconImpl)pointerIcon);
-                    }
-                    setPointerVisibleImpl(pointerVisible);
+                    setPointerIconIntern(pointerIcon);
+                    setPointerVisibleIntern(pointerVisible);
                     confinePointerImpl(pointerConfined);
                     setKeyboardVisible(keyboardVisible);
                     final long remainingV = waitForVisible(true, false);
@@ -1379,6 +1380,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     return;
                 }
 
+                if( null == newParentWindow ) {
+                    // CLIENT -> TOP: Reset Parent's Pointer State
+                    setOffscreenPointerIcon(null);
+                    setOffscreenPointerVisible(true, null);
+                }
+
                 // rearrange window tree
                 if(null!=parentWindow && parentWindow instanceof Window) {
                     ((Window)parentWindow).removeChild(WindowImpl.this);
@@ -1461,6 +1468,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         }
                         destroy( becomesVisible );
                         operation = ReparentOperation.ACTION_NATIVE_CREATION ;
+                    } else {
+                        if( null != parentWindow ) {
+                            // TOP -> CLIENT: Setup Parent's Pointer State
+                            setOffscreenPointerIcon(pointerIcon);
+                            setOffscreenPointerVisible(pointerVisible, pointerIcon);
+                        }
                     }
                 } else {
                     // Case
@@ -1670,16 +1683,54 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return pointerVisible;
     }
     @Override
-    public final void setPointerVisible(boolean pointerVisible) {
+    public final void setPointerVisible(final boolean pointerVisible) {
         if(this.pointerVisible != pointerVisible) {
             boolean setVal = 0 == getWindowHandle();
             if(!setVal) {
-                setVal = setPointerVisibleImpl(pointerVisible);
+                setVal = setPointerVisibleIntern(pointerVisible);
             }
             if(setVal) {
                 this.pointerVisible = pointerVisible;
             }
         }
+    }
+    private boolean setPointerVisibleIntern(final boolean pointerVisible) {
+        boolean res = setOffscreenPointerVisible(pointerVisible, pointerIcon);
+        return setPointerVisibleImpl(pointerVisible) || res; // accept onscreen or offscreen positive result!
+    }
+    /**
+     * Helper method to delegate {@link #setPointerVisibleImpl(boolean)} to
+     * {@link OffscreenLayerSurface#hideCursor()} or {@link OffscreenLayerSurface#setCursor(IOUtil.ClassResources, PointImmutable)}.
+     * <p>
+     * Note: JAWTWindow is an OffscreenLayerSurface.
+     * </p>
+     * <p>
+     * Performing OffscreenLayerSurface's setCursor(..)/hideCursor(), if available,
+     * gives same behavior on all platforms.
+     * </p>
+     * <p>
+     * If visible, implementation invokes {@link #setOffscreenPointerIcon(OffscreenLayerSurface, PointerIconImpl)} using the
+     * given <code>defaultPointerIcon</code>, otherwise {@link OffscreenLayerSurface#hideCursor()} is invoked.
+     * </p>
+     * @param pointerVisible true for visible, otherwise invisible.
+     * @param defaultPointerIcon default PointerIcon for visibility
+     * @param ols the {@link OffscreenLayerSurface} instance, if null method does nothing.
+     */
+    private boolean setOffscreenPointerVisible(final boolean pointerVisible, final PointerIconImpl defaultPointerIcon) {
+        if( pointerVisible ) {
+            return setOffscreenPointerIcon(defaultPointerIcon);
+        } else {
+            final NativeWindow parent = getParent();
+            if( parent instanceof OffscreenLayerSurface ) {
+                final OffscreenLayerSurface ols = (OffscreenLayerSurface) parent;
+                try {
+                    return ols.hideCursor();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return false;
     }
 
     @Override
@@ -1687,15 +1738,54 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public final void setPointerIcon(final PointerIcon pi) {
-        if( this.pointerIcon != pi ) {
+        final PointerIconImpl piImpl = (PointerIconImpl)pi;
+        if( this.pointerIcon != piImpl ) {
             if( isNativeValid() ) {
                 runOnEDTIfAvail(true, new Runnable() {
                     public void run() {
-                        setPointerIconImpl((PointerIconImpl)pi);
+                        setPointerIconIntern(piImpl);
                     } } );
             }
-            this.pointerIcon = pi;
+            this.pointerIcon = piImpl;
         }
+    }
+    private void setPointerIconIntern(final PointerIconImpl pi) {
+        setOffscreenPointerIcon(pi);
+        setPointerIconImpl(pi);
+    }
+    /**
+     * Helper method to delegate {@link #setPointerIconIntern(PointerIconImpl)} to
+     * {@link OffscreenLayerSurface#setCursor(IOUtil.ClassResources, PointImmutable)}.
+     * <p>
+     * Note: JAWTWindow is an OffscreenLayerSurface.
+     * </p>
+     * <p>
+     * Performing OffscreenLayerSurface's setCursor(..), if available,
+     * gives same behavior on all platforms.
+     * </p>
+     * <p>
+     * Workaround for AWT/Windows bug within browser,
+     * where the PointerIcon gets periodically overridden
+     * by the AWT Component's icon.
+     * </p>
+     * @param ols the {@link OffscreenLayerSurface} instance, if null method does nothing.
+     * @param pi the {@link PointerIconImpl} instance, if null PointerIcon gets reset.
+     */
+    private boolean setOffscreenPointerIcon(final PointerIconImpl pi) {
+        final NativeWindow parent = getParent();
+        if( parent instanceof OffscreenLayerSurface ) {
+            final OffscreenLayerSurface ols = (OffscreenLayerSurface) parent;
+            try {
+                if( null != pi ) {
+                    return ols.setCursor(pi.getResource(), pi.getHotspot());
+                } else {
+                    return ols.setCursor(null, null); // default
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
     }
 
     @Override
