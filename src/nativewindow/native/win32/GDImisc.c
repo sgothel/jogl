@@ -237,11 +237,12 @@ Java_jogamp_nativewindow_windows_GDIUtil_CreateDummyDispatchThread0
  */
 JNIEXPORT jboolean JNICALL
 Java_jogamp_nativewindow_windows_GDIUtil_CreateWindowClass0
-    (JNIEnv *env, jclass _unused, jlong jHInstance, jstring jClazzName, jlong wndProc)
+    (JNIEnv *env, jclass _unused, jlong jHInstance, jstring jClazzName, jlong wndProc,
+     jlong iconSmallHandle, jlong iconBigHandle)
 {
     HINSTANCE hInstance = (HINSTANCE) (intptr_t) jHInstance;
     const TCHAR* clazzName = NULL;
-    WNDCLASS  wc;
+    WNDCLASSEX wc;
     jboolean res;
 
 #ifdef UNICODE
@@ -251,23 +252,25 @@ Java_jogamp_nativewindow_windows_GDIUtil_CreateWindowClass0
 #endif
 
     ZeroMemory( &wc, sizeof( wc ) );
-    if( GetClassInfo( hInstance,  clazzName, &wc ) ) {
+    if( GetClassInfoEx( hInstance,  clazzName, &wc ) ) {
         // registered already
         res = JNI_TRUE;
     } else {
         // register now
         ZeroMemory( &wc, sizeof( wc ) );
+        wc.cbSize = sizeof(WNDCLASSEX);
         wc.style = CS_HREDRAW | CS_VREDRAW ;
         wc.lpfnWndProc = (WNDPROC) (intptr_t) wndProc;
         wc.cbClsExtra = 0;
         wc.cbWndExtra = 0;
         wc.hInstance = hInstance;
-        wc.hIcon = NULL;
+        wc.hIcon = (HICON) (intptr_t) iconBigHandle;
         wc.hCursor = NULL;
         wc.hbrBackground = NULL; // no background paint - GetStockObject(BLACK_BRUSH);
         wc.lpszMenuName = NULL;
         wc.lpszClassName = clazzName;
-        res = ( 0 != RegisterClass( &wc ) ) ? JNI_TRUE : JNI_FALSE ;
+        wc.hIconSm = (HICON) (intptr_t) iconSmallHandle;
+        res = ( 0 != RegisterClassEx( &wc ) ) ? JNI_TRUE : JNI_FALSE ;
     }
 
 #ifdef UNICODE

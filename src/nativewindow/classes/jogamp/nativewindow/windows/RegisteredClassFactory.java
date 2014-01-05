@@ -50,6 +50,7 @@ public class RegisteredClassFactory {
     private final String classBaseName;
     private final long wndProc;
     private final boolean useDummyDispatchThread;
+    private final long iconSmallHandle, iconBigHandle;
 
     private RegisteredClass sharedClass = null;
     private int classIter = 0;
@@ -92,10 +93,12 @@ public class RegisteredClassFactory {
     /** Application handle. */
     public static long getHInstance() { return hInstance; }
 
-    public RegisteredClassFactory(String classBaseName, long wndProc, boolean useDummyDispatchThread) {
+    public RegisteredClassFactory(String classBaseName, long wndProc, boolean useDummyDispatchThread, long iconSmallHandle, long iconBigHandle) {
         this.classBaseName = classBaseName;
         this.wndProc = wndProc;
         this.useDummyDispatchThread = useDummyDispatchThread;
+        this.iconSmallHandle = iconSmallHandle;
+        this.iconBigHandle = iconBigHandle;
         synchronized(registeredFactories) {
             registeredFactories.add(this);
         }
@@ -114,7 +117,7 @@ public class RegisteredClassFactory {
                   // Retry with next clazz name, this could happen if more than one JVM is running
                   clazzName = classBaseName + classIter;
                   classIter++;
-                  registered = GDIUtil.CreateWindowClass0(hInstance, clazzName, wndProc);
+                  registered = GDIUtil.CreateWindowClass0(hInstance, clazzName, wndProc, iconSmallHandle, iconBigHandle);
               }
               if( !registered ) {
                   throw new NativeWindowException("Error: Could not create WindowClass: "+clazzName);

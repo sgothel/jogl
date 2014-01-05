@@ -59,7 +59,9 @@ public class GDIUtil implements ToolkitProperties {
                     if( !initIDs0() ) {
                         throw new NativeWindowException("GDI: Could not initialized native stub");
                     }
-                    dummyWindowClassFactory = new RegisteredClassFactory(dummyWindowClassNameBase, getDummyWndProc0(), true /* useDummyDispatchThread */);
+                    dummyWindowClassFactory = new RegisteredClassFactory(dummyWindowClassNameBase, getDummyWndProc0(),
+                                                                         true /* useDummyDispatchThread */,
+                                                                         0 /* iconSmallHandle */, 0 /* iconBigHandle */);
                     if(DEBUG) {
                         System.out.println("GDI.initSingleton() dummyWindowClassFactory "+dummyWindowClassFactory);
                     }
@@ -128,7 +130,9 @@ public class GDIUtil implements ToolkitProperties {
 
     private static final void dumpStack() { Thread.dumpStack(); } // Callback for JNI
 
-    static native boolean CreateWindowClass0(long hInstance, String clazzName, long wndProc);
+    /** Creates WNDCLASSEX instance */
+    static native boolean CreateWindowClass0(long hInstance, String clazzName, long wndProc, long iconSmallHandle, long iconBigHandle);
+    /** Destroys WNDCLASSEX instance */
     static native boolean DestroyWindowClass0(long hInstance, String className, long dispThreadCtx);
     static native long CreateDummyDispatchThread0();
 

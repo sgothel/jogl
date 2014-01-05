@@ -2014,8 +2014,7 @@ static void NewtWindow_setVisiblePosSize(HWND hwnd, BOOL atop, BOOL visible,
 JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindow0
   (JNIEnv *env, jobject obj, 
    jlong hInstance, jstring jWndClassName, jstring jWndName, jint winMajor, jint winMinor,
-   jlong parent, jint jx, jint jy, jint defaultWidth, jint defaultHeight, jboolean autoPosition, jint flags,
-   jlong iconSmallHandle, jlong iconBigHandle)
+   jlong parent, jint jx, jint jy, jint defaultWidth, jint defaultHeight, jboolean autoPosition, jint flags)
 {
     HWND parentWindow = (HWND) (intptr_t) parent;
     const TCHAR* wndClassName = NULL;
@@ -2104,12 +2103,6 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
             RECT rc;
             RECT * insets;
 
-            if( 0 != iconSmallHandle ) {
-                SendMessage(window, WM_SETICON, ICON_SMALL, (LPARAM) iconSmallHandle ); 
-            }
-            if( 0 != iconBigHandle ) {
-                SendMessage(window, WM_SETICON, ICON_BIG, (LPARAM) iconBigHandle ); 
-            }
             ShowWindow(window, SW_SHOW);
 
             // send insets before visibility, allowing java code a proper sync point!

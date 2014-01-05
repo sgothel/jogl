@@ -54,16 +54,38 @@ import javax.media.nativewindow.util.Point;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.nativewindow.windows.WindowsGraphicsDevice;
+import com.jogamp.newt.NewtFactory;
 
 public class DisplayDriver extends DisplayImpl {
 
     private static final String newtClassBaseName = "_newt_clazz" ;
+    private static final long[] defaultIconHandles;
     private static RegisteredClassFactory sharedClassFactory;
 
     static {
         NEWTJNILibLoader.loadNEWT();
-
-        sharedClassFactory = new RegisteredClassFactory(newtClassBaseName, WindowDriver.getNewtWndProc0(), false /* useDummyDispatchThread */);
+        {
+            long[] _defaultIconHandle = { 0, 0 };
+            if( PNGIcon.isAvailable() ) {
+                try {
+                    final int[] width = { 0 }, height = { 0 }, data_size = { 0 };
+                    final IOUtil.ClassResources iconRes = NewtFactory.getWindowIcons();
+                    {
+                        final ByteBuffer icon_data_small = PNGIcon.singleToRGBAImage(iconRes, 0, true /* toBGRA */, width, height, data_size);
+                        _defaultIconHandle[0] = DisplayDriver.createBGRA8888Icon0(icon_data_small, width[0], height[0], false, 0, 0);
+                    }
+                    {
+                        final ByteBuffer icon_data_big = PNGIcon.singleToRGBAImage(iconRes, iconRes.resourceCount()-1, true /* toBGRA */, width, height, data_size);
+                        _defaultIconHandle[1] = DisplayDriver.createBGRA8888Icon0(icon_data_big, width[0], height[0], false, 0, 0);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            defaultIconHandles = _defaultIconHandle;
+        }
+        sharedClassFactory = new RegisteredClassFactory(newtClassBaseName, WindowDriver.getNewtWndProc0(),
+                                                        false /* useDummyDispatchThread */, defaultIconHandles[0], defaultIconHandles[1]);
 
         if (!WindowDriver.initIDs0(RegisteredClassFactory.getHInstance())) {
             throw new NativeWindowException("Failed to initialize WindowsWindow jmethodIDs");
