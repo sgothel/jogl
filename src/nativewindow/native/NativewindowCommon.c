@@ -3,6 +3,8 @@
 #include <string.h>
 #include <sys/time.h>
 
+// #define STDERR_TO_FILE 1
+
 static const char * const ClazzNameRuntimeException = "java/lang/RuntimeException";
 static jclass    runtimeExceptionClz=NULL;
 
@@ -42,6 +44,11 @@ int NativewindowCommon_init(JNIEnv *env) {
         if(NULL==runtimeExceptionClz) {
             NativewindowCommon_FatalError(env, "Nativewindow: can't use %s", ClazzNameRuntimeException);
         }
+        #ifdef STDERR_TO_FILE
+            FILE * old_stderr = stderr; 
+            FILE * new_stderr = freopen("jogamp_stderr.log", "w", stderr);
+            fprintf(stderr, "STDERR_TO_FILE: %p -> %p\n", old_stderr, new_stderr);
+        #endif
         return 1;
     }
     return 0;
