@@ -139,7 +139,7 @@
 
 #include "NewtCommon.h"
 
-#define VERBOSE_ON 1
+// #define VERBOSE_ON 1
 // #define DEBUG_KEYS 1
 
 #ifdef VERBOSE_ON
@@ -191,7 +191,9 @@ typedef struct {
     HCURSOR setPointerHandle;
     HCURSOR defPointerHandle;
     /** Bool: 0 NOP, 1 FULLSCREEN */
-    int setFullscreen;
+    int isFullscreen;
+    /** Bool: 0 TOP, 1 CHILD */
+    int isChildWindow;
     int pointerCaptured;
     int pointerInside;
     int touchDownCount;
@@ -958,9 +960,9 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                 #ifdef VERBOSE_ON
                     BOOL anyActive = WA_ACTIVE==fActive, clickActive = WA_CLICKACTIVE==fActive;
                     DBG_PRINT("*** WindowsWindow: WM_ACTIVATE window %p, prev %p, minimized %d, active %d (any %d, click %d, inactive %d), FS %d\n", 
-                        wnd, wndPrev, fMinimized, fActive, anyActive, clickActive, inactive, wud->setFullscreen);
+                        wnd, wndPrev, fMinimized, fActive, anyActive, clickActive, inactive, wud->isFullscreen);
                 #endif
-                if( wud->setFullscreen ) {
+                if( wud->isFullscreen ) {
                     // Bug 916 - NEWT Fullscreen Mode on Windows ALT-TAB doesn't allow Application Switching
                     // Remedy for 'some' display drivers, i.e. Intel HD: 
                     // Explicitly push fullscreen window to BOTTOM when inactive (ALT-TAB)
@@ -1030,21 +1032,37 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                 DBG_PRINT("*** WindowsWindow: WM_SETCURSOR requested visibility: %d success: %d\n", wud->setPointerVisible, visibilityChangeSuccessful);
                 wud->setPointerVisible = 0;
                 // own signal, consumed, no further processing
-                useDefWindowProc = 0;
                 res = 1;
             } else if( 0 != wud->setPointerAction ) {
                 if( -1 == wud->setPointerAction ) {
                     wud->setPointerHandle = wud->defPointerHandle;
                 }
                 HCURSOR preHandle = SetCursor(wud->setPointerHandle);
-                DBG_PRINT("*** WindowsWindow: WM_SETCURSOR requested change %d: pre %p -> set %p, def %p\n", 
+                DBG_PRINT("*** WindowsWindow: WM_SETCURSOR PointerIcon change %d: pre %p -> set %p, def %p\n", 
                     wud->setPointerAction, (void*)preHandle, (void*)wud->setPointerHandle, (void*)wud->defPointerHandle);
                 wud->setPointerAction = 0;
                 // own signal, consumed, no further processing
-                useDefWindowProc = 0;
                 res = 1;
+            } else if( HTCLIENT == LOWORD(lParam) ) {
+                BOOL setCur = wud->isChildWindow && wud->defPointerHandle != wud->setPointerHandle;
+                #ifdef VERBOSE_ON
+                    HCURSOR cur = GetCursor();
+                    DBG_PRINT("*** WindowsWindow: WM_SETCURSOR PointerIcon NOP [1 custom-override] set %p, def %p, cur %p, isChild %d, setCur %d\n",
+                        (void*)wud->setPointerHandle, (void*)wud->defPointerHandle, (void*)cur, wud->isChildWindow, setCur);
+                #endif
+                if( setCur ) {
+                    SetCursor(wud->setPointerHandle);
+                    // own signal, consumed, no further processing
+                    res = 1;
+                } else {
+                    DBG_PRINT("*** WindowsWindow: WM_SETCURSOR PointerIcon NOP [2 parent-override] set %p, def %p\n", (void*)wud->setPointerHandle, (void*)wud->defPointerHandle);
+                    // NOP for us, allow parent to act
+                    res = 0;
+                }
             } else {
-                useDefWindowProc = 1; // NOP for us, allow parent to act
+                DBG_PRINT("*** WindowsWindow: WM_SETCURSOR !HTCLIENT\n");
+                // NOP for us, allow parent to act
+                res = 0;
             }
             break;
 
@@ -2074,7 +2092,8 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
         wud->setPointerAction = 0;
         wud->defPointerHandle = LoadCursor( NULL, IDC_ARROW);
         wud->setPointerHandle = wud->defPointerHandle;
-        wud->setFullscreen = 0;
+        wud->isFullscreen = 0;
+        wud->isChildWindow = NULL!=parentWindow;
         wud->pointerCaptured = 0;
         wud->pointerInside = 0;
         wud->touchDownCount = 0;
@@ -2182,13 +2201,13 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
 #endif
 
 
-    DBG_PRINT( "*** WindowsWindow: reconfigureWindow0 parent %p, window %p, %d/%d %dx%d, parentChange %d, hasParent %d, decorationChange %d, undecorated %d, fullscreenChange %d, fullscreen %d, alwaysOnTopChange %d, alwaysOnTop %d, visibleChange %d, visible %d -> styleChange %d\n",
+    DBG_PRINT( "*** WindowsWindow: reconfigureWindow0 parent %p, window %p, %d/%d %dx%d, parentChange %d, hasParent %d, decorationChange %d, undecorated %d, fullscreenChange %d, fullscreen %d, alwaysOnTopChange %d, alwaysOnTop %d, visibleChange %d, visible %d -> styleChange %d, isChild %d, isFullscreen %d\n",
         parent, window, x, y, width, height,
         TST_FLAG_CHANGE_PARENTING(flags),   TST_FLAG_HAS_PARENT(flags),
         TST_FLAG_CHANGE_DECORATION(flags),  TST_FLAG_IS_UNDECORATED(flags),
         TST_FLAG_CHANGE_FULLSCREEN(flags),  TST_FLAG_IS_FULLSCREEN(flags),
         TST_FLAG_CHANGE_ALWAYSONTOP(flags), TST_FLAG_IS_ALWAYSONTOP(flags),
-        TST_FLAG_CHANGE_VISIBILITY(flags), TST_FLAG_IS_VISIBLE(flags), styleChange);
+        TST_FLAG_CHANGE_VISIBILITY(flags), TST_FLAG_IS_VISIBLE(flags), styleChange, wud->isChildWindow, wud->isFullscreen);
 
     if (!IsWindow(hwnd)) {
         DBG_PRINT("*** WindowsWindow: reconfigureWindow0 failure: Passed window %p is invalid\n", (void*)hwnd);
@@ -2199,6 +2218,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
         DBG_PRINT("*** WindowsWindow: reconfigureWindow0 failure: Passed parent window %p is invalid\n", (void*)hwndP);
         return;
     }
+
+    wud->isChildWindow = NULL != hwndP;
 
     if(TST_FLAG_IS_VISIBLE(flags)) {
         windowStyle |= WS_VISIBLE ;
@@ -2219,7 +2240,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
     
     if( TST_FLAG_CHANGE_FULLSCREEN(flags) && TST_FLAG_IS_FULLSCREEN(flags) ) { // FS on
         // TOP: in -> out
-        wud->setFullscreen = 1;
+        wud->isFullscreen = 1;
         NewtWindows_setFullScreen(JNI_TRUE);
     }
 
@@ -2237,7 +2258,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
 
     if( TST_FLAG_CHANGE_FULLSCREEN(flags) && !TST_FLAG_IS_FULLSCREEN(flags) ) { // FS off
         // CHILD: out -> in
-        wud->setFullscreen = 0;
+        wud->isFullscreen = 0;
         NewtWindows_setFullScreen(JNI_FALSE);
     }
 
@@ -2256,7 +2277,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
         }
     }
 
-    DBG_PRINT("*** WindowsWindow: reconfigureWindow0.X\n");
+    DBG_PRINT("*** WindowsWindow: reconfigureWindow0.X isChild %d, isFullscreen %d\n", wud->isChildWindow, wud->isFullscreen);
 }
 
 /*
