@@ -34,8 +34,7 @@
 
 package jogamp.newt.driver.windows;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
+import java.net.URLConnection;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
@@ -43,18 +42,16 @@ import jogamp.nativewindow.windows.RegisteredClass;
 import jogamp.nativewindow.windows.RegisteredClassFactory;
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.NEWTJNILibLoader;
-import jogamp.newt.PointerIconImpl;
-import jogamp.newt.driver.PNGIcon;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.Point;
+import javax.media.nativewindow.util.PixelFormat;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.nativewindow.windows.WindowsGraphicsDevice;
 import com.jogamp.newt.NewtFactory;
+import com.jogamp.opengl.util.PNGPixelRect;
 
 public class DisplayDriver extends DisplayImpl {
 
@@ -66,17 +63,18 @@ public class DisplayDriver extends DisplayImpl {
         NEWTJNILibLoader.loadNEWT();
         {
             long[] _defaultIconHandle = { 0, 0 };
-            if( PNGIcon.isAvailable() ) {
+            if( DisplayImpl.isPNGUtilAvailable() ) {
                 try {
-                    final int[] width = { 0 }, height = { 0 }, data_size = { 0 };
                     final IOUtil.ClassResources iconRes = NewtFactory.getWindowIcons();
                     {
-                        final ByteBuffer icon_data_small = PNGIcon.singleToRGBAImage(iconRes, 0, true /* toBGRA */, width, height, data_size);
-                        _defaultIconHandle[0] = DisplayDriver.createBGRA8888Icon0(icon_data_small, width[0], height[0], false, 0, 0);
+                        final URLConnection urlConn = iconRes.resolve(0);
+                        final PNGPixelRect image = PNGPixelRect.read(urlConn.getInputStream(), PixelFormat.BGRA8888, false /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
+                        _defaultIconHandle[0] = DisplayDriver.createBGRA8888Icon0(image.getPixels(), image.getSize().getWidth(), image.getSize().getHeight(), false, 0, 0);
                     }
                     {
-                        final ByteBuffer icon_data_big = PNGIcon.singleToRGBAImage(iconRes, iconRes.resourceCount()-1, true /* toBGRA */, width, height, data_size);
-                        _defaultIconHandle[1] = DisplayDriver.createBGRA8888Icon0(icon_data_big, width[0], height[0], false, 0, 0);
+                        final URLConnection urlConn = iconRes.resolve(iconRes.resourceCount()-1);
+                        final PNGPixelRect image = PNGPixelRect.read(urlConn.getInputStream(), PixelFormat.BGRA8888, false /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
+                        _defaultIconHandle[1] = DisplayDriver.createBGRA8888Icon0(image.getPixels(), image.getSize().getWidth(), image.getSize().getHeight(), false, 0, 0);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -127,16 +125,8 @@ public class DisplayDriver extends DisplayImpl {
     }
 
     @Override
-    protected PointerIconImpl createPointerIconImpl(final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws MalformedURLException, InterruptedException, IOException {
-        if( PNGIcon.isAvailable() ) {
-            final int[] width = { 0 }, height = { 0 }, data_size = { 0 };
-            if( null != pngResource && 0 < pngResource.resourceCount() ) {
-                final ByteBuffer data = PNGIcon.singleToRGBAImage(pngResource, 0, true /* toBGRA */, width, height, data_size);
-                return new PointerIconImpl( this, pngResource, new Dimension(width[0], height[0]),
-                                            new Point(hotX, hotY), createBGRA8888Icon0(data, width[0], height[0], true, hotX, hotY));
-            }
-        }
-        return null;
+    protected final long createPointerIconImpl(PixelFormat pixelformat, int width, int height, final ByteBuffer pixels, final int hotX, final int hotY) {
+        return createBGRA8888Icon0(pixels, width, height, true, hotX, hotY);
     }
 
     @Override
@@ -149,16 +139,18 @@ public class DisplayDriver extends DisplayImpl {
     //
     private static native void DispatchMessages0();
 
-    static long createBGRA8888Icon0(Buffer data, int width, int height, boolean isCursor, int hotX, int hotY) {
-        if( null == data ) {
+    static long createBGRA8888Icon0(Buffer pixels, int width, int height, boolean isCursor, int hotX, int hotY) {
+        if( null == pixels ) {
             throw new IllegalArgumentException("data buffer/size");
         }
-        if( !Buffers.isDirect(data) ) {
-            throw new IllegalArgumentException("data buffer is not direct "+data);
-        }
-        return createBGRA8888Icon0(data, Buffers.getDirectBufferByteOffset(data), width, height, isCursor, hotX, hotY);
+        final boolean pixels_is_direct = Buffers.isDirect(pixels);
+        return createBGRA8888Icon0(
+                      pixels_is_direct ? pixels : Buffers.getArray(pixels),
+                      pixels_is_direct ? Buffers.getDirectBufferByteOffset(pixels) : Buffers.getIndirectBufferByteOffset(pixels),
+                      pixels_is_direct,
+                      width, height, isCursor, hotX, hotY);
     }
-    private static native long createBGRA8888Icon0(Object data, int data_offset, int width, int height, boolean isCursor, int hotX, int hotY);
+    private static native long createBGRA8888Icon0(Object pixels, int pixels_byte_offset, boolean pixels_is_direct, int width, int height, boolean isCursor, int hotX, int hotY);
     private static native void destroyIcon0(long handle);
 }
 

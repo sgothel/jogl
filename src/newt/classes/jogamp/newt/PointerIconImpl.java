@@ -27,27 +27,63 @@
  */
 package jogamp.newt;
 
+import java.nio.ByteBuffer;
+
 import javax.media.nativewindow.util.DimensionImmutable;
+import javax.media.nativewindow.util.PixelFormat;
+import javax.media.nativewindow.util.PixelRectangle;
 import javax.media.nativewindow.util.PointImmutable;
 
-import com.jogamp.common.util.IOUtil;
-import com.jogamp.common.util.IOUtil.ClassResources;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.Display.PointerIcon;
 
 public class PointerIconImpl implements PointerIcon {
     private final DisplayImpl display;
-    private final IOUtil.ClassResources resource;
+    private final PixelFormat pixelformat;
     private final DimensionImmutable size;
+    private final ByteBuffer pixels;
     private final PointImmutable hotspot;
     private long handle;
-    public PointerIconImpl(DisplayImpl display, ClassResources resource, final DimensionImmutable size, final PointImmutable hotspot, final long handle) {
+    private int hashCode = 0;
+    private volatile boolean hashCodeComputed = false;
+
+    public PointerIconImpl(final DisplayImpl display, final PixelFormat pixelformat, final DimensionImmutable size, final ByteBuffer pixels, final PointImmutable hotspot, final long handle) {
         this.display = display;
-        this.resource = resource;
+        this.pixelformat = pixelformat;
         this.size = size;
+        this.pixels = pixels;
+        this.hotspot = hotspot;
+
+        this.handle=handle;
+    }
+    public PointerIconImpl(final DisplayImpl display, final PixelRectangle pixelrect, final PointImmutable hotspot, final long handle) {
+        this.display = display;
+        this.pixelformat = pixelrect.getPixelformat();
+        this.size = pixelrect.getSize();
+        this.pixels = pixelrect.getPixels();
         this.hotspot = hotspot;
         this.handle=handle;
     }
+
+    @Override
+    public int hashCode() {
+        if( !hashCodeComputed ) { // DBL CHECKED OK VOLATILE
+            synchronized (this) {
+                if( !hashCodeComputed ) {
+                    // 31 * x == (x << 5) - x
+                    int hash = 31 + display.getFQName().hashCode();
+                    hash = ((hash << 5) - hash) + pixelformat.hashCode();
+                    hash = ((hash << 5) - hash) + size.hashCode();
+                    hash = ((hash << 5) - hash) + getStride();
+                    hash = ((hash << 5) - hash) + ( isGLOriented() ? 1 : 0);
+                    hash = ((hash << 5) - hash) + pixels.hashCode();
+                    hashCode = ((hash << 5) - hash) + hotspot.hashCode();
+                }
+            }
+        }
+        return hashCode;
+    }
+
     public synchronized final long getHandle() { return handle; }
     public synchronized final long validatedHandle() {
         synchronized(display.pointerIconList) {
@@ -57,8 +93,7 @@ public class PointerIconImpl implements PointerIcon {
         }
         if( 0 == handle ) {
             try {
-                final PointerIconImpl temp = (PointerIconImpl) display.createPointerIcon(true /* isTemp */, resource, hotspot.getX(), hotspot.getY());
-                handle = temp.handle;
+                handle = display.createPointerIconImpl(pixelformat, size.getWidth(), size.getHeight(), pixels, hotspot.getX(), hotspot.getY());
                 return handle;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -71,7 +106,9 @@ public class PointerIconImpl implements PointerIcon {
     @Override
     public final Display getDisplay() { return display; }
     @Override
-    public final IOUtil.ClassResources getResource() { return resource; }
+    public final PixelFormat getPixelformat() { return pixelformat; }
+    @Override
+    public final ByteBuffer getPixels() { return pixels; }
     @Override
     public synchronized final boolean isValid() { return 0 != handle; }
     @Override
@@ -116,11 +153,19 @@ public class PointerIconImpl implements PointerIcon {
         return size;
     }
     @Override
+    public final int getStride() {
+        return size.getWidth() * pixelformat.bytesPerPixel();
+    }
+    @Override
+    public final boolean isGLOriented() {
+        return false;
+    }
+    @Override
     public final PointImmutable getHotspot() {
         return hotspot;
     }
     @Override
     public final String toString() {
-        return "PointerIcon["+DisplayImpl.toHexString(super.hashCode())+", "+display.getFQName()+", "+resource.resourcePaths[0]+", 0x"+Long.toHexString(handle)+", "+size+", "+hotspot+"]";
+        return "PointerIcon[obj 0x"+Integer.toHexString(super.hashCode())+", "+display.getFQName()+", 0x"+Long.toHexString(handle)+", "+pixelformat+", "+size+", "+hotspot+", pixels "+pixels+"]";
     }
 }

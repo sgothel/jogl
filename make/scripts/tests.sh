@@ -229,7 +229,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLContext -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.GLJPanel -Djogl.debug.TileRenderer -Djogl.debug.TileRenderer.PNG"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.GLJPanel -Djogl.debug.TileRenderer"
-    #D_ARGS="-Djogl.debug.PNGImage"
+    #D_ARGS="-Djogl.debug.PNG -Dnewt.debug.Display.PointerIcon"
     #D_ARGS="-Djogl.debug.JPEGImage"
     #D_ARGS="-Djogl.debug.GLDrawable -Dnativewindow.debug.GraphicsConfiguration -Djogl.debug.CapabilitiesChooser"
     #X_ARGS="-Dsun.java2d.noddraw=True -Dsun.java2d.opengl=True -Dsun.java2d.xrender=false"
@@ -634,9 +634,10 @@ testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasA
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGJoglAWTCompareNewtAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGJoglAWTBenchmarkNewtAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGTextureFromFileNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGImage00NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGImage01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.ToolPNG2CSource $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGPixelRect00NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGPixelRect01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPixelFormatUtil00NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPixelFormatUtil01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGTextureFromFileAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGTextureFromFileNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestGLReadBufferUtilTextureIOWrite01AWT $*

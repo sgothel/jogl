@@ -53,6 +53,7 @@ import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
+import javax.media.nativewindow.util.PixelRectangle;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.PointImmutable;
 import javax.media.nativewindow.util.Rectangle;
@@ -61,7 +62,6 @@ import javax.media.nativewindow.util.RectangleImmutable;
 import jogamp.nativewindow.SurfaceUpdatedHelper;
 
 import com.jogamp.common.util.ArrayHashSet;
-import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.IntBitfield;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.locks.LockFactory;
@@ -1700,7 +1700,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
     /**
      * Helper method to delegate {@link #setPointerVisibleImpl(boolean)} to
-     * {@link OffscreenLayerSurface#hideCursor()} or {@link OffscreenLayerSurface#setCursor(IOUtil.ClassResources, PointImmutable)}.
+     * {@link OffscreenLayerSurface#hideCursor()} or {@link OffscreenLayerSurface#setCursor(PixelRectangle, PointImmutable)}.
      * <p>
      * Note: JAWTWindow is an OffscreenLayerSurface.
      * </p>
@@ -1755,7 +1755,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
     /**
      * Helper method to delegate {@link #setPointerIconIntern(PointerIconImpl)} to
-     * {@link OffscreenLayerSurface#setCursor(IOUtil.ClassResources, PointImmutable)}.
+     * {@link OffscreenLayerSurface#setCursor(PixelRectangle, PointImmutable)}
      * <p>
      * Note: JAWTWindow is an OffscreenLayerSurface.
      * </p>
@@ -1777,7 +1777,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             final OffscreenLayerSurface ols = (OffscreenLayerSurface) parent;
             try {
                 if( null != pi ) {
-                    return ols.setCursor(pi.getResource(), pi.getHotspot());
+                    return ols.setCursor(pi, pi.getHotspot());
                 } else {
                     return ols.setCursor(null, null); // default
                 }

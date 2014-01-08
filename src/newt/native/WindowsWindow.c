@@ -2368,9 +2368,15 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_warpPointer0
 
 JNIEXPORT jlong JNICALL
 Java_jogamp_newt_driver_windows_DisplayDriver_createBGRA8888Icon0(JNIEnv *env, jobject _unused, 
-    jobject data, jint data_offset, jint width, jint height, jboolean isCursor, jint hotX, jint hotY) {
+    jobject pixels, jint pixels_byte_offset, jboolean pixels_is_direct, jint width, jint height, jboolean isCursor, jint hotX, jint hotY) {
 
-    const unsigned char * data_ptr = (const unsigned char *) (*env)->GetDirectBufferAddress(env, data) + data_offset;
+    if( 0 == pixels ) {
+        return 0;
+    }
+
+    const unsigned char * pixelPtr = (const unsigned char *) ( JNI_TRUE == pixels_is_direct ? 
+                                            (*env)->GetDirectBufferAddress(env, pixels) : 
+                                            (*env)->GetPrimitiveArrayCritical(env, pixels, NULL) );
     const int bytes = 4 * width * height; // BGRA8888
 
     DWORD dwWidth, dwHeight;
@@ -2403,9 +2409,13 @@ Java_jogamp_newt_driver_windows_DisplayDriver_createBGRA8888Icon0(JNIEnv *env, j
     hBitmap = CreateDIBSection(hdc, (BITMAPINFO *)&bi, DIB_RGB_COLORS, 
         (void **)&lpBits, NULL, (DWORD)0);
 
-    memcpy(lpBits, data_ptr, bytes);
+    memcpy(lpBits, pixelPtr + pixels_byte_offset, bytes);
 
     ReleaseDC(NULL,hdc);
+
+    if ( JNI_FALSE == pixels_is_direct ) {
+        (*env)->ReleasePrimitiveArrayCritical(env, pixels, (void*)pixelPtr, JNI_ABORT);  
+    }
 
     // Create an empty mask bitmap.
     HBITMAP hMonoBitmap = CreateBitmap(dwWidth,dwHeight,1,1,NULL);

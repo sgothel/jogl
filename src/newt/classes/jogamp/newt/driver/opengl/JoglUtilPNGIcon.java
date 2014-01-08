@@ -32,20 +32,22 @@ import java.net.MalformedURLException;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
 
+import javax.media.nativewindow.util.PixelFormat;
+
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IOUtil;
-import com.jogamp.opengl.util.texture.spi.PNGImage;
+import com.jogamp.opengl.util.PNGPixelRect;
 
 public class JoglUtilPNGIcon {
 
     public static ByteBuffer arrayToX11BGRAImages(IOUtil.ClassResources resources, int[] data_size, int[] elem_bytesize) throws UnsupportedOperationException, InterruptedException, IOException, MalformedURLException {
-        final PNGImage[] images = new PNGImage[resources.resourceCount()];
+        final PNGPixelRect[] images = new PNGPixelRect[resources.resourceCount()];
         data_size[0] = 0;
         for(int i=0; i<resources.resourceCount(); i++) {
             final URLConnection urlConn = resources.resolve(i);
-            final PNGImage image = PNGImage.read(urlConn.getInputStream());
-            data_size[0] += 2 + image.getWidth() * image.getHeight();
+            final PNGPixelRect image = PNGPixelRect.read(urlConn.getInputStream(), PixelFormat.BGRA8888, false /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
+            data_size[0] += 2 + image.getSize().getWidth() * image.getSize().getHeight();
             images[i] = image;
         }
         final boolean is64Bit = Platform.is64Bit();
@@ -53,84 +55,32 @@ public class JoglUtilPNGIcon {
         final ByteBuffer buffer = Buffers.newDirectByteBuffer( data_size[0] * elem_bytesize[0] );
 
         for(int i=0; i<images.length; i++) {
-            final PNGImage image1 = images[i];
+            final PNGPixelRect image1 = images[i];
+            final int width = image1.getSize().getWidth();
+            final int height = image1.getSize().getHeight();
             if( is64Bit ) {
-                buffer.putLong(image1.getWidth());
-                buffer.putLong(image1.getHeight());
+                buffer.putLong(width);
+                buffer.putLong(height);
             } else {
-                buffer.putInt(image1.getWidth());
-                buffer.putInt(image1.getHeight());
+                buffer.putInt(width);
+                buffer.putInt(height);
             }
-            final ByteBuffer bb = image1.getData();
-            final int bpp = image1.getBytesPerPixel();
-            final int stride = image1.getWidth() * bpp;
-            for(int y=0; y<image1.getHeight(); y++) {
-                int bbOff = image1.isGLOriented() ? ( image1.getHeight() - 1 - y ) * stride : y * stride;
-                for(int x=0; x<image1.getWidth(); x++) {
-                    // Source: R G B A
-                    // Dest:   B G R A
+            final ByteBuffer bb = image1.getPixels();
+            final int stride = image1.getStride();
+            for(int y=0; y<height; y++) {
+                int bbOff = y * stride;
+                for(int x=0; x<width; x++) {
                     long pixel;
-                    pixel  = ( 0xffL & bb.get(bbOff++) ) << 16; // R
+                    pixel  = ( 0xffL & bb.get(bbOff++) );       // B
                     pixel |= ( 0xffL & bb.get(bbOff++) ) <<  8; // G
-                    pixel |= ( 0xffL & bb.get(bbOff++) ); // B
-                    if( 4 == bpp ) {
-                        pixel |= ( 0xffL & bb.get(bbOff++) ) << 24;
-                    } else {
-                        pixel |= 0x00000000ff000000L;
-                    }
+                    pixel |= ( 0xffL & bb.get(bbOff++) ) << 16; // R
+                    pixel |= ( 0xffL & bb.get(bbOff++) ) << 24; // A
                     if( is64Bit ) {
                         buffer.putLong(pixel);
                     } else {
                         buffer.putInt((int)pixel);
                     }
                 }
-            }
-        }
-        buffer.rewind();
-        return buffer;
-    }
-
-    public static ByteBuffer singleToRGBAImage(IOUtil.ClassResources resources, int resourceIdx, boolean toBGRA, int[] width, int[] height, int[] data_size) throws UnsupportedOperationException, InterruptedException, IOException, MalformedURLException {
-        width[0] = 0;
-        height[0] = 0;
-        data_size[0] = 0;
-        final URLConnection urlConn = resources.resolve(resourceIdx);
-        final PNGImage image = PNGImage.read(urlConn.getInputStream());
-        width[0] = image.getWidth();
-        height[0] = image.getHeight();
-        data_size[0] = image.getWidth() * image.getHeight();
-
-        final int elem_bytesize = 4; // BGRA
-        final ByteBuffer buffer = Buffers.newDirectByteBuffer( data_size[0] * elem_bytesize );
-
-        final ByteBuffer bb = image.getData();
-        final int bpp = image.getBytesPerPixel();
-        final int stride = image.getWidth() * bpp;
-        for(int y=0; y<image.getHeight(); y++) {
-            int bbOff = image.isGLOriented() ? ( image.getHeight() - 1 - y ) * stride : y * stride;
-            for(int x=0; x<image.getWidth(); x++) {
-                // Source: R G B A
-                final byte r, g, b, a;
-                r = bb.get(bbOff++); // R
-                g = bb.get(bbOff++); // G
-                b = bb.get(bbOff++); // B
-                if( 4 == bpp ) {
-                    a = bb.get(bbOff++); // A
-                } else {
-                    a = (byte)0xff;      // A
-                }
-                if( toBGRA ) {
-                    // Dest:   B G R A
-                    buffer.put(b);
-                    buffer.put(g);
-                    buffer.put(r);
-                } else {
-                    // Dest:   R G B A
-                    buffer.put(r);
-                    buffer.put(g);
-                    buffer.put(b);
-                }
-                buffer.put(a);
             }
         }
         buffer.rewind();

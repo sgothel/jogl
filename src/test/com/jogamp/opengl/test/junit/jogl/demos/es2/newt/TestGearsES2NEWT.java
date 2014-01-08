@@ -29,6 +29,7 @@
 package com.jogamp.opengl.test.junit.jogl.demos.es2.newt;
 
 import java.io.IOException;
+import java.net.URLConnection;
 
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.newt.Display;
@@ -47,6 +48,7 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.PNGPixelRect;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 import javax.media.nativewindow.NativeWindowFactory;
@@ -171,25 +173,55 @@ public class TestGearsES2NEWT extends UITestCase {
             }
         });
 
-        final PointerIcon pointerIconOne;
+        final PointerIcon[] pointerIcons = { null, null, null };
         {
-            PointerIcon _pointerIconOne = null;
-            final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "jogamp-pointer-64x64.png" } );
             final Display disp = glWindow.getScreen().getDisplay();
             disp.createNative();
-            try {
-                _pointerIconOne = disp.createPointerIcon(res, 32, 0);
-            } catch (Exception e) {
-                e.printStackTrace();
+            {
+                PointerIcon _pointerIcon = null;
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "newt/data/crosshair-lumina-trans-32x32.png" } );
+                try {
+                    _pointerIcon = disp.createPointerIcon(res, 16, 16);
+                    System.err.println("Create PointerIcon #01: "+_pointerIcon);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                pointerIcons[0] = _pointerIcon;
             }
-            pointerIconOne = _pointerIconOne;
+            {
+                PointerIcon _pointerIcon = null;
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "jogamp-pointer-64x64.png" } );
+                try {
+                    _pointerIcon = disp.createPointerIcon(res, 32, 0);
+                    System.err.println("Create PointerIcon #02: "+_pointerIcon);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                pointerIcons[1] = _pointerIcon;
+            }
+            {
+                PointerIcon _pointerIcon = null;
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "crosshair-lumina-trans-64x64.png" } );
+                try {
+                    final URLConnection urlConn = res.resolve(0);
+                    final PNGPixelRect image = PNGPixelRect.read(urlConn.getInputStream(), null, false /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
+                    System.err.println("Create PointerIcon #03: "+image);
+                    _pointerIcon = disp.createPointerIcon(image, 32, 32);
+                    System.err.println("Create PointerIcon #03: "+_pointerIcon);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                pointerIcons[2] = _pointerIcon;
+            }
         }
         if( setPointerIcon ) {
-            glWindow.setPointerIcon(pointerIconOne);
+            glWindow.setPointerIcon(pointerIcons[0]);
             System.err.println("Set PointerIcon: "+glWindow.getPointerIcon());
         }
 
         glWindow.addKeyListener(new KeyAdapter() {
+            int pointerIconIdx = 0;
+
             @Override
             public void keyPressed(final KeyEvent e) {
                 if( e.isAutoRepeat() ) {
@@ -246,7 +278,14 @@ public class TestGearsES2NEWT extends UITestCase {
                             final Thread t = glWindow.setExclusiveContextThread(null);
                             System.err.println("[set pointer-icon pre]");
                             final PointerIcon currentPI = glWindow.getPointerIcon();
-                            glWindow.setPointerIcon( currentPI == pointerIconOne ? null : pointerIconOne);
+                            final PointerIcon newPI;
+                            if( pointerIconIdx >= pointerIcons.length ) {
+                                newPI=null;
+                                pointerIconIdx=0;
+                            } else {
+                                newPI=pointerIcons[pointerIconIdx++];
+                            }
+                            glWindow.setPointerIcon( newPI );
                             System.err.println("[set pointer-icon post] "+currentPI+" -> "+glWindow.getPointerIcon());
                             glWindow.setExclusiveContextThread(t);
                     } }.start();

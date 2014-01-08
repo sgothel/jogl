@@ -50,6 +50,7 @@ import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 import com.jogamp.newt.NewtFactory;
@@ -74,6 +75,7 @@ public class WindowDriver extends WindowImpl {
         Buffer _icon_data=null;
         if( PNGIcon.isAvailable() ) {
             try {
+                // NOTE: MUST BE DIRECT BUFFER, since _NET_WM_ICON Atom uses buffer directly!
                 final int[] data_size = { 0 }, elem_bytesize = { 0 };
                 _icon_data = PNGIcon.arrayToX11BGRAImages(NewtFactory.getWindowIcons(), data_size, elem_bytesize);
                 _icon_data_size = data_size[0];
@@ -124,7 +126,7 @@ public class WindowDriver extends WindowImpl {
                           ( FLAG_IS_ALWAYSONTOP | FLAG_IS_UNDECORATED ) ;
         edtDevice.lock();
         try {
-            setWindowHandle(CreateWindow0(getParentWindowHandle(),
+            setWindowHandle(CreateWindow(getParentWindowHandle(),
                                    edtDevice.getHandle(), screen.getIndex(), visualID,
                                    display.getJavaObjectAtom(), display.getWindowDeleteAtom(),
                                    getX(), getY(), getWidth(), getHeight(), autoPosition(), flags,
@@ -430,10 +432,24 @@ public class WindowDriver extends WindowImpl {
 
     protected static native boolean initIDs0();
 
+    private long CreateWindow(long parentWindowHandle, long display, int screen_index,
+                              int visualID, long javaObjectAtom, long windowDeleteAtom,
+                              int x, int y, int width, int height, boolean autoPosition, int flags,
+                              int pixelDataSize, Buffer pixels) {
+        // NOTE: MUST BE DIRECT BUFFER, since _NET_WM_ICON Atom uses buffer directly!
+        if( !Buffers.isDirect(pixels) ) {
+            throw new IllegalArgumentException("data buffer is not direct "+pixels);
+        }
+        return CreateWindow0(parentWindowHandle, display, screen_index,
+                             visualID, javaObjectAtom, windowDeleteAtom,
+                             x, y, width, height, autoPosition, flags,
+                             pixelDataSize,
+                             pixels, Buffers.getDirectBufferByteOffset(pixels), true /* pixels_is_direct */);
+    }
     private native long CreateWindow0(long parentWindowHandle, long display, int screen_index,
                                       int visualID, long javaObjectAtom, long windowDeleteAtom,
                                       int x, int y, int width, int height, boolean autoPosition, int flags,
-                                      int iconDataSize, Object iconData);
+                                      int pixelDataSize, Object pixels, int pixels_byte_offset, boolean pixels_is_direct);
     private native void CloseWindow0(long display, long windowHandle, long javaObjectAtom, long windowDeleteAtom /*, long kbdHandle*/ ); // XKB disabled for now
     private native void reconfigureWindow0(long display, int screen_index, long parentWindowHandle, long windowHandle,
                                            long windowDeleteAtom, int x, int y, int width, int height, int flags);

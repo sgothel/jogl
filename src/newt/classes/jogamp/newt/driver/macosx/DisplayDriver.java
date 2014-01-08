@@ -34,28 +34,25 @@
 
 package jogamp.newt.driver.macosx;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
+import java.net.URLConnection;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.Point;
+import javax.media.nativewindow.util.PixelFormat;
 
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice;
 import com.jogamp.newt.NewtFactory;
+import com.jogamp.opengl.util.PNGPixelRect;
 
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.NEWTJNILibLoader;
-import jogamp.newt.PointerIconImpl;
-import jogamp.newt.driver.PNGIcon;
 
 public class DisplayDriver extends DisplayImpl {
-    private static final int defaultIconWidth, defaultIconHeight;
-    private static final Buffer defaultIconData;
+    private static final PNGPixelRect defaultIconData;
 
     static {
         NEWTJNILibLoader.loadNEWT();
@@ -67,21 +64,23 @@ public class DisplayDriver extends DisplayImpl {
             throw new NativeWindowException("Failed to initialize jmethodIDs");
         }
         {
-            final int[] width = { 0 }, height = { 0 }, data_size = { 0 };
-            Buffer data=null;
-            if( PNGIcon.isAvailable() ) {
+            PNGPixelRect image=null;
+            if( DisplayImpl.isPNGUtilAvailable() ) {
                 try {
+                    // NOTE: MUST BE DIRECT BUFFER, since NSBitmapImageRep uses buffer directly!
                     final IOUtil.ClassResources iconRes = NewtFactory.getWindowIcons();
-                    data = PNGIcon.singleToRGBAImage(iconRes, iconRes.resourceCount()-1, false /* toBGRA */, width, height, data_size);
+                    final URLConnection urlConn = iconRes.resolve(iconRes.resourceCount()-1);
+                    image = PNGPixelRect.read(urlConn.getInputStream(), PixelFormat.BGRA8888, true /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
-            defaultIconWidth = width[0];
-            defaultIconHeight = height[0];
-            defaultIconData = data;
+            defaultIconData = image;
             if( null != defaultIconData ) {
-                DisplayDriver.setAppIcon0(defaultIconData, defaultIconWidth, defaultIconHeight);
+                final Buffer pixels = defaultIconData.getPixels();
+                DisplayDriver.setAppIcon0(
+                      pixels, Buffers.getDirectBufferByteOffset(pixels), true /* pixels_is_direct */,
+                      defaultIconData.getSize().getWidth(), defaultIconData.getSize().getHeight());
             }
         }
 
@@ -112,17 +111,20 @@ public class DisplayDriver extends DisplayImpl {
         aDevice.close();
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * NOTE: MUST BE DIRECT BUFFER, since NSBitmapImageRep uses buffer directly!
+     * </p>
+     */
     @Override
-    protected PointerIconImpl createPointerIconImpl(final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws MalformedURLException, InterruptedException, IOException {
-        if( PNGIcon.isAvailable() ) {
-            final int[] width = { 0 }, height = { 0 }, data_size = { 0 };
-            if( null != pngResource && 0 < pngResource.resourceCount() ) {
-                final ByteBuffer data = PNGIcon.singleToRGBAImage(pngResource, 0, true /* toBGRA */, width, height, data_size);
-                return new PointerIconImpl( this, pngResource, new Dimension(width[0], height[0]),
-                                            new Point(hotX, hotY), createPointerIcon0(data, width[0], height[0], hotX, hotY));
-            }
-        }
-        return null;
+    public final boolean getNativePointerIconForceDirectNIO() { return true; }
+
+    @Override
+    protected final long createPointerIconImpl(PixelFormat pixelformat, int width, int height, final ByteBuffer pixels, final int hotX, final int hotY) {
+        return createPointerIcon0(
+              pixels, Buffers.getDirectBufferByteOffset(pixels), true /* pixels_is_direct */,
+              width, height, hotX, hotY);
     }
 
     @Override
@@ -140,8 +142,8 @@ public class DisplayDriver extends DisplayImpl {
     private static native boolean initNSApplication0();
     private static native void runNSApplication0();
     private static native void stopNSApplication0();
-    /* pp */ static native void setAppIcon0(Object iconData, int iconWidth, int iconHeight);
-    private static native long createPointerIcon0(Object iconData, int iconWidth, int iconHeight, int hotX, int hotY);
+    /* pp */ static native void setAppIcon0(Object pixels, int pixels_byte_offset, boolean pixels_is_direct, int width, int height);
+    private static native long createPointerIcon0(Object pixels, int pixels_byte_offset, boolean pixels_is_direct, int width, int height, int hotX, int hotY);
     private static native long destroyPointerIcon0(long handle);
 
 }

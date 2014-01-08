@@ -34,7 +34,9 @@
 
 package jogamp.newt;
 
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.event.NEWTEvent;
@@ -43,17 +45,25 @@ import com.jogamp.newt.event.NEWTEventConsumer;
 import jogamp.newt.event.NEWTEventTask;
 
 import com.jogamp.newt.util.EDTUtil;
+import com.jogamp.opengl.util.PNGPixelRect;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
+import java.net.URLConnection;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.util.PixelFormatUtil;
+import javax.media.nativewindow.util.PixelRectangle;
+import javax.media.nativewindow.util.PixelFormat;
+import javax.media.nativewindow.util.Point;
+import javax.media.nativewindow.util.PointImmutable;
 
 public abstract class DisplayImpl extends Display {
     private static int serialno = 1;
+    private static final boolean pngUtilAvail;
 
     static {
         NativeWindowFactory.addCustomShutdownHook(true /* head */, new Runnable() {
@@ -64,7 +74,13 @@ public abstract class DisplayImpl extends Display {
                DisplayImpl.shutdownAll();
            }
         });
+
+        final ClassLoader cl = DisplayImpl.class.getClassLoader();
+        pngUtilAvail = ReflectionUtil.isClassAvailable("jogamp.opengl.util.pngj.PngReader", cl) &&
+                       ReflectionUtil.isClassAvailable("com.jogamp.opengl.util.PNGPixelRect", cl);
     }
+
+    public static final boolean isPNGUtilAvailable() { return pngUtilAvail; }
 
     final ArrayList<PointerIconImpl> pointerIconList = new ArrayList<PointerIconImpl>();
 
@@ -86,12 +102,22 @@ public abstract class DisplayImpl extends Display {
     }
 
     @Override
-    public final PointerIcon createPointerIcon(final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws MalformedURLException, InterruptedException, IOException {
-        return createPointerIcon(false /* isTemp */, pngResource, hotX, hotY);
-    }
-    PointerIcon createPointerIcon(final boolean isTemp, final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws MalformedURLException, InterruptedException, IOException {
+    public PixelFormat getNativePointerIconPixelFormat() { return PixelFormat.BGRA8888; }
+    @Override
+    public boolean getNativePointerIconForceDirectNIO() { return false; }
+
+    @Override
+    public final PointerIcon createPointerIcon(final IOUtil.ClassResources pngResource, final int hotX, final int hotY)
+            throws IllegalArgumentException, IllegalStateException, IOException
+    {
         if( !isNativeValid() ) {
             throw new IllegalStateException("Display.createPointerIcon(1): Display invalid "+this);
+        }
+        if( null == pngResource || 0 >= pngResource.resourceCount() ) {
+            throw new IllegalArgumentException("Null or invalid pngResource "+pngResource);
+        }
+        if( !pngUtilAvail ) {
+            return null;
         }
         final PointerIconImpl[] res = { null };
         runOnEDTIfAvail(true, new Runnable() {
@@ -100,22 +126,134 @@ public abstract class DisplayImpl extends Display {
                     if( !DisplayImpl.this.isNativeValid() ) {
                         throw new IllegalStateException("Display.createPointerIcon(2): Display invalid "+DisplayImpl.this);
                     }
-                    res[0] = createPointerIconImpl(pngResource, hotX, hotY);
+                    final URLConnection urlConn = pngResource.resolve(0);
+                    if( null == urlConn ) {
+                        throw new IOException("Could not resolve "+pngResource.resourcePaths[0]);
+                    }
+                    final PNGPixelRect image = PNGPixelRect.read(urlConn.getInputStream(),
+                                                                 getNativePointerIconPixelFormat(),
+                                                                 getNativePointerIconForceDirectNIO(),
+                                                                 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
+                    final long handle = createPointerIconImplChecked(image.getPixelformat(), image.getSize().getWidth(), image.getSize().getHeight(),
+                                                                     image.getPixels(), hotX, hotY);
+                    final PointImmutable hotspot = new Point(hotX, hotY);
+                    if( DEBUG_POINTER_ICON ) {
+                        System.err.println("createPointerIconPNG.0: "+image+", handle: "+toHexString(handle)+", hot "+hotspot);
+                    }
+                    if( 0 != handle ) {
+                        res[0] = new PointerIconImpl(DisplayImpl.this, image, hotspot, handle);
+                        if( DEBUG_POINTER_ICON ) {
+                            System.err.println("createPointerIconPNG.0: "+res[0]);
+                        }
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             } } );
-        if( !isTemp ) {
+        if( null != res[0] ) {
             synchronized(pointerIconList) {
                 pointerIconList.add(res[0]);
             }
         }
         return res[0];
     }
-    /** Executed from EDT! */
-    protected PointerIconImpl createPointerIconImpl(final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws MalformedURLException, InterruptedException, IOException {
-        return null;
+
+    @Override
+    public final PointerIcon createPointerIcon(final PixelRectangle pixelrect, final int hotX, final int hotY)
+            throws IllegalArgumentException, IllegalStateException
+    {
+        if( !isNativeValid() ) {
+            throw new IllegalStateException("Display.createPointerIcon(1): Display invalid "+this);
+        }
+        if( null == pixelrect ) {
+            throw new IllegalArgumentException("Null or pixelrect");
+        }
+        final PixelRectangle fpixelrect;
+        if( getNativePointerIconPixelFormat() != pixelrect.getPixelformat() || pixelrect.isGLOriented() ) {
+            // conversion !
+            fpixelrect = PixelFormatUtil.convert32(pixelrect, getNativePointerIconPixelFormat(),
+                                                      0 /* ddestStride */, false /* isGLOriented */, getNativePointerIconForceDirectNIO() );
+            if( DEBUG_POINTER_ICON ) {
+                System.err.println("createPointerIconRES.0: Conversion-FMT "+pixelrect+" -> "+fpixelrect);
+            }
+        } else if( getNativePointerIconForceDirectNIO() && !Buffers.isDirect(pixelrect.getPixels()) ) {
+            // transfer to direct NIO
+            final ByteBuffer sBB = pixelrect.getPixels();
+            final ByteBuffer dBB = Buffers.newDirectByteBuffer(sBB.array(), sBB.arrayOffset());
+            fpixelrect = new PixelRectangle.GenericPixelRect(pixelrect.getPixelformat(), pixelrect.getSize(), pixelrect.getStride(), pixelrect.isGLOriented(), dBB);
+            if( DEBUG_POINTER_ICON ) {
+                System.err.println("createPointerIconRES.0: Conversion-NIO "+pixelrect+" -> "+fpixelrect);
+            }
+        } else {
+            fpixelrect = pixelrect;
+            if( DEBUG_POINTER_ICON ) {
+                System.err.println("createPointerIconRES.0: No conversion "+fpixelrect);
+            }
+        }
+        final PointerIconImpl[] res = { null };
+        runOnEDTIfAvail(true, new Runnable() {
+            public void run() {
+                try {
+                    if( !DisplayImpl.this.isNativeValid() ) {
+                        throw new IllegalStateException("Display.createPointerIcon(2): Display invalid "+DisplayImpl.this);
+                    }
+                    if( null != fpixelrect ) {
+                        final long handle = createPointerIconImplChecked(fpixelrect.getPixelformat(),
+                                                                         fpixelrect.getSize().getWidth(),
+                                                                         fpixelrect.getSize().getHeight(),
+                                                                         fpixelrect.getPixels(), hotX, hotY);
+                        if( 0 != handle ) {
+                            res[0] = new PointerIconImpl(DisplayImpl.this, fpixelrect, new Point(hotX, hotY), handle);
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } } );
+        if( null != res[0] ) {
+            synchronized(pointerIconList) {
+                pointerIconList.add(res[0]);
+            }
+        }
+        return res[0];
     }
+
+    /**
+     * Executed from EDT!
+     *
+     * @param pixelformat the <code>pixels</code>'s format
+     * @param width the <code>pixels</code>'s width
+     * @param height the <code>pixels</code>'s height
+     * @param pixels the <code>pixels</code>
+     * @param hotX the PointerIcon's hot-spot x-coord
+     * @param hotY the PointerIcon's hot-spot x-coord
+     * @return if successful a valid handle (not null), otherwise null.
+     */
+    protected final long createPointerIconImplChecked(PixelFormat pixelformat, int width, int height, final ByteBuffer pixels, final int hotX, final int hotY) {
+        if( getNativePointerIconPixelFormat() != pixelformat ) {
+            throw new IllegalArgumentException("Pixelformat no "+getNativePointerIconPixelFormat()+", but "+pixelformat);
+        }
+        if( getNativePointerIconForceDirectNIO() && !Buffers.isDirect(pixels) ) {
+            throw new IllegalArgumentException("pixel buffer is not direct "+pixels);
+        }
+        return createPointerIconImpl(pixelformat, width, height, pixels, hotX, hotY);
+    }
+
+    /**
+     * Executed from EDT!
+     *
+     * @param pixelformat the <code>pixels</code>'s format
+     * @param width the <code>pixels</code>'s width
+     * @param height the <code>pixels</code>'s height
+     * @param pixels the <code>pixels</code>
+     * @param hotX the PointerIcon's hot-spot x-coord
+     * @param hotY the PointerIcon's hot-spot x-coord
+     * @return if successful a valid handle (not null), otherwise null.
+     */
+    protected long createPointerIconImpl(PixelFormat pixelformat, int width, int height, final ByteBuffer pixels, final int hotX, final int hotY) {
+        return 0;
+    }
+
     /** Executed from EDT! */
     protected void destroyPointerIconImpl(final long displayHandle, long piHandle) { }
 

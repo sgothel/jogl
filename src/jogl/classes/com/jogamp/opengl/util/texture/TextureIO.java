@@ -41,10 +41,12 @@
 package com.jogamp.opengl.util.texture;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -52,9 +54,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.PixelFormat;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
-import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
@@ -63,11 +66,11 @@ import javax.media.opengl.GLProfile;
 import jogamp.opengl.Debug;
 
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.opengl.util.PNGPixelRect;
 import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
 import com.jogamp.opengl.util.texture.spi.DDSImage;
 import com.jogamp.opengl.util.texture.spi.JPEGImage;
 import com.jogamp.opengl.util.texture.spi.NetPbmTextureWriter;
-import com.jogamp.opengl.util.texture.spi.PNGImage;
 import com.jogamp.opengl.util.texture.spi.SGIImage;
 import com.jogamp.opengl.util.texture.spi.TGAImage;
 import com.jogamp.opengl.util.texture.spi.TextureProvider;
@@ -1166,27 +1169,29 @@ public class TextureIO {
                                           boolean mipmap,
                                           String fileSuffix) throws IOException {
             if (PNG.equals(fileSuffix)) {
-                PNGImage image = PNGImage.read(/*glp, */ stream);
-                if (pixelFormat == 0) {
-                    pixelFormat = image.getGLFormat();
-                }
-                if (internalFormat == 0) {
+                final PNGPixelRect image = PNGPixelRect.read(stream, null, true /* directBuffer */, 0 /* destMinStrideInBytes */, true /* destIsGLOriented */);
+                final GLPixelAttributes glpa = GLPixelAttributes.convert(image.getPixelformat(), glp);
+                if ( 0 == pixelFormat ) {
+                    pixelFormat = glpa.format;
+                }  // else FIXME: Actually not supported w/ preset pixelFormat!
+                if ( 0 == internalFormat ) {
+                    final boolean hasAlpha = 4 == glpa.bytesPerPixel;
                     if(glp.isGL2ES3()) {
-                        internalFormat = (image.getBytesPerPixel()==4)?GL.GL_RGBA8:GL.GL_RGB8;
+                        internalFormat = hasAlpha ? GL.GL_RGBA8 : GL.GL_RGB8;
                     } else {
-                        internalFormat = (image.getBytesPerPixel()==4)?GL.GL_RGBA:GL.GL_RGB;
+                        internalFormat = hasAlpha ? GL.GL_RGBA : GL.GL_RGB;
                     }
                 }
                 return new TextureData(glp, internalFormat,
-                                       image.getWidth(),
-                                       image.getHeight(),
+                                       image.getSize().getWidth(),
+                                       image.getSize().getHeight(),
                                        0,
                                        pixelFormat,
-                                       image.getGLType(),
+                                       glpa.type,
                                        mipmap,
                                        false,
                                        false,
-                                       image.getData(),
+                                       image.getPixels(),
                                        null);
             }
 
@@ -1392,29 +1397,7 @@ public class TextureIO {
                 final int pixelFormat = pixelAttribs.format;
                 final int pixelType   = pixelAttribs.type;
                 final int bytesPerPixel = pixelAttribs.bytesPerPixel;
-                final boolean reversedChannels;
-                switch(pixelFormat) {
-                    case GL.GL_ALPHA:
-                    case GL.GL_LUMINANCE:
-                    case GL2ES2.GL_RED:
-                        reversedChannels=false;
-                        break;
-                    case GL.GL_RGB:
-                        reversedChannels=false;
-                        break;
-                    case GL.GL_RGBA:
-                        reversedChannels=false;
-                        break;
-                    case GL2.GL_BGR:
-                        reversedChannels=true;
-                        break;
-                    case GL.GL_BGRA:
-                        reversedChannels=true;
-                        break;
-                    default:
-                        reversedChannels=false;
-                        break;
-                }
+                final PixelFormat pixFmt = pixelAttribs.getPixelFormat();
                 if ( ( 1 == bytesPerPixel || 3 == bytesPerPixel || 4 == bytesPerPixel) &&
                      ( pixelType == GL.GL_BYTE || pixelType == GL.GL_UNSIGNED_BYTE)) {
                     ByteBuffer buf = (ByteBuffer) data.getBuffer();
@@ -1423,9 +1406,11 @@ public class TextureIO {
                     }
                     buf.rewind();
 
-                    PNGImage image = PNGImage.createFromData(data.getWidth(), data.getHeight(), -1f, -1f,
-                                                             bytesPerPixel, reversedChannels, !data.getMustFlipVertically(), buf);
-                    image.write(file, true);
+                    final PNGPixelRect image = new PNGPixelRect(pixFmt, new Dimension(data.getWidth(), data.getHeight()),
+                                                                0 /* stride */, true /* isGLOriented */, buf /* pixels */,
+                                                                -1f, -1f);
+                    final OutputStream outs = new BufferedOutputStream(IOUtil.getFileOutputStream(file, true /* allowOverwrite */));
+                    image.write(outs, true /* close */);
                     return true;
                 }
                 throw new IOException("PNG writer doesn't support this pixel format 0x"+Integer.toHexString(pixelFormat)+

@@ -37,20 +37,18 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Frame;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.net.URLConnection;
 import java.util.HashMap;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JRootPane;
 import javax.swing.WindowConstants;
-import javax.imageio.ImageIO;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.WindowClosingProtocol;
+import javax.media.nativewindow.util.PixelRectangle;
+import javax.media.nativewindow.util.PixelFormat;
+import javax.media.nativewindow.util.PixelFormatUtil;
 import javax.swing.MenuSelectionManager;
-
-import com.jogamp.common.util.IOUtil;
 
 public class AWTMisc {
 
@@ -173,7 +171,7 @@ public class AWTMisc {
         MenuSelectionManager.defaultManager().clearSelectedPath();
     }
 
-    static final HashMap<String, Cursor> cursorMap = new HashMap<String, Cursor>();
+    static final HashMap<Integer, Cursor> cursorMap = new HashMap<Integer, Cursor>();
     static final Cursor nulCursor;
     static {
         final Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -183,21 +181,43 @@ public class AWTMisc {
 
     public static synchronized Cursor getNullCursor() { return nulCursor; }
 
-    public static synchronized Cursor getCursor(IOUtil.ClassResources resources, Point hotSpot) throws IOException {
-        final String key = resources.getClass().getName()+":"+resources.resourcePaths[0];
+    public static synchronized Cursor getCursor(PixelRectangle pixelrect, Point hotSpot) {
+        // 31 * x == (x << 5) - x
+        int hash = 31 + pixelrect.hashCode();
+        hash = ((hash << 5) - hash) + hotSpot.hashCode();
+        final Integer key = Integer.valueOf(hash);
+
         Cursor cursor = cursorMap.get(key);
         if( null == cursor ) {
-            cursor = createAWTCursor(resources, hotSpot);
+            cursor = createCursor(pixelrect, hotSpot);
             cursorMap.put(key, cursor);
         }
         return cursor;
     }
-    private static synchronized Cursor createAWTCursor(IOUtil.ClassResources resources, Point hotSpot) throws IOException {
-        final URLConnection urlConn = resources.resolve(0);
-        final BufferedImage img = ImageIO.read(urlConn.getInputStream());
-
+    private static synchronized Cursor createCursor(PixelRectangle pixelrect, Point hotSpot) {
+        final int width = pixelrect.getSize().getWidth();
+        final int height = pixelrect.getSize().getHeight();
+        final BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB); // PixelFormat.BGRA8888
+        final PixelFormatUtil.PixelSink32 imgSink = new PixelFormatUtil.PixelSink32() {
+            public void store(int x, int y, int pixel) {
+                img.setRGB(x, y, pixel);
+            }
+            @Override
+            public final PixelFormat getPixelformat() {
+                return PixelFormat.BGRA8888;
+            }
+            @Override
+            public int getStride() {
+                return width*4;
+            }
+            @Override
+            public final boolean isGLOriented() {
+                return false;
+            }
+        };
+        PixelFormatUtil.convert32(imgSink, pixelrect);
         final Toolkit toolkit = Toolkit.getDefaultToolkit();
-        return toolkit.createCustomCursor(img, hotSpot, resources.resourcePaths[0]);
+        return toolkit.createCustomCursor(img, hotSpot, pixelrect.toString());
     }
 
     public static WindowClosingProtocol.WindowClosingMode AWT2NWClosingOperation(int awtClosingOperation) {

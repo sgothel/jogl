@@ -512,7 +512,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWindow0
                              jint visualID, 
                              jlong javaObjectAtom, jlong windowDeleteAtom, 
                              jint x, jint y, jint width, jint height, jboolean autoPosition, int flags,
-                             jint iconDataSize, jobject iconData)
+                             jint pixelDataSize, jobject pixels, jint pixels_byte_offset, jboolean pixels_is_direct)
 {
     Display * dpy = (Display *)(intptr_t)display;
     Atom wm_delete_atom = (Atom)windowDeleteAtom;
@@ -632,16 +632,26 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWindow0
     {
         XEvent event;
         int left=0, right=0, top=0, bottom=0;
+        const unsigned char * pixelPtr = NULL;
 
-        if( 0 < iconDataSize && NULL != iconData ) {
-            const unsigned char * iconDataPtr = (const unsigned char *) (*env)->GetDirectBufferAddress(env, iconData);
-            NewtWindows_setIcon(dpy, window, (int)iconDataSize, iconDataPtr);
+        // NOTE: MUST BE DIRECT BUFFER, since _NET_WM_ICON Atom uses buffer directly!
+        DBG_PRINT("X11: CreateWindow icon: size %d, pixels %p, offset %d, direct %d\n", pixelDataSize, (void*)pixels, pixels_byte_offset, pixels_is_direct);
+        if( 0 < pixelDataSize && NULL != pixels ) {
+            pixelPtr = (const unsigned char *) ( JNI_TRUE == pixels_is_direct ? 
+                                                    (*env)->GetDirectBufferAddress(env, pixels) : 
+                                                    (*env)->GetPrimitiveArrayCritical(env, pixels, NULL) );
+            DBG_PRINT("X11: CreateWindow icon: NIO %p\n", pixelPtr);
+            NewtWindows_setIcon(dpy, window, (int)pixelDataSize, pixelPtr+pixels_byte_offset);
         }
 
         XMapWindow(dpy, window);
         XIfEvent( dpy, &event, WaitForMapNotify, (XPointer) window ); // wait to get proper insets values
 
         XSync(dpy, False);
+
+        if( JNI_FALSE == pixels_is_direct && NULL != pixelPtr ) {
+            (*env)->ReleasePrimitiveArrayCritical(env, pixels, (void*)pixelPtr, JNI_ABORT);  
+        }
 
         // send insets before visibility, allowing java code a proper sync point!
         NewtWindows_updateInsets(env, jwindow, dpy, window, &left, &right, &top, &bottom);

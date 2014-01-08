@@ -34,25 +34,19 @@
 
 package jogamp.newt.driver.x11;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.Point;
+import javax.media.nativewindow.util.PixelFormat;
 
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.common.util.IOUtil;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 
 import jogamp.nativewindow.x11.X11Util;
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.NEWTJNILibLoader;
-import jogamp.newt.PointerIconImpl;
-import jogamp.newt.driver.PNGIcon;
 
 public class DisplayDriver extends DisplayImpl {
 
@@ -132,16 +126,11 @@ public class DisplayDriver extends DisplayImpl {
     protected Boolean isXineramaEnabled() { return isNativeValid() ? Boolean.valueOf(((X11GraphicsDevice)aDevice).isXineramaEnabled()) : null; }
 
     @Override
-    protected PointerIconImpl createPointerIconImpl(final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws MalformedURLException, InterruptedException, IOException {
-        if( PNGIcon.isAvailable() ) {
-            final int[] width = { 0 }, height = { 0 }, data_size = { 0 };
-            if( null != pngResource && 0 < pngResource.resourceCount() ) {
-                final ByteBuffer data = PNGIcon.singleToRGBAImage(pngResource, 0, false /* toBGRA */, width, height, data_size);
-                final long handle = createPointerIcon0(getHandle(), data, width[0], height[0], hotX, hotY);
-                return new PointerIconImpl(DisplayDriver.this, pngResource, new Dimension(width[0], height[0]), new Point(hotX, hotY), handle);
-            }
-        }
-        return null;
+    public final PixelFormat getNativePointerIconPixelFormat() { return PixelFormat.RGBA8888; }
+
+    @Override
+    protected final long createPointerIconImpl(PixelFormat pixelformat, int width, int height, final ByteBuffer pixels, final int hotX, final int hotY) {
+        return createPointerIcon(getHandle(), pixels, width, height, hotX, hotY);
     }
 
     @Override
@@ -166,13 +155,16 @@ public class DisplayDriver extends DisplayImpl {
 
     private native void DispatchMessages0(long display, long javaObjectAtom, long windowDeleteAtom /* , long kbdHandle */); // XKB disabled for now
 
-    static long createPointerIcon0(long display, Buffer data, int width, int height, int hotX, int hotY) {
-        if( !Buffers.isDirect(data) ) {
-            throw new IllegalArgumentException("data buffer is not direct "+data);
-        }
-        return createPointerIcon0(display, data, Buffers.getDirectBufferByteOffset(data), width, height, hotX, hotY);
+    private static long createPointerIcon(long display, Buffer pixels, int width, int height, int hotX, int hotY) {
+        final boolean pixels_is_direct = Buffers.isDirect(pixels);
+        return createPointerIcon0(display,
+                                  pixels_is_direct ? pixels : Buffers.getArray(pixels),
+                                  pixels_is_direct ? Buffers.getDirectBufferByteOffset(pixels) : Buffers.getIndirectBufferByteOffset(pixels),
+                                  pixels_is_direct,
+                                  width, height, hotX, hotY);
     }
-    private static native long createPointerIcon0(long display, Object data, int data_offset, int width, int height, int hotX, int hotY);
+    private static native long createPointerIcon0(long display, Object pixels, int pixels_byte_offset, boolean pixels_is_direct, int width, int height, int hotX, int hotY);
+
     static native void destroyPointerIcon0(long display, long handle);
 
     /** X11 Window delete atom marker used on EDT */

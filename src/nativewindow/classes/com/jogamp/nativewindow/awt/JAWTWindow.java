@@ -38,7 +38,6 @@
 package com.jogamp.nativewindow.awt;
 
 import com.jogamp.common.os.Platform;
-import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
@@ -53,7 +52,6 @@ import java.awt.event.ComponentListener;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
 import java.applet.Applet;
-import java.io.IOException;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -66,6 +64,7 @@ import javax.media.nativewindow.OffscreenLayerSurface;
 import javax.media.nativewindow.SurfaceUpdatedListener;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
+import javax.media.nativewindow.util.PixelRectangle;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.PointImmutable;
 import javax.media.nativewindow.util.Rectangle;
@@ -433,19 +432,19 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   }
 
   @Override
-  public final boolean setCursor(final IOUtil.ClassResources resources, final PointImmutable hotSpot) throws IOException {
+  public final boolean setCursor(final PixelRectangle pixelrect, final PointImmutable hotSpot) {
       AWTEDTExecutor.singleton.invoke(false, new Runnable() {
           public void run() {
               Cursor c = null;
-              if( null == resources || null == hotSpot ) {
+              if( null == pixelrect || null == hotSpot ) {
                   c = Cursor.getDefaultCursor();
               } else {
                   final java.awt.Point awtHotspot = new java.awt.Point(hotSpot.getX(), hotSpot.getY());
                   try {
-                    c = AWTMisc.getCursor(resources, awtHotspot);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                      c = AWTMisc.getCursor(pixelrect, awtHotspot);
+                  } catch (Exception e) {
+                      e.printStackTrace();
+                  }
               }
               if( null != c ) {
                   component.setCursor(c);
@@ -455,7 +454,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   }
 
   @Override
-  public boolean hideCursor() {
+  public final boolean hideCursor() {
       AWTEDTExecutor.singleton.invoke(false, new Runnable() {
           public void run() {
               component.setCursor(AWTMisc.getNullCursor());

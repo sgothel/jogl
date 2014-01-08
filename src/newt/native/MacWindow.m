@@ -287,9 +287,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_DisplayDriver_stopNSApplic
     [pool release];
 }
 
-static NSImage * createNSImageFromData(JNIEnv *env, jobject jiconData, jint jiconWidth, jint jiconHeight) {
-    if( NULL != jiconData ) {
-        unsigned char * iconData = (unsigned char *) (*env)->GetDirectBufferAddress(env, jiconData);
+static NSImage * createNSImageFromData(JNIEnv *env, unsigned char * iconData, jint jiconWidth, jint jiconHeight) {
+    if( NULL != iconData ) {
         NSInteger iconWidth = (NSInteger) jiconWidth;
         NSInteger iconHeight = (NSInteger) jiconHeight;
         const NSInteger bpc = 8 /* bits per component */, spp=4 /* RGBA */, bpp = bpc * spp;
@@ -319,27 +318,46 @@ static NSImage * createNSImageFromData(JNIEnv *env, jobject jiconData, jint jico
  * Method:    setAppIcon0
  */
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_DisplayDriver_setAppIcon0
-  (JNIEnv *env, jobject unused, jobject jiconData, jint jiconWidth, jint jiconHeight)
+  (JNIEnv *env, jobject unused, jobject pixels, jint pixels_byte_offset, jboolean pixels_is_direct, jint width, jint height)
 {
+    if( 0 == pixels ) {
+        return;
+    }
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    NSImage * nsImage = createNSImageFromData(env, jiconData, jiconWidth, jiconHeight);
+    // NOTE: MUST BE DIRECT BUFFER, since NSBitmapImageRep uses buffer directly!
+    unsigned char * pixelPtr = (unsigned char *) ( JNI_TRUE == pixels_is_direct ? 
+                                            (*env)->GetDirectBufferAddress(env, pixels) : 
+                                            (*env)->GetPrimitiveArrayCritical(env, pixels, NULL) );
+    NSImage * nsImage = createNSImageFromData(env, pixelPtr + pixels_byte_offset, width, height);
     if( NULL != nsImage ) {
         [nsImage autorelease];
         [NSApp setApplicationIconImage: nsImage];
+    }
+    if ( JNI_FALSE == pixels_is_direct ) {
+        (*env)->ReleasePrimitiveArrayCritical(env, pixels, (void*)pixelPtr, JNI_ABORT);  
     }
     [pool release];
 }
 
 JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_DisplayDriver_createPointerIcon0
-  (JNIEnv *env, jobject unused, jobject jiconData, jint jiconWidth, jint jiconHeight, jint hotX, jint hotY) 
+  (JNIEnv *env, jobject unused, jobject pixels, jint pixels_byte_offset, jboolean pixels_is_direct, jint width, jint height, jint hotX, jint hotY)
 {
+    if( 0 == pixels ) {
+        return 0;
+    }
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    NSImage * nsImage = createNSImageFromData(env, jiconData, jiconWidth, jiconHeight);
+    unsigned char * pixelPtr = (unsigned char *) ( JNI_TRUE == pixels_is_direct ? 
+                                            (*env)->GetDirectBufferAddress(env, pixels) : 
+                                            (*env)->GetPrimitiveArrayCritical(env, pixels, NULL) );
+    NSImage * nsImage = createNSImageFromData(env, pixelPtr + pixels_byte_offset, width, height);
     NSCursor * res = NULL;
     if( NULL != nsImage ) {
         [nsImage autorelease];
         NSPoint hotP = { hotX, hotY };
         res = [[NSCursor alloc] initWithImage: nsImage hotSpot: hotP];
+    }
+    if ( JNI_FALSE == pixels_is_direct ) {
+        (*env)->ReleasePrimitiveArrayCritical(env, pixels, (void*)pixelPtr, JNI_ABORT);  
     }
     [pool release];
     DBG_PRINT( "createPointerIcon0 %p\n", res);

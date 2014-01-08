@@ -28,25 +28,27 @@
 package com.jogamp.opengl.test.junit.newt.parenting;
 
 import java.awt.Frame;
+import java.net.URLConnection;
 
 import javax.media.nativewindow.util.InsetsImmutable;
 
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.newt.Display;
-import com.jogamp.newt.Window;
 import com.jogamp.newt.Display.PointerIcon;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
+import com.jogamp.opengl.util.PNGPixelRect;
 
 public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
     final Frame frame;
     final NewtCanvasAWT newtCanvasAWT;
     final GLWindow glWindow;
     final QuitAdapter quitAdapter;
-    PointerIcon pointerIconTest = null;
+    PointerIcon[] pointerIcons = null;
+    int pointerIconIdx = 0;
 
     public NewtAWTReparentingKeyAdapter(Frame frame, NewtCanvasAWT newtCanvasAWT, GLWindow glWindow, QuitAdapter quitAdapter) {
         this.frame = frame;
@@ -144,13 +146,46 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
                     }
             } }.start();
         } else if(e.getKeySymbol() == KeyEvent.VK_C ) {
-            if( null == pointerIconTest ) {
-                final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "newt/data/jogamp-32x32.png" } );
-                final Display disp = glWindow.getScreen().getDisplay();
-                try {
-                    pointerIconTest = disp.createPointerIcon(res, 16, 0);
-                } catch (Exception err) {
-                    err.printStackTrace();
+            if( null == pointerIcons ) {
+                {
+                    pointerIcons = new PointerIcon[3];
+                    final Display disp = glWindow.getScreen().getDisplay();
+                    {
+                        PointerIcon _pointerIcon = null;
+                        final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "newt/data/crosshair-lumina-trans-32x32.png" } );
+                        try {
+                            _pointerIcon = disp.createPointerIcon(res, 16, 16);
+                            System.err.println("Create PointerIcon #01: "+_pointerIcon);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                        pointerIcons[0] = _pointerIcon;
+                    }
+                    {
+                        PointerIcon _pointerIcon = null;
+                        final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "jogamp-pointer-64x64.png" } );
+                        try {
+                            _pointerIcon = disp.createPointerIcon(res, 32, 0);
+                            System.err.println("Create PointerIcon #02: "+_pointerIcon);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                        pointerIcons[1] = _pointerIcon;
+                    }
+                    {
+                        PointerIcon _pointerIcon = null;
+                        final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "crosshair-lumina-trans-64x64.png" } );
+                        try {
+                            final URLConnection urlConn = res.resolve(0);
+                            final PNGPixelRect image = PNGPixelRect.read(urlConn.getInputStream(), null, false /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
+                            System.err.println("Create PointerIcon #03: "+image);
+                            _pointerIcon = disp.createPointerIcon(image, 32, 32);
+                            System.err.println("Create PointerIcon #03: "+_pointerIcon);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                        pointerIcons[2] = _pointerIcon;
+                    }
                 }
             }
             new Thread() {
@@ -158,7 +193,14 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
                     final Thread t = glWindow.setExclusiveContextThread(null);
                     System.err.println("[set pointer-icon pre]");
                     final PointerIcon currentPI = glWindow.getPointerIcon();
-                    glWindow.setPointerIcon( currentPI == pointerIconTest ? null : pointerIconTest);
+                    final PointerIcon newPI;
+                    if( pointerIconIdx >= pointerIcons.length ) {
+                        newPI=null;
+                        pointerIconIdx=0;
+                    } else {
+                        newPI=pointerIcons[pointerIconIdx++];
+                    }
+                    glWindow.setPointerIcon( newPI );
                     System.err.println("[set pointer-icon post] "+currentPI+" -> "+glWindow.getPointerIcon());
                     glWindow.setExclusiveContextThread(t);
             } }.start();

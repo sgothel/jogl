@@ -678,13 +678,15 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
  * Signature: (JJILjava/lang/Object;I)V
  */
 JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_createPointerIcon0
-  (JNIEnv *env, jclass clazz, jlong display, jobject data, jint data_offset, jint width, jint height, jint hotX, jint hotY)
+  (JNIEnv *env, jclass clazz, jlong display, jobject pixels, jint pixels_byte_offset, jboolean pixels_is_direct, jint width, jint height, jint hotX, jint hotY)
 {
     Cursor c;
 
-    if( 0 != data ) {
+    if( 0 != pixels ) {
         Display * dpy = (Display *) (intptr_t) display;
-        char * data_ptr = (char *) (*env)->GetDirectBufferAddress(env, data) + data_offset;
+        const unsigned char * pixelPtr = (const unsigned char *) ( JNI_TRUE == pixels_is_direct ? 
+                                                (*env)->GetDirectBufferAddress(env, pixels) : 
+                                                (*env)->GetPrimitiveArrayCritical(env, pixels, NULL) );
         XcursorImage ci;
         ci.version = 1; // XCURSOR_IMAGE_VERSION;
         ci.size = width; // nominal size (assume square ..)
@@ -693,11 +695,14 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_createPointerI
         ci.xhot = hotX;
         ci.yhot = hotY;
         ci.delay = 0;
-        ci.pixels = (XcursorPixel *)(intptr_t)data_ptr;
+        ci.pixels = (XcursorPixel *)(intptr_t)(pixelPtr + pixels_byte_offset);
 
         c = XcursorImageLoadCursor (dpy, &ci);
 
-        DBG_PRINT( "X11: createPointerIcon0: %p %dx%d %d/%d -> %p\n", data_ptr, width, height, hotX, hotY, (void *)c);
+        if ( JNI_FALSE == pixels_is_direct ) {
+            (*env)->ReleasePrimitiveArrayCritical(env, pixels, (void*)pixelPtr, JNI_ABORT);  
+        }
+        DBG_PRINT( "X11: createPointerIcon0: %p %dx%d %d/%d -> %p\n", (pixelPtr+pixels_byte_offset), width, height, hotX, hotY, (void *)c);
 
     } else {
         c = 0;

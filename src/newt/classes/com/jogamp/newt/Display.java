@@ -30,14 +30,14 @@ package com.jogamp.newt;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.util.DimensionImmutable;
+import javax.media.nativewindow.util.PixelRectangle;
+import javax.media.nativewindow.util.PixelFormat;
 import javax.media.nativewindow.util.PointImmutable;
 
 import jogamp.newt.Debug;
@@ -47,6 +47,7 @@ import com.jogamp.newt.util.EDTUtil;
 
 public abstract class Display {
     public static final boolean DEBUG = Debug.debug("Display");
+    protected static final boolean DEBUG_POINTER_ICON = Debug.debug("Display.PointerIcon");
 
     /** return precomputed hashCode from FQN {@link #getFQName()} */
     @Override
@@ -66,7 +67,9 @@ public abstract class Display {
     /**
      * Native PointerIcon handle.
      * <p>
-     * Instances can be created via {@link Display}'s {@link Display#createPointerIcon(com.jogamp.common.util.IOUtil.ClassResources, int, int) createPointerIcon(..)}.
+     * Instances can be created via {@link Display}'s
+     * {@link Display#createPointerIcon(com.jogamp.common.util.IOUtil.ClassResources, int, int) createPointerIcon(pngResource, ..)}
+     * or {@link Display#createPointerIcon(PixelRectangle, int, int) createPointerIcon(pixelrect, ..)}.
      * </p>
      * <p>
      * Instance is {@link #destroy()}'ed automatically if it's {@link #getDisplay() associated Display} is destroyed.
@@ -75,23 +78,65 @@ public abstract class Display {
      * Instance can be re-validated after destruction via {@link #validate()}.
      * </p>
      * <p>
+     * {@link PointerIcon} must not be {@link #destroy() destroyed} while in use!
+     * </p>
+     * <p>
      * {@link PointerIcon} may be {@link #destroy() destroyed} manually after use,
      * i.e. when no {@link Window} {@link Window#setPointerIcon(PointerIcon) uses them} anymore.
+     * However, this is not required.
      * </p>
      * <p>
      * PointerIcons can be used via {@link Window#setPointerIcon(PointerIcon)}.
      * </p>
      */
-    public static interface PointerIcon {
+    public static interface PointerIcon extends PixelRectangle {
+        /**
+         * Always neatly packed, i.e. width * bytes_per_pixel.
+         * <p>
+         * {@inheritDoc}
+         * </p>
+         */
+        @Override
+        int getStride();
+
+        /**
+         * Always false, i.e. origin is TOP-LEFT.
+         * <p>
+         * {@inheritDoc}
+         * </p>
+         */
+        boolean isGLOriented();
+
+        /**
+         * Computes a hash code over:
+         * <ul>
+         *   <li>display</li>
+         *   <li>pixelformat</li>
+         *   <li>size</li>
+         *   <li>stride</li>
+         *   <li>isGLOriented</li>
+         *   <li>pixels</li>
+         *   <li>hotspot</li>
+         * </ul>
+         * Dismissing the native handle!
+         * <p>
+         * The hashCode shall be computed only once with first call
+         * and stored for later retrieval to enhance performance.
+         * </p>
+         * <p>
+         * {@inheritDoc}
+         * </p>
+         */
+        @Override
+        int hashCode();
+
         /**
          * @return the associated Display
          */
         Display getDisplay();
 
-        /**
-         * @return the single {@link IOUtil.ClassResources}.
-         */
-        IOUtil.ClassResources getResource();
+        /** Returns the hotspot. */
+        PointImmutable getHotspot();
 
         /**
          * Returns true if valid, otherwise false.
@@ -116,16 +161,23 @@ public abstract class Display {
          * </p>
          */
         void destroy();
-
-        /** Returns the size, i.e. width and height. */
-        DimensionImmutable getSize();
-
-        /** Returns the hotspot. */
-        PointImmutable getHotspot();
-
-        @Override
-        String toString();
     }
+
+    /**
+     * Returns the native platform's {@link PointerIcon.PixelFormat} for pointer-icon pixel data.
+     * <p>
+     * Using this value will avoid conversion within {@link #createPointerIcon(PixelRectangle, int, int)}.
+     * </p>
+     */
+    public abstract PixelFormat getNativePointerIconPixelFormat();
+
+    /**
+     * Returns the native platform's direct NIO buffer requirement pointer-icon pixel data.
+     * <p>
+     * Using this value will avoid conversion within {@link #createPointerIcon(PixelRectangle, int, int)}.
+     * </p>
+     */
+    public abstract boolean getNativePointerIconForceDirectNIO();
 
     /**
      * Returns the newly created {@link PointerIcon} or <code>null</code> if not implemented on platform.
@@ -133,18 +185,45 @@ public abstract class Display {
      * See {@link PointerIcon} for lifecycle semantics.
      * </p>
      *
-     * @param pngResource single PNG resource, only the first entry of {@link IOUtil.ClassResources#resourcePaths} is used.
+     * @param pngResource single PNG resource for the {@link PointerIcon}. Only the first entry of {@link IOUtil.ClassResources#resourcePaths} is used.
      * @param hotX pointer hotspot x-coord, origin is upper-left corner
      * @param hotY pointer hotspot y-coord, origin is upper-left corner
+     *
+     * @throws IllegalArgumentException if pngResource is null or invalid
      * @throws IllegalStateException if this Display instance is not {@link #isNativeValid() valid yet}.
-     * @throws MalformedURLException
-     * @throws InterruptedException
-     * @throws IOException
+     * @throws IOException if the <code>pngResource</code> could not be {@link IOUtil.ClassResources#resolve(int) resolved}
+     *                     or via the PNG parser processing the input stream.
      *
      * @see PointerIcon
      * @see Window#setPointerIcon(PointerIcon)
      */
-    public abstract PointerIcon createPointerIcon(final IOUtil.ClassResources pngResource, final int hotX, final int hotY) throws IllegalStateException, MalformedURLException, InterruptedException, IOException;
+    public abstract PointerIcon createPointerIcon(final IOUtil.ClassResources pngResource, final int hotX, final int hotY)
+            throws IllegalArgumentException, IllegalStateException, IOException;
+
+    /**
+     * Returns the newly created {@link PointerIcon} or <code>null</code> if not implemented on platform.
+     * <p>
+     * See {@link PointerIcon} for lifecycle semantics.
+     * </p>
+     * <p>
+     * In case {@link #getNativePointerIconPixelFormat()} or {@link #getNativePointerIconForceDirectNIO()}
+     * is not matched by the given <code>pixelrect</code>, the <code>pixelrect</code> is converted
+     * into the required {@link PixelFormat} and NIO type.
+     * </p>
+     *
+     * @param pixelrect {@link PixelRectangle} source for the {@link PointerIcon}
+     * @param hotX pointer hotspot x-coord, origin is upper-left corner
+     * @param hotY pointer hotspot y-coord, origin is upper-left corner
+     *
+     * @throws IllegalArgumentException if pixelrect is null.
+     * @throws IllegalStateException if this Display instance is not {@link #isNativeValid() valid yet}.
+     *
+     * @see PointerIcon
+     * @see Window#setPointerIcon(PointerIcon)
+     * @see #getNativePointerIconPixelFormat()
+     * @see #getNativePointerIconForceDirectNIO()
+     */
+    public abstract PointerIcon createPointerIcon(final PixelRectangle pixelrect, final int hotX, final int hotY) throws IllegalArgumentException, IllegalStateException;
 
     /**
      * Manual trigger the native creation, if it is not done yet.<br>
