@@ -30,11 +30,15 @@ package com.jogamp.opengl.util;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
+import javax.media.nativewindow.util.PixelFormat;
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2ES3;
+import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.texture.TextureData;
@@ -202,6 +206,56 @@ public class GLPixelBuffer {
         public GLPixelAttributes(int componentCount, int dataFormat, int dataType) {
             this(componentCount, dataFormat, dataType, true);
         }
+
+        /**
+         * Returns the matching {@link GLPixelAttributes} for the given {@link PixelFormat} and {@link GLProfile} if exists,
+         * otherwise returns <code>null</code>.
+         */
+        public static final GLPixelAttributes convert(PixelFormat pixFmt, GLProfile glp) {
+            int df = 0; // format
+            int dt = GL.GL_UNSIGNED_BYTE; // data type
+            switch(pixFmt) {
+                case LUMINANCE:
+                    if( glp.isGL3ES3() ) {
+                        // RED is supported on ES3 and >= GL3 [core]; ALPHA/LUMINANCE is deprecated on core
+                        df = GL2ES2.GL_RED;
+                    } else {
+                        // ALPHA/LUMINANCE is supported on ES2 and GL2, i.e. <= GL3 [core] or compatibility
+                        df = GL2ES2.GL_LUMINANCE;
+                    }
+                    break;
+                case BGR888:
+                    if( glp.isGL2GL3() ) {
+                        df = GL2GL3.GL_BGR;
+                    }
+                    break;
+                case RGB888:
+                    df = GL.GL_RGB;
+                    break;
+                case RGBA8888:
+                    df = GL.GL_RGBA;
+                    break;
+                case ABGR8888:
+                    if( glp.isGL2GL3() ) {
+                        df = GL.GL_RGBA; dt = GL2GL3.GL_UNSIGNED_INT_8_8_8_8;
+                    }
+                    break;
+                case BGRA8888:
+                    df = GL.GL_BGRA;
+                    break;
+                case ARGB8888:
+                    if( glp.isGL2GL3() ) {
+                        df = GL.GL_BGRA; dt = GL2GL3.GL_UNSIGNED_INT_8_8_8_8;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            if( 0 != df ) {
+                return new GLPixelAttributes(pixFmt.componentCount, df, dt, true);
+            }
+            return null;
+        }
         private GLPixelAttributes(int componentCount, int dataFormat, int dataType, boolean checkArgs) {
             this.componentCount = componentCount;
             this.format = dataFormat;
@@ -216,6 +270,52 @@ public class GLPixelBuffer {
                 }
             }
         }
+
+        /**
+         * Returns the matching {@link PixelFormat} of this {@link GLPixelAttributes} if exists,
+         * otherwise returns <code>null</code>.
+         */
+        public final PixelFormat getPixelFormat() {
+            final PixelFormat pixFmt;
+            // FIXME: Take 'type' into consideration and complete mapping!
+            switch(format) {
+                case GL.GL_ALPHA:
+                case GL.GL_LUMINANCE:
+                case GL2ES2.GL_RED:
+                    pixFmt = PixelFormat.LUMINANCE;
+                    break;
+                case GL.GL_RGB:
+                    pixFmt = PixelFormat.RGB888;
+                    break;
+                case GL.GL_RGBA:
+                    pixFmt = PixelFormat.RGBA8888;
+                    break;
+                case GL2.GL_BGR:
+                    pixFmt = PixelFormat.BGR888;
+                    break;
+                case GL.GL_BGRA:
+                    pixFmt = PixelFormat.BGRA8888;
+                    break;
+                default:
+                    switch( bytesPerPixel ) {
+                        case 1:
+                            pixFmt = PixelFormat.LUMINANCE;
+                            break;
+                        case 3:
+                            pixFmt = PixelFormat.RGB888;
+                            break;
+                        case 4:
+                            pixFmt = PixelFormat.RGBA8888;
+                            break;
+                        default:
+                            pixFmt = null;
+                            break;
+                    }
+                    break;
+            }
+            return pixFmt;
+        }
+
         @Override
         public String toString() {
             return "PixelAttributes[comp "+componentCount+", fmt 0x"+Integer.toHexString(format)+", type 0x"+Integer.toHexString(type)+", bytesPerPixel "+bytesPerPixel+"]";
