@@ -110,9 +110,6 @@ public abstract class DisplayImpl extends Display {
     public final PointerIcon createPointerIcon(final IOUtil.ClassResources pngResource, final int hotX, final int hotY)
             throws IllegalArgumentException, IllegalStateException, IOException
     {
-        if( !isNativeValid() ) {
-            throw new IllegalStateException("Display.createPointerIcon(1): Display invalid "+this);
-        }
         if( null == pngResource || 0 >= pngResource.resourceCount() ) {
             throw new IllegalArgumentException("Null or invalid pngResource "+pngResource);
         }
@@ -123,8 +120,8 @@ public abstract class DisplayImpl extends Display {
         runOnEDTIfAvail(true, new Runnable() {
             public void run() {
                 try {
-                    if( !DisplayImpl.this.isNativeValid() ) {
-                        throw new IllegalStateException("Display.createPointerIcon(2): Display invalid "+DisplayImpl.this);
+                    if( !DisplayImpl.this.isNativeValidAsync() ) {
+                        throw new IllegalStateException("Display.createPointerIcon: Display invalid "+DisplayImpl.this);
                     }
                     final URLConnection urlConn = pngResource.resolve(0);
                     if( null == urlConn ) {
@@ -162,9 +159,6 @@ public abstract class DisplayImpl extends Display {
     public final PointerIcon createPointerIcon(final PixelRectangle pixelrect, final int hotX, final int hotY)
             throws IllegalArgumentException, IllegalStateException
     {
-        if( !isNativeValid() ) {
-            throw new IllegalStateException("Display.createPointerIcon(1): Display invalid "+this);
-        }
         if( null == pixelrect ) {
             throw new IllegalArgumentException("Null or pixelrect");
         }
@@ -194,8 +188,8 @@ public abstract class DisplayImpl extends Display {
         runOnEDTIfAvail(true, new Runnable() {
             public void run() {
                 try {
-                    if( !DisplayImpl.this.isNativeValid() ) {
-                        throw new IllegalStateException("Display.createPointerIcon(2): Display invalid "+DisplayImpl.this);
+                    if( !DisplayImpl.this.isNativeValidAsync() ) {
+                        throw new IllegalStateException("Display.createPointerIcon: Display invalid "+DisplayImpl.this);
                     }
                     if( null != fpixelrect ) {
                         final long handle = createPointerIconImplChecked(fpixelrect.getPixelformat(),
@@ -628,6 +622,9 @@ public abstract class DisplayImpl extends Display {
 
     @Override
     public synchronized final boolean isNativeValid() {
+        return null != aDevice;
+    }
+    protected final boolean isNativeValidAsync() {
         return null != aDevice;
     }
 

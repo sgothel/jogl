@@ -130,7 +130,7 @@ public class PointerIconImpl implements PointerIcon {
             }
             display.runOnEDTIfAvail(false, new Runnable() {
                 public void run() {
-                    if( display.isNativeValid() ) {
+                    if( !display.isNativeValidAsync() ) {
                         destroyOnEDT(display.getHandle());
                     }
                 } } );
