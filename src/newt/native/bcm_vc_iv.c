@@ -347,7 +347,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_initID
 }
 
 JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_CreateWindow0
-  (JNIEnv *env, jobject obj, jlong display, jint x, jint y, jint width, jint height, jboolean opaque, jint alphaBits)
+  (JNIEnv *env, jobject obj, jlong display, jint layer, jint x, jint y, jint width, jint height, jboolean opaque, jint alphaBits)
 {
    int32_t success = 0;
    VC_RECT_T dst_rect;
@@ -356,13 +356,13 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_CreateWin
    if( 0 == display ) {
        return;
    }
-   dst_rect.x = 0;
-   dst_rect.y = 0;
+   dst_rect.x = x;
+   dst_rect.y = y;
    dst_rect.width = width;
    dst_rect.height = height;
       
-   src_rect.x = x;
-   src_rect.y = y;
+   src_rect.x = 0;
+   src_rect.y = 0;
    src_rect.width = width << 16;
    src_rect.height = height << 16;   
 
@@ -381,22 +381,20 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_CreateWin
 
    DISPMANX_DISPLAY_HANDLE_T dispman_display = (DISPMANX_DISPLAY_HANDLE_T) (intptr_t) display;
 
-   DBG_PRINT( "BCM.Display Window.Create.0 %p, %d/%d %dx%d, opaque %d, alphaBits %d\n",
-    (void*)(intptr_t)dispman_display, x, y, width, height, opaque, alphaBits);
-
-   DISPMANX_UPDATE_HANDLE_T dispman_update = vc_dispmanx_update_start( 0 );
-   DISPMANX_ELEMENT_HANDLE_T dispman_element = vc_dispmanx_element_add ( dispman_update, dispman_display,
-                                                                         0/*layer*/, &dst_rect, 0/*src*/,
-                                                                         &src_rect, DISPMANX_PROTECTION_NONE, 
-                                                                         &dispman_alpha /*alpha */, 0/*clamp*/, 0/*transform*/);
+   DBG_PRINT( "BCM.Display Window.Create.0 %p, %d/%d %dx%d, opaque %d, alphaBits %d, layer %d\n",
+    (void*)(intptr_t)dispman_display, x, y, width, height, opaque, alphaBits, layer);
 
    BCM_ELEMENT_T * p = calloc(1, sizeof(BCM_ELEMENT_T));  
-   p->handle = dispman_element;
-   p->layer = 0;
+   DISPMANX_UPDATE_HANDLE_T dispman_update = vc_dispmanx_update_start( 0 );
+   p->layer = layer;
    p->x = x;
    p->y = y;
    p->width = width;
    p->height = height;
+   p->handle = vc_dispmanx_element_add ( dispman_update, dispman_display,
+                                         p->layer, &dst_rect, 0/*src*/,
+                                         &src_rect, DISPMANX_PROTECTION_NONE, 
+                                         &dispman_alpha /*alpha */, 0/*clamp*/, 0/*transform*/);
 
    vc_dispmanx_update_submit_sync( dispman_update );
 
@@ -427,56 +425,36 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_CloseWindo
     free( p );
 }
 
-/*
- * Class:     jogamp_newt_driver_bcm_vc_iv_WindowDriver
- * Method:    setVisible0
- * Signature: (JJZ)V
- */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_setVisible0
-  (JNIEnv *env, jobject obj, jlong window, jboolean visible)
-{
-}
-
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_setFullScreen0
-  (JNIEnv *env, jobject obj, jlong window, jboolean fullscreen)
-{
-}
-
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_setPos0
-  (JNIEnv *env, jobject obj, jlong window, jint x, jint y)
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_reconfigure0
+  (JNIEnv *env, jobject obj, jlong window, jint x, jint y, jint width, jint height, jint flags)
 {
     BCM_ELEMENT_T * p = (BCM_ELEMENT_T *) (intptr_t) window ;
 
     if( NULL == p || 0 == p->handle ) {
         return; 
     }
+    /***
+        int isVisible = !TST_FLAG_CHANGE_VISIBILITY(flags) && TST_FLAG_IS_VISIBLE(flags) ;
+        ...  
+        see X11Window.c
+     */
+
+    int posChanged = p->x != x || p->y != y;
+    int sizeChanged = p->width != width || p->height != height;
     p->x = x;
     p->y = y;
-
-    DBG_PRINT( "BCM.Display Window.Pos %p, element %p - %d/%d %dx%d\n", 
-        p, (void*)(intptr_t)p->handle, p->x, p->y, p->width, p->height);
-
-    bcm_moveTo( p->handle, p->layer, p->x, p->y, p->width, p->height);
-    (*env)->CallVoidMethod(env, obj, positionChangedID, JNI_FALSE, x, y);
-}
-
-
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_setSize0
-  (JNIEnv *env, jobject obj, jlong window, jint width, jint height)
-{
-    BCM_ELEMENT_T * p = (BCM_ELEMENT_T *) (intptr_t) window ;
-
-    if( NULL == p || 0 == p->handle ) {
-        return; 
-    }
     p->width = width;
     p->height = height;
 
-    DBG_PRINT( "BCM.Display Window.Resize %p, element %p - %d/%d %dx%d\n", 
+    DBG_PRINT( "BCM.Display Window.Reconfig %p, element %p - %d/%d %dx%d\n", 
         p, (void*)(intptr_t)p->handle, p->x, p->y, p->width, p->height);
 
     bcm_moveTo( p->handle, p->layer, p->x, p->y, p->width, p->height);
-    (*env)->CallVoidMethod(env, obj, sizeChangedID, JNI_FALSE, (jint) width, (jint) height, JNI_FALSE);
+    if( posChanged ) {
+        (*env)->CallVoidMethod(env, obj, positionChangedID, JNI_FALSE, x, y);
+    }
+    if( sizeChanged ) {
+        (*env)->CallVoidMethod(env, obj, sizeChangedID, JNI_FALSE, (jint) width, (jint) height, JNI_FALSE);
+    }
 }
-
 

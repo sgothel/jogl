@@ -38,6 +38,7 @@ import javax.media.nativewindow.VisualIDHolder;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 
+import com.jogamp.common.util.IntBitfield;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.newt.event.MouseEvent;
 
@@ -57,12 +58,35 @@ public class WindowDriver extends WindowImpl {
     public WindowDriver() {
         linuxMouseTracker = LinuxMouseTracker.getSingleton();
         linuxEventDeviceTracker = LinuxEventDeviceTracker.getSingleton();
+        layer = -1;
+        nativeWindowHandle = 0;
+        windowHandleClose = 0;
     }
 
     @Override
     protected void createNativeImpl() {
         if(0!=getParentWindowHandle()) {
             throw new RuntimeException("Window parenting not supported (yet)");
+        }
+        synchronized( layerSync ) {
+            if( layerCount >= MAX_LAYERS ) {
+                throw new RuntimeException("Max windows reached: "+layerCount+" ( "+MAX_LAYERS+" )");
+            }
+            for(int i=0; 0 > layer && i<MAX_LAYERS; i++) {
+                if( !usedLayers.get(nextLayer) ) {
+                    layer = nextLayer;
+                    usedLayers.put(layer, true);
+                    layerCount++;
+                }
+                nextLayer++;
+                if( MAX_LAYERS == nextLayer ) {
+                    nextLayer=0;
+                }
+            }
+            // System.err.println("XXX.Open capacity "+usedLayers.capacity()+", count "+usedLayers.getBitCount());
+        }
+        if( 0 > layer ) {
+            throw new InternalError("Could not find a free layer: count "+layerCount+", max "+MAX_LAYERS);
         }
         final ScreenDriver screen = (ScreenDriver) getScreen();
         final DisplayDriver display = (DisplayDriver) screen.getDisplay();
@@ -85,12 +109,11 @@ public class WindowDriver extends WindowImpl {
             chosenCaps.setBackgroundOpaque(capsRequested.isBackgroundOpaque());
         }
         setGraphicsConfiguration(cfg);
-        nativeWindowHandle = CreateWindow0(display.getBCMHandle(), getX(), getY(), getWidth(), getHeight(),
+        nativeWindowHandle = CreateWindow0(display.getBCMHandle(), layer, getX(), getY(), getWidth(), getHeight(),
                                            chosenCaps.isBackgroundOpaque(), chosenCaps.getAlphaBits());
         if (nativeWindowHandle == 0) {
             throw new NativeWindowException("Error creating egl window: "+cfg);
         }
-        setVisible0(nativeWindowHandle, false);
         setWindowHandle(nativeWindowHandle);
         if (0 == getWindowHandle()) {
             throw new NativeWindowException("Error native Window Handle is null");
@@ -115,6 +138,13 @@ public class WindowDriver extends WindowImpl {
         }
 
         eglDevice.close();
+
+        synchronized( layerSync ) {
+            usedLayers.put(layer, false);
+            layerCount--;
+            layer = -1;
+            // System.err.println("XXX.Close capacity "+usedLayers.capacity()+", count "+usedLayers.getBitCount());
+        }
     }
 
     @Override
@@ -124,35 +154,7 @@ public class WindowDriver extends WindowImpl {
 
     @Override
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
-        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
-            setVisible0(nativeWindowHandle, 0 != ( FLAG_IS_VISIBLE & flags));
-            visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));
-        }
-
-        if(0!=nativeWindowHandle) {
-            if(0 != ( FLAG_CHANGE_FULLSCREEN & flags)) {
-                final boolean fs = 0 != ( FLAG_IS_FULLSCREEN & flags) ;
-                setFullScreen0(nativeWindowHandle, fs);
-                if(fs) {
-                    return true;
-                }
-            }
-            // int _x=(x>=0)?x:this.x;
-            // int _y=(x>=0)?y:this.y;
-            width=(width>0)?width:getWidth();
-            height=(height>0)?height:getHeight();
-            if(width>0 || height>0) {
-                setSize0(nativeWindowHandle, width, height);
-            }
-            if(x>=0 || y>=0) {
-                System.err.println("setPosition n/a in KD");
-            }
-        }
-
-        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
-            visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));
-        }
-
+        reconfigure0(nativeWindowHandle, x, y, width, height, flags);
         return true;
     }
 
@@ -196,13 +198,17 @@ public class WindowDriver extends WindowImpl {
     private final LinuxEventDeviceTracker linuxEventDeviceTracker;
 
     protected static native boolean initIDs();
-    private        native long CreateWindow0(long bcmDisplay, int x, int y, int width, int height, boolean opaque, int alphaBits);
+    private        native long CreateWindow0(long bcmDisplay, int layer, int x, int y, int width, int height, boolean opaque, int alphaBits);
     private        native void CloseWindow0(long bcmDisplay, long eglWindowHandle);
-    private        native void setVisible0(long eglWindowHandle, boolean visible);
-    private        native void setPos0(long eglWindowHandle, int x, int y);
-    private        native void setSize0(long eglWindowHandle, int width, int height);
-    private        native void setFullScreen0(long eglWindowHandle, boolean fullscreen);
+    private        native void reconfigure0(long eglWindowHandle, int x, int y, int width, int height, int flags);
 
+    private int    layer;
     private long   nativeWindowHandle;
     private long   windowHandleClose;
+
+    private static int nextLayer = 0;
+    private static int layerCount = 0;
+    private static final int MAX_LAYERS = 32;
+    private static final IntBitfield usedLayers = new IntBitfield(MAX_LAYERS);
+    private static final Object layerSync = new Object();
 }
