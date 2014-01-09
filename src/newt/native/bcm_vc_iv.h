@@ -29,6 +29,11 @@
 #ifndef BCM_VC_IV_H
 #define BCM_VC_IV_H
 
+/** 
+ * http://en.wikipedia.org/wiki/VideoCore
+ * https://github.com/raspberrypi/userland
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

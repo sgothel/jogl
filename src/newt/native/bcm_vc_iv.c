@@ -30,6 +30,9 @@
 #include <stdio.h>
 #include <string.h>
 
+/** 
+ * See references in header file.
+ */
 #include "bcm_vc_iv.h"
 
 #include "jogamp_newt_driver_bcm_vc_iv_DisplayDriver.h"
