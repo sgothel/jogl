@@ -41,14 +41,14 @@ public class PNGTstFiles {
         "grayscale_texture",
         "bug724-transparent-grey_orig",
         "bug724-transparent-grey_gimpexp",
-        "crosshair-lumina-trans-32x32",
-        "crosshair-lumina-trans-64x64",
+        "cross-gray-alpha-16x16",
+        "pointer-gray-alpha-16x24",
     };
     static public final String[] greyBasenames = {
         "grayscale_texture",
         "bug724-transparent-grey_orig",
         "bug724-transparent-grey_gimpexp",
-        "crosshair-lumina-trans-32x32",
-        "crosshair-lumina-trans-64x64",
+        "cross-gray-alpha-16x16",
+        "pointer-gray-alpha-16x24",
     };
 }

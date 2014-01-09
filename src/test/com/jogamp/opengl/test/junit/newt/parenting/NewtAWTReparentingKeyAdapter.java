@@ -152,9 +152,9 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
                     final Display disp = glWindow.getScreen().getDisplay();
                     {
                         PointerIcon _pointerIcon = null;
-                        final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "newt/data/crosshair-lumina-trans-32x32.png" } );
+                        final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "newt/data/cross-grey-alpha-16x16.png" } );
                         try {
-                            _pointerIcon = disp.createPointerIcon(res, 16, 16);
+                            _pointerIcon = disp.createPointerIcon(res, 8, 8);
                             System.err.println("Create PointerIcon #01: "+_pointerIcon);
                         } catch (Exception ex) {
                             ex.printStackTrace();
@@ -163,9 +163,9 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
                     }
                     {
                         PointerIcon _pointerIcon = null;
-                        final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "jogamp-pointer-64x64.png" } );
+                        final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "newt/data/pointer-grey-alpha-16x24.png" } );
                         try {
-                            _pointerIcon = disp.createPointerIcon(res, 32, 0);
+                            _pointerIcon = disp.createPointerIcon(res, 0, 0);
                             System.err.println("Create PointerIcon #02: "+_pointerIcon);
                         } catch (Exception ex) {
                             ex.printStackTrace();
@@ -174,12 +174,12 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
                     }
                     {
                         PointerIcon _pointerIcon = null;
-                        final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "crosshair-lumina-trans-64x64.png" } );
+                        final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "jogamp-pointer-64x64.png" } );
                         try {
                             final URLConnection urlConn = res.resolve(0);
                             final PNGPixelRect image = PNGPixelRect.read(urlConn.getInputStream(), null, false /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
                             System.err.println("Create PointerIcon #03: "+image);
-                            _pointerIcon = disp.createPointerIcon(image, 32, 32);
+                            _pointerIcon = disp.createPointerIcon(image, 32, 0);
                             System.err.println("Create PointerIcon #03: "+_pointerIcon);
                         } catch (Exception ex) {
                             ex.printStackTrace();
