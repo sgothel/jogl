@@ -153,6 +153,7 @@ public interface PixelRectangle {
                         hash = ((hash << 5) - hash) + strideInBytes;
                         hash = ((hash << 5) - hash) + ( isGLOriented ? 1 : 0);
                         hashCode = ((hash << 5) - hash) + pixels.hashCode();
+                        hashCodeComputed = true;
                     }
                 }
             }
