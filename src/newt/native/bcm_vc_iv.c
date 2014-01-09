@@ -36,10 +36,10 @@
 #include "jogamp_newt_driver_bcm_vc_iv_ScreenDriver.h"
 #include "jogamp_newt_driver_bcm_vc_iv_WindowDriver.h"
 
-#define VERBOSE_ON 1
+// #define VERBOSE_ON 1
 
 #ifdef VERBOSE_ON
-    #define DBG_PRINT(...) fprintf(stderr, __VA_ARGS__); fflush(stderr)
+    #define DBG_PRINT(...) fprintf(stderr, __VA_ARGS__); fflush(stderr) 
 #else
     #define DBG_PRINT(...)
 #endif
