@@ -2539,8 +2539,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // Native MouseEvents pre-processed to be enqueued or consumed directly
     //
 
-    public final void sendMouseEvent(final short eventType, final int modifiers,
-                                     final int x, final int y, final short button, final float rotation) {
+    public void sendMouseEvent(final short eventType, final int modifiers,
+                               final int x, final int y, final short button, final float rotation) {
         doMouseEvent(false, false, eventType, modifiers, x, y, button, MouseEvent.getRotationXYZ(rotation, modifiers), 1f);
     }
     public final void enqueueMouseEvent(final boolean wait, final short eventType, final int modifiers,

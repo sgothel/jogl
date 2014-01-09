@@ -39,8 +39,7 @@ import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
-import com.jogamp.newt.event.MouseListener;
-import com.jogamp.newt.event.MouseAdapter;
+import com.jogamp.newt.event.MouseEvent;
 
 import jogamp.newt.PointerIconImpl;
 import jogamp.newt.WindowImpl;
@@ -100,29 +99,14 @@ public class WindowDriver extends WindowImpl {
 
         addWindowListener(linuxEventDeviceTracker);
         addWindowListener(linuxMouseTracker);
-        addMouseListener(mousePointerTracker);
         focusChanged(false, true);
     }
-    final MouseListener mousePointerTracker = new MouseAdapter() {
-        @Override
-        public void mouseMoved(com.jogamp.newt.event.MouseEvent e) {
-            final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
-            display.moveActivePointerIcon(e.getX(), e.getY());
-        }
-
-        @Override
-        public void mouseDragged(com.jogamp.newt.event.MouseEvent e) {
-            final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
-            display.moveActivePointerIcon(e.getX(), e.getY());
-        }
-    };
 
     @Override
     protected void closeNativeImpl() {
         final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
         final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) getGraphicsConfiguration().getScreen().getDevice();
 
-        removeMouseListener(mousePointerTracker);
         removeWindowListener(linuxMouseTracker);
         removeWindowListener(linuxEventDeviceTracker);
 
@@ -182,16 +166,15 @@ public class WindowDriver extends WindowImpl {
         // nop ..
     }
 
-    /**
     @Override
     public final void sendMouseEvent(final short eventType, final int modifiers,
                                      final int x, final int y, final short button, final float rotation) {
-        if( MouseEvent.MOUSE_MOVED == eventType ) {
+        if( MouseEvent.EVENT_MOUSE_MOVED == eventType ) {
             final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
             display.moveActivePointerIcon(x, y);
         }
         super.sendMouseEvent(eventType, modifiers, x, y, button, rotation);
-    } */
+    }
 
     @Override
     protected void setPointerIconImpl(final PointerIconImpl pi) {
