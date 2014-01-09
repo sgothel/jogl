@@ -165,7 +165,7 @@ public class DisplayDriver extends DisplayImpl {
     }
     private static native long createPointerIcon0(long display, Object pixels, int pixels_byte_offset, boolean pixels_is_direct, int width, int height, int hotX, int hotY);
 
-    static native void destroyPointerIcon0(long display, long handle);
+    private static native void destroyPointerIcon0(long display, long handle);
 
     /** X11 Window delete atom marker used on EDT */
     private long windowDeleteAtom;

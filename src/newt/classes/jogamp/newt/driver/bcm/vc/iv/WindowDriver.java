@@ -39,7 +39,10 @@ import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
+import com.jogamp.newt.event.MouseListener;
+import com.jogamp.newt.event.MouseAdapter;
 
+import jogamp.newt.PointerIconImpl;
 import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.linux.LinuxEventDeviceTracker;
 import jogamp.newt.driver.linux.LinuxMouseTracker;
@@ -53,6 +56,8 @@ public class WindowDriver extends WindowImpl {
     }
 
     public WindowDriver() {
+        linuxMouseTracker = LinuxMouseTracker.getSingleton();
+        linuxEventDeviceTracker = LinuxEventDeviceTracker.getSingleton();
     }
 
     @Override
@@ -60,9 +65,12 @@ public class WindowDriver extends WindowImpl {
         if(0!=getParentWindowHandle()) {
             throw new RuntimeException("Window parenting not supported (yet)");
         }
+        final ScreenDriver screen = (ScreenDriver) getScreen();
+        final DisplayDriver display = (DisplayDriver) screen.getDisplay();
+
         // Create own screen/device resource instance allowing independent ownership,
         // while still utilizing shared EGL resources.
-        final AbstractGraphicsScreen aScreen = getScreen().getGraphicsScreen();
+        final AbstractGraphicsScreen aScreen = screen.getGraphicsScreen();
         final EGLGraphicsDevice aDevice = (EGLGraphicsDevice) aScreen.getDevice();
         final EGLGraphicsDevice eglDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(aDevice.getNativeDisplayID(), aDevice.getConnection(), aDevice.getUnitID());
         final DefaultGraphicsScreen eglScreen = new DefaultGraphicsScreen(eglDevice, aScreen.getIndex());
@@ -78,7 +86,8 @@ public class WindowDriver extends WindowImpl {
             chosenCaps.setBackgroundOpaque(capsRequested.isBackgroundOpaque());
         }
         setGraphicsConfiguration(cfg);
-        nativeWindowHandle = CreateWindow(getWidth(), getHeight(), chosenCaps.isBackgroundOpaque(), chosenCaps.getAlphaBits());
+        nativeWindowHandle = CreateWindow0(display.getBCMHandle(), getX(), getY(), getWidth(), getHeight(),
+                                           chosenCaps.isBackgroundOpaque(), chosenCaps.getAlphaBits());
         if (nativeWindowHandle == 0) {
             throw new NativeWindowException("Error creating egl window: "+cfg);
         }
@@ -88,21 +97,37 @@ public class WindowDriver extends WindowImpl {
             throw new NativeWindowException("Error native Window Handle is null");
         }
         windowHandleClose = nativeWindowHandle;
-        addWindowListener(LinuxMouseTracker.getSingleton());
-        addWindowListener(LinuxEventDeviceTracker.getSingleton());
+
+        addWindowListener(linuxEventDeviceTracker);
+        addWindowListener(linuxMouseTracker);
+        addMouseListener(mousePointerTracker);
         focusChanged(false, true);
     }
+    final MouseListener mousePointerTracker = new MouseAdapter() {
+        @Override
+        public void mouseMoved(com.jogamp.newt.event.MouseEvent e) {
+            final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
+            display.moveActivePointerIcon(e.getX(), e.getY());
+        }
+
+        @Override
+        public void mouseDragged(com.jogamp.newt.event.MouseEvent e) {
+            final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
+            display.moveActivePointerIcon(e.getX(), e.getY());
+        }
+    };
 
     @Override
     protected void closeNativeImpl() {
+        final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
         final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) getGraphicsConfiguration().getScreen().getDevice();
 
-        removeWindowListener(LinuxMouseTracker.getSingleton());
-        removeWindowListener(LinuxEventDeviceTracker.getSingleton());
+        removeMouseListener(mousePointerTracker);
+        removeWindowListener(linuxMouseTracker);
+        removeWindowListener(linuxEventDeviceTracker);
 
         if(0!=windowHandleClose) {
-            CloseWindow(windowHandleClose, windowUserData);
-            windowUserData=0;
+            CloseWindow0(display.getBCMHandle(), windowHandleClose);
         }
 
         eglDevice.close();
@@ -157,23 +182,44 @@ public class WindowDriver extends WindowImpl {
         // nop ..
     }
 
+    /**
+    @Override
+    public final void sendMouseEvent(final short eventType, final int modifiers,
+                                     final int x, final int y, final short button, final float rotation) {
+        if( MouseEvent.MOUSE_MOVED == eventType ) {
+            final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
+            display.moveActivePointerIcon(x, y);
+        }
+        super.sendMouseEvent(eventType, modifiers, x, y, button, rotation);
+    } */
+
+    @Override
+    protected void setPointerIconImpl(final PointerIconImpl pi) {
+        final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
+        display.setPointerIconActive(null != pi ? pi.validatedHandle() : 0, linuxMouseTracker.getLastX(), linuxMouseTracker.getLastY());
+    }
+
+    @Override
+    protected boolean setPointerVisibleImpl(final boolean pointerVisible) {
+        final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
+        display.setActivePointerIconVisible(pointerVisible, linuxMouseTracker.getLastX(), linuxMouseTracker.getLastY());
+        return true;
+    }
+
     //----------------------------------------------------------------------
     // Internals only
     //
+    private final LinuxMouseTracker linuxMouseTracker;
+    private final LinuxEventDeviceTracker linuxEventDeviceTracker;
 
     protected static native boolean initIDs();
-    private        native long CreateWindow(int width, int height, boolean opaque, int alphaBits);
-    private        native long RealizeWindow(long eglWindowHandle);
-    private        native int  CloseWindow(long eglWindowHandle, long userData);
+    private        native long CreateWindow0(long bcmDisplay, int x, int y, int width, int height, boolean opaque, int alphaBits);
+    private        native void CloseWindow0(long bcmDisplay, long eglWindowHandle);
     private        native void setVisible0(long eglWindowHandle, boolean visible);
+    private        native void setPos0(long eglWindowHandle, int x, int y);
     private        native void setSize0(long eglWindowHandle, int width, int height);
     private        native void setFullScreen0(long eglWindowHandle, boolean fullscreen);
 
-    private void windowCreated(long userData) {
-        windowUserData=userData;
-    }
-
     private long   nativeWindowHandle;
     private long   windowHandleClose;
-    private long   windowUserData;
 }

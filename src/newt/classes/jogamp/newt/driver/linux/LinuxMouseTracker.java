@@ -68,9 +68,14 @@ public class LinuxMouseTracker implements WindowListener {
     private short buttonDown = 0;
     private int old_x = 0;
     private int old_y = 0;
+    private volatile int lastFocusedX = 0;
+    private volatile int lastFocusedY = 0;
     private short old_buttonDown = 0;
     private WindowImpl focusedWindow = null;
-    private MouseDevicePoller mouseDevicePoller = new MouseDevicePoller();
+    private final MouseDevicePoller mouseDevicePoller = new MouseDevicePoller();
+
+    public final int getLastX() { return lastFocusedX; }
+    public final int getLastY() { return lastFocusedY; }
 
     @Override
     public void windowResized(WindowEvent e) { }
@@ -179,10 +184,11 @@ public class LinuxMouseTracker implements WindowListener {
                     if( y >= focusedWindow.getScreen().getHeight() ) {
                         y = focusedWindow.getScreen().getHeight() - 1;
                     }
-                    int wx = x - focusedWindow.getX(), wy = y - focusedWindow.getY();
-
+                    final int wx = x - focusedWindow.getX(), wy = y - focusedWindow.getY();
                     if(old_x != x || old_y != y) {
                         // mouse moved
+                        lastFocusedX = wx;
+                        lastFocusedY = wy;
                         focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_MOVED, 0, wx, wy, (short)0, 0 );
                     }
 
