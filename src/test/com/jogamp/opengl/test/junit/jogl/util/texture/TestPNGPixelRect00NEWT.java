@@ -129,7 +129,9 @@ public class TestPNGPixelRect00NEWT extends UITestCase {
         final File out2R_f=new File(getSimpleTestName(".")+"-03-"+basename+"-reversed.png");
         final File out2RF_f=new File(getSimpleTestName(".")+"-04-"+basename+"-reversed_flipped.png");
         URLConnection urlConn = IOUtil.getResource(this.getClass(), pathname+basename+".png");
-
+        if( null == urlConn ) {
+            throw new IOException("Cannot find "+pathname+basename+".png");
+        }
         final PNGPixelRect image1 = PNGPixelRect.read(urlConn.getInputStream(), destFmt, false /* directBuffer */, destMinStrideInBytes, destIsGLOriented);
         System.err.println("PNGPixelRect - Orig: "+image1);
         {

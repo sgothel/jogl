@@ -156,6 +156,9 @@ public class TestPNGPixelRect01NEWT extends UITestCase {
             return;
         }
         final URLConnection urlConn = IOUtil.getResource(this.getClass(), _fname);
+        if( null == urlConn ) {
+            throw new IOException("Cannot find "+_fname+".png");
+        }
         testImpl(0, _fname, urlConn.getInputStream(), null);
     }
 
@@ -167,6 +170,9 @@ public class TestPNGPixelRect01NEWT extends UITestCase {
         for(int i=0; i<PNGTstFiles.allBasenames.length; i++) {
             final String basename = PNGTstFiles.allBasenames[i];
             final URLConnection urlConn = IOUtil.getResource(this.getClass(), basename+".png");
+            if( null == urlConn ) {
+                throw new IOException("Cannot find "+basename+".png");
+            }
             testImpl(i, basename, urlConn.getInputStream(), null);
         }
     }
@@ -178,6 +184,9 @@ public class TestPNGPixelRect01NEWT extends UITestCase {
         for(int i=0; i<PNGTstFiles.greyBasenames.length; i++) {
             final String basename = PNGTstFiles.greyBasenames[i];
             final URLConnection urlConn = IOUtil.getResource(this.getClass(), basename+".png");
+            if( null == urlConn ) {
+                throw new IOException("Cannot find "+basename+".png");
+            }
             testImpl(i, basename, urlConn.getInputStream(), PixelFormat.RGBA8888);
         }
     }
