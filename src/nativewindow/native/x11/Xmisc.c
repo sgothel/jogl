@@ -219,7 +219,6 @@ static int x11ErrorHandler(Display *dpy, XErrorEvent *e)
                                                             e->error_code, errCodeStr, e->display, (int)e->resourceid, (int)e->serial,
                                                             (int)e->request_code, (int)e->minor_code, reqCodeStr);
             }
-
             if (shallBeDetached) {
                 (*jvmHandle)->DetachCurrentThread(jvmHandle);
             }
@@ -347,25 +346,24 @@ JNIEXPORT jobject JNICALL
 Java_jogamp_nativewindow_x11_X11Lib_XGetVisualInfo1__JJLjava_nio_ByteBuffer_2Ljava_lang_Object_2I(JNIEnv *env, jclass _unused, jlong arg0, jlong arg1, jobject arg2, jobject arg3, jint arg3_byte_offset) {
   XVisualInfo * _ptr2 = NULL;
   int * _ptr3 = NULL;
-  XVisualInfo *  _res;
-  int count;
-  jobject jbyteSource;
-  jobject jbyteCopy;
-    if(0==arg0) {
-        NativewindowCommon_FatalError(env, "invalid display connection..");
-    }
-    if (arg2 != NULL) {
-        _ptr2 = (XVisualInfo *) (((char*) (*env)->GetDirectBufferAddress(env, arg2)) + 0);
-    }
-  if (arg3 != NULL) {
-    _ptr3 = (int *) (((char*) (*env)->GetPrimitiveArrayCritical(env, arg3, NULL)) + arg3_byte_offset);
+  XVisualInfo *  _res = NULL;
+  int count = 0;
+  jobject jbyteSource = NULL;
+  jobject jbyteCopy = NULL;
+  if( 0 == arg0 || 0 == arg2 || 0 == arg3 ) {
+    NativewindowCommon_FatalError(env, "invalid display connection, vinfo_template or nitems_return");
+    return NULL;
   }
-  NativewindowCommon_x11ErrorHandlerEnable(env, (Display *) (intptr_t) arg0, 0, 1, errorHandlerQuiet, 0);
-  _res = XGetVisualInfo((Display *) (intptr_t) arg0, (long) arg1, (XVisualInfo *) _ptr2, (int *) _ptr3);
-  // NativewindowCommon_x11ErrorHandlerEnable(env, (Display *) (intptr_t) arg0, 0, 0, errorHandlerQuiet, 0);
-  count = _ptr3[0];
-  if (arg3 != NULL) {
-    (*env)->ReleasePrimitiveArrayCritical(env, arg3, _ptr3, 0);
+  _ptr2 = (XVisualInfo *) (((char*) (*env)->GetDirectBufferAddress(env, arg2)) + 0);
+  if( NULL != _ptr2 ) {
+      _ptr3 = (int *) (((char*) (*env)->GetPrimitiveArrayCritical(env, arg3, NULL)) + arg3_byte_offset);
+      if( NULL != _ptr3 ) {
+          NativewindowCommon_x11ErrorHandlerEnable(env, (Display *) (intptr_t) arg0, 0, 1, errorHandlerQuiet, 0);
+          _res = XGetVisualInfo((Display *) (intptr_t) arg0, (long) arg1, (XVisualInfo *) _ptr2, (int *) _ptr3);
+          // NativewindowCommon_x11ErrorHandlerEnable(env, (Display *) (intptr_t) arg0, 0, 0, errorHandlerQuiet, 0);
+          count = _ptr3[0];
+          (*env)->ReleasePrimitiveArrayCritical(env, arg3, _ptr3, 0);
+      }
   }
   if (_res == NULL) return NULL;
 

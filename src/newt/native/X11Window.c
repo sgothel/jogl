@@ -98,11 +98,11 @@ static void setJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlon
 }
 
 jobject getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlong javaObjectAtom, Bool showWarning) {
-    Atom actual_type;
-    int actual_format;
+    Atom actual_type = 0;
+    int actual_format = 0;
     int nitems_32 = ( sizeof(uintptr_t) == 8 ) ? 2 : 1 ;
     unsigned char * jogl_java_object_data_pp = NULL;
-    jobject jwindow;
+    jobject jwindow = 0;
 
     {
         unsigned long nitems= 0;
@@ -122,7 +122,9 @@ jobject getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlong ja
         }
 
         if(actual_type!=(Atom)javaObjectAtom || nitems<nitems_32 || NULL==jogl_java_object_data_pp) {
-            XFree(jogl_java_object_data_pp);
+            if( NULL != jogl_java_object_data_pp ) {
+                XFree(jogl_java_object_data_pp);
+            }
             if(True==showWarning) {
                 fprintf(stderr, "Warning: NEWT X11Window: Fetched invalid Atom NEWT_JAVA_OBJECT window property (res %d) nitems %ld, bytes_after %ld, actual_type %ld, NEWT_JAVA_OBJECT %ld, result 0!\n", 
                 res, nitems, bytes_after, (long)actual_type, (long)javaObjectAtom);
@@ -189,8 +191,8 @@ static Status NewtWindows_getWindowPositionRelative2Parent (Display *dpy, Window
     return 0; // Error
 }
 static Status NewtWindows_getFrameExtends(Display *dpy, Window window, int *left, int *right, int *top, int *bottom) {
-    Atom actual_type;
-    int actual_format;
+    Atom actual_type = 0;
+    int actual_format = 0;
     int nitems_32 = 4; // l, r, t, b
     unsigned char * frame_extends_data_pp = NULL;
 
@@ -210,7 +212,9 @@ static Status NewtWindows_getFrameExtends(Display *dpy, Window window, int *left
         }
 
         if(nitems<nitems_32 || NULL==frame_extends_data_pp) {
-            XFree(frame_extends_data_pp);
+            if( NULL != frame_extends_data_pp ) {
+                XFree(frame_extends_data_pp);
+            }
             // DBG_PRINT( "Warning: NEWT X11Window: Fetched invalid Atom _NET_FRAME_EXTENTS window property (res %d) nitems %ld, bytes_after %ld, actual_type %ld, actual_format %d, _NET_FRAME_EXTENTS %ld, result 0!\n", 
             //     res, nitems, bytes_after, (long)actual_type, actual_format, _NET_FRAME_EXTENTS);
             return 0; // Error, but ok - ie window not mapped
@@ -271,17 +275,20 @@ static Bool NewtWindows_hasDecorations (Display *dpy, Window w) {
 
 #ifdef DECOR_USE_MWM
     Atom _MOTIF_WM_HINTS = XInternAtom( dpy, "_MOTIF_WM_HINTS", False );
-    unsigned char *wm_data;
-    Atom wm_type;
-    int wm_format;
-    unsigned long wm_nitems, wm_bytes_after;
+    unsigned char *wm_data = NULL;
+    Atom wm_type = 0;
+    int wm_format = 0;
+    unsigned long wm_nitems = 0, wm_bytes_after = 0;
  
     if( Success == XGetWindowProperty(dpy, w, _MOTIF_WM_HINTS, 0, PROP_MWM_HINTS_ELEMENTS, False, AnyPropertyType, 
                                       &wm_type, &wm_format, &wm_nitems, &wm_bytes_after, &wm_data) ) {
-        if(wm_type != None) {
+        if(wm_type != None && NULL != wm_data && wm_nitems >= PROP_MWM_HINTS_ELEMENTS) {
             // unsigned long mwmhints[PROP_MWM_HINTS_ELEMENTS] = { MWM_HINTS_DECORATIONS, 0, decorated, 0, 0 }; // flags, functions, decorations, input_mode, status
             unsigned long *hints = (unsigned long *) wm_data;
             decor = ( 0 != (hints[0] & MWM_HINTS_DECORATIONS) ) && ( 0 != hints[2] );
+        }
+        if( NULL != wm_data ) {
+            XFree(wm_data);
         }
     }
 #endif
@@ -319,27 +326,30 @@ static int NewtWindows_getSupportedStackingEWMHFlags(Display *dpy, Window w) {
     Atom _NET_WM_ALLOWED_ACTIONS = XInternAtom( dpy, "_NET_WM_ALLOWED_ACTIONS", False );
     Atom _NET_WM_ACTION_FULLSCREEN = XInternAtom( dpy, "_NET_WM_ACTION_FULLSCREEN", False );
     Atom _NET_WM_ACTION_ABOVE = XInternAtom( dpy, "_NET_WM_ACTION_ABOVE", False );
-    Atom * actions;
-    Atom type;
-    unsigned long action_len, remain;
-    int res = 0, form, i;
+    Atom * actions = NULL;
+    Atom type = 0;
+    unsigned long action_len = 0, remain = 0;
+    int res = 0, form = 0, i = 0;
     Status s;
 
     if ( Success == (s = XGetWindowProperty(dpy, w, _NET_WM_ALLOWED_ACTIONS, 0, 1024, False, AnyPropertyType,
                                             &type, &form, &action_len, &remain, (unsigned char**)&actions)) ) {
-        for(i=0; i<action_len; i++) {
-            if(_NET_WM_ACTION_FULLSCREEN == actions[i]) {
-                DBG_PRINT( "**************** X11: FS EWMH CHECK[%d]: _NET_WM_ACTION_FULLSCREEN (*)\n", i);
-                res |= _NET_WM_STATE_FLAG_FULLSCREEN ;
-            } else if(_NET_WM_ACTION_ABOVE == actions[i]) {
-                DBG_PRINT( "**************** X11: FS EWMH CHECK[%d]: _NET_WM_ACTION_ABOVE (*)\n", i);
-                res |= _NET_WM_STATE_FLAG_ABOVE ;
+        if( NULL != actions ) {
+            for(i=0; i<action_len; i++) {
+                if(_NET_WM_ACTION_FULLSCREEN == actions[i]) {
+                    DBG_PRINT( "**************** X11: FS EWMH CHECK[%d]: _NET_WM_ACTION_FULLSCREEN (*)\n", i);
+                    res |= _NET_WM_STATE_FLAG_FULLSCREEN ;
+                } else if(_NET_WM_ACTION_ABOVE == actions[i]) {
+                    DBG_PRINT( "**************** X11: FS EWMH CHECK[%d]: _NET_WM_ACTION_ABOVE (*)\n", i);
+                    res |= _NET_WM_STATE_FLAG_ABOVE ;
+                }
+                else {
+                    char * astr = XGetAtomName(dpy, actions[i]);
+                    DBG_PRINT( "**************** X11: FS EWMH CHECK[%d]: %s (unused)\n", i, astr);
+                    XFree(astr);
+                }
             }
-            else {
-                char * astr = XGetAtomName(dpy, actions[i]);
-                DBG_PRINT( "**************** X11: FS EWMH CHECK[%d]: %s (unused)\n", i, astr);
-                XFree(astr);
-            }
+            XFree(actions);
         }
         DBG_PRINT( "**************** X11: FS EWMH CHECK: 0x%X\n", res);
     } else {
