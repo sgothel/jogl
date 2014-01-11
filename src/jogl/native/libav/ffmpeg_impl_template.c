@@ -1499,7 +1499,7 @@ JNIEXPORT jint JNICALL FF_FUNC(seek0)
     int64_t pts1 = (int64_t) (pos1 * (int64_t) time_base.den)
                            / (1000 * (int64_t) time_base.num);
     if(pAV->verbose) {
-        fprintf(stderr, "SEEK: vid %d, aid %d, pos0 %d, pos1 %d, pts: %"PRId64" -> %"PRId64"\n", pAV->vid, pAV->aid, pos0, pos1, pts0, pts1);
+        fprintf(stderr, "SEEK: vid %d, aid %d, pos0 %"PRId64", pos1 %d, pts: %"PRId64" -> %"PRId64"\n", pAV->vid, pAV->aid, pos0, pos1, pts0, pts1);
     }
     int flags = 0;
     if(pos1 < pos0) {
@@ -1508,7 +1508,7 @@ JNIEXPORT jint JNICALL FF_FUNC(seek0)
     int res = -2;
     if(HAS_FUNC(sp_av_seek_frame)) {
         if(pAV->verbose) {
-            fprintf(stderr, "SEEK.0: pre  : s %d / %"PRId64" -> t %d / %"PRId64"\n", pos0, pts0, pos1, pts1);
+            fprintf(stderr, "SEEK.0: pre  : s %"PRId64" / %"PRId64" -> t %d / %"PRId64"\n", pos0, pts0, pos1, pts1);
         }
         sp_av_seek_frame(pAV->pFormatCtx, streamID, pts1, flags);
     } else if(HAS_FUNC(sp_avformat_seek_file)) {

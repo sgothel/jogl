@@ -19,7 +19,7 @@ Java_jogamp_opengl_GLContextImpl_glGetStringInt(JNIEnv *env, jclass _unused, jin
   assert(ptr_glGetString != NULL);
   _res = (* ptr_glGetString) ((unsigned int) name);
   if (NULL == _res) return NULL;
-  return (*env)->NewStringUTF(env, _res);
+  return (*env)->NewStringUTF(env, (const char *)_res);
 }
 
 /*

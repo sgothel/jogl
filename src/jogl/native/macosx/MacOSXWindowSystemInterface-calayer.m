@@ -578,6 +578,7 @@ static const GLfloat gl_verts[] = {
         quirks, dedicatedFramePosSet, dedicatedFrameSizeSet, dedicatedLayoutSet, self, texWidth, texHeight,
         lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height,
         dFrame.origin.x, dFrame.origin.y, dFrame.size.width, dFrame.size.height);
+    (void)lRect; // silence
     
     if( dedicatedFrameSet ) {
         [super setFrame: dedicatedFrame];

@@ -67,7 +67,7 @@ void OMXInstance_UpdateJavaAttributes(OMXToolBasicAV_t *pAV)
         return;
     }
     int shallBeDetached = 0;
-    JNIEnv  * env = JoglCommon_GetJNIEnv (&shallBeDetached); 
+    JNIEnv  * env = JoglCommon_GetJNIEnv (1 /* daemon */, &shallBeDetached); 
     if(NULL!=env) {
         (*env)->CallVoidMethod(env, (jobject)pAV->jni_instance, jni_mid_updateAttributes,
                                pAV->width, pAV->height, 
@@ -75,7 +75,8 @@ void OMXInstance_UpdateJavaAttributes(OMXToolBasicAV_t *pAV)
                                pAV->framerate, (uint32_t)(pAV->length*pAV->framerate), pAV->length,
                                (*env)->NewStringUTF(env, pAV->videoCodec),
                                (*env)->NewStringUTF(env, pAV->audioCodec) );
-        JoglCommon_ReleaseJNIEnv (shallBeDetached);
+        // detaching thread not required - daemon
+        // JoglCommon_ReleaseJNIEnv(shallBeDetached);
     }
 }
 

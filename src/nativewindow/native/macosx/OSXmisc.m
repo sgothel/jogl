@@ -75,11 +75,9 @@ static const char * const ClazzNameInsetsCstrSignature = "(IIII)V";
 static jclass insetsClz = NULL;
 static jmethodID insetsCstr = NULL;
 
-static int _initialized=0;
-
 JNIEXPORT jboolean JNICALL 
 Java_jogamp_nativewindow_macosx_OSXUtil_initIDs0(JNIEnv *env, jclass _unused) {
-    if(0==_initialized) {
+    if( NativewindowCommon_init(env) ) {
         jclass c;
         c = (*env)->FindClass(env, ClazzNamePoint);
         if(NULL==c) {
@@ -119,7 +117,6 @@ Java_jogamp_nativewindow_macosx_OSXUtil_initIDs0(JNIEnv *env, jclass _unused) {
         if(NULL==runnableRunID) {
             NativewindowCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_MacWindow_initIDs0: can't fetch %s.run()V", ClazzNameRunnable);
         }
-        _initialized=1;
     }
     return JNI_TRUE;
 }
@@ -775,12 +772,10 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_Uns
 @interface MainRunnable : NSObject
 
 {
-    JavaVM *jvmHandle;
-    int jvmVersion;
     jobject runnableObj;
 }
 
-- (id) initWithRunnable: (jobject)runnable jvmHandle: (JavaVM*)jvm jvmVersion: (int)jvmVers;
+- (id) initWithRunnable: (jobject)runnable;
 - (void) jRun;
 
 #ifdef DBG_LIFECYCLE
@@ -794,10 +789,8 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_Uns
 
 @implementation MainRunnable
 
-- (id) initWithRunnable: (jobject)runnable jvmHandle: (JavaVM*)jvm jvmVersion: (int)jvmVers
+- (id) initWithRunnable: (jobject)runnable
 {
-    jvmHandle = jvm;
-    jvmVersion = jvmVers;
     runnableObj = runnable;
     return [super init];
 }
@@ -805,7 +798,7 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_Uns
 - (void) jRun
 {
     int shallBeDetached = 0;
-    JNIEnv* env = NativewindowCommon_GetJNIEnv(jvmHandle, jvmVersion, 1 /* asDaemon */, &shallBeDetached);
+    JNIEnv* env = NativewindowCommon_GetJNIEnv(1 /* asDaemon */, &shallBeDetached);
     DBG_PRINT2("MainRunnable.1 env: %d\n", (int)(NULL!=env));
     if(NULL!=env) {
         DBG_PRINT2("MainRunnable.1.0\n");
@@ -813,11 +806,9 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_Uns
         DBG_PRINT2("MainRunnable.1.1\n");
         (*env)->DeleteGlobalRef(env, runnableObj);
 
-        if (shallBeDetached) {
-            DBG_PRINT2("MainRunnable.1.3\n");
-            // Keep attached on main thread !
-            // (*jvmHandle)->DetachCurrentThread(jvmHandle);
-        }
+        DBG_PRINT2("MainRunnable.1.3\n");
+        // detaching thread not required - daemon
+        // NativewindowCommon_ReleaseJNIEnv(shallBeDetached);
     }
     DBG_PRINT2("MainRunnable.X\n");
 }
@@ -861,17 +852,8 @@ static void RunOnThread (JNIEnv *env, jobject runnable, BOOL onMain, jint delayI
     if ( forkOnMain ) {
         jobject runnableObj = (*env)->NewGlobalRef(env, runnable);
 
-        JavaVM *jvmHandle = NULL;
-        int jvmVersion = 0;
-
-        if(0 != (*env)->GetJavaVM(env, &jvmHandle)) {
-            jvmHandle = NULL;
-        } else {
-            jvmVersion = (*env)->GetVersion(env);
-        }
-
         DBG_PRINT2( "RunOnThread.1.0\n");
-        MainRunnable * mr = [[MainRunnable alloc] initWithRunnable: runnableObj jvmHandle: jvmHandle jvmVersion: jvmVersion];
+        MainRunnable * mr = [[MainRunnable alloc] initWithRunnable: runnableObj];
 
         if( onMain ) {
             [mr performSelectorOnMainThread:@selector(jRun) withObject:nil waitUntilDone:NO];

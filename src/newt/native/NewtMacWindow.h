@@ -53,10 +53,6 @@
 {
     jobject javaWindowObject;
 
-    // This is set while messages are being dispatched and cleared afterward
-    JavaVM *jvmHandle;
-    int jvmVersion;
-
     volatile BOOL destroyNotifySent;
     volatile int softLockCount;
     pthread_mutex_t softLockSync;
@@ -79,12 +75,6 @@
 - (void) release;
 #endif
 - (void) dealloc;
-
-/* Set during event dispatching cycle */
-- (void) setJVMHandle: (JavaVM*) vm;
-- (JavaVM*) getJVMHandle;
-- (void) setJVMVersion: (int) ver;
-- (int) getJVMVersion;
 
 /* Register or deregister (NULL) the java Window object, 
    ie, if NULL, no events are send */

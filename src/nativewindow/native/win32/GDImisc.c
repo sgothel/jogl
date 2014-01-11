@@ -487,7 +487,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_windows_GDIUtil_DestroyWindo
 JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_windows_GDIUtil_initIDs0
   (JNIEnv *env, jclass gdiClazz)
 {
-    if(NativewindowCommon_init(env)) {
+    if( NativewindowCommon_init(env) ) {
         jclass c = (*env)->FindClass(env, ClazzNamePoint);
         if(NULL==c) {
             NativewindowCommon_FatalError(env, "FatalError jogamp_nativewindow_windows_GDIUtil: can't find %s", ClazzNamePoint);

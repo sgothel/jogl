@@ -113,18 +113,6 @@ static void setJavaWindowObject(JNIEnv *env, jobject newJavaWindowObject, NewtVi
         DBG_PRINT( "setJavaWindowObject.2: View %p - Set new javaWindowObject %p\n", view, newJavaWindowObject);
         jobject globJavaWindowObject = (*env)->NewGlobalRef(env, newJavaWindowObject);
         [view setJavaWindowObject: globJavaWindowObject];
-        {
-            JavaVM *jvmHandle = NULL;
-            int jvmVersion = 0;
-
-            if(0 != (*env)->GetJavaVM(env, &jvmHandle)) {
-                jvmHandle = NULL;
-            } else {
-                jvmVersion = (*env)->GetVersion(env);
-            }
-            [view setJVMHandle: jvmHandle];
-            [view setJVMVersion: jvmVersion];
-        }
     }
     DBG_PRINT( "setJavaWindowObject.X: View %p\n", view);
 }
@@ -979,6 +967,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_close0
     BOOL isNewtWin = [mWin isKindOfClass:[NewtMacWindow class]];
     NSWindow *pWin = [mWin parentWindow];
     DBG_PRINT( "windowClose.0 - %p [isNSWindow %d, isNewtWin %d], parent %p\n", mWin, isNSWin, isNewtWin, pWin);
+    (void)isNSWin; // silence
     if( !isNewtWin ) {
         NewtCommon_throwNewRuntimeException(env, "Not a NewtMacWindow %p", mWin);
         return;
