@@ -336,7 +336,7 @@ public class GLDrawableHelper {
       }
       final NativeSurface ns = drawable.getNativeSurface();
       final int lockRes = ns.lockSurface();
-      if (NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes) {
+      if ( NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes ) {
           throw new NativeWindowException("Could not lock surface of drawable: "+drawable);
       }
       boolean validateSize = true;
@@ -345,10 +345,10 @@ public class GLDrawableHelper {
               System.err.println("WARNING: Odd size detected: "+newWidth+"x"+newHeight+", using safe size 1x1. Drawable "+drawable);
               Thread.dumpStack();
           }
-          if(0>=newWidth)  { newWidth = 1; validateSize=false; }
-          if(0>=newHeight) { newHeight = 1; validateSize=false; }
+          if( 0 >= newWidth )  { newWidth = 1; validateSize=false; }
+          if( 0 >= newHeight ) { newHeight = 1; validateSize=false; }
           // propagate new size
-          if(ns instanceof ProxySurface) {
+          if( ns instanceof ProxySurface ) {
               final ProxySurface ps = (ProxySurface) ns;
               final UpstreamSurfaceHook ush = ps.getUpstreamSurfaceHook();
               if(ush instanceof UpstreamSurfaceHook.MutableSize) {
@@ -359,7 +359,7 @@ public class GLDrawableHelper {
           } else if(DEBUG) { // we have to assume surface contains the new size already, hence size check @ bottom
               System.err.println("GLDrawableHelper.resizeOffscreenDrawable: Drawable's offscreen surface n.a. ProxySurface, but "+ns.getClass().getName()+": "+ns);
           }
-          if(drawable instanceof GLFBODrawable) {
+          if( drawable instanceof GLFBODrawable ) {
               if( null != context && context.isCreated() ) {
                   ((GLFBODrawable) drawable).resetSize(context.getGL());
               }

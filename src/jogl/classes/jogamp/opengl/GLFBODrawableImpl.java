@@ -90,7 +90,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         this.initialized = false;
 
         this.parent = parent;
-        this.origParentChosenCaps = (GLCapabilitiesImmutable) getChosenGLCapabilities(); // just to avoid null, will be reset at initialize(..)
+        this.origParentChosenCaps = getChosenGLCapabilities(); // just to avoid null, will be reset at initialize(..)
         this.texUnit = textureUnit;
         this.samples = fboCaps.getNumSamples();
         fboResetQuirk = false;
@@ -552,7 +552,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                 ",\n\tfboI back "+fboIBack+", front "+fboIFront+", num "+(initialized ? fbos.length : 0)+
                 ",\n\tFBO front read "+getDefaultReadFramebuffer()+", "+getFBObject(GL.GL_FRONT)+
                 ",\n\tFBO back  write "+getDefaultDrawFramebuffer()+", "+getFBObject(GL.GL_BACK)+
-                ",\n\tSurface   "+getNativeSurface()+
+                ",\n\tSurface   "+surface+
                 "]";
     }
 

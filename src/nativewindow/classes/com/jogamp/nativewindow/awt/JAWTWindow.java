@@ -220,30 +220,31 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
             if( 0 != ( java.awt.event.HierarchyEvent.DISPLAYABILITY_CHANGED & bits ) ) {
                 final boolean displayable = changed.isDisplayable();
                 final boolean propagateDisplayability = changed == component && ( displayable && localVisibility ) != compIsVisible;
+                final boolean visible = displayable && localVisibility;
+                final boolean propagateDisplayability = changed == component && visible != compIsVisible;
                 if( propagateDisplayability ) {
                     // Propagate parent's displayability, i.e. 'removeNotify()' and 'addNotify()'
-                    final boolean _visible = displayable && localVisibility;
                     visibilityPropagation = true;
                     globalVisibility = displayable;
                     if(DEBUG) {
-                        System.err.println(jawtStr()+".hierarchyChanged DISPLAYABILITY_CHANGED (1): displayable "+displayable+" -> visible "+_visible+", "+s(e));
+                        System.err.println(jawtStr()+".hierarchyChanged DISPLAYABILITY_CHANGED (1): displayable "+displayable+" -> visible "+visible+", "+s(e));
                     }
-                    component.setVisible(_visible);
+                    component.setVisible(visible);
                 } else if(DEBUG) {
                     System.err.println(jawtStr()+".hierarchyChanged DISPLAYABILITY_CHANGED (x): displayable "+displayable+", "+s(e));
                 }
             } else if( 0 != ( java.awt.event.HierarchyEvent.SHOWING_CHANGED & bits ) ) {
                 final boolean showing = changed.isShowing();
-                final boolean propagateVisibility = changed != component && ( showing && localVisibility ) != compIsVisible;
+                final boolean visible = showing && localVisibility;
+                final boolean propagateVisibility = changed != component && visible != compIsVisible;
                 if( propagateVisibility ) {
                     // Propagate parent's visibility
-                    final boolean _visible = showing && localVisibility;
                     visibilityPropagation = true;
                     globalVisibility = showing;
                     if(DEBUG) {
-                        System.err.println(jawtStr()+".hierarchyChanged SHOWING_CHANGED (1): showing "+showing+" -> visible "+_visible+", "+s(e));
+                        System.err.println(jawtStr()+".hierarchyChanged SHOWING_CHANGED (1): showing "+showing+" -> visible "+visible+", "+s(e));
                     }
-                    component.setVisible(_visible);
+                    component.setVisible(visible);
                 } else if( changed == component ) {
                     // Update component's local visibility state
                     if(!visibilityPropagation) {
@@ -251,10 +252,10 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
                     }
                     visibilityPropagation = false;
                     if(DEBUG) {
-                        System.err.println(jawtStr()+".hierarchyChanged SHOWING_CHANGED (0): showing "+showing+" -> visible "+(showing && localVisibility)+", "+s(e));
+                        System.err.println(jawtStr()+".hierarchyChanged SHOWING_CHANGED (0): showing "+showing+" -> visible "+visible+", "+s(e));
                     }
                 } else if(DEBUG) {
-                    System.err.println(jawtStr()+".hierarchyChanged SHOWING_CHANGED (x): showing "+showing+" -> visible "+(showing && localVisibility)+", "+s(e));
+                    System.err.println(jawtStr()+".hierarchyChanged SHOWING_CHANGED (x): showing "+showing+" -> visible "+visible+", "+s(e));
                 }
             } else if(DEBUG) {
                 final boolean displayable = changed.isDisplayable();
@@ -423,7 +424,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   @Override
   public final void setChosenCapabilities(CapabilitiesImmutable caps) {
       ((MutableGraphicsConfiguration)getGraphicsConfiguration()).setChosenCapabilities(caps);
-      getPrivateGraphicsConfiguration().setChosenCapabilities(caps);
+      config.setChosenCapabilities(caps);
   }
 
   @Override
@@ -599,10 +600,6 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   @Override
   public long getSurfaceHandle() {
     return drawable;
-  }
-
-  public final AWTGraphicsConfiguration getPrivateGraphicsConfiguration() {
-    return config;
   }
 
   @Override
@@ -792,7 +789,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     sb.append(", pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
               ", visible "+component.isVisible());
     sb.append(", lockedExt "+isSurfaceLockedByOtherThread()+
-              ",\n\tconfig "+getPrivateGraphicsConfiguration()+
+              ",\n\tconfig "+config+
               ",\n\tawtComponent "+getAWTComponent()+
               ",\n\tsurfaceLock "+surfaceLock+"]");
 

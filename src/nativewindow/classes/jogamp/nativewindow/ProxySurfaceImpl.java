@@ -45,7 +45,7 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
     private AbstractGraphicsConfiguration config; // control access due to delegation
     private UpstreamSurfaceHook upstream;
     private long surfaceHandle_old;
-    private RecursiveLock surfaceLock = LockFactory.createRecursiveLock();
+    private final RecursiveLock surfaceLock = LockFactory.createRecursiveLock();
     private int implBitfield;
     private boolean upstreamSurfaceHookLifecycleEnabled;
 
@@ -120,10 +120,6 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
      */
     protected void invalidateImpl() {
         throw new InternalError("UpstreamSurfaceHook given, but required method not implemented.");
-    }
-
-    protected final AbstractGraphicsConfiguration getPrivateGraphicsConfiguration() {
-        return config;
     }
 
     @Override
