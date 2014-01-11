@@ -331,9 +331,6 @@ public class GLDrawableHelper {
   public static final GLDrawableImpl resizeOffscreenDrawable(GLDrawableImpl drawable, GLContext context, int newWidth, int newHeight)
           throws NativeWindowException, GLException
   {
-      if(drawable.getChosenGLCapabilities().isOnscreen()) {
-          throw new NativeWindowException("Drawable is not offscreen: "+drawable);
-      }
       final NativeSurface ns = drawable.getNativeSurface();
       final int lockRes = ns.lockSurface();
       if ( NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes ) {
@@ -341,7 +338,13 @@ public class GLDrawableHelper {
       }
       boolean validateSize = true;
       try {
-          if(DEBUG && ( 0>=newWidth || 0>=newHeight) ) {
+          if( ! drawable.isRealized() ) {
+              return drawable;
+          }
+          if( drawable.getChosenGLCapabilities().isOnscreen() ) {
+              throw new NativeWindowException("Drawable is not offscreen: "+drawable);
+          }
+          if( DEBUG && ( 0>=newWidth || 0>=newHeight) ) {
               System.err.println("WARNING: Odd size detected: "+newWidth+"x"+newHeight+", using safe size 1x1. Drawable "+drawable);
               Thread.dumpStack();
           }
