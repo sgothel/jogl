@@ -52,6 +52,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Rectangle2D;
 import java.awt.EventQueue;
@@ -172,6 +174,14 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   private int additionalCtxCreationFlags = 0;
   private final GraphicsDevice device;
   private boolean shallUseOffscreenLayer = false;
+
+  private volatile boolean isShowing;
+  private final HierarchyListener hierarchyListener = new HierarchyListener() {
+      @Override
+      public void hierarchyChanged(HierarchyEvent e) {
+          isShowing = GLCanvas.this.isShowing();
+      }
+  };
 
   private final AWTWindowClosingProtocol awtWindowClosingProtocol =
           new AWTWindowClosingProtocol(this, new Runnable() {
@@ -294,6 +304,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         helper.setSharedContext(null, shareWith);
     }
     this.device = device;
+
+    this.addHierarchyListener(hierarchyListener);
+    this.isShowing = isShowing();
   }
 
   @Override
@@ -524,7 +537,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         }
         return; // not yet available ..
     }
-    if( isVisible() && !printActive ) {
+    if( isShowing && !printActive ) {
         Threading.invoke(true, displayOnEDTAction, getTreeLock());
     }
   }
@@ -581,15 +594,6 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     } else if( !this.helper.isAnimatorAnimatingOnOtherThread() ) {
         display();
     }
-  }
-
-  @Override
-  public void setVisible(boolean b) {
-      if(DEBUG) {
-          System.err.println(getThreadName()+": Info: setVisible("+b+")");
-          Thread.dumpStack();
-      }
-      super.setVisible(b);
   }
 
   /** Overridden to track when this component is added to a container.
@@ -814,9 +818,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
               printActive = false;
               return; // not yet available ..
           }
-          if( !isVisible() ) {
+          if( !isShowing ) {
               if(DEBUG) {
-                  System.err.println(getThreadName()+": Info: GLCanvas setupPrint - skipped GL render, drawable visible");
+                  System.err.println(getThreadName()+": Info: GLCanvas setupPrint - skipped GL render, drawable valid, canvas not showing");
               }
               printActive = false;
               return; // not yet available ..
@@ -1148,7 +1152,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                           ",\n\thandle    0x"+Long.toHexString(getHandle())+
                           ",\n\tDrawable size "+dw+"x"+dh+
                           ",\n\tAWT pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
-                          ",\n\tvisible "+isVisible()+", displayable "+isDisplayable()+
+                          ",\n\tvisible "+isVisible()+", displayable "+isDisplayable()+", showing "+isShowing+
                           ",\n\t"+awtConfig+"]";
   }
 

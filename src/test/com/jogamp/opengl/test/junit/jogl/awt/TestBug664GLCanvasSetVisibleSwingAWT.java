@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.awt;
 
 import java.awt.AWTException;
@@ -83,9 +83,9 @@ public class TestBug664GLCanvasSetVisibleSwingAWT extends UITestCase {
     @AfterClass
     public static void releaseClass() {
     }
-    
-    protected JPanel create(final JFrame[] top, final int width, final int height, final int num) 
-            throws InterruptedException, InvocationTargetException 
+
+    protected JPanel create(final JFrame[] top, final int width, final int height, final int num)
+            throws InterruptedException, InvocationTargetException
     {
         final JPanel[] jPanel = new JPanel[] { null };
         SwingUtilities.invokeAndWait(new Runnable() {
@@ -98,55 +98,55 @@ public class TestBug664GLCanvasSetVisibleSwingAWT extends UITestCase {
                     jFrame1.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // equivalent to Frame, use windowClosing event!
                     jFrame1.getContentPane().add(jPanel[0]);
                     jFrame1.setSize(width, height);
-                    
+
                     top[0] = jFrame1;
                 } } );
-        return jPanel[0];        
+        return jPanel[0];
     }
 
-    protected void add(final Container cont, final Component comp, final JFrame jFrame) 
-            throws InterruptedException, InvocationTargetException 
+    protected void add(final Container cont, final Component comp, final JFrame jFrame)
+            throws InterruptedException, InvocationTargetException
     {
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    cont.add(comp, BorderLayout.CENTER);                    
+                    cont.add(comp, BorderLayout.CENTER);
                     jFrame.pack();
                     jFrame.validate();
                 } } );
     }
-    
-    protected void dispose(final GLCanvas glc) 
-            throws InterruptedException, InvocationTargetException 
+
+    protected void dispose(final GLCanvas glc)
+            throws InterruptedException, InvocationTargetException
     {
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    glc.destroy();                    
+                    glc.destroy();
                 } } );
     }
-    
+
     protected void setFrameVisible(final JFrame jFrame, final boolean visible) throws InterruptedException, InvocationTargetException {
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     jFrame.setVisible(visible);
-                } } ) ;        
+                } } ) ;
     }
-    
+
     protected void setComponentVisible(final Component comp, final boolean visible) throws InterruptedException, InvocationTargetException {
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     comp.setVisible(visible);
-                } } ) ;        
+                } } ) ;
     }
-    
+
     protected void dispose(final JFrame jFrame) throws InterruptedException, InvocationTargetException {
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     jFrame.dispose();
-                } } ) ;        
+                } } ) ;
     }
-    
+
     private volatile int frameCount = 0;
-    
+
     protected void runTestGL(boolean onscreen, GLCapabilities caps)
             throws AWTException, InterruptedException, InvocationTargetException
     {
@@ -178,52 +178,52 @@ public class TestBug664GLCanvasSetVisibleSwingAWT extends UITestCase {
             final GearsES2 gears = new GearsES2(1);
             gears.setVerbose(false);
             glc.addGLEventListener(gears);
-            
+
             final JFrame[] top = new JFrame[] { null };
             final Container glcCont = create(top, width, height, i);
             add(glcCont, glc, top[0]);
-            
+
+            System.err.println("XXXX Visible Part 1/3");
             frameCount = 0;
             setFrameVisible(top[0], true);
             Assert.assertTrue("Component didn't become visible", AWTRobotUtil.waitForVisible(glc, true));
             Assert.assertTrue("Component didn't become realized", AWTRobotUtil.waitForRealized(glc, true));
-                        
-            anim.setUpdateFPSFrames(60, null);
+
+            anim.setUpdateFPSFrames(60, System.err);
             anim.start();
             anim.resetFPSCounter();
-            System.err.println("Visible Part 1/3");
-            
-            while( anim.getTotalFPSDuration() < durationPerTest ) {
-                Thread.sleep(60);
-            }            
-            
-            setComponentVisible(glc, false);
-            Assert.assertTrue("Component didn't become invisible", AWTRobotUtil.waitForVisible(glc, false));            
-            final int frameCountT0 = frameCount;
-            anim.resetFPSCounter();
-            System.err.println("Invisible Part 2/3");
-            
+
             while( anim.getTotalFPSDuration() < durationPerTest ) {
                 Thread.sleep(60);
             }
-            
-            final int frameCountT1 = frameCount;            
+
+            System.err.println("XXXXX Invisible Part 2/3");
+            setComponentVisible(glc, false);
+            Assert.assertTrue("Component didn't become invisible", AWTRobotUtil.waitForVisible(glc, false));
+            final int frameCountT0 = frameCount;
+            anim.resetFPSCounter();
+
+            while( anim.getTotalFPSDuration() < durationPerTest ) {
+                Thread.sleep(60);
+            }
+
+            final int frameCountT1 = frameCount;
             System.err.println("GLCanvas invisible frame count: Before "+frameCountT0+", after "+frameCountT1);
-            Assert.assertTrue("GLCanvas rendered more that 4 times while being invisible, before "+frameCountT0+", after "+frameCountT1, 
+            Assert.assertTrue("GLCanvas rendered more that 4 times while being invisible, before "+frameCountT0+", after "+frameCountT1,
                     4 >= frameCountT1 - frameCountT0);
-            
+
+            System.err.println("XXXX Visible Part 3/3");
             setComponentVisible(glc, true);
             Assert.assertTrue("Component didn't become visible", AWTRobotUtil.waitForVisible(glc, true));
             anim.resetFPSCounter();
-            System.err.println("Visible Part 3/3");
-            
+
             while( anim.getTotalFPSDuration() < durationPerTest ) {
                 Thread.sleep(60);
             }
-                        
+
             System.err.println("GLCanvas isOffscreenLayerSurfaceEnabled: "+glc.isOffscreenLayerSurfaceEnabled()+": "+glc.getChosenGLCapabilities());
-            
-            dispose(top[0]);            
+
+            dispose(top[0]);
         }
     }
 
@@ -258,7 +258,7 @@ public class TestBug664GLCanvasSetVisibleSwingAWT extends UITestCase {
         }
         runTestGL(false, caps);
     }
-    
+
     public static void main(String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
@@ -272,10 +272,10 @@ public class TestBug664GLCanvasSetVisibleSwingAWT extends UITestCase {
                 shallUseOffscreenPBufferLayer = true;
             } else if(args[i].equals("-wait")) {
                 waitForKey = true;
-            }            
+            }
         }
         System.err.println("waitForKey                    "+waitForKey);
-        
+
         System.err.println("shallUseOffscreenFBOLayer     "+shallUseOffscreenFBOLayer);
         System.err.println("shallUseOffscreenPBufferLayer "+shallUseOffscreenPBufferLayer);
         if(waitForKey) {

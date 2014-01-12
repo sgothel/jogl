@@ -48,6 +48,8 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -265,6 +267,14 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       return null == customPixelBufferProvider &&  useJava2DGLPipeline && java2DGLPipelineOK;
   }
 
+  private volatile boolean isShowing;
+  private final HierarchyListener hierarchyListener = new HierarchyListener() {
+      @Override
+      public void hierarchyChanged(HierarchyEvent e) {
+          isShowing = GLJPanel.this.isShowing();
+      }
+  };
+
   private final AWTWindowClosingProtocol awtWindowClosingProtocol =
           new AWTWindowClosingProtocol(this, new Runnable() {
                 @Override
@@ -346,6 +356,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         helper.setSharedContext(null, shareWith);
     }
     this.setFocusable(true); // allow keyboard input!
+    this.addHierarchyListener(hierarchyListener);
+    this.isShowing = isShowing();
   }
 
   /**
@@ -418,7 +430,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
   @Override
   public void display() {
-    if( isVisible() ) {
+    if( isShowing ) {
         if (EventQueue.isDispatchThread()) {
           // Want display() to be synchronous, so call paintImmediately()
           paintImmediately(0, 0, getWidth(), getHeight());
@@ -521,7 +533,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           sendReshape = handleReshape();
         }
 
-        if( isVisible() ) {
+        if( isShowing ) {
           updater.setGraphics(g);
           backend.doPaintComponent(g);
         }
@@ -608,9 +620,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
               printActive = false;
               return; // not yet available ..
           }
-          if( !isVisible() ) {
+          if( !isShowing ) {
               if(DEBUG) {
-                  System.err.println(getThreadName()+": Info: GLJPanel setupPrint - skipped GL render, drawable visible");
+                  System.err.println(getThreadName()+": Info: GLJPanel setupPrint - skipped GL render, drawable valid, panel not showing");
               }
               printActive = false;
               return; // not yet available ..

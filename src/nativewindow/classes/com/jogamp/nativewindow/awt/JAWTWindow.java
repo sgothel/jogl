@@ -125,9 +125,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   private String jawtStr() { return "JAWTWindow["+id(JAWTWindow.this)+"]"; }
 
   private class JAWTComponentListener implements ComponentListener, HierarchyListener {
-        private boolean localVisibility = component.isVisible();
-        private boolean globalVisibility = localVisibility;
-        private boolean visibilityPropagation = false;
+        private boolean isShowing;
 
         private String str(Object obj) {
             if( null == obj ) {
@@ -141,14 +139,14 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
             }
         }
         private String s(ComponentEvent e) {
-            return "visible[local "+localVisibility+", global "+globalVisibility+", propag. "+visibilityPropagation+"],"+Platform.getNewline()+
+            return "visible[isShowing "+isShowing+"],"+Platform.getNewline()+
                    "    ** COMP "+str(e.getComponent())+Platform.getNewline()+
                    "    ** SOURCE "+str(e.getSource())+Platform.getNewline()+
                    "    ** THIS "+str(component)+Platform.getNewline()+
                    "    ** THREAD "+getThreadName();
         }
         private String s(HierarchyEvent e) {
-            return "visible[local "+localVisibility+", global "+globalVisibility+", propag. "+visibilityPropagation+"], changeBits 0x"+Long.toHexString(e.getChangeFlags())+Platform.getNewline()+
+            return "visible[isShowing "+isShowing+"], changeBits 0x"+Long.toHexString(e.getChangeFlags())+Platform.getNewline()+
                    "    ** COMP "+str(e.getComponent())+Platform.getNewline()+
                    "    ** SOURCE "+str(e.getSource())+Platform.getNewline()+
                    "    ** CHANGED "+str(e.getChanged())+Platform.getNewline()+
@@ -158,12 +156,13 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
         }
         @Override
         public final String toString() {
-            return "visible[local "+localVisibility+", global "+globalVisibility+", propag. "+visibilityPropagation+"],"+Platform.getNewline()+
+            return "visible[isShowing "+isShowing+"],"+Platform.getNewline()+
                    "    ** THIS "+str(component)+Platform.getNewline()+
                    "    ** THREAD "+getThreadName();
         }
 
         private JAWTComponentListener() {
+            isShowing = component.isShowing();
             if(DEBUG) {
                 System.err.println(jawtStr()+".attach @ Thread "+getThreadName()+": "+toString());
             }
@@ -177,7 +176,6 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
             }
             component.removeComponentListener(this);
             component.removeHierarchyListener(this);
-            component.setVisible(localVisibility); // restore component's original local state
         }
 
         @Override
@@ -185,7 +183,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
             if(DEBUG) {
                 System.err.println(jawtStr()+".componentResized: "+s(e));
             }
-            layoutSurfaceLayerIfEnabled(globalVisibility && localVisibility);
+            layoutSurfaceLayerIfEnabled(isShowing);
         }
 
         @Override
@@ -193,7 +191,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
             if(DEBUG) {
                 System.err.println(jawtStr()+".componentMoved: "+s(e));
             }
-            layoutSurfaceLayerIfEnabled(globalVisibility && localVisibility);
+            layoutSurfaceLayerIfEnabled(isShowing);
         }
 
         @Override
@@ -201,7 +199,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
             if(DEBUG) {
                 System.err.println(jawtStr()+".componentShown: "+s(e));
             }
-            layoutSurfaceLayerIfEnabled(globalVisibility && localVisibility);
+            layoutSurfaceLayerIfEnabled(isShowing);
         }
 
         @Override
@@ -209,59 +207,27 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
             if(DEBUG) {
                 System.err.println(jawtStr()+".componentHidden: "+s(e));
             }
-            layoutSurfaceLayerIfEnabled(globalVisibility && localVisibility);
+            layoutSurfaceLayerIfEnabled(isShowing);
         }
 
         @Override
         public final void hierarchyChanged(HierarchyEvent e) {
-            final long bits = e.getChangeFlags();
-            final java.awt.Component changed = e.getChanged();
-            final boolean compIsVisible = component.isVisible();
-            if( 0 != ( java.awt.event.HierarchyEvent.DISPLAYABILITY_CHANGED & bits ) ) {
-                final boolean displayable = changed.isDisplayable();
-                final boolean propagateDisplayability = changed == component && ( displayable && localVisibility ) != compIsVisible;
-                final boolean visible = displayable && localVisibility;
-                final boolean propagateDisplayability = changed == component && visible != compIsVisible;
-                if( propagateDisplayability ) {
-                    // Propagate parent's displayability, i.e. 'removeNotify()' and 'addNotify()'
-                    visibilityPropagation = true;
-                    globalVisibility = displayable;
-                    if(DEBUG) {
-                        System.err.println(jawtStr()+".hierarchyChanged DISPLAYABILITY_CHANGED (1): displayable "+displayable+" -> visible "+visible+", "+s(e));
-                    }
-                    component.setVisible(visible);
-                } else if(DEBUG) {
-                    System.err.println(jawtStr()+".hierarchyChanged DISPLAYABILITY_CHANGED (x): displayable "+displayable+", "+s(e));
+            final boolean wasAWTCompShowing = isShowing;
+            isShowing = component.isShowing();
+            int action = 0;
+            if( 0 != ( java.awt.event.HierarchyEvent.SHOWING_CHANGED & e.getChangeFlags() ) ) {
+                if( e.getChanged() != component && wasAWTCompShowing != isShowing ) {
+                    // A parent component changed and caused a 'showing' state change,
+                    // propagate to offscreen-layer!
+                    layoutSurfaceLayerIfEnabled(isShowing);
+                    action = 1;
                 }
-            } else if( 0 != ( java.awt.event.HierarchyEvent.SHOWING_CHANGED & bits ) ) {
-                final boolean showing = changed.isShowing();
-                final boolean visible = showing && localVisibility;
-                final boolean propagateVisibility = changed != component && visible != compIsVisible;
-                if( propagateVisibility ) {
-                    // Propagate parent's visibility
-                    visibilityPropagation = true;
-                    globalVisibility = showing;
-                    if(DEBUG) {
-                        System.err.println(jawtStr()+".hierarchyChanged SHOWING_CHANGED (1): showing "+showing+" -> visible "+visible+", "+s(e));
-                    }
-                    component.setVisible(visible);
-                } else if( changed == component ) {
-                    // Update component's local visibility state
-                    if(!visibilityPropagation) {
-                        localVisibility = compIsVisible;
-                    }
-                    visibilityPropagation = false;
-                    if(DEBUG) {
-                        System.err.println(jawtStr()+".hierarchyChanged SHOWING_CHANGED (0): showing "+showing+" -> visible "+visible+", "+s(e));
-                    }
-                } else if(DEBUG) {
-                    System.err.println(jawtStr()+".hierarchyChanged SHOWING_CHANGED (x): showing "+showing+" -> visible "+visible+", "+s(e));
-                }
-            } else if(DEBUG) {
+            }
+            if(DEBUG) {
+                final java.awt.Component changed = e.getChanged();
                 final boolean displayable = changed.isDisplayable();
-                final boolean _visible = displayable && localVisibility;
                 final boolean showing = changed.isShowing();
-                System.err.println(jawtStr()+".hierarchyChanged OTHER: displayable "+displayable+", showing "+showing+" -> visible "+_visible+", "+s(e));
+                System.err.println(jawtStr()+".hierarchyChanged: action "+action+", displayable "+displayable+", showing [changed "+showing+", comp "+isShowing+"], "+s(e));
             }
         }
   }

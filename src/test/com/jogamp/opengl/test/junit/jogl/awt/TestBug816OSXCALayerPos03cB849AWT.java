@@ -103,8 +103,10 @@ public class TestBug816OSXCALayerPos03cB849AWT extends UITestCase {
         final JCheckBox checkbox = new JCheckBox("Visible canvas", true);
         checkbox.addItemListener(new ItemListener() {
             public void itemStateChanged(ItemEvent ev) {
-                panel.setVisible(checkbox.getSelectedObjects()!=null);
-                System.out.println("Visible: [panel "+panel.isVisible()+", canvas "+glCanvas1.isVisible()+"]; Displayable: [panel "+panel.isDisplayable()+", canvas "+glCanvas1.isDisplayable()+"]");
+                final boolean visible = checkbox.getSelectedObjects()!=null;
+                System.err.println("XXXX Panel setVisible "+visible);
+                panel.setVisible(visible);
+                System.err.println("XXXX Visible: [panel "+panel.isVisible()+", canvas "+glCanvas1.isVisible()+"]; Displayable: [panel "+panel.isDisplayable()+", canvas "+glCanvas1.isDisplayable()+"]");
                 if( panel.isVisible() ) {
                     frame.validate(); // take care of resized frame while hidden
                 }

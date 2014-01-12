@@ -107,6 +107,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.DebugGL"
     #D_ARGS="-Dnativewindow.debug.X11Util -Dnativewindow.debug.X11Util.TraceDisplayLifecycle -Djogl.debug.EGLDisplayUtil -Djogl.debug.GLDrawable"
     #D_ARGS="-Djogl.debug.GLContext -Dnativewindow.debug.JAWT -Dnewt.debug.Window"
+    #D_ARGS="-Dnativewindow.debug.JAWT -Djogl.debug.GLCanvas"
     #D_ARGS="-Dnativewindow.debug.JAWT -Djogamp.debug.TaskBase.TraceSource"
     #D_ARGS="-Djogl.debug.GLContext.TraceSwitch"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLContext.TraceSwitch"
@@ -193,7 +194,7 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.EDT"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.GLContext"
     #D_ARGS="-Dnewt.debug.Window -Djogl.debug.Animator -Dnewt.debug.Screen"
-    #D_ARGS="-Dnativewindow.debug.JAWT -Dnewt.debug.Window"
+    D_ARGS="-Dnativewindow.debug.JAWT -Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Window.KeyEvent"
     #D_ARGS="-Dnewt.debug.Window.MouseEvent"
     #D_ARGS="-Dnewt.debug.Window.MouseEvent -Dnewt.debug.Window.KeyEvent"
@@ -325,7 +326,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelsAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NewtCanvasAWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NEWT $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT $*
@@ -466,7 +467,6 @@ testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.anim.TestAnimatorGLWindow01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.anim.TestAnimatorGLJPanel01AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.acore.anim.TestAWTCardLayoutAnimatorStartStopBug532 $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.anim.Bug898AnimatorFromEDTAWT $*
 
 #
@@ -500,15 +500,52 @@ testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #
 # AWT
 #
+
+#
+# OSX CALayer Position and Visibility (OSX CALayer, ..)
+# <BEGIN>
+#
+
+#
+# Simple GLCanvas setVisible on/off
+#   OK (X11, OSX)
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug664GLCanvasSetVisibleSwingAWT $*
+
+#
+# GLCanvas moving between CardLayout's JPanels
+#   OK (X11, OSX)
+#testawt com.jogamp.opengl.test.junit.jogl.acore.anim.TestAWTCardLayoutAnimatorStartStopBug532 $*
+
+#
+# GLCanvas moving between JTabbedPanel's tabs
+#   OK (X11, OSX)
+testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816JTabbedPanelVisibilityB849B878AWT $*
+
+#
+# GLCanvas/AWT Checkbox Visibility
+#   OK (X11, OSX)
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos03aB729AWT $*
+
+#
+# GLCanvas/AWT Checkbox Visibility (on parent's Panel)
+#   OK (X11, OSX)
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos03bB849AWT $*
+#
+# GLCanvas/Swing Checkbox Visibility (on parent's JPanel)
+#   OK (X11, OSX)
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos03cB849AWT $*
+
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos02AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos03aB729AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos03bB849AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos03cB849AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816JTabbedPanelVisibilityB849B878AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816GLCanvasFrameHoppingB849B889AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos04aAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos04bAWT $*
+
+#
+# OSX CALayer Position and Visibility (OSX CALayer, ..)
+# <END>
+#
+
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug675BeansInDesignTimeAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug551AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug572AWT $*
@@ -519,7 +556,6 @@ testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT02WindowClosing
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestJScrollPaneMixHwLw01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug642JSplitPaneMixHwLw01AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug664GLCanvasSetVisibleSwingAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestIsRealizedConcurrency01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.text.TestAWTTextRendererUseVertexArrayBug464
 #testawt com.jogamp.opengl.test.junit.jogl.glu.TestBug463ScaleImageMemoryAWT $*

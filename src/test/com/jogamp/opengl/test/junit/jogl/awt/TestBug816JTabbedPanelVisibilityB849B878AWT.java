@@ -34,6 +34,7 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
@@ -63,7 +64,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBug816JTabbedPanelVisibilityB849B878AWT extends UITestCase {
 
-    static long durationPerTest = 500*4; // ms
+    static long durationPerTest = 500*6; // ms
     static boolean manual = false;
 
     @Test
@@ -72,6 +73,7 @@ public class TestBug816JTabbedPanelVisibilityB849B878AWT extends UITestCase {
 
         final JPanel panel1 = new javax.swing.JPanel();
         final JPanel panel2 = new javax.swing.JPanel();
+        final JPanel panel3 = new javax.swing.JPanel();
 
         panel1.setLayout(new BorderLayout());
         panel2.setLayout(new BorderLayout());
@@ -82,22 +84,28 @@ public class TestBug816JTabbedPanelVisibilityB849B878AWT extends UITestCase {
         glCanvas.setSize(new java.awt.Dimension(640, 480));
         glCanvas.addGLEventListener(new GearsES2(1));
         panel1.add(glCanvas, BorderLayout.CENTER);
+        panel3.add(new JLabel("A label to cover the canvas"), BorderLayout.CENTER);
 
         final JTabbedPane tabbedPanel = new JTabbedPane();
-        tabbedPanel.addTab("tab1", panel1);
-        tabbedPanel.addTab("tab2", panel2);
+        tabbedPanel.addTab("tab1", panel1); // glcanvas
+        tabbedPanel.addTab("tab2", panel2); // glcanvas
+        tabbedPanel.addTab("tab3", panel3); // text
 
         tabbedPanel.addChangeListener(new javax.swing.event.ChangeListener() {
             @Override
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 if (tabbedPanel.getSelectedIndex() == 0) {
+                    System.err.println("XXXX Add GLCanvas Panel2("+id(panel2)+" -> Panel1("+id(panel1)+") START");
                     dumpGLCanvasStats(glCanvas);
                     panel1.add(glCanvas, BorderLayout.CENTER);
                     dumpGLCanvasStats(glCanvas);
-                } else {
+                } else if (tabbedPanel.getSelectedIndex() == 1) {
                     System.err.println("XXXX Add GLCanvas Panel1("+id(panel1)+" -> Panel2("+id(panel2)+") START");
                     dumpGLCanvasStats(glCanvas);
                     panel2.add(glCanvas, BorderLayout.CENTER);
+                    dumpGLCanvasStats(glCanvas);
+                } else {
+                    System.err.println("XXXX NOP");
                     dumpGLCanvasStats(glCanvas);
                 }
             }
@@ -119,33 +127,44 @@ public class TestBug816JTabbedPanelVisibilityB849B878AWT extends UITestCase {
                 Thread.sleep(100);
             }
         } else {
+            Thread.sleep(durationPerTest/6);
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    System.err.println("XXXX Add GLCanvas Panel2("+id(panel2)+") -> Panel1("+id(panel1)+" START");
-                    tabbedPanel.setSelectedIndex(0);
-                }});
-            Thread.sleep(durationPerTest/4);
-
-            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-                public void run() {
-                    System.err.println("XXXX Add GLCanvas Panel1("+id(panel1)+" -> Panel2("+id(panel2)+") START");
+                    System.err.println("XXXX Panel1("+id(panel1)+" -> Panel2("+id(panel2)+") START");
                     tabbedPanel.setSelectedIndex(1);
                 }});
-            Thread.sleep(durationPerTest/4);
 
+            Thread.sleep(durationPerTest/6);
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    System.err.println("XXXX Add GLCanvas Panel2("+id(panel2)+") -> Panel1("+id(panel1)+" START");
+                    System.err.println("XXXX Panel2("+id(panel2)+") -> Panel3("+id(panel3)+" START");
+                    tabbedPanel.setSelectedIndex(2);
+                }});
+
+            Thread.sleep(durationPerTest/6);
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    System.err.println("XXXX Panel3("+id(panel3)+") -> Panel1("+id(panel1)+" START");
                     tabbedPanel.setSelectedIndex(0);
                 }});
-            Thread.sleep(durationPerTest/4);
 
+            // one loop done
+
+            Thread.sleep(durationPerTest/6);
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    System.err.println("XXXX Add GLCanvas Panel1("+id(panel1)+" -> Panel2("+id(panel2)+") START");
+                    System.err.println("XXXX Panel1("+id(panel1)+" -> Panel2("+id(panel2)+") START");
                     tabbedPanel.setSelectedIndex(1);
                 }});
-            Thread.sleep(durationPerTest/4);
+
+            Thread.sleep(durationPerTest/6);
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    System.err.println("XXXX Panel2("+id(panel2)+") -> Panel1("+id(panel1)+" START");
+                    tabbedPanel.setSelectedIndex(0);
+                }});
+
+            Thread.sleep(durationPerTest/6);
         }
 
         SwingUtilities.invokeLater(new Runnable() {
