@@ -121,13 +121,14 @@ public class AWTParentWindowAdapter extends AWTWindowAdapter implements java.awt
             newtChild.runOnEDTIfAvail(false, new Runnable() {
                 @Override
                 public void run() {
-                    int cw = comp.getWidth();
-                    int ch = comp.getHeight();
+                    final int cw = comp.getWidth();
+                    final int ch = comp.getHeight();
                     if( 0 < cw && 0 < ch ) {
                         if( newtChild.getWidth() != cw || newtChild.getHeight() != ch ) {
                             newtChild.setSize(cw, ch);
-                            if(comp.isVisible() != newtChild.isVisible()) {
-                                newtChild.setVisible(comp.isVisible());
+                            final boolean v = comp.isShowing(); // compute showing-state throughout hierarchy
+                            if(v != newtChild.isVisible()) {
+                                newtChild.setVisible(v);
                             }
                         }
                     } else if(newtChild.isVisible()) {
@@ -164,12 +165,12 @@ public class AWTParentWindowAdapter extends AWTWindowAdapter implements java.awt
         if( !isSetup ) { return; }
         final Window newtChild = getNewtWindow();
         if( null != newtChild && null == getNewtEventListener() ) {
-            long bits = e.getChangeFlags();
-            final java.awt.Component changed = e.getChanged();
+            final long bits = e.getChangeFlags();
+            final java.awt.Component comp = e.getComponent();
             if( 0 != ( java.awt.event.HierarchyEvent.SHOWING_CHANGED & bits ) ) {
-                final boolean showing = changed.isShowing();
+                final boolean showing = comp.isShowing(); // compute showing-state throughout hierarchy
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("AWT: hierarchyChanged SHOWING_CHANGED: showing "+showing+", "+changed+", source "+e.getComponent());
+                    System.err.println("AWT: hierarchyChanged SHOWING_CHANGED: showing "+showing+", comp "+comp+", changed "+e.getChanged());
                 }
                 newtChild.runOnEDTIfAvail(false, new Runnable() {
                     @Override
@@ -181,8 +182,7 @@ public class AWTParentWindowAdapter extends AWTWindowAdapter implements java.awt
             }
             if(DEBUG_IMPLEMENTATION) {
                 if( 0 != ( java.awt.event.HierarchyEvent.DISPLAYABILITY_CHANGED & bits ) ) {
-                    final boolean displayability = changed.isDisplayable();
-                    System.err.println("AWT: hierarchyChanged DISPLAYABILITY_CHANGED: displayability "+displayability+", "+changed);
+                    System.err.println("AWT: hierarchyChanged DISPLAYABILITY_CHANGED: "+e.getChanged());
                 }
             }
         }

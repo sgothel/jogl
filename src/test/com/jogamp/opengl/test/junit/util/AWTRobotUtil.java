@@ -656,7 +656,7 @@ public class AWTRobotUtil {
             }
         } else if(NativeWindowFactory.isAWTAvailable() && obj instanceof java.awt.Component) {
             java.awt.Component comp = (java.awt.Component) obj;
-            for (wait=0; wait<POLL_DIVIDER && visible != comp.isVisible(); wait++) {
+            for (wait=0; wait<POLL_DIVIDER && visible != comp.isShowing(); wait++) {
                 Thread.sleep(TIME_SLICE);
             }
         } else {
@@ -719,7 +719,7 @@ public class AWTRobotUtil {
             }
         } else if (NativeWindowFactory.isAWTAvailable() && obj instanceof java.awt.Component) {
             java.awt.Component comp = (java.awt.Component) obj;
-            while( (t1-t0) < TIME_OUT && realized != comp.isDisplayable() ) {
+            while( (t1-t0) < TIME_OUT && realized != comp.isShowing() ) {
                 if( null != waitAction ) {
                     waitAction.run();
                 } else {
