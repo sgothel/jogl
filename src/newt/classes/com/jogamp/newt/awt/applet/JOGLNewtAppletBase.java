@@ -235,7 +235,7 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
             glWindow.setVisible(true);
             glWindow.sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
             if( null == pointerIconTest ) {
-                final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "newt/data/cross-gray-alpha-16x16.png" } );
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "newt/data/cross-grey-alpha-16x16.png" } );
                 final Display disp = glWindow.getScreen().getDisplay();
                 try {
                     pointerIconTest = disp.createPointerIcon(res, 8, 8);
