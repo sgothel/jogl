@@ -50,6 +50,11 @@ import com.jogamp.newt.util.EDTUtil;
 public class DefaultEDTUtil implements EDTUtil {
     public static final boolean DEBUG = Debug.debug("EDT");
 
+    /** Used to implement {@link #invokeStop(boolean, Runnable)}. */
+    private static final Object TASK_ATTACHMENT_STOP = new Object();
+    /** Used to provoke an exception on the EDT while waiting / blocking. Merely exists to test code.*/
+    private static final Object TASK_ATTACHMENT_TEST_ERROR = new Object();
+
     private final Object edtLock = new Object(); // locking the EDT start/stop state
     private /* final */ ThreadGroup threadGroup;
     private final String name;
@@ -139,12 +144,20 @@ public class DefaultEDTUtil implements EDTUtil {
             System.err.println(Thread.currentThread()+": Default-EDT.invokeStop wait "+wait);
             Thread.dumpStack();
         }
-        return invokeImpl(wait, task, true);
+        return invokeImpl(wait, task, true /* stop */, false /* provokeError */);
+    }
+
+    public final boolean invokeAndWaitError(Runnable task) {
+        if(DEBUG) {
+            System.err.println(Thread.currentThread()+": Default-EDT.invokeAndWaitError");
+            Thread.dumpStack();
+        }
+        return invokeImpl(true /* wait */, task, false /* stop */, true /* provokeError */);
     }
 
     @Override
     public final boolean invoke(boolean wait, Runnable task) {
-        return invokeImpl(wait, task, false);
+        return invokeImpl(wait, task, false /* stop */, false /* provokeError */);
     }
 
     private static Runnable nullTask = new Runnable() {
@@ -152,7 +165,7 @@ public class DefaultEDTUtil implements EDTUtil {
         public void run() { }
     };
 
-    private final boolean invokeImpl(boolean wait, Runnable task, boolean stop) {
+    private final boolean invokeImpl(boolean wait, Runnable task, boolean stop, boolean provokeError) {
         Throwable throwable = null;
         RunnableTask rTask = null;
         final Object rTaskLock = new Object();
@@ -204,7 +217,9 @@ public class DefaultEDTUtil implements EDTUtil {
                                                      true /* always catch and report Exceptions, don't disturb EDT */,
                                                      wait ? null : System.err);
                             if(stop) {
-                                rTask.setAttachment(new Boolean(true)); // mark final task, will imply shouldStop:=true
+                                rTask.setAttachment(TASK_ATTACHMENT_STOP); // mark final task, will imply shouldStop:=true
+                            } else if(provokeError) {
+                                rTask.setAttachment(TASK_ATTACHMENT_TEST_ERROR);
                             }
                             // append task ..
                             edt.tasks.add(rTask);
@@ -283,7 +298,7 @@ public class DefaultEDTUtil implements EDTUtil {
     class NEDT extends Thread {
         volatile boolean shouldStop = false;
         volatile boolean isRunning = false;
-        ArrayList<RunnableTask> tasks = new ArrayList<RunnableTask>(); // one shot tasks
+        final ArrayList<RunnableTask> tasks = new ArrayList<RunnableTask>(); // one shot tasks
 
         public NEDT(ThreadGroup tg, String name) {
             super(tg, name);
@@ -340,8 +355,13 @@ public class DefaultEDTUtil implements EDTUtil {
                         if(tasks.size()>0) {
                             task = tasks.remove(0);
                             tasks.notifyAll();
-                            if( null != task.getAttachment() ) {
+                            final Object attachment = task.getAttachment();
+                            if( TASK_ATTACHMENT_STOP == attachment ) {
                                 shouldStop = true;
+                            } else if( TASK_ATTACHMENT_TEST_ERROR == attachment ) {
+                                tasks.add(0, task);
+                                task = null;
+                                throw new RuntimeException("TASK_ATTACHMENT_TEST_ERROR");
                             }
                         }
                     }
@@ -366,16 +386,27 @@ public class DefaultEDTUtil implements EDTUtil {
                     error = new RuntimeException("Within Default-EDT", t);
                 }
             } finally {
+                final String msg = getName()+": Default-EDT finished w/ "+tasks.size()+" left";
                 if(DEBUG) {
-                    RunnableTask rt = ( tasks.size() > 0 ) ? tasks.get(0) : null ;
-                    System.err.println(getName()+": Default-EDT run() END "+ getName()+", tasks: "+tasks.size()+", "+rt+", "+error);
+                    System.err.println(msg+", "+error);
                 }
                 synchronized(edtLock) {
+                    int i = 0;
+                    while( tasks.size() > 0 ) {
+                        // notify all waiter
+                        final String msg2 = msg+", task #"+i;
+                        final Throwable t = null != error ? new Throwable(msg2, error) : new Throwable(msg2);
+                        final RunnableTask rt = tasks.remove(0);
+                        if( null != rt ) {
+                            rt.flush(t);
+                            i++;
+                        }
+                    }
                     isRunning = false;
                     edtLock.notifyAll();
                 }
                 if(DEBUG) {
-                    System.err.println(getName()+": Default-EDT run() EXIT "+ getName()+", exception: "+error);
+                    System.err.println(msg+" EXIT, exception: "+error);
                 }
                 if(null!=error) {
                     throw error;

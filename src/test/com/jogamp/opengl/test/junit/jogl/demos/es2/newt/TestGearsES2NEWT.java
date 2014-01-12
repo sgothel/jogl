@@ -36,6 +36,7 @@ import com.jogamp.newt.Display;
 import com.jogamp.newt.Display.PointerIcon;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
+import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.MouseAdapter;
@@ -43,6 +44,7 @@ import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.newt.util.EDTUtil;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -62,6 +64,8 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
+
+import jogamp.newt.DefaultEDTUtil;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -98,7 +102,7 @@ public class TestGearsES2NEWT extends UITestCase {
     static boolean mainRun = false;
     static boolean exclusiveContext = false;
     static boolean useAnimator = true;
-    static enum SysExit { none, testExit, testError, displayExit, displayError };
+    static enum SysExit { none, testExit, testError, testEDTError, displayExit, displayError, displayEDTError };
     static SysExit sysExit = SysExit.none;
 
     @BeforeClass
@@ -158,7 +162,7 @@ public class TestGearsES2NEWT extends UITestCase {
             animator.setExclusiveContext(exclusiveContext);
         }
 
-        QuitAdapter quitAdapter = new QuitAdapter();
+        final QuitAdapter quitAdapter = new QuitAdapter();
         //glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
         //glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
         glWindow.addKeyListener(quitAdapter);
@@ -349,25 +353,38 @@ public class TestGearsES2NEWT extends UITestCase {
             Assert.assertEquals(exclusiveContext ? animator.getThread() : null, glWindow.getExclusiveContextThread());
         }
 
-        if( SysExit.displayError == sysExit || SysExit.displayExit == sysExit ) {
+        if( SysExit.displayError == sysExit || SysExit.displayExit == sysExit || SysExit.displayEDTError == sysExit ) {
             glWindow.addGLEventListener(new GLEventListener() {
-
                 @Override
                 public void init(GLAutoDrawable drawable) {}
-
                 @Override
                 public void dispose(GLAutoDrawable drawable) { }
-
                 @Override
                 public void display(GLAutoDrawable drawable) {
                     final GLAnimatorControl anim = drawable.getAnimator();
                     if( null != anim && anim.isAnimating() ) {
-                        if( anim.getTotalFPSDuration() >= duration/2 ) {
+                        final long ms = anim.getTotalFPSDuration();
+                        if( ms >= duration/2 || ms >= 3000 ) { // max 3s wait until provoking error
                             if( SysExit.displayError == sysExit ) {
-                                throw new Error("test error send from GLEventListener");
+                                throw new Error("test error send from GLEventListener.display - "+Thread.currentThread());
                             } else if ( SysExit.displayExit == sysExit ) {
                                 System.err.println("exit(0) send from GLEventListener");
                                 System.exit(0);
+                            } else if ( SysExit.displayEDTError == sysExit ) {
+                                final Object upstream = drawable.getUpstreamWidget();
+                                System.err.println("EDT invokeAndWaitError: upstream type "+upstream.getClass().getName());
+                                if( upstream instanceof Window ) {
+                                    final EDTUtil edt = ((Window)upstream).getScreen().getDisplay().getEDTUtil();
+                                    System.err.println("EDT invokeAndWaitError: edt type "+edt.getClass().getName());
+                                    if( edt instanceof DefaultEDTUtil ) {
+                                        quitAdapter.doQuit();
+                                        ((DefaultEDTUtil)edt).invokeAndWaitError(new Runnable() {
+                                            public void run() {
+                                                throw new RuntimeException("XXX Should never ever be seen! - "+Thread.currentThread());
+                                            }
+                                        });
+                                    }
+                                }
                             }
                         }
                     } else {
@@ -403,13 +420,25 @@ public class TestGearsES2NEWT extends UITestCase {
         while(!quitAdapter.shouldQuit() && t1-t0<duration) {
             Thread.sleep(100);
             t1 = System.currentTimeMillis();
-            if( t1-t0 >= duration/2 ) {
-                if( SysExit.testError == sysExit || SysExit.testExit == sysExit ) {
+            if( SysExit.testError == sysExit || SysExit.testExit == sysExit || SysExit.testEDTError == sysExit) {
+                final long ms = t1-t0;
+                if( ms >= duration/2 || ms >= 3000 ) { // max 3s wait until provoking error
                     if( SysExit.testError == sysExit ) {
                         throw new Error("test error send from test thread");
                     } else if ( SysExit.testExit == sysExit ) {
                         System.err.println("exit(0) send from test thread");
                         System.exit(0);
+                    } else if ( SysExit.testEDTError == sysExit ) {
+                        final EDTUtil edt = glWindow.getScreen().getDisplay().getEDTUtil();
+                        System.err.println("EDT invokeAndWaitError: edt type "+edt.getClass().getName());
+                        if( edt instanceof DefaultEDTUtil ) {
+                            quitAdapter.doQuit();
+                            ((DefaultEDTUtil)edt).invokeAndWaitError(new Runnable() {
+                                public void run() {
+                                    throw new RuntimeException("XXX Should never ever be seen!");
+                                }
+                            });
+                        }
                     }
                 }
             }
