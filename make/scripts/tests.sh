@@ -194,7 +194,7 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.EDT"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.GLContext"
     #D_ARGS="-Dnewt.debug.Window -Djogl.debug.Animator -Dnewt.debug.Screen"
-    D_ARGS="-Dnativewindow.debug.JAWT -Dnewt.debug.Window"
+    #D_ARGS="-Dnativewindow.debug.JAWT -Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Window.KeyEvent"
     #D_ARGS="-Dnewt.debug.Window.MouseEvent"
     #D_ARGS="-Dnewt.debug.Window.MouseEvent -Dnewt.debug.Window.KeyEvent"
@@ -519,7 +519,7 @@ function testawtswt() {
 #
 # GLCanvas moving between JTabbedPanel's tabs
 #   OK (X11, OSX)
-testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816JTabbedPanelVisibilityB849B878AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816JTabbedPanelVisibilityB849B878AWT $*
 
 #
 # GLCanvas/AWT Checkbox Visibility
@@ -644,7 +644,7 @@ testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816JTabbedPanelVisibilityB8
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01bAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cAWT $*
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01dAWT $*
+testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01dAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting04AWT $*

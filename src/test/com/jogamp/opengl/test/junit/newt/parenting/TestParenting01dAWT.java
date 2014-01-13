@@ -145,8 +145,8 @@ public class TestParenting01dAWT extends UITestCase {
         });
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(glWindow1, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(glWindow1, true));
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(glWindow1, true));
         glWindow1.display();
         Assert.assertEquals("Init Counter Invalid "+glelCounter, 1, glelCounter.initCount);
         Assert.assertEquals("Dispose Counter Invalid "+glelCounter, 0, glelCounter.disposeCount);
@@ -172,11 +172,14 @@ public class TestParenting01dAWT extends UITestCase {
         // GL state shall be preserved!
         //
         glWindow1.setVisible(false);
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(glWindow1, false));
         System.err.println(getSimpleTestName(".")+": Start Reparent #2");
         final Window.ReparentOperation rop2 = glWindow1.reparentWindow(newtCanvasAWT.getNativeWindow(), -1, -1, reparentingHints);
         System.err.println(getSimpleTestName(".")+": Result Reparent #2: "+rop2);
         Assert.assertEquals(Window.ReparentOperation.ACTION_NATIVE_CREATION, rop2);
         glWindow1.setVisible(true);
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(glWindow1, true));
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(glWindow1, true));
         glWindow1.display();
         if( triggerPreserveGLState ) {
             Assert.assertEquals("Init Counter Invalid (Preserve Failed 2) "+glelCounter, 1, glelCounter.initCount);
