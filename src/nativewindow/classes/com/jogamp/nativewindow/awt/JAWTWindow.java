@@ -127,7 +127,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   private class JAWTComponentListener implements ComponentListener, HierarchyListener {
         private boolean isShowing;
 
-        private String str(Object obj) {
+        private String str(final Object obj) {
             if( null == obj ) {
                 return "0xnil: null";
             } else if( obj instanceof Component ) {
@@ -138,14 +138,14 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
                 return id(obj)+": "+obj.getClass().getSimpleName()+"[..]";
             }
         }
-        private String s(ComponentEvent e) {
+        private String s(final ComponentEvent e) {
             return "visible[isShowing "+isShowing+"],"+Platform.getNewline()+
                    "    ** COMP "+str(e.getComponent())+Platform.getNewline()+
                    "    ** SOURCE "+str(e.getSource())+Platform.getNewline()+
                    "    ** THIS "+str(component)+Platform.getNewline()+
                    "    ** THREAD "+getThreadName();
         }
-        private String s(HierarchyEvent e) {
+        private String s(final HierarchyEvent e) {
             return "visible[isShowing "+isShowing+"], changeBits 0x"+Long.toHexString(e.getChangeFlags())+Platform.getNewline()+
                    "    ** COMP "+str(e.getComponent())+Platform.getNewline()+
                    "    ** SOURCE "+str(e.getSource())+Platform.getNewline()+
@@ -212,11 +212,11 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
 
         @Override
         public final void hierarchyChanged(HierarchyEvent e) {
-            final boolean wasAWTCompShowing = isShowing;
+            final boolean wasShowing = isShowing;
             isShowing = component.isShowing();
             int action = 0;
             if( 0 != ( java.awt.event.HierarchyEvent.SHOWING_CHANGED & e.getChangeFlags() ) ) {
-                if( e.getChanged() != component && wasAWTCompShowing != isShowing ) {
+                if( e.getChanged() != component && wasShowing != isShowing ) {
                     // A parent component changed and caused a 'showing' state change,
                     // propagate to offscreen-layer!
                     layoutSurfaceLayerIfEnabled(isShowing);
