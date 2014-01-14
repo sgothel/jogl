@@ -45,47 +45,56 @@ import com.jogamp.common.util.IntLongHashMap;
 
 /**
  * Tracks as closely as possible the sizes of allocated OpenGL buffer
- * objects. When glMapBuffer or glMapBufferARB is called, in order to
- * turn the resulting base address into a java.nio.ByteBuffer, we need
- * to know the size in bytes of the allocated OpenGL buffer object.
- * Previously we would compute this size by using
- * glGetBufferParameterivARB with a pname of GL_BUFFER_SIZE, but
- * it appears doing so each time glMapBuffer is called is too costly
- * on at least Apple's new multithreaded OpenGL implementation. <P>
- *
- * Instead we now try to track the sizes of allocated buffer objects.
- * We watch calls to glBindBuffer to see which buffer is bound to
- * which target and to glBufferData to see how large the buffer's
- * allocated size is. When glMapBuffer is called, we consult our table
+ * objects.
+ * <p>
+ * <code>glMapBuffer</code> or <code>glMapBufferRange</code> etc
+ * returns a <code>java.nio.ByteBuffer</code>
+ * instance reflecting the returned native address of respective calls
+ * and the actual buffer size.
+ * </p>
+ * <p>
+ * In case the buffer size is unknown, we need to compute this size by using
+ * <code>glGetBufferParameteriv</code> with a pname of <code>GL_BUFFER_SIZE</code>.
+ * The latter appears to be problematic due to the returned <code>int</code> value,
+ * where size should be of type <code>long</code>.
+ * Further more, this query appears to be costly for each glMapBuffer call
+ * at for Apple's new multithreaded OpenGL implementation.
+ * </p>
+ * <p>
+ * The buffer size state is shared across all shared OpenGL context,
+ * hence we share the GLBufferSizeTracker instance across all shared GLContexts.
+ * Hence utilizing this instance must be synchronized to be thread safe due to multithreading usage.
+ * </p>
+ * <p>
+ * We track the sizes of allocated buffer objects.
+ * We track calls to <code>glBindBuffer</code> etc to see which buffer is bound to
+ * which target and to <code>glBufferData</code> to see how large the buffer's
+ * allocated size is. When <code>glMapBuffer</code> is called, we consult our table
  * of buffer sizes to see if we can return an answer without a glGet
- * call. <P>
- *
- * We share the GLBufferSizeTracker objects among all GLContexts for
- * which sharing is enabled, because the namespace for buffer objects
- * is the same for these contexts. <P>
- *
- * Tracking the state of which buffer objects are bound is done in the
- * GLBufferStateTracker and is not completely trivial. In the face of
- * calls to glPushClientAttrib / glPopClientAttrib we currently punt
+ * call.
+ * </p>
+ * <p>
+ * In the face of calls to glPushClientAttrib / glPopClientAttrib we currently punt
  * and re-fetch the bound buffer object for the state in question;
- * see, for example, glVertexPointer and the calls down to
- * GLBufferStateTracker.getBoundBufferObject(). Note that we currently
- * ignore new binding targets such as GL_TRANSFORM_FEEDBACK_BUFFER_NV;
+ * see, for example, <code>glVertexPointer</code> and the calls down to
+ * <code>GLBufferStateTracker.getBoundBufferObject()</code>. Note that we currently
+ * ignore new binding targets such as <code>GL_TRANSFORM_FEEDBACK_BUFFER_NV</code>;
  * the fact that new binding targets may be added in the future makes
- * it impossible to cache state for these new targets. <P>
- *
+ * it impossible to cache state for these new targets.
+ * </p>
+ * <p>
  * Ignoring new binding targets, the primary situation in which we may
  * not be able to return a cached answer is in the case of an error,
- * where glBindBuffer may not have been called before trying to call
- * glBufferData. Also, if external native code modifies a buffer
+ * where <code>glBindBuffer</code> may not have been called before trying to call
+ * <code>glBufferData</code>. Also, if external native code modifies a buffer
  * object, we may return an incorrect answer. (FIXME: this case
  * requires more thought, and perhaps stochastic and
  * exponential-fallback checking. However, note that it can only occur
  * in the face of external native code which requires that the
  * application be signed anyway, so there is no security risk in this
  * area.)
+ * </p>
  */
-
 public class GLBufferSizeTracker {
   protected static final boolean DEBUG;
 
@@ -102,11 +111,11 @@ public class GLBufferSizeTracker {
   // pattern of buffer objects indicates that the fact that this map
   // never shrinks is probably not that bad.
   private final IntLongHashMap bufferSizeMap;
-  private final long keyNotFount = 0xFFFFFFFFFFFFFFFFL;
+  private final long sizeNotFount = 0xFFFFFFFFFFFFFFFFL;
 
   public GLBufferSizeTracker() {
       bufferSizeMap = new IntLongHashMap();
-      bufferSizeMap.setKeyNotFoundValue(keyNotFount);
+      bufferSizeMap.setKeyNotFoundValue(sizeNotFount);
   }
 
   public final void setBufferSize(GLBufferStateTracker bufferStateTracker,
@@ -155,7 +164,7 @@ public class GLBufferSizeTracker {
       // point we almost certainly should if the application is
       // written correctly
       long sz = bufferSizeMap.get(buffer);
-      if (keyNotFount == sz) {
+      if (sizeNotFount == sz) {
         // For robustness, try to query this value from the GL as we used to
         // FIXME: both functions return 'int' types, which is not suitable,
         // since buffer lenght is 64bit ?

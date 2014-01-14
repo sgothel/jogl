@@ -102,8 +102,8 @@ public abstract class GLContextImpl extends GLContext {
 
   // Tracks creation and initialization of buffer objects to avoid
   // repeated glGet calls upon glMapBuffer operations
-  private GLBufferSizeTracker bufferSizeTracker; // Singleton - Set by GLContextShareSet
-  private final GLBufferStateTracker bufferStateTracker = new GLBufferStateTracker();
+  private final GLBufferSizeTracker bufferSizeTracker;
+  private final GLBufferStateTracker bufferStateTracker;
   private final GLStateTracker glStateTracker = new GLStateTracker();
   private GLDebugMessageHandler glDebugHandler = null;
   private final int[] boundFBOTarget = new int[] { 0, 0 }; // { draw, read }
@@ -138,10 +138,14 @@ public abstract class GLContextImpl extends GLContext {
   public GLContextImpl(GLDrawableImpl drawable, GLContext shareWith) {
     super();
 
-    if (shareWith != null) {
+    bufferStateTracker = new GLBufferStateTracker();
+    if ( null != shareWith ) {
       GLContextShareSet.registerSharing(this, shareWith);
+      bufferSizeTracker = ((GLContextImpl)shareWith).getBufferSizeTracker();
+      assert (bufferSizeTracker != null) : "shared context hash null bufferSizeTracker: "+shareWith;
+    } else {
+      bufferSizeTracker = new GLBufferSizeTracker();
     }
-    GLContextShareSet.synchronizeBufferObjectSharing(shareWith, this);
 
     this.drawable = drawable;
     this.drawableRead = drawable;
@@ -150,13 +154,8 @@ public abstract class GLContextImpl extends GLContext {
   }
 
   private final void clearStates() {
-      // Because we don't know how many other contexts we might be
-      // sharing with (and it seems too complicated to implement the
-      // GLObjectTracker's ref/unref scheme for the buffer-related
-      // optimizations), simply clear the cache of known buffers' sizes
-      // when we destroy contexts
-      if (bufferSizeTracker != null) {
-          bufferSizeTracker.clearCachedBufferSizes();
+      if( !GLContextShareSet.hasCreatedSharedLeft(this) ) {
+        bufferSizeTracker.clearCachedBufferSizes();
       }
       bufferStateTracker.clearBufferObjectState();
       glStateTracker.setEnabled(false);
@@ -2122,10 +2121,6 @@ public abstract class GLContextImpl extends GLContext {
 
   //----------------------------------------------------------------------
   // Helpers for buffer object optimizations
-
-  public final void setBufferSizeTracker(GLBufferSizeTracker bufferSizeTracker) {
-    this.bufferSizeTracker = bufferSizeTracker;
-  }
 
   public final GLBufferSizeTracker getBufferSizeTracker() {
     return bufferSizeTracker;
