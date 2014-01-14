@@ -43,11 +43,8 @@ package jogamp.opengl;
 import javax.media.opengl.*;
 
 import com.jogamp.common.util.IntIntHashMap;
-import com.jogamp.common.util.IntLongHashMap;
 
 /**
- * <b>Buffer Target Mapping (Binding)</b>
- * <p>
  * Tracks as closely as possible which OpenGL buffer object is bound
  * to which binding target in the current OpenGL context.
  * GLBufferStateTracker objects are allocated on a per-OpenGL-context basis.
@@ -76,52 +73,9 @@ import com.jogamp.common.util.IntLongHashMap;
  * the binding state if glPushClientAttrib / glPopClientAttrib are
  * called, since we don't want the complexity of tracking stacks of
  * these attributes.
- * </p>
  *
- * <b>Buffer Size Mapping</b>
- * <p>
- * Tracks as closely as possible the sizes of allocated OpenGL buffer
- * objects. When glMapBuffer or glMapBufferARB is called, in order to
- * turn the resulting base address into a java.nio.ByteBuffer, we need
- * to know the size in bytes of the allocated OpenGL buffer object.
- * Previously we would compute this size by using
- * glGetBufferParameterivARB with a pname of GL_BUFFER_SIZE, but
- * it appears doing so each time glMapBuffer is called is too costly
- * on at least Apple's new multithreaded OpenGL implementation. <P>
- *
- * Instead we now try to track the sizes of allocated buffer objects.
- * We watch calls to glBindBuffer to see which buffer is bound to
- * which target and to glBufferData to see how large the buffer's
- * allocated size is. When glMapBuffer is called, we consult our table
- * of buffer sizes to see if we can return an answer without a glGet
- * call. <P>
- *
- * We share the GLBufferSizeTracker objects among all GLContexts for
- * which sharing is enabled, because the namespace for buffer objects
- * is the same for these contexts. <P>
- *
- * Tracking the state of which buffer objects are bound is done in the
- * GLBufferStateTracker and is not completely trivial. In the face of
- * calls to glPushClientAttrib / glPopClientAttrib we currently punt
- * and re-fetch the bound buffer object for the state in question;
- * see, for example, glVertexPointer and the calls down to
- * GLBufferStateTracker.getBoundBufferObject(). Note that we currently
- * ignore new binding targets such as GL_TRANSFORM_FEEDBACK_BUFFER_NV;
- * the fact that new binding targets may be added in the future makes
- * it impossible to cache state for these new targets. <P>
- *
- * Ignoring new binding targets, the primary situation in which we may
- * not be able to return a cached answer is in the case of an error,
- * where glBindBuffer may not have been called before trying to call
- * glBufferData. Also, if external native code modifies a buffer
- * object, we may return an incorrect answer. (FIXME: this case
- * requires more thought, and perhaps stochastic and
- * exponential-fallback checking. However, note that it can only occur
- * in the face of external native code which requires that the
- * application be signed anyway, so there is no security risk in this
- * area.)
- * </p>
  */
+
 public class GLBufferStateTracker {
   protected static final boolean DEBUG;
 
@@ -135,24 +89,14 @@ public class GLBufferStateTracker {
   // known that no buffer is bound to the target, according to the
   // OpenGL specifications.
   // http://www.opengl.org/sdk/docs/man/xhtml/glBindBuffer.xml
-  private final IntIntHashMap bufferBindingMap;
-  private final int bufferNotFound = 0xFFFFFFFF;
-
-  // Map from buffer names to sizes.
-  // Note: should probably have some way of shrinking this map, but
-  // can't just make it a WeakHashMap because nobody holds on to the
-  // keys; would have to always track creation and deletion of buffer
-  // objects, which is probably sub-optimal. The expected usage
-  // pattern of buffer objects indicates that the fact that this map
-  // never shrinks is probably not that bad.
-  private final IntLongHashMap bufferSizeMap;
-  private final long sizeNotFound = 0xFFFFFFFFFFFFFFFFL;
+  private final IntIntHashMap bindingMap;
+  private final int keyNotFound = 0xFFFFFFFF;
 
   private final int[] bufTmp = new int[1];
 
   public GLBufferStateTracker() {
-    bufferBindingMap = new IntIntHashMap();
-    bufferBindingMap.setKeyNotFoundValue(bufferNotFound);
+    bindingMap = new IntIntHashMap();
+    bindingMap.setKeyNotFoundValue(keyNotFound);
 
     // Start with known unbound targets for known keys
     // setBoundBufferObject(GL2ES3.GL_VERTEX_ARRAY_BINDING, 0); // not using default VAO (removed in GL3 core) - only explicit
@@ -161,26 +105,10 @@ public class GLBufferStateTracker {
     setBoundBufferObject(GL2.GL_PIXEL_PACK_BUFFER,   0);
     setBoundBufferObject(GL2.GL_PIXEL_UNPACK_BUFFER, 0);
     setBoundBufferObject(GL4.GL_DRAW_INDIRECT_BUFFER, 0);
-
-    bufferSizeMap = new IntLongHashMap();
-    bufferSizeMap.setKeyNotFoundValue(sizeNotFound);
   }
-
-  /**
-   * Clears all states, i.e. issues {@link #clearBufferObjectState()}
-   * and {@link #clearCachedBufferSizes()}.
-   */
-  public final void clear() {
-      clearBufferObjectState();
-      clearCachedBufferSizes();
-  }
-
-  //
-  // Buffer target mapping (binding)
-  //
 
   public final void setBoundBufferObject(int target, int value) {
-    bufferBindingMap.put(target, value);
+    bindingMap.put(target, value);
     /***
      * Test for clearing bound buffer states when unbinding VAO,
      * Bug 692 Comment 5 is invalid, i.e. <https://jogamp.org/bugzilla/show_bug.cgi?id=692#c5>.
@@ -210,21 +138,21 @@ public class GLBufferStateTracker {
       You must use isBoundBufferObjectKnown() to see whether the
       return value is valid. */
   public final int getBoundBufferObject(int target, GL caller) {
-    int value = bufferBindingMap.get(target);
-    if (bufferNotFound == value) {
+    int value = bindingMap.get(target);
+    if (keyNotFound == value) {
       // User probably either called glPushClientAttrib /
       // glPopClientAttrib or is querying an unknown target. See
       // whether we know how to fetch this state.
       boolean gotQueryTarget = true;
-      int queryTarget;
+      int queryTarget = 0;
       switch (target) {
         case GL2ES3.GL_VERTEX_ARRAY_BINDING: queryTarget = GL2ES3.GL_VERTEX_ARRAY_BINDING;  break;
-        case GL.GL_ARRAY_BUFFER:             queryTarget = GL.GL_ARRAY_BUFFER_BINDING;         break;
-        case GL.GL_ELEMENT_ARRAY_BUFFER:     queryTarget = GL.GL_ELEMENT_ARRAY_BUFFER_BINDING; break;
-        case GL2ES3.GL_PIXEL_PACK_BUFFER:    queryTarget = GL2.GL_PIXEL_PACK_BUFFER_BINDING;    break;
-        case GL2ES3.GL_PIXEL_UNPACK_BUFFER:  queryTarget = GL2.GL_PIXEL_UNPACK_BUFFER_BINDING;  break;
-        case GL4.GL_DRAW_INDIRECT_BUFFER:    queryTarget = GL4.GL_DRAW_INDIRECT_BUFFER_BINDING;  break;
-        default:                             queryTarget = 0; gotQueryTarget = false; break;
+        case GL.GL_ARRAY_BUFFER:          queryTarget = GL.GL_ARRAY_BUFFER_BINDING;         break;
+        case GL.GL_ELEMENT_ARRAY_BUFFER:  queryTarget = GL.GL_ELEMENT_ARRAY_BUFFER_BINDING; break;
+        case GL2.GL_PIXEL_PACK_BUFFER:    queryTarget = GL2.GL_PIXEL_PACK_BUFFER_BINDING;    break;
+        case GL2.GL_PIXEL_UNPACK_BUFFER:  queryTarget = GL2.GL_PIXEL_UNPACK_BUFFER_BINDING;  break;
+        case GL4.GL_DRAW_INDIRECT_BUFFER: queryTarget = GL4.GL_DRAW_INDIRECT_BUFFER_BINDING;  break;
+        default:                          gotQueryTarget = false; break;
       }
       if (gotQueryTarget) {
         final int glerrPre = caller.glGetError(); // clear
@@ -261,101 +189,10 @@ public class GLBufferStateTracker {
       the robustness of these caches in the face of external native
       code manipulating OpenGL state. */
   public final void clearBufferObjectState() {
-    bufferBindingMap.clear();
+    bindingMap.clear();
         if (DEBUG) {
           System.err.println("GLBufferStateTracker.clearBufferObjectState()");
           //Thread.dumpStack();
         }
   }
-
-  //
-  // Buffer size mapping
-  //
-
-  public final void setBufferSize(int target, GL caller, long size) {
-    // Need to do some similar queries to getBufferSize below
-    int buffer = getBoundBufferObject(target, caller);
-    if (buffer != 0) {
-      setDirectStateBufferSize(buffer, caller, size);
-    }
-    // We don't know the current buffer state. Note that the buffer
-    // state tracker will have made the appropriate OpenGL query if it
-    // didn't know what was going on, so at this point we have nothing
-    // left to do except drop this piece of information on the floor.
-  }
-
-  public final void setDirectStateBufferSize(int buffer, GL caller, long size) {
-      bufferSizeMap.put(buffer, size);
-  }
-
-  public final long getBufferSize(int target, GL caller) {
-    // See whether we know what buffer is currently bound to the given
-    // state
-    final int buffer = getBoundBufferObject(target, caller);
-    if (0 != buffer) {
-      return getBufferSizeImpl(target, buffer, caller);
-    }
-    // We don't know what's going on in this case; query the GL for an answer
-    // FIXME: both functions return 'int' types, which is not suitable,
-    // since buffer lenght is 64bit ?
-    int[] tmp = new int[1];
-    caller.glGetBufferParameteriv(target, GL.GL_BUFFER_SIZE, tmp, 0);
-    if (DEBUG) {
-      System.err.println("GLBufferSizeTracker.getBufferSize(): no cached buffer information");
-    }
-    return tmp[0];
-  }
-
-  public final long getDirectStateBufferSize(int buffer, GL caller) {
-      return getBufferSizeImpl(0, buffer, caller);
-  }
-
-  private final long getBufferSizeImpl(int target, int buffer, GL caller) {
-      // See whether we know the size of this buffer object; at this
-      // point we almost certainly should if the application is
-      // written correctly
-      long sz = bufferSizeMap.get(buffer);
-      if (sizeNotFound == sz) {
-        // For robustness, try to query this value from the GL as we used to
-        // FIXME: both functions return 'int' types, which is not suitable,
-        // since buffer length is 64bit ?
-        int[] tmp = new int[1];
-        if(0==target) {
-            // DirectState ..
-            if(caller.isFunctionAvailable("glGetNamedBufferParameterivEXT")) {
-                caller.getGL2().glGetNamedBufferParameterivEXT(buffer, GL.GL_BUFFER_SIZE, tmp, 0);
-            } else {
-                throw new GLException("Error: getDirectStateBufferSize called with unknown state and GL function 'glGetNamedBufferParameterivEXT' n/a to query size");
-            }
-        } else {
-            caller.glGetBufferParameteriv(target, GL.GL_BUFFER_SIZE, tmp, 0);
-        }
-        if (tmp[0] == 0) {
-          // Assume something is wrong rather than silently going along
-          throw new GLException("Error: buffer size returned by "+
-                                ((0==target)?"glGetNamedBufferParameterivEXT":"glGetBufferParameteriv")+
-                                " was zero; probably application error");
-        }
-        // Assume we just don't know what's happening
-        sz = tmp[0];
-        bufferSizeMap.put(buffer, sz);
-        if (DEBUG) {
-          System.err.println("GLBufferSizeTracker.getBufferSize(): made slow query to cache size " +
-                             sz +
-                             " for buffer " +
-                             buffer);
-        }
-      }
-      return sz;
-  }
-
-  // This should be called on any major event where we might start
-  // producing wrong answers, such as OpenGL context creation and
-  // destruction if we don't know whether there are other currently-
-  // created contexts that might be keeping the buffer objects alive
-  // that we're dealing with
-  public final void clearCachedBufferSizes() {
-    bufferSizeMap.clear();
-  }
-
 }

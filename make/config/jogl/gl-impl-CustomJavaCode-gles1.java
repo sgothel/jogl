@@ -1,9 +1,11 @@
 public GLES1Impl(GLProfile glp, GLContextImpl context) {
   this._context = context; 
   if(null != context) {
+      this.bufferSizeTracker  = context.getBufferSizeTracker();
       this.bufferStateTracker = context.getBufferStateTracker();
       this.glStateTracker     = context.getGLStateTracker();
   } else {
+      this.bufferSizeTracker  = null;
       this.bufferStateTracker = null;
       this.glStateTracker     = null;
   }
@@ -197,6 +199,7 @@ public final GL2GL3 getGL2GL3() throws GLException {
 // Helpers for ensuring the correct amount of texture data
 //
 
+private final GLBufferSizeTracker  bufferSizeTracker;
 private final GLBufferStateTracker bufferStateTracker;
 private final GLStateTracker       glStateTracker;
 

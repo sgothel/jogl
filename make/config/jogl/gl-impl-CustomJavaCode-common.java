@@ -11,7 +11,7 @@
 
     @Override
     public final long glGetBufferSize(int buffer) {
-        return bufferStateTracker.getDirectStateBufferSize(buffer, this);
+        return bufferSizeTracker.getDirectStateBufferSize(buffer, this);
     }
 
     @Override
@@ -135,7 +135,7 @@
       if (glProcAddress == 0) {
         throw new GLException("Method \""+(useRange?"glMapBufferRange":"glMapBuffer")+"\" not available");
       }
-      final long sz = bufferStateTracker.getBufferSize(target, this);
+      final long sz = bufferSizeTracker.getBufferSize(bufferStateTracker, target, this);
       if (0 == sz) {
         return null;
       }
@@ -188,7 +188,7 @@
       if (glProcAddress == 0) {
         throw new GLException("Method \"glMapNamedBufferEXT\" not available");
       }
-      final long sz = bufferStateTracker.getDirectStateBufferSize(bufferName, this);
+      final long sz = bufferSizeTracker.getDirectStateBufferSize(bufferName, this);
       if (0 == sz) {
         return null;
       }
