@@ -109,6 +109,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLContext -Dnativewindow.debug.JAWT -Dnewt.debug.Window"
     #D_ARGS="-Dnativewindow.debug.JAWT -Djogl.debug.GLCanvas"
     #D_ARGS="-Dnativewindow.debug.JAWT -Djogamp.debug.TaskBase.TraceSource"
+    D_ARGS="-Dnativewindow.debug.JAWT"
     #D_ARGS="-Djogl.debug.GLContext.TraceSwitch"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLContext.TraceSwitch"
     #D_ARGS="-Djogl.debug.FixedFuncPipeline -Djogl.debug.GLSLCode"
@@ -389,7 +390,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMapBufferRead01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMapBufferRead01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestBug669RecursiveGLContext01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestBug669RecursiveGLContext02NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestBug692GL3VAONEWT $*
@@ -535,7 +536,7 @@ testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMapBufferRead01NEWT $*
 #   OK (X11, OSX)
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos03cB849AWT $*
 
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos01AWT $*
+testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos02AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816GLCanvasFrameHoppingB849B889AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos04aAWT $*

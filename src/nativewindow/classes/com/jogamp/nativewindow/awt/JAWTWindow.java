@@ -730,6 +730,9 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       if( null == sb ) {
           sb = new StringBuilder();
       }
+      sb.append("JVM version: ").append(Platform.JAVA_VERSION).append(" (").
+      append(Platform.JAVA_VERSION_NUMBER).
+      append(" update ").append(Platform.JAVA_VERSION_UPDATE).append(")").append(Platform.getNewline());
       if(null != jawt) {
           sb.append("JAWT version: 0x").append(Integer.toHexString(jawt.getCachedVersion())).
           append(", CA_LAYER: ").append(JAWTUtil.isJAWTUsingOffscreenLayer(jawt)).

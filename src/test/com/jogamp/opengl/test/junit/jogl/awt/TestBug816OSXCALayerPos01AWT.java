@@ -63,8 +63,6 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Assert;
 import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
@@ -80,23 +78,12 @@ public class TestBug816OSXCALayerPos01AWT extends UITestCase {
     public enum FrameLayout { None, Flow, DoubleBorderCenterSurrounded, Box, Split };
 
     static long duration = 1600; // ms
-    static int width, height;
+    static final int width = 640, height = 480;
 
     static boolean forceES2 = false;
     static boolean forceGL3 = false;
     static int swapInterval = 1;
-    static java.awt.Dimension rwsize;
-
-    @BeforeClass
-    public static void initClass() {
-        width  = 640;
-        height = 480;
-        rwsize = new Dimension(800, 600);
-    }
-
-    @AfterClass
-    public static void releaseClass() {
-    }
+    static java.awt.Dimension rwsize = new Dimension(800, 600);
 
     static void setComponentSize(final Frame frame, final Component comp1, final java.awt.Dimension new_sz1, final Component comp2, final java.awt.Dimension new_sz2) {
         try {
@@ -278,16 +265,18 @@ public class TestBug816OSXCALayerPos01AWT extends UITestCase {
         }
 
         Thread.sleep(Math.max(1000, duration/2));
-        final Dimension compRSizeHalf = new Dimension(rwsize.width/2, rwsize.height);
-        final Dimension frameRSizeHalf = new Dimension(twoCanvas ? rwsize.width + 64: rwsize.width/2 + 64, rwsize.height + 64);
-        if( resizeByComp ) {
-           setComponentSize(frame, glCanvas1, compRSizeHalf, glCanvas2, compRSizeHalf);
-        } else {
-           setFrameSize(frame, true, frameRSizeHalf);
-        }
-        System.err.println("resize canvas1 pos/siz: "+glCanvas1.getX()+"/"+glCanvas1.getY()+" "+glCanvas1.getWidth()+"x"+glCanvas1.getHeight());
-        if( twoCanvas ) {
-            System.err.println("resize canvas2 pos/siz: "+glCanvas2.getX()+"/"+glCanvas2.getY()+" "+glCanvas2.getWidth()+"x"+glCanvas2.getHeight());
+        if( null != rwsize ) {
+            final Dimension compRSizeHalf = new Dimension(rwsize.width/2, rwsize.height);
+            final Dimension frameRSizeHalf = new Dimension(twoCanvas ? rwsize.width + 64: rwsize.width/2 + 64, rwsize.height + 64);
+            if( resizeByComp ) {
+               setComponentSize(frame, glCanvas1, compRSizeHalf, glCanvas2, compRSizeHalf);
+            } else {
+               setFrameSize(frame, true, frameRSizeHalf);
+            }
+            System.err.println("resize canvas1 pos/siz: "+glCanvas1.getX()+"/"+glCanvas1.getY()+" "+glCanvas1.getWidth()+"x"+glCanvas1.getHeight());
+            if( twoCanvas ) {
+                System.err.println("resize canvas2 pos/siz: "+glCanvas2.getX()+"/"+glCanvas2.getY()+" "+glCanvas2.getWidth()+"x"+glCanvas2.getHeight());
+            }
         }
 
         final long t0 = System.currentTimeMillis();
@@ -465,6 +454,8 @@ public class TestBug816OSXCALayerPos01AWT extends UITestCase {
             } else if(args[i].equals("-test")) {
                 i++;
                 testNum = MiscUtils.atoi(args[i], 0);
+            } else if(args[i].equals("-noresize")) {
+                rwsize = null;
             } else if(args[i].equals("-es2")) {
                 forceES2 = true;
             } else if(args[i].equals("-gl3")) {
