@@ -37,9 +37,9 @@ import com.jogamp.common.util.HashUtil;
  *
  */
 public class MemoryObject {
-    private long addr;
-    private long size;
-    private int  hash;
+    private final long addr;
+    private final long size;
+    private final int  hash;
     private ByteBuffer buffer=null;
 
     public MemoryObject(long addr, long size) {
@@ -70,17 +70,33 @@ public class MemoryObject {
     }
 
     /**
+     * Ignores the optional attached <code>ByteBuffer</code> intentionally.<br>
+     *
+     * @return true of reference is equal or <code>obj</code> is of type <code>MemoryObject</code>
+     *         and <code>addr</code> and <code>size</code> is equal.<br>
+     */
+    public boolean equals(Object obj) {
+        if(this == obj) { return true; }
+        if(obj instanceof MemoryObject) {
+            final MemoryObject m = (MemoryObject) obj;
+            return addr == m.addr && size == m.size ;
+        }
+        return false;
+    }
+
+    /**
      * @param map the identity HashMap, MemoryObject to MemoryObject
      * @param obj0 the MemoryObject
      * @return either the already mapped MemoryObject - not changing the map, or the newly mapped one.
      */
     public static MemoryObject getOrAddSafe(HashMap<MemoryObject,MemoryObject> map, MemoryObject obj0) {
-        MemoryObject obj1 = map.get(obj0); // get identity (fast)
+        final MemoryObject obj1 = map.get(obj0); // get identity (fast)
         if(null == obj1) {
             map.put(obj0, obj0);
-            obj1 = obj0;
+            return obj0;
+        } else {
+            return obj1;
         }
-        return obj1;
     }
 
 }
