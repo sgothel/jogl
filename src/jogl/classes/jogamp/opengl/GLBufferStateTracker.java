@@ -134,6 +134,31 @@ public class GLBufferStateTracker {
     }
   }
 
+  public static final int getQueryName(final int target) {
+      switch (target) {
+        case GL.GL_ARRAY_BUFFER:                  return GL.GL_ARRAY_BUFFER_BINDING;
+        case GL.GL_ELEMENT_ARRAY_BUFFER:          return GL.GL_ELEMENT_ARRAY_BUFFER_BINDING;
+
+        case GL2ES3.GL_VERTEX_ARRAY_BINDING:      return GL2ES3.GL_VERTEX_ARRAY_BINDING;
+        case GL2ES3.GL_COPY_READ_BUFFER:          return GL2ES3.GL_COPY_READ_BUFFER_BINDING;
+        case GL2ES3.GL_COPY_WRITE_BUFFER:         return GL2ES3.GL_COPY_WRITE_BUFFER_BINDING;
+        case GL2ES3.GL_TRANSFORM_FEEDBACK_BUFFER: return GL2ES3.GL_TRANSFORM_FEEDBACK_BUFFER_BINDING;
+        case GL2ES3.GL_UNIFORM_BUFFER:            return GL2ES3.GL_UNIFORM_BUFFER_BINDING;
+
+        case GL2GL3.GL_TEXTURE_BUFFER:            return GL2GL3.GL_TEXTURE_BINDING_BUFFER;
+
+        case GL2.GL_PIXEL_PACK_BUFFER:            return GL2.GL_PIXEL_PACK_BUFFER_BINDING;
+        case GL2.GL_PIXEL_UNPACK_BUFFER:          return GL2.GL_PIXEL_UNPACK_BUFFER_BINDING;
+
+        case GL4.GL_DRAW_INDIRECT_BUFFER:         return GL4.GL_DRAW_INDIRECT_BUFFER_BINDING;
+        case GL4.GL_ATOMIC_COUNTER_BUFFER:        return GL4.GL_ATOMIC_COUNTER_BUFFER_BINDING;
+        case GL4.GL_DISPATCH_INDIRECT_BUFFER:     return GL4.GL_DISPATCH_INDIRECT_BUFFER_BINDING;
+        case GL4.GL_SHADER_STORAGE_BUFFER:        return GL4.GL_SHADER_STORAGE_BUFFER_BINDING;
+        // case GL4.GL_QUERY_BUFFER:              return GL4.GL_QUERY_BUFFER_BINDING;
+        default:                                  return 0;
+      }
+  }
+
   /** Note: returns an unspecified value if the binding for the
       specified target (e.g. GL_ARRAY_BUFFER) is currently unknown.
       You must use isBoundBufferObjectKnown() to see whether the
@@ -144,18 +169,8 @@ public class GLBufferStateTracker {
       // User probably either called glPushClientAttrib /
       // glPopClientAttrib or is querying an unknown target. See
       // whether we know how to fetch this state.
-      boolean gotQueryTarget = true;
-      final int queryTarget;
-      switch (target) {
-        case GL2ES3.GL_VERTEX_ARRAY_BINDING: queryTarget = GL2ES3.GL_VERTEX_ARRAY_BINDING;  break;
-        case GL.GL_ARRAY_BUFFER:             queryTarget = GL.GL_ARRAY_BUFFER_BINDING;         break;
-        case GL.GL_ELEMENT_ARRAY_BUFFER:     queryTarget = GL.GL_ELEMENT_ARRAY_BUFFER_BINDING; break;
-        case GL2.GL_PIXEL_PACK_BUFFER:       queryTarget = GL2.GL_PIXEL_PACK_BUFFER_BINDING;    break;
-        case GL2.GL_PIXEL_UNPACK_BUFFER:     queryTarget = GL2.GL_PIXEL_UNPACK_BUFFER_BINDING;  break;
-        case GL4.GL_DRAW_INDIRECT_BUFFER:    queryTarget = GL4.GL_DRAW_INDIRECT_BUFFER_BINDING;  break;
-        default:                             queryTarget = 0; gotQueryTarget = false; break;
-      }
-      if (gotQueryTarget) {
+      final int queryTarget = getQueryName(target);
+      if ( 0 != queryTarget ) {
         final int glerrPre = caller.glGetError(); // clear
         caller.glGetIntegerv(queryTarget, bufTmp, 0);
         final int glerrPost = caller.glGetError(); // be safe, e.g. GL '3.0 Mesa 8.0.4' may produce an error querying GL_PIXEL_UNPACK_BUFFER_BINDING, ignore value
