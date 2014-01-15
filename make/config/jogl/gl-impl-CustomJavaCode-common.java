@@ -11,7 +11,9 @@
 
     @Override
     public final long glGetBufferSize(int buffer) {
-        return bufferSizeTracker.getDirectStateBufferSize(buffer, this);
+        synchronized(bufferSizeTracker) {
+            return bufferSizeTracker.getDirectStateBufferSize(buffer, this);
+        }
     }
 
     @Override
@@ -135,32 +137,35 @@
       if (glProcAddress == 0) {
         throw new GLException("Method \""+(useRange?"glMapBufferRange":"glMapBuffer")+"\" not available");
       }
-      final long sz = bufferSizeTracker.getBufferSize(bufferStateTracker, target, this);
-      if (0 == sz) {
-        return null;
-      }
-      if( !useRange ) {
-        length = sz;
-        offset = 0;
-      } else {
-        if( length + offset > sz ) {
-            throw new GLException("Out of range: offset "+offset+" + length "+length+" > size "+sz); 
-        }
-        if( 0 > length || 0 > offset ) {
-            throw new GLException("Invalid values: offset "+offset+", length "+length);
-        }
-        if( 0 == length ) {
+      final long addr, sz;
+      synchronized(bufferSizeTracker) {
+          sz = bufferSizeTracker.getBufferSize(bufferStateTracker, target, this);
+          if (0 == sz) {
             return null;
-        }
+          }
+          if( !useRange ) {
+            length = sz;
+            offset = 0;
+          } else {
+            if( length + offset > sz ) {
+                throw new GLException("Out of range: offset "+offset+" + length "+length+" > size "+sz); 
+            }
+            if( 0 > length || 0 > offset ) {
+                throw new GLException("Invalid values: offset "+offset+", length "+length);
+            }
+            if( 0 == length ) {
+                return null;
+            }
+          }
+          addr = useRange ? dispatch_glMapBufferRange(target, offset, length, access, glProcAddress) :
+                            dispatch_glMapBuffer(target, access, glProcAddress);
       }
-      final long addr = useRange ? dispatch_glMapBufferRange(target, offset, length, access, glProcAddress) :
-                                   dispatch_glMapBuffer(target, access, glProcAddress);
       if (0 == addr) {
         return null;
       }
-      ByteBuffer buffer;
-      MemoryObject memObj0 = new MemoryObject(addr, length); // object and key
-      MemoryObject memObj1 = MemoryObject.getOrAddSafe(arbMemCache, memObj0);
+      final ByteBuffer buffer;
+      final MemoryObject memObj0 = new MemoryObject(addr, length); // object and key
+      final MemoryObject memObj1 = MemoryObject.getOrAddSafe(arbMemCache, memObj0);
       if(memObj0 == memObj1) {
         // just added ..
         if(null != memObj0.getBuffer()) {
@@ -188,17 +193,20 @@
       if (glProcAddress == 0) {
         throw new GLException("Method \"glMapNamedBufferEXT\" not available");
       }
-      final long sz = bufferSizeTracker.getDirectStateBufferSize(bufferName, this);
-      if (0 == sz) {
-        return null;
+      final long addr, sz;
+      synchronized(bufferSizeTracker) {
+          sz = bufferSizeTracker.getDirectStateBufferSize(bufferName, this);
+          if (0 == sz) {
+            return null;
+          }
+          addr = dispatch_glMapNamedBufferEXT(bufferName, access, glProcAddress);
       }
-      final long addr = dispatch_glMapNamedBufferEXT(bufferName, access, glProcAddress);
       if (0 == addr) {
         return null;
       }
-      ByteBuffer buffer;
-      MemoryObject memObj0 = new MemoryObject(addr, sz); // object and key
-      MemoryObject memObj1 = MemoryObject.getOrAddSafe(arbMemCache, memObj0);
+      final ByteBuffer buffer;
+      final MemoryObject memObj0 = new MemoryObject(addr, sz); // object and key
+      final MemoryObject memObj1 = MemoryObject.getOrAddSafe(arbMemCache, memObj0);
       if(memObj0 == memObj1) {
         // just added ..
         if(null != memObj0.getBuffer()) {
