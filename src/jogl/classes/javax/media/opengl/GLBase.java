@@ -505,26 +505,97 @@ public interface GLBase {
    public void glDepthRange(double zNear, double zFar);
 
    /**
-    * @param target a GL buffer (VBO) target as used in {@link GL#glBindBuffer(int, int)}, ie {@link GL#GL_ELEMENT_ARRAY_BUFFER}, {@link GL#GL_ARRAY_BUFFER}, ..
-    * @return the GL buffer (VBO) name bound to a target via {@link GL#glBindBuffer(int, int)} or 0 if unbound.
+    * @deprecated Avoid original GL API namespace conflict. Use {@link #getBoundBuffer(int)}
     */
    public int glGetBoundBuffer(int target);
+   /**
+    * @param target a GL buffer (VBO) target as used in {@link GL#glBindBuffer(int, int)}, ie {@link GL#GL_ELEMENT_ARRAY_BUFFER}, {@link GL#GL_ARRAY_BUFFER}, ..
+    * @return the GL buffer name bound to a target via {@link GL#glBindBuffer(int, int)} or 0 if unbound.
+    * @see #getBufferStorage(int)
+    */
+   public int getBoundBuffer(int target);
 
    /**
-    * @param buffer a GL buffer name, generated with {@link GL#glGenBuffers(int, int[], int)} and used in {@link GL#glBindBuffer(int, int)}, {@link GL#glBufferData(int, long, java.nio.Buffer, int)} or {@link GL2#glNamedBufferDataEXT(int, long, java.nio.Buffer, int)} for example.
-    * @return the size of the given GL buffer
+    * @deprecated Use {@link #getBufferStorage(int)}.
     */
-   public long glGetBufferSize(int buffer);
+   public long glGetBufferSize(int bufferName);
+   /**
+    * @param bufferName a GL buffer name, generated with e.g. {@link GL#glGenBuffers(int, int[], int)} and used in {@link GL#glBindBuffer(int, int)}, {@link GL#glBufferData(int, long, java.nio.Buffer, int)} or {@link GL2#glNamedBufferDataEXT(int, long, java.nio.Buffer, int)}.
+    * @return the size of the given GL buffer storage, see {@link GLBufferStorage}
+    * @see #getBoundBuffer(int)
+    */
+   public GLBufferStorage getBufferStorage(int bufferName);
 
+   /**
+    * Returns the {@link GLBufferStorage} instance as mapped via OpenGL's native {@link GL#glMapBuffer(int, int) glMapBuffer(..)} implementation.
+    * <p>
+    * Throws a {@link GLException} if GL-function constraints are not met.
+    * </p>
+    * <p>
+    * {@link GL#glMapBuffer(int, int)} wrapper calls this method and returns {@link GLBufferStorage#getMappedBuffer()}.
+    * </p>
+    * <p>
+    * A zero {@link GLBufferStorage#getSize()} will avoid a native call and returns the unmapped {@link GLBufferStorage}.
+    * </p>
+    * <p>
+    * A null native mapping result indicating an error will
+    * not cause a GLException but returns the unmapped {@link GLBufferStorage}.
+    * This allows the user to handle this case.
+    * </p>
+    * @param target denotes the buffer via it's bound target
+    * @param access the mapping access mode
+    * @throws GLException if buffer is not bound to target
+    * @throws GLException if buffer is not tracked
+    * @throws GLException if buffer is already mapped
+    * @throws GLException if buffer has invalid store size, i.e. less-than zero
+    */
+   public GLBufferStorage mapBuffer(int target, int access) throws GLException;
+
+   /**
+    * Returns the {@link GLBufferStorage} instance as mapped via OpenGL's native {@link GL#glMapBufferRange(int, long, long, int) glMapBufferRange(..)} implementation.
+    * <p>
+    * Throws a {@link GLException} if GL-function constraints are not met.
+    * </p>
+    * <p>
+    * {@link GL#glMapBufferRange(int, long, long, int)} wrapper calls this method and returns {@link GLBufferStorage#getMappedBuffer()}.
+    * </p>
+    * <p>
+    * A zero {@link GLBufferStorage#getSize()} will avoid a native call and returns the unmapped {@link GLBufferStorage}.
+    * </p>
+    * <p>
+    * A null native mapping result indicating an error will
+    * not cause a GLException but returns the unmapped {@link GLBufferStorage}.
+    * This allows the user to handle this case.
+    * </p>
+    * @param target denotes the buffer via it's bound target
+    * @param offset offset of the mapped buffer's storage
+    * @param length length of the mapped buffer's storage
+    * @param access the mapping access mode
+    * @throws GLException if buffer is not bound to target
+    * @throws GLException if buffer is not tracked
+    * @throws GLException if buffer is already mapped
+    * @throws GLException if buffer has invalid store size, i.e. less-than zero
+    * @throws GLException if buffer mapping range does not fit, incl. offset
+    */
+   public GLBufferStorage mapBufferRange(final int target, final long offset, final long length, final int access) throws GLException;
+
+   /**
+    * @deprecated Avoid original GL API namespace conflict. Use {@link #isVBOArrayBound()}
+    */
+   public boolean glIsVBOArrayBound();
    /**
     * @return true if a VBO is bound to {@link GL#GL_ARRAY_BUFFER} via {@link GL#glBindBuffer(int, int)}, otherwise false
     */
-   public boolean glIsVBOArrayBound();
+   public boolean isVBOArrayBound();
 
+   /**
+    * @deprecated Avoid original GL API namespace conflict. Use {@link #isVBOElementArrayBound()}
+    */
+   public boolean glIsVBOElementArrayBound();
    /**
     * @return true if a VBO is bound to {@link GL#GL_ELEMENT_ARRAY_BUFFER} via {@link GL#glBindBuffer(int, int)}, otherwise false
     */
-   public boolean glIsVBOElementArrayBound();
+   public boolean isVBOElementArrayBound();
 
    /**
     * Return the framebuffer name bound to this context,

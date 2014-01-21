@@ -1,4 +1,40 @@
+/*   Java->C glue code:
+ *   Java package: jogamp.opengl.es3.GLES3Impl
+ *    Java method: void dispatch_glBufferData(int target, long size, java.nio.Buffer data, int usage)
+ *     C function: void glBufferData(GLenum target, GLsizeiptr size, const GLvoid *  data, GLenum usage);
+ */
+JNIEXPORT void JNICALL
+Java_jogamp_opengl_es3_GLES3Impl_dispatch_1glBufferData(JNIEnv *env, jobject _unused, jint target, jlong size, jobject data, jint data_byte_offset, jboolean data_is_nio, jint usage, jlong procAddress) {
+  typedef void (GL_APIENTRY*_local_PFNGLBUFFERDATAPROC)(GLenum target, GLsizeiptr size, const GLvoid *  data, GLenum usage);
+  _local_PFNGLBUFFERDATAPROC ptr_glBufferData;
+  GLvoid * _data_ptr = NULL;
+  if ( NULL != data ) {
+    _data_ptr = (GLvoid *) ( JNI_TRUE == data_is_nio ?  (*env)->GetDirectBufferAddress(env, data) :  (*env)->GetPrimitiveArrayCritical(env, data, NULL) );  }
+  ptr_glBufferData = (_local_PFNGLBUFFERDATAPROC) (intptr_t) procAddress;
+  assert(ptr_glBufferData != NULL);
+  (* ptr_glBufferData) ((GLenum) target, (GLsizeiptr) size, (GLvoid *) (((char *) _data_ptr) + data_byte_offset), (GLenum) usage);
+  if ( JNI_FALSE == data_is_nio && NULL != data ) {
+    (*env)->ReleasePrimitiveArrayCritical(env, data, _data_ptr, JNI_ABORT);  }
+}
+
+/*   Java->C glue code:
+ *   Java package: jogamp.opengl.es3.GLES3Impl
+ *    Java method: boolean dispatch_glUnmapBuffer(int target)
+ *     C function: GLboolean glUnmapBuffer(GLenum target);
+ */
+JNIEXPORT jboolean JNICALL
+Java_jogamp_opengl_es3_GLES3Impl_dispatch_1glUnmapBuffer(JNIEnv *env, jobject _unused, jint target, jlong procAddress) {
+  typedef GLboolean (GL_APIENTRY*_local_PFNGLUNMAPBUFFERPROC)(GLenum target);
+  _local_PFNGLUNMAPBUFFERPROC ptr_glUnmapBuffer;
+  GLboolean _res;
+  ptr_glUnmapBuffer = (_local_PFNGLUNMAPBUFFERPROC) (intptr_t) procAddress;
+  assert(ptr_glUnmapBuffer != NULL);
+  _res = (* ptr_glUnmapBuffer) ((GLenum) target);
+  return _res;
+}
+
 typedef GLvoid* (GL_APIENTRY* PFNGLMAPBUFFERPROC) (GLenum target, GLenum access);
+
 /*   Java->C glue code:
  *   Java package: jogamp.opengl.es3.GLES3Impl
  *    Java method: long dispatch_glMapBuffer(int target, int access)

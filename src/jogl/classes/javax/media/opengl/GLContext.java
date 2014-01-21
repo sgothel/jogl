@@ -1622,8 +1622,8 @@ public abstract class GLContext {
             final Integer valI = deviceVersionAvailable.get(key);
             if(null != valI) {
                 final int bits32 = valI.intValue();
-                final int major = ( bits32 & 0xFF000000 ) >> 24 ;
-                final int minor = ( bits32 & 0x00FF0000 ) >> 16 ;
+                final int major = ( bits32 & 0xFF000000 ) >>> 24 ;
+                final int minor = ( bits32 & 0x00FF0000 ) >>> 16 ;
                 final int ctp   = ( bits32 & 0x0000FFFF )       ;
                 sb.append(GLContext.getGLVersion(major, minor, ctp, null));
             } else {
@@ -1668,10 +1668,10 @@ public abstract class GLContext {
     final int bits32 = valI.intValue();
 
     if(null!=major) {
-        major[0] = ( bits32 & 0xFF000000 ) >> 24 ;
+        major[0] = ( bits32 & 0xFF000000 ) >>> 24 ;
     }
     if(null!=minor) {
-        minor[0] = ( bits32 & 0x00FF0000 ) >> 16 ;
+        minor[0] = ( bits32 & 0x00FF0000 ) >>> 16 ;
     }
     if(null!=ctp) {
         ctp[0]   = ( bits32 & 0x0000FFFF )       ;

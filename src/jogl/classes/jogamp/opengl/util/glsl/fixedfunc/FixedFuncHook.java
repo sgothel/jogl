@@ -352,11 +352,11 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     @Override
     public void glVertexPointer(GLArrayData array) {
       if(array.isVBO()) {
-          if(!gl.glIsVBOArrayBound()) {
+          if(!gl.isVBOArrayBound()) {
             throw new GLException("VBO array is not enabled: "+array);
           }
       } else {
-          if(gl.glIsVBOArrayBound()) {
+          if(gl.isVBOArrayBound()) {
             throw new GLException("VBO array is not disabled: "+array);
           }
           Buffers.rangeCheck(array.getBuffer(), 1);
@@ -373,7 +373,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     }
     @Override
     public void glVertexPointer(int size, int type, int stride, long pointer_buffer_offset) {
-      int vboName = gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER);
+      int vboName = gl.getBoundBuffer(GL.GL_ARRAY_BUFFER);
       if(vboName==0) {
         throw new GLException("no GL_ARRAY_BUFFER VBO bound");
       }
@@ -384,11 +384,11 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     @Override
     public void glColorPointer(GLArrayData array) {
       if(array.isVBO()) {
-          if(!gl.glIsVBOArrayBound()) {
+          if(!gl.isVBOArrayBound()) {
             throw new GLException("VBO array is not enabled: "+array);
           }
       } else {
-          if(gl.glIsVBOArrayBound()) {
+          if(gl.isVBOArrayBound()) {
             throw new GLException("VBO array is not disabled: "+array);
           }
           Buffers.rangeCheck(array.getBuffer(), 1);
@@ -404,7 +404,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     }
     @Override
     public void glColorPointer(int size, int type, int stride, long pointer_buffer_offset) {
-      int vboName = gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER);
+      int vboName = gl.getBoundBuffer(GL.GL_ARRAY_BUFFER);
       if(vboName==0) {
         throw new GLException("no GL_ARRAY_BUFFER VBO bound");
       }
@@ -418,11 +418,11 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
         throw new GLException("Only 3 components per normal allowed");
       }
       if(array.isVBO()) {
-          if(!gl.glIsVBOArrayBound()) {
+          if(!gl.isVBOArrayBound()) {
             throw new GLException("VBO array is not enabled: "+array);
           }
       } else {
-          if(gl.glIsVBOArrayBound()) {
+          if(gl.isVBOArrayBound()) {
             throw new GLException("VBO array is not disabled: "+array);
           }
           Buffers.rangeCheck(array.getBuffer(), 1);
@@ -438,7 +438,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     }
     @Override
     public void glNormalPointer(int type, int stride, long pointer_buffer_offset) {
-      int vboName = gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER);
+      int vboName = gl.getBoundBuffer(GL.GL_ARRAY_BUFFER);
       if(vboName==0) {
         throw new GLException("no GL_ARRAY_BUFFER VBO bound");
       }
@@ -449,11 +449,11 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     @Override
     public void glTexCoordPointer(GLArrayData array) {
       if(array.isVBO()) {
-          if(!gl.glIsVBOArrayBound()) {
+          if(!gl.isVBOArrayBound()) {
             throw new GLException("VBO array is not enabled: "+array);
           }
       } else {
-          if(gl.glIsVBOArrayBound()) {
+          if(gl.isVBOArrayBound()) {
             throw new GLException("VBO array is not disabled: "+array);
           }
           Buffers.rangeCheck(array.getBuffer(), 1);
@@ -470,7 +470,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     }
     @Override
     public void glTexCoordPointer(int size, int type, int stride, long pointer_buffer_offset) {
-      int vboName = gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER);
+      int vboName = gl.getBoundBuffer(GL.GL_ARRAY_BUFFER);
       if(vboName==0) {
         throw new GLException("no GL_ARRAY_BUFFER VBO bound");
       }

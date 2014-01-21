@@ -41,6 +41,7 @@ package com.jogamp.gluegen.opengl;
 
 import com.jogamp.gluegen.CodeGenUtils;
 import com.jogamp.gluegen.JavaType;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -50,6 +51,7 @@ import java.lang.reflect.Method;
 import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -81,6 +83,16 @@ public class BuildComposablePipeline {
      * <p>Default: false</p>
      */
     public static final int GEN_GL_IDENTITY_BY_ASSIGNABLE_CLASS = 1 << 4;
+
+    private static final HashMap<String, String> addedGLHooks = new HashMap<String, String>();
+    private static final String[] addedGLHookMethodNames = new String[] {
+            "mapBuffer", "mapBufferRange",
+            "mapNamedBuffer", "mapNamedBufferRange" };
+    static {
+        for(int i=0; i<addedGLHookMethodNames.length; i++) {
+            addedGLHooks.put(addedGLHookMethodNames[i], addedGLHookMethodNames[i]);
+        }
+    }
 
     int mode;
     private final String outputDir;
@@ -200,8 +212,11 @@ public class BuildComposablePipeline {
             // Don't hook methods which aren't real GL methods,
             // such as the synthetic "isGL2ES2" "getGL2ES2"
             final String name = method.getName();
-            boolean runHooks = name.startsWith("gl");
-            if ( !name.startsWith("getGL") && !name.startsWith("isGL") && !name.equals("getDownstreamGL") && !name.equals("toString") ) {
+            if ( !name.startsWith("getGL") &&
+                 !name.startsWith("isGL") &&
+                 !name.equals("getDownstreamGL") &&
+                 !name.equals("toString") ) {
+                final boolean runHooks = name.startsWith("gl") || addedGLHooks.containsKey(name);
                 publicMethodsPlain.add(new PlainMethod(method, runHooks));
             }
         }

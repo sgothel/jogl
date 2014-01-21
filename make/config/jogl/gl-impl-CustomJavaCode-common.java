@@ -6,23 +6,37 @@
 
     @Override
     public final int glGetBoundBuffer(int target) {
+        return getBoundBuffer(target);
+    }
+    @Override
+    public final int getBoundBuffer(int target) {
         return bufferStateTracker.getBoundBufferObject(target, this);
     }
 
     @Override
-    public final long glGetBufferSize(int buffer) {
-        synchronized(bufferSizeTracker) {
-            return bufferSizeTracker.getDirectStateBufferSize(buffer, this);
-        }
+    public final long glGetBufferSize(int bufferName) {
+        return bufferObjectTracker.getBufferSize(bufferName);
+    }
+    @Override
+    public final GLBufferStorage getBufferStorage(int bufferName) {
+        return bufferObjectTracker.getBufferStorage(bufferName);
     }
 
     @Override
     public final boolean glIsVBOArrayBound() {
+        return isVBOArrayBound();
+    }
+    @Override
+    public final boolean isVBOArrayBound() {
         return checkArrayVBOBound(false);
     }
 
     @Override
     public final boolean glIsVBOElementArrayBound() {
+        return isVBOElementArrayBound();
+    }
+    @Override
+    public final boolean isVBOElementArrayBound() {
         return checkElementVBOBound(false);
     }
 
@@ -130,101 +144,60 @@
       return _context.getDefaultReadBuffer();
     }
 
-    private final HashMap<MemoryObject, MemoryObject> arbMemCache = new HashMap<MemoryObject, MemoryObject>();
+    private final GLStateTracker       glStateTracker;
 
-    /** Entry point to C language function: <code> void *  {@native glMapBuffer}(GLenum target, GLenum access); </code> <br>Part of <code>GL_VERSION_1_5</code>; <code>GL_OES_mapbuffer</code>   */
-    private final java.nio.ByteBuffer glMapBufferImpl(int target, boolean useRange, long offset, long length, int access, long glProcAddress) {
-      if (glProcAddress == 0) {
-        throw new GLException("Method \""+(useRange?"glMapBufferRange":"glMapBuffer")+"\" not available");
-      }
-      final long addr, sz;
-      synchronized(bufferSizeTracker) {
-          sz = bufferSizeTracker.getBufferSize(bufferStateTracker, target, this);
-          if (0 == sz) {
-            return null;
-          }
-          if( !useRange ) {
-            length = sz;
-            offset = 0;
-          } else {
-            if( length + offset > sz ) {
-                throw new GLException("Out of range: offset "+offset+" + length "+length+" > size "+sz); 
+    //
+    // GLBufferObjectTracker Redirects
+    //
+    private final GLBufferObjectTracker bufferObjectTracker;
+    private final GLBufferStateTracker bufferStateTracker;
+
+    private final jogamp.opengl.GLBufferObjectTracker.CreateStorageDispatch createBoundMutableStorageDispatch = 
+        new jogamp.opengl.GLBufferObjectTracker.CreateStorageDispatch() {
+            public final void create(final int target, final long size, final Buffer data, final int mutableUsage, final long glProcAddress) {
+                final boolean data_is_direct = Buffers.isDirect(data);
+                dispatch_glBufferData(target, size, 
+                                      data_is_direct ? data : Buffers.getArray(data), 
+                                      data_is_direct ? Buffers.getDirectBufferByteOffset(data) : Buffers.getIndirectBufferByteOffset(data), 
+                                      data_is_direct, mutableUsage, glProcAddress);
             }
-            if( 0 > length || 0 > offset ) {
-                throw new GLException("Invalid values: offset "+offset+", length "+length);
+        };
+    private native void dispatch_glBufferData(int target, long size, Object data, int data_byte_offset, boolean data_is_direct, int usage, long procAddress);
+
+    private final jogamp.opengl.GLBufferObjectTracker.UnmapBufferDispatch unmapBoundBufferDispatch = 
+        new jogamp.opengl.GLBufferObjectTracker.UnmapBufferDispatch() {
+            public final boolean unmap(final int target, final long glProcAddress) {
+                return dispatch_glUnmapBuffer(target, glProcAddress);
             }
-            if( 0 == length ) {
-                return null;
-            }
-          }
-          addr = useRange ? dispatch_glMapBufferRange(target, offset, length, access, glProcAddress) :
-                            dispatch_glMapBuffer(target, access, glProcAddress);
-      }
-      if (0 == addr) {
-        return null;
-      }
-      final ByteBuffer buffer;
-      final MemoryObject memObj0 = new MemoryObject(addr, length); // object and key
-      final MemoryObject memObj1 = MemoryObject.getOrAddSafe(arbMemCache, memObj0);
-      if(memObj0 == memObj1) {
-        // just added ..
-        if(null != memObj0.getBuffer()) {
-            throw new InternalError();
-        }
-        buffer = newDirectByteBuffer(addr, length);
-        Buffers.nativeOrder(buffer);
-        memObj0.setBuffer(buffer);
-      } else {
-        // already mapped
-        buffer = memObj1.getBuffer();
-        if(null == buffer) {
-            throw new InternalError();
-        }
-      }
-      buffer.position(0);
-      return buffer;
+        };
+    private native boolean dispatch_glUnmapBuffer(int target, long procAddress);
+
+    @Override
+    public final java.nio.ByteBuffer glMapBuffer(int target, int access) {
+      return mapBuffer(target, access).getMappedBuffer();
     }
+
+    @Override
+    public final ByteBuffer glMapBufferRange(int target, long offset, long length, int access)  {
+      return mapBufferRange(target, offset, length, access).getMappedBuffer();
+    }
+
+    private final jogamp.opengl.GLBufferObjectTracker.MapBufferAllDispatch mapBoundBufferAllDispatch = 
+        new jogamp.opengl.GLBufferObjectTracker.MapBufferAllDispatch() {
+            public final ByteBuffer allocNioByteBuffer(final long addr, final long length) { return newDirectByteBuffer(addr, length); }
+            public final long mapBuffer(final int target, final int access, final long glProcAddress) {
+                return dispatch_glMapBuffer(target, access, glProcAddress);
+            }
+        };
     private native long dispatch_glMapBuffer(int target, int access, long glProcAddress);
-    private native long dispatch_glMapBufferRange(int target, long offset, long length, int access, long procAddress);
 
-
-    /** Entry point to C language function: <code> GLvoid *  {@native glMapNamedBufferEXT}(GLuint buffer, GLenum access); </code> <br>Part of <code>GL_EXT_direct_state_access</code>   */
-    private final java.nio.ByteBuffer glMapNamedBufferImpl(int bufferName, int access, long glProcAddress)  {
-      if (glProcAddress == 0) {
-        throw new GLException("Method \"glMapNamedBufferEXT\" not available");
-      }
-      final long addr, sz;
-      synchronized(bufferSizeTracker) {
-          sz = bufferSizeTracker.getDirectStateBufferSize(bufferName, this);
-          if (0 == sz) {
-            return null;
-          }
-          addr = dispatch_glMapNamedBufferEXT(bufferName, access, glProcAddress);
-      }
-      if (0 == addr) {
-        return null;
-      }
-      final ByteBuffer buffer;
-      final MemoryObject memObj0 = new MemoryObject(addr, sz); // object and key
-      final MemoryObject memObj1 = MemoryObject.getOrAddSafe(arbMemCache, memObj0);
-      if(memObj0 == memObj1) {
-        // just added ..
-        if(null != memObj0.getBuffer()) {
-            throw new InternalError();
-        }
-        buffer = newDirectByteBuffer(addr, sz);
-        Buffers.nativeOrder(buffer);
-        memObj0.setBuffer(buffer);
-      } else {
-        // already mapped
-        buffer = memObj1.getBuffer();
-        if(null == buffer) {
-            throw new InternalError();
-        }
-      }
-      buffer.position(0);
-      return buffer;
-    }
-    private native long dispatch_glMapNamedBufferEXT(int buffer, int access, long procAddress);
+    private final jogamp.opengl.GLBufferObjectTracker.MapBufferRangeDispatch mapBoundBufferRangeDispatch = 
+        new jogamp.opengl.GLBufferObjectTracker.MapBufferRangeDispatch() {
+            public final ByteBuffer allocNioByteBuffer(final long addr, final long length) { return newDirectByteBuffer(addr, length); }
+            public final long mapBuffer(final int target, final long offset, final long length, final int access, final long glProcAddress) {
+                return dispatch_glMapBufferRange(target, offset, length, access, glProcAddress);
+            }
+        };
+    private native long dispatch_glMapBufferRange(int target, long offset, long length, int access, long glProcAddress);
 
     private native ByteBuffer newDirectByteBuffer(long addr, long capacity);

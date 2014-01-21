@@ -1,11 +1,11 @@
 public GLES1Impl(GLProfile glp, GLContextImpl context) {
   this._context = context; 
   if(null != context) {
-      this.bufferSizeTracker  = context.getBufferSizeTracker();
+      this.bufferObjectTracker  = context.getBufferObjectTracker();
       this.bufferStateTracker = context.getBufferStateTracker();
       this.glStateTracker     = context.getGLStateTracker();
   } else {
-      this.bufferSizeTracker  = null;
+      this.bufferObjectTracker  = null;
       this.bufferStateTracker = null;
       this.glStateTracker     = null;
   }
@@ -199,10 +199,6 @@ public final GL2GL3 getGL2GL3() throws GLException {
 // Helpers for ensuring the correct amount of texture data
 //
 
-private final GLBufferSizeTracker  bufferSizeTracker;
-private final GLBufferStateTracker bufferStateTracker;
-private final GLStateTracker       glStateTracker;
-
 private final boolean checkBufferObject(boolean bound,
                                         int state,
                                         String kind, boolean throwException) {
@@ -269,16 +265,6 @@ private final boolean checkPackPBOBound(boolean throwException) {
     return false;
 }
 
-/** Entry point to C language function: <code> void *  {@native glMapBuffer}(GLenum target, GLenum access); </code> <br>Part of <code>GL_VERSION_1_5</code>; <code>GL_OES_mapbuffer</code>   */
-public final java.nio.ByteBuffer glMapBuffer(int target, int access) {
-  return glMapBufferImpl(target, false, 0, 0, access, ((GLES1ProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBuffer);
-}
-
-/** Entry point to C language function: <code> void *  {@native glMapBufferRange}(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access); </code> <br>Part of <code>GL_ES_VERSION_3_0</code>, <code>GL_VERSION_3_0</code>; <code>GL_EXT_map_buffer_range</code>   */
-public final ByteBuffer glMapBufferRange(int target, long offset, long length, int access)  {
-  return glMapBufferImpl(target, true, offset, length, access, ((GLES1ProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBufferRange);
-}
-
 @Override
 public final void glVertexPointer(GLArrayData array) {
   if(array.getComponentCount()==0) return;
@@ -318,5 +304,46 @@ public final void glTexCoordPointer(GLArrayData array) {
   } else {
       glTexCoordPointer(array.getComponentCount(), array.getComponentType(), array.getStride(), array.getBuffer());
   }
+}
+
+//
+// GLBufferObjectTracker Redirects
+//
+
+@Override
+public final void glBufferData(int target, long size, Buffer data, int usage)  {
+    final long glProcAddress = ((GLES1ProcAddressTable)_context.getGLProcAddressTable())._addressof_glBufferData;
+    if ( 0 == glProcAddress ) {
+      throw new GLException(String.format("Method \"%s\" not available", "glBufferData"));
+    }
+    bufferObjectTracker.createBufferStorage(bufferStateTracker, this, 
+                                            target, size, data, usage, 0 /* immutableFlags */,
+                                            createBoundMutableStorageDispatch, glProcAddress);
+}
+
+@Override
+public boolean glUnmapBuffer(int target)  {
+    final long glProcAddress = ((GLES1ProcAddressTable)_context.getGLProcAddressTable())._addressof_glUnmapBuffer;
+    if ( 0 == glProcAddress ) {
+      throw new GLException(String.format("Method \"%s\" not available", "glUnmapBuffer"));
+    }
+    return bufferObjectTracker.unmapBuffer(bufferStateTracker, this, target, unmapBoundBufferDispatch, glProcAddress);
+}
+
+@Override
+public final GLBufferStorage mapBuffer(final int target, final int access) {
+  final long glProcAddress = ((GLES1ProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBuffer;
+  if ( 0 == glProcAddress ) {
+    throw new GLException("Method \"glMapBuffer\" not available");
+  }
+  return bufferObjectTracker.mapBuffer(bufferStateTracker, this, target, access, mapBoundBufferAllDispatch, glProcAddress);
+}
+@Override
+public final GLBufferStorage mapBufferRange(final int target, final long offset, final long length, final int access) {
+  final long glProcAddress = ((GLES1ProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBufferRange;
+  if ( 0 == glProcAddress ) {
+    throw new GLException("Method \"glMapBufferRange\" not available");
+  }
+  return bufferObjectTracker.mapBuffer(bufferStateTracker, this, target, offset, length, access, mapBoundBufferRangeDispatch, glProcAddress);
 }
 

@@ -31,17 +31,18 @@ package jogamp.opengl;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 
+import javax.media.opengl.GLBufferStorage;
+
 import com.jogamp.common.util.HashUtil;
 
 /**
- *
+ * @deprecated No more used for GL buffer storage tracking, see {@link GLBufferStorage} and {@link GLBufferObjectTracker}.
  */
 public class MemoryObject {
     private final long addr;
     private final long size;
     private final int  hash;
     private ByteBuffer buffer=null;
-
     public MemoryObject(long addr, long size) {
         this.addr = addr;
         this.size = size;

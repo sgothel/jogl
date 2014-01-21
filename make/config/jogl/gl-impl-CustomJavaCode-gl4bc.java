@@ -18,11 +18,11 @@ public void setObjectTracker(GLObjectTracker tracker) {
 public GL4bcImpl(GLProfile glp, GLContextImpl context) {
   this._context = context; 
   if(null != context) {
-      this.bufferSizeTracker  = context.getBufferSizeTracker();
+      this.bufferObjectTracker  = context.getBufferObjectTracker();
       this.bufferStateTracker = context.getBufferStateTracker();
       this.glStateTracker     = context.getGLStateTracker();
   } else {
-      this.bufferSizeTracker  = null;
+      this.bufferObjectTracker  = null;
       this.bufferStateTracker = null;
       this.glStateTracker     = null;
   }
@@ -280,10 +280,6 @@ public final void glFreeMemoryNV(java.nio.ByteBuffer pointer) {
 // Helpers for ensuring the correct amount of texture data
 //
 
-private final GLBufferSizeTracker  bufferSizeTracker;
-private final GLBufferStateTracker bufferStateTracker;
-private final GLStateTracker       glStateTracker;
-
 private boolean haveARBPixelBufferObject;
 private boolean haveEXTPixelBufferObject;
 private boolean haveGL15;
@@ -431,67 +427,207 @@ private final boolean checkPackPBOBound(boolean throwException) {
 
 @Override
 public final boolean glIsPBOPackBound() {
+    return isPBOPackBound();
+}
+@Override
+public final boolean isPBOPackBound() {
     return checkPackPBOBound(false);
 }
 
 @Override
 public final boolean glIsPBOUnpackBound() {
+    return isPBOUnpackBound();
+}
+@Override
+public final boolean isPBOUnpackBound() {
     return checkUnpackPBOBound(false);
 }
 
-/** Entry point to C language function: <code> void *  {@native glMapBuffer}(GLenum target, GLenum access); </code> <br>Part of <code>GL_VERSION_1_5</code>; <code>GL_OES_mapbuffer</code>   */
-public final java.nio.ByteBuffer glMapBuffer(int target, int access) {
-  return glMapBufferImpl(target, false, 0, 0, access, ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBuffer);
+@Override
+public final void glVertexPointer(GLArrayData array) {
+  if(array.getComponentCount()==0) return;
+  if(array.isVBO()) {
+      glVertexPointer(array.getComponentCount(), array.getComponentType(), array.getStride(), array.getVBOOffset());
+  } else {
+      glVertexPointer(array.getComponentCount(), array.getComponentType(), array.getStride(), array.getBuffer());
+  }
+}
+@Override
+public final void glColorPointer(GLArrayData array) {
+  if(array.getComponentCount()==0) return;
+  if(array.isVBO()) {
+      glColorPointer(array.getComponentCount(), array.getComponentType(), array.getStride(), array.getVBOOffset());
+  } else {
+      glColorPointer(array.getComponentCount(), array.getComponentType(), array.getStride(), array.getBuffer());
+  }
+
+}
+@Override
+public final void glNormalPointer(GLArrayData array) {
+  if(array.getComponentCount()==0) return;
+  if(array.getComponentCount()!=3) {
+    throw new GLException("Only 3 components per normal allowed");
+  }
+  if(array.isVBO()) {
+      glNormalPointer(array.getComponentType(), array.getStride(), array.getVBOOffset());
+  } else {
+      glNormalPointer(array.getComponentType(), array.getStride(), array.getBuffer());
+  }
+}
+@Override
+public final void glTexCoordPointer(GLArrayData array) {
+  if(array.getComponentCount()==0) return;
+  if(array.isVBO()) {
+      glTexCoordPointer(array.getComponentCount(), array.getComponentType(), array.getStride(), array.getVBOOffset());
+  } else {
+      glTexCoordPointer(array.getComponentCount(), array.getComponentType(), array.getStride(), array.getBuffer());
+  }
 }
 
-/** Entry point to C language function: <code> void *  {@native glMapBufferRange}(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access); </code> <br>Part of <code>GL_ES_VERSION_3_0</code>, <code>GL_VERSION_3_0</code>; <code>GL_EXT_map_buffer_range</code>   */
-public final ByteBuffer glMapBufferRange(int target, long offset, long length, int access)  {
-  return glMapBufferImpl(target, true, offset, length, access, ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBufferRange);
+//
+// GLBufferObjectTracker Redirects
+//
+
+@Override
+public final void glBufferData(int target, long size, Buffer data, int usage)  {
+    final long glProcAddress = ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glBufferData;
+    if ( 0 == glProcAddress ) {
+      throw new GLException(String.format("Method \"%s\" not available", "glBufferData"));
+    }
+    bufferObjectTracker.createBufferStorage(bufferStateTracker, this, 
+                                            target, size, data, usage, 0 /* immutableFlags */, 
+                                            createBoundMutableStorageDispatch, glProcAddress);
+}
+/** FIXME Add for OpenGL 4.4
+@Override
+public final void glBufferStorage(int target, long size, Buffer data, int flags)  {
+    final long glProcAddress = ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glBufferStorage;
+    if ( 0 == glProcAddress ) {
+      throw new GLException(String.format("Method \"%s\" not available", "glBufferStorage"));
+    }
+    bufferObjectTracker.createBufferStorage(bufferStateTracker, this, 
+                                            target, size, data, 0 * mutableUsage *, flags, 
+                                            createBoundImmutableStorageDispatch, glProcAddress);
+}
+private final jogamp.opengl.GLBufferObjectTracker.CreateStorageDispatch createBoundImmutableStorageDispatch = 
+    new jogamp.opengl.GLBufferObjectTracker.CreateStorageDispatch() {
+        public final void create(final int target, final long size, final Buffer data, final int immutableFlags, final long glProcAddress) {
+            final boolean data_is_direct = Buffers.isDirect(data);
+            dispatch_glBufferStorage(target, size, 
+                                  data_is_direct ? data : Buffers.getArray(data), 
+                                  data_is_direct ? Buffers.getDirectBufferByteOffset(data) : Buffers.getIndirectBufferByteOffset(data), 
+                                  data_is_direct, immutableFlags, glProcAddress);
+        }
+    };
+private native void dispatch_glBufferStorage(int target, long size, Object data, int data_byte_offset, boolean data_is_direct, int flags, long procAddress);
+ */
+
+@Override
+public final void glNamedBufferDataEXT(int buffer, long size, Buffer data, int usage)  {
+    final long glProcAddress = ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glNamedBufferDataEXT;
+    if ( 0 == glProcAddress ) {
+      throw new GLException(String.format("Method \"%s\" not available", "glNamedBufferDataEXT"));
+    }
+    bufferObjectTracker.createBufferStorage(this, 
+                                            buffer, size, data, usage, 0 /* immutableFlags */,
+                                            createNamedStorageDispatch, glProcAddress);
+}
+private final jogamp.opengl.GLBufferObjectTracker.CreateStorageDispatch createNamedStorageDispatch = 
+    new jogamp.opengl.GLBufferObjectTracker.CreateStorageDispatch() {
+        public final void create(final int buffer, final long size, final Buffer data, final int mutableUsage, final long glProcAddress) {
+            final boolean data_is_direct = Buffers.isDirect(data);
+            dispatch_glNamedBufferDataEXT(buffer, size,
+                                          data_is_direct ? data : Buffers.getArray(data), 
+                                          data_is_direct ? Buffers.getDirectBufferByteOffset(data) : Buffers.getIndirectBufferByteOffset(data), 
+                                          data_is_direct, mutableUsage, glProcAddress);
+        }
+    };
+private native void dispatch_glNamedBufferDataEXT(int buffer, long size, Object data, int data_byte_offset, boolean data_is_direct, int usage, long procAddress);
+
+@Override
+public boolean glUnmapBuffer(int target)  {
+    final long glProcAddress = ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glUnmapBuffer;
+    if ( 0 == glProcAddress ) {
+      throw new GLException(String.format("Method \"%s\" not available", "glUnmapBuffer"));
+    }
+    return bufferObjectTracker.unmapBuffer(bufferStateTracker, this, target, unmapBoundBufferDispatch, glProcAddress);
 }
 
-/** Entry point to C language function: <code> GLvoid *  {@native glMapNamedBufferEXT}(GLuint buffer, GLenum access); </code> <br>Part of <code>GL_EXT_direct_state_access</code>   */
+@Override
+public boolean glUnmapNamedBufferEXT(int buffer)  {
+    final long glProcAddress = ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glUnmapNamedBufferEXT;
+    if ( 0 == glProcAddress ) {
+      throw new GLException(String.format("Method \"%s\" not available", "glUnmapNamedBufferEXT"));
+    }
+    return bufferObjectTracker.unmapBuffer(buffer, unmapNamedBufferDispatch, glProcAddress);
+}
+private final jogamp.opengl.GLBufferObjectTracker.UnmapBufferDispatch unmapNamedBufferDispatch = 
+    new jogamp.opengl.GLBufferObjectTracker.UnmapBufferDispatch() {
+        public final boolean unmap(final int buffer, final long glProcAddress) {
+            return dispatch_glUnmapNamedBufferEXT(buffer, glProcAddress);
+        }
+    };
+private native boolean dispatch_glUnmapNamedBufferEXT(int buffer, long procAddress);
+
+@Override
+public final GLBufferStorage mapBuffer(final int target, final int access) {
+  final long glProcAddress = ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBuffer;
+  if ( 0 == glProcAddress ) {
+    throw new GLException("Method \"glMapBuffer\" not available");
+  }
+  return bufferObjectTracker.mapBuffer(bufferStateTracker, this, target, access, mapBoundBufferAllDispatch, glProcAddress);
+}
+@Override
+public final GLBufferStorage mapBufferRange(final int target, final long offset, final long length, final int access) {
+  final long glProcAddress = ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBufferRange;
+  if ( 0 == glProcAddress ) {
+    throw new GLException("Method \"glMapBufferRange\" not available");
+  }
+  return bufferObjectTracker.mapBuffer(bufferStateTracker, this, target, offset, length, access, mapBoundBufferRangeDispatch, glProcAddress);
+}
+
+@Override
+public final GLBufferStorage mapNamedBuffer(final int bufferName, final int access) {
+  final long glProcAddress = ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapNamedBufferEXT;
+  if ( 0 == glProcAddress ) {
+    throw new GLException("Method \"glMapNamedBufferEXT\" not available");
+  }
+  return bufferObjectTracker.mapBuffer(bufferName, access, mapNamedBufferAllDispatch, glProcAddress);
+}
+private final jogamp.opengl.GLBufferObjectTracker.MapBufferAllDispatch mapNamedBufferAllDispatch = 
+    new jogamp.opengl.GLBufferObjectTracker.MapBufferAllDispatch() {
+        public final ByteBuffer allocNioByteBuffer(final long addr, final long length) { return newDirectByteBuffer(addr, length); }
+        public final long mapBuffer(final int bufferName, final int access, final long glProcAddress) {
+            return dispatch_glMapNamedBufferEXT(bufferName, access, glProcAddress);
+        }
+    };
+private native long dispatch_glMapNamedBufferEXT(int buffer, int access, long glProcAddress);
+
+@Override
+public final GLBufferStorage mapNamedBufferRange(final int bufferName, final long offset, final long length, final int access) {
+  final long glProcAddress = ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapNamedBufferRangeEXT;
+  if ( 0 == glProcAddress ) {
+    throw new GLException("Method \"glMapNamedBufferRangeEXT\" not available");
+  }
+  return bufferObjectTracker.mapBuffer(bufferName, offset, length, access, mapNamedBufferRangeDispatch, glProcAddress);
+}
+private final jogamp.opengl.GLBufferObjectTracker.MapBufferRangeDispatch mapNamedBufferRangeDispatch = 
+    new jogamp.opengl.GLBufferObjectTracker.MapBufferRangeDispatch() {
+        public final ByteBuffer allocNioByteBuffer(final long addr, final long length) { return newDirectByteBuffer(addr, length); }
+        public final long mapBuffer(final int bufferName, final long offset, final long length, final int access, final long glProcAddress) {
+            return dispatch_glMapNamedBufferRangeEXT(bufferName, offset, length, access, glProcAddress);
+        }
+    };
+private native long dispatch_glMapNamedBufferRangeEXT(int buffer, long offset, long length, int access, long procAddress);
+
+@Override
 public final java.nio.ByteBuffer glMapNamedBufferEXT(int bufferName, int access)  {
-  return glMapNamedBufferImpl(bufferName, access, ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapNamedBufferEXT);
+  return mapNamedBuffer(bufferName, access).getMappedBuffer();
 }
 
-    @Override
-    public final void glVertexPointer(GLArrayData array) {
-      if(array.getComponentCount()==0) return;
-      if(array.isVBO()) {
-          glVertexPointer(array.getComponentCount(), array.getComponentType(), array.getStride(), array.getVBOOffset());
-      } else {
-          glVertexPointer(array.getComponentCount(), array.getComponentType(), array.getStride(), array.getBuffer());
-      }
-    }
-    @Override
-    public final void glColorPointer(GLArrayData array) {
-      if(array.getComponentCount()==0) return;
-      if(array.isVBO()) {
-          glColorPointer(array.getComponentCount(), array.getComponentType(), array.getStride(), array.getVBOOffset());
-      } else {
-          glColorPointer(array.getComponentCount(), array.getComponentType(), array.getStride(), array.getBuffer());
-      }
+@Override
+public final ByteBuffer glMapNamedBufferRangeEXT(int bufferName, long offset, long length, int access)  {
+  return mapNamedBufferRange(bufferName, offset, length, access).getMappedBuffer();
+}
 
-    }
-    @Override
-    public final void glNormalPointer(GLArrayData array) {
-      if(array.getComponentCount()==0) return;
-      if(array.getComponentCount()!=3) {
-        throw new GLException("Only 3 components per normal allowed");
-      }
-      if(array.isVBO()) {
-          glNormalPointer(array.getComponentType(), array.getStride(), array.getVBOOffset());
-      } else {
-          glNormalPointer(array.getComponentType(), array.getStride(), array.getBuffer());
-      }
-    }
-    @Override
-    public final void glTexCoordPointer(GLArrayData array) {
-      if(array.getComponentCount()==0) return;
-      if(array.isVBO()) {
-          glTexCoordPointer(array.getComponentCount(), array.getComponentType(), array.getStride(), array.getVBOOffset());
-      } else {
-          glTexCoordPointer(array.getComponentCount(), array.getComponentType(), array.getStride(), array.getBuffer());
-      }
-    }
 

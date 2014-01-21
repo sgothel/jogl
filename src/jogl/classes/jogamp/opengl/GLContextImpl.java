@@ -100,9 +100,9 @@ public abstract class GLContextImpl extends GLContext {
   private String glRendererLowerCase;
   private String glVersion;
 
-  // Tracks creation and initialization of buffer objects to avoid
+  // Tracks lifecycle of buffer objects to avoid
   // repeated glGet calls upon glMapBuffer operations
-  private final GLBufferSizeTracker bufferSizeTracker;
+  private final GLBufferObjectTracker bufferObjectTracker;
   private final GLBufferStateTracker bufferStateTracker;
   private final GLStateTracker glStateTracker = new GLStateTracker();
   private GLDebugMessageHandler glDebugHandler = null;
@@ -141,10 +141,10 @@ public abstract class GLContextImpl extends GLContext {
     bufferStateTracker = new GLBufferStateTracker();
     if ( null != shareWith ) {
       GLContextShareSet.registerSharing(this, shareWith);
-      bufferSizeTracker = ((GLContextImpl)shareWith).getBufferSizeTracker();
-      assert (bufferSizeTracker != null) : "shared context hash null bufferSizeTracker: "+shareWith;
+      bufferObjectTracker = ((GLContextImpl)shareWith).getBufferObjectTracker();
+      assert (bufferObjectTracker != null) : "shared context hash null GLBufferObjectTracker: "+shareWith;
     } else {
-      bufferSizeTracker = new GLBufferSizeTracker();
+      bufferObjectTracker = new GLBufferObjectTracker();
     }
 
     this.drawable = drawable;
@@ -155,9 +155,9 @@ public abstract class GLContextImpl extends GLContext {
 
   private final void clearStates() {
       if( !GLContextShareSet.hasCreatedSharedLeft(this) ) {
-        bufferSizeTracker.clearCachedBufferSizes();
+        bufferObjectTracker.clear();
       }
-      bufferStateTracker.clearBufferObjectState();
+      bufferStateTracker.clear();
       glStateTracker.setEnabled(false);
       glStateTracker.clearStates();
   }
@@ -2122,8 +2122,8 @@ public abstract class GLContextImpl extends GLContext {
   //----------------------------------------------------------------------
   // Helpers for buffer object optimizations
 
-  public final GLBufferSizeTracker getBufferSizeTracker() {
-    return bufferSizeTracker;
+  public final GLBufferObjectTracker getBufferObjectTracker() {
+    return bufferObjectTracker;
   }
 
   public final GLBufferStateTracker getBufferStateTracker() {

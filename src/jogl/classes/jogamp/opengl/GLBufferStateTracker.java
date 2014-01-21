@@ -102,14 +102,92 @@ public class GLBufferStateTracker {
     // Start with known unbound targets for known keys
     // setBoundBufferObject(GL2ES3.GL_VERTEX_ARRAY_BINDING, 0); // not using default VAO (removed in GL3 core) - only explicit
     setBoundBufferObject(GL.GL_ARRAY_BUFFER,         0);
+    setBoundBufferObject(GL4.GL_DRAW_INDIRECT_BUFFER, 0);
     setBoundBufferObject(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
     setBoundBufferObject(GL2.GL_PIXEL_PACK_BUFFER,   0);
     setBoundBufferObject(GL2.GL_PIXEL_UNPACK_BUFFER, 0);
-    setBoundBufferObject(GL4.GL_DRAW_INDIRECT_BUFFER, 0);
   }
 
-  public final void setBoundBufferObject(int target, int value) {
-    bindingMap.put(target, value);
+
+  /**
+   *  GL_ARRAY_BUFFER​,
+   *  GL_ATOMIC_COUNTER_BUFFER​,
+   *  GL_COPY_READ_BUFFER​,
+   *  GL_COPY_WRITE_BUFFER​,
+   *  GL_DRAW_INDIRECT_BUFFER​,
+   *  GL_DISPATCH_INDIRECT_BUFFER​,
+   *  GL_ELEMENT_ARRAY_BUFFER​,
+   *  GL_PIXEL_PACK_BUFFER​,
+   *  GL_PIXEL_UNPACK_BUFFER​,
+   *  GL_SHADER_STORAGE_BUFFER​,
+   *  GL_TEXTURE_BUFFER​,
+   *  GL_TRANSFORM_FEEDBACK_BUFFER​ or
+   *  GL_UNIFORM_BUFFER​.
+   *
+   *  GL_VERTEX_ARRAY_BINDING
+   *
+   */
+  private static final int getQueryName(final int target) {
+      switch (target) {
+        case GL.GL_ARRAY_BUFFER:                  return GL.GL_ARRAY_BUFFER_BINDING;
+        case GL4.GL_ATOMIC_COUNTER_BUFFER:        return GL4.GL_ATOMIC_COUNTER_BUFFER_BINDING;
+        case GL2ES3.GL_COPY_READ_BUFFER:          return GL2ES3.GL_COPY_READ_BUFFER_BINDING;
+        case GL2ES3.GL_COPY_WRITE_BUFFER:         return GL2ES3.GL_COPY_WRITE_BUFFER_BINDING;
+        case GL4.GL_DRAW_INDIRECT_BUFFER:         return GL4.GL_DRAW_INDIRECT_BUFFER_BINDING;
+        case GL4.GL_DISPATCH_INDIRECT_BUFFER:     return GL4.GL_DISPATCH_INDIRECT_BUFFER_BINDING;
+        case GL.GL_ELEMENT_ARRAY_BUFFER:          return GL.GL_ELEMENT_ARRAY_BUFFER_BINDING;
+        case GL2.GL_PIXEL_PACK_BUFFER:            return GL2.GL_PIXEL_PACK_BUFFER_BINDING;
+        case GL2.GL_PIXEL_UNPACK_BUFFER:          return GL2.GL_PIXEL_UNPACK_BUFFER_BINDING;
+        // FIXME case GL4.GL_QUERY_BUFFER:              return GL4.GL_QUERY_BUFFER_BINDING;
+        case GL4.GL_SHADER_STORAGE_BUFFER:        return GL4.GL_SHADER_STORAGE_BUFFER_BINDING;
+        case GL2GL3.GL_TEXTURE_BUFFER:            return GL2GL3.GL_TEXTURE_BINDING_BUFFER;
+        case GL2ES3.GL_TRANSFORM_FEEDBACK_BUFFER: return GL2ES3.GL_TRANSFORM_FEEDBACK_BUFFER_BINDING;
+        case GL2ES3.GL_UNIFORM_BUFFER:            return GL2ES3.GL_UNIFORM_BUFFER_BINDING;
+
+        case GL2ES3.GL_VERTEX_ARRAY_BINDING:      return GL2ES3.GL_VERTEX_ARRAY_BINDING;
+
+        default:
+            throw new GLException(String.format("GL_INVALID_ENUM​: Invalid binding target 0x%X", target));
+      }
+  }
+  private static final void checkTargetName(final int target) {
+      switch (target) {
+        case GL.GL_ARRAY_BUFFER:
+        case GL4.GL_ATOMIC_COUNTER_BUFFER:
+        case GL2ES3.GL_COPY_READ_BUFFER:
+        case GL2ES3.GL_COPY_WRITE_BUFFER:
+        case GL4.GL_DRAW_INDIRECT_BUFFER:
+        case GL4.GL_DISPATCH_INDIRECT_BUFFER:
+        case GL.GL_ELEMENT_ARRAY_BUFFER:
+        case GL2.GL_PIXEL_PACK_BUFFER:
+        case GL2.GL_PIXEL_UNPACK_BUFFER:
+        // FIXME case GL4.GL_QUERY_BUFFER:
+        case GL4.GL_SHADER_STORAGE_BUFFER:
+        case GL2GL3.GL_TEXTURE_BUFFER:
+        case GL2ES3.GL_TRANSFORM_FEEDBACK_BUFFER:
+        case GL2ES3.GL_UNIFORM_BUFFER:
+
+        case GL2ES3.GL_VERTEX_ARRAY_BINDING:
+            return;
+
+        default:
+            throw new GLException(String.format("GL_INVALID_ENUM​: Invalid binding target 0x%X", target));
+      }
+  }
+
+  /**
+   * Must be called when binding a buffer, e.g.:
+   * <ul>
+   *   <li><code>glBindBuffer</code></li>
+   *   <li><code>glBindBufferBase</code></li>
+   *   <li><code>glBindBufferRange</code></li>
+   * </ul>
+   * @param target
+   * @param bufferName
+   */
+  public final void setBoundBufferObject(int target, int bufferName) {
+    checkTargetName(target);
+    final int oldBufferName = bindingMap.put(target, bufferName);
     /***
      * Test for clearing bound buffer states when unbinding VAO,
      * Bug 692 Comment 5 is invalid, i.e. <https://jogamp.org/bugzilla/show_bug.cgi?id=692#c5>.
@@ -117,8 +195,8 @@ public class GLBufferStateTracker {
      * after unbinding a VAO w/o unbinding the VBOs resulted to no visible image.
      * Leaving code in here for discussion - in case I am wrong.
      *
-    final int pre = bindingMap.put(target, value);
-    if( GL2ES3.GL_VERTEX_ARRAY_BINDING == target && keyNotFound != pre && 0 == value ) {
+    final int pre = bindingMap.put(target, bufferName);
+    if( GL2ES3.GL_VERTEX_ARRAY_BINDING == target && keyNotFound != pre && 0 == bufferName ) {
         // Unbinding a previous bound VAO leads to unbinding of all buffers!
         bindingMap.put(GL.GL_ARRAY_BUFFER,         0);
         bindingMap.put(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -127,36 +205,10 @@ public class GLBufferStateTracker {
         bindingMap.put(GL4.GL_DRAW_INDIRECT_BUFFER, 0);
     } */
     if (DEBUG) {
-      System.err.println("GLBufferStateTracker.setBoundBufferObject() target 0x" +
-                         Integer.toHexString(target) + " -> mapped bound buffer 0x" +
-                         Integer.toHexString(value));
+      System.err.println("GLBufferStateTracker.setBoundBufferObject() target " +
+                         toHexString(target) + ": " + toHexString(oldBufferName) + " -> " + toHexString(bufferName));
       // Thread.dumpStack();
     }
-  }
-
-  public static final int getQueryName(final int target) {
-      switch (target) {
-        case GL.GL_ARRAY_BUFFER:                  return GL.GL_ARRAY_BUFFER_BINDING;
-        case GL.GL_ELEMENT_ARRAY_BUFFER:          return GL.GL_ELEMENT_ARRAY_BUFFER_BINDING;
-
-        case GL2ES3.GL_VERTEX_ARRAY_BINDING:      return GL2ES3.GL_VERTEX_ARRAY_BINDING;
-        case GL2ES3.GL_COPY_READ_BUFFER:          return GL2ES3.GL_COPY_READ_BUFFER_BINDING;
-        case GL2ES3.GL_COPY_WRITE_BUFFER:         return GL2ES3.GL_COPY_WRITE_BUFFER_BINDING;
-        case GL2ES3.GL_TRANSFORM_FEEDBACK_BUFFER: return GL2ES3.GL_TRANSFORM_FEEDBACK_BUFFER_BINDING;
-        case GL2ES3.GL_UNIFORM_BUFFER:            return GL2ES3.GL_UNIFORM_BUFFER_BINDING;
-
-        case GL2GL3.GL_TEXTURE_BUFFER:            return GL2GL3.GL_TEXTURE_BINDING_BUFFER;
-
-        case GL2.GL_PIXEL_PACK_BUFFER:            return GL2.GL_PIXEL_PACK_BUFFER_BINDING;
-        case GL2.GL_PIXEL_UNPACK_BUFFER:          return GL2.GL_PIXEL_UNPACK_BUFFER_BINDING;
-
-        case GL4.GL_DRAW_INDIRECT_BUFFER:         return GL4.GL_DRAW_INDIRECT_BUFFER_BINDING;
-        case GL4.GL_ATOMIC_COUNTER_BUFFER:        return GL4.GL_ATOMIC_COUNTER_BUFFER_BINDING;
-        case GL4.GL_DISPATCH_INDIRECT_BUFFER:     return GL4.GL_DISPATCH_INDIRECT_BUFFER_BINDING;
-        case GL4.GL_SHADER_STORAGE_BUFFER:        return GL4.GL_SHADER_STORAGE_BUFFER_BINDING;
-        // case GL4.GL_QUERY_BUFFER:              return GL4.GL_QUERY_BUFFER_BINDING;
-        default:                                  return 0;
-      }
   }
 
   /** Note: returns an unspecified value if the binding for the
@@ -180,9 +232,9 @@ public class GLBufferStateTracker {
             value = 0;
         }
         if (DEBUG) {
-          System.err.println("GLBufferStateTracker.getBoundBufferObject() glerr[pre 0x"+Integer.toHexString(glerrPre)+", post 0x"+Integer.toHexString(glerrPost)+"], [queried value]: target 0x" +
-                             Integer.toHexString(target) + " / query 0x"+Integer.toHexString(queryTarget)+
-                             " -> mapped bound buffer 0x" + Integer.toHexString(value));
+          System.err.println("GLBufferStateTracker.getBoundBufferObject() glerr[pre "+toHexString(glerrPre)+", post "+toHexString(glerrPost)+"], [queried value]: target " +
+                             toHexString(target) + " / query "+toHexString(queryTarget)+
+                             " -> mapped bound buffer " + toHexString(value));
         }
         setBoundBufferObject(target, value);
         return value;
@@ -204,11 +256,12 @@ public class GLBufferStateTracker {
       from GLContext.makeCurrent() in the future to possibly increase
       the robustness of these caches in the face of external native
       code manipulating OpenGL state. */
-  public final void clearBufferObjectState() {
+  public final void clear() {
+    if (DEBUG) {
+      System.err.println("GLBufferStateTracker.clear() - Thread "+Thread.currentThread().getName());
+      // Thread.dumpStack();
+    }
     bindingMap.clear();
-        if (DEBUG) {
-          System.err.println("GLBufferStateTracker.clearBufferObjectState()");
-          //Thread.dumpStack();
-        }
   }
+  private final String toHexString(int i) { return Integer.toHexString(i); }
 }
