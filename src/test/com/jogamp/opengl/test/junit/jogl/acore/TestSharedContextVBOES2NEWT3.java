@@ -92,7 +92,6 @@ public class TestSharedContextVBOES2NEWT3 extends UITestCase {
         return glWindow;
     }
 
-    /**
     @Test
     public void test01SyncedOneAnimatorCleanDtorOrderCopyBuffer() throws InterruptedException {
         syncedOneAnimator(true, false);
@@ -110,7 +109,6 @@ public class TestSharedContextVBOES2NEWT3 extends UITestCase {
     public void test04SyncedOneAnimatorDirtyDtorOrderMapBuffer() throws InterruptedException {
         syncedOneAnimator(false, true);
     }
-    */
 
     public void syncedOneAnimator(boolean destroyCleanOrder, boolean useMappedBuffers) throws InterruptedException {
         final Animator animator = new Animator();
@@ -226,16 +224,16 @@ public class TestSharedContextVBOES2NEWT3 extends UITestCase {
     public void test11ASyncEachAnimatorCleanDtorOrderCopyBuffer() throws InterruptedException {
         asyncEachAnimator(true, false);
     }
-    //@Test
+    @Test
     public void test12ASyncEachAnimatorCleanDtorOrderMapBuffer() throws InterruptedException {
         asyncEachAnimator(true, true);
     }
 
-    //@Test
+    @Test
     public void test13AsyncEachAnimatorDirtyDtorOrderCopyBuffers() throws InterruptedException {
         asyncEachAnimator(false, false);
     }
-    //@Test
+    @Test
     public void test14AsyncEachAnimatorDirtyDtorOrderMapBuffers() throws InterruptedException {
         asyncEachAnimator(false, true);
     }
