@@ -37,6 +37,7 @@ import java.nio.ByteOrder;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2GL3;
+import javax.media.opengl.GLBufferStorage;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
@@ -46,13 +47,15 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 /**
+ * Verifies content of buffer storage's content
+ * as well as general buffer- and buffer-storage tracking.
  *
  * @author Luz, et.al.
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestMapBufferRead01NEWT extends UITestCase {
     static final boolean DEBUG = false;
-    
+
     @Test
     public void testWriteRead01a() throws InterruptedException {
         if(!GLProfile.isAvailable(GLProfile.GL2GL3)) {
@@ -76,51 +79,64 @@ public class TestMapBufferRead01NEWT extends UITestCase {
     private void testWriteRead01(ByteBuffer verticiesBB) throws InterruptedException {
         final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOffscreenWindow(
                 new GLCapabilities(GLProfile.getGL2GL3()), 800, 600, true);
-        final GL gl = winctx.context.getGL();
+        try {
+            final GL gl = winctx.context.getGL();
 
-        int[] vertexBuffer = new int[1];
-        
-        verticiesBB.putFloat(0);
-        verticiesBB.putFloat(0.5f);
-        verticiesBB.putFloat(0);
+            int[] vertexBuffer = new int[1];
 
-        verticiesBB.putFloat(0.5f);
-        verticiesBB.putFloat(-0.5f);
-        verticiesBB.putFloat(0);
+            verticiesBB.putFloat(0);
+            verticiesBB.putFloat(0.5f);
+            verticiesBB.putFloat(0);
 
-        verticiesBB.putFloat(-0.5f);
-        verticiesBB.putFloat(-0.5f);
-        verticiesBB.putFloat(0);
-        verticiesBB.rewind();
-        if(DEBUG) {
-            for(int i=0; i < verticiesBB.capacity(); i+=4) {
-                System.out.println("java "+i+": "+verticiesBB.getFloat(i));
+            verticiesBB.putFloat(0.5f);
+            verticiesBB.putFloat(-0.5f);
+            verticiesBB.putFloat(0);
+
+            verticiesBB.putFloat(-0.5f);
+            verticiesBB.putFloat(-0.5f);
+            verticiesBB.putFloat(0);
+            verticiesBB.rewind();
+            if(DEBUG) {
+                for(int i=0; i < verticiesBB.capacity(); i+=4) {
+                    System.err.println("java "+i+": "+verticiesBB.getFloat(i));
+                }
             }
-        }
 
-        gl.glGenBuffers(1, vertexBuffer, 0);
+            gl.glGenBuffers(1, vertexBuffer, 0);
 
-        gl.glBindBuffer(GL.GL_ARRAY_BUFFER, vertexBuffer[0]);
+            gl.glBindBuffer(GL.GL_ARRAY_BUFFER, vertexBuffer[0]);
 
-        // gl.glBufferData(GL.GL_ARRAY_BUFFER, verticiesBB.capacity(), verticiesBB, GL.GL_STATIC_READ);
-        gl.glBufferData(GL.GL_ARRAY_BUFFER, verticiesBB.capacity(), verticiesBB, GL.GL_STATIC_DRAW);
-        
-        ByteBuffer bb = gl.glMapBuffer(GL.GL_ARRAY_BUFFER, GL2GL3.GL_READ_ONLY);
-        Assert.assertNotNull(bb);
-        
-        if(DEBUG) {
+            // gl.glBufferData(GL.GL_ARRAY_BUFFER, verticiesBB.capacity(), verticiesBB, GL.GL_STATIC_READ);
+            gl.glBufferData(GL.GL_ARRAY_BUFFER, verticiesBB.capacity(), verticiesBB, GL.GL_STATIC_DRAW);
+
+            final int bufferName = gl.getBoundBuffer(GL.GL_ARRAY_BUFFER);
+            final GLBufferStorage bufferStorage = gl.getBufferStorage(bufferName);
+            System.err.println("gpu-01 GL_ARRAY_BUFFER -> bufferName "+bufferName+" -> "+bufferStorage);
+            Assert.assertEquals("Buffer storage's bytes-buffer not null before map", null, bufferStorage.getMappedBuffer());
+
+            final ByteBuffer bb = gl.glMapBuffer(GL.GL_ARRAY_BUFFER, GL2GL3.GL_READ_ONLY);
+            Assert.assertNotNull(bb);
+            System.err.println("gpu-02 mapped GL_ARRAY_BUFFER -> "+bb);
+            System.err.println("gpu-03 GL_ARRAY_BUFFER -> bufferName "+bufferName+" -> "+bufferStorage);
+            Assert.assertEquals("Buffer storage size not equals buffer storage size", bufferStorage.getSize(), bb.capacity());
+            Assert.assertEquals("Buffer storage's bytes-buffer not equal with mapped bytes-buffer", bufferStorage.getMappedBuffer(), bb);
+
+            if(DEBUG) {
+                for(int i=0; i < bb.capacity(); i+=4) {
+                    System.err.println("gpu "+i+": "+bb.getFloat(i));
+                }
+            }
             for(int i=0; i < bb.capacity(); i+=4) {
-                System.out.println("gpu "+i+": "+bb.getFloat(i));
+                Assert.assertEquals(verticiesBB.getFloat(i), bb.getFloat(i), 0.0);
             }
+            gl.glUnmapBuffer(GL.GL_ARRAY_BUFFER);
+            Assert.assertEquals("Buffer storage's bytes-buffer not null after unmap", null, bufferStorage.getMappedBuffer());
+        } finally {
+            NEWTGLContext.destroyWindow(winctx);
         }
-        for(int i=0; i < bb.capacity(); i+=4) {
-            Assert.assertEquals(verticiesBB.getFloat(i), bb.getFloat(i), 0.0);
-        }
-        gl.glUnmapBuffer(GL.GL_ARRAY_BUFFER);
-        NEWTGLContext.destroyWindow(winctx);
     }
     public static void main(String args[]) throws IOException {
         String tstname = TestMapBufferRead01NEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
-    }    
+    }
 }

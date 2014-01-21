@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.demos.es2.newt;
 
 import com.jogamp.newt.event.KeyAdapter;
@@ -35,13 +35,13 @@ import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
-
 import com.jogamp.opengl.util.Animator;
-
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareMappedES2;
 
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
@@ -61,6 +61,7 @@ public class TestRedSquareES2NEWT extends UITestCase {
     static boolean forceGL3 = false;
     static boolean mainRun = false;
     static boolean doRotate = true;
+    static boolean useMappedBuffers = false;
 
     @BeforeClass
     public static void initClass() {
@@ -79,14 +80,22 @@ public class TestRedSquareES2NEWT extends UITestCase {
         glWindow.setTitle(getSimpleTestName("."));
         glWindow.setSize(width, height);
 
-        final RedSquareES2 demo = new RedSquareES2(vsync ? 1 : -1);
-        demo.setDoRotation(doRotate);
+        final GLEventListener demo;
+        if( useMappedBuffers ) {
+            final RedSquareMappedES2 red = new RedSquareMappedES2(vsync ? 1 : -1);
+            red.setDoRotation(doRotate);
+            demo = red;
+        } else {
+            final RedSquareES2 red = new RedSquareES2(vsync ? 1 : -1);
+            red.setDoRotation(doRotate);
+            demo = red;
+        }
         glWindow.addGLEventListener(demo);
 
         final SnapshotGLEventListener snap = new SnapshotGLEventListener();
         snap.setPostSNDetail(demo.getClass().getSimpleName());
         glWindow.addGLEventListener(snap);
-        
+
         Animator animator = new Animator(glWindow);
         QuitAdapter quitAdapter = new QuitAdapter();
 
@@ -99,7 +108,7 @@ public class TestRedSquareES2NEWT extends UITestCase {
             public void keyReleased(KeyEvent e) {
                 if( !e.isPrintableKey() || e.isAutoRepeat() ) {
                     return;
-                }            
+                }
                 if(e.getKeyChar()=='f') {
                     new Thread() {
                         public void run() {
@@ -115,16 +124,16 @@ public class TestRedSquareES2NEWT extends UITestCase {
         });
 
         animator.start();
-        
+
         glWindow.setVisible(true);
 
         System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
         System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
-        
+
         animator.setUpdateFPSFrames(60, System.err);
         snap.setMakeSnapshot();
-        
+
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
         }
@@ -157,11 +166,11 @@ public class TestRedSquareES2NEWT extends UITestCase {
             }
         }
     }
-    
+
     @Test
     public void test02GL3() throws InterruptedException {
         if(mainRun) return;
-        
+
         if( !GLProfile.isAvailable(GLProfile.GL3) ) {
             System.err.println("GL3 n/a");
             return;
@@ -169,7 +178,7 @@ public class TestRedSquareES2NEWT extends UITestCase {
         final GLProfile glp = GLProfile.get(GLProfile.GL3);
         final GLCapabilities caps = new GLCapabilities( glp );
         runTestGL(caps);
-    }    
+    }
 
     static long duration = 500; // ms
 
@@ -185,6 +194,8 @@ public class TestRedSquareES2NEWT extends UITestCase {
                 forceGL3 = true;
             } else if(args[i].equals("-norotate")) {
                 doRotate = false;
+            } else if(args[i].equals("-mappedBuffers")) {
+                useMappedBuffers = true;
             } else if(args[i].equals("-loops")) {
                 i++;
                 loops = MiscUtils.atoi(args[i], 1);
@@ -196,6 +207,7 @@ public class TestRedSquareES2NEWT extends UITestCase {
         System.err.println("loop shutdown "+loop_shutdown);
         System.err.println("forceES2 "+forceES2);
         System.err.println("forceGL3 "+forceGL3);
+        System.err.println("mappedBuffers "+useMappedBuffers);
         org.junit.runner.JUnitCore.main(TestRedSquareES2NEWT.class.getName());
     }
 }

@@ -102,6 +102,7 @@ public class TestGearsES2NEWT extends UITestCase {
     static boolean mainRun = false;
     static boolean exclusiveContext = false;
     static boolean useAnimator = true;
+    static boolean useMappedBuffers = false;
     static enum SysExit { none, testExit, testError, testEDTError, displayExit, displayError, displayEDTError };
     static SysExit sysExit = SysExit.none;
 
@@ -135,6 +136,8 @@ public class TestGearsES2NEWT extends UITestCase {
 
         final GearsES2 demo = new GearsES2(swapInterval);
         demo.setPMVUseBackingArray(pmvUseBackingArray);
+        demo.setUseMappedBuffers(useMappedBuffers);
+        demo.setValidateBuffers(true);
         glWindow.addGLEventListener(demo);
 
         final SnapshotGLEventListener snap = new SnapshotGLEventListener();
@@ -549,6 +552,8 @@ public class TestGearsES2NEWT extends UITestCase {
                 forceGL3 = true;
             } else if(args[i].equals("-gl2")) {
                 forceGL2 = true;
+            } else if(args[i].equals("-mappedBuffers")) {
+                useMappedBuffers = true;
             } else if(args[i].equals("-wait")) {
                 waitForKey = true;
             } else if(args[i].equals("-mouseInvisible")) {
@@ -623,6 +628,7 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("exclusiveContext "+exclusiveContext);
         System.err.println("useAnimator "+useAnimator);
         System.err.println("sysExitWithin "+sysExit);
+        System.err.println("mappedBuffers "+useMappedBuffers);
 
         if(waitForKey) {
             UITestCase.waitForKey("Start");

@@ -24,6 +24,8 @@ import java.nio.FloatBuffer;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GLBufferStorage;
+import javax.media.opengl.GLException;
 import javax.media.opengl.GLUniformData;
 
 import com.jogamp.opengl.test.junit.jogl.demos.GearsObject;
@@ -41,13 +43,13 @@ public class GearsObjectES2 extends GearsObject {
     final GLUniformData colorUniform;
     final ShaderState st;
 
-    public GearsObjectES2(ShaderState st, FloatBuffer gearColor, float inner_radius, float outer_radius,
-                          float width, int teeth,
-                          float tooth_depth,
-                          PMVMatrix pmvMatrix,
-                          GLUniformData pmvMatrixUniform, GLUniformData colorUniform)
+    public GearsObjectES2(GL gl, boolean useMappedBuffers, ShaderState st, FloatBuffer gearColor,
+                          float inner_radius, float outer_radius,
+                          float width,
+                          int teeth,
+                          float tooth_depth, PMVMatrix pmvMatrix, GLUniformData pmvMatrixUniform, GLUniformData colorUniform, boolean validateBuffers)
     {
-        super(gearColor, inner_radius, outer_radius, width, teeth, tooth_depth);
+        super(gl, useMappedBuffers, gearColor, inner_radius, outer_radius, width, teeth, tooth_depth, validateBuffers);
         this.pmvMatrix = pmvMatrix;
         this.pmvMatrixUniform = pmvMatrixUniform;
         this.colorUniform = colorUniform;
@@ -78,8 +80,12 @@ public class GearsObjectES2 extends GearsObject {
     }
 
     @Override
-    public GLArrayDataServer createInterleaved(int comps, int dataType, boolean normalized, int initialSize, int vboUsage) {
-        return GLArrayDataServer.createGLSLInterleaved(comps, dataType, normalized, initialSize, vboUsage);
+    public GLArrayDataServer createInterleaved(boolean useMappedBuffers, int comps, int dataType, boolean normalized, int initialSize, int vboUsage) {
+        if( useMappedBuffers ) {
+            return GLArrayDataServer.createGLSLInterleavedMapped(comps, dataType, normalized, initialSize, vboUsage);
+        } else {
+            return GLArrayDataServer.createGLSLInterleaved(comps, dataType, normalized, initialSize, vboUsage);
+        }
     }
 
     @Override
@@ -90,6 +96,21 @@ public class GearsObjectES2 extends GearsObject {
 
     private void draw(GL2ES2 gl, GLArrayDataServer array, int mode, int face) {
         if( !isShared || gl.glIsBuffer(array.getVBOName()) ) {
+            if( validateBuffers ) {
+                array.bindBuffer(gl, true);
+                final int bufferTarget = array.getVBOTarget();
+                final int bufferName = array.getVBOName();
+                final long bufferSize = array.getSizeInBytes();
+                final int hasBufferName = gl.getBoundBuffer(bufferTarget);
+                final GLBufferStorage hasStorage = gl.getBufferStorage(hasBufferName);
+                final boolean ok = bufferName == hasBufferName &&
+                                   bufferName == hasStorage.getName() &&
+                                   bufferSize == hasStorage.getSize();
+                if( !ok ) {
+                    throw new GLException("GLBufferStorage Validation Error: Target[exp 0x"+Integer.toHexString(bufferTarget)+", has 0x"+Integer.toHexString(bufferTarget)+
+                                          ", Name[exp "+bufferName+", has "+hasBufferName+", Size exp "+bufferSize+", Storage "+hasStorage+"]");
+                }
+            }
             array.enableBuffer(gl, true);
             // System.err.println("XXX Draw face "+face+" of "+this);
             gl.glDrawArrays(mode, 0, array.getElementCount());

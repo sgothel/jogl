@@ -45,8 +45,9 @@ public abstract class GearsObject {
     public GLArrayDataServer outwardFace;
     public GLArrayDataServer insideRadiusCyl;
     public boolean isShared;
+    protected boolean validateBuffers = false;
 
-    public abstract GLArrayDataServer createInterleaved(int comps, int dataType, boolean normalized, int initialSize, int vboUsage);
+    public abstract GLArrayDataServer createInterleaved(boolean useMappedBuffers, int comps, int dataType, boolean normalized, int initialSize, int vboUsage);
     public abstract void addInterleavedVertexAndNormalArrays(GLArrayDataServer array, int components);
     public abstract void draw(GL gl, float x, float y, float angle);
 
@@ -59,16 +60,6 @@ public abstract class GearsObject {
     private void init(GL gl, GLArrayDataServer array) {
         array.enableBuffer(gl, true);
         array.enableBuffer(gl, false);
-    }
-
-    /** Init VBO and data .. */
-    public final void init(GL gl) {
-        init(gl, frontFace);
-        init(gl, frontSide);
-        init(gl, backFace);
-        init(gl, backSide);
-        init(gl, outwardFace);
-        init(gl, insideRadiusCyl);
     }
 
     public void destroy(GL gl) {
@@ -104,6 +95,7 @@ public abstract class GearsObject {
 
     public GearsObject ( GearsObject shared ) {
         isShared = true;
+        validateBuffers = shared.validateBuffers;
         frontFace = createInterleavedClone(shared.frontFace);
         addInterleavedVertexAndNormalArrays(frontFace, 3);
         backFace = createInterleavedClone(shared.backFace);
@@ -120,12 +112,12 @@ public abstract class GearsObject {
     }
 
     public GearsObject (
+            GL gl,
+            boolean useMappedBuffers,
             FloatBuffer gearColor,
             float inner_radius,
             float outer_radius,
-            float width,
-            int teeth,
-            float tooth_depth)
+            float width, int teeth, float tooth_depth, boolean validateBuffers)
     {
         final float dz = width * 0.5f;
         int i;
@@ -137,6 +129,7 @@ public abstract class GearsObject {
         float normal[] = new float[3];
         // final int tris_per_tooth = 32;
 
+        this.validateBuffers = validateBuffers;
         this.isShared = false;
         this.gearColor = gearColor;
 
@@ -151,18 +144,27 @@ public abstract class GearsObject {
 
         final int vboUsage = GL.GL_STATIC_DRAW;
 
-        frontFace = createInterleaved(6, GL.GL_FLOAT, false, 4*teeth+2, vboUsage);
+        frontFace = createInterleaved(useMappedBuffers, 6, GL.GL_FLOAT, false, 4*teeth+2, vboUsage);
         addInterleavedVertexAndNormalArrays(frontFace, 3);
-        backFace = createInterleaved(6, GL.GL_FLOAT, false, 4*teeth+2, vboUsage);
+        backFace = createInterleaved(useMappedBuffers, 6, GL.GL_FLOAT, false, 4*teeth+2, vboUsage);
         addInterleavedVertexAndNormalArrays(backFace, 3);
-        frontSide = createInterleaved(6, GL.GL_FLOAT, false, 6*teeth, vboUsage);
+        frontSide = createInterleaved(useMappedBuffers, 6, GL.GL_FLOAT, false, 6*teeth, vboUsage);
         addInterleavedVertexAndNormalArrays(frontSide, 3);
-        backSide = createInterleaved(6, GL.GL_FLOAT, false, 6*teeth, vboUsage);
+        backSide = createInterleaved(useMappedBuffers, 6, GL.GL_FLOAT, false, 6*teeth, vboUsage);
         addInterleavedVertexAndNormalArrays(backSide, 3);
-        outwardFace = createInterleaved(6, GL.GL_FLOAT, false, 4*4*teeth+2, vboUsage);
+        outwardFace = createInterleaved(useMappedBuffers, 6, GL.GL_FLOAT, false, 4*4*teeth+2, vboUsage);
         addInterleavedVertexAndNormalArrays(outwardFace, 3);
-        insideRadiusCyl = createInterleaved(6, GL.GL_FLOAT, false, 2*teeth+2, vboUsage);
+        insideRadiusCyl = createInterleaved(useMappedBuffers, 6, GL.GL_FLOAT, false, 2*teeth+2, vboUsage);
         addInterleavedVertexAndNormalArrays(insideRadiusCyl, 3);
+
+        if( useMappedBuffers ) {
+            frontFace.mapStorage(gl, GL.GL_WRITE_ONLY);
+            backFace.mapStorage(gl, GL.GL_WRITE_ONLY);
+            frontSide.mapStorage(gl, GL.GL_WRITE_ONLY);
+            backSide.mapStorage(gl, GL.GL_WRITE_ONLY);
+            outwardFace.mapStorage(gl, GL.GL_WRITE_ONLY);
+            insideRadiusCyl.mapStorage(gl, GL.GL_WRITE_ONLY);
+        }
 
         for (i = 0; i < teeth; i++) {
             angle = i * 2.0f * M_PI / teeth;
@@ -290,6 +292,23 @@ public abstract class GearsObject {
         vert(insideRadiusCyl, r0 * c[4], r0 * s[4], -dz, normal);
         vert(insideRadiusCyl, r0 * c[4], r0 * s[4],  dz, normal);
         insideRadiusCyl.seal(true);
+
+        if( useMappedBuffers ) {
+            frontFace.unmapStorage(gl);
+            backFace.unmapStorage(gl);
+            frontSide.unmapStorage(gl);
+            backSide.unmapStorage(gl);
+            outwardFace.unmapStorage(gl);
+            insideRadiusCyl.unmapStorage(gl);
+        } else {
+            /** Init VBO and data .. */
+            init(gl, frontFace);
+            init(gl, frontSide);
+            init(gl, backFace);
+            init(gl, backSide);
+            init(gl, outwardFace);
+            init(gl, insideRadiusCyl);
+        }
     }
 
     @Override

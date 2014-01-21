@@ -145,7 +145,7 @@ public class GLSLMiscHelper {
         Assert.assertTrue(vDataArray.sealed());
         Assert.assertEquals(4, vDataArray.getElementCount());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());        
-        Assert.assertEquals(0, gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER)); // should be cleared ASAP
+        Assert.assertEquals(0, gl.getBoundBuffer(GL.GL_ARRAY_BUFFER)); // should be cleared ASAP
         validateGLArrayDataServerState(gl, st, vDataArray);
         return vDataArray;
     }
@@ -190,7 +190,7 @@ public class GLSLMiscHelper {
         Assert.assertTrue(cDataArray.isVBOWritten());
         Assert.assertTrue(cDataArray.sealed());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        Assert.assertEquals(0, gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER)); // should be cleared ASAP
+        Assert.assertEquals(0, gl.getBoundBuffer(GL.GL_ARRAY_BUFFER)); // should be cleared ASAP
         validateGLArrayDataServerState(gl, st, cDataArray);
         return cDataArray;
     }

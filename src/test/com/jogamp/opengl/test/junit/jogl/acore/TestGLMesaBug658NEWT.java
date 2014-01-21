@@ -168,7 +168,7 @@ public class TestGLMesaBug658NEWT extends UITestCase {
         gl.glBufferData(GL.GL_ARRAY_BUFFER, 4 * 32, null, GL.GL_STATIC_DRAW);
         Assert.assertTrue(gl.glGetError() == 0);
 
-        Assert.assertTrue(gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER) == name[0]);
+        Assert.assertTrue(gl.getBoundBuffer(GL.GL_ARRAY_BUFFER) == name[0]);
         gl.glEnableVertexAttribArray(1);
         Assert.assertTrue(gl.glGetError() == GL.GL_NO_ERROR);
         gl.glVertexAttribPointer(1, 4, GL.GL_FLOAT, false, 0, 0L);

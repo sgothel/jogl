@@ -24,6 +24,8 @@ import java.nio.FloatBuffer;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES1;
+import javax.media.opengl.GLBufferStorage;
+import javax.media.opengl.GLException;
 import javax.media.opengl.fixedfunc.GLPointerFunc;
 
 import com.jogamp.opengl.test.junit.jogl.demos.GearsObject;
@@ -35,14 +37,18 @@ import com.jogamp.opengl.util.GLArrayDataServer;
  */
 public class GearsObjectES1 extends GearsObject {
 
-    public GearsObjectES1(FloatBuffer gearColor, float inner_radius, float outer_radius, float width,
-            int teeth, float tooth_depth) {
-        super(gearColor, inner_radius, outer_radius, width, teeth, tooth_depth);
+    public GearsObjectES1(GL gl, boolean useMappedBuffers, FloatBuffer gearColor, float inner_radius,
+            float outer_radius, float width, int teeth, float tooth_depth, boolean validateBuffers) {
+        super(gl, useMappedBuffers, gearColor, inner_radius, outer_radius, width, teeth, tooth_depth, validateBuffers);
     }
 
     @Override
-    public GLArrayDataServer createInterleaved(int comps, int dataType, boolean normalized, int initialSize, int vboUsage) {
-        return GLArrayDataServer.createFixedInterleaved(comps, dataType, normalized, initialSize, vboUsage);
+    public GLArrayDataServer createInterleaved(boolean useMappedBuffers, int comps, int dataType, boolean normalized, int initialSize, int vboUsage) {
+        if( useMappedBuffers ) {
+            return GLArrayDataServer.createFixedInterleavedMapped(comps, dataType, normalized, initialSize, vboUsage);
+        } else {
+            return GLArrayDataServer.createFixedInterleaved(comps, dataType, normalized, initialSize, vboUsage);
+        }
     }
 
     @Override
@@ -54,6 +60,20 @@ public class GearsObjectES1 extends GearsObject {
     private void draw(GL2ES1 gl, GLArrayDataServer array, int mode) {
         if( !isShared || gl.glIsBuffer(array.getVBOName()) ) {
             array.enableBuffer(gl, true);
+            if( validateBuffers ) {
+                final int bufferTarget = array.getVBOTarget();
+                final int bufferName = array.getVBOName();
+                final long bufferSize = array.getSizeInBytes();
+                final int hasBufferName = gl.getBoundBuffer(bufferTarget);
+                final GLBufferStorage hasStorage = gl.getBufferStorage(hasBufferName);
+                final boolean ok = bufferName == hasBufferName &&
+                                   bufferName == hasStorage.getName() &&
+                                   bufferSize == hasStorage.getSize();
+                if( !ok ) {
+                    throw new GLException("GLBufferStorage Validation Error: Target[exp 0x"+Integer.toHexString(bufferTarget)+", has 0x"+Integer.toHexString(bufferTarget)+
+                                          ", Name[exp "+bufferName+", has "+hasBufferName+", Size exp "+bufferSize+", Storage "+hasStorage+"]");
+                }
+            }
             gl.glDrawArrays(mode, 0, array.getElementCount());
             array.enableBuffer(gl, false);
         }

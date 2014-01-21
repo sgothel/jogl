@@ -92,19 +92,31 @@ public class TestSharedContextVBOES2NEWT3 extends UITestCase {
         return glWindow;
     }
 
+    /**
     @Test
-    public void test01SyncedOneAnimatorCleanDtorOrder() throws InterruptedException {
-        syncedOneAnimator(true);
+    public void test01SyncedOneAnimatorCleanDtorOrderCopyBuffer() throws InterruptedException {
+        syncedOneAnimator(true, false);
+    }
+    @Test
+    public void test02SyncedOneAnimatorCleanDtorOrderMapBuffer() throws InterruptedException {
+        syncedOneAnimator(true, true);
     }
 
     @Test
-    public void test02SyncedOneAnimatorDirtyDtorOrder() throws InterruptedException {
-        syncedOneAnimator(false);
+    public void test03SyncedOneAnimatorDirtyDtorOrderCopyBuffer() throws InterruptedException {
+        syncedOneAnimator(false, false);
     }
+    @Test
+    public void test04SyncedOneAnimatorDirtyDtorOrderMapBuffer() throws InterruptedException {
+        syncedOneAnimator(false, true);
+    }
+    */
 
-    public void syncedOneAnimator(boolean destroyCleanOrder) throws InterruptedException {
+    public void syncedOneAnimator(boolean destroyCleanOrder, boolean useMappedBuffers) throws InterruptedException {
         final Animator animator = new Animator();
         final GearsES2 g1 = new GearsES2(0);
+        g1.setUseMappedBuffers(useMappedBuffers);
+        g1.setValidateBuffers(true);
         final GLWindow f1 = createGLWindow(0, 0, g1);
         animator.add(f1);
         InsetsImmutable insets = f1.getInsets();
@@ -176,21 +188,29 @@ public class TestSharedContextVBOES2NEWT3 extends UITestCase {
         } catch(Exception e) {
             e.printStackTrace();
         }
-        // Stopped animator allows native windowing system 'repaint' event
-        // to trigger GLAD 'display'
-        animator.stop();
-        Assert.assertEquals(false, animator.isAnimating());
 
         if( destroyCleanOrder ) {
             System.err.println("XXX Destroy in clean order NOW");
             f3.destroy();
+            try { Thread.sleep(durationPostDestroy); } catch(Exception e) { e.printStackTrace(); }
             f2.destroy();
+            try { Thread.sleep(durationPostDestroy); } catch(Exception e) { e.printStackTrace(); }
             f1.destroy();
+            try { Thread.sleep(durationPostDestroy); } catch(Exception e) { e.printStackTrace(); }
         } else {
             System.err.println("XXX Destroy in creation order NOW - Driver Impl. Ma trigger driver Bug i.e. not postponing GL ctx destruction after releasing all refs.");
+            animator.pause();
             f1.destroy();
+            animator.resume();
+            try { Thread.sleep(durationPostDestroy); } catch(Exception e) { e.printStackTrace(); }
+
+            animator.pause();
             f2.destroy();
+            animator.resume();
+            try { Thread.sleep(durationPostDestroy); } catch(Exception e) { e.printStackTrace(); }
+
             f3.destroy();
+            try { Thread.sleep(durationPostDestroy); } catch(Exception e) { e.printStackTrace(); }
         }
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, false));
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, false));
@@ -198,21 +218,33 @@ public class TestSharedContextVBOES2NEWT3 extends UITestCase {
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f2, false));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f3, false));
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f3, false));
+
+        animator.stop();
     }
 
     @Test
-    public void test11ASyncEachAnimatorCleanDtorOrder() throws InterruptedException {
-        asyncEachAnimator(true);
+    public void test11ASyncEachAnimatorCleanDtorOrderCopyBuffer() throws InterruptedException {
+        asyncEachAnimator(true, false);
+    }
+    //@Test
+    public void test12ASyncEachAnimatorCleanDtorOrderMapBuffer() throws InterruptedException {
+        asyncEachAnimator(true, true);
     }
 
-    @Test
-    public void test12AsyncEachAnimatorDirtyDtorOrder() throws InterruptedException {
-        asyncEachAnimator(false);
+    //@Test
+    public void test13AsyncEachAnimatorDirtyDtorOrderCopyBuffers() throws InterruptedException {
+        asyncEachAnimator(false, false);
+    }
+    //@Test
+    public void test14AsyncEachAnimatorDirtyDtorOrderMapBuffers() throws InterruptedException {
+        asyncEachAnimator(false, true);
     }
 
-    public void asyncEachAnimator(boolean destroyCleanOrder) throws InterruptedException {
+    public void asyncEachAnimator(boolean destroyCleanOrder, boolean useMappedBuffers) throws InterruptedException {
         final Animator a1 = new Animator();
         final GearsES2 g1 = new GearsES2(0);
+        g1.setUseMappedBuffers(useMappedBuffers);
+        g1.setValidateBuffers(true);
         final GLWindow f1 = createGLWindow(0, 0, g1);
         a1.add(f1);
         a1.start();
@@ -290,25 +322,37 @@ public class TestSharedContextVBOES2NEWT3 extends UITestCase {
         } catch(Exception e) {
             e.printStackTrace();
         }
-        // Stopped animator allows native windowing system 'repaint' event
-        // to trigger GLAD 'display'
-        a1.stop();
-        Assert.assertEquals(false, a1.isAnimating());
-        a2.stop();
-        Assert.assertEquals(false, a2.isAnimating());
-        a3.stop();
-        Assert.assertEquals(false, a3.isAnimating());
 
         if( destroyCleanOrder ) {
             System.err.println("XXX Destroy in clean order NOW");
+            a3.stop();
             f3.destroy();
+            try { Thread.sleep(durationPostDestroy); } catch(Exception e) { e.printStackTrace(); }
+            a2.stop();
             f2.destroy();
+            try { Thread.sleep(durationPostDestroy); } catch(Exception e) { e.printStackTrace(); }
+            a1.stop();
             f1.destroy();
+            try { Thread.sleep(durationPostDestroy); } catch(Exception e) { e.printStackTrace(); }
         } else {
             System.err.println("XXX Destroy in creation order NOW - Driver Impl. May trigger driver Bug i.e. not postponing GL ctx destruction after releasing all refs.");
+            a1.stop();
+            a2.pause();
+            a3.pause();
             f1.destroy();
+            a2.resume();
+            a3.resume();
+            try { Thread.sleep(durationPostDestroy); } catch(Exception e) { e.printStackTrace(); }
+
+            a2.stop();
+            a3.pause();
             f2.destroy();
+            a3.resume();
+            try { Thread.sleep(durationPostDestroy); } catch(Exception e) { e.printStackTrace(); }
+
+            a3.stop();
             f3.destroy();
+            try { Thread.sleep(durationPostDestroy); } catch(Exception e) { e.printStackTrace(); }
         }
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, false));
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, false));
@@ -319,6 +363,7 @@ public class TestSharedContextVBOES2NEWT3 extends UITestCase {
     }
 
     static long duration = 1000; // ms
+    static long durationPostDestroy = 1000; // ms - ~60 frames post destroy
 
     public static void main(String args[]) {
         for(int i=0; i<args.length; i++) {

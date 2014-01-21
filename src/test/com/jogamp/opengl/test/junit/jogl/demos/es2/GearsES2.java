@@ -67,6 +67,8 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
     private float panX = 0.0f, panY = 0.0f, panZ=0.0f;
     private volatile GearsObjectES2 gear1=null, gear2=null, gear3=null;
     private GearsES2 sharedGears = null;
+    private boolean useMappedBuffers = false;
+    private boolean validateBuffers = false;
     private volatile boolean usesSharedGears = false;
     private FloatBuffer gear1Color=GearsObject.red, gear2Color=GearsObject.green, gear3Color=GearsObject.blue;
     private float angle = 0.0f;
@@ -164,6 +166,9 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
 
     public boolean usesSharedGears() { return usesSharedGears; }
 
+    public void setUseMappedBuffers(boolean v) { useMappedBuffers = v; }
+    public void setValidateBuffers(boolean v) { validateBuffers = v; }
+
     private static final int TIME_OUT     = 2000; // 2s
     private static final int POLL_DIVIDER   = 20; // TO/20
     private static final int TIME_SLICE   = TIME_OUT / POLL_DIVIDER ;
@@ -184,14 +189,14 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
     @Override
     public void init(GLAutoDrawable drawable) {
         if(null != sharedGears && !sharedGears.isInit() ) {
-            System.err.println(Thread.currentThread()+" GearsES2.init "+sid()+": pending shared Gears .. re-init later XXXXX");
+            System.err.println(Thread.currentThread()+" GearsES2.init.0 "+sid()+": pending shared Gears .. re-init later XXXXX");
             drawable.setGLEventListenerInitState(this, false);
             return;
         }
 
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         if(verbose) {
-            System.err.println(Thread.currentThread()+" GearsES2.init "+sid()+": tileRendererInUse "+tileRendererInUse);
+            System.err.println(Thread.currentThread()+" GearsES2.init.0 "+sid()+": tileRendererInUse "+tileRendererInUse+", "+this);
             System.err.println("GearsES2 init "+sid()+" on "+Thread.currentThread());
             System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
             System.err.println("INIT GL IS: " + gl.getClass().getName());
@@ -245,8 +250,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
                 }
         } else {
             if(null == gear1) {
-                gear1 = new GearsObjectES2(st, gear1Color, 1.0f, 4.0f, 1.0f, 20, 0.7f, pmvMatrix, pmvMatrixUniform, colorU);
-                gear1.init(gl);
+                gear1 = new GearsObjectES2(gl, useMappedBuffers, st, gear1Color, 1.0f, 4.0f, 1.0f, 20, 0.7f, pmvMatrix, pmvMatrixUniform, colorU, validateBuffers);
                 if(verbose) {
                     System.err.println("gear1 "+sid()+" created: "+gear1);
                 }
@@ -260,8 +264,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
             }
 
             if(null == gear2) {
-                gear2 = new GearsObjectES2(st, gear2Color, 0.5f, 2.0f, 2.0f, 10, 0.7f, pmvMatrix, pmvMatrixUniform, colorU);
-                gear2.init(gl);
+                gear2 = new GearsObjectES2(gl, useMappedBuffers, st, gear2Color, 0.5f, 2.0f, 2.0f, 10, 0.7f, pmvMatrix, pmvMatrixUniform, colorU, validateBuffers);
                 if(verbose) {
                     System.err.println("gear2 "+sid()+" created: "+gear2);
                 }
@@ -275,8 +278,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
             }
 
             if(null == gear3) {
-                gear3 = new GearsObjectES2(st, gear3Color, 1.3f, 2.0f, 0.5f, 10, 0.7f, pmvMatrix, pmvMatrixUniform, colorU);
-                gear3.init(gl);
+                gear3 = new GearsObjectES2(gl, useMappedBuffers, st, gear3Color, 1.3f, 2.0f, 0.5f, 10, 0.7f, pmvMatrix, pmvMatrixUniform, colorU, validateBuffers);
                 if(verbose) {
                     System.err.println("gear3 "+sid()+" created: "+gear2);
                 }
@@ -310,7 +312,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
 
         isInit = true;
         if(verbose) {
-            System.err.println(Thread.currentThread()+" GearsES2.init "+sid()+" FIN "+this);
+            System.err.println(Thread.currentThread()+" GearsES2.init.X "+sid()+" FIN "+this);
         }
     }
 
@@ -516,7 +518,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
 
     @Override
     public String toString() {
-        return "GearsES2[obj "+sid()+" isInit "+isInit+", usesShared "+usesSharedGears+", 1 "+gear1+", 2 "+gear2+", 3 "+gear3+"]";
+        return "GearsES2[obj "+sid()+" isInit "+isInit+", usesShared "+usesSharedGears+", 1 "+gear1+", 2 "+gear2+", 3 "+gear3+", sharedGears "+sharedGears+"]";
     }
 
     boolean confinedFixedCenter = false;

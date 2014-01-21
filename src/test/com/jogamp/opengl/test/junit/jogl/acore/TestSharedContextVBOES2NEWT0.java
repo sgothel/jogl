@@ -100,13 +100,22 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
     }
 
     @Test
-    public void testCommonAnimatorShared() throws InterruptedException {
+    public void test01CommonAnimatorSharedCopyBuffer() throws InterruptedException {
+        testCommonAnimatorSharedImpl(false);
+    }
+    @Test
+    public void test02CommonAnimatorMapBuffer() throws InterruptedException {
+        testCommonAnimatorSharedImpl(true);
+    }
+    private void testCommonAnimatorSharedImpl(boolean useMappedBuffers) throws InterruptedException {
         final Animator animator = new Animator();
 
         //
         // 1st
         //
         final GearsES2 g1 = new GearsES2(0);
+        g1.setUseMappedBuffers(useMappedBuffers);
+        g1.setValidateBuffers(true);
         final GLWindow f1 = runTestGL(animator, 0, 0, g1, null);
         final GLContext ctx1 = f1.getContext();
         Assert.assertTrue("Ctx is shared before shared creation", !ctx1.isShared());
@@ -178,30 +187,30 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
         } catch(Exception e) {
             e.printStackTrace();
         }
-        animator.stop();
 
-        f1.destroy();
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, false));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, false));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f1, false));
+        f3.destroy();
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(f3, false));
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(f3, false));
+        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f3, false));
         {
             final List<GLContext> ctx1Shares = ctx1.getCreatedShares();
             final List<GLContext> ctx2Shares = ctx2.getCreatedShares();
             final List<GLContext> ctx3Shares = ctx3.getCreatedShares();
-            System.err.println("XXX-D-2.1:");
+            System.err.println("XXX-D-0.1:");
             MiscUtils.dumpSharedGLContext(ctx1);
-            System.err.println("XXX-D-2.2:");
+            System.err.println("XXX-D-0.2:");
             MiscUtils.dumpSharedGLContext(ctx2);
-            System.err.println("XXX-D-2.3:");
+            System.err.println("XXX-D-0.3:");
             MiscUtils.dumpSharedGLContext(ctx3);
 
-            Assert.assertTrue("Ctx1 is not shared", ctx1.isShared());
-            Assert.assertTrue("Ctx2 is not shared", ctx2.isShared());
-            Assert.assertTrue("Ctx3 is not shared", ctx3.isShared());
-            Assert.assertEquals("Ctx1 has unexpected number of created shares", 2, ctx1Shares.size());
+            Assert.assertTrue("Ctx1 is shared", ctx1.isShared());
+            Assert.assertTrue("Ctx2 is shared", ctx2.isShared());
+            Assert.assertTrue("Ctx3 is shared", ctx3.isShared());
+            Assert.assertEquals("Ctx1 has unexpected number of created shares", 1, ctx1Shares.size());
             Assert.assertEquals("Ctx2 has unexpected number of created shares", 1, ctx2Shares.size());
-            Assert.assertEquals("Ctx3 has unexpected number of created shares", 1, ctx3Shares.size());
+            Assert.assertEquals("Ctx3 has unexpected number of created shares", 2, ctx3Shares.size());
         }
+        try { Thread.sleep(durationPostDestroy); } catch(Exception e) { e.printStackTrace(); }
 
         f2.destroy();
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, false));
@@ -221,36 +230,42 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
             Assert.assertTrue("Ctx1 is not shared", ctx1.isShared());
             Assert.assertTrue("Ctx2 is not shared", ctx2.isShared());
             Assert.assertTrue("Ctx3 is not shared", ctx3.isShared());
-            Assert.assertEquals("Ctx1 has unexpected number of created shares", 1, ctx1Shares.size());
+            Assert.assertEquals("Ctx1 has unexpected number of created shares", 0, ctx1Shares.size());
             Assert.assertEquals("Ctx2 has unexpected number of created shares", 1, ctx2Shares.size());
-            Assert.assertEquals("Ctx3 has unexpected number of created shares", 0, ctx3Shares.size());
+            Assert.assertEquals("Ctx3 has unexpected number of created shares", 1, ctx3Shares.size());
         }
+        try { Thread.sleep(durationPostDestroy); } catch(Exception e) { e.printStackTrace(); }
 
-        f3.destroy();
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f3, false));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f3, false));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f3, false));
+        f1.destroy();
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, false));
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, false));
+        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f1, false));
         {
             final List<GLContext> ctx1Shares = ctx1.getCreatedShares();
             final List<GLContext> ctx2Shares = ctx2.getCreatedShares();
             final List<GLContext> ctx3Shares = ctx3.getCreatedShares();
-            System.err.println("XXX-D-0.1:");
+            System.err.println("XXX-D-2.1:");
             MiscUtils.dumpSharedGLContext(ctx1);
-            System.err.println("XXX-D-0.2:");
+            System.err.println("XXX-D-2.2:");
             MiscUtils.dumpSharedGLContext(ctx2);
-            System.err.println("XXX-D-0.3:");
+            System.err.println("XXX-D-2.3:");
             MiscUtils.dumpSharedGLContext(ctx3);
 
-            Assert.assertTrue("Ctx1 is shared", !ctx1.isShared());
-            Assert.assertTrue("Ctx2 is shared", !ctx2.isShared());
-            Assert.assertTrue("Ctx3 is shared", !ctx3.isShared());
+            Assert.assertTrue("Ctx1 is not shared", !ctx1.isShared());
+            Assert.assertTrue("Ctx2 is not shared", !ctx2.isShared());
+            Assert.assertTrue("Ctx3 is not shared", !ctx3.isShared());
             Assert.assertEquals("Ctx1 has unexpected number of created shares", 0, ctx1Shares.size());
             Assert.assertEquals("Ctx2 has unexpected number of created shares", 0, ctx2Shares.size());
             Assert.assertEquals("Ctx3 has unexpected number of created shares", 0, ctx3Shares.size());
         }
+        try { Thread.sleep(durationPostDestroy); } catch(Exception e) { e.printStackTrace(); }
+
+        animator.stop();
+        Assert.assertEquals(false, animator.isAnimating());
     }
 
     static long duration = 1000; // ms
+    static long durationPostDestroy = 1000; // ms - ~60 frames post destroy
 
     public static void main(String args[]) {
         for(int i=0; i<args.length; i++) {

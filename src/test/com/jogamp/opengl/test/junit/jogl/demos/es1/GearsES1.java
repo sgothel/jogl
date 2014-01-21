@@ -63,6 +63,8 @@ public class GearsES1 implements GLEventListener {
   private GearsObject gear1=null, gear2=null, gear3=null;
   private FloatBuffer gear1Color=GearsObject.red, gear2Color=GearsObject.green, gear3Color=GearsObject.blue;
   private volatile boolean usesSharedGears = false;
+  private boolean useMappedBuffers = false;
+  private boolean validateBuffers = false;
   private float angle = 0.0f;
   private final int swapInterval;
   private final MouseListener gearsMouse = new GearsMouseAdapter();
@@ -115,6 +117,9 @@ public class GearsES1 implements GLEventListener {
 
   public boolean usesSharedGears() { return usesSharedGears; }
 
+  public void setUseMappedBuffers(boolean v) { useMappedBuffers = v; }
+  public void setValidateBuffers(boolean v) { validateBuffers = v; }
+
   public void init(GLAutoDrawable drawable) {
     System.err.println(Thread.currentThread()+" GearsES1.init ...");
 
@@ -161,8 +166,7 @@ public class GearsES1 implements GLEventListener {
 
     /* make the gears */
     if(null == gear1) {
-        gear1 = new GearsObjectES1(gear1Color, 1.0f, 4.0f, 1.0f, 20, 0.7f);
-        gear1.init(gl);
+        gear1 = new GearsObjectES1(gl, useMappedBuffers, gear1Color, 1.0f, 4.0f, 1.0f, 20, 0.7f, validateBuffers);
         System.err.println("gear1 created: "+gear1);
     } else {
         usesSharedGears = true;
@@ -170,8 +174,7 @@ public class GearsES1 implements GLEventListener {
     }
 
     if(null == gear2) {
-        gear2 = new GearsObjectES1(gear2Color, 0.5f, 2.0f, 2.0f, 10, 0.7f);
-        gear2.init(gl);
+        gear2 = new GearsObjectES1(gl, useMappedBuffers, gear2Color, 0.5f, 2.0f, 2.0f, 10, 0.7f, validateBuffers);
         System.err.println("gear2 created: "+gear2);
     } else {
         usesSharedGears = true;
@@ -179,8 +182,7 @@ public class GearsES1 implements GLEventListener {
     }
 
     if(null == gear3) {
-        gear3 = new GearsObjectES1(gear3Color, 1.3f, 2.0f, 0.5f, 10, 0.7f);
-        gear3.init(gl);
+        gear3 = new GearsObjectES1(gl, useMappedBuffers, gear3Color, 1.3f, 2.0f, 0.5f, 10, 0.7f, validateBuffers);
         System.err.println("gear3 created: "+gear3);
     } else {
         usesSharedGears = true;
