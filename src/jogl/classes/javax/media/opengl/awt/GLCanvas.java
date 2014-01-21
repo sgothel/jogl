@@ -970,6 +970,11 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
+  public boolean areAllGLEventListenerInitialized() {
+     return helper.areAllGLEventListenerInitialized();
+  }
+
+  @Override
   public boolean getGLEventListenerInitState(GLEventListener listener) {
       return helper.getGLEventListenerInitState(listener);
   }

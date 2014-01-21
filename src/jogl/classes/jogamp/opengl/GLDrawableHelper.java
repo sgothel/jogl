@@ -58,6 +58,7 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLFBODrawable;
 import javax.media.opengl.GLRunnable;
+import javax.media.opengl.GLSharedContextSetter;
 
 /** Encapsulates the implementation of most of the GLAutoDrawable's
     methods to be able to share it between GLAutoDrawable implementations like GLAutoDrawableBase, GLCanvas and GLJPanel. */
@@ -149,8 +150,14 @@ public class GLDrawableHelper {
       final GLContext shareWith;
       final boolean pending;
       if ( null != sharedAutoDrawable ) {
+          final boolean allGLELInitialized;
+          if( sharedAutoDrawable instanceof GLSharedContextSetter ) {
+              allGLELInitialized = ((GLSharedContextSetter)sharedAutoDrawable).areAllGLEventListenerInitialized();
+          } else {
+              allGLELInitialized = true; // we have to assume 'yes'
+          }
           shareWith = sharedAutoDrawable.getContext();
-          pending = null == shareWith || !shareWith.isCreated();
+          pending = null == shareWith || !shareWith.isCreated() || !allGLELInitialized;
       } else {
           shareWith = sharedContext;
           pending = null != shareWith && !shareWith.isCreated();
@@ -431,6 +438,12 @@ public class GLDrawableHelper {
             index = listeners.size()-1;
         }
         return listeners.get(index);
+    }
+  }
+
+  public final boolean areAllGLEventListenerInitialized() {
+    synchronized(listenersLock) {
+        return 0 == listenersToBeInit.size();
     }
   }
 

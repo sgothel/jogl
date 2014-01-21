@@ -510,6 +510,11 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     }
 
     @Override
+    public boolean areAllGLEventListenerInitialized() {
+        return helper.areAllGLEventListenerInitialized();
+    }
+
+    @Override
     public boolean getGLEventListenerInitState(GLEventListener listener) {
         return helper.getGLEventListenerInitState(listener);
     }

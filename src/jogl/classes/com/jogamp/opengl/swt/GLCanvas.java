@@ -725,6 +725,11 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
    }
 
    @Override
+   public boolean areAllGLEventListenerInitialized() {
+      return helper.areAllGLEventListenerInitialized();
+   }
+
+   @Override
    public boolean getGLEventListenerInitState(GLEventListener listener) {
        return helper.getGLEventListenerInitState(listener);
    }
