@@ -13,7 +13,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGea
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelsAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.awt.DemoGLJPanelPerf02AWT %*
-scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NewtCanvasAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl3.newt.TestGeomShader01TextureGL3NEWT %*
@@ -44,11 +44,13 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscre
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT2 %*
+
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestMapBufferRead01NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES1NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT0 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT1 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT2 %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT3 %*
+scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT3 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2AWT3 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2AWT3b %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextWithJTabbedPaneAWT %*
