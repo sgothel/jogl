@@ -12,3 +12,4 @@ Implementation-Vendor: JogAmp Community
 Implementation-URL: http://jogamp.org/
 Extension-Name: com.jogamp.opengl.test
 Implementation-Vendor-Id: com.jogamp
+Permissions: all-permissions
