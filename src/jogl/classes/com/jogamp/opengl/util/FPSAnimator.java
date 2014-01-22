@@ -163,13 +163,17 @@ public class FPSAnimator extends AnimatorBase {
                         setDrawablesExclCtxState(exclusiveContext);
                         FPSAnimator.this.notifyAll();
                     }
-                    System.err.println("FPSAnimator P1:" + Thread.currentThread() + ": " + toString());
+                    if(DEBUG) {
+                        System.err.println("FPSAnimator P1:" + Thread.currentThread() + ": " + toString());
+                    }
                 }
             }
             if( shouldRun ) {
                 display();
             } else if( shouldStop ) { // STOP
-                System.err.println("FPSAnimator P4: "+alreadyStopped+", "+ Thread.currentThread() + ": " + toString());
+                if(DEBUG) {
+                    System.err.println("FPSAnimator P4: "+alreadyStopped+", "+ Thread.currentThread() + ": " + toString());
+                }
                 this.cancel();
 
                 if( !alreadyStopped ) {
@@ -188,7 +192,9 @@ public class FPSAnimator extends AnimatorBase {
                     }
                 }
             } else {
-                System.err.println("FPSAnimator P5: "+alreadyPaused+", "+ Thread.currentThread() + ": " + toString());
+                if(DEBUG) {
+                    System.err.println("FPSAnimator P5: "+alreadyPaused+", "+ Thread.currentThread() + ": " + toString());
+                }
                 this.cancel();
 
                 if( !alreadyPaused ) { // PAUSE
