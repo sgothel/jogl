@@ -14,5 +14,6 @@ Extension-Name: javax.media.opengl
 Implementation-Vendor-Id: com.jogamp
 Trusted-Library: true
 Permissions: all-permissions
+Application-Library-Allowable-Codebase: *
 @JAR_CODEBASE_TAG@
 

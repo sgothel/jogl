@@ -13,5 +13,6 @@ Implementation-URL: http://jogamp.org/
 Extension-Name: com.jogamp.opengl.test
 Implementation-Vendor-Id: com.jogamp
 Permissions: sandbox
+Application-Library-Allowable-Codebase: *
 @JAR_CODEBASE_TAG@
 
