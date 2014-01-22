@@ -8,6 +8,9 @@
     <offline-allowed/>
   </information>
   <update check="background" policy="always"/>
+  <security>
+      <all-permissions/>
+  </security>
 
     <resources>
       <j2se href="http://java.sun.com/products/autodl/j2se" version="1.4+"/>
