@@ -5,6 +5,10 @@
 </head>
 <body  BGCOLOR="#ffffff">
 
+<p>
+Applet launching using <a href="http://jogamp.org/jogl/doc/deployment/JOGL-DEPLOYMENT.html#NApplets">NApplet</a>.
+</p>
+
 <P>
 JOGL NEWT Applet Runner Special Keys:<br>
 <ul>
@@ -91,16 +95,23 @@ The applet above is instantiated with the following code:
 </pre>
 
 </P>
-<P>
-
-Note that the jogl-test.jar, which contains the test applet class,
+<p>
+<del>
+Note that the jogl-test.jar, which contains the GearsES2 class,
 <B>does not need to be signed</B>! JogAmp Community signs
-jogl.jar and gluegen-rt.jar, which contain
+jogl-all.jar and gluegen-rt.jar, which contain the
 JOGL's supporting classes; this is the only
 Java code which needs to be signed in order to deploy applets using
 JOGL and is the only certificate the end user must accept.
-
-</P>
+</del><br/>
+Sadly, due to Oracle's Java Applet Plugin update 7u51,
+unsigned applets are no more allowed and effectively 
+lower the bar to create user applets with raised privileges.<br/>
+Hence JogAmp Community <b>signs</b> jogl-all.jar and gluegen-rt.jar, which contain the
+JOGL's supporting classes as well as jogl-test.jar, which contains the GearsES2 class.<br/>
+jogl-test.jar's manifest file uses <i>Permissions: sandbox</i>
+to <b>not raise privileges</b>.
+</p>
 
 </body>
 </html>

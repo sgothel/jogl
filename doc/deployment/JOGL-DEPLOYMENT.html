@@ -40,44 +40,34 @@
                     the <a href="#NativeJARFiles">native JAR files</a>.
                     </p>
 
-                    Examples are available:
-                    <ul>
-                        <li><a href="http://jausoft.com/jogamp/jogl-applet-runner-newt-gears-normal-napplet.html">Demo on jausoft.com and modules on jogamp.org</a></li>
-                        <li><a href="http://jogamp.org/deployment/jogamp-current/jogl-applet-runner-newt-gears-normal-napplet.html">Demo and modules on jogamp.org</a></li>
-                    </ul>
+                    <a href="http://jogamp.org/deployment/jogamp-current/jogl-demos/applet-gears-napplet.html">AWT/JOGL NApplet Example</a>:
                     <pre>
                         &lt;object classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93"
-                              width="200" height="200"&gt;
-                           &lt;param name="code" value="com.jogamp.newt.awt.applet.JOGLNewtApplet1Run"&gt;
-                           &lt;param name="archive" value="jar/gluegen-rt.jar,
-                                                        jar/jogl-all.jar,
-                                                        jar/jogl-test.jar"&gt;
-                           &lt;param name="java_arguments" value="-Dsun.java2d.noddraw=true"&gt;
-                           &lt;param name="gl_event_listener_class" value="com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2"&gt;
-                           &lt;param name="gl_profile" value="GL2ES2"&gt;
-                           &lt;param name="gl_swap_interval" value="1"&gt;
-                           &lt;param name="gl_debug" value="false"&gt;
-                           &lt;param name="gl_trace" value="false"&gt;
+                              width="600" height="400"&gt;
+                           &lt;param name="code" value="demos.applets.GearsApplet"&gt;
+                           &lt;param name="archive" value="../jar/gluegen-rt.jar,
+                                                           ../jar/jogl-all.jar,
+                                                           jar/jogl-demos.jar"&gt;
                            &lt;comment&gt;
-                             &lt;embed code="com.jogamp.newt.awt.applet.JOGLNewtApplet1Run"
-                                  width="200" height="200"
+                             &lt;embed code="demos.applets.GearsApplet"
+                                  width="600" height="400"
                                   type="application/x-java-applet;version=1.6"
                                   pluginspage="http://java.sun.com/javase/downloads/ea.jsp"
-                                  archive="jar/gluegen-rt.jar,
-                                           jar/jogl-all.jar,
-                                           jar/jogl-test.jar"
-                                  java_arguments="-Dsun.java2d.noddraw=true"
-                                  gl_event_listener_class="com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2"
-                                  gl_profile="GL2ES2"
-                                  gl_swap_interval="1"
-                                  gl_debug="false"
-                                  gl_trace="false"&gt;
+                                  archive="../jar/gluegen-rt.jar,
+                                           ../jar/jogl-all.jar,
+                                           jar/jogl-demos.jar"&gt;
                                 &lt;noembed&gt;Sorry, no Java support detected.&lt;/noembed&gt;
                              &lt;/embed&gt;
                            &lt;/comment&gt;
                         &lt;/object&gt;
                     </pre>
-
+                    <p>
+                    NEWT/JOGL NApplet Examples:
+                    <ul>
+                        <li><a href="http://jausoft.com/jogamp/jogl-applet-runner-newt-gears-normal-napplet.html">Demo on jausoft.com and modules on jogamp.org</a></li>
+                        <li><a href="http://jogamp.org/deployment/jogamp-current/jogl-applet-runner-newt-gears-normal-napplet.html">Demo and modules on jogamp.org</a></li>
+                    </ul>
+                    </p>
 
                     <h1><a name="JNLPFiles">JNLP Files</a></h1>
 

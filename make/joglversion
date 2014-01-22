@@ -15,3 +15,4 @@ Implementation-Vendor-Id: com.jogamp
 Trusted-Library: true
 Permissions: all-permissions
 @JAR_CODEBASE_TAG@
+

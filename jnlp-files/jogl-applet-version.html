@@ -19,35 +19,17 @@ otherwise it shall fallback to <a href="http://jogamp.org/applet-launcher/www/">
 
 <object classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93"
       width="800" height="600">
-   <param name="code" value="org.jdesktop.applet.util.JNLPAppletLauncher">
-   <param name="archive" value="jar/applet-launcher.jar,
-                                jar/gluegen-rt.jar,
+   <param name="code" value="com.jogamp.newt.awt.applet.JOGLNewtApplet1Run">
+   <param name="archive" value="jar/gluegen-rt.jar,
                                 jar/jogl-all.jar">
-   <param name="codebase_lookup" value="false">
-   <param name="subapplet.classname" value="jogamp.opengl.awt.VersionApplet">
-   <param name="subapplet.displayname" value="JOGL Applet Version">
-   <param name="noddraw.check" value="true">
-   <param name="progressbar" value="true">
-   <param name="jnlpNumExtensions" value="1">
-   <param name="jnlpExtension1" value="jogl-all-awt.jnlp">
-   <param name="java_arguments" value="-Dsun.java2d.noddraw=true">
    <param name="jnlp_href" value="jogl-applet-version.jnlp">
    <comment>
-     <embed code="org.jdesktop.applet.util.JNLPAppletLauncher"
+     <embed code="com.jogamp.newt.awt.applet.JOGLNewtApplet1Run"
           width="800" height="600"
           type="application/x-java-applet;version=1.6"
           pluginspage="http://java.sun.com/javase/downloads/ea.jsp"
-          archive="jar/applet-launcher.jar,
-                   jar/gluegen-rt.jar,
+          archive="jar/gluegen-rt.jar,
                    jar/jogl-all.jar"
-          codebase_lookup" value="false"
-          subapplet.classname="jogamp.opengl.awt.VersionApplet"
-          subapplet.displayname="JOGL Applet Version"
-          noddraw.check="true"
-          progressbar="true"
-          jnlpNumExtensions="1"
-          jnlpExtension1="jogl-all-awt.jnlp"
-          java_arguments="-Dsun.java2d.noddraw=true"
           jnlp_href="jogl-applet-version.jnlp">
         <noembed>Sorry, no Java support detected.</noembed>
      </embed>
