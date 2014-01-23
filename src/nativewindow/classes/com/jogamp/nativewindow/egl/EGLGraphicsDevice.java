@@ -86,6 +86,12 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
       return super.clone();
     }
 
+    /**
+     * Opens the EGL device if handle is null and it's {@link EGLDisplayLifecycleCallback} is valid.
+     * <p>
+     * {@inheritDoc}
+     * </p>
+     */
     @Override
     public boolean open() {
         if(null != eglLifecycleCallback && 0 == handle) {
@@ -101,6 +107,12 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         return false;
     }
 
+    /**
+     * Closes the EGL device if handle is not null and it's {@link EGLDisplayLifecycleCallback} is valid.
+     * <p>
+     * {@inheritDoc}
+     * </p>
+     */
     @Override
     public boolean close() {
         if(null != eglLifecycleCallback && 0 != handle) {

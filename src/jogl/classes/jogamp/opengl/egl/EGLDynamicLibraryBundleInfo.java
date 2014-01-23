@@ -55,6 +55,9 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
     /**
      * Returns <code>true</code> on <code>Android</code>,
      * and <code>false</code> otherwise.
+     * <p>
+     * {@inheritDoc}
+     * </p>
      */
     @Override
     public final boolean shallLookupGlobal() {

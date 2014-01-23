@@ -192,8 +192,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                     }
                     sharedMap = new HashMap<String /*uniqueKey*/, SharedResource>();
                     sharedMapCreateAttempt = new HashSet<String>();
-
-                    // FIXME: Following triggers eglInitialize(..) which crashed on Windows w/ Chrome/Angle, FF/Angle!
+                    // FIXME: defaultDevice.open() triggers eglInitialize(..) which crashed on Windows w/ Chrome/ANGLE, FF/ANGLE!
                     defaultDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
                 }
             }
@@ -394,8 +393,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         EGLGraphicsDevice eglDevice = null;
         NativeSurface surface = null;
         ProxySurface upstreamSurface = null; // X11, GLX, ..
+        ProxySurface downstreamSurface = null; // EGL
         boolean success = false;
-        boolean deviceFromUpstreamSurface = false;
         try {
             final GLCapabilities reqCapsAny = new GLCapabilities(glp);
             reqCapsAny.setRedBits(5); reqCapsAny.setGreenBits(5); reqCapsAny.setBlueBits(5); reqCapsAny.setAlphaBits(0);
@@ -404,6 +403,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             if( mapsADeviceToDefaultDevice ) {
                 // In this branch, any non EGL device is mapped to EGL default shared resources (default behavior).
                 // Only one default shared resource instance is ever be created.
+                defaultDevice.open();
                 final GLCapabilitiesImmutable reqCapsPBuffer = GLGraphicsConfigurationUtil.fixGLPBufferGLCapabilities(reqCapsAny);
                 final List<GLCapabilitiesImmutable> availablePBufferCapsL = getAvailableEGLConfigs(defaultDevice, reqCapsPBuffer);
                 hasPBuffer[0] = availablePBufferCapsL.size() > 0;
@@ -445,20 +445,19 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
                 // attempt to created the default shared resources ..
 
-                eglDevice = defaultDevice; // reuse
-
                 if( hasPBuffer[0] ) {
                     // 2nd case create defaultDevice shared resource using pbuffer surface
-                    surface = createDummySurfaceImpl(eglDevice, false, reqCapsPBuffer, reqCapsPBuffer, null, 64, 64); // egl pbuffer offscreen
-                    upstreamSurface = (ProxySurface)surface;
-                    upstreamSurface.createNotify();
-                    deviceFromUpstreamSurface = false;
+                    downstreamSurface = createDummySurfaceImpl(defaultDevice, false, reqCapsPBuffer, reqCapsPBuffer, null, 64, 64); // egl pbuffer offscreen
+                    if( null != downstreamSurface ) {
+                        downstreamSurface.createNotify();
+                    }
+                    surface = downstreamSurface;
                 } else {
                     // 3rd case fake creation of defaultDevice shared resource, no pbuffer available
-                    final List<GLCapabilitiesImmutable> capsAnyL = getAvailableEGLConfigs(eglDevice, reqCapsAny);
+                    final List<GLCapabilitiesImmutable> capsAnyL = getAvailableEGLConfigs(defaultDevice, reqCapsAny);
                     if(capsAnyL.size() > 0) {
                         final GLCapabilitiesImmutable chosenCaps = capsAnyL.get(0);
-                        EGLContext.mapStaticGLESVersion(eglDevice, chosenCaps);
+                        EGLContext.mapStaticGLESVersion(defaultDevice, chosenCaps);
                         success = true;
                     }
                     if(DEBUG) {
@@ -466,15 +465,16 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                         EGLGraphicsConfigurationFactory.printCaps("!PBufferCaps", capsAnyL, System.err);
                     }
                 }
+                eglDevice = defaultDevice; // reuse
             } else {
                 // 4th case always creates a true mapping of given device to EGL
-                surface = desktopFactory.createDummySurface(adevice, reqCapsAny, null, 64, 64); // X11, WGL, .. dummy window
-                upstreamSurface = ( surface instanceof ProxySurface ) ? (ProxySurface)surface : null ;
+                upstreamSurface = desktopFactory.createDummySurface(adevice, reqCapsAny, null, 64, 64); // X11, WGL, .. dummy window
                 if(null != upstreamSurface) {
                     upstreamSurface.createNotify();
                 }
+                surface = upstreamSurface;
                 eglDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(surface);
-                deviceFromUpstreamSurface = true;
+                eglDevice.open();
                 hasPBuffer[0] = true;
             }
 
@@ -521,23 +521,15 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             }
             success = false;
         } finally {
-            if(eglDevice == defaultDevice) {
-                if(null != upstreamSurface) {
-                    upstreamSurface.destroyNotify();
-                }
-            } else if( deviceFromUpstreamSurface ) {
+            if(null != downstreamSurface) {
+                downstreamSurface.destroyNotify();
+            }
+            if( defaultDevice != eglDevice ) { // don't close default device
                 if(null != eglDevice) {
                     eglDevice.close();
                 }
                 if(null != upstreamSurface) {
                     upstreamSurface.destroyNotify();
-                }
-            } else {
-                if(null != upstreamSurface) {
-                    upstreamSurface.destroyNotify();
-                }
-                if(null != eglDevice) {
-                    eglDevice.close();
                 }
             }
         }
@@ -734,6 +726,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             final long nativeDisplayID = ( deviceReq instanceof EGLGraphicsDevice) ?
                     ( (EGLGraphicsDevice) deviceReq ).getNativeDisplayID() : deviceReq.getHandle() ;
             device = EGLDisplayUtil.eglCreateEGLGraphicsDevice(nativeDisplayID, deviceReq.getConnection(), deviceReq.getUnitID());
+            device.open();
             ownDevice = true;
         } else {
             device = (EGLGraphicsDevice) deviceReq;
@@ -792,6 +785,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     protected ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice deviceReq, int screenIdx, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstream) {
         final EGLGraphicsDevice eglDeviceReq = (EGLGraphicsDevice) deviceReq;
         final EGLGraphicsDevice device = EGLDisplayUtil.eglCreateEGLGraphicsDevice(eglDeviceReq.getNativeDisplayID(), deviceReq.getConnection(), deviceReq.getUnitID());
+        device.open();
         final DefaultGraphicsScreen screen = new DefaultGraphicsScreen(device, screenIdx);
         final EGLGraphicsConfiguration cfg = EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsRequested, capsRequested, chooser, screen, VisualIDHolder.VID_UNDEFINED, false);
         return new WrappedSurface(cfg, windowHandle, upstream, true);

@@ -96,6 +96,7 @@ public class WindowDriver extends WindowImpl {
         final AbstractGraphicsScreen aScreen = screen.getGraphicsScreen();
         final EGLGraphicsDevice aDevice = (EGLGraphicsDevice) aScreen.getDevice();
         final EGLGraphicsDevice eglDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(aDevice.getNativeDisplayID(), aDevice.getConnection(), aDevice.getUnitID());
+        eglDevice.open();
         final DefaultGraphicsScreen eglScreen = new DefaultGraphicsScreen(eglDevice, aScreen.getIndex());
 
         final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice(), capsRequested).chooseGraphicsConfiguration(

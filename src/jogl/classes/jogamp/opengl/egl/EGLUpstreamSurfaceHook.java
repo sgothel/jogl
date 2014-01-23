@@ -125,6 +125,7 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
                 }
             } else {
                 eglDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(upstreamSurface);
+                eglDevice.open();
                 aConfig = upstreamConfig;
                 isEGLSurfaceValid = false;
                 surface.addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_DEVICE );

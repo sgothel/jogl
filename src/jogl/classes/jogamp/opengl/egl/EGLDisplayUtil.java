@@ -188,6 +188,11 @@ public class EGLDisplayUtil {
     }
 
     /**
+     * Attempts to {@link #eglGetDisplayAndInitialize(long, long[], int[], IntBuffer, IntBuffer)} with given <code>nativeDisplayID</code>.
+     * If this fails, method retries with <code>nativeDisplayID</code> {@link EGL#EGL_DEFAULT_DISPLAY} - the fallback mechanism.
+     * The actual used <code>nativeDisplayID</code> is returned in it's in/out array.
+     *
+     * @throws GLException if {@link EGL#eglGetDisplay(long)} or {@link EGL#eglInitialize(long, int[], int, int[], int)} fails incl fallback
      * @param nativeDisplayID in/out array of size 1, passing the requested nativeVisualID, may return a different revised nativeVisualID handle
      * @return the initialized EGL display ID
      * @throws GLException if not successful
@@ -261,24 +266,34 @@ public class EGLDisplayUtil {
     };
 
     /**
+     * Returns an uninitialized {@link EGLGraphicsDevice}. User needs to issue {@link EGLGraphicsDevice#open()} before usage.
+     * <p>
+     * Using {@link #eglGetDisplayAndInitialize(long[])} for the {@link EGLGraphicsDevice#open()} implementation
+     * and {@link #eglTerminate(long)} for {@link EGLGraphicsDevice#close()}.
+     * </p>
+     * <p>
      * Using the default {@link ToolkitLock}, via {@link NativeWindowFactory#getDefaultToolkitLock(String, long)}.
+     * </p>
      * @param nativeDisplayID
      * @param connection
      * @param unitID
-     * @return an initialized EGLGraphicsDevice
-     * @throws GLException if {@link EGL#eglGetDisplay(long)} or {@link EGL#eglInitialize(long, int[], int, int[], int)} fails
-     * @see EGLGraphicsDevice#EGLGraphicsDevice(long, long, String, int, com.jogamp.nativewindow.egl.EGLGraphicsDevice.EGLDisplayLifecycleCallback)
+     * @return an uninitialized {@link EGLGraphicsDevice}
      */
     public static EGLGraphicsDevice eglCreateEGLGraphicsDevice(long nativeDisplayID, String connection, int unitID)  {
-        final EGLGraphicsDevice eglDisplay = new EGLGraphicsDevice(nativeDisplayID, EGL.EGL_NO_DISPLAY, connection, unitID, eglLifecycleCallback);
-        eglDisplay.open();
-        return eglDisplay;
+        return new EGLGraphicsDevice(nativeDisplayID, EGL.EGL_NO_DISPLAY, connection, unitID, eglLifecycleCallback);
     }
 
     /**
+     * Returns an uninitialized {@link EGLGraphicsDevice}. User needs to issue {@link EGLGraphicsDevice#open()} before usage.
+     * <p>
+     * Using {@link #eglGetDisplayAndInitialize(long[])} for the {@link EGLGraphicsDevice#open()} implementation
+     * and {@link #eglTerminate(long)} for {@link EGLGraphicsDevice#close()}.
+     * </p>
+     * <p>
+     * Using the default {@link ToolkitLock}, via {@link NativeWindowFactory#getDefaultToolkitLock(String, long)}.
+     * </p>
      * @param surface
-     * @return an initialized EGLGraphicsDevice
-     * @throws GLException if {@link EGL#eglGetDisplay(long)} or {@link EGL#eglInitialize(long, int[], int, int[], int)} fails incl fallback
+     * @return an uninitialized EGLGraphicsDevice
      */
     public static EGLGraphicsDevice eglCreateEGLGraphicsDevice(NativeSurface surface)  {
         final long nativeDisplayID;
@@ -288,8 +303,6 @@ public class EGLDisplayUtil {
             nativeDisplayID = surface.getDisplayHandle(); // 0 == EGL.EGL_DEFAULT_DISPLAY
         }
         final AbstractGraphicsDevice adevice = surface.getGraphicsConfiguration().getScreen().getDevice();
-        final EGLGraphicsDevice eglDevice = new EGLGraphicsDevice(nativeDisplayID, EGL.EGL_NO_DISPLAY, adevice.getConnection(), adevice.getUnitID(), eglLifecycleCallback);
-        eglDevice.open();
-        return eglDevice;
+        return new EGLGraphicsDevice(nativeDisplayID, EGL.EGL_NO_DISPLAY, adevice.getConnection(), adevice.getUnitID(), eglLifecycleCallback);
     }
 }

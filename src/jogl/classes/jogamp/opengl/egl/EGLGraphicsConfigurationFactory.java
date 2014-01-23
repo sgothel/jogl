@@ -182,16 +182,15 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
     }
 
     protected static List<GLCapabilitiesImmutable> getAvailableCapabilities(EGLDrawableFactory factory, AbstractGraphicsDevice device) {
-        EGLDrawableFactory.SharedResource sharedResource = factory.getOrCreateSharedResourceImpl(device);
+        final EGLDrawableFactory.SharedResource sharedResource = factory.getOrCreateSharedResourceImpl(device);
         if(null == sharedResource) {
             throw new GLException("Shared resource for device n/a: "+device);
         }
-        EGLGraphicsDevice eglDevice = sharedResource.getDevice();
-        long eglDisplay = eglDevice.getHandle();
+        final EGLGraphicsDevice eglDevice = sharedResource.getDevice();
+        final long eglDisplay = eglDevice.getHandle();
         if(0 == eglDisplay) {
             throw new GLException("null eglDisplay");
         }
-
         List<GLCapabilitiesImmutable> availableCaps = null;
         IntBuffer numConfigs = Buffers.newDirectIntBuffer(1);
 
@@ -213,7 +212,6 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
                 Collections.sort(availableCaps, EglCfgIDComparator);
             }
         }
-
         return availableCaps;
     }
 
@@ -244,6 +242,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
             ownEGLDisplay = false;
         } else {
             eglDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(absDevice.getHandle(), absDevice.getConnection(), absDevice.getUnitID());
+            eglDevice.open();
             ownEGLDisplay = true;
         }
 

@@ -92,6 +92,7 @@ public class DisplayDriver extends DisplayImpl {
         // FIXME: map name to EGL_*_DISPLAY
         bcmHandle = OpenBCMDisplay0();
         aDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
+        aDevice.open();
 
         defaultPointerIcon = (PointerIconImpl) createPointerIcon(defaultPointerIconImage, 0, 0);
         if( DEBUG_POINTER_ICON ) {
