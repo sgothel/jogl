@@ -105,16 +105,15 @@ public class DisplayDriver extends DisplayImpl {
 
     @Override
     protected void dispatchMessagesNative() {
-        aDevice.lock();
+        final AbstractGraphicsDevice _aDevice = aDevice; // aDevice could be pulled by destroy event
+        _aDevice.lock();
         try {
-            final long handle = aDevice.getHandle();
+            final long handle = _aDevice.getHandle();
             if(0 != handle) {
                 DispatchMessages0(handle, javaObjectAtom, windowDeleteAtom /*, kbdHandle */); // XKB disabled for now
             }
         } finally {
-            if(null != aDevice) { // could be pulled by destroy event
-                aDevice.unlock();
-            }
+            _aDevice.unlock();
         }
     }
 
