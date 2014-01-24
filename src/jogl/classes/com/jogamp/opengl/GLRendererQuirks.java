@@ -398,7 +398,7 @@ public class GLRendererQuirks {
      */
     public final void addQuirks(int[] quirks, int offset, int len) throws IllegalArgumentException {
         int bitmask = 0;
-        if( !( 0 <= offset + len && offset + len < quirks.length ) ) {
+        if( !( 0 <= offset + len && offset + len <= quirks.length ) ) {
             throw new IllegalArgumentException("offset and len out of bounds: offset "+offset+", len "+len+", array-len "+quirks.length);
         }
         for(int i=offset; i<offset+len; i++) {
