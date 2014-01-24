@@ -361,6 +361,13 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return new ArrayList<GLCapabilitiesImmutable>(0);
     }
 
+    private static void dumpEGLInfo(final String prefix, final long eglDisplay) {
+        final String eglVendor = EGL.eglQueryString(eglDisplay, EGL.EGL_VENDOR);
+        final String eglClientAPIs = EGL.eglQueryString(eglDisplay, EGL.EGL_CLIENT_APIS);
+        final String eglVersion = EGL.eglQueryString(eglDisplay, EGL.EGL_VERSION);
+        System.err.println(prefix+"EGL vendor "+eglVendor+", version "+eglVersion+", clientAPIs "+eglClientAPIs);
+    }
+
     private boolean mapAvailableEGLESConfig(AbstractGraphicsDevice adevice, int[] esProfile,
                                             boolean[] hasPBuffer, GLRendererQuirks[] rendererQuirks, int[] ctp) {
         final String profileString;
@@ -404,6 +411,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 // In this branch, any non EGL device is mapped to EGL default shared resources (default behavior).
                 // Only one default shared resource instance is ever be created.
                 defaultDevice.open();
+                if( DEBUG ) {
+                    dumpEGLInfo("EGLDrawableFactory.mapAvailableEGLESConfig: ", defaultDevice.getHandle());
+                }
+
                 final GLCapabilitiesImmutable reqCapsPBuffer = GLGraphicsConfigurationUtil.fixGLPBufferGLCapabilities(reqCapsAny);
                 final List<GLCapabilitiesImmutable> availablePBufferCapsL = getAvailableEGLConfigs(defaultDevice, reqCapsPBuffer);
                 hasPBuffer[0] = availablePBufferCapsL.size() > 0;
@@ -475,6 +486,9 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 surface = upstreamSurface;
                 eglDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(surface);
                 eglDevice.open();
+                if( DEBUG ) {
+                    dumpEGLInfo("EGLDrawableFactory.mapAvailableEGLESConfig: ", eglDevice.getHandle());
+                }
                 hasPBuffer[0] = true;
             }
 
@@ -533,6 +547,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 }
             }
         }
+        if( null != rendererQuirks[0] && rendererQuirks[0].exist(GLRendererQuirks.SingletonEGLDisplayOnly) ) {
+            EGLDisplayUtil.setSingletonEGLDisplayOnly(true);
+        }
+
         return success;
     }
 

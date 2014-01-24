@@ -1548,7 +1548,9 @@ public abstract class GLContextImpl extends GLContext {
 
     final VersionNumberString vendorVersion = GLVersionNumber.createVendorVersion(glVersion);
 
-    setRendererQuirks(adevice, reqGLVersion.getMajor(), reqGLVersion.getMinor(), reqCtxProfileBits, major, minor, ctxProfileBits, vendorVersion, withinGLVersionsMapping);
+    setRendererQuirks(adevice, getDrawableImpl().getFactoryImpl(),
+                      reqGLVersion.getMajor(), reqGLVersion.getMinor(), reqCtxProfileBits,
+                      major, minor, ctxProfileBits, vendorVersion, withinGLVersionsMapping);
 
     if( strictMatch && glRendererQuirks.exist(GLRendererQuirks.GLNonCompliant) ) {
         if(DEBUG) {
@@ -1665,7 +1667,7 @@ public abstract class GLContextImpl extends GLContext {
     return true;
   }
 
-  private final void setRendererQuirks(final AbstractGraphicsDevice adevice,
+  private final void setRendererQuirks(final AbstractGraphicsDevice adevice, final GLDrawableFactoryImpl factory,
                                        int reqMajor, int reqMinor, int reqCTP,
                                        int major, int minor, int ctp, final VersionNumberString vendorVersion,
                                        boolean withinGLVersionsMapping) {
@@ -1688,16 +1690,26 @@ public abstract class GLContextImpl extends GLContext {
     // General Quirks
     //
     if( esCtx ) {
-        final int quirk = GLRendererQuirks.GLES3ViaEGLES2Config;
-        if( GLRendererQuirks.existStickyDeviceQuirk( GLDrawableFactory.getEGLFactory().getDefaultDevice(), GLRendererQuirks.GLES3ViaEGLES2Config) ) {
-            // Merge default sticky quirk!
-            if(DEBUG) {
-                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Default EGL Device");
-            }
-            quirks[i++] = quirk;
-        } else if( 2 == reqMajor && 2 < major ) {
+        if( 2 == reqMajor && 2 < major ) {
+            final int quirk = GLRendererQuirks.GLES3ViaEGLES2Config;
             if(DEBUG) {
                 System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: ES req "+reqMajor+" and 2 < "+major);
+            }
+            quirks[i++] = quirk;
+            if( withinGLVersionsMapping ) {
+                // Thread safe due to single threaded initialization!
+                GLRendererQuirks.addStickyDeviceQuirks(adevice, quirks, i-1, 1);
+            } else {
+                // FIXME: Remove when moving EGL/ES to ARB ctx creation
+                synchronized(GLContextImpl.class) {
+                    GLRendererQuirks.addStickyDeviceQuirks(adevice, quirks, i-1, 1);
+                }
+            }
+        }
+        if( isX11 && isDriverNVIDIAGeForce && Platform.CPUFamily.X86 == Platform.getCPUFamily() ) {
+            final int quirk = GLRendererQuirks.SingletonEGLDisplayOnly;
+            if(DEBUG) {
+                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: ES, X11, CPUFamily AMD/Intel, [Vendor "+glVendor+" or Renderer "+glRenderer+"]");
             }
             quirks[i++] = quirk;
             if( withinGLVersionsMapping ) {
@@ -1794,14 +1806,14 @@ public abstract class GLContextImpl extends GLContext {
         if( glRenderer.contains("PowerVR") ) {
             final int quirk = GLRendererQuirks.NoSetSwapInterval;
             if(DEBUG) {
-                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType() + " / Renderer " + glRenderer);
+                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType() + ", Renderer " + glRenderer);
             }
             quirks[i++] = quirk;
         }
         if( glRenderer.contains("Immersion.16") ) {
           final int quirk = GLRendererQuirks.GLSharedContextBuggy;
           if(DEBUG) {
-              System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType() + " / Renderer " + glRenderer);
+              System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType() + ", Renderer " + glRenderer);
           }
           quirks[i++] = quirk;
         }
@@ -1906,9 +1918,27 @@ public abstract class GLContextImpl extends GLContext {
     }
 
     glRendererQuirks = new GLRendererQuirks(quirks, 0, i);
-    GLRendererQuirks.pushStickyDeviceQuirks(adevice, glRendererQuirks); // Thread safe due to single threaded initialization!
     if(DEBUG) {
-        System.err.println("Quirks local: "+glRendererQuirks);
+        System.err.println("Quirks local.0: "+glRendererQuirks);
+    }
+    {
+        // Merge sticky quirks, thread safe due to single threaded initialization!
+        GLRendererQuirks.pushStickyDeviceQuirks(adevice, glRendererQuirks);
+
+        final AbstractGraphicsDevice factoryDefaultDevice = factory.getDefaultDevice();
+        if( !GLRendererQuirks.areSameStickyDevice(factoryDefaultDevice, adevice) ) {
+            GLRendererQuirks.pushStickyDeviceQuirks(factoryDefaultDevice, glRendererQuirks);
+        }
+        if( esCtx ) {
+            final AbstractGraphicsDevice eglFactoryDefaultDevice = GLDrawableFactory.getEGLFactory().getDefaultDevice();
+            if( !GLRendererQuirks.areSameStickyDevice(eglFactoryDefaultDevice, adevice) &&
+                !GLRendererQuirks.areSameStickyDevice(eglFactoryDefaultDevice, factoryDefaultDevice) ) {
+                GLRendererQuirks.pushStickyDeviceQuirks(eglFactoryDefaultDevice, glRendererQuirks);
+            }
+        }
+    }
+    if(DEBUG) {
+        System.err.println("Quirks local.X: "+glRendererQuirks);
         System.err.println("Quirks sticky on "+adevice+": "+GLRendererQuirks.getStickyDeviceQuirks(adevice));
     }
   }

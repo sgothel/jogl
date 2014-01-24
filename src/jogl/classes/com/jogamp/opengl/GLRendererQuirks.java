@@ -31,6 +31,8 @@ import java.util.IdentityHashMap;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 
+import com.jogamp.common.os.Platform;
+
 import jogamp.opengl.egl.EGL;
 import jogamp.opengl.egl.EGLExt;
 
@@ -70,7 +72,13 @@ public class GLRendererQuirks {
     /** SIGSEGV on setSwapInterval() after changing the context's drawable w/ 'Mesa 8.0.4' dri2SetSwapInterval/DRI2 (soft & intel) */
     public static final int NoSetSwapIntervalPostRetarget = 4;
 
-    /** GLSL <code>discard</code> command leads to undefined behavior or won't get compiled if being used. Appears to <i>have</i> happened on Nvidia Tegra2, but seems to be fine now. FIXME: Constrain version. */
+    /**
+     * GLSL <code>discard</code> command leads to undefined behavior or won't get compiled if being used.
+     * <p>
+     * Appears to <i>have</i> happened on Nvidia Tegra2, but seems to be fine now.<br/>
+     * FIXME: Constrain version.
+     * </p>
+     */
     public static final int GLSLBuggyDiscard = 5;
 
     /**
@@ -256,15 +264,36 @@ public class GLRendererQuirks {
      */
     public static final int GLES3ViaEGLES2Config = 15;
 
+    /**
+     * Bug 948 - NVIDIA 331.38 (Linux X11) EGL impl. only supports _one_ EGL Device via {@link EGL#eglGetDisplay(long)}.
+     * <p>
+     * Subsequent calls to {@link EGL#eglGetDisplay(long)} fail.
+     * </p>
+     * <p>
+     * Reusing global EGL display works.
+     * </p>
+     * <ul>
+     *   <li>EGL_VENDOR      NVIDIA</li>
+     *   <li>EGL_VERSION     1.4</li>
+     *   <li>GL_VENDOR       NVIDIA Corporation</li>
+     *   <li>Platform        X11</li>
+     *   <li>CPU Family      {@link Platform.CPUFamily#X86}</li>
+     * </ul>
+     * <p>
+     * FIXME: Constrain driver version.
+     * </p>
+     */
+    public static final int SingletonEGLDisplayOnly = 16;
+
     /** Number of quirks known. */
-    public static final int COUNT = 16;
+    public static final int COUNT = 17;
 
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
                                                           "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard",
                                                           "GLNonCompliant", "GLFlushBeforeRelease", "DontCloseX11Display",
                                                           "NeedCurrCtx4ARBPixFmtQueries", "NeedCurrCtx4ARBCreateContext",
                                                           "NoFullFBOSupport", "GLSLNonCompliant", "GL4NeedsGL3Request",
-                                                          "GLSharedContextBuggy", "GLES3ViaEGLES2Config"
+                                                          "GLSharedContextBuggy", "GLES3ViaEGLES2Config", "SingletonEGLDisplayOnly"
                                                         };
 
     private static final IdentityHashMap<String, GLRendererQuirks> stickyDeviceQuirks = new IdentityHashMap<String, GLRendererQuirks>();
@@ -272,8 +301,12 @@ public class GLRendererQuirks {
     /**
      * Retrieval of sticky {@link AbstractGraphicsDevice}'s {@link GLRendererQuirks}.
      * <p>
+     * The {@link AbstractGraphicsDevice}s are mapped via their {@link AbstractGraphicsDevice#getUniqueID()}.
+     * </p>
+     * <p>
      * Not thread safe.
      * </p>
+     * @see #areSameStickyDevice(AbstractGraphicsDevice, AbstractGraphicsDevice)
      */
     public static GLRendererQuirks getStickyDeviceQuirks(AbstractGraphicsDevice device) {
         final String key = device.getUniqueID();
@@ -289,10 +322,19 @@ public class GLRendererQuirks {
     }
 
     /**
+     * Returns true if both devices have the same {@link AbstractGraphicsDevice#getUniqueID()},
+     * otherwise false.
+     */
+    public static boolean areSameStickyDevice(AbstractGraphicsDevice device1, AbstractGraphicsDevice device2) {
+        return device1.getUniqueID() == device2.getUniqueID();
+    }
+
+    /**
      * {@link #addQuirks(int[], int, int) Adding given quirks} of sticky {@link AbstractGraphicsDevice}'s {@link GLRendererQuirks}.
      * <p>
      * Not thread safe.
      * </p>
+     * @see #getStickyDeviceQuirks(AbstractGraphicsDevice)
      */
     public static void addStickyDeviceQuirks(AbstractGraphicsDevice device, int[] quirks, int offset, int len) throws IllegalArgumentException {
         final GLRendererQuirks sq = getStickyDeviceQuirks(device);
@@ -303,6 +345,7 @@ public class GLRendererQuirks {
      * <p>
      * Not thread safe.
      * </p>
+     * @see #getStickyDeviceQuirks(AbstractGraphicsDevice)
      */
     public static void addStickyDeviceQuirks(AbstractGraphicsDevice device, GLRendererQuirks quirks) throws IllegalArgumentException {
         final GLRendererQuirks sq = getStickyDeviceQuirks(device);
@@ -313,6 +356,7 @@ public class GLRendererQuirks {
      * <p>
      * Not thread safe. However, use after changing the sticky quirks is safe.
      * </p>
+     * @see #getStickyDeviceQuirks(AbstractGraphicsDevice)
      */
     public static boolean existStickyDeviceQuirk(AbstractGraphicsDevice device, int quirk) {
         return getStickyDeviceQuirks(device).exist(quirk);
@@ -323,6 +367,7 @@ public class GLRendererQuirks {
      * <p>
      * Not thread safe. However, use after changing the sticky quirks is safe.
      * </p>
+     * @see #getStickyDeviceQuirks(AbstractGraphicsDevice)
      */
     public static void pushStickyDeviceQuirks(AbstractGraphicsDevice device, GLRendererQuirks dest) {
         dest.addQuirks(getStickyDeviceQuirks(device));

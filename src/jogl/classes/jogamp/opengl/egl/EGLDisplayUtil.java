@@ -49,57 +49,120 @@ import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
  * and <code>eglTerminate(..)</code> is issued only for the last call.
  * <p>
  * This class is required, due to implementation bugs within EGL where {@link EGL#eglTerminate(long)}
- * does not mark the resource for deletion when still in use, bug releases them immediatly.
+ * does not mark the resource for deletion when still in use, bug releases them immediately.
  * </p>
  */
 public class EGLDisplayUtil {
-    protected static final boolean DEBUG = Debug.debug("EGLDisplayUtil");
+    private static final boolean DEBUG = Debug.debug("EGLDisplayUtil");
+    private static boolean useSingletonEGLDisplay = false;
+    private static EGLDisplayRef singletonEGLDisplay = null;
 
-    private static class DpyCounter {
+    private static class EGLDisplayRef {
         final long eglDisplay;
         final Throwable createdStack;
-        int refCount;
+        int initRefCount;
 
-        private DpyCounter(long eglDisplay) {
+        /**
+         * Returns an already opened {@link EGLDisplayRef} or opens a new {@link EGLDisplayRef}.
+         * <p>
+         * Opened {@link EGLDisplayRef}s are mapped against their <code>eglDisplay</code> handle.
+         * </p>
+         * <p>
+         * Method utilizes {@link EGLDisplayRef}'s reference counter, i.e. increases it.
+         * </p>
+         * <p>
+         * An {@link EGLDisplayRef} is <i>opened</i> via {@link EGL#eglInitialize(long, IntBuffer, IntBuffer)}.
+         * </p>
+         */
+        static EGLDisplayRef getOrCreateOpened(final long eglDisplay, final IntBuffer major, final IntBuffer minor) {
+            EGLDisplayRef o = (EGLDisplayRef) openEGLDisplays.get(eglDisplay);
+            if( null == o ) {
+                if( EGL.eglInitialize(eglDisplay, major, minor) ) {
+                    final EGLDisplayRef n = new EGLDisplayRef(eglDisplay);
+                    openEGLDisplays.put(eglDisplay, n);
+                    n.initRefCount++;
+                    if( null == singletonEGLDisplay ) {
+                        singletonEGLDisplay = n;
+                    }
+                    return n;
+                } else {
+                    return null;
+                }
+            } else {
+                o.initRefCount++;
+                return o;
+            }
+        }
+
+        /**
+         * Closes an already opened {@link EGLDisplayRef}.
+         * <p>
+         * Method decreases a reference counter and closes the {@link EGLDisplayRef} if it reaches zero.
+         * </p>
+         * <p>
+         * An {@link EGLDisplayRef} is <i>closed</i> via {@link EGL#eglTerminate(long)}.
+         * </p>
+         */
+        static EGLDisplayRef closeOpened(final long eglDisplay, final boolean[] res) {
+            final EGLDisplayRef o = (EGLDisplayRef) openEGLDisplays.get(eglDisplay);
+            res[0] = true;
+            if( null != o ) {
+                if( 0 < o.initRefCount ) { // no negative refCount
+                    o.initRefCount--;
+                    if( 0 == o.initRefCount ) {
+                        res[0] = EGL.eglTerminate(eglDisplay);
+                        if( o == singletonEGLDisplay ) {
+                            singletonEGLDisplay = null;
+                        }
+                    }
+                }
+                if( 0 >= o.initRefCount ) {
+                    openEGLDisplays.remove(eglDisplay);
+                }
+            }
+            return o;
+        }
+
+        private EGLDisplayRef(long eglDisplay) {
             this.eglDisplay = eglDisplay;
-            this.refCount = 0;
+            this.initRefCount = 0;
             this.createdStack = DEBUG ? new Throwable() : null;
         }
 
         @Override
         public String toString() {
-            return "EGLDisplay[0x"+Long.toHexString(eglDisplay)+": refCnt "+refCount+"]";
+            return "EGLDisplayRef[0x"+Long.toHexString(eglDisplay)+": refCnt "+initRefCount+"]";
         }
     }
-    static final LongObjectHashMap eglDisplayCounter;
+    private static final LongObjectHashMap openEGLDisplays;
 
     static {
-        eglDisplayCounter = new LongObjectHashMap();
-        eglDisplayCounter.setKeyNotFoundValue(null);
+        openEGLDisplays = new LongObjectHashMap();
+        openEGLDisplays.setKeyNotFoundValue(null);
     }
 
     /**
      * @return number of unclosed EGL Displays.<br>
      */
     public static int shutdown(boolean verbose) {
-        if(DEBUG || verbose || eglDisplayCounter.size() > 0 ) {
-            System.err.println("EGLDisplayUtil.EGLDisplays: Shutdown (open: "+eglDisplayCounter.size()+")");
+        if(DEBUG || verbose || openEGLDisplays.size() > 0 ) {
+            System.err.println("EGLDisplayUtil.EGLDisplays: Shutdown (open: "+openEGLDisplays.size()+")");
             if(DEBUG) {
                 Thread.dumpStack();
             }
-            if( eglDisplayCounter.size() > 0) {
+            if( openEGLDisplays.size() > 0) {
                 dumpOpenDisplayConnections();
             }
         }
-        return eglDisplayCounter.size();
+        return openEGLDisplays.size();
     }
 
     public static void dumpOpenDisplayConnections() {
-        System.err.println("EGLDisplayUtil: Open EGL Display Connections: "+eglDisplayCounter.size());
+        System.err.println("EGLDisplayUtil: Open EGL Display Connections: "+openEGLDisplays.size());
         int i=0;
-        for(Iterator<LongObjectHashMap.Entry> iter = eglDisplayCounter.iterator(); iter.hasNext(); i++) {
+        for(Iterator<LongObjectHashMap.Entry> iter = openEGLDisplays.iterator(); iter.hasNext(); i++) {
             final LongObjectHashMap.Entry e = iter.next();
-            final DpyCounter v = (DpyCounter) e.value;
+            final EGLDisplayRef v = (EGLDisplayRef) e.value;
             System.err.println("EGLDisplayUtil: Open["+i+"]: 0x"+Long.toHexString(e.key)+": "+v);
             if(null != v.createdStack) {
                 v.createdStack.printStackTrace();
@@ -107,12 +170,22 @@ public class EGLDisplayUtil {
         }
     }
 
-    public static long eglGetDisplay(long nativeDisplay_id)  {
+    /* pp */ static synchronized void setSingletonEGLDisplayOnly(boolean v) { useSingletonEGLDisplay = v; }
+
+    private static synchronized long eglGetDisplay(long nativeDisplay_id)  {
+        if( useSingletonEGLDisplay && null != singletonEGLDisplay ) {
+            if(DEBUG) {
+                System.err.println("EGLDisplayUtil.eglGetDisplay.s: eglDisplay("+EGLContext.toHexString(nativeDisplay_id)+"): "+
+                                   EGLContext.toHexString(singletonEGLDisplay.eglDisplay)+
+                                   ", "+((EGL.EGL_NO_DISPLAY != singletonEGLDisplay.eglDisplay)?"OK":"Failed")+", singletonEGLDisplay "+singletonEGLDisplay+" (use "+useSingletonEGLDisplay+")");
+            }
+            return singletonEGLDisplay.eglDisplay;
+        }
         final long eglDisplay = EGL.eglGetDisplay(nativeDisplay_id);
         if(DEBUG) {
-            System.err.println("EGLDisplayUtil.eglGetDisplay(): eglDisplay("+EGLContext.toHexString(nativeDisplay_id)+"): "+
+            System.err.println("EGLDisplayUtil.eglGetDisplay.X: eglDisplay("+EGLContext.toHexString(nativeDisplay_id)+"): "+
                                EGLContext.toHexString(eglDisplay)+
-                               ", "+((EGL.EGL_NO_DISPLAY != eglDisplay)?"OK":"Failed"));
+                               ", "+((EGL.EGL_NO_DISPLAY != eglDisplay)?"OK":"Failed")+", singletonEGLDisplay "+singletonEGLDisplay+" (use "+useSingletonEGLDisplay+")");
         }
         return eglDisplay;
     }
@@ -125,39 +198,16 @@ public class EGLDisplayUtil {
      *
      * @see EGL#eglInitialize(long, IntBuffer, IntBuffer)
      */
-    public static synchronized boolean eglInitialize(long eglDisplay, IntBuffer major, IntBuffer minor)  {
+    private static synchronized boolean eglInitialize(long eglDisplay, IntBuffer major, IntBuffer minor)  {
         if( EGL.EGL_NO_DISPLAY == eglDisplay) {
             return false;
         }
-        final int refCnt;
-        final DpyCounter d;
-        {
-            DpyCounter _d = (DpyCounter) eglDisplayCounter.get(eglDisplay);
-            if(null == _d) {
-                _d = new DpyCounter(eglDisplay);
-                refCnt = 1; // 1st init
-            } else {
-                refCnt = _d.refCount + 1;
-            }
-            d = _d;
-        }
-        final boolean res;
-        if(1==refCnt) { // only initialize once
-            res = EGL.eglInitialize(eglDisplay, major, minor);
-        } else {
-            res = true;
-        }
-        if(res) { // update refCount and map if successfully initialized, only
-            d.refCount = refCnt;
-            if(1 == refCnt) {
-                eglDisplayCounter.put(eglDisplay, d);
-            }
-        }
+        final EGLDisplayRef d = EGLDisplayRef.getOrCreateOpened(eglDisplay, major, minor);
         if(DEBUG) {
-            System.err.println("EGLDisplayUtil.eglInitialize("+EGLContext.toHexString(eglDisplay)+" ...): #"+refCnt+", "+d+" = "+res);
+            System.err.println("EGLDisplayUtil.eglInitialize("+EGLContext.toHexString(eglDisplay)+" ...): "+d+" = "+(null != d)+", singletonEGLDisplay "+singletonEGLDisplay+" (use "+useSingletonEGLDisplay+")");
             // Thread.dumpStack();
         }
-        return res;
+        return null != d;
     }
 
     /**
@@ -172,14 +222,14 @@ public class EGLDisplayUtil {
      * @see #eglGetDisplay(long)
      * @see #eglInitialize(long, IntBuffer, IntBuffer)
      */
-    public static synchronized int eglGetDisplayAndInitialize(long nativeDisplayID, long[] eglDisplay, int[] eglErr, IntBuffer major, IntBuffer minor) {
+    private static synchronized int eglGetDisplayAndInitialize(long nativeDisplayID, long[] eglDisplay, int[] eglErr, IntBuffer major, IntBuffer minor) {
         eglDisplay[0] = EGL.EGL_NO_DISPLAY;
-        final long _eglDisplay = EGLDisplayUtil.eglGetDisplay( nativeDisplayID );
+        final long _eglDisplay = eglGetDisplay( nativeDisplayID );
         if ( EGL.EGL_NO_DISPLAY == _eglDisplay ) {
             eglErr[0] = EGL.eglGetError();
             return EGL.EGL_BAD_DISPLAY;
         }
-        if ( !EGLDisplayUtil.eglInitialize( _eglDisplay, major, minor) ) {
+        if ( !eglInitialize( _eglDisplay, major, minor) ) {
             eglErr[0] = EGL.eglGetError();
             return EGL.EGL_NOT_INITIALIZED;
         }
@@ -197,7 +247,7 @@ public class EGLDisplayUtil {
      * @return the initialized EGL display ID
      * @throws GLException if not successful
      */
-    public static synchronized long eglGetDisplayAndInitialize(long[] nativeDisplayID) {
+    private static synchronized long eglGetDisplayAndInitialize(long[] nativeDisplayID) {
         final long[] eglDisplay = new long[1];
         final int[] eglError = new int[1];
         int eglRes = EGLDisplayUtil.eglGetDisplayAndInitialize(nativeDisplayID[0], eglDisplay, eglError, null, null);
@@ -221,40 +271,20 @@ public class EGLDisplayUtil {
      * @param eglDisplay the EGL display handle
      * @return true if the eglDisplay is valid and it's reference counter becomes zero and {@link EGL#eglTerminate(long)} was successful, otherwise false
      */
-    public static synchronized boolean eglTerminate(long eglDisplay)  {
+    private static synchronized boolean eglTerminate(long eglDisplay)  {
         if( EGL.EGL_NO_DISPLAY == eglDisplay) {
             return false;
         }
-        final boolean res;
-        final int refCnt;
-        final DpyCounter d;
-        {
-            DpyCounter _d = (DpyCounter) eglDisplayCounter.get(eglDisplay);
-            if(null == _d) {
-                _d = null;
-                refCnt = -1; // n/a
-            } else {
-                refCnt = _d.refCount - 1; // 1 - 1 = 0 -> final terminate
-            }
-            d = _d;
-        }
-        if( 0 == refCnt ) { // no terminate if still in use or already terminated
-            res = EGL.eglTerminate(eglDisplay);
-            eglDisplayCounter.remove(eglDisplay);
-        } else {
-            if(0 < refCnt) { // no negative refCount
-                d.refCount = refCnt;
-            }
-            res = true;
-        }
+        final boolean[] res = new boolean[1];
+        final EGLDisplayRef d = EGLDisplayRef.closeOpened(eglDisplay, res);
         if(DEBUG) {
-            System.err.println("EGLDisplayUtil.eglTerminate("+EGLContext.toHexString(eglDisplay)+" ...): #"+refCnt+" = "+res);
+            System.err.println("EGLDisplayUtil.eglTerminate.X("+EGLContext.toHexString(eglDisplay)+" ...): "+d+" = "+res[0]+", singletonEGLDisplay "+singletonEGLDisplay+" (use "+useSingletonEGLDisplay+")");
             // Thread.dumpStack();
         }
-        return res;
+        return res[0];
     }
 
-    public static final EGLGraphicsDevice.EGLDisplayLifecycleCallback eglLifecycleCallback = new EGLGraphicsDevice.EGLDisplayLifecycleCallback() {
+    private static final EGLGraphicsDevice.EGLDisplayLifecycleCallback eglLifecycleCallback = new EGLGraphicsDevice.EGLDisplayLifecycleCallback() {
         @Override
         public long eglGetAndInitDisplay(long[] nativeDisplayID) {
             return eglGetDisplayAndInitialize(nativeDisplayID);
