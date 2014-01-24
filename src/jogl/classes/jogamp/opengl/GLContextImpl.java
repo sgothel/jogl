@@ -1916,7 +1916,7 @@ public abstract class GLContextImpl extends GLContext {
   private static final boolean hasFBOImpl(int major, int ctp, ExtensionAvailabilityCache extCache) {
     return ( 0 != (ctp & CTX_PROFILE_ES) && major >= 2 ) ||   // ES >= 2.0
 
-           major >= 3 ||                                                 // any >= 3.0 GL ctx
+           major >= 3 ||                                                 // any >= 3.0 GL ctx (core, compat and ES)
 
            ( null != extCache &&
 

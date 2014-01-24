@@ -32,6 +32,7 @@ import java.util.Arrays;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GL3;
 import javax.media.opengl.GLBase;
@@ -386,7 +387,7 @@ public class FBObject {
 
                 gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, getName());
                 if( samples > 0 ) {
-                    ((GL2GL3)gl).glRenderbufferStorageMultisample(GL.GL_RENDERBUFFER, samples, format, getWidth(), getHeight());
+                    ((GL2ES3)gl).glRenderbufferStorageMultisample(GL.GL_RENDERBUFFER, samples, format, getWidth(), getHeight());
                 } else {
                     gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, format, getWidth(), getHeight());
                 }
@@ -793,7 +794,7 @@ public class FBObject {
         }
         fullFBOSupport = gl.hasFullFBOSupport();
 
-        rgba8Avail = gl.isGL2GL3() || gl.isExtensionAvailable(GLExtensions.OES_rgb8_rgba8);
+        rgba8Avail = gl.isGL2ES3() || gl.isExtensionAvailable(GLExtensions.OES_rgb8_rgba8);
         depth24Avail = fullFBOSupport || gl.isExtensionAvailable(GLExtensions.OES_depth24);
         depth32Avail = fullFBOSupport || gl.isExtensionAvailable(GLExtensions.OES_depth32);
         stencil01Avail = fullFBOSupport || gl.isExtensionAvailable(GLExtensions.OES_stencil1);
@@ -1044,14 +1045,14 @@ public class FBObject {
                 return("FBO missing draw buffer");
             case GL2GL3.GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
                 return("FBO missing read buffer");
-            case GL2GL3.GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+            case GL2ES3.GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
                 return("FBO missing multisample buffer");
             case GL3.GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
                 return("FBO missing layer targets");
 
             case GL.GL_FRAMEBUFFER_UNSUPPORTED:
                 return("Unsupported FBO format");
-            case GL2GL3.GL_FRAMEBUFFER_UNDEFINED:
+            case GL2ES3.GL_FRAMEBUFFER_UNDEFINED:
                  return("FBO undefined");
 
             case 0:
@@ -1084,7 +1085,7 @@ public class FBObject {
                 }
 
             case GL.GL_FRAMEBUFFER_UNSUPPORTED:
-            case GL2GL3.GL_FRAMEBUFFER_UNDEFINED:
+            case GL2ES3.GL_FRAMEBUFFER_UNDEFINED:
 
             case 0:
             default:
@@ -2068,7 +2069,7 @@ public class FBObject {
      *
      * <p>
      * In case you have attached more than one color buffer,
-     * you may want to setup {@link GL2GL3#glDrawBuffers(int, int[], int)}.
+     * you may want to setup {@link GL2ES3#glDrawBuffers(int, int[], int)}.
      * </p>
      * @param gl the current GL context
      * @throws GLException
@@ -2078,8 +2079,8 @@ public class FBObject {
             checkInitialized();
             if(samples > 0 && fullFBOSupport) {
                 // draw to multisampling - read from samplesSink
-                gl.glBindFramebuffer(GL2GL3.GL_DRAW_FRAMEBUFFER, getWriteFramebuffer());
-                gl.glBindFramebuffer(GL2GL3.GL_READ_FRAMEBUFFER, getReadFramebuffer());
+                gl.glBindFramebuffer(GL2ES3.GL_DRAW_FRAMEBUFFER, getWriteFramebuffer());
+                gl.glBindFramebuffer(GL2ES3.GL_READ_FRAMEBUFFER, getReadFramebuffer());
             } else {
                 // one for all
                 gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, getWriteFramebuffer());
@@ -2104,8 +2105,8 @@ public class FBObject {
             if(fullFBOSupport) {
                 // default read/draw buffers, may utilize GLContext/GLDrawable override of
                 // GLContext.getDefaultDrawFramebuffer() and GLContext.getDefaultReadFramebuffer()
-                gl.glBindFramebuffer(GL2GL3.GL_DRAW_FRAMEBUFFER, 0);
-                gl.glBindFramebuffer(GL2GL3.GL_READ_FRAMEBUFFER, 0);
+                gl.glBindFramebuffer(GL2ES3.GL_DRAW_FRAMEBUFFER, 0);
+                gl.glBindFramebuffer(GL2ES3.GL_READ_FRAMEBUFFER, 0);
             } else {
                 gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0); // default draw buffer
             }
@@ -2155,7 +2156,7 @@ public class FBObject {
      * </p>
      * <p>
      * In case you use this FBO w/o the {@link GLFBODrawable} and intend to employ {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer) glReadPixels(..)}
-     * you may want to call {@link GL#glBindFramebuffer(int, int) glBindFramebuffer}({@link GL2GL3#GL_READ_FRAMEBUFFER}, {@link #getReadFramebuffer()});
+     * you may want to call {@link GL#glBindFramebuffer(int, int) glBindFramebuffer}({@link GL2ES3#GL_READ_FRAMEBUFFER}, {@link #getReadFramebuffer()});
      * </p>
      * <p>Leaves the FBO unbound.</p>
      *
@@ -2169,17 +2170,17 @@ public class FBObject {
             samplingSinkDirty = false;
             resetSamplingSink(gl);
             checkPreGLError(gl);
-            gl.glBindFramebuffer(GL2GL3.GL_READ_FRAMEBUFFER, fbName);
-            gl.glBindFramebuffer(GL2GL3.GL_DRAW_FRAMEBUFFER, samplingSink.getWriteFramebuffer());
-            ((GL2GL3)gl).glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, // since MSAA is supported, casting to GL2GL3 is OK
+            gl.glBindFramebuffer(GL2ES3.GL_READ_FRAMEBUFFER, fbName);
+            gl.glBindFramebuffer(GL2ES3.GL_DRAW_FRAMEBUFFER, samplingSink.getWriteFramebuffer());
+            ((GL2ES3)gl).glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, // since MSAA is supported, casting to GL2ES3 is OK
                                            GL.GL_COLOR_BUFFER_BIT, GL.GL_NEAREST);
             checkNoError(null, gl.glGetError(), "FBObject syncSampleSink"); // throws GLException if error
         }
         if(fullFBOSupport) {
             // default read/draw buffers, may utilize GLContext/GLDrawable override of
             // GLContext.getDefaultDrawFramebuffer() and GLContext.getDefaultReadFramebuffer()
-            gl.glBindFramebuffer(GL2GL3.GL_DRAW_FRAMEBUFFER, 0);
-            gl.glBindFramebuffer(GL2GL3.GL_READ_FRAMEBUFFER, 0);
+            gl.glBindFramebuffer(GL2ES3.GL_DRAW_FRAMEBUFFER, 0);
+            gl.glBindFramebuffer(GL2ES3.GL_READ_FRAMEBUFFER, 0);
         } else {
             gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0); // default draw buffer
         }

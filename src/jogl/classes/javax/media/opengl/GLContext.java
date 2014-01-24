@@ -883,7 +883,7 @@ public abstract class GLContext {
   /**
    * Returns <code>true</code> if basic FBO support is available, otherwise <code>false</code>.
    * <p>
-   * Basic FBO is supported if the context is either GL-ES >= 2.0, GL >= core 3.0 or implements the extensions
+   * Basic FBO is supported if the context is either GL-ES >= 2.0, GL >= 3.0 [core, compat] or implements the extensions
    * <code>GL_ARB_ES2_compatibility</code>, <code>GL_ARB_framebuffer_object</code>, <code>GL_EXT_framebuffer_object</code> or <code>GL_OES_framebuffer_object</code>.
    * </p>
    * <p>
@@ -897,18 +897,9 @@ public abstract class GLContext {
   }
 
   /**
-   * Returns <code>true</code> if <code>OES_single_precision</code>, fp32, fixed function point (FFP) compatibility entry points available,
-   * otherwise <code>false</code>.
-   * @see #CTX_IMPL_FP32_COMPAT_API
-   */
-  public final boolean hasFP32CompatAPI() {
-      return 0 != ( ctxOptions & CTX_IMPL_FP32_COMPAT_API ) ;
-  }
-
-  /**
    * Returns <code>true</code> if full FBO support is available, otherwise <code>false</code>.
    * <p>
-   * Full FBO is supported if the context is either GL >= core 3.0 or implements the extensions
+   * Full FBO is supported if the context is either GL >= 3.0 [ES, core, compat] or implements the extensions
    * <code>ARB_framebuffer_object</code>, or all of
    * <code>EXT_framebuffer_object</code>, <code>EXT_framebuffer_multisample</code>,
    * <code>EXT_framebuffer_blit</code>, <code>GL_EXT_packed_depth_stencil</code>.
@@ -919,7 +910,7 @@ public abstract class GLContext {
    */
   public final boolean hasFullFBOSupport() {
       return hasBasicFBOSupport() && !hasRendererQuirk(GLRendererQuirks.NoFullFBOSupport) &&
-             ( isGL3() ||                                                         // GL >= 3.0
+             ( isGL3ES3() ||                                                      // GL >= 3.0 [ES, core, compat]
                isExtensionAvailable(GLExtensions.ARB_framebuffer_object) ||       // ARB_framebuffer_object
                ( isExtensionAvailable(GLExtensions.EXT_framebuffer_object) &&     // All EXT_framebuffer_object*
                  isExtensionAvailable(GLExtensions.EXT_framebuffer_multisample) &&
@@ -927,6 +918,15 @@ public abstract class GLContext {
                  isExtensionAvailable(GLExtensions.EXT_packed_depth_stencil)
                )
              ) ;
+  }
+
+  /**
+   * Returns <code>true</code> if <code>OES_single_precision</code>, fp32, fixed function point (FFP) compatibility entry points available,
+   * otherwise <code>false</code>.
+   * @see #CTX_IMPL_FP32_COMPAT_API
+   */
+  public final boolean hasFP32CompatAPI() {
+      return 0 != ( ctxOptions & CTX_IMPL_FP32_COMPAT_API ) ;
   }
 
   /**
