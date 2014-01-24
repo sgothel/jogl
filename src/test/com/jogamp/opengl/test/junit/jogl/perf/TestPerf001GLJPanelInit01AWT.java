@@ -61,6 +61,7 @@ import com.jogamp.opengl.util.Animator;
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestPerf001GLJPanelInit01AWT extends UITestCase {
+    final long INIT_TIMEOUT = 10L*1000L; // 10s
 
     @BeforeClass
     public static void initClass() {
@@ -119,22 +120,26 @@ public class TestPerf001GLJPanelInit01AWT extends UITestCase {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
-        while( panelCount > initCount ) {
+        final long t0 = System.currentTimeMillis();
+        long t1 = t0;
+        while( panelCount > initCount && INIT_TIMEOUT > t1 - t0 ) {
             try {
-                Thread.sleep(10);
+                Thread.sleep(100);
+                System.err.println("Sleep initialized: "+initCount+"/"+panelCount);
             } catch (InterruptedException e1) {
                 e1.printStackTrace();
             }
+            t1 = System.currentTimeMillis();
         }
         t[3] = Platform.currentTimeMillis();
-        final double panelCountF = panelCount;
+        final double panelCountF = initCount;
         System.err.printf("P: %d %s:%n\tctor\t%6d/t %6.2f/1%n\tvisible\t%6d/t %6.2f/1%n\tsum-i\t%6d/t %6.2f/1%n",
-                panelCount,
+                initCount,
                 useGLJPanel?"GLJPanel":"GLCanvas",
                 t[1]-t[0], (t[1]-t[0])/panelCountF,
                 t[3]-t[1], (t[3]-t[1])/panelCountF,
                 t[3]-t[0], (t[3]-t[0])/panelCountF);
-        System.err.println("INIT END: "+initCount);
+        System.err.println("INIT END: "+initCount+"/"+panelCount);
         if( wait ) {
             UITestCase.waitForKey("Post-Init");
         }
