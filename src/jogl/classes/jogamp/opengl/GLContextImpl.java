@@ -1706,22 +1706,6 @@ public abstract class GLContextImpl extends GLContext {
                 }
             }
         }
-        if( isX11 && isDriverNVIDIAGeForce && Platform.CPUFamily.X86 == Platform.getCPUFamily() ) {
-            final int quirk = GLRendererQuirks.SingletonEGLDisplayOnly;
-            if(DEBUG) {
-                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: ES, X11, CPUFamily AMD/Intel, [Vendor "+glVendor+" or Renderer "+glRenderer+"]");
-            }
-            quirks[i++] = quirk;
-            if( withinGLVersionsMapping ) {
-                // Thread safe due to single threaded initialization!
-                GLRendererQuirks.addStickyDeviceQuirks(adevice, quirks, i-1, 1);
-            } else {
-                // FIXME: Remove when moving EGL/ES to ARB ctx creation
-                synchronized(GLContextImpl.class) {
-                    GLRendererQuirks.addStickyDeviceQuirks(adevice, quirks, i-1, 1);
-                }
-            }
-        }
     }
 
     //

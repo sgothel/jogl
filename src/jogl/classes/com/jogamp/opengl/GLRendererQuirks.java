@@ -272,15 +272,19 @@ public class GLRendererQuirks {
      * <p>
      * Reusing global EGL display works.
      * </p>
+     * <p>
+     * The quirk is autodetected within EGLDrawableFactory's initial default device setup!
+     * </p>
+     * <p>
+     * Appears on:
      * <ul>
      *   <li>EGL_VENDOR      NVIDIA</li>
      *   <li>EGL_VERSION     1.4</li>
      *   <li>GL_VENDOR       NVIDIA Corporation</li>
+     *   <li>GL_VERSION      OpenGL ES 3.0 331.38 (probably w/ 1st NV EGL lib on x86)</li>
      *   <li>Platform        X11</li>
      *   <li>CPU Family      {@link Platform.CPUFamily#X86}</li>
      * </ul>
-     * <p>
-     * FIXME: Constrain driver version.
      * </p>
      */
     public static final int SingletonEGLDisplayOnly = 16;

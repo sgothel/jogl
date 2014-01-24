@@ -174,7 +174,7 @@ function jrun() {
     #D_ARGS="-Dnativewindow.debug.X11Util -Dnativewindow.debug.X11Util.XSync"
     #D_ARGS="-Dnativewindow.debug.X11Util.XSync -Dnativewindow.debug.X11Util.TraceDisplayLifecycle"
     #D_ARGS="-Dnativewindow.debug.X11Util.XSync -Dnewt.debug.Window"
-    #D_ARGS="-Djogl.debug.GLDrawable -Djogl.debug.GLContext"
+    D_ARGS="-Djogl.debug.GLDrawable -Djogl.debug.GLContext"
     #D_ARGS="-Dnativewindow.debug.NativeWindow -Dnativewindow.debug.X11Util"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=3000 -Djogamp.debug.Lock -Djogl.debug.GLContext.TraceSwitch"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=3000 -Djogamp.debug.Lock -Dnativewindow.debug.ToolkitLock.TraceLock"

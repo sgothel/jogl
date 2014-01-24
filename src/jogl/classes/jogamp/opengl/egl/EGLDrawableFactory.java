@@ -389,7 +389,9 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
         final GLProfile glp = GLProfile.get(adevice, profileString) ;
         final GLDrawableFactoryImpl desktopFactory = (GLDrawableFactoryImpl) GLDrawableFactory.getDesktopFactory();
-        final boolean mapsADeviceToDefaultDevice = !QUERY_EGL_ES_NATIVE_TK || null == desktopFactory || adevice instanceof EGLGraphicsDevice ;
+        final boolean initDefaultDevice = 0 == defaultDevice.getHandle(); // Note: GLProfile always triggers EGL device initialization first!
+        final boolean mapsADeviceToDefaultDevice = !QUERY_EGL_ES_NATIVE_TK || initDefaultDevice ||
+                                                   null == desktopFactory || adevice instanceof EGLGraphicsDevice ;
         if( DEBUG ) {
             System.err.println("EGLDrawableFactory.mapAvailableEGLESConfig: "+profileString+" ( "+esProfile+" ), "+
                                "defaultSharedResourceSet "+(null!=defaultSharedResource)+", mapsADeviceToDefaultDevice "+mapsADeviceToDefaultDevice+
@@ -410,7 +412,20 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             if( mapsADeviceToDefaultDevice ) {
                 // In this branch, any non EGL device is mapped to EGL default shared resources (default behavior).
                 // Only one default shared resource instance is ever be created.
-                defaultDevice.open();
+                if( initDefaultDevice ) {
+                    defaultDevice.open();
+
+                    // Probe for GLRendererQuirks.SingletonEGLDisplayOnly
+                    final long secondEGLDisplay = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
+                    if ( EGL.EGL_NO_DISPLAY == secondEGLDisplay ) {
+                        final int[] quirks = { GLRendererQuirks.SingletonEGLDisplayOnly };
+                        GLRendererQuirks.addStickyDeviceQuirks(adevice, quirks, 0, 1);
+                        EGLDisplayUtil.setSingletonEGLDisplayOnly(true);
+                        if(DEBUG) {
+                            System.err.println("Quirk: "+GLRendererQuirks.toString(quirks[0])+": cause: Second eglGetDisplay(EGL_DEFAULT_DISPLAY) failed");
+                        }
+                    }
+                }
                 if( DEBUG ) {
                     dumpEGLInfo("EGLDrawableFactory.mapAvailableEGLESConfig: ", defaultDevice.getHandle());
                 }
@@ -547,10 +562,6 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 }
             }
         }
-        if( null != rendererQuirks[0] && rendererQuirks[0].exist(GLRendererQuirks.SingletonEGLDisplayOnly) ) {
-            EGLDisplayUtil.setSingletonEGLDisplayOnly(true);
-        }
-
         return success;
     }
 
