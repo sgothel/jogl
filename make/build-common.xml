@@ -426,7 +426,7 @@
         <property name="jogl-all-android.apk"           value="${jar}/jogl-all-android-${android.abi}.apk" />
 
         <!-- JavaSE combinations . JOAL (optional) -->
-        <property name="joal.jar"                       value="${build.joal}/joal.jar" />
+        <property name="joal.jar"                       value="${build.joal}/jar/joal.jar" />
         <condition property="joal-jars.available">
             <available file="${joal.jar}"/>
         </condition>
