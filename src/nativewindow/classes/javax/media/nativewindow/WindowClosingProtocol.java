@@ -37,7 +37,7 @@ package javax.media.nativewindow;
  * this protocol default behavior {@link WindowClosingMode#DISPOSE_ON_CLOSE DISPOSE_ON_CLOSE} shall be used.</p>
  */
 public interface WindowClosingProtocol {
-    
+
     /**
      * Window closing mode if triggered by toolkit close operation.
      */
@@ -47,7 +47,7 @@ public interface WindowClosingProtocol {
          * This is the default behavior within an AWT environment.
          */
         DO_NOTHING_ON_CLOSE,
-        
+
         /**
          * Dispose resources on native window close operation.<br>
          * This is the default behavior in case no underlying toolkit defines otherwise.

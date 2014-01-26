@@ -47,8 +47,11 @@ import java.awt.Insets;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLCanvasAWTActionDeadlock00AWT extends UITestCase {
     static long durationPerTest = 1000; // ms
     static final int width = 512;

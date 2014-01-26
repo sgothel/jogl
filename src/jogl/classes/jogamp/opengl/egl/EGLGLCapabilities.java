@@ -101,7 +101,6 @@ public class EGLGLCapabilities extends GLCapabilities {
     if(null == glp) {
         return true;
     }
-    /** FIXME: EGLExt.EGL_OPENGL_ES3_BIT_KHR OK ? */
     if(0 != (renderableType & EGLExt.EGL_OPENGL_ES3_BIT_KHR) && glp.usesNativeGLES3()) {
         return true;
     }
@@ -118,6 +117,9 @@ public class EGLGLCapabilities extends GLCapabilities {
   }
 
   public static GLProfile getCompatible(EGLGraphicsDevice device, int renderableType) {
+    if(0 != (renderableType & EGLExt.EGL_OPENGL_ES3_BIT_KHR) && GLProfile.isAvailable(device, GLProfile.GLES3)) {
+        return GLProfile.get(device, GLProfile.GLES3);
+    }
     if(0 != (renderableType & EGL.EGL_OPENGL_ES2_BIT) && GLProfile.isAvailable(device, GLProfile.GLES2)) {
         return GLProfile.get(device, GLProfile.GLES2);
     }
@@ -144,6 +146,9 @@ public class EGLGLCapabilities extends GLCapabilities {
     }
     if(0 != (renderableType & EGL.EGL_OPENGL_ES2_BIT)) {
         if(!first) sink.append(", "); sink.append("GLES2");  first=false;
+    }
+    if(0 != (renderableType & EGLExt.EGL_OPENGL_ES3_BIT_KHR)) {
+        if(!first) sink.append(", "); sink.append("GLES3");  first=false;
     }
     if(0 != (renderableType & EGL.EGL_OPENVG_API)) {
         if(!first) sink.append(", "); sink.append("VG");  first=false;

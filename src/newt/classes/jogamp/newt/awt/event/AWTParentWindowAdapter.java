@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package jogamp.newt.awt.event;
 
 import java.awt.KeyboardFocusManager;
@@ -45,108 +45,144 @@ import com.jogamp.newt.event.awt.AWTWindowAdapter;
 public class AWTParentWindowAdapter extends AWTWindowAdapter implements java.awt.event.HierarchyListener
 {
     NativeWindow downstreamParent;
-    
+
     public AWTParentWindowAdapter(NativeWindow downstreamParent, com.jogamp.newt.Window downstream) {
         super(downstream);
         this.downstreamParent = downstreamParent;
     }
+    public AWTParentWindowAdapter() {
+        super();
+    }
+    public AWTParentWindowAdapter setDownstream(NativeWindow downstreamParent, com.jogamp.newt.Window downstream) {
+        setDownstream(downstream);
+        this.downstreamParent = downstreamParent;
+        return this;
+    }
 
-    public AWTAdapter addTo(java.awt.Component awtComponent) {
+    @Override
+    public synchronized AWTAdapter clear() {
+        super.clear();
+        this.downstreamParent = null;
+        return this;
+    }
+
+    @Override
+    public synchronized AWTAdapter addTo(java.awt.Component awtComponent) {
         awtComponent.addHierarchyListener(this);
         return super.addTo(awtComponent);
     }
 
-    public AWTAdapter removeFrom(java.awt.Component awtComponent) {
+    @Override
+    public synchronized AWTAdapter removeFrom(java.awt.Component awtComponent) {
         awtComponent.removeHierarchyListener(this);
         return super.removeFrom(awtComponent);
     }
 
-    public void focusGained(java.awt.event.FocusEvent e) {
+    @Override
+    public synchronized void focusGained(java.awt.event.FocusEvent e) {
+        if( !isSetup ) { return; }
         // forward focus to NEWT child
         final com.jogamp.newt.Window newtChild = getNewtWindow();
-        final boolean isOnscreen = newtChild.isNativeValid() && newtChild.getGraphicsConfiguration().getChosenCapabilities().isOnscreen();
-        final boolean isParent = downstreamParent == newtChild.getParent();
-        final boolean isFullscreen = newtChild.isFullscreen();
-        if(DEBUG_IMPLEMENTATION) {
-            System.err.println("AWT: focusGained: onscreen "+ isOnscreen+", "+e+", isParent: "+isParent+", isFS "+isFullscreen);
-        }
-        if(isParent) {
-            if(isOnscreen && !isFullscreen) {
-                KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+        if( null != newtChild ) {
+            final boolean isOnscreen = newtChild.isNativeValid() && newtChild.getGraphicsConfiguration().getChosenCapabilities().isOnscreen();
+            final boolean isParent = downstreamParent == newtChild.getParent();
+            final boolean isFullscreen = newtChild.isFullscreen();
+            if(DEBUG_IMPLEMENTATION) {
+                System.err.println("AWT: focusGained: onscreen "+ isOnscreen+", "+e+", isParent: "+isParent+", isFS "+isFullscreen);
             }
-            newtChild.requestFocus(false);
+            if(isParent) {
+                if(isOnscreen && !isFullscreen) {
+                    KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+                }
+                newtChild.requestFocus(false);
+            }
         }
     }
 
-    public void focusLost(java.awt.event.FocusEvent e) {
+    @Override
+    public synchronized void focusLost(java.awt.event.FocusEvent e) {
+        if( !isSetup ) { return; }
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("AWT: focusLost: "+ e);
         }
     }
 
-    public void componentResized(java.awt.event.ComponentEvent e) {
+    @Override
+    public synchronized void componentResized(java.awt.event.ComponentEvent e) {
+        if( !isSetup ) { return; }
         // Need to resize the NEWT child window
         // the resized event will be send via the native window feedback.
         final java.awt.Component comp = e.getComponent();
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("AWT: componentResized: "+comp);
         }
-        final Window newtWindow = getNewtWindow();
-        newtWindow.runOnEDTIfAvail(false, new Runnable() {
-            public void run() {
-                int cw = comp.getWidth();
-                int ch = comp.getHeight();
-                if( 0 < cw && 0 < ch ) {
-                    if( newtWindow.getWidth() != cw || newtWindow.getHeight() != ch ) {
-                        newtWindow.setSize(cw, ch);
-                        if(comp.isVisible() != newtWindow.isVisible()) {
-                            newtWindow.setVisible(comp.isVisible());
+        final Window newtChild = getNewtWindow();
+        if( null != newtChild ) {
+            newtChild.runOnEDTIfAvail(false, new Runnable() {
+                @Override
+                public void run() {
+                    final int cw = comp.getWidth();
+                    final int ch = comp.getHeight();
+                    if( 0 < cw && 0 < ch ) {
+                        if( newtChild.getWidth() != cw || newtChild.getHeight() != ch ) {
+                            newtChild.setSize(cw, ch);
+                            final boolean v = comp.isShowing(); // compute showing-state throughout hierarchy
+                            if(v != newtChild.isVisible()) {
+                                newtChild.setVisible(v);
+                            }
                         }
+                    } else if(newtChild.isVisible()) {
+                        newtChild.setVisible(false);
                     }
-                } else if(newtWindow.isVisible()) {
-                    newtWindow.setVisible(false);
-                }
-            }});
-    }
-
-    public void componentMoved(java.awt.event.ComponentEvent e) {
-        if(DEBUG_IMPLEMENTATION) {
-            System.err.println("AWT: componentMoved: "+e);            
+                }});
         }
-        final Window newtWindow = getNewtWindow();
-        if(newtWindow.getDelegatedWindow() instanceof DriverUpdatePosition) {
-            ((DriverUpdatePosition)newtWindow.getDelegatedWindow()).updatePosition(0, 0);
-        }            
     }
 
-    public void windowActivated(java.awt.event.WindowEvent e) {
+    @Override
+    public synchronized void componentMoved(java.awt.event.ComponentEvent e) {
+        if( !isSetup ) { return; }
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("AWT: componentMoved: "+e);
+        }
+        final Window newtChild = getNewtWindow();
+        if( null != newtChild && ( newtChild.getDelegatedWindow() instanceof DriverUpdatePosition ) ) {
+            ((DriverUpdatePosition)newtChild.getDelegatedWindow()).updatePosition(0, 0);
+        }
+    }
+
+    @Override
+    public synchronized void windowActivated(java.awt.event.WindowEvent e) {
         // no propagation to NEWT child window
     }
 
-    public void windowDeactivated(java.awt.event.WindowEvent e) {
+    @Override
+    public synchronized void windowDeactivated(java.awt.event.WindowEvent e) {
         // no propagation to NEWT child window
     }
 
-    public void hierarchyChanged(java.awt.event.HierarchyEvent e) {
-        if( null == getNewtEventListener() ) {
-            long bits = e.getChangeFlags();
-            final java.awt.Component changed = e.getChanged();            
+    @Override
+    public synchronized void hierarchyChanged(java.awt.event.HierarchyEvent e) {
+        if( !isSetup ) { return; }
+        final Window newtChild = getNewtWindow();
+        if( null != newtChild && null == getNewtEventListener() ) {
+            final long bits = e.getChangeFlags();
+            final java.awt.Component comp = e.getComponent();
             if( 0 != ( java.awt.event.HierarchyEvent.SHOWING_CHANGED & bits ) ) {
-                final boolean showing = changed.isShowing();
+                final boolean showing = comp.isShowing(); // compute showing-state throughout hierarchy
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("AWT: hierarchyChanged SHOWING_CHANGED: showing "+showing+", "+changed+", source "+e.getComponent());
+                    System.err.println("AWT: hierarchyChanged SHOWING_CHANGED: showing "+showing+", comp "+comp+", changed "+e.getChanged());
                 }
-                getNewtWindow().runOnEDTIfAvail(false, new Runnable() {
+                newtChild.runOnEDTIfAvail(false, new Runnable() {
+                    @Override
                     public void run() {
-                        if(getNewtWindow().isVisible() != showing) {
-                            getNewtWindow().setVisible(showing);
+                        if(newtChild.isVisible() != showing) {
+                            newtChild.setVisible(showing);
                         }
                     }});
-            } 
+            }
             if(DEBUG_IMPLEMENTATION) {
                 if( 0 != ( java.awt.event.HierarchyEvent.DISPLAYABILITY_CHANGED & bits ) ) {
-                    final boolean displayability = changed.isDisplayable();
-                    System.err.println("AWT: hierarchyChanged DISPLAYABILITY_CHANGED: displayability "+displayability+", "+changed);
+                    System.err.println("AWT: hierarchyChanged DISPLAYABILITY_CHANGED: "+e.getChanged());
                 }
             }
         }

@@ -36,6 +36,8 @@ import javax.media.opengl.GLProfile;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquareES1;
@@ -51,6 +53,7 @@ import com.jogamp.opengl.util.Animator;
  * DISPLAY environment variable.
  *
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestX11DefaultDisplay extends UITestCase {
     static long duration = 500; // ms
     static int width = 512, height = 512;

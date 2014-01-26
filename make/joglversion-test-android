@@ -1,4 +1,5 @@
 Manifest-Version: 1.0
+Application-Name: Java Bindings for OpenGL Test
 Specification-Title: Test Java Bindings for OpenGL API Specification
 Specification-Version: @BASEVERSION@
 Specification-Vendor: JogAmp Community
@@ -11,3 +12,4 @@ Implementation-Vendor: JogAmp Community
 Implementation-URL: http://jogamp.org/
 Extension-Name: com.jogamp.opengl.test
 Implementation-Vendor-Id: com.jogamp
+

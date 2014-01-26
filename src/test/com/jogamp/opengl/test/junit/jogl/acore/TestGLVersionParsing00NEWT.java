@@ -32,12 +32,15 @@ import java.io.IOException;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import jogamp.opengl.GLVersionNumber;
 
 import com.jogamp.common.util.VersionNumberString;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLVersionParsing00NEWT extends UITestCase {
 
     public static final String[] glVersionStrings00 = new String[] {

@@ -36,6 +36,7 @@
       -->
     <target name="set.debug">
         <property name="c.compiler.debug" value="true" /> 
+        <property name="c.compiler.optimise"  value="none" /> 
         <property name="javacdebug"       value="true" /> 
         <property name="javacdebuglevel"  value="source,lines,vars" /> 
     </target>
@@ -43,6 +44,9 @@
 
     <target name="common.init" depends="jogamp.env.init, gluegen.cpptasks.detect.os" unless="common.init.done">
         <property name="common.init.done" value="true" />
+
+        <property name="c.compiler.debug"     value="false" /> 
+        <property name="c.compiler.optimise"  value="none" /> 
 
         <!-- Set the project root directory to be up one directory. -->
         <property name="project.root"               value=".." />
@@ -216,6 +220,7 @@
         <property name="jogl.build.xml"             value="${jogl.make}/build-jogl.xml" />
         <property name="build.jogl"                 value="${build}/jogl" />
         <property name="obj.jogl"                   value="${build.jogl}/obj"/>
+        <property name="rootrel.obj.jogl"           value="${rootrel.build}/jogl/obj"/>
 
         <property name="newt.make"                  value="." />
         <property name="newt.build.xml"             value="${newt.make}/build-newt.xml" />
@@ -275,6 +280,7 @@
         <property name="jogl-glmobile-dbg.jar"          value="${build.jogl}/jogl-glmobile-dbg.jar" />
         <property name="jogl-util.jar"                  value="${build.jogl}/jogl-util.jar" />
         <property name="jogl-util-graph.jar"            value="${build.jogl}/jogl-util-graph.jar" />
+        <property name="jogl-util-graph-fonts-p0.jar"   value="${build.jogl}/jogl-fonts-p0.jar" />
         <property name="jogl-util-fixedfuncemu.jar"     value="${build.jogl}/jogl-util-fixedfuncemu.jar" />
         <property name="jogl-awt.jar"                   value="${build.jogl}/jogl-awt.jar" />
         <property name="jogl-swt.jar"                   value="${build.jogl}/jogl-swt.jar" />
@@ -420,7 +426,7 @@
         <property name="jogl-all-android.apk"           value="${jar}/jogl-all-android-${android.abi}.apk" />
 
         <!-- JavaSE combinations . JOAL (optional) -->
-        <property name="joal.jar"                       value="${build.joal}/joal.jar" />
+        <property name="joal.jar"                       value="${build.joal}/jar/joal.jar" />
         <condition property="joal-jars.available">
             <available file="${joal.jar}"/>
         </condition>

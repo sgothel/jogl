@@ -90,7 +90,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   public GLContext createContext(GLContext shareWith) {
     return new MacOSXCGLContext(this, shareWith);
   }
-  
+
   protected int getTextureTarget() { return pBufferTexTarget;  }
   protected int getTextureWidth() { return pBufferTexWidth; }
   protected int getTextureHeight() { return pBufferTexHeight; }
@@ -101,7 +101,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     if (0 != pBuffer) {
       synchronized (createdContexts) {
         for(int i=0; i<createdContexts.size(); ) {
-          final WeakReference<MacOSXCGLContext> ref = createdContexts.get(i); 
+          final WeakReference<MacOSXCGLContext> ref = createdContexts.get(i);
           final MacOSXCGLContext ctx = ref.get();
           if (ctx != null) {
             ctx.detachPBuffer();

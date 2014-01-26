@@ -55,8 +55,8 @@ public abstract class CompileShader {
         URL resourceURL = IOUtil.getResource(null, resourceName).getURL();
         String dirName = dirname(resourceURL.getPath());
 
-        outName = dirName + File.separator + "bin" + File.separator + 
-                  ShaderCode.getBinarySubPath(getBinaryFormat()) + File.separator + 
+        outName = dirName + File.separator + "bin" + File.separator +
+                  ShaderCode.getBinarySubPath(getBinaryFormat()) + File.separator +
                   outName;
         processOneShader(resourceName, outName, type);
     }
@@ -137,7 +137,7 @@ public abstract class CompileShader {
         }
         String dirname;
         if (lastSlash < 0) {
-            dirname = new String();
+            dirname = "";
         } else {
             dirname = path.substring(0, lastSlash + 1);
         }
@@ -161,6 +161,7 @@ public abstract class CompileShader {
             new Thread(this, "Output Reader Thread").start();
         }
 
+        @Override
         public void run()
         {
             byte[] buffer = new byte[4096];

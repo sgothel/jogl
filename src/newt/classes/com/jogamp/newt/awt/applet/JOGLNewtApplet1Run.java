@@ -32,6 +32,7 @@ import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.EventQueue;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -42,16 +43,18 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 
-import com.jogamp.common.os.Platform;
+import jogamp.nativewindow.jawt.JAWTUtil;
+
+import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
 
-/** 
+/**
  * Simple GLEventListener deployment as an applet using JOGL. This demo must be
  * referenced from a web page via an &lt;applet&gt; tag.
- * 
+ *
  *  <p>
- *  Example of an applet tag using GearsES2 within the applet area (normal case): 
+ *  Example of an applet tag using GearsES2 within the applet area (normal case):
  *  <pre>
         &lt;applet width=100 height=100&gt;
            &lt;param name="java_arguments" value="-Dsun.java2d.noddraw=true"&gt;
@@ -64,9 +67,9 @@ import com.jogamp.newt.opengl.GLWindow;
         &lt;/applet&gt;Hello Gears !
  *  </pre>
  *  </p>
- *  
+ *
  *  <p>
- *  Example of an applet tag using GearsES2 in an undecorated, translucent, closeable and always-on-top window: 
+ *  Example of an applet tag using GearsES2 in an undecorated, translucent, closeable and always-on-top window:
  *  <pre>
         &lt;applet width=1 height=1&gt;
            &lt;param name="java_arguments" value="-Dsun.java2d.noddraw=true"&gt;
@@ -94,21 +97,22 @@ import com.jogamp.newt.opengl.GLWindow;
 @SuppressWarnings("serial")
 public class JOGLNewtApplet1Run extends Applet {
     public static final boolean DEBUG = JOGLNewtAppletBase.DEBUG;
-    
+
     GLWindow glWindow = null;
     NewtCanvasAWT newtCanvasAWT = null;
     JOGLNewtAppletBase base = null;
     /** if valid glStandalone:=true (own window) ! */
-    int glXd=Integer.MAX_VALUE, glYd=Integer.MAX_VALUE, glWidth=Integer.MAX_VALUE, glHeight=Integer.MAX_VALUE; 
+    int glXd=Integer.MAX_VALUE, glYd=Integer.MAX_VALUE, glWidth=Integer.MAX_VALUE, glHeight=Integer.MAX_VALUE;
 
+    @Override
     public void init() {
         if(DEBUG) {
-            System.err.println("JOGLNewtApplet1Run.init() START");
+            System.err.println("JOGLNewtApplet1Run.init() START - "+currentThreadName());
         }
         if(!(this instanceof Container)) {
             throw new RuntimeException("This Applet is not a AWT Container");
         }
-        final Container container = (Container) this;
+        final Container container = this;
 
         String glEventListenerClazzName=null;
         String glProfileName=null;
@@ -134,7 +138,7 @@ public class JOGLNewtApplet1Run extends Applet {
             glCloseable = JOGLNewtAppletBase.str2Bool(getParameter("gl_closeable"), glCloseable);
             glOpaque = JOGLNewtAppletBase.str2Bool(getParameter("gl_opaque"), glOpaque);
             glAlphaBits = JOGLNewtAppletBase.str2Int(getParameter("gl_alpha"), glAlphaBits);
-            glNumMultisampleBuffer = JOGLNewtAppletBase.str2Int(getParameter("gl_multisamplebuffer"), glNumMultisampleBuffer); 
+            glNumMultisampleBuffer = JOGLNewtAppletBase.str2Int(getParameter("gl_multisamplebuffer"), glNumMultisampleBuffer);
             glXd = JOGLNewtAppletBase.str2Int(getParameter("gl_dx"), glXd);
             glYd = JOGLNewtAppletBase.str2Int(getParameter("gl_dy"), glYd);
             glWidth = JOGLNewtAppletBase.str2Int(getParameter("gl_width"), glWidth);
@@ -167,8 +171,8 @@ public class JOGLNewtApplet1Run extends Applet {
             System.err.println("glNumMultisampleBuffer: "+glNumMultisampleBuffer);
             System.err.println("glNoDefaultKeyListener: "+glNoDefaultKeyListener);
         }
-        
-        base = new JOGLNewtAppletBase(glEventListenerClazzName, 
+
+        base = new JOGLNewtAppletBase(glEventListenerClazzName,
                                       glSwapInterval,
                                       glNoDefaultKeyListener,
                                       glCloseable,
@@ -190,10 +194,13 @@ public class JOGLNewtApplet1Run extends Applet {
             glWindow.setDefaultCloseOperation(glCloseable ? WindowClosingMode.DISPOSE_ON_CLOSE : WindowClosingMode.DO_NOTHING_ON_CLOSE);
             container.setLayout(new BorderLayout());
             if(appletDebugTestBorder) {
-                container.add(new Button("North"), BorderLayout.NORTH);
-                container.add(new Button("South"), BorderLayout.SOUTH);
-                container.add(new Button("East"), BorderLayout.EAST);
-                container.add(new Button("West"), BorderLayout.WEST);
+                AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+                    public void run() {
+                        container.add(new Button("North"), BorderLayout.NORTH);
+                        container.add(new Button("South"), BorderLayout.SOUTH);
+                        container.add(new Button("East"), BorderLayout.EAST);
+                        container.add(new Button("West"), BorderLayout.WEST);
+                    } } );
             }
             base.init(glWindow);
             if(base.isValid()) {
@@ -210,31 +217,44 @@ public class JOGLNewtApplet1Run extends Applet {
                 }
             }
             if( !glStandalone ) {
-                newtCanvasAWT = new NewtCanvasAWT(glWindow);
-                container.add(newtCanvasAWT, BorderLayout.CENTER);
-                container.validate();
+                AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+                    public void run() {
+                        newtCanvasAWT = new NewtCanvasAWT(glWindow);
+                        newtCanvasAWT.setSkipJAWTDestroy(true); // Bug 910
+                        container.add(newtCanvasAWT, BorderLayout.CENTER);
+                        container.validate();
+                    } } );
             }
         } catch (Throwable t) {
             throw new RuntimeException(t);
         }
         if(DEBUG) {
-            System.err.println("JOGLNewtApplet1Run.init() END");
+            System.err.println("JOGLNewtApplet1Run.init() END - "+currentThreadName());
         }
     }
 
+    private static String currentThreadName() { return "["+Thread.currentThread().getName()+", isAWT-EDT "+EventQueue.isDispatchThread()+"]"; }
+
+    @Override
     public void start() {
         if(DEBUG) {
-            System.err.println("JOGLNewtApplet1Run.start() START (isVisible "+isVisible()+", isDisplayable "+isDisplayable()+")");
+            System.err.println("JOGLNewtApplet1Run.start() START (isVisible "+isVisible()+", isDisplayable "+isDisplayable()+") - "+currentThreadName());
         }
-        this.setVisible(true);
-        final java.awt.Point p0 = this.getLocationOnScreen();
-        if( null != newtCanvasAWT ) {
-            newtCanvasAWT.setFocusable(true);
-            newtCanvasAWT.requestFocus();
-        } else {
+        final java.awt.Point[] p0 = { null };
+        AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+            public void run() {
+                setVisible(true);
+                p0[0] = getLocationOnScreen();
+                if( null != newtCanvasAWT ) {
+                    newtCanvasAWT.setFocusable(true);
+                    newtCanvasAWT.requestFocus();
+                }
+            }
+        });
+        if( null == newtCanvasAWT ) {
             glWindow.requestFocus();
             glWindow.setSize(glWidth, glHeight);
-            glWindow.setPosition(p0.x+glXd, p0.y+glYd);
+            glWindow.setPosition(p0[0].x+glXd, p0[0].y+glYd);
         }
         if(DEBUG) {
             Component topC = this;
@@ -251,43 +271,54 @@ public class JOGLNewtApplet1Run extends Applet {
             System.err.println("GLWindow: "+glWindow);
         }
         base.start();
-        if( null != newtCanvasAWT && Platform.OSType.MACOS == Platform.getOSType() && newtCanvasAWT.isOffscreenLayerSurfaceEnabled() ) {
+        if( null != newtCanvasAWT &&
+            newtCanvasAWT.isOffscreenLayerSurfaceEnabled() &&
+            0 != ( JAWTUtil.JAWT_OSX_CALAYER_QUIRK_POSITION & JAWTUtil.getOSXCALayerQuirks() ) ) {
             // force relayout
-            final int cW = newtCanvasAWT.getWidth();
-            final int cH = newtCanvasAWT.getHeight();
-            newtCanvasAWT.setSize(cW+1, cH+1);
-            newtCanvasAWT.setSize(cW, cH);
+            AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+                public void run() {
+                    final int cW = newtCanvasAWT.getWidth();
+                    final int cH = newtCanvasAWT.getHeight();
+                    newtCanvasAWT.setSize(cW+1, cH+1);
+                    newtCanvasAWT.setSize(cW, cH);
+                } } );
         }
         if(DEBUG) {
-            System.err.println("JOGLNewtApplet1Run.start() END");
+            System.err.println("JOGLNewtApplet1Run.start() END - "+currentThreadName());
         }
     }
 
+    @Override
     public void stop() {
         if(DEBUG) {
-            System.err.println("JOGLNewtApplet1Run.stop() START");
+            System.err.println("JOGLNewtApplet1Run.stop() START - "+currentThreadName());
         }
         base.stop();
         if(DEBUG) {
-            System.err.println("JOGLNewtApplet1Run.stop() END");
+            System.err.println("JOGLNewtApplet1Run.stop() END - "+currentThreadName());
         }
     }
 
+    @Override
     public void destroy() {
         if(DEBUG) {
-            System.err.println("JOGLNewtApplet1Run.destroy() START");
+            System.err.println("JOGLNewtApplet1Run.destroy() START - "+currentThreadName());
         }
-        glWindow.setVisible(false); // hide 1st
-        if( null != newtCanvasAWT ) {
-            glWindow.reparentWindow(null); // get out of newtCanvasAWT
-            this.remove(newtCanvasAWT); // remove newtCanvasAWT
-        }
+        AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+            public void run() {
+                glWindow.setVisible(false); // hide 1st
+                if( null != newtCanvasAWT ) {
+                    newtCanvasAWT.setSkipJAWTDestroy(false); // Bug 910
+                    remove(newtCanvasAWT); // remove newtCanvasAWT incl. glWindow.reparentWindow(null) if not done yet!
+                    newtCanvasAWT.destroy();
+                }
+            } } );
         base.destroy(); // destroy glWindow unrecoverable
         base=null;
         glWindow=null;
         newtCanvasAWT=null;
         if(DEBUG) {
-            System.err.println("JOGLNewtApplet1Run.destroy() END");
+            System.err.println("JOGLNewtApplet1Run.destroy() END - "+currentThreadName());
         }
     }
 }

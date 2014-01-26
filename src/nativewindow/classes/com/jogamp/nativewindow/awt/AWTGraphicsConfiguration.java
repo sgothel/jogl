@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -57,7 +57,7 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
   private GraphicsConfiguration config;
   AbstractGraphicsConfiguration encapsulated;
 
-  public AWTGraphicsConfiguration(AWTGraphicsScreen screen, 
+  public AWTGraphicsConfiguration(AWTGraphicsScreen screen,
                                   CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
                                   GraphicsConfiguration config, AbstractGraphicsConfiguration encapsulated) {
     super(screen, capsChosen, capsRequested);
@@ -71,9 +71,9 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
     this.config = config;
     this.encapsulated=null;
   }
-  
+
   /**
-   * @param capsChosen if null, <code>capsRequested</code> is copied and aligned 
+   * @param capsChosen if null, <code>capsRequested</code> is copied and aligned
    *        with the graphics {@link Capabilities} of the AWT Component to produce the chosen {@link Capabilities}.
    *        Otherwise the <code>capsChosen</code> is used.
    * @param capsRequested if null, default {@link Capabilities} are used, otherwise the given values.
@@ -81,7 +81,7 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
   public static AWTGraphicsConfiguration create(Component awtComp, CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested) {
       final GraphicsConfiguration awtGfxConfig = awtComp.getGraphicsConfiguration();
       if(null==awtGfxConfig) {
-          throw new NativeWindowException("AWTGraphicsConfiguration.create: Null AWT GraphicsConfiguration @ "+awtComp);          
+          throw new NativeWindowException("AWTGraphicsConfiguration.create: Null AWT GraphicsConfiguration @ "+awtComp);
       }
       final GraphicsDevice awtGraphicsDevice = awtGfxConfig.getDevice();
       if(null==awtGraphicsDevice) {
@@ -109,10 +109,11 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
   }
 
   // open access to superclass method
+  @Override
   public void setChosenCapabilities(CapabilitiesImmutable capsChosen) {
       super.setChosenCapabilities(capsChosen);
   }
-  
+
   @Override
   public Object clone() {
       return super.clone();
@@ -171,7 +172,7 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
   public String toString() {
     return getClass().getSimpleName()+"[" + getScreen() +
                                    ",\n\tchosen    " + capabilitiesChosen+
-                                   ",\n\trequested " + capabilitiesRequested+ 
+                                   ",\n\trequested " + capabilitiesRequested+
                                    ",\n\t" + config +
                                    ",\n\tencapsulated "+encapsulated+"]";
   }

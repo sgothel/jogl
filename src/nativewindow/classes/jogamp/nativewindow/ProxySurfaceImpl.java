@@ -40,12 +40,12 @@ import javax.media.nativewindow.UpstreamSurfaceHook;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 
-public abstract class ProxySurfaceImpl implements ProxySurface {    
+public abstract class ProxySurfaceImpl implements ProxySurface {
     private final SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
     private AbstractGraphicsConfiguration config; // control access due to delegation
     private UpstreamSurfaceHook upstream;
     private long surfaceHandle_old;
-    private RecursiveLock surfaceLock = LockFactory.createRecursiveLock();
+    private final RecursiveLock surfaceLock = LockFactory.createRecursiveLock();
     private int implBitfield;
     private boolean upstreamSurfaceHookLifecycleEnabled;
 
@@ -70,15 +70,15 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
         this.upstreamSurfaceHookLifecycleEnabled = true;
         if(ownsDevice) {
             addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_DEVICE );
-        }        
+        }
     }
 
     @Override
     public NativeSurface getUpstreamSurface() { return null; }
-    
+
     @Override
     public final UpstreamSurfaceHook getUpstreamSurfaceHook() { return upstream; }
-            
+
     @Override
     public void setUpstreamSurfaceHook(UpstreamSurfaceHook hook) {
         if(null == hook) {
@@ -86,14 +86,14 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
         }
         upstream = hook;
     }
-        
+
     @Override
     public final void enableUpstreamSurfaceHookLifecycle(boolean enable) {
         upstreamSurfaceHookLifecycleEnabled = enable;
     }
-    
+
     @Override
-    public void createNotify() {        
+    public void createNotify() {
         if(upstreamSurfaceHookLifecycleEnabled) {
             upstream.create(this);
         }
@@ -113,17 +113,13 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
         }
         this.surfaceHandle_old = 0;
     }
-    
-    /** 
+
+    /**
      * Must be overridden by implementations allowing having a {@link UpstreamSurfaceHook} being passed.
-     * @see #destroyNotify() 
+     * @see #destroyNotify()
      */
     protected void invalidateImpl() {
-        throw new InternalError("UpstreamSurfaceHook given, but required method not implemented.");        
-    }
-    
-    protected final AbstractGraphicsConfiguration getPrivateGraphicsConfiguration() {
-        return config;
+        throw new InternalError("UpstreamSurfaceHook given, but required method not implemented.");
     }
 
     @Override
@@ -140,7 +136,7 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
     public final void setGraphicsConfiguration(AbstractGraphicsConfiguration cfg) {
         config = cfg;
     }
-    
+
     @Override
     public final int getScreenIndex() {
         return getGraphicsConfiguration().getScreen().getIndex();
@@ -151,7 +147,7 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
 
     @Override
     public abstract void setSurfaceHandle(long surfaceHandle);
-    
+
     @Override
     public final int getWidth() {
         return upstream.getWidth(this);
@@ -252,7 +248,8 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
     public final Thread getSurfaceLockOwner() {
         return surfaceLock.getOwner();
     }
-    
+
+    @Override
     public final StringBuilder getUpstreamOptionBits(StringBuilder sink) {
         if(null == sink) {
             sink = new StringBuilder();
@@ -284,21 +281,21 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
         sink.append(" ]");
         return sink;
     }
-    
+
     @Override
     public final int getUpstreamOptionBits() { return implBitfield; }
-    
+
     @Override
     public final boolean containsUpstreamOptionBits(int v) {
         return v == ( implBitfield & v ) ;
     }
-    
+
     @Override
     public final void addUpstreamOptionBits(int v) { implBitfield |= v; }
-    
+
     @Override
     public final void clearUpstreamOptionBits(int v) { implBitfield &= ~v; }
-    
+
     @Override
     public StringBuilder toString(StringBuilder sink) {
         if(null == sink) {
@@ -315,7 +312,7 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
         // append("\n, upstreamSurface "+getUpstreamSurface());
         return sink;
     }
-    
+
     @Override
     public String toString() {
         StringBuilder msg = new StringBuilder();

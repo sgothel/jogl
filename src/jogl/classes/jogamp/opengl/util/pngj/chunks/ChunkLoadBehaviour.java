@@ -15,7 +15,7 @@ public enum ChunkLoadBehaviour {
 	 */
 	LOAD_CHUNK_KNOWN,
 	/**
-	 * 
+	 *
 	 * Load chunk if "known" or "safe to copy".
 	 */
 	LOAD_CHUNK_IF_SAFE,

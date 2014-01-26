@@ -52,7 +52,7 @@ public class Patchlist {
   private Patch patch;
 
   /**
-   * Makes new list of patches 
+   * Makes new list of patches
    * @param quilts list of quilts
    * @param pta low border
    * @param ptb high border

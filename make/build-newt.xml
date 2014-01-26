@@ -103,7 +103,7 @@
                   value="com/jogamp/newt/* com/jogamp/newt/event/* com/jogamp/newt/util/* jogamp/newt/* jogamp/newt/event/* jogamp/newt/driver/*"/>
 
         <property name="java.part.opengl"
-                  value="com/jogamp/newt/opengl/**"/>
+                  value="com/jogamp/newt/opengl/** jogamp/newt/driver/opengl/**"/>
 
         <property name="java.part.driver.awt"
                   value="jogamp/newt/driver/awt/**"/>
@@ -277,12 +277,14 @@
         <linkerarg value="-L/usr/local/lib"/>
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
+        <syslibset libs="Xcursor"/>
       </linker>
 
       <linker id="linker.cfg.freebsd.amd64.newt.x11" extends="linker.cfg.freebsd.amd64">
         <linkerarg value="-L/usr/local/lib"/>
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
+        <syslibset libs="Xcursor"/>
       </linker>
 
       <linker id="linker.cfg.linux.newt.bcm_egl" extends="linker.cfg.linux">
@@ -302,6 +304,7 @@
       <linker id="linker.cfg.linux.newt.x11" extends="linker.cfg.linux">
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
+        <syslibset libs="Xcursor"/>
         <!--syslibset libs="xcb" /-->
         <!--syslibset libs="X11-xcb" /-->
       </linker>
@@ -309,6 +312,7 @@
       <linker id="linker.cfg.linux.x86.newt.x11" extends="linker.cfg.linux.x86">
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
+        <syslibset libs="Xcursor"/>
         <!--syslibset libs="xcb" /-->
         <!--syslibset libs="X11-xcb" /-->
       </linker>
@@ -316,6 +320,7 @@
       <linker id="linker.cfg.linux.amd64.newt.x11" extends="linker.cfg.linux.amd64">
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
+        <syslibset libs="Xcursor"/>
         <!--syslibset libs="xcb" /-->
         <!--syslibset libs="X11-xcb" /-->
       </linker>
@@ -323,6 +328,7 @@
       <linker id="linker.cfg.linux.armv6.newt.x11" extends="linker.cfg.linux.armv6">
         <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="X11" />
         <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xrandr" />
+        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xcursor" />
       </linker>
 
       <linker id="linker.cfg.android.newt" extends="linker.cfg.android">
@@ -332,18 +338,21 @@
       <linker id="linker.cfg.solaris.newt.x11" extends="linker.cfg.solaris">
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
+        <syslibset libs="Xcursor"/>
       </linker>
 
       <linker id="linker.cfg.solaris.sparcv9.newt.x11" extends="linker.cfg.solaris.sparcv9">
         <linkerarg value="-L/usr/lib/sparcv9"/>
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
+        <syslibset libs="Xcursor"/>
       </linker>
 
       <linker id="linker.cfg.solaris.amd64.newt.x11" extends="linker.cfg.solaris.amd64">
         <linkerarg value="-L/usr/lib/amd64"/>
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
+        <syslibset libs="Xcursor"/>
       </linker>
 
       <linker id="linker.cfg.win32.mingw.newt" extends="linker.cfg.win32.mingw">
@@ -685,26 +694,14 @@
     <target name="c.build.newt.prepare">
       <javah destdir="${src.generated.c}/KD"          classpath="${javah.classpath}" class="jogamp.newt.driver.kd.WindowDriver" />
 
-      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${javah.classpath}" class="jogamp.newt.driver.intel.gdl.DisplayDriver" />
-      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${javah.classpath}" class="jogamp.newt.driver.intel.gdl.ScreenDriver" />
-      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${javah.classpath}" class="jogamp.newt.driver.intel.gdl.WindowDriver" />
+      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${javah.classpath}" class="jogamp.newt.driver.intel.gdl.DisplayDriver, jogamp.newt.driver.intel.gdl.ScreenDriver, jogamp.newt.driver.intel.gdl.WindowDriver" />
 
       <javah destdir="${src.generated.c}/bcm/egl"     classpath="${javah.classpath}" class="jogamp.newt.driver.bcm.egl.WindowDriver" />
-      <javah destdir="${src.generated.c}/bcm/vc/iv"   classpath="${javah.classpath}" class="jogamp.newt.driver.bcm.vc.iv.DisplayDriver" />
-      <javah destdir="${src.generated.c}/bcm/vc/iv"   classpath="${javah.classpath}" class="jogamp.newt.driver.bcm.vc.iv.ScreenDriver" />
-      <javah destdir="${src.generated.c}/bcm/vc/iv"   classpath="${javah.classpath}" class="jogamp.newt.driver.bcm.vc.iv.WindowDriver" />
+      <javah destdir="${src.generated.c}/bcm/vc/iv"   classpath="${javah.classpath}" class="jogamp.newt.driver.bcm.vc.iv.DisplayDriver, jogamp.newt.driver.bcm.vc.iv.ScreenDriver, jogamp.newt.driver.bcm.vc.iv.WindowDriver" />
 
-      <javah destdir="${src.generated.c}/Windows"     classpath="${javah.classpath}" class="jogamp.newt.driver.windows.WindowDriver" />
-      <javah destdir="${src.generated.c}/Windows"     classpath="${javah.classpath}" class="jogamp.newt.driver.windows.ScreenDriver" />
-      <javah destdir="${src.generated.c}/Windows"     classpath="${javah.classpath}" class="jogamp.newt.driver.windows.DisplayDriver" />
-      <javah destdir="${src.generated.c}/MacOSX"      classpath="${javah.classpath}" class="jogamp.newt.driver.macosx.WindowDriver" />
-      <javah destdir="${src.generated.c}/MacOSX"      classpath="${javah.classpath}" class="jogamp.newt.driver.macosx.ScreenDriver" />
-      <javah destdir="${src.generated.c}/MacOSX"      classpath="${javah.classpath}" class="jogamp.newt.driver.macosx.DisplayDriver" />
-      <javah destdir="${src.generated.c}/X11"         classpath="${javah.classpath}" class="jogamp.newt.driver.x11.WindowDriver" />
-      <javah destdir="${src.generated.c}/X11"         classpath="${javah.classpath}" class="jogamp.newt.driver.x11.ScreenDriver" />
-      <javah destdir="${src.generated.c}/X11"         classpath="${javah.classpath}" class="jogamp.newt.driver.x11.RandR11" />
-      <javah destdir="${src.generated.c}/X11"         classpath="${javah.classpath}" class="jogamp.newt.driver.x11.RandR13" />
-      <javah destdir="${src.generated.c}/X11"         classpath="${javah.classpath}" class="jogamp.newt.driver.x11.DisplayDriver" />
+      <javah destdir="${src.generated.c}/Windows"     classpath="${javah.classpath}" class="jogamp.newt.driver.windows.WindowDriver, jogamp.newt.driver.windows.ScreenDriver, jogamp.newt.driver.windows.DisplayDriver" />
+      <javah destdir="${src.generated.c}/MacOSX"      classpath="${javah.classpath}" class="jogamp.newt.driver.macosx.WindowDriver, jogamp.newt.driver.macosx.ScreenDriver, jogamp.newt.driver.macosx.DisplayDriver" />
+      <javah destdir="${src.generated.c}/X11"         classpath="${javah.classpath}" class="jogamp.newt.driver.x11.WindowDriver, jogamp.newt.driver.x11.ScreenDriver, jogamp.newt.driver.x11.RandR11, jogamp.newt.driver.x11.RandR13, jogamp.newt.driver.x11.DisplayDriver" />
     </target>
 
     <target name="c.build.newt.prepare.android" if="isAndroid">
@@ -810,6 +807,7 @@
         <jar manifest="${build.newt}/manifest.mf" destfile="${newt-core.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"/>
+            <fileset dir="resources/assets" includes="newt/data/**" />
         </jar>
         <jar manifest="${build.newt}/manifest.mf" destfile="${newt-event.jar}" filesonly="true">
             <fileset dir="${classes}">

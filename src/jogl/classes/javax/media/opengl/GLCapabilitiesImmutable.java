@@ -37,13 +37,13 @@ import javax.media.nativewindow.CapabilitiesImmutable;
  * @see javax.media.nativewindow.CapabilitiesImmutable
  */
 public interface GLCapabilitiesImmutable extends CapabilitiesImmutable {
-    /** 
-     * One of the platform's default sample extension 
+    /**
+     * One of the platform's default sample extension
      * <code>EGL.EGL_SAMPLES, GLX.GLX_SAMPLES, WGLExt.WGL_SAMPLES_ARB</code>
      * if available, or any other <i>known</i> fallback one, ie <code>EGLExt.EGL_COVERAGE_SAMPLES_NV</code>
      */
     public static final String DEFAULT_SAMPLE_EXTENSION = "default" ;
-    
+
     /**
      * Returns the GL profile you desire or used by the drawable.
      */
@@ -110,10 +110,10 @@ public interface GLCapabilitiesImmutable extends CapabilitiesImmutable {
      * </p>
      */
     String getSampleExtension();
-    
+
     /**
      * Returns whether sample buffers for full-scene antialiasing
-     * (FSAA) should be allocated for this drawable. 
+     * (FSAA) should be allocated for this drawable.
      * <p>
      * Default is false.
      * </p>

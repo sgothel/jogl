@@ -15,6 +15,8 @@ import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.util.glsl.ShaderUtil;
 
@@ -24,6 +26,7 @@ import java.io.IOException;
  * Bug 'Function glTransformFeedbackVaryings incorrectly passes argument'
  * http://jogamp.org/bugzilla/show_bug.cgi?id=407
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestTransformFeedbackVaryingsBug407NEWT extends UITestCase {
 
     private static final boolean debugGL = true;

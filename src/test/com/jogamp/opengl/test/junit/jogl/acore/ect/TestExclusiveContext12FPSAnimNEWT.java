@@ -34,10 +34,13 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.util.AnimatorBase;
 import com.jogamp.opengl.util.FPSAnimator;
 
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  * ExclusiveContextThread base implementation to test performance impact of the ExclusiveContext feature with FPSAnimator and NEWT. 
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestExclusiveContext12FPSAnimNEWT extends ExclusiveContextBase10NEWT {    
         
     @Override

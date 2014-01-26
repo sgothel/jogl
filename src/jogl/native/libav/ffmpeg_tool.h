@@ -41,27 +41,112 @@
 #include <gluegen_stddef.h>
 #include <gluegen_stdint.h>
 
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
+#include "libavcodec/avcodec.h"
+#include "libavformat/avformat.h"
+#include "libavutil/avutil.h"
+#if LIBAVCODEC_VERSION_MAJOR >= 54
+    #include "libavresample/avresample.h"
+    #include "libswresample/swresample.h"
+#endif
+
+#ifndef LIBAVRESAMPLE_VERSION_MAJOR
+#define LIBAVRESAMPLE_VERSION_MAJOR -1
+// Opaque
+typedef void* AVAudioResampleContext;
+#endif
+#ifndef LIBSWRESAMPLE_VERSION_MAJOR
+#define LIBSWRESAMPLE_VERSION_MAJOR -1
+// Opaque
+typedef struct SwrContext SwrContext;
+#endif
 
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <GL/gl.h>
+
+typedef void (APIENTRYP PFNGLTEXSUBIMAGE2DPROC) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *pixels);
+typedef GLenum (APIENTRYP PFNGLGETERRORPROC) (void);
+typedef void (APIENTRYP PFNGLFLUSH) (void);
+typedef void (APIENTRYP PFNGLFINISH) (void);
 
 /**
  *  AV_TIME_BASE   1000000
  */
 #define AV_TIME_BASE_MSEC    (AV_TIME_BASE/1000)
 
+#define AV_VERSION_MAJOR(i) ( ( i >> 16 ) & 0xFF )
+#define AV_VERSION_MINOR(i) ( ( i >>  8 ) & 0xFF )
+#define AV_VERSION_SUB(i)   ( ( i >>  0 ) & 0xFF )
+
+/** Sync w/ GLMediaPlayer.STREAM_ID_NONE */
+#define AV_STREAM_ID_NONE -2
+
+/** Sync w/ GLMediaPlayer.STREAM_ID_AUTO */
+#define AV_STREAM_ID_AUTO -1
+
+/** Default number of audio frames per video frame. Sync w/ FFMPEGMediaPlayer.AV_DEFAULT_AFRAMES. */
+#define AV_DEFAULT_AFRAMES 8
+
+/** Constant PTS marking an invalid PTS, i.e. Integer.MIN_VALUE == 0x80000000 == {@value}. Sync w/ TimeFrameI.INVALID_PTS */
+#define INVALID_PTS 0x80000000
+
+/** Constant PTS marking the end of the stream, i.e. Integer.MIN_VALUE - 1 == 0x7FFFFFFF == {@value}. Sync w/ TimeFrameI.END_OF_STREAM_PTS */
+#define END_OF_STREAM_PTS 0x7FFFFFFF
+
+/** Since 54.0.0.1 */
+#define AV_HAS_API_AVRESAMPLE(pAV) ( ( LIBAVRESAMPLE_VERSION_MAJOR >= 0 ) && ( pAV->avresampleVersion != 0 ) )
+
+/** Since 55.0.0.1 */
+#define AV_HAS_API_SWRESAMPLE(pAV) ( ( LIBSWRESAMPLE_VERSION_MAJOR >= 0 ) && ( pAV->swresampleVersion != 0 ) )
+
+#define MAX_INT(a,b) ( (a >= b) ? a : b )
+#define MIN_INT(a,b) ( (a <= b) ? a : b )
+
 static inline float my_av_q2f(AVRational a){
-    return a.num / (float) a.den;
+    return (float)a.num / (float)a.den;
 }
-static inline int32_t my_av_q2i32(int32_t snum, AVRational a){
-    return (snum * a.num) / a.den;
+static inline float my_av_q2f_r(AVRational a){
+    return (float)a.den / (float)a.num;
+}
+static inline int32_t my_av_q2i32(int64_t snum, AVRational a){
+    return (int32_t) ( ( snum * (int64_t) a.num ) / (int64_t)a.den );
+}
+static inline int my_align(int v, int a){
+    return ( v + a - 1 ) & ~( a - 1 );
 }
 
 typedef struct {
+    void *origPtr;
+    jobject nioRef;
+    int32_t size;
+} NIOBuffer_t;
+
+typedef struct {
+    int64_t ptsError; // Number of backward PTS values (earlier than last PTS, excluding AV_NOPTS_VALUE)
+    int64_t dtsError; // Number of backward DTS values (earlier than last PTS, excluding AV_NOPTS_VALUE)
+    int64_t ptsLast;  // PTS of the last frame
+    int64_t dtsLast;  // DTS of the last frame
+} PTSStats;
+
+
+typedef struct {
+    jobject          ffmpegMediaPlayer;
     int32_t          verbose;
+
+    uint32_t         avcodecVersion;
+    uint32_t         avformatVersion;
+    uint32_t         avutilVersion;
+    uint32_t         avresampleVersion;
+    uint32_t         swresampleVersion;
+
+    int32_t          useRefCountedFrames;
+
+    PFNGLTEXSUBIMAGE2DPROC procAddrGLTexSubImage2D;
+    PFNGLGETERRORPROC procAddrGLGetError;
+    PFNGLFLUSH procAddrGLFlush;
+    PFNGLFINISH procAddrGLFinish;
 
     AVFormatContext* pFormatCtx;
     int32_t          vid;
@@ -74,28 +159,40 @@ typedef struct {
     uint32_t         vBytesPerPixelPerPlane;
     enum PixelFormat vPixFmt;    // native decoder fmt
     int32_t          vPTS;       // msec - overall last video PTS
-    int32_t          vLinesize[3];  // decoded video linesize in bytes for each plane
-    int32_t          vTexWidth[3];  // decoded video tex width in bytes for each plane
-
+    PTSStats         vPTSStats;
+    int32_t          vTexWidth[4];  // decoded video tex width in bytes for each plane (max 4)
+    int32_t          vWidth;
+    int32_t          vHeight;
+    jboolean         vFlipped;      // false: !GL-Orientation, true: GL-Orientation
 
     int32_t          aid;
     AVStream*        pAStream;
     AVCodecContext*  pACodecCtx;
     AVCodec*         pACodec;
     AVFrame**        pAFrames;
+    NIOBuffer_t*     pANIOBuffers;
     int32_t          aFrameCount;
     int32_t          aFrameCurrent;
+    int32_t          aFrameSize; // in samples per channel!
+    enum AVSampleFormat aSampleFmt; // native decoder fmt
     int32_t          aSampleRate;
     int32_t          aChannels;
-    int32_t          aFrameSize;
-    enum AVSampleFormat aSampleFmt; // native decoder fmt
+    int32_t          aSinkSupport; // supported by AudioSink
+    AVAudioResampleContext* avResampleCtx;
+    struct SwrContext*      swResampleCtx;
+    uint8_t*         aResampleBuffer;
+    enum AVSampleFormat aSampleFmtOut; // out fmt
+    int32_t          aChannelsOut;
+    int32_t          aSampleRateOut;
     int32_t          aPTS;       // msec - overall last audio PTS
+    PTSStats         aPTSStats;
 
     float            fps;        // frames per seconds
     int32_t          bps_stream; // bits per seconds
     int32_t          bps_video;  // bits per seconds
     int32_t          bps_audio;  // bits per seconds
-    int32_t          totalFrames;
+    int32_t          frames_video;
+    int32_t          frames_audio;
     int32_t          duration;   // msec
     int32_t          start_time; // msec
 

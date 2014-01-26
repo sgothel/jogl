@@ -25,7 +25,7 @@ public class ImageLine {
 	 * Except for 'packed' formats (gray/indexed with 1-2-4 bitdepth) each
 	 * <code>int</code> is a "sample" (one for channel), (0-255 or 0-65535) in
 	 * the corresponding PNG sequence: <code>R G B R G B...</code> or
-	 * <code>R G B A R G B A...</tt> 
+	 * <code>R G B A R G B A...</tt>
 	 * or <code>g g g ...</code> or <code>i i i</code> (palette index)
 	 * <p>
 	 * For bitdepth=1/2/4 , and if samplesUnpacked=false, each value is a PACKED
@@ -60,7 +60,7 @@ public class ImageLine {
 	/**
 	 * true: each element of the scanline array represents a sample always, even
 	 * for internally packed PNG formats
-	 * 
+	 *
 	 * false: if the original image was of packed type (bit depth less than 8)
 	 * we keep samples packed in a single array element
 	 */
@@ -74,7 +74,7 @@ public class ImageLine {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param imgInfo
 	 *            Inmutable ImageInfo, basic parameter of the image we are
 	 *            reading or writing
@@ -84,7 +84,7 @@ public class ImageLine {
 	 * @param unpackedMode
 	 *            If true, we use unpacked format, even for packed original
 	 *            images
-	 * 
+	 *
 	 */
 	public ImageLine(ImageInfo imgInfo, SampleType stype, boolean unpackedMode) {
 		this(imgInfo, stype, unpackedMode, null, null);
@@ -124,13 +124,13 @@ public class ImageLine {
 
 	/*
 	 * Unpacks scanline (for bitdepth 1-2-4)
-	 * 
+	 *
 	 * Arrays must be prealocated. src : samplesPerRowPacked dst : samplesPerRow
-	 * 
+	 *
 	 * This usually works in place (with src==dst and length=samplesPerRow)!
-	 * 
+	 *
 	 * If not, you should only call this only when necesary (bitdepth <8)
-	 * 
+	 *
 	 * If <code>scale==true<code>, it scales the value (just a bit shift) towards 0-255.
 	 */
 	static void unpackInplaceInt(final ImageInfo iminfo, final int[] src, final int[] dst, final boolean scale) {
@@ -165,15 +165,15 @@ public class ImageLine {
 
 	/*
 	 * Unpacks scanline (for bitdepth 1-2-4)
-	 * 
+	 *
 	 * Arrays must be prealocated. src : samplesPerRow dst : samplesPerRowPacked
-	 * 
+	 *
 	 * This usually works in place (with src==dst and length=samplesPerRow)! If not, you should only call this only when
 	 * necesary (bitdepth <8)
-	 * 
+	 *
 	 * The trailing elements are trash
-	 * 
-	 * 
+	 *
+	 *
 	 * If <code>scale==true<code>, it scales the value (just a bit shift) towards 0-255.
 	 */
 	static void packInplaceInt(final ImageInfo iminfo, final int[] src, final int[] dst, final boolean scaled) {
@@ -270,7 +270,7 @@ public class ImageLine {
 
 	/**
 	 * Creates a new ImageLine similar to this, but unpacked
-	 * 
+	 *
 	 * The caller must be sure that the original was really packed
 	 */
 	public ImageLine unpackToNewImageLine() {
@@ -284,7 +284,7 @@ public class ImageLine {
 
 	/**
 	 * Creates a new ImageLine similar to this, but packed
-	 * 
+	 *
 	 * The caller must be sure that the original was really unpacked
 	 */
 	public ImageLine packToNewImageLine() {
@@ -315,6 +315,7 @@ public class ImageLine {
 	/**
 	 * Basic info
 	 */
+	@Override
 	public String toString() {
 		return "row=" + rown + " cols=" + imgInfo.cols + " bpc=" + imgInfo.bitDepth + " size=" + scanline.length;
 	}

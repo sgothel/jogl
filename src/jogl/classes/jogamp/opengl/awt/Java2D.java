@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,11 +28,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -116,6 +116,7 @@ public class Java2D {
 
   static {
     AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        @Override
         public Object run() {
           if (DEBUG) {
             System.err.println("Checking for Java2D/OpenGL support");
@@ -144,7 +145,7 @@ public class Java2D {
             } else {
                 if (DEBUG) {
                   System.err.println("Java2D support disabled: by Property "+java2dOGLDisabledByProp+", by OS "+java2dOGLDisabledByOS);
-                }                
+                }
                 cfg = null;
                 cfgName = "nil";
             }
@@ -154,8 +155,8 @@ public class Java2D {
               System.err.println("Java2D support: default GraphicsConfiguration = " + cfgName);
             }
             isOGLPipelineActive = cfgName.startsWith("sun.java2d.opengl");
-            isOGLPipelineResourceCompatible = isOGLPipelineActive; 
-            
+            isOGLPipelineResourceCompatible = isOGLPipelineActive;
+
             if (isOGLPipelineActive) {
               try {
                 // Try to get methods we need to integrate
@@ -179,19 +180,19 @@ public class Java2D {
                                                                      Integer.TYPE
                                                                    });
                     getOGLViewportMethod.setAccessible(true);
-    
+
                     getOGLScissorBoxMethod = utils.getDeclaredMethod("getOGLScissorBox",
                                                                      new Class[] {
                                                                        Graphics.class
                                                                      });
                     getOGLScissorBoxMethod.setAccessible(true);
-    
+
                     getOGLSurfaceIdentifierMethod = utils.getDeclaredMethod("getOGLSurfaceIdentifier",
                                                                             new Class[] {
                                                                               Graphics.class
                                                                             });
                     getOGLSurfaceIdentifierMethod.setAccessible(true);
-    
+
                     // Try to get additional methods required for proper FBO support
                     fbObjectSupportInitialized = true;
                     try {
@@ -201,7 +202,7 @@ public class Java2D {
                                                                                           Runnable.class
                                                                                         });
                       invokeWithOGLSharedContextCurrentMethod.setAccessible(true);
-    
+
                       getOGLSurfaceTypeMethod = utils.getDeclaredMethod("getOGLSurfaceType",
                                                                         new Class[] {
                                                                           Graphics.class
@@ -214,7 +215,7 @@ public class Java2D {
                         System.err.println("Info: Disabling Java2D/JOGL FBO support");
                       }
                     }
-    
+
                     // Try to get an additional method for FBO support in recent Mustang builds
                     try {
                       getOGLTextureTypeMethod = utils.getDeclaredMethod("getOGLTextureType",
@@ -228,7 +229,7 @@ public class Java2D {
                         System.err.println("Info: GL_ARB_texture_rectangle FBO support disabled");
                       }
                     }
-    
+
                     // Try to set up APIs for enabling the bridge on OS X,
                     // where it isn't possible to create generalized
                     // external GLDrawables
@@ -244,7 +245,7 @@ public class Java2D {
                     if (cglSurfaceData != null) {
                       // FIXME: for now, assume that FBO support is not enabled on OS X
                       fbObjectSupportInitialized = false;
-    
+
                       // We need to find these methods in order to make the bridge work on OS X
                       createOGLContextOnSurfaceMethod = cglSurfaceData.getDeclaredMethod("createOGLContextOnSurface",
                                                                                          new Class[] {
@@ -252,14 +253,14 @@ public class Java2D {
                                                                                            Long.TYPE
                                                                                          });
                       createOGLContextOnSurfaceMethod.setAccessible(true);
-    
+
                       makeOGLContextCurrentOnSurfaceMethod = cglSurfaceData.getDeclaredMethod("makeOGLContextCurrentOnSurface",
                                                                                               new Class[] {
                                                                                                 Graphics.class,
                                                                                                 Long.TYPE
                                                                                               });
                       makeOGLContextCurrentOnSurfaceMethod.setAccessible(true);
-    
+
                       destroyOGLContextMethod = cglSurfaceData.getDeclaredMethod("destroyOGLContext",
                                                                                  new Class[] {
                                                                                    Long.TYPE
@@ -273,7 +274,7 @@ public class Java2D {
                   System.err.println("Info: Disabling Java2D/JOGL integration");
                 }
                 isOGLPipelineActive = false;
-                isOGLPipelineResourceCompatible = false;                
+                isOGLPipelineResourceCompatible = false;
               }
             }
           } catch (HeadlessException e) {
@@ -297,7 +298,7 @@ public class Java2D {
   public static boolean isOGLPipelineActive() {
     return isOGLPipelineActive;
   }
-  
+
   public static boolean isOGLPipelineResourceCompatible() {
     return isOGLPipelineResourceCompatible;
   }
@@ -317,7 +318,7 @@ public class Java2D {
       throw (InternalError) new InternalError().initCause(e);
     }
   }
-  
+
   /** Makes current the OpenGL context associated with the passed
       Graphics object and runs the given Runnable on the Queue
       Flushing Thread in one atomic action. */
@@ -556,7 +557,7 @@ public class Java2D {
       throw new GLException("Java2D OpenGL pipeline not active");
     }
   }
-  
+
   private static void checkCompatible() {
     if ( !isOGLPipelineResourceCompatible() ) {
       throw new GLException("Java2D OpenGL pipeline not resource compatible");
@@ -565,6 +566,7 @@ public class Java2D {
 
   private static int getOGLUtilitiesIntField(final String name) {
     Integer i = AccessController.doPrivileged(new PrivilegedAction<Integer>() {
+        @Override
         public Integer run() {
           try {
             Class<?> utils = Class.forName("sun.java2d.opengl.OGLUtilities");
@@ -608,6 +610,7 @@ public class Java2D {
         System.err.println("Starting initialization of J2D FBO share context");
       }
       invokeWithOGLSharedContextCurrent(device.getDefaultConfiguration(), new Runnable() {
+          @Override
           public void run() {
             j2dFBOShareContext = GLDrawableFactory.getFactory(GLProfile.getDefault(GLProfile.getDefaultDevice())).createExternalGLContext();
           }

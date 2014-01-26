@@ -44,6 +44,7 @@ import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
@@ -70,12 +71,12 @@ public class EGLContext extends GLContextImpl {
     }
 
     @Override
-    protected void resetStates() {
+    protected void resetStates(boolean isInit) {
         eglQueryStringInitialized = false;
         eglQueryStringAvailable = false;
         eglExtProcAddressTable = null;
         // no inner state _eglExt = null;
-        super.resetStates();
+        super.resetStates(isInit);
     }
 
     @Override
@@ -115,7 +116,7 @@ public class EGLContext extends GLContextImpl {
         if (EGL.eglGetCurrentContext() != contextHandle) {
             final long dpy = drawable.getNativeSurface().getDisplayHandle();
             if (!EGL.eglMakeCurrent(dpy, drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
-                throw new GLException("Error making context " + toHexString(contextHandle) + 
+                throw new GLException("Error making context " + toHexString(contextHandle) +
                                       " current on Thread " + getThreadName() +
                                       " with display " + toHexString(dpy) +
                                       ", drawableWrite " + toHexString(drawable.getHandle()) +
@@ -128,20 +129,14 @@ public class EGLContext extends GLContextImpl {
     @Override
     protected void releaseImpl() throws GLException {
       if (!EGL.eglMakeCurrent(drawable.getNativeSurface().getDisplayHandle(), EGL.EGL_NO_SURFACE, EGL.EGL_NO_SURFACE, EGL.EGL_NO_CONTEXT)) {
-            throw new GLException("Error freeing OpenGL context " + toHexString(contextHandle) + 
+            throw new GLException("Error freeing OpenGL context " + toHexString(contextHandle) +
                                   ": error code " + toHexString(EGL.eglGetError()));
       }
     }
 
     @Override
     protected void destroyImpl() throws GLException {
-      if (!EGL.eglDestroyContext(drawable.getNativeSurface().getDisplayHandle(), contextHandle)) {
-          final int eglError = EGL.eglGetError();
-          if(EGL.EGL_SUCCESS != eglError) { /* oops, Mesa EGL impl. may return false, but has no EGL error */
-              throw new GLException("Error destroying OpenGL context " + toHexString(contextHandle) + 
-                                    ": error code " + toHexString(eglError));
-          }
-      }
+        destroyContextARBImpl(contextHandle);
     }
 
     @Override
@@ -151,16 +146,22 @@ public class EGLContext extends GLContextImpl {
 
     @Override
     protected void destroyContextARBImpl(long _context) {
-        // FIXME
+        if (!EGL.eglDestroyContext(drawable.getNativeSurface().getDisplayHandle(), _context)) {
+            final int eglError = EGL.eglGetError();
+            if(EGL.EGL_SUCCESS != eglError) { /* oops, Mesa EGL impl. may return false, but has no EGL error */
+                throw new GLException("Error destroying OpenGL context " + toHexString(_context) +
+                        ": error code " + toHexString(eglError));
+            }
+        }
     }
 
     @Override
-    protected boolean createImpl(GLContextImpl shareWith) throws GLException {
+    protected boolean createImpl(final long shareWithHandle) throws GLException {
         final EGLGraphicsConfiguration config = (EGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration();
         final long eglDisplay = config.getScreen().getDevice().getHandle();
         final GLProfile glProfile = drawable.getGLProfile();
         final long eglConfig = config.getNativeConfig();
-        long shareWithHandle = EGL.EGL_NO_CONTEXT;
+        // 0 == EGL.EGL_NO_CONTEXT;
 
         if ( 0 == eglDisplay ) {
             throw new GLException("Error: attempted to create an OpenGL context without a display connection");
@@ -180,19 +181,18 @@ public class EGLContext extends GLContextImpl {
             }
         }
 
-        if (shareWith != null) {
-            shareWithHandle = shareWith.getHandle();
-            if (shareWithHandle == 0) {
-                throw new GLException("GLContextShareSet returned an invalid OpenGL context");
-            }
-        }
+        // Cannot check extension 'EGL_KHR_create_context' before having one current!
 
         final IntBuffer contextAttrsNIO;
         final int contextVersionReq, contextVersionAttr;
         {
             if ( glProfile.usesNativeGLES3() ) {
                 contextVersionReq = 3;
-                contextVersionAttr = 2;
+                if( GLRendererQuirks.existStickyDeviceQuirk( GLDrawableFactory.getEGLFactory().getDefaultDevice(), GLRendererQuirks.GLES3ViaEGLES2Config) ) {
+                    contextVersionAttr = 2;
+                } else {
+                    contextVersionAttr = 3;
+                }
             } else if ( glProfile.usesNativeGLES2() ) {
                 contextVersionReq = 2;
                 contextVersionAttr = 2;
@@ -202,6 +202,7 @@ public class EGLContext extends GLContextImpl {
             } else {
                 throw new GLException("Error creating OpenGL context - invalid GLProfile: "+glProfile);
             }
+            // EGLExt.EGL_CONTEXT_MAJOR_VERSION_KHR == EGL.EGL_CONTEXT_CLIENT_VERSION
             final int[] contextAttrs = new int[] { EGL.EGL_CONTEXT_CLIENT_VERSION, contextVersionAttr, EGL.EGL_NONE };
             contextAttrsNIO = Buffers.newDirectIntBuffer(contextAttrs);
         }
@@ -222,7 +223,19 @@ public class EGLContext extends GLContextImpl {
             throw new GLException("Error making context " +
                                   toHexString(contextHandle) + " current: error code " + toHexString(EGL.eglGetError()));
         }
-        return setGLFunctionAvailability(true, contextVersionReq, 0, CTX_PROFILE_ES, contextVersionReq>=3); // strict match for es >= 3
+        if( !setGLFunctionAvailability(true, contextVersionReq, 0, CTX_PROFILE_ES,
+                                       true /* strictMatch */, // always req. strict match
+                                       false /* withinGLVersionsMapping */) ) {
+            if(DEBUG) {
+                System.err.println(getThreadName() + ": createImpl: setGLFunctionAvailability FAILED delete "+toHexString(contextHandle));
+            }
+            EGL.eglMakeCurrent(drawable.getNativeSurface().getDisplayHandle(), EGL.EGL_NO_SURFACE, EGL.EGL_NO_SURFACE, EGL.EGL_NO_CONTEXT);
+            EGL.eglDestroyContext(drawable.getNativeSurface().getDisplayHandle(), contextHandle);
+            contextHandle = 0;
+            return false;
+        } else {
+            return true;
+        }
     }
 
     @Override
@@ -285,11 +298,11 @@ public class EGLContext extends GLContextImpl {
     //
     // Accessible ..
     //
-    
+
     /* pp */ void mapCurrentAvailableGLVersion(AbstractGraphicsDevice device) {
         mapStaticGLVersion(device, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
     }
-    /* pp */ int getContextOptions() { return ctxOptions; }    
+    /* pp */ int getContextOptions() { return ctxOptions; }
     /* pp */ static void mapStaticGLESVersion(AbstractGraphicsDevice device, GLCapabilitiesImmutable caps) {
         final GLProfile glp = caps.getGLProfile();
         final int[] reqMajorCTP = new int[2];
@@ -305,39 +318,35 @@ public class EGLContext extends GLContextImpl {
             reqMajorCTP[1] |= GLContext.CTX_IMPL_ACCEL_SOFT;
         }
         mapStaticGLVersion(device, reqMajorCTP[0], 0, reqMajorCTP[1]);
-    }    
-    /* pp */ static void mapStaticGLESVersion(AbstractGraphicsDevice device, final int major) {
-        int ctp = GLContext.CTX_PROFILE_ES;
-        if( major >= 3 ) {
-            ctp |= GLContext.CTX_IMPL_ES3_COMPAT | GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_FBO ;
-        } else if( major >= 2 ) {
-            ctp |= GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_FBO ;
-        }
-        mapStaticGLVersion(device, major, 0, ctp);
     }
     /* pp */ static void mapStaticGLVersion(AbstractGraphicsDevice device, int major, int minor, int ctp) {
         if( 0 != ( ctp & GLContext.CTX_PROFILE_ES) ) {
-            // ES1 or ES2
-            final int reqMajor = major;
-            final int reqProfile = GLContext.CTX_PROFILE_ES;
-            GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile, major, minor, ctp);
-            if(! ( device instanceof EGLGraphicsDevice ) ) {
-                final EGLGraphicsDevice eglDevice = new EGLGraphicsDevice(device.getHandle(), EGL.EGL_NO_DISPLAY, device.getConnection(), device.getUnitID(), null);
-                GLContext.mapAvailableGLVersion(eglDevice, reqMajor, reqProfile, major, minor, ctp);
-            }            
+            // ES1, ES2, ES3, ..
+            mapStaticGLVersion(device, major /* reqMajor */, major, minor, ctp);
+            if( 3 == major ) {
+                // map ES2 -> ES3
+                mapStaticGLVersion(device, 2 /* reqMajor */, major, minor, ctp);
+            }
+        }
+    }
+    private static void mapStaticGLVersion(AbstractGraphicsDevice device, int reqMajor, int major, int minor, int ctp) {
+        GLContext.mapAvailableGLVersion(device, reqMajor, GLContext.CTX_PROFILE_ES, major, minor, ctp);
+        if(! ( device instanceof EGLGraphicsDevice ) ) {
+            final EGLGraphicsDevice eglDevice = new EGLGraphicsDevice(device.getHandle(), EGL.EGL_NO_DISPLAY, device.getConnection(), device.getUnitID(), null);
+            GLContext.mapAvailableGLVersion(eglDevice, reqMajor, GLContext.CTX_PROFILE_ES, major, minor, ctp);
         }
     }
     protected static String getGLVersion(int major, int minor, int ctp, String gl_version) {
         return GLContext.getGLVersion(major, minor, ctp, gl_version);
     }
-    
+
     protected static boolean getAvailableGLVersionsSet(AbstractGraphicsDevice device) {
         return GLContext.getAvailableGLVersionsSet(device);
     }
     protected static void setAvailableGLVersionsSet(AbstractGraphicsDevice device) {
         GLContext.setAvailableGLVersionsSet(device);
     }
-    
+
     protected static String toHexString(int hex) {
         return GLContext.toHexString(hex);
     }
@@ -358,7 +367,7 @@ public class EGLContext extends GLContextImpl {
     public final ByteBuffer glAllocateMemoryNV(int size, float readFrequency, float writeFrequency, float priority) {
         throw new GLException("Should not call this");
     }
-    
+
     @Override
     public final void glFreeMemoryNV(ByteBuffer pointer) {
         throw new GLException("Should not call this");

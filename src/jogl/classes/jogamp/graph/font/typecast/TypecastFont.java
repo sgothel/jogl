@@ -51,20 +51,20 @@ import com.jogamp.opengl.math.geom.AABBox;
 
 class TypecastFont implements FontInt {
     static final boolean DEBUG = false;
-    
+
     final OTFontCollection fontset;
     final OTFont font;
     TypecastHMetrics metrics;
     final CmapFormat cmapFormat;
     int cmapentries;
-    
-    // FIXME: Add cache size to limit memory usage ??    
-    IntObjectHashMap char2Glyph; 
+
+    // FIXME: Add cache size to limit memory usage ??
+    IntObjectHashMap char2Glyph;
 
     public TypecastFont(OTFontCollection fontset) {
         this.fontset = fontset;
         this.font = fontset.getFont(0);
-        
+
         // FIXME: Generic attempt to find the best CmapTable,
         // which is assumed to be the one with the most entries (stupid 'eh?)
         CmapTable cmapTable = font.getCmapTable();
@@ -77,14 +77,14 @@ class TypecastFont implements FontInt {
             int pidx = cmapIdxEntry.getPlatformId();
             CmapFormat cf = cmapIdxEntry.getFormat();
             if(DEBUG) {
-                System.err.println("CmapFormat["+i+"]: platform " + pidx + 
+                System.err.println("CmapFormat["+i+"]: platform " + pidx +
                                    ", encoding "+cmapIdxEntry.getEncodingId() + ": "+cf);
             }
-            if( _cmapFormatP[pidx] == null || 
+            if( _cmapFormatP[pidx] == null ||
                 _cmapFormatP[pidx].getLength() < cf.getLength() ) {
                 _cmapFormatP[pidx] = cf;
                 if( cf.getLength() > platformLength ) {
-                    platformLength = cf.getLength() ; 
+                    platformLength = cf.getLength() ;
                     platform = pidx;
                     encoding = cmapIdxEntry.getEncodingId();
                 }
@@ -93,10 +93,10 @@ class TypecastFont implements FontInt {
         if(0 <= platform) {
             cmapFormat = _cmapFormatP[platform];
             if(DEBUG) {
-                System.err.println("Selected CmapFormat: platform " + platform + 
+                System.err.println("Selected CmapFormat: platform " + platform +
                                    ", encoding "+encoding + ": "+cmapFormat);
             }
-        } else {        
+        } else {
             CmapFormat _cmapFormat = null;
             /*if(null == _cmapFormat) {
                 platform = ID.platformMacintosh;
@@ -127,14 +127,14 @@ class TypecastFont implements FontInt {
         cmapentries = 0;
         for (int i = 0; i < cmapFormat.getRangeCount(); ++i) {
             CmapFormat.Range range = cmapFormat.getRange(i);
-            cmapentries += range.getEndCode() - range.getStartCode() + 1; // end included 
-        }        
+            cmapentries += range.getEndCode() - range.getStartCode() + 1; // end included
+        }
         if(DEBUG) {
             System.err.println("font direction hint: "+font.getHeadTable().getFontDirectionHint());
             System.err.println("num glyphs: "+font.getNumGlyphs());
             System.err.println("num cmap entries: "+cmapentries);
             System.err.println("num cmap ranges: "+cmapFormat.getRangeCount());
-        
+
             for (int i = 0; i < cmapFormat.getRangeCount(); ++i) {
                 CmapFormat.Range range = cmapFormat.getRange(i);
                 for (int j = range.getStartCode(); j <= range.getEndCode(); ++j) {
@@ -147,26 +147,32 @@ class TypecastFont implements FontInt {
         }
         char2Glyph = new IntObjectHashMap(cmapentries + cmapentries/4);
     }
-    
+
+    @Override
     public StringBuilder getName(StringBuilder sb, int nameIndex) {
         return font.getName(nameIndex, sb);
     }
+    @Override
     public String getName(int nameIndex) {
         return getName(null, nameIndex).toString();
     }
+    @Override
     public StringBuilder getAllNames(StringBuilder sb, String separator) {
         return font.getAllNames(sb, separator);
     }
+    @Override
     public StringBuilder getFullFamilyName(StringBuilder sb) {
         sb = getName(sb, Font.NAME_FAMILY).append("-");
         getName(sb, Font.NAME_SUBFAMILY);
         return sb;
-    }    
-
-    public float getAdvanceWidth(int i, float pixelSize) {
-        return font.getHmtxTable().getAdvanceWidth(i) * metrics.getScale(pixelSize);        
     }
-    
+
+    @Override
+    public float getAdvanceWidth(int i, float pixelSize) {
+        return font.getHmtxTable().getAdvanceWidth(i) * metrics.getScale(pixelSize);
+    }
+
+    @Override
     public Metrics getMetrics() {
         if (metrics == null) {
             metrics = new TypecastHMetrics(this);
@@ -174,8 +180,9 @@ class TypecastFont implements FontInt {
         return metrics;
     }
 
+    @Override
     public Glyph getGlyph(char symbol) {
-        TypecastGlyph result = (TypecastGlyph) char2Glyph.get(symbol);        
+        TypecastGlyph result = (TypecastGlyph) char2Glyph.get(symbol);
         if (null == result) {
             // final short code = (short) char2Code.get(symbol);
             short code = (short) cmapFormat.mapCharCode(symbol);
@@ -187,7 +194,7 @@ class TypecastFont implements FontInt {
                     default:   code = Glyph.ID_UNKNOWN;
                 }
             }
-            
+
             jogamp.graph.font.typecast.ot.OTGlyph glyph = font.getGlyph(code);
             if(null == glyph) {
                 glyph = font.getGlyph(Glyph.ID_UNKNOWN);
@@ -200,30 +207,32 @@ class TypecastFont implements FontInt {
             if(DEBUG) {
                 System.err.println("New glyph: " + (int)symbol + " ( " + (char)symbol +" ) -> " + code + ", contours " + glyph.getPointCount() + ": " + path);
             }
-            final HdmxTable hdmx = font.getHdmxTable();            
+            final HdmxTable hdmx = font.getHdmxTable();
             if (null!= result && null != hdmx) {
                 /*if(DEBUG) {
                     System.err.println("hdmx "+hdmx);
                 }*/
                 for (int i=0; i<hdmx.getNumberOfRecords(); i++)
                 {
-                    final HdmxTable.DeviceRecord dr = hdmx.getRecord(i); 
+                    final HdmxTable.DeviceRecord dr = hdmx.getRecord(i);
                     result.addAdvance(dr.getWidth(code), dr.getPixelSize());
                     /* if(DEBUG) {
                         System.err.println("hdmx advance : pixelsize = "+dr.getWidth(code)+" : "+ dr.getPixelSize());
                     } */
                 }
-            }            
+            }
             char2Glyph.put(symbol, result);
         }
         return result;
     }
-   
+
+    @Override
     public ArrayList<OutlineShape> getOutlineShapes(CharSequence string, float pixelSize, Factory<? extends Vertex> vertexFactory) {
     	AffineTransform transform = new AffineTransform(vertexFactory);
     	return TypecastRenderer.getOutlineShapes(this, string, pixelSize, transform, vertexFactory);
     }
 
+    @Override
     public float getStringWidth(CharSequence string, float pixelSize) {
         float width = 0;
         final int len = string.length();
@@ -238,9 +247,10 @@ class TypecastFont implements FontInt {
             }
         }
 
-        return (int)(width + 0.5f);        
+        return (int)(width + 0.5f);
     }
 
+    @Override
     public float getStringHeight(CharSequence string, float pixelSize) {
         int height = 0;
 
@@ -254,9 +264,10 @@ class TypecastFont implements FontInt {
                 height = (int)Math.ceil(Math.max(bbox.getHeight(), height));
             }
         }
-        return height;        
+        return height;
     }
 
+    @Override
     public AABBox getStringBounds(CharSequence string, float pixelSize) {
         if (string == null) {
             return new AABBox();
@@ -284,17 +295,20 @@ class TypecastFont implements FontInt {
             totalHeight -= advanceY;
             totalWidth = Math.max(curLineWidth, totalWidth);
         }
-        return new AABBox(0, 0, 0, totalWidth, totalHeight,0);        
+        return new AABBox(0, 0, 0, totalWidth, totalHeight,0);
     }
 
+    @Override
     final public int getNumGlyphs() {
         return font.getNumGlyphs();
     }
-    
+
+    @Override
     public boolean isPrintableChar( char c ) {
         return FontFactory.isPrintableChar(c);
     }
-    
+
+    @Override
     public String toString() {
         return getFullFamilyName(null).toString();
     }

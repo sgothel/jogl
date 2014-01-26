@@ -1,16 +1,16 @@
 /**
  * Original JavaScript code from <https://github.com/notmasteryet/jpgjs/blob/master/jpg.js>,
  * ported to Java for JogAmp Community.
- * 
+ *
  * Enhancements:
  *  * InputStream instead of memory buffer
  *  * User provided memory handler
- *  * Fixed JPEG Component ID/Index mapping 
+ *  * Fixed JPEG Component ID/Index mapping
  *  * Color space conversion (YCCK, CMYK -> RGB)
  *  * More error tolerant
- * 
+ *
  * *****************
- * 
+ *
  * Copyright 2011 notmasteryet
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,21 +24,21 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *  
+ *
  * *****************
- *  
+ *
  * Copyright 2013 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -48,7 +48,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -70,7 +70,7 @@ import com.jogamp.opengl.util.texture.TextureData;
 import com.jogamp.opengl.util.texture.TextureData.ColorSpace;
 
 /**
- * 
+ *
  * <ul>
  *   <li> The JPEG specification can be found in the ITU CCITT Recommendation T.81
  *        (www.w3.org/Graphics/JPEG/itu-t81.pdf) </li>
@@ -89,22 +89,22 @@ public class JPEGDecoder {
     private static final boolean DEBUG = Debug.debug("JPEGImage");
     private static final boolean DEBUG_IN = false;
 
-    /** Allows user to hook a {@link ColorSink} to another toolkit to produce {@link TextureData}. */ 
+    /** Allows user to hook a {@link ColorSink} to another toolkit to produce {@link TextureData}. */
     public static interface ColorSink {
         /**
          * @param width
          * @param height
          * @param sourceCS the color-space of the decoded JPEG
          * @param sourceComponents number of components used for the given source color-space
-         * @return Either {@link TextureData.ColorSpace#RGB} or {@link TextureData.ColorSpace#YCbCr}. {@link TextureData.ColorSpace#YCCK} and {@link TextureData.ColorSpace#CMYK} will throw an exception! 
+         * @return Either {@link TextureData.ColorSpace#RGB} or {@link TextureData.ColorSpace#YCbCr}. {@link TextureData.ColorSpace#YCCK} and {@link TextureData.ColorSpace#CMYK} will throw an exception!
          * @throws RuntimeException
          */
         public TextureData.ColorSpace allocate(int width, int height, TextureData.ColorSpace sourceCS, int sourceComponents) throws RuntimeException;
         public void store2(int x, int y, byte c1, byte c2);
         public void storeRGB(int x, int y, byte r, byte g, byte b);
-        public void storeYCbCr(int x, int y, byte Y, byte Cb, byte Cr);        
+        public void storeYCbCr(int x, int y, byte Y, byte Cb, byte Cr);
     }
-    
+
     public static class JFIF {
         final VersionNumber version;
         final int densityUnits;
@@ -138,11 +138,12 @@ public class JPEGDecoder {
             } else {
                 return null;
             }
-        }        
+        }
 
+        @Override
         public final String toString() {
             return "JFIF[ver "+version+", density[units "+densityUnits+", "+xDensity+"x"+yDensity+"], thumb "+thumbWidth+"x"+thumbHeight+"]";
-        }        
+        }
     }
 
     public static class Adobe {
@@ -151,7 +152,7 @@ public class JPEGDecoder {
         final short flags1;
         final short colorCode;
         final ColorSpace colorSpace;
-        
+
         private Adobe(final byte[] data) {
             version = data[6];
             flags0 = (short) ( (data[7] << 8) | data[8]  ) ;
@@ -172,9 +173,10 @@ public class JPEGDecoder {
                 return null;
             }
         }
+        @Override
         public final String toString() {
             return "Adobe[ver "+version+", flags["+toHexString(flags0)+", "+toHexString(flags1)+"], colorSpace/Code "+colorSpace+"/"+toHexString(colorCode)+"]";
-        }        
+        }
     }
     /** TODO */
     public static class EXIF {
@@ -189,10 +191,11 @@ public class JPEGDecoder {
             } else {
                 return null;
             }
-        }        
+        }
+        @Override
         public final String toString() {
             return "EXIF[]";
-        }        
+        }
     }
 
     @SuppressWarnings("serial")
@@ -210,7 +213,7 @@ public class JPEGDecoder {
         }
         public int getMarker() { return marker; }
     }
-        
+
     /** Start of Image */
     private static final int M_SOI   = 0xFFD8;
     /** End of Image */
@@ -264,8 +267,8 @@ public class JPEGDecoder {
     private static final int M_APP15 = 0xFFEF;
 
     /** Annotation / Comment */
-    private static final int M_ANO   = 0xFFFE;    
-    
+    private static final int M_ANO   = 0xFFFE;
+
     static final int[] dctZigZag = new int[] {
         0,
         1,  8,
@@ -323,7 +326,7 @@ public class JPEGDecoder {
         private final void checkBounds(int idx) {
             if( 0 > idx || idx >= compCount ) {
                 throw new CodecException("Idx out of bounds "+idx+", "+this);
-            }            
+            }
         }
         public final void validateComponents() {
             for(int i=0; i<compCount; i++) {
@@ -362,6 +365,7 @@ public class JPEGDecoder {
         public final boolean hasCompID(int componentID) {
             return compIDs.contains(componentID);
         }
+        @Override
         public final String toString() {
             return "Frame[progressive "+progressive+", precision "+precision+", scanLines "+scanLines+", samplesPerLine "+samplesPerLine+
                     ", components[count "+compCount+", maxID "+maxCompID+", componentIDs "+compIDs+", comps "+Arrays.asList(comps)+"]]";
@@ -378,7 +382,7 @@ public class JPEGDecoder {
         int blocksPerLine;
         int blocksPerLineForMcu;
         /** [blocksPerColumnForMcu][blocksPerLineForMcu][64]; */
-        int[][][] blocks; 
+        int[][][] blocks;
         int pred;
         BinObj huffmanTableAC;
         BinObj huffmanTableDC;
@@ -400,9 +404,10 @@ public class JPEGDecoder {
             if( row >= blocksPerColumnForMcu || col >= blocksPerLineForMcu ) {
                 throw new CodecException("Out of bounds given ["+row+"]["+col+"] - "+this);
             }
-            return blocks[row][col];            
+            return blocks[row][col];
         }
-        
+
+        @Override
         public final String toString() {
             return "CompIn[h "+h+", v "+v+", qttIdx "+qttIdx+", blocks["+blocksPerColumn+", mcu "+blocksPerColumnForMcu+"]["+blocksPerLine+", mcu "+blocksPerLineForMcu+"][64]]";
         }
@@ -410,7 +415,7 @@ public class JPEGDecoder {
 
     /** The decoded components */
     class ComponentOut {
-        private final ArrayList<byte[]> lines; 
+        private final ArrayList<byte[]> lines;
         final float scaleX;
         final float scaleY;
 
@@ -419,18 +424,20 @@ public class JPEGDecoder {
             this.scaleX = scaleX;
             this.scaleY = scaleY;
         }
-        
+
         /** Safely returning a line, if index exceeds number of lines, last line is returned. */
         public final byte[] getLine(int i) {
             final int sz = lines.size();
             return lines.get( i < sz ? i : sz - 1);
         }
-        
+
+        @Override
         public final String toString() {
             return "CompOut[lines "+lines.size()+", scale "+scaleX+"x"+scaleY+"]";
         }
     }
 
+    @Override
     public String toString() {
         final String jfifS = null != jfif ? jfif.toString() : "JFIF nil";
         final String exifS = null != exif ? exif.toString() : "Exif nil";
@@ -442,7 +449,7 @@ public class JPEGDecoder {
     private BufferedInputStream istream;
     private int _ipos = 0;
     private int _iposSave = 0;
-    
+
     private int width = 0;
     private int height = 0;
     private JFIF jfif = null;
@@ -457,14 +464,14 @@ public class JPEGDecoder {
     public final int getHeight() { return height; }
 
     private final void resetInput(InputStream is) {
-        if( is instanceof BufferedInputStream ) { 
+        if( is instanceof BufferedInputStream ) {
             istream = (BufferedInputStream) is;
         } else {
             istream = new BufferedInputStream(is);
         }
         _ipos = 0;
     }
-    
+
     private final void markStream(int readLimit) {
         istream.mark(readLimit);
         _iposSave = _ipos;
@@ -480,7 +487,7 @@ public class JPEGDecoder {
         if( -1 < r ) {
             if(DEBUG_IN) { System.err.println("u8["+_ipos+"]: "+toHexString(r)); }
             _ipos++;
-        } else if(DEBUG_IN) { 
+        } else if(DEBUG_IN) {
             System.err.println("u8["+_ipos+"]: EOS");
         }
         return r;
@@ -519,7 +526,7 @@ public class JPEGDecoder {
         }
         if(DEBUG_IN) { System.err.println("JPEG.readDataBlock: net-len "+(len-2)+", "+this); dumpData(data, 0, len-2); }
         return data;
-    }       
+    }
     static final void dumpData(byte[] data, int offset, int len) {
         for(int i=0; i<len; ) {
             System.err.print(i%8+": ");
@@ -527,8 +534,8 @@ public class JPEGDecoder {
                 System.err.println(toHexString(0x000000FF & data[offset+i])+", ");
             }
             System.err.println("");
-        }        
-    }                
+        }
+    }
 
     public synchronized void clear(InputStream inputStream) {
         resetInput(inputStream);
@@ -536,17 +543,17 @@ public class JPEGDecoder {
         height = 0;
         jfif = null;
         exif = null;
-        adobe = null;        
-        components = null;        
+        adobe = null;
+        components = null;
     }
-    public synchronized JPEGDecoder parse(final InputStream inputStream) throws IOException {        
+    public synchronized JPEGDecoder parse(final InputStream inputStream) throws IOException {
         clear(inputStream);
-        
+
         final int[][] quantizationTables = new int[0x0F][]; // 4 bits
         final BinObj[] huffmanTablesAC = new BinObj[0x0F]; // Huffman table spec - 4 bits
         final BinObj[] huffmanTablesDC = new BinObj[0x0F]; // Huffman table spec - 4 bits
         // final ArrayList<Frame> frames = new ArrayList<Frame>(); // JAU: max 1-frame
-        
+
         Frame frame = null;
         int resetInterval = 0;
         int fileMarker = readUint16();
@@ -614,7 +621,7 @@ public class JPEGDecoder {
                     quantizationTables[tableIdx] = tableData;
                     if( DEBUG ) {
                         System.err.println("JPEG.parse.QTT["+tableIdx+"]: spec "+quantizationTableSpec+", precision "+precisionID+", data "+count+"/"+quantizationTablesLength);
-                    }                    
+                    }
                 }
                 if(count!=quantizationTablesLength){
                     throw new CodecException("ERROR: QTT format error [count!=Length]: "+count+"/"+quantizationTablesLength);
@@ -660,7 +667,7 @@ public class JPEGDecoder {
             }
             break;
 
-            case M_DHT: { 
+            case M_DHT: {
                 int count = 0;
                 final int huffmanLength = readUint16(); count+=2;
                 int i=count, codeLengthTotal = 0;
@@ -675,7 +682,7 @@ public class JPEGDecoder {
                     for (int j = 0; j < codeLengthSum; j++) {
                         huffmanValues[j] = (byte)readUint8(); count++;
                     }
-                    codeLengthTotal += codeLengthSum; 
+                    codeLengthTotal += codeLengthSum;
                     i += 17 + codeLengthSum;
                     final BinObj[] table = ( huffmanTableSpec >> 4 ) == 0 ? huffmanTablesDC : huffmanTablesAC;
                     table[huffmanTableSpec & 0x0F] = buildHuffmanTable(codeLengths, huffmanValues);
@@ -699,7 +706,7 @@ public class JPEGDecoder {
                 final int sosLen = readUint16(); count+=2;
                 final int selectorsCount = readUint8(); count++;
                 ArrayList<ComponentIn> components = new ArrayList<ComponentIn>();
-                if(DEBUG) { System.err.println("JPG.parse.SOS: selectorCount [0.."+(selectorsCount-1)+"]: "+frame); }                                
+                if(DEBUG) { System.err.println("JPG.parse.SOS: selectorCount [0.."+(selectorsCount-1)+"]: "+frame); }
                 for (int i = 0; i < selectorsCount; i++) {
                     final int compID = readUint8(); count++;
                     final ComponentIn component = frame.getCompByID(compID);
@@ -751,8 +758,8 @@ public class JPEGDecoder {
             final ComponentIn component = frame.getCompByIndex(i);
             // System.err.println("JPG.parse.buildComponentData["+i+"]: "+component); // JAU
             // System.err.println("JPG.parse.buildComponentData["+i+"]: "+frame); // JAU
-            this.components[i] = new ComponentOut( output.buildComponentData(frame, component), 
-                                                   (float)component.h / (float)frame.maxH, 
+            this.components[i] = new ComponentOut( output.buildComponentData(frame, component),
+                                                   (float)component.h / (float)frame.maxH,
                                                    (float)component.v / (float)frame.maxV );
         }
         if(DEBUG) { System.err.println("JPG.parse.X: End of processing input "+this); }
@@ -797,7 +804,7 @@ public class JPEGDecoder {
         final boolean isValue;
         final BinObj[] tree;
         final byte b;
-        
+
         BinObj(byte b) {
             this.isValue= true;
             this.b = b;
@@ -815,13 +822,13 @@ public class JPEGDecoder {
     }
 
     private BinObj buildHuffmanTable(int[] codeLengths, byte[] values) {
-        int k = 0;      
-        int length = 16;      
+        int k = 0;
+        int length = 16;
         final ArrayList<BinObjIdxed> code = new ArrayList<BinObjIdxed>();
         while (length > 0 && 0==codeLengths[length - 1]) {
             length--;
         }
-        code.add(new BinObjIdxed());        
+        code.add(new BinObjIdxed());
         BinObjIdxed p = code.get(0), q;
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < codeLengths[i]; j++) {
@@ -959,7 +966,7 @@ public class JPEGDecoder {
                 t = (v5 * dctSin1 + v6 * dctCos1 + 2048) >> 12;
                 v5 = (v5 * dctCos1 - v6 * dctSin1 + 2048) >> 12;
                 v6 = t;
-    
+
                 // stage 1
                 p[0 + row] = v0 + v7;
                 p[7 + row] = v0 - v7;
@@ -1066,7 +1073,7 @@ public class JPEGDecoder {
         private int successiveACState, successiveACNextValue;
 
         private int decodeScan(Frame frame, ArrayList<ComponentIn> components, int resetInterval,
-                int spectralStart, int spectralEnd, int successivePrev, int successive) throws IOException { 
+                int spectralStart, int spectralEnd, int successivePrev, int successive) throws IOException {
             // this.precision = frame.precision;
             // this.samplesPerLine = frame.samplesPerLine;
             // this.scanLines = frame.scanLines;
@@ -1079,7 +1086,7 @@ public class JPEGDecoder {
             this.spectralStart = spectralStart;
             this.spectralEnd = spectralEnd;
             this.successive = successive;
-            
+
             final int componentsLength = components.size();
 
             final DecoderFunction decodeFn;
@@ -1096,7 +1103,7 @@ public class JPEGDecoder {
             int mcu = 0;
             int mcuExpected;
             if (componentsLength == 1) {
-                final ComponentIn c = components.get(0);            
+                final ComponentIn c = components.get(0);
                 mcuExpected = c.blocksPerLine * c.blocksPerColumn;
             } else {
                 mcuExpected = mcusPerLine * frame.mcusPerColumn;
@@ -1153,14 +1160,14 @@ public class JPEGDecoder {
                 if( marker < 0xFF00 ) {
                     rewindStream();
                     throw new CodecException("marker not found @ mcu "+mcu+"/"+mcuExpected+", u16: "+toHexString(marker));
-                }                
+                }
                 final boolean isRSTx = 0xFFD0 <= marker && marker <= 0xFFD7; // !RSTx
                 if(DEBUG) {
                     System.err.println("JPEG.decodeScan: MCUs "+mcu+"/"+mcuExpected+", u16 "+toHexString(marker)+", RSTx "+isRSTx+", "+frame);
                 }
                 if ( !isRSTx ) {
                     break; // handle !RSTx marker in caller
-                }                
+                }
             }
             return marker;
         }
@@ -1227,6 +1234,7 @@ public class JPEGDecoder {
         final DecoderFunction decodeACSuccessive = new ACSuccessiveDecoder();
 
         class BaselineDecoder implements DecoderFunction {
+            @Override
             public void decode(ComponentIn component, int[] zz) throws IOException {
                 final int t = decodeHuffman(component.huffmanTableDC);
                 final int diff = ( t == 0 ) ? 0 : receiveAndExtend(t);
@@ -1250,6 +1258,7 @@ public class JPEGDecoder {
             }
         }
         class DCFirstDecoder implements DecoderFunction {
+            @Override
             public void decode(ComponentIn component, int[] zz) throws IOException {
                 final int t = decodeHuffman(component.huffmanTableDC);
                 final int diff = ( t == 0 ) ? 0 : (receiveAndExtend(t) << successive);
@@ -1257,12 +1266,14 @@ public class JPEGDecoder {
             }
         }
         class DCSuccessiveDecoder implements DecoderFunction {
+            @Override
             public void decode(ComponentIn component, int[] zz) throws IOException {
                 zz[0] |= readBit() << successive;
             }
         }
 
         class ACFirstDecoder implements DecoderFunction {
+            @Override
             public void decode(ComponentIn component, int[] zz) throws IOException {
                 if (eobrun > 0) {
                     eobrun--;
@@ -1288,6 +1299,7 @@ public class JPEGDecoder {
             }
         }
         class ACSuccessiveDecoder implements DecoderFunction {
+            @Override
             public void decode(ComponentIn component, int[] zz) throws IOException {
                 int k = spectralStart, e = spectralEnd, r = 0;
                 while (k <= e) {
@@ -1306,7 +1318,7 @@ public class JPEGDecoder {
                                 successiveACState = 1;
                             }
                         } else {
-                            // if (s !== 1) {                  
+                            // if (s !== 1) {
                             if (s != 1) {
                                 throw new CodecException("invalid ACn encoding");
                             }
@@ -1380,18 +1392,18 @@ public class JPEGDecoder {
         int R = Y + ( ( 91881 * Cr ) >> 16 );
         if(R<0) R=0;
         else if(R>255) R=255;
-        
+
         pixelStorage.storeRGB(x, y, (byte)R, (byte)G, (byte)B);
     } */
-    
+
     public synchronized void getPixel(JPEGDecoder.ColorSink pixelStorage, int width, int height) {
         final int scaleX = this.width / width, scaleY = this.height / height;
 
         final int componentCount = this.components.length;
-        final ColorSpace sourceCS = ( null != adobe ) ? adobe.colorSpace : ColorSpace.YCbCr; 
+        final ColorSpace sourceCS = ( null != adobe ) ? adobe.colorSpace : ColorSpace.YCbCr;
         final ColorSpace storageCS = pixelStorage.allocate(width, height, sourceCS, componentCount);
         if( ColorSpace.RGB != storageCS && ColorSpace.YCbCr != storageCS ) {
-            throw new IllegalArgumentException("Unsupported storage color space: "+storageCS); 
+            throw new IllegalArgumentException("Unsupported storage color space: "+storageCS);
         }
 
         switch (componentCount) {
@@ -1504,7 +1516,7 @@ public class JPEGDecoder {
                             final byte G = clampTo8bit( ( cM * cK ) / 255f );
                             final byte B = clampTo8bit( ( cY * cK ) / 255f );
                             pixelStorage.storeRGB(x, y, R, G, B);
-                        }                        
+                        }
                     } else { // ColorModel.YCCK == sourceCM
                         for (int x = 0; x < width; x++) {
                             final int xs = x * scaleX;
@@ -1525,7 +1537,7 @@ public class JPEGDecoder {
                     }
                 }
             }
-        } 
+        }
         break;
         default:
             throw new CodecException("Unsupported color model: Space "+sourceCS+", components "+componentCount);

@@ -41,6 +41,8 @@
 
 #include <math.h>
 
+#define PRINTF(...) NSLog(@ __VA_ARGS__)
+
 static jfloat GetDelta(NSEvent *event, jint javaMods[]) {
     CGEventRef cgEvent = [event CGEvent];
     CGFloat deltaY = 0.0;
@@ -84,6 +86,88 @@ static jfloat GetDelta(NSEvent *event, jint javaMods[]) {
     return (jfloat) delta;
 }
 
+#define kVK_Shift     0x38
+#define kVK_Option    0x3A
+#define kVK_Control   0x3B
+#define kVK_Command   0x37
+
+static jint mods2JavaMods(NSUInteger mods)
+{
+    int javaMods = 0;
+    if (mods & NSShiftKeyMask) {
+        javaMods |= EVENT_SHIFT_MASK;
+    }
+    if (mods & NSControlKeyMask) {
+        javaMods |= EVENT_CTRL_MASK;
+    }
+    if (mods & NSCommandKeyMask) {
+        javaMods |= EVENT_META_MASK;
+    }
+    if (mods & NSAlternateKeyMask) {
+        javaMods |= EVENT_ALT_MASK;
+    }
+    return javaMods;
+}
+
+static CFStringRef CKCH_CreateStringForKey(CGKeyCode keyCode, const UCKeyboardLayout *keyboardLayout) {
+    UInt32 keysDown = 0;
+    UniChar chars[4];
+    UniCharCount realLength;
+
+    UCKeyTranslate(keyboardLayout, keyCode,
+                   kUCKeyActionDisplay, 0,
+                   LMGetKbdType(), kUCKeyTranslateNoDeadKeysBit,
+                   &keysDown, sizeof(chars) / sizeof(chars[0]), &realLength, chars);
+
+    return CFStringCreateWithCharacters(kCFAllocatorDefault, chars, 1);
+}
+
+static CFMutableDictionaryRef CKCH_CreateCodeToCharDict(TISInputSourceRef keyboard) {
+    CFDataRef layoutData = (CFDataRef) TISGetInputSourceProperty(keyboard, kTISPropertyUnicodeKeyLayoutData);
+    const UCKeyboardLayout *keyboardLayout = (const UCKeyboardLayout *)CFDataGetBytePtr(layoutData);
+
+    CFMutableDictionaryRef codeToCharDict = CFDictionaryCreateMutable(kCFAllocatorDefault, 128, NULL, NULL);
+    if ( NULL != codeToCharDict ) {
+        intptr_t i;
+        for (i = 0; i < 128; ++i) {
+            CFStringRef string = CKCH_CreateStringForKey((CGKeyCode)i, keyboardLayout);
+            if( NULL != string ) {
+                CFIndex stringLen = CFStringGetLength (string);
+                if ( 0 < stringLen ) {
+                    UniChar character = CFStringGetCharacterAtIndex(string, 0);
+                    DBG_PRINT("CKCH: MAP 0x%X -> %c\n", (int)i, character);
+                    CFDictionaryAddValue(codeToCharDict, (const void *)i, (const void *)(intptr_t)character);
+                }
+                CFRelease(string);
+            }
+        }
+    }
+    return codeToCharDict;
+}
+
+static CFMutableDictionaryRef CKCH_USCodeToNNChar = NULL;
+
+static void CKCH_CreateDictionaries() {
+    TISInputSourceRef currentKeyboard = TISCopyCurrentKeyboardInputSource();
+    CKCH_USCodeToNNChar = CKCH_CreateCodeToCharDict(currentKeyboard);
+    CFRelease(currentKeyboard);
+}
+
+static UniChar CKCH_CharForKeyCode(jshort keyCode) {
+    UniChar rChar = 0;
+
+    if ( NULL != CKCH_USCodeToNNChar ) {
+        intptr_t code = (intptr_t) keyCode;
+        intptr_t character = 0;
+
+        if ( CFDictionaryGetValueIfPresent(CKCH_USCodeToNNChar, (void *)code, (const void **)&character) ) {
+            rChar = (UniChar) character;
+            DBG_PRINT("CKCH: OK 0x%X -> 0x%X\n", (int)keyCode, (int)rChar);
+        }
+    }
+    return rChar;
+}
+
 static jmethodID enqueueMouseEventID = NULL;
 static jmethodID enqueueKeyEventID = NULL;
 static jmethodID requestFocusID = NULL;
@@ -109,8 +193,6 @@ static jmethodID windowRepaintID = NULL;
     id res = [super initWithFrame:frameRect];
     javaWindowObject = NULL;
 
-    jvmHandle = NULL;
-    jvmVersion = 0;
     destroyNotifySent = NO;
     softLockCount = 0;
 
@@ -120,14 +202,16 @@ static jmethodID windowRepaintID = NULL;
     pthread_mutex_init(&softLockSync, &softLockSyncAttr); // recursive
 
     ptrTrackingTag = 0;
-
-    /**
-    NSCursor crs = [NSCursor arrowCursor];
-    NSImage crsImg = [crs image];
-    NSPoint crsHot = [crs hotSpot];
-    myCursor = [[NSCursor alloc] initWithImage: crsImg hotSpot:crsHot];
-    */
     myCursor = NULL;
+
+    modsDown[0] = NO; // shift
+    modsDown[1] = NO; // ctrl
+    modsDown[2] = NO; // alt
+    modsDown[3] = NO; // win
+    mouseConfined = NO;
+    mouseVisible = YES;
+    mouseInside = NO;
+    cursorIsHidden = NO;
 
     DBG_PRINT("NewtView::create: %p (refcnt %d)\n", res, (int)[res retainCount]);
     return res;
@@ -150,33 +234,12 @@ static jmethodID windowRepaintID = NULL;
     if( 0 < softLockCount ) {
         NSLog(@"NewtView::dealloc: softLock still hold @ dealloc!\n");
     }
-    if(0 != ptrTrackingTag) {
-        // [self removeCursorRect: ptrRect cursor: myCursor];
-        [self removeTrackingRect: ptrTrackingTag];
-        ptrTrackingTag = 0;
-    }
+    [self removeCursorRects];
+    [self removeMyCursor];
+
     pthread_mutex_destroy(&softLockSync);
     DBG_PRINT("NewtView::dealloc.X: %p\n", self);
     [super dealloc];
-}
-
-- (void) setJVMHandle: (JavaVM*) vm
-{
-    jvmHandle = vm;
-}
-- (JavaVM*) getJVMHandle
-{
-    return jvmHandle;
-}
-
-- (void) setJVMVersion: (int) ver
-{
-    jvmVersion = ver;
-}
-
-- (int) getJVMVersion
-{
-    return jvmVersion;
 }
 
 - (void) setJavaWindowObject: (jobject) javaWindowObj
@@ -187,33 +250,6 @@ static jmethodID windowRepaintID = NULL;
 - (jobject) getJavaWindowObject
 {
     return javaWindowObject;
-}
-
-- (void) rightMouseDown: (NSEvent*) theEvent
-{
-    NSResponder* next = [self nextResponder];
-    if (next != nil) {
-        [next rightMouseDown: theEvent];
-    }
-}
-
-- (void) resetCursorRects
-{
-    [super resetCursorRects];
-
-    if(0 != ptrTrackingTag) {
-        // [self removeCursorRect: ptrRect cursor: myCursor];
-        [self removeTrackingRect: ptrTrackingTag];
-        ptrTrackingTag = 0;
-    }
-    ptrRect = [self bounds]; 
-    // [self addCursorRect: ptrRect cursor: myCursor];
-    ptrTrackingTag = [self addTrackingRect: ptrRect owner: self userData: nil assumeInside: NO];
-}
-
-- (NSCursor *) cursor
-{
-    return myCursor;
 }
 
 - (void) setDestroyNotifySent: (BOOL) v
@@ -285,7 +321,7 @@ static jmethodID windowRepaintID = NULL;
         return;
     }
     int shallBeDetached = 0;
-    JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, jvmVersion, 1 /* asDaemon */, &shallBeDetached);
+    JNIEnv* env = NewtCommon_GetJNIEnv(1 /* asDaemon */, &shallBeDetached);
     if(NULL==env) {
         DBG_PRINT("drawRect: null JNIEnv\n");
         return;
@@ -297,9 +333,8 @@ static jmethodID windowRepaintID = NULL;
         dirtyRect.origin.x, viewFrame.size.height - dirtyRect.origin.y, 
         dirtyRect.size.width, dirtyRect.size.height);
 
-    /* if (shallBeDetached) {
-        (*jvmHandle)->DetachCurrentThread(jvmHandle);
-    } */
+    // detaching thread not required - daemon
+    // NewtCommon_ReleaseJNIEnv(shallBeDetached);
 }
 
 - (void) viewDidHide
@@ -309,7 +344,7 @@ static jmethodID windowRepaintID = NULL;
         return;
     }
     int shallBeDetached = 0;
-    JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, jvmVersion, 1 /* asDaemon */, &shallBeDetached);
+    JNIEnv* env = NewtCommon_GetJNIEnv(1 /* asDaemon */, &shallBeDetached);
     if(NULL==env) {
         DBG_PRINT("viewDidHide: null JNIEnv\n");
         return;
@@ -317,9 +352,8 @@ static jmethodID windowRepaintID = NULL;
 
     (*env)->CallVoidMethod(env, javaWindowObject, visibleChangedID, JNI_FALSE, JNI_FALSE);
 
-    /* if (shallBeDetached) {
-        (*jvmHandle)->DetachCurrentThread(jvmHandle);
-    } */
+    // detaching thread not required - daemon
+    // NewtCommon_ReleaseJNIEnv(shallBeDetached);
 
     [super viewDidHide];
 }
@@ -331,7 +365,7 @@ static jmethodID windowRepaintID = NULL;
         return;
     }
     int shallBeDetached = 0;
-    JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, jvmVersion, 1 /* asDaemon */, &shallBeDetached);
+    JNIEnv* env = NewtCommon_GetJNIEnv(1 /* asDaemon */, &shallBeDetached);
     if(NULL==env) {
         DBG_PRINT("viewDidUnhide: null JNIEnv\n");
         return;
@@ -339,9 +373,8 @@ static jmethodID windowRepaintID = NULL;
 
     (*env)->CallVoidMethod(env, javaWindowObject, visibleChangedID, JNI_FALSE, JNI_TRUE);
 
-    /* if (shallBeDetached) {
-        (*jvmHandle)->DetachCurrentThread(jvmHandle);
-    } */
+    // detaching thread not required - daemon
+    // NewtCommon_ReleaseJNIEnv(shallBeDetached);
 
     [super viewDidUnhide];
 }
@@ -351,66 +384,384 @@ static jmethodID windowRepaintID = NULL;
     return YES;
 }
 
+- (BOOL) becomeFirstResponder
+{
+    DBG_PRINT( "*************** View.becomeFirstResponder\n");
+    return [super becomeFirstResponder];
+}
+
+- (BOOL) resignFirstResponder
+{
+    DBG_PRINT( "*************** View.resignFirstResponder\n");
+    return [super resignFirstResponder];
+}
+
+- (void) removeCursorRects
+{
+    if(0 != ptrTrackingTag) {
+        if(NULL != myCursor) {
+            [self removeCursorRect: ptrRect cursor: myCursor];
+        }
+        [self removeTrackingRect: ptrTrackingTag];
+        ptrTrackingTag = 0;
+    }
+}
+
+- (void) addCursorRects
+{
+    ptrRect = [self bounds]; 
+    if(NULL != myCursor) {
+        [self addCursorRect: ptrRect cursor: myCursor];
+    }
+    ptrTrackingTag = [self addTrackingRect: ptrRect owner: self userData: nil assumeInside: NO];
+}
+
+- (void) removeMyCursor
+{
+    if(NULL != myCursor) {
+        [myCursor release];
+        myCursor = NULL;
+    }
+}
+
+- (void) resetCursorRects
+{
+    [super resetCursorRects];
+
+    [self removeCursorRects];
+    [self addCursorRects];
+}
+
+- (void) setPointerIcon: (NSCursor*)c
+{
+    DBG_PRINT( "setPointerIcon: %p -> %p, top %p, mouseInside %d\n", myCursor, c, [NSCursor currentCursor], (int)mouseInside);
+    if( c != myCursor ) {
+        [self removeCursorRects];
+        [self removeMyCursor];
+        myCursor = c;
+        if( NULL != myCursor ) {
+            [myCursor retain];
+        }
+    }
+    NSWindow* nsWin = [self window];
+    if( NULL != nsWin ) {
+        [nsWin invalidateCursorRectsForView: self];
+    }
+}
+
+- (void) mouseEntered: (NSEvent*) theEvent
+{
+    DBG_PRINT( "mouseEntered: confined %d, visible %d, PointerIcon %p, top %p\n", mouseConfined, mouseVisible, myCursor, [NSCursor currentCursor]);
+    mouseInside = YES;
+    [self cursorHide: !mouseVisible enter: 1];
+    if(NO == mouseConfined) {
+        [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_ENTERED];
+    }
+    NSWindow* nsWin = [self window];
+    if( NULL != nsWin ) {
+        [nsWin makeFirstResponder: self];
+    }
+}
+
+- (void) mouseExited: (NSEvent*) theEvent
+{
+    DBG_PRINT( "mouseExited: confined %d, visible %d, PointerIcon %p, top %p\n", mouseConfined, mouseVisible, myCursor, [NSCursor currentCursor]);
+    if(NO == mouseConfined) {
+        mouseInside = NO;
+        [self cursorHide: NO enter: -1];
+        [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_EXITED];
+        [self resignFirstResponder];
+    } else {
+        [self setMousePosition: lastInsideMousePosition];
+    }
+}
+
+- (void) setMousePosition:(NSPoint)p
+{
+    NSWindow* nsWin = [self window];
+    if( NULL != nsWin ) {
+        NSScreen* screen = [nsWin screen];
+        NSRect screenRect = [screen frame];
+
+        CGPoint pt = { p.x, screenRect.size.height - p.y }; // y-flip (CG is top-left origin)
+        CGEventRef ev = CGEventCreateMouseEvent (NULL, kCGEventMouseMoved, pt, kCGMouseButtonLeft);
+        CGEventPost (kCGHIDEventTap, ev);
+    }
+}
+
+- (BOOL) updateMouseInside
+{
+    NSRect viewFrame = [self frame];
+    NSPoint l1 = [NSEvent mouseLocation];
+    NSPoint l0 = [self screenPos2NewtClientWinPos: l1];
+    mouseInside = viewFrame.origin.x <= l0.x && l0.x < (viewFrame.origin.x+viewFrame.size.width) &&
+                  viewFrame.origin.y <= l0.y && l0.y < (viewFrame.origin.y+viewFrame.size.height) ;
+    return mouseInside;
+}
+
+- (void) setMouseVisible:(BOOL)v hasFocus:(BOOL)focus
+{
+    mouseVisible = v;
+    [self updateMouseInside];
+    DBG_PRINT( "setMouseVisible: confined %d, visible %d (current: %d), mouseInside %d, hasFocus %d\n", 
+        mouseConfined, mouseVisible, !cursorIsHidden, mouseInside, focus);
+    if(YES == focus && YES == mouseInside) {
+        [self cursorHide: !mouseVisible enter: 0];
+    }
+}
+- (BOOL) isMouseVisible
+{
+    return mouseVisible;
+}
+
+- (void) cursorHide:(BOOL)v enter:(int)enterState
+{
+    DBG_PRINT( "cursorHide: %d -> %d, enter %d; PointerIcon: %p, top %p\n", 
+        cursorIsHidden, v, enterState, myCursor, [NSCursor currentCursor]);
+    if(v) {
+        if(!cursorIsHidden) {
+            [NSCursor hide];
+            cursorIsHidden = YES;
+        }
+    } else {
+        if(cursorIsHidden) {
+            [NSCursor unhide];
+            cursorIsHidden = NO;
+        }
+    }
+}
+
+- (void) setMouseConfined:(BOOL)v
+{
+    mouseConfined = v;
+    DBG_PRINT( "setMouseConfined: confined %d, visible %d\n", mouseConfined, mouseVisible);
+}
+
+- (void) mouseMoved: (NSEvent*) theEvent
+{
+    if( mouseInside ) {
+        NSCursor * currentCursor = [NSCursor currentCursor];
+        BOOL setCursor = NULL != myCursor && NO == cursorIsHidden && currentCursor != myCursor;
+        DBG_PRINT( "mouseMoved.set: %d; mouseInside %d, CursorHidden %d, PointerIcon: %p, top %p\n", 
+            setCursor, mouseInside, cursorIsHidden, myCursor, currentCursor);
+        if( setCursor ) {
+            // FIXME: Workaround missing NSCursor update for 'fast moving' pointer 
+            [myCursor set];
+        }
+        lastInsideMousePosition = [NSEvent mouseLocation];
+        [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_MOVED];
+    }
+}
+
+- (void) scrollWheel: (NSEvent*) theEvent
+{
+    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_WHEEL_MOVED];
+}
+
+- (void) mouseDown: (NSEvent*) theEvent
+{
+    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_PRESSED];
+}
+
+- (void) mouseDragged: (NSEvent*) theEvent
+{
+    lastInsideMousePosition = [NSEvent mouseLocation];
+    // Note use of MOUSE_MOVED event type because mouse dragged events are synthesized by Java
+    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_MOVED];
+}
+
+- (void) mouseUp: (NSEvent*) theEvent
+{
+    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_RELEASED];
+}
+
+- (void) rightMouseDown: (NSEvent*) theEvent
+{
+    NSResponder* next = [self nextResponder];
+    if (next != nil) {
+        [next rightMouseDown: theEvent];
+    }
+    // FIXME: ^^ OR [super rightMouseDown: theEvent] ?
+    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_PRESSED];
+}
+
+- (void) rightMouseDragged: (NSEvent*) theEvent
+{
+    lastInsideMousePosition = [NSEvent mouseLocation];
+    // Note use of MOUSE_MOVED event type because mouse dragged events are synthesized by Java
+    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_MOVED];
+}
+
+- (void) rightMouseUp: (NSEvent*) theEvent
+{
+    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_RELEASED];
+}
+
+- (void) otherMouseDown: (NSEvent*) theEvent
+{
+    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_PRESSED];
+}
+
+- (void) otherMouseDragged: (NSEvent*) theEvent
+{
+    lastInsideMousePosition = [NSEvent mouseLocation];
+    // Note use of MOUSE_MOVED event type because mouse dragged events are synthesized by Java
+    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_MOVED];
+}
+
+- (void) otherMouseUp: (NSEvent*) theEvent
+{
+    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_RELEASED];
+}
+
+- (void) sendMouseEvent: (NSEvent*) event eventType: (jshort) evType
+{
+    if (javaWindowObject == NULL) {
+        DBG_PRINT("sendMouseEvent: null javaWindowObject\n");
+        return;
+    }
+    int shallBeDetached = 0;
+    JNIEnv* env = NewtCommon_GetJNIEnv(1 /* asDaemon */, &shallBeDetached);
+    if(NULL==env) {
+        DBG_PRINT("sendMouseEvent: null JNIEnv\n");
+        return;
+    }
+    jint javaMods[] = { 0 } ;
+    javaMods[0] = mods2JavaMods([event modifierFlags]);
+
+    // convert to 1-based button number (or use zero if no button is involved)
+    // TODO: detect mouse button when mouse wheel scrolled  
+    jshort javaButtonNum = 0;
+    jfloat scrollDeltaY = 0.0f;
+    switch ([event type]) {
+    case NSScrollWheel: {
+        scrollDeltaY = GetDelta(event, javaMods);
+        javaButtonNum = 1;
+        break;
+    }
+    case NSLeftMouseDown:
+    case NSLeftMouseUp:
+    case NSLeftMouseDragged:
+        javaButtonNum = 1;
+        break;
+    case NSRightMouseDown:
+    case NSRightMouseUp:
+    case NSRightMouseDragged:
+        javaButtonNum = 3;
+        break;
+    case NSOtherMouseDown:
+    case NSOtherMouseUp:
+    case NSOtherMouseDragged:
+        javaButtonNum = 2;
+        break;
+    }
+
+    if (evType == EVENT_MOUSE_WHEEL_MOVED && scrollDeltaY == 0) {
+        // ignore 0 increment wheel scroll events
+        return;
+    }
+    if (evType == EVENT_MOUSE_PRESSED) {
+        (*env)->CallVoidMethod(env, javaWindowObject, requestFocusID, JNI_FALSE);
+    }
+
+    NSPoint location = [self screenPos2NewtClientWinPos: [NSEvent mouseLocation]];
+
+    (*env)->CallVoidMethod(env, javaWindowObject, enqueueMouseEventID, JNI_FALSE,
+                           evType, javaMods[0],
+                           (jint) location.x, (jint) location.y,
+                           javaButtonNum, scrollDeltaY);
+
+    // detaching thread not required - daemon
+    // NewtCommon_ReleaseJNIEnv(shallBeDetached);
+}
+
+- (NSPoint) screenPos2NewtClientWinPos: (NSPoint) p
+{
+    NSRect viewFrame = [self frame];
+
+    NSRect r;
+    r.origin.x = p.x;
+    r.origin.y = p.y;
+    r.size.width = 0;
+    r.size.height = 0;
+    // NSRect rS = [[self window] convertRectFromScreen: r]; // 10.7
+    NSPoint oS = [[self window] convertScreenToBase: r.origin];
+    oS.y = viewFrame.size.height - oS.y; // y-flip
+    return oS;
+}
+
+- (void) handleFlagsChanged:(NSUInteger) mods
+{
+    [self handleFlagsChanged: NSShiftKeyMask keyIndex: 0 keyCode: kVK_Shift modifiers: mods];
+    [self handleFlagsChanged: NSControlKeyMask keyIndex: 1 keyCode: kVK_Control modifiers: mods];
+    [self handleFlagsChanged: NSAlternateKeyMask keyIndex: 2 keyCode: kVK_Option modifiers: mods];
+    [self handleFlagsChanged: NSCommandKeyMask keyIndex: 3 keyCode: kVK_Command modifiers: mods];
+}
+
+- (void) handleFlagsChanged:(int) keyMask keyIndex: (int) keyIdx keyCode: (int) keyCode modifiers: (NSUInteger) mods
+{
+    if ( NO == modsDown[keyIdx] && 0 != ( mods & keyMask ) )  {
+        modsDown[keyIdx] = YES;
+        [self sendKeyEvent: (jshort)keyCode characters: NULL modifiers: mods|keyMask eventType: (jshort)EVENT_KEY_PRESSED];
+    } else if ( YES == modsDown[keyIdx] && 0 == ( mods & keyMask ) )  {
+        modsDown[keyIdx] = NO;
+        [self sendKeyEvent: (jshort)keyCode characters: NULL modifiers: mods|keyMask eventType: (jshort)EVENT_KEY_RELEASED];
+    }
+}
+
+- (void) sendKeyEvent: (NSEvent*) event eventType: (jshort) evType
+{
+    jshort keyCode = (jshort) [event keyCode];
+    NSString* chars = [event charactersIgnoringModifiers];
+    NSUInteger mods = [event modifierFlags];
+    [self sendKeyEvent: keyCode characters: chars modifiers: mods eventType: evType];
+}
+
+- (void) sendKeyEvent: (jshort) keyCode characters: (NSString*) chars modifiers: (NSUInteger)mods eventType: (jshort) evType
+{
+    if (javaWindowObject == NULL) {
+        DBG_PRINT("sendKeyEvent: null javaWindowObject\n");
+        return;
+    }
+    int shallBeDetached = 0;
+    JNIEnv* env = NewtCommon_GetJNIEnv(1 /* asDaemon */, &shallBeDetached);
+    if(NULL==env) {
+        DBG_PRINT("sendKeyEvent: null JNIEnv\n");
+        return;
+    }
+
+    int i;
+    int len = NULL != chars ? [chars length] : 0;
+    jint javaMods = mods2JavaMods(mods);
+
+    if(len > 0) {
+        // printable chars
+        for (i = 0; i < len; i++) {
+            // Note: the key code in the NSEvent does not map to anything we can use
+            UniChar keyChar = (UniChar) [chars characterAtIndex: i];
+            UniChar keySymChar = CKCH_CharForKeyCode(keyCode);
+
+            DBG_PRINT("sendKeyEvent: %d/%d code 0x%X, char 0x%X, mods 0x%X/0x%X -> keySymChar 0x%X\n", i, len, (int)keyCode, (int)keyChar, 
+                      (int)mods, (int)javaMods, (int)keySymChar);
+
+            (*env)->CallVoidMethod(env, javaWindowObject, enqueueKeyEventID, JNI_FALSE,
+                                   evType, javaMods, keyCode, (jchar)keyChar, (jchar)keySymChar);
+        }
+    } else {
+        // non-printable chars
+        jchar keyChar = (jchar) 0;
+
+        DBG_PRINT("sendKeyEvent: code 0x%X\n", (int)keyCode);
+
+        (*env)->CallVoidMethod(env, javaWindowObject, enqueueKeyEventID, JNI_FALSE,
+                               evType, javaMods, keyCode, keyChar, keyChar);
+    }
+
+    // detaching thread not required - daemon
+    // NewtCommon_ReleaseJNIEnv(shallBeDetached);
+}
+
 @end
-
-static CFStringRef CKCH_CreateStringForKey(CGKeyCode keyCode, const UCKeyboardLayout *keyboardLayout) {
-    UInt32 keysDown = 0;
-    UniChar chars[4];
-    UniCharCount realLength;
-
-    UCKeyTranslate(keyboardLayout, keyCode,
-                   kUCKeyActionDisplay, 0,
-                   LMGetKbdType(), kUCKeyTranslateNoDeadKeysBit,
-                   &keysDown, sizeof(chars) / sizeof(chars[0]), &realLength, chars);
-
-    return CFStringCreateWithCharacters(kCFAllocatorDefault, chars, 1);
-}
-
-static CFMutableDictionaryRef CKCH_CreateCodeToCharDict(TISInputSourceRef keyboard) {
-    CFDataRef layoutData = (CFDataRef) TISGetInputSourceProperty(keyboard, kTISPropertyUnicodeKeyLayoutData);
-    const UCKeyboardLayout *keyboardLayout = (const UCKeyboardLayout *)CFDataGetBytePtr(layoutData);
-
-    CFMutableDictionaryRef codeToCharDict = CFDictionaryCreateMutable(kCFAllocatorDefault, 128, NULL, NULL);
-    if ( NULL != codeToCharDict ) {
-        intptr_t i;
-        for (i = 0; i < 128; ++i) {
-            CFStringRef string = CKCH_CreateStringForKey((CGKeyCode)i, keyboardLayout);
-            if( NULL != string ) {
-                CFIndex stringLen = CFStringGetLength (string);
-                if ( 0 < stringLen ) {
-                    UniChar character = CFStringGetCharacterAtIndex(string, 0);
-                    DBG_PRINT("CKCH: MAP 0x%X -> %c\n", (int)i, character);
-                    CFDictionaryAddValue(codeToCharDict, (const void *)i, (const void *)(intptr_t)character);
-                }
-                CFRelease(string);
-            }
-        }
-    }
-    return codeToCharDict;
-}
-
-static CFMutableDictionaryRef CKCH_USCodeToNNChar = NULL;
-
-static void CKCH_CreateDictionaries() {
-    TISInputSourceRef currentKeyboard = TISCopyCurrentKeyboardInputSource();
-    CKCH_USCodeToNNChar = CKCH_CreateCodeToCharDict(currentKeyboard);
-    CFRelease(currentKeyboard);
-}
-
-static UniChar CKCH_CharForKeyCode(jshort keyCode) {
-    UniChar rChar = 0;
-
-    if ( NULL != CKCH_USCodeToNNChar ) {
-        intptr_t code = (intptr_t) keyCode;
-        intptr_t character = 0;
-
-        if ( CFDictionaryGetValueIfPresent(CKCH_USCodeToNNChar, (void *)code, (const void **)&character) ) {
-            rChar = (UniChar) character;
-            DBG_PRINT("CKCH: OK 0x%X -> 0x%X\n", (int)keyCode, (int)rChar);
-        }
-    }
-    return rChar;
-}
 
 @implementation NewtMacWindow
 
@@ -445,6 +796,30 @@ static UniChar CKCH_CharForKeyCode(jshort keyCode) {
                     styleMask: windowStyle
                     backing: bufferingType
                     defer: deferCreation];
+    // OSX 10.6
+    if ( [NSApp respondsToSelector:@selector(currentSystemPresentationOptions)] &&
+         [NSApp respondsToSelector:@selector(setPresentationOptions:)] ) {
+        hasPresentationSwitch = YES;
+        defaultPresentationOptions = [NSApp currentSystemPresentationOptions];
+        fullscreenPresentationOptions = 
+                // NSApplicationPresentationDefault|
+                // NSApplicationPresentationAutoHideDock|
+                NSApplicationPresentationHideDock|
+                // NSApplicationPresentationAutoHideMenuBar|
+                NSApplicationPresentationHideMenuBar|
+                NSApplicationPresentationDisableAppleMenu|
+                // NSApplicationPresentationDisableProcessSwitching|
+                // NSApplicationPresentationDisableSessionTermination|
+                NSApplicationPresentationDisableHideApplication|
+                // NSApplicationPresentationDisableMenuBarTransparency|
+                // NSApplicationPresentationFullScreen| // OSX 10.7
+                0 ;
+    } else {
+        hasPresentationSwitch = NO;
+        defaultPresentationOptions = 0;
+        fullscreenPresentationOptions = 0; 
+    }
+
     isFullscreenWindow = isfs;
     // Why is this necessary? Without it we don't get any of the
     // delegate methods like resizing and window movement.
@@ -453,16 +828,9 @@ static UniChar CKCH_CharForKeyCode(jshort keyCode) {
     cachedInsets[1] = 0; // r
     cachedInsets[2] = 0; // t
     cachedInsets[3] = 0; // b
-    modsDown[0] = NO; // shift
-    modsDown[1] = NO; // ctrl
-    modsDown[2] = NO; // alt
-    modsDown[3] = NO; // win
-    mouseConfined = NO;
-    mouseVisible = YES;
-    mouseInside = NO;
-    cursorIsHidden = NO;
     realized = YES;
-    DBG_PRINT("NewtWindow::create: %p, realized %d (refcnt %d)\n", res, realized, (int)[res retainCount]);
+    DBG_PRINT("NewtWindow::create: %p, realized %d, hasPresentationSwitch %d[defaultOptions 0x%X, fullscreenOptions 0x%X], (refcnt %d)\n", 
+        res, realized, (int)hasPresentationSwitch, (int)defaultPresentationOptions, (int)fullscreenPresentationOptions, (int)[res retainCount]);
     return res;
 }
 
@@ -621,237 +989,20 @@ static UniChar CKCH_CharForKeyCode(jshort keyCode) {
     return oS;
 }
 
-- (NSPoint) screenPos2NewtClientWinPos: (NSPoint) p
-{
-    NSView* view = [self contentView];
-    NSRect viewFrame = [view frame];
-
-    NSRect r;
-    r.origin.x = p.x;
-    r.origin.y = p.y;
-    r.size.width = 0;
-    r.size.height = 0;
-    // NSRect rS = [win convertRectFromScreen: r]; // 10.7
-    NSPoint oS = [self convertScreenToBase: r.origin];
-    oS.y = viewFrame.size.height - oS.y; // y-flip
-    return oS;
-}
-
-- (BOOL) isMouseInside
-{
-    NSView* view = [self contentView];
-    NSRect viewFrame = [view frame];
-    NSPoint l1 = [NSEvent mouseLocation];
-    NSPoint l0 = [self screenPos2NewtClientWinPos: l1];
-    return viewFrame.origin.x <= l0.x && l0.x < (viewFrame.origin.x+viewFrame.size.width) &&
-           viewFrame.origin.y <= l0.y && l0.y < (viewFrame.origin.y+viewFrame.size.height) ;
-}
-
-- (void) setMouseVisible:(BOOL)v hasFocus:(BOOL)focus
-{
-    mouseVisible = v;
-    mouseInside = [self isMouseInside];
-    DBG_PRINT( "setMouseVisible: confined %d, visible %d (current: %d), mouseInside %d, hasFocus %d\n", 
-        mouseConfined, mouseVisible, !cursorIsHidden, mouseInside, focus);
-    if(YES == focus && YES == mouseInside) {
-        [self cursorHide: !mouseVisible];
-    }
-}
-
-- (void) cursorHide:(BOOL)v
-{
-    DBG_PRINT( "cursorHide: %d -> %d\n", cursorIsHidden, v);
-    if(v) {
-        if(!cursorIsHidden) {
-            [NSCursor hide];
-            cursorIsHidden = YES;
-        }
-    } else {
-        if(cursorIsHidden) {
-            [NSCursor unhide];
-            cursorIsHidden = NO;
-        }
-    }
-}
-
-- (void) setMouseConfined:(BOOL)v
-{
-    mouseConfined = v;
-    DBG_PRINT( "setMouseConfined: confined %d, visible %d\n", mouseConfined, mouseVisible);
-}
-
-- (void) setMousePosition:(NSPoint)p
-{
-    NSScreen* screen = [self screen];
-    NSRect screenRect = [screen frame];
-
-    CGPoint pt = { p.x, screenRect.size.height - p.y }; // y-flip (CG is top-left origin)
-    CGEventRef ev = CGEventCreateMouseEvent (NULL, kCGEventMouseMoved, pt, kCGMouseButtonLeft);
-    CGEventPost (kCGHIDEventTap, ev);
-}
-
-static jint mods2JavaMods(NSUInteger mods)
-{
-    int javaMods = 0;
-    if (mods & NSShiftKeyMask) {
-        javaMods |= EVENT_SHIFT_MASK;
-    }
-    if (mods & NSControlKeyMask) {
-        javaMods |= EVENT_CTRL_MASK;
-    }
-    if (mods & NSCommandKeyMask) {
-        javaMods |= EVENT_META_MASK;
-    }
-    if (mods & NSAlternateKeyMask) {
-        javaMods |= EVENT_ALT_MASK;
-    }
-    return javaMods;
-}
-
-- (void) sendKeyEvent: (NSEvent*) event eventType: (jshort) evType
-{
-    jshort keyCode = (jshort) [event keyCode];
-    NSString* chars = [event charactersIgnoringModifiers];
-    NSUInteger mods = [event modifierFlags];
-    [self sendKeyEvent: keyCode characters: chars modifiers: mods eventType: evType];
-}
-
-- (void) sendKeyEvent: (jshort) keyCode characters: (NSString*) chars modifiers: (NSUInteger)mods eventType: (jshort) evType
-{
-    NSView* nsview = [self contentView];
-    if( ! [nsview isKindOfClass:[NewtView class]] ) {
-        return;
-    }
-    NewtView* view = (NewtView *) nsview;
-    jobject javaWindowObject = [view getJavaWindowObject];
-    if (javaWindowObject == NULL) {
-        DBG_PRINT("sendKeyEvent: null javaWindowObject\n");
-        return;
-    }
-    int shallBeDetached = 0;
-    JavaVM *jvmHandle = [view getJVMHandle];
-    JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], 1 /* asDaemon */, &shallBeDetached);
-    if(NULL==env) {
-        DBG_PRINT("sendKeyEvent: null JNIEnv\n");
-        return;
-    }
-
-    int i;
-    int len = NULL != chars ? [chars length] : 0;
-    jint javaMods = mods2JavaMods(mods);
-
-    if(len > 0) {
-        // printable chars
-        for (i = 0; i < len; i++) {
-            // Note: the key code in the NSEvent does not map to anything we can use
-            UniChar keyChar = (UniChar) [chars characterAtIndex: i];
-            UniChar keySymChar = CKCH_CharForKeyCode(keyCode);
-
-            DBG_PRINT("sendKeyEvent: %d/%d code 0x%X, char 0x%X -> keySymChar 0x%X\n", i, len, (int)keyCode, (int)keyChar, (int)keySymChar);
-
-            (*env)->CallVoidMethod(env, javaWindowObject, enqueueKeyEventID, JNI_FALSE,
-                                   evType, javaMods, keyCode, (jchar)keyChar, (jchar)keySymChar);
-        }
-    } else {
-        // non-printable chars
-        jchar keyChar = (jchar) 0;
-
-        DBG_PRINT("sendKeyEvent: code 0x%X\n", (int)keyCode);
-
-        (*env)->CallVoidMethod(env, javaWindowObject, enqueueKeyEventID, JNI_FALSE,
-                               evType, javaMods, keyCode, keyChar, keyChar);
-    }
-
-    /* if (shallBeDetached) {
-        (*jvmHandle)->DetachCurrentThread(jvmHandle);
-    } */
-}
-
-- (void) sendMouseEvent: (NSEvent*) event eventType: (jshort) evType
-{
-    NSView* nsview = [self contentView];
-    if( ! [nsview isKindOfClass:[NewtView class]] ) {
-        return;
-    }
-    NewtView* view = (NewtView *) nsview;
-    jobject javaWindowObject = [view getJavaWindowObject];
-    if (javaWindowObject == NULL) {
-        DBG_PRINT("sendMouseEvent: null javaWindowObject\n");
-        return;
-    }
-    int shallBeDetached = 0;
-    JavaVM *jvmHandle = [view getJVMHandle];
-    JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], 1 /* asDaemon */, &shallBeDetached);
-    if(NULL==env) {
-        DBG_PRINT("sendMouseEvent: null JNIEnv\n");
-        return;
-    }
-    jint javaMods[] = { 0 } ;
-    javaMods[0] = mods2JavaMods([event modifierFlags]);
-
-    // convert to 1-based button number (or use zero if no button is involved)
-    // TODO: detect mouse button when mouse wheel scrolled  
-    jshort javaButtonNum = 0;
-    jfloat scrollDeltaY = 0.0f;
-    switch ([event type]) {
-    case NSScrollWheel: {
-        scrollDeltaY = GetDelta(event, javaMods);
-        javaButtonNum = 1;
-        break;
-    }
-    case NSLeftMouseDown:
-    case NSLeftMouseUp:
-    case NSLeftMouseDragged:
-        javaButtonNum = 1;
-        break;
-    case NSRightMouseDown:
-    case NSRightMouseUp:
-    case NSRightMouseDragged:
-        javaButtonNum = 3;
-        break;
-    case NSOtherMouseDown:
-    case NSOtherMouseUp:
-    case NSOtherMouseDragged:
-        javaButtonNum = 2;
-        break;
-    }
-
-    if (evType == EVENT_MOUSE_WHEEL_MOVED && scrollDeltaY == 0) {
-        // ignore 0 increment wheel scroll events
-        return;
-    }
-    if (evType == EVENT_MOUSE_PRESSED) {
-        (*env)->CallVoidMethod(env, javaWindowObject, requestFocusID, JNI_FALSE);
-    }
-
-    NSPoint location = [self screenPos2NewtClientWinPos: [NSEvent mouseLocation]];
-
-    (*env)->CallVoidMethod(env, javaWindowObject, enqueueMouseEventID, JNI_FALSE,
-                           evType, javaMods[0],
-                           (jint) location.x, (jint) location.y,
-                           javaButtonNum, scrollDeltaY);
-
-    /* if (shallBeDetached) {
-        (*jvmHandle)->DetachCurrentThread(jvmHandle);
-    } */
-}
-
 - (void) focusChanged: (BOOL) gained
 {
     DBG_PRINT( "focusChanged: gained %d\n", gained);
-    NSView* nsview = [self contentView];
-    if( ! [nsview isKindOfClass:[NewtView class]] ) {
+    NewtView* newtView = (NewtView *) [self contentView];
+    if( ! [newtView isKindOfClass:[NewtView class]] ) {
         return;
     }
-    NewtView* view = (NewtView *) nsview;
-    jobject javaWindowObject = [view getJavaWindowObject];
+    jobject javaWindowObject = [newtView getJavaWindowObject];
     if (javaWindowObject == NULL) {
         DBG_PRINT("focusChanged: null javaWindowObject\n");
         return;
     }
     int shallBeDetached = 0;
-    JavaVM *jvmHandle = [view getJVMHandle];
-    JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], 1 /* asDaemon */, &shallBeDetached);
+    JNIEnv* env = NewtCommon_GetJNIEnv(1 /* asDaemon */, &shallBeDetached);
     if(NULL==env) {
         DBG_PRINT("focusChanged: null JNIEnv\n");
         return;
@@ -859,20 +1010,54 @@ static jint mods2JavaMods(NSUInteger mods)
 
     (*env)->CallVoidMethod(env, javaWindowObject, focusChangedID, JNI_FALSE, (gained == YES) ? JNI_TRUE : JNI_FALSE);
 
-    /* if (shallBeDetached) {
-        (*jvmHandle)->DetachCurrentThread(jvmHandle);
-    } */
+    // detaching thread not required - daemon
+    // NewtCommon_ReleaseJNIEnv(shallBeDetached);
+}
+
+- (void) keyDown: (NSEvent*) theEvent
+{
+    NewtView* newtView = (NewtView *) [self contentView];
+    if( [newtView isKindOfClass:[NewtView class]] ) {
+        [newtView sendKeyEvent: theEvent eventType: (jshort)EVENT_KEY_PRESSED];
+    }
+}
+
+- (void) keyUp: (NSEvent*) theEvent
+{
+    NewtView* newtView = (NewtView *) [self contentView];
+    if( [newtView isKindOfClass:[NewtView class]] ) {
+        [newtView sendKeyEvent: theEvent eventType: (jshort)EVENT_KEY_RELEASED];
+    }
+}
+
+- (void) flagsChanged:(NSEvent *) theEvent
+{
+    NSUInteger mods = [theEvent modifierFlags];
+    NewtView* newtView = (NewtView *) [self contentView];
+    if( [newtView isKindOfClass:[NewtView class]] ) {
+        [newtView handleFlagsChanged: mods];
+    }
+}
+
+- (BOOL) acceptsMouseMovedEvents
+{
+    return YES;
+}
+
+- (BOOL) acceptsFirstResponder 
+{
+    return YES;
 }
 
 - (BOOL) becomeFirstResponder
 {
-    DBG_PRINT( "*************** becomeFirstResponder\n");
+    DBG_PRINT( "*************** Win.becomeFirstResponder\n");
     return [super becomeFirstResponder];
 }
 
 - (BOOL) resignFirstResponder
 {
-    DBG_PRINT( "*************** resignFirstResponder\n");
+    DBG_PRINT( "*************** Win.resignFirstResponder\n");
     return [super resignFirstResponder];
 }
 
@@ -900,9 +1085,12 @@ static jint mods2JavaMods(NSUInteger mods)
 - (void) windowDidBecomeKey: (NSNotification *) notification
 {
     DBG_PRINT( "*************** windowDidBecomeKey\n");
-    mouseInside = [self isMouseInside];
-    if(YES == mouseInside) {
-        [self cursorHide: !mouseVisible];
+    NewtView* newtView = (NewtView *) [self contentView];
+    if( [newtView isKindOfClass:[NewtView class]] ) {
+        BOOL mouseInside = [newtView updateMouseInside];
+        if(YES == mouseInside) {
+            [newtView cursorHide: ![newtView isMouseVisible] enter: 1];
+        }
     }
     [self focusChanged: YES];
 }
@@ -914,177 +1102,48 @@ static jint mods2JavaMods(NSUInteger mods)
     [self focusChanged: NO];
 }
 
-- (void) keyDown: (NSEvent*) theEvent
-{
-    [self sendKeyEvent: theEvent eventType: (jshort)EVENT_KEY_PRESSED];
-}
-
-- (void) keyUp: (NSEvent*) theEvent
-{
-    [self sendKeyEvent: theEvent eventType: (jshort)EVENT_KEY_RELEASED];
-}
-
-#define kVK_Shift     0x38
-#define kVK_Option    0x3A
-#define kVK_Control   0x3B
-#define kVK_Command   0x37
-
-- (void) handleFlagsChanged:(int) keyMask keyIndex: (int) keyIdx keyCode: (int) keyCode modifiers: (NSUInteger) mods
-{
-    if ( NO == modsDown[keyIdx] && 0 != ( mods & keyMask ) )  {
-        modsDown[keyIdx] = YES;
-        [self sendKeyEvent: (jshort)keyCode characters: NULL modifiers: mods|keyMask eventType: (jshort)EVENT_KEY_PRESSED];
-    } else if ( YES == modsDown[keyIdx] && 0 == ( mods & keyMask ) )  {
-        modsDown[keyIdx] = NO;
-        [self sendKeyEvent: (jshort)keyCode characters: NULL modifiers: mods|keyMask eventType: (jshort)EVENT_KEY_RELEASED];
-    }
-}
-
-- (void) flagsChanged:(NSEvent *) theEvent
-{
-    NSUInteger mods = [theEvent modifierFlags];
-
-    // BOOL modsDown[4]; // shift, ctrl, alt/option, win/command
-
-    [self handleFlagsChanged: NSShiftKeyMask keyIndex: 0 keyCode: kVK_Shift modifiers: mods];
-    [self handleFlagsChanged: NSControlKeyMask keyIndex: 1 keyCode: kVK_Control modifiers: mods];
-    [self handleFlagsChanged: NSAlternateKeyMask keyIndex: 2 keyCode: kVK_Option modifiers: mods];
-    [self handleFlagsChanged: NSCommandKeyMask keyIndex: 3 keyCode: kVK_Command modifiers: mods];
-}
-
-- (void) mouseEntered: (NSEvent*) theEvent
-{
-    DBG_PRINT( "mouseEntered: confined %d, visible %d\n", mouseConfined, mouseVisible);
-    mouseInside = YES;
-    [self cursorHide: !mouseVisible];
-    if(NO == mouseConfined) {
-        [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_ENTERED];
-    }
-}
-
-- (void) mouseExited: (NSEvent*) theEvent
-{
-    DBG_PRINT( "mouseExited: confined %d, visible %d\n", mouseConfined, mouseVisible);
-    if(NO == mouseConfined) {
-        mouseInside = NO;
-        [self cursorHide: NO];
-        [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_EXITED];
-    } else {
-        [self setMousePosition: lastInsideMousePosition];
-    }
-}
-
-- (void) mouseMoved: (NSEvent*) theEvent
-{
-    lastInsideMousePosition = [NSEvent mouseLocation];
-    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_MOVED];
-}
-
-- (void) scrollWheel: (NSEvent*) theEvent
-{
-    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_WHEEL_MOVED];
-}
-
-- (void) mouseDown: (NSEvent*) theEvent
-{
-    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_PRESSED];
-}
-
-- (void) mouseDragged: (NSEvent*) theEvent
-{
-    lastInsideMousePosition = [NSEvent mouseLocation];
-    // Note use of MOUSE_MOVED event type because mouse dragged events are synthesized by Java
-    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_MOVED];
-}
-
-- (void) mouseUp: (NSEvent*) theEvent
-{
-    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_RELEASED];
-}
-
-- (void) rightMouseDown: (NSEvent*) theEvent
-{
-    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_PRESSED];
-}
-
-- (void) rightMouseDragged: (NSEvent*) theEvent
-{
-    lastInsideMousePosition = [NSEvent mouseLocation];
-    // Note use of MOUSE_MOVED event type because mouse dragged events are synthesized by Java
-    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_MOVED];
-}
-
-- (void) rightMouseUp: (NSEvent*) theEvent
-{
-    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_RELEASED];
-}
-
-- (void) otherMouseDown: (NSEvent*) theEvent
-{
-    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_PRESSED];
-}
-
-- (void) otherMouseDragged: (NSEvent*) theEvent
-{
-    lastInsideMousePosition = [NSEvent mouseLocation];
-    // Note use of MOUSE_MOVED event type because mouse dragged events are synthesized by Java
-    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_MOVED];
-}
-
-- (void) otherMouseUp: (NSEvent*) theEvent
-{
-    [self sendMouseEvent: theEvent eventType: EVENT_MOUSE_RELEASED];
-}
-
 - (void)windowDidResize: (NSNotification*) notification
 {
-    JNIEnv* env = NULL;
     jobject javaWindowObject = NULL;
     int shallBeDetached = 0;
-    JavaVM *jvmHandle = NULL;
+    JNIEnv* env = NewtCommon_GetJNIEnv(1 /* asDaemon */, &shallBeDetached);
 
-    NSView* nsview = [self contentView];
-    if( [nsview isKindOfClass:[NewtView class]] ) {
-        NewtView* view = (NewtView *) nsview;
-        javaWindowObject = [view getJavaWindowObject];
-        if (javaWindowObject != NULL) {
-            jvmHandle = [view getJVMHandle];
-            env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], 1 /* asDaemon */, &shallBeDetached);
-        }
+    if( NULL == env ) {
+        DBG_PRINT("windowDidResize: null JNIEnv\n");
+        return;
     }
+    NewtView* newtView = (NewtView *) [self contentView];
+    if( [newtView isKindOfClass:[NewtView class]] ) {
+        javaWindowObject = [newtView getJavaWindowObject];
+    }
+    if( NULL != javaWindowObject ) {
+        // update insets on every window resize for lack of better hook place
+        [self updateInsets: env jwin:javaWindowObject];
 
-    // update insets on every window resize for lack of better hook place
-    [self updateInsets: env jwin:javaWindowObject];
-
-    if( NULL != env && NULL != javaWindowObject ) {
         NSRect frameRect = [self frame];
         NSRect contentRect = [self contentRectForFrameRect: frameRect];
 
         (*env)->CallVoidMethod(env, javaWindowObject, sizeChangedID, JNI_FALSE,
                                (jint) contentRect.size.width,
                                (jint) contentRect.size.height, JNI_FALSE);
-
-        /* if (shallBeDetached) {
-            (*jvmHandle)->DetachCurrentThread(jvmHandle);
-        } */
     }
+    // detaching thread not required - daemon
+    // NewtCommon_ReleaseJNIEnv(shallBeDetached);
 }
 
 - (void)windowDidMove: (NSNotification*) notification
 {
-    NSView* nsview = [self contentView];
-    if( ! [nsview isKindOfClass:[NewtView class]] ) {
+    NewtView* newtView = (NewtView *) [self contentView];
+    if( ! [newtView isKindOfClass:[NewtView class]] ) {
         return;
     }
-    NewtView* view = (NewtView *) nsview;
-    jobject javaWindowObject = [view getJavaWindowObject];
+    jobject javaWindowObject = [newtView getJavaWindowObject];
     if (javaWindowObject == NULL) {
         DBG_PRINT("windowDidMove: null javaWindowObject\n");
         return;
     }
     int shallBeDetached = 0;
-    JavaVM *jvmHandle = [view getJVMHandle];
-    JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], 1 /* asDaemon */, &shallBeDetached);
+    JNIEnv* env = NewtCommon_GetJNIEnv(1 /* asDaemon */, &shallBeDetached);
     if(NULL==env) {
         DBG_PRINT("windowDidMove: null JNIEnv\n");
         return;
@@ -1094,9 +1153,8 @@ static jint mods2JavaMods(NSUInteger mods)
     p0 = [self getLocationOnScreen: p0];
     (*env)->CallVoidMethod(env, javaWindowObject, positionChangedID, JNI_FALSE, (jint) p0.x, (jint) p0.y);
 
-    /* if (shallBeDetached) {
-        (*jvmHandle)->DetachCurrentThread(jvmHandle);
-    } */
+    // detaching thread not required - daemon
+    // NewtCommon_ReleaseJNIEnv(shallBeDetached);
 }
 
 - (BOOL)windowShouldClose: (id) sender
@@ -1112,41 +1170,38 @@ static jint mods2JavaMods(NSUInteger mods)
 - (BOOL) windowClosingImpl: (BOOL) force
 {
     jboolean closed = JNI_FALSE;
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
-    [self cursorHide: NO];
-
-    NSView* nsview = [self contentView];
-    if( ! [nsview isKindOfClass:[NewtView class]] ) {
+    NewtView* newtView = (NewtView *) [self contentView];
+    if( ! [newtView isKindOfClass:[NewtView class]] ) {
         return NO;
     }
-    NewtView* view = (NewtView *) nsview;
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    [newtView cursorHide: NO enter: -1];
 
-    if( false == [view getDestroyNotifySent] ) {
-        jobject javaWindowObject = [view getJavaWindowObject];
+    if( false == [newtView getDestroyNotifySent] ) {
+        jobject javaWindowObject = [newtView getJavaWindowObject];
         DBG_PRINT( "*************** windowWillClose.0: %p\n", (void *)(intptr_t)javaWindowObject);
         if (javaWindowObject == NULL) {
             DBG_PRINT("windowWillClose: null javaWindowObject\n");
+            [pool release];
             return NO;
         }
         int shallBeDetached = 0;
-        JavaVM *jvmHandle = [view getJVMHandle];
-        JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], 1 /* asDaemon */, &shallBeDetached);
+        JNIEnv* env = NewtCommon_GetJNIEnv(1 /* asDaemon */, &shallBeDetached);
         if(NULL==env) {
             DBG_PRINT("windowWillClose: null JNIEnv\n");
+            [pool release];
             return NO;
         }
-
-        [view setDestroyNotifySent: true]; // earmark assumption of being closed
+        [newtView setDestroyNotifySent: true]; // earmark assumption of being closed
         closed = (*env)->CallBooleanMethod(env, javaWindowObject, windowDestroyNotifyID, force ? JNI_TRUE : JNI_FALSE);
         if(!force && !closed) {
             // not closed on java side, not force -> clear flag
-            [view setDestroyNotifySent: false];
+            [newtView setDestroyNotifySent: false];
         }
 
-        /* if (shallBeDetached) {
-            (*jvmHandle)->DetachCurrentThread(jvmHandle);
-        } */
+        // detaching thread not required - daemon
+        // NewtCommon_ReleaseJNIEnv(shallBeDetached);
         DBG_PRINT( "*************** windowWillClose.X: %p, closed %d\n", (void *)(intptr_t)javaWindowObject, (int)closed);
     } else {
         DBG_PRINT( "*************** windowWillClose (skip)\n");

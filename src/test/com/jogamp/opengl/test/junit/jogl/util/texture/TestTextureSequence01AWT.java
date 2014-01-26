@@ -12,6 +12,8 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.test.junit.jogl.demos.TextureSequenceDemo01;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.TextureSequenceCubeES2;
@@ -20,6 +22,7 @@ import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestTextureSequence01AWT extends UITestCase {
     static boolean showFPS = false;
     static int width = 510;

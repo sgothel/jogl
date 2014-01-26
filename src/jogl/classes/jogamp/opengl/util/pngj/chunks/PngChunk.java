@@ -248,7 +248,7 @@ public abstract class PngChunk {
 	/**
 	 * Creates the physical chunk. This is used when writing (serialization).
 	 * Each particular chunk class implements its own logic.
-	 * 
+	 *
 	 * @return A newly allocated and filled raw chunk
 	 */
 	public abstract ChunkRaw createRawChunk();

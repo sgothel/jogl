@@ -40,9 +40,9 @@ import jogamp.newt.Debug;
 
 public class AWTEDTUtil implements EDTUtil {
     public static final boolean DEBUG = Debug.debug("EDT");
-    
+
     private final Object edtLock = new Object(); // locking the EDT start/stop state
-    private final ThreadGroup threadGroup; 
+    private final ThreadGroup threadGroup;
     private final String name;
     private final Runnable dispatchMessages;
     private NEDT nedt = null;
@@ -66,9 +66,9 @@ public class AWTEDTUtil implements EDTUtil {
     final public void setPollPeriod(long ms) {
         pollPeriod = ms;
     }
-    
+
     @Override
-    public final boolean restart() throws IllegalStateException {
+    public final boolean start() throws IllegalStateException {
         synchronized(edtLock) {
             if( nedt.isRunning() ) {
                 throw new IllegalStateException("EDT still running and not subject to stop. Curr "+Thread.currentThread().getName()+", NEDT "+nedt.getName()+", isRunning "+nedt.isRunning+", shouldStop "+nedt.shouldStop+", on AWT-EDT "+EventQueue.isDispatchThread());
@@ -107,12 +107,12 @@ public class AWTEDTUtil implements EDTUtil {
     public final boolean isCurrentThreadNEDT() {
         return nedt == Thread.currentThread();
     }
-    
+
     @Override
     public final boolean isCurrentThreadEDTorNEDT() {
-        return EventQueue.isDispatchThread() || nedt == Thread.currentThread();        
+        return EventQueue.isDispatchThread() || nedt == Thread.currentThread();
     }
-    
+
     @Override
     final public boolean isRunning() {
         return nedt.isRunning() ;
@@ -127,12 +127,12 @@ public class AWTEDTUtil implements EDTUtil {
     public final boolean invoke(boolean wait, Runnable task) {
         return invokeImpl(wait, task, false);
     }
-    
+
     private static Runnable nullTask = new Runnable() {
         @Override
-        public void run() { }        
+        public void run() { }
     };
-    
+
     private final boolean invokeImpl(boolean wait, Runnable task, boolean stop) {
         Throwable throwable = null;
         RunnableTask rTask = null;
@@ -145,7 +145,7 @@ public class AWTEDTUtil implements EDTUtil {
                     if(DEBUG) {
                         Thread.dumpStack();
                     }
-                    return false; 
+                    return false;
                 }
                 if( isCurrentThreadEDT() ) {
                     if(null != task) {
@@ -181,7 +181,7 @@ public class AWTEDTUtil implements EDTUtil {
                     if(null != task) {
                         rTask = new RunnableTask(task,
                                                  wait ? rTaskLock : null,
-                                                 true /* always catch and report Exceptions, don't disturb EDT */, 
+                                                 true /* always catch and report Exceptions, don't disturb EDT */,
                                                  wait ? null : System.err);
                         AWTEDTExecutor.singleton.invoke(false, rTask);
                     }
@@ -205,7 +205,7 @@ public class AWTEDTUtil implements EDTUtil {
             }
             return true;
         }
-    }    
+    }
 
     @Override
     final public boolean waitUntilIdle() {
@@ -218,6 +218,7 @@ public class AWTEDTUtil implements EDTUtil {
         }
         try {
             AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+                @Override
                 public void run() { }
             });
         } catch (Exception e) { }
@@ -241,7 +242,7 @@ public class AWTEDTUtil implements EDTUtil {
             }
         }
     }
-    
+
     class NEDT extends Thread {
         volatile boolean shouldStop = false;
         volatile boolean isRunning = false;
@@ -261,7 +262,7 @@ public class AWTEDTUtil implements EDTUtil {
             super.start();
         }
 
-        /** 
+        /**
          * Utilizing locking only on tasks and its execution,
          * not for event dispatching.
          */
@@ -302,7 +303,7 @@ public class AWTEDTUtil implements EDTUtil {
                 }
             } finally {
                 if(DEBUG) {
-                    System.err.println(getName()+": AWT-EDT run() END "+ getName()+", "+error); 
+                    System.err.println(getName()+": AWT-EDT run() END "+ getName()+", "+error);
                 }
                 synchronized(edtLock) {
                     isRunning = false;
@@ -317,7 +318,7 @@ public class AWTEDTUtil implements EDTUtil {
             } // finally
         } // run()
     } // EventDispatchThread
-    
+
 }
 
 

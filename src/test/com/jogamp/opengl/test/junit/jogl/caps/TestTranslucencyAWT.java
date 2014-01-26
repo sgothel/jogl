@@ -50,12 +50,15 @@ import javax.media.opengl.awt.GLCanvas;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestTranslucencyAWT extends UITestCase {
     static Dimension size;
     static long durationPerTest = 400;

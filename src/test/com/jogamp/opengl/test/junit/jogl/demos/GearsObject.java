@@ -7,10 +7,10 @@
  * the rights to use, copy, modify, merge, publish, distribute, sublicense,
  * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included
  * in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
@@ -37,7 +37,7 @@ public abstract class GearsObject {
     public static final FloatBuffer blue = Buffers.newDirectFloatBuffer( new float[] { 0.2f, 0.2f, 1.0f, 0.7f } );
     public static final float M_PI = (float)Math.PI;
 
-    public final FloatBuffer gearColor;    
+    public final FloatBuffer gearColor;
     public GLArrayDataServer frontFace;
     public GLArrayDataServer frontSide;
     public GLArrayDataServer backFace;
@@ -45,11 +45,23 @@ public abstract class GearsObject {
     public GLArrayDataServer outwardFace;
     public GLArrayDataServer insideRadiusCyl;
     public boolean isShared;
+    protected boolean validateBuffers = false;
 
-    public abstract GLArrayDataServer createInterleaved(int comps, int dataType, boolean normalized, int initialSize, int vboUsage);
+    public abstract GLArrayDataServer createInterleaved(boolean useMappedBuffers, int comps, int dataType, boolean normalized, int initialSize, int vboUsage);
     public abstract void addInterleavedVertexAndNormalArrays(GLArrayDataServer array, int components);
     public abstract void draw(GL gl, float x, float y, float angle);
-    
+
+    private GLArrayDataServer createInterleavedClone(GLArrayDataServer ads) {
+      final GLArrayDataServer n = new GLArrayDataServer(ads);
+      n.setInterleavedOffset(0);
+      return n;
+    }
+
+    private void init(GL gl, GLArrayDataServer array) {
+        array.enableBuffer(gl, true);
+        array.enableBuffer(gl, false);
+    }
+
     public void destroy(GL gl) {
         if(!isShared) {
             // could be already destroyed by shared configuration
@@ -77,30 +89,37 @@ public abstract class GearsObject {
         backFace=null;
         backSide=null;
         outwardFace=null;
-        insideRadiusCyl=null;            
+        insideRadiusCyl=null;
         isShared = false;
     }
-    
+
     public GearsObject ( GearsObject shared ) {
         isShared = true;
-        frontFace = shared.frontFace;
-        frontSide = shared.frontSide;
-        backFace = shared.backFace;
-        backSide = shared.backSide;
-        outwardFace = shared.outwardFace;
-        insideRadiusCyl = shared.insideRadiusCyl;
+        validateBuffers = shared.validateBuffers;
+        frontFace = createInterleavedClone(shared.frontFace);
+        addInterleavedVertexAndNormalArrays(frontFace, 3);
+        backFace = createInterleavedClone(shared.backFace);
+        addInterleavedVertexAndNormalArrays(backFace, 3);
+        frontSide = createInterleavedClone(shared.frontSide);
+        addInterleavedVertexAndNormalArrays(frontSide, 3);
+        backSide= createInterleavedClone(shared.backSide);
+        addInterleavedVertexAndNormalArrays(backSide, 3);
+        outwardFace = createInterleavedClone(shared.outwardFace);
+        addInterleavedVertexAndNormalArrays(outwardFace, 3);
+        insideRadiusCyl = createInterleavedClone(shared.insideRadiusCyl);
+        addInterleavedVertexAndNormalArrays(insideRadiusCyl, 3);
         gearColor = shared.gearColor;
     }
-            
+
     public GearsObject (
+            GL gl,
+            boolean useMappedBuffers,
             FloatBuffer gearColor,
             float inner_radius,
             float outer_radius,
-            float width,
-            int teeth,
-            float tooth_depth)
+            float width, int teeth, float tooth_depth, boolean validateBuffers)
     {
-        final float dz = width * 0.5f; 
+        final float dz = width * 0.5f;
         int i;
         float r0, r1, r2;
         float angle, da;
@@ -110,9 +129,10 @@ public abstract class GearsObject {
         float normal[] = new float[3];
         // final int tris_per_tooth = 32;
 
+        this.validateBuffers = validateBuffers;
         this.isShared = false;
         this.gearColor = gearColor;
-        
+
         r0 = inner_radius;
         r1 = outer_radius - tooth_depth / 2.0f;
         r2 = outer_radius + tooth_depth / 2.0f;
@@ -121,21 +141,30 @@ public abstract class GearsObject {
 
         s[4] = 0; // sin(0f)
         c[4] = 1; // cos(0f)
-        
+
         final int vboUsage = GL.GL_STATIC_DRAW;
 
-        frontFace = createInterleaved(6, GL.GL_FLOAT, false, 4*teeth+2, vboUsage);
+        frontFace = createInterleaved(useMappedBuffers, 6, GL.GL_FLOAT, false, 4*teeth+2, vboUsage);
         addInterleavedVertexAndNormalArrays(frontFace, 3);
-        backFace = createInterleaved(6, GL.GL_FLOAT, false, 4*teeth+2, vboUsage);
+        backFace = createInterleaved(useMappedBuffers, 6, GL.GL_FLOAT, false, 4*teeth+2, vboUsage);
         addInterleavedVertexAndNormalArrays(backFace, 3);
-        frontSide = createInterleaved(6, GL.GL_FLOAT, false, 6*teeth, vboUsage);
+        frontSide = createInterleaved(useMappedBuffers, 6, GL.GL_FLOAT, false, 6*teeth, vboUsage);
         addInterleavedVertexAndNormalArrays(frontSide, 3);
-        backSide = createInterleaved(6, GL.GL_FLOAT, false, 6*teeth, vboUsage);
+        backSide = createInterleaved(useMappedBuffers, 6, GL.GL_FLOAT, false, 6*teeth, vboUsage);
         addInterleavedVertexAndNormalArrays(backSide, 3);
-        outwardFace = createInterleaved(6, GL.GL_FLOAT, false, 4*4*teeth+2, vboUsage);
+        outwardFace = createInterleaved(useMappedBuffers, 6, GL.GL_FLOAT, false, 4*4*teeth+2, vboUsage);
         addInterleavedVertexAndNormalArrays(outwardFace, 3);
-        insideRadiusCyl = createInterleaved(6, GL.GL_FLOAT, false, 2*teeth+2, vboUsage);
+        insideRadiusCyl = createInterleaved(useMappedBuffers, 6, GL.GL_FLOAT, false, 2*teeth+2, vboUsage);
         addInterleavedVertexAndNormalArrays(insideRadiusCyl, 3);
+
+        if( useMappedBuffers ) {
+            frontFace.mapStorage(gl, GL.GL_WRITE_ONLY);
+            backFace.mapStorage(gl, GL.GL_WRITE_ONLY);
+            frontSide.mapStorage(gl, GL.GL_WRITE_ONLY);
+            backSide.mapStorage(gl, GL.GL_WRITE_ONLY);
+            outwardFace.mapStorage(gl, GL.GL_WRITE_ONLY);
+            insideRadiusCyl.mapStorage(gl, GL.GL_WRITE_ONLY);
+        }
 
         for (i = 0; i < teeth; i++) {
             angle = i * 2.0f * M_PI / teeth;
@@ -143,45 +172,45 @@ public abstract class GearsObject {
             sincos(angle + da * 1f, s, 1, c, 1);
             sincos(angle + da * 2f, s, 2, c, 2);
             sincos(angle + da * 3f, s, 3, c, 3);
-            
+
             /* front  */
             normal[0] = 0.0f;
             normal[1] = 0.0f;
             normal[2] = 1.0f;
-            
+
             /* front face - GL.GL_TRIANGLE_STRIP */
             vert(frontFace, r0 * c[0], r0 * s[0], dz, normal);
             vert(frontFace, r1 * c[0], r1 * s[0], dz, normal);
             vert(frontFace, r0 * c[0], r0 * s[0], dz, normal);
             vert(frontFace, r1 * c[3], r1 * s[3], dz, normal);
-            
+
             /* front sides of teeth - GL.GL_TRIANGLES */
             vert(frontSide, r1 * c[0], r1 * s[0], dz, normal);
-            vert(frontSide, r2 * c[1], r2 * s[1], dz, normal);        
+            vert(frontSide, r2 * c[1], r2 * s[1], dz, normal);
             vert(frontSide, r2 * c[2], r2 * s[2], dz, normal);
             vert(frontSide, r1 * c[0], r1 * s[0], dz, normal);
-            vert(frontSide, r2 * c[2], r2 * s[2], dz, normal);        
+            vert(frontSide, r2 * c[2], r2 * s[2], dz, normal);
             vert(frontSide, r1 * c[3], r1 * s[3], dz, normal);
-            
+
             /* back */
             normal[0] = 0.0f;
             normal[1] = 0.0f;
             normal[2] = -1.0f;
-            
+
             /* back face - GL.GL_TRIANGLE_STRIP */
             vert(backFace, r1 * c[0], r1 * s[0], -dz, normal);
             vert(backFace, r0 * c[0], r0 * s[0], -dz, normal);
             vert(backFace, r1 * c[3], r1 * s[3], -dz, normal);
             vert(backFace, r0 * c[0], r0 * s[0], -dz, normal);
-            
+
             /* back sides of teeth - GL.GL_TRIANGLES*/
             vert(backSide, r1 * c[3], r1 * s[3], -dz, normal);
             vert(backSide, r2 * c[2], r2 * s[2], -dz, normal);
             vert(backSide, r2 * c[1], r2 * s[1], -dz, normal);
             vert(backSide, r1 * c[3], r1 * s[3], -dz, normal);
-            vert(backSide, r2 * c[1], r2 * s[1], -dz, normal);        
+            vert(backSide, r2 * c[1], r2 * s[1], -dz, normal);
             vert(backSide, r1 * c[0], r1 * s[0], -dz, normal);
-            
+
             /* outward faces of teeth */
             u = r2 * c[1] - r1 * c[0];
             v = r2 * s[1] - r1 * s[0];
@@ -207,7 +236,7 @@ public abstract class GearsObject {
             normal[0] = ( r1 * s[3] - r2 * s[2] );
             normal[1] = ( r1 * c[3] - r2 * c[2] ) * -1.0f ;
             vert(outwardFace, r2 * c[2], r2 * s[2],  dz, normal);
-            vert(outwardFace, r2 * c[2], r2 * s[2], -dz, normal);        
+            vert(outwardFace, r2 * c[2], r2 * s[2], -dz, normal);
             vert(outwardFace, r1 * c[3], r1 * s[3],  dz, normal);
             vert(outwardFace, r1 * c[3], r1 * s[3], -dz, normal);
 
@@ -217,7 +246,7 @@ public abstract class GearsObject {
             vert(outwardFace, r1 * c[3], r1 * s[3], -dz, normal);
             vert(outwardFace, r1 * c[0], r1 * s[0],  dz, normal);
             vert(outwardFace, r1 * c[0], r1 * s[0], -dz, normal);
-            
+
             /* inside radius cylinder */
             normal[0] = c[0] * -1.0f;
             normal[1] = s[0] * -1.0f;
@@ -232,16 +261,16 @@ public abstract class GearsObject {
         vert(frontFace, r0 * c[4], r0 * s[4], dz, normal);
         vert(frontFace, r1 * c[4], r1 * s[4], dz, normal);
         frontFace.seal(true);
-        
+
         /* finish back face */
-        normal[2] = -1.0f;              
+        normal[2] = -1.0f;
         vert(backFace, r1 * c[4], r1 * s[4], -dz, normal);
         vert(backFace, r0 * c[4], r0 * s[4], -dz, normal);
         backFace.seal(true);
-        
+
         backSide.seal(true);
         frontSide.seal(true);
-        
+
         /* finish outward face */
         sincos(da * 1f, s, 1, c, 1);
         u = r2 * c[1] - r1 * c[4];
@@ -253,7 +282,7 @@ public abstract class GearsObject {
         normal[1] =   -u;
         normal[2] = 0.0f;
         vert(outwardFace, r1 * c[4], r1 * s[4],  dz, normal);
-        vert(outwardFace, r1 * c[4], r1 * s[4], -dz, normal);        
+        vert(outwardFace, r1 * c[4], r1 * s[4], -dz, normal);
         outwardFace.seal(true);
 
         /* finish inside radius cylinder */
@@ -263,6 +292,32 @@ public abstract class GearsObject {
         vert(insideRadiusCyl, r0 * c[4], r0 * s[4], -dz, normal);
         vert(insideRadiusCyl, r0 * c[4], r0 * s[4],  dz, normal);
         insideRadiusCyl.seal(true);
+
+        if( useMappedBuffers ) {
+            frontFace.unmapStorage(gl);
+            backFace.unmapStorage(gl);
+            frontSide.unmapStorage(gl);
+            backSide.unmapStorage(gl);
+            outwardFace.unmapStorage(gl);
+            insideRadiusCyl.unmapStorage(gl);
+        } else {
+            /** Init VBO and data .. */
+            init(gl, frontFace);
+            init(gl, frontSide);
+            init(gl, backFace);
+            init(gl, backSide);
+            init(gl, outwardFace);
+            init(gl, insideRadiusCyl);
+        }
+    }
+
+    @Override
+    public String toString() {
+        final int ffVBO = null != frontFace ? frontFace.getVBOName() : 0;
+        final int fsVBO = null != frontSide ? frontSide.getVBOName() : 0;
+        final int bfVBO = null != backFace ? backFace.getVBOName() : 0;
+        final int bsVBO = null != backSide ? backSide.getVBOName() : 0;
+        return "GearsObj[0x"+Integer.toHexString(hashCode())+", vbo ff "+ffVBO+", fs "+fsVBO+", bf "+bfVBO+", bs "+bsVBO+"]";
     }
 
     static void vert(GLArrayDataServer array, float x, float y, float z, float n[]) {
@@ -273,7 +328,7 @@ public abstract class GearsObject {
         array.putf(n[1]);
         array.putf(n[2]);
     }
-    
+
     static void sincos(float x, float sin[], int sinIdx, float cos[], int cosIdx) {
         sin[sinIdx] = (float) Math.sin(x);
         cos[cosIdx] = (float) Math.cos(x);

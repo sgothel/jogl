@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 /**
  * Internal PNG predictor filter, or strategy to select it.
- * 
+ *
  */
 public enum FilterType {
 	/**

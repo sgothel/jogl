@@ -53,6 +53,8 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
@@ -63,6 +65,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.FPSAnimator;
 import com.jogamp.opengl.util.awt.AWTGLPixelBuffer.SingleAWTGLPixelBufferProvider;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGearsES2GLJPanelsAWT extends UITestCase {
     static int demoCount = 4;
     static boolean jOpaque = false; // flicker-less w/o opaque, opaque leads to overdraw w/ mixed clipRects -> flicker - due to JComponent _paintImmediately(..) (?)
@@ -95,7 +98,7 @@ public class TestGearsES2GLJPanelsAWT extends UITestCase {
         }
         
         if( initSingleBuffer ) {
-            singleAWTGLPixelBufferProvider = new SingleAWTGLPixelBufferProvider( glp.isGL2GL3() /* allowRowStride */);
+            singleAWTGLPixelBufferProvider = new SingleAWTGLPixelBufferProvider( glp.isGL2ES3() /* allowRowStride */);
             singleAWTGLPixelBufferProvider.initSingleton(4, 600, 600, 1, true);
         } else {
             singleAWTGLPixelBufferProvider = null;

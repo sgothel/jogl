@@ -48,6 +48,8 @@
     <target name="clean" description="Remove all build products" depends="declare.common">
         <delete includeEmptyDirs="true" quiet="true">
             <fileset dir="${build.test}" />
+            <fileset dir="." includes="*.ps" />
+            <fileset dir="." includes="*.pdf" />
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
@@ -83,6 +85,7 @@
                 <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
                 <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
                 <filter token="BASEVERSION" value="${jogamp.version.base}"/>
+                <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
             </filterset>
         </copy>
 
@@ -447,7 +450,45 @@
         </junit>
     </target>
 
-    <target name="junit.run.newt.event" depends="test.compile">
+    <target name="junit.run.sharedctx" depends="test.compile, junit.run.settings">
+        <!-- Test*AWT* -->
+        <junit jvm="${jvmJava.exe}" forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+            <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+            <jvmarg value="${junit.run.arg0}"/>
+            <jvmarg value="${junit.run.arg1}"/>
+            <jvmarg value="${jvmDataModel.arg}"/>
+            <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
+
+            <!--
+            <jvmarg value="-Dnewt.debug.EDT"/>
+            <jvmarg value="-Djogl.debug=all"/>
+            <jvmarg value="-Dgluegen.debug.NativeLibrary=true"/>
+            <jvmarg value="-Dgluegen.debug.ProcAddressHelper=true"/>
+            <jvmarg value="-Djogl.debug.GLSLState"/>
+            <jvmarg value="-Dnativewindow.debug=all"/>
+            <jvmarg value="-Dnewt.debug=all"/>
+            <jvmarg value="-verbose:jni"/> 
+            <jvmarg value="-client"/>
+            <jvmarg value="-d32"/>
+            -->
+
+            <formatter usefile="false" type="plain"/>
+            <formatter usefile="true" type="xml"/>
+            <!--classpath refid="junit_jogl_awt.run.classpath"/-->
+            <classpath refid="junit_jogl_swt.run.classpath"/>
+
+            <batchtest todir="${results.test}">
+              <fileset dir="${classes}">
+                  <include name="${java.dir.junit}/**/acore/TestSharedContext**"/>
+                  <exclude name="**/*$$*"/>
+              </fileset>
+              <formatter usefile="false" type="brief"/>
+              <formatter usefile="true" type="xml"/>
+            </batchtest>
+        </junit>
+    </target>
+
+    <target name="junit.run.newt.event" depends="test.compile, junit.run.settings">
         <!-- Test*AWT* -->
         <junit jvm="${jvmJava.exe}" forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
@@ -485,7 +526,7 @@
         </junit>
     </target>
 
-    <target name="junit.run.newt.monitormode" depends="test.compile">
+    <target name="junit.run.newt.monitormode" depends="test.compile, junit.run.settings">
         <!-- Test*AWT* -->
         <junit jvm="${jvmJava.exe}" forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
@@ -698,6 +739,8 @@
 
         <mkdir dir="${build}/test/results-x32"/>
         <move todir="${build}/test/results-x32">
+            <fileset dir="." includes="*.ps" />
+            <fileset dir="." includes="*.pdf" />
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
@@ -722,6 +765,8 @@
 
         <mkdir dir="${build}/test/results-java7"/>
         <move todir="${build}/test/results-java7">
+            <fileset dir="." includes="*.ps" />
+            <fileset dir="." includes="*.pdf" />
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
@@ -1055,6 +1100,8 @@ ${line.separator}
             <fileset dir="${results.test}" includes="**"/>
             <fileset dir="${build}/test/results-x32" includes="**"/>
             <fileset file="${build}/${test.archive.name}.7z"/>
+            <fileset dir="." includes="*.ps" />
+            <fileset dir="." includes="*.pdf" />
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
@@ -1072,6 +1119,8 @@ ${line.separator}
     <target name="junit.run" depends="junit.run.settings, junit.run.if.enabled, junit.run.if.disabled">
         <mkdir dir="${results.test}" />
         <move todir="${results.test}">
+            <fileset dir="." includes="*.ps" />
+            <fileset dir="." includes="*.pdf" />
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
@@ -1082,6 +1131,8 @@ ${line.separator}
     <target name="junit.manual.run.remote.ssh.newt" depends="junit.run.settings, junit.run.remote.ssh.newt">
         <mkdir dir="${results.test}" />
         <move todir="${results.test}">
+            <fileset dir="." includes="*.ps" />
+            <fileset dir="." includes="*.pdf" />
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
@@ -1092,6 +1143,8 @@ ${line.separator}
     <target name="junit.manual.run.remote.ssh.awt" depends="junit.run.settings, junit.run.remote.ssh.awt">
         <mkdir dir="${results.test}" />
         <move todir="${results.test}">
+            <fileset dir="." includes="*.ps" />
+            <fileset dir="." includes="*.pdf" />
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
@@ -1102,6 +1155,8 @@ ${line.separator}
     <target name="junit.manual.run.remote.ssh.all" depends="junit.run.settings, junit.run.remote.ssh.all">
         <mkdir dir="${results.test}" />
         <move todir="${results.test}">
+            <fileset dir="." includes="*.ps" />
+            <fileset dir="." includes="*.pdf" />
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />

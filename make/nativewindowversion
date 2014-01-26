@@ -1,4 +1,5 @@
 Manifest-Version: 1.0
+Application-Name: Native Window Interface
 Specification-Title: Native Window Interface API Specification
 Specification-Version: @BASEVERSION@
 Specification-Vendor: JogAmp Community
@@ -13,4 +14,6 @@ Extension-Name: javax.media.nativewindow
 Implementation-Vendor-Id: com.jogamp
 Trusted-Library: true
 Permissions: all-permissions
+Application-Library-Allowable-Codebase: *
 @JAR_CODEBASE_TAG@
+

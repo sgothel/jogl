@@ -35,13 +35,18 @@ import javax.media.nativewindow.UpstreamSurfaceHook;
 
 import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSize;
 
+/**
+ * Generic Surface implementation which wraps an existing window handle.
+ *
+ * @see ProxySurface
+ */
 public class WrappedSurface extends ProxySurfaceImpl {
   protected long surfaceHandle;
 
   /**
    * Utilizes a {@link UpstreamSurfaceHook.MutableSize} to hold the size information,
    * which is being passed to the {@link ProxySurface} instance.
-   * 
+   *
    * @param cfg the {@link AbstractGraphicsConfiguration} to be used
    * @param handle the wrapped pre-existing native surface handle, maybe 0 if not yet determined
    * @param initialWidth
@@ -54,7 +59,7 @@ public class WrappedSurface extends ProxySurfaceImpl {
       super(cfg, new UpstreamSurfaceHookMutableSize(initialWidth, initialHeight), ownsDevice);
       surfaceHandle=handle;
   }
-  
+
   /**
    * @param cfg the {@link AbstractGraphicsConfiguration} to be used
    * @param handle the wrapped pre-existing native surface handle, maybe 0 if not yet determined
@@ -69,7 +74,7 @@ public class WrappedSurface extends ProxySurfaceImpl {
   }
 
   @Override
-  protected void invalidateImpl() {    
+  protected void invalidateImpl() {
     surfaceHandle = 0;
   }
 
@@ -82,7 +87,7 @@ public class WrappedSurface extends ProxySurfaceImpl {
   public final void setSurfaceHandle(long surfaceHandle) {
     this.surfaceHandle=surfaceHandle;
   }
-  
+
   @Override
   protected final int lockSurfaceImpl() {
     return LOCK_SUCCESS;

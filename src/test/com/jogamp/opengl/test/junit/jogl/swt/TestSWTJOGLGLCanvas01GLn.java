@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.swt;
 
 import javax.media.opengl.GLAutoDrawable;
@@ -46,6 +46,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.opengl.swt.GLCanvas;
@@ -58,22 +60,23 @@ import com.jogamp.opengl.util.texture.TextureIO;
 
 /**
  * Tests that a basic SWT app can open without crashing under different GL profiles.
- * <p> 
+ * <p>
  * Uses JOGL's new SWT GLCanvas,
  * which allows utilizing custom GLCapability settings,
  * independent from the already instantiated SWT visual.
  * </p>
  * <p>
- * Note that {@link SWTAccessor#invoke(boolean, Runnable)} is still used to comply w/ 
+ * Note that {@link SWTAccessor#invoke(boolean, Runnable)} is still used to comply w/
  * SWT running on Mac OSX, i.e. to enforce UI action on the main thread.
  * </p>
  * @author Wade Walker, et al.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
 
     static int duration = 250;
     static boolean doAnimation = true;
-    
+
     static final int iwidth = 640;
     static final int iheight = 480;
 
@@ -89,12 +92,12 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
     @Before
     public void init() {
         SWTAccessor.invoke(true, new Runnable() {
-            public void run() {        
+            public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
             }});
         display.syncExec(new Runnable() {
-            public void run() {        
+            public void run() {
                 shell = new Shell( display );
                 Assert.assertNotNull( shell );
                 shell.setLayout( new FillLayout() );
@@ -131,14 +134,14 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
 
     protected void runTestAGL( GLCapabilitiesImmutable caps, GLEventListener demo ) throws InterruptedException {
         final GLReadBufferUtil screenshot = new GLReadBufferUtil(false, false);
-        
-        final GLCanvas canvas = GLCanvas.create( composite, 0, caps, null, null);
+
+        final GLCanvas canvas = GLCanvas.create( composite, 0, caps, null);
         Assert.assertNotNull( canvas );
 
         canvas.addGLEventListener( demo );
         canvas.addGLEventListener(new GLEventListener() {
            int displayCount = 0;
-           public void init(final GLAutoDrawable drawable) { } 
+           public void init(final GLAutoDrawable drawable) { }
            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
            public void display(final GLAutoDrawable drawable) {
               if(displayCount < 3) {
@@ -146,21 +149,21 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
               }
            }
            public void dispose(final GLAutoDrawable drawable) { }
-        });       
-       
+        });
+
         display.syncExec(new Runnable() {
            public void run() {
             shell.setText( getSimpleTestName(".") );
             shell.setSize( 640, 480 );
             shell.open();
            } } );
-        
+
         Animator anim = new Animator();
         if(doAnimation) {
             anim.add(canvas);
             anim.start();
-        }        
-        
+        }
+
         long lStartTime = System.currentTimeMillis();
         long lEndTime = lStartTime + duration;
         try {
@@ -174,9 +177,9 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
-        
+
         anim.stop();
-        
+
         display.syncExec(new Runnable() {
            public void run() {
                canvas.dispose();
@@ -195,7 +198,7 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
         caps.setNumSamples(2);
         runTestAGL( caps, new MultisampleDemoES2(true) );
     }
-    
+
     static int atoi(String a) {
         int i=0;
         try {

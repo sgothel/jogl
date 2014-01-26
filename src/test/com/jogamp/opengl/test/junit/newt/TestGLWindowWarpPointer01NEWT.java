@@ -13,6 +13,8 @@ import javax.media.opengl.GLProfile;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.event.MouseAdapter;
@@ -22,6 +24,7 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLWindowWarpPointer01NEWT  extends UITestCase {
     static GLProfile glp;
     static int width, height;

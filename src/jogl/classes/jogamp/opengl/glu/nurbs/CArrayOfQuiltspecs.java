@@ -2,9 +2,9 @@ package jogamp.opengl.glu.nurbs;
 
 /**
  * Class replacing C language pointer
- * 
+ *
  * @author Tomas Hrasky
- * 
+ *
  */
 public class CArrayOfQuiltspecs {
   /**
@@ -19,7 +19,7 @@ public class CArrayOfQuiltspecs {
 
   /**
    * Makes new CArray
-   * 
+   *
    * @param array
    *            underlaying array
    * @param pointer
@@ -32,7 +32,7 @@ public class CArrayOfQuiltspecs {
 
   /**
    * Makes new CArray from other CArray
-   * 
+   *
    * @param carray
    *            reference array
    */
@@ -43,7 +43,7 @@ public class CArrayOfQuiltspecs {
 
   /**
    * Makes new CArray with pointer set to 0
-   * 
+   *
    * @param array
    *            underlaying array
    */
@@ -54,7 +54,7 @@ public class CArrayOfQuiltspecs {
 
   /**
    * Returns element at pointer
-   * 
+   *
    * @return element at pointer
    */
   public Quiltspec get() {
@@ -70,7 +70,7 @@ public class CArrayOfQuiltspecs {
 
   /**
    * Sets element at pointer
-   * 
+   *
    * @param f
    *            desired value
    */
@@ -81,7 +81,7 @@ public class CArrayOfQuiltspecs {
 
   /**
    * Returns array element at specified index
-   * 
+   *
    * @param i
    *            array index
    * @return element at index
@@ -92,7 +92,7 @@ public class CArrayOfQuiltspecs {
 
   /**
    * Lessens pointer by value
-   * 
+   *
    * @param i
    *            lessen by
    */
@@ -103,7 +103,7 @@ public class CArrayOfQuiltspecs {
 
   /**
    * Returns pointer value
-   * 
+   *
    * @return pointer value
    */
   public int getPointer() {
@@ -112,7 +112,7 @@ public class CArrayOfQuiltspecs {
 
   /**
    * Sets ponter value
-   * 
+   *
    * @param pointer
    *            pointer value to be set
    */
@@ -122,7 +122,7 @@ public class CArrayOfQuiltspecs {
 
   /**
    * Raises pointer by value
-   * 
+   *
    * @param i
    *            raise by
    */
@@ -141,7 +141,7 @@ public class CArrayOfQuiltspecs {
 
   /**
    * Returns underlaying array
-   * 
+   *
    * @return underlaying array
    */
   public Quiltspec[] getArray() {
@@ -150,7 +150,7 @@ public class CArrayOfQuiltspecs {
 
   /**
    * Sets underlaying array
-   * 
+   *
    * @param array
    *            underlaying array
    */

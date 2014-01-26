@@ -67,20 +67,23 @@ public class CmapFormat6 extends CmapFormat {
     protected CmapFormat6(DataInput di) throws IOException {
         super(di);
         _format = 6;
-        
+
         // HACK: As this is not yet implemented, we need to skip over the bytes
         // we should be consuming
         //di.skipBytes(_length - 4);
     }
 
+    @Override
     public int getRangeCount() {
         return 0;
     }
-    
+
+    @Override
     public Range getRange(int index) throws ArrayIndexOutOfBoundsException {
         throw new ArrayIndexOutOfBoundsException();
     }
 
+    @Override
     public int mapCharCode(int charCode) {
         return 0;
     }

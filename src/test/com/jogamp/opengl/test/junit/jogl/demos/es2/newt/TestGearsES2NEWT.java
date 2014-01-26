@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,19 +20,23 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.demos.es2.newt;
 
 import java.io.IOException;
+import java.net.URLConnection;
 
+import com.jogamp.common.util.IOUtil;
 import com.jogamp.newt.Display;
+import com.jogamp.newt.Display.PointerIcon;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
+import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.MouseAdapter;
@@ -40,20 +44,20 @@ import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.newt.util.EDTUtil;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
-
 import com.jogamp.opengl.util.Animator;
-
+import com.jogamp.opengl.util.PNGPixelRect;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
+import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.util.Dimension;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.PointImmutable;
 import javax.media.nativewindow.util.DimensionImmutable;
-
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
@@ -61,12 +65,17 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 
+import jogamp.newt.DefaultEDTUtil;
+
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
-public class TestGearsES2NEWT extends UITestCase {    
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+public class TestGearsES2NEWT extends UITestCase {
     static int screenIdx = 0;
     static PointImmutable wpos;
     static DimensionImmutable wsize, rwsize=null;
@@ -82,18 +91,21 @@ public class TestGearsES2NEWT extends UITestCase {
     static boolean waitForKey = false;
     static boolean mouseVisible = true;
     static boolean mouseConfined = false;
+    static boolean setPointerIcon = false;
     static boolean showFPS = false;
     static int loops = 1;
     static boolean loop_shutdown = false;
     static boolean forceES2 = false;
     static boolean forceES3 = false;
     static boolean forceGL3 = false;
+    static boolean forceGL2 = false;
     static boolean mainRun = false;
     static boolean exclusiveContext = false;
     static boolean useAnimator = true;
-    static enum SysExit { none, testExit, testError, displayExit, displayError };
+    static boolean useMappedBuffers = false;
+    static enum SysExit { none, testExit, testError, testEDTError, displayExit, displayError, displayEDTError };
     static SysExit sysExit = SysExit.none;
-    
+
     @BeforeClass
     public static void initClass() {
         if(null == wsize) {
@@ -124,8 +136,10 @@ public class TestGearsES2NEWT extends UITestCase {
 
         final GearsES2 demo = new GearsES2(swapInterval);
         demo.setPMVUseBackingArray(pmvUseBackingArray);
+        demo.setUseMappedBuffers(useMappedBuffers);
+        demo.setValidateBuffers(true);
         glWindow.addGLEventListener(demo);
-        
+
         final SnapshotGLEventListener snap = new SnapshotGLEventListener();
         glWindow.addGLEventListener(snap);
         if(waitForKey) {
@@ -150,8 +164,8 @@ public class TestGearsES2NEWT extends UITestCase {
             animator.setModeBits(false, Animator.MODE_EXPECT_AWT_RENDERING_THREAD);
             animator.setExclusiveContext(exclusiveContext);
         }
-        
-        QuitAdapter quitAdapter = new QuitAdapter();
+
+        final QuitAdapter quitAdapter = new QuitAdapter();
         //glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
         //glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
         glWindow.addKeyListener(quitAdapter);
@@ -163,10 +177,58 @@ public class TestGearsES2NEWT extends UITestCase {
             }
             public void windowMoved(WindowEvent e) {
                 System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight());
-            }            
+            }
         });
-        
+
+        final PointerIcon[] pointerIcons = { null, null, null };
+        {
+            final Display disp = glWindow.getScreen().getDisplay();
+            disp.createNative();
+            {
+                PointerIcon _pointerIcon = null;
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "newt/data/cross-grey-alpha-16x16.png" } );
+                try {
+                    _pointerIcon = disp.createPointerIcon(res, 8, 8);
+                    System.err.println("Create PointerIcon #01: "+_pointerIcon);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                pointerIcons[0] = _pointerIcon;
+            }
+            {
+                PointerIcon _pointerIcon = null;
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "newt/data/pointer-grey-alpha-16x24.png" } );
+                try {
+                    _pointerIcon = disp.createPointerIcon(res, 0, 0);
+                    System.err.println("Create PointerIcon #02: "+_pointerIcon);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                pointerIcons[1] = _pointerIcon;
+            }
+            {
+                PointerIcon _pointerIcon = null;
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "jogamp-pointer-64x64.png" } );
+                try {
+                    final URLConnection urlConn = res.resolve(0);
+                    final PNGPixelRect image = PNGPixelRect.read(urlConn.getInputStream(), null, false /* directBuffer */, 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
+                    System.err.println("Create PointerIcon #03: "+image);
+                    _pointerIcon = disp.createPointerIcon(image, 32, 0);
+                    System.err.println("Create PointerIcon #03: "+_pointerIcon);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                pointerIcons[2] = _pointerIcon;
+            }
+        }
+        if( setPointerIcon ) {
+            glWindow.setPointerIcon(pointerIcons[0]);
+            System.err.println("Set PointerIcon: "+glWindow.getPointerIcon());
+        }
+
         glWindow.addKeyListener(new KeyAdapter() {
+            int pointerIconIdx = 0;
+
             @Override
             public void keyPressed(final KeyEvent e) {
                 if( e.isAutoRepeat() ) {
@@ -217,6 +279,23 @@ public class TestGearsES2NEWT extends UITestCase {
                             System.err.println("[set position post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
                             glWindow.setExclusiveContextThread(t);
                     } }.start();
+                } else if(e.getKeyChar()=='c') {
+                    new Thread() {
+                        public void run() {
+                            final Thread t = glWindow.setExclusiveContextThread(null);
+                            System.err.println("[set pointer-icon pre]");
+                            final PointerIcon currentPI = glWindow.getPointerIcon();
+                            final PointerIcon newPI;
+                            if( pointerIconIdx >= pointerIcons.length ) {
+                                newPI=null;
+                                pointerIconIdx=0;
+                            } else {
+                                newPI=pointerIcons[pointerIconIdx++];
+                            }
+                            glWindow.setPointerIcon( newPI );
+                            System.err.println("[set pointer-icon post] "+currentPI+" -> "+glWindow.getPointerIcon());
+                            glWindow.setExclusiveContextThread(t);
+                    } }.start();
                 } else if(e.getKeyChar()=='i') {
                     new Thread() {
                         public void run() {
@@ -262,8 +341,10 @@ public class TestGearsES2NEWT extends UITestCase {
         });
         glWindow.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
-                glWindow.setFullscreen(!glWindow.isFullscreen());
-                System.err.println("setFullscreen: "+glWindow.isFullscreen());
+                if(e.getClickCount() == 2 && e.getPointerCount() == 1) {
+                    glWindow.setFullscreen(!glWindow.isFullscreen());
+                    System.err.println("setFullscreen: "+glWindow.isFullscreen());
+                }
             }
          });
 
@@ -275,25 +356,38 @@ public class TestGearsES2NEWT extends UITestCase {
             Assert.assertEquals(exclusiveContext ? animator.getThread() : null, glWindow.getExclusiveContextThread());
         }
 
-        if( SysExit.displayError == sysExit || SysExit.displayExit == sysExit ) {
+        if( SysExit.displayError == sysExit || SysExit.displayExit == sysExit || SysExit.displayEDTError == sysExit ) {
             glWindow.addGLEventListener(new GLEventListener() {
-
                 @Override
                 public void init(GLAutoDrawable drawable) {}
-
                 @Override
                 public void dispose(GLAutoDrawable drawable) { }
-
                 @Override
                 public void display(GLAutoDrawable drawable) {
                     final GLAnimatorControl anim = drawable.getAnimator();
                     if( null != anim && anim.isAnimating() ) {
-                        if( anim.getTotalFPSDuration() >= duration/2 ) {
+                        final long ms = anim.getTotalFPSDuration();
+                        if( ms >= duration/2 || ms >= 3000 ) { // max 3s wait until provoking error
                             if( SysExit.displayError == sysExit ) {
-                                throw new Error("test error send from GLEventListener");
+                                throw new Error("test error send from GLEventListener.display - "+Thread.currentThread());
                             } else if ( SysExit.displayExit == sysExit ) {
                                 System.err.println("exit(0) send from GLEventListener");
-                                System.exit(0);                                
+                                System.exit(0);
+                            } else if ( SysExit.displayEDTError == sysExit ) {
+                                final Object upstream = drawable.getUpstreamWidget();
+                                System.err.println("EDT invokeAndWaitError: upstream type "+upstream.getClass().getName());
+                                if( upstream instanceof Window ) {
+                                    final EDTUtil edt = ((Window)upstream).getScreen().getDisplay().getEDTUtil();
+                                    System.err.println("EDT invokeAndWaitError: edt type "+edt.getClass().getName());
+                                    if( edt instanceof DefaultEDTUtil ) {
+                                        quitAdapter.doQuit();
+                                        ((DefaultEDTUtil)edt).invokeAndWaitError(new Runnable() {
+                                            public void run() {
+                                                throw new RuntimeException("XXX Should never ever be seen! - "+Thread.currentThread());
+                                            }
+                                        });
+                                    }
+                                }
                             }
                         }
                     } else {
@@ -301,41 +395,53 @@ public class TestGearsES2NEWT extends UITestCase {
                     }
                 }
                 @Override
-                public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }                    
+                public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
             });
         }
-        
+
         glWindow.setVisible(true);
         if( useAnimator ) {
             animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
         }
-        
+
         System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
         System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
-        
+
         snap.setMakeSnapshot();
 
         if( null != rwsize ) {
-            Thread.sleep(500); // 500ms delay 
+            Thread.sleep(500); // 500ms delay
             glWindow.setSize(rwsize.getWidth(), rwsize.getHeight());
             System.err.println("window resize pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
         }
-        
+
         snap.setMakeSnapshot();
-        
+
         final long t0 = System.currentTimeMillis();
         long t1 = t0;
         while(!quitAdapter.shouldQuit() && t1-t0<duration) {
             Thread.sleep(100);
             t1 = System.currentTimeMillis();
-            if( t1-t0 >= duration/2 ) {
-                if( SysExit.testError == sysExit || SysExit.testExit == sysExit ) {
+            if( SysExit.testError == sysExit || SysExit.testExit == sysExit || SysExit.testEDTError == sysExit) {
+                final long ms = t1-t0;
+                if( ms >= duration/2 || ms >= 3000 ) { // max 3s wait until provoking error
                     if( SysExit.testError == sysExit ) {
                         throw new Error("test error send from test thread");
                     } else if ( SysExit.testExit == sysExit ) {
                         System.err.println("exit(0) send from test thread");
-                        System.exit(0);                                
+                        System.exit(0);
+                    } else if ( SysExit.testEDTError == sysExit ) {
+                        final EDTUtil edt = glWindow.getScreen().getDisplay().getEDTUtil();
+                        System.err.println("EDT invokeAndWaitError: edt type "+edt.getClass().getName());
+                        if( edt instanceof DefaultEDTUtil ) {
+                            quitAdapter.doQuit();
+                            ((DefaultEDTUtil)edt).invokeAndWaitError(new Runnable() {
+                                public void run() {
+                                    throw new RuntimeException("XXX Should never ever be seen!");
+                                }
+                            });
+                        }
                     }
                 }
             }
@@ -349,7 +455,9 @@ public class TestGearsES2NEWT extends UITestCase {
         }
         Assert.assertEquals(null, glWindow.getExclusiveContextThread());
         glWindow.destroy();
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false));
+        if( NativeWindowFactory.isAWTAvailable() ) {
+            Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false));
+        }
     }
 
     @Test
@@ -363,13 +471,15 @@ public class TestGearsES2NEWT extends UITestCase {
                 glp = GLProfile.get(GLProfile.GLES3);
             } else if(forceES2) {
                 glp = GLProfile.get(GLProfile.GLES2);
+            } else if(forceGL2) {
+                glp = GLProfile.get(GLProfile.GL2);
             } else {
                 glp = GLProfile.getGL2ES2();
             }
             final GLCapabilities caps = new GLCapabilities( glp );
             caps.setBackgroundOpaque(opaque);
             if(-1 < forceAlpha) {
-                caps.setAlphaBits(forceAlpha); 
+                caps.setAlphaBits(forceAlpha);
             }
             runTestGL(caps, undecorated);
             if(loop_shutdown) {
@@ -381,7 +491,7 @@ public class TestGearsES2NEWT extends UITestCase {
     @Test
     public void test02_GLES2() throws InterruptedException {
         if(mainRun) return;
-        
+
         if( !GLProfile.isAvailable(GLProfile.GLES2) ) {
             System.err.println("GLES2 n/a");
             return;
@@ -390,11 +500,11 @@ public class TestGearsES2NEWT extends UITestCase {
         final GLCapabilities caps = new GLCapabilities( glp );
         runTestGL(caps, undecorated);
     }
-    
+
     @Test
     public void test03_GL3() throws InterruptedException {
         if(mainRun) return;
-        
+
         if( !GLProfile.isAvailable(GLProfile.GL3) ) {
             System.err.println("GL3 n/a");
             return;
@@ -403,13 +513,13 @@ public class TestGearsES2NEWT extends UITestCase {
         final GLCapabilities caps = new GLCapabilities( glp );
         runTestGL(caps, undecorated);
     }
-    
+
     public static void main(String args[]) throws IOException {
         mainRun = true;
-        
+
         int x=0, y=0, w=640, h=480, rw=-1, rh=-1;
         boolean usePos = false;
-        
+
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
@@ -440,12 +550,18 @@ public class TestGearsES2NEWT extends UITestCase {
                 forceES3 = true;
             } else if(args[i].equals("-gl3")) {
                 forceGL3 = true;
+            } else if(args[i].equals("-gl2")) {
+                forceGL2 = true;
+            } else if(args[i].equals("-mappedBuffers")) {
+                useMappedBuffers = true;
             } else if(args[i].equals("-wait")) {
                 waitForKey = true;
             } else if(args[i].equals("-mouseInvisible")) {
                 mouseVisible = false;
             } else if(args[i].equals("-mouseConfine")) {
                 mouseConfined = true;
+            } else if(args[i].equals("-pointerIcon")) {
+                setPointerIcon = true;
             } else if(args[i].equals("-showFPS")) {
                 showFPS = true;
             } else if(args[i].equals("-width")) {
@@ -485,7 +601,7 @@ public class TestGearsES2NEWT extends UITestCase {
         if( 0 < rw && 0 < rh ) {
             rwsize = new Dimension(rw, rh);
         }
-        
+
         if(usePos) {
             wpos = new Point(x, y);
         }
@@ -494,22 +610,25 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("resize "+rwsize);
         System.err.println("screen "+screenIdx);
         System.err.println("translucent "+(!opaque));
-        System.err.println("forceAlpha "+forceAlpha);        
+        System.err.println("forceAlpha "+forceAlpha);
         System.err.println("undecorated "+undecorated);
         System.err.println("atop "+alwaysOnTop);
         System.err.println("fullscreen "+fullscreen);
-        System.err.println("pmvDirect "+(!pmvUseBackingArray));        
+        System.err.println("pmvDirect "+(!pmvUseBackingArray));
         System.err.println("mouseVisible "+mouseVisible);
         System.err.println("mouseConfined "+mouseConfined);
+        System.err.println("pointerIcon "+setPointerIcon);
         System.err.println("loops "+loops);
         System.err.println("loop shutdown "+loop_shutdown);
         System.err.println("forceES2 "+forceES2);
         System.err.println("forceES3 "+forceES3);
         System.err.println("forceGL3 "+forceGL3);
+        System.err.println("forceGL2 "+forceGL2);
         System.err.println("swapInterval "+swapInterval);
         System.err.println("exclusiveContext "+exclusiveContext);
         System.err.println("useAnimator "+useAnimator);
-        System.err.println("sysExitWithin "+sysExit);        
+        System.err.println("sysExitWithin "+sysExit);
+        System.err.println("mappedBuffers "+useMappedBuffers);
 
         if(waitForKey) {
             UITestCase.waitForKey("Start");

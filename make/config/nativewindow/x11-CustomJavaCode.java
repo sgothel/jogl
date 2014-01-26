@@ -1,4 +1,19 @@
 
+  /** Interface to C language function: <br> <code> XRenderPictFormat *  XRenderFindVisualFormat(Display *  dpy, const Visual *  visual); </code>    */
+  public static boolean XRenderFindVisualFormat(long dpy, long visual, XRenderPictFormat dest)  {
+    if( dest == null ) {
+        throw new RuntimeException("dest is null");
+    }
+    final ByteBuffer destBuffer = dest.getBuffer();
+    if( !Buffers.isDirect(destBuffer) ) {
+        throw new RuntimeException("dest buffer is not direct");
+    }
+    return XRenderFindVisualFormat1(dpy, visual, destBuffer);
+  }
+  /** Entry point to C language function: <code> XVisualInfo *  XGetVisualInfo(Display * , long, XVisualInfo * , int * ); </code>    */
+  private static native boolean XRenderFindVisualFormat1(long dpy, long visual, ByteBuffer xRenderPictFormat);
+
+  
   /** Interface to C language function: <br> <code> XVisualInfo *  XGetVisualInfo(Display * , long, XVisualInfo * , int * ); </code>    */
   public static XVisualInfo[] XGetVisualInfo(long arg0, long arg1, XVisualInfo arg2, int[] arg3, int arg3_offset)
   {

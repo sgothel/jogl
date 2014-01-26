@@ -41,6 +41,8 @@ import org.junit.AfterClass ;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.BeforeClass ;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.newt.opengl.GLWindow ;
@@ -52,7 +54,7 @@ import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
  * Test whether or not event modifiers preserved by NEWT when
  * the canvas is a NewtCanvasSWT.
  */
-
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestNewtEventModifiersNewtCanvasSWTAWT extends BaseNewtEventModifiers {
 
     private static Display _display = null;

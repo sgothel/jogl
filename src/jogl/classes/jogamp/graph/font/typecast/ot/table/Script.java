@@ -65,14 +65,14 @@ public class Script {
     private LangSysRecord[] _langSysRecords;
     private LangSys _defaultLangSys;
     private LangSys[] _langSys;
-    
+
     /** Creates new ScriptTable */
     protected Script(DataInputStream dis, int offset) throws IOException {
 
         // Ensure we're in the right place
         dis.reset();
         dis.skipBytes(offset);
-        
+
         // Start reading
         _defaultLangSysOffset = dis.readUnsignedShort();
         _langSysCount = dis.readUnsignedShort();
@@ -102,7 +102,7 @@ public class Script {
     public int getLangSysCount() {
         return _langSysCount;
     }
-    
+
     public LangSysRecord getLangSysRecord(int i) {
         return _langSysRecords[i];
     }

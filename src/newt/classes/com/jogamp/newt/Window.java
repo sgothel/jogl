@@ -30,12 +30,15 @@ package com.jogamp.newt;
 
 import java.util.List;
 
+import com.jogamp.newt.Display.PointerIcon;
+import com.jogamp.newt.event.GestureHandler;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.MouseListener;
+
 import jogamp.newt.Debug;
 import jogamp.newt.WindowImpl;
 
@@ -56,8 +59,8 @@ import javax.media.nativewindow.util.RectangleImmutable;
  *   <li>... and more</li>
  * </ul>
  * <p>
- * One use case is {@link com.jogamp.newt.opengl.GLWindow}, which delegates 
- * window operation to an instance of this interface while providing OpenGL 
+ * One use case is {@link com.jogamp.newt.opengl.GLWindow}, which delegates
+ * window operation to an instance of this interface while providing OpenGL
  * functionality.
  * </p>
  */
@@ -88,14 +91,14 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     Screen getScreen();
 
     /**
-     * Returns the {@link MonitorDevice} which {@link MonitorDevice#getViewport() viewport} 
+     * Returns the {@link MonitorDevice} which {@link MonitorDevice#getViewport() viewport}
      * {@link MonitorDevice#coverage(RectangleImmutable) covers} this window the most.
      * <p>
-     * If no coverage is detected the first {@link MonitorDevice} is returned. 
+     * If no coverage is detected the first {@link MonitorDevice} is returned.
      * </p>
      */
     MonitorDevice getMainMonitor();
-    
+
     /**
      * Set the CapabilitiesChooser to help determine the native visual type.
      *
@@ -127,7 +130,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * Visibility is set to false.
      * </p>
      * <p>
-     * Method sends out {@link WindowEvent#EVENT_WINDOW_DESTROY_NOTIFY pre-} and 
+     * Method sends out {@link WindowEvent#EVENT_WINDOW_DESTROY_NOTIFY pre-} and
      * {@link WindowEvent#EVENT_WINDOW_DESTROYED post-} destruction events
      * to all of it's {@link WindowListener}.
      * </p>
@@ -149,17 +152,28 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * Set a custom action handling destruction issued by a {@link WindowImpl#windowDestroyNotify(boolean) toolkit triggered window destroy}
      * replacing the default {@link #destroy()} action.
      * <p>
-     * The custom action shall call {@link #destroy()} 
+     * The custom action shall call {@link #destroy()}
      * but may perform further tasks before and after.
      * </p>
      */
     void setWindowDestroyNotifyAction(Runnable r);
 
     /**
-     * <code>setVisible</code> makes the window and children visible if <code>visible</code> is true,
+     * Calls {@link #setVisible(boolean, boolean) setVisible(true, visible)},
+     * i.e. blocks until the window becomes visible.
+     * @see #setVisible(boolean, boolean)
+     */
+    void setVisible(boolean visible);
+
+    /**
+     * <code>setVisible(..)</code> makes the window and children visible if <code>visible</code> is true,
      * otherwise the window and children becomes invisible.
      * <p>
-     * The <code>setVisible(true)</code> is responsible to actual create the native window.
+     * <code>setVisible(wait, true)</code> is responsible to actual create the native window.
+     * </p>
+     * <p>
+     * If <code>wait</code> is true, method blocks until window is {@link #isVisible() visible} and {@link #isNativeValid() valid},
+     * otherwise method returns immediately.
      * </p>
      * <p>
      * Zero size semantics are respected, see {@link #setSize(int,int)}:<br>
@@ -176,12 +190,12 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * </pre></p>
      * <p>
      * In case this window is a child window and has a {@link javax.media.nativewindow.NativeWindow} parent,<br>
-     * <code>setVisible(true)</code> has no effect as long the parent's is not valid yet,
+     * <code>setVisible(wait, true)</code> has no effect as long the parent's is not valid yet,
      * i.e. {@link javax.media.nativewindow.NativeWindow#getWindowHandle()} returns <code>null</code>.<br>
-     * <code>setVisible(true)</code> shall be repeated when the parent becomes valid.
+     * <code>setVisible(wait, true)</code> shall be repeated when the parent becomes valid.
      * </p>
      */
-    void setVisible(boolean visible);
+    void setVisible(boolean wait, boolean visible);
 
     boolean isVisible();
 
@@ -294,6 +308,20 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      */
     void setPointerVisible(boolean pointerVisible);
 
+    /**
+     * Returns the current {@link PointerIcon}, which maybe <code>null</code> for the default.
+     * @see #setPointerIcon(PointerIcon)
+     */
+    PointerIcon getPointerIcon();
+
+    /**
+     * @param pi Valid {@link PointerIcon} reference or <code>null</code> to reset the pointer icon to default.
+     *
+     * @see PointerIcon
+     * @see Display#createPointerIcon(com.jogamp.common.util.IOUtil.ClassResources, int, int)
+     */
+    void setPointerIcon(final PointerIcon pi);
+
     /** @see #confinePointer(boolean) */
     boolean isPointerConfined();
 
@@ -340,6 +368,11 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
         ACTION_NATIVE_CREATION_PENDING;
     }
 
+    /** Reparenting hint (bitfield value): Force destroy and hence {@link ReparentOperation#ACTION_NATIVE_CREATION re-creating} the window. */
+    public static final int REPARENT_HINT_FORCE_RECREATION = 1 << 0;
+    /** Reparenting hint (bitfield value): Claim window becomes visible after reparenting, which is important for e.g. preserving the GL-states in case window is invisible while reparenting. */
+    public static final int REPARENT_HINT_BECOMES_VISIBLE = 1 << 1;
+
     /**
      * Change this window's parent window.<br>
      * <P>
@@ -351,15 +384,50 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * @param newParent The new parent NativeWindow. If null, this Window becomes a top level window.
      *
      * @return The issued reparent action type (strategy) as defined in Window.ReparentAction
+     * @see #reparentWindow(NativeWindow, int, int, boolean)
+     * @deprecated Use {@link #reparentWindow(NativeWindow, int, int, int)}
      */
     ReparentOperation reparentWindow(NativeWindow newParent);
 
-    ReparentOperation reparentWindow(NativeWindow newParent, boolean forceDestroyCreate);
+    /**
+     * Change this window's parent window.<br>
+     * <P>
+     * In case the old parent is not null and a Window,
+     * this window is removed from it's list of children.<br>
+     * In case the new parent is not null and a Window,
+     * this window is added to it's list of children.<br></P>
+     *
+     * @param newParent The new parent NativeWindow. If null, this Window becomes a top level window.
+     * @param x new top-level position, use -1 for default position.
+     * @param y new top-level position, use -1 for default position.
+     * @param forceDestroyCreate if true, uses re-creation strategy for reparenting, default is <code>false</code>.
+     *
+     * @return The issued reparent action type (strategy) as defined in Window.ReparentAction
+     * @deprecated Use {@link #reparentWindow(NativeWindow, int, int, int)}
+     */
+    ReparentOperation reparentWindow(NativeWindow newParent, int x, int y, boolean forceDestroyCreate);
+
+    /**
+     * Change this window's parent window.<br>
+     * <P>
+     * In case the old parent is not null and a Window,
+     * this window is removed from it's list of children.<br>
+     * In case the new parent is not null and a Window,
+     * this window is added to it's list of children.<br></P>
+     *
+     * @param newParent The new parent NativeWindow. If null, this Window becomes a top level window.
+     * @param x new top-level position, use -1 for default position.
+     * @param y new top-level position, use -1 for default position.
+     * @param hints May contain hints (bitfield values) like {@link #REPARENT_HINT_FORCE_RECREATION} or {@link #REPARENT_HINT_BECOMES_VISIBLE}.
+     *
+     * @return The issued reparent action type (strategy) as defined in Window.ReparentAction
+     */
+    ReparentOperation reparentWindow(NativeWindow newParent, int x, int y, int hints);
 
     /**
      * Enable or disable fullscreen mode for this window.
      * <p>
-     * Fullscreen mode is established on the {@link #getMainMonitor() main monitor}. 
+     * Fullscreen mode is established on the {@link #getMainMonitor() main monitor}.
      * </p>
      * @param fullscreen enable or disable fullscreen mode
      * @return success
@@ -374,14 +442,14 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * <p>
      * Disable fullscreen via {@link #setFullscreen(boolean)}.
      * </p>
-     * @param monitors if <code>null</code> fullscreen will be spanned across all {@link MonitorDevice}s, 
+     * @param monitors if <code>null</code> fullscreen will be spanned across all {@link MonitorDevice}s,
      *                 otherwise across the given list of {@link MonitorDevice}.
      * @return success
      * @see #setFullscreen(boolean)
      * @see #isFullscreen()
      */
     boolean setFullscreen(List<MonitorDevice> monitors);
-    
+
     boolean isFullscreen();
 
     static interface FocusRunnable {
@@ -410,7 +478,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * and to perform focus traversal with a 3rd party toolkit.
      * </p>
      * <p>
-     * The {@link KeyListener} methods are not invoked for {@link KeyEvent#isAutoRepeat() auto-repeat} events. 
+     * The {@link KeyListener} methods are not invoked for {@link KeyEvent#isAutoRepeat() auto-repeat} events.
      * </p>
      * @param l
      */
@@ -450,7 +518,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
 
     /**
      * Send a {@link WindowEvent} to all {@link WindowListener}.
-     * @param eventType a {@link WindowEvent} type, e.g. {@link WindowEvent#EVENT_WINDOW_REPAINT}. 
+     * @param eventType a {@link WindowEvent} type, e.g. {@link WindowEvent#EVENT_WINDOW_REPAINT}.
      */
     public void sendWindowEvent(int eventType);
 
@@ -536,15 +604,12 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     //
 
     /**
-     *
-     * Appends the given {@link com.jogamp.newt.event.MouseListener} to the end of
-     * the list.
+     * Appends the given {@link MouseListener} to the end of the list.
      */
     void addMouseListener(MouseListener l);
 
     /**
-     *
-     * Inserts the given {@link com.jogamp.newt.event.MouseListener} at the
+     * Inserts the given {@link MouseListener} at the
      * specified position in the list.<br>
      *
      * @param index Position where the listener will be inserted.
@@ -555,10 +620,61 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      */
     void addMouseListener(int index, MouseListener l);
 
+    /**
+     * Removes the given {@link MouseListener} from the list.
+     */
     void removeMouseListener(MouseListener l);
 
+    /**
+     * Returns the {@link MouseListener} from the list at the given index.
+     */
     MouseListener getMouseListener(int index);
 
+    /**
+     * Returns all {@link MouseListener}
+     */
     MouseListener[] getMouseListeners();
 
+    /** Enable or disable default {@link GestureHandler}. Default is enabled. */
+    void setDefaultGesturesEnabled(boolean enable);
+    /** Return true if default {@link GestureHandler} are enabled. */
+    boolean areDefaultGesturesEnabled();
+    /**
+     * Appends the given {@link GestureHandler} to the end of the list.
+     */
+    void addGestureHandler(GestureHandler gh);
+    /**
+     * Inserts the given {@link GestureHandler} at the
+     * specified position in the list.<br>
+     *
+     * @param index Position where the listener will be inserted.
+     * Should be within (0 <= index && index <= size()).
+     * An index value of -1 is interpreted as the end of the list, size().
+     * @param l The listener object to be inserted
+     * @throws IndexOutOfBoundsException If the index is not within (0 <= index && index <= size()), or -1
+     */
+    void addGestureHandler(int index, GestureHandler gh);
+    /**
+     * Removes the given {@link GestureHandler} from the list.
+     */
+    void removeGestureHandler(GestureHandler gh);
+    /**
+     * Appends the given {@link GestureHandler.GestureListener} to the end of the list.
+     */
+    void addGestureListener(GestureHandler.GestureListener gl);
+    /**
+     * Inserts the given {@link GestureHandler.GestureListener} at the
+     * specified position in the list.<br>
+     *
+     * @param index Position where the listener will be inserted.
+     * Should be within (0 <= index && index <= size()).
+     * An index value of -1 is interpreted as the end of the list, size().
+     * @param l The listener object to be inserted
+     * @throws IndexOutOfBoundsException If the index is not within (0 <= index && index <= size()), or -1
+     */
+    void addGestureListener(int index, GestureHandler.GestureListener gl);
+    /**
+     * Removes the given {@link GestureHandler.GestureListener} from the list.
+     */
+    void removeGestureListener(GestureHandler.GestureListener gl);
 }

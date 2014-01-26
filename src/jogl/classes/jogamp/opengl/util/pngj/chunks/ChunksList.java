@@ -24,7 +24,7 @@ public class ChunksList {
 
 	/**
 	 * All chunks, read (or written)
-	 * 
+	 *
 	 * But IDAT is a single pseudo chunk without data
 	 */
 	protected List<PngChunk> chunks = new ArrayList<PngChunk>();
@@ -37,7 +37,7 @@ public class ChunksList {
 
 	/**
 	 * Keys of processed (read or writen) chunks
-	 * 
+	 *
 	 * @return key:chunk id, val: number of occurrences
 	 */
 	public HashMap<String, Integer> getChunksKeys() {
@@ -59,12 +59,14 @@ public class ChunksList {
 	protected static List<PngChunk> getXById(final List<PngChunk> list, final String id, final String innerid) {
 		if (innerid == null)
 			return ChunkHelper.filterList(list, new ChunkPredicate() {
+				@Override
 				public boolean match(PngChunk c) {
 					return c.id.equals(id);
 				}
 			});
 		else
 			return ChunkHelper.filterList(list, new ChunkPredicate() {
+				@Override
 				public boolean match(PngChunk c) {
 					if (!c.id.equals(id))
 						return false;
@@ -87,7 +89,7 @@ public class ChunksList {
 
 	/**
 	 * All chunks with this ID
-	 * 
+	 *
 	 * @param id
 	 * @return List, empty if none
 	 */
@@ -98,7 +100,7 @@ public class ChunksList {
 	/**
 	 * If innerid!=null and the chunk is PngChunkTextVar or PngChunkSPLT, it's
 	 * filtered by that id
-	 * 
+	 *
 	 * @param id
 	 * @return innerid Only used for text and SPLT chunks
 	 * @return List, empty if none
@@ -109,7 +111,7 @@ public class ChunksList {
 
 	/**
 	 * Returns only one chunk
-	 * 
+	 *
 	 * @param id
 	 * @return First chunk found, null if not found
 	 */
@@ -146,18 +148,20 @@ public class ChunksList {
 
 	/**
 	 * Finds all chunks "equivalent" to this one
-	 * 
+	 *
 	 * @param c2
 	 * @return Empty if nothing found
 	 */
 	public List<PngChunk> getEquivalent(final PngChunk c2) {
 		return ChunkHelper.filterList(chunks, new ChunkPredicate() {
+			@Override
 			public boolean match(PngChunk c) {
 				return ChunkHelper.equivalent(c, c2);
 			}
 		});
 	}
 
+	@Override
 	public String toString() {
 		return "ChunkList: read: " + chunks.size();
 	}

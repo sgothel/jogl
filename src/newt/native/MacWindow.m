@@ -113,18 +113,6 @@ static void setJavaWindowObject(JNIEnv *env, jobject newJavaWindowObject, NewtVi
         DBG_PRINT( "setJavaWindowObject.2: View %p - Set new javaWindowObject %p\n", view, newJavaWindowObject);
         jobject globJavaWindowObject = (*env)->NewGlobalRef(env, newJavaWindowObject);
         [view setJavaWindowObject: globJavaWindowObject];
-        {
-            JavaVM *jvmHandle = NULL;
-            int jvmVersion = 0;
-
-            if(0 != (*env)->GetJavaVM(env, &jvmHandle)) {
-                jvmHandle = NULL;
-            } else {
-                jvmVersion = (*env)->GetVersion(env);
-            }
-            [view setJVMHandle: jvmHandle];
-            [view setJVMVersion: jvmVersion];
-        }
     }
     DBG_PRINT( "setJavaWindowObject.X: View %p\n", view);
 }
@@ -210,6 +198,8 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_DisplayDriver_initNSAp
     if(initialized) return JNI_TRUE;
     initialized = 1;
 
+    NewtCommon_init(env);
+
     // This little bit of magic is needed in order to receive mouse
     // motion events and allow key focus to be properly transferred.
     // FIXME: are these Carbon APIs? They come from the
@@ -282,6 +272,97 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_DisplayDriver_stopNSApplic
     } */
 
     DBG_PRINT( "\nstopNSApplication0.X\n");
+    [pool release];
+}
+
+static NSImage * createNSImageFromData(JNIEnv *env, unsigned char * iconData, jint jiconWidth, jint jiconHeight) {
+    if( NULL != iconData ) {
+        NSInteger iconWidth = (NSInteger) jiconWidth;
+        NSInteger iconHeight = (NSInteger) jiconHeight;
+        const NSInteger bpc = 8 /* bits per component */, spp=4 /* RGBA */, bpp = bpc * spp;
+        const NSBitmapFormat bfmt = NSAlphaNonpremultipliedBitmapFormat;
+        const BOOL hasAlpha = YES;
+
+        NSBitmapImageRep* bir = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes: &iconData
+                                    pixelsWide: iconWidth
+                                    pixelsHigh: iconHeight
+                                    bitsPerSample: bpc
+                                    samplesPerPixel: spp
+                                    hasAlpha: hasAlpha
+                                    isPlanar: NO
+                                    colorSpaceName: NSCalibratedRGBColorSpace
+                                    bitmapFormat: bfmt
+                                    bytesPerRow: iconWidth*4
+                                    bitsPerPixel: bpp];
+        [bir autorelease];
+        NSImage* nsImage = [[NSImage alloc] initWithCGImage: [bir CGImage] size:NSZeroSize];
+        return nsImage;
+    }
+    return NULL;
+}
+
+/*
+ * Class:     jogamp_newt_driver_macosx_DisplayDriver
+ * Method:    setAppIcon0
+ */
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_DisplayDriver_setAppIcon0
+  (JNIEnv *env, jobject unused, jobject pixels, jint pixels_byte_offset, jboolean pixels_is_direct, jint width, jint height)
+{
+    if( 0 == pixels ) {
+        return;
+    }
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    // NOTE: MUST BE DIRECT BUFFER, since NSBitmapImageRep uses buffer directly!
+    unsigned char * pixelPtr = (unsigned char *) ( JNI_TRUE == pixels_is_direct ? 
+                                            (*env)->GetDirectBufferAddress(env, pixels) : 
+                                            (*env)->GetPrimitiveArrayCritical(env, pixels, NULL) );
+    NSImage * nsImage = createNSImageFromData(env, pixelPtr + pixels_byte_offset, width, height);
+    if( NULL != nsImage ) {
+        [nsImage autorelease];
+        [NSApp setApplicationIconImage: nsImage];
+    }
+    if ( JNI_FALSE == pixels_is_direct ) {
+        (*env)->ReleasePrimitiveArrayCritical(env, pixels, (void*)pixelPtr, JNI_ABORT);  
+    }
+    [pool release];
+}
+
+JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_DisplayDriver_createPointerIcon0
+  (JNIEnv *env, jobject unused, jobject pixels, jint pixels_byte_offset, jboolean pixels_is_direct, jint width, jint height, jint hotX, jint hotY)
+{
+    if( 0 == pixels ) {
+        return 0;
+    }
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    unsigned char * pixelPtr = (unsigned char *) ( JNI_TRUE == pixels_is_direct ? 
+                                            (*env)->GetDirectBufferAddress(env, pixels) : 
+                                            (*env)->GetPrimitiveArrayCritical(env, pixels, NULL) );
+    NSImage * nsImage = createNSImageFromData(env, pixelPtr + pixels_byte_offset, width, height);
+    NSCursor * res = NULL;
+    if( NULL != nsImage ) {
+        [nsImage autorelease];
+        NSPoint hotP = { hotX, hotY };
+        res = [[NSCursor alloc] initWithImage: nsImage hotSpot: hotP];
+    }
+    if ( JNI_FALSE == pixels_is_direct ) {
+        (*env)->ReleasePrimitiveArrayCritical(env, pixels, (void*)pixelPtr, JNI_ABORT);  
+    }
+    [pool release];
+    DBG_PRINT( "createPointerIcon0 %p\n", res);
+    return (jlong) (intptr_t) res;
+}
+
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_DisplayDriver_destroyPointerIcon0
+  (JNIEnv *env, jobject unused, jlong handle)
+{
+    NSCursor * c = (NSCursor*) (intptr_t) handle ;
+    if( NULL != c && NO == [c isKindOfClass:[NSCursor class]] ) {
+        NewtCommon_throwNewRuntimeException(env, "Not a NSCursor %p", c);
+        return;
+    }
+    DBG_PRINT( "destroyPointerIcon0 %p\n", c);
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    [c release];
     [pool release];
 }
 
@@ -628,11 +709,11 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_createView0
 
     NSRect rectView = NSMakeRect(0, 0, w, h);
     NewtView *myView = [[NewtView alloc] initWithFrame: rectView] ;
-    DBG_PRINT( "createView0.X.%d - new view: %p\n", myView);
+    DBG_PRINT( "createView0.X - new view: %p\n", myView);
 
     [pool release];
 
-    return (jlong) ((intptr_t) myView);
+    return (jlong) (intptr_t) myView;
 }
 
 /**
@@ -649,7 +730,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_createWindow
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NewtView* myView = (NewtView*) (intptr_t) jview ;
 
-    DBG_PRINT( "createWindow0 - %p (this), %d/%d %dx%d, fs %d, style %X, buffType %X, screenidx %d, view %p (START)\n",
+    DBG_PRINT( "createWindow0 - %p (this), %d/%d %dx%d, fs %d, style %X, buffType %X, view %p (START)\n",
         (void*)(intptr_t)jthis, (int)x, (int)y, (int)w, (int)h, (int)fullscreen, 
         (int)styleMask, (int)bufferingType, myView);
     (void)myView;
@@ -674,7 +755,6 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_createWindow
                                                backing: (NSBackingStoreType) bufferingType
                                                defer: YES
                                                isFullscreenWindow: fullscreen];
-
     // DBG_PRINT( "createWindow0.1 - %p, isVisible %d\n", myWindow, [myWindow isVisible]);
 
     DBG_PRINT( "createWindow0.X - %p, isVisible %d\n", myWindow, [myWindow isVisible]);
@@ -693,11 +773,12 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_createWindow
  */
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_initWindow0
   (JNIEnv *env, jobject jthis, jlong parent, jlong window, jint x, jint y, jint w, jint h, 
-   jboolean opaque, jboolean fullscreen, jboolean visible, jlong jview)
+   jboolean opaque, jboolean visible, jlong jview)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NewtMacWindow* myWindow = (NewtMacWindow*) ((intptr_t) window);
     NewtView* myView = (NewtView*) (intptr_t) jview ;
+    BOOL fullscreen = myWindow->isFullscreenWindow;
 
     DBG_PRINT( "initWindow0 - %p (this), %p (parent), %p (window), %d/%d %dx%d, opaque %d, fs %d, visible %d, view %p (START)\n",
         (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, (int)x, (int)y, (int)w, (int)h, 
@@ -716,8 +797,15 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_initWindow0
         rectWin = NSMakeRect(x, y, w, h);
     }
 
-    [myWindow setReleasedWhenClosed: YES]; // default
+    [myWindow setReleasedWhenClosed: NO]; // We control NSWindow destruction!
     [myWindow setPreservesContentDuringLiveResize: NO];
+NS_DURING
+        if ( [myWindow respondsToSelector:@selector(setRestorable:)] ) {
+            // Available >= 10.7 - Removes restauration 'feature', really close
+            [myWindow setRestorable: NO];
+        }
+NS_HANDLER
+NS_ENDHANDLER
 
     NSObject* nsParentObj = (NSObject*) ((intptr_t) parent);
     NSWindow* parentWindow = NULL;
@@ -764,27 +852,28 @@ NS_ENDHANDLER
     // specify we want mouse-moved events
     [myWindow setAcceptsMouseMovedEvents:YES];
 
-    DBG_PRINT( "initWindow0.%d - %p,%d view %p,%d, isVisible %d\n", 
-        dbgIdx++, myWindow, getRetainCount(myWindow), myView, getRetainCount(myView), [myWindow isVisible]);
+    DBG_PRINT( "initWindow0.%d - %p view %p, isVisible %d\n", 
+        dbgIdx++, myWindow, myView, [myWindow isVisible]);
 
     // Set the content view
     changeContentView(env, jthis, parentView, myWindow, myView, NO);
+    [myWindow setInitialFirstResponder: myView];
 
-    DBG_PRINT( "initWindow0.%d - %p,%d view %p,%d, isVisible %d\n", 
-        dbgIdx++, myWindow, getRetainCount(myWindow), myView, getRetainCount(myView), [myWindow isVisible]);
+    DBG_PRINT( "initWindow0.%d - %p view %p, isVisible %d\n", 
+        dbgIdx++, myWindow, myView, [myWindow isVisible]);
 
     if(NULL!=parentWindow) {
         [myWindow attachToParent: parentWindow];
     }
 
-    DBG_PRINT( "initWindow0.%d - %p,%d view %p,%d, isVisible %d, visible %d\n", 
-        dbgIdx++, myWindow, getRetainCount(myWindow), myView, getRetainCount(myView), [myWindow isVisible], visible);
+    DBG_PRINT( "initWindow0.%d - %p view %p, isVisible %d, visible %d\n", 
+        dbgIdx++, myWindow, myView, [myWindow isVisible], visible);
 
     // Immediately re-position this window based on an upper-left coordinate system
     setWindowClientTopLeftPointAndSize(myWindow, x, y, w, h, NO);
 
-    DBG_PRINT( "initWindow0.%d - %p,%d view %p,%d, isVisible %d\n", 
-        dbgIdx++, myWindow, getRetainCount(myWindow), myView, getRetainCount(myView), [myWindow isVisible]);
+    DBG_PRINT( "initWindow0.%d - %p view %p, isVisible %d\n", 
+        dbgIdx++, myWindow, myView, [myWindow isVisible]);
 
 NS_DURING
     // concurrent view rendering
@@ -793,8 +882,8 @@ NS_DURING
         [myWindow setAllowsConcurrentViewDrawing: YES];
     }
 
-    DBG_PRINT( "initWindow0.%d - %p,%d view %p,%d, isVisible %d\n", 
-        dbgIdx++, myWindow, getRetainCount(myWindow), myView, getRetainCount(myView), [myWindow isVisible]);
+    DBG_PRINT( "initWindow0.%d - %p view %p, isVisible %d\n", 
+        dbgIdx++, myWindow, myView, [myWindow isVisible]);
 
     if ( [myView respondsToSelector:@selector(setCanDrawConcurrently:)] ) {
         [myView setCanDrawConcurrently: YES];
@@ -802,45 +891,61 @@ NS_DURING
 NS_HANDLER
 NS_ENDHANDLER
 
-    DBG_PRINT( "initWindow0.%d - %p,%d view %p,%d, isVisible %d\n", 
-        dbgIdx++, myWindow, getRetainCount(myWindow), myView, getRetainCount(myView), [myWindow isVisible]);
+    DBG_PRINT( "initWindow0.%d - %p view %p, isVisible %d\n", 
+        dbgIdx++, myWindow, myView, [myWindow isVisible]);
 
     // visible on front
     if( visible ) {
         [myWindow orderFront: myWindow];
     }
 
-    DBG_PRINT( "initWindow0.%d - %p,%d view %p,%d, isVisible %d\n", 
-        dbgIdx++, myWindow, getRetainCount(myWindow), myView, getRetainCount(myView), [myWindow isVisible]);
+    DBG_PRINT( "initWindow0.%d - %p view %p, isVisible %d\n", 
+        dbgIdx++, myWindow, myView, [myWindow isVisible]);
 
     // force surface creation
     // [myView lockFocus];
     // [myView unlockFocus];
 
+    // Set the next responder to be the window so that we can forward
+    // right mouse button down events
+    [myView setNextResponder: myWindow];
+
+    DBG_PRINT( "initWindow0.%d - %p (this), %p (parent): new window: %p, view %p\n",
+        dbgIdx++, (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, myView);
+
+    [myView setDestroyNotifySent: false];
+    setJavaWindowObject(env, jthis, myView, YES);
+
+    DBG_PRINT( "initWindow0.%d - %p (this), %p (parent): new window: %p, view %p\n",
+        dbgIdx++, (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, myView);
+
 NS_DURING
-    // Available >= 10.5 - Makes the menubar disapear
     if( fullscreen ) {
+        /** 
+         * See Bug 914: We don't use exclusive fullscreen anymore (capturing display)
+         * allowing ALT-TAB to allow process/app switching!
+         * Shall have no penalty on modern GPU and is also recommended, see bottom box @
+         * <https://developer.apple.com/library/mac/documentation/graphicsimaging/Conceptual/QuartzDisplayServicesConceptual/Articles/DisplayCapture.html>
+         *
         if ( [myView respondsToSelector:@selector(enterFullScreenMode:withOptions:)] ) {
+            // Available >= 10.5 - Makes the menubar disapear
             [myView enterFullScreenMode: myScreen withOptions:NULL];
+        } */
+        if( myWindow->hasPresentationSwitch ) {
+            DBG_PRINT( "initWindow0.%d - %p view %p, setPresentationOptions 0x%X\n", 
+                dbgIdx++, myWindow, myView, (int)myWindow->fullscreenPresentationOptions);
+            [NSApp setPresentationOptions: myWindow->fullscreenPresentationOptions];
         }
     }
 NS_HANDLER
 NS_ENDHANDLER
 
-    // Set the next responder to be the window so that we can forward
-    // right mouse button down events
-    [myView setNextResponder: myWindow];
-
-    DBG_PRINT( "initWindow0.X - %p (this), %p (parent): new window: %p, view %p,%d\n",
-        (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, myView, getRetainCount(myView));
-
-    [myView setDestroyNotifySent: false];
-    setJavaWindowObject(env, jthis, myView, YES);
-
-    DBG_PRINT( "initWindow0.X - %p (this), %p (parent): new window: %p, view %p,%d\n",
-        (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, myView, getRetainCount(myView));
+    DBG_PRINT( "initWindow0.%d - %p (this), %p (parent): new window: %p, view %p\n",
+        dbgIdx++, (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, myView);
 
     [pool release];
+    DBG_PRINT( "initWindow0.X - %p (this), %p (parent): new window: %p, view %p\n",
+        (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, myView);
 }
 
 /**
@@ -853,26 +958,50 @@ NS_ENDHANDLER
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_close0
   (JNIEnv *env, jobject unused, jlong window)
 {
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NewtMacWindow* mWin = (NewtMacWindow*) ((intptr_t) window);
+    if( NULL == mWin ) {
+        DBG_PRINT( "windowClose.0 - NULL NEWT win - abort\n");
+        return;
+    }
+    BOOL isNSWin = [mWin isKindOfClass:[NSWindow class]];
+    BOOL isNewtWin = [mWin isKindOfClass:[NewtMacWindow class]];
+    NSWindow *pWin = [mWin parentWindow];
+    DBG_PRINT( "windowClose.0 - %p [isNSWindow %d, isNewtWin %d], parent %p\n", mWin, isNSWin, isNewtWin, pWin);
+    (void)isNSWin; // silence
+    if( !isNewtWin ) {
+        NewtCommon_throwNewRuntimeException(env, "Not a NewtMacWindow %p", mWin);
+        return;
+    }
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NewtView* mView = (NewtView *)[mWin contentView];
-    NSWindow* pWin = [mWin parentWindow];
-    BOOL destroyNotifySent = (NULL != mView) ? [mView getDestroyNotifySent] : false;
+    BOOL fullscreen = mWin->isFullscreenWindow;
+    BOOL destroyNotifySent, isNSView, isNewtView;
+    if( NULL != mView ) {
+        isNSView = [mView isKindOfClass:[NSView class]];
+        isNewtView = [mView isKindOfClass:[NewtView class]];
+        destroyNotifySent = isNewtView ? [mView getDestroyNotifySent] : false;
+    } else {
+        isNSView = false;
+        isNewtView = false;
+        destroyNotifySent = false;
+    }
 
-    DBG_PRINT( "windowClose.0 - %p,%d, destroyNotifySent %d, view %p,%d, parent %p\n", 
-        mWin, getRetainCount(mWin), destroyNotifySent, mView, getRetainCount(mView), pWin);
+    DBG_PRINT( "windowClose.0 - %p, destroyNotifySent %d, view %p [isNSView %d, isNewtView %d], fullscreen %d, parent %p\n", 
+        mWin, destroyNotifySent, mView, isNSView, isNewtView, (int)fullscreen, pWin);
 
     [mWin setRealized: NO];
 
-    if(NULL!=mView) {
+    if( isNewtView ) {
         // cleanup view
         [mView setDestroyNotifySent: true];
         setJavaWindowObject(env, NULL, mView, NO);
     }
 
 NS_DURING
+    /** 
+     * See Bug 914: We don't use exclusive fullscreen anymore (capturing display)
+     * See initWindow0(..) above ..
     if(NULL!=mView) {
-        // Available >= 10.5 - Makes the menubar disapear
         BOOL iifs;
         if ( [mView respondsToSelector:@selector(isInFullScreenMode)] ) {
             iifs = [mView isInFullScreenMode];
@@ -882,7 +1011,15 @@ NS_DURING
         if(iifs && [mView respondsToSelector:@selector(exitFullScreenModeWithOptions:)] ) {
             [mView exitFullScreenModeWithOptions: NULL];
         }
-        // Note: mWin's release will also release it's mView!
+    } */
+    // Note: mWin's release will also release it's mView!
+    DBG_PRINT( "windowClose.1a - %p view %p, fullscreen %d, hasPresSwitch %d, defaultPresentationOptions 0x%X\n", 
+        mWin, mView, (int)fullscreen, (int)mWin->hasPresentationSwitch, (int)mWin->defaultPresentationOptions);
+
+    if( fullscreen && mWin->hasPresentationSwitch ) {
+        DBG_PRINT( "windowClose.1b - %p view %p, setPresentationOptions 0x%X\n", 
+            mWin, mView, (int)mWin->defaultPresentationOptions);
+        [NSApp setPresentationOptions: mWin->defaultPresentationOptions];
     }
 NS_HANDLER
 NS_ENDHANDLER
@@ -892,14 +1029,9 @@ NS_ENDHANDLER
     }
     [mWin orderOut: mWin];
 
-    DBG_PRINT( "windowClose.1 - %p,%d view %p,%d, parent %p\n", 
-        mWin, getRetainCount(mWin), mView, getRetainCount(mView), pWin);
+    DBG_PRINT( "windowClose.2 - %p view %p, parent %p\n", mWin, mView, pWin);
 
-    // Only release window, if release is not yet in process.
-    // E.g. destroyNotifySent:=true set by NewtMacWindow::windowWillClose(), i.e. window-close was clicked.
-    if(!destroyNotifySent) { 
-        [mWin release];
-    }
+    [mWin release];
 
     DBG_PRINT( "windowClose.Xp\n");
 
@@ -953,9 +1085,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_requestFocus0
 #ifdef VERBOSE_ON
     BOOL hasFocus = [mWin isKeyWindow];
 #endif
-
     DBG_PRINT( "requestFocus - window: %p, force %d, hasFocus %d (START)\n", mWin, force, hasFocus);
 
+    [mWin setAcceptsMouseMovedEvents: YES];
     [mWin makeFirstResponder: nil];
     [mWin orderFrontRegardless];
     [mWin makeKeyWindow];
@@ -1172,7 +1304,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setAlwaysOnTo
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* win = (NSWindow*) ((intptr_t) window);
 
-    DBG_PRINT( "setAlwaysOnTop0 - window: %p (START)\n", win);
+    DBG_PRINT( "setAlwaysOnTop0 - window: %p, atop %d (START)\n", win, (int)atop);
 
     if(atop) {
         [win setLevel:NSFloatingWindowLevel];
@@ -1180,7 +1312,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setAlwaysOnTo
         [win setLevel:NSNormalWindowLevel];
     }
 
-    DBG_PRINT( "setAlwaysOnTop0 - window: %p (END)\n", win);
+    DBG_PRINT( "setAlwaysOnTop0 - window: %p, atop %d (END)\n", win, (int)atop);
 
     [pool release];
 }
@@ -1193,17 +1325,36 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setAlwaysOnTo
 JNIEXPORT jobject JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_getLocationOnScreen0
   (JNIEnv *env, jclass unused, jlong win, jint src_x, jint src_y)
 {
-    NSObject *nsObj = (NSObject*) ((intptr_t) win);
-    NewtMacWindow * mWin = NULL;
-
-    if( [nsObj isKindOfClass:[NewtMacWindow class]] ) {
-        mWin = (NewtMacWindow*) nsObj;
-    } else {
-        NewtCommon_throwNewRuntimeException(env, "not NewtMacWindow %p\n", nsObj);
+    NewtMacWindow *mWin = (NewtMacWindow*) (intptr_t) win;
+    if( ![mWin isKindOfClass:[NewtMacWindow class]] ) {
+        NewtCommon_throwNewRuntimeException(env, "Not a NewtMacWindow %p", mWin);
+        return NULL;
     }
-
     NSPoint p0 = [mWin getLocationOnScreen: NSMakePoint(src_x, src_y)];
     return (*env)->NewObject(env, pointClz, pointCstr, (jint)p0.x, (jint)p0.y);
+}
+
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setPointerIcon0
+  (JNIEnv *env, jobject unused, jlong window, jlong handle)
+{
+    NSCursor *c = (NSCursor*) (intptr_t) handle ;
+    if ( NULL != c && NO == [c isKindOfClass:[NSCursor class]] ) {
+        NewtCommon_throwNewRuntimeException(env, "Not a NSCursor %p", c);
+        return;
+    }
+    NewtMacWindow *mWin = (NewtMacWindow*) (intptr_t) window;
+    if( ! [mWin isKindOfClass:[NewtMacWindow class]] ) {
+        NewtCommon_throwNewRuntimeException(env, "Not a NewtMacWindow %p", mWin);
+        return;
+    }
+    NewtView* nView = (NewtView *) [mWin contentView];
+    if( ! [nView isKindOfClass:[NewtView class]] ) {
+        NewtCommon_throwNewRuntimeException(env, "Not a NewtView %p", nView);
+        return;
+    }
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    [nView setPointerIcon: c];
+    [pool release];
 }
 
 /*
@@ -1211,13 +1362,23 @@ JNIEXPORT jobject JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_getLocatio
  * Method:    setPointerVisible0
  * Signature: (JZ)Z
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setPointerVisible0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setPointerVisible0
   (JNIEnv *env, jclass clazz, jlong window, jboolean hasFocus, jboolean mouseVisible)
 {
     NewtMacWindow *mWin = (NewtMacWindow*) ((intptr_t) window);
-    [mWin setMouseVisible: ( JNI_TRUE == mouseVisible ) ? YES : NO 
-                 hasFocus: ( JNI_TRUE == hasFocus ) ? YES : NO];
-    return JNI_TRUE;
+    if( ! [mWin isKindOfClass:[NewtMacWindow class]] ) {
+        NewtCommon_throwNewRuntimeException(env, "Not a NewtMacWindow %p", mWin);
+        return;
+    }
+    NewtView* nView = (NewtView *) [mWin contentView];
+    if( ! [nView isKindOfClass:[NewtView class]] ) {
+        NewtCommon_throwNewRuntimeException(env, "Not a NewtView %p", nView);
+        return;
+    }
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    [nView setMouseVisible: ( JNI_TRUE == mouseVisible ) ? YES : NO 
+                  hasFocus: ( JNI_TRUE == hasFocus ) ? YES : NO];
+    [pool release];
 }
 
 /*
@@ -1225,12 +1386,22 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setPointe
  * Method:    confinePointer0
  * Signature: (JZ)Z
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_confinePointer0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_confinePointer0
   (JNIEnv *env, jclass clazz, jlong window, jboolean confine)
 {
     NewtMacWindow *mWin = (NewtMacWindow*) ((intptr_t) window);
-    [mWin setMouseConfined: ( JNI_TRUE == confine ) ? YES : NO];
-    return JNI_TRUE;
+    if( ! [mWin isKindOfClass:[NewtMacWindow class]] ) {
+        NewtCommon_throwNewRuntimeException(env, "Not a NewtMacWindow %p", mWin);
+        return;
+    }
+    NewtView* nView = (NewtView *) [mWin contentView];
+    if( ! [nView isKindOfClass:[NewtView class]] ) {
+        NewtCommon_throwNewRuntimeException(env, "Not a NewtView %p", nView);
+        return;
+    }
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    [nView setMouseConfined: ( JNI_TRUE == confine ) ? YES : NO];
+    [pool release];
 }
 
 /*
@@ -1242,6 +1413,17 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_warpPointer0
   (JNIEnv *env, jclass clazz, jlong window, jint x, jint y)
 {
     NewtMacWindow *mWin = (NewtMacWindow*) ((intptr_t) window);
-    [mWin setMousePosition: [mWin newtRelClientTLWinPos2AbsBLScreenPos: NSMakePoint(x, y)]];
+    if( ! [mWin isKindOfClass:[NewtMacWindow class]] ) {
+        NewtCommon_throwNewRuntimeException(env, "Not a NewtMacWindow %p", mWin);
+        return;
+    }
+    NewtView* nView = (NewtView *) [mWin contentView];
+    if( ! [nView isKindOfClass:[NewtView class]] ) {
+        NewtCommon_throwNewRuntimeException(env, "Not a NewtView %p", nView);
+        return;
+    }
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    [nView setMousePosition: [mWin newtRelClientTLWinPos2AbsBLScreenPos: NSMakePoint(x, y)]];
+    [pool release];
 }
 

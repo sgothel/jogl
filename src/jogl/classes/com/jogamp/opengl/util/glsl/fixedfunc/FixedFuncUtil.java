@@ -24,13 +24,13 @@ import com.jogamp.opengl.util.PMVMatrix;
 public class FixedFuncUtil {
     /**
      * @param gl
-     * @param mode one of the {@link ShaderSelectionMode}s 
+     * @param mode one of the {@link ShaderSelectionMode}s
      * @param pmvMatrix optional pass through PMVMatrix for the {@link FixedFuncHook} and {@link FixedFuncPipeline}
      * @return If gl is a GL2ES1 and force is false, return the type cast object,
      *         otherwise create a fixed function emulation pipeline using the given GL2ES2 impl
      *         and hook it to the GLContext via {@link GLContext#setGL(GL)}.
      * @throws GLException if the GL object is neither GL2ES1 nor GL2ES2
-     * 
+     *
      * @see ShaderSelectionMode#AUTO
      * @see ShaderSelectionMode#COLOR
      * @see ShaderSelectionMode#COLOR_LIGHT_PER_VERTEX
@@ -53,13 +53,13 @@ public class FixedFuncUtil {
 
     /**
      * @param gl
-     * @param mode one of the {@link ShaderSelectionMode}s 
+     * @param mode one of the {@link ShaderSelectionMode}s
      * @param pmvMatrix optional pass through PMVMatrix for the {@link FixedFuncHook} and {@link FixedFuncPipeline}
      * @return If gl is a GL2ES1, return the type cast object,
      *         otherwise create a fixed function emulation pipeline using the GL2ES2 impl.
      *         and hook it to the GLContext via {@link GLContext#setGL(GL)}.
      * @throws GLException if the GL object is neither GL2ES1 nor GL2ES2
-     * 
+     *
      * @see ShaderSelectionMode#AUTO
      * @see ShaderSelectionMode#COLOR
      * @see ShaderSelectionMode#COLOR_LIGHT_PER_VERTEX
@@ -71,11 +71,11 @@ public class FixedFuncUtil {
     }
 
     /**
-     * Mapping fixed function (client) array indices to 
+     * Mapping fixed function (client) array indices to
      * GLSL array attribute names.
      *
      * Useful for uniq mapping of canonical array index names as listed.
-     * 
+     *
      * @see #mgl_Vertex
      * @see javax.media.opengl.fixedfunc.GLPointerFunc#GL_VERTEX_ARRAY
      * @see #mgl_Normal

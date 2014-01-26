@@ -21,10 +21,12 @@ public class CompileShaderNVidia extends CompileShader {
         }
     }
 
+    @Override
     public int getBinaryFormat() {
         return GLES2.GL_NVIDIA_PLATFORM_BINARY_NV;
     }
 
+    @Override
     public File getSDKCompilerDir() {
         File compilerDir = new File( NVAPSDK + File.separator + "tools" + File.separator );
         File compilerFile = new File( compilerDir, getVertexShaderCompiler());
@@ -39,10 +41,12 @@ public class CompileShaderNVidia extends CompileShader {
         return compilerDir;
     }
 
+    @Override
     public String getVertexShaderCompiler() {
         return "glslv.bat";
     }
 
+    @Override
     public String getFragmentShaderCompiler() {
         return "glslf.bat";
     }

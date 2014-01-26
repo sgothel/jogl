@@ -75,7 +75,7 @@ public class RangeRecord {
     public boolean isInRange(int glyphId) {
         return (_start <= glyphId && glyphId <= _end);
     }
-    
+
     public int getCoverageIndex(int glyphId) {
         if (isInRange(glyphId)) {
             return _startCoverageIndex + glyphId - _start;

@@ -39,6 +39,8 @@ import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.graph.curve.Region;
@@ -52,6 +54,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestTextRendererNEWT01 extends UITestCase {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;

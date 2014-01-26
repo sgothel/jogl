@@ -31,6 +31,8 @@ package com.jogamp.opengl.test.junit.newt;
 import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 import org.junit.Assert;
 
 import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
@@ -45,6 +47,7 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestWindowClosingProtocol02NEWT extends UITestCase {
 
     @Test

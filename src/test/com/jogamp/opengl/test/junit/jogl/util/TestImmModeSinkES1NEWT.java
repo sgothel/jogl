@@ -36,6 +36,8 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
@@ -44,6 +46,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 /**
  * Testing the ImmModeSink w/ GL2ES1 context
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestImmModeSinkES1NEWT extends UITestCase {
     static int duration = 100;
     static final int iWidth = 400;

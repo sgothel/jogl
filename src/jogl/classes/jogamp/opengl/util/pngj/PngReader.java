@@ -92,13 +92,13 @@ public class PngReader {
 	 * Constructs a PngReader from an InputStream.
 	 * <p>
 	 * See also <code>FileHelper.createPngReader(File f)</code> if available.
-	 * 
+	 *
 	 * Reads only the signature and first chunk (IDHR)
-	 * 
+	 *
 	 * @param filenameOrDescription
 	 *            : Optional, can be a filename or a description. Just for
 	 *            error/debug messages
-	 * 
+	 *
 	 */
 	public PngReader(InputStream inputStream, String filenameOrDescription) {
 		this.filename = filenameOrDescription == null ? "" : filenameOrDescription;
@@ -411,7 +411,7 @@ public class PngReader {
 
 	/**
 	 * Determines which ancillary chunks (metada) are to be loaded
-	 * 
+	 *
 	 * @param chunkLoadBehaviour
 	 *            {@link ChunkLoadBehaviour}
 	 */
@@ -427,7 +427,7 @@ public class PngReader {
 	 * replaced by a single dummy-marker IDAT chunk. These might be copied to
 	 * the PngWriter
 	 * <p>
-	 * 
+	 *
 	 * @see #getMetadata()
 	 */
 	public ChunksList getChunksList() {
@@ -442,7 +442,7 @@ public class PngReader {
 
 	/**
 	 * High level wrapper over chunksList
-	 * 
+	 *
 	 * @see #getChunksList()
 	 */
 	public PngMetadata getMetadata() {
@@ -456,7 +456,7 @@ public class PngReader {
 	 * appropiate readRowInt/readRowByte
 	 * <p>
 	 * In general, specifying the concrete readRowInt/readRowByte is preferrable
-	 * 
+	 *
 	 * @see #readRowInt(int) {@link #readRowByte(int)}
 	 */
 	public ImageLine readRow(int nrow) {
@@ -468,9 +468,9 @@ public class PngReader {
 	/**
 	 * Reads the row as INT, storing it in the {@link #imgLine} property and
 	 * returning it.
-	 * 
+	 *
 	 * The row must be greater or equal than the last read row.
-	 * 
+	 *
 	 * @param nrow
 	 *            Row number, from 0 to rows-1. Increasing order.
 	 * @return ImageLine object, also available as field. Data is in
@@ -490,10 +490,10 @@ public class PngReader {
 	/**
 	 * Reads the row as BYTES, storing it in the {@link #imgLine} property and
 	 * returning it.
-	 * 
+	 *
 	 * The row must be greater or equal than the last read row. This method
 	 * allows to pass the same row that was last read.
-	 * 
+	 *
 	 * @param nrow
 	 *            Row number, from 0 to rows-1. Increasing order.
 	 * @return ImageLine object, also available as field. Data is in
@@ -524,13 +524,13 @@ public class PngReader {
 	 * <p>
 	 * If the bitdepth is less than 8, the bytes are packed - unless
 	 * {@link #unpackedMode} is true.
-	 * 
+	 *
 	 * @param buffer
 	 *            Prealocated buffer, or null.
 	 * @param nrow
 	 *            Row number (0 is top). Most be strictly greater than the last
 	 *            read row.
-	 * 
+	 *
 	 * @return The scanline in the same passwd buffer if it was allocated, a
 	 *         newly allocated one otherwise
 	 */
@@ -562,13 +562,13 @@ public class PngReader {
 	 * {@link #unpackedMode} is true. <br>
 	 * If the bitdepth is 16, the least significant byte is lost.
 	 * <p>
-	 * 
+	 *
 	 * @param buffer
 	 *            Prealocated buffer, or null.
 	 * @param nrow
 	 *            Row number (0 is top). Most be strictly greater than the last
 	 *            read row.
-	 * 
+	 *
 	 * @return The scanline in the same passwd buffer if it was allocated, a
 	 *         newly allocated one otherwise
 	 */
@@ -632,9 +632,9 @@ public class PngReader {
 	 * <p>
 	 * Notice that the columns in the matrix is not the pixel width of the
 	 * image, but rather pixels x channels
-	 * 
+	 *
 	 * @see #readRowInt(int) to read about the format of each row
-	 * 
+	 *
 	 * @param rowOffset
 	 *            Number of rows to be skipped
 	 * @param nRows
@@ -678,7 +678,7 @@ public class PngReader {
 
 	/**
 	 * Same as readRowsInt(0, imgInfo.rows, 1)
-	 * 
+	 *
 	 * @see #readRowsInt(int, int, int)
 	 */
 	public ImageLines readRowsInt() {
@@ -696,10 +696,10 @@ public class PngReader {
 	 * <p>
 	 * Notice that the columns in the matrix is not the pixel width of the
 	 * image, but rather pixels x channels
-	 * 
+	 *
 	 * @see #readRowByte(int) to read about the format of each row. Notice that
 	 *      if the bitdepth is 16 this will lose information
-	 * 
+	 *
 	 * @param rowOffset
 	 *            Number of rows to be skipped
 	 * @param nRows
@@ -743,7 +743,7 @@ public class PngReader {
 
 	/**
 	 * Same as readRowsByte(0, imgInfo.rows, 1)
-	 * 
+	 *
 	 * @see #readRowsByte(int, int, int)
 	 */
 	public ImageLines readRowsByte() {
@@ -752,13 +752,13 @@ public class PngReader {
 
 	/*
 	 * For the interlaced case, nrow indicates the subsampled image - the pass must be set already.
-	 * 
+	 *
 	 * This must be called in strict order, both for interlaced or no interlaced.
-	 * 
+	 *
 	 * Updates rowNum.
-	 * 
+	 *
 	 * Leaves raw result in rowb
-	 * 
+	 *
 	 * Returns bytes actually read (not including the filter byte)
 	 */
 	private int readRowRaw(final int nrow) {
@@ -933,7 +933,7 @@ public class PngReader {
 	 * scanline will be sample. This implies more processing and memory, but
 	 * it's the most efficient option if you intend to read individual pixels. <br>
 	 * This option should only be set before start reading.
-	 * 
+	 *
 	 * @param unPackedMode
 	 */
 	public void setUnpackedMode(boolean unPackedMode) {
@@ -951,7 +951,7 @@ public class PngReader {
 	 * Tries to reuse the allocated buffers from other already used PngReader
 	 * object. This will have no effect if the buffers are smaller than necessary.
 	 * It also reuses the inflater.
-	 * 
+	 *
 	 * @param other A PngReader that has already finished reading pixels. Can be null.
 	 */
 	public void reuseBuffersFrom(PngReader other) {
@@ -977,7 +977,7 @@ public class PngReader {
 	/**
 	 * Just for testing. TO be called after ending reading, only if
 	 * initCrctest() was called before start
-	 * 
+	 *
 	 * @return CRC of the raw pixels values
 	 */
 	long getCrctestVal() {
@@ -994,6 +994,7 @@ public class PngReader {
 	/**
 	 * Basic info, for debugging.
 	 */
+	@Override
 	public String toString() { // basic info
 		return "filename=" + filename + " " + imgInfo.toString();
 	}

@@ -49,6 +49,8 @@ import jogamp.nativewindow.jawt.JAWTUtil;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
@@ -68,6 +70,7 @@ import com.jogamp.opengl.test.junit.util.*;
  * </ol>
  * </p>
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestNewtKeyEventOrderAWT extends UITestCase {
     static int width, height;
     static long durationPerTest = 100;
@@ -187,7 +190,7 @@ public class TestNewtKeyEventOrderAWT extends UITestCase {
         robot.delay(250);
         // dumpKeyEvents(keyAdapter.getQueued());
         
-        NEWTKeyUtil.validateKeyEventOrder(keyAdapter.getQueued());
+        NEWTKeyUtil.validateKeyEventOrder(keyAdapter.copyQueue());
         
         final int expTotal = 6*loops; // all typed events
         NEWTKeyUtil.validateKeyAdapterStats(keyAdapter, 

@@ -36,9 +36,9 @@ package jogamp.opengl.glu.nurbs;
 
 /**
  * Knot vector used in curve specification
- * 
+ *
  * @author Tomas Hrasky
- * 
+ *
  */
 public class Knotvector {
 
@@ -75,7 +75,7 @@ public class Knotvector {
 
   /**
    * Makes new knotvector
-   * 
+   *
    * @param nknots
    *            number of knots
    * @param stride
@@ -92,7 +92,7 @@ public class Knotvector {
 
   /**
    * Initializes knotvector
-   * 
+   *
    * @param nknots
    *            number of knots
    * @param stride
@@ -116,7 +116,7 @@ public class Knotvector {
 
   /**
    * Validates knot vector parameters
-   * 
+   *
    * @return knot vector validity
    */
   public int validate() {
@@ -154,7 +154,7 @@ public class Knotvector {
 
   /**
    * Show specified message
-   * 
+   *
    * @param msg
    *            message to be shown
    */
@@ -166,7 +166,7 @@ public class Knotvector {
 
   /**
    * Compares two knots for equality
-   * 
+   *
    * @param a
    *            first knot
    * @param b

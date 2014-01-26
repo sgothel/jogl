@@ -53,14 +53,15 @@ import javax.media.nativewindow.NativeSurface;
 public interface GLDrawable {
   /**
    * Creates a new context for drawing to this drawable that will
-   * optionally share display lists and other server-side OpenGL
-   * objects with the specified GLContext. <P>
-   *
+   * optionally share buffer objects, textures and other server-side OpenGL
+   * objects with the specified GLContext.
+   * <p>
    * The GLContext <code>share</code> need not be associated with this
    * GLDrawable and may be null if sharing of display lists and other
    * objects is not desired. See the note in the overview
    * documentation on
-   * <a href="../../../overview-summary.html#SHARING">context sharing</a>.
+   * <a href="../../../spec-overview.html#SHARING">context sharing</a>.
+   * </p>
    */
   public GLContext createContext(GLContext shareWith);
 
@@ -73,13 +74,13 @@ public interface GLDrawable {
    * </p>
    * <p>
    * End users do not need to call this method; it is not necessary to
-   * call <code>setRealized</code> on a {@link GLAutoDrawable} 
+   * call <code>setRealized</code> on a {@link GLAutoDrawable}
    * as these perform the appropriate calls on their underlying GLDrawables internally.
    * </p>
    * <p>
    * Developers implementing new OpenGL components for various window
    * toolkits need to call this method against GLDrawables obtained
-   * from the GLDrawableFactory via the 
+   * from the GLDrawableFactory via the
    * {@link GLDrawableFactory#createGLDrawable(NativeSurface)} method.
    * It must typically be
    * called with an argument of <code>true</code> when the component
@@ -89,7 +90,7 @@ public interface GLDrawable {
    * the <code>addNotify</code> method and with an argument of
    * <code>false</code> in the <code>removeNotify</code> method.
    * </p>
-   * <p>   
+   * <p>
    * <code>GLDrawable</code> implementations should handle multiple
    * cycles of <code>setRealized(true)</code> /
    * <code>setRealized(false)</code> calls. Most, if not all, Java
@@ -104,7 +105,7 @@ public interface GLDrawable {
    * associated resources as the component becomes realized and
    * unrealized, respectively.
    * </p>
-   * <p>   
+   * <p>
    * With an argument of <code>true</code>,
    * the minimum implementation shall call
    * {@link NativeSurface#lockSurface() NativeSurface's lockSurface()} and if successful:
@@ -117,7 +118,7 @@ public interface GLDrawable {
    * ensures resolving the window/surface handles, and the drawable's {@link GLCapabilities}
    * might have changed.
    * </p>
-   * <p>   
+   * <p>
    * Calling this method has no other effects. For example, if
    * <code>removeNotify</code> is called on a Canvas implementation
    * for which a GLDrawable has been created, it is also necessary to
@@ -130,7 +131,7 @@ public interface GLDrawable {
    */
   public void setRealized(boolean realized);
 
-  /** 
+  /**
    * Returns <code>true</code> if this drawable is realized, otherwise <code>true</code>.
    * <p>
    * A drawable can be realized and unrealized via {@link #setRealized(boolean)}.
@@ -146,19 +147,19 @@ public interface GLDrawable {
   public int getHeight();
 
   /**
-   * Returns <code>true</code> if the drawable is rendered in 
+   * Returns <code>true</code> if the drawable is rendered in
    * OpenGL's coordinate system, <i>origin at bottom left</i>.
    * Otherwise returns <code>false</code>, i.e. <i>origin at top left</i>.
    * <p>
    * Default impl. is <code>true</code>, i.e. OpenGL coordinate system.
-   * </p> 
+   * </p>
    * <p>
    * Currently only MS-Windows bitmap offscreen drawable uses a non OpenGL orientation and hence returns <code>false</code>.<br/>
    * This removes the need of a vertical flip when used in AWT or Windows applications.
    * </p>
    */
   public boolean isGLOriented();
-  
+
   /** Swaps the front and back buffers of this drawable. For {@link
       GLAutoDrawable} implementations, when automatic buffer swapping
       is enabled (as is the default), this method is called
@@ -191,18 +192,18 @@ public interface GLDrawable {
   public NativeSurface getNativeSurface();
 
   /**
-   * Returns the GL drawable handle, 
+   * Returns the GL drawable handle,
    * guaranteed to be valid after {@link #setRealized(boolean) realization}
    * <i>and</i> while it's {@link NativeSurface surface} is being {@link NativeSurface#lockSurface() locked}.
    * <p>
-   * It is usually identical to the underlying windowing toolkit {@link NativeSurface surface}'s 
+   * It is usually identical to the underlying windowing toolkit {@link NativeSurface surface}'s
    * {@link javax.media.nativewindow.NativeSurface#getSurfaceHandle() handle}
    * or an intermediate layer to suite GL, e.g. an EGL surface.
    * </p>
    * <p>
    * On EGL it is represented by the EGLSurface.<br>
    * On X11/GLX it is represented by either the Window XID, GLXPixmap, or GLXPbuffer.<br>
-   * On Windows it is represented by the HDC, which may change with each {@link #lockSurface()}.<br>
+   * On Windows it is represented by the HDC, which may change with each {@link NativeSurface#lockSurface()}.<br>
    * </p>
    * @see #setRealized(boolean)
    * @see NativeSurface#lockSurface()

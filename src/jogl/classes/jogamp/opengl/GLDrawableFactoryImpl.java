@@ -49,6 +49,7 @@ import javax.media.nativewindow.OffscreenLayerSurface;
 import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.MutableSurface;
 import javax.media.nativewindow.UpstreamSurfaceHook;
+import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
@@ -64,6 +65,7 @@ import javax.media.opengl.GLProfile;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 import com.jogamp.nativewindow.DelegatedUpstreamSurfaceHookWithSurfaceSize;
 import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSize;
+import com.jogamp.opengl.GLAutoDrawableDelegate;
 import com.jogamp.opengl.GLRendererQuirks;
 
 
@@ -95,14 +97,14 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
           }
       } catch (GLException gle) {
           if(DEBUG) {
-              System.err.println("Catched Exception on thread "+getThreadName()); 
+              System.err.println("Catched Exception on thread "+getThreadName());
               gle.printStackTrace();
           }
       }
       return null;
   }
   protected abstract SharedResourceRunner.Resource getOrCreateSharedResourceImpl(AbstractGraphicsDevice device);
-  
+
   /**
    * Returns the shared context mapped to the <code>device</code> {@link AbstractGraphicsDevice#getConnection()},
    * either a pre-existing or newly created, or <code>null</code> if creation failed or <b>not supported</b>.<br>
@@ -162,7 +164,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   // Dispatching GLDrawable construction in respect to the NativeSurface Capabilities
   //
   @Override
-  public GLDrawable createGLDrawable(NativeSurface target) {
+  public final GLDrawable createGLDrawable(NativeSurface target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
@@ -176,7 +178,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         final OffscreenLayerSurface ols = NativeWindowFactory.getOffscreenLayerSurface(target, true);
         if(null != ols) {
             final GLCapabilitiesImmutable chosenCapsMod = GLGraphicsConfigurationUtil.fixOffscreenGLCapabilities(chosenCaps, this, adevice);
-            
+
             // layered surface -> Offscreen/[FBO|PBuffer]
             if( !chosenCapsMod.isFBO() && !chosenCapsMod.isPBuffer() ) {
                 throw new GLException("Neither FBO nor Pbuffer is available for "+chosenCapsMod+", "+target);
@@ -193,10 +195,10 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
             }
             if( ! ( target instanceof MutableSurface ) ) {
                 throw new IllegalArgumentException("Passed NativeSurface must implement SurfaceChangeable for offscreen layered surface: "+target);
-            }            
+            }
             if( chosenCapsMod.isFBO() ) {
                 result = createFBODrawableImpl(target, chosenCapsMod, 0);
-            } else {            
+            } else {
                 result = createOffscreenDrawableImpl(target);
             }
         } else if(chosenCaps.isOnscreen()) {
@@ -217,7 +219,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
                 throw new IllegalArgumentException("Passed NativeSurface must implement MutableSurface for offscreen: "+target);
             }
             if( chosenCaps.isFBO() && isFBOAvailable ) {
-                // need to hook-up a native dummy surface since source may not have & use minimum GLCapabilities for it w/ same profile 
+                // need to hook-up a native dummy surface since source may not have & use minimum GLCapabilities for it w/ same profile
                 final ProxySurface dummySurface = createDummySurfaceImpl(adevice, false, new GLCapabilities(chosenCaps.getGLProfile()), (GLCapabilitiesImmutable)config.getRequestedCapabilities(), null, 64, 64);
                 dummySurface.setUpstreamSurfaceHook(new DelegatedUpstreamSurfaceHookWithSurfaceSize(dummySurface.getUpstreamSurfaceHook(), target));
                 result = createFBODrawableImpl(dummySurface, chosenCaps, 0);
@@ -245,12 +247,12 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   //
   // PBuffer Offscreen GLAutoDrawable construction
   //
-  
+
   @Override
   public abstract boolean canCreateGLPbuffer(AbstractGraphicsDevice device, GLProfile glp);
 
   @Override
-  public GLPbuffer createGLPbuffer(AbstractGraphicsDevice deviceReq,
+  public final GLPbuffer createGLPbuffer(AbstractGraphicsDevice deviceReq,
                                    GLCapabilitiesImmutable capsRequested,
                                    GLCapabilitiesChooser chooser,
                                    int width,
@@ -268,16 +270,10 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     }
 
     final GLCapabilitiesImmutable capsChosen = GLGraphicsConfigurationUtil.fixGLPBufferGLCapabilities(capsRequested);
-    GLDrawableImpl drawable = null;
-    device.lock();
-    try {
-        drawable = createOffscreenDrawableImpl( createMutableSurfaceImpl(device, true, capsChosen, capsRequested, chooser, 
-                                                                     new UpstreamSurfaceHookMutableSize(width, height) ) );
-        if(null != drawable) {
-            drawable.setRealized(true);
-        }
-    } finally {
-        device.unlock();
+    final GLDrawableImpl drawable = createOffscreenDrawableImpl( createMutableSurfaceImpl(device, true, capsChosen, capsRequested, chooser,
+                                                                 new UpstreamSurfaceHookMutableSize(width, height) ) );
+    if(null != drawable) {
+        drawable.setRealized(true);
     }
 
     return new GLPbufferImpl( drawable, (GLContextImpl) drawable.createContext(shareWith) );
@@ -288,16 +284,17 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   // Offscreen GLDrawable construction
   //
 
+  @Override
   public final boolean canCreateFBO(AbstractGraphicsDevice deviceReq, GLProfile glp) {
     AbstractGraphicsDevice device = getOrCreateSharedDevice(deviceReq);
     if(null == device) {
         throw new GLException("No shared device for requested: "+deviceReq);
     }
-    return GLContext.isFBOAvailable(device, glp);      
+    return GLContext.isFBOAvailable(device, glp);
   }
-  
+
   @Override
-  public GLOffscreenAutoDrawable createOffscreenAutoDrawable(AbstractGraphicsDevice deviceReq,
+  public final GLOffscreenAutoDrawable createOffscreenAutoDrawable(AbstractGraphicsDevice deviceReq,
                                                              GLCapabilitiesImmutable capsRequested,
                                                              GLCapabilitiesChooser chooser,
                                                              int width, int height,
@@ -310,9 +307,30 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     }
     return new GLOffscreenAutoDrawableImpl( drawable, context, null, null);
   }
-  
+
   @Override
-  public GLDrawable createOffscreenDrawable(AbstractGraphicsDevice deviceReq,
+  public final GLOffscreenAutoDrawable createOffscreenAutoDrawable(AbstractGraphicsDevice deviceReq,
+                                                             GLCapabilitiesImmutable capsRequested,
+                                                             GLCapabilitiesChooser chooser,
+                                                             int width, int height) {
+    final GLDrawable drawable = createOffscreenDrawable( deviceReq, capsRequested, chooser, width, height );
+    drawable.setRealized(true);
+    if(drawable instanceof GLFBODrawableImpl) {
+        return new GLOffscreenAutoDrawableImpl.FBOImpl( (GLFBODrawableImpl)drawable, null, null, null );
+    }
+    return new GLOffscreenAutoDrawableImpl( drawable, null, null, null);
+  }
+
+  @Override
+  public final GLAutoDrawable createDummyAutoDrawable(AbstractGraphicsDevice deviceReq, boolean createNewDevice, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser) {
+      final GLDrawable drawable = createDummyDrawable(deviceReq, createNewDevice, capsRequested, chooser);
+      drawable.setRealized(true);
+      final GLAutoDrawable sharedDrawable = new GLAutoDrawableDelegate(drawable, null, null, true /*ownDevice*/, null) { };
+      return sharedDrawable;
+  }
+
+  @Override
+  public final GLDrawable createOffscreenDrawable(AbstractGraphicsDevice deviceReq,
                                             GLCapabilitiesImmutable capsRequested,
                                             GLCapabilitiesChooser chooser,
                                             int width, int height) {
@@ -323,31 +341,45 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     if(null == device) {
         throw new GLException("No shared device for requested: "+deviceReq);
     }
-    
+
     final GLCapabilitiesImmutable capsChosen = GLGraphicsConfigurationUtil.fixOffscreenGLCapabilities(capsRequested, this, device);
 
-    device.lock();
+    if( capsChosen.isFBO() ) {
+        // Use minimum GLCapabilities for the dummy surface w/ same profile
+        final ProxySurface dummySurface = createDummySurfaceImpl(device, true, new GLCapabilities(capsChosen.getGLProfile()), capsRequested, null, width, height);
+        final GLDrawableImpl dummyDrawable = createOnscreenDrawableImpl(dummySurface);
+        return new GLFBODrawableImpl.ResizeableImpl(this, dummyDrawable, dummySurface, capsChosen, 0);
+    }
+    return createOffscreenDrawableImpl( createMutableSurfaceImpl(device, true, capsChosen, capsRequested, chooser,
+                                                                 new UpstreamSurfaceHookMutableSize(width, height) ) );
+  }
+
+  @Override
+  public final GLDrawable createDummyDrawable(AbstractGraphicsDevice deviceReq, boolean createNewDevice, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser) {
+    final AbstractGraphicsDevice device = createNewDevice ? getOrCreateSharedDevice(deviceReq) : deviceReq;
+    if(null == device) {
+        throw new GLException("No shared device for requested: "+deviceReq+", createNewDevice "+createNewDevice);
+    }
+    if( !createNewDevice ) {
+        device.lock();
+    }
     try {
-        if( capsChosen.isFBO() ) {
-            // Use minimum GLCapabilities for the dummy surface w/ same profile 
-            final ProxySurface dummySurface = createDummySurfaceImpl(device, true, new GLCapabilities(capsChosen.getGLProfile()), capsRequested, null, width, height);
-            final GLDrawableImpl dummyDrawable = createOnscreenDrawableImpl(dummySurface);
-            return new GLFBODrawableImpl.ResizeableImpl(this, dummyDrawable, dummySurface, capsChosen, 0);
-        }    
-        return createOffscreenDrawableImpl( createMutableSurfaceImpl(device, true, capsChosen, capsRequested, chooser, 
-                                                                     new UpstreamSurfaceHookMutableSize(width, height) ) );
+        final ProxySurface dummySurface = createDummySurfaceImpl(device, createNewDevice, capsRequested, capsRequested, chooser, 64, 64);
+        return createOnscreenDrawableImpl(dummySurface);
     } finally {
-        device.unlock();
+        if( !createNewDevice ) {
+            device.unlock();
+        }
     }
   }
 
-  /** Creates a platform independent unrealized FBO offscreen GLDrawable */ 
-  protected GLFBODrawable createFBODrawableImpl(NativeSurface dummySurface, GLCapabilitiesImmutable fboCaps, int textureUnit) {
+  /** Creates a platform independent unrealized FBO offscreen GLDrawable */
+  protected final GLFBODrawable createFBODrawableImpl(NativeSurface dummySurface, GLCapabilitiesImmutable fboCaps, int textureUnit) {
     final GLDrawableImpl dummyDrawable = createOnscreenDrawableImpl(dummySurface);
     return new GLFBODrawableImpl(this, dummyDrawable, dummySurface, fboCaps, textureUnit);
   }
-  
-  /** Creates a platform dependent unrealized offscreen pbuffer/pixmap GLDrawable instance */  
+
+  /** Creates a platform dependent unrealized offscreen pbuffer/pixmap GLDrawable instance */
   protected abstract GLDrawableImpl createOffscreenDrawableImpl(NativeSurface target) ;
 
   /**
@@ -359,15 +391,15 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * Lifecycle (destruction) of the TBD surface handle shall be handled by the caller.
    * </p>
    * @param device a valid platform dependent target device.
-   * @param createNewDevice if <code>true</code> a new device instance is created using <code>device</code> details,
+   * @param createNewDevice if <code>true</code> a new independent device instance is created using <code>device</code> details,
    *                        otherwise <code>device</code> instance is used as-is.
    * @param capsChosen
    * @param capsRequested
    * @param chooser the custom chooser, may be null for default
-   * @param upstreamHook surface size information and optional control of the surface's lifecycle 
+   * @param upstreamHook surface size information and optional control of the surface's lifecycle
    * @return the created {@link MutableSurface} instance w/o defined surface handle
    */
-  protected abstract ProxySurface createMutableSurfaceImpl(AbstractGraphicsDevice device, boolean createNewDevice, 
+  protected abstract ProxySurface createMutableSurfaceImpl(AbstractGraphicsDevice device, boolean createNewDevice,
                                                            GLCapabilitiesImmutable capsChosen,
                                                            GLCapabilitiesImmutable capsRequested,
                                                            GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstreamHook);
@@ -377,36 +409,36 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * it maybe on- or offscreen.
    * <p>
    * It is used to allow the creation of a {@link GLDrawable} and {@link GLContext} to query information.
-   * It also allows creation of framebuffer objects which are used for rendering.
+   * It also allows creation of framebuffer objects which are used for rendering or using a shared GLContext w/o actually rendering to a usable framebuffer.
+   * </p>
+   * <p>
+   * Creates a new independent device instance using <code>deviceReq</code> details.
    * </p>
    * @param deviceReq which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
    * @param requestedCaps
    * @param chooser the custom chooser, may be null for default
-   * @param width the initial width
-   * @param height the initial height
+   * @param width the initial width as returned by {@link NativeSurface#getWidth()}, not the actual dummy surface width.
+   *        The latter is platform specific and small
+   * @param height the initial height as returned by {@link NativeSurface#getHeight()}, not the actual dummy surface height,
+   *        The latter is platform specific and small
    *
    * @return the created {@link ProxySurface} instance w/o defined surface handle but platform specific {@link UpstreamSurfaceHook}.
    */
-  public ProxySurface createDummySurface(AbstractGraphicsDevice deviceReq, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser,
+  public final ProxySurface createDummySurface(AbstractGraphicsDevice deviceReq, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser,
                                           int width, int height) {
     final AbstractGraphicsDevice device = getOrCreateSharedDevice(deviceReq);
     if(null == device) {
         throw new GLException("No shared device for requested: "+deviceReq);
     }
-    device.lock();
-    try {
-        return createDummySurfaceImpl(device, true, requestedCaps, requestedCaps, chooser, width, height);
-    } finally {
-        device.unlock();
-    }
+    return createDummySurfaceImpl(device, true, requestedCaps, requestedCaps, chooser, width, height);
   }
-  
+
   /**
    * A dummy surface is not visible on screen and will not be used to render directly to,
    * it maybe on- or offscreen.
    * <p>
    * It is used to allow the creation of a {@link GLDrawable} and {@link GLContext} to query information.
-   * It also allows creation of framebuffer objects which are used for rendering.
+   * It also allows creation of framebuffer objects which are used for rendering or using a shared GLContext w/o actually rendering to a usable framebuffer.
    * </p>
    * @param device a valid platform dependent target device.
    * @param createNewDevice if <code>true</code> a new device instance is created using <code>device</code> details,
@@ -414,22 +446,22 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * @param chosenCaps
    * @param requestedCaps
    * @param chooser the custom chooser, may be null for default
-   * @param width the initial width as returned by {@link NativeSurface#getWidth()}, not the actual dummy surface width. 
+   * @param width the initial width as returned by {@link NativeSurface#getWidth()}, not the actual dummy surface width.
    *        The latter is platform specific and small
    * @param height the initial height as returned by {@link NativeSurface#getHeight()}, not the actual dummy surface height,
    *        The latter is platform specific and small
    * @return the created {@link ProxySurface} instance w/o defined surface handle but platform specific {@link UpstreamSurfaceHook}.
    */
-  public abstract ProxySurface createDummySurfaceImpl(AbstractGraphicsDevice device, boolean createNewDevice, 
+  public abstract ProxySurface createDummySurfaceImpl(AbstractGraphicsDevice device, boolean createNewDevice,
                                                       GLCapabilitiesImmutable chosenCaps, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height);
 
   //---------------------------------------------------------------------------
   //
   // ProxySurface (Wrapped pre-existing native surface) construction
   //
-  
+
   @Override
-  public ProxySurface createProxySurface(AbstractGraphicsDevice deviceReq, int screenIdx, long windowHandle, 
+  public ProxySurface createProxySurface(AbstractGraphicsDevice deviceReq, int screenIdx, long windowHandle,
                                          GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstream) {
     final AbstractGraphicsDevice device = getOrCreateSharedDevice(deviceReq);
     if(null == device) {
@@ -454,7 +486,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * </p>
  * @param upstream TODO
    */
-  protected abstract ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice deviceReq, int screenIdx, long windowHandle, 
+  protected abstract ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice deviceReq, int screenIdx, long windowHandle,
                                                          GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstream);
 
   //---------------------------------------------------------------------------

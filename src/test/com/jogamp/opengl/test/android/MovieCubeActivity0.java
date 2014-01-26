@@ -28,6 +28,9 @@
 package com.jogamp.opengl.test.android;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLConnection;
 import java.util.Arrays;
 
@@ -44,6 +47,10 @@ import com.jogamp.newt.opengl.GLWindow;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.av.GLMediaPlayer;
+import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
+import com.jogamp.opengl.util.av.GLMediaPlayer.StreamException;
+import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -54,7 +61,7 @@ public class MovieCubeActivity0 extends NewtBaseActivity {
    MouseAdapter showKeyboardMouseListener = new MouseAdapter() {
         @Override
         public void mousePressed(MouseEvent e) {
-           if( e.getPointerCount() == 4 && e.getPressure(true) > 0.7f ) {
+           if( e.getPointerCount() == 4 && e.getPressure(0, true) > 0.7f ) {
                ((com.jogamp.newt.Window) e.getSource()).setKeyboardVisible(true);
            }
         }
@@ -64,12 +71,12 @@ public class MovieCubeActivity0 extends NewtBaseActivity {
    public void onCreate(Bundle savedInstanceState) {
        super.onCreate(savedInstanceState);
        
-       String[] urls0 = new String[] {                    
+       String[] streamLocs = new String[] {                    
                System.getProperty("jnlp.media0_url2"),
                System.getProperty("jnlp.media0_url1"),
                System.getProperty("jnlp.media0_url0") };       
-       final URLConnection urlConnection0 = getResource(urls0, 0);
-       if(null == urlConnection0) { throw new RuntimeException("no media reachable: "+Arrays.asList(urls0)); }
+       final URI streamLoc = getURI(streamLocs, 0, false);
+       if(null == streamLoc) { throw new RuntimeException("no media reachable: "+Arrays.asList(streamLocs)); }
        
        // also initializes JOGL
        final GLCapabilities capsMain = new GLCapabilities(GLProfile.getGL2ES2());
@@ -81,21 +88,42 @@ public class MovieCubeActivity0 extends NewtBaseActivity {
        scrn.addReference();
               
        try {
-           final Animator animator = new Animator();
+           final Animator anim = new Animator();
            
            // Main           
-           final MovieCube demoMain = new MovieCube(urlConnection0, -2.3f, 0f, 0f);
            final GLWindow glWindowMain = GLWindow.create(scrn, capsMain);
            glWindowMain.setFullscreen(true);
            setContentView(getWindow(), glWindowMain);
-           glWindowMain.addMouseListener(showKeyboardMouseListener);
-           glWindowMain.addGLEventListener(demoMain);
-           animator.add(glWindowMain);
+           anim.add(glWindowMain);
            glWindowMain.setVisible(true);
+           glWindowMain.addMouseListener(showKeyboardMouseListener);
            
-           // animator.setUpdateFPSFrames(60, System.err);
-           animator.setUpdateFPSFrames(-1, null);
-           animator.resetFPSCounter();
+           final MovieCube demoMain = new MovieCube(-2.3f, 0f, 0f);
+           final GLMediaPlayer mPlayer = demoMain.getGLMediaPlayer();
+           mPlayer.addEventListener(new GLMediaEventListener() {
+                @Override
+                public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) {
+                }
+    
+                @Override
+                public void attributesChanged(final GLMediaPlayer mp, int event_mask, long when) {
+                    System.err.println("MovieCubeActivity0 AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
+                    System.err.println("MovieCubeActivity0 State: "+mp);
+                    if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
+                        glWindowMain.addGLEventListener(demoMain);
+                        anim.setUpdateFPSFrames(60, System.err);
+                        anim.resetFPSCounter();
+                    }
+                    if( 0 != ( ( GLMediaEventListener.EVENT_CHANGE_ERR | GLMediaEventListener.EVENT_CHANGE_EOS ) & event_mask ) ) {
+                        final StreamException se = mPlayer.getStreamException();
+                        if( null != se ) {
+                            se.printStackTrace();                        
+                        }
+                        getActivity().finish();
+                    }
+                }            
+            });        
+           demoMain.initStream(streamLoc, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, 0);
        } catch (IOException e) {
            e.printStackTrace();
        }
@@ -105,14 +133,32 @@ public class MovieCubeActivity0 extends NewtBaseActivity {
        Log.d(TAG, "onCreate - X");
    }
    
-   static URLConnection getResource(String path[], int off) {
-       URLConnection uc = null;
-       for(int i=off; null==uc && i<path.length; i++) {
+   static URI getURI(String path[], int off, boolean checkAvail) {
+       URI uri = null;
+       for(int i=off; null==uri && i<path.length; i++) {
            if(null != path[i] && path[i].length()>0) {
-               uc = IOUtil.getResource(path[i], null);
-               Log.d(TAG, "Stream: <"+path[i]+">: "+(null!=uc));
+               if( checkAvail ) {
+                   final URLConnection uc = IOUtil.getResource(path[i], null);
+                   if( null != uc ) {
+                       try {
+                           uri = uc.getURL().toURI();
+                       } catch (URISyntaxException e) {
+                           uri = null;
+                       }
+                       if( uc instanceof HttpURLConnection ) {
+                           ((HttpURLConnection)uc).disconnect();
+                       }
+                   }
+               } else {
+                   try {
+                       uri = new URI(path[i]);
+                   } catch (URISyntaxException e) {
+                       uri = null;
+                   }
+               }
+               Log.d(TAG, "Stream: <"+path[i]+">: "+(null!=uri));
            }
        }
-       return uc;       
+       return uri;
    }
 }

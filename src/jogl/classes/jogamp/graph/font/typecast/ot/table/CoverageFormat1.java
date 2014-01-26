@@ -72,10 +72,12 @@ public class CoverageFormat1 extends Coverage {
         }
     }
 
+    @Override
     public int getFormat() {
         return 1;
     }
 
+    @Override
     public int findGlyph(int glyphId) {
         for (int i = 0; i < _glyphCount; i++) {
             if (_glyphIds[i] == glyphId) {

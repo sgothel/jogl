@@ -52,12 +52,15 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  * Demonstrates TextureData w/ AWT usage,
  * i.e. reading out an animated GL framebuffer and displaying it 
  * as an BufferedImage. 
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestTexture02AWT extends UITestCase {
     static long durationPerTest = 500;
     static GLProfile glp;

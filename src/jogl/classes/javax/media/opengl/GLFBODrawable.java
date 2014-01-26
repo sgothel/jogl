@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -33,17 +33,17 @@ import javax.media.nativewindow.NativeWindowException;
 import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.FBObject.TextureAttachment;
 
-/** 
+/**
  * Platform-independent {@link GLDrawable} specialization,
  * exposing {@link FBObject} functionality.
  *
  * <p>
- * A {@link GLFBODrawable} is uninitialized until a {@link GLContext} is bound 
+ * A {@link GLFBODrawable} is uninitialized until a {@link GLContext} is bound
  * and made current the first time, hence only then it's capabilities <i>fully</i> reflect expectations,
  * i.e. color, depth, stencil and MSAA bits will be <i>valid</i> only after the first {@link GLContext#makeCurrent() makeCurrent()} call.
  * On-/offscreen bits are <i>valid</i> after {@link #setRealized(boolean) setRealized(true)}.
  * </p>
- * 
+ *
  * <p>
  * MSAA is used if {@link GLCapabilitiesImmutable#getNumSamples() requested}.
  * </p>
@@ -51,7 +51,7 @@ import com.jogamp.opengl.FBObject.TextureAttachment;
  * Double buffering is used if {@link GLCapabilitiesImmutable#getDoubleBuffered() requested}.
  * </p>
  * <p>
- * In MSAA mode, it always uses the implicit 2nd {@link FBObject framebuffer} {@link FBObject#getSamplingSinkFBO() sink}. 
+ * In MSAA mode, it always uses the implicit 2nd {@link FBObject framebuffer} {@link FBObject#getSamplingSinkFBO() sink}.
  * Hence double buffering is always the case w/ MSAA.
  * </p>
  * <p>
@@ -61,60 +61,60 @@ import com.jogamp.opengl.FBObject.TextureAttachment;
  * This method also allows usage of both textures seperately.
  * </p>
  * <p>
- * It would be possible to implement double buffering simply using 
- * {@link FBObject.TextureAttachment texture attachment}s with one {@link FBObject framebuffer}.
+ * It would be possible to implement double buffering simply using
+ * {@link TextureAttachment}s with one {@link FBObject framebuffer}.
  * This would require mode selection and hence complicate the API. Besides, it would
  * not support differentiation of read and write framebuffer and hence not be spec compliant.
  * </p>
  * <p>
- * Actual swapping of the {@link FBObject.TextureAttachment texture}s or {@link FBObject framebuffer}
- * is performed either in the {@link #contextMadeCurrent(boolean) context current hook}
- * or when {@link #swapBuffersImpl(boolean) swapping buffers}, whatever comes first.<br/>
+ * Actual swapping of the {@link TextureAttachment texture}s and/or {@link FBObject framebuffer}
+ * is performed either in the {@link jogamp.opengl.GLContextImpl#contextMadeCurrent(boolean) context current hook}
+ * or when {@link jogamp.opengl.GLDrawableImpl#swapBuffersImpl(boolean) swapping buffers}, whatever comes first.
  * </p>
- */ 
+ */
 public interface GLFBODrawable extends GLDrawable {
     // public enum DoubleBufferMode { NONE, TEXTURE, FBO }; // TODO: Add or remove TEXTURE (only) DoubleBufferMode support
-    
+
     /**
      * @return <code>true</code> if initialized, i.e. a {@link GLContext} is bound and made current once, otherwise <code>false</code>.
      */
     public boolean isInitialized();
-    
+
     /**
      * Notify this instance about upstream size change
      * to reconfigure the {@link FBObject}.
-     * @param gl GL context object bound to this drawable, will be made current during operation. 
-     *           A prev. current context will be make current after operation. 
+     * @param gl GL context object bound to this drawable, will be made current during operation.
+     *           A prev. current context will be make current after operation.
      * @throws GLException if resize operation failed
      */
     void resetSize(GL gl) throws GLException;
-    
+
     /**
      * @return the used texture unit
      */
     int getTextureUnit();
-    
+
     /**
-     * 
+     *
      * @param unit the texture unit to be used
      */
     void setTextureUnit(int unit);
-    
+
     /**
      * Set the number of sample buffers if using MSAA
-     * 
-     * @param gl GL context object bound to this drawable, will be made current during operation. 
-     *           A prev. current context will be make current after operation. 
+     *
+     * @param gl GL context object bound to this drawable, will be made current during operation.
+     *           A prev. current context will be make current after operation.
      * @param newSamples new sample size
      * @throws GLException if resetting the FBO failed
      */
     void setNumSamples(GL gl, int newSamples) throws GLException;
-    
+
     /**
      * @return the number of sample buffers if using MSAA, otherwise 0
      */
     int getNumSamples();
-        
+
     /**
      * Sets the number of buffers (FBO) being used if using {@link GLCapabilities#getDoubleBuffered() double buffering}.
      * <p>
@@ -123,22 +123,22 @@ public interface GLFBODrawable extends GLDrawable {
      * <p>
      * Must be called before {@link #isInitialized() initialization}, otherwise an exception is thrown.
      * </p>
-     * @return the new number of buffers (FBO) used, maybe different than the requested <code>bufferCount</code> (see above) 
+     * @return the new number of buffers (FBO) used, maybe different than the requested <code>bufferCount</code> (see above)
      * @throws GLException if already initialized, see {@link #isInitialized()}.
      */
     int setNumBuffers(int bufferCount) throws GLException;
-    
-    /** 
+
+    /**
      * @return the number of buffers (FBO) being used. 1 if not using {@link GLCapabilities#getDoubleBuffered() double buffering},
-     * otherwise &ge; 2, depending on {@link #setNumBuffers(int)}. 
+     * otherwise &ge; 2, depending on {@link #setNumBuffers(int)}.
      */
     int getNumBuffers();
-    
+
     /**
-     * @return the used {@link DoubleBufferMode} 
+     * @return the used {@link DoubleBufferMode}
      */
     // DoubleBufferMode getDoubleBufferMode(); // TODO: Add or remove TEXTURE (only) DoubleBufferMode support
-    
+
     /**
      * Sets the {@link DoubleBufferMode}. Must be called before {@link #isInitialized() initialization},
      * otherwise an exception is thrown.
@@ -153,11 +153,11 @@ public interface GLFBODrawable extends GLDrawable {
      * @throws GLException if already initialized, see {@link #isInitialized()}.
      */
     // void setDoubleBufferMode(DoubleBufferMode mode) throws GLException; // TODO: Add or remove TEXTURE (only) DoubleBufferMode support
-    
+
     /**
      * If MSAA is being used and {@link GL#GL_FRONT} is requested,
-     * the internal {@link FBObject} {@link FBObject#getSamplingSinkFBO() sample sink} is being returned. 
-     * 
+     * the internal {@link FBObject} {@link FBObject#getSamplingSinkFBO() sample sink} is being returned.
+     *
      * @param bufferName {@link GL#GL_FRONT} and {@link GL#GL_BACK} are valid buffer names
      * @return the named {@link FBObject}
      * @throws IllegalArgumentException if an illegal buffer name is being used
@@ -167,7 +167,7 @@ public interface GLFBODrawable extends GLDrawable {
     /**
      * Returns the named texture buffer.
      * <p>
-     * If MSAA is being used, only the {@link GL#GL_FRONT} buffer is accessible 
+     * If MSAA is being used, only the {@link GL#GL_FRONT} buffer is accessible
      * and an exception is being thrown if {@link GL#GL_BACK} is being requested.
      * </p>
      * @param bufferName {@link GL#GL_FRONT} and {@link GL#GL_BACK} are valid buffer names
@@ -176,20 +176,20 @@ public interface GLFBODrawable extends GLDrawable {
      */
     FBObject.TextureAttachment getTextureBuffer(int bufferName) throws IllegalArgumentException;
 
-    /** Resizeable {@link GLFBODrawable} specialization */     
+    /** Resizeable {@link GLFBODrawable} specialization */
     public interface Resizeable extends GLFBODrawable {
         /**
          * Resize this drawable.
          * <p>
          * This drawable is being locked during operation.
          * </p>
-         * @param context the {@link GLContext} bound to this drawable, will be made current during operation 
-         *                A prev. current context will be make current after operation. 
+         * @param context the {@link GLContext} bound to this drawable, will be made current during operation
+         *                A prev. current context will be make current after operation.
          * @param newWidth
          * @param newHeight
          * @throws NativeWindowException in case the surface could no be locked
          * @throws GLException in case an error during the resize operation occurred
          */
-        void setSize(GLContext context, int newWidth, int newHeight) throws NativeWindowException, GLException;                
+        void setSize(GLContext context, int newWidth, int newHeight) throws NativeWindowException, GLException;
     }
 }

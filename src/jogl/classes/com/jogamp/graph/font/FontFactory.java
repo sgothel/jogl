@@ -49,13 +49,13 @@ import jogamp.graph.font.UbuntuFontLoader;
 public class FontFactory {
     private static final String FontConstructorPropKey = "jogamp.graph.font.ctor";
     private static final String DefaultFontConstructor = "jogamp.graph.font.typecast.TypecastFontConstructor";
-    
+
     /** Ubuntu is the default font family */
     public static final int UBUNTU = 0;
-    
+
     /** Java fonts are optional */
     public static final int JAVA = 1;
-    
+
     private static final FontConstructor fontConstr;
 
     static {
@@ -63,18 +63,18 @@ public class FontFactory {
          * For example:
          *   "jogamp.graph.font.typecast.TypecastFontFactory" (default)
          *   "jogamp.graph.font.ttf.TTFFontImpl"
-         */        
+         */
         String fontImplName = PropertyAccess.getProperty(FontConstructorPropKey, true);
         if(null == fontImplName) {
             fontImplName = DefaultFontConstructor;
         }
         fontConstr = (FontConstructor) ReflectionUtil.createInstance(fontImplName, FontFactory.class.getClassLoader());
     }
-    
+
     public static final FontSet getDefault() {
         return get(UBUNTU);
     }
-    
+
     public static final FontSet get(int font) {
         switch (font) {
             case JAVA:
@@ -83,15 +83,15 @@ public class FontFactory {
                 return UbuntuFontLoader.get();
         }
     }
-    
+
     public static final Font get(File file) throws IOException {
         return fontConstr.create(file);
     }
 
     public static final Font get(final URLConnection conn) throws IOException {
         return fontConstr.create(conn);
-    }    
-    
+    }
+
     public static boolean isPrintableChar( char c ) {
         if( Character.isWhitespace(c) ) {
             return true;
@@ -101,5 +101,5 @@ public class FontFactory {
         }
         final Character.UnicodeBlock block = Character.UnicodeBlock.of( c );
         return block != null && block != Character.UnicodeBlock.SPECIALS;
-    }    
+    }
 }

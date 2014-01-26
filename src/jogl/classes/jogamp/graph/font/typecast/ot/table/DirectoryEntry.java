@@ -70,7 +70,8 @@ public class DirectoryEntry implements Cloneable {
         _offset = di.readInt();
         _length = di.readInt();
     }
-    
+
+    @Override
     public Object clone() {
         try {
             return super.clone();
@@ -103,7 +104,8 @@ public class DirectoryEntry implements Cloneable {
             .append((char)((_tag)&0xff))
             .toString();
     }
-    
+
+    @Override
     public String toString() {
         return new StringBuilder()
             .append("'").append(getTagAsString())

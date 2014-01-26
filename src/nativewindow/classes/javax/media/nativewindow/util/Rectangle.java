@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package javax.media.nativewindow.util;
 
 import java.util.List;
@@ -46,11 +46,13 @@ public class Rectangle implements Cloneable, RectangleImmutable {
         this.width=width;
         this.height=height;
     }
-    
+
+    @Override
     public Object cloneMutable() {
       return clone();
     }
-  
+
+    @Override
     protected Object clone() {
         try {
             return super.clone();
@@ -67,7 +69,13 @@ public class Rectangle implements Cloneable, RectangleImmutable {
     public final int getWidth() { return width; }
     @Override
     public final int getHeight() { return height; }
-    
+
+    public final void set(int x, int y, int width, int height) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+    }
     public final void setX(int x) { this.x = x; }
     public final void setY(int y) { this.y = y; }
     public final void setWidth(int width) { this.width = width; }
@@ -83,7 +91,7 @@ public class Rectangle implements Cloneable, RectangleImmutable {
         final int y1 = Math.min(y, ry1);
         final int x2 = Math.max(x + width, rx2);
         final int y2 = Math.max(y + height, ry2);
-        return new Rectangle(x1, y1, x2 - x1, y2 - y1);                
+        return new Rectangle(x1, y1, x2 - x1, y2 - y1);
     }
     /**
      * Calculates the union of the given rectangles, stores it in this instance and returns this instance.
@@ -100,13 +108,10 @@ public class Rectangle implements Cloneable, RectangleImmutable {
             y1 = Math.min(y1, vp.getY());
             y2 = Math.max(y2, vp.getY() + vp.getHeight());
         }
-        setX(x1);
-        setY(y1);
-        setWidth(x2 - x1);
-        setHeight(y2 - y1);
+        set(x1, y1, x2 - x1, y2 - y1);
         return this;
     }
-        
+
     @Override
     public final RectangleImmutable intersection(RectangleImmutable r) {
         return intersection(r.getX(), r.getY(), r.getX() + r.getWidth(), r.getY() + r.getHeight());
@@ -141,13 +146,13 @@ public class Rectangle implements Cloneable, RectangleImmutable {
         final float sqT = (float) ( width*height );
         return sqI / sqT;
     }
-    
+
     @Override
     public int compareTo(final RectangleImmutable d) {
         {
             final int sq = width*height;
             final int xsq = d.getWidth()*d.getHeight();
-            
+
             if(sq > xsq) {
                 return 1;
             } else if(sq < xsq) {
@@ -157,7 +162,7 @@ public class Rectangle implements Cloneable, RectangleImmutable {
         {
             final int sq = x*y;
             final int xsq = d.getX()*d.getY();
-            
+
             if(sq > xsq) {
                 return 1;
             } else if(sq < xsq) {
@@ -166,7 +171,7 @@ public class Rectangle implements Cloneable, RectangleImmutable {
         }
         return 0;
     }
-    
+
     @Override
     public boolean equals(Object obj) {
         if(this == obj)  { return true; }
@@ -188,8 +193,9 @@ public class Rectangle implements Cloneable, RectangleImmutable {
         return sum3 * (sum3 + 1)/2 + val2;
     }
 
+    @Override
     public String toString() {
-        return new String("[ "+x+" / "+y+"  "+width+" x "+height+" ]");
+        return "[ "+x+" / "+y+"  "+width+" x "+height+" ]";
     }
 }
 

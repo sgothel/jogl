@@ -98,11 +98,11 @@ static void setJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlon
 }
 
 jobject getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlong javaObjectAtom, Bool showWarning) {
-    Atom actual_type;
-    int actual_format;
+    Atom actual_type = 0;
+    int actual_format = 0;
     int nitems_32 = ( sizeof(uintptr_t) == 8 ) ? 2 : 1 ;
     unsigned char * jogl_java_object_data_pp = NULL;
-    jobject jwindow;
+    jobject jwindow = 0;
 
     {
         unsigned long nitems= 0;
@@ -122,7 +122,9 @@ jobject getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlong ja
         }
 
         if(actual_type!=(Atom)javaObjectAtom || nitems<nitems_32 || NULL==jogl_java_object_data_pp) {
-            XFree(jogl_java_object_data_pp);
+            if( NULL != jogl_java_object_data_pp ) {
+                XFree(jogl_java_object_data_pp);
+            }
             if(True==showWarning) {
                 fprintf(stderr, "Warning: NEWT X11Window: Fetched invalid Atom NEWT_JAVA_OBJECT window property (res %d) nitems %ld, bytes_after %ld, actual_type %ld, NEWT_JAVA_OBJECT %ld, result 0!\n", 
                 res, nitems, bytes_after, (long)actual_type, (long)javaObjectAtom);
@@ -189,8 +191,8 @@ static Status NewtWindows_getWindowPositionRelative2Parent (Display *dpy, Window
     return 0; // Error
 }
 static Status NewtWindows_getFrameExtends(Display *dpy, Window window, int *left, int *right, int *top, int *bottom) {
-    Atom actual_type;
-    int actual_format;
+    Atom actual_type = 0;
+    int actual_format = 0;
     int nitems_32 = 4; // l, r, t, b
     unsigned char * frame_extends_data_pp = NULL;
 
@@ -210,7 +212,9 @@ static Status NewtWindows_getFrameExtends(Display *dpy, Window window, int *left
         }
 
         if(nitems<nitems_32 || NULL==frame_extends_data_pp) {
-            XFree(frame_extends_data_pp);
+            if( NULL != frame_extends_data_pp ) {
+                XFree(frame_extends_data_pp);
+            }
             // DBG_PRINT( "Warning: NEWT X11Window: Fetched invalid Atom _NET_FRAME_EXTENTS window property (res %d) nitems %ld, bytes_after %ld, actual_type %ld, actual_format %d, _NET_FRAME_EXTENTS %ld, result 0!\n", 
             //     res, nitems, bytes_after, (long)actual_type, actual_format, _NET_FRAME_EXTENTS);
             return 0; // Error, but ok - ie window not mapped
@@ -271,17 +275,20 @@ static Bool NewtWindows_hasDecorations (Display *dpy, Window w) {
 
 #ifdef DECOR_USE_MWM
     Atom _MOTIF_WM_HINTS = XInternAtom( dpy, "_MOTIF_WM_HINTS", False );
-    unsigned char *wm_data;
-    Atom wm_type;
-    int wm_format;
-    unsigned long wm_nitems, wm_bytes_after;
+    unsigned char *wm_data = NULL;
+    Atom wm_type = 0;
+    int wm_format = 0;
+    unsigned long wm_nitems = 0, wm_bytes_after = 0;
  
     if( Success == XGetWindowProperty(dpy, w, _MOTIF_WM_HINTS, 0, PROP_MWM_HINTS_ELEMENTS, False, AnyPropertyType, 
                                       &wm_type, &wm_format, &wm_nitems, &wm_bytes_after, &wm_data) ) {
-        if(wm_type != None) {
+        if(wm_type != None && NULL != wm_data && wm_nitems >= PROP_MWM_HINTS_ELEMENTS) {
             // unsigned long mwmhints[PROP_MWM_HINTS_ELEMENTS] = { MWM_HINTS_DECORATIONS, 0, decorated, 0, 0 }; // flags, functions, decorations, input_mode, status
             unsigned long *hints = (unsigned long *) wm_data;
             decor = ( 0 != (hints[0] & MWM_HINTS_DECORATIONS) ) && ( 0 != hints[2] );
+        }
+        if( NULL != wm_data ) {
+            XFree(wm_data);
         }
     }
 #endif
@@ -319,27 +326,30 @@ static int NewtWindows_getSupportedStackingEWMHFlags(Display *dpy, Window w) {
     Atom _NET_WM_ALLOWED_ACTIONS = XInternAtom( dpy, "_NET_WM_ALLOWED_ACTIONS", False );
     Atom _NET_WM_ACTION_FULLSCREEN = XInternAtom( dpy, "_NET_WM_ACTION_FULLSCREEN", False );
     Atom _NET_WM_ACTION_ABOVE = XInternAtom( dpy, "_NET_WM_ACTION_ABOVE", False );
-    Atom * actions;
-    Atom type;
-    unsigned long action_len, remain;
-    int res = 0, form, i;
+    Atom * actions = NULL;
+    Atom type = 0;
+    unsigned long action_len = 0, remain = 0;
+    int res = 0, form = 0, i = 0;
     Status s;
 
     if ( Success == (s = XGetWindowProperty(dpy, w, _NET_WM_ALLOWED_ACTIONS, 0, 1024, False, AnyPropertyType,
                                             &type, &form, &action_len, &remain, (unsigned char**)&actions)) ) {
-        for(i=0; i<action_len; i++) {
-            if(_NET_WM_ACTION_FULLSCREEN == actions[i]) {
-                DBG_PRINT( "**************** X11: FS EWMH CHECK[%d]: _NET_WM_ACTION_FULLSCREEN (*)\n", i);
-                res |= _NET_WM_STATE_FLAG_FULLSCREEN ;
-            } else if(_NET_WM_ACTION_ABOVE == actions[i]) {
-                DBG_PRINT( "**************** X11: FS EWMH CHECK[%d]: _NET_WM_ACTION_ABOVE (*)\n", i);
-                res |= _NET_WM_STATE_FLAG_ABOVE ;
+        if( NULL != actions ) {
+            for(i=0; i<action_len; i++) {
+                if(_NET_WM_ACTION_FULLSCREEN == actions[i]) {
+                    DBG_PRINT( "**************** X11: FS EWMH CHECK[%d]: _NET_WM_ACTION_FULLSCREEN (*)\n", i);
+                    res |= _NET_WM_STATE_FLAG_FULLSCREEN ;
+                } else if(_NET_WM_ACTION_ABOVE == actions[i]) {
+                    DBG_PRINT( "**************** X11: FS EWMH CHECK[%d]: _NET_WM_ACTION_ABOVE (*)\n", i);
+                    res |= _NET_WM_STATE_FLAG_ABOVE ;
+                }
+                else {
+                    char * astr = XGetAtomName(dpy, actions[i]);
+                    DBG_PRINT( "**************** X11: FS EWMH CHECK[%d]: %s (unused)\n", i, astr);
+                    XFree(astr);
+                }
             }
-            else {
-                char * astr = XGetAtomName(dpy, actions[i]);
-                DBG_PRINT( "**************** X11: FS EWMH CHECK[%d]: %s (unused)\n", i, astr);
-                XFree(astr);
-            }
+            XFree(actions);
         }
         DBG_PRINT( "**************** X11: FS EWMH CHECK: 0x%X\n", res);
     } else {
@@ -389,6 +399,9 @@ static Bool NewtWindows_setStackingEWMHFlags (Display *dpy, Window root, Window 
             XSendEvent ( dpy, root, False, mask, &xev );
         }
         // Also change _NET_WM_BYPASS_COMPOSITOR!
+        //   A value of 0 indicates no preference. 
+        //   A value of 1 hints the compositor to disabling compositing of this window. 
+        //   A value of 2 hints the compositor to not disabling compositing of this window
         {
             Atom _NET_WM_BYPASS_COMPOSITOR = XInternAtom( dpy, "_NET_WM_BYPASS_COMPOSITOR", False );
             unsigned long value = enable ? 1 : 0;
@@ -494,6 +507,12 @@ static void NewtWindows_setPosSize(Display *dpy, Window w, jint x, jint y, jint 
     }
 }
 
+static void NewtWindows_setIcon(Display *dpy, Window w, int data_size, const unsigned char * data_ptr) {
+    Atom _NET_WM_ICON = XInternAtom(dpy, "_NET_WM_ICON", False);
+    Atom CARDINAL = XInternAtom(dpy, "CARDINAL", False);
+    XChangeProperty(dpy, w, _NET_WM_ICON, CARDINAL, 32, PropModeReplace, data_ptr, data_size);
+}
+
 /*
  * Class:     jogamp_newt_driver_x11_WindowDriver
  * Method:    CreateWindow
@@ -502,7 +521,8 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWindow0
   (JNIEnv *env, jobject obj, jlong parent, jlong display, jint screen_index, 
                              jint visualID, 
                              jlong javaObjectAtom, jlong windowDeleteAtom, 
-                             jint x, jint y, jint width, jint height, jboolean autoPosition, int flags)
+                             jint x, jint y, jint width, jint height, jboolean autoPosition, int flags,
+                             jint pixelDataSize, jobject pixels, jint pixels_byte_offset, jboolean pixels_is_direct)
 {
     Display * dpy = (Display *)(intptr_t)display;
     Atom wm_delete_atom = (Atom)windowDeleteAtom;
@@ -622,11 +642,26 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWindow0
     {
         XEvent event;
         int left=0, right=0, top=0, bottom=0;
+        const unsigned char * pixelPtr = NULL;
+
+        // NOTE: MUST BE DIRECT BUFFER, since _NET_WM_ICON Atom uses buffer directly!
+        DBG_PRINT("X11: CreateWindow icon: size %d, pixels %p, offset %d, direct %d\n", pixelDataSize, (void*)pixels, pixels_byte_offset, pixels_is_direct);
+        if( 0 < pixelDataSize && NULL != pixels ) {
+            pixelPtr = (const unsigned char *) ( JNI_TRUE == pixels_is_direct ? 
+                                                    (*env)->GetDirectBufferAddress(env, pixels) : 
+                                                    (*env)->GetPrimitiveArrayCritical(env, pixels, NULL) );
+            DBG_PRINT("X11: CreateWindow icon: NIO %p\n", pixelPtr);
+            NewtWindows_setIcon(dpy, window, (int)pixelDataSize, pixelPtr+pixels_byte_offset);
+        }
 
         XMapWindow(dpy, window);
         XIfEvent( dpy, &event, WaitForMapNotify, (XPointer) window ); // wait to get proper insets values
 
         XSync(dpy, False);
+
+        if( JNI_FALSE == pixels_is_direct && NULL != pixelPtr ) {
+            (*env)->ReleasePrimitiveArrayCritical(env, pixels, (void*)pixelPtr, JNI_ABORT);  
+        }
 
         // send insets before visibility, allowing java code a proper sync point!
         NewtWindows_updateInsets(env, jwindow, dpy, window, &left, &right, &top, &bottom);
@@ -704,9 +739,19 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CloseWindow0
     DBG_PRINT( "X11: CloseWindow END\n");
 }
 
-#if 0
+// #define REPARENT_WAIT_FOR_REPARENT_NOTIFY 1
+
+#ifdef REPARENT_WAIT_FOR_REPARENT_NOTIFY
 static Bool WaitForReparentNotify( Display *dpy, XEvent *event, XPointer arg ) {
-    return (event->type == ReparentNotify) && (event->xreparent.window == (Window) arg);
+    Bool res = (event->type == ReparentNotify) && (event->xreparent.window == (Window) arg);
+    #ifdef VERBOSE_ON
+    if( event->type == ReparentNotify ) {
+        DBG_PRINT( "X11.WaitForReparentNotify: Event ReparentNotify: Result %d, exp %p, has %p\n", (int)res, arg, event->xreparent.window);
+    } else {
+        DBG_PRINT( "X11.WaitForReparentNotify: Event 0x%X: Result %d, exp %p, has %p\n", (int)event->type, (int)res, arg, event->xreparent.window);
+    }
+    #endif
+    return res;
 }
 #endif
 
@@ -741,8 +786,13 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         } else if( !TST_FLAG_IS_ALWAYSONTOP(flags) ) {
             fsEWMHFlags |= _NET_WM_STATE_FLAG_ABOVE;     // fs off, above off
         } // else { }                                    // fs off, above on
-    }
-    if( TST_FLAG_CHANGE_ALWAYSONTOP(flags) ) {
+    } else if( TST_FLAG_CHANGE_PARENTING(flags) ) {
+        // Fix for Unity WM, i.e. _remove_ persistent previous states
+        fsEWMHFlags |= _NET_WM_STATE_FLAG_FULLSCREEN;    // fs off
+        if( !TST_FLAG_IS_ALWAYSONTOP(flags) ) {
+            fsEWMHFlags |= _NET_WM_STATE_FLAG_ABOVE;     // above off
+        }
+    } else if( TST_FLAG_CHANGE_ALWAYSONTOP(flags) ) {
         fsEWMHFlags |= _NET_WM_STATE_FLAG_ABOVE;         // toggle above
     }
 
@@ -753,11 +803,12 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         TST_FLAG_CHANGE_DECORATION(flags),  TST_FLAG_IS_UNDECORATED(flags),
         TST_FLAG_CHANGE_FULLSCREEN(flags),  TST_FLAG_IS_FULLSCREEN(flags), TST_FLAG_IS_FULLSCREEN_SPAN(flags),
         TST_FLAG_CHANGE_ALWAYSONTOP(flags), TST_FLAG_IS_ALWAYSONTOP(flags),
-        TST_FLAG_CHANGE_VISIBILITY(flags),  TST_FLAG_IS_VISIBLE(flags), tempInvisible, fsEWMHFlags);
+        TST_FLAG_CHANGE_VISIBILITY(flags),  TST_FLAG_IS_VISIBLE(flags), 
+        tempInvisible, fsEWMHFlags);
 
-    // FS Note: To toggle FS, utilizing the _NET_WM_STATE_FULLSCREEN WM state shall be enough.
+    // FS Note: To toggle FS, utilizing the _NET_WM_STATE_FULLSCREEN WM state should be enough.
     //          However, we have to consider other cases like reparenting and WM which don't support it.
-
+    #if 0    // Also doesn't work work properly w/ Unity WM
     if( fsEWMHFlags && !TST_FLAG_CHANGE_PARENTING(flags) && isVisible &&
         !TST_FLAG_IS_FULLSCREEN_SPAN(flags) &&
         ( TST_FLAG_CHANGE_FULLSCREEN(flags) || TST_FLAG_CHANGE_ALWAYSONTOP(flags) ) ) {
@@ -766,7 +817,16 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
             if ( TST_FLAG_CHANGE_FULLSCREEN(flags) && !TST_FLAG_IS_FULLSCREEN(flags) ) { // FS off - restore decoration
                 NewtWindows_setDecorations (dpy, w, TST_FLAG_IS_UNDECORATED(flags) ? False : True);
             }
-            DBG_PRINT( "X11: reconfigureWindow0 X (fast)\n");
+            DBG_PRINT( "X11: reconfigureWindow0 X (fs.atop.fast)\n");
+            return;
+        }
+    }
+    #endif
+    // Toggle ALWAYSONTOP (only) w/o visibility or window stacking sideffects
+    if( isVisible && fsEWMHFlags && TST_FLAG_CHANGE_ALWAYSONTOP(flags) &&
+        !TST_FLAG_CHANGE_PARENTING(flags) && !TST_FLAG_CHANGE_FULLSCREEN(flags) ) {
+        if( NewtWindows_setStackingEWMHFlags(dpy, root, w, fsEWMHFlags, isVisible, TST_FLAG_IS_ALWAYSONTOP(flags)) ) {
+            DBG_PRINT( "X11: reconfigureWindow0 X (atop.fast)\n");
             return;
         }
     }
@@ -778,8 +838,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         // no need to notify the java side .. just temp change
     }
 
-    if( fsEWMHFlags && ( ( TST_FLAG_CHANGE_FULLSCREEN(flags)  && !TST_FLAG_IS_FULLSCREEN(flags) ) || 
-                         ( TST_FLAG_CHANGE_ALWAYSONTOP(flags) && !TST_FLAG_IS_ALWAYSONTOP(flags) ) ) ) { // FS off
+    if( fsEWMHFlags && ( ( TST_FLAG_CHANGE_FULLSCREEN(flags)  && !TST_FLAG_IS_FULLSCREEN(flags) ) ||     // FS off
+                         ( TST_FLAG_CHANGE_ALWAYSONTOP(flags) && !TST_FLAG_IS_ALWAYSONTOP(flags) ) ) ) { // AlwaysOnTop off
         NewtWindows_setStackingEWMHFlags(dpy, root, w, fsEWMHFlags, isVisible, False);
     }
 
@@ -787,9 +847,13 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         // TOP: in -> out
         DBG_PRINT( "X11: reconfigureWindow0 PARENTING in->out\n");
         XReparentWindow( dpy, w, parent, x, y ); // actual reparent call
-        // XIfEvent( dpy, &event, WaitForReparentNotify, (XPointer) w );
+        #ifdef REPARENT_WAIT_FOR_REPARENT_NOTIFY
+            XIfEvent( dpy, &event, WaitForReparentNotify, (XPointer) w );
+        #endif
         XSync(dpy, False);
         XSetWMProtocols(dpy, w, &wm_delete_atom, 1); // windowDeleteAtom
+        // Fix for Unity WM, i.e. _remove_ persistent previous states
+        NewtWindows_setStackingEWMHFlags(dpy, root, w, fsEWMHFlags, isVisible, False);
     }
 
     if( TST_FLAG_CHANGE_DECORATION(flags) ) {
@@ -804,7 +868,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         // CHILD: out -> in
         DBG_PRINT( "X11: reconfigureWindow0 PARENTING out->in\n");
         XReparentWindow( dpy, w, parent, x, y ); // actual reparent call
-        // XIfEvent( dpy, &event, WaitForReparentNotify, (XPointer) w );
+        #ifdef REPARENT_WAIT_FOR_REPARENT_NOTIFY
+            XIfEvent( dpy, &event, WaitForReparentNotify, (XPointer) w );
+        #endif
         XSync(dpy, False);
     }
 
@@ -817,15 +883,19 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         if( TST_FLAG_IS_VISIBLE(flags) ) {
             DBG_PRINT( "X11: reconfigureWindow0 VISIBLE ON\n");
             XMapRaised(dpy, w);
+            XSync(dpy, False);
+            // WM may disregard pos/size XConfigureWindow requests for invisible windows!
+            DBG_PRINT( "X11: reconfigureWindow0 setPosSize.2 %d/%d %dx%d\n", x, y, width, height);
+            NewtWindows_setPosSize(dpy, w, x, y, width, height);
         } else {
             DBG_PRINT( "X11: reconfigureWindow0 VISIBLE OFF\n");
             XUnmapWindow(dpy, w);
+            XSync(dpy, False);
         }
-        XSync(dpy, False);
     }
 
-    if( fsEWMHFlags && ( ( TST_FLAG_CHANGE_FULLSCREEN(flags)  && TST_FLAG_IS_FULLSCREEN(flags) ) || 
-                         ( TST_FLAG_CHANGE_ALWAYSONTOP(flags) && TST_FLAG_IS_ALWAYSONTOP(flags) ) ) ) { // FS on
+    if( fsEWMHFlags && ( ( TST_FLAG_CHANGE_FULLSCREEN(flags)  && TST_FLAG_IS_FULLSCREEN(flags) ) ||     // FS on
+                         ( TST_FLAG_CHANGE_ALWAYSONTOP(flags) && TST_FLAG_IS_ALWAYSONTOP(flags) ) ) ) { // AlwaysOnTop on
         NewtWindows_requestFocus (dpy, w, True);
         NewtWindows_setStackingEWMHFlags(dpy, root, w, fsEWMHFlags, isVisible, True);
     }
@@ -904,6 +974,27 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_setTitle0
         }
     }
 #endif
+}
+
+/*
+ * Class:     Java_jogamp_newt_driver_x11_WindowDriver
+ * Method:    setPointerIcon0
+ * Signature: (JJILjava/lang/Object;I)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_setPointerIcon0
+  (JNIEnv *env, jclass clazz, jlong display, jlong window, jlong handle)
+{
+    Display * dpy = (Display *) (intptr_t) display;
+    Window w = (Window)window;
+
+    if( 0 == handle ) {
+        DBG_PRINT( "X11: setPointerIcon0: reset\n");
+        XUndefineCursor(dpy, w);
+    } else {
+        Cursor c = (Cursor) (intptr_t) handle;
+        DBG_PRINT( "X11: setPointerIcon0: %p\n", (void*)c);
+        XDefineCursor(dpy, w, c);
+    }
 }
 
 /*

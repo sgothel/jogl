@@ -41,7 +41,7 @@ package jogamp.opengl.glu.nurbs;
  */
 public class Subdivider {
   /**
-   * Cull type 
+   * Cull type
    */
   public static final int CULL_TRIVIAL_REJECT = 0;
 
@@ -76,7 +76,7 @@ public class Subdivider {
   private int subdivisions;
 
   /**
-   * U step when using domain distance sampling 
+   * U step when using domain distance sampling
    */
   private float domain_distance_u_rate;
 
@@ -375,7 +375,7 @@ public class Subdivider {
   }
 
   /**
-   * Sample 
+   * Sample
    * @param source
    * @param patchlist
    * @param subdivisions

@@ -45,6 +45,8 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.newt.NewtFactory;
@@ -58,6 +60,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 /**
  * Simple visibility test ..
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestParenting01aSWT extends UITestCase {
     static int width, height;
     static long durationPerTest = 800;

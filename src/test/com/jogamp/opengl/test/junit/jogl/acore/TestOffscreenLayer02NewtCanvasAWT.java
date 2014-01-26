@@ -46,6 +46,8 @@ import jogamp.nativewindow.jawt.JAWTUtil;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.Window;
 import com.jogamp.newt.awt.NewtCanvasAWT;
@@ -57,6 +59,7 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestOffscreenLayer02NewtCanvasAWT extends UITestCase {
     static boolean singleBuffer = false;
     static boolean useMSAA = false;
@@ -159,7 +162,7 @@ public class TestOffscreenLayer02NewtCanvasAWT extends UITestCase {
         }
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
-        glWindow1.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT1, glWindow1));
+        glWindow1.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT1, glWindow1, null));
         
         frame1.setSize(frameSize0);
         setupFrameAndShow(frame1, newtCanvasAWT1);

@@ -1,5 +1,4 @@
 
-#include "jogamp_opengl_GLContextImpl.h"
 #include "JoglCommon.h"
 
 #include <assert.h>
@@ -12,21 +11,21 @@ static JavaVM *_jvmHandle = NULL;
 static int _jvmVersion = 0;
 
 void JoglCommon_init(JNIEnv *env) {
-    if(NULL==runtimeExceptionClz) {
+    if(NULL==_jvmHandle) {
+        if(0 != (*env)->GetJavaVM(env, &_jvmHandle)) {
+            JoglCommon_FatalError(env, "JOGL: Can't fetch JavaVM handle");
+        } else {
+            _jvmVersion = (*env)->GetVersion(env);
+        }
         jclass c = (*env)->FindClass(env, ClazzNameRuntimeException);
         if(NULL==c) {
-            JoglCommon_FatalError(env, "JOGL: can't find %s", ClazzNameRuntimeException);
+            JoglCommon_FatalError(env, "JOGL: Can't find %s", ClazzNameRuntimeException);
         }
         runtimeExceptionClz = (jclass)(*env)->NewGlobalRef(env, c);
         (*env)->DeleteLocalRef(env, c);
         if(NULL==runtimeExceptionClz) {
-            JoglCommon_FatalError(env, "JOGL: can't use %s", ClazzNameRuntimeException);
+            JoglCommon_FatalError(env, "JOGL: Can't use %s", ClazzNameRuntimeException);
         }
-    }
-    if(0 != (*env)->GetJavaVM(env, &_jvmHandle)) {
-        JoglCommon_FatalError(env, "JOGL: can't fetch JavaVM handle");
-    } else {
-        _jvmVersion = (*env)->GetVersion(env);
     }
 }
 
@@ -34,20 +33,16 @@ void JoglCommon_FatalError(JNIEnv *env, const char* msg, ...)
 {
     char buffer[512];
     va_list ap;
-    int shallBeDetached = 0;
 
-    if(NULL == env) {
-        env = JoglCommon_GetJNIEnv (&shallBeDetached);
-    }
+    if( NULL != msg ) {
+        va_start(ap, msg);
+        vsnprintf(buffer, sizeof(buffer), msg, ap);
+        va_end(ap);
 
-    va_start(ap, msg);
-    vsnprintf(buffer, sizeof(buffer), msg, ap);
-    va_end(ap);
-
-    fprintf(stderr, "%s\n", buffer);
-    if(NULL != env) {
-        (*env)->FatalError(env, buffer);
-        JoglCommon_ReleaseJNIEnv (shallBeDetached);
+        fprintf(stderr, "%s\n", buffer);
+        if(NULL != env) {
+            (*env)->FatalError(env, buffer);
+        }
     }
 }
 
@@ -55,48 +50,42 @@ void JoglCommon_throwNewRuntimeException(JNIEnv *env, const char* msg, ...)
 {
     char buffer[512];
     va_list ap;
-    int shallBeDetached = 0;
 
-    if(NULL == env) {
-        env = JoglCommon_GetJNIEnv (&shallBeDetached);
+    if(NULL==_jvmHandle) {
+        JoglCommon_FatalError(env, "JOGL: NULL JVM handle, call JoglCommon_init 1st\n");
+        return;
     }
 
-    va_start(ap, msg);
-    vsnprintf(buffer, sizeof(buffer), msg, ap);
-    va_end(ap);
+    if( NULL != msg ) {
+        va_start(ap, msg);
+        vsnprintf(buffer, sizeof(buffer), msg, ap);
+        va_end(ap);
 
-    if(NULL != env) {
-        (*env)->ThrowNew(env, runtimeExceptionClz, buffer);
-        JoglCommon_ReleaseJNIEnv (shallBeDetached);
+        if(NULL != env) {
+            (*env)->ThrowNew(env, runtimeExceptionClz, buffer);
+        }
     }
-}
-
-JavaVM *JoglCommon_GetJVMHandle() {
-    return _jvmHandle;
-}
-
-int JoglCommon_GetJVMVersion() {
-    return _jvmVersion;
 }
 
 jchar* JoglCommon_GetNullTerminatedStringChars(JNIEnv* env, jstring str)
 {
     jchar* strChars = NULL;
-    strChars = calloc((*env)->GetStringLength(env, str) + 1, sizeof(jchar));
-    if (strChars != NULL) {
-        (*env)->GetStringRegion(env, str, 0, (*env)->GetStringLength(env, str), strChars);
+    if( NULL != env && 0 != str ) {
+        strChars = calloc((*env)->GetStringLength(env, str) + 1, sizeof(jchar));
+        if (strChars != NULL) {
+            (*env)->GetStringRegion(env, str, 0, (*env)->GetStringLength(env, str), strChars);
+        }
     }
     return strChars;
 }
 
-JNIEnv* JoglCommon_GetJNIEnv (int * shallBeDetached)
-{
+JNIEnv* JoglCommon_GetJNIEnv (int asDaemon, int * shallBeDetached) {
     JNIEnv* curEnv = NULL;
     JNIEnv* newEnv = NULL;
     int envRes;
 
-    if(NULL == _jvmHandle) {
-        fprintf(stderr, "JOGL: No JavaVM handle registered, call JoglCommon_init(..) 1st");
+    if(NULL==_jvmHandle) {
+        fprintf(stderr, "JOGL GetJNIEnv: NULL JVM handle, call JoglCommon_init 1st\n");
         return NULL;
     }
 
@@ -104,18 +93,23 @@ JNIEnv* JoglCommon_GetJNIEnv (int * shallBeDetached)
     envRes = (*_jvmHandle)->GetEnv(_jvmHandle, (void **) &curEnv, _jvmVersion) ;
     if( JNI_EDETACHED == envRes ) {
         // detached thread - attach to JVM
-        if( JNI_OK != ( envRes = (*_jvmHandle)->AttachCurrentThread(_jvmHandle, (void**) &newEnv, NULL) ) ) {
-            fprintf(stderr, "JNIEnv: can't attach thread: %d\n", envRes);
+        if( asDaemon ) {
+            envRes = (*_jvmHandle)->AttachCurrentThreadAsDaemon(_jvmHandle, (void**) &newEnv, NULL);
+        } else {
+            envRes = (*_jvmHandle)->AttachCurrentThread(_jvmHandle, (void**) &newEnv, NULL);
+        }
+        if( JNI_OK != envRes ) {
+            fprintf(stderr, "JOGL GetJNIEnv: Can't attach thread: %d\n", envRes);
             return NULL;
         }
         curEnv = newEnv;
     } else if( JNI_OK != envRes ) {
         // oops ..
-        fprintf(stderr, "can't GetEnv: %d\n", envRes);
+        fprintf(stderr, "JOGL GetJNIEnv: Can't GetEnv: %d\n", envRes);
         return NULL;
     }
     if (curEnv==NULL) {
-        fprintf(stderr, "env is NULL\n");
+        fprintf(stderr, "JOGL GetJNIEnv: env is NULL\n");
         return NULL;
     }
     *shallBeDetached = NULL != newEnv;
@@ -124,50 +118,9 @@ JNIEnv* JoglCommon_GetJNIEnv (int * shallBeDetached)
 
 void JoglCommon_ReleaseJNIEnv (int shallBeDetached) {
     if(NULL == _jvmHandle) {
-        fprintf(stderr, "JOGL: No JavaVM handle registered, call JoglCommon_init(..) 1st");
-    }
-
-    if(shallBeDetached) {
+        fprintf(stderr, "JOGL ReleaseJNIEnv: No JavaVM handle registered, call JoglCommon_init(..) 1st");
+    } else if(shallBeDetached) {
         (*_jvmHandle)->DetachCurrentThread(_jvmHandle);
     }
-}
-
-/*
- * Class:     jogamp_opengl_GLContextImpl
- * Method:    glGetStringInt
- * Signature: (IJ)Ljava/lang/String;
- */
-JNIEXPORT jstring JNICALL 
-Java_jogamp_opengl_GLContextImpl_glGetStringInt(JNIEnv *env, jclass _unused, jint name, jlong procAddress) {
-  typedef const khronos_uint8_t *  (KHRONOS_APIENTRY*_local_PFNGLGETSTRINGPROC)(unsigned int name);
-  _local_PFNGLGETSTRINGPROC ptr_glGetString;
-  const khronos_uint8_t *  _res;
-  ptr_glGetString = (_local_PFNGLGETSTRINGPROC) (intptr_t) procAddress;
-  assert(ptr_glGetString != NULL);
-  _res = (* ptr_glGetString) ((unsigned int) name);
-  if (NULL == _res) return NULL;
-  return (*env)->NewStringUTF(env, _res);
-}
-
-/*
- * Class:     jogamp_opengl_GLContextImpl
- * Method:    glGetIntegervInt
- * Signature: (ILjava/lang/Object;I)V
- */
-JNIEXPORT void JNICALL 
-Java_jogamp_opengl_GLContextImpl_glGetIntegervInt(JNIEnv *env, jclass _unused, jint pname, jobject params, jint params_byte_offset, jlong procAddress) {
-  typedef void (KHRONOS_APIENTRY*_local_PFNGLGETINTEGERVPROC)(unsigned int pname, int * params);
-
-  _local_PFNGLGETINTEGERVPROC ptr_glGetIntegerv;
-  int * _params_ptr = NULL;
-  if ( NULL != params ) {
-    _params_ptr = (int *) (((char*) (*env)->GetPrimitiveArrayCritical(env, params, NULL) ) + params_byte_offset);
-  }
-  ptr_glGetIntegerv = (_local_PFNGLGETINTEGERVPROC) (intptr_t) procAddress;
-  assert(ptr_glGetIntegerv != NULL);
-  (* ptr_glGetIntegerv) ((unsigned int) pname, (int *) _params_ptr);
-  if ( NULL != params ) {
-    (*env)->ReleasePrimitiveArrayCritical(env, params, _params_ptr, 0);
-  }
 }
 

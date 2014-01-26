@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
@@ -53,8 +53,8 @@ import com.jogamp.opengl.util.texture.spi.*;
  * for enabling/disabling OpenGL texture state, binding this texture,
  * and computing texture coordinates for both the entire image as well
  * as a sub-image.
- * 
- * <a name="textureCallOrder"><h5>Order of Texture Commands</h5></a> 
+ *
+ * <a name="textureCallOrder"><h5>Order of Texture Commands</h5></a>
  * <p>
  * Due to many confusions w/ texture usage, following list described the order
  * and semantics of texture unit selection, binding and enabling.
@@ -67,16 +67,16 @@ import com.jogamp.opengl.util.texture.spi.*;
  *   <li>Issue draw commands</li>
  * </ul>
  * </p>
- * 
+ *
  * <p><a name="nonpow2"><b>Non-power-of-two restrictions</b></a>
  * <br> When creating an OpenGL texture object, the Texture class will
  * attempt to use <i>non-power-of-two textures</i> (NPOT) if available, see {@link GL#isNPOTTextureAvailable()}.
- * Further more, 
+ * Further more,
  * <a href="http://www.opengl.org/registry/specs/ARB/texture_rectangle.txt">GL_ARB_texture_rectangle</a>
  * (RECT) will be attempted on OSX w/ ATI drivers.
  * If NPOT is not available or RECT not chosen, the Texture class will simply upload a non-pow2-sized
  * image into a standard pow2-sized texture (without any special
- * scaling).  
+ * scaling).
  * Since the choice of extension (or whether one is used at
  * all) depends on the user's machine configuration, developers are
  * recommended to use {@link #getImageTexCoords} and {@link
@@ -106,7 +106,7 @@ import com.jogamp.opengl.util.texture.spi.*;
  * #bind}, but when drawing many triangles all using the same texture,
  * for best performance only one call to {@link #bind} should be made.
  * User may also utilize multiple texture units,
- * see <a href="#textureCallOrder"> order of texture commands above</a>. 
+ * see <a href="#textureCallOrder"> order of texture commands above</a>.
  *
  * <p><a name="premult"><b>Alpha premultiplication and blending</b></a>
  * <p>
@@ -119,7 +119,7 @@ import com.jogamp.opengl.util.texture.spi.*;
  * <p>
  * The mathematically correct way to perform blending in OpenGL
  * with the SrcOver "source over destination" mode, or any other
- * Porter-Duff rule, is to use <i>premultiplied color components</i>, 
+ * Porter-Duff rule, is to use <i>premultiplied color components</i>,
  * which means the R/G/ B color components must have been multiplied by
  * the alpha value.  If using <i>premultiplied color components</i>
  * it is important to use the correct blending function; for
@@ -137,7 +137,7 @@ import com.jogamp.opengl.util.texture.spi.*;
     float g = g * a;
     float b = b * a;
     gl.glColor4f(r, g, b, a);
-</pre> 
+</pre>
  *
  * For reference, here is a list of the Porter-Duff compositing rules
  * and the associated OpenGL blend functions (source and destination
@@ -188,6 +188,13 @@ public class Texture {
     /** The texture coordinates corresponding to the entire image. */
     private TextureCoords coords;
 
+    @Override
+    public String toString() {
+        return "Texture[target 0x"+Integer.toHexString(target)+", name "+texID+", "+
+                imgWidth+"/"+texWidth+" x "+imgHeight+"/"+texHeight+", y-flip "+mustFlipVertically+
+                ", "+estimatedMemorySize+" bytes]";
+    }
+
     /** An estimate of the amount of texture memory this texture consumes. */
     private int estimatedMemorySize;
 
@@ -231,7 +238,7 @@ public class Texture {
      *   gl.glEnable(texture.getTarget());
      * </pre>
      * <p>
-     * Call is ignored if the {@link GL} object's context 
+     * Call is ignored if the {@link GL} object's context
      * is using a core profile, see {@link GL#isGLcore()},
      * or if {@link #getTarget()} is {@link GLES2#GL_TEXTURE_EXTERNAL_OES}.
      * </p>
@@ -249,7 +256,7 @@ public class Texture {
             gl.glEnable(target);
         }
     }
-    
+
     /**
      * Disables this texture's target (e.g., GL_TEXTURE_2D) in the
      * given GL state. This method is a shorthand equivalent
@@ -258,7 +265,7 @@ public class Texture {
      *   gl.glDisable(texture.getTarget());
      * </pre>
      * <p>
-     * Call is ignored if the {@link GL} object's context 
+     * Call is ignored if the {@link GL} object's context
      * is using a core profile, see {@link GL#isGLcore()},
      * or if {@link #getTarget()} is {@link GLES2#GL_TEXTURE_EXTERNAL_OES}.
      * </p>
@@ -276,7 +283,7 @@ public class Texture {
             gl.glDisable(target);
         }
     }
-    
+
     /**
      * Binds this texture to the given GL context. This method is a
      * shorthand equivalent of the following OpenGL code:
@@ -286,16 +293,16 @@ public class Texture {
      *
      * See the <a href="#perftips">performance tips</a> above for hints
      * on how to maximize performance when using many Texture objects.
-     * 
+     *
      * @param gl the current GL context
      * @throws GLException if no OpenGL context was current or if any
      * OpenGL-related errors occurred
      */
     public void bind(GL gl) throws GLException {
         validateTexID(gl, true);
-        gl.glBindTexture(target, texID); 
+        gl.glBindTexture(target, texID);
     }
-    
+
     /**
      * Destroys the native resources used by this texture object.
      *
@@ -329,7 +336,7 @@ public class Texture {
     public int getWidth() {
         return texWidth;
     }
-    
+
     /**
      * Returns the height of the allocated OpenGL texture in pixels.
      * Note that the texture height will be greater than or equal to the
@@ -339,9 +346,9 @@ public class Texture {
      */
     public int getHeight() {
         return texHeight;
-    }   
-    
-    /** 
+    }
+
+    /**
      * Returns the width of the image contained within this texture.
      * Note that for non-power-of-two textures in particular this may
      * not be equal to the result of {@link #getWidth}. It is
@@ -383,7 +390,7 @@ public class Texture {
      * entire image. If the TextureData indicated that the texture
      * coordinates must be flipped vertically, the returned
      * TextureCoords will take that into account.
-     * 
+     *
      * @return the texture coordinates corresponding to the entire image
      */
     public TextureCoords getImageTexCoords() {
@@ -400,7 +407,7 @@ public class Texture {
      * flipped vertically, the returned TextureCoords will take that
      * into account; this should not be handled by the end user in the
      * specification of the y1 and y2 coordinates.
-     * 
+     *
      * @return the texture coordinates corresponding to the specified sub-image
      */
     public TextureCoords getSubImageTexCoords(int x1, int y1, int x2, int y2) {
@@ -425,9 +432,9 @@ public class Texture {
     }
 
     /**
-     * Updates the entire content area of this texture using the data in
-     * the given image.
-     * 
+     * Updates the entire content area incl. {@link TextureCoords}
+     * of this texture using the data in the given image.
+     *
      * @throws GLException if any OpenGL-related errors occurred
      */
     public void updateImage(GL gl, TextureData data) throws GLException {
@@ -447,10 +454,24 @@ public class Texture {
     }
 
     /**
-     * Updates the content area of the specified target of this texture
+     * Change whether the TextureData requires a vertical flip of
+     * the texture coords.
+     * <p>
+     * No-op if no change, otherwise generates new {@link TextureCoords}.
+     * </p>
+     */
+    public void setMustFlipVertically(boolean v) {
+        if( v != mustFlipVertically ) {
+            mustFlipVertically = v;
+            updateTexCoords();
+        }
+    }
+
+    /**
+     * Updates the content area incl. {@link TextureCoords} of the specified target of this texture
      * using the data in the given image. In general this is intended
      * for construction of cube maps.
-     * 
+     *
      * @throws GLException if any OpenGL-related errors occurred
      */
     public void updateImage(GL gl, TextureData data, int targetOverride) throws GLException {
@@ -771,7 +792,7 @@ public class Texture {
      * texture's target. This gives control over parameters such as
      * GL_TEXTURE_MAX_ANISOTROPY_EXT. Causes this texture to be bound to
      * the current texture state.
-     * 
+     *
      * @throws GLException if no OpenGL context was current or if any
      * OpenGL-related errors occurred
      */
@@ -785,7 +806,7 @@ public class Texture {
      * Sets the OpenGL multi-floating-point texture parameter for the
      * texture's target. Causes this texture to be bound to the current
      * texture state.
-     * 
+     *
      * @throws GLException if any OpenGL-related errors occurred
      */
     public void setTexParameterfv(GL gl, int parameterName,
@@ -798,7 +819,7 @@ public class Texture {
      * Sets the OpenGL multi-floating-point texture parameter for the
      * texture's target. Causes this texture to be bound to the current
      * texture state.
-     * 
+     *
      * @throws GLException if any OpenGL-related errors occurred
      */
     public void setTexParameterfv(GL gl, int parameterName,
@@ -814,7 +835,7 @@ public class Texture {
      * to GL_CLAMP_TO_EDGE if OpenGL 1.2 is supported on the current
      * platform and GL_CLAMP if not. Causes this texture to be bound to
      * the current texture state.
-     * 
+     *
      * @throws GLException if any OpenGL-related errors occurred
      */
     public void setTexParameteri(GL gl, int parameterName,
@@ -827,7 +848,7 @@ public class Texture {
      * Sets the OpenGL multi-integer texture parameter for the texture's
      * target. Causes this texture to be bound to the current texture
      * state.
-     * 
+     *
      * @throws GLException if any OpenGL-related errors occurred
      */
     public void setTexParameteriv(GL gl, int parameterName,
@@ -840,7 +861,7 @@ public class Texture {
      * Sets the OpenGL multi-integer texture parameter for the texture's
      * target. Causes this texture to be bound to the current texture
      * state.
-     * 
+     *
      * @throws GLException if any OpenGL-related errors occurred
      */
     public void setTexParameteriv(GL gl, int parameterName,
@@ -858,9 +879,23 @@ public class Texture {
      * </p>
      * @param gl required to be valid and current in case the texture object has not been generated yet,
      *           otherwise it may be <code>null</code>.
+     * @see #getTextureObject()
      */
     public int getTextureObject(GL gl) {
         validateTexID(gl, false);
+        return texID;
+    }
+
+    /**
+     * Returns the underlying OpenGL texture object for this texture,
+     * maybe <code>0</code> if not yet generated.
+     * <p>
+     * Most applications will not need to access this, since it is
+     * handled automatically by the bind(GL) and destroy(GL) APIs.
+     * </p>
+     * @see #getTextureObject(GL)
+     */
+    public int getTextureObject() {
         return texID;
     }
 
@@ -922,6 +957,9 @@ public class Texture {
     private void setImageSize(int width, int height, int target) {
         imgWidth = width;
         imgHeight = height;
+        updateTexCoords();
+    }
+    private void updateTexCoords() {
         if (target == GL2.GL_TEXTURE_RECTANGLE_ARB) {
             if (mustFlipVertically) {
                 coords = new TextureCoords(0, imgHeight, imgWidth, 0);
@@ -930,13 +968,13 @@ public class Texture {
             }
         } else {
             if (mustFlipVertically) {
-                coords = new TextureCoords(0,                                      // l 
+                coords = new TextureCoords(0,                                      // l
                                            (float) imgHeight / (float) texHeight,  // b
                                            (float) imgWidth / (float) texWidth,    // r
                                            0                                       // t
                                           );
             } else {
-                coords = new TextureCoords(0,                                      // l 
+                coords = new TextureCoords(0,                                      // l
                                            0,                                      // b
                                            (float) imgWidth / (float) texWidth,    // r
                                            (float) imgHeight / (float) texHeight   // t

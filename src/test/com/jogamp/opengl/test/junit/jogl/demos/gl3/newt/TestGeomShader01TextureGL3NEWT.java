@@ -34,6 +34,8 @@ import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.gl3.GeomShader01TextureGL3;
@@ -45,6 +47,7 @@ import com.jogamp.opengl.util.Animator;
 /**
  * Test Geometry shader demo GeomShader01TextureGL3
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGeomShader01TextureGL3NEWT extends UITestCase {
     static long duration = 500; // ms
 

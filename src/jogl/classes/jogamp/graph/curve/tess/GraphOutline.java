@@ -35,13 +35,13 @@ import com.jogamp.graph.geom.Vertex;
 public class GraphOutline {
     final private Outline outline;
     final private ArrayList<GraphVertex> controlpoints = new ArrayList<GraphVertex>(3);
-    
+
     public GraphOutline(){
         this.outline = new Outline();
     }
-    
+
     /**Create a control polyline of control vertices
-     * the curve pieces can be identified by onCurve flag 
+     * the curve pieces can be identified by onCurve flag
      * of each cp the control polyline is open by default
      */
     public GraphOutline(Outline ol){
@@ -59,7 +59,7 @@ public class GraphOutline {
     public ArrayList<GraphVertex> getGraphPoint() {
         return controlpoints;
     }
-    
+
     public ArrayList<Vertex> getVertices() {
         return outline.getVertices();
     }
@@ -68,5 +68,5 @@ public class GraphOutline {
         controlpoints.add(v);
         outline.addVertex(v.getPoint());
     }
-    
+
 }

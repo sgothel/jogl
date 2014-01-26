@@ -41,6 +41,8 @@ import javax.swing.SwingUtilities;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.Window;
 import com.jogamp.newt.awt.NewtCanvasAWT;
@@ -54,6 +56,7 @@ import com.jogamp.opengl.util.Animator;
 /**
  * Using {@link NewtCanvasAWT#setNEWTChild(Window)} for reparenting, i.e. NEWT/AWT hopping
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestParenting04AWT extends UITestCase {
     static int width, height;
     static long durationPerTest = 800;
@@ -67,13 +70,13 @@ public class TestParenting04AWT extends UITestCase {
     }
 
     @Test
-    public void winHopFrame2FrameDirectHop() throws InterruptedException, InvocationTargetException {
+    public void test01WinHopFrame2FrameDirectHop() throws InterruptedException, InvocationTargetException {
         // Will produce some artifacts .. resizing etc
         winHopFrame2Frame(false);
     }
     
     @Test
-    public void winHopFrame2FrameDetachFirst() throws InterruptedException, InvocationTargetException {
+    public void test02WinHopFrame2FrameDetachFirst() throws InterruptedException, InvocationTargetException {
         // Note: detaching first setNEWTChild(null) is much cleaner visually 
         winHopFrame2Frame(true);
     }

@@ -148,6 +148,7 @@ public class Parser {
         instructions[2] = program;
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         int ip = 0;

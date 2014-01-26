@@ -34,10 +34,13 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.util.AnimatorBase;
 import com.jogamp.opengl.util.FPSAnimator;
 
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  * ExclusiveContextThread FPS Animator to test correctness of the ExclusiveContext feature _and_ FPSAnimator with AWT. 
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestExclusiveContext02FPSAnimAWT extends ExclusiveContextBase00AWT {    
         
     @Override

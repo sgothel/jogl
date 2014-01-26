@@ -44,12 +44,14 @@ import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
+import jogamp.opengl.GLContextShareSet;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionNumber;
@@ -72,14 +74,14 @@ import com.jogamp.opengl.GLRendererQuirks;
     abstraction provides a stable object which clients can use to
     refer to a given context. */
 public abstract class GLContext {
-  
+
   public static final boolean DEBUG = Debug.debug("GLContext");
   public static final boolean TRACE_SWITCH = Debug.isPropertyDefined("jogl.debug.GLContext.TraceSwitch", true);
-  public static final boolean DEBUG_TRACE_SWITCH = DEBUG || TRACE_SWITCH;  
+  public static final boolean DEBUG_TRACE_SWITCH = DEBUG || TRACE_SWITCH;
 
-  /** 
-   * If <code>true</code> (default), bootstrapping the available GL profiles 
-   * will use the highest compatible GL context for each profile, 
+  /**
+   * If <code>true</code> (default), bootstrapping the available GL profiles
+   * will use the highest compatible GL context for each profile,
    * hence skipping querying lower profiles if a compatible higher one is found:
    * <ul>
    *   <li>4.2-core -> 4.2-core, 3.3-core</li>
@@ -95,66 +97,66 @@ public abstract class GLContext {
    * </ul>
    * Using aliasing speeds up initialization about:
    * <ul>
-   *   <li>Linux x86_64 - Nvidia: 28%,  700ms down to 500ms</li> 
-   *   <li>Linux x86_64 - AMD   : 40%, 1500ms down to 900ms</li> 
+   *   <li>Linux x86_64 - Nvidia: 28%,  700ms down to 500ms</li>
+   *   <li>Linux x86_64 - AMD   : 40%, 1500ms down to 900ms</li>
    * <p>
    * Can be turned off with property <code>jogl.debug.GLContext.NoProfileAliasing</code>.
    * </p>
    */
   public static final boolean PROFILE_ALIASING = !Debug.isPropertyDefined("jogl.debug.GLContext.NoProfileAliasing", true);
-  
+
   protected static final boolean FORCE_NO_FBO_SUPPORT = Debug.isPropertyDefined("jogl.fbo.force.none", true);
   protected static final boolean FORCE_MIN_FBO_SUPPORT = Debug.isPropertyDefined("jogl.fbo.force.min", true);
-  
+
   /** Reflects property jogl.debug.DebugGL. If true, the debug pipeline is enabled at context creation. */
   public static final boolean DEBUG_GL = Debug.isPropertyDefined("jogl.debug.DebugGL", true);
   /** Reflects property jogl.debug.TraceGL. If true, the trace pipeline is enabled at context creation. */
   public static final boolean TRACE_GL = Debug.isPropertyDefined("jogl.debug.TraceGL", true);
 
-  /** Indicates that the context was not made current during the last call to {@link #makeCurrent makeCurrent}. */
+  /** Indicates that the context was not made current during the last call to {@link #makeCurrent makeCurrent}, value {@value}. */
   public static final int CONTEXT_NOT_CURRENT = 0;
-  /** Indicates that the context was made current during the last call to {@link #makeCurrent makeCurrent}. */
+  /** Indicates that the context was made current during the last call to {@link #makeCurrent makeCurrent}, value {@value}. */
   public static final int CONTEXT_CURRENT     = 1;
-  /** Indicates that a newly-created context was made current during the last call to {@link #makeCurrent makeCurrent}. */
+  /** Indicates that a newly-created context was made current during the last call to {@link #makeCurrent makeCurrent}, value {@value}. */
   public static final int CONTEXT_CURRENT_NEW = 2;
 
-  /* Version 1.00, i.e. GLSL 1.00 for ES 2.0. */
+  /** Version 1.00, i.e. GLSL 1.00 for ES 2.0. */
   public static final VersionNumber Version100 = new VersionNumber(1,  0, 0);
-  /* Version 1.10, i.e. GLSL 1.10 for GL 2.0. */
+  /** Version 1.10, i.e. GLSL 1.10 for GL 2.0. */
   public static final VersionNumber Version110 = new VersionNumber(1, 10, 0);
-  /* Version 1.20, i.e. GLSL 1.20 for GL 2.1. */
+  /** Version 1.20, i.e. GLSL 1.20 for GL 2.1. */
   public static final VersionNumber Version120 = new VersionNumber(1, 20, 0);
-  /* Version 1.30, i.e. GLSL 1.30 for GL 3.0. */
+  /** Version 1.30, i.e. GLSL 1.30 for GL 3.0. */
   public static final VersionNumber Version130 = new VersionNumber(1, 30, 0);
-  /* Version 1.40, i.e. GLSL 1.40 for GL 3.1. */
+  /** Version 1.40, i.e. GLSL 1.40 for GL 3.1. */
   public static final VersionNumber Version140 = new VersionNumber(1, 40, 0);
-  /* Version 1.50, i.e. GLSL 1.50 for GL 3.2. */
+  /** Version 1.50, i.e. GLSL 1.50 for GL 3.2. */
   public static final VersionNumber Version150 = new VersionNumber(1, 50, 0);
-  
-  /** Version 3.0. As an OpenGL version, it qualifies for desktop {@link #isGL2()} only, or ES 3.0. */
+
+  /** Version 3.0. As an OpenGL version, it qualifies for desktop {@link #isGL2()} only, or ES 3.0. Or GLSL 3.00 for ES 3.0. */
   public static final VersionNumber Version300 = new VersionNumber(3, 0, 0);
-  
+
   /** Version 3.1. As an OpenGL version, it qualifies for {@link #isGL3core()}, {@link #isGL3bc()} and {@link #isGL3()} */
   public static final VersionNumber Version310 = new VersionNumber(3, 1, 0);
-  
+
   /** Version 3.2. As an OpenGL version, it qualifies for geometry shader */
   public static final VersionNumber Version320 = new VersionNumber(3, 2, 0);
-  
+
   /** Version 4.3. As an OpenGL version, it qualifies for <code>GL_ARB_ES3_compatibility</code> */
   public static final VersionNumber Version430 = new VersionNumber(4, 3, 0);
-  
+
   protected static final VersionNumber Version800 = new VersionNumber(8, 0, 0);
 
   //
   // Cached keys, bits [0..15]
   //
-  
-  /** Context option bits, full bit mask covering bits [0..15], i.e. <code>0x0000FFFF</code>, {@value}. */
+
+  /** Context option bits, full bit mask covering 16 bits [0..15], i.e. <code>0x0000FFFF</code>, {@value}. */
   protected static final int CTX_IMPL_FULL_MASK = 0x0000FFFF;
-  
-  /** Context option bits, cached bit mask covering 9 bits [0..8], i.e. <code>0x000001FF</code>, {@value}. Leaving 7 bits for non cached options, i.e. 9:7. */
-  protected static final int CTX_IMPL_CACHE_MASK = 0x000001FF;
-  
+
+  /** Context option bits, cached bit mask covering 10 bits [0..9], i.e. <code>0x000003FF</code>, {@value}. Leaving 6 bits for non cached options, i.e. 10:6. */
+  protected static final int CTX_IMPL_CACHE_MASK = 0x000003FF;
+
   /** <code>ARB_create_context</code> related: created via ARB_create_context. Cache key value. See {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
   protected static final int CTX_IS_ARB_CREATED  = 1 <<  0;
   /** <code>ARB_create_context</code> related: desktop compatibility profile. Cache key value. See {@link #isGLCompatibilityProfile()}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
@@ -171,32 +173,32 @@ public abstract class GLContext {
   protected static final int CTX_IMPL_ACCEL_SOFT = 1 <<  6;
 
   //
-  // Non cached keys, bits [9..15]
+  // Non cached keys, 6 bits [10..15]
   //
-  
+
   /** <code>GL_ARB_ES2_compatibility</code> implementation related: Context is compatible w/ ES2. Not a cache key. See {@link #isGLES2Compatible()}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
-  protected static final int CTX_IMPL_ES2_COMPAT = 1 <<  9;
+  protected static final int CTX_IMPL_ES2_COMPAT = 1 << 10;
 
   /** <code>GL_ARB_ES3_compatibility</code> implementation related: Context is compatible w/ ES3. Not a cache key. See {@link #isGLES3Compatible()}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
-  protected static final int CTX_IMPL_ES3_COMPAT = 1 << 10;
-  
-  /** 
+  protected static final int CTX_IMPL_ES3_COMPAT = 1 << 11;
+
+  /**
    * Context supports basic FBO, details see {@link #hasBasicFBOSupport()}.
    * Not a cache key.
    * @see #hasBasicFBOSupport()
    * @see #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)
    */
-  protected static final int CTX_IMPL_FBO        = 1 << 11;
+  protected static final int CTX_IMPL_FBO        = 1 << 12;
 
-  /** 
-   * Context supports <code>OES_single_precision</code>, fp32, fixed function point (FFP) compatibility entry points, 
+  /**
+   * Context supports <code>OES_single_precision</code>, fp32, fixed function point (FFP) compatibility entry points,
    * see {@link #hasFP32CompatAPI()}.
    * Not a cache key.
    * @see #hasFP32CompatAPI()
    * @see #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)
    */
-  protected static final int CTX_IMPL_FP32_COMPAT_API = 1 << 12;
-  
+  protected static final int CTX_IMPL_FP32_COMPAT_API = 1 << 13;
+
   private static final ThreadLocal<GLContext> currentContext = new ThreadLocal<GLContext>();
 
   private final HashMap<String, Object> attachedObjects = new HashMap<String, Object>();
@@ -205,10 +207,10 @@ public abstract class GLContext {
   protected final RecursiveLock lock = LockFactory.createRecursiveLock();
 
   /** The underlying native OpenGL context */
-  protected long contextHandle;
+  protected volatile long contextHandle; // volatile: avoid locking for read-only access
 
   protected GLContext() {
-      resetStates();
+      resetStates(true);
   }
 
   protected VersionNumber ctxVersion;
@@ -219,12 +221,15 @@ public abstract class GLContext {
   private int currentSwapInterval;
   protected GLRendererQuirks glRendererQuirks;
 
-  /** Did the drawable association changed ? see {@link GLRendererQuirks#NoSetSwapIntervalPostRetarget} */ 
-  protected boolean drawableRetargeted; 
-    
-  protected void resetStates() {
+  /** Did the drawable association changed ? see {@link GLRendererQuirks#NoSetSwapIntervalPostRetarget} */
+  protected boolean drawableRetargeted;
+
+  /**
+   * @param isInit true if called for class initialization, otherwise false (re-init or destruction).
+   */
+  protected void resetStates(boolean isInit) {
       if (DEBUG) {
-        System.err.println(getThreadName() + ": GLContext.resetStates()");
+        System.err.println(getThreadName() + ": GLContext.resetStates(isInit "+isInit+")");
         // Thread.dumpStack();
       }
       ctxVersion = VersionNumberString.zeroVersion;
@@ -239,12 +244,27 @@ public abstract class GLContext {
       drawableRetargeted = false;
   }
 
-  /** 
+  /** Returns true if this GLContext is shared, otherwise false. */
+  public final boolean isShared() {
+      return GLContextShareSet.isShared(this);
+  }
+
+  /** Returns a new list of created GLContext shared with this GLContext. */
+  public final List<GLContext> getCreatedShares() {
+      return GLContextShareSet.getCreatedShares(this);
+  }
+
+  /** Returns a new list of destroyed GLContext shared with this GLContext. */
+  public final List<GLContext> getDestroyedShares() {
+      return GLContextShareSet.getDestroyedShares(this);
+  }
+
+  /**
    * Returns the instance of {@link GLRendererQuirks}, allowing one to determine workarounds.
    * @return instance of {@link GLRendererQuirks} if context was made current once, otherwise <code>null</code>.
    */
   public final GLRendererQuirks getRendererQuirks() { return glRendererQuirks; }
-  
+
   /**
    * Returns true if the <code>quirk</code> exist in {@link #getRendererQuirks()}, otherwise false.
    * <p>
@@ -257,10 +277,10 @@ public abstract class GLContext {
    * @param quirk the quirk to be tested, e.g. {@link GLRendererQuirks#NoDoubleBufferedPBuffer}.
    * @throws IllegalArgumentException if the quirk is out of range
    */
-  public final boolean hasRendererQuirk(int quirk) throws IllegalArgumentException { 
-      return null != glRendererQuirks ? glRendererQuirks.exist(quirk) : false ; 
+  public final boolean hasRendererQuirk(int quirk) throws IllegalArgumentException {
+      return null != glRendererQuirks ? glRendererQuirks.exist(quirk) : false ;
   }
-  
+
   /**
    * Sets the read/write drawable for framebuffer operations.
    * <p>
@@ -273,28 +293,29 @@ public abstract class GLContext {
    * attempts to make this context current. Otherwise a race condition may happen.
    * </p>
    * @param readWrite The read/write drawable for framebuffer operations, maybe <code>null</code> to remove association.
-   * @param setWriteOnly Only change the write-drawable, if <code>setWriteOnly</code> is <code>true</code> and 
-   *                     if the {@link #getGLReadDrawable() read-drawable} differs 
-   *                     from the {@link #getGLDrawable() write-drawable}. 
+   * @param setWriteOnly Only change the write-drawable, if <code>setWriteOnly</code> is <code>true</code> and
+   *                     if the {@link #getGLReadDrawable() read-drawable} differs
+   *                     from the {@link #getGLDrawable() write-drawable}.
    *                     Otherwise set both drawables, read and write.
    * @return The previous read/write drawable
    *
-   * @throws GLException in case <code>null</code> is being passed or 
+   * @throws GLException in case <code>null</code> is being passed or
    *                     this context is made current on another thread.
    *
    * @see #isGLReadDrawableAvailable()
+   * @see #setGLReadDrawable(GLDrawable)
    * @see #getGLReadDrawable()
-   * @see #setGLReadDrawable()
+   * @see #setGLDrawable(GLDrawable, boolean)
    * @see #getGLDrawable()
    */
   public abstract GLDrawable setGLDrawable(GLDrawable readWrite, boolean setWriteOnly);
-  
+
   /**
    * Returns the write-drawable this context uses for framebuffer operations.
    * <p>
    * If the read-drawable has not been changed manually via {@link #setGLReadDrawable(GLDrawable)},
    * it equals to the write-drawable (default).
-   * </p> 
+   * </p>
    * @see #setGLDrawable(GLDrawable, boolean)
    * @see #setGLReadDrawable(GLDrawable)
    */
@@ -332,10 +353,10 @@ public abstract class GLContext {
    * <p>
    * If the read-drawable has not been changed manually via {@link #setGLReadDrawable(GLDrawable)},
    * it equals to the write-drawable (default).
-   * </p> 
+   * </p>
    * @see #isGLReadDrawableAvailable()
-   * @see #setGLReadDrawable(javax.media.opengl.GLDrawable)
-   * @see #getGLDrawable()
+   * @see #setGLReadDrawable(GLDrawable)
+   * @see #getGLReadDrawable()
    */
   public abstract GLDrawable getGLReadDrawable();
 
@@ -350,9 +371,9 @@ public abstract class GLContext {
    * </p>
    * <p>
    * A return value of {@link #CONTEXT_CURRENT_NEW}
-   * indicates that that context has been made current for the 1st time, 
+   * indicates that that context has been made current for the 1st time,
    * or that the state of the underlying context or drawable has
-   * changed since the last time this context was current. 
+   * changed since the last time this context was current.
    * In this case, the application may wish to initialize the render state.
    * </p>
    * <p>
@@ -374,7 +395,7 @@ public abstract class GLContext {
    * </p>
    *
    * @return <ul>
-   *           <li>{@link #CONTEXT_CURRENT_NEW} if the context was successfully made current the 1st time,</li> 
+   *           <li>{@link #CONTEXT_CURRENT_NEW} if the context was successfully made current the 1st time,</li>
    *           <li>{@link #CONTEXT_CURRENT} if the context was successfully made current,</li>
    *           <li>{@link #CONTEXT_NOT_CURRENT} if the context could not be made current.</li>
    *         </ul>
@@ -407,7 +428,7 @@ public abstract class GLContext {
    * parameter indicates which groups of state variables are to be
    * copied. <code>mask</code> contains the bitwise OR of the same
    * symbolic names that are passed to the GL command {@link
-   * GL#glPushAttrib glPushAttrib}. The single symbolic constant
+   * GL2#glPushAttrib glPushAttrib}. The single symbolic constant
    * {@link GL2#GL_ALL_ATTRIB_BITS GL_ALL_ATTRIB_BITS} can be used to
    * copy the maximum possible portion of rendering state. <P>
    *
@@ -510,7 +531,7 @@ public abstract class GLContext {
   public abstract void destroy();
 
   /**
-   * Returns the implementing root GL instance of this GLContext's GL object, 
+   * Returns the implementing root GL instance of this GLContext's GL object,
    * considering a wrapped pipelined hierarchy, see {@link GLBase#getDownstreamGL()}.
    * @throws GLException if the root instance is not a GL implementation
    * @see GLBase#getRootGL()
@@ -519,7 +540,7 @@ public abstract class GLContext {
    * @see #setGL(GL)
    */
   public abstract GL getRootGL();
-  
+
   /**
    * Returns the GL pipeline object for this GLContext.
    *
@@ -586,7 +607,7 @@ public abstract class GLContext {
     sb.append(toHexString(hashCode()));
     sb.append(", handle ");
     sb.append(toHexString(contextHandle));
-    sb.append(", ");
+    sb.append(", isShared "+isShared()+", ");
     sb.append(getGL());
     sb.append(",\n\t quirks: ");
     if(null != glRendererQuirks) {
@@ -712,16 +733,16 @@ public abstract class GLContext {
   }
 
   /**
-   * Returns this context OpenGL version. 
-   * @see #getGLSLVersionNumber() 
+   * Returns this context OpenGL version.
+   * @see #getGLSLVersionNumber()
    **/
   public final VersionNumber getGLVersionNumber() { return ctxVersion; }
-  /** 
+  /**
    * Returns the vendor's version, i.e. version number at the end of <code>GL_VERSION</code> not being the GL version.
    * <p>
-   * In case no such version exists within <code>GL_VERSION</code>, 
+   * In case no such version exists within <code>GL_VERSION</code>,
    * the {@link VersionNumberString#zeroVersion zero version} instance is returned.
-   * </p> 
+   * </p>
    * <p>
    * The vendor's version is usually the vendor's OpenGL driver version.
    * </p>
@@ -729,6 +750,7 @@ public abstract class GLContext {
   public final VersionNumberString getGLVendorVersionNumber() { return ctxVendorVersion; }
   public final boolean isGLCompatibilityProfile() { return ( 0 != ( CTX_PROFILE_COMPAT & ctxOptions ) ); }
   public final boolean isGLCoreProfile()          { return ( 0 != ( CTX_PROFILE_CORE   & ctxOptions ) ); }
+  public final boolean isGLESProfile()            { return ( 0 != ( CTX_PROFILE_ES     & ctxOptions ) ); }
   public final boolean isGLForwardCompatible()    { return ( 0 != ( CTX_OPTION_FORWARD & ctxOptions ) ); }
   public final boolean isGLDebugEnabled()         { return ( 0 != ( CTX_OPTION_DEBUG   & ctxOptions ) ); }
   public final boolean isCreatedWithARBMethod()   { return ( 0 != ( CTX_IS_ARB_CREATED & ctxOptions ) ); }
@@ -738,31 +760,32 @@ public abstract class GLContext {
    * via {@link GL2ES2#GL_SHADING_LANGUAGE_VERSION} if &ge; ES2.0 or GL2.0,
    * otherwise a static match is being utilized.
    * <p>
-   * The context must have been current once, 
-   * otherwise the {@link VersionNumberString#zeroVersion zero version} instance is returned. 
+   * The context must have been current once,
+   * otherwise the {@link VersionNumberString#zeroVersion zero version} instance is returned.
    * </p>
    * <p>
-   * Examples w/ <code>major.minor</code>: 
+   * Examples w/ <code>major.minor</code>:
    * <pre>
-   *    1.00 (ES 2.0), 1.10 (GL 2.0), 1.20 (GL 2.1), 1.50 (GL 3.2), 
+   *    1.00 (ES 2.0), 3.00 (ES 3.0)
+   *    1.10 (GL 2.0), 1.20 (GL 2.1), 1.50 (GL 3.2),
    *    3.30 (GL 3.3), 4.00 (GL 4.0), 4.10 (GL 4.1), 4.20 (GL 4.2)
    * </pre >
    * </p>
    * <p>
    * <i>Matching</i> could also refer to the maximum GLSL version usable by this context
    * since <i>normal</i> GL implementations are capable of using a lower GLSL version as well.
-   * The latter is not true on OSX w/ a GL3 context. 
+   * The latter is not true on OSX w/ a GL3 context.
    * </p>
-   * 
-   * @return GLSL version number if context has been made current at least once, 
+   *
+   * @return GLSL version number if context has been made current at least once,
    *         otherwise the {@link VersionNumberString#zeroVersion zero version} instance is returned.
-   *            
+   *
    * @see #getGLVersionNumber()
    */
   public final VersionNumber getGLSLVersionNumber() {
       return ctxGLSLVersion;
   }
-  
+
   /**
    * Returns the GLSL version string as to be used in a shader program, including a terminating newline '\n',
    * i.e. for desktop
@@ -789,13 +812,15 @@ public abstract class GLContext {
           return "";
       }
       final int minor = ctxGLSLVersion.getMinor();
-      final String esSuffix = isGLES() && ctxGLSLVersion.compareTo(Version300) >= 0 ? " es" : ""; 
+      final String esSuffix = isGLES() && ctxGLSLVersion.compareTo(Version300) >= 0 ? " es" : "";
       return "#version " + ctxGLSLVersion.getMajor() + ( minor < 10 ? "0"+minor : minor ) + esSuffix + "\n" ;
   }
-  
+
   protected static final VersionNumber getStaticGLSLVersionNumber(int glMajorVersion, int glMinorVersion, int ctxOptions) {
       if( 0 != ( CTX_PROFILE_ES & ctxOptions ) ) {
-          if( 3 > glMajorVersion ) {
+          if( 3 == glMajorVersion ) {
+              return Version300;           // ES 3.0  ->  GLSL 3.00
+          } else if( 2 == glMajorVersion ) {
               return Version100;           // ES 2.0  ->  GLSL 1.00
           }
       } else if( 1 == glMajorVersion ) {
@@ -809,13 +834,13 @@ public abstract class GLContext {
           switch ( glMinorVersion ) {
               case 0:  return Version130;  // GL 3.0  ->  GLSL 1.30
               case 1:  return Version140;  // GL 3.1  ->  GLSL 1.40
-              default: return Version150;  // GL 3.2  ->  GLSL 1.50 
+              default: return Version150;  // GL 3.2  ->  GLSL 1.50
           }
       }
       // The new default: GL >= 3.3, ES >= 3.0
       return new VersionNumber(glMajorVersion, glMinorVersion * 10, 0); // GL M.N  ->  GLSL M.N
   }
-  
+
   /**
    * @return true if this context is an ES2 context or implements
    *         the extension <code>GL_ARB_ES3_compatibility</code> or <code>GL_ARB_ES2_compatibility</code>, otherwise false
@@ -835,29 +860,30 @@ public abstract class GLContext {
       return 0 != ( ctxOptions & CTX_IMPL_ES3_COMPAT ) ;
   }
 
-  /** 
+  /**
    * @return true if impl. is a hardware rasterizer, otherwise false.
    * @see #isHardwareRasterizer(AbstractGraphicsDevice, GLProfile)
-   * @see GLProfile#isHardwareRasterizer() 
+   * @see GLProfile#isHardwareRasterizer()
    */
   public final boolean isHardwareRasterizer() {
       return 0 == ( ctxOptions & CTX_IMPL_ACCEL_SOFT ) ;
   }
-  
+
   /**
-   * @return true if context supports GLSL, i.e. is either {@link #isGLES2()}, {@link #isGL3()} or {@link #isGL2()} <i>and</i> major-version > 1.
-   * @see GLProfile#hasGLSL() 
+   * @return true if context supports GLSL, i.e. is either {@link #isGLES3()}, {@link #isGLES2()}, {@link #isGL3()} or {@link #isGL2()} <i>and</i> major-version > 1.
+   * @see GLProfile#hasGLSL()
    */
   public final boolean hasGLSL() {
-      return isGLES2() ||
+      return isGLES3() ||
+             isGLES2() ||
              isGL3() ||
              isGL2() && ctxVersion.getMajor()>1 ;
   }
 
-  /** 
+  /**
    * Returns <code>true</code> if basic FBO support is available, otherwise <code>false</code>.
    * <p>
-   * Basic FBO is supported if the context is either GL-ES >= 2.0, GL >= core 3.0 or implements the extensions
+   * Basic FBO is supported if the context is either GL-ES >= 2.0, GL >= 3.0 [core, compat] or implements the extensions
    * <code>GL_ARB_ES2_compatibility</code>, <code>GL_ARB_framebuffer_object</code>, <code>GL_EXT_framebuffer_object</code> or <code>GL_OES_framebuffer_object</code>.
    * </p>
    * <p>
@@ -870,30 +896,21 @@ public abstract class GLContext {
       return 0 != ( ctxOptions & CTX_IMPL_FBO ) ;
   }
 
-  /** 
-   * Returns <code>true</code> if <code>OES_single_precision</code>, fp32, fixed function point (FFP) compatibility entry points available, 
-   * otherwise <code>false</code>.
-   * @see #CTX_IMPL_FP32_COMPAT_API
-   */
-  public final boolean hasFP32CompatAPI() {
-      return 0 != ( ctxOptions & CTX_IMPL_FP32_COMPAT_API ) ;
-  }
-  
-  /** 
+  /**
    * Returns <code>true</code> if full FBO support is available, otherwise <code>false</code>.
    * <p>
-   * Full FBO is supported if the context is either GL >= core 3.0 or implements the extensions
+   * Full FBO is supported if the context is either GL >= 3.0 [ES, core, compat] or implements the extensions
    * <code>ARB_framebuffer_object</code>, or all of
-   * <code>EXT_framebuffer_object</code>, <code>EXT_framebuffer_multisample</code>, 
+   * <code>EXT_framebuffer_object</code>, <code>EXT_framebuffer_multisample</code>,
    * <code>EXT_framebuffer_blit</code>, <code>GL_EXT_packed_depth_stencil</code>.
    * </p>
    * <p>
    * Full FBO support includes multiple color attachments and multisampling.
    * </p>
    */
-  public final boolean hasFullFBOSupport() {        
+  public final boolean hasFullFBOSupport() {
       return hasBasicFBOSupport() && !hasRendererQuirk(GLRendererQuirks.NoFullFBOSupport) &&
-             ( isGL3() ||                                                         // GL >= 3.0                
+             ( isGL3ES3() ||                                                      // GL >= 3.0 [ES, core, compat]
                isExtensionAvailable(GLExtensions.ARB_framebuffer_object) ||       // ARB_framebuffer_object
                ( isExtensionAvailable(GLExtensions.EXT_framebuffer_object) &&     // All EXT_framebuffer_object*
                  isExtensionAvailable(GLExtensions.EXT_framebuffer_multisample) &&
@@ -902,10 +919,19 @@ public abstract class GLContext {
                )
              ) ;
   }
-  
+
+  /**
+   * Returns <code>true</code> if <code>OES_single_precision</code>, fp32, fixed function point (FFP) compatibility entry points available,
+   * otherwise <code>false</code>.
+   * @see #CTX_IMPL_FP32_COMPAT_API
+   */
+  public final boolean hasFP32CompatAPI() {
+      return 0 != ( ctxOptions & CTX_IMPL_FP32_COMPAT_API ) ;
+  }
+
   /**
    * Returns the maximum number of FBO RENDERBUFFER samples
-   * if {@link #hasFullFBOSupport() full FBO is supported}, otherwise false. 
+   * if {@link #hasFullFBOSupport() full FBO is supported}, otherwise false.
    */
   public final int getMaxRenderbufferSamples() {
       if( hasFullFBOSupport() ) {
@@ -923,7 +949,7 @@ public abstract class GLContext {
       }
       return 0;
   }
-  
+
   /** Note: The GL impl. may return a const value, ie {@link GLES2#isNPOTTextureAvailable()} always returns <code>true</code>. */
   public boolean isNPOTTextureAvailable() {
       return isGL3() || isGLES2Compatible() || isExtensionAvailable(GLExtensions.ARB_texture_non_power_of_two);
@@ -935,9 +961,9 @@ public abstract class GLContext {
              isExtensionAvailable(GLExtensions.IMG_texture_format_BGRA8888) ;
   }
 
-  /** 
+  /**
    * Indicates whether this GLContext is capable of GL4bc.  <p>Includes [ GL4bc ].</p>
-   * @see GLProfile#isGL4bc() 
+   * @see GLProfile#isGL4bc()
    */
   public final boolean isGL4bc() {
       return 0 != (ctxOptions & CTX_IS_ARB_CREATED) &&
@@ -945,9 +971,9 @@ public abstract class GLContext {
              ctxVersion.getMajor() >= 4;
   }
 
-  /** 
+  /**
    * Indicates whether this GLContext is capable of GL4.    <p>Includes [ GL4bc, GL4 ].</p>
-   * @see GLProfile#isGL4() 
+   * @see GLProfile#isGL4()
    */
   public final boolean isGL4() {
       return 0 != (ctxOptions & CTX_IS_ARB_CREATED) &&
@@ -955,7 +981,7 @@ public abstract class GLContext {
              ctxVersion.getMajor() >= 4;
   }
 
-  /** 
+  /**
    * Indicates whether this GLContext uses a GL4 core profile. <p>Includes [ GL4 ].</p>
    */
   public final boolean isGL4core() {
@@ -963,10 +989,10 @@ public abstract class GLContext {
              0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
              ctxVersion.getMajor() >= 4;
   }
-  
-  /** 
+
+  /**
    * Indicates whether this GLContext is capable of GL3bc.  <p>Includes [ GL4bc, GL3bc ].</p>
-   * @see GLProfile#isGL3bc() 
+   * @see GLProfile#isGL3bc()
    */
   public final boolean isGL3bc() {
       return 0 != (ctxOptions & CTX_IS_ARB_CREATED) &&
@@ -974,17 +1000,17 @@ public abstract class GLContext {
              ctxVersion.compareTo(Version310) >= 0 ;
   }
 
-  /** 
+  /**
    * Indicates whether this GLContext is capable of GL3.    <p>Includes [ GL4bc, GL4, GL3bc, GL3 ].</p>
-   * @see GLProfile#isGL3() 
+   * @see GLProfile#isGL3()
    */
   public final boolean isGL3() {
       return 0 != (ctxOptions & CTX_IS_ARB_CREATED) &&
              0 != (ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE)) &&
              ctxVersion.compareTo(Version310) >= 0 ;
-  }  
-  
-  /** 
+  }
+
+  /**
    * Indicates whether this GLContext uses a GL3 core profile. <p>Includes [ GL4, GL3 ].</p>
    */
   public final boolean isGL3core() {
@@ -992,9 +1018,9 @@ public abstract class GLContext {
              0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
              ctxVersion.compareTo(Version310) >= 0;
   }
-  
-  /** 
-   * Indicates whether this GLContext uses a GL core profile. <p>Includes [ GL4, GL3, GLES3, GL2ES2 ].</p>
+
+  /**
+   * Indicates whether this GLContext uses a GL core profile. <p>Includes [ GL4, GL3, GLES3, GLES2 ].</p>
    */
   public final boolean isGLcore() {
       return ( 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() >= 2 ) ||
@@ -1003,16 +1029,26 @@ public abstract class GLContext {
                ctxVersion.compareTo(Version310) >= 0
              ) ;
   }
-  
-  /** 
-   * Indicates whether this GLContext's native profile does not implement a default <i>vertex array object</i> (VAO), 
+
+  /**
+   * Indicates whether this GLContext allows CPU data sourcing (indices, vertices ..) as opposed to using a GPU buffer source (VBO),
+   * e.g. {@link GL2#glDrawElements(int, int, int, java.nio.Buffer)}.
+   * <p>Includes [GL2ES1, GLES2] == [ GL4bc, GL3bc, GL2, GLES1, GL2ES1, GLES2 ].</p>
+   * <p>See Bug 852 - https://jogamp.org/bugzilla/show_bug.cgi?id=852 </p>
+   */
+  public final boolean isCPUDataSourcingAvail() {
+      return isGL2ES1() || isGLES2();
+  }
+
+  /**
+   * Indicates whether this GLContext's native profile does not implement a default <i>vertex array object</i> (VAO),
    * starting w/ OpenGL 3.1 core and GLES3.
    * <p>Includes [ GL4, GL3, GLES3 ].</p>
    * <pre>
      Due to GL 3.1 core spec: E.1. DEPRECATED AND REMOVED FEATURES (p 296),
             GL 3.2 core spec: E.2. DEPRECATED AND REMOVED FEATURES (p 331)
      there is no more default VAO buffer 0 bound, hence generating and binding one
-     to avoid INVALID_OPERATION at VertexAttribPointer. 
+     to avoid INVALID_OPERATION at VertexAttribPointer.
      More clear is GL 4.3 core spec: 10.4 (p 307).
    * </pre>
    * <pre>
@@ -1032,96 +1068,110 @@ public abstract class GLContext {
                ctxVersion.compareTo(Version310) >= 0
              ) ;
   }
-  
+
   /**
    * If this GLContext does not implement a default VAO, see {@link #hasNoDefaultVAO()},
    * an <i>own default VAO</i> will be created and bound at context creation.
    * <p>
    * If this GLContext does implement a default VAO, i.e. {@link #hasNoDefaultVAO()}
    * returns <code>false</code>, this method returns <code>0</code>.
-   * </p> 
+   * </p>
    * <p>
    * Otherwise this method returns the VAO object name
-   * representing this GLContext's <i>own default VAO</i>.  
-   * </p> 
+   * representing this GLContext's <i>own default VAO</i>.
+   * </p>
    * @see #hasNoDefaultVAO()
    */
   public abstract int getDefaultVAO();
 
-  /** 
+  /**
    * Indicates whether this GLContext is capable of GL2.    <p>Includes [ GL4bc, GL3bc, GL2  ].</p>
-   * @see GLProfile#isGL2() 
+   * @see GLProfile#isGL2()
    */
   public final boolean isGL2() {
       return 0 != ( ctxOptions & CTX_PROFILE_COMPAT ) && ctxVersion.getMajor()>=1 ;
   }
 
-  /** 
+  /**
    * Indicates whether this GLContext is capable of GL2GL3. <p>Includes [ GL4bc, GL4, GL3bc, GL3, GL2, GL2GL3 ].</p>
-   * @see GLProfile#isGL2GL3() 
-   */  
+   * @see GLProfile#isGL2GL3()
+   */
   public final boolean isGL2GL3() {
       return isGL2() || isGL3();
   }
 
-  /** 
+  /**
    * Indicates whether this GLContext is capable of GLES1.  <p>Includes [ GLES1 ].</p>
-   * @see GLProfile#isGLES1() 
+   * @see GLProfile#isGLES1()
    */
   public final boolean isGLES1() {
       return 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() == 1 ;
   }
 
   /**
-   * Indicates whether this GLContext is capable of GLES2.  <p>Includes [ GLES3, GLES2 ].</p> 
-   * @see GLProfile#isGLES2() 
+   * Indicates whether this GLContext is capable of GLES2.  <p>Includes [ GLES2, GLES3 ].</p>
+   * @see GLProfile#isGLES2()
    */
   public final boolean isGLES2() {
-      return 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() >= 2 ;
+      if( 0 != ( ctxOptions & CTX_PROFILE_ES ) ) {
+          final int major = ctxVersion.getMajor();
+          return 2 == major || 3 == major;
+      }
+      return false;
   }
 
-  /** 
+  /**
    * Indicates whether this GLContext is capable of GLES3.  <p>Includes [ GLES3 ].</p>
-   * @see GLProfile#isGLES3() 
+   * @see GLProfile#isGLES3()
    */
   public final boolean isGLES3() {
-      return 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() >= 3 ;
+      return 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() == 3 ;
   }
 
-  /** 
+  /**
    * Indicates whether this GLContext is capable of GLES.  <p>Includes [ GLES3, GLES1, GLES2 ].</p>
-   * @see GLProfile#isGLES() 
+   * @see GLProfile#isGLES()
    */
   public final boolean isGLES() {
       return 0 != ( CTX_PROFILE_ES & ctxOptions ) ;
   }
 
-  /** 
+  /**
    * Indicates whether this GLContext is capable of GL2ES1. <p>Includes [ GL4bc, GL3bc, GL2, GLES1, GL2ES1 ].</p>
-   * @see GLProfile#isGL2ES1() 
+   * @see GLProfile#isGL2ES1()
    */
   public final boolean isGL2ES1() {
       return isGLES1() || isGL2();
   }
 
-  /** 
+  /**
    * Indicates whether this GLContext is capable of GL2ES2. <p>Includes [ GL4bc, GL4, GL3bc, GL3, GLES3, GL2, GL2GL3, GL2ES2, GLES2 ].</p>
-   * @see GLProfile#isGL2ES2() 
+   * @see GLProfile#isGL2ES2()
    */
   public final boolean isGL2ES2() {
       return isGLES2() || isGL2GL3();
   }
 
-  /** 
+  /**
+   * Indicates whether this GLContext is capable of GL2ES3. <p>Includes [ GL4bc, GL4, GL3bc, GL3, GLES3, GL3ES3, GL2, GL2GL3 ].</p>
+   * @see GLProfile#isGL2ES3()
+   * @see #isGL3ES3()
+   * @see #isGL2GL3()
+   */
+  public final boolean isGL2ES3() {
+      return isGL3ES3() || isGL2GL3();
+  }
+
+  /**
    * Indicates whether this GLContext is capable of GL3ES3. <p>Includes [ GL4bc, GL4, GL3bc, GL3, GLES3 ].</p>
-   * @see GLProfile#isGL3ES3() 
+   * @see GLProfile#isGL3ES3()
    */
   public final boolean isGL3ES3() {
       return isGL4ES3() || isGL3();
   }
 
-  /** 
-   * Returns true if this profile is capable of GL4ES3, i.e. if {@link #isGLES3Compatible()} returns true. 
+  /**
+   * Returns true if this profile is capable of GL4ES3, i.e. if {@link #isGLES3Compatible()} returns true.
    * <p>Includes [ GL &ge; 4.3, GL &ge; 3.1 w/ GL_ARB_ES3_compatibility and GLES3 ]</p>
    * @see GLProfile#isGL4ES3()
    */
@@ -1160,7 +1210,7 @@ public abstract class GLContext {
    * </p>
    * <p>
    * For a valid context the default value is <code>1</code>
-   * in case of an EGL based profile (ES1 or ES2) and <code>-1</code> 
+   * in case of an EGL based profile (ES1 or ES2) and <code>-1</code>
    * (undefined) for desktop.
    * </p>
    */
@@ -1197,70 +1247,70 @@ public abstract class GLContext {
   }
   protected boolean bindSwapBarrierImpl(int group, int barrier) { /** nop per default .. **/  return false; }
 
-  /** 
-   * Return the framebuffer name bound to this context, 
+  /**
+   * Return the framebuffer name bound to this context,
    * see {@link GL#glBindFramebuffer(int, int)}.
    */
   public abstract int getBoundFramebuffer(int target);
-  
-  /** 
+
+  /**
    * Return the default draw framebuffer name.
-   * <p> 
+   * <p>
    * May differ from it's default <code>zero</code>
-   * in case an framebuffer object ({@link FBObject}) based drawable
+   * in case an framebuffer object ({@link com.jogamp.opengl.FBObject}) based drawable
    * is being used.
-   * </p> 
+   * </p>
    */
   public abstract int getDefaultDrawFramebuffer();
-  
-  /** 
+
+  /**
    * Return the default read framebuffer name.
-   * <p> 
+   * <p>
    * May differ from it's default <code>zero</code>
-   * in case an framebuffer object ({@link FBObject}) based drawable
+   * in case an framebuffer object ({@link com.jogamp.opengl.FBObject}) based drawable
    * is being used.
-   * </p> 
+   * </p>
    */
   public abstract int getDefaultReadFramebuffer();
-  
-  /** 
-   * Returns the default color buffer within the current bound 
-   * {@link #getDefaultReadFramebuffer()}, i.e. GL_READ_FRAMEBUFFER​,  
-   * which will be used as the source for pixel reading commands, 
+
+  /**
+   * Returns the default color buffer within the current bound
+   * {@link #getDefaultReadFramebuffer()}, i.e. GL_READ_FRAMEBUFFER​,
+   * which will be used as the source for pixel reading commands,
    * like {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer)} etc.
    * <p>
    * For offscreen framebuffer objects this is {@link GL#GL_COLOR_ATTACHMENT0},
-   * otherwise this is {@link GL#GL_FRONT} for single buffer configurations 
+   * otherwise this is {@link GL#GL_FRONT} for single buffer configurations
    * and {@link GL#GL_BACK} for double buffer configurations.
-   * </p> 
+   * </p>
    */
   public abstract int getDefaultReadBuffer();
-  
+
   /** Get the default pixel data type, as required by e.g. {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer)}. */
   public abstract int getDefaultPixelDataType();
-  
+
   /** Get the default pixel data format, as required by e.g. {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer)}. */
   public abstract int getDefaultPixelDataFormat();
-  
+
   /**
    * @return The extension implementing the GLDebugOutput feature,
-   *         either <i>GL_ARB_debug_output</i> or <i>GL_AMD_debug_output</i>.
+   *         either {@link GLExtensions#ARB_debug_output} or {@link GLExtensions#AMD_debug_output}.
    *         If unavailable or called before initialized via {@link #makeCurrent()}, <i>null</i> is returned.
    */
   public abstract String getGLDebugMessageExtension();
 
   /**
-   * @return the current synchronous debug behavior via
-   * @see #setSynchronous(boolean)
+   * @return the current synchronous debug behavior, set via {@link #setGLDebugSynchronous(boolean)}.
    */
   public abstract boolean isGLDebugSynchronous();
 
   /**
    * Enables or disables the synchronous debug behavior via
-   * {@link GL2GL3#GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB glEnable/glDisable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB)},
-   * if extension is {@link #GL_ARB_debug_output}.
-   * There is no equivalent for {@link #GL_AMD_debug_output}.
-   * <p> The default is <code>true</code>, ie {@link GL2GL3#GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB}.</p>
+   * {@link GL2GL3#GL_DEBUG_OUTPUT_SYNCHRONOUS glEnable/glDisable(GL_DEBUG_OUTPUT_SYNCHRONOUS)},
+   * if extension is {@link GLExtensions#ARB_debug_output}.
+   * There is no equivalent for {@link GLExtensions#AMD_debug_output}.
+   * <p> The default is <code>true</code>, ie {@link GL2GL3#GL_DEBUG_OUTPUT_SYNCHRONOUS}.</p>
+   * @link {@link #isGLDebugSynchronous()}
    */
   public abstract void setGLDebugSynchronous(boolean synchronous);
 
@@ -1270,8 +1320,8 @@ public abstract class GLContext {
   public abstract boolean isGLDebugMessageEnabled();
 
   /**
-   * Enables or disables the GLDebugOutput feature of extension <i>GL_ARB_debug_output</i>
-   * or <i>GL_AMD_debug_output</i>, if available.
+   * Enables or disables the GLDebugOutput feature of extension {@link GLExtensions#ARB_debug_output}
+   * or {@link GLExtensions#AMD_debug_output}, if available.
    *
    * <p>To enable the GLDebugOutput feature {@link #enableGLDebugMessage(boolean) enableGLDebugMessage(true)}
    * or {@link #setContextCreationFlags(int) setContextCreationFlags}({@link GLContext#CTX_OPTION_DEBUG})
@@ -1296,7 +1346,7 @@ public abstract class GLContext {
   /**
    * Add {@link GLDebugListener}.<br>
    *
-   * @param listener {@link GLDebugListener} handling {@GLDebugMessage}s
+   * @param listener {@link GLDebugListener} handling {@link GLDebugMessage}s
    * @see #enableGLDebugMessage(boolean)
    * @see #removeGLDebugListener(GLDebugListener)
    */
@@ -1305,28 +1355,28 @@ public abstract class GLContext {
   /**
    * Remove {@link GLDebugListener}.<br>
    *
-   * @param listener {@link GLDebugListener} handling {@GLDebugMessage}s
+   * @param listener {@link GLDebugListener} handling {@link GLDebugMessage}s
    * @see #enableGLDebugMessage(boolean)
    * @see #addGLDebugListener(GLDebugListener)
    */
   public abstract void removeGLDebugListener(GLDebugListener listener);
 
   /**
-   * Generic entry for {@link GL2GL3#glDebugMessageControlARB(int, int, int, int, IntBuffer, boolean)}
+   * Generic entry for {@link GL2GL3#glDebugMessageControl(int, int, int, int, IntBuffer, boolean)}
    * and {@link GL2GL3#glDebugMessageEnableAMD(int, int, int, IntBuffer, boolean)} of the GLDebugOutput feature.
    * @see #enableGLDebugMessage(boolean)
    */
   public abstract void glDebugMessageControl(int source, int type, int severity, int count, IntBuffer ids, boolean enabled);
 
   /**
-   * Generic entry for {@link GL2GL3#glDebugMessageControlARB(int, int, int, int, int[], int, boolean)}
+   * Generic entry for {@link GL2GL3#glDebugMessageControl(int, int, int, int, int[], int, boolean)}
    * and {@link GL2GL3#glDebugMessageEnableAMD(int, int, int, int[], int, boolean)} of the GLDebugOutput feature.
    * @see #enableGLDebugMessage(boolean)
    */
   public abstract void glDebugMessageControl(int source, int type, int severity, int count, int[] ids, int ids_offset, boolean enabled);
 
   /**
-   * Generic entry for {@link GL2GL3#glDebugMessageInsertARB(int, int, int, int, int, String)}
+   * Generic entry for {@link GL2GL3#glDebugMessageInsert(int, int, int, int, int, String)}
    * and {@link GL2GL3#glDebugMessageInsertAMD(int, int, int, int, String)} of the GLDebugOutput feature.
    * @see #enableGLDebugMessage(boolean)
    */
@@ -1337,7 +1387,7 @@ public abstract class GLContext {
       /* 1.*/ { 0, 1, 2, 3, 4, 5 },
       /* 2.*/ { 0, 1 },
       /* 3.*/ { 0, 1, 2, 3 },
-      /* 4.*/ { 0, 1, 2, 3 } };
+      /* 4.*/ { 0, 1, 2, 3, 4 } };
 
   public static final int ES_VERSIONS[][] = {
       /* 0.*/ { -1 },
@@ -1362,51 +1412,100 @@ public abstract class GLContext {
       }
   }
 
+  /**
+   * Returns true, if the major.minor is not inferior to the lowest
+   * valid version and does not exceed the highest known major number by more than one.
+   * <p>
+   * The minor version number is ignored by the upper limit validation
+   * and the major version number may exceed by one.
+   * </p>
+   * <p>
+   * The upper limit check is relaxed since we don't want to cut-off
+   * unforseen new GL version since the release of JOGL.
+   * </p>
+   * <p>
+   * Hence it is important to iterate through GL version from the upper limit
+   * and {@link #decrementGLVersion(int, int[], int[])} until invalid.
+   * </p>
+   */
   public static final boolean isValidGLVersion(int ctxProfile, int major, int minor) {
       if( 1>major || 0>minor ) {
           return false;
       }
-      if( ( 0 != ( CTX_PROFILE_ES & ctxProfile ) ) ) {
-          if( major>=ES_VERSIONS.length) return false;
-          if( minor>=ES_VERSIONS[major].length) return false;
+      if( 0 != ( CTX_PROFILE_ES & ctxProfile ) ) {
+          if( major >= ES_VERSIONS.length + 1 ) return false;
       } else {
-          if( major>=GL_VERSIONS.length) return false;
-          if( minor>=GL_VERSIONS[major].length) return false;
+          if( major>=GL_VERSIONS.length + 1 ) return false;
       }
       return true;
   }
 
-  public static final boolean decrementGLVersion(int ctxProfile, int major[], int minor[]) {
-      if(null==major || major.length<1 ||null==minor || minor.length<1) {
-          throw new GLException("invalid array arguments");
-      }
-      int m = major[0];
-      int n = minor[0];
-      if( !isValidGLVersion(ctxProfile, m, n) ) {
-          return false;
-      }
+  /**
+   * Clip the given GL version to the maximum known valid version if exceeding.
+   * @return true if clipped, i.e. given value exceeds maximum, otherwise false.
+   */
+  public static final boolean clipGLVersion(int ctxProfile, int major[], int minor[]) {
+      final int m = major[0];
+      final int n = minor[0];
 
-      // decrement ..
-      n -= 1;
-      if(n < 0) {
-          if( ( 0 != ( CTX_PROFILE_ES & ctxProfile ) ) ) {
-              if( m >= 3) {
-                  m -= 1;
-              } else {
-                  m = 0; // major decr [1,2] -> 0
-              }
-              n = ES_VERSIONS[m].length-1;
-          } else {
-              m -= 1;
-              n = GL_VERSIONS[m].length-1;
+      if( 0 != ( CTX_PROFILE_ES & ctxProfile ) ) {
+          if( m >= ES_VERSIONS.length ) {
+              major[0] = ES_VERSIONS.length - 1;
+              minor[0] = ES_VERSIONS[major[0]].length - 1;
+              return true;
           }
+          if( n  >= ES_VERSIONS[m].length ) {
+              minor[0] = ES_VERSIONS[m].length - 1;
+              return true;
+          }
+      } else if( m >= GL_VERSIONS.length ) { // !isES
+          major[0] = GL_VERSIONS.length - 1;
+          minor[0] = GL_VERSIONS[major[0]].length - 1;
+          return true;
+      } else if( n  >= GL_VERSIONS[m].length ) { // !isES
+          minor[0] = GL_VERSIONS[m].length - 1;
+          return true;
       }
-      if( !isValidGLVersion(ctxProfile, m, n) ) {
-          return false;
-      }
-      major[0]=m;
-      minor[0]=n;
+      return false;
+  }
 
+  /**
+   * Decrement the given GL version by one
+   * and return true if still valid, otherwise false.
+   * <p>
+   * If the given version exceeds the maximum known valid version,
+   * it is {@link #clipGLVersion(int, int[], int[]) clipped} and
+   * true is returned.
+   * </p>
+   *
+   * @param ctxProfile
+   * @param major
+   * @param minor
+   * @return
+   */
+  public static final boolean decrementGLVersion(int ctxProfile, int major[], int minor[]) {
+      if( !clipGLVersion(ctxProfile, major, minor) ) {
+          int m = major[0];
+          int n = minor[0] - 1;
+          if(n < 0) {
+              if( 0 != ( CTX_PROFILE_ES & ctxProfile ) ) {
+                  if( m >= 3 ) {
+                      m -= 1;
+                  } else {
+                      m = 0; // major decr [1,2] -> 0
+                  }
+                  n = ES_VERSIONS[m].length-1;
+              } else {
+                  m -= 1;
+                  n = GL_VERSIONS[m].length-1;
+              }
+          }
+          if( !isValidGLVersion(ctxProfile, m, n) ) {
+              return false;
+          }
+          major[0]=m;
+          minor[0]=n;
+      }
       return true;
   }
 
@@ -1461,13 +1560,13 @@ public abstract class GLContext {
           }
           if (DEBUG) {
             System.err.println(getThreadName() + ": createContextARB: SET mappedVersionsAvailableSet "+devKey);
-            System.err.println(GLContext.dumpAvailableGLVersions(null).toString());            
+            System.err.println(GLContext.dumpAvailableGLVersions(null).toString());
           }
       }
   }
 
-  /** 
-   * Returns a unique String object using {@link String#intern()} for the given arguments, 
+  /**
+   * Returns a unique String object using {@link String#intern()} for the given arguments,
    * which object reference itself can be used as a key.
    */
   protected static String getDeviceVersionAvailableKey(AbstractGraphicsDevice device, int major, int profile) {
@@ -1476,8 +1575,8 @@ public abstract class GLContext {
   }
 
   /**
-   * Called by {@link jogamp.opengl.GLContextImpl#createContextARBMapVersionsAvailable} not intended to be used by
-   * implementations. However, if {@link #createContextARB} is not being used within
+   * Called by {@link jogamp.opengl.GLContextImpl#createContextARBMapVersionsAvailable(int,int)} not intended to be used by
+   * implementations. However, if {@link jogamp.opengl.GLContextImpl#createContextARB(long, boolean)} is not being used within
    * {@link javax.media.opengl.GLDrawableFactory#getOrCreateSharedContext(javax.media.nativewindow.AbstractGraphicsDevice)},
    * GLProfile has to map the available versions.
    *
@@ -1523,8 +1622,8 @@ public abstract class GLContext {
             final Integer valI = deviceVersionAvailable.get(key);
             if(null != valI) {
                 final int bits32 = valI.intValue();
-                final int major = ( bits32 & 0xFF000000 ) >> 24 ;
-                final int minor = ( bits32 & 0x00FF0000 ) >> 16 ;
+                final int major = ( bits32 & 0xFF000000 ) >>> 24 ;
+                final int minor = ( bits32 & 0x00FF0000 ) >>> 16 ;
                 final int ctp   = ( bits32 & 0x0000FFFF )       ;
                 sb.append(GLContext.getGLVersion(major, minor, ctp, null));
             } else {
@@ -1550,7 +1649,7 @@ public abstract class GLContext {
     }
     return val;
   }
-  
+
   /**
    * @param reqMajor Key Value either 1, 2, 3 or 4
    * @param reqProfile Key Value either {@link #CTX_PROFILE_COMPAT}, {@link #CTX_PROFILE_CORE} or {@link #CTX_PROFILE_ES}
@@ -1569,10 +1668,10 @@ public abstract class GLContext {
     final int bits32 = valI.intValue();
 
     if(null!=major) {
-        major[0] = ( bits32 & 0xFF000000 ) >> 24 ;
+        major[0] = ( bits32 & 0xFF000000 ) >>> 24 ;
     }
     if(null!=minor) {
-        minor[0] = ( bits32 & 0x00FF0000 ) >> 16 ;
+        minor[0] = ( bits32 & 0x00FF0000 ) >>> 16 ;
     }
     if(null!=ctp) {
         ctp[0]   = ( bits32 & 0x0000FFFF )       ;
@@ -1594,7 +1693,8 @@ public abstract class GLContext {
         if(major >= 4)                            { return GLProfile.GL4; }
         else if(major == 3 && minor >= 1)         { return GLProfile.GL3; }
     } else if(0 != ( CTX_PROFILE_ES & ctp )) {
-        if(major == 2)                            { return GLProfile.GLES2; }
+        if(major == 3)                            { return GLProfile.GLES3; }
+        else if(major == 2)                       { return GLProfile.GLES2; }
         else if(major == 1)                       { return GLProfile.GLES1; }
     }
     throw new GLException("Unhandled OpenGL version/profile: "+GLContext.getGLVersion(major, minor, ctp, null));
@@ -1622,7 +1722,7 @@ public abstract class GLContext {
         reqMajorCTP[1]=CTX_PROFILE_CORE;
     }
   }
-  
+
   /**
    * @param device the device the context profile is being requested for
    * @param GLProfile the GLProfile the context profile is being requested for
@@ -1631,7 +1731,7 @@ public abstract class GLContext {
   protected static final int getAvailableContextProperties(final AbstractGraphicsDevice device, final GLProfile glp) {
     final int[] reqMajorCTP = new int[] { 0, 0 };
     getRequestMajorAndCompat(glp, reqMajorCTP);
-    
+
     int _major[] = { 0 };
     int _minor[] = { 0 };
     int _ctp[] = { 0 };
@@ -1645,15 +1745,27 @@ public abstract class GLContext {
    * @param device the device the profile is being requested
    * @param major Key Value either 1, 2, 3 or 4
    * @param profile Key Value either {@link #CTX_PROFILE_COMPAT}, {@link #CTX_PROFILE_CORE} or {@link #CTX_PROFILE_ES}
-   * @return the highest GLProfile regarding availability, version and profile bits.
+   * @return the highest GLProfile for the device regarding availability, version and profile bits.
    */
   protected static GLProfile getAvailableGLProfile(AbstractGraphicsDevice device, int reqMajor, int reqProfile)
+          throws GLException {
+    final String glpName = getAvailableGLProfileName(device, reqMajor, reqProfile);
+    return null != glpName ? GLProfile.get(device, glpName) : null;
+  }
+
+  /**
+   * @param device the device the profile is being requested
+   * @param major Key Value either 1, 2, 3 or 4
+   * @param profile Key Value either {@link #CTX_PROFILE_COMPAT}, {@link #CTX_PROFILE_CORE} or {@link #CTX_PROFILE_ES}
+   * @return the highest GLProfile name for the device regarding availability, version and profile bits.
+   */
+  /* package */ static String getAvailableGLProfileName(AbstractGraphicsDevice device, int reqMajor, int reqProfile)
           throws GLException {
     int major[] = { 0 };
     int minor[] = { 0 };
     int ctp[] = { 0 };
     if(GLContext.getAvailableGLVersion(device, reqMajor, reqProfile, major, minor, ctp)) {
-        return GLProfile.get(GLContext.getGLProfile(major[0], minor[0], ctp[0]));
+        return GLContext.getGLProfile(major[0], minor[0], ctp[0]);
     }
     return null;
   }
@@ -1677,7 +1789,7 @@ public abstract class GLContext {
    * Returns true if it is possible to create an <i>framebuffer object</i> (FBO).
    * <p>
    * FBO feature is implemented in OpenGL, hence it is {@link GLProfile} dependent.
-   * </p> 
+   * </p>
    * <p>
    * FBO support is queried as described in {@link #hasBasicFBOSupport()}.
    * </p>
@@ -1689,16 +1801,16 @@ public abstract class GLContext {
   public static final boolean isFBOAvailable(AbstractGraphicsDevice device, GLProfile glp) {
       return 0 != ( CTX_IMPL_FBO & getAvailableContextProperties(device, glp) );
   }
-  
+
   /**
-   * @return <code>1</code> if using a hardware rasterizer, <code>0</code> if using a software rasterizer and <code>-1</code> if not determined yet. 
+   * @return <code>1</code> if using a hardware rasterizer, <code>0</code> if using a software rasterizer and <code>-1</code> if not determined yet.
    * @see GLContext#isHardwareRasterizer()
-   * @see GLProfile#isHardwareRasterizer() 
+   * @see GLProfile#isHardwareRasterizer()
    */
   public static final int isHardwareRasterizer(AbstractGraphicsDevice device, GLProfile glp) {
       final int r;
       final int ctp = getAvailableContextProperties(device, glp);
-      if(0 == ctp) { 
+      if(0 == ctp) {
           r = -1;
       } else if( 0 == ( CTX_IMPL_ACCEL_SOFT & ctp ) ) {
           r = 1;
@@ -1707,7 +1819,7 @@ public abstract class GLContext {
       }
       return r;
   }
-  
+
   /**
    * @param device the device to request whether the profile is available for
    * @param reqMajor Key Value either 1, 2, 3 or 4
@@ -1749,7 +1861,7 @@ public abstract class GLContext {
       int minor[] = { 0 };
       int ctp[] = { 0 };
       boolean ok;
-      
+
       ok = GLContext.getAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_ES, major, minor, ctp);
       if( !ok ) {
           ok = GLContext.getAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_CORE, major, minor, ctp);
@@ -1759,7 +1871,7 @@ public abstract class GLContext {
       }
       return 0 != ( ctp[0] & CTX_IMPL_ES3_COMPAT );
   }
-    
+
   public static boolean isGL4bcAvailable(AbstractGraphicsDevice device, boolean isHardware[]) {
       return isGLVersionAvailable(device, 4, CTX_PROFILE_COMPAT, isHardware);
   }
@@ -1796,7 +1908,7 @@ public abstract class GLContext {
     needColon = appendString(sb, "ES2 compat",            needColon, 0 != ( CTX_IMPL_ES2_COMPAT & ctp ));
     needColon = appendString(sb, "ES3 compat",            needColon, 0 != ( CTX_IMPL_ES3_COMPAT & ctp ));
     needColon = appendString(sb, "FBO",                   needColon, 0 != ( CTX_IMPL_FBO & ctp ));
-    needColon = appendString(sb, "FP32 compat-api",       needColon, 0 != ( CTX_IMPL_FP32_COMPAT_API & ctp ));
+    needColon = appendString(sb, "FP32 compat",           needColon, 0 != ( CTX_IMPL_FP32_COMPAT_API & ctp ));
     if( 0 != ( CTX_IMPL_ACCEL_SOFT & ctp ) ) {
         needColon = appendString(sb, "software",          needColon, true);
     } else {
@@ -1834,6 +1946,6 @@ public abstract class GLContext {
   }
 
   protected static String getThreadName() { return Thread.currentThread().getName(); }
-  
+
 }
 

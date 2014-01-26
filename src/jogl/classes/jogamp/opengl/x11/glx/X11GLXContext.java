@@ -100,7 +100,7 @@ public class X11GLXContext extends GLContextImpl {
   }
 
   @Override
-  protected void resetStates() {
+  protected void resetStates(boolean isInit) {
     // no inner state _glXExt=null;
     glXExtProcAddressTable = null;
     hasSwapInterval = 0;
@@ -108,7 +108,7 @@ public class X11GLXContext extends GLContextImpl {
     isDirect = false;
     glXServerVersion = null;
     isGLXVersionGreaterEqualOneThree = false;
-    super.resetStates();
+    super.resetStates(isInit);
   }
 
   @Override
@@ -142,7 +142,7 @@ public class X11GLXContext extends GLContextImpl {
     if(null != glXServerVersion) {
         return isGLXVersionGreaterEqualOneThree;
     }
-    glXServerVersion = ((X11GLXDrawableFactory)drawable.getFactoryImpl()).getGLXVersionNumber(drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice()); 
+    glXServerVersion = ((X11GLXDrawableFactory)drawable.getFactoryImpl()).getGLXVersionNumber(drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice());
     isGLXVersionGreaterEqualOneThree = null != glXServerVersion ? glXServerVersion.compareTo(X11GLXDrawableFactory.versionOneThree) >= 0 : false;
     return isGLXVersionGreaterEqualOneThree;
   }
@@ -262,7 +262,7 @@ public class X11GLXContext extends GLContextImpl {
           t.printStackTrace();
         }
     }
-    
+
     if(0!=ctx) {
         if (!glXMakeContextCurrent(display, drawable.getHandle(), drawableRead.getHandle(), ctx)) {
             if(DEBUG) {
@@ -283,7 +283,7 @@ public class X11GLXContext extends GLContextImpl {
   }
 
   @Override
-  protected boolean createImpl(GLContextImpl shareWith) {
+  protected boolean createImpl(final long shareWithHandle) {
     boolean direct = true; // try direct always
     isDirect = false; // fall back
 
@@ -293,15 +293,8 @@ public class X11GLXContext extends GLContextImpl {
     final X11GLXContext sharedContext = (X11GLXContext) factory.getOrCreateSharedContext(device);
     long display = device.getHandle();
 
-    final long share;
-    if ( null != shareWith ) {
-        share = shareWith.getHandle();
-        if (share == 0) {
-            throw new GLException("GLContextShareSet returned an invalid OpenGL context");
-        }
-        direct = GLX.glXIsDirect(display, share);
-    } else {
-        share = 0;
+    if ( 0 != shareWithHandle ) {
+        direct = GLX.glXIsDirect(display, shareWithHandle);
     }
 
     final GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
@@ -313,17 +306,19 @@ public class X11GLXContext extends GLContextImpl {
         if(glp.isGL3()) {
           throw new GLException(getThreadName()+": Unable to create OpenGL >= 3.1 context");
         }
-        contextHandle = GLX.glXCreateContext(display, config.getXVisualInfo(), share, direct);
+        contextHandle = GLX.glXCreateContext(display, config.getXVisualInfo(), shareWithHandle, direct);
         if ( 0 == contextHandle ) {
           throw new GLException(getThreadName()+": Unable to create context(0)");
         }
         if ( !glXMakeContextCurrent(display, drawable.getHandle(), drawableRead.getHandle(), contextHandle) ) {
           throw new GLException(getThreadName()+": Error making temp context(0) current: display "+toHexString(display)+", context "+toHexString(contextHandle)+", drawable "+drawable);
         }
-        setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT, false); // use GL_VERSION
+        if( !setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT, false /* strictMatch */, false /* withinGLVersionsMapping */) ) { // use GL_VERSION
+            throw new InternalError("setGLFunctionAvailability !strictMatch failed");
+        }
         isDirect = GLX.glXIsDirect(display, contextHandle);
         if (DEBUG) {
-            System.err.println(getThreadName() + ": createContextImpl: OK (old-1) share "+share+", direct "+isDirect+"/"+direct);
+            System.err.println(getThreadName() + ": createContextImpl: OK (old-1) share "+toHexString(shareWithHandle)+", direct "+isDirect+"/"+direct);
         }
         return true;
     }
@@ -332,10 +327,10 @@ public class X11GLXContext extends GLContextImpl {
 
     // utilize the shared context's GLXExt in case it was using the ARB method and it already exists
     if( null != sharedContext && sharedContext.isCreatedWithARBMethod() ) {
-        contextHandle = createContextARB(share, direct);
+        contextHandle = createContextARB(shareWithHandle, direct);
         createContextARBTried = true;
         if ( DEBUG && 0 != contextHandle ) {
-            System.err.println(getThreadName() + ": createContextImpl: OK (ARB, using sharedContext) share "+share);
+            System.err.println(getThreadName() + ": createContextImpl: OK (ARB, using sharedContext) share "+toHexString(shareWithHandle));
         }
     }
 
@@ -343,14 +338,14 @@ public class X11GLXContext extends GLContextImpl {
     if( 0 == contextHandle ) {
         // To use GLX_ARB_create_context, we have to make a temp context current,
         // so we are able to use GetProcAddress
-        temp_ctx = GLX.glXCreateNewContext(display, config.getFBConfig(), GLX.GLX_RGBA_TYPE, share, direct);
+        temp_ctx = GLX.glXCreateNewContext(display, config.getFBConfig(), GLX.GLX_RGBA_TYPE, shareWithHandle, direct);
         if ( 0 == temp_ctx ) {
             throw new GLException(getThreadName()+": Unable to create temp OpenGL context(1)");
         }
         if ( !glXMakeContextCurrent(display, drawable.getHandle(), drawableRead.getHandle(), temp_ctx) ) {
           throw new GLException(getThreadName()+": Error making temp context(1) current: display "+toHexString(display)+", context "+toHexString(temp_ctx)+", drawable "+drawable);
         }
-        setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT, false); // use GL_VERSION
+        setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT, false /* strictMatch */, false /* withinGLVersionsMapping */); // use GL_VERSION
         glXMakeContextCurrent(display, 0, 0, 0); // release temp context
         if( !createContextARBTried ) {
             // is*Available calls are valid since setGLFunctionAvailability(..) was called
@@ -358,17 +353,17 @@ public class X11GLXContext extends GLContextImpl {
             final boolean isExtARBCreateContextAvailable = isExtensionAvailable("GLX_ARB_create_context");
             if ( isProcCreateContextAttribsARBAvailable && isExtARBCreateContextAvailable ) {
                 // initial ARB context creation
-                contextHandle = createContextARB(share, direct);
+                contextHandle = createContextARB(shareWithHandle, direct);
                 createContextARBTried=true;
                 if (DEBUG) {
                     if( 0 != contextHandle ) {
-                        System.err.println(getThreadName() + ": createContextImpl: OK (ARB, initial) share "+share);
+                        System.err.println(getThreadName() + ": createContextImpl: OK (ARB, initial) share "+toHexString(shareWithHandle));
                     } else {
-                        System.err.println(getThreadName() + ": createContextImpl: NOT OK (ARB, initial) - creation failed - share "+share);
+                        System.err.println(getThreadName() + ": createContextImpl: NOT OK (ARB, initial) - creation failed - share "+toHexString(shareWithHandle));
                     }
                 }
             } else if (DEBUG) {
-                System.err.println(getThreadName() + ": createContextImpl: NOT OK (ARB, initial) - extension not available - share "+share+
+                System.err.println(getThreadName() + ": createContextImpl: NOT OK (ARB, initial) - extension not available - share "+toHexString(shareWithHandle)+
                                    ", isProcCreateContextAttribsARBAvailable "+isProcCreateContextAttribsARBAvailable+", isExtGLXARBCreateContextAvailable "+isExtARBCreateContextAvailable);
             }
         }
@@ -402,7 +397,7 @@ public class X11GLXContext extends GLContextImpl {
           throw new GLException(getThreadName()+": Error making context(1) current: display "+toHexString(display)+", context "+toHexString(contextHandle)+", drawable "+drawable);
         }
         if (DEBUG) {
-            System.err.println(getThreadName() + ": createContextImpl: OK (old-2) share "+share);
+            System.err.println(getThreadName() + ": createContextImpl: OK (old-2) share "+toHexString(shareWithHandle));
         }
     }
     isDirect = GLX.glXIsDirect(display, contextHandle);
@@ -419,7 +414,7 @@ public class X11GLXContext extends GLContextImpl {
 
     if (GLX.glXGetCurrentContext() != contextHandle) {
         if (!glXMakeContextCurrent(dpy, drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
-            throw new GLException("Error making context " + toHexString(contextHandle) + 
+            throw new GLException("Error making context " + toHexString(contextHandle) +
                                   " current on Thread " + getThreadName() +
                                   " with display " + toHexString(dpy) +
                                   ", drawableWrite " + toHexString(drawable.getHandle()) +
@@ -525,7 +520,7 @@ public class X11GLXContext extends GLContextImpl {
 
   @Override
   protected boolean setSwapIntervalImpl(int interval) {
-    if( !drawable.getChosenGLCapabilities().isOnscreen() ) { return false; } 
+    if( !drawable.getChosenGLCapabilities().isOnscreen() ) { return false; }
 
     final GLXExt glXExt = getGLXExt();
     if(0==hasSwapInterval) {
@@ -534,7 +529,7 @@ public class X11GLXContext extends GLContextImpl {
             if( glXExt.isExtensionAvailable(GLXExtensions.GLX_MESA_swap_control) ) {
                 if(DEBUG) { System.err.println("X11GLXContext.setSwapInterval using: "+GLXExtensions.GLX_MESA_swap_control); }
                 hasSwapInterval =  1;
-            } else */ 
+            } else */
             if ( glXExt.isExtensionAvailable(GLXExtensions.GLX_SGI_swap_control) ) {
                 if(DEBUG) { System.err.println("X11GLXContext.setSwapInterval using: "+GLXExtensions.GLX_SGI_swap_control); }
                 hasSwapInterval =  2;
@@ -542,7 +537,7 @@ public class X11GLXContext extends GLContextImpl {
                 hasSwapInterval = -1;
             }
         } catch (Throwable t) { hasSwapInterval=-1; }
-    } 
+    }
     /* try {
         switch( hasSwapInterval ) {
             case 1:
@@ -581,7 +576,7 @@ public class X11GLXContext extends GLContextImpl {
         try {
             final IntBuffer maxGroupsNIO = Buffers.newDirectIntBuffer(maxGroups.length - maxGroups_offset);
             final IntBuffer maxBarriersNIO = Buffers.newDirectIntBuffer(maxBarriers.length - maxBarriers_offset);
-            
+
             if( glXExt.glXQueryMaxSwapGroupsNV(ns.getDisplayHandle(), ns.getScreenIndex(),
                                                maxGroupsNIO, maxBarriersNIO) ) {
                 maxGroupsNIO.get(maxGroups, maxGroups_offset, maxGroupsNIO.remaining());
@@ -623,7 +618,7 @@ public class X11GLXContext extends GLContextImpl {
   }
 
   @Override
-  public final ByteBuffer glAllocateMemoryNV(int size, float readFrequency, float writeFrequency, float priority) {  
+  public final ByteBuffer glAllocateMemoryNV(int size, float readFrequency, float writeFrequency, float priority) {
     return getGLXExt().glXAllocateMemoryNV(size, readFrequency, writeFrequency, priority);
   }
 
@@ -631,7 +626,7 @@ public class X11GLXContext extends GLContextImpl {
   public final void glFreeMemoryNV(ByteBuffer pointer) {
     getGLXExt().glXFreeMemoryNV(pointer);
   }
-    
+
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();

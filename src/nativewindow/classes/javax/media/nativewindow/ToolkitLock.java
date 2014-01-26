@@ -53,26 +53,26 @@ public interface ToolkitLock {
      * @throws RuntimeException in case of a timeout
      */
     public void lock();
-    
+
     /**
      * Release the lock.
      *
      * @throws RuntimeException in case the lock is not acquired by this thread.
      */
     public void unlock();
-    
+
     /**
-     * @throws RuntimeException if current thread does not hold the lock 
+     * @throws RuntimeException if current thread does not hold the lock
      */
     public void validateLocked() throws RuntimeException;
-    
-    /** 
+
+    /**
      * Dispose this instance.
-     * <p> 
+     * <p>
      * Shall be called when instance is no more required.
      * </p>
      * This allows implementations sharing a lock via resources
-     * to decrease the reference counter.  
+     * to decrease the reference counter.
      */
     public void dispose();
 }

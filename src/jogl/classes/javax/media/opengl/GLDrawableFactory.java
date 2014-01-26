@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -83,7 +83,7 @@ import jogamp.opengl.Debug;
     during the first repaint of the {@link javax.media.opengl.awt.GLCanvas} or {@link
     javax.media.opengl.awt.GLJPanel} if the capabilities can not be met.<br>
     {@link javax.media.opengl.GLPbuffer} are always
-    created immediately and their creation will fail with a 
+    created immediately and their creation will fail with a
     {@link javax.media.opengl.GLException} if errors occur. </P>
 
     <P> The concrete GLDrawableFactory subclass instantiated by {@link
@@ -94,21 +94,21 @@ import jogamp.opengl.Debug;
 public abstract class GLDrawableFactory {
 
   protected static final boolean DEBUG = Debug.debug("GLDrawable");
-  
-  /** 
-   * We have to disable support for ANGLE, the D3D ES2 emulation on Windows provided w/ Firefox and Chrome. 
+
+  /**
+   * We have to disable support for ANGLE, the D3D ES2 emulation on Windows provided w/ Firefox and Chrome.
    * When run in the mentioned browsers, the eglInitialize(..) implementation crashes.
    * <p>
    * This can be overridden by explicitly enabling ANGLE on Windows by setting the property
    * <code>jogl.enable.ANGLE</code>.
-   * </p> 
+   * </p>
    */
   protected static final boolean enableANGLE = Debug.isPropertyDefined("jogl.enable.ANGLE", true);
 
-  /** 
+  /**
    * In case no OpenGL ES implementation is required
    * and if the running platform may have a buggy implementation,
-   * setting the property <code>jogl.disable.opengles</code> disables querying a possible existing OpenGL ES implementation. 
+   * setting the property <code>jogl.disable.opengles</code> disables querying a possible existing OpenGL ES implementation.
    */
   protected static final boolean disableOpenGLES = Debug.isPropertyDefined("jogl.disable.opengles", true);
 
@@ -117,11 +117,11 @@ public abstract class GLDrawableFactory {
   private static GLDrawableFactory nativeOSFactory;
 
   private static ArrayList<GLDrawableFactory> glDrawableFactories = new ArrayList<GLDrawableFactory>();
-  
+
   /**
    * Instantiate singleton factories if available, EGLES1, EGLES2 and the OS native ones.
    */
-  public static final void initSingleton() { 
+  public static final void initSingleton() {
       if (!isInit) { // volatile: ok
           synchronized (GLDrawableFactory.class) {
               if (!isInit) {
@@ -130,15 +130,16 @@ public abstract class GLDrawableFactory {
               }
           }
       }
-  }  
+  }
   private static final void initSingletonImpl() {
     NativeWindowFactory.initSingleton();
     NativeWindowFactory.addCustomShutdownHook(false /* head */, new Runnable() {
+       @Override
        public void run() {
            shutdown0();
        }
     });
-    
+
     final String nwt = NativeWindowFactory.getNativeWindowType(true);
     GLDrawableFactory tmp = null;
     String factoryClassName = Debug.getProperty("jogl.gldrawablefactory.class.name", true);
@@ -163,7 +164,7 @@ public abstract class GLDrawableFactory {
       }
       try {
           tmp = (GLDrawableFactory) ReflectionUtil.createInstance(factoryClassName, cl);
-      } catch (Exception jre) { 
+      } catch (Exception jre) {
           if (DEBUG || GLProfile.DEBUG) {
               System.err.println("Info: GLDrawableFactory.static - Native Platform: "+nwt+" - not available: "+factoryClassName);
               jre.printStackTrace();
@@ -202,7 +203,7 @@ public abstract class GLDrawableFactory {
       }
     }
   }
-  
+
   private static void shutdown0() {
     // Following code will _always_ remain in shutdown hook
     // due to special semantics of native utils, i.e. X11Utils.
@@ -219,7 +220,7 @@ public abstract class GLDrawableFactory {
             }
             try {
                 gldf.resetDisplayGamma();
-                gldf.destroy();
+                gldf.shutdownImpl();
             } catch (Throwable t) {
                 System.err.println("GLDrawableFactory.shutdownImpl: Catched "+t.getClass().getName()+" during factory shutdown #"+(i+1)+"/"+gldfCount+" "+gldf.getClass().getName());
                 if( DEBUG ) {
@@ -228,39 +229,42 @@ public abstract class GLDrawableFactory {
             }
         }
         glDrawableFactories.clear();
-        
-        // both were members of glDrawableFactories and are shutdown already 
+
+        // both were members of glDrawableFactories and are shutdown already
         nativeOSFactory = null;
         eglFactory = null;
     }
     GLContext.shutdown();
+    if( DEBUG ) {
+        System.err.println("GLDrawableFactory.shutdownAll.X on thread "+getThreadName());
+    }
   }
-  
+
   protected GLDrawableFactory() {
     synchronized(glDrawableFactories) {
         glDrawableFactories.add(this);
     }
   }
-  
+
   protected static String getThreadName() { return Thread.currentThread().getName(); }
-  
+
   /** Returns true if this factory is complete, i.e. ready to be used. Otherwise return false. */
   protected abstract boolean isComplete();
 
   protected void enterThreadCriticalZone() {};
   protected void leaveThreadCriticalZone() {};
 
-  protected abstract void destroy();
+  protected abstract void shutdownImpl();
 
   public abstract void resetDisplayGamma();
-  
+
   /**
    * Retrieve the default <code>device</code> {@link AbstractGraphicsDevice#getConnection() connection},
    * {@link AbstractGraphicsDevice#getUnitID() unit ID} and {@link AbstractGraphicsDevice#getUniqueID() unique ID name}. for this factory<br>
    * The implementation must return a non <code>null</code> default device, which must not be opened, ie. it's native handle is <code>null</code>.
    * <p>
    * This method shall return the default device if available
-   * even if the GLDrawableFactory is not functional and hence not compatible. 
+   * even if the GLDrawableFactory is not functional and hence not compatible.
    * The latter situation may happen because no native OpenGL implementation is available for the specific implementation.
    * </p>
    * @return the default shared device for this factory, eg. :0.0 on X11 desktop.
@@ -269,10 +273,10 @@ public abstract class GLDrawableFactory {
   public abstract AbstractGraphicsDevice getDefaultDevice();
 
   /**
-   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   * @param device which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
    * @return true if the device is compatible with this factory, ie. if it can be used for GLDrawable creation. Otherwise false.
    *         This implies validation whether the implementation is functional.
-   *         
+   *
    * @see #getDefaultDevice()
    */
   public abstract boolean getIsDeviceCompatible(AbstractGraphicsDevice device);
@@ -287,8 +291,8 @@ public abstract class GLDrawableFactory {
               System.err.println("Info: "+getClass().getSimpleName()+".validateDevice: using default device : "+device);
           }
       }
-      
-      // Always validate the device, 
+
+      // Always validate the device,
       // since even the default device may not be used by this factory.
       if( !getIsDeviceCompatible(device) ) {
           if (GLProfile.DEBUG) {
@@ -300,29 +304,29 @@ public abstract class GLDrawableFactory {
   }
 
   /**
-   * Validate and start the shared resource runner thread if necessary and 
+   * Validate and start the shared resource runner thread if necessary and
    * if the implementation uses it.
-   * 
+   *
    * @return the shared resource runner thread, if implementation uses it.
    */
   protected abstract Thread getSharedResourceThread();
-  
+
   /**
    * Create the shared resource used internally as a reference for capabilities etc.
    * <p>
-   * Returns true if a shared resource could be created 
+   * Returns true if a shared resource could be created
    * for the <code>device</code> {@link AbstractGraphicsDevice#getConnection()}.<br>
    * This does not imply a shared resource is mapped (ie. made persistent), but is available in general<br>.
    * </p>
    *
-   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
-   * @return true if a shared resource could been created, otherwise false. 
+   * @param device which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   * @return true if a shared resource could been created, otherwise false.
    */
   protected final boolean createSharedResource(AbstractGraphicsDevice device) {
       return createSharedResourceImpl(device);
-  }  
+  }
   protected abstract boolean createSharedResourceImpl(AbstractGraphicsDevice device);
-  
+
   /**
    * Returns true if the <code>quirk</code> exist in the shared resource's context {@link GLRendererQuirks}.
    * <p>
@@ -332,18 +336,18 @@ public abstract class GLDrawableFactory {
       return null != glrq ? glrq.exist(quirk) : false;
    * </pre>
    * </p>
-   * 
-   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   *
+   * @param device which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
    * @param quirk the quirk to be tested, e.g. {@link GLRendererQuirks#NoDoubleBufferedPBuffer}.
    * @throws IllegalArgumentException if the quirk is out of range
-   * @see #getRendererQuirks()
+   * @see #getRendererQuirks(AbstractGraphicsDevice)
    * @see GLRendererQuirks
    */
   public final boolean hasRendererQuirk(AbstractGraphicsDevice device, int quirk) {
       final GLRendererQuirks glrq = getRendererQuirks(device);
       return null != glrq ? glrq.exist(quirk) : false;
   }
-  
+
   /**
    * Returns the shared resource's context {@link GLRendererQuirks}.
    * <p>
@@ -353,17 +357,17 @@ public abstract class GLDrawableFactory {
    * In case no shared device exist yet or the implementation doesn't support tracking quirks,
    * the result is always <code>null</code>.
    * </p>
-   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   * @param device which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
    * @see GLContext#getRendererQuirks()
    * @see GLRendererQuirks
    */
   public abstract GLRendererQuirks getRendererQuirks(AbstractGraphicsDevice device);
-  
+
   /**
    * Returns the sole GLDrawableFactory instance for the desktop (X11, WGL, ..) if exist or null
    */
   public static GLDrawableFactory getDesktopFactory() {
-    GLProfile.initSingleton();    
+    GLProfile.initSingleton();
     return nativeOSFactory;
   }
 
@@ -371,14 +375,14 @@ public abstract class GLDrawableFactory {
    * Returns the sole GLDrawableFactory instance for EGL if exist or null
    */
   public static GLDrawableFactory getEGLFactory() {
-    GLProfile.initSingleton();    
+    GLProfile.initSingleton();
     return eglFactory;
   }
 
-  /** 
-   * Returns the sole GLDrawableFactory instance. 
-   * 
-   * @param glProfile GLProfile to determine the factory type, ie EGLDrawableFactory, 
+  /**
+   * Returns the sole GLDrawableFactory instance.
+   *
+   * @param glProfile GLProfile to determine the factory type, ie EGLDrawableFactory,
    *                or one of the native GLDrawableFactory's, ie X11/GLX, Windows/WGL or MacOSX/CGL.
    */
   public static GLDrawableFactory getFactory(GLProfile glProfile) throws GLException {
@@ -387,7 +391,7 @@ public abstract class GLDrawableFactory {
 
   protected static GLDrawableFactory getFactoryImpl(String glProfileImplName) throws GLException {
     if ( GLProfile.usesNativeGLES(glProfileImplName) ) {
-        if(null!=eglFactory) {   
+        if(null!=eglFactory) {
             return eglFactory;
         }
     } else if(null!=nativeOSFactory) {
@@ -412,7 +416,7 @@ public abstract class GLDrawableFactory {
    * The chosen GLProfile statement in the result may not refer to the maximum available profile
    * due to implementation constraints, ie using the shared resource.
    *
-   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   * @param device which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
    * @return A list of {@link javax.media.opengl.GLCapabilitiesImmutable}'s, maybe empty if none is available.
    */
   public final List<GLCapabilitiesImmutable> getAvailableCapabilities(AbstractGraphicsDevice device) {
@@ -446,10 +450,10 @@ public abstract class GLDrawableFactory {
    * and {@link #canCreateGLPbuffer(AbstractGraphicsDevice, GLProfile) canCreateGLPbuffer(device)} is true.
    * </p>
    * <p>
-   * If not onscreen and neither FBO nor Pbuffer is available, 
+   * If not onscreen and neither FBO nor Pbuffer is available,
    * a simple pixmap/bitmap drawable/surface is created, which is unlikely to be hardware accelerated.
    * </p>
-   * 
+   *
    * @throws IllegalArgumentException if the passed target is null
    * @throws GLException if any window system-specific errors caused
    *         the creation of the GLDrawable to fail.
@@ -459,22 +463,23 @@ public abstract class GLDrawableFactory {
    * @see javax.media.opengl.GLCapabilities#isOnscreen()
    * @see javax.media.opengl.GLCapabilities#isFBO()
    * @see javax.media.opengl.GLCapabilities#isPBuffer()
-   * @see javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
+   * @see GraphicsConfigurationFactory#chooseGraphicsConfiguration(CapabilitiesImmutable, CapabilitiesImmutable, CapabilitiesChooser, AbstractGraphicsScreen, int)
    */
   public abstract GLDrawable createGLDrawable(NativeSurface target)
     throws IllegalArgumentException, GLException;
-  
+
   /**
-   * Creates a {@link GLDrawable#isRealized() realized} {@link GLOffscreenAutoDrawable} 
-   * incl it's offscreen {@link javax.media.nativewindow.NativeSurface} with the given capabilites and dimensions.
+   * Creates a {@link GLDrawable#isRealized() realized} {@link GLOffscreenAutoDrawable}
+   * incl it's offscreen {@link NativeSurface} with the given capabilites and dimensions.
    * <p>
-   * The {@link GLOffscreenAutoDrawable}'s {@link GLDrawable} is {@link GLDrawable#isRealized() realized} 
+   * The {@link GLOffscreenAutoDrawable}'s {@link GLDrawable} is {@link GLDrawable#isRealized() realized}
    * and it's {@link GLContext} assigned but not yet made current.
    * </p>
    * <p>
    * In case the passed {@link GLCapabilitiesImmutable} contains default values, i.e.
    * {@link GLCapabilitiesImmutable#isOnscreen() caps.isOnscreen()} <code> == true</code>,
-   * it is auto-configured. The latter will set offscreen and also FBO <i>or</i> Pbuffer, whichever is available in that order.
+   * it is auto-configured. Auto configuration will set {@link GLCapabilitiesImmutable caps} to offscreen
+   * and FBO <i>or</i> Pbuffer, whichever is available in that order.
    * </p>
    * <p>
    * A FBO based auto drawable, {@link GLOffscreenAutoDrawable.FBO}, is created if both {@link GLCapabilitiesImmutable#isFBO() caps.isFBO()}
@@ -485,11 +490,14 @@ public abstract class GLDrawableFactory {
    * and {@link #canCreateGLPbuffer(AbstractGraphicsDevice, GLProfile) canCreateGLPbuffer(device)} is true.
    * </p>
    * <p>
-   * If neither FBO nor Pbuffer is available, 
+   * If neither FBO nor Pbuffer is available,
    * a simple pixmap/bitmap auto drawable is created, which is unlikely to be hardware accelerated.
    * </p>
+   * <p>
+   * The resulting {@link GLOffscreenAutoDrawable} has it's own independent device instance using <code>device</code> details.
+   * </p>
    *
-   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
+   * @param device which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
    * @param caps the requested GLCapabilties
    * @param chooser the custom chooser, may be null for default
    * @param width the requested offscreen width
@@ -498,17 +506,96 @@ public abstract class GLDrawableFactory {
    *
    * @throws GLException if any window system-specific errors caused
    *         the creation of the Offscreen to fail.
-   *         
+   *
    * @see #createOffscreenDrawable(AbstractGraphicsDevice, GLCapabilitiesImmutable, GLCapabilitiesChooser, int, int)
+   * @deprecated Use {@link #createOffscreenAutoDrawable(AbstractGraphicsDevice, GLCapabilitiesImmutable, GLCapabilitiesChooser, int, int)
    */
   public abstract GLOffscreenAutoDrawable createOffscreenAutoDrawable(AbstractGraphicsDevice device,
                                                                       GLCapabilitiesImmutable caps,
                                                                       GLCapabilitiesChooser chooser,
                                                                       int width, int height,
                                                                       GLContext shareWith) throws GLException;
+
   /**
-   * Creates an {@link GLDrawable#isRealized() unrealized} offscreen {@link GLDrawable} 
-   * incl it's offscreen {@link javax.media.nativewindow.NativeSurface} with the given capabilites and dimensions.
+   * Creates a {@link GLDrawable#isRealized() realized} {@link GLOffscreenAutoDrawable}
+   * incl it's offscreen {@link NativeSurface} with the given capabilites and dimensions.
+   * <p>
+   * The {@link GLOffscreenAutoDrawable}'s {@link GLDrawable} is {@link GLDrawable#isRealized() realized}
+   * <i>without</i> an assigned {@link GLContext}, hence not initialized completely.<br>
+   * The {@link GLContext} can be assigned later manually via {@link GLAutoDrawable#setContext(GLContext, boolean) setContext(ctx)}
+   * <i>or</i> it will be created <i>lazily</i> at the 1st {@link GLAutoDrawable#display() display()} method call.<br>
+   * <i>Lazy</i> {@link GLContext} creation will take a shared {@link GLContext} into account
+   * which has been set {@link GLOffscreenAutoDrawable#setSharedContext(GLContext) directly}
+   * or {@link GLOffscreenAutoDrawable#setSharedAutoDrawable(GLAutoDrawable) via another GLAutoDrawable}.
+   * </p>
+   * <p>
+   * In case the passed {@link GLCapabilitiesImmutable} contains default values, i.e.
+   * {@link GLCapabilitiesImmutable#isOnscreen() caps.isOnscreen()} <code> == true</code>,
+   * it is auto-configured. Auto configuration will set {@link GLCapabilitiesImmutable caps} to offscreen
+   * and FBO <i>or</i> Pbuffer, whichever is available in that order.
+   * </p>
+   * <p>
+   * A FBO based auto drawable, {@link GLOffscreenAutoDrawable.FBO}, is created if both {@link GLCapabilitiesImmutable#isFBO() caps.isFBO()}
+   * and {@link GLContext#isFBOAvailable(AbstractGraphicsDevice, GLProfile) canCreateFBO(device, caps.getGLProfile())} is true.
+   * </p>
+   * <p>
+   * A Pbuffer based auto drawable is created if both {@link GLCapabilitiesImmutable#isPBuffer() caps.isPBuffer()}
+   * and {@link #canCreateGLPbuffer(AbstractGraphicsDevice, GLProfile) canCreateGLPbuffer(device)} is true.
+   * </p>
+   * <p>
+   * If neither FBO nor Pbuffer is available,
+   * a simple pixmap/bitmap auto drawable is created, which is unlikely to be hardware accelerated.
+   * </p>
+   * <p>
+   * The resulting {@link GLOffscreenAutoDrawable} has it's own independent device instance using <code>device</code> details.
+   * </p>
+   *
+   * @param device which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
+   * @param caps the requested GLCapabilties
+   * @param chooser the custom chooser, may be null for default
+   * @param width the requested offscreen width
+   * @param height the requested offscreen height
+   * @return the created and realized offscreen {@link GLOffscreenAutoDrawable} instance
+   *
+   * @throws GLException if any window system-specific errors caused
+   *         the creation of the Offscreen to fail.
+   *
+   * @see #createOffscreenDrawable(AbstractGraphicsDevice, GLCapabilitiesImmutable, GLCapabilitiesChooser, int, int)
+   */
+  public abstract GLOffscreenAutoDrawable createOffscreenAutoDrawable(AbstractGraphicsDevice device,
+                                                                      GLCapabilitiesImmutable caps,
+                                                                      GLCapabilitiesChooser chooser,
+                                                                      int width, int height) throws GLException;
+
+  /**
+   * Creates a {@link GLDrawable#isRealized() realized} <i>dummy</i> {@link GLAutoDrawable}
+   * incl it's <i>dummy, invisible</i> {@link NativeSurface}
+   * as created with {@link #createDummyDrawable(AbstractGraphicsDevice, boolean, GLCapabilitiesImmutable, GLCapabilitiesChooser)}.
+   * <p>
+   * The <i>dummy</i> {@link GLAutoDrawable}'s {@link GLDrawable} is {@link GLDrawable#isRealized() realized}
+   * <i>without</i> an assigned {@link GLContext}, hence not initialized completely.<br>
+   * The {@link GLContext} can be assigned later manually via {@link GLAutoDrawable#setContext(GLContext, boolean) setContext(ctx)}
+   * <i>or</i> it will be created <i>lazily</i> at the 1st {@link GLAutoDrawable#display() display()} method call.<br>
+   * <i>Lazy</i> {@link GLContext} creation will take a shared {@link GLContext} into account
+   * which has been set {@link GLOffscreenAutoDrawable#setSharedContext(GLContext) directly}
+   * or {@link GLOffscreenAutoDrawable#setSharedAutoDrawable(GLAutoDrawable) via another GLAutoDrawable}.
+   * </p>
+   *
+   * @param deviceReq which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
+   * @param createNewDevice if <code>true</code> a new independent device instance is created from the <code>deviceReq</code>, otherwise <code>deviceReq</code> is used as-is and must be valid!
+   * @param capsRequested the desired {@link GLCapabilitiesImmutable}, incl. it's {@link GLProfile}.
+   *                      For shared context, same {@link GLCapabilitiesImmutable#getVisualID(javax.media.nativewindow.VisualIDHolder.VIDType)}
+   *                      across shared drawables will yield best compatibility.
+   * @param chooser the custom chooser, may be null for default
+   * @return the created and realized <i>dummy</i> {@link GLAutoDrawable} instance
+   *
+   * @see #createDummyDrawable(AbstractGraphicsDevice, boolean, GLCapabilitiesImmutable, GLCapabilitiesChooser)
+   */
+  public abstract GLAutoDrawable createDummyAutoDrawable(AbstractGraphicsDevice deviceReq, boolean createNewDevice, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser);
+
+  /**
+   * Creates an {@link GLDrawable#isRealized() unrealized} offscreen {@link GLDrawable}
+   * incl it's offscreen {@link NativeSurface} with the given capabilites and dimensions.
    * <p>
    * In case the passed {@link GLCapabilitiesImmutable} contains default values, i.e.
    * {@link GLCapabilitiesImmutable#isOnscreen() caps.isOnscreen()} <code> == true</code>,
@@ -523,21 +610,24 @@ public abstract class GLDrawableFactory {
    * and {@link #canCreateGLPbuffer(AbstractGraphicsDevice, GLProfile) canCreateGLPbuffer(device)} is true.
    * </p>
    * <p>
-   * If neither FBO nor Pbuffer is available, 
+   * If neither FBO nor Pbuffer is available,
    * a simple pixmap/bitmap drawable is created, which is unlikely to be hardware accelerated.
    * </p>
+   * <p>
+   * The resulting {@link GLDrawable} has it's own independent device instance using <code>device</code> details.
+   * </p>
    *
-   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
+   * @param device which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
    * @param caps the requested GLCapabilties
    * @param chooser the custom chooser, may be null for default
    * @param width the requested offscreen width
    * @param height the requested offscreen height
    *
-   * @return the created offscreen {@link GLDrawable}
+   * @return the created unrealized offscreen {@link GLDrawable}
    *
    * @throws GLException if any window system-specific errors caused
    *         the creation of the Offscreen to fail.
-   *         
+   *
    * @see #createOffscreenAutoDrawable(AbstractGraphicsDevice, GLCapabilitiesImmutable, GLCapabilitiesChooser, int, int, GLContext)
    */
   public abstract GLDrawable createOffscreenDrawable(AbstractGraphicsDevice device,
@@ -546,44 +636,68 @@ public abstract class GLDrawableFactory {
                                                      int width, int height) throws GLException;
 
   /**
-   * Creates a proxy {@link NativeSurface} w/ defined surface handle, i.e. a {@link WrappedSurface} or {@link GDISurface} instance. 
+   * Creates an {@link GLDrawable#isRealized() unrealized} dummy {@link GLDrawable}.
+   * A dummy drawable is not visible on screen and will not be used to render directly to, it maybe on- or offscreen.
    * <p>
-   * It's {@link AbstractGraphicsConfiguration} is properly set according to the given 
+   * It is used to allow the creation of a {@link GLContext} to query information.
+   * It also allows creation of framebuffer objects which are used for rendering or creating a shared GLContext w/o actually rendering to this dummy drawable's framebuffer.
+   * </p>
+   * @param deviceReq which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
+   * @param createNewDevice if <code>true</code> a new independent device instance is created from the <code>deviceReq</code>, otherwise <code>deviceReq</code> is used as-is and must be valid!
+   * @param capsRequested the desired {@link GLCapabilitiesImmutable}, incl. it's {@link GLProfile}.
+   *                      For shared context, same {@link GLCapabilitiesImmutable#getVisualID(javax.media.nativewindow.VisualIDHolder.VIDType) visual ID}
+   *                      or {@link GLCapabilitiesImmutable caps}
+   *                      across shared drawables will yield best compatibility.
+   * @param chooser the custom chooser, may be null for default
+   * @return the created unrealized dummy {@link GLDrawable}
+   */
+  public abstract GLDrawable createDummyDrawable(AbstractGraphicsDevice deviceReq, boolean createNewDevice, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser);
+
+  /**
+   * Creates a proxy {@link NativeSurface} w/ defined surface handle,
+   * i.e. a {@link jogamp.nativewindow.WrappedSurface} or {@link jogamp.nativewindow.windows.GDISurface} instance.
+   * <p>
+   * It's {@link AbstractGraphicsConfiguration} is properly set according to the given
    * <code>windowHandle</code>'s native visualID if set or the given {@link GLCapabilitiesImmutable}.
    * </p>
    * <p>
    * Lifecycle (creation and destruction) of the given surface handle shall be handled by the caller
-   * via {@link ProxySurface#createNotify()} and {@link ProxySurface#destroyNotify()}.  
+   * via {@link ProxySurface#createNotify()} and {@link ProxySurface#destroyNotify()}.
    * </p>
    * <p>
    * Such surface can be used to instantiate a GLDrawable. With the help of {@link GLAutoDrawableDelegate}
-   * you will be able to implement a new native windowing system  binding almost on-the-fly, see {@link com.jogamp.opengl.swt.GLCanvas}. 
+   * you will be able to implement a new native windowing system  binding almost on-the-fly,
+   * see {@link com.jogamp.opengl.swt.GLCanvas}.
    * </p>
-   * 
-   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
-   *        Caller has to ensure it is compatible w/ the given <code>windowHandle</code> 
+   * <p>
+   * The resulting {@link GLOffscreenAutoDrawable} has it's own independent device instance using <code>device</code> details
+   * which may be blocking depending on platform and windowing-toolkit requirements.
+   * </p>
+   *
+   * @param device which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   *        Caller has to ensure it is compatible w/ the given <code>windowHandle</code>
    * @param screenIdx matching screen index of given <code>windowHandle</code>
    * @param windowHandle the native window handle
    * @param caps the requested GLCapabilties
    * @param chooser the custom chooser, may be null for default
-   * @param upstream optional {@link ProxySurface.UpstreamSurfaceHook} allowing control of the {@link ProxySurface}'s lifecycle and data it presents.
+   * @param upstream optional {@link UpstreamSurfaceHook} allowing control of the {@link ProxySurface}'s lifecycle and data it presents.
    * @return the created {@link ProxySurface} instance w/ defined surface handle.
    */
   public abstract ProxySurface createProxySurface(AbstractGraphicsDevice device,
-                                                  int screenIdx, 
-                                                  long windowHandle, 
+                                                  int screenIdx,
+                                                  long windowHandle,
                                                   GLCapabilitiesImmutable caps, GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstream);
 
   /**
    * Returns true if it is possible to create an <i>framebuffer object</i> (FBO).
    * <p>
    * FBO feature is implemented in OpenGL, hence it is {@link GLProfile} dependent.
-   * </p> 
+   * </p>
    * <p>
    * FBO support is queried as described in {@link GLContext#hasBasicFBOSupport()}.
    * </p>
    *
-   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   * @param device which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
    * @param glp {@link GLProfile} to check for FBO capabilities
    * @see GLContext#hasBasicFBOSupport()
    */
@@ -591,12 +705,12 @@ public abstract class GLDrawableFactory {
 
   /**
    * Returns true if it is possible to create an <i>pbuffer surface</i>.
-   * <p> 
-   * Some older graphics cards do not have this capability, 
-   * as well as some new GL implementation, i.e. OpenGL 3 core on OSX. 
+   * <p>
+   * Some older graphics cards do not have this capability,
+   * as well as some new GL implementation, i.e. OpenGL 3 core on OSX.
    * </p>
    *
-   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   * @param device which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
    * @param glp {@link GLProfile} to check for FBO capabilities
    */
   public abstract boolean canCreateGLPbuffer(AbstractGraphicsDevice device, GLProfile glp);
@@ -607,10 +721,10 @@ public abstract class GLDrawableFactory {
    * The GLPbuffer drawable is realized and initialized eagerly.
    * </p>
    *
-   * See the note in the overview documentation on
-   * <a href="../../../overview-summary.html#SHARING">context sharing</a>.
+   * See the note in the overview documentation in {@link GLSharedContextSetter} and on
+   * <a href="../../../spec-overview.html#SHARING">context sharing</a>.
    *
-   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   * @param device which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
    * @param capabilities the requested capabilities
    * @param chooser the custom chooser, may be null for default
    * @param initialWidth initial width of pbuffer
@@ -621,7 +735,7 @@ public abstract class GLDrawableFactory {
    *
    * @throws GLException if any window system-specific errors caused
    *         the creation of the GLPbuffer to fail.
-   *         
+   *
    * @deprecated {@link GLPbuffer} is deprecated, use {@link #createOffscreenAutoDrawable(AbstractGraphicsDevice, GLCapabilitiesImmutable, GLCapabilitiesChooser, int, int, GLContext)}
    */
   public abstract GLPbuffer createGLPbuffer(AbstractGraphicsDevice device,
@@ -632,7 +746,7 @@ public abstract class GLDrawableFactory {
                                             GLContext shareWith)
     throws GLException;
 
-  
+
   //----------------------------------------------------------------------
   // Methods for interacting with third-party OpenGL libraries
 
@@ -665,7 +779,7 @@ public abstract class GLDrawableFactory {
    * Returns true if it is possible to create an external GLDrawable
    * object via {@link #createExternalGLDrawable}.
    *
-   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   * @param device which {@link AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
    */
   public abstract boolean canCreateExternalGLDrawable(AbstractGraphicsDevice device);
 

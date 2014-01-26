@@ -45,6 +45,8 @@ import javax.swing.JFrame;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import static org.junit.Assume.*;
 import static javax.swing.SwingUtilities.*;
@@ -53,6 +55,7 @@ import static javax.swing.SwingUtilities.*;
  * Tests context creation + display on various kinds of Window implementations.
  * @author Michael Bien, et. al.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestSwingAWT01GLn extends UITestCase {
     private Window[] windows;
 

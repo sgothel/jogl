@@ -50,6 +50,12 @@
 #define EVENT_BUTTON8_MASK    (1 << 12)
 #define EVENT_BUTTON9_MASK    (1 << 13)
 
+/** 16 buttons */
+#define EVENT_BUTTONLAST_MASK (1 << 20)
+
+/** 16 buttons */
+#define EVENT_BUTTONALL_MASK ( 0xffff << 5 )
+
 #define EVENT_AUTOREPEAT_MASK (1 << 29)
 #define EVENT_CONFINED_MASK   (1 << 30)
 #define EVENT_INVISIBLE_MASK  (1 << 31)

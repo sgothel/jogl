@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.awt;
 
 import java.awt.Dimension;
@@ -38,10 +38,11 @@ import javax.media.opengl.awt.GLCanvas;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
@@ -50,16 +51,17 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 /**
  * Test realize GLCanvas and setVisible(true) AWT-Frames on AWT-EDT and on current thread (non AWT-EDT)
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBug572AWT extends UITestCase {
      static long durationPerTest = 150; // ms
-     
+
      static class Cleanup implements Runnable {
         Window window;
-        
+
         public Cleanup(Window w) {
             window = w;
         }
-        
+
         public void run() {
             System.err.println("cleaning up...");
             window.setVisible(false);
@@ -72,10 +74,10 @@ public class TestBug572AWT extends UITestCase {
             window.dispose();
         }
     }
-     
+
     private void testRealizeGLCanvas(final boolean onAWTEDT, final boolean setFrameSize) throws InterruptedException, InvocationTargetException {
         final Window window = new JFrame(this.getSimpleTestName(" - "));
-        final GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());        
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
         final GLCanvas glCanvas = new GLCanvas(caps);
         final SnapshotGLEventListener snapshooter = new SnapshotGLEventListener();
         snapshooter.setMakeSnapshotAlways(true);
@@ -92,7 +94,7 @@ public class TestBug572AWT extends UITestCase {
                 if( setFrameSize ) {
                     window.setSize(512, 512);
                     window.validate();
-                } else {                
+                } else {
                     Dimension size = new Dimension(512, 512);
                     glCanvas.setPreferredSize(size);
                     glCanvas.setMinimumSize(size);
@@ -106,42 +108,42 @@ public class TestBug572AWT extends UITestCase {
         } else {
             // trigger realization on non AWT-EDT, realization will happen at a later time ..
             realizeAction.run();
-            
+
             // Wait until it's displayable after issuing initial setVisible(true) on current thread (non AWT-EDT)!
             Assert.assertTrue("GLCanvas didn't become visible", AWTRobotUtil.waitForVisible(glCanvas, true));
-            Assert.assertTrue("GLCanvas didn't become realized", AWTRobotUtil.waitForRealized(glCanvas, true)); // implies displayable                
+            Assert.assertTrue("GLCanvas didn't become realized", AWTRobotUtil.waitForRealized(glCanvas, true)); // implies displayable
         }
-        
+
         System.err.println("XXXX-0 "+glCanvas.getDelegatedDrawable().isRealized()+", "+glCanvas);
-        
+
         Assert.assertTrue("GLCanvas didn't become displayable", glCanvas.isDisplayable());
         Assert.assertTrue("GLCanvas didn't become realized", glCanvas.isRealized());
-        
+
         // The AWT-EDT reshape/repaint events happen offthread later ..
         System.err.println("XXXX-1 reshapeCount "+snapshooter.getReshapeCount());
         System.err.println("XXXX-1 displayCount "+snapshooter.getDisplayCount());
-        
+
         // Wait unitl AWT-EDT has issued reshape/repaint
         for (int wait=0; wait<AWTRobotUtil.POLL_DIVIDER &&
-                         ( 0 == snapshooter.getReshapeCount() || 0 == snapshooter.getDisplayCount() ); 
+                         ( 0 == snapshooter.getReshapeCount() || 0 == snapshooter.getDisplayCount() );
              wait++) {
             Thread.sleep(AWTRobotUtil.TIME_SLICE);
         }
         System.err.println("XXXX-2 reshapeCount "+snapshooter.getReshapeCount());
         System.err.println("XXXX-2 displayCount "+snapshooter.getDisplayCount());
-        
+
         Assert.assertTrue("GLCanvas didn't reshape", snapshooter.getReshapeCount()>0);
         Assert.assertTrue("GLCanvas didn't display", snapshooter.getDisplayCount()>0);
-        
+
         Thread.sleep(durationPerTest);
-        
+
         // After initial 'setVisible(true)' all AWT manipulation needs to be done
         // via the AWT EDT, according to the AWT spec.
 
         // AWT / Swing on EDT..
         SwingUtilities.invokeAndWait(new Cleanup(window));
     }
-    
+
     @Test(timeout = 10000) // 10s timeout
     public void test01RealizeGLCanvasOnAWTEDTUseFrameSize() throws InterruptedException, InvocationTargetException {
         testRealizeGLCanvas(true, true);
@@ -151,7 +153,7 @@ public class TestBug572AWT extends UITestCase {
     public void test02RealizeGLCanvasOnAWTEDTUseGLCanvasSize() throws InterruptedException, InvocationTargetException {
         testRealizeGLCanvas(true, false);
     }
-    
+
     @Test(timeout = 10000) // 10s timeout
     public void test11RealizeGLCanvasOnMainTUseFrameSize() throws InterruptedException, InvocationTargetException {
         testRealizeGLCanvas(false, true);
@@ -161,7 +163,7 @@ public class TestBug572AWT extends UITestCase {
     public void test12RealizeGLCanvasOnMainTUseGLCanvasSize() throws InterruptedException, InvocationTargetException {
         testRealizeGLCanvas(false, false);
     }
-    
+
     public static void main(String args[]) {
         org.junit.runner.JUnitCore.main(TestBug572AWT.class.getName());
     }

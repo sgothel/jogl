@@ -36,7 +36,7 @@ public class ResourceReference {
     private int dataOffset;
     private int handle;
     private String name;
-    
+
     /** Creates new ResourceReference */
     protected ResourceReference(DataInput di) throws IOException {
         id = di.readUnsignedShort();
@@ -58,23 +58,23 @@ public class ResourceReference {
     public int getId() {
         return id;
     }
-    
+
     public short getNameOffset() {
         return nameOffset;
     }
-    
+
     public short getAttributes() {
         return attributes;
     }
-    
+
     public int getDataOffset() {
         return dataOffset;
     }
-    
+
     public int getHandle() {
         return handle;
     }
-    
+
     public String getName() {
         return name;
     }

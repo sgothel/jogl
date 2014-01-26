@@ -57,6 +57,8 @@ import java.lang.reflect.InvocationTargetException;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  * BUG on OSX/CALayer w/ Java6: 
@@ -76,6 +78,7 @@ import org.junit.Test;
  * Users shall make sure all mutable AWT calls are performed on the EDT, even before 1st setVisible(true) ! 
  * </p>
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
     static long durationPerTest = 1000; // ms
     static final int width = 512;

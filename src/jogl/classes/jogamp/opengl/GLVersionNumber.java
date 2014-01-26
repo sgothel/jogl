@@ -43,9 +43,9 @@ public class GLVersionNumber extends VersionNumberString {
         super(val[0], val[1], val[2], strEnd, state, versionString);
         this.valid = valid;
     }
-    
+
     private static java.util.regex.Pattern getUnderscorePattern() {
-        if( null == _Pattern ) { // volatile dbl-checked-locking OK 
+        if( null == _Pattern ) { // volatile dbl-checked-locking OK
             synchronized( VersionNumber.class ) {
                 if( null == _Pattern ) {
                     _Pattern = getVersionNumberPattern("_");
@@ -55,7 +55,7 @@ public class GLVersionNumber extends VersionNumberString {
         return _Pattern;
     }
     private static volatile java.util.regex.Pattern _Pattern = null;
-    
+
     public static final GLVersionNumber create(String versionString) {
         int[] val = new int[] { 0, 0, 0 };
         int strEnd = 0;
@@ -73,7 +73,7 @@ public class GLVersionNumber extends VersionNumberString {
                 strEnd = version.endOfStringMatch();
                 val[0] = version.getMajor();
                 val[1] = version.getMinor();
-                state = (short) ( ( version.hasMajor() ? VersionNumber.HAS_MAJOR : (short)0 ) | 
+                state = (short) ( ( version.hasMajor() ? VersionNumber.HAS_MAJOR : (short)0 ) |
                                   ( version.hasMinor() ? VersionNumber.HAS_MINOR : (short)0 ) );
                 valid = version.hasMajor() && version.hasMinor(); // Requires at least a defined major and minor version component!
             } catch (Exception e) {
@@ -82,16 +82,16 @@ public class GLVersionNumber extends VersionNumberString {
                 val[0] = 1;
                 val[1] = 0;
             }
-        }    
+        }
         return new GLVersionNumber(val, strEnd, state, versionString, valid);
     }
 
     public final boolean isValid() {
         return valid;
     }
-    
-    /** 
-     * Returns the optional vendor version at the end of the 
+
+    /**
+     * Returns the optional vendor version at the end of the
      * <code>GL_VERSION</code> string if exists, otherwise the {@link VersionNumberString#zeroVersion zero version} instance.
      * <pre>
      *   2.1 Mesa 7.0.3-rc2 -> 7.0.3 (7.0.3-rc2)
@@ -105,14 +105,14 @@ public class GLVersionNumber extends VersionNumberString {
         if (versionString == null || versionString.length() <= 0) {
             return null;
         }
-        
+
         // Skip the 1st GL version
         String str;
         {
             final GLVersionNumber glv = create(versionString);
             str = versionString.substring(glv.endOfStringMatch()).trim();
         }
-        
+
         while ( str.length() > 0 ) {
             final VersionNumberString version = new VersionNumberString(str, getDefaultVersionNumberPattern());
             final int eosm = version.endOfStringMatch();

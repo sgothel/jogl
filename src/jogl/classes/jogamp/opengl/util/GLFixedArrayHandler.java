@@ -35,22 +35,25 @@ import javax.media.opengl.fixedfunc.GLPointerFunc;
 import com.jogamp.opengl.util.GLArrayDataEditable;
 
 /**
- * Used for 1:1 fixed function arrays, i.e. where the buffer data 
- * represents this array only. 
+ * Used for 1:1 fixed function arrays, i.e. where the buffer data
+ * represents this array only.
  */
-public class GLFixedArrayHandler extends GLVBOArrayHandler implements GLArrayHandler {
+public class GLFixedArrayHandler extends GLVBOArrayHandler {
   public GLFixedArrayHandler(GLArrayDataEditable ad) {
     super(ad);
   }
-  
+
+  @Override
   public final void setSubArrayVBOName(int vboName) {
       throw new UnsupportedOperationException();
   }
-  
+
+  @Override
   public final void addSubHandler(GLArrayHandlerFlat handler) {
       throw new UnsupportedOperationException();
   }
-  
+
+  @Override
   public final void enableState(GL gl, boolean enable, Object ext) {
     final GLPointerFunc glp = gl.getGL2ES1();
     if(enable) {
@@ -69,12 +72,12 @@ public class GLFixedArrayHandler extends GLVBOArrayHandler implements GLArrayHan
                 glp.glTexCoordPointer(ad);
                 break;
             default:
-                throw new GLException("invalid glArrayIndex: "+ad.getIndex()+":\n\t"+ad); 
+                throw new GLException("invalid glArrayIndex: "+ad.getIndex()+":\n\t"+ad);
         }
         if(vboBound) {
             bindBuffer(gl, false);
-        }        
-        glp.glEnableClientState(ad.getIndex());        
+        }
+        glp.glEnableClientState(ad.getIndex());
     } else {
         glp.glDisableClientState(ad.getIndex());
     }

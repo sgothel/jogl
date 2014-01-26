@@ -58,11 +58,14 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  * Test re-association (switching) of GLContext/GLDrawables,
  * i.e. ctx1/draw1, ctx2/draw2 -> ctx1/draw2, ctx2/draw1.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLContextDrawableSwitch01NEWT extends UITestCase {
     static int width, height;
 

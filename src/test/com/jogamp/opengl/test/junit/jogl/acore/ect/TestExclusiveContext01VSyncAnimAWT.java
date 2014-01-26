@@ -35,9 +35,13 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
 
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
+
 /**
  * ExclusiveContextThread VSync Animator to test correctness of the ExclusiveContext feature _and_ Animator with AWT. 
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestExclusiveContext01VSyncAnimAWT extends ExclusiveContextBase00AWT {    
     
     @Override

@@ -79,7 +79,7 @@ public class Lookup {
         // Ensure we're in the right place
         dis.reset();
         dis.skipBytes(offset);
-        
+
         // Start reading
         _type = dis.readUnsignedShort();
         _flag = dis.readUnsignedShort();

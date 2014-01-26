@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,39 +20,42 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.acore;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestShutdownCompleteNEWT extends UITestCase {
 
     static long duration = 300; // ms
-    
+
     protected void runTestGL(boolean onscreen) throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
         caps.setOnscreen(onscreen);
         caps.setPBuffer(!onscreen);
-        
+
         GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Gears NEWT Test");
@@ -78,59 +81,63 @@ public class TestShutdownCompleteNEWT extends UITestCase {
         glWindow.destroy();
     }
 
+    @AfterClass
+    public static void afterAll() {
+        if(waitForKey) {
+            UITestCase.waitForKey("Exit");
+        }
+    }
+
     protected void oneLife(boolean glInfo) throws InterruptedException {
         if(waitForEach) {
-            waitForEnter();
+            UITestCase.waitForKey("Start One Life");
         }
-        long t0 = System.nanoTime();
+        final long t0 = Platform.currentTimeMicros();
         GLProfile.initSingleton();
-        long t1 = System.nanoTime();
+        final long t1 = Platform.currentTimeMicros();
         if(!initOnly) {
             runTestGL(true);
         }
-        long t2 = System.nanoTime();
+        final long t2 = Platform.currentTimeMicros();
         if(glInfo) {
             System.err.println(JoglVersion.getDefaultOpenGLInfo(null, null, false).toString());
         }
-        long t3 = System.nanoTime();        
-        GLProfile.shutdown();        
-        long t4 = System.nanoTime();
-        System.err.println("Total:                          "+ (t3-t0)/1e6 +"ms"); 
-        System.err.println("  GLProfile.initSingleton():    "+ (t1-t0)/1e6 +"ms"); 
-        System.err.println("  Demo Code:                    "+ (t2-t1)/1e6 +"ms"); 
-        System.err.println("  GLProfile.shutdown():         "+ (t4-t3)/1e6 +"ms"); 
+        final long t3 = Platform.currentTimeMicros();
+        GLProfile.shutdown();
+        final long t4 = Platform.currentTimeMicros();
+        System.err.println("Total:                          "+ (t4-t0)/1e3 +"ms");
+        System.err.println("  GLProfile.initSingleton():    "+ (t1-t0)/1e3 +"ms");
+        System.err.println("  Demo Code:                    "+ (t2-t1)/1e3 +"ms");
+        System.err.println("  GLInfo:                       "+ (t3-t2)/1e3 +"ms");
+        System.err.println("  GLProfile.shutdown():         "+ (t4-t3)/1e3 +"ms");
     }
-    
+
     @Test
     public void test01OneLife() throws InterruptedException {
+        oneLife(false);
+    }
+
+    @Test
+    public void test02AnotherLifeWithGLInfo() throws InterruptedException {
         oneLife(true);
     }
 
     @Test
-    public void test01AnotherLife() throws InterruptedException {
-        oneLife(false);
+    public void test03AnotherLife() throws InterruptedException {
+        oneLife(true);
     }
-    
+
     @Test
-    public void test01TwoLifes() throws InterruptedException {
+    public void test03TwoLifes() throws InterruptedException {
         oneLife(false);
         oneLife(false);
     }
-    
+
     static boolean initOnly = false;
     static boolean waitForEach = false;
-    
-    static void waitForEnter() {
-        BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
-        System.err.println("Press enter to continue");
-        try {
-            System.err.println(stdin.readLine());
-        } catch (IOException e) { }        
-    }
-    
+    static boolean waitForKey = false;
+
     public static void main(String args[]) throws IOException {
-        boolean waitForKey = false;
-        
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-wait")) {
                 waitForKey = true;
@@ -141,11 +148,11 @@ public class TestShutdownCompleteNEWT extends UITestCase {
                 initOnly = true;
             }
         }
-        
+
         if(waitForKey) {
-            waitForEnter();
+            UITestCase.waitForKey("Start");
         }
-        
+
         String tstname = TestShutdownCompleteNEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }

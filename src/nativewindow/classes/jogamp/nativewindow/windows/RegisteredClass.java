@@ -29,20 +29,25 @@
 package jogamp.nativewindow.windows;
 
 public class RegisteredClass {
-    long hInstance;
-    String className;
+    private final long hInstance;
+    private final String className;
+    private final long hDDTCtx;
 
-    RegisteredClass(long hInst, String name) {
-        hInstance = hInst;
-        className = name;
+    RegisteredClass(long hInst, String name, long hDispatchThreadCtx) {
+        this.hInstance = hInst;
+        this.className = name;
+        this.hDDTCtx = hDispatchThreadCtx;
     }
 
     /** Application handle, same as {@link RegisteredClassFactory#getHInstance()}. */
     public final long getHInstance() { return hInstance; }
-    
+
     /** Unique Window Class Name */
     public final String getName() { return className; }
 
+    /** Unique associated dispatch thread context for this Window Class, or 0 for none. */
+    public final long getHDispThreadContext() { return hDDTCtx; }
+
     @Override
-    public final String toString() { return "RegisteredClass[handle 0x"+Long.toHexString(hInstance)+", "+className+"]"; }
+    public final String toString() { return "RegisteredClass[handle 0x"+Long.toHexString(hInstance)+", "+className+", dtx 0x"+Long.toHexString(hDDTCtx)+"]"; }
 }

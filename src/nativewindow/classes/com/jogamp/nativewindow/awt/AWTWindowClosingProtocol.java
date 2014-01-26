@@ -40,11 +40,11 @@ import jogamp.nativewindow.awt.AWTMisc;
 
 public class AWTWindowClosingProtocol implements WindowClosingProtocol {
 
-  private Component comp;
-  private Runnable closingOperationClose;
-  private Runnable closingOperationNOP;
-  private boolean closingListenerSet = false;
-  private Object closingListenerLock = new Object();
+  private final Component comp;
+  private Window listenTo;
+  private final Runnable closingOperationClose;
+  private final Runnable closingOperationNOP;
+  private final Object closingListenerLock = new Object();
   private WindowClosingMode defaultCloseOperation = WindowClosingMode.DISPOSE_ON_CLOSE;
   private boolean defaultCloseOperationSetByUser = false;
 
@@ -55,6 +55,7 @@ public class AWTWindowClosingProtocol implements WindowClosingProtocol {
    */
   public AWTWindowClosingProtocol(Component comp, Runnable closingOperationClose, Runnable closingOperationNOP) {
       this.comp = comp;
+      this.listenTo = null;
       this.closingOperationClose = closingOperationClose;
       this.closingOperationNOP = closingOperationNOP;
   }
@@ -78,7 +79,7 @@ public class AWTWindowClosingProtocol implements WindowClosingProtocol {
   /**
    * Adds this closing listener to the components Window if exist and only one time.
    * <p>
-   * If the closing listener is already added, and {@link IllegalStateException} is thrown. 
+   * If the closing listener is already added, and {@link IllegalStateException} is thrown.
    * </p>
    *
    * @return true if added, otherwise false.
@@ -86,13 +87,12 @@ public class AWTWindowClosingProtocol implements WindowClosingProtocol {
    */
   public final boolean addClosingListener() throws IllegalStateException {
       synchronized(closingListenerLock) {
-          if(closingListenerSet) {
+          if(null != listenTo) {
               throw new IllegalStateException("WindowClosingListener already set");
           }
-          final Window w = AWTMisc.getWindow(comp);
-          if(null!=w) {
-              w.addWindowListener(windowClosingAdapter);
-              closingListenerSet = true;
+          listenTo = AWTMisc.getWindow(comp);
+          if(null!=listenTo) {
+              listenTo.addWindowListener(windowClosingAdapter);
               return true;
           }
       }
@@ -101,13 +101,10 @@ public class AWTWindowClosingProtocol implements WindowClosingProtocol {
 
   public final boolean removeClosingListener() {
       synchronized(closingListenerLock) {
-          if(closingListenerSet) {
-              final Window w = AWTMisc.getWindow(comp);
-              if(null!=w) {
-                  w.removeWindowListener(windowClosingAdapter);
-                  closingListenerSet = false;
-                  return true;
-              }
+          if(null != listenTo) {
+              listenTo.removeWindowListener(windowClosingAdapter);
+              listenTo = null;
+              return true;
           }
       }
       return false;
@@ -119,6 +116,7 @@ public class AWTWindowClosingProtocol implements WindowClosingProtocol {
    *         otherwise return the AWT/Swing close operation value translated to
    *         a {@link WindowClosingProtocol} value .
    */
+  @Override
   public final WindowClosingMode getDefaultCloseOperation() {
       synchronized(closingListenerLock) {
         if(defaultCloseOperationSetByUser) {
@@ -129,6 +127,7 @@ public class AWTWindowClosingProtocol implements WindowClosingProtocol {
       return AWTMisc.getNWClosingOperation(comp);
   }
 
+  @Override
   public final WindowClosingMode setDefaultCloseOperation(WindowClosingMode op) {
       synchronized(closingListenerLock) {
           final WindowClosingMode _op = defaultCloseOperation;

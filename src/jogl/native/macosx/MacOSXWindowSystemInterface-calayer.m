@@ -150,7 +150,7 @@ extern GLboolean glIsVertexArray (GLuint array);
 
 @end
 
-@interface MyNSOpenGLLayer: NSOpenGLLayer <NWDedicatedSize>
+@interface MyNSOpenGLLayer: NSOpenGLLayer <NWDedicatedFrame>
 {
 @private
     GLfloat gl_texCoords[8];
@@ -166,8 +166,8 @@ extern GLboolean glIsVertexArray (GLuint array);
     NSOpenGLPixelFormat* parentPixelFmt;
     int texWidth;
     int texHeight;
-    volatile int dedicatedWidth;
-    volatile int dedicatedHeight;
+    volatile Bool dedicatedFrameSet;
+    volatile CGRect dedicatedFrame;
     volatile NSOpenGLPixelBuffer* pbuffer;
     volatile GLuint textureID;
     volatile NSOpenGLPixelBuffer* newPBuffer;
@@ -206,14 +206,14 @@ extern GLboolean glIsVertexArray (GLuint array);
 - (Bool)isGLSourceValid;
 
 - (void) setGLEnabled: (Bool) enable;
-- (Bool) validateTexSizeWithDedicatedSize;
+- (Bool) validateTexSize: (CGRect) lRect;
 - (void) setTextureID: (int) _texID;
 
 - (Bool) isSamePBuffer: (NSOpenGLPixelBuffer*) p;
 - (void) setNewPBuffer: (NSOpenGLPixelBuffer*)p;
 - (void) applyNewPBuffer;
 
-- (void)setDedicatedSize:(CGSize)size; // @NWDedicatedSize
+- (void)setDedicatedFrame:(CGRect)frame quirks:(int)quirks; // @NWDedicatedFrame
 - (void) setFrame:(CGRect) frame;
 - (id<CAAction>)actionForKey:(NSString *)key ;
 - (NSOpenGLPixelFormat *)openGLPixelFormatForDisplayMask:(uint32_t)mask;
@@ -300,9 +300,9 @@ static const GLfloat gl_verts[] = {
     timespec_now(&lastWaitTime);
     shallDraw = NO;
     isGLEnabled = YES;
-    dedicatedWidth = _texWidth;
-    dedicatedHeight = _texHeight;
-    [self validateTexSizeWithDedicatedSize];
+    dedicatedFrameSet = NO;
+    dedicatedFrame = CGRectMake(0, 0, _texWidth, _texHeight);
+    [self validateTexSize: dedicatedFrame];
     [self setTextureID: texID];
 
     newPBuffer = NULL;
@@ -383,11 +383,16 @@ static const GLfloat gl_verts[] = {
     isGLEnabled = enable;
 }
 
-- (Bool) validateTexSizeWithDedicatedSize
+- (Bool) validateTexSize: (CGRect) lRect
 {
-    if( dedicatedHeight != texHeight || dedicatedWidth != texWidth ) {
-        texWidth = dedicatedWidth;
-        texHeight = dedicatedHeight;
+    const int lRectW = (int) (lRect.size.width + 0.5f);
+    const int lRectH = (int) (lRect.size.height + 0.5f);
+    Bool changed;
+
+    if( lRectH != texHeight || lRectW != texWidth ) {
+        texWidth = lRectW;
+        texHeight = lRectH;
+        changed = YES;
 
         GLfloat texCoordWidth, texCoordHeight;
         if(NULL != pbuffer) {
@@ -409,16 +414,16 @@ static const GLfloat gl_verts[] = {
         gl_texCoords[5] = texCoordHeight;
         gl_texCoords[4] = texCoordWidth;
         gl_texCoords[6] = texCoordWidth;
-#ifdef VERBOSE_ON
-        CGRect lRect = [self bounds];
-        DBG_PRINT("MyNSOpenGLLayer::validateTexSize %p -> tex %dx%d, bounds: %lf/%lf %lfx%lf\n", 
+        #ifdef VERBOSE_ON
+        DBG_PRINT("MyNSOpenGLLayer::validateTexSize %p -> tex %dx%d, bounds: %lf/%lf %lfx%lf (%dx%d), dedicatedFrame set:%d %lf/%lf %lfx%lf\n", 
             self, texWidth, texHeight,
-            lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
-#endif
-        return YES;
+            lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height, lRectW, lRectH, 
+            dedicatedFrameSet, dedicatedFrame.origin.x, dedicatedFrame.origin.y, dedicatedFrame.size.width, dedicatedFrame.size.height);
+        #endif
     } else {
-        return NO;
+        changed = NO;
     }
+    return changed;
 }
 
 - (void) setTextureID: (int) _texID
@@ -560,21 +565,32 @@ static const GLfloat gl_verts[] = {
     return NULL != pbuffer || NULL != newPBuffer || 0 != textureID ;
 }
 
-// @NWDedicatedSize
-- (void)setDedicatedSize:(CGSize)size {
-    DBG_PRINT("MyNSOpenGLLayer::setDedicatedSize: %p, texSize %dx%d <- %lfx%lf\n",
-        self, texWidth, texHeight, size.width, size.height);
-    
-    dedicatedWidth = size.width;
-    dedicatedHeight = size.height;
+// @NWDedicatedFrame
+- (void)setDedicatedFrame:(CGRect)dFrame quirks:(int)quirks {
+    CGRect lRect = [self frame];
+    Bool dedicatedFramePosSet  = 0 != ( NW_DEDICATEDFRAME_QUIRK_POSITION & quirks );
+    Bool dedicatedFrameSizeSet = 0 != ( NW_DEDICATEDFRAME_QUIRK_SIZE & quirks );
+    Bool dedicatedLayoutSet = 0 != ( NW_DEDICATEDFRAME_QUIRK_LAYOUT & quirks );
+    dedicatedFrameSet  = dedicatedFramePosSet || dedicatedFrameSizeSet || dedicatedLayoutSet;
+    dedicatedFrame = dFrame;
 
-    CGRect rect = CGRectMake(0, 0, dedicatedWidth, dedicatedHeight); 
-    [super setFrame: rect];
+    DBG_PRINT("MyNSOpenGLLayer::setDedicatedFrame: Quirks [%d, pos %d, size %d, lout %d], %p, texSize %dx%d, %lf/%lf %lfx%lf -> %lf/%lf %lfx%lf\n",
+        quirks, dedicatedFramePosSet, dedicatedFrameSizeSet, dedicatedLayoutSet, self, texWidth, texHeight,
+        lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height,
+        dFrame.origin.x, dFrame.origin.y, dFrame.size.width, dFrame.size.height);
+    (void)lRect; // silence
+    
+    if( dedicatedFrameSet ) {
+        [super setFrame: dedicatedFrame];
+    }
 }
 
 - (void) setFrame:(CGRect) frame {
-    CGRect rect = CGRectMake(0, 0, dedicatedWidth, dedicatedHeight); 
-    [super setFrame: rect];
+    if( dedicatedFrameSet ) {
+        [super setFrame: dedicatedFrame];
+    } else {
+        [super setFrame: frame];
+    }
 }
 
 - (id<CAAction>)actionForKey:(NSString *)key
@@ -622,7 +638,7 @@ static const GLfloat gl_verts[] = {
 
         GLenum textureTarget;
 
-        Bool texSizeChanged = [self validateTexSizeWithDedicatedSize];
+        Bool texSizeChanged = [self validateTexSize: ( dedicatedFrameSet ? dedicatedFrame : [self bounds] ) ];
         if( texSizeChanged ) {
             [context update];
         }

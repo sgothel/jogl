@@ -43,7 +43,7 @@ public class ArcTdirSorter {
   /**
    * Makes new ArcSdirSorter with Subdivider
    * @param subdivider subdivider
-   */ 
+   */
   public ArcTdirSorter(Subdivider subdivider) {
     // TODO Auto-generated constructor stub
     //            System.out.println("TODO arcTsorter.konstruktor");

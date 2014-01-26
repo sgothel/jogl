@@ -41,6 +41,7 @@ public class PngMetadata {
 			throw new PngjException("cannot set chunk : readonly metadata");
 		if (lazyOverwrite) {
 			ChunkHelper.trimList(cl.getQueuedChunks(), new ChunkPredicate() {
+				@Override
 				public boolean match(PngChunk c2) {
 					return ChunkHelper.equivalent(c, c2);
 				}
@@ -87,7 +88,7 @@ public class PngMetadata {
 	/**
 	 * Creates a time chunk with current time, less secsAgo seconds
 	 * <p>
-	 * 
+	 *
 	 * @return Returns the created-queued chunk, just in case you want to
 	 *         examine or modify it
 	 */
@@ -105,7 +106,7 @@ public class PngMetadata {
 	/**
 	 * Creates a time chunk with diven date-time
 	 * <p>
-	 * 
+	 *
 	 * @return Returns the created-queued chunk, just in case you want to
 	 *         examine or modify it
 	 */
@@ -133,7 +134,7 @@ public class PngMetadata {
 	/**
 	 * Creates a text chunk and queue it.
 	 * <p>
-	 * 
+	 *
 	 * @param k
 	 *            : key (latin1)
 	 * @param val
@@ -201,7 +202,7 @@ public class PngMetadata {
 
 	/**
 	 * Returns the palette chunk, if present
-	 * 
+	 *
 	 * @return null if not present
 	 */
 	public PngChunkPLTE getPLTE() {
@@ -220,7 +221,7 @@ public class PngMetadata {
 
 	/**
 	 * Returns the TRNS chunk, if present
-	 * 
+	 *
 	 * @return null if not present
 	 */
 	public PngChunkTRNS getTRNS() {

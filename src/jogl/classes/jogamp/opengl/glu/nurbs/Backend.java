@@ -67,7 +67,7 @@ public abstract class Backend {
   protected SurfaceEvaluator surfaceEvaluator;
 
   /**
-   * Makes new backend 
+   * Makes new backend
    */
   public Backend() {
     // curveEvaluator = new OpenGLCurveEvaluator();

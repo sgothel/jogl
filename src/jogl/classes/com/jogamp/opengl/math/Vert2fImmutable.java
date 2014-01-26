@@ -33,7 +33,7 @@ public interface Vert2fImmutable {
     float getY();
 
     int getCoordCount();
-    
+
     float[] getCoord();
-    
+
 }

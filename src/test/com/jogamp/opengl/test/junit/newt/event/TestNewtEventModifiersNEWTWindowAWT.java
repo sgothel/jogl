@@ -34,6 +34,8 @@ import javax.media.opengl.GLProfile;
 import org.junit.AfterClass ;
 import org.junit.Assert;
 import org.junit.BeforeClass ;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
@@ -42,6 +44,7 @@ import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 /**
  * Test whether or not event modifiers are properly delivered by NEWT.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestNewtEventModifiersNEWTWindowAWT extends BaseNewtEventModifiers {
 
     private static GLWindow _glWindow;

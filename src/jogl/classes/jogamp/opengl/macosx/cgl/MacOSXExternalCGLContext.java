@@ -49,9 +49,7 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 
-
 import jogamp.nativewindow.WrappedSurface;
-import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLContextShareSet;
 import jogamp.opengl.macosx.cgl.MacOSXCGLDrawable.GLBackendType;
 
@@ -63,7 +61,9 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
     setOpenGLMode(isNSContext ? GLBackendType.NSOPENGL : GLBackendType.CGL );
     this.contextHandle = handle;
     GLContextShareSet.contextCreated(this);
-    setGLFunctionAvailability(false, 0, 0, CTX_PROFILE_COMPAT, false);
+    if( !setGLFunctionAvailability(false, 0, 0, CTX_PROFILE_COMPAT, false /* strictMatch */, false /* withinGLVersionsMapping */) ) { // use GL_VERSION
+        throw new InternalError("setGLFunctionAvailability !strictMatch failed");
+    }
     getGLStateTracker().setEnabled(false); // external context usage can't track state in Java
   }
 
@@ -117,7 +117,7 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
   }
 
   @Override
-  protected boolean createImpl(GLContextImpl shareWith) throws GLException {
+  protected boolean createImpl(final long shareWithHandle) throws GLException {
       return true;
   }
 

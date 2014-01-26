@@ -34,9 +34,13 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
 
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
+
 /**
  * ExclusiveContextThread base implementation to test performance impact of the ExclusiveContext feature with Animator and NEWT. 
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestExclusiveContext11VSyncAnimNEWT extends ExclusiveContextBase10NEWT {    
 
     @Override

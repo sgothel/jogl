@@ -42,10 +42,12 @@ public class Point implements Cloneable, PointImmutable {
         this(0, 0);
     }
 
+    @Override
     public Object cloneMutable() {
       return clone();
     }
-  
+
+    @Override
     public Object clone() {
         try {
             return super.clone();
@@ -58,7 +60,7 @@ public class Point implements Cloneable, PointImmutable {
     public int compareTo(final PointImmutable d) {
         final int sq = x*y;
         final int xsq = d.getX()*d.getY();
-        
+
         if(sq > xsq) {
             return 1;
         } else if(sq < xsq) {
@@ -66,7 +68,7 @@ public class Point implements Cloneable, PointImmutable {
         }
         return 0;
     }
-    
+
     @Override
     public boolean equals(Object obj) {
         if(this == obj)  { return true; }
@@ -95,29 +97,31 @@ public class Point implements Cloneable, PointImmutable {
         return hash;
     }
 
+    @Override
     public String toString() {
-        return new String( x + " / " + y );
+        return x + " / " + y;
     }
 
-    public void setX(int x) { this.x = x; }
-    public void setY(int y) { this.y = y; }
+    public final void set(int x, int y) { this.x = x; this.y = y; }
+    public final void setX(int x) { this.x = x; }
+    public final void setY(int y) { this.y = y; }
 
-    public Point translate(Point pd) {
+    public final Point translate(Point pd) {
         x += pd.x ;
         y += pd.y ;
         return this;
     }
 
-    public Point translate(int dx, int dy) {
+    public final Point translate(int dx, int dy) {
         x += dx ;
         y += dy ;
         return this;
     }
 
-    public Point scale(int sx, int sy) {
+    public final Point scale(int sx, int sy) {
         x *= sx ;
         y *= sy ;
         return this;
     }
-    
+
 }

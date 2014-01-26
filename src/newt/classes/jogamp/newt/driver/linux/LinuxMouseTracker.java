@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -48,16 +48,16 @@ import com.jogamp.newt.event.WindowUpdateEvent;
  * within it's own polling thread.
  */
 public class LinuxMouseTracker implements WindowListener {
-    
+
     private static final LinuxMouseTracker lmt;
-    
+
     static {
         lmt = new LinuxMouseTracker();
         final Thread t = new Thread(lmt.mouseDevicePoller, "NEWT-LinuxMouseTracker");
         t.setDaemon(true);
         t.start();
     }
-    
+
     public static LinuxMouseTracker getSingleton() {
         return lmt;
     }
@@ -68,10 +68,15 @@ public class LinuxMouseTracker implements WindowListener {
     private short buttonDown = 0;
     private int old_x = 0;
     private int old_y = 0;
+    private volatile int lastFocusedX = 0;
+    private volatile int lastFocusedY = 0;
     private short old_buttonDown = 0;
     private WindowImpl focusedWindow = null;
-    private MouseDevicePoller mouseDevicePoller = new MouseDevicePoller();
-    
+    private final MouseDevicePoller mouseDevicePoller = new MouseDevicePoller();
+
+    public final int getLastX() { return lastFocusedX; }
+    public final int getLastY() { return lastFocusedY; }
+
     @Override
     public void windowResized(WindowEvent e) { }
 
@@ -107,7 +112,7 @@ public class LinuxMouseTracker implements WindowListener {
 
     @Override
     public void windowRepaint(WindowUpdateEvent e) { }
-    
+
     class MouseDevicePoller implements Runnable {
         @Override
         public void run() {
@@ -150,17 +155,17 @@ public class LinuxMouseTracker implements WindowListener {
                 yo=(b[0]&128)>0;
                 xd=b[1];
                 yd=b[2];
-            
+
                 x+=xd;
                 y-=yd;
-                
+
                 if(x<0) {
                     x=0;
                 }
                 if(y<0) {
                     y=0;
                 }
-                
+
                 buttonDown = 0;
                 if(lb) {
                     buttonDown = MouseEvent.BUTTON1;
@@ -171,7 +176,7 @@ public class LinuxMouseTracker implements WindowListener {
                 if(rb) {
                     buttonDown = MouseEvent.BUTTON3;
                 }
-                
+
                 if(null != focusedWindow) {
                     if( x >= focusedWindow.getScreen().getWidth() ) {
                         x = focusedWindow.getScreen().getWidth() - 1;
@@ -179,31 +184,32 @@ public class LinuxMouseTracker implements WindowListener {
                     if( y >= focusedWindow.getScreen().getHeight() ) {
                         y = focusedWindow.getScreen().getHeight() - 1;
                     }
-                    int wx = x - focusedWindow.getX(), wy = y - focusedWindow.getY(); 
-                    
+                    final int wx = x - focusedWindow.getX(), wy = y - focusedWindow.getY();
                     if(old_x != x || old_y != y) {
                         // mouse moved
-                        focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_MOVED, 0, wx, wy, (short)0, 0 ); 
+                        lastFocusedX = wx;
+                        lastFocusedY = wy;
+                        focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_MOVED, 0, wx, wy, (short)0, 0 );
                     }
-                    
+
                     if(old_buttonDown != buttonDown) {
                         // press/release
                         if( 0 != buttonDown ) {
-                            focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_PRESSED, 0, wx, wy, buttonDown, 0 ); 
+                            focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_PRESSED, 0, wx, wy, buttonDown, 0 );
                         } else {
-                            focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_RELEASED, 0, wx, wy, old_buttonDown, 0 ); 
+                            focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_RELEASED, 0, wx, wy, old_buttonDown, 0 );
                         }
-                    }                
+                    }
                 } else {
                     if(Window.DEBUG_MOUSE_EVENT) {
                         System.out.println(x+"/"+y+", hs="+hs+",vs="+vs+",lb="+lb+",rb="+rb+",mb="+mb+",xo="+xo+",yo="+yo+"xd="+xd+",yd="+yd);
                     }
                 }
-                
+
                 old_x = x;
                 old_y = y;
                 old_buttonDown = buttonDown;
-                
+
             }
             if(null != fis) {
                 try {
@@ -214,5 +220,5 @@ public class LinuxMouseTracker implements WindowListener {
                 }
             }
         }
-    }    
+    }
 }

@@ -73,7 +73,7 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
       throw new GLException("Error: attempted to make an external GLDrawable without a drawable current");
     }
     IntBuffer val = Buffers.newDirectIntBuffer(1);
-    
+
     GLX.glXQueryContext(display, context, GLX.GLX_SCREEN, val);
     X11GraphicsScreen x11Screen = (X11GraphicsScreen) X11GraphicsScreen.createScreenDevice(display, val.get(0), false);
 

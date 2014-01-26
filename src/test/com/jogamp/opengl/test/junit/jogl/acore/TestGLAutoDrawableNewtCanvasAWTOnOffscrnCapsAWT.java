@@ -50,6 +50,8 @@ import jogamp.opengl.GLGraphicsConfigurationUtil;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
@@ -64,6 +66,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  * The NEWT  {@link GLAutoDrawable} is being used to run the {@link GLEventListener}.  
  * </p> 
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLAutoDrawableNewtCanvasAWTOnOffscrnCapsAWT extends UITestCase {
     static final int widthStep = 800/4;
     static final int heightStep = 600/4;

@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,18 +20,20 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.newt.parenting;
 
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import javax.media.opengl.*;
 
@@ -45,6 +47,7 @@ import com.jogamp.opengl.test.junit.util.*;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestParenting01NEWT extends UITestCase {
     static int width, height;
     static long durationPerTest = 600;
@@ -59,7 +62,7 @@ public class TestParenting01NEWT extends UITestCase {
     }
 
     @Test
-    public void testWindowParenting01CreateVisibleDestroy() throws InterruptedException {
+    public void test01CreateVisibleDestroy() throws InterruptedException {
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
         Display display = null;
         Screen screen = null;
@@ -79,7 +82,7 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(false,screen.isNativeValid());
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
 
-        glWindow1.setTitle("testWindowParenting01CreateVisibleDestroy");
+        glWindow1.setTitle("test01CreateVisibleDestroy");
         glWindow1.setSize(640, 480);
         GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
@@ -148,13 +151,13 @@ public class TestParenting01NEWT extends UITestCase {
         glWindow1.resetFPSCounter();
         glWindow2.resetFPSCounter();
         Animator animator1 = new Animator(glWindow1);
-        animator1.setUpdateFPSFrames(1, null);        
+        animator1.setUpdateFPSFrames(1, null);
         animator1.start();
         Assert.assertEquals(true, animator1.isAnimating());
         Assert.assertEquals(false, animator1.isPaused());
         Assert.assertNotNull(animator1.getThread());
         Animator animator2 = new Animator(glWindow2);
-        animator2.setUpdateFPSFrames(1, null);        
+        animator2.setUpdateFPSFrames(1, null);
         animator2.start();
         Assert.assertEquals(true, animator2.isAnimating());
         Assert.assertEquals(false, animator2.isPaused());
@@ -283,25 +286,27 @@ public class TestParenting01NEWT extends UITestCase {
     }
 
     @Test
-    public void testWindowParenting02ReparentTop2WinReparentRecreate() throws InterruptedException {
-        testWindowParenting02ReparentTop2WinImpl(true);
+    public void test02aReparentTop2WinReparentRecreate() throws InterruptedException {
+        test02ReparentTop2WinImpl(true);
     }
 
     @Test
-    public void testWindowParenting02ReparentTop2WinReparentNative() throws InterruptedException {
-        testWindowParenting02ReparentTop2WinImpl(false);
+    public void test02bReparentTop2WinReparentNative() throws InterruptedException {
+        test02ReparentTop2WinImpl(false);
     }
 
     /**
      * @param reparentRecreate true, if the followup reparent should utilize destroy/create, instead of native reparenting
      */
-    protected void testWindowParenting02ReparentTop2WinImpl(boolean reparentRecreate) throws InterruptedException {
+    protected void test02ReparentTop2WinImpl(final boolean reparentRecreate) throws InterruptedException {
+        final int reparentHints = reparentRecreate ? Window.REPARENT_HINT_FORCE_RECREATION : 0;
+
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
         Display display1 = null;
         Screen screen1 = null;
 
         GLWindow glWindow1 = GLWindow.create(glCaps);
-        glWindow1.setTitle("testWindowParenting02ReparentTop2Win");
+        glWindow1.setTitle("test02ReparentTop2Win");
         glWindow1.setSize(640, 480);
         GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
@@ -376,7 +381,7 @@ public class TestParenting01NEWT extends UITestCase {
                     // glWindow2 -- child --> glWindow1: compatible
                     Assert.assertEquals(true, glWindow2.isVisible());
                     System.err.println("Frames(1) "+glWindow2.getTotalFPSFrames());
-                    reparentAction = glWindow2.reparentWindow(glWindow1, reparentRecreate);
+                    reparentAction = glWindow2.reparentWindow(glWindow1, -1, -1, reparentHints);
                     System.err.println("Frames(2) "+glWindow2.getTotalFPSFrames());
                     Assert.assertTrue(Window.ReparentOperation.ACTION_INVALID != reparentAction);
                     Assert.assertEquals(true, glWindow2.isVisible());
@@ -402,7 +407,7 @@ public class TestParenting01NEWT extends UITestCase {
                     // glWindow2 --> top
                     Assert.assertEquals(true, glWindow2.isVisible());
 
-                    reparentAction = glWindow2.reparentWindow(null, reparentRecreate);
+                    reparentAction = glWindow2.reparentWindow(null, -1, -1, reparentHints);
                     Assert.assertTrue(Window.ReparentOperation.ACTION_INVALID != reparentAction);
                     Assert.assertEquals(true, glWindow2.isVisible());
                     Assert.assertEquals(true, glWindow2.isNativeValid());
@@ -481,16 +486,18 @@ public class TestParenting01NEWT extends UITestCase {
     }
 
     @Test
-    public void testWindowParenting03ReparentWin2TopReparentRecreate() throws InterruptedException {
-        testWindowParenting03ReparentWin2TopImpl(true);
+    public void test03aReparentWin2TopReparentRecreate() throws InterruptedException {
+        test03ReparentWin2TopImpl(true);
     }
 
     @Test
-    public void testWindowParenting03ReparentWin2TopReparentNative() throws InterruptedException {
-        testWindowParenting03ReparentWin2TopImpl(false);
+    public void test03bReparentWin2TopReparentNative() throws InterruptedException {
+        test03ReparentWin2TopImpl(false);
     }
 
-    protected void testWindowParenting03ReparentWin2TopImpl(boolean reparentRecreate) throws InterruptedException {
+    protected void test03ReparentWin2TopImpl(final boolean reparentRecreate) throws InterruptedException {
+        final int reparentHints = reparentRecreate ? Window.REPARENT_HINT_FORCE_RECREATION : 0;
+
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
         Display display1 = null;
         Screen screen1 = null;
@@ -500,7 +507,7 @@ public class TestParenting01NEWT extends UITestCase {
         GLWindow glWindow1 = GLWindow.create(glCaps);
         screen1 = glWindow1.getScreen();
         display1 = screen1.getDisplay();
-        glWindow1.setTitle("testWindowParenting03ReparentWin2Top");
+        glWindow1.setTitle("test03ReparentWin2Top");
         glWindow1.setSize(640, 480);
         GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
@@ -564,14 +571,14 @@ public class TestParenting01NEWT extends UITestCase {
             switch(state) {
                 case 0:
                     Assert.assertEquals(true, glWindow2.isVisible());
-                    reparentAction = glWindow2.reparentWindow(null, reparentRecreate);
+                    reparentAction = glWindow2.reparentWindow(null, -1, -1, reparentHints);
                     Assert.assertTrue(Window.ReparentOperation.ACTION_INVALID != reparentAction);
                     Assert.assertEquals(true, glWindow2.isVisible());
                     Assert.assertEquals(true, glWindow2.isNativeValid());
                     Thread.sleep(20*16); // Wait for a few frames since counter could be reset - 20 frames at 60Hz
                     System.err.println("Frames for reparentWindow(parent, "+reparentRecreate+"): "+reparentAction+", B2: "+glWindow2.getTotalFPSFrames());
                     Assert.assertTrue(0 < glWindow2.getTotalFPSFrames());
-                    
+
                     Assert.assertNull(glWindow2.getParent());
                     Assert.assertSame(screen1,glWindow2.getScreen());
                     Assert.assertSame(display1,glWindow2.getScreen().getDisplay());
@@ -579,14 +586,14 @@ public class TestParenting01NEWT extends UITestCase {
                     break;
                 case 1:
                     Assert.assertEquals(true, glWindow2.isVisible());
-                    reparentAction = glWindow2.reparentWindow(glWindow1, reparentRecreate);
+                    reparentAction = glWindow2.reparentWindow(glWindow1, -1, -1, reparentHints);
                     Assert.assertTrue(Window.ReparentOperation.ACTION_INVALID != reparentAction);
                     Assert.assertEquals(true, glWindow2.isVisible());
                     Assert.assertEquals(true, glWindow2.isNativeValid());
                     Thread.sleep(20*16); // Wait for a few frames since counter could be reset - 20 frames at 60Hz
                     System.err.println("Frames for reparentWindow(parent, "+reparentRecreate+"): "+reparentAction+", B3 "+glWindow2.getTotalFPSFrames());
                     Assert.assertTrue(0 < glWindow2.getTotalFPSFrames());
-                    
+
                     Assert.assertSame(glWindow1,glWindow2.getParent());
                     Assert.assertSame(screen1,glWindow2.getScreen());
                     Assert.assertSame(display1,glWindow2.getScreen().getDisplay());
@@ -654,7 +661,7 @@ public class TestParenting01NEWT extends UITestCase {
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
         Assert.assertNotNull(demo);
-        Assert.assertNotNull(glWindow);        
+        Assert.assertNotNull(glWindow);
         if(debug) {
             MiscUtils.setFieldIfExists(demo, "glDebug", true);
             MiscUtils.setFieldIfExists(demo, "glTrace", true);
@@ -686,8 +693,8 @@ public class TestParenting01NEWT extends UITestCase {
             try {
                 TestParenting01NEWT.initClass();
                 TestParenting01NEWT m = new TestParenting01NEWT();
-                m.testWindowParenting02ReparentTop2WinReparentRecreate();
-                m.testWindowParenting01CreateVisibleDestroy();
+                m.test02aReparentTop2WinReparentRecreate();
+                m.test01CreateVisibleDestroy();
             } catch (Throwable t ) {
                 t.printStackTrace();
             }

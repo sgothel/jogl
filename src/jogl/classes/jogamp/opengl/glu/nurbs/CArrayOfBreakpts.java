@@ -2,9 +2,9 @@ package jogamp.opengl.glu.nurbs;
 
 /**
  * Class replacing C language pointer
- * 
+ *
  * @author Tomas Hrasky
- * 
+ *
  */
 public class CArrayOfBreakpts {
   /**
@@ -19,7 +19,7 @@ public class CArrayOfBreakpts {
 
   /**
    * Makes new CArray
-   * 
+   *
    * @param array
    *            underlaying array
    * @param pointer
@@ -32,7 +32,7 @@ public class CArrayOfBreakpts {
 
   /**
    * Makes new CArray from other CArray
-   * 
+   *
    * @param carray
    *            reference array
    */
@@ -43,7 +43,7 @@ public class CArrayOfBreakpts {
 
   /**
    * Returns element at pointer
-   * 
+   *
    * @return element at pointer
    */
   public Breakpt get() {
@@ -59,7 +59,7 @@ public class CArrayOfBreakpts {
 
   /**
    * Sets element at pointer
-   * 
+   *
    * @param f
    *            desired value
    */
@@ -70,7 +70,7 @@ public class CArrayOfBreakpts {
 
   /**
    * Returns array element at specified index
-   * 
+   *
    * @param i
    *            array index
    * @return element at index
@@ -81,7 +81,7 @@ public class CArrayOfBreakpts {
 
   /**
    * Lessens pointer by value
-   * 
+   *
    * @param i
    *            lessen by
    */
@@ -92,7 +92,7 @@ public class CArrayOfBreakpts {
 
   /**
    * Returns pointer value
-   * 
+   *
    * @return pointer value
    */
   public int getPointer() {
@@ -101,7 +101,7 @@ public class CArrayOfBreakpts {
 
   /**
    * Sets ponter value
-   * 
+   *
    * @param pointer
    *            pointer value to be set
    */
@@ -111,7 +111,7 @@ public class CArrayOfBreakpts {
 
   /**
    * Raises pointer by value
-   * 
+   *
    * @param i
    *            raise by
    */

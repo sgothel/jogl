@@ -41,6 +41,8 @@ import javax.media.opengl.glu.gl2es1.GLUgl2es1;
 
 import org.junit.Assume;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
@@ -52,6 +54,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  * was in JOGL 1) solves the problem.  
  * @author Wade Walker
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBug463ScaleImageMemoryAWT extends UITestCase implements GLEventListener {
 
     /* @Override */

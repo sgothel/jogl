@@ -28,22 +28,33 @@
 
 package com.jogamp.newt;
 
-import com.jogamp.newt.util.EDTUtil;
-import jogamp.newt.Debug;
-
+import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.util.PixelRectangle;
+import javax.media.nativewindow.util.PixelFormat;
+import javax.media.nativewindow.util.PointImmutable;
+
+import jogamp.newt.Debug;
+
+import com.jogamp.common.util.IOUtil;
+import com.jogamp.newt.util.EDTUtil;
 
 public abstract class Display {
     public static final boolean DEBUG = Debug.debug("Display");
+    protected static final boolean DEBUG_POINTER_ICON = Debug.debug("Display.PointerIcon");
 
     /** return precomputed hashCode from FQN {@link #getFQName()} */
+    @Override
     public abstract int hashCode();
 
     /** return true if obj is of type Display and both FQN {@link #getFQName()} equals */
+    @Override
     public boolean equals(Object obj) {
         if (this == obj) { return true; }
         if (obj instanceof Display) {
@@ -52,6 +63,167 @@ public abstract class Display {
         }
         return false;
     }
+
+    /**
+     * Native PointerIcon handle.
+     * <p>
+     * Instances can be created via {@link Display}'s
+     * {@link Display#createPointerIcon(com.jogamp.common.util.IOUtil.ClassResources, int, int) createPointerIcon(pngResource, ..)}
+     * or {@link Display#createPointerIcon(PixelRectangle, int, int) createPointerIcon(pixelrect, ..)}.
+     * </p>
+     * <p>
+     * Instance is {@link #destroy()}'ed automatically if it's {@link #getDisplay() associated Display} is destroyed.
+     * </p>
+     * <p>
+     * Instance can be re-validated after destruction via {@link #validate()}.
+     * </p>
+     * <p>
+     * {@link PointerIcon} must not be {@link #destroy() destroyed} while in use!
+     * </p>
+     * <p>
+     * {@link PointerIcon} may be {@link #destroy() destroyed} manually after use,
+     * i.e. when no {@link Window} {@link Window#setPointerIcon(PointerIcon) uses them} anymore.
+     * However, this is not required.
+     * </p>
+     * <p>
+     * PointerIcons can be used via {@link Window#setPointerIcon(PointerIcon)}.
+     * </p>
+     */
+    public static interface PointerIcon extends PixelRectangle {
+        /**
+         * Always neatly packed, i.e. width * bytes_per_pixel.
+         * <p>
+         * {@inheritDoc}
+         * </p>
+         */
+        @Override
+        int getStride();
+
+        /**
+         * Always false, i.e. origin is TOP-LEFT.
+         * <p>
+         * {@inheritDoc}
+         * </p>
+         */
+        boolean isGLOriented();
+
+        /**
+         * Computes a hash code over:
+         * <ul>
+         *   <li>display</li>
+         *   <li>pixelformat</li>
+         *   <li>size</li>
+         *   <li>stride</li>
+         *   <li>isGLOriented</li>
+         *   <li>pixels</li>
+         *   <li>hotspot</li>
+         * </ul>
+         * Dismissing the native handle!
+         * <p>
+         * The hashCode shall be computed only once with first call
+         * and stored for later retrieval to enhance performance.
+         * </p>
+         * <p>
+         * {@inheritDoc}
+         * </p>
+         */
+        @Override
+        int hashCode();
+
+        /**
+         * @return the associated Display
+         */
+        Display getDisplay();
+
+        /** Returns the hotspot. */
+        PointImmutable getHotspot();
+
+        /**
+         * Returns true if valid, otherwise false.
+         * <p>
+         * A PointerIcon instance becomes invalid if it's {@link #getDisplay() associated Display} is destroyed.
+         * </p>
+         */
+        boolean isValid();
+
+        /**
+         * Returns true if instance {@link #isValid()} or validation was successful, otherwise false.
+         * <p>
+         * Validation, i.e. recreation, is required if instance became invalid, see {@link #isValid()}.
+         * </p>
+         */
+        boolean validate();
+
+        /**
+         * Destroys this instance.
+         * <p>
+         * Will be called automatically if it's {@link #getDisplay() associated Display} is destroyed.
+         * </p>
+         */
+        void destroy();
+    }
+
+    /**
+     * Returns the native platform's {@link PointerIcon.PixelFormat} for pointer-icon pixel data.
+     * <p>
+     * Using this value will avoid conversion within {@link #createPointerIcon(PixelRectangle, int, int)}.
+     * </p>
+     */
+    public abstract PixelFormat getNativePointerIconPixelFormat();
+
+    /**
+     * Returns the native platform's direct NIO buffer requirement pointer-icon pixel data.
+     * <p>
+     * Using this value will avoid conversion within {@link #createPointerIcon(PixelRectangle, int, int)}.
+     * </p>
+     */
+    public abstract boolean getNativePointerIconForceDirectNIO();
+
+    /**
+     * Returns the newly created {@link PointerIcon} or <code>null</code> if not implemented on platform.
+     * <p>
+     * See {@link PointerIcon} for lifecycle semantics.
+     * </p>
+     *
+     * @param pngResource single PNG resource for the {@link PointerIcon}. Only the first entry of {@link IOUtil.ClassResources#resourcePaths} is used.
+     * @param hotX pointer hotspot x-coord, origin is upper-left corner
+     * @param hotY pointer hotspot y-coord, origin is upper-left corner
+     *
+     * @throws IllegalArgumentException if pngResource is null or invalid
+     * @throws IllegalStateException if this Display instance is not {@link #isNativeValid() valid yet}.
+     * @throws IOException if the <code>pngResource</code> could not be {@link IOUtil.ClassResources#resolve(int) resolved}
+     *                     or via the PNG parser processing the input stream.
+     *
+     * @see PointerIcon
+     * @see Window#setPointerIcon(PointerIcon)
+     */
+    public abstract PointerIcon createPointerIcon(final IOUtil.ClassResources pngResource, final int hotX, final int hotY)
+            throws IllegalArgumentException, IllegalStateException, IOException;
+
+    /**
+     * Returns the newly created {@link PointerIcon} or <code>null</code> if not implemented on platform.
+     * <p>
+     * See {@link PointerIcon} for lifecycle semantics.
+     * </p>
+     * <p>
+     * In case {@link #getNativePointerIconPixelFormat()} or {@link #getNativePointerIconForceDirectNIO()}
+     * is not matched by the given <code>pixelrect</code>, the <code>pixelrect</code> is converted
+     * into the required {@link PixelFormat} and NIO type.
+     * </p>
+     *
+     * @param pixelrect {@link PixelRectangle} source for the {@link PointerIcon}
+     * @param hotX pointer hotspot x-coord, origin is upper-left corner
+     * @param hotY pointer hotspot y-coord, origin is upper-left corner
+     *
+     * @throws IllegalArgumentException if pixelrect is null.
+     * @throws IllegalStateException if this Display instance is not {@link #isNativeValid() valid yet}.
+     *
+     * @see PointerIcon
+     * @see Window#setPointerIcon(PointerIcon)
+     * @see #getNativePointerIconPixelFormat()
+     * @see #getNativePointerIconForceDirectNIO()
+     */
+    public abstract PointerIcon createPointerIcon(final PixelRectangle pixelrect, final int hotX, final int hotY) throws IllegalArgumentException, IllegalStateException;
 
     /**
      * Manual trigger the native creation, if it is not done yet.<br>
@@ -78,7 +250,7 @@ public abstract class Display {
      * Stop the running EDT in case this display is destroyed already.<br>
      * @return true if EDT has been stopped (destroyed but running), otherwise false.
      */
-    public abstract boolean validateEDT();
+    public abstract boolean validateEDTStopped();
 
     /**
      * @return true if the native display handle is valid and ready to operate,
@@ -114,9 +286,9 @@ public abstract class Display {
      */
     public abstract int removeReference();
 
-    /** 
-     * Return the {@link AbstractGraphicsDevice} used for depending resources lifecycle, 
-     * i.e. {@link Screen} and {@link Window}, as well as the event dispatching (EDT). */ 
+    /**
+     * Return the {@link AbstractGraphicsDevice} used for depending resources lifecycle,
+     * i.e. {@link Screen} and {@link Window}, as well as the event dispatching (EDT). */
     public abstract AbstractGraphicsDevice getGraphicsDevice();
 
     /**
@@ -136,8 +308,8 @@ public abstract class Display {
     public abstract int getId();
 
     /**
-     * @return This display connection name as defined at creation time. 
-     *         The display connection name is a technical platform specific detail, see {@link AbstractGraphicsDevice#getConnection()}. 
+     * @return This display connection name as defined at creation time.
+     *         The display connection name is a technical platform specific detail, see {@link AbstractGraphicsDevice#getConnection()}.
      *
      * @see AbstractGraphicsDevice#getConnection()
      */
@@ -154,11 +326,11 @@ public abstract class Display {
     /**
      * Sets a new {@link EDTUtil} and returns the previous one.
      * <p>
-     * If <code>usrEDTUtil</code> is <code>null</code>, 
+     * If <code>usrEDTUtil</code> is <code>null</code>,
      * the device's default EDTUtil is created and used.
      * </p>
      * <p>
-     * If a previous one exists and it differs from <code>usrEDTUtil</code>, 
+     * If a previous one exists and it differs from <code>usrEDTUtil</code>,
      * it's being stopped, wait-until-idle.
      * </p>
      * <p>
@@ -167,7 +339,7 @@ public abstract class Display {
      * </p>
      */
     public abstract EDTUtil setEDTUtil(EDTUtil usrEDTUtil);
-    
+
     public abstract EDTUtil getEDTUtil();
 
     /**
@@ -176,7 +348,7 @@ public abstract class Display {
     public abstract boolean isEDTRunning();
 
     public abstract void dispatchMessages();
-    
+
     // Global Displays
     protected static final ArrayList<WeakReference<Display>> displayList = new ArrayList<WeakReference<Display>>();
     protected static int displaysActive = 0;
@@ -193,12 +365,12 @@ public abstract class Display {
     }
 
     /**
-     * 
+     *
      * @param type
      * @param name
      * @param fromIndex start index, then increasing until found or end of list
-     * @paran shared if true, only shared instances are found, otherwise also exclusive 
-     * @return 
+     * @paran shared if true, only shared instances are found, otherwise also exclusive
+     * @return
      */
     public static Display getFirstDisplayOf(String type, String name, int fromIndex, boolean shared) {
         return getDisplayOfImpl(type, name, fromIndex, 1, shared);
@@ -209,7 +381,7 @@ public abstract class Display {
      * @param type
      * @param name
      * @param fromIndex start index, then decreasing until found or end of list. -1 is interpreted as size - 1.
-     * @paran shared if true, only shared instances are found, otherwise also exclusive 
+     * @paran shared if true, only shared instances are found, otherwise also exclusive
      * @return
      */
     public static Display getLastDisplayOf(String type, String name, int fromIndex, boolean shared) {
@@ -220,7 +392,7 @@ public abstract class Display {
         synchronized(displayList) {
             int i = fromIndex >= 0 ? fromIndex : displayList.size() - 1 ;
             while( ( incr > 0 ) ? i < displayList.size() : i >= 0 ) {
-                final Display display = (Display) displayList.get(i).get();
+                final Display display = displayList.get(i).get();
                 if( null == display ) {
                     // Clear GC'ed dead reference entry!
                     displayList.remove(i);
@@ -231,7 +403,7 @@ public abstract class Display {
                 } else {
                     if( display.getType().equals(type) &&
                         display.getName().equals(name) &&
-                        ( !shared || shared && !display.isExclusive() ) 
+                        ( !shared || shared && !display.isExclusive() )
                       ) {
                         return display;
                     }
@@ -241,7 +413,7 @@ public abstract class Display {
         }
         return null;
     }
-    
+
     protected static void addDisplay2List(Display display) {
         synchronized(displayList) {
             // GC before add
@@ -256,7 +428,7 @@ public abstract class Display {
             displayList.add(new WeakReference<Display>(display));
         }
     }
-    
+
     /** Returns the global display collection */
     public static Collection<Display> getAllDisplays() {
         ArrayList<Display> list;

@@ -92,26 +92,32 @@ public abstract class GlyfDescript extends Program implements GlyphDescription {
         return _numberOfContours;
     }
 
+    @Override
     public int getGlyphIndex() {
         return _glyphIndex;
     }
 
+    @Override
     public short getXMaximum() {
         return _xMax;
     }
 
+    @Override
     public short getXMinimum() {
         return _xMin;
     }
 
+    @Override
     public short getYMaximum() {
         return _yMax;
     }
 
+    @Override
     public short getYMinimum() {
         return _yMin;
     }
-    
+
+    @Override
     public String toString() {
         return new StringBuilder()
             .append("          numberOfContours: ").append(_numberOfContours)

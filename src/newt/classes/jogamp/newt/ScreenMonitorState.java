@@ -42,7 +42,7 @@ import java.util.HashMap;
 
 public class ScreenMonitorState {
     private static boolean DEBUG = Screen.DEBUG;
-    
+
     private final RecursiveLock lock = LockFactory.createRecursiveLock();
     private final ArrayHashSet<MonitorDevice> allMonitors;
     private final ArrayHashSet<MonitorMode> allMonitorModes;
@@ -105,21 +105,21 @@ public class ScreenMonitorState {
     protected static void unlockScreenMonitorState() {
         screen2ScreenMonitorState.unlock();
     }
-    
+
     public ScreenMonitorState(ArrayHashSet<MonitorDevice> allMonitors,
                               ArrayHashSet<MonitorMode> allMonitorModes) {
-        this.allMonitors = allMonitors; 
+        this.allMonitors = allMonitors;
         this.allMonitorModes = allMonitorModes;
     }
 
-    protected ArrayHashSet<MonitorDevice> getMonitorDevices() { 
+    protected ArrayHashSet<MonitorDevice> getMonitorDevices() {
         return allMonitors;
     }
-    
-    protected ArrayHashSet<MonitorMode> getMonitorModes() { 
+
+    protected ArrayHashSet<MonitorMode> getMonitorModes() {
         return allMonitorModes;
     }
-    
+
     protected final int addListener(MonitorModeListener l) {
         lock();
         try {
@@ -151,14 +151,14 @@ public class ScreenMonitorState {
     protected final MonitorDevice getMonitor(MonitorDevice monitor) {
         return allMonitors.get(monitor);
     }
-    
+
     protected final void validateMonitor(MonitorDevice monitor) {
         final MonitorDevice md = allMonitors.get(monitor);
         if( null == md ) {
             throw new InternalError("Monitor unknown: "+monitor);
         }
     }
-    
+
     protected final void fireMonitorModeChangeNotify(MonitorDevice monitor, MonitorMode desiredMode) {
         lock();
         try {

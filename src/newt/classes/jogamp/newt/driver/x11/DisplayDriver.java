@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,14 +29,19 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  */
 
 package jogamp.newt.driver.x11;
 
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.util.PixelFormat;
 
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 
 import jogamp.nativewindow.x11.X11Util;
@@ -63,6 +68,7 @@ public class DisplayDriver extends DisplayImpl {
     public DisplayDriver() {
     }
 
+    @Override
     public String validateDisplayName(String name, long handle) {
         return X11Util.validateDisplayName(name, handle);
     }
@@ -72,6 +78,7 @@ public class DisplayDriver extends DisplayImpl {
      *
      * We use a private non-shared X11 Display instance for EDT window operations and one for exposed animation, eg. OpenGL.
      */
+    @Override
     protected void createNativeImpl() {
         X11Util.setX11ErrorHandler(true, DEBUG ? false : true); // make sure X11 error handler is set
         long handle = X11Util.openDisplay(name);
@@ -83,7 +90,7 @@ public class DisplayDriver extends DisplayImpl {
             CompleteDisplay0(aDevice.getHandle());
         } catch(RuntimeException e) {
             closeNativeImpl(aDevice);
-            throw e;                
+            throw e;
         }
     }
 
@@ -98,30 +105,42 @@ public class DisplayDriver extends DisplayImpl {
 
     @Override
     protected void dispatchMessagesNative() {
-        aDevice.lock();
+        final AbstractGraphicsDevice _aDevice = aDevice; // aDevice could be pulled by destroy event
+        _aDevice.lock();
         try {
-            final long handle = aDevice.getHandle();
+            final long handle = _aDevice.getHandle();
             if(0 != handle) {
                 DispatchMessages0(handle, javaObjectAtom, windowDeleteAtom /*, kbdHandle */); // XKB disabled for now
             }
         } finally {
-            if(null != aDevice) { // could be pulled by destroy event
-                aDevice.unlock();
-            }
+            _aDevice.unlock();
         }
     }
 
     protected long getJavaObjectAtom() { return javaObjectAtom; }
     protected long getWindowDeleteAtom() { return windowDeleteAtom; }
     // protected long getKbdHandle() { return kbdHandle; } // XKB disabled for now
-    
-    /** Returns <code>null</code> if !{@link #isNativeValid()}, otherwise the Boolean value of {@link X11GraphicsDevice#isXineramaEnabled()}. */ 
+
+    /** Returns <code>null</code> if !{@link #isNativeValid()}, otherwise the Boolean value of {@link X11GraphicsDevice#isXineramaEnabled()}. */
     protected Boolean isXineramaEnabled() { return isNativeValid() ? Boolean.valueOf(((X11GraphicsDevice)aDevice).isXineramaEnabled()) : null; }
-    
+
+    @Override
+    public final PixelFormat getNativePointerIconPixelFormat() { return PixelFormat.RGBA8888; }
+
+    @Override
+    protected final long createPointerIconImpl(PixelFormat pixelformat, int width, int height, final ByteBuffer pixels, final int hotX, final int hotY) {
+        return createPointerIcon(getHandle(), pixels, width, height, hotX, hotY);
+    }
+
+    @Override
+    protected final void destroyPointerIconImpl(final long displayHandle, long piHandle) {
+        destroyPointerIcon0(displayHandle, piHandle);
+    }
+
     //----------------------------------------------------------------------
     // Internals only
     //
-    
+
     private static native boolean initIDs0(boolean debug);
 
     private native void CompleteDisplay0(long handle);
@@ -135,12 +154,24 @@ public class DisplayDriver extends DisplayImpl {
 
     private native void DispatchMessages0(long display, long javaObjectAtom, long windowDeleteAtom /* , long kbdHandle */); // XKB disabled for now
 
+    private static long createPointerIcon(long display, Buffer pixels, int width, int height, int hotX, int hotY) {
+        final boolean pixels_is_direct = Buffers.isDirect(pixels);
+        return createPointerIcon0(display,
+                                  pixels_is_direct ? pixels : Buffers.getArray(pixels),
+                                  pixels_is_direct ? Buffers.getDirectBufferByteOffset(pixels) : Buffers.getIndirectBufferByteOffset(pixels),
+                                  pixels_is_direct,
+                                  width, height, hotX, hotY);
+    }
+    private static native long createPointerIcon0(long display, Object pixels, int pixels_byte_offset, boolean pixels_is_direct, int width, int height, int hotX, int hotY);
+
+    private static native void destroyPointerIcon0(long display, long handle);
+
     /** X11 Window delete atom marker used on EDT */
     private long windowDeleteAtom;
-    
+
     /** X11 Window java object property used on EDT */
-    private long javaObjectAtom;    
-    
+    private long javaObjectAtom;
+
     /** X11 Keyboard handle used on EDT */
     // private long kbdHandle; // XKB disabled for now
 }

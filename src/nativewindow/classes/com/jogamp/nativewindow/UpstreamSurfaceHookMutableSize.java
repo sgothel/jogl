@@ -18,9 +18,9 @@ public class UpstreamSurfaceHookMutableSize implements UpstreamSurfaceHook.Mutab
     @Override
     public final void setSize(int width, int height) {
         this.width = width;
-        this.height = height;        
+        this.height = height;
     }
-    
+
     @Override
     public final int getWidth(ProxySurface s) {
         return width;
@@ -35,11 +35,11 @@ public class UpstreamSurfaceHookMutableSize implements UpstreamSurfaceHook.Mutab
 
     @Override
     public void destroy(ProxySurface s) { /* nop */ }
-    
+
     @Override
     public String toString() {
-        return getClass().getSimpleName()+"[ "+ width + "x" + height + "]";        
+        return getClass().getSimpleName()+"[ "+ width + "x" + height + "]";
     }
-    
+
 }
 

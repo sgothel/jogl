@@ -50,6 +50,8 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  * Test for bug 450, which causes the right part of the frame to be black
@@ -61,6 +63,7 @@ import org.junit.Test;
  *
  * @author Wade Walker (adapted from TestGearsGLJPanelAWT)
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLJPanelAWTBug450 extends UITestCase {
     static GLProfile glp;
     static int width, height;

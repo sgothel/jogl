@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -407,7 +407,7 @@ public class TextureRenderer {
     this.a = a;
 
     gl.glColor4f(this.r, this.g, this.b, this.a);
-  }  
+  }
 
   private float[] compArray;
   /** Changes the current color of this TextureRenderer to the
@@ -437,7 +437,7 @@ public class TextureRenderer {
       @param screenx the on-screen x coordinate at which to draw the rectangle
       @param screeny the on-screen y coordinate (relative to lower left) at
         which to draw the rectangle
-      
+
       @throws GLException If an OpenGL context is not current when this method is called
   */
   public void drawOrthoRect(int screenx, int screeny) throws GLException {
@@ -459,7 +459,7 @@ public class TextureRenderer {
         rectangle to draw
       @param width the width of the rectangle to draw
       @param height the height of the rectangle to draw
-      
+
       @throws GLException If an OpenGL context is not current when this method is called
   */
   public void drawOrthoRect(int screenx, int screeny,
@@ -490,7 +490,7 @@ public class TextureRenderer {
       @param height the height in texels of the rectangle to draw
       @param scaleFactor the scale factor to apply (multiplicatively)
         to the size of the drawn rectangle
-      
+
       @throws GLException If an OpenGL context is not current when this method is called
   */
   public void draw3DRect(float x, float y, float z,
@@ -518,7 +518,7 @@ public class TextureRenderer {
       OpenGL texture to the screen, if the application intends to draw
       them as a flat overlay on to the screen. Must be used if {@link
       #beginOrthoRendering} is used to set up the rendering stage for
-      this overlay. 
+      this overlay.
 
       @throws GLException If an OpenGL context is not current when this method is called
   */
@@ -552,7 +552,7 @@ public class TextureRenderer {
 
   private void beginRendering(boolean ortho, int width, int height, boolean disableDepthTestForOrtho) {
     GL2 gl = GLContext.getCurrentGL().getGL2();
-    int attribBits = 
+    int attribBits =
       GL2.GL_ENABLE_BIT | GL2.GL_TEXTURE_BIT | GL2.GL_COLOR_BUFFER_BIT |
       (ortho ? (GL2.GL_DEPTH_BUFFER_BIT | GL2.GL_TRANSFORM_BIT) : 0);
     gl.glPushAttrib(attribBits);
@@ -622,7 +622,7 @@ public class TextureRenderer {
 
     // Infer the internal format if not an intensity texture
     int internalFormat = (intensity ? GL2.GL_INTENSITY : 0);
-    int imageType = 
+    int imageType =
       (intensity ? BufferedImage.TYPE_BYTE_GRAY :
        (alpha ?  BufferedImage.TYPE_INT_ARGB_PRE : BufferedImage.TYPE_INT_RGB));
     image = new BufferedImage(width, height, imageType);

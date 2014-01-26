@@ -243,6 +243,7 @@
         <!-- The compiler output directories. -->
         <property name="classes"                    value="${build.jogl}/classes" />
         <property name="obj.joglsub"                value="${obj.jogl}/jogl" />
+        <property name="rootrel.obj.joglsub"        value="${rootrel.obj.jogl}/jogl"/>
         <property name="obj.cgsub"                  value="${obj.jogl}/cg" />
 
         <property name="javah.classpath" value="${gluegen-rt.jar}:${build.nativewindow}/classes:${classes}" />
@@ -601,11 +602,24 @@
     </target>
 
     <target name="java.generate.gles3">
-        <echo message="Generating GLES3 interface and implementation" />
+        <echo message="Generating GLES3 interface" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.opengl}/gles3.c" 
                  outputRootDir="${build.jogl}"
-                 config="${config.jogl}/gl-es3.cfg"
+                 config="${config.jogl}/gl-if-es3.cfg"
+                 includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen-gl.classpath" />
+        </gluegen>
+    </target>
+
+    <target name="java.generate.gles3impl">
+        <echo message="Generating GLES3 implementation" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
+        <gluegen src="${stub.includes.opengl}/gles3.c" 
+                 outputRootDir="${build.jogl}"
+                 config="${config.jogl}/gl-es3-impl.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
                  literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter">
@@ -640,7 +654,7 @@
         </gluegen>
     </target>
 
-    <target name="java.generate.gl.all" depends="build.gluegen-gl.jar, java.generate.gl_if, java.generate.gl2_es1_if, java.generate.gles1, java.generate.gl2_es2_if, java.generate.gles2, java.generate.gl2_es3_if, java.generate.gl3_es3_if, java.generate.gl2_gl3_if, java.generate.gl2, java.generate.gl3, java.generate.gl3bc, java.generate.gl4_es3_if, java.generate.gles3, java.generate.gl4, java.generate.gl4bc"/>
+    <target name="java.generate.gl.all" depends="build.gluegen-gl.jar, java.generate.gl_if, java.generate.gl2_es1_if, java.generate.gles1, java.generate.gl2_es2_if, java.generate.gles2, java.generate.gl2_es3_if, java.generate.gl3_es3_if, java.generate.gl2_gl3_if, java.generate.gl2, java.generate.gl3, java.generate.gl3bc, java.generate.gl4_es3_if, java.generate.gles3, java.generate.gles3impl, java.generate.gl4, java.generate.gl4bc"/>
 
     <!-- target name="java.generate.gl.nsig" if="gluegen.nsig">
         <echo message="Generating GL interface and implementation" />
@@ -795,9 +809,9 @@
                includeAntRuntime="true"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               source="${host.sourcelevel}" 
-               target="${host.targetlevel}" 
-               bootclasspath="${host.rt.jar}"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}" 
+               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="gluegen-gl.classpath"/>
             <src path="${src.java}" />
@@ -1224,12 +1238,12 @@
 
       <linker id="linker.cfg.win32.mingw.jogl" extends="linker.cfg.win32.mingw">
         <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names -->
-        <syslibset libs="gdi32, kernel32"/>
+        <syslibset libs="gdi32, kernel32, strmiids, uuid, ole32, oleaut32"/> <!-- last 4 for dshow video input query! -->
       </linker>
 
       <linker id="linker.cfg.win64.mingw.jogl" extends="linker.cfg.win64.mingw">
         <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names -->
-        <syslibset libs="gdi32, kernel32"/>
+        <syslibset libs="gdi32, kernel32, strmiids, uuid, ole32, oleaut32"/> <!-- last 4 for dshow video input query! -->
       </linker>
 
       <linker id="linker.cfg.win32.msvc.jogl" extends="linker.cfg.win32.msvc">
@@ -1407,8 +1421,12 @@
         <move file="${src}" tofile="${dest}" />
     </target>
 
-    <macrodef name="c.build">
-      <attribute name="c.compiler.src.files" />
+    <!-- Only compile the ffmpeg version depending source files 
+         against their respective header files! 
+         We do not use the resulting static libraries directly,
+         but inject their obj-files in build.c for the jogl_* library! -->
+    <macrodef name="c.build.ffmpeg">
+      <attribute name="version.lav" />
       <attribute name="compiler.cfg.id" />
       <attribute name="linker.cfg.id" />
       <attribute name="output.lib.name" />
@@ -1416,15 +1434,88 @@
       <sequential>
         <echo message="Output lib name = @{output.lib.name}" />
 
-        <!-- NOTE: the value of the debug and optimise attributes will not be overridden if already set externally -->
-        <property name="c.compiler.debug"     value="false" /> 
-        <!-- Optimise flags one of { none, size, speed, minimal, full, aggressive, extreme, unsafe } --> 
-        <property name="c.compiler.optimise"  value="none" /> 
+        <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
+
+        <patternset id="c.src.files.@{version.lav}">
+          <include name="${rootrel.src.c}/JoglCommon.c"/>
+          <include name="${rootrel.src.c.libav}/ffmpeg_dshow.c"/>
+          <include name="${rootrel.src.c.libav}/ffmpeg_static.c"/>
+          <include name="${rootrel.src.c.libav}/ffmpeg_@{version.lav}.c"/>
+        </patternset>
+
+        <echo message="Compiling @{output.lib.name}" />
+
+      	<!-- have to wrap cc task with outofdate, because otherwise cc links a new library
+      	     even when no files have been compiled -->
+        <outofdate>
+          <sourcefiles>
+            <fileset dir="${project.root}"><patternset refid="c.src.files.@{version.lav}"/></fileset>
+            <fileset dir="${project.root}" includes="${rootrel.src.c.libav}/*"/>
+          </sourcefiles>
+          <targetfiles>
+            <fileset dir="${obj.joglsub}" includes="lib@{output.lib.name}.so"/>
+            <fileset dir="${obj.joglsub}" includes="@{output.lib.name}.dll"/>
+            <fileset dir="${obj.joglsub}" includes="lib@{output.lib.name}.jnilib"/>
+          </targetfiles>
+          <sequential>
+            <cc outtype="shared" 
+                objdir="${obj.joglsub}" 
+                outfile="${obj.joglsub}/@{output.lib.name}"
+                optimize="${c.compiler.optimise}" 
+                debug="${c.compiler.debug}"
+                multithreaded="true" 
+                exceptions="false" 
+                rtti="false">   
+      
+              <fileset dir="${project.root}"><patternset refid="c.src.files.@{version.lav}"/></fileset>
+      
+              <compiler extends="@{compiler.cfg.id}" >
+                <sysincludepath path="${java.includes.dir}"/>
+                <sysincludepath path="${java.includes.dir.platform}"/>
+                <sysincludepath path="${stub.includes.gluegen.cc}"/>
+                <includepath path="stub_includes/khr"/>
+                <includepath path="stub_includes/opengl"/>
+                <includepath path="stub_includes/libav/@{version.lav}"/>
+      
+                <!-- This is for the generated headers for handwritten C code -->
+                <includepath path="${src.c}"/>
+                <includepath path="${src.generated.c.libav}" />
+      
+                <!-- This must come last to not override real include paths -->
+                <!-- includepath path="stub_includes/macosx" if="isOSX" / -->
+              </compiler>
+
+              <linker extends="@{linker.cfg.id}">
+              </linker>
+            </cc>
+          </sequential>
+        </outofdate>
+      </sequential>
+    </macrodef>  
+
+    <macrodef name="c.build">
+      <attribute name="c.compiler.src.files" />
+      <attribute name="c.compiler.obj.files" />
+      <attribute name="compiler.cfg.id" />
+      <attribute name="linker.cfg.id" />
+      <attribute name="output.lib.name" />
+      <attribute name="c.compiler.use-jawt" default="false"/>
+      <sequential>
+        <echo message="Output lib name = @{output.lib.name}" />
 
         <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
 
+        <patternset id="c.obj.files.none">
+        </patternset>
+        <patternset id="c.obj.files.ffmpeg.inject">
+          <include name="${rootrel.obj.joglsub}/ffmpeg_lavc53_lavf53_lavu51.*"/>
+          <include name="${rootrel.obj.joglsub}/ffmpeg_lavc54_lavf54_lavu52_lavr01.*"/>
+          <include name="${rootrel.obj.joglsub}/ffmpeg_lavc55_lavf55_lavu52_lavr01.*"/>
+        </patternset>
+
         <patternset id="c.src.files.jogl.desktop">
           <include name="${rootrel.src.c}/JoglCommon.c"/>
+          <include name="${rootrel.src.c}/GLContext.c"/>
           <include name="${rootrel.src.c}/GLDebugMessageHandler.c"/>
           <include name="${rootrel.src.c}/timespec.c" if="isOSX"/> <!-- currently only used for OSX -->
           <include name="${rootrel.src.c}/macosx/MacOSXCustomCGLCode.c" if="isOSX"/>
@@ -1434,7 +1525,8 @@
           <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
           <!-- FIXME: the Mixer should be moved to another library -->
           <!--include name="${rootrel.src.c}/Mixer.cpp" if="isWindows"/-->
-          <include name="${rootrel.src.c.libav}/jogamp_opengl_util_av_impl_FFMPEGMediaPlayer.c"/>
+          <include name="${rootrel.src.c.libav}/ffmpeg_static.c"/>
+          <include name="${rootrel.src.c.libav}/ffmpeg_dshow.c"/>
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="setup.addNativeOpenMAX"/>
           <include name="${rootrel.src.c.openmax}/jogamp_opengl_util_av_impl_OMXGLMediaPlayer.c"  if="setup.addNativeOpenMAX"/>
 
@@ -1449,9 +1541,11 @@
 
         <patternset id="c.src.files.jogl.mobile">
           <include name="${rootrel.src.c}/JoglCommon.c"/>
+          <include name="${rootrel.src.c}/GLContext.c"/>
           <include name="${rootrel.src.c}/GLDebugMessageHandler.c"/>
           <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
-          <include name="${rootrel.src.c.libav}/jogamp_opengl_util_av_impl_FFMPEGMediaPlayer.c"/>
+          <include name="${rootrel.src.c.libav}/ffmpeg_static.c"/>
+          <include name="${rootrel.src.c.libav}/ffmpeg_dshow.c"/>
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="setup.addNativeOpenMAX"/>
           <include name="${rootrel.src.c.openmax}/jogamp_opengl_util_av_impl_OMXGLMediaPlayer.c"  if="setup.addNativeOpenMAX"/>
 
@@ -1475,6 +1569,7 @@
         <outofdate>
           <sourcefiles>
             <fileset dir="${project.root}"><patternset refid="@{c.compiler.src.files}"/></fileset>
+            <fileset dir="${obj.joglsub}" includes="*jogl_ffmpegv08*, *jogl_ffmpegv09*, *jogl_ffmpegv10*"/> <!-- requires linkage -->
           </sourcefiles>
           <targetfiles>
             <fileset dir="${obj.jogl}" includes="lib@{output.lib.name}.so"/>
@@ -1491,7 +1586,10 @@
                 exceptions="false" 
                 rtti="false">   
       
-              <fileset dir="${project.root}"><patternset refid="@{c.compiler.src.files}"/></fileset>
+              <fileset dir="${project.root}">
+                <patternset refid="@{c.compiler.src.files}"/>
+                <patternset refid="@{c.compiler.obj.files}"/>
+              </fileset>
       
               <compiler extends="@{compiler.cfg.id}" >
                 <sysincludepath path="${java.includes.dir}"/>
@@ -1500,7 +1598,6 @@
                 <includepath path="stub_includes/khr"/>
                 <includepath path="stub_includes/egl"/>
                 <includepath path="stub_includes/opengl"/>
-                <includepath path="stub_includes/libav" /> <!-- headers required by our libav/ffmpeg MediaPlayer impl. -->
                 <includepath path="stub_includes/openmax" if="setup.addNativeOpenMAX"/>
                 <includepath path="stub_includes/cg" if="setup.addNativeNVidiaCG"/>        
       
@@ -1551,17 +1648,32 @@
     </macrodef>  
 
     <target name="c.build.jogl.prepare">
-      <javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${javah.classpath}" class="jogamp.opengl.GLDebugMessageHandler" />
-      <javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${javah.classpath}" class="jogamp.opengl.GLContextImpl" />
-      <javah destdir="${src.generated.c.libav}" classpath="${javah.classpath}" class="jogamp.opengl.util.av.impl.FFMPEGMediaPlayer" />
+      <javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${javah.classpath}" class="jogamp.opengl.GLDebugMessageHandler, jogamp.opengl.GLContextImpl" />
+      <javah destdir="${src.generated.c.libav}" classpath="${javah.classpath}" class="jogamp.opengl.util.av.impl.FFMPEGStaticNatives,jogamp.opengl.util.av.impl.FFMPEGv08Natives,jogamp.opengl.util.av.impl.FFMPEGv09Natives,jogamp.opengl.util.av.impl.FFMPEGv10Natives" />
       <javah destdir="${src.generated.c.openmax}" classpath="${javah.classpath}" class="jogamp.opengl.util.av.impl.OMXGLMediaPlayer" />
       <!-- Generate the waveout Mixer header -->
       <!-- FIXME: this is temporary until we move this to another workspace -->
       <!--javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${javah.classpath}" class="com.jogamp.audio.windows.waveout.Mixer" /-->
+
+      <c.build.ffmpeg version.lav="lavc53_lavf53_lavu51"
+               output.lib.name="jogl_ffmpegv08"
+               compiler.cfg.id="${compiler.cfg.id}"
+               linker.cfg.id="${linker.cfg.id.os}"/>
+
+      <c.build.ffmpeg version.lav="lavc54_lavf54_lavu52_lavr01"
+               output.lib.name="jogl_ffmpegv09"
+               compiler.cfg.id="${compiler.cfg.id}"
+               linker.cfg.id="${linker.cfg.id.os}"/>
+
+      <c.build.ffmpeg version.lav="lavc55_lavf55_lavu52_lavr01"
+               output.lib.name="jogl_ffmpegv10"
+               compiler.cfg.id="${compiler.cfg.id}"
+               linker.cfg.id="${linker.cfg.id.os}"/>
     </target>
 
     <target name="c.build.jogl.desktop" unless="setup.noNativeDesktop">
       <c.build c.compiler.src.files="c.src.files.jogl.desktop"
+               c.compiler.obj.files="c.obj.files.ffmpeg.inject"
                output.lib.name="jogl_desktop"
                compiler.cfg.id="${compiler.cfg.id}"
                linker.cfg.id="${linker.cfg.id.os}"/>
@@ -1569,6 +1681,7 @@
 
     <target name="c.build.jogl.mobile">
       <c.build c.compiler.src.files="c.src.files.jogl.mobile"
+               c.compiler.obj.files="c.obj.files.ffmpeg.inject"
                output.lib.name="jogl_mobile"
                compiler.cfg.id="${compiler.cfg.id}"
                linker.cfg.id="${linker.cfg.id.os}"/>
@@ -1576,6 +1689,7 @@
 
     <target name="c.build.jogl.cg" if="setup.addNativeNVidiaCG">
       <c.build c.compiler.src.files="c.src.files.cg"
+               c.compiler.obj.files="c.obj.files.none"
                output.lib.name="jogl_cg"
                compiler.cfg.id="${compiler.cfg.id}"
                linker.cfg.id="${linker.cfg.id.os}"/>
@@ -1719,11 +1833,16 @@
             <fileset dir="${classes}"
                      includes="${java.part.util} ${java.part.util.glsl} ${java.part.openal}"
                      excludes="${java.part.util.awt} ${java.part.util.gldesktop} ${java.part.util.fixedfuncemu} ${java.part.util.graph}"/>
-            <fileset dir="resources/assets" includes="jogl/util/**" />
+            <fileset dir="resources/assets" includes="jogl/util/data/**" />
         </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-util-graph.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.util.graph}"/>
+                     includes="${java.part.util.graph}"
+                     excludes="${java.part.util.graph.fonts}"/>
+        </jar>
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-util-graph-fonts-p0.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.util.graph.fonts}"/>
         </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-util-fixedfuncemu.jar}" filesonly="true">
             <fileset dir="${classes}"

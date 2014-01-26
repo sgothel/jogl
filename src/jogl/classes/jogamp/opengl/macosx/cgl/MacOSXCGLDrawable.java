@@ -84,7 +84,10 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
   // GLPbuffer, a GLJPanel and a GLCanvas simultaneously) but should
   // be enough to get things off the ground.
   public enum GLBackendType {
-    NSOPENGL(0), CGL(1);
+    /** Default OpenGL Backend */
+    NSOPENGL(0),
+    /** Alternative OpenGL Backend, only used for external context! */
+    CGL(1);
 
     public final int id;
 
@@ -105,7 +108,7 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
   @Override
   protected void setRealizedImpl() {
   }
-  
+
   @Override
   protected void associateContext(GLContext ctx, boolean bound) {
     // NOTE: we need to keep track of the created contexts in order to
@@ -123,14 +126,14 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
                 } else {
                     i++;
                 }
-            }            
+            }
         }
-    }      
+    }
   }
-  
+
   @Override
   protected final void swapBuffersImpl(boolean doubleBuffered) {
-    if(doubleBuffered) { 
+    if(doubleBuffered) {
         synchronized (createdContexts) {
             for(int i=0; i<createdContexts.size(); ) {
                 final MacOSXCGLContext ctx = createdContexts.get(i).get();

@@ -6,15 +6,15 @@
  * this file except in compliance with the License. You may obtain a copy
  * of the License at Silicon Graphics, Inc., attn: Legal Services, 1600
  * Amphitheatre Parkway, Mountain View, CA 94043-1351, or at:
- * 
+ *
  * http://oss.sgi.com/projects/FreeB
- * 
+ *
  * Note that, as provided in the License, the Software is distributed on an
  * "AS IS" basis, with ALL EXPRESS AND IMPLIED WARRANTIES AND CONDITIONS
  * DISCLAIMED, INCLUDING, WITHOUT LIMITATION, ANY IMPLIED WARRANTIES AND
  * CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY, FITNESS FOR A
  * PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
- * 
+ *
  * NOTE:  The Original Code (as defined below) has been licensed to Sun
  * Microsystems, Inc. ("Sun") under the SGI Free Software License B
  * (Version 1.1), shown above ("SGI License").   Pursuant to Section
@@ -30,7 +30,7 @@
  * Inc. The Original Code is Copyright (c) 1991-2000 Silicon Graphics, Inc.
  * Copyright in any portions created by third parties is as indicated
  * elsewhere herein. All Rights Reserved.
- * 
+ *
  * Additional Notice Provisions: The application programming interfaces
  * established by SGI in conjunction with the Original Code are The
  * OpenGL(R) Graphics System: A Specification (Version 1.2.1), released
@@ -51,17 +51,19 @@ import java.nio.ByteBuffer;
  * @author Administrator
  */
 public class ExtractSByte implements ExtractPrimitive {
-  
+
   /** Creates a new instance of ExtractUByte */
   public ExtractSByte() {
   }
-  
+
+  @Override
   public double extract( boolean isSwap, ByteBuffer sbyte ) {
     byte b = sbyte.get();
     assert( b <= 127 );
     return( b );
   }
-  
+
+  @Override
   public void shove( double value, int index, ByteBuffer data ) {
     data.position( index );
     data.put( (byte)value );

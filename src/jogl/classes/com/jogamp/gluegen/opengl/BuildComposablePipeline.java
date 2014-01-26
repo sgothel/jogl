@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -41,6 +41,7 @@ package com.jogamp.gluegen.opengl;
 
 import com.jogamp.gluegen.CodeGenUtils;
 import com.jogamp.gluegen.JavaType;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -50,6 +51,7 @@ import java.lang.reflect.Method;
 import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -67,7 +69,7 @@ public class BuildComposablePipeline {
      * By extra command-line argument: <code>prolog_xor_downstream</code>.
      * <p>
      * If true, either prolog (if exist) is called or downstream's method, but not both.
-     * By default, both methods would be called. 
+     * By default, both methods would be called.
      * </p>
      * <p>Default: false</p>
      */
@@ -81,14 +83,24 @@ public class BuildComposablePipeline {
      * <p>Default: false</p>
      */
     public static final int GEN_GL_IDENTITY_BY_ASSIGNABLE_CLASS = 1 << 4;
-    
+
+    private static final HashMap<String, String> addedGLHooks = new HashMap<String, String>();
+    private static final String[] addedGLHookMethodNames = new String[] {
+            "mapBuffer", "mapBufferRange",
+            "mapNamedBuffer", "mapNamedBufferRange" };
+    static {
+        for(int i=0; i<addedGLHookMethodNames.length; i++) {
+            addedGLHooks.put(addedGLHookMethodNames[i], addedGLHookMethodNames[i]);
+        }
+    }
+
     int mode;
-    private String outputDir;
-    private String outputPackage;
-    private String outputName;
-    private Class<?> classToComposeAround;
-    private Class<?> classPrologOpt;
-    private Class<?> classDownstream;
+    private final String outputDir;
+    private final String outputPackage;
+    private final String outputName;
+    private final Class<?> classToComposeAround;
+    private final Class<?> classPrologOpt;
+    private final Class<?> classDownstream;
     // Only desktop OpenGL has immediate mode glBegin / glEnd
     private boolean hasImmediateMode;
     // Desktop OpenGL and GLES1 have GL_STACK_OVERFLOW and GL_STACK_UNDERFLOW errors
@@ -200,8 +212,11 @@ public class BuildComposablePipeline {
             // Don't hook methods which aren't real GL methods,
             // such as the synthetic "isGL2ES2" "getGL2ES2"
             final String name = method.getName();
-            boolean runHooks = name.startsWith("gl");
-            if ( !name.startsWith("getGL") && !name.startsWith("isGL") && !name.equals("getDownstreamGL") && !name.equals("toString") ) {
+            if ( !name.startsWith("getGL") &&
+                 !name.startsWith("isGL") &&
+                 !name.equals("getDownstreamGL") &&
+                 !name.equals("toString") ) {
+                final boolean runHooks = name.startsWith("gl") || addedGLHooks.containsKey(name);
                 publicMethodsPlain.add(new PlainMethod(method, runHooks));
             }
         }
@@ -402,6 +417,7 @@ public class BuildComposablePipeline {
                     ifNames,
                     null,
                     new CodeGenUtils.EmissionCallback() {
+                        @Override
                         public void emit(PrintWriter w) {
                             emitClassDocComment(w);
                         }
@@ -455,19 +471,14 @@ public class BuildComposablePipeline {
         }
 
         protected void emitSignature(PrintWriter output, Method m) {
-            output.print("  public ");
-            output.print(' ');
-            output.print(JavaType.createForClass(m.getReturnType()).getName());
-            output.print(' ');
-            output.print(m.getName());
-            output.print('(');
-            output.print(getArgListAsString(m, true, true));
-            output.println(")");
+            output.format("  @Override%n  public %s %s(%s)%n",
+                          JavaType.createForClass(m.getReturnType()).getName(),
+                          m.getName(),
+                          getArgListAsString(m, true, true));
         }
 
         protected void emitBody(PrintWriter output, Method m, boolean runHooks) {
             output.println("  {");
-            output.print("    ");
             Class<?> retType = m.getReturnType();
 
             boolean callPreDownstreamHook = runHooks && hasPreDownstreamCallHook(m);
@@ -512,6 +523,9 @@ public class BuildComposablePipeline {
                     } else {
                         output.print("    return ");
                     }
+                }
+                else {
+                    output.print("    ");
                 }
                 output.print(getDownstreamObjectName());
                 output.print('.');
@@ -588,9 +602,10 @@ public class BuildComposablePipeline {
          * closing parenthesis of the class is emitted.
          */
         protected void postMethodEmissionHook(PrintWriter output) {
+            output.println("  @Override");
             output.println("  public String toString() {");
             output.println("    StringBuilder sb = new StringBuilder();");
-            output.println("    sb.append(\"" + getOutputName() + " [ implementing " + baseInterfaceClass.getName() + ",\\n\\t\");");
+            output.println("    sb.append(\"" + getOutputName() + " [this 0x\"+Integer.toHexString(hashCode())+\" implementing " + baseInterfaceClass.getName() + ",\\n\\t\");");
             if (null != prologClassOpt) {
                 output.println("    sb.append(\" prolog: \"+" + getPrologObjectNameOpt() + ".toString()+\",\\n\\t\");");
             }
@@ -646,7 +661,10 @@ public class BuildComposablePipeline {
          * Emits all of the isGL* methods.
          */
         protected void emitGLIsMethods(PrintWriter output) {
-            emitGLIsMethod(output, "GL");
+            output.println("  @Override");
+            output.println("  public final boolean isGL() {");
+            output.println("    return true;");
+            output.println("  }");
             emitGLIsMethod(output, "GL4bc");
             emitGLIsMethod(output, "GL4");
             emitGLIsMethod(output, "GL3bc");
@@ -657,13 +675,14 @@ public class BuildComposablePipeline {
             emitGLIsMethod(output, "GLES3");
             emitGLIsMethod(output, "GL2ES1");
             emitGLIsMethod(output, "GL2ES2");
+            emitGLIsMethod(output, "GL2ES3");
             emitGLIsMethod(output, "GL3ES3");
             emitGLIsMethod(output, "GL4ES3");
             emitGLIsMethod(output, "GL2GL3");
             if( 0 != (GEN_GL_IDENTITY_BY_ASSIGNABLE_CLASS & getMode() ) ) {
                 output.println("  @Override");
                 output.println("  public final boolean isGLES() {");
-                output.println("    return isGLES2() || isGLES1();");
+                output.println("    return isGLES3() || isGLES2() || isGLES1();");
                 output.println("  }");
             } else {
                 emitGLIsMethod(output, "GLES");
@@ -696,15 +715,16 @@ public class BuildComposablePipeline {
         protected void emitGLGetMethod(PrintWriter output, String type) {
             output.println("  @Override");
             output.println("  public final javax.media.opengl." + type + " get" + type + "() {");
-            if( 0 != (GEN_GL_IDENTITY_BY_ASSIGNABLE_CLASS & getMode() ) ) {
-                final Class<?> clazz = BuildComposablePipeline.getClass("javax.media.opengl." + type);
-                if (clazz.isAssignableFrom(baseInterfaceClass)) {
+            final Class<?> clazz = BuildComposablePipeline.getClass("javax.media.opengl." + type);
+            if (clazz.isAssignableFrom(baseInterfaceClass)) {
+                if( 0 != (GEN_GL_IDENTITY_BY_ASSIGNABLE_CLASS & getMode() ) ) {
                     output.println("    return this;");
                 } else {
+                    output.println("    if( is" + type + "() ) { return this; }");
                     output.println("    throw new GLException(\"Not a " + type + " implementation\");");
                 }
             } else {
-                output.println("    return " + getDownstreamObjectName() + ".get" + type + "();");
+                output.println("    throw new GLException(\"Not a " + type + " implementation\");");
             }
             output.println("  }");
         }
@@ -713,7 +733,10 @@ public class BuildComposablePipeline {
          * Emits all of the getGL* methods.
          */
         protected void emitGLGetMethods(PrintWriter output) {
-            emitGLGetMethod(output, "GL");
+            output.println("  @Override");
+            output.println("  public final javax.media.opengl.GL getGL() {");
+            output.println("    return this;");
+            output.println("  }");
             emitGLGetMethod(output, "GL4bc");
             emitGLGetMethod(output, "GL4");
             emitGLGetMethod(output, "GL3bc");
@@ -724,6 +747,7 @@ public class BuildComposablePipeline {
             emitGLGetMethod(output, "GLES3");
             emitGLGetMethod(output, "GL2ES1");
             emitGLGetMethod(output, "GL2ES2");
+            emitGLGetMethod(output, "GL2ES3");
             emitGLGetMethod(output, "GL3ES3");
             emitGLGetMethod(output, "GL4ES3");
             emitGLGetMethod(output, "GL2GL3");
@@ -750,18 +774,22 @@ public class BuildComposablePipeline {
             this.mode = mode;
         }
 
+        @Override
         protected String getOutputName() {
             return className;
         }
 
+        @Override
         protected int getMode() {
             return mode;
         }
 
+        @Override
         protected boolean emptyMethodAllowed() {
             return true;
         }
 
+        @Override
         protected boolean emptyDownstreamAllowed() {
             return true;
         }
@@ -771,6 +799,7 @@ public class BuildComposablePipeline {
             super.preMethodEmissionHook(output);
         }
 
+        @Override
         protected void constructorHook(PrintWriter output) {
             output.print("  public " + getOutputName() + "(");
             output.print(downstreamName + " " + getDownstreamObjectName());
@@ -801,6 +830,7 @@ public class BuildComposablePipeline {
             }
         }
 
+        @Override
         protected void emitClassDocComment(PrintWriter output) {
             output.println("/**");
             output.println(" * Composable pipeline {@link " + outputPackage + "." + outputName + "}, implementing the interface");
@@ -835,10 +865,12 @@ public class BuildComposablePipeline {
             output.println("*/");
         }
 
+        @Override
         protected boolean hasPreDownstreamCallHook(Method m) {
             return null != getMethod(prologClassOpt, m);
         }
 
+        @Override
         protected void preDownstreamCallHook(PrintWriter output, Method m) {
             if (null != prologNameOpt) {
                 output.print(getPrologObjectNameOpt());
@@ -850,10 +882,12 @@ public class BuildComposablePipeline {
             }
         }
 
+        @Override
         protected boolean hasPostDownstreamCallHook(Method m) {
             return false;
         }
 
+        @Override
         protected void postDownstreamCallHook(PrintWriter output, Method m) {
         }
     } // end class CustomPipeline
@@ -867,18 +901,22 @@ public class BuildComposablePipeline {
             className = "Debug" + getBaseInterfaceName();
         }
 
+        @Override
         protected String getOutputName() {
             return className;
         }
 
+        @Override
         protected int getMode() {
             return 0;
         }
 
+        @Override
         protected boolean emptyMethodAllowed() {
             return false;
         }
 
+        @Override
         protected boolean emptyDownstreamAllowed() {
             return false;
         }
@@ -888,6 +926,7 @@ public class BuildComposablePipeline {
             super.preMethodEmissionHook(output);
         }
 
+        @Override
         protected void constructorHook(PrintWriter output) {
             output.print("  public " + getOutputName() + "(");
             output.println(downstreamName + " " + getDownstreamObjectName() + ")");
@@ -910,25 +949,21 @@ public class BuildComposablePipeline {
         @Override
         protected void postMethodEmissionHook(PrintWriter output) {
             super.postMethodEmissionHook(output);
-            output.println("  private void checkGLGetError(String caller)");
-            output.println("  {");
+            output.println("  private int checkGLError() {");
             if (hasImmediateMode) {
-                output.println("    if (insideBeginEndPair) {");
-                output.println("      return;");
-                output.println("    }");
+                output.println("    if (insideBeginEndPair) return GL_NO_ERROR;");
                 output.println();
             }
-            output.println("    // Debug code to make sure the pipeline is working; leave commented out unless testing this class");
-            output.println("    //System.err.println(\"Checking for GL errors "
-                    + "after call to \" + caller);");
-            output.println();
-            output.println("    int err = "
-                    + getDownstreamObjectName()
-                    + ".glGetError();");
-            output.println("    if (err == GL_NO_ERROR) { return; }");
-            output.println();
-            output.println("    StringBuilder buf = new StringBuilder(Thread.currentThread()+");
-            output.println("      \" glGetError() returned the following error codes after a call to \" + caller + \": \");");
+            output.format("    return %s.glGetError();%n", getDownstreamObjectName());
+            output.println("  }");
+
+            output.println("  private void writeGLError(int err, String fmt, Object... args)");
+            output.println("  {");
+            output.println("    StringBuilder buf = new StringBuilder();");
+            output.println("    buf.append(Thread.currentThread().toString());");
+            output.println("    buf.append(\" glGetError() returned the following error codes after a call to \");");
+            output.println("    buf.append(String.format(fmt, args));");
+            output.println("    buf.append(\": \");");
             output.println();
             output.println("    // Loop repeatedly to allow for distributed GL implementations,");
             output.println("    // as detailed in the glGetError() specification");
@@ -969,6 +1004,7 @@ public class BuildComposablePipeline {
             output.println("  private GLContext _context;");
         }
 
+        @Override
         protected void emitClassDocComment(PrintWriter output) {
             output.println("/**");
             output.println(" * <p>");
@@ -986,18 +1022,22 @@ public class BuildComposablePipeline {
             output.println(" */");
         }
 
+        @Override
         protected boolean hasPreDownstreamCallHook(Method m) {
             return true;
         }
 
+        @Override
         protected void preDownstreamCallHook(PrintWriter output, Method m) {
             output.println("    checkContext();");
         }
 
+        @Override
         protected boolean hasPostDownstreamCallHook(Method m) {
             return true;
         }
 
+        @Override
         protected void postDownstreamCallHook(PrintWriter output, Method m) {
             if (m.getName().equals("glBegin")) {
                 output.println("    insideBeginEndPair = true;");
@@ -1007,24 +1047,39 @@ public class BuildComposablePipeline {
                     output.println("    insideBeginEndPair = false;");
                 }
 
-                output.println("    String txt = new String(\"" + m.getName() + "(\" +");
+                output.println("    final int err = checkGLError();");
+                output.println("    if (err != GL_NO_ERROR) {");
+
+                StringBuilder fmtsb = new StringBuilder();
+                StringBuilder argsb = new StringBuilder();
+
+                fmtsb.append("\"%s(");
+                argsb.append("\"").append(m.getName()).append("\"");
                 Class<?>[] params = m.getParameterTypes();
-                for (int i = 0; params != null && i < params.length; i++) {
-                    output.print("    \"<" + params[i].getName() + ">");
-                    if (params[i].isArray()) {
-                        output.print("\" +");
-                    } else if (params[i].equals(int.class)) {
-                        output.print(" 0x\"+Integer.toHexString(arg" + i + ").toUpperCase() +");
-                    } else {
-                        output.print(" \"+arg" + i + " +");
+                for (int i = 0; i < params.length; i++) {
+                    if (i > 0) {
+                        fmtsb.append(", ");
                     }
-                    if (i < params.length - 1) {
-                        output.println("    \", \" +");
+                    fmtsb.append("<").append(params[i].getName()).append(">");
+                    if (params[i].isArray()) {
+                        //nothing
+                    } else if (params[i].equals(int.class)) {
+                        fmtsb.append(" 0x%X");
+                        argsb.append(", arg").append(i);
+                    } else {
+                        fmtsb.append(" %s");
+                        argsb.append(", arg").append(i);
                     }
                 }
-                output.println("    \")\");");
+                fmtsb.append(")\",");
+                argsb.append(");");
+
                 // calls to glGetError() are only allowed outside of glBegin/glEnd pairs
-                output.println("    checkGLGetError( txt );");
+                output.print("      writeGLError(err, ");
+                output.println(fmtsb.toString());
+                output.print("                   ");
+                output.println(argsb.toString());
+                output.println("    }");
             }
         }
     } // end class DebugPipeline
@@ -1039,18 +1094,22 @@ public class BuildComposablePipeline {
             className = "Trace" + getBaseInterfaceName();
         }
 
+        @Override
         protected String getOutputName() {
             return className;
         }
 
+        @Override
         protected int getMode() {
             return 0;
         }
 
+        @Override
         protected boolean emptyMethodAllowed() {
             return false;
         }
 
+        @Override
         protected boolean emptyDownstreamAllowed() {
             return false;
         }
@@ -1060,6 +1119,7 @@ public class BuildComposablePipeline {
             super.preMethodEmissionHook(output);
         }
 
+        @Override
         protected void constructorHook(PrintWriter output) {
             output.print("  public " + getOutputName() + "(");
             output.println(downstreamName + " " + getDownstreamObjectName() + ", PrintStream " + getOutputStreamName() + ")");
@@ -1110,6 +1170,7 @@ public class BuildComposablePipeline {
             output.println("}");
         }
 
+        @Override
         protected void emitClassDocComment(PrintWriter output) {
             output.println("/**");
             output.println(" * <p>");
@@ -1127,16 +1188,18 @@ public class BuildComposablePipeline {
             output.println(" */");
         }
 
+        @Override
         protected boolean hasPreDownstreamCallHook(Method m) {
             return true;
         }
 
+        @Override
         protected void preDownstreamCallHook(PrintWriter output, Method m) {
             if (m.getName().equals("glEnd") || m.getName().equals("glEndList")) {
-                output.println("indent-=2;");
+                output.println("    indent-=2;");
                 output.println("    printIndent();");
             } else {
-                output.println("printIndent();");
+                output.println("    printIndent();");
             }
 
             output.print("    print(");
@@ -1144,10 +1207,12 @@ public class BuildComposablePipeline {
             output.println(");");
         }
 
+        @Override
         protected boolean hasPostDownstreamCallHook(Method m) {
             return true;
         }
 
+        @Override
         protected void postDownstreamCallHook(PrintWriter output, Method m) {
             Class<?> ret = m.getReturnType();
             if (ret != Void.TYPE) {
@@ -1155,6 +1220,9 @@ public class BuildComposablePipeline {
             } else {
                 output.println("    println(\"\");");
             }
+
+            if (m.getName().equals("glBegin"))
+                output.println("    indent+=2;");
         }
 
         private String getOutputStreamName() {

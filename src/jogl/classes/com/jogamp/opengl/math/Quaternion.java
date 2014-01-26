@@ -33,7 +33,7 @@ public class Quaternion {
     public Quaternion() {
         setIdentity();
     }
-    
+
     public Quaternion(Quaternion q) {
         x = q.x;
         y = q.y;
@@ -50,7 +50,7 @@ public class Quaternion {
 
     /**
      * Constructor to create a rotation based quaternion from two vectors
-     * 
+     *
      * @param vector1
      * @param vector2
      */
@@ -59,7 +59,7 @@ public class Quaternion {
         final float[] cross = VectorUtil.cross(vector1, vector2);
         fromAxis(cross, theta);
     }
-    
+
     /***
      * Constructor to create a rotation based quaternion from axis vector and angle
      * @param vector axis vector
@@ -69,10 +69,10 @@ public class Quaternion {
     public Quaternion(float[] vector, float angle) {
         fromAxis(vector, angle);
     }
-    
+
     /***
      * Initialize this quaternion with given axis vector and rotation angle
-     * 
+     *
      * @param vector axis vector
      * @param angle rotation angle (rads)
      */
@@ -88,7 +88,7 @@ public class Quaternion {
 
     /**
      * Transform the rotational quaternion to axis based rotation angles
-     * 
+     *
      * @return new float[4] with ,theta,Rx,Ry,Rz
      */
     public float[] toAxis() {
@@ -135,7 +135,7 @@ public class Quaternion {
 
     /**
      * Add a quaternion
-     * 
+     *
      * @param q quaternion
      */
     public void add(Quaternion q) {
@@ -146,7 +146,7 @@ public class Quaternion {
 
     /**
      * Subtract a quaternion
-     * 
+     *
      * @param q quaternion
      */
     public void subtract(Quaternion q) {
@@ -157,7 +157,7 @@ public class Quaternion {
 
     /**
      * Divide a quaternion by a constant
-     * 
+     *
      * @param n a float to divide by
      */
     public void divide(float n) {
@@ -168,7 +168,7 @@ public class Quaternion {
 
     /**
      * Multiply this quaternion by the param quaternion
-     * 
+     *
      * @param q a quaternion to multiply with
      */
     public void mult(Quaternion q) {
@@ -186,7 +186,7 @@ public class Quaternion {
 
     /**
      * Multiply a quaternion by a constant
-     * 
+     *
      * @param n a float constant
      */
     public void mult(float n) {
@@ -194,10 +194,10 @@ public class Quaternion {
         y *= n;
         z *= n;
     }
-    
+
     /***
      * Rotate given vector by this quaternion
-     * 
+     *
      * @param vector input vector
      * @return rotated vector
      */
@@ -250,7 +250,7 @@ public class Quaternion {
     /**
      * Transform this quaternion to a 4x4 column matrix representing the
      * rotation
-     * 
+     *
      * @return new float[16] column matrix 4x4
      */
     public float[] toMatrix() {
@@ -287,7 +287,7 @@ public class Quaternion {
      * See http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/
      * quaternions/slerp/
      * </p>
-     * 
+     *
      * @param a initial quaternion
      * @param b target quaternion
      * @param t float between 0 and 1 representing interp.
@@ -332,13 +332,13 @@ public class Quaternion {
     /**
      * Check if this quaternion represents an identity matrix for rotation,
      * , ie (0,0,0,1).
-     * 
+     *
      * @return true if it is an identity rep., false otherwise
      */
     public boolean isIdentity() {
         return w == 1 && x == 0 && y == 0 && z == 0;
     }
-    
+
     /***
      * Set this quaternion to identity (x=0,y=0,z=0,w=1)
      */
@@ -349,7 +349,7 @@ public class Quaternion {
 
     /**
      * compute the quaternion from a 3x3 column matrix
-     * 
+     *
      * @param m 3x3 column matrix
      */
     public void setFromMatrix(float[] m) {
@@ -361,7 +361,7 @@ public class Quaternion {
             y = (m[6] - m[2]) * S;
             z = (m[1] - m[3]) * S;
         } else {
-            if ((m[0] > m[4]) & (m[0] > m[8])) {
+            if ((m[0] > m[4]) && (m[0] > m[8])) {
                 final float S = FloatUtil.sqrt(1.0f + m[0] - m[4] - m[8]) * 2f; // S=4*qx
                 w = (m[7] - m[5]) / S;
                 x = 0.25f * S;
@@ -386,7 +386,7 @@ public class Quaternion {
     /**
      * Check if the the 3x3 matrix (param) is in fact an affine rotational
      * matrix
-     * 
+     *
      * @param m 3x3 column matrix
      * @return true if representing a rotational matrix, false otherwise
      */

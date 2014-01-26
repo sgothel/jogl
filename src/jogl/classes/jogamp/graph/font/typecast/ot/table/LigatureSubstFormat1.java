@@ -89,7 +89,8 @@ public class LigatureSubstFormat1 extends LigatureSubst {
         return 1;
     }
 
+    @Override
     public String getTypeAsString() {
         return "LigatureSubstFormat1";
-    }    
+    }
 }

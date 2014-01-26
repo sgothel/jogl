@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -30,7 +30,7 @@ package jogamp.newt.driver.macosx;
 import com.jogamp.newt.event.KeyEvent;
 
 public class MacKeyUtil {
-      
+
     //
     // KeyCodes (Layout Dependent)
     //
@@ -64,17 +64,17 @@ public class MacKeyUtil {
     private static final short kVK_ANSI_8                    = 0x1C;
     private static final short kVK_ANSI_0                    = 0x1D;
     private static final short kVK_ANSI_RightBracket         = 0x1E;
-    private static final short kVK_ANSI_O                    = 0x1F; 
+    private static final short kVK_ANSI_O                    = 0x1F;
     private static final short kVK_ANSI_U                    = 0x20;
     private static final short kVK_ANSI_LeftBracket          = 0x21;
     private static final short kVK_ANSI_I                    = 0x22;
     private static final short kVK_ANSI_P                    = 0x23;
     private static final short kVK_ANSI_L                    = 0x25;
     private static final short kVK_ANSI_J                    = 0x26;
-    private static final short kVK_ANSI_Quote                = 0x27; 
+    private static final short kVK_ANSI_Quote                = 0x27;
     private static final short kVK_ANSI_K                    = 0x28;
     private static final short kVK_ANSI_Semicolon            = 0x29;
-    private static final short kVK_ANSI_Backslash            = 0x2A; 
+    private static final short kVK_ANSI_Backslash            = 0x2A;
     private static final short kVK_ANSI_Comma                = 0x2B;
     private static final short kVK_ANSI_Slash                = 0x2C;
     private static final short kVK_ANSI_N                    = 0x2D;
@@ -99,7 +99,7 @@ public class MacKeyUtil {
     private static final short kVK_ANSI_Keypad7              = 0x59;
     private static final short kVK_ANSI_Keypad8              = 0x5B;
     private static final short kVK_ANSI_Keypad9              = 0x5C;
-    
+
     //
     // KeyCodes (Layout Independent)
     //
@@ -150,7 +150,7 @@ public class MacKeyUtil {
     private static final short kVK_RightArrow                = 0x7C;
     private static final short kVK_DownArrow                 = 0x7D;
     private static final short kVK_UpArrow                   = 0x7E;
-  
+
     //
     // Key constants handled differently on Mac OS X than other platforms
     //
@@ -230,8 +230,8 @@ public class MacKeyUtil {
     private static final char NSHelpFunctionKey           = 0xF746;
     private static final char NSModeSwitchFunctionKey     = 0xF747;
     */
-    
-    static short validateKeyCode(short keyCode, char keyChar) {        
+
+    static short validateKeyCode(short keyCode, char keyChar) {
         // OS X Virtual Keycodes
         switch(keyCode) {
             //
@@ -267,17 +267,17 @@ public class MacKeyUtil {
             case kVK_ANSI_8:               return KeyEvent.VK_8;
             case kVK_ANSI_0:               return KeyEvent.VK_0;
             case kVK_ANSI_RightBracket:    return KeyEvent.VK_CLOSE_BRACKET;
-            case kVK_ANSI_O:               return KeyEvent.VK_O; 
+            case kVK_ANSI_O:               return KeyEvent.VK_O;
             case kVK_ANSI_U:               return KeyEvent.VK_U;
             case kVK_ANSI_LeftBracket:     return KeyEvent.VK_OPEN_BRACKET;
             case kVK_ANSI_I:               return KeyEvent.VK_I;
             case kVK_ANSI_P:               return KeyEvent.VK_P;
             case kVK_ANSI_L:               return KeyEvent.VK_L;
             case kVK_ANSI_J:               return KeyEvent.VK_J;
-            case kVK_ANSI_Quote:           return KeyEvent.VK_QUOTE; 
+            case kVK_ANSI_Quote:           return KeyEvent.VK_QUOTE;
             case kVK_ANSI_K:               return KeyEvent.VK_K;
             case kVK_ANSI_Semicolon:       return KeyEvent.VK_SEMICOLON;
-            case kVK_ANSI_Backslash:       return KeyEvent.VK_BACK_SLASH; 
+            case kVK_ANSI_Backslash:       return KeyEvent.VK_BACK_SLASH;
             case kVK_ANSI_Comma:           return KeyEvent.VK_COMMA;
             case kVK_ANSI_Slash:           return KeyEvent.VK_SLASH;
             case kVK_ANSI_N:               return KeyEvent.VK_N;
@@ -302,7 +302,7 @@ public class MacKeyUtil {
             case kVK_ANSI_Keypad7:         return KeyEvent.VK_7;
             case kVK_ANSI_Keypad8:         return KeyEvent.VK_8;
             case kVK_ANSI_Keypad9:         return KeyEvent.VK_9;
-            
+
             //
             // KeyCodes (Layout Independent)
             //
@@ -321,7 +321,7 @@ public class MacKeyUtil {
             case kVK_RightControl:         return KeyEvent.VK_CONTROL;
             // case kVK_Function:             return KeyEvent.VK_F;
             case kVK_F17:                  return KeyEvent.VK_F17;
-            // case kVK_VolumeUp:        
+            // case kVK_VolumeUp:
             // case kVK_VolumeDown:
             // case kVK_Mute:
             case kVK_F18:                  return KeyEvent.VK_F18;
@@ -354,7 +354,7 @@ public class MacKeyUtil {
             case kVK_DownArrow:            return KeyEvent.VK_DOWN;
             case kVK_UpArrow:              return KeyEvent.VK_UP;
         }
-        
+
         switch (keyChar) {
             case NSUpArrowFunctionKey:     return KeyEvent.VK_UP;
             case NSDownArrowFunctionKey:   return KeyEvent.VK_DOWN;
@@ -422,5 +422,5 @@ public class MacKeyUtil {
         }
 
         return (short) keyChar; // let's hope for the best (compatibility of keyChar/keyCode's)
-    }   
+    }
 }

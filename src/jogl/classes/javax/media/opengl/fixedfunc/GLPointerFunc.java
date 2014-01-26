@@ -31,7 +31,7 @@ package javax.media.opengl.fixedfunc;
 
 import javax.media.opengl.*;
 
-public interface GLPointerFunc { 
+public interface GLPointerFunc {
   public static final int GL_VERTEX_ARRAY = 0x8074;
   public static final int GL_NORMAL_ARRAY = 0x8075;
   public static final int GL_COLOR_ARRAY = 0x8076;

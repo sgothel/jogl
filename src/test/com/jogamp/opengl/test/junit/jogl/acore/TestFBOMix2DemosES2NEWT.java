@@ -57,7 +57,10 @@ import javax.media.opengl.GLProfile;
 import org.junit.Assert;
 import org.junit.AfterClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestFBOMix2DemosES2NEWT extends UITestCase {    
     static long duration = 500; // ms
     static int swapInterval = 1;

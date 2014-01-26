@@ -48,7 +48,7 @@ import javax.media.opengl.glu.gl2.GLUgl2;
 class GL2CurveEvaluator implements CurveEvaluator {
 
   /**
-   * Output triangles (for callback) or render curve 
+   * Output triangles (for callback) or render curve
    */
   private boolean output_triangles;
 
@@ -92,6 +92,7 @@ class GL2CurveEvaluator implements CurveEvaluator {
   /**
    * Pushes eval bit
    */
+  @Override
   public void bgnmap1f() {
     // DONE
     if (output_triangles) {
@@ -108,6 +109,7 @@ class GL2CurveEvaluator implements CurveEvaluator {
   /**
    * Pops all OpenGL attributes
    */
+  @Override
   public void endmap1f() {
     // DONE
     if (output_triangles) {
@@ -127,6 +129,7 @@ class GL2CurveEvaluator implements CurveEvaluator {
    * @param order curve order
    * @param ps control points
    */
+  @Override
   public void map1f(int type, float ulo, float uhi, int stride, int order,
                     CArrayOfFloats ps) {
     if (output_triangles) {
@@ -153,6 +156,7 @@ class GL2CurveEvaluator implements CurveEvaluator {
    * Calls opengl enable
    * @param type what to enable
    */
+  @Override
   public void enable(int type) {
     // DONE
     gl.glEnable(type);
@@ -164,6 +168,7 @@ class GL2CurveEvaluator implements CurveEvaluator {
    * @param u1 low u
    * @param u2 high u
    */
+  @Override
   public void mapgrid1f(int nu, float u1, float u2) {
     if (output_triangles) {
       //                System.out.println("TODO curveevaluator.mapgrid1f");
@@ -179,6 +184,7 @@ class GL2CurveEvaluator implements CurveEvaluator {
    * @param from lowest param
    * @param to highest param
    */
+  @Override
   public void mapmesh1f(int style, int from, int to) {
     /* //DEBUG drawing control points
        this.poradi++;

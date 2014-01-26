@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 
 package com.jogamp.opengl.test.junit.util;
 
@@ -36,6 +36,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.lang.reflect.*;
 import java.nio.FloatBuffer;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.media.opengl.GLContext;
 
 import com.jogamp.common.os.Platform;
 
@@ -48,7 +52,7 @@ public class MiscUtils {
         }
         return def;
     }
-    
+
     public static int atoi(String str, int def) {
         try {
             return Integer.parseInt(str);
@@ -57,7 +61,7 @@ public class MiscUtils {
         }
         return def;
     }
-    
+
     public static long atol(String str, long def) {
         try {
             return Long.parseLong(str);
@@ -75,23 +79,23 @@ public class MiscUtils {
         }
         return def;
     }
-    
+
     public static String toHexString(byte hex) {
-        return "0x" + Integer.toHexString( (int)hex & 0x000000FF );
+        return "0x" + Integer.toHexString( hex & 0x000000FF );
     }
-    
+
     public static String toHexString(short hex) {
-        return "0x" + Integer.toHexString( (int)hex & 0x0000FFFF );
+        return "0x" + Integer.toHexString( hex & 0x0000FFFF );
     }
-    
+
     public static String toHexString(int hex) {
         return "0x" + Integer.toHexString( hex );
     }
-    
+
     public static String toHexString(long hex) {
         return "0x" + Long.toHexString( hex );
     }
-    
+
     public static void assertFloatBufferEquals(String errmsg, FloatBuffer expected, FloatBuffer actual, float delta) {
         if(null == expected && null == actual) {
             return;
@@ -104,26 +108,26 @@ public class MiscUtils {
             throw new AssertionError(msg+"; Actual is null, but expected not: "+expected);
         }
         if(expected.remaining() != actual.remaining()) {
-            throw new AssertionError(msg+"; Expected has "+expected.remaining()+" remaining, but actual has "+actual.remaining());            
+            throw new AssertionError(msg+"; Expected has "+expected.remaining()+" remaining, but actual has "+actual.remaining());
         }
         final int a0 = expected.position();
         final int b0 = actual.position();
         for(int i=0; i<expected.remaining(); i++) {
             final float ai = expected.get(a0 + i);
             final float bi = actual.get(b0 + i);
-            final float daibi = Math.abs(ai - bi);  
+            final float daibi = Math.abs(ai - bi);
             if( daibi > delta ) {
                 throw new AssertionError(msg+"; Expected @ ["+a0+"+"+i+"] has "+ai+", but actual @ ["+b0+"+"+i+"] has "+bi+", it's delta "+daibi+" > "+delta);
             }
         }
     }
-    
+
     public static void assertFloatBufferNotEqual(String errmsg, FloatBuffer expected, FloatBuffer actual, float delta) {
         if(null == expected || null == actual) {
             return;
         }
         if(expected.remaining() != actual.remaining()) {
-            return;            
+            return;
         }
         String msg = null != errmsg ? errmsg + " " : "";
         final int a0 = expected.position();
@@ -131,14 +135,14 @@ public class MiscUtils {
         for(int i=0; i<expected.remaining(); i++) {
             final float ai = expected.get(a0 + i);
             final float bi = actual.get(b0 + i);
-            final float daibi = Math.abs(ai - bi);  
+            final float daibi = Math.abs(ai - bi);
             if( daibi > delta ) {
                 return;
             }
         }
         throw new AssertionError(msg+"; Expected and actual are equal.");
     }
-    
+
     public static boolean setFieldIfExists(Object instance, String fieldName, Object value) {
         try {
             Field f = instance.getClass().getField(fieldName);
@@ -155,14 +159,14 @@ public class MiscUtils {
         }
         return false;
     }
-    
+
     public static class StreamDump extends Thread {
         final InputStream is;
         final StringBuilder outString;
         final OutputStream outStream;
         final String prefix;
         final Object sync;
-        volatile boolean eos = false;        
+        volatile boolean eos = false;
 
         public StreamDump(OutputStream out, String prefix, InputStream is, Object sync) {
             this.is = is;
@@ -178,7 +182,7 @@ public class MiscUtils {
             this.prefix = null;
             this.sync = sync;
         }
-        
+
         public final boolean eos() { return eos; }
 
         @Override
@@ -208,7 +212,28 @@ public class MiscUtils {
                 }
             }
         }
-    }   
+    }
+
+    public static void dumpSharedGLContext(GLContext self) {
+      int i = 0, j = 0;
+      System.err.println("Myself: hash 0x"+Integer.toHexString(self.hashCode())+", \t(isShared "+self.isShared()+", created "+self.isCreated()+")");
+      {
+          final List<GLContext> set = self.getCreatedShares();
+          for (final Iterator<GLContext> iter = set.iterator(); iter.hasNext(); ) {
+              final GLContext c = iter.next();
+              System.err.println("Ctx #"+(i++)+": hash 0x"+Integer.toHexString(c.hashCode())+", \t(created "+c.isCreated()+")");
+          }
+      }
+      {
+          final List<GLContext> set = self.getDestroyedShares();
+          for (final Iterator<GLContext> iter = set.iterator(); iter.hasNext(); ) {
+              final GLContext c = iter.next();
+              System.err.println("Ctx #"+(j++)+": hash 0x"+Integer.toHexString(c.hashCode())+", \t(created "+c.isCreated()+")");
+          }
+      }
+      System.err.println("\t Total created "+i+" + destroyed "+j+" = "+(i+j));
+      System.err.println();
+    }
 }
 
 

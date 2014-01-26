@@ -33,6 +33,8 @@ import java.lang.reflect.*;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import java.awt.Button;
 import java.awt.BorderLayout;
@@ -53,6 +55,7 @@ import java.io.IOException;
 import com.jogamp.opengl.test.junit.util.*;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestParenting01cSwingAWT extends UITestCase {
     static int width, height;
     static long durationPerTest = 800;
@@ -118,7 +121,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
     }
     
     @Test
-    public void testWindowParenting01CreateVisibleDestroy1() throws InterruptedException, InvocationTargetException {
+    public void test01CreateVisibleDestroy1() throws InterruptedException, InvocationTargetException {
         /**
          * JFrame . JPanel . Container . NewtCanvasAWT . GLWindow
          */
@@ -233,7 +236,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
     }
 
     @Test
-    public void testWindowParenting05ReparentAWTWinHopFrame2Frame() throws InterruptedException, InvocationTargetException {
+    public void test02AWTWinHopFrame2Frame() throws InterruptedException, InvocationTargetException {
         /**
          * JFrame . JPanel . Container . NewtCanvasAWT . GLWindow
          */

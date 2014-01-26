@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.demos.es2.swt;
 
 import java.io.IOException;
@@ -61,8 +61,11 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
-public class TestGearsES2SWT extends UITestCase {    
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+public class TestGearsES2SWT extends UITestCase {
     static int screenIdx = 0;
     static PointImmutable wpos;
     static DimensionImmutable wsize, rwsize=null;
@@ -80,7 +83,7 @@ public class TestGearsES2SWT extends UITestCase {
     static boolean forceGL3 = false;
     static boolean mainRun = false;
     static boolean exclusiveContext = false;
-    
+
     @BeforeClass
     public static void initClass() {
         if(null == wsize) {
@@ -95,16 +98,16 @@ public class TestGearsES2SWT extends UITestCase {
     Display display = null;
     Shell shell = null;
     Composite composite = null;
-    
+
     @Before
     public void init() {
         SWTAccessor.invoke(true, new Runnable() {
-            public void run() {        
+            public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
             }});
         display.syncExec(new Runnable() {
-            public void run() {        
+            public void run() {
                 shell = new Shell( display );
                 Assert.assertNotNull( shell );
                 shell.setLayout( new FillLayout() );
@@ -138,21 +141,21 @@ public class TestGearsES2SWT extends UITestCase {
         shell = null;
         composite = null;
     }
-    
+
     protected void runTestGL(GLCapabilitiesImmutable caps) throws InterruptedException, InvocationTargetException {
         System.err.println("requested: vsync "+swapInterval+", "+caps);
-        
-        final GLCanvas canvas = GLCanvas.create( composite, 0, caps, null, null);
+
+        final GLCanvas canvas = GLCanvas.create( composite, 0, caps, null);
         Assert.assertNotNull( canvas );
-        
+
         final GearsES2 demo = new GearsES2(swapInterval);
         demo.setPMVUseBackingArray(pmvUseBackingArray);
         canvas.addGLEventListener(demo);
-        
+
         Animator animator = new Animator();
         animator.setModeBits(false, Animator.MODE_EXPECT_AWT_RENDERING_THREAD);
         animator.setExclusiveContext(exclusiveContext);
-        
+
         animator.add(canvas);
         animator.start();
         Assert.assertTrue(animator.isStarted());
@@ -169,9 +172,9 @@ public class TestGearsES2SWT extends UITestCase {
               shell.open();
            }
         });
-        
+
         animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
-        
+
         while(animator.isAnimating() && !canvas.isRealized() && animator.getTotalFPSDuration()<duration) {
             if( !display.readAndDispatch() ) {
                 // blocks on linux .. display.sleep();
@@ -181,7 +184,7 @@ public class TestGearsES2SWT extends UITestCase {
         System.err.println("NW chosen: "+canvas.getDelegatedDrawable().getChosenGLCapabilities());
         System.err.println("GL chosen: "+canvas.getChosenGLCapabilities());
         System.err.println("window pos/siz: "+canvas.getLocation()+" "+canvas.getWidth()+"x"+canvas.getHeight());
-                
+
         if( null != rwsize ) {
             for(int i=0; i<50; i++) { // 500 ms dispatched delay
                 if( !display.readAndDispatch() ) {
@@ -196,7 +199,7 @@ public class TestGearsES2SWT extends UITestCase {
             });
             System.err.println("window resize pos/siz: "+canvas.getLocation()+" "+canvas.getWidth()+"x"+canvas.getHeight());
         }
-        
+
         while(animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             if( !display.readAndDispatch() ) {
                 // blocks on linux .. display.sleep();
@@ -209,7 +212,7 @@ public class TestGearsES2SWT extends UITestCase {
         Assert.assertFalse(animator.isAnimating());
         Assert.assertFalse(animator.isStarted());
         Assert.assertEquals(null, canvas.getExclusiveContextThread());
-        
+
         display.syncExec(new Runnable() {
            public void run() {
                canvas.dispose();
@@ -231,7 +234,7 @@ public class TestGearsES2SWT extends UITestCase {
             final GLCapabilities caps = new GLCapabilities( glp );
             caps.setBackgroundOpaque(opaque);
             if(-1 < forceAlpha) {
-                caps.setAlphaBits(forceAlpha); 
+                caps.setAlphaBits(forceAlpha);
             }
             runTestGL(caps);
             if(loop_shutdown) {
@@ -243,7 +246,7 @@ public class TestGearsES2SWT extends UITestCase {
     @Test
     public void test02GL3() throws InterruptedException, InvocationTargetException {
         if(mainRun) return;
-        
+
         if( !GLProfile.isAvailable(GLProfile.GL3) ) {
             System.err.println("GL3 n/a");
             return;
@@ -252,13 +255,13 @@ public class TestGearsES2SWT extends UITestCase {
         final GLCapabilities caps = new GLCapabilities( glp );
         runTestGL(caps);
     }
-    
+
     public static void main(String args[]) throws IOException {
         mainRun = true;
-        
+
         int x=0, y=0, w=640, h=480, rw=-1, rh=-1;
         boolean usePos = false;
-        
+
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
@@ -317,7 +320,7 @@ public class TestGearsES2SWT extends UITestCase {
         if( 0 < rw && 0 < rh ) {
             rwsize = new Dimension(rw, rh);
         }
-        
+
         if(usePos) {
             wpos = new Point(x, y);
         }
@@ -326,9 +329,9 @@ public class TestGearsES2SWT extends UITestCase {
         System.err.println("resize "+rwsize);
         System.err.println("screen "+screenIdx);
         System.err.println("translucent "+(!opaque));
-        System.err.println("forceAlpha "+forceAlpha);        
+        System.err.println("forceAlpha "+forceAlpha);
         System.err.println("fullscreen "+fullscreen);
-        System.err.println("pmvDirect "+(!pmvUseBackingArray));        
+        System.err.println("pmvDirect "+(!pmvUseBackingArray));
         System.err.println("loops "+loops);
         System.err.println("loop shutdown "+loop_shutdown);
         System.err.println("forceES2 "+forceES2);

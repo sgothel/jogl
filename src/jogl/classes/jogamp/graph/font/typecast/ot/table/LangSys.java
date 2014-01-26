@@ -64,7 +64,7 @@ public class LangSys {
     private int _reqFeatureIndex;
     private int _featureCount;
     private int[] _featureIndex;
-    
+
     /** Creates new LangSys */
     protected LangSys(DataInput di) throws IOException {
         _lookupOrder = di.readUnsignedShort();
@@ -75,19 +75,19 @@ public class LangSys {
             _featureIndex[i] = di.readUnsignedShort();
         }
     }
-    
+
     public int getLookupOrder() {
         return _lookupOrder;
     }
-    
+
     public int getReqFeatureIndex() {
         return _reqFeatureIndex;
     }
-    
+
     public int getFeatureCount() {
         return _featureCount;
     }
-    
+
     public int getFeatureIndex(int i) {
         return _featureIndex[i];
     }

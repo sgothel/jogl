@@ -42,6 +42,8 @@ import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
@@ -49,6 +51,7 @@ import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLDebug00NEWT extends UITestCase {
     
     static String dbgTstMsg0 = "Hello World";

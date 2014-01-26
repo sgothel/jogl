@@ -39,7 +39,7 @@ import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
 
-/** 
+/**
  * A screen may span multiple {@link MonitorDevice}s representing their combined virtual size.
  */
 public abstract class Screen {
@@ -53,9 +53,11 @@ public abstract class Screen {
     public static final boolean DEBUG = Debug.debug("Screen");
 
     /** return precomputed hashCode from FQN {@link #getFQName()} */
+    @Override
     public abstract int hashCode();
 
     /** return true if obj is of type Display and both FQN {@link #getFQName()} equals */
+    @Override
     public boolean equals(Object obj) {
         if (this == obj) { return true; }
         if (obj instanceof Screen) {
@@ -102,7 +104,7 @@ public abstract class Screen {
 
     /**
      * See {@link Display#addReference()}
-     * 
+     *
      * @return number of references post operation
      * @throws NativeWindowException if the native creation failed.
      * @see #removeReference()
@@ -113,7 +115,7 @@ public abstract class Screen {
 
     /**
      * See {@link Display#removeReference()}
-     * 
+     *
      * @return number of references post operation
      * @see #addReference()
      * @see #setDestroyWhenUnused(boolean)
@@ -132,12 +134,12 @@ public abstract class Screen {
      * @return the x position of the virtual viewport's top-left origin.
      */
     public abstract int getX();
-    
+
     /**
      * @return the y position of the virtual viewport's top-left origin.
      */
     public abstract int getY();
-    
+
     /**
      * @return the <b>rotated</b> virtual viewport's width.
      */
@@ -152,19 +154,19 @@ public abstract class Screen {
      * @return the <b>rotated</b> virtual viewport, i.e. origin and size.
      */
     public abstract RectangleImmutable getViewport();
-    
+
     /**
      * @return the associated Display
      */
     public abstract Display getDisplay();
 
-    /** 
+    /**
      * @return The screen fully qualified Screen name,
      * which is a key of {@link com.jogamp.newt.Display#getFQName()} + {@link #getIndex()}.
      */
     public abstract String getFQName();
 
-    /** 
+    /**
      * Return a list of all {@link MonitorMode}s for all {@link MonitorDevice}s.
      * <p>
      * The list is ordered in descending order,
@@ -173,23 +175,23 @@ public abstract class Screen {
      */
     public abstract List<MonitorMode> getMonitorModes();
 
-    /** 
+    /**
      * Return a list of available {@link MonitorDevice}s.
      */
     public abstract List<MonitorDevice> getMonitorDevices();
 
     /**
-     * Returns the {@link MonitorDevice} which {@link MonitorDevice#getViewport() viewport} 
+     * Returns the {@link MonitorDevice} which {@link MonitorDevice#getViewport() viewport}
      * {@link MonitorDevice#coverage(RectangleImmutable) covers} the given rectangle the most.
      * <p>
-     * If no coverage is detected the first {@link MonitorDevice} is returned. 
+     * If no coverage is detected the first {@link MonitorDevice} is returned.
      * </p>
      */
     public final MonitorDevice getMainMonitor(RectangleImmutable r) {
         MonitorDevice res = null;
         float maxCoverage = Float.MIN_VALUE;
         final List<MonitorDevice> monitors = getMonitorDevices();
-        for(int i=monitors.size()-1; i>=0; i--) {            
+        for(int i=monitors.size()-1; i>=0; i--) {
             final MonitorDevice monitor = monitors.get(i);
             final float coverage = monitor.coverage(r);
             if( coverage > maxCoverage ) {
@@ -207,14 +209,14 @@ public abstract class Screen {
      * Returns the union of all monitor's {@link MonitorDevice#getViewport() viewport}.
      * <p>
      * Should be equal to {@link #getX()}, {@link #getY()}, {@link #getWidth()} and {@link #getHeight()},
-     * however, some native toolkits may choose a different virtual screen area. 
+     * however, some native toolkits may choose a different virtual screen area.
      * </p>
      * @param result storage for result, will be returned
      */
     public final Rectangle unionOfMonitorViewportSize(final Rectangle result) {
         return MonitorDevice.unionOfViewports(result, getMonitorDevices());
     }
-    
+
     /**
      * @param sml {@link MonitorModeListener} to be added for {@link MonitorEvent}
      */
@@ -274,7 +276,7 @@ public abstract class Screen {
         }
         return null;
     }
-    
+
     protected static void addScreen2List(Screen screen) {
         synchronized(screenList) {
             // GC before add
@@ -289,7 +291,7 @@ public abstract class Screen {
             screenList.add(new WeakReference<Screen>(screen));
         }
     }
-    
+
     /** Returns the global screen collection */
     public static Collection<Screen> getAllScreens() {
         ArrayList<Screen> list;
@@ -308,7 +310,7 @@ public abstract class Screen {
         }
         return list;
     }
-    
+
     public static int getActiveScreenNumber() {
         synchronized(screenList) {
             return screensActive;

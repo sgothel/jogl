@@ -1,31 +1,43 @@
 
 set BLD_SUB=build-win64
-set J2RE_HOME=c:\jre1.7.0_25_x64
-set JAVA_HOME=c:\jdk1.7.0_25_x64
+set J2RE_HOME=c:\jre1.7.0_45_x64
+set JAVA_HOME=c:\jdk1.7.0_45_x64
 set ANT_PATH=C:\apache-ant-1.8.2
 
 set PROJECT_ROOT=D:\projects\jogamp\jogl
 set BLD_DIR=..\%BLD_SUB%
 
-set FFMPEG_LIB=%PROJECT_ROOT%\make\lib\ffmpeg\x64
+REM set FFMPEG_LIB=C:\ffmpeg_libav\lavc53_lavf53_lavu51-ffmpeg\x64
+REM set FFMPEG_LIB=C:\ffmpeg_libav\lavc55_lavf55_lavu52-ffmpeg\x64
+set FFMPEG_LIB=C:\ffmpeg_libav\lavc55_lavf55_lavu52-ffmpeg-2013-10-09\x64
+REM set FFMPEG_LIB=C:\ffmpeg_libav\lavc54_lavf54_lavu52_lavr01-libav\x64
 
-set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;c:\mingw\bin;%PATH%
+REM set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;c:\mingw\bin;%PATH%
 REM set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;%PROJECT_ROOT%\make\lib\external\PVRVFrame\OGLES-2.0\Windows_x86_64;%PATH%
-REM set LIB_DIR=%BLD_DIR%\lib;..\..\gluegen\%BLD_SUB%\obj
-set LIB_DIR=%FFMPEG_LIB%
+set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;%FFMPEG_LIB%;%PATH%
 
-set CP_ALL=.;%BLD_DIR%\jar\jogl-all.jar;%BLD_DIR%\jar\jogl-test.jar;..\..\gluegen\%BLD_SUB%\gluegen-rt.jar;..\..\gluegen\make\lib\junit.jar;%ANT_PATH%\lib\ant.jar;%ANT_PATH%\lib\ant-junit.jar;%BLD_DIR%\..\make\lib\swt\win32-win32-x86_64\swt-debug.jar
+set CP_ALL=.;%BLD_DIR%\jar\jogl-all.jar;%BLD_DIR%\jar\jogl-test.jar;..\..\joal\%BLD_SUB%\joal.jar;..\..\gluegen\%BLD_SUB%\gluegen-rt.jar;..\..\gluegen\make\lib\junit.jar;%ANT_PATH%\lib\ant.jar;%ANT_PATH%\lib\ant-junit.jar;%BLD_DIR%\..\make\lib\swt\win32-win32-x86_64\swt-debug.jar
 
 echo CP_ALL %CP_ALL%
 
+REM set D_ARGS="-Djogamp.debug=all"
+REM set D_ARGS="-Djogl.debug=all" "-Dnativewindow.debug=all"
+REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all"
+REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all" "-Djogamp.debug=all" "-Djogl.debug.EGLDrawableFactory.DontQuery"
+REM set D_ARGS="-Dnativewindow.debug.GDIUtil" "-Dnativewindow.debug.RegisteredClass"
 REM set D_ARGS="-Djogl.debug.GLContext" "-Djogl.debug.FBObject"
 REM set D_ARGS="-Djogl.debug.GLDrawable" "-Djogl.debug.EGLDrawableFactory.DontQuery"
 REM set D_ARGS="-Djogl.debug.GLDrawable" "-Djogl.debug.EGLDrawableFactory.QueryNativeTK"
-REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all"
 REM set D_ARGS="-Djogl.debug.GLDrawable" "-Djogl.debug.GLContext" "-Djogl.debug.GLCanvas"
-REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all" "-Djogamp.debug=all" "-Djogl.debug.EGLDrawableFactory.DontQuery"
 REM set D_ARGS="-Dnativewindow.debug.GraphicsConfiguration -Djogl.debug.CapabilitiesChooser -Djogl.debug.GLProfile"
-REM set D_ARGS="-Djogamp.debug.IOUtil" "-Djogl.debug.GLSLCode" "-Djogl.debug.GLMediaPlayer"
+REM set D_ARGS="-Djogamp.debug.IOUtil"
+REM set D_ARGS="-Djogl.debug.GLSLCode" "-Djogl.debug.GLMediaPlayer"
+REM set D_ARGS="-Djogl.debug.GLMediaPlayer"
+REM set D_ARGS="-Djogl.debug.GLMediaPlayer" "-Djogl.debug.AudioSink"
+REM set D_ARGS="-Djogl.debug.GLMediaPlayer" "-Djogl.debug.GLMediaPlayer.Native"
+REM set D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25" "-Djogl.debug.GLMediaPlayer"
+REM set D_ARGS="-Djogl.debug.GLMediaPlayer.Native"
+REM set D_ARGS="-Djogl.debug.AudioSink"
 REM set D_ARGS="-Djogamp.debug.NativeLibrary=true" "-Djogamp.debug.NativeLibrary.Lookup=true" "-Djogl.debug.GLSLCode"
 REM set D_ARGS="-Djogl.debug=all" "-Dnativewindow.debug=all" "-Djogamp.debug.ProcAddressHelper" "-Djogamp.debug.NativeLibrary" "-Djogamp.debug.NativeLibrary.Lookup" "-Djogamp.debug.JNILibLoader" "-Djogamp.debug.TempJarCache" "-Djogamp.debug.JarUtil"
 REM set D_ARGS="-Djogl.debug.ExtensionAvailabilityCache" "-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all" "-Djogamp.debug.ProcAddressHelper=true" "-Djogamp.debug.NativeLibrary=true" "-Djogamp.debug.NativeLibrary.Lookup=true"
@@ -40,8 +52,13 @@ REM set D_ARGS="-Djogl.debug=all"
 REM set D_ARGS="-Djogl.debug.GLCanvas" "-Djogl.debug.Animator" "-Djogl.debug.GLContext" "-Djogl.debug.GLContext.TraceSwitch" "-Djogl.debug.DebugGL" "-Djogl.debug.TraceGL"
 REM set D_ARGS="-Djogl.debug.GLCanvas" "-Djogl.debug.Animator" "-Djogl.debug.GLContext" "-Djogl.debug.GLContext.TraceSwitch" "-Djogl.windows.useWGLVersionOf5WGLGDIFuncSet"
 REM set D_ARGS="-Djogl.debug.GLCanvas" "-Djogl.debug.Animator" "-Djogl.debug.GLContext" "-Djogl.debug.GLContext.TraceSwitch"
-set D_ARGS="-Dnewt.debug.Window"
+REM set D_ARGS="-Djogl.debug.GLCanvas" "-Djogl.debug.GLJPanel" "-Djogl.debug.TileRenderer" "-Djogl.debug.TileRenderer.PNG"
+REM set D_ARGS="-Djogl.debug.GLCanvas" "-Djogl.debug.GLJPanel" "-Djogl.debug.TileRenderer"
+REM set D_ARGS="-Djogl.gljpanel.noverticalflip"
+set D_ARGS="-Dnewt.debug=all"
+REM set D_ARGS="-Dnewt.debug.Window"
 REM set D_ARGS="-Dnewt.debug.Window.KeyEvent"
+REM set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.Window.KeyEvent" "-Dnewt.debug.EDT"
 REM set D_ARGS="-Dnewt.debug.Window.MouseEvent"
 REM set D_ARGS="-Dnewt.debug.Window.MouseEvent" "-Dnewt.debug.Window.KeyEvent"
 REM set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.Display"

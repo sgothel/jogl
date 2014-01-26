@@ -30,9 +30,12 @@ package com.jogamp.opengl.test.junit.jogl.math;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.math.FloatUtil;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestFloatUtil01MatrixMatrixMultNOUI {
 
     final float[] m1 = new float[]{    1,    3,    4,    0,

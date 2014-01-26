@@ -43,7 +43,10 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestLandscapeES2NEWT extends UITestCase {
     static int width = 500, height = 290;
     static int swapInterval = 1;

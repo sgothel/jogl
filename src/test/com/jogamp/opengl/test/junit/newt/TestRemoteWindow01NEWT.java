@@ -33,6 +33,8 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import javax.media.nativewindow.*;
 
@@ -41,6 +43,7 @@ import java.io.IOException;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestRemoteWindow01NEWT extends UITestCase {
     static int width, height;
     static String remoteDisplay = "localhost:0.0";

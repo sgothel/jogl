@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<jnlp href="jogl-applet-runner-newt.jnlp">
+<jnlp codebase="JOGL_CODEBASE_TAG/"
+      href="jogl-applet-runner-newt.jnlp" version="JOGAMP_VERSION">
   <information>
     <title>JOGL JNLP Applet Runner NEWT</title>
     <vendor>JogAmp Community</vendor>
@@ -11,7 +12,6 @@
 
     <resources>
       <j2se href="http://java.sun.com/products/autodl/j2se" version="1.4+"/>
-      <property name="sun.java2d.noddraw" value="true"/>
       <jar href="jar/jogl-test.jar" main="true"/>
       <extension name="jogl-all-awt" href="jogl-all-awt.jnlp" />
     </resources>

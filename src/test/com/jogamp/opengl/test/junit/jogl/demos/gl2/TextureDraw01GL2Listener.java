@@ -43,21 +43,35 @@ public class TextureDraw01GL2Listener implements GLEventListener, TextureDraw01A
     private GLU      glu = new GLU();
     private TextureData textureData;
     private Texture  texture;
+    boolean keepTextureBound;
     
     public TextureDraw01GL2Listener(TextureData td) {
         this.textureData = td;
+        this.keepTextureBound = false;
     }
 
-    public void init(GLAutoDrawable drawable) {
-        if(null!=textureData) {
-            this.texture = TextureIO.newTexture(drawable.getGL(), textureData);
-        }
+    @Override
+    public void setKeepTextureBound(boolean v) {
+        this.keepTextureBound = v;
     }
-
+    @Override
     public Texture getTexture( ) {
         return this.texture;
     }
     
+    @Override
+    public void init(GLAutoDrawable drawable) {
+        GL2 gl = drawable.getGL().getGL2();
+        if(null!=textureData) {
+            this.texture = TextureIO.newTexture(drawable.getGL(), textureData);
+            if( keepTextureBound ) {
+                texture.enable(gl);
+                texture.bind(gl);
+            }
+        }
+    }
+
+    @Override
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
         GL2 gl = drawable.getGL().getGL2();
         gl.glMatrixMode(GL2ES1.GL_PROJECTION);
@@ -67,6 +81,7 @@ public class TextureDraw01GL2Listener implements GLEventListener, TextureDraw01A
         gl.glLoadIdentity();
     }
 
+    @Override
     public void dispose(GLAutoDrawable drawable) {
         GL2 gl = drawable.getGL().getGL2();
         if(null!=texture) {
@@ -78,13 +93,16 @@ public class TextureDraw01GL2Listener implements GLEventListener, TextureDraw01A
         }
     }
 
+    @Override
     public void display(GLAutoDrawable drawable) {
         GL2 gl = drawable.getGL().getGL2();
 
         // draw one quad with the texture
         if(null!=texture) {
-            texture.enable(gl);
-            texture.bind(gl);
+            if( !keepTextureBound ) {
+                texture.enable(gl);
+                texture.bind(gl);
+            }
             gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_REPLACE);
             TextureCoords coords = texture.getImageTexCoords();
             gl.glBegin(GL2.GL_QUADS);
@@ -97,7 +115,9 @@ public class TextureDraw01GL2Listener implements GLEventListener, TextureDraw01A
             gl.glTexCoord2f(coords.left(), coords.top());
             gl.glVertex3f(0, 1, 0);
             gl.glEnd();
-            texture.disable(gl);
+            if( !keepTextureBound ) {
+                texture.disable(gl);
+            }
         }
     }
 }

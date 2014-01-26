@@ -69,7 +69,10 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGearsES2NewtCanvasSWT extends UITestCase {    
     static int screenIdx = 0;
     static PointImmutable wpos;

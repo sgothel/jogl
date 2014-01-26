@@ -51,7 +51,6 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import jogamp.nativewindow.WrappedSurface;
-import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLContextShareSet;
 
 import com.jogamp.common.nio.Buffers;
@@ -63,7 +62,9 @@ public class X11ExternalGLXContext extends X11GLXContext {
     super(drawable, null);
     this.contextHandle = ctx;
     GLContextShareSet.contextCreated(this);
-    setGLFunctionAvailability(false, 0, 0, CTX_PROFILE_COMPAT, false);
+    if( !setGLFunctionAvailability(false, 0, 0, CTX_PROFILE_COMPAT, false /* strictMatch */, false /* withinGLVersionsMapping */) ) { // use GL_VERSION
+        throw new InternalError("setGLFunctionAvailability !strictMatch failed");
+    }
     getGLStateTracker().setEnabled(false); // external context usage can't track state in Java
   }
 
@@ -79,15 +80,15 @@ public class X11ExternalGLXContext extends X11GLXContext {
     long drawable = GLX.glXGetCurrentDrawable();
     if (drawable == 0) {
       throw new GLException("Error: attempted to make an external GLDrawable without a drawable/context current");
-    }    
+    }
     IntBuffer val = Buffers.newDirectIntBuffer(1);
-    
+
     int w, h;
     GLX.glXQueryDrawable(display, drawable, GLX.GLX_WIDTH, val);
     w=val.get(0);
     GLX.glXQueryDrawable(display, drawable, GLX.GLX_HEIGHT, val);
     h=val.get(0);
-    
+
     GLX.glXQueryContext(display, ctx, GLX.GLX_SCREEN, val);
     X11GraphicsScreen x11Screen = (X11GraphicsScreen) X11GraphicsScreen.createScreenDevice(display, val.get(0), false);
 
@@ -112,7 +113,7 @@ public class X11ExternalGLXContext extends X11GLXContext {
   }
 
   @Override
-  protected boolean createImpl(GLContextImpl shareWith) {
+  protected boolean createImpl(final long shareWithHandle) {
       return true;
   }
 

@@ -50,7 +50,8 @@ import javax.media.nativewindow.CapabilitiesImmutable;
     must support, such as the OpenGL profile, color depth and whether stereo is enabled.<br>
 
     The actual capabilites of created {@link GLDrawable}s are then reflected by their own
-    GLCapabilites instance, which can be queried with {@link GLDrawable#getGLCapabilities()}.<br>
+    GLCapabilites instance, which can be queried with {@link GLDrawable#getChosenGLCapabilities()}.
+    <br>
 
     It currently contains the minimal number of routines which allow
     configuration on all supported window systems. */
@@ -98,7 +99,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   }
 
   /**
-   * Copies all {@link GLCapabilities} and {@link Capabilities} values 
+   * Copies all {@link GLCapabilities} and {@link Capabilities} values
    * from <code>source</code> into this instance.
    * @return this instance
    */
@@ -121,11 +122,11 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     sampleExtension = source.getSampleExtension();
     return this;
   }
-  
+
   @Override
   public int hashCode() {
     // 31 * x == (x << 5) - x
-    int hash = super.hashCode(); 
+    int hash = super.hashCode();
     hash = ((hash << 5) - hash) + this.glProfile.hashCode() ;
     hash = ((hash << 5) - hash) + ( this.hardwareAccelerated ? 1 : 0 );
     hash = ((hash << 5) - hash) + ( this.stereo ? 1 : 0 );
@@ -237,7 +238,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   public void setGLProfile(GLProfile profile) {
     glProfile=profile;
   }
-  
+
   @Override
   public final boolean isPBuffer() {
     return isPBuffer;
@@ -246,7 +247,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   /**
    * Requesting offscreen pbuffer mode.
    * <p>
-   * If enabled this method also invokes {@link #setOnscreen(int) setOnscreen(false)}.
+   * If enabled this method also invokes {@link #setOnscreen(boolean) setOnscreen(false)}.
    * </p>
    * <p>
    * Defaults to false.
@@ -254,7 +255,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
    * <p>
    * Requesting offscreen pbuffer mode disables the offscreen auto selection.
    * </p>
-   */  
+   */
   public void setPBuffer(boolean enable) {
     if(enable) {
       setOnscreen(false);
@@ -266,11 +267,11 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   public final boolean isFBO() {
       return isFBO;
   }
-  
+
   /**
    * Requesting offscreen FBO mode.
    * <p>
-   * If enabled this method also invokes {@link #setOnscreen(int) setOnscreen(false)}.
+   * If enabled this method also invokes {@link #setOnscreen(boolean) setOnscreen(false)}.
    * </p>
    * <p>
    * Defaults to false.
@@ -421,7 +422,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     return sampleBuffers;
   }
 
-  /** 
+  /**
    * If sample buffers are enabled, indicates the number of buffers
    * to be allocated. Defaults to 2.
    * @see #getNumSamples()
@@ -490,7 +491,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
         if(isOnscreen()) {
             sink.append(".");        // no additional off-screen modes besides on-screen
         } else {
-            sink.append("auto-cfg"); // auto-config off-screen mode            
+            sink.append("auto-cfg"); // auto-config off-screen mode
         }
     }
     sink.append("]");

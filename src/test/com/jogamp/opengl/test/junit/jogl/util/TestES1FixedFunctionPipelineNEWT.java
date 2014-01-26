@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.util;
 
 import com.jogamp.newt.opengl.GLWindow;
@@ -45,7 +45,10 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestES1FixedFunctionPipelineNEWT extends UITestCase {
     static int width, height;
 
@@ -78,30 +81,30 @@ public class TestES1FixedFunctionPipelineNEWT extends UITestCase {
         glWindow.setVisible(true);
         animator.setUpdateFPSFrames(1, null);
         animator.start();
-        
+
         snap.setMakeSnapshot();
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
         }
         glWindow.removeGLEventListener(demo);
-        
+
         animator.stop();
         glWindow.destroy();
     }
-    
+
     protected void runTestGL(GLCapabilities caps, boolean forceFFPEmu) throws InterruptedException {
         final RedSquareES1 demo01 = new RedSquareES1();
         demo01.setForceFFPEmu(forceFFPEmu, false, false, false);
         runTestGL0(caps, demo01);
-        
+
         final GearsES1 demo02 = new GearsES1();
         demo02.setForceFFPEmu(forceFFPEmu, false, false, false);
         runTestGL0(caps, demo02);
-        
+
         final DemoGL2ES1ImmModeSink demo03 = new DemoGL2ES1ImmModeSink(true);
         demo03.setForceFFPEmu(forceFFPEmu, false, false, false);
         runTestGL0(caps, demo03);
-        
+
         final DemoGL2ES1TextureImmModeSink demo04 = new DemoGL2ES1TextureImmModeSink();
         demo04.setForceFFPEmu(forceFFPEmu, false, false, false);
         runTestGL0(caps, demo04);
@@ -113,28 +116,28 @@ public class TestES1FixedFunctionPipelineNEWT extends UITestCase {
         GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2));
         runTestGL(caps, false);
     }
-    
+
     @Test
-    public void test03GL2FFPEmu() throws InterruptedException {
+    public void test02GL2FFPEmu() throws InterruptedException {
         if(!GLProfile.isAvailable(GLProfile.GL2)) { System.err.println("GL2 n/a"); return; }
         GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2));
         runTestGL(caps, true);
     }
-    
+
     @Test
-    public void test04GL2ES1Normal() throws InterruptedException {
+    public void test03GL2ES1Normal() throws InterruptedException {
         if(!GLProfile.isAvailable(GLProfile.GL2ES1)) { System.err.println("GL2ES1 n/a"); return; }
         GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2ES1));
         runTestGL(caps, false);
     }
-    
+
     @Test
-    public void test05ES2FFPEmu() throws InterruptedException {
+    public void test04ES2FFPEmu() throws InterruptedException {
         if(!GLProfile.isAvailable(GLProfile.GLES2)) { System.err.println("GLES2 n/a"); return; }
         GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
         runTestGL(caps, false); // should be FFPEmu implicit
     }
-    
+
     static long duration = 1000; // ms
 
     public static void main(String args[]) {

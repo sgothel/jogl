@@ -2,9 +2,9 @@ package jogamp.opengl.glu.nurbs;
 
 /**
  * Class replacing C language pointer
- * 
+ *
  * @author Tomas Hrasky
- * 
+ *
  */
 public class CArrayOfArcs {
   /**
@@ -24,7 +24,7 @@ public class CArrayOfArcs {
 
   /**
    * Makes new CArray
-   * 
+   *
    * @param array
    *            underlaying array
    * @param pointer
@@ -38,7 +38,7 @@ public class CArrayOfArcs {
 
   /**
    * Makes new CArray from other CArray
-   * 
+   *
    * @param carray
    *            reference array
    */
@@ -50,7 +50,7 @@ public class CArrayOfArcs {
 
   /**
    * Makes new CArray with pointer set to 0
-   * 
+   *
    * @param ctlarray
    *            underlaying array
    */
@@ -61,7 +61,7 @@ public class CArrayOfArcs {
 
   /**
    * Returns element at pointer
-   * 
+   *
    * @return element at pointer
    */
   public Arc get() {
@@ -78,7 +78,7 @@ public class CArrayOfArcs {
 
   /**
    * Sets element at pointer
-   * 
+   *
    * @param f
    *            desired value
    */
@@ -89,7 +89,7 @@ public class CArrayOfArcs {
 
   /**
    * Returns array element at specified index
-   * 
+   *
    * @param i
    *            array index
    * @return element at index
@@ -100,7 +100,7 @@ public class CArrayOfArcs {
 
   /**
    * Returns array element at specified index relatively to pointer
-   * 
+   *
    * @param i
    *            relative index
    * @return element at relative index
@@ -111,7 +111,7 @@ public class CArrayOfArcs {
 
   /**
    * Sets value of element at specified index relatively to pointer
-   * 
+   *
    * @param i
    *            relative index
    * @param value
@@ -123,7 +123,7 @@ public class CArrayOfArcs {
 
   /**
    * Lessens pointer by value
-   * 
+   *
    * @param i
    *            lessen by
    */
@@ -134,7 +134,7 @@ public class CArrayOfArcs {
 
   /**
    * Returns pointer value
-   * 
+   *
    * @return pointer value
    */
   public int getPointer() {
@@ -143,7 +143,7 @@ public class CArrayOfArcs {
 
   /**
    * Sets ponter value
-   * 
+   *
    * @param pointer
    *            pointer value to be set
    */
@@ -156,7 +156,7 @@ public class CArrayOfArcs {
 
   /**
    * Raises pointer by value
-   * 
+   *
    * @param i
    *            raise by
    */
@@ -175,7 +175,7 @@ public class CArrayOfArcs {
 
   /**
    * Returns underlaying array
-   * 
+   *
    * @return underlaying array
    */
   public Arc[] getArray() {
@@ -184,7 +184,7 @@ public class CArrayOfArcs {
 
   /**
    * Sets underlaying array
-   * 
+   *
    * @param array
    *            underlaying array
    */

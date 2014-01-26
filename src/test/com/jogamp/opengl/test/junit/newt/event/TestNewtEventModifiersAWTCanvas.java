@@ -37,6 +37,8 @@ import javax.swing.WindowConstants ;
 import org.junit.AfterClass ;
 import org.junit.Assert;
 import org.junit.BeforeClass ;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.event.awt.AWTMouseAdapter ;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
@@ -47,6 +49,7 @@ import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
  * the source is an AWT canvas.
  */
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestNewtEventModifiersAWTCanvas extends BaseNewtEventModifiers {
 
     private static JFrame _testFrame ;

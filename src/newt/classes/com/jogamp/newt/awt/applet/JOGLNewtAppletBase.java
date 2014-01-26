@@ -33,6 +33,7 @@ import java.security.PrivilegedAction;
 
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
+import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
@@ -41,6 +42,10 @@ import javax.media.opengl.GLPipelineFactory;
 
 import jogamp.newt.Debug;
 
+import com.jogamp.common.util.IOUtil;
+import com.jogamp.newt.Display;
+import com.jogamp.newt.Window;
+import com.jogamp.newt.Display.PointerIcon;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseListener;
@@ -56,13 +61,14 @@ import com.jogamp.opengl.util.Animator;
 
 public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
     public static final boolean DEBUG = Debug.debug("Applet");
-    
+
     String glEventListenerClazzName;
     int glSwapInterval;
     boolean noDefaultKeyListener;
     boolean glClosable;
     boolean glDebug;
     boolean glTrace;
+    PointerIcon pointerIconTest = null;
 
     GLEventListener glEventListener = null;
     GLWindow glWindow = null;
@@ -70,13 +76,13 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
     boolean isValid = false;
     NativeWindow awtParent;
 
-    public JOGLNewtAppletBase(String glEventListenerClazzName, 
+    public JOGLNewtAppletBase(String glEventListenerClazzName,
                               int glSwapInterval,
                               boolean noDefaultKeyListener,
                               boolean glClosable,
                               boolean glDebug,
                               boolean glTrace) {
-    
+
         this.glEventListenerClazzName=glEventListenerClazzName;
         this.glSwapInterval=glSwapInterval;
         this.noDefaultKeyListener = noDefaultKeyListener;
@@ -111,6 +117,7 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
 
         try {
             final Class<?> clazz = AccessController.doPrivileged(new PrivilegedAction<Class<?>>() {
+                @Override
                 public Class<?> run() {
                     final ClassLoader cl = Thread.currentThread().getContextClassLoader();
                     Class<?> clazz = null;
@@ -160,24 +167,6 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
     public void init(ThreadGroup tg, final GLWindow glWindow) {
         isValid = false;
         this.glWindow = glWindow;
-        this.glWindow.addWindowListener(new WindowAdapter() {
-                // Closing action: back to parent!
-                @Override
-                public void windowDestroyNotify(WindowEvent e) {
-                    if( isValid() && WindowClosingMode.DO_NOTHING_ON_CLOSE == glWindow.getDefaultCloseOperation() ) {
-                        if(null == glWindow.getParent()) {
-                            // we may be called directly by the native EDT
-                            new Thread(new Runnable() {
-                               public void run() {
-                                if( glWindow.isNativeValid() ) {
-                                    glWindow.reparentWindow(awtParent);
-                                }
-                               }
-                            }).start();                         
-                        }                        
-                    }
-                } } );
-
         glEventListener = createInstance(glEventListenerClazzName);
         if(null == glEventListener) {
             return;
@@ -202,7 +191,7 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
             if(glEventListener instanceof KeyListener) {
                 glWindow.addKeyListener((KeyListener)glEventListener);
             }
-            
+
             if(!noDefaultKeyListener) {
                 glWindow.addKeyListener(this);
             }
@@ -215,24 +204,54 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
             glAnimator.setThreadGroup(tg);
             glAnimator.add(glWindow);
             glAnimator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, null);
-            
+
         } catch (Throwable t) {
             throw new RuntimeException(t);
         }
         isValid = true;
     }
 
+    private final WindowListener reparentHomeListener = new WindowAdapter() {
+        // Closing action: back to parent!
+        @Override
+        public void windowDestroyNotify(WindowEvent e) {
+            if( isValid() && WindowClosingMode.DO_NOTHING_ON_CLOSE == glWindow.getDefaultCloseOperation() &&
+                null == glWindow.getParent() && null != awtParent && 0 != awtParent.getWindowHandle() )
+            {
+                // we may be called directly by the native EDT
+                new Thread(new Runnable() {
+                   @Override
+                   public void run() {
+                    if( glWindow.isNativeValid() && null != awtParent && 0 != awtParent.getWindowHandle() ) {
+                        glWindow.reparentWindow(awtParent, -1, -1, Window.REPARENT_HINT_BECOMES_VISIBLE);
+                    }
+                   }
+                }).start();
+            }
+        } };
+
     public void start() {
         if(isValid) {
             glWindow.setVisible(true);
             glWindow.sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED);
+            if( null == pointerIconTest ) {
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "newt/data/cross-grey-alpha-16x16.png" } );
+                final Display disp = glWindow.getScreen().getDisplay();
+                try {
+                    pointerIconTest = disp.createPointerIcon(res, 8, 8);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
             glAnimator.start();
             awtParent = glWindow.getParent();
+            glWindow.addWindowListener(reparentHomeListener);
         }
     }
 
     public void stop() {
         if(null!=glAnimator) {
+            glWindow.removeWindowListener(reparentHomeListener);
             glAnimator.stop();
             glWindow.setVisible(false);
         }
@@ -255,30 +274,34 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
     // ***********************************************************************************
     // ***********************************************************************************
 
+    @Override
     public void init(GLAutoDrawable drawable) {
         GL _gl = drawable.getGL();
 
         if(glDebug) {
             try {
                 _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", null, _gl, null) );
-            } catch (Exception e) {e.printStackTrace();} 
+            } catch (Exception e) {e.printStackTrace();}
         }
 
         if(glTrace) {
             try {
                 // Trace ..
                 _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", null, _gl, new Object[] { System.err } ) );
-            } catch (Exception e) {e.printStackTrace();} 
+            } catch (Exception e) {e.printStackTrace();}
         }
 
         if(glSwapInterval>=0) {
             _gl.setSwapInterval(glSwapInterval);
         }
     }
+    @Override
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
     }
+    @Override
     public void display(GLAutoDrawable drawable) {
     }
+    @Override
     public void dispose(GLAutoDrawable drawable) {
     }
 
@@ -292,23 +315,76 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
            return;
        }
        if(e.getKeyChar()=='d') {
-            glWindow.setUndecorated(!glWindow.isUndecorated());
+           new Thread() {
+               public void run() {
+                   glWindow.setUndecorated(!glWindow.isUndecorated());
+               } }.start();
        } if(e.getKeyChar()=='f') {
-            glWindow.setFullscreen(!glWindow.isFullscreen());
+           new Thread() {
+               public void run() {
+                   glWindow.setFullscreen(!glWindow.isFullscreen());
+               } }.start();
        } else if(e.getKeyChar()=='a') {
-            glWindow.setAlwaysOnTop(!glWindow.isAlwaysOnTop());
+           new Thread() {
+               public void run() {
+                   glWindow.setAlwaysOnTop(!glWindow.isAlwaysOnTop());
+               } }.start();
        } else if(e.getKeyChar()=='r' && null!=awtParent) {
-            if(null == glWindow.getParent()) {
-                glWindow.reparentWindow(awtParent);
-            } else {
-                glWindow.reparentWindow(null);
-                glWindow.setDefaultCloseOperation( glClosable ? WindowClosingMode.DISPOSE_ON_CLOSE : WindowClosingMode.DO_NOTHING_ON_CLOSE );
-            }
+           new Thread() {
+               public void run() {
+                   if(null == glWindow.getParent()) {
+                       glWindow.reparentWindow(awtParent, -1, -1, 0 /* hints */);
+                   } else {
+                       final InsetsImmutable insets = glWindow.getInsets();
+                       final int x, y;
+                       if ( 0 >= insets.getTopHeight() ) {
+                           // fail safe ..
+                           x = 32;
+                           y = 32;
+                       } else {
+                           x = insets.getLeftWidth();
+                           y = insets.getTopHeight();
+                       }
+                       glWindow.reparentWindow(null, x, y, 0 /* hints */);
+                       glWindow.setDefaultCloseOperation( glClosable ? WindowClosingMode.DISPOSE_ON_CLOSE : WindowClosingMode.DO_NOTHING_ON_CLOSE );
+                   }
+               } }.start();
+       } else if(e.getKeyChar()=='c') {
+           new Thread() {
+               public void run() {
+                   System.err.println("[set pointer-icon pre]");
+                   final PointerIcon currentPI = glWindow.getPointerIcon();
+                   glWindow.setPointerIcon( currentPI == pointerIconTest ? null : pointerIconTest);
+                   System.err.println("[set pointer-icon post] "+currentPI+" -> "+glWindow.getPointerIcon());
+               } }.start();
+       } else if(e.getKeyChar()=='i') {
+           new Thread() {
+               public void run() {
+                   System.err.println("[set mouse visible pre]: "+glWindow.isPointerVisible());
+                   glWindow.setPointerVisible(!glWindow.isPointerVisible());
+                   System.err.println("[set mouse visible post]: "+glWindow.isPointerVisible());
+               } }.start();
+       } else if(e.getKeyChar()=='j') {
+           new Thread() {
+               public void run() {
+                    final Thread t = glWindow.setExclusiveContextThread(null);
+                    System.err.println("[set mouse confined pre]: "+glWindow.isPointerConfined());
+                    glWindow.confinePointer(!glWindow.isPointerConfined());
+                    System.err.println("[set mouse confined post]: "+glWindow.isPointerConfined());
+                    glWindow.setExclusiveContextThread(t);
+               } }.start();
+       } else if(e.getKeyChar()=='w') {
+           new Thread() {
+               public void run() {
+                   System.err.println("[set mouse pos pre]");
+                   glWindow.warpPointer(glWindow.getWidth()/2, glWindow.getHeight()/2);
+                   System.err.println("[set mouse pos post]");
+               } }.start();
        }
     }
-    
+
     @Override
-    public void keyReleased(KeyEvent e) { 
+    public void keyReleased(KeyEvent e) {
     }
 }
 

@@ -29,16 +29,16 @@ package javax.media.opengl;
 
 /**
  * Listener for {@link GLDebugMessage}s.
- * 
+ *
  * <p>One can enable GLDebugOutput via {@link GLContext#enableGLDebugMessage(boolean)}
  * and add listeners via {@link GLContext#addGLDebugListener(GLDebugListener)}.
  */
 public interface GLDebugListener {
-    /** 
+    /**
      * Handle {@link GLDebugMessage} message sent from native GL implementation.
-     * 
+     *
      * <p>Since this method is invoked directly by the GL implementation, it shall
      * return as fast as possible.</p>
      */
-    void messageSent(GLDebugMessage event);    
+    void messageSent(GLDebugMessage event);
 }

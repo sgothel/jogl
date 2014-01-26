@@ -8,7 +8,11 @@ public static final long GL_TIMEOUT_IGNORED = 0xFFFFFFFFFFFFFFFFL ;
 /** Part of <code>GL_ARB_shader_image_load_store</code> */
 public static final int GL_ALL_BARRIER_BITS = 0xFFFFFFFF ;
 
-public boolean glIsPBOPackEnabled();
+/** @deprecated Avoid original GL API namespace conflict. Use {@link #isPBOPackBound()} */
+public boolean glIsPBOPackBound();
+public boolean isPBOPackBound();
 
-public boolean glIsPBOUnpackEnabled();
+/** @deprecated Avoid original GL API namespace conflict. Use {@link #isPBOUnpackBound()} */
+public boolean glIsPBOUnpackBound();
+public boolean isPBOUnpackBound();
 

@@ -2,7 +2,7 @@
 
 #include <assert.h>
 
-#include </usr/include/machine/types.h>
+#include <machine/types.h>
 #include "macosx-window-system.h"
 
 void CGLQueryPixelFormat(CGLPixelFormatObj fmt, int* iattrs, int niattrs, int* ivalues) {

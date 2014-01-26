@@ -27,22 +27,29 @@
  */
 package com.jogamp.opengl;
 
-import java.util.List;
+import java.util.IdentityHashMap;
 
-/** 
- * GLRendererQuirks contains information of known bugs of various GL renderer. 
+import javax.media.nativewindow.AbstractGraphicsDevice;
+
+import com.jogamp.common.os.Platform;
+
+import jogamp.opengl.egl.EGL;
+import jogamp.opengl.egl.EGLExt;
+
+/**
+ * GLRendererQuirks contains information of known bugs of various GL renderer.
  * This information allows us to workaround them.
  * <p>
  * Using centralized quirk identifier enables us to
- * locate code dealing w/ it and hence eases it's maintenance.   
+ * locate code dealing w/ it and hence eases it's maintenance.
  * </p>
  * <p>
  * <i>Some</i> <code>GL_VENDOR</code> and <code>GL_RENDERER</code> strings are
- * listed here <http://feedback.wildfiregames.com/report/opengl/feature/GL_VENDOR>. 
+ * listed here <http://feedback.wildfiregames.com/report/opengl/feature/GL_VENDOR>.
  * </p>
  */
 public class GLRendererQuirks {
-    /** 
+    /**
      * Crashes XServer when using double buffered PBuffer with GL_RENDERER:
      * <ul>
      *  <li>Mesa DRI Intel(R) Sandybridge Desktop</li>
@@ -52,23 +59,29 @@ public class GLRendererQuirks {
      * For now, it is safe to disable it w/ hw-acceleration.
      */
     public static final int NoDoubleBufferedPBuffer = 0;
-    
+
     /** On Windows no double buffered bitmaps are guaranteed to be available. */
     public static final int NoDoubleBufferedBitmap  = 1;
 
     /** Crashes application when trying to set EGL swap interval on Android 4.0.3 / Pandaboard ES / PowerVR SGX 540 */
     public static final int NoSetSwapInterval       = 2;
-    
+
     /** No offscreen bitmap available, currently true for JOGL's OSX implementation. */
     public static final int NoOffscreenBitmap       = 3;
-    
+
     /** SIGSEGV on setSwapInterval() after changing the context's drawable w/ 'Mesa 8.0.4' dri2SetSwapInterval/DRI2 (soft & intel) */
     public static final int NoSetSwapIntervalPostRetarget = 4;
 
-    /** GLSL <code>discard</code> command leads to undefined behavior or won't get compiled if being used. Appears to <i>have</i> happened on Nvidia Tegra2, but seems to be fine now. FIXME: Constrain version. */
+    /**
+     * GLSL <code>discard</code> command leads to undefined behavior or won't get compiled if being used.
+     * <p>
+     * Appears to <i>have</i> happened on Nvidia Tegra2, but seems to be fine now.<br/>
+     * FIXME: Constrain version.
+     * </p>
+     */
     public static final int GLSLBuggyDiscard = 5;
-    
-    /** 
+
+    /**
      * Non compliant GL context due to a buggy implementation not suitable for use.
      * <p>
      * Currently, Mesa >= 9.1.3 (may extend back as far as 9.0) OpenGL 3.1 compatibility
@@ -82,19 +95,19 @@ public class GLRendererQuirks {
      * </ul>
      * </p>
      * <p>
-     * It still has to be verified whether the AMD OpenGL 3.1 core driver is compliant enought. 
+     * It still has to be verified whether the AMD OpenGL 3.1 core driver is compliant enought.
      */
     public static final int GLNonCompliant = 6;
-    
+
     /**
      * The OpenGL Context needs a <code>glFlush()</code> before releasing it, otherwise driver may freeze:
      * <ul>
      *   <li>OSX < 10.7.3 - NVidia Driver. Bug 533 and Bug 548 @ https://jogamp.org/bugzilla/.</li>
-     * </ul>  
+     * </ul>
      */
     public static final int GLFlushBeforeRelease = 7;
-    
-    /** 
+
+    /**
      * Closing X11 displays may cause JVM crashes or X11 errors with some buggy drivers
      * while being used in concert w/ OpenGL.
      * <p>
@@ -123,14 +136,14 @@ public class GLRendererQuirks {
      * </p>
      */
     public static final int DontCloseX11Display = 8;
-    
+
     /**
-     * Need current GL Context when calling new ARB <i>pixel format query</i> functions, 
+     * Need current GL Context when calling new ARB <i>pixel format query</i> functions,
      * otherwise driver crashes the VM.
      * <p>
      * Drivers known exposing such bug:
      * <ul>
-     *   <li>ATI proprietary Catalyst driver on Windows version &le; XP. 
+     *   <li>ATI proprietary Catalyst driver on Windows version &le; XP.
      *       TODO: Validate if bug actually relates to 'old' ATI Windows drivers for old GPU's like X300
      *             regardless of the Windows version.</li>
      * </ul>
@@ -139,7 +152,7 @@ public class GLRendererQuirks {
      * </p>
      */
     public static final int NeedCurrCtx4ARBPixFmtQueries = 9;
-    
+
     /**
      * Need current GL Context when calling new ARB <i>CreateContext</i> function,
      * otherwise driver crashes the VM.
@@ -159,14 +172,14 @@ public class GLRendererQuirks {
      * </p>
      */
     public static final int NeedCurrCtx4ARBCreateContext = 10;
-    
+
     /**
      * No full FBO support, i.e. not compliant w/
-     * <ul> 
+     * <ul>
      *   <li>GL_ARB_framebuffer_object</li>
-     *   <li>EXT_framebuffer_object</li> 
-     *   <li>EXT_framebuffer_multisample</li> 
-     *   <li>EXT_framebuffer_blit</li> 
+     *   <li>EXT_framebuffer_object</li>
+     *   <li>EXT_framebuffer_multisample</li>
+     *   <li>EXT_framebuffer_blit</li>
      *   <li>EXT_packed_depth_stencil</li>
      * </ul>.
      * Drivers known exposing such bug:
@@ -180,19 +193,195 @@ public class GLRendererQuirks {
      * Quirk can also be enabled via property: <code>jogl.fbo.force.min</code>.
      */
     public static final int NoFullFBOSupport = 11;
-    
-    
+
+    /**
+     * GLSL is not compliant or even not stable (crash)
+     * <ul>
+     *   <li>OSX < 10.7.0 (?) - NVidia Driver. Bug 818 @ https://jogamp.org/bugzilla/.</li>
+     * </ul>
+     */
+    public static final int GLSLNonCompliant = 12;
+
+    /**
+     * GL4 context needs to be requested via GL3 profile attribute
+     * <ul>
+     *   <li>OSX >= 10.9.0 - kCGLOGLPVersion_GL4_Core may not produce hw-accel context. Bug 867 @ https://jogamp.org/bugzilla/.</li>
+     * </ul>
+     */
+    public static final int GL4NeedsGL3Request = 13;
+
+    /**
+     * Buggy shared OpenGL context support within a multithreaded use-case, not suitable for stable usage.
+     * <p>
+     * <i>X11 Mesa DRI Intel(R) driver >= 9.2.1</i> cannot handle multithreaded shared GLContext usage
+     * with non-blocking exclusive X11 display connections.
+     * References:
+     * <ul>
+     *    <li>Bug 873: https://jogamp.org/bugzilla/show_bug.cgi?id=873</li>
+     *    <li>https://bugs.freedesktop.org/show_bug.cgi?id=41736#c8</li>
+     * </ul>
+     * <p>
+     * However, not all multithreaded use-cases are broken, e.g. our GLMediaPlayer does work.
+     * </p>
+     * The above has been confirmed for the following Mesa 9.* strings:
+     * <ul>
+     *    <li>GL_VENDOR      Intel Open Source Technology Center</li>
+     *    <li>GL_RENDERER    Mesa DRI Intel(R) Sandybridge Desktop</li>
+     *    <li>GL_RENDERER    Mesa DRI Intel(R) Ivybridge Mobile</li>
+     *    <li>GL_VERSION     3.1 (Core Profile) Mesa 9.2.1</li>
+     * </ul>
+     * </p>
+     * <p>
+     * On Android 4.*, <i>Huawei's Ascend G615 w/ Immersion.16</i> could not make a shared context
+     * current, which uses a pbuffer drawable:
+     * <ul>
+     *    <li>Android 4.*</li>
+     *    <li>GL_VENDOR      Hisilicon Technologies</li>
+     *    <li>GL_RENDERER    Immersion.16</li>
+     *    <li>GL_VERSION     OpenGL ES 2.0</li>
+     * </ul>
+     * </p>
+     * <p>
+     * </p>
+     */
+    public static final int GLSharedContextBuggy = 14;
+
+    /**
+     * Bug 925 - Accept an ES3 Context, if reported via GL-Version-String w/o {@link EGLExt#EGL_OPENGL_ES3_BIT_KHR}.
+     * <p>
+     * The ES3 Context can be used via {@link EGL#EGL_OPENGL_ES2_BIT}.
+     * </p>
+     * <p>
+     * The ES3 Context {@link EGL#eglCreateContext(long, long, long, java.nio.IntBuffer) must be created} with version attributes:
+     * <pre>
+     *  EGL.EGL_CONTEXT_CLIENT_VERSION, 2, ..
+     * </pre>
+     * </p>
+     * <ul>
+     *   <li>Mesa/AMD >= 9.2.1</li>
+     *   <li>Some Android ES3 drivers ..</li>
+     * </ul>
+     */
+    public static final int GLES3ViaEGLES2Config = 15;
+
+    /**
+     * Bug 948 - NVIDIA 331.38 (Linux X11) EGL impl. only supports _one_ EGL Device via {@link EGL#eglGetDisplay(long)}.
+     * <p>
+     * Subsequent calls to {@link EGL#eglGetDisplay(long)} fail.
+     * </p>
+     * <p>
+     * Reusing global EGL display works.
+     * </p>
+     * <p>
+     * The quirk is autodetected within EGLDrawableFactory's initial default device setup!
+     * </p>
+     * <p>
+     * Appears on:
+     * <ul>
+     *   <li>EGL_VENDOR      NVIDIA</li>
+     *   <li>EGL_VERSION     1.4</li>
+     *   <li>GL_VENDOR       NVIDIA Corporation</li>
+     *   <li>GL_VERSION      OpenGL ES 3.0 331.38 (probably w/ 1st NV EGL lib on x86)</li>
+     *   <li>Platform        X11</li>
+     *   <li>CPU Family      {@link Platform.CPUFamily#X86}</li>
+     * </ul>
+     * </p>
+     */
+    public static final int SingletonEGLDisplayOnly = 16;
+
     /** Number of quirks known. */
-    public static final int COUNT = 12;
-    
+    public static final int COUNT = 17;
+
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
                                                           "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard",
                                                           "GLNonCompliant", "GLFlushBeforeRelease", "DontCloseX11Display",
                                                           "NeedCurrCtx4ARBPixFmtQueries", "NeedCurrCtx4ARBCreateContext",
-                                                          "NoFullFBOSupport"
+                                                          "NoFullFBOSupport", "GLSLNonCompliant", "GL4NeedsGL3Request",
+                                                          "GLSharedContextBuggy", "GLES3ViaEGLES2Config", "SingletonEGLDisplayOnly"
                                                         };
 
-    private final int _bitmask;
+    private static final IdentityHashMap<String, GLRendererQuirks> stickyDeviceQuirks = new IdentityHashMap<String, GLRendererQuirks>();
+
+    /**
+     * Retrieval of sticky {@link AbstractGraphicsDevice}'s {@link GLRendererQuirks}.
+     * <p>
+     * The {@link AbstractGraphicsDevice}s are mapped via their {@link AbstractGraphicsDevice#getUniqueID()}.
+     * </p>
+     * <p>
+     * Not thread safe.
+     * </p>
+     * @see #areSameStickyDevice(AbstractGraphicsDevice, AbstractGraphicsDevice)
+     */
+    public static GLRendererQuirks getStickyDeviceQuirks(AbstractGraphicsDevice device) {
+        final String key = device.getUniqueID();
+        final GLRendererQuirks has = stickyDeviceQuirks.get(key);
+        final GLRendererQuirks res;
+        if( null == has ) {
+            res = new GLRendererQuirks();
+            stickyDeviceQuirks.put(key, res);
+        } else {
+            res = has;
+        }
+        return res;
+    }
+
+    /**
+     * Returns true if both devices have the same {@link AbstractGraphicsDevice#getUniqueID()},
+     * otherwise false.
+     */
+    public static boolean areSameStickyDevice(AbstractGraphicsDevice device1, AbstractGraphicsDevice device2) {
+        return device1.getUniqueID() == device2.getUniqueID();
+    }
+
+    /**
+     * {@link #addQuirks(int[], int, int) Adding given quirks} of sticky {@link AbstractGraphicsDevice}'s {@link GLRendererQuirks}.
+     * <p>
+     * Not thread safe.
+     * </p>
+     * @see #getStickyDeviceQuirks(AbstractGraphicsDevice)
+     */
+    public static void addStickyDeviceQuirks(AbstractGraphicsDevice device, int[] quirks, int offset, int len) throws IllegalArgumentException {
+        final GLRendererQuirks sq = getStickyDeviceQuirks(device);
+        sq.addQuirks(quirks, offset, len);
+    }
+    /**
+     * {@link #addQuirks(GLRendererQuirks) Adding given quirks} of sticky {@link AbstractGraphicsDevice}'s {@link GLRendererQuirks}.
+     * <p>
+     * Not thread safe.
+     * </p>
+     * @see #getStickyDeviceQuirks(AbstractGraphicsDevice)
+     */
+    public static void addStickyDeviceQuirks(AbstractGraphicsDevice device, GLRendererQuirks quirks) throws IllegalArgumentException {
+        final GLRendererQuirks sq = getStickyDeviceQuirks(device);
+        sq.addQuirks(quirks);
+    }
+    /**
+     * {@link #exist(int) Query} of sticky {@link AbstractGraphicsDevice}'s {@link GLRendererQuirks}.
+     * <p>
+     * Not thread safe. However, use after changing the sticky quirks is safe.
+     * </p>
+     * @see #getStickyDeviceQuirks(AbstractGraphicsDevice)
+     */
+    public static boolean existStickyDeviceQuirk(AbstractGraphicsDevice device, int quirk) {
+        return getStickyDeviceQuirks(device).exist(quirk);
+    }
+    /**
+     * {@link #addQuirks(GLRendererQuirks) Pushing} the sticky {@link AbstractGraphicsDevice}'s {@link GLRendererQuirks}
+     * to the given {@link GLRendererQuirks destination}.
+     * <p>
+     * Not thread safe. However, use after changing the sticky quirks is safe.
+     * </p>
+     * @see #getStickyDeviceQuirks(AbstractGraphicsDevice)
+     */
+    public static void pushStickyDeviceQuirks(AbstractGraphicsDevice device, GLRendererQuirks dest) {
+        dest.addQuirks(getStickyDeviceQuirks(device));
+    }
+
+    private int _bitmask;
+
+    public GLRendererQuirks() {
+        _bitmask = 0;
+    }
 
     /**
      * @param quirks an array of valid quirks
@@ -201,8 +390,19 @@ public class GLRendererQuirks {
      * @throws IllegalArgumentException if one of the quirks is out of range
      */
     public GLRendererQuirks(int[] quirks, int offset, int len) throws IllegalArgumentException {
+        this();
+        addQuirks(quirks, offset, len);
+    }
+
+    /**
+     * @param quirks an array of valid quirks to be added
+     * @param offset offset in quirks array to start reading
+     * @param len number of quirks to read from offset within quirks array
+     * @throws IllegalArgumentException if one of the quirks is out of range
+     */
+    public final void addQuirks(int[] quirks, int offset, int len) throws IllegalArgumentException {
         int bitmask = 0;
-        if( !( 0 <= offset + len && offset + len < quirks.length ) ) {
+        if( !( 0 <= offset + len && offset + len <= quirks.length ) ) {
             throw new IllegalArgumentException("offset and len out of bounds: offset "+offset+", len "+len+", array-len "+quirks.length);
         }
         for(int i=offset; i<offset+len; i++) {
@@ -210,23 +410,16 @@ public class GLRendererQuirks {
             validateQuirk(quirk);
             bitmask |= 1 << quirk;
         }
-        _bitmask = bitmask;
-    }      
+        _bitmask |= bitmask;
+    }
 
     /**
-     * @param quirks a list of valid quirks
-     * @throws IllegalArgumentException if one of the quirks is out of range
+     * @param quirks valid GLRendererQuirks to be added
      */
-    public GLRendererQuirks(List<Integer> quirks) throws IllegalArgumentException {
-        int bitmask = 0;
-        for(int i=0; i<quirks.size(); i++) {
-            final int quirk = quirks.get(i);
-            validateQuirk(quirk);
-            bitmask |= 1 << quirk;
-        }
-        _bitmask = bitmask;
+    public final void addQuirks(GLRendererQuirks quirks) {
+        _bitmask |= quirks._bitmask;
     }
-    
+
     /**
      * @param quirk the quirk to be tested
      * @return true if quirk exist, otherwise false
@@ -254,7 +447,8 @@ public class GLRendererQuirks {
         sb.append("]");
         return sb;
     }
-    
+
+    @Override
     public final String toString() {
         return toString(null).toString();
     }
@@ -266,7 +460,7 @@ public class GLRendererQuirks {
     public static void validateQuirk(int quirk) throws IllegalArgumentException {
         if( !( 0 <= quirk && quirk < COUNT ) ) {
             throw new IllegalArgumentException("Quirks must be in range [0.."+COUNT+"[, but quirk: "+quirk);
-        }        
+        }
     }
 
     /**

@@ -51,6 +51,8 @@ import jogamp.nativewindow.jawt.JAWTUtil;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.event.InputEvent;
@@ -69,6 +71,7 @@ import com.jogamp.opengl.test.junit.util.*;
  * even though we do unify VK codes to US keyboard across all layouts.
  * </p>
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestNewtKeyCodeModifiersAWT extends UITestCase {
     static int width, height;
     static long durationPerTest = 100;
@@ -183,7 +186,7 @@ public class TestNewtKeyCodeModifiersAWT extends UITestCase {
                                             3 /* press-SI */, 3 /* release-SI */, 
                                             0 /* press-AR */, 0 /* release-AR */ );
         
-        final List<EventObject> queue = keyAdapter.getQueued();
+        final List<EventObject> queue = keyAdapter.copyQueue();
         int i=0;
         NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED, 0, keyCode, keyCharOnly);
         NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, 0, keyCode, keyCharOnly);
@@ -223,7 +226,7 @@ public class TestNewtKeyCodeModifiersAWT extends UITestCase {
                                             4 /* press-SI */, 4 /* release-SI */, 
                                             0 /* press-AR */, 0 /* release-AR */ );
         
-        final List<EventObject> queue = keyAdapter.getQueued();        
+        final List<EventObject> queue = keyAdapter.copyQueue();        
         int i=0;
         NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED,  m1m,         m1k, KeyEvent.NULL_CHAR);
         NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED,  m1m|m2m,     m2k, KeyEvent.NULL_CHAR);

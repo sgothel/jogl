@@ -52,6 +52,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.opengl.test.junit.jogl.demos.es1.OneTriangle;
@@ -64,6 +66,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  * </p>
  * @author Wade Walker, et.al.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestSWTEclipseGLCanvas01GLn extends UITestCase {
 
     static int duration = 250;

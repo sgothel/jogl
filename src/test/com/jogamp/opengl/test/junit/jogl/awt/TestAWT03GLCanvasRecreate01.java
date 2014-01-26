@@ -46,8 +46,11 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestAWT03GLCanvasRecreate01 extends UITestCase {
     static long durationPerTest = 1000; // ms
 

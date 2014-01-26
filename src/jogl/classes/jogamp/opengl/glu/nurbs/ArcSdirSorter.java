@@ -44,7 +44,7 @@ public class ArcSdirSorter {
   /**
    * Makes new ArcSdirSorter with Subdivider
    * @param subdivider subdivider
-   */ 
+   */
   public ArcSdirSorter(Subdivider subdivider) {
     //TODO
     //            System.out.println("TODO arcsdirsorter.constructor");

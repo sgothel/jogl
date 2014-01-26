@@ -28,6 +28,8 @@
 
 #include "X11Common.h"
 
+#include <X11/Xcursor/Xcursor.h>
+
 // #include <X11/XKBlib.h> // XKB disabled for now
 
 jclass X11NewtWindowClazz = NULL;
@@ -671,6 +673,61 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
             default:
                 DBG_PRINT("X11: event . unhandled %d 0x%X call %p\n", (int)evt.type, (unsigned int)evt.type, (void*)evt.xunmap.window);
         }
+    }
+}
+
+/*
+ * Class:     Java_jogamp_newt_driver_x11_DisplayDriver
+ * Method:    createPointerIcon0
+ * Signature: (JJILjava/lang/Object;I)V
+ */
+JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_createPointerIcon0
+  (JNIEnv *env, jclass clazz, jlong display, jobject pixels, jint pixels_byte_offset, jboolean pixels_is_direct, jint width, jint height, jint hotX, jint hotY)
+{
+    Cursor c;
+
+    if( 0 != pixels ) {
+        Display * dpy = (Display *) (intptr_t) display;
+        const unsigned char * pixelPtr = (const unsigned char *) ( JNI_TRUE == pixels_is_direct ? 
+                                                (*env)->GetDirectBufferAddress(env, pixels) : 
+                                                (*env)->GetPrimitiveArrayCritical(env, pixels, NULL) );
+        XcursorImage ci;
+        ci.version = 1; // XCURSOR_IMAGE_VERSION;
+        ci.size = width; // nominal size (assume square ..)
+        ci.width = width;
+        ci.height = height;
+        ci.xhot = hotX;
+        ci.yhot = hotY;
+        ci.delay = 0;
+        ci.pixels = (XcursorPixel *)(intptr_t)(pixelPtr + pixels_byte_offset);
+
+        c = XcursorImageLoadCursor (dpy, &ci);
+
+        if ( JNI_FALSE == pixels_is_direct ) {
+            (*env)->ReleasePrimitiveArrayCritical(env, pixels, (void*)pixelPtr, JNI_ABORT);  
+        }
+        DBG_PRINT( "X11: createPointerIcon0: %p %dx%d %d/%d -> %p\n", (pixelPtr+pixels_byte_offset), width, height, hotX, hotY, (void *)c);
+
+    } else {
+        c = 0;
+    }
+    return (jlong) (intptr_t) c;
+}
+
+/*
+ * Class:     Java_jogamp_newt_driver_x11_DisplayDriver
+ * Method:    destroyPointerIcon0
+ * Signature: (JJILjava/lang/Object;I)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_destroyPointerIcon0
+  (JNIEnv *env, jclass clazz, jlong display, jlong handle)
+{
+    Display * dpy = (Display *) (intptr_t) display;
+
+    if( 0 != handle ) {
+        Cursor c = (Cursor) (intptr_t) handle;
+        DBG_PRINT( "X11: destroyPointerIcon0: %p\n", (void *)c);
+        XFreeCursor(dpy, c);
     }
 }
 

@@ -40,6 +40,8 @@ import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.test.junit.util.GLEventListenerCounter;
 
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  * Test re-association of GLContext/GLDrawables,
@@ -57,6 +59,7 @@ import org.junit.Test;
  * See Bug 665 - https://jogamp.org/bugzilla/show_bug.cgi?id=665.
  * </p>
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLContextDrawableSwitch11NewtAWT extends GLContextDrawableSwitchBase {
 
     @Test(timeout=30000)

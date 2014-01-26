@@ -39,6 +39,8 @@ import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.newt.opengl.GLWindow;
@@ -61,6 +63,7 @@ import javax.media.opengl.GL;
  * Main function accepts arbitrary JPG file name for manual tests.
  * </p>
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestJPEGImage01NEWT extends UITestCase {
     
     static boolean showFPS = false;
@@ -80,7 +83,7 @@ public class TestJPEGImage01NEWT extends UITestCase {
         }
                 
         final int internalFormat;
-        if(glp.isGL2GL3()) {
+        if(glp.isGL2ES3()) {
             internalFormat = hasAlpha ? GL.GL_RGBA8 : GL.GL_RGB8;
         } else {
             internalFormat = hasAlpha ? GL.GL_RGBA : GL.GL_RGB;
@@ -105,7 +108,7 @@ public class TestJPEGImage01NEWT extends UITestCase {
         
         // load texture from file inside current GL context to match the way
         // the bug submitter was doing it
-        final GLEventListener gle = new TextureDraw01ES2Listener( texData ) ;
+        final GLEventListener gle = new TextureDraw01ES2Listener( texData, 0 ) ;
         glad.addGLEventListener(gle);
         glad.addGLEventListener(new GLEventListener() {                    
             boolean shot = false;

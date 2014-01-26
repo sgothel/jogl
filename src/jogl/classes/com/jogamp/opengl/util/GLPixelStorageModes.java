@@ -31,6 +31,7 @@ package com.jogamp.opengl.util;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLException;
 
@@ -45,35 +46,35 @@ public class GLPixelStorageModes {
 
     /** Create instance w/o {@link #save(GL)} */
     public GLPixelStorageModes() {}
-    
+
     /** Create instance w/ {@link #save(GL)} */
     public GLPixelStorageModes(GL gl) { save(gl); }
-    
+
     /**
-     * Sets the {@link GL2ES2.GL_PACK_ALIGNMENT}.
-     * <p> 
+     * Sets the {@link GL#GL_PACK_ALIGNMENT}.
+     * <p>
      * Saves the pixel storage modes if not saved yet.
      * </p>
      */
     public final void setPackAlignment(GL gl, int packAlignment) {
         save(gl);
-        gl.glPixelStorei(GL2ES2.GL_PACK_ALIGNMENT, packAlignment);        
+        gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, packAlignment);
     }
 
     /**
-     * Sets the {@link GL2ES2.GL_UNPACK_ALIGNMENT}.
-     * <p> 
+     * Sets the {@link GL#GL_UNPACK_ALIGNMENT}.
+     * <p>
      * Saves the pixel storage modes if not saved yet.
      * </p>
      */
     public final void setUnpackAlignment(GL gl, int unpackAlignment) {
         save(gl);
-        gl.glPixelStorei(GL2ES2.GL_UNPACK_ALIGNMENT, unpackAlignment);        
+        gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, unpackAlignment);
     }
-    
+
     /**
-     * Sets the {@link GL2ES2.GL_PACK_ALIGNMENT} and {@link GL2ES2.GL_UNPACK_ALIGNMENT}. 
-     * <p> 
+     * Sets the {@link GL#GL_PACK_ALIGNMENT} and {@link GL#GL_UNPACK_ALIGNMENT}.
+     * <p>
      * Saves the pixel storage modes if not saved yet.
      * </p>
      */
@@ -81,7 +82,40 @@ public class GLPixelStorageModes {
         setPackAlignment(gl, packAlignment);
         setUnpackAlignment(gl, unpackAlignment);
     }
-    
+
+    /**
+     * Sets the {@link GL2ES3#GL_PACK_ROW_LENGTH}.
+     * <p>
+     * Saves the pixel storage modes if not saved yet.
+     * </p>
+     */
+    public final void setPackRowLength(GL2ES3 gl, int packRowLength) {
+        save(gl);
+        gl.glPixelStorei(GL2ES3.GL_PACK_ROW_LENGTH, packRowLength);
+    }
+
+    /**
+     * Sets the {@link GL2ES2#GL_UNPACK_ROW_LENGTH}.
+     * <p>
+     * Saves the pixel storage modes if not saved yet.
+     * </p>
+     */
+    public final void setUnpackRowLength(GL2ES2 gl, int unpackRowLength) {
+        save(gl);
+        gl.glPixelStorei(GL2ES2.GL_UNPACK_ROW_LENGTH, unpackRowLength);
+    }
+
+    /**
+     * Sets the {@link GL2ES3#GL_PACK_ROW_LENGTH} and {@link GL2ES2#GL_UNPACK_ROW_LENGTH}.
+     * <p>
+     * Saves the pixel storage modes if not saved yet.
+     * </p>
+     */
+    public final void setRowLength(GL2ES3 gl, int packRowLength, int unpackRowLength) {
+        setPackRowLength(gl, packRowLength);
+        setUnpackRowLength(gl, unpackRowLength);
+    }
+
     /**
      * Save the pixel storage mode, if not saved yet.
      * <p>
@@ -92,8 +126,8 @@ public class GLPixelStorageModes {
         if(saved) {
             return;
         }
-        
-        if(gl.isGL2GL3()) {  
+
+        if(gl.isGL2GL3()) {
             if(gl.isGL2()) {
                 gl.getGL2().glPushClientAttrib(GL2.GL_CLIENT_PIXEL_STORE_BIT);
             } else {
@@ -120,7 +154,7 @@ public class GLPixelStorageModes {
             // embedded deals with pack/unpack alignment only
             gl.glGetIntegerv(GL2ES2.GL_PACK_ALIGNMENT,   savedAlignment, 0);
             gl.glGetIntegerv(GL2ES2.GL_UNPACK_ALIGNMENT, savedAlignment, 1);
-        }        
+        }
         saved = true;
     }
 
@@ -132,8 +166,8 @@ public class GLPixelStorageModes {
         if(!saved) {
             throw new GLException("pixel storage modes not saved");
         }
-        
-        if(gl.isGL2GL3()) {  
+
+        if(gl.isGL2GL3()) {
             if(gl.isGL2()) {
                 gl.getGL2().glPopClientAttrib();
             } else {
@@ -152,9 +186,9 @@ public class GLPixelStorageModes {
             // embedded deals with pack/unpack alignment only
             gl.glPixelStorei(GL2ES2.GL_PACK_ALIGNMENT,   savedAlignment[0]);
             gl.glPixelStorei(GL2ES2.GL_UNPACK_ALIGNMENT, savedAlignment[1]);
-        }        
+        }
         saved = false;
-    }      
+    }
 }
 
 

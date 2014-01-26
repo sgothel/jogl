@@ -38,6 +38,8 @@ import javax.media.opengl.GLProfile;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.TextRenderer;
@@ -50,6 +52,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestTextRendererNEWT10 extends UITestCase {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;

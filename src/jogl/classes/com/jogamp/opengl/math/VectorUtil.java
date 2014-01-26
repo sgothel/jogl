@@ -39,7 +39,7 @@ public class VectorUtil {
         Winding(int dir) {
             this.dir = dir;
         }
-    } 
+    }
 
     public static final int COLLINEAR = 0;
 
@@ -70,19 +70,47 @@ public class VectorUtil {
         return newVector;
     }
 
-    /** Scales a vector by param
+    /** Scales a vector by param creating a new float[] for the result!
      * @param vector input vector
      * @param scale constant to scale by
-     * @return scaled vector
+     * @return new scaled vector
+     * @deprecated Use {@link #scale(float[], float[], float)}
      */
     public static float[] scale(float[] vector, float scale)
     {
         final float[] newVector = new float[3];
 
-        newVector[0] = vector[0]*scale;
-        newVector[1] = vector[1]*scale;
-        newVector[2] = vector[2]*scale;
+        newVector[0] = vector[0] * scale;
+        newVector[1] = vector[1] * scale;
+        newVector[2] = vector[2] * scale;
         return newVector;
+    }
+
+    /** Scales a vector by param using given result float[]
+     * @param result vector for the result
+     * @param vector input vector
+     * @param scale single scale constant for all vector components
+     */
+    public static float[] scale(float[] result, float[] vector, float scale)
+    {
+        result[0] = vector[0] * scale;
+        result[1] = vector[1] * scale;
+        result[2] = vector[2] * scale;
+        return result;
+    }
+
+    /** Scales a vector by param using given result float[]
+     * @param result vector for the result
+     * @param vector input vector
+     * @param scale 3 component scale constant for each vector component
+     * @return given result vector
+     */
+    public static float[] scale(float[] result, float[] vector, float[] scale)
+    {
+        result[0] = vector[0] * scale[0];
+        result[1] = vector[1] * scale[1];
+        result[2] = vector[2] * scale[2];
+        return result;
     }
 
     /** Adds to vectors
@@ -119,15 +147,15 @@ public class VectorUtil {
     /** Column Matrix Vector multiplication
      * @param colMatrix column matrix (4x4)
      * @param vec vector(x,y,z)
-     * @return result new float[3] 
+     * @return result new float[3]
      */
     public static float[] colMatrixVectorMult(float[] colMatrix, float[] vec)
     {
         final float[] out = new float[3];
 
-        out[0] = vec[0]*colMatrix[0] + vec[1]*colMatrix[4] + vec[2]*colMatrix[8] + colMatrix[12]; 
-        out[1] = vec[0]*colMatrix[1] + vec[1]*colMatrix[5] + vec[2]*colMatrix[9] + colMatrix[13]; 
-        out[2] = vec[0]*colMatrix[2] + vec[1]*colMatrix[6] + vec[2]*colMatrix[10] + colMatrix[14]; 
+        out[0] = vec[0]*colMatrix[0] + vec[1]*colMatrix[4] + vec[2]*colMatrix[8] + colMatrix[12];
+        out[1] = vec[0]*colMatrix[1] + vec[1]*colMatrix[5] + vec[2]*colMatrix[9] + colMatrix[13];
+        out[2] = vec[0]*colMatrix[2] + vec[1]*colMatrix[6] + vec[2]*colMatrix[10] + colMatrix[14];
 
         return out;
     }
@@ -135,15 +163,15 @@ public class VectorUtil {
     /** Matrix Vector multiplication
      * @param rawMatrix column matrix (4x4)
      * @param vec vector(x,y,z)
-     * @return result new float[3] 
+     * @return result new float[3]
      */
     public static float[] rowMatrixVectorMult(float[] rawMatrix, float[] vec)
     {
         final float[] out = new float[3];
 
-        out[0] = vec[0]*rawMatrix[0] + vec[1]*rawMatrix[1] + vec[2]*rawMatrix[2] + rawMatrix[3]; 
-        out[1] = vec[0]*rawMatrix[4] + vec[1]*rawMatrix[5] + vec[2]*rawMatrix[6] + rawMatrix[7]; 
-        out[2] = vec[0]*rawMatrix[8] + vec[1]*rawMatrix[9] + vec[2]*rawMatrix[10] + rawMatrix[11]; 
+        out[0] = vec[0]*rawMatrix[0] + vec[1]*rawMatrix[1] + vec[2]*rawMatrix[2] + rawMatrix[3];
+        out[1] = vec[0]*rawMatrix[4] + vec[1]*rawMatrix[5] + vec[2]*rawMatrix[6] + rawMatrix[7];
+        out[2] = vec[0]*rawMatrix[8] + vec[1]*rawMatrix[9] + vec[2]*rawMatrix[10] + rawMatrix[11];
 
         return out;
     }
@@ -157,7 +185,7 @@ public class VectorUtil {
     {
         return (p1+p2)/2.0f;
     }
-    
+
     /** Calculate the midpoint of two points
      * @param p1 first point
      * @param p2 second point
@@ -172,7 +200,7 @@ public class VectorUtil {
 
         return midPoint;
     }
-    
+
     /** Compute the norm of a vector
      * @param vec vector
      * @return vorm
@@ -181,7 +209,7 @@ public class VectorUtil {
     {
         return FloatUtil.sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
     }
-    
+
     /** Compute distance between 2 points
      * @param p0 a ref point on the line
      * @param vec vector representing the direction of the line
@@ -216,7 +244,7 @@ public class VectorUtil {
      */
     public static boolean checkEqualityVec2(float[] v1, float[] v2)
     {
-        return Float.compare(v1[0], v2[0]) == 0 && 
+        return Float.compare(v1[0], v2[0]) == 0 &&
                Float.compare(v1[1], v2[1]) == 0 ;
     }
 
@@ -261,7 +289,7 @@ public class VectorUtil {
      * @param b triangle vertex 2
      * @param c triangle vertex 3
      * @param d vertex in question
-     * @return true if the vertex d is inside the circle defined by the 
+     * @return true if the vertex d is inside the circle defined by the
      * vertices a, b, c. from paper by Guibas and Stolfi (1985).
      */
     public static boolean inCircle(Vert2fImmutable a, Vert2fImmutable b, Vert2fImmutable c, Vert2fImmutable d){
@@ -282,8 +310,8 @@ public class VectorUtil {
         return (b.getX() - a.getX()) * (c.getY() - a.getY()) - (b.getY() - a.getY())*(c.getX() - a.getX());
     }
 
-    /** Check if a vertex is in triangle using 
-     * barycentric coordinates computation. 
+    /** Check if a vertex is in triangle using
+     * barycentric coordinates computation.
      * @param a first triangle vertex
      * @param b second triangle vertex
      * @param c third triangle vertex
@@ -291,7 +319,7 @@ public class VectorUtil {
      * @return true if p is in triangle (a, b, c), false otherwise.
      */
     public static boolean vertexInTriangle(float[] a, float[]  b, float[]  c, float[]  p){
-        // Compute vectors        
+        // Compute vectors
         final float[] ac = computeVector(a, c); //v0
         final float[] ab = computeVector(a, b); //v1
         final float[] ap = computeVector(a, p); //v2
@@ -362,13 +390,13 @@ public class VectorUtil {
      * @param b vertex 2 of first segment
      * @param c vertex 1 of second segment
      * @param d vertex 2 of second segment
-     * @return the intersection coordinates if the segments intersect, otherwise 
-     * returns null 
+     * @return the intersection coordinates if the segments intersect, otherwise
+     * returns null
      */
     public static float[] seg2SegIntersection(Vert2fImmutable a, Vert2fImmutable b, Vert2fImmutable c, Vert2fImmutable d) {
         final float determinant = (a.getX()-b.getX())*(c.getY()-d.getY()) - (a.getY()-b.getY())*(c.getX()-d.getX());
 
-        if (determinant == 0) 
+        if (determinant == 0)
             return null;
 
         final float alpha = (a.getX()*b.getY()-a.getY()*b.getX());
@@ -389,13 +417,13 @@ public class VectorUtil {
      * @param b vertex 2 of first line
      * @param c vertex 1 of second line
      * @param d vertex 2 of second line
-     * @return the intersection coordinates if the lines intersect, otherwise 
-     * returns null 
+     * @return the intersection coordinates if the lines intersect, otherwise
+     * returns null
      */
     public static float[] line2lineIntersection(Vert2fImmutable a, Vert2fImmutable b, Vert2fImmutable c, Vert2fImmutable d) {
         final float determinant = (a.getX()-b.getX())*(c.getY()-d.getY()) - (a.getY()-b.getY())*(c.getX()-d.getX());
 
-        if (determinant == 0) 
+        if (determinant == 0)
             return null;
 
         final float alpha = (a.getX()*b.getY()-a.getY()*b.getX());

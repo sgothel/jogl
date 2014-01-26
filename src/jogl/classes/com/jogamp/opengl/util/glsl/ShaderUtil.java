@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2009 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,7 +28,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  */
 
 package com.jogamp.opengl.util.glsl;
@@ -117,11 +117,11 @@ public class ShaderUtil {
         }
         return true;
     }
-    
+
     /**
      * Performs {@link GL2ES2#glValidateProgram(int)}
      * <p>
-     * One shall only call this method while debugging and only if all required 
+     * One shall only call this method while debugging and only if all required
      * resources by the shader are set.
      * </p>
      * <p>
@@ -150,7 +150,7 @@ public class ShaderUtil {
     }
 
     /**
-     * If supported, queries the natively supported shader binary formats using 
+     * If supported, queries the natively supported shader binary formats using
      * {@link GL2ES2#GL_NUM_SHADER_BINARY_FORMATS} and {@link GL2ES2#GL_SHADER_BINARY_FORMATS}
      * via {@link GL2ES2#glGetIntegerv(int, int[], int)}.
      */
@@ -172,9 +172,9 @@ public class ShaderUtil {
                             info.shaderBinaryFormats.add(new Integer(formats[i]));
                         }
                     }
-                } catch (GLException gle) { 
-                    System.err.println("Catched Exception on thread "+Thread.currentThread().getName()); 
-                    gle.printStackTrace(); 
+                } catch (GLException gle) {
+                    System.err.println("Catched Exception on thread "+Thread.currentThread().getName());
+                    gle.printStackTrace();
                 }
             }
         }
@@ -202,13 +202,13 @@ public class ShaderUtil {
                     }
                     info.shaderCompilerAvailable = new Boolean(v);
                     queryOK = true;
-                } catch (GLException gle) { 
-                    System.err.println("Catched Exception on thread "+Thread.currentThread().getName()); 
-                    gle.printStackTrace(); 
+                } catch (GLException gle) {
+                    System.err.println("Catched Exception on thread "+Thread.currentThread().getName());
+                    gle.printStackTrace();
                 }
                 if(!queryOK) {
                     info.shaderCompilerAvailable = new Boolean(true);
-                }                
+                }
             } else if( gl.isGL2ES2() ) {
                 info.shaderCompilerAvailable = new Boolean(true);
             } else {
@@ -217,8 +217,8 @@ public class ShaderUtil {
         }
         return info.shaderCompilerAvailable.booleanValue();
     }
-    
-    /** Returns true if GeometryShader is supported, i.e. whether GLContext is &ge; 3.2 or ARB_geometry_shader4 extension is available. */ 
+
+    /** Returns true if GeometryShader is supported, i.e. whether GLContext is &ge; 3.2 or ARB_geometry_shader4 extension is available. */
     public static boolean isGeometryShaderSupported(GL _gl) {
       final GLContext ctx = _gl.getContext();
       return ctx.getGLVersionNumber().compareTo(GLContext.Version320) >= 0 ||
@@ -240,7 +240,7 @@ public class ShaderUtil {
         IntBuffer lengths = Buffers.newDirectIntBuffer(count);
         for(int i=0; i<count; i++) {
             lengths.put(i, source[i].length());
-        }        
+        }
         if(source instanceof String[]) {
             // rare case ..
             gl.glShaderSource(shader, count, (String[])source, lengths);
@@ -338,7 +338,7 @@ public class ShaderUtil {
         }
 
         createShader(gl, shaderType, shader);
-        err = gl.glGetError(); 
+        err = gl.glGetError();
         if(err!=GL.GL_NO_ERROR) {
             throw new GLException("createAndLoadShader: CreateShader failed, GL Error: 0x"+Integer.toHexString(err));
         }
@@ -353,7 +353,7 @@ public class ShaderUtil {
     }
 
     public static boolean createAndCompileShader(GL _gl, IntBuffer shader, int shaderType,
-                                                 CharSequence[][] sources, 
+                                                 CharSequence[][] sources,
                                                  PrintStream verboseOut)
     {
         final GL2ES2 gl = _gl.getGL2ES2();
@@ -363,32 +363,32 @@ public class ShaderUtil {
         }
 
         createShader(gl, shaderType, shader);
-        err = gl.glGetError(); 
+        err = gl.glGetError();
         if(err!=GL.GL_NO_ERROR) {
             throw new GLException("createAndCompileShader: CreateShader failed, GL Error: 0x"+Integer.toHexString(err));
         }
 
         shaderSource(gl, shader, sources);
-        err = gl.glGetError(); 
+        err = gl.glGetError();
         if(err!=GL.GL_NO_ERROR) {
             throw new GLException("createAndCompileShader: ShaderSource failed, GL Error: 0x"+Integer.toHexString(err));
         }
 
         compileShader(gl, shader);
-        err = gl.glGetError(); 
+        err = gl.glGetError();
         if(err!=GL.GL_NO_ERROR && null!=verboseOut) {
             verboseOut.println("createAndCompileShader: CompileShader failed, GL Error: 0x"+Integer.toHexString(err));
         }
 
         return isShaderStatusValid(gl, shader, GL2ES2.GL_COMPILE_STATUS, verboseOut) && err == GL.GL_NO_ERROR;
     }
-    
+
     private static final String implObjectKey = "com.jogamp.opengl.util.glsl.ShaderUtil" ;
-    
+
     private static class ProfileInformation {
         Boolean shaderCompilerAvailable = null;
         Set<Integer> shaderBinaryFormats = null;
-    }    
+    }
 
     private static ProfileInformation getProfileInformation(GL gl) {
         final GLContext context = gl.getContext();

@@ -31,6 +31,8 @@ package com.jogamp.opengl.test.junit.newt;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import javax.media.opengl.*;
 
@@ -45,6 +47,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestDisplayLifecycle01NEWT extends UITestCase {
     static GLProfile glp;
     static GLCapabilities caps;
@@ -205,7 +208,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
             final EDTUtil edtUtil = display.getEDTUtil();
             Assert.assertNotNull(edtUtil);
             Assert.assertEquals(false,edtUtil.isRunning());
-            edtUtil.restart();
+            edtUtil.start();
             edtUtil.invoke(true, null);
             Assert.assertEquals(true,edtUtil.isRunning());
             edtUtil.invokeStop(true, null);

@@ -23,7 +23,7 @@ public class ImageLineHelper {
 	/**
 	 * Given an indexed line with a palette, unpacks as a RGB array, or RGBA if
 	 * a non nul PngChunkTRNS chunk is passed
-	 * 
+	 *
 	 * @param line
 	 *            ImageLine as returned from PngReader
 	 * @param pal
@@ -92,6 +92,7 @@ public class ImageLineHelper {
 		public double[] maxdif = { BIG_VALUE_NEG, BIG_VALUE_NEG, BIG_VALUE_NEG, BIG_VALUE }; // maxima
 		public final int channels; // diferencia
 
+		@Override
 		public String toString() {
 			return channels == 3 ? String.format(
 					"prom=%.1f (%.1f %.1f %.1f) max=%.1f (%.1f %.1f %.1f) min=%.1f (%.1f %.1f %.1f)", promlum, prom[0],
@@ -143,7 +144,7 @@ public class ImageLineHelper {
 
 	/**
 	 * integer packed R G B only for bitdepth=8! (does not check!)
-	 * 
+	 *
 	 **/
 	public static int getPixelRGB8(ImageLine line, int column) {
 		int offset = column * line.channels;
@@ -252,7 +253,7 @@ public class ImageLineHelper {
 	 * <code>scale==true<code>, it scales the value (just a bit shift) towards 0-255.
 	 * <p>
 	 * You probably should use {@link ImageLine#unpackToNewImageLine()}
-	 * 
+	 *
 	 */
 	public static int[] unpack(ImageInfo imgInfo, int[] src, int[] dst, boolean scale) {
 		int len1 = imgInfo.samplesPerRow;
@@ -282,7 +283,7 @@ public class ImageLineHelper {
 	 * Packs scanline (for bitdepth 1-2-4) from array into the scanline
 	 * <p>
 	 * If <code>scale==true<code>, it scales the value (just a bit shift).
-	 * 
+	 *
 	 * You probably should use {@link ImageLine#packToNewImageLine()}
 	 */
 	public static int[] pack(ImageInfo imgInfo, int[] src, int[] dst, boolean scale) {

@@ -279,6 +279,7 @@ class Render {
     }
 
     private static class RenderTriangle implements renderCallBack {
+        @Override
         public void render(GLUtessellatorImpl tess, jogamp.opengl.glu.tessellator.GLUhalfEdge e, long size) {
             /* Just add the triangle to a triangle list, so we can render all
              * the separate triangles at once.
@@ -323,6 +324,7 @@ class Render {
     }
 
     private static class RenderFan implements renderCallBack {
+        @Override
         public void render(GLUtessellatorImpl tess, jogamp.opengl.glu.tessellator.GLUhalfEdge e, long size) {
             /* Render as many CCW triangles as possible in a fan starting from
              * edge "e".  The fan *should* contain exactly "size" triangles
@@ -345,6 +347,7 @@ class Render {
     }
 
     private static class RenderStrip implements renderCallBack {
+        @Override
         public void render(GLUtessellatorImpl tess, jogamp.opengl.glu.tessellator.GLUhalfEdge e, long size) {
             /* Render as many CCW triangles as possible in a strip starting from
              * edge "e".  The strip *should* contain exactly "size" triangles

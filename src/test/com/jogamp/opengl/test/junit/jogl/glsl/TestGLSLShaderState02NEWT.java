@@ -47,11 +47,14 @@ import javax.media.opengl.GLUniformData;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  * Testing different vertex attribute (VA) data sets on one shader
  * and shader state in general.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLSLShaderState02NEWT extends UITestCase {
     static long durationPerTest = 10; // ms
 

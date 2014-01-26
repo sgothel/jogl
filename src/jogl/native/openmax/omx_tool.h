@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+// FIXME: Move all sync/buffer handling to Java - Already done -> GLMediaPlayerImpl
 #define EGLIMAGE_MAX_BUFFERS 4
 
 extern int USE_OPENGL;
@@ -90,6 +91,7 @@ typedef struct {
     KDThreadMutex * mutex;
     KDThreadSem   * flushSem;
 
+    // FIXME: Move all sync/buffer handling to Java - Already done -> GLMediaPlayerImpl
     OMXToolImageBuffer_t buffers[EGLIMAGE_MAX_BUFFERS];
     int vBufferNum;
     int glPos;
@@ -118,7 +120,7 @@ KDint OMXToolBasicAV_SetState(OMXToolBasicAV_t * pOMXAV, OMX_STATETYPE state, KD
 //
 OMXToolBasicAV_t * OMXToolBasicAV_CreateInstance(EGLDisplay dpy); // #1
 void OMXToolBasicAV_SetStream(OMXToolBasicAV_t * pOMXAV, int vBufferNum, const KDchar * stream); // #2
-void OMXToolBasicAV_SetStreamEGLImageTexture2D(OMXToolBasicAV_t * pOMXAV, KDint i, GLuint tex, EGLImageKHR image, EGLSyncKHR sync); // #3
+void OMXToolBasicAV_SetStreamEGLImageTexture2D(OMXToolBasicAV_t * pOMXAV, GLuint tex, EGLImageKHR image, EGLSyncKHR sync); // #3
 void OMXToolBasicAV_ActivateStream(OMXToolBasicAV_t * pOMXAV); // #4
 
 void OMXToolBasicAV_AttachVideoRenderer(OMXToolBasicAV_t * pOMXAV); // Stop, DetachVideoRenderer, SetEGLImageTexture2D ..  before ..

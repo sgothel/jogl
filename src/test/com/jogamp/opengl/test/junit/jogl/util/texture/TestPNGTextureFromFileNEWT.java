@@ -56,7 +56,10 @@ import org.junit.Assert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestPNGTextureFromFileNEWT extends UITestCase {
     static boolean showFPS = false;
     static long duration = 100; // ms
@@ -171,7 +174,7 @@ public class TestPNGTextureFromFileNEWT extends UITestCase {
         
         // load texture from file inside current GL context to match the way
         // the bug submitter was doing it
-        final GLEventListener gle = useFFP ? new TextureDraw01GL2Listener( texData ) : new TextureDraw01ES2Listener( texData ) ;
+        final GLEventListener gle = useFFP ? new TextureDraw01GL2Listener( texData ) : new TextureDraw01ES2Listener( texData, 0 ) ;
         glad.addGLEventListener(gle);
         glad.addGLEventListener(new GLEventListener() {                    
             boolean shot = false;

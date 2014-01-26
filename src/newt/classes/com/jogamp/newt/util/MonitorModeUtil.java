@@ -42,7 +42,7 @@ import javax.media.nativewindow.util.SurfaceSize;
  * filters etc.
  */
 public class MonitorModeUtil {
-    
+
     public static int getIndex(List<MonitorMode> monitorModes, MonitorMode search) {
         return monitorModes.indexOf(search);
     }
@@ -69,7 +69,7 @@ public class MonitorModeUtil {
         }
         return null;
     }
-    
+
     /** Sort the given {@link MonitorMode} collection w/ {@link MonitorMode#compareTo(MonitorMode)} function. */
     public static void sort(List<MonitorMode> monitorModes, boolean ascendingOrder) {
         if( ascendingOrder ) {
@@ -78,9 +78,9 @@ public class MonitorModeUtil {
             Collections.sort(monitorModes, MonitorMode.monitorModeComparatorInv);
         }
     }
-    
+
     /**
-     * 
+     *
      * @param monitorModes
      * @param surfaceSize
      * @return modes with exact {@link SurfaceSize}. May return zero sized list for non.
@@ -99,7 +99,7 @@ public class MonitorModeUtil {
     }
 
     /**
-     * 
+     *
      * @param monitorModes
      * @param rotation
      * @return modes with exact rotation. May return zero sized list for non.
@@ -118,7 +118,7 @@ public class MonitorModeUtil {
     }
 
     /**
-     * 
+     *
      * @param monitorModes
      * @param bitsPerPixel
      * @return modes with exact bpp. May return zero sized list for non.
@@ -137,7 +137,7 @@ public class MonitorModeUtil {
     }
 
     /**
-     * 
+     *
      * @param monitorModes
      * @param flags
      * @return modes with exact flags. May return zero sized list for non.
@@ -165,7 +165,7 @@ public class MonitorModeUtil {
         if( null!=monitorModes && monitorModes.size()>0 ) {
             final int resolution_sq = resolution.getHeight()*resolution.getWidth();
             int mode_dsq=Integer.MAX_VALUE, mode_dsq_idx=0;
-    
+
             for (int i=0; null!=monitorModes && i<monitorModes.size(); i++) {
                 final MonitorMode mode = monitorModes.get(i);
                 final DimensionImmutable res = mode.getSurfaceSize().getResolution();
@@ -236,7 +236,7 @@ public class MonitorModeUtil {
     }
 
     /**
-     * 
+     *
      * @param monitorModes
      * @return modes with highest available refresh rate. May return zero sized list for non.
      */

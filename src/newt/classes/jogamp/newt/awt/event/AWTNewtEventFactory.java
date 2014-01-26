@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,26 +20,26 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package jogamp.newt.awt.event;
 
 import com.jogamp.newt.event.MouseEvent;
 
 /**
  *
- * <a name="AWTEventModifierMapping"><h5>AWT Event Modifier Mapping</h5></a> 
+ * <a name="AWTEventModifierMapping"><h5>AWT Event Modifier Mapping</h5></a>
  * <pre>
     Modifier       AWT Constant                     AWT Bit  AWT Ex  NEWT Constant              NEWT Bit
     -------------  -------------------------------  -------  ------  -------------------------  --------
-    Shift          Event.SHIFT_MASK                 0                
-    Ctrl           Event.CTRL_MASK                  1                
-    Meta           Event.META_MASK                  2                
-    Alt            Event.ALT_MASK                   3               
+    Shift          Event.SHIFT_MASK                 0
+    Ctrl           Event.CTRL_MASK                  1
+    Meta           Event.META_MASK                  2
+    Alt            Event.ALT_MASK                   3
     Button1        InputEvent.BUTTON1_MASK          4
     Button2        InputEvent.BUTTON2_MASK          3
     Button3        InputEvent.BUTTON3_MASK          2
@@ -88,11 +88,11 @@ public class AWTNewtEventFactory {
             Method _getMaskForButtonMethod = null;
             try {
                 _getMaskForButtonMethod = ReflectionUtil.getMethod(java.awt.event.InputEvent.class, "getMaskForButton", int.class);
-            } catch(Throwable t) {}        
+            } catch(Throwable t) {}
             getMaskForButtonMethod = _getMaskForButtonMethod;
         } */
-        
-        awtButtonDownMasks = new int[com.jogamp.newt.event.MouseEvent.BUTTON_NUMBER] ; // java.awt.MouseInfo.getNumberOfButtons() ;
+
+        awtButtonDownMasks = new int[com.jogamp.newt.event.MouseEvent.BUTTON_COUNT] ; // java.awt.MouseInfo.getNumberOfButtons() ;
         for (int n = 0 ; n < awtButtonDownMasks.length ; ++n) {
             awtButtonDownMasks[n] = getAWTButtonDownMaskImpl(n+1);
         }
@@ -112,12 +112,12 @@ public class AWTNewtEventFactory {
             case java.awt.event.WindowEvent.WINDOW_LOST_FOCUS: return com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_LOST_FOCUS;
             case java.awt.event.FocusEvent.FOCUS_LOST: return com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_LOST_FOCUS;
             // n/a case java.awt.event.WindowEvent.WINDOW_STATE_CHANGED: return com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_STATE_CHANGED;
-    
+
             case java.awt.event.ComponentEvent.COMPONENT_MOVED: return com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_MOVED;
             case java.awt.event.ComponentEvent.COMPONENT_RESIZED: return com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_RESIZED;
             // n/a case java.awt.event.ComponentEvent.COMPONENT_SHOWN: return com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_SHOWN;
             // n/a case java.awt.event.ComponentEvent.COMPONENT_HIDDEN: return com.jogamp.newt.event.WindowEvent.EVENT_WINDOW_HIDDEN;
-    
+
             case java.awt.event.MouseEvent.MOUSE_CLICKED: return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_CLICKED;
             case java.awt.event.MouseEvent.MOUSE_PRESSED: return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_PRESSED;
             case java.awt.event.MouseEvent.MOUSE_RELEASED: return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_RELEASED;
@@ -126,17 +126,17 @@ public class AWTNewtEventFactory {
             case java.awt.event.MouseEvent.MOUSE_EXITED: return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_EXITED;
             case java.awt.event.MouseEvent.MOUSE_DRAGGED: return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_DRAGGED;
             case java.awt.event.MouseEvent.MOUSE_WHEEL: return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_WHEEL_MOVED;
-    
+
             case java.awt.event.KeyEvent.KEY_PRESSED: return com.jogamp.newt.event.KeyEvent.EVENT_KEY_PRESSED;
             case java.awt.event.KeyEvent.KEY_RELEASED: return com.jogamp.newt.event.KeyEvent.EVENT_KEY_RELEASED;
         }
         return (short)0;
     }
-    
+
     private static int getAWTButtonDownMaskImpl(int button) {
         /**
          * java.awt.event.InputEvent.getMaskForButton(button);
-         * 
+         *
         if(null != getMaskForButtonMethod) {
             Object r=null;
             try {
@@ -153,20 +153,20 @@ public class AWTNewtEventFactory {
             case 2 : m = java.awt.event.InputEvent.BUTTON2_DOWN_MASK; break; // 1<<11
             case 3 : m = java.awt.event.InputEvent.BUTTON3_DOWN_MASK; break; // 1<<12
             default:
-                if( button <= com.jogamp.newt.event.MouseEvent.BUTTON_NUMBER ) {
+                if( button <= com.jogamp.newt.event.MouseEvent.BUTTON_COUNT ) {
                     m = 1 << ( 10 + button ) ; // b4 = 1<<14, b5 = 1<<15, etc
                 } else {
                     m = 0;
-                }                
+                }
         }
         return m;
     }
-    
+
     /**
      * <p>
      * See <a href="#AWTEventModifierMapping"> AWT event modifier mapping details</a>.
      * </p>
-     * 
+     *
      * @param button
      * @return
      */
@@ -175,42 +175,42 @@ public class AWTNewtEventFactory {
             return awtButtonDownMasks[button-1];
         } else {
             return 0;
-        }        
+        }
     }
-    
+
     public static final short awtButton2Newt(int awtButton) {
-        if( 0 < awtButton && awtButton <= com.jogamp.newt.event.MouseEvent.BUTTON_NUMBER ) {
+        if( 0 < awtButton && awtButton <= com.jogamp.newt.event.MouseEvent.BUTTON_COUNT ) {
             return (short)awtButton;
         } else {
             return (short)0;
         }
     }
-    
+
     /**
      * Converts the specified set of AWT event modifiers and extended event
      * modifiers to the equivalent NEWT event modifiers.
-     * 
+     *
      * <p>
      * See <a href="#AWTEventModifierMapping"> AWT event modifier mapping details</a>.
      * </p>
-     * 
+     *
      * @param awtMods
      * The AWT event modifiers.
-     * 
+     *
      * @param awtModsEx
      * The AWT extended event modifiers.
      * AWT passes mouse button specific bits here and are the preferred way check the mouse button state.
      */
     public static final int awtModifiers2Newt(final int awtMods, final int awtModsEx) {
         int newtMods = 0;
-        
+
         /** Redundant old modifiers ..
         if ((awtMods & java.awt.event.InputEvent.SHIFT_MASK) != 0)     newtMods |= com.jogamp.newt.event.InputEvent.SHIFT_MASK;
         if ((awtMods & java.awt.event.InputEvent.CTRL_MASK) != 0)      newtMods |= com.jogamp.newt.event.InputEvent.CTRL_MASK;
         if ((awtMods & java.awt.event.InputEvent.META_MASK) != 0)      newtMods |= com.jogamp.newt.event.InputEvent.META_MASK;
         if ((awtMods & java.awt.event.InputEvent.ALT_MASK) != 0)       newtMods |= com.jogamp.newt.event.InputEvent.ALT_MASK;
         if ((awtMods & java.awt.event.InputEvent.ALT_GRAPH_MASK) != 0) newtMods |= com.jogamp.newt.event.InputEvent.ALT_GRAPH_MASK; */
-        
+
         if ((awtModsEx & java.awt.event.InputEvent.SHIFT_DOWN_MASK) != 0)     newtMods |= com.jogamp.newt.event.InputEvent.SHIFT_MASK;
         if ((awtModsEx & java.awt.event.InputEvent.CTRL_DOWN_MASK) != 0)      newtMods |= com.jogamp.newt.event.InputEvent.CTRL_MASK;
         if ((awtModsEx & java.awt.event.InputEvent.META_DOWN_MASK) != 0)      newtMods |= com.jogamp.newt.event.InputEvent.META_MASK;
@@ -221,7 +221,7 @@ public class AWTNewtEventFactory {
         // being ignored intentionally.  The AWT docs say that the
         // BUTTON1_DOWN_MASK etc bits in the extended modifiers are
         // the preferred place to check current button state.
-        
+
         if( 0 != awtModsEx ) {
             for (int n = 0 ; n < awtButtonDownMasks.length ; ++n) {
                 if ( (awtModsEx & awtButtonDownMasks[n]) != 0 ) {
@@ -232,7 +232,7 @@ public class AWTNewtEventFactory {
 
         return newtMods;
     }
-    
+
     public static short awtKeyCode2NewtKeyCode(final int awtKeyCode) {
         final short defNEWTKeyCode = (short)awtKeyCode;
         switch (awtKeyCode) {
@@ -371,7 +371,7 @@ public class AWTNewtEventFactory {
             case java.awt.event.KeyEvent.VK_MULTIPLY      : return com.jogamp.newt.event.KeyEvent.VK_MULTIPLY;
             case java.awt.event.KeyEvent.VK_DIVIDE        : return com.jogamp.newt.event.KeyEvent.VK_DIVIDE;
             case java.awt.event.KeyEvent.VK_NUM_LOCK      : return com.jogamp.newt.event.KeyEvent.VK_NUM_LOCK;
-            case java.awt.event.KeyEvent.VK_KP_LEFT       : /** Fall through intended .. */ 
+            case java.awt.event.KeyEvent.VK_KP_LEFT       : /** Fall through intended .. */
             case java.awt.event.KeyEvent.VK_LEFT          : return com.jogamp.newt.event.KeyEvent.VK_LEFT;
             case java.awt.event.KeyEvent.VK_KP_UP         : /** Fall through intended .. */
             case java.awt.event.KeyEvent.VK_UP            : return com.jogamp.newt.event.KeyEvent.VK_UP;
@@ -381,7 +381,7 @@ public class AWTNewtEventFactory {
             case java.awt.event.KeyEvent.VK_DOWN          : return com.jogamp.newt.event.KeyEvent.VK_DOWN;
             case java.awt.event.KeyEvent.VK_CONTEXT_MENU  : return com.jogamp.newt.event.KeyEvent.VK_CONTEXT_MENU;
             case java.awt.event.KeyEvent.VK_WINDOWS       : return com.jogamp.newt.event.KeyEvent.VK_WINDOWS;
-            case java.awt.event.KeyEvent.VK_META          : return com.jogamp.newt.event.KeyEvent.VK_META;            
+            case java.awt.event.KeyEvent.VK_META          : return com.jogamp.newt.event.KeyEvent.VK_META;
             case java.awt.event.KeyEvent.VK_HELP          : return com.jogamp.newt.event.KeyEvent.VK_HELP;
             case java.awt.event.KeyEvent.VK_COMPOSE       : return com.jogamp.newt.event.KeyEvent.VK_COMPOSE;
             case java.awt.event.KeyEvent.VK_BEGIN         : return com.jogamp.newt.event.KeyEvent.VK_BEGIN;
@@ -558,7 +558,7 @@ public class AWTNewtEventFactory {
             case com.jogamp.newt.event.KeyEvent.VK_DOWN          : return java.awt.event.KeyEvent.VK_DOWN;
             case com.jogamp.newt.event.KeyEvent.VK_CONTEXT_MENU  : return java.awt.event.KeyEvent.VK_CONTEXT_MENU;
             case com.jogamp.newt.event.KeyEvent.VK_WINDOWS       : return java.awt.event.KeyEvent.VK_WINDOWS;
-            case com.jogamp.newt.event.KeyEvent.VK_META          : return java.awt.event.KeyEvent.VK_META;            
+            case com.jogamp.newt.event.KeyEvent.VK_META          : return java.awt.event.KeyEvent.VK_META;
             case com.jogamp.newt.event.KeyEvent.VK_HELP          : return java.awt.event.KeyEvent.VK_HELP;
             case com.jogamp.newt.event.KeyEvent.VK_COMPOSE       : return java.awt.event.KeyEvent.VK_COMPOSE;
             case com.jogamp.newt.event.KeyEvent.VK_BEGIN         : return java.awt.event.KeyEvent.VK_BEGIN;
@@ -636,7 +636,7 @@ public class AWTNewtEventFactory {
             }
             return new com.jogamp.newt.event.MouseEvent(
                            newtType, (null==newtSource)?(Object)event.getComponent():(Object)newtSource, event.getWhen(),
-                           mods, event.getX(), event.getY(), (short)event.getClickCount(), 
+                           mods, event.getX(), event.getY(), (short)event.getClickCount(),
                            newtButton, MouseEvent.getRotationXYZ(rotation, mods), 1f);
         }
         return null; // no mapping ..
@@ -650,11 +650,11 @@ public class AWTNewtEventFactory {
         if( (short)0 != newtType ) {
             final short newtKeyCode = awtKeyCode2NewtKeyCode( event.getKeyCode() );
             return com.jogamp.newt.event.KeyEvent.create(
-                           newtType, (null==newtSource)?(Object)event.getComponent():(Object)newtSource, event.getWhen(), 
-                           awtModifiers2Newt(event.getModifiers(), event.getModifiersEx()), 
+                           newtType, (null==newtSource)?(Object)event.getComponent():(Object)newtSource, event.getWhen(),
+                           awtModifiers2Newt(event.getModifiers(), event.getModifiersEx()),
                            newtKeyCode, newtKeyCode, event.getKeyChar());
         }
         return null; // no mapping ..
     }
-    
+
 }

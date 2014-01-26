@@ -6,15 +6,15 @@
  * this file except in compliance with the License. You may obtain a copy
  * of the License at Silicon Graphics, Inc., attn: Legal Services, 1600
  * Amphitheatre Parkway, Mountain View, CA 94043-1351, or at:
- * 
+ *
  * http://oss.sgi.com/projects/FreeB
- * 
+ *
  * Note that, as provided in the License, the Software is distributed on an
  * "AS IS" basis, with ALL EXPRESS AND IMPLIED WARRANTIES AND CONDITIONS
  * DISCLAIMED, INCLUDING, WITHOUT LIMITATION, ANY IMPLIED WARRANTIES AND
  * CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY, FITNESS FOR A
  * PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
- * 
+ *
  * NOTE:  The Original Code (as defined below) has been licensed to Sun
  * Microsystems, Inc. ("Sun") under the SGI Free Software License B
  * (Version 1.1), shown above ("SGI License").   Pursuant to Section
@@ -30,7 +30,7 @@
  * Inc. The Original Code is Copyright (c) 1991-2000 Silicon Graphics, Inc.
  * Copyright in any portions created by third parties is as indicated
  * elsewhere herein. All Rights Reserved.
- * 
+ *
  * Additional Notice Provisions: The application programming interfaces
  * established by SGI in conjunction with the Original Code are The
  * OpenGL(R) Graphics System: A Specification (Version 1.2.1), released
@@ -53,18 +53,18 @@ import java.nio.*;
  * @author  Administrator
  */
 public class Image {
-  
+
   /** Creates a new instance of Image */
   public Image() {
   }
-  
+
   public static short getShortFromByteArray( byte[] array, int index ) {
     short s;
     s = (short)(array[index] << 8 );
     s |= (short)(0x00FF & array[index+1]);
     return( s );
   }
-  
+
   public static int getIntFromByteArray( byte[] array, int index ) {
     int i;
     i = ( array[index] << 24 ) & 0xFF000000;
@@ -73,12 +73,12 @@ public class Image {
     i |= ( array[index+3] ) & 0x000000FF;
     return( i );
   }
-  
+
   public static float getFloatFromByteArray( byte[] array, int index ) {
     int i = getIntFromByteArray( array, index );
     return( Float.intBitsToFloat(i) );
   }
-  
+
   /*
    *  Extract array from user's data applying all pixel store modes.
    *  The internal format used is an array of unsigned shorts.
@@ -98,7 +98,7 @@ public class Image {
     int iter2;
     int i, j, k;
     boolean myswap_bytes;
-    
+
     // Create a Extract interface object
     Extract extract = null;
     switch( type ) {
@@ -139,7 +139,7 @@ public class Image {
         extract = new Extract2101010rev();
         break;
     }
-    
+
     myswap_bytes = psm.getUnpackSwapBytes();
     components = Mipmap.elements_per_group( format, type );
     if( psm.getUnpackRowLength() > 0 ) {
@@ -147,12 +147,12 @@ public class Image {
     } else {
       groups_per_line = width;
     }
-    
+
     // All formats except GL_BITMAP fall out trivially
     if( type == GL2.GL_BITMAP ) {
       int bit_offset;
       int current_bit;
-      
+
       rowsize = ( groups_per_line * components + 7 ) / 8;
       padding = ( rowsize % psm.getUnpackAlignment() );
       if( padding != 0 ) {
@@ -200,7 +200,7 @@ public class Image {
       if( element_size == 1 ) {
         myswap_bytes = false;
       }
-      
+
       rowsize = groups_per_line * group_size;
       padding = ( rowsize % psm.getUnpackAlignment() );
       if( padding != 0 ) {
@@ -208,7 +208,7 @@ public class Image {
       }
       start = psm.getUnpackSkipRows() * rowsize + psm.getUnpackSkipPixels() * group_size;
       elements_per_line = width * components;
-      
+
       iter2 = 0;
       for( i = 0; i < height; i++ ) {
         iter = start;
@@ -364,7 +364,7 @@ public class Image {
         // want iter pointing at start, not within, row for assertion purposes
         iter = start;
       } // for i
-      
+
       // iterators should be one byte past end
       if( !Mipmap.isTypePackedPixel( type ) ) {
         assert( iter2 == ( width * height * components ) );
@@ -374,16 +374,16 @@ public class Image {
       assert( iter == ( rowsize * height + psm.getUnpackSkipRows() * rowsize + psm.getUnpackSkipPixels() * group_size ) );
     }
   }
-  
+
   /*
    *  Insert array into user's data applying all pixel store modes.
    *  Theinternal format is an array of unsigned shorts.
    *  empty_image() because it is the opposet of fill_image().
    */
-  public static void empty_image( PixelStorageModes psm, int width, int height, 
-                                  int format, int type, boolean index_format, 
+  public static void empty_image( PixelStorageModes psm, int width, int height,
+                                  int format, int type, boolean index_format,
                                   ShortBuffer oldimage, ByteBuffer userdata ) {
-    
+
     int components;
     int element_size;
     int rowsize;
@@ -396,7 +396,7 @@ public class Image {
     int iter2;
     int i, j, k;
     boolean myswap_bytes;
-    
+
     // Create a Extract interface object
     Extract extract = null;
     switch( type ) {
@@ -437,7 +437,7 @@ public class Image {
         extract = new Extract2101010rev();
         break;
     }
-    
+
     myswap_bytes = psm.getPackSwapBytes();
     components = Mipmap.elements_per_group( format, type );
     if( psm.getPackRowLength() > 0 ) {
@@ -445,12 +445,12 @@ public class Image {
     } else {
       groups_per_line = width;
     }
-    
+
     // all formats except GL_BITMAP fall out trivially
     if( type == GL2.GL_BITMAP ) {
       int bit_offset;
       int current_bit;
-      
+
       rowsize = ( groups_per_line * components + 7 ) / 8;
       padding = ( rowsize % psm.getPackAlignment() );
       if( padding != 0 ) {
@@ -472,7 +472,7 @@ public class Image {
               current_bit = 0;
             }
           }
-          
+
           if( current_bit != 0 ) {
             if( psm.getPackLsbFirst() ) {
               userdata.put( iter, (byte)( ( userdata.get( iter ) | ( 1 << bit_offset ) ) ) );
@@ -488,7 +488,7 @@ public class Image {
               userdata.put( iter, (byte)( ( userdata.get( iter ) & ~( 7 - bit_offset ) ) ) );
             }
           }
-          
+
           bit_offset++;
           if( bit_offset == 8 ) {
             bit_offset = 0;
@@ -500,13 +500,13 @@ public class Image {
       }
     } else {
       float shoveComponents[] = new float[4];
-      
+
       element_size = Mipmap.bytes_per_element( type );
       group_size = element_size * components;
       if( element_size == 1 ) {
         myswap_bytes = false;
       }
-      
+
       rowsize = groups_per_line * group_size;
       padding = ( rowsize % psm.getPackAlignment() );
       if( padding != 0 ) {
@@ -514,13 +514,13 @@ public class Image {
       }
       start = psm.getPackSkipRows() * rowsize + psm.getPackSkipPixels() * group_size;
       elements_per_line = width * components;
-      
+
       iter2 = 0;
       for( i = 0; i < height; i++ ) {
         iter = start;
         for( j = 0; j < elements_per_line; j++ ) {
           Type_Widget widget = new Type_Widget();
-          
+
           switch( type ) {
             case( GL2.GL_UNSIGNED_BYTE_3_3_2 ):
               for( k = 0; k < 3; k++ ) {
@@ -799,7 +799,7 @@ public class Image {
       assert( iter == rowsize * height + psm.getPackSkipRows() * rowsize + psm.getPackSkipPixels() * group_size );
     }
   }
-  
+
   public static void fillImage3D( PixelStorageModes psm, int width, int height,
           int depth, int format, int type, boolean indexFormat, ByteBuffer userImage,
           ShortBuffer newImage ) {
@@ -819,7 +819,7 @@ public class Image {
     int ww, hh, dd, k;
     Type_Widget widget = new Type_Widget();
     float extractComponents[] = new float[4];
-    
+
     // Create a Extract interface object
     Extract extract = null;
     switch( type ) {
@@ -860,7 +860,7 @@ public class Image {
         extract = new Extract2101010rev();
         break;
     }
-    
+
     myswapBytes = psm.getUnpackSwapBytes();
     components = Mipmap.elements_per_group( format, type );
     if( psm.getUnpackRowLength() > 0 ) {
@@ -873,7 +873,7 @@ public class Image {
     if( elementSize == 1 ) {
       myswapBytes = false;
     }
-    
+
     // 3dstuff begin
     if( psm.getUnpackImageHeight() > 0 ) {
       rowsPerImage = psm.getUnpackImageHeight();
@@ -881,27 +881,27 @@ public class Image {
       rowsPerImage = height;
     }
     // 3dstuff end
-    
+
     rowSize = groupsPerLine * groupSize;
     padding = rowSize % psm.getUnpackAlignment();
     if( padding != 0 ) {
       rowSize += psm.getUnpackAlignment() - padding;
     }
-    
+
     imageSize = rowsPerImage * rowSize; // 3dstuff
-    
-    start = psm.getUnpackSkipRows() * rowSize + 
-            psm.getUnpackSkipPixels() * groupSize + 
+
+    start = psm.getUnpackSkipRows() * rowSize +
+            psm.getUnpackSkipPixels() * groupSize +
             psm.getUnpackSkipImages() * imageSize;
     elementsPerLine = width * components;
-    
+
     iter2 = 0;
     for( dd = 0; dd < depth; dd++ ) {
       rowStart = start;
       for( hh = 0; hh < height; hh++ ) {
         iter = rowStart;
         for( ww = 0; ww < elementsPerLine; ww++ ) {
-          
+
           switch( type ) {
             case( GL2.GL_UNSIGNED_BYTE ):
               if( indexFormat ) {
@@ -1063,18 +1063,18 @@ public class Image {
       } // for hh
       start += imageSize;
     }// for dd
-    
+
     // iterators should be one byte past end
     if( !Mipmap.isTypePackedPixel( type ) ) {
       assert( iter2 == width * height * depth * components );
     } else {
       assert( iter2 == width * height * depth * Mipmap.elements_per_group( format, 0 ) );
     }
-    assert( iter == rowSize * height * depth + psm.getUnpackSkipRows() * rowSize + 
+    assert( iter == rowSize * height * depth + psm.getUnpackSkipRows() * rowSize +
             psm.getUnpackSkipPixels() * groupSize +
             psm.getUnpackSkipImages() * imageSize );
   }
-  
+
   public static void emptyImage3D( PixelStorageModes psm, int width, int height, int depth,
           int format, int type, boolean indexFormat, ShortBuffer oldImage, ByteBuffer userImage ) {
     boolean myswapBytes;
@@ -1092,7 +1092,7 @@ public class Image {
     int imageSize;
     Type_Widget widget = new Type_Widget();
     float[] shoveComponents = new float[4];
-    
+
     // Create a Extract interface object
     Extract extract = null;
     switch( type ) {
@@ -1133,9 +1133,9 @@ public class Image {
         extract = new Extract2101010rev();
         break;
     }
-    
+
     iter = 0;
-    
+
     myswapBytes = psm.getPackSwapBytes();
     components = Mipmap.elements_per_group( format, type );
     if( psm.getPackRowLength() > 0 ) {
@@ -1143,44 +1143,44 @@ public class Image {
     } else {
       groupsPerLine = width;
     }
-    
+
     elementSize = Mipmap.bytes_per_element( type );
     groupSize = elementSize * components;
     if( elementSize == 1 ) {
       myswapBytes = false;
     }
-    
+
     // 3dstuff begin
     if( psm.getPackImageHeight() > 0 ) {
       rowsPerImage = psm.getPackImageHeight();
     } else {
       rowsPerImage = height;
     }
-    
+
     // 3dstuff end
-    
+
     rowSize = groupsPerLine * groupSize;
     padding = rowSize % psm.getPackAlignment();
     if( padding != 0 ) {
       rowSize += psm.getPackAlignment() - padding;
     }
-    
+
     imageSize = rowsPerImage * rowSize;
-    
+
     start = psm.getPackSkipRows() * rowSize +
             psm.getPackSkipPixels() * groupSize +
             psm.getPackSkipImages() * imageSize;
     elementsPerLine = width * components;
-    
+
     iter2 = 0;
     for( dd = 0; dd < depth; dd++ ) {
       rowStart = start;
-      
+
       for( ii = 0; ii < height; ii++ ) {
         iter = rowStart;
-        
+
         for( jj = 0; jj < elementsPerLine; jj++ ) {
-          
+
           switch( type ) {
             case( GL2.GL_UNSIGNED_BYTE ):
               if( indexFormat ) {
@@ -1392,20 +1392,20 @@ public class Image {
             default:
               assert( false );
           }
-          
+
           iter += elementSize;
         } // for jj
         rowStart += rowSize;
       } // for ii
       start += imageSize;
     } // for dd
-    
+
     if( !Mipmap.isTypePackedPixel( type ) ) {
       assert( iter2 == width * height * depth * components );
     } else {
       assert( iter2 == width * height * depth * Mipmap.elements_per_group( format, 0 ) );
     }
-    assert( iter == rowSize * height * depth + 
+    assert( iter == rowSize * height * depth +
                     psm.getUnpackSkipRows() * rowSize +
                     psm.getUnpackSkipPixels() * groupSize +
                     psm.getUnpackSkipImages() * imageSize );

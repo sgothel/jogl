@@ -42,13 +42,13 @@ public class DelegatedUpstreamSurfaceHookWithSurfaceSize implements UpstreamSurf
     @Override
     public final int getHeight(ProxySurface s) {
         return surface.getHeight();
-    }      
-    
+    }
+
     @Override
     public String toString() {
-        final String us_s = null != surface ? ( surface.getClass().getName() + ": 0x" + Long.toHexString(surface.getSurfaceHandle()) + " " +surface.getWidth() + "x" + surface.getHeight() ) : "nil";        
+        final String us_s = null != surface ? ( surface.getClass().getName() + ": 0x" + Long.toHexString(surface.getSurfaceHandle()) + " " +surface.getWidth() + "x" + surface.getHeight() ) : "nil";
         return getClass().getSimpleName()+"["+upstream+", "+us_s+"]";
     }
-    
+
 }
 

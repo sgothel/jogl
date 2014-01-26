@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -45,7 +45,7 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
      * <p>
      * FIXME: This shall be removed when relocated EGL to the nativewindow package,
      * since then it can be utilized directly.
-     * </p> 
+     * </p>
      */
     public interface EGLDisplayLifecycleCallback {
         /**
@@ -55,14 +55,14 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
          * @return the initialized EGL display ID, or <code>0</code> if not successful
          */
         public long eglGetAndInitDisplay(long[] nativeDisplayID);
-        
+
         /**
          * Implementation should issue an <code>EGL.eglTerminate(eglDisplayHandle)</code> call.
          * @param eglDisplayHandle
          */
         void eglTerminate(long eglDisplayHandle);
     }
-    
+
     /**
      * Note that this is not an open connection, ie no native display handle exist.
      * This constructor exist to setup a default device connection/unit.<br>
@@ -78,14 +78,20 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         this.nativeDisplayID[0] = nativeDisplayID;
         this.eglLifecycleCallback = eglLifecycleCallback;
     }
-    
+
     public long getNativeDisplayID() { return nativeDisplayID[0]; }
-    
+
     @Override
     public Object clone() {
       return super.clone();
     }
 
+    /**
+     * Opens the EGL device if handle is null and it's {@link EGLDisplayLifecycleCallback} is valid.
+     * <p>
+     * {@inheritDoc}
+     * </p>
+     */
     @Override
     public boolean open() {
         if(null != eglLifecycleCallback && 0 == handle) {
@@ -100,7 +106,13 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         }
         return false;
     }
-    
+
+    /**
+     * Closes the EGL device if handle is not null and it's {@link EGLDisplayLifecycleCallback} is valid.
+     * <p>
+     * {@inheritDoc}
+     * </p>
+     */
     @Override
     public boolean close() {
         if(null != eglLifecycleCallback && 0 != handle) {
@@ -111,11 +123,11 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         }
         return super.close();
     }
-    
+
     @Override
     public boolean isHandleOwner() {
         return null != eglLifecycleCallback;
-    }    
+    }
     @Override
     public void clearHandleOwner() {
         eglLifecycleCallback = null;
@@ -126,9 +138,9 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
     }
     @Override
     protected Object setHandleOwnership(Object newOwnership) {
-        final EGLDisplayLifecycleCallback oldOwnership = eglLifecycleCallback; 
+        final EGLDisplayLifecycleCallback oldOwnership = eglLifecycleCallback;
         eglLifecycleCallback = (EGLDisplayLifecycleCallback) newOwnership;
         return oldOwnership;
-    }    
+    }
 }
 

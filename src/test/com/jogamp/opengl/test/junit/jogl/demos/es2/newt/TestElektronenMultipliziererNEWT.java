@@ -45,11 +45,14 @@ import javax.media.opengl.GLProfile;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  * @see com.jogamp.opengl.test.junit.jogl.demos.es2.ElektronenMultiplizierer
  * @author Dominik Ströhlein (DemoscenePassivist), et.al.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestElektronenMultipliziererNEWT extends UITestCase {
     static final int width = 640, height = 480;
 
@@ -67,8 +70,8 @@ public class TestElektronenMultipliziererNEWT extends UITestCase {
     @BeforeClass
     public static void initClass() {
         GLProfile glp = GLProfile.getDefault();
-        if( ! ( glp.isHardwareRasterizer() && glp.isGL2GL3() ) ) {
-            // Sorry .. mobile is too slow for this one.
+        if( ! ( glp.isHardwareRasterizer() && glp.isGL2ES3() ) ) {
+            // Sorry .. mobile ES2 is too slow for this one.
             setTestSupported(false);
             return;
         }

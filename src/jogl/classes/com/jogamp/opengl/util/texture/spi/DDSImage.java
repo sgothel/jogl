@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,11 +28,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -166,7 +166,7 @@ public class DDSImage {
     public static DDSImage read(String filename) throws IOException {
         return read(new File(filename));
     }
-  
+
     /** Reads a DirectDraw surface from the specified file, returning
         the resulting DDSImage.
 
@@ -212,7 +212,7 @@ public class DDSImage {
         }
     }
 
-    /** 
+    /**
      * Creates a new DDSImage from data supplied by the user. The
      * resulting DDSImage can be written to disk using the write()
      * method.
@@ -763,9 +763,11 @@ public class DDSImage {
         default:
             throw new IllegalArgumentException("d3dFormat must be one of the known formats");
         }
-    
+
         // Now check the mipmaps against this size
         int curSize = topmostMipmapSize;
+        int mipmapWidth = width;
+        int mipmapHeight = height;
         int totalSize = 0;
         for (int i = 0; i < mipmapData.length; i++) {
             if (mipmapData[i].remaining() != curSize) {
@@ -773,7 +775,10 @@ public class DDSImage {
                                                    " didn't match expected data size (expected " + curSize + ", got " +
                                                    mipmapData[i].remaining() + ")");
             }
-            curSize /= 4;
+            // Compute next mipmap size
+            if (mipmapWidth > 1) mipmapWidth /= 2;
+            if (mipmapHeight > 1) mipmapHeight /= 2;
+            curSize = computeBlockSize(mipmapWidth, mipmapHeight, 1, d3dFormat);
             totalSize += mipmapData[i].remaining();
         }
 
@@ -785,7 +790,7 @@ public class DDSImage {
             buf.put(mipmapData[i]);
         }
         this.buf = buf;
-    
+
         // Allocate and initialize a Header
         header = new Header();
         header.size = Header.size();
@@ -850,6 +855,32 @@ public class DDSImage {
         default:           blockSize *= 16; break;
         }
         return blockSize;
+    }
+
+    private static int computeBlockSize(int width,
+                                        int height,
+                                        int depth,
+                                        int pixelFormat) {
+        int blocksize;
+        switch (pixelFormat) {
+        case D3DFMT_R8G8B8:
+            blocksize = width*height*3;
+            break;
+        case D3DFMT_A8R8G8B8:
+        case D3DFMT_X8R8G8B8:
+            blocksize = width*height*4;
+            break;
+        case D3DFMT_DXT1:
+        case D3DFMT_DXT2:
+        case D3DFMT_DXT3:
+        case D3DFMT_DXT4:
+        case D3DFMT_DXT5:
+            blocksize = computeCompressedBlockSize(width, height, 1, pixelFormat);
+            break;
+        default:
+            throw new IllegalArgumentException("d3dFormat must be one of the known formats");
+        }
+        return blocksize;
     }
 
     private int mipMapWidth(int map) {

@@ -46,6 +46,8 @@ import java.awt.Window;
 import javax.swing.JFrame;
 
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import static org.junit.Assume.*;
 import static javax.swing.SwingUtilities.*;
@@ -54,6 +56,7 @@ import static javax.swing.SwingUtilities.*;
  * Tests context creation + display on various kinds of Window implementations.
  * @author Michael Bien, et. al.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBug551AWT extends UITestCase {
 
     static void checkGraphicsEnvironment() {

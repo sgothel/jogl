@@ -63,14 +63,14 @@ public class ScriptList {
     private int _scriptCount = 0;
     private ScriptRecord[] _scriptRecords;
     private Script[] _scripts;
-    
+
     /** Creates new ScriptList */
     protected ScriptList(DataInputStream dis, int offset) throws IOException {
-        
+
         // Ensure we're in the right place
         dis.reset();
         dis.skipBytes(offset);
-        
+
         // Start reading
         _scriptCount = dis.readUnsignedShort();
         _scriptRecords = new ScriptRecord[_scriptCount];
@@ -86,15 +86,15 @@ public class ScriptList {
     public int getScriptCount() {
         return _scriptCount;
     }
-    
+
     public ScriptRecord getScriptRecord(int i) {
         return _scriptRecords[i];
     }
-    
+
     public Script getScript(int i) {
         return _scripts[i];
     }
-    
+
     public Script findScript(String tag) {
         if (tag.length() != 4) {
             return null;

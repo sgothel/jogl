@@ -49,6 +49,8 @@ import jogamp.opengl.GLGraphicsConfigurationUtil;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
@@ -58,6 +60,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 /**
  * Tests using an AWT {@link GLCanvas} {@link GLAutoDrawable auto drawable} for on- and offscreen cases.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT extends UITestCase {
     static final int widthStep = 800/4;
     static final int heightStep = 600/4;

@@ -33,9 +33,12 @@ import java.io.IOException;
 import javax.media.opengl.awt.GLCanvas;
 
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestMainVersionGLCanvasAWT extends UITestCase {
 
     @Test

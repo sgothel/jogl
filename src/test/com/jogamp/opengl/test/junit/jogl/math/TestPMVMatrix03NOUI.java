@@ -9,7 +9,10 @@ import com.jogamp.opengl.util.PMVMatrix;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestPMVMatrix03NOUI {
 
     static final float epsilon = 0.00001f;

@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,47 +29,237 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  */
 
 package jogamp.newt;
 
+import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.util.IOUtil;
+import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.event.NEWTEvent;
 import com.jogamp.newt.event.NEWTEventConsumer;
 
 import jogamp.newt.event.NEWTEventTask;
-import com.jogamp.newt.util.EDTUtil;
 
+import com.jogamp.newt.util.EDTUtil;
+import com.jogamp.opengl.util.PNGPixelRect;
+
+import java.io.IOException;
+import java.net.URLConnection;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.util.PixelFormatUtil;
+import javax.media.nativewindow.util.PixelRectangle;
+import javax.media.nativewindow.util.PixelFormat;
+import javax.media.nativewindow.util.Point;
+import javax.media.nativewindow.util.PointImmutable;
 
 public abstract class DisplayImpl extends Display {
     private static int serialno = 1;
+    private static final boolean pngUtilAvail;
 
     static {
         NativeWindowFactory.addCustomShutdownHook(true /* head */, new Runnable() {
+           @Override
            public void run() {
                WindowImpl.shutdownAll();
                ScreenImpl.shutdownAll();
                DisplayImpl.shutdownAll();
            }
         });
+
+        final ClassLoader cl = DisplayImpl.class.getClassLoader();
+        pngUtilAvail = ReflectionUtil.isClassAvailable("jogamp.opengl.util.pngj.PngReader", cl) &&
+                       ReflectionUtil.isClassAvailable("com.jogamp.opengl.util.PNGPixelRect", cl);
     }
-        
+
+    public static final boolean isPNGUtilAvailable() { return pngUtilAvail; }
+
+    final ArrayList<PointerIconImpl> pointerIconList = new ArrayList<PointerIconImpl>();
+
+    /** Executed from EDT! */
+    private void destroyAllPointerIconFromList(final long dpy) {
+        synchronized(pointerIconList) {
+            final int count = pointerIconList.size();
+            for( int i=0; i < count; i++ ) {
+                final PointerIconImpl item = pointerIconList.get(i);
+                if(DEBUG) {
+                    System.err.println("destroyAllPointerIconFromList: dpy "+toHexString(dpy)+", # "+i+"/"+count+": "+item+" @ "+getThreadName());
+                }
+                if( null != item && item.isValid() ) {
+                    item.destroyOnEDT(dpy);
+                }
+            }
+            pointerIconList.clear();
+        }
+    }
+
+    @Override
+    public PixelFormat getNativePointerIconPixelFormat() { return PixelFormat.BGRA8888; }
+    @Override
+    public boolean getNativePointerIconForceDirectNIO() { return false; }
+
+    @Override
+    public final PointerIcon createPointerIcon(final IOUtil.ClassResources pngResource, final int hotX, final int hotY)
+            throws IllegalArgumentException, IllegalStateException, IOException
+    {
+        if( null == pngResource || 0 >= pngResource.resourceCount() ) {
+            throw new IllegalArgumentException("Null or invalid pngResource "+pngResource);
+        }
+        if( !pngUtilAvail ) {
+            return null;
+        }
+        final PointerIconImpl[] res = { null };
+        runOnEDTIfAvail(true, new Runnable() {
+            public void run() {
+                try {
+                    if( !DisplayImpl.this.isNativeValidAsync() ) {
+                        throw new IllegalStateException("Display.createPointerIcon: Display invalid "+DisplayImpl.this);
+                    }
+                    final URLConnection urlConn = pngResource.resolve(0);
+                    if( null == urlConn ) {
+                        throw new IOException("Could not resolve "+pngResource.resourcePaths[0]);
+                    }
+                    final PNGPixelRect image = PNGPixelRect.read(urlConn.getInputStream(),
+                                                                 getNativePointerIconPixelFormat(),
+                                                                 getNativePointerIconForceDirectNIO(),
+                                                                 0 /* destMinStrideInBytes */, false /* destIsGLOriented */);
+                    final long handle = createPointerIconImplChecked(image.getPixelformat(), image.getSize().getWidth(), image.getSize().getHeight(),
+                                                                     image.getPixels(), hotX, hotY);
+                    final PointImmutable hotspot = new Point(hotX, hotY);
+                    if( DEBUG_POINTER_ICON ) {
+                        System.err.println("createPointerIconPNG.0: "+image+", handle: "+toHexString(handle)+", hot "+hotspot);
+                    }
+                    if( 0 != handle ) {
+                        res[0] = new PointerIconImpl(DisplayImpl.this, image, hotspot, handle);
+                        if( DEBUG_POINTER_ICON ) {
+                            System.err.println("createPointerIconPNG.0: "+res[0]);
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } } );
+        if( null != res[0] ) {
+            synchronized(pointerIconList) {
+                pointerIconList.add(res[0]);
+            }
+        }
+        return res[0];
+    }
+
+    @Override
+    public final PointerIcon createPointerIcon(final PixelRectangle pixelrect, final int hotX, final int hotY)
+            throws IllegalArgumentException, IllegalStateException
+    {
+        if( null == pixelrect ) {
+            throw new IllegalArgumentException("Null or pixelrect");
+        }
+        final PixelRectangle fpixelrect;
+        if( getNativePointerIconPixelFormat() != pixelrect.getPixelformat() || pixelrect.isGLOriented() ) {
+            // conversion !
+            fpixelrect = PixelFormatUtil.convert32(pixelrect, getNativePointerIconPixelFormat(),
+                                                      0 /* ddestStride */, false /* isGLOriented */, getNativePointerIconForceDirectNIO() );
+            if( DEBUG_POINTER_ICON ) {
+                System.err.println("createPointerIconRES.0: Conversion-FMT "+pixelrect+" -> "+fpixelrect);
+            }
+        } else if( getNativePointerIconForceDirectNIO() && !Buffers.isDirect(pixelrect.getPixels()) ) {
+            // transfer to direct NIO
+            final ByteBuffer sBB = pixelrect.getPixels();
+            final ByteBuffer dBB = Buffers.newDirectByteBuffer(sBB.array(), sBB.arrayOffset());
+            fpixelrect = new PixelRectangle.GenericPixelRect(pixelrect.getPixelformat(), pixelrect.getSize(), pixelrect.getStride(), pixelrect.isGLOriented(), dBB);
+            if( DEBUG_POINTER_ICON ) {
+                System.err.println("createPointerIconRES.0: Conversion-NIO "+pixelrect+" -> "+fpixelrect);
+            }
+        } else {
+            fpixelrect = pixelrect;
+            if( DEBUG_POINTER_ICON ) {
+                System.err.println("createPointerIconRES.0: No conversion "+fpixelrect);
+            }
+        }
+        final PointerIconImpl[] res = { null };
+        runOnEDTIfAvail(true, new Runnable() {
+            public void run() {
+                try {
+                    if( !DisplayImpl.this.isNativeValidAsync() ) {
+                        throw new IllegalStateException("Display.createPointerIcon: Display invalid "+DisplayImpl.this);
+                    }
+                    if( null != fpixelrect ) {
+                        final long handle = createPointerIconImplChecked(fpixelrect.getPixelformat(),
+                                                                         fpixelrect.getSize().getWidth(),
+                                                                         fpixelrect.getSize().getHeight(),
+                                                                         fpixelrect.getPixels(), hotX, hotY);
+                        if( 0 != handle ) {
+                            res[0] = new PointerIconImpl(DisplayImpl.this, fpixelrect, new Point(hotX, hotY), handle);
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } } );
+        if( null != res[0] ) {
+            synchronized(pointerIconList) {
+                pointerIconList.add(res[0]);
+            }
+        }
+        return res[0];
+    }
+
+    /**
+     * Executed from EDT!
+     *
+     * @param pixelformat the <code>pixels</code>'s format
+     * @param width the <code>pixels</code>'s width
+     * @param height the <code>pixels</code>'s height
+     * @param pixels the <code>pixels</code>
+     * @param hotX the PointerIcon's hot-spot x-coord
+     * @param hotY the PointerIcon's hot-spot x-coord
+     * @return if successful a valid handle (not null), otherwise null.
+     */
+    protected final long createPointerIconImplChecked(PixelFormat pixelformat, int width, int height, final ByteBuffer pixels, final int hotX, final int hotY) {
+        if( getNativePointerIconPixelFormat() != pixelformat ) {
+            throw new IllegalArgumentException("Pixelformat no "+getNativePointerIconPixelFormat()+", but "+pixelformat);
+        }
+        if( getNativePointerIconForceDirectNIO() && !Buffers.isDirect(pixels) ) {
+            throw new IllegalArgumentException("pixel buffer is not direct "+pixels);
+        }
+        return createPointerIconImpl(pixelformat, width, height, pixels, hotX, hotY);
+    }
+
+    /**
+     * Executed from EDT!
+     *
+     * @param pixelformat the <code>pixels</code>'s format
+     * @param width the <code>pixels</code>'s width
+     * @param height the <code>pixels</code>'s height
+     * @param pixels the <code>pixels</code>
+     * @param hotX the PointerIcon's hot-spot x-coord
+     * @param hotY the PointerIcon's hot-spot x-coord
+     * @return if successful a valid handle (not null), otherwise null.
+     */
+    protected long createPointerIconImpl(PixelFormat pixelformat, int width, int height, final ByteBuffer pixels, final int hotX, final int hotY) {
+        return 0;
+    }
+
+    /** Executed from EDT! */
+    protected void destroyPointerIconImpl(final long displayHandle, long piHandle) { }
+
     /** Ensure static init has been run. */
     /* pp */static void initSingleton() { }
-    
-    private static Class<?> getDisplayClass(String type) 
-        throws ClassNotFoundException 
+
+    private static Class<?> getDisplayClass(String type)
+        throws ClassNotFoundException
     {
         final Class<?> displayClass = NewtFactory.getCustomClass(type, "DisplayDriver");
         if(null==displayClass) {
-            throw new ClassNotFoundException("Failed to find NEWT Display Class <"+type+".DisplayDriver>");            
+            throw new ClassNotFoundException("Failed to find NEWT Display Class <"+type+".DisplayDriver>");
         }
         return displayClass;
     }
@@ -100,7 +290,7 @@ public abstract class DisplayImpl extends Display {
                 display.setEDTUtil( display.edtUtil ); // device's default if EDT is used, or null
                 Display.addDisplay2List(display);
             }
-            
+
             if(DEBUG) {
                 System.err.println("Display.create() NEW: "+display+" "+getThreadName());
             }
@@ -109,7 +299,7 @@ public abstract class DisplayImpl extends Display {
             throw new RuntimeException(e);
         }
     }
-    
+
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {
@@ -147,6 +337,7 @@ public abstract class DisplayImpl extends Display {
             final DisplayImpl f_dpy = this;
             try {
                 runOnEDTIfAvail(true, new Runnable() {
+                    @Override
                     public void run() {
                         f_dpy.createNativeImpl();
                     }});
@@ -168,9 +359,9 @@ public abstract class DisplayImpl extends Display {
     protected EDTUtil createEDTUtil() {
         final EDTUtil def;
         if(NewtFactory.useEDT()) {
-            def = new DefaultEDTUtil(Thread.currentThread().getThreadGroup(), "Display-"+getFQName(), dispatchMessagesRunnable);            
+            def = new DefaultEDTUtil(Thread.currentThread().getThreadGroup(), "Display-"+getFQName(), dispatchMessagesRunnable);
             if(DEBUG) {
-                System.err.println("Display.createNative("+getFQName()+") Create EDTUtil: "+def.getClass().getName());
+                System.err.println("Display.createEDTUtil("+getFQName()+"): "+def.getClass().getName());
             }
         } else {
             def = null;
@@ -181,21 +372,18 @@ public abstract class DisplayImpl extends Display {
     @Override
     public synchronized EDTUtil setEDTUtil(final EDTUtil usrEDTUtil) {
         final EDTUtil oldEDTUtil = edtUtil;
-        final EDTUtil newEDTUtil;
         if( null != usrEDTUtil && usrEDTUtil == oldEDTUtil ) {
             if( DEBUG ) {
                 System.err.println("Display.setEDTUtil: "+usrEDTUtil+" - keep!");
             }
-            newEDTUtil = oldEDTUtil;
-        } else {
-            if(DEBUG) {
-                final String msg = ( null == usrEDTUtil ) ? "default" : "custom";
-                System.err.println("Display.setEDTUtil("+msg+"): "+oldEDTUtil+" -> "+usrEDTUtil);
-            }
-            stopEDT( oldEDTUtil, null );
-            newEDTUtil = ( null == usrEDTUtil ) ? createEDTUtil() : usrEDTUtil;
+            return oldEDTUtil;
         }
-        edtUtil = newEDTUtil;
+        if(DEBUG) {
+            final String msg = ( null == usrEDTUtil ) ? "default" : "custom";
+            System.err.println("Display.setEDTUtil("+msg+"): "+oldEDTUtil+" -> "+usrEDTUtil);
+        }
+        stopEDT( oldEDTUtil, null );
+        edtUtil = ( null == usrEDTUtil ) ? createEDTUtil() : usrEDTUtil;
         return oldEDTUtil;
     }
 
@@ -224,31 +412,31 @@ public abstract class DisplayImpl extends Display {
 
     public void runOnEDTIfAvail(boolean wait, final Runnable task) {
         final EDTUtil _edtUtil = edtUtil;
-        if( null != _edtUtil && !_edtUtil.isCurrentThreadEDT() ) {
-            if( !_edtUtil.isRunning() ) { // start EDT if not running yet
-                synchronized( this ) {
-                    if( !_edtUtil.isRunning() ) { // // volatile dbl-checked-locking OK
-                        _edtUtil.restart();
-                        if( DEBUG ) {
-                            System.err.println("Info: EDT started "+Thread.currentThread().getName()+", "+this);
-                            Thread.dumpStack();
-                        }
+        if( !_edtUtil.isRunning() ) { // start EDT if not running yet
+            synchronized( this ) {
+                if( !_edtUtil.isRunning() ) { // // volatile dbl-checked-locking OK
+                    if( DEBUG ) {
+                        System.err.println("Info: EDT start "+Thread.currentThread().getName()+", "+this);
+                        Thread.dumpStack();
                     }
+                    _edtUtil.start();
                 }
             }
-            if( !_edtUtil.invoke(wait, task) ) {
-                if( DEBUG ) {
-                    System.err.println("Warning: invoke(wait "+wait+", ..) on EDT failed .. invoke on current thread "+Thread.currentThread().getName());
-                    Thread.dumpStack();
-                }
-                task.run();
-            }
-        } else {
-            task.run();
         }
+        if( !_edtUtil.isCurrentThreadEDT() ) {
+            if( _edtUtil.invoke(wait, task) ) {
+                return; // done
+            }
+            if( DEBUG ) {
+                System.err.println("Warning: invoke(wait "+wait+", ..) on EDT failed .. invoke on current thread "+Thread.currentThread().getName());
+                Thread.dumpStack();
+            }
+        }
+        task.run();
     }
 
-    public boolean validateEDT() {
+    @Override
+    public boolean validateEDTStopped() {
         if( 0==refCount && null == aDevice ) {
             final EDTUtil _edtUtil = edtUtil;
             if( null != _edtUtil && _edtUtil.isRunning() ) {
@@ -275,14 +463,16 @@ public abstract class DisplayImpl extends Display {
             if(DEBUG) {
                 System.err.println("Display.destroy(): "+this+", active "+displaysActive+" "+getThreadName());
             }
-        }        
+        }
         final DisplayImpl f_dpy = this;
         final AbstractGraphicsDevice f_aDevice = aDevice;
         aDevice = null;
         refCount=0;
         stopEDT( edtUtil, new Runnable() { // blocks!
+            @Override
             public void run() {
                 if ( null != f_aDevice ) {
+                    f_dpy.destroyAllPointerIconFromList(f_aDevice.getHandle());
                     f_dpy.closeNativeImpl(f_aDevice);
                 }
             }
@@ -291,10 +481,10 @@ public abstract class DisplayImpl extends Display {
             dumpDisplayList("Display.destroy("+getFQName()+") END");
         }
     }
-    
+
     /** May be utilized at a shutdown hook, impl. does not block. */
     /* pp */ static final void shutdownAll() {
-        final int dCount = displayList.size(); 
+        final int dCount = displayList.size();
         if(DEBUG) {
             dumpDisplayList("Display.shutdownAll "+dCount+" instances, on thread "+getThreadName());
         }
@@ -310,10 +500,12 @@ public abstract class DisplayImpl extends Display {
                 final EDTUtil edtUtil = d.getEDTUtil();
                 final AbstractGraphicsDevice f_aDevice = d.aDevice;
                 d.aDevice = null;
-                d.refCount=0;                
+                d.refCount=0;
                 final Runnable closeNativeTask = new Runnable() {
+                    @Override
                     public void run() {
                         if ( null != d.getGraphicsDevice() ) {
+                            d.destroyAllPointerIconFromList(f_aDevice.getHandle());
                             d.closeNativeImpl(f_aDevice);
                         }
                     }
@@ -333,6 +525,7 @@ public abstract class DisplayImpl extends Display {
         }
     }
 
+    @Override
     public synchronized final int addReference() {
         if(DEBUG) {
             System.err.println("Display.addReference() ("+DisplayImpl.getThreadName()+"): "+refCount+" -> "+(refCount+1));
@@ -347,6 +540,7 @@ public abstract class DisplayImpl extends Display {
     }
 
 
+    @Override
     public synchronized final int removeReference() {
         if(DEBUG) {
             System.err.println("Display.removeReference() ("+DisplayImpl.getThreadName()+"): "+refCount+" -> "+(refCount-1));
@@ -359,6 +553,7 @@ public abstract class DisplayImpl extends Display {
         return refCount;
     }
 
+    @Override
     public synchronized final int getReferenceCount() {
         return refCount;
     }
@@ -385,7 +580,7 @@ public abstract class DisplayImpl extends Display {
     public final String getFQName() {
         return fqname;
     }
-    
+
     @Override
     public final boolean isExclusive() {
         return exclusive;
@@ -429,6 +624,9 @@ public abstract class DisplayImpl extends Display {
     public synchronized final boolean isNativeValid() {
         return null != aDevice;
     }
+    protected final boolean isNativeValidAsync() {
+        return null != aDevice;
+    }
 
     @Override
     public boolean isEDTRunning() {
@@ -442,25 +640,26 @@ public abstract class DisplayImpl extends Display {
     @Override
     public String toString() {
         final EDTUtil _edtUtil = edtUtil;
-        final boolean _edtUtilRunning = ( null != _edtUtil ) ? _edtUtil.isRunning() : false; 
+        final boolean _edtUtilRunning = ( null != _edtUtil ) ? _edtUtil.isRunning() : false;
         return "NEWT-Display["+getFQName()+", excl "+exclusive+", refCount "+refCount+", hasEDT "+(null!=_edtUtil)+", edtRunning "+_edtUtilRunning+", "+aDevice+"]";
     }
 
     /** Dispatch native Toolkit messageges */
     protected abstract void dispatchMessagesNative();
 
-    private Object eventsLock = new Object();
+    private final Object eventsLock = new Object();
     private ArrayList<NEWTEventTask> events = new ArrayList<NEWTEventTask>();
     private volatile boolean haveEvents = false;
 
     final protected Runnable dispatchMessagesRunnable = new Runnable() {
+        @Override
         public void run() {
             DisplayImpl.this.dispatchMessages();
         } };
 
     final void dispatchMessage(final NEWTEvent event) {
-        try { 
-            final Object source = event.getSource();        
+        try {
+            final Object source = event.getSource();
             if(source instanceof NEWTEventConsumer) {
                 final NEWTEventConsumer consumer = (NEWTEventConsumer) source ;
                 if(!consumer.consumeEvent(event)) {
@@ -480,10 +679,10 @@ public abstract class DisplayImpl extends Display {
             throw re;
         }
     }
-    
+
     final void dispatchMessage(final NEWTEventTask eventTask) {
         final NEWTEvent event = eventTask.get();
-        try { 
+        try {
             if(null == event) {
                 // Ooops ?
                 System.err.println("Warning: event of eventTask is NULL");
@@ -499,15 +698,15 @@ public abstract class DisplayImpl extends Display {
                 throw re;
             }
         }
-        eventTask.notifyCaller();        
+        eventTask.notifyCaller();
     }
-    
+
     @Override
     public void dispatchMessages() {
         // System.err.println("Display.dispatchMessages() 0 "+this+" "+getThreadName());
-        if(0==refCount || // no screens 
+        if(0==refCount || // no screens
            null==getGraphicsDevice() // no native device
-          ) 
+          )
         {
             return;
         }
@@ -545,13 +744,13 @@ public abstract class DisplayImpl extends Display {
             }
             return;
         }
-        
+
         // can't wait if we are on EDT or NEDT -> consume right away
         if(wait && _edtUtil.isCurrentThreadEDTorNEDT() ) {
             dispatchMessage(e);
             return;
         }
-        
+
         final Object lock = new Object();
         final NEWTEventTask eTask = new NEWTEventTask(e, wait?lock:null);
         synchronized(lock) {
@@ -569,13 +768,13 @@ public abstract class DisplayImpl extends Display {
                 if( null != eTask.getException() ) {
                     throw eTask.getException();
                 }
-            }            
+            }
         }
     }
 
     public interface DisplayRunnable<T> {
         T run(long dpy);
-    }    
+    }
     public static final <T> T runWithLockedDevice(AbstractGraphicsDevice device, DisplayRunnable<T> action) {
         T res;
         device.lock();
@@ -593,7 +792,7 @@ public abstract class DisplayImpl extends Display {
         }
         return runWithLockedDevice(device, action);
     }
-    
+
     protected volatile EDTUtil edtUtil = null;
     protected int id;
     protected String name;

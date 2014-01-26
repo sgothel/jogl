@@ -51,6 +51,8 @@ import javax.media.opengl.fixedfunc.GLMatrixFunc;
 public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01Accessor {
     TextureData textureData;
     Texture  texture;
+    int textureUnit;
+    boolean keepTextureBound;
     
     ShaderState st;
     PMVMatrix pmvMatrix;
@@ -58,13 +60,44 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
     GLArrayDataServer interleavedVBO;
     float[] clearColor = new float[] { 1.0f, 1.0f, 1.0f, 1.0f };
     
-    public TextureDraw01ES2Listener(TextureData td) {
+    /**
+     * 
+     * @param td
+     * @param textureUnit of range [0..]
+     */
+    public TextureDraw01ES2Listener(TextureData td, int textureUnit) {
         this.textureData = td;
+        this.textureUnit = textureUnit;
+        this.keepTextureBound = false;
     }
     
     public void setClearColor(float[] clearColor) {
         this.clearColor = clearColor;
     }
+
+    @Override
+    public void setKeepTextureBound(boolean v) {
+        this.keepTextureBound = v;
+    }
+    @Override
+    public Texture getTexture( ) {
+        return this.texture;
+    }
+    
+    /**
+    public void setTextureData(GL gl, TextureData textureData ) {
+        if(null!=texture) {
+            texture.disable(gl);
+            texture.destroy(gl);
+        }
+        if(null!=this.textureData) {
+            this.textureData.destroy();
+        }
+        this.textureData = textureData;
+        this.texture = TextureIO.newTexture(this.textureData);
+        
+        // fix VBO !
+    } */
 
     static final String shaderBasename = "texture01_xxx";
        
@@ -90,6 +123,7 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
         st.attachShaderProgram(gl, sp, use_program);
     }
     
+    @Override
     public void init(GLAutoDrawable glad) {
         if(null!=textureData) {
             this.texture = TextureIO.newTexture(glad.getGL(), textureData);
@@ -110,7 +144,7 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
         if(!st.uniform(gl, pmvMatrixUniform)) {
             throw new GLException("Error setting PMVMatrix in shader: "+st);
         }
-        if(!st.uniform(gl, new GLUniformData("mgl_ActiveTexture", 0))) {
+        if(!st.uniform(gl, new GLUniformData("mgl_ActiveTexture", textureUnit))) {
             throw new GLException("Error setting mgl_ActiveTexture in shader: "+st);
         }
 
@@ -140,33 +174,19 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
         // OpenGL Render Settings
         gl.glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
-        st.useProgram(gl, false);        
-    }
-
-    public Texture getTexture( ) {
-        return this.texture;
-    }
-    
-    /**
-    public void setTextureData(GL gl, TextureData textureData ) {
-        if(null!=texture) {
-            texture.disable(gl);
-            texture.destroy(gl);
-        }
-        if(null!=this.textureData) {
-            this.textureData.destroy();
-        }
-        this.textureData = textureData;
-        this.texture = TextureIO.newTexture(this.textureData);
         
-        // fix VBO !
-    } */
+        if( keepTextureBound && null != texture  ) {
+            gl.glActiveTexture(GL.GL_TEXTURE0 + textureUnit);
+            texture.enable(gl);
+            texture.bind(gl);
+        }
+        st.useProgram(gl, false);
+    }
 
+    @Override
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         
-        gl.glViewport(0, 0, width, height);
-
         // Clear background to white
         gl.glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
         if(null != st) {
@@ -183,6 +203,7 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
         }        
     }
 
+    @Override
     public void dispose(GLAutoDrawable drawable) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         if(null!=texture) {
@@ -200,6 +221,7 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
         st=null;
     }
 
+    @Override
     public void display(GLAutoDrawable drawable) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
@@ -207,13 +229,17 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
 
         st.useProgram(gl, true);        
         interleavedVBO.enableBuffer(gl, true);
-        gl.glActiveTexture(GL.GL_TEXTURE0);
-        texture.enable(gl);
-        texture.bind(gl);
+        if( !keepTextureBound && null != texture ) {
+            gl.glActiveTexture(GL.GL_TEXTURE0 + textureUnit);        
+            texture.enable(gl);
+            texture.bind(gl);
+        }
         
         gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, 4);
         
-        texture.disable(gl);                                
+        if( !keepTextureBound && null != texture  ) {
+            texture.disable(gl);
+        }
         interleavedVBO.enableBuffer(gl, false);        
         st.useProgram(gl, false);
     }

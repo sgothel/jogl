@@ -35,7 +35,7 @@ public class GraphVertex {
     private Vertex point;
     private ArrayList<HEdge> edges = null;
     private boolean boundaryContained = false;
-    
+
     public GraphVertex(Vertex point) {
         this.point = point;
     }
@@ -43,15 +43,15 @@ public class GraphVertex {
     public Vertex getPoint() {
         return point;
     }
-    
+
     public float getX(){
         return point.getX();
     }
-    
+
     public float getY(){
         return point.getY();
     }
-    
+
     public float getZ(){
         return point.getZ();
     }
@@ -70,7 +70,7 @@ public class GraphVertex {
     public void setEdges(ArrayList<HEdge> edges) {
         this.edges = edges;
     }
-    
+
     public void addEdge(HEdge edge){
         if(edges == null){
             edges = new ArrayList<HEdge>();
@@ -112,7 +112,7 @@ public class GraphVertex {
         }
         return null;
     }
-    
+
     public boolean isBoundaryContained() {
         return boundaryContained;
     }

@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.acore.glels;
 
 import java.awt.Dimension;
@@ -57,11 +57,11 @@ import org.junit.BeforeClass;
 
 /**
  * Test re-association of GLContext/GLDrawables,
- * here GLContext's survival of GLDrawable destruction 
+ * here GLContext's survival of GLDrawable destruction
  * and reuse w/ new or recreated GLDrawable.
  * <p>
- * Test utilizes {@link GLEventListenerState} for preserving the 
- * GLAutoDrawable state, i.e. GLContext, all GLEventListener 
+ * Test utilizes {@link GLEventListenerState} for preserving the
+ * GLAutoDrawable state, i.e. GLContext, all GLEventListener
  * and the GLAnimatorControl association.
  * </p>
  * <p>
@@ -70,7 +70,7 @@ import org.junit.BeforeClass;
  */
 public abstract class GLContextDrawableSwitchBase extends UITestCase {
     static protected enum GLADType { GLCanvasOnscreen, GLCanvasOffscreen, GLWindow, GLOffscreen };
-    
+
     // default period for 1 GLAD cycle
     static long duration = 1000; // ms
 
@@ -83,7 +83,7 @@ public abstract class GLContextDrawableSwitchBase extends UITestCase {
         }
         return new GLCapabilities(GLProfile.get(profile));
     }
-    
+
     @BeforeClass
     public static void initClass() {
         width  = 256;
@@ -101,37 +101,37 @@ public abstract class GLContextDrawableSwitchBase extends UITestCase {
         } catch( Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
-        }       
+        }
     }
-    
+
     static void setFrameVisible(final Frame frame) throws InterruptedException {
         try {
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 frame.pack();
-                frame.setVisible(true);                
-            }});        
+                frame.setVisible(true);
+            }});
         } catch( Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
     }
-    
+
     static void destroyFrame(final Frame frame) throws InterruptedException {
         try {
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 frame.dispose();
-            }});        
+            }});
         } catch( Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
-        }       
+        }
     }
-    
+
     private GLOffscreenAutoDrawable createGLOffscreenAutoDrawable(GLCapabilities caps, int width, int height) throws InterruptedException {
         final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
-        return factory.createOffscreenAutoDrawable(null, caps, null, width, height, null);
+        return factory.createOffscreenAutoDrawable(null, caps, null, width, height);
     }
 
     protected static boolean validateOnOffscreenLayer(GLADType gladType1, GLADType gladType2) {
@@ -150,37 +150,37 @@ public abstract class GLContextDrawableSwitchBase extends UITestCase {
         }
         return true;
     }
-    
-    protected void testGLADOneLifecycle(Screen screen, GLCapabilities caps, GLADType gladType, int width, 
+
+    protected void testGLADOneLifecycle(Screen screen, GLCapabilities caps, GLADType gladType, int width,
                                         int height, GLEventListenerCounter glelTracker,
-                                        SnapshotGLEventListener snapshotGLEventListener, final GLEventListenerState glelsIn, final GLEventListenerState glelsOut[], GLAnimatorControl animator) 
+                                        SnapshotGLEventListener snapshotGLEventListener, final GLEventListenerState glelsIn, final GLEventListenerState glelsOut[], GLAnimatorControl animator)
             throws InterruptedException {
-        
+
         System.err.println("GLAD Lifecycle.0 "+gladType+", restoring "+((null!=glelsIn)?true:false)+", preserving "+((null!=glelsOut)?true:false));
         final Frame frame;
         final GLAutoDrawable glad;
-        if( GLADType.GLCanvasOnscreen == gladType ) { 
+        if( GLADType.GLCanvasOnscreen == gladType ) {
             if( jogamp.nativewindow.jawt.JAWTUtil.isOffscreenLayerRequired() ) {
                 throw new InternalError("Platform requires offscreen rendering, but onscreen requested: "+gladType);
             }
             frame = new Frame("AWT GLCanvas");
-            
+
             glad = new GLCanvas(caps);
             setGLCanvasSize((GLCanvas)glad, new Dimension(width, height));
             frame.add((GLCanvas)glad);
-        } else if( GLADType.GLCanvasOffscreen == gladType ) { 
+        } else if( GLADType.GLCanvasOffscreen == gladType ) {
             if( !jogamp.nativewindow.jawt.JAWTUtil.isOffscreenLayerSupported() ) {
                 throw new InternalError("Platform doesn't support offscreen rendering: "+gladType);
             }
             frame = new Frame("AWT GLCanvas");
-            
+
             glad = new GLCanvas(caps);
             ((GLCanvas)glad).setShallUseOffscreenLayer(true);
             setGLCanvasSize((GLCanvas)glad, new Dimension(width, height));
             frame.add((GLCanvas)glad);
         } else if( GLADType.GLWindow == gladType ) {
             frame = null;
-            
+
             if( null != screen ) {
                 glad = GLWindow.create(screen, caps);
             } else {
@@ -190,60 +190,60 @@ public abstract class GLContextDrawableSwitchBase extends UITestCase {
             ((GLWindow)glad).setSize(width, height);
         } else if( GLADType.GLOffscreen == gladType ) {
             frame = null;
-            
+
             glad = this.createGLOffscreenAutoDrawable(caps, width, height);
         } else {
             throw new InternalError("Unsupported: "+gladType);
         }
-            
+
         if( null == glelsIn ) {
             if( null != animator ) {
                 animator.add(glad);
             }
             glad.addGLEventListener(glelTracker);
             glad.addGLEventListener(new GearsES2(1));
-            glad.addGLEventListener(snapshotGLEventListener);            
+            glad.addGLEventListener(snapshotGLEventListener);
         }
         snapshotGLEventListener.setMakeSnapshot();
-        
-        if( GLADType.GLCanvasOnscreen == gladType || GLADType.GLCanvasOffscreen == gladType ) { 
-            setFrameVisible(frame);                
+
+        if( GLADType.GLCanvasOnscreen == gladType || GLADType.GLCanvasOffscreen == gladType ) {
+            setFrameVisible(frame);
             Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
         } else if( GLADType.GLWindow == gladType ) {
             ((GLWindow)glad).setVisible(true);
-        }        
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glad, true)); 
+        }
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glad, true));
         Assert.assertNotNull(glad.getContext());
         Assert.assertTrue(glad.isRealized());
-                    
+
         if( null != glelsIn ) {
             Assert.assertEquals(0, glad.getGLEventListenerCount());
             System.err.println(".. restoring.0");
-            glelsIn.moveTo(glad);                
+            glelsIn.moveTo(glad);
             System.err.println(".. restoring.X");
-        
+
             Assert.assertEquals(1, glelTracker.initCount);
             Assert.assertTrue(1 <= glelTracker.reshapeCount);
             Assert.assertTrue(1 <= glelTracker.displayCount);
             Assert.assertEquals(0, glelTracker.disposeCount);
             Assert.assertEquals(3, glad.getGLEventListenerCount());
-        
+
             Assert.assertEquals(glelsIn.context, glad.getContext());
             Assert.assertEquals(glelsIn.listenerCount(), glad.getGLEventListenerCount());
             Assert.assertEquals(glelsIn.context.getGLReadDrawable(), glad.getDelegatedDrawable());
             Assert.assertEquals(glelsIn.context.getGLDrawable(), glad.getDelegatedDrawable());
             Assert.assertEquals(false, glelsIn.isOwner());
         }
-        
-        for (int wait=0; wait<AWTRobotUtil.POLL_DIVIDER && 
+
+        for (int wait=0; wait<AWTRobotUtil.POLL_DIVIDER &&
                          ( 1 > glelTracker.initCount || 1 > glelTracker.reshapeCount || 1 > glelTracker.displayCount );
              wait++) {
             Thread.sleep(AWTRobotUtil.TIME_SLICE);
         }
-        
+
         final long t0 = System.currentTimeMillis();
         long t1 = t0;
-        
+
         while( ( t1 - t0 ) < duration ) {
             Thread.sleep(100);
             t1 = System.currentTimeMillis();
@@ -253,13 +253,13 @@ public abstract class GLContextDrawableSwitchBase extends UITestCase {
         Assert.assertTrue(1 <= glelTracker.reshapeCount);
         Assert.assertTrue(1 <= glelTracker.displayCount);
         Assert.assertEquals(0, glelTracker.disposeCount);
-        
+
         if( null != glelsOut ) {
             final GLContext context1 = glad.getContext();
             System.err.println(".. preserving.0");
             glelsOut[0] = GLEventListenerState.moveFrom(glad);
             System.err.println(".. preserving.X");
-            
+
             Assert.assertEquals(context1, glelsOut[0].context);
             Assert.assertNull(context1.getGLReadDrawable());
             Assert.assertNull(context1.getGLDrawable());
@@ -276,8 +276,8 @@ public abstract class GLContextDrawableSwitchBase extends UITestCase {
         } else if( GLADType.GLOffscreen == gladType ) {
             glad.destroy();
         }
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glad, false)); 
-        
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glad, false));
+
         Assert.assertEquals(1, glelTracker.initCount);
         Assert.assertTrue(1 <= glelTracker.reshapeCount);
         Assert.assertTrue(1 <= glelTracker.displayCount);

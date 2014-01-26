@@ -2,16 +2,19 @@
 public GLES3Impl(GLProfile glp, GLContextImpl context) {
   this._context = context; 
   if(null != context) {
-      this.bufferSizeTracker  = context.getBufferSizeTracker();
+      this.bufferObjectTracker  = context.getBufferObjectTracker();
       this.bufferStateTracker = context.getBufferStateTracker();
       this.glStateTracker     = context.getGLStateTracker();
   } else {
-      this.bufferSizeTracker  = null;
+      this.bufferObjectTracker  = null;
       this.bufferStateTracker = null;
       this.glStateTracker     = null;
   }
   this.glProfile = glp;
   this._isES3 = glp.getImplName() == GLProfile.GLES3;
+}
+
+public final void finalizeInit() {
 }
 
 @Override
@@ -66,6 +69,11 @@ public final boolean isGL2ES1() {
 @Override
 public final boolean isGL2ES2() {
     return true;
+}
+
+@Override
+public final boolean isGL2ES3() {
+    return _isES3;
 }
 
 @Override
@@ -170,6 +178,14 @@ public final GL2ES2 getGL2ES2() throws GLException {
 }
 
 @Override
+public final GL2ES3 getGL2ES3() throws GLException {
+    if(!_isES3) {
+        throw new GLException("Not a GL2ES3 implementation");
+    }
+    return this;
+}
+
+@Override
 public final GL3ES3 getGL3ES3() throws GLException {
     if(!_isES3) {
         throw new GLException("Not a GL3ES3 implementation");
@@ -195,17 +211,14 @@ public final GL2GL3 getGL2GL3() throws GLException {
 //
 
 private final boolean _isES3;
-private final GLBufferSizeTracker  bufferSizeTracker;
-private final GLBufferStateTracker bufferStateTracker;
-private final GLStateTracker       glStateTracker;
 
 private final boolean checkBufferObject(boolean extensionAvail,
                                         boolean allowVAO,
-                                        boolean enabled,
+                                        boolean bound,
                                         int state,
                                         String kind, boolean throwException) {
   if ( !extensionAvail ) {
-    if ( !enabled ) {
+    if ( !bound ) {
       return true;
     }
     if(throwException) {
@@ -214,18 +227,18 @@ private final boolean checkBufferObject(boolean extensionAvail,
     return false;
   }
   int buffer = bufferStateTracker.getBoundBufferObject(state, this);
-  if ( enabled ) {
+  if ( bound ) {
     if ( 0 != buffer ) {
         return true;
     }
     if ( allowVAO ) {
-        buffer = bufferStateTracker.getBoundBufferObject(GLES3.GL_VERTEX_ARRAY_BINDING, this);
+        buffer = bufferStateTracker.getBoundBufferObject(GL2ES3.GL_VERTEX_ARRAY_BINDING, this);
         if( 0 != buffer && _context.getDefaultVAO() != buffer ) {
             return true;
         }
     }
     if ( throwException ) {
-        throw new GLException(kind + " must be enabled to call this method");
+        throw new GLException(kind + " must be bound to call this method");
     }
     return false;
   } else {
@@ -233,94 +246,104 @@ private final boolean checkBufferObject(boolean extensionAvail,
         return true;
     }
     if ( throwException ) {
-        throw new GLException(kind + " must be disabled to call this method");
+        throw new GLException(kind + " must be unbound to call this method");
     }
     return false;
   }
 }  
 
-private final boolean checkArrayVBODisabled(boolean throwException) { 
+private final void validateCPUSourcedAvail() {
+    if(!_context.isCPUDataSourcingAvail()) {
+        throw new GLException("CPU data sourcing n/a w/ "+_context);
+    }
+}
+
+private final boolean checkArrayVBOUnbound(boolean throwException) { 
+  if(throwException) {
+      validateCPUSourcedAvail();
+  }
   return checkBufferObject(true,
                            _isES3, // allowVAO
-                           false, // enable
+                           false, // bound
                            GL.GL_ARRAY_BUFFER,
                            "array vertex_buffer_object", throwException);
 }
 
-private final boolean checkArrayVBOEnabled(boolean throwException) { 
+private final boolean checkArrayVBOBound(boolean throwException) { 
   return checkBufferObject(true,
                            _isES3, // allowVAO
-                           true, // enable
+                           true, // bound
                            GL.GL_ARRAY_BUFFER,
                            "array vertex_buffer_object", throwException);
 }
 
-private final boolean checkElementVBODisabled(boolean throwException) { 
+private final boolean checkElementVBOUnbound(boolean throwException) { 
+  if(throwException) {
+      validateCPUSourcedAvail();
+  }
   return checkBufferObject(true,
                            _isES3, // allowVAO
-                           false, // enable
+                           false, // bound
                            GL.GL_ELEMENT_ARRAY_BUFFER,
                            "element vertex_buffer_object", throwException);
 }
 
-private final boolean checkElementVBOEnabled(boolean throwException) { 
+private final boolean checkElementVBOBound(boolean throwException) { 
   return checkBufferObject(true,
                            _isES3, // allowVAO
-                           true, // enable
+                           true, // bound
                            GL.GL_ELEMENT_ARRAY_BUFFER,
                            "element vertex_buffer_object", throwException);
 }
 
-private final boolean checkUnpackPBODisabled(boolean throwException) { 
+private final boolean checkUnpackPBOUnbound(boolean throwException) { 
   return checkBufferObject(_isES3,
                            false, // allowVAO
-                           false, // enable
+                           false, // bound
                            GL2.GL_PIXEL_UNPACK_BUFFER,
                            "unpack pixel_buffer_object", throwException);
 }
 
-private final boolean checkUnpackPBOEnabled(boolean throwException) { 
+private final boolean checkUnpackPBOBound(boolean throwException) { 
   return checkBufferObject(_isES3,
                            false, // allowVAO
-                           true, // enable
+                           true, // bound
                            GL2.GL_PIXEL_UNPACK_BUFFER,
                            "unpack pixel_buffer_object", throwException);
 }
 
-private final boolean checkPackPBODisabled(boolean throwException) { 
+private final boolean checkPackPBOUnbound(boolean throwException) { 
   return checkBufferObject(_isES3,
                            false, // allowVAO
-                           false, // enable
+                           false, // bound
                            GL2.GL_PIXEL_PACK_BUFFER,
                            "pack pixel_buffer_object", throwException);
 }
 
-private final boolean checkPackPBOEnabled(boolean throwException) { 
+private final boolean checkPackPBOBound(boolean throwException) { 
   return checkBufferObject(_isES3,
                            false, // allowVAO
-                           true, // enable
+                           true, // bound
                            GL2.GL_PIXEL_PACK_BUFFER,
                            "pack pixel_buffer_object", throwException);
 }
 
 @Override
-public final boolean glIsPBOPackEnabled() {
-    return checkPackPBOEnabled(false);
+public final boolean glIsPBOPackBound() {
+    return isPBOPackBound();
+}
+@Override
+public final boolean isPBOPackBound() {
+    return checkPackPBOBound(false);
 }
 
 @Override
-public final boolean glIsPBOUnpackEnabled() {
-    return checkUnpackPBOEnabled(false);
+public final boolean glIsPBOUnpackBound() {
+    return isPBOUnpackBound();
 }
-
-/** Entry point to C language function: <code> void *  {@native glMapBuffer}(GLenum target, GLenum access); </code> <br>Part of <code>GL_VERSION_1_5</code>; <code>GL_OES_mapbuffer</code>   */
-public final java.nio.ByteBuffer glMapBuffer(int target, int access) {
-  return glMapBufferImpl(target, false, 0, 0, access, ((GLES3ProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBuffer);
-}
-
-/** Entry point to C language function: <code> void *  {@native glMapBufferRange}(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access); </code> <br>Part of <code>GL_ES_VERSION_3_0</code>, <code>GL_VERSION_3_0</code>; <code>GL_EXT_map_buffer_range</code>   */
-public final ByteBuffer glMapBufferRange(int target, long offset, long length, int access)  {
-  return glMapBufferImpl(target, true, offset, length, access, ((GLES3ProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBufferRange);
+@Override
+public final boolean isPBOUnpackBound() {
+    return checkUnpackPBOBound(false);
 }
 
 @Override
@@ -332,4 +355,46 @@ public final void glClearDepth(double depth) {
 public final void glDepthRange(double zNear, double zFar) {
     glDepthRangef((float)zNear, (float)zFar); 
 }
+
+//
+// GLBufferObjectTracker Redirects
+//
+
+@Override
+public final void glBufferData(int target, long size, Buffer data, int usage)  {
+    final long glProcAddress = ((GLES3ProcAddressTable)_context.getGLProcAddressTable())._addressof_glBufferData;
+    if ( 0 == glProcAddress ) {
+      throw new GLException(String.format("Method \"%s\" not available", "glBufferData"));
+    }
+    bufferObjectTracker.createBufferStorage(bufferStateTracker, this, 
+                                            target, size, data, usage, 0 /* immutableFlags */,
+                                            createBoundMutableStorageDispatch, glProcAddress);
+}
+
+@Override
+public boolean glUnmapBuffer(int target)  {
+    final long glProcAddress = ((GLES3ProcAddressTable)_context.getGLProcAddressTable())._addressof_glUnmapBuffer;
+    if ( 0 == glProcAddress ) {
+      throw new GLException(String.format("Method \"%s\" not available", "glUnmapBuffer"));
+    }
+    return bufferObjectTracker.unmapBuffer(bufferStateTracker, this, target, unmapBoundBufferDispatch, glProcAddress);
+}
+
+@Override
+public final GLBufferStorage mapBuffer(final int target, final int access) {
+  final long glProcAddress = ((GLES3ProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBuffer;
+  if ( 0 == glProcAddress ) {
+    throw new GLException("Method \"glMapBuffer\" not available");
+  }
+  return bufferObjectTracker.mapBuffer(bufferStateTracker, this, target, access, mapBoundBufferAllDispatch, glProcAddress);
+}
+@Override
+public final GLBufferStorage mapBufferRange(final int target, final long offset, final long length, final int access) {
+  final long glProcAddress = ((GLES3ProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBufferRange;
+  if ( 0 == glProcAddress ) {
+    throw new GLException("Method \"glMapBufferRange\" not available");
+  }
+  return bufferObjectTracker.mapBuffer(bufferStateTracker, this, target, offset, length, access, mapBoundBufferRangeDispatch, glProcAddress);
+}
+
 

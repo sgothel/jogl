@@ -38,6 +38,7 @@ package jogamp.opengl.egl;
 import javax.media.opengl.*;
 
 import jogamp.opengl.*;
+
 import javax.media.nativewindow.*;
 
 public class EGLExternalContext extends EGLContext {
@@ -45,7 +46,9 @@ public class EGLExternalContext extends EGLContext {
     public EGLExternalContext(AbstractGraphicsScreen screen) {
         super(null, null);
         GLContextShareSet.contextCreated(this);
-        setGLFunctionAvailability(false, 0, 0, CTX_PROFILE_ES, false);
+        if( !setGLFunctionAvailability(false, 0, 0, CTX_PROFILE_ES, false /* strictMatch */, false /* withinGLVersionsMapping */) ) { // use GL_VERSION
+            throw new InternalError("setGLFunctionAvailability !strictMatch failed");
+        }
         getGLStateTracker().setEnabled(false); // external context usage can't track state in Java
     }
 
