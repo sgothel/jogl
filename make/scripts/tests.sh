@@ -242,7 +242,7 @@ function jrun() {
     #D_ARGS="-Djogamp.debug.IOUtil -Djogl.debug.GLSLCode -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.AudioSink"
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLMediaPlayer.Native"
-    #D_ARGS="-Djogl.debug.GLMediaPlayer"
+    D_ARGS="-Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25 -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.Native"
 
@@ -355,13 +355,13 @@ function testawtswt() {
 #
 #testnoawt jogamp.opengl.openal.av.ALDummyUsage $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 
 #
 # performance tests
 #
 #testnoawt com.jogamp.opengl.test.junit.jogl.perf.TestPerf001RawInit00NEWT $*
-testawt com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLJPanelInit01AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLJPanelInit01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLJPanelInit02AWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLWindowInit03NEWT $*
 

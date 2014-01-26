@@ -36,6 +36,7 @@ import java.nio.FloatBuffer;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLES2;
@@ -83,6 +84,9 @@ public class MovieSimple implements GLEventListener {
     public static final int EFFECT_NORMAL                  =    0;
     public static final int EFFECT_GRADIENT_BOTTOM2TOP     = 1<<1;
     public static final int EFFECT_TRANSPARENT             = 1<<3;
+
+    private static final String WINDOW_KEY = "window";
+    private static final String PLAYER = "player";
 
     private static boolean waitForKey = false;
     private int winWidth, winHeight;
@@ -286,6 +290,7 @@ public class MovieSimple implements GLEventListener {
         mPlayerShared = null != mPlayer;
         if( !mPlayerShared ) {
             mPlayer = GLMediaPlayerFactory.createDefault();
+            mPlayer.attachObject(PLAYER, this);
         }
         System.out.println("pC.1a shared "+mPlayerShared+", "+mPlayer);
     }
@@ -701,6 +706,94 @@ public class MovieSimple implements GLEventListener {
         st.useProgram(gl, false);
     }
 
+    static class MyGLMediaEventListener implements GLMediaEventListener {
+            void destroyWindow(final Window window) {
+                new Thread() {
+                    public void run() {
+                        window.destroy();
+                    } }.start();
+            }
+
+            @Override
+            public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) {
+            }
+
+            @Override
+            public void attributesChanged(final GLMediaPlayer mp, int event_mask, long when) {
+                System.err.println("MovieSimple AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
+                System.err.println("MovieSimple State: "+mp);
+                final GLWindow window = (GLWindow) mp.getAttachedObject(WINDOW_KEY);
+                final MovieSimple ms = (MovieSimple)mp.getAttachedObject(PLAYER);
+                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_SIZE & event_mask ) ) {
+                    System.err.println("MovieSimple State: CHANGE_SIZE");
+                    if( origSize ) {
+                        window.setSize(mp.getWidth(), mp.getHeight());
+                    }
+                    // window.disposeGLEventListener(ms, false /* remove */ );
+                    ms.resetGLState();
+                }
+                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
+                    System.err.println("MovieSimple State: INIT");
+                    // Use GLEventListener in all cases [A+V, V, A]
+                    window.addGLEventListener(ms);
+                    final GLAnimatorControl anim = window.getAnimator();
+                    anim.setUpdateFPSFrames(60, System.err);
+                    anim.resetFPSCounter();
+
+                    /**
+                     * Kick off player w/o GLEventListener, i.e. for audio only.
+                     *
+                        try {
+                            ms.mPlayer.initGL(null);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            destroyWindow();
+                            return;
+                        }
+                        ms.mPlayer.play();
+                        System.out.println("play.1 "+ms.mPlayer);
+                    */
+                }
+                boolean destroy = false;
+                Throwable err = null;
+
+                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_EOS & event_mask ) ) {
+                    err = ms.mPlayer.getStreamException();
+                    if( null != err ) {
+                        System.err.println("MovieSimple State: EOS + Exception");
+                        destroy = true;
+                    } else {
+                        System.err.println("MovieSimple State: EOS");
+                        if( loopEOS ) {
+                            ms.mPlayer.seek(0);
+                            ms.mPlayer.play();
+                        } else {
+                            destroy = true;
+                        }
+                    }
+                }
+                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_ERR & event_mask ) ) {
+                    err = ms.mPlayer.getStreamException();
+                    if( null != err ) {
+                        System.err.println("MovieSimple State: ERR + Exception");
+                    } else {
+                        System.err.println("MovieSimple State: ERR");
+                    }
+                    destroy = true;
+                }
+                if( destroy ) {
+                    if( null != err ) {
+                        err.printStackTrace();
+                    }
+                    destroyWindow(window);
+                }
+            }
+        };
+    final static MyGLMediaEventListener myGLMediaEventListener = new MyGLMediaEventListener();
+
+    static boolean loopEOS = false;
+    static boolean origSize;
+
     public static void main(String[] args) throws IOException, URISyntaxException {
         int swapInterval = 1;
         int width = 640;
@@ -708,7 +801,6 @@ public class MovieSimple implements GLEventListener {
         int textureCount = 3; // default - threaded
         boolean ortho = true;
         boolean zoom = false;
-        boolean _loopEOS = false;
 
         boolean forceES2 = false;
         boolean forceES3 = false;
@@ -716,9 +808,20 @@ public class MovieSimple implements GLEventListener {
         boolean forceGLDef = false;
         int vid = GLMediaPlayer.STREAM_ID_AUTO;
         int aid = GLMediaPlayer.STREAM_ID_AUTO;
-        final boolean origSize;
 
-        String url_s=null, file_s1=null, file_s2=null;
+        final int windowCount;
+        {
+            int _windowCount = 1;
+            for(int i=0; i<args.length; i++) {
+                if(args[i].equals("-windows")) {
+                    i++;
+                    _windowCount = MiscUtils.atoi(args[i], _windowCount);
+                }
+            }
+            windowCount = _windowCount;
+        }
+        String[] urls_s = new String[windowCount];
+        String file_s1=null, file_s2=null;
         {
             boolean _origSize = false;
             for(int i=0; i<args.length; i++) {
@@ -755,10 +858,15 @@ public class MovieSimple implements GLEventListener {
                 } else if(args[i].equals("-zoom")) {
                     zoom=true;
                 } else if(args[i].equals("-loop")) {
-                    _loopEOS=true;
+                    loopEOS=true;
+                } else if(args[i].equals("-urlN")) {
+                    i++;
+                    final int n = MiscUtils.atoi(args[i], 0);
+                    i++;
+                    urls_s[n] = args[i];
                 } else if(args[i].equals("-url")) {
                     i++;
-                    url_s = args[i];
+                    urls_s[0] = args[i];
                 } else if(args[i].equals("-file1")) {
                     i++;
                     file_s1 = args[i];
@@ -771,21 +879,20 @@ public class MovieSimple implements GLEventListener {
             }
             origSize = _origSize;
         }
-        final boolean loopEOS = _loopEOS;
-        final URI streamLoc;
-        if( null != url_s ) {
-            streamLoc = new URI(url_s);
+        final URI streamLoc0;
+        if( null != urls_s[0] ) {
+            streamLoc0 = new URI(urls_s[0]);
         } else if( null != file_s1 ) {
             File movieFile = new File(file_s1);
-            streamLoc = movieFile.toURI();
+            streamLoc0 = movieFile.toURI();
         } else if( null != file_s2 ) {
-            streamLoc = IOUtil.toURISimple(new File(file_s2));
+            streamLoc0 = IOUtil.toURISimple(new File(file_s2));
         } else {
-            streamLoc = defURI;
+            streamLoc0 = defURI;
         }
-        System.err.println("url_s "+url_s);
+        System.err.println("url_s "+urls_s[0]);
         System.err.println("file_s 1: "+file_s1+", 2: "+file_s2);
-        System.err.println("stream "+streamLoc);
+        System.err.println("stream0 "+streamLoc0);
         System.err.println("vid "+vid+", aid "+aid);
         System.err.println("textureCount "+textureCount);
         System.err.println("forceES2   "+forceES2);
@@ -794,119 +901,57 @@ public class MovieSimple implements GLEventListener {
         System.err.println("forceGLDef "+forceGLDef);
         System.err.println("swapInterval "+swapInterval);
 
-        final MovieSimple ms = new MovieSimple(null);
-        ms.setSwapInterval(swapInterval);
-        ms.setScaleOrig(!zoom);
-        ms.setOrthoProjection(ortho);
+        final GLProfile glp;
+        if(forceGLDef) {
+            glp = GLProfile.getDefault();
+        } else if(forceGL3) {
+            glp = GLProfile.get(GLProfile.GL3);
+        } else if(forceES3) {
+            glp = GLProfile.get(GLProfile.GLES3);
+        } else if(forceES2) {
+            glp = GLProfile.get(GLProfile.GLES2);
+        } else {
+            glp = GLProfile.getGL2ES2();
+        }
+        System.err.println("GLProfile: "+glp);
+        GLCapabilities caps = new GLCapabilities(glp);
 
-        try {
-            final GLProfile glp;
-            if(forceGLDef) {
-                glp = GLProfile.getDefault();
-            } else if(forceGL3) {
-                glp = GLProfile.get(GLProfile.GL3);
-            } else if(forceES3) {
-                glp = GLProfile.get(GLProfile.GLES3);
-            } else if(forceES2) {
-                glp = GLProfile.get(GLProfile.GLES2);
-            } else {
-                glp = GLProfile.getGL2ES2();
-            }
-            System.err.println("GLProfile: "+glp);
-            GLCapabilities caps = new GLCapabilities(glp);
-            final GLWindow window = GLWindow.create(caps);
-            final Animator anim = new Animator(window);
-            window.addWindowListener(new WindowAdapter() {
+        final Animator anim = new Animator();
+        anim.start();
+
+        final MovieSimple[] mss = new MovieSimple[windowCount];
+        final GLWindow[] windows = new GLWindow[windowCount];
+        for(int i=0; i<windowCount; i++) {
+            windows[i] = GLWindow.create(caps);
+            windows[i].addWindowListener(new WindowAdapter() {
                 public void windowDestroyed(WindowEvent e) {
                     anim.stop();
                 }
             });
-            window.setSize(width, height);
-            window.setVisible(true);
-            anim.start();
+            mss[i] = new MovieSimple(null);
+            mss[i].setSwapInterval(swapInterval);
+            mss[i].setScaleOrig(!zoom);
+            mss[i].setOrthoProjection(ortho);
+            mss[i].mPlayer.attachObject(WINDOW_KEY, windows[i]);
+            mss[i].mPlayer.addEventListener(myGLMediaEventListener);
 
-            ms.mPlayer.addEventListener(new GLMediaEventListener() {
-                void destroyWindow() {
-                    new Thread() {
-                        public void run() {
-                            window.destroy();
-                        } }.start();
+            windows[i].setTitle("Player "+i);
+            windows[i].setSize(width, height);
+            windows[i].setVisible(true);
+            anim.add(windows[i]);
+
+            final URI streamLocN;
+            if( 0 == i ) {
+                streamLocN = streamLoc0;
+            } else {
+                if( null != urls_s[i] ) {
+                    streamLocN = new URI(urls_s[i]);
+                } else {
+                    streamLocN = defURI;
                 }
-
-                @Override
-                public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) {
-                }
-
-                @Override
-                public void attributesChanged(final GLMediaPlayer mp, int event_mask, long when) {
-                    System.err.println("MovieSimple AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
-                    System.err.println("MovieSimple State: "+mp);
-                    if( 0 != ( GLMediaEventListener.EVENT_CHANGE_SIZE & event_mask ) ) {
-                        System.err.println("MovieSimple State: CHANGE_SIZE");
-                        if( origSize ) {
-                            window.setSize(mp.getWidth(), mp.getHeight());
-                        }
-                        // window.disposeGLEventListener(ms, false /* remove */ );
-                        ms.resetGLState();
-                    }
-                    if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
-                        System.err.println("MovieSimple State: INIT");
-                        // Use GLEventListener in all cases [A+V, V, A]
-                        window.addGLEventListener(ms);
-                        anim.setUpdateFPSFrames(60, System.err);
-                        anim.resetFPSCounter();
-                        /**
-                         * Kick off player w/o GLEventListener, i.e. for audio only.
-                         *
-                            try {
-                                ms.mPlayer.initGL(null);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                destroyWindow();
-                                return;
-                            }
-                            ms.mPlayer.play();
-                            System.out.println("play.1 "+ms.mPlayer);
-                        */
-                    }
-                    boolean destroy = false;
-                    Throwable err = null;
-
-                    if( 0 != ( GLMediaEventListener.EVENT_CHANGE_EOS & event_mask ) ) {
-                        err = ms.mPlayer.getStreamException();
-                        if( null != err ) {
-                            System.err.println("MovieSimple State: EOS + Exception");
-                            destroy = true;
-                        } else {
-                            System.err.println("MovieSimple State: EOS");
-                            if( loopEOS ) {
-                                ms.mPlayer.seek(0);
-                                ms.mPlayer.play();
-                            } else {
-                                destroy = true;
-                            }
-                        }
-                    }
-                    if( 0 != ( GLMediaEventListener.EVENT_CHANGE_ERR & event_mask ) ) {
-                        err = ms.mPlayer.getStreamException();
-                        if( null != err ) {
-                            System.err.println("MovieSimple State: ERR + Exception");
-                        } else {
-                            System.err.println("MovieSimple State: ERR");
-                        }
-                        destroy = true;
-                    }
-                    if( destroy ) {
-                        if( null != err ) {
-                            err.printStackTrace();
-                        }
-                        destroyWindow();
-                    }
-                }
-            });
-            ms.initStream(streamLoc, vid, aid, textureCount);
-        } catch (Throwable t) {
-            t.printStackTrace();
+            }
+            System.err.println("Win #"+i+": stream "+streamLocN);
+            mss[i].initStream(streamLocN, vid, aid, textureCount);
         }
     }
 }
