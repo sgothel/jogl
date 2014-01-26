@@ -391,7 +391,7 @@ public interface GLMediaPlayer extends TextureSequence {
     public AudioSink getAudioSink();
 
     /**
-     * Releases the GL and stream resources.
+     * Releases the GL, stream and other resources, including {@link #attachObject(String, Object) attached user objects}.
      * <p>
      * <a href="#lifecycle">Lifecycle</a>: <code>ANY</code> -> {@link State#Uninitialized}
      * </p>
@@ -626,4 +626,22 @@ public interface GLMediaPlayer extends TextureSequence {
 
     /** Return all {@link GLMediaEventListener} of this player. */
     public GLMediaEventListener[] getEventListeners();
+
+    /**
+     * Returns the attached user object for the given name.
+     */
+    public Object getAttachedObject(String name);
+
+    /**
+     * Attaches the user object for the given name.
+     * Returns the previously set object, may be null.
+     */
+    public Object attachObject(String name, Object obj);
+
+    /**
+     * Detaches the user object for the given name.
+     * Returns the previously set object, may be null.
+     */
+    public Object detachObject(String name);
+
 }

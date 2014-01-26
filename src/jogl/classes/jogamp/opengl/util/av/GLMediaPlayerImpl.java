@@ -30,6 +30,7 @@ package jogamp.opengl.util.av;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -374,6 +375,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             removeAllTextureFrames(gl);
             textureCount=0;
             changeState(event_mask, State.Uninitialized);
+            attachedObjects.clear();
             return state;
         }
     }
@@ -1593,6 +1595,23 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
 
     private final Object eventListenersLock = new Object();
+
+    @Override
+    public final Object getAttachedObject(String name) {
+        return attachedObjects.get(name);
+    }
+
+    @Override
+    public final Object attachObject(String name, Object obj) {
+        return attachedObjects.put(name, obj);
+    }
+
+    @Override
+    public final Object detachObject(String name) {
+        return attachedObjects.remove(name);
+    }
+
+    private final HashMap<String, Object> attachedObjects = new HashMap<String, Object>();
 
     protected static final String toHexString(long v) {
         return "0x"+Long.toHexString(v);
