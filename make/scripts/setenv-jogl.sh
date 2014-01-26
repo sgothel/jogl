@@ -73,7 +73,7 @@ if [ ! -e "$JOAL_BUILDDIR" ] ; then
     print_usage
     exit
 fi
-JOAL_JAR="$JOAL_BUILDDIR"/joal.jar
+JOAL_JAR="$JOAL_BUILDDIR"/jar/joal.jar
 
 if [ -z "$ANT_PATH" ] ; then
     ANT_PATH=$(dirname $(dirname $(which ant)))

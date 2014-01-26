@@ -27,11 +27,95 @@
  */
 package jogamp.newt.driver.android;
 
-import android.os.Bundle;
+import javax.media.opengl.GL;
+import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLEventListener;
+import javax.media.opengl.GLProfile;
 
-public class NewtVersionActivity extends NewtVersionBaseActivity {
+import com.jogamp.common.GlueGenVersion;
+import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.VersionUtil;
+import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.JoglVersion;
+
+import android.os.Bundle;
+import android.util.Log;
+import android.view.Gravity;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.ScrollView;
+import android.widget.TextView;
+
+public class NewtVersionActivity extends NewtBaseActivity {
+
    @Override
    public void onCreate(Bundle savedInstanceState) {
-       super.onCreate("NewtVersionActivity - NORMAL MODE", savedInstanceState);
+       super.onCreate(savedInstanceState);
+
+       setFullscreenFeature(getWindow(), true);
+
+       final android.view.ViewGroup viewGroup = new android.widget.FrameLayout(getActivity().getApplicationContext());
+       getWindow().setContentView(viewGroup);
+
+       final TextView tv = new TextView(getActivity());
+       final ScrollView scroller = new ScrollView(getActivity());
+       scroller.addView(tv);
+       viewGroup.addView(scroller, new android.widget.FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.TOP|Gravity.LEFT));
+
+       final String info1 = "JOGL Version Info"+Platform.NEWLINE+VersionUtil.getPlatformInfo()+Platform.NEWLINE+GlueGenVersion.getInstance()+Platform.NEWLINE+JoglVersion.getInstance()+Platform.NEWLINE;
+       Log.d(MD.TAG, info1);
+       tv.setText(info1);
+
+       final GLProfile glp;
+       if( GLProfile.isAvailable(GLProfile.GL2ES2) ) {
+           glp = GLProfile.get(GLProfile.GL2ES2);
+       } else if( GLProfile.isAvailable(GLProfile.GL2ES1) ) {
+           glp = GLProfile.get(GLProfile.GL2ES1);
+       } else {
+           glp = null;
+           tv.append("No GLProfile GL2ES2 nor GL2ES1 available!");
+       }
+       if( null != glp ) {
+           // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
+           GLCapabilities caps = new GLCapabilities(glp);
+           GLWindow glWindow = GLWindow.create(caps);
+           glWindow.setUndecorated(true);
+           glWindow.setSize(32, 32);
+           glWindow.setPosition(0, 0);
+           final android.view.View androidGLView = ((WindowDriver)glWindow.getDelegatedWindow()).getAndroidView();
+           viewGroup.addView(androidGLView, new android.widget.FrameLayout.LayoutParams(glWindow.getWidth(), glWindow.getHeight(), Gravity.BOTTOM|Gravity.RIGHT));
+           registerNEWTWindow(glWindow);
+
+           glWindow.addGLEventListener(new GLEventListener() {
+                public void init(GLAutoDrawable drawable) {
+                    GL gl = drawable.getGL();
+                    final StringBuilder sb = new StringBuilder();
+                    sb.append(JoglVersion.getGLInfo(gl, null, true)).append(Platform.NEWLINE);
+                    sb.append("Requested: ").append(Platform.NEWLINE);
+                    sb.append(drawable.getNativeSurface().getGraphicsConfiguration().getRequestedCapabilities()).append(Platform.NEWLINE).append(Platform.NEWLINE);
+                    sb.append("Chosen: ").append(Platform.NEWLINE);
+                    sb.append(drawable.getChosenGLCapabilities()).append(Platform.NEWLINE).append(Platform.NEWLINE);
+                    final String info2 = sb.toString();
+                    // Log.d(MD.TAG, info2); // too big!
+                    System.err.println(info2);
+                    viewGroup.post(new Runnable() {
+                        public void run() {
+                            tv.append(info2);
+                            viewGroup.removeView(androidGLView);
+                        } } );
+                }
+
+                public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+                }
+
+                public void display(GLAutoDrawable drawable) {
+                }
+
+                public void dispose(GLAutoDrawable drawable) {
+                }
+            });
+           glWindow.setVisible(true);
+       }
+       Log.d(MD.TAG, "onCreate - X");
    }
 }

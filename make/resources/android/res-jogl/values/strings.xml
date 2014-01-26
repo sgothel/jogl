@@ -5,6 +5,4 @@
     <string name="app_descr">Contains Dalvik and native code, supporting native bindings.</string>
     <string name="activity_version_name">Jogl\'s Version</string>
     <string name="activity_version_descr">Shows the version of the JOGL Library and runtime GL infos.</string>
-    <string name="activity_debug_name">Jogl Debug</string>
-    <string name="activity_debug_descr">Debug output of JOGL\'s initialization.</string>
 </resources>
