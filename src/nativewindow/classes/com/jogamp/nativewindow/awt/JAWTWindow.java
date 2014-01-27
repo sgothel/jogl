@@ -163,19 +163,27 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
 
         private JAWTComponentListener() {
             isShowing = component.isShowing();
-            if(DEBUG) {
-                System.err.println(jawtStr()+".attach @ Thread "+getThreadName()+": "+toString());
-            }
-            component.addComponentListener(this);
-            component.addHierarchyListener(this);
+            AWTEDTExecutor.singleton.invoke(false, new Runnable() { // Bug 952: Avoid deadlock via AWTTreeLock acquisition ..
+                @Override
+                public void run() {
+                    if(DEBUG) {
+                        System.err.println(jawtStr()+".attach @ Thread "+getThreadName()+": "+JAWTComponentListener.this.toString());
+                    }
+                    component.addComponentListener(JAWTComponentListener.this);
+                    component.addHierarchyListener(JAWTComponentListener.this);
+                } } );
         }
 
         private final void detach() {
-            if(DEBUG) {
-                System.err.println(jawtStr()+".detach @ Thread "+getThreadName()+": "+toString());
-            }
-            component.removeComponentListener(this);
-            component.removeHierarchyListener(this);
+            AWTEDTExecutor.singleton.invoke(false, new Runnable() { // Bug 952: Avoid deadlock via AWTTreeLock acquisition ..
+                @Override
+                public void run() {
+                    if(DEBUG) {
+                        System.err.println(jawtStr()+".detach @ Thread "+getThreadName()+": "+JAWTComponentListener.this.toString());
+                    }
+                    component.removeComponentListener(JAWTComponentListener.this);
+                    component.removeHierarchyListener(JAWTComponentListener.this);
+                } } );
         }
 
         @Override
@@ -601,6 +609,9 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   public void destroy() {
     surfaceLock.lock();
     try {
+        if(DEBUG) {
+            System.err.println(jawtStr()+".destroy @ Thread "+getThreadName());
+        }
         jawtComponentListener.detach();
         invalidate();
     } finally {
