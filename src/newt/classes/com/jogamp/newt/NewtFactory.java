@@ -305,10 +305,6 @@ public class NewtFactory {
         return WindowImpl.create(parentNativeWindow, 0, screen, caps);
     }
 
-    protected static Window createWindowImpl(long parentWindowHandle, Screen screen, CapabilitiesImmutable caps) {
-        return WindowImpl.create(null, parentWindowHandle, screen, caps);
-    }
-
     protected static Window createWindowImpl(Screen screen, CapabilitiesImmutable caps) {
         return WindowImpl.create(null, 0, screen, caps);
     }
@@ -322,11 +318,17 @@ public class NewtFactory {
     /**
      * Create a child Window entity attached to the given parent, incl native creation<br>
      *
-     * @param parentWindowObject the native parent window handle
-     * @param undecorated only impacts if the window is in top-level state, while attached to a parent window it's rendered undecorated always
+     * @param displayConnection the parent window's display connection
+     * @param screenIdx the desired screen index
+     * @param parentWindowHandle the native parent window handle
+     * @param caps the desired capabilities
+     * @return
      */
-    public static Window createWindow(long parentWindowHandle, Screen screen, CapabilitiesImmutable caps) {
-        return createWindowImpl(parentWindowHandle, screen, caps);
+    public static Window createWindow(String displayConnection, int screenIdx, long parentWindowHandle, CapabilitiesImmutable caps) {
+        final String type = NativeWindowFactory.getNativeWindowType(true);
+        Display display = NewtFactory.createDisplay(type, displayConnection, true);
+        Screen screen  = NewtFactory.createScreen(display, screenIdx);
+        return WindowImpl.create(null, parentWindowHandle, screen, caps);
     }
 
     /**
