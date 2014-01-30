@@ -47,11 +47,15 @@ import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.NativeWindowFactoryImpl;
 import jogamp.nativewindow.ToolkitProperties;
 import jogamp.nativewindow.ResourceToolkitLock;
+import jogamp.nativewindow.WrappedWindow;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSize;
 import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
 import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
+import com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice;
+import com.jogamp.nativewindow.windows.WindowsGraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 
@@ -625,6 +629,48 @@ public abstract class NativeWindowFactory {
     public static boolean isNativeVisualIDValidForProcessing(int visualID) {
         return NativeWindowFactory.TYPE_X11 != NativeWindowFactory.getNativeWindowType(false) ||
                VisualIDHolder.VID_UNDEFINED != visualID ;
+    }
+
+    /**
+     * Creates a native device type, following {@link #getNativeWindowType(boolean) getNativeWindowType(true)}.
+     * <p>
+     * The device will be opened if <code>own</code> is true, otherwise no native handle will ever be acquired.
+     * </p>
+     */
+    public static AbstractGraphicsDevice createDevice(String displayConnection, boolean own) {
+        final String nwt = NativeWindowFactory.getNativeWindowType(true);
+        if( NativeWindowFactory.TYPE_X11 == nwt ) {
+            if( own ) {
+                return new X11GraphicsDevice(displayConnection, AbstractGraphicsDevice.DEFAULT_UNIT, null /* ToolkitLock */);
+            } else {
+                return new X11GraphicsDevice(displayConnection, AbstractGraphicsDevice.DEFAULT_UNIT);
+            }
+        } else if( NativeWindowFactory.TYPE_WINDOWS == nwt ) {
+            return new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
+        } else if( NativeWindowFactory.TYPE_MACOSX == nwt ) {
+            return new MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
+        }
+        throw new UnsupportedOperationException("n/a for this windowing system: "+nwt);
+    }
+
+    /**
+     * Creates a wrapped {@link NativeWindow} with given native handles and {@link AbstractGraphicsScreen}.
+     * <p>
+     * The given {@link UpstreamSurfaceHookMutableSize} maybe used to reflect resizes of the native window.
+     * </p>
+     * <p>
+     * The {@link AbstractGraphicsScreen} may be created via {@link #createScreen(AbstractGraphicsDevice, int)}.
+     * </p>
+     * <p>
+     * The {@link AbstractGraphicsScreen} may have an underlying open {@link AbstractGraphicsDevice}
+     * or a simple <i>dummy</i> instance, see {@link #createDevice(String, boolean)}.
+     * </p>
+     */
+    public static NativeWindow createWrappedWindow(AbstractGraphicsScreen aScreen, long surfaceHandle, long windowHandle,
+                                                   UpstreamSurfaceHookMutableSize hook) {
+        final CapabilitiesImmutable caps = new Capabilities();
+        final AbstractGraphicsConfiguration config = new DefaultGraphicsConfiguration(aScreen, caps, caps);
+        return new WrappedWindow(config, surfaceHandle, hook, true, windowHandle);
     }
 
 }
