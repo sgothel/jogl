@@ -65,6 +65,7 @@ public class NewtFactory {
             public Object run() {
                 NativeWindowFactory.initSingleton(); // last resort ..
                 {
+                    /** See API Doc in {@link Window} ! */
                     final String[] paths = Debug.getProperty("newt.window.icons", true, "newt/data/jogamp-16x16.png newt/data/jogamp-32x32.png").split("\\s");
                     if( paths.length < 2 ) {
                         throw new IllegalArgumentException("Property 'newt.window.icons' did not specify at least two PNG icons, but "+Arrays.toString(paths));

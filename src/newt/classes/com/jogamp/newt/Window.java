@@ -63,6 +63,21 @@ import javax.media.nativewindow.util.RectangleImmutable;
  * window operation to an instance of this interface while providing OpenGL
  * functionality.
  * </p>
+ * <a name="customwindowicons"><h5>Custom Window Icons</h5></a>
+ * <p>
+ * Custom window icons can be defined via system property <code>newt.window.icons</code>,
+ * which shall contain a space separated list of PNG icon locations from low- to high-resolution.
+ * The location must be resolvable via classpath, i.e. shall reference a location within the jar file.
+ * Example (our default):
+ * <pre>
+ *   -Dnewt.window.icons="newt/data/jogamp-16x16.png newt/data/jogamp-32x32.png"
+ *   -Djnlp.newt.window.icons="newt/data/jogamp-16x16.png newt/data/jogamp-32x32.png"
+ * </pre>
+ * The property can also be set programmatically, which must happen before any NEWT classes are <i>touched</i>:
+ * <pre>
+ *   System.setProperty("newt.window.icons", "newt/data/jogamp-16x16.png newt/data/jogamp-32x32.png");
+ * </pre>
+ * </p>
  */
 public interface Window extends NativeWindow, WindowClosingProtocol {
     public static final boolean DEBUG_MOUSE_EVENT = Debug.debug("Window.MouseEvent");
