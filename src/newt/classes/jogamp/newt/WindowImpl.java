@@ -414,8 +414,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             throw new NativeWindowException("Parent surface lock: not ready: "+parentWindow);
         }
 
+        final boolean hasParent = null != parentWindow || 0 != this.parentWindowHandle;
+
         // child window: position defaults to 0/0, no auto position, no negative position
-        if( null != parentWindow && ( autoPosition || 0>getX() || 0>getY() ) ) {
+        if( hasParent && ( autoPosition || 0>getX() || 0>getY() ) ) {
             definePosition(0, 0);
         }
         boolean postParentlockFocus = false;
@@ -453,7 +455,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                 fullScreenAction.init(true);
                                 fullScreenAction.run();
                             }
-                        } else {
+                        } else if ( !hasParent ) {
                             // Wait until position is reached within tolerances, either auto-position or custom position.
                             waitForPosition(usePosition, wX, wY, Window.TIMEOUT_NATIVEWINDOW);
                         }
@@ -1445,8 +1447,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                 ok = WindowImpl.this.waitForSize(width, height, false, TIMEOUT_NATIVEWINDOW);
                             }
                             if(ok) {
-                                // Position mismatch shall not lead to reparent failure
-                                WindowImpl.this.waitForPosition(true, x, y, TIMEOUT_NATIVEWINDOW);
+                                if( 0 == parentWindowHandle ) {
+                                    // Position mismatch shall not lead to reparent failure
+                                    WindowImpl.this.waitForPosition(true, x, y, TIMEOUT_NATIVEWINDOW);
+                                }
 
                                 requestFocusInt( 0 == parentWindowHandle /* skipFocusAction if top-level */);
                                 display.dispatchMessagesNative(); // status up2date
@@ -2087,9 +2091,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     if(isNativeValid()) {
                         // this.x/this.y will be set by sizeChanged, triggered by windowing event system
                         reconfigureWindowImpl(x, y, getWidth(), getHeight(), getReconfigureFlags(0, isVisible()));
-
-                        // Wait until custom position is reached within tolerances
-                        waitForPosition(true, x, y, Window.TIMEOUT_NATIVEWINDOW);
+                        if( null == parentWindow ) {
+                            // Wait until custom position is reached within tolerances
+                            waitForPosition(true, x, y, Window.TIMEOUT_NATIVEWINDOW);
+                        }
                     } else {
                         definePosition(x, y); // set pos for createNative(..)
                     }
@@ -2261,7 +2266,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     if(ok) {
                         ok = WindowImpl.this.waitForSize(w, h, false, TIMEOUT_NATIVEWINDOW);
                     }
-                    if(ok && !_fullscreen) {
+                    if(ok && !_fullscreen && null == parentWindow) {
                         // Position mismatch shall not lead to fullscreen failure
                         WindowImpl.this.waitForPosition(true, x, y, TIMEOUT_NATIVEWINDOW);
                     }
