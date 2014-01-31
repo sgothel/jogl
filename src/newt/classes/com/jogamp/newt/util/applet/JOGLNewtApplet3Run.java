@@ -39,11 +39,12 @@ import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
+import javax.media.nativewindow.util.PointImmutable;
 import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
-import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSize;
+import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSizePos;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.opengl.GLWindow;
@@ -102,6 +103,9 @@ public class JOGLNewtApplet3Run implements Applet3 {
     int glXd=Integer.MAX_VALUE, glYd=Integer.MAX_VALUE, glWidth=Integer.MAX_VALUE, glHeight=Integer.MAX_VALUE;
     Applet3Context ctx;
     boolean glStandalone = false;
+    UpstreamSurfaceHookMutableSizePos upstreamSizePosHook;
+    PointImmutable upstreamLocOnScreen;
+    NativeWindow browserWin;
 
     final String getParameter(String name) {
         return ctx.getParameter(name);
@@ -132,19 +136,6 @@ public class JOGLNewtApplet3Run implements Applet3 {
             e.printStackTrace();
         }
         glStandalone = Integer.MAX_VALUE>glXd && Integer.MAX_VALUE>glYd && Integer.MAX_VALUE>glWidth && Integer.MAX_VALUE>glHeight;
-        if(DEBUG) {
-            System.err.println("JOGLNewtApplet1Run Configuration:");
-            System.err.println("glStandalone: "+glStandalone);
-            if(glStandalone) {
-                System.err.println("pos-size: "+glXd+"/"+glYd+" "+glWidth+"x"+glHeight);
-            }
-            System.err.println("glProfileName: "+glProfileName);
-            System.err.println("glOpaque: "+glOpaque);
-            System.err.println("glAlphaBits: "+glAlphaBits);
-            System.err.println("glNumMultisampleBuffer: "+glNumMultisampleBuffer);
-            System.err.println("glUndecorated: "+glUndecorated);
-            System.err.println("glAlwaysOnTop: "+glAlwaysOnTop);
-        }
         final GLCapabilities caps = new GLCapabilities(GLProfile.get(glProfileName));
         caps.setAlphaBits(glAlphaBits);
         if(0<glNumMultisampleBuffer) {
@@ -153,17 +144,35 @@ public class JOGLNewtApplet3Run implements Applet3 {
         }
         caps.setBackgroundOpaque(glOpaque);
 
-        final AbstractGraphicsDevice aDevice = NativeWindowFactory.createDevice(upstreamWin.getDisplayConnection(), false /* own */); // don't open - dummy
+        final AbstractGraphicsDevice aDevice = NativeWindowFactory.createDevice(upstreamWin.getDisplayConnection(),
+                                                                                true /* own */); // open and own! (for upstreamLocOnScreen)
         final AbstractGraphicsScreen aScreen = NativeWindowFactory.createScreen(aDevice, upstreamWin.getScreenIndex());
-        final UpstreamSurfaceHookMutableSize upstreamSizeHook = new UpstreamSurfaceHookMutableSize(upstreamWin.getWidth(), upstreamWin.getHeight());
-        final NativeWindow parentWin = NativeWindowFactory.createWrappedWindow(aScreen,
-                                                                               0 /* surfaceHandle */, upstreamWin.getWindowHandle(),
-                                                                               upstreamSizeHook);
-        final Window w = NewtFactory.createWindow(parentWin, caps);
+        upstreamSizePosHook = new UpstreamSurfaceHookMutableSizePos(upstreamWin.getX(), upstreamWin.getY(),
+                                                                    upstreamWin.getWidth(), upstreamWin.getHeight());
+        browserWin = NativeWindowFactory.createWrappedWindow(aScreen, 0 /* surfaceHandle */, upstreamWin.getWindowHandle(),
+                                                            upstreamSizePosHook);
+        upstreamLocOnScreen = NativeWindowFactory.getLocationOnScreen(browserWin);
+        if(DEBUG) {
+            System.err.println("JOGLNewtApplet3Run Configuration:");
+            System.err.println("glStandalone: "+glStandalone);
+            System.err.println("glProfileName: "+glProfileName);
+            System.err.println("glOpaque: "+glOpaque);
+            System.err.println("glAlphaBits: "+glAlphaBits);
+            System.err.println("glNumMultisampleBuffer: "+glNumMultisampleBuffer);
+            System.err.println("glUndecorated: "+glUndecorated);
+            System.err.println("glAlwaysOnTop: "+glAlwaysOnTop);
+            System.err.println("UpstreamWin: "+upstreamWin+", LOS "+upstreamLocOnScreen);
+            if(glStandalone) {
+                System.err.println("pos-size: "+glXd+"/"+glYd+" "+glWidth+"x"+glHeight);
+            }
+        }
+
+        final Window w = NewtFactory.createWindow(glStandalone ? null : browserWin, caps);
         glWindow = GLWindow.create(w);
         glWindow.setUndecorated(glUndecorated);
         glWindow.setAlwaysOnTop(glAlwaysOnTop);
-        glWindow.setSize(parentWin.getWidth(), parentWin.getHeight());
+        glWindow.setSize(browserWin.getWidth(), browserWin.getHeight());
+        glWindow.setPosition(browserWin.getX(), browserWin.getY());
 
         return new NativeWindowDownstream() {
             @Override
@@ -175,8 +184,8 @@ public class JOGLNewtApplet3Run implements Applet3 {
 
             @Override
             public void setSize(int width, int height) {
+                upstreamSizePosHook.setSize(width, height);
                 if( null != glWindow ) {
-                    upstreamSizeHook.setSize(width, height);
                     glWindow.setSize(width, height);
                 }
             }
@@ -215,6 +224,14 @@ public class JOGLNewtApplet3Run implements Applet3 {
                     glWindow.display();
                 }
             }
+
+            @Override
+            public void notifyPositionChanged(NativeWindowUpstream nw) {
+                upstreamSizePosHook.setPos(nw.getX(), nw.getY());
+                if( null != glWindow ) {
+                    glWindow.setPosition(nw.getX(), nw.getY());
+                }
+            }
         };
     }
 
@@ -244,7 +261,6 @@ public class JOGLNewtApplet3Run implements Applet3 {
         if(null==glEventListenerClazzName) {
             throw new RuntimeException("No applet parameter 'gl_event_listener_class'");
         }
-        glStandalone = Integer.MAX_VALUE>glXd && Integer.MAX_VALUE>glYd && Integer.MAX_VALUE>glWidth && Integer.MAX_VALUE>glHeight;
         if(DEBUG) {
             System.err.println("JOGLNewtApplet1Run Configuration:");
             System.err.println("glEventListenerClazzName: "+glEventListenerClazzName);
@@ -283,7 +299,7 @@ public class JOGLNewtApplet3Run implements Applet3 {
         }
         if( glStandalone ) {
             glWindow.setSize(glWidth, glHeight);
-            glWindow.setPosition(glXd, glYd);
+            glWindow.setPosition(upstreamLocOnScreen.getX()+glXd, upstreamLocOnScreen.getY()+glYd);
             glWindow.setVisible(true);
             glWindow.requestFocus();
         }
@@ -318,6 +334,8 @@ public class JOGLNewtApplet3Run implements Applet3 {
         base.destroy(); // destroy glWindow unrecoverable
         base=null;
         glWindow=null;
+        browserWin.destroy(); // make sure the open display connection gets closed!
+        browserWin = null;
         if(DEBUG) {
             System.err.println("JOGLNewtApplet1Run.destroy() END - "+currentThreadName());
         }

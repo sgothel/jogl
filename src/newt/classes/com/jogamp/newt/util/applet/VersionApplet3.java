@@ -53,7 +53,14 @@ public class VersionApplet3 implements Applet3 {
             public void notifySurfaceUpdated(NativeWindowDownstream swappedWin) {
                 // NOP
             }
-
+            @Override
+            public int getX() {
+                return 0;
+            }
+            @Override
+            public int getY() {
+                return 0;
+            }
         });
         va.init(null);
         va.start();
@@ -118,6 +125,13 @@ public class VersionApplet3 implements Applet3 {
             public void display() {
                 if( null != canvas ) {
                     canvas.display();
+                }
+            }
+
+            @Override
+            public void notifyPositionChanged(NativeWindowUpstream nw) {
+                if( null != canvas ) {
+                    canvas.setPosition(nw.getX(), nw.getY());
                 }
             }
         };
