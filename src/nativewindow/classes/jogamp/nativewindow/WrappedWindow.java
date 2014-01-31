@@ -9,25 +9,28 @@ import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 
+import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSizePos;
+
 public class WrappedWindow extends WrappedSurface implements NativeWindow {
-    private final long windowHandle;
     private final InsetsImmutable insets = new Insets(0, 0, 0, 0);
+    private long windowHandle;
 
     /**
-     * Utilizes a {@link UpstreamSurfaceHook.MutableSize} to hold the size information,
+     * Utilizes a {@link UpstreamSurfaceHookMutableSizePos} to hold the size and postion information,
      * which is being passed to the {@link ProxySurface} instance.
      *
      * @param cfg the {@link AbstractGraphicsConfiguration} to be used
      * @param surfaceHandle the wrapped pre-existing native surface handle, maybe 0 if not yet determined
+     * @param initialX
+     * @param initialY
      * @param initialWidth
      * @param initialHeight
      * @param ownsDevice <code>true</code> if this {@link ProxySurface} instance
      *                  owns the {@link AbstractGraphicsConfiguration}'s {@link AbstractGraphicsDevice},
      *                  otherwise <code>false</code>. Owning the device implies closing it at {@link #destroyNotify()}.
      */
-    public WrappedWindow(AbstractGraphicsConfiguration cfg, long surfaceHandle, int initialWidth, int initialHeight, boolean ownsDevice, long windowHandle) {
-        super(cfg, surfaceHandle, initialWidth, initialHeight, ownsDevice);
-        this.windowHandle = windowHandle;
+    public WrappedWindow(AbstractGraphicsConfiguration cfg, long surfaceHandle, int initialX, int initialY, int initialWidth, int initialHeight, boolean ownsDevice, long windowHandle) {
+        this(cfg, surfaceHandle, new UpstreamSurfaceHookMutableSizePos(initialX, initialY, initialWidth, initialHeight), ownsDevice, windowHandle);
     }
 
     /**
@@ -38,13 +41,20 @@ public class WrappedWindow extends WrappedSurface implements NativeWindow {
      *                  owns the {@link AbstractGraphicsConfiguration}'s {@link AbstractGraphicsDevice},
      *                  otherwise <code>false</code>.
      */
-    public WrappedWindow(AbstractGraphicsConfiguration cfg, long surfaceHandle, UpstreamSurfaceHook upstream, boolean ownsDevice, long windowHandle) {
+    public WrappedWindow(AbstractGraphicsConfiguration cfg, long surfaceHandle, UpstreamSurfaceHookMutableSizePos upstream, boolean ownsDevice, long windowHandle) {
         super(cfg, surfaceHandle, upstream, ownsDevice);
         this.windowHandle = windowHandle;
     }
 
     @Override
+    protected void invalidateImpl() {
+      super.invalidateImpl();
+      windowHandle = 0;
+    }
+
+    @Override
     public void destroy() {
+        destroyNotify();
     }
 
     @Override
@@ -64,12 +74,12 @@ public class WrappedWindow extends WrappedSurface implements NativeWindow {
 
     @Override
     public int getX() {
-        return 0;
+        return ((UpstreamSurfaceHookMutableSizePos)getUpstreamSurfaceHook()).getX();
     }
 
     @Override
     public int getY() {
-        return 0;
+        return ((UpstreamSurfaceHookMutableSizePos)getUpstreamSurfaceHook()).getY();
     }
 
     @Override
