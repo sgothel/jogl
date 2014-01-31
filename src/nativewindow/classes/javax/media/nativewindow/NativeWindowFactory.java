@@ -43,11 +43,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.media.nativewindow.util.Point;
+import javax.media.nativewindow.util.PointImmutable;
+
 import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.NativeWindowFactoryImpl;
 import jogamp.nativewindow.ToolkitProperties;
 import jogamp.nativewindow.ResourceToolkitLock;
 import jogamp.nativewindow.WrappedWindow;
+import jogamp.nativewindow.macosx.OSXUtil;
+import jogamp.nativewindow.windows.GDIUtil;
+import jogamp.nativewindow.x11.X11Lib;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.ReflectionUtil;
@@ -672,5 +678,18 @@ public abstract class NativeWindowFactory {
         final AbstractGraphicsConfiguration config = new DefaultGraphicsConfiguration(aScreen, caps, caps);
         return new WrappedWindow(config, surfaceHandle, hook, true, windowHandle);
     }
+
+    public static PointImmutable getLocationOnScreen(NativeWindow nw) {
+        final String nwt = NativeWindowFactory.getNativeWindowType(true);
+        if( NativeWindowFactory.TYPE_X11 == nwt ) {
+            return X11Lib.GetRelativeLocation(nw.getDisplayHandle(), nw.getScreenIndex(), nw.getWindowHandle(), 0, 0, 0);
+        } else if( NativeWindowFactory.TYPE_WINDOWS == nwt ) {
+            return GDIUtil.GetRelativeLocation(nw.getWindowHandle(), 0, 0, 0);
+        } else if( NativeWindowFactory.TYPE_MACOSX == nwt ) {
+            return OSXUtil.GetLocationOnScreen(nw.getWindowHandle(), null == nw.getParent(), 0, 0);
+        }
+        throw new UnsupportedOperationException("n/a for this windowing system: "+nwt);
+    }
+
 
 }
