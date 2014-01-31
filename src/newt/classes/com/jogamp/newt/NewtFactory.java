@@ -244,7 +244,7 @@ public class NewtFactory {
      * </p>
      */
     public static Window createWindow(Screen screen, CapabilitiesImmutable caps) {
-        return createWindowImpl(screen, caps);
+        return WindowImpl.create(null, 0, screen, caps);
     }
 
     /**
@@ -271,6 +271,9 @@ public class NewtFactory {
      */
     public static Window createWindow(NativeWindow parentWindow, CapabilitiesImmutable caps) {
         final String type = NativeWindowFactory.getNativeWindowType(true);
+        if( null == parentWindow ) {
+            return createWindowImpl(type, caps);
+        }
         Screen screen  = null;
         Window newtParentWindow = null;
 
@@ -291,7 +294,7 @@ public class NewtFactory {
                 screen  = NewtFactory.createScreen(display, 0); // screen 0
             }
         }
-        final Window win = createWindowImpl(parentWindow, screen, caps);
+        final Window win = WindowImpl.create(parentWindow, 0, screen, caps);
 
         win.setSize(parentWindow.getWidth(), parentWindow.getHeight());
         if ( null != newtParentWindow ) {
@@ -301,15 +304,7 @@ public class NewtFactory {
         return win;
     }
 
-    protected static Window createWindowImpl(NativeWindow parentNativeWindow, Screen screen, CapabilitiesImmutable caps) {
-        return WindowImpl.create(parentNativeWindow, 0, screen, caps);
-    }
-
-    protected static Window createWindowImpl(Screen screen, CapabilitiesImmutable caps) {
-        return WindowImpl.create(null, 0, screen, caps);
-    }
-
-    protected static Window createWindowImpl(String type, CapabilitiesImmutable caps) {
+    private static Window createWindowImpl(String type, CapabilitiesImmutable caps) {
         Display display = NewtFactory.createDisplay(type, null, true); // local display
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         return WindowImpl.create(null, 0, screen, caps);
