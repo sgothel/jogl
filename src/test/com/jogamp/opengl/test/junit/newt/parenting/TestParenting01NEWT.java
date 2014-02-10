@@ -374,10 +374,28 @@ public class TestParenting01NEWT extends UITestCase {
 
         int state = 0;
         Window.ReparentOperation reparentAction;
-        while(animator1.isAnimating() && animator1.getTotalFPSDuration()<3*durationPerTest) {
+        while(animator1.isAnimating() && animator1.getTotalFPSDuration()<7*durationPerTest) {
             Thread.sleep(durationPerTest);
             switch(state) {
                 case 0:
+                    // top-level glWindow2 hide
+                    Assert.assertEquals(true, glWindow1.isVisible());
+                    Assert.assertEquals(true, glWindow2.isVisible());
+                    glWindow2.setVisible(false);
+                    Assert.assertEquals(false, glWindow2.isVisible());
+                    Assert.assertEquals(true, glWindow1.isVisible());
+                    break;
+
+                case 1:
+                    // top-level glWindow2 show
+                    Assert.assertEquals(true, glWindow1.isVisible());
+                    Assert.assertEquals(false, glWindow2.isVisible());
+                    glWindow2.setVisible(true);
+                    Assert.assertEquals(true, glWindow2.isVisible());
+                    Assert.assertEquals(true, glWindow1.isVisible());
+                    break;
+
+                case 2:
                     // glWindow2 -- child --> glWindow1: compatible
                     Assert.assertEquals(true, glWindow2.isVisible());
                     System.err.println("Frames(1) "+glWindow2.getTotalFPSFrames());
@@ -403,7 +421,25 @@ public class TestParenting01NEWT extends UITestCase {
 
                     break;
 
-                case 1:
+                case 3:
+                    // child glWindow2 hide
+                    Assert.assertEquals(true, glWindow1.isVisible());
+                    Assert.assertEquals(true, glWindow2.isVisible());
+                    glWindow2.setVisible(false);
+                    Assert.assertEquals(false, glWindow2.isVisible());
+                    Assert.assertEquals(true, glWindow1.isVisible());
+                    break;
+
+                case 4:
+                    // child glWindow2 show
+                    Assert.assertEquals(true, glWindow1.isVisible());
+                    Assert.assertEquals(false, glWindow2.isVisible());
+                    glWindow2.setVisible(true);
+                    Assert.assertEquals(true, glWindow2.isVisible());
+                    Assert.assertEquals(true, glWindow1.isVisible());
+                    break;
+
+                case 5:
                     // glWindow2 --> top
                     Assert.assertEquals(true, glWindow2.isVisible());
 
@@ -566,10 +602,29 @@ public class TestParenting01NEWT extends UITestCase {
 
         int state = 0;
         Window.ReparentOperation reparentAction;
-        while(animator1.isAnimating() && animator1.getTotalFPSDuration()<3*durationPerTest) {
+        while(animator1.isAnimating() && animator1.getTotalFPSDuration()<7*durationPerTest) {
             Thread.sleep(durationPerTest);
             switch(state) {
                 case 0:
+                    // child glWindow2 hide
+                    Assert.assertEquals(true, glWindow1.isVisible());
+                    Assert.assertEquals(true, glWindow2.isVisible());
+                    glWindow2.setVisible(false);
+                    Assert.assertEquals(false, glWindow2.isVisible());
+                    Assert.assertEquals(true, glWindow1.isVisible());
+                    break;
+
+                case 1:
+                    // child glWindow2 show
+                    Assert.assertEquals(true, glWindow1.isVisible());
+                    Assert.assertEquals(false, glWindow2.isVisible());
+                    glWindow2.setVisible(true);
+                    Assert.assertEquals(true, glWindow2.isVisible());
+                    Assert.assertEquals(true, glWindow1.isVisible());
+                    break;
+
+                case 2:
+                    // glWindow2 --> top
                     Assert.assertEquals(true, glWindow2.isVisible());
                     reparentAction = glWindow2.reparentWindow(null, -1, -1, reparentHints);
                     Assert.assertTrue(Window.ReparentOperation.ACTION_INVALID != reparentAction);
@@ -584,7 +639,27 @@ public class TestParenting01NEWT extends UITestCase {
                     Assert.assertSame(display1,glWindow2.getScreen().getDisplay());
                     Assert.assertEquals(1,Display.getActiveDisplayNumber());
                     break;
-                case 1:
+
+                case 3:
+                    // top-level glWindow2 hide
+                    Assert.assertEquals(true, glWindow1.isVisible());
+                    Assert.assertEquals(true, glWindow2.isVisible());
+                    glWindow2.setVisible(false);
+                    Assert.assertEquals(false, glWindow2.isVisible());
+                    Assert.assertEquals(true, glWindow1.isVisible());
+                    break;
+
+                case 4:
+                    // top-level glWindow2 show
+                    Assert.assertEquals(true, glWindow1.isVisible());
+                    Assert.assertEquals(false, glWindow2.isVisible());
+                    glWindow2.setVisible(true);
+                    Assert.assertEquals(true, glWindow2.isVisible());
+                    Assert.assertEquals(true, glWindow1.isVisible());
+                    break;
+
+                case 5:
+                    // glWindow2 -- child --> glWindow1: compatible
                     Assert.assertEquals(true, glWindow2.isVisible());
                     reparentAction = glWindow2.reparentWindow(glWindow1, -1, -1, reparentHints);
                     Assert.assertTrue(Window.ReparentOperation.ACTION_INVALID != reparentAction);
