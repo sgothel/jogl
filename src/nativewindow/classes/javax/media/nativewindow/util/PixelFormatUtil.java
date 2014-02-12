@@ -208,7 +208,6 @@ public class PixelFormatUtil {
         return convertToInt32(dest_fmt, r, g, b, a);
     }
 
-    /**
     public static int convertToInt32(PixelFormat dest_fmt, PixelFormat src_fmt, final int src_pixel) {
         final byte r, g, b, a;
         switch(src_fmt) {
@@ -258,7 +257,7 @@ public class PixelFormatUtil {
                 throw new InternalError("Unhandled format "+src_fmt);
         }
         return convertToInt32(dest_fmt, r, g, b, a);
-    } */
+    }
 
     public static PixelRectangle convert32(final PixelRectangle src,
                                            final PixelFormat destFmt, int ddestStride, final boolean isGLOriented,

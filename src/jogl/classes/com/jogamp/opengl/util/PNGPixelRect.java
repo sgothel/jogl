@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 
 import javax.media.nativewindow.util.Dimension;
 import javax.media.nativewindow.util.DimensionImmutable;
@@ -248,19 +249,29 @@ public class PNGPixelRect extends PixelRectangle.GenericPixelRect {
         }
         return dOff;
     }
-    private int setPixelRGBA8(final ImageLine line, final int lineOff, final ByteBuffer d, final int dOff, final int bytesPerPixel, final boolean hasAlpha) {
+    private int setPixelRGBA8(final ImageLine line, final int lineOff, final ByteBuffer src, final int srcOff, final int bytesPerPixel, final boolean hasAlpha) {
         final int b = hasAlpha ? 4-1 : 3-1;
-        if( d.limit() <= dOff + b ) {
-            throw new IndexOutOfBoundsException("Buffer has unsufficient bytes left, needs ["+dOff+".."+(dOff+b)+"]: "+d);
+        if( src.limit() <= srcOff + b ) {
+            throw new IndexOutOfBoundsException("Buffer has unsufficient bytes left, needs ["+srcOff+".."+(srcOff+b)+"]: "+src);
         }
-        final int p = PixelFormatUtil.convertToInt32(hasAlpha ? PixelFormat.RGBA8888 : PixelFormat.RGB888, pixelformat, d, dOff);
+        final int p = PixelFormatUtil.convertToInt32(hasAlpha ? PixelFormat.RGBA8888 : PixelFormat.RGB888, pixelformat, src, srcOff);
         line.scanline[lineOff    ] = 0xff &   p;              // R
         line.scanline[lineOff + 1] = 0xff & ( p >>> 8 );      // G
         line.scanline[lineOff + 2] = 0xff & ( p >>> 16 );     // B
         if(hasAlpha) {
             line.scanline[lineOff + 3] = 0xff & ( p >>> 24 ); // A
         }
-        return dOff + pixelformat.bytesPerPixel();
+        return srcOff + pixelformat.bytesPerPixel();
+    }
+
+    private static void setPixelRGBA8(final PixelFormat pixelformat, final ImageLine line, final int lineOff, final int srcPix, final int bytesPerPixel, final boolean hasAlpha) {
+        final int p = PixelFormatUtil.convertToInt32(hasAlpha ? PixelFormat.RGBA8888 : PixelFormat.RGB888, pixelformat, srcPix);
+        line.scanline[lineOff    ] = 0xff &   p;              // R
+        line.scanline[lineOff + 1] = 0xff & ( p >>> 8 );      // G
+        line.scanline[lineOff + 2] = 0xff & ( p >>> 16 );     // B
+        if(hasAlpha) {
+            line.scanline[lineOff + 3] = 0xff & ( p >>> 24 ); // A
+        }
     }
 
     /**
@@ -304,9 +315,8 @@ public class PNGPixelRect extends PixelRectangle.GenericPixelRect {
             final PngWriter png = new PngWriter(outstream, imi);
             // add some optional metadata (chunks)
             png.getMetadata().setDpi(dpi[0], dpi[1]);
-            png.getMetadata().setTimeNow(0); // 0 seconds fron now = now
+            png.getMetadata().setTimeNow(0); // 0 seconds from now = now
             png.getMetadata().setText(PngChunkTextVar.KEY_Title, "JogAmp PNGPixelRect");
-            // png.getMetadata().setText("my key", "my text");
             final boolean hasAlpha = 4 == bytesPerPixel;
 
             final ImageLine l1 = new ImageLine(imi);
@@ -320,6 +330,62 @@ public class PNGPixelRect extends PixelRectangle.GenericPixelRect {
                 } else {
                     for (int j = width - 1; j >= 0; j--) {
                         dataOff = setPixelRGBA8(l1, lineOff, pixels, dataOff, bytesPerPixel, hasAlpha);
+                        lineOff += bytesPerPixel;
+                    }
+                }
+                png.writeRow(l1, row);
+            }
+            png.end();
+        } finally {
+            if( closeOutstream ) {
+                IOUtil.close(outstream, false);
+            }
+        }
+    }
+
+    public static void write(final PixelFormat pixelformat, final DimensionImmutable size,
+                             int strideInPixels, final boolean isGLOriented, final IntBuffer pixels,
+                             final double dpiX, final double dpiY,
+                             final OutputStream outstream, final boolean closeOutstream) throws IOException {
+        final int width = size.getWidth();
+        final int height = size.getHeight();
+        final int bytesPerPixel = pixelformat.bytesPerPixel();
+        final ImageInfo imi = new ImageInfo(width, height, 8 /* bitdepth */,
+                                            (4 == bytesPerPixel) ? true : false /* alpha */,
+                                            (1 == bytesPerPixel) ? true : false /* grayscale */,
+                                            false /* indexed */);
+        if( 0 != strideInPixels ) {
+            if( strideInPixels < size.getWidth()) {
+                throw new IllegalArgumentException("Invalid stride "+bytesPerPixel+", must be greater than width "+size.getWidth());
+            }
+        } else {
+            strideInPixels = size.getWidth();
+        }
+        final int reqPixels = strideInPixels * size.getHeight();
+        if( pixels.limit() < reqPixels ) {
+            throw new IndexOutOfBoundsException("Dest buffer has insufficient pixels left, needs "+reqPixels+": "+pixels);
+        }
+
+        // open image for writing to a output stream
+        try {
+            final PngWriter png = new PngWriter(outstream, imi);
+            // add some optional metadata (chunks)
+            png.getMetadata().setDpi(dpiX, dpiY);
+            png.getMetadata().setTimeNow(0); // 0 seconds from now = now
+            png.getMetadata().setText(PngChunkTextVar.KEY_Title, "JogAmp PNGPixelRect");
+            final boolean hasAlpha = 4 == bytesPerPixel;
+
+            final ImageLine l1 = new ImageLine(imi);
+            for (int row = 0; row < height; row++) {
+                int dataOff = isGLOriented ? ( height - 1 - row ) * strideInPixels : row * strideInPixels;
+                int lineOff = 0;
+                if(1 == bytesPerPixel) {
+                    for (int j = width - 1; j >= 0; j--) {
+                        l1.scanline[lineOff++] = pixels.get(dataOff++); // // Luminance, 1 bytesPerPixel
+                    }
+                } else {
+                    for (int j = width - 1; j >= 0; j--) {
+                        setPixelRGBA8(pixelformat, l1, lineOff, pixels.get(dataOff++), bytesPerPixel, hasAlpha);
                         lineOff += bytesPerPixel;
                     }
                 }

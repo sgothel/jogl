@@ -50,11 +50,13 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.PixelFormat;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
@@ -1400,18 +1402,34 @@ public class TextureIO {
                 final PixelFormat pixFmt = pixelAttribs.getPixelFormat();
                 if ( ( 1 == bytesPerPixel || 3 == bytesPerPixel || 4 == bytesPerPixel) &&
                      ( pixelType == GL.GL_BYTE || pixelType == GL.GL_UNSIGNED_BYTE)) {
-                    ByteBuffer buf = (ByteBuffer) data.getBuffer();
-                    if (null == buf) {
-                        buf = (ByteBuffer) data.getMipmapData()[0];
+                    Buffer buf0 = data.getBuffer();
+                    if (null == buf0) {
+                        buf0 = data.getMipmapData()[0];
                     }
-                    buf.rewind();
-
-                    final PNGPixelRect image = new PNGPixelRect(pixFmt, new Dimension(data.getWidth(), data.getHeight()),
-                                                                0 /* stride */, true /* isGLOriented */, buf /* pixels */,
-                                                                -1f, -1f);
-                    final OutputStream outs = new BufferedOutputStream(IOUtil.getFileOutputStream(file, true /* allowOverwrite */));
-                    image.write(outs, true /* close */);
-                    return true;
+                    if( null == buf0 ) {
+                        throw new IOException("Pixel storage buffer is null");
+                    }
+                    final DimensionImmutable size = new Dimension(data.getWidth(), data.getHeight());
+                    if( buf0 instanceof ByteBuffer ) {
+                        final ByteBuffer buf = (ByteBuffer) buf0;
+                        buf.rewind();
+                        final PNGPixelRect image = new PNGPixelRect(pixFmt, size,
+                                                                    0 /* stride */, true /* isGLOriented */, buf /* pixels */,
+                                                                    -1f, -1f);
+                        final OutputStream outs = new BufferedOutputStream(IOUtil.getFileOutputStream(file, true /* allowOverwrite */));
+                        image.write(outs, true /* close */);
+                        return true;
+                    } else if( buf0 instanceof IntBuffer ) {
+                        final IntBuffer buf = (IntBuffer) buf0;
+                        buf.rewind();
+                        final OutputStream outs = new BufferedOutputStream(IOUtil.getFileOutputStream(file, true /* allowOverwrite */));
+                        PNGPixelRect.write(pixFmt, size,
+                                           0 /* stride */, true /* isGLOriented */, buf /* pixels */,
+                                           -1f, -1f, outs, true /* closeOutstream */);
+                        return true;
+                    } else {
+                        throw new IOException("PNG writer doesn't support pixel storage buffer of type "+buf0.getClass().getName());
+                    }
                 }
                 throw new IOException("PNG writer doesn't support this pixel format 0x"+Integer.toHexString(pixelFormat)+
                                       " / type 0x"+Integer.toHexString(pixelFormat)+" (only GL_RGB/A, GL_BGR/A + bytes)");
