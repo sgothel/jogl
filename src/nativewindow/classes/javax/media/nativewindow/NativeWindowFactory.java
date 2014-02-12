@@ -43,7 +43,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.PointImmutable;
 
 import jogamp.nativewindow.Debug;
@@ -462,7 +461,7 @@ public abstract class NativeWindowFactory {
      * @see #getDefaultToolkitLock(java.lang.String)
      */
     public static ToolkitLock getDefaultToolkitLock() {
-        return getDefaultToolkitLock(getNativeWindowType(false));
+        return getDefaultToolkitLock(nativeWindowingTypePure);
     }
 
     /**
@@ -655,8 +654,16 @@ public abstract class NativeWindowFactory {
             return new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
         } else if( NativeWindowFactory.TYPE_MACOSX == nwt ) {
             return new MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
+        /**
+         * FIXME: Move implementation to a impl. depending plug-in system (SPI)
+        } else if( NativeWindowFactory.TYPE_BCM_VC_IV == nwt ) {
+        } else if( NativeWindowFactory.TYPE_ANDROID== nwt ) {
+        } else if( NativeWindowFactory.TYPE_EGL == nwt ) {
+        } else if( NativeWindowFactory.TYPE_BCM_VC_IV == nwt ) {
+        } else if( NativeWindowFactory.TYPE_AWT == nwt ) {
+        */
         }
-        throw new UnsupportedOperationException("n/a for this windowing system: "+nwt);
+        throw new UnsupportedOperationException("n/a for windowing system: "+nwt);
     }
 
     /**
@@ -687,8 +694,16 @@ public abstract class NativeWindowFactory {
             return GDIUtil.GetRelativeLocation(nw.getWindowHandle(), 0, 0, 0);
         } else if( NativeWindowFactory.TYPE_MACOSX == nwt ) {
             return OSXUtil.GetLocationOnScreen(nw.getWindowHandle(), null == nw.getParent(), 0, 0);
+        /**
+         * FIXME: Move implementation to a impl. depending plug-in system (SPI)
+        } else if( NativeWindowFactory.TYPE_BCM_VC_IV == nwt ) {
+        } else if( NativeWindowFactory.TYPE_ANDROID== nwt ) {
+        } else if( NativeWindowFactory.TYPE_EGL == nwt ) {
+        } else if( NativeWindowFactory.TYPE_BCM_VC_IV == nwt ) {
+        } else if( NativeWindowFactory.TYPE_AWT == nwt ) {
+            */
         }
-        throw new UnsupportedOperationException("n/a for this windowing system: "+nwt);
+        throw new UnsupportedOperationException("n/a for windowing system: "+nwt);
     }
 
 
