@@ -655,7 +655,7 @@ public abstract class NativeWindowFactory {
         } else if( NativeWindowFactory.TYPE_MACOSX == nwt ) {
             return new MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
         /**
-         * FIXME: Move implementation to a impl. depending plug-in system (SPI)
+         * FIXME: Needs service provider interface (SPI) for TK dependent implementation
         } else if( NativeWindowFactory.TYPE_BCM_VC_IV == nwt ) {
         } else if( NativeWindowFactory.TYPE_ANDROID== nwt ) {
         } else if( NativeWindowFactory.TYPE_EGL == nwt ) {
@@ -695,7 +695,7 @@ public abstract class NativeWindowFactory {
         } else if( NativeWindowFactory.TYPE_MACOSX == nwt ) {
             return OSXUtil.GetLocationOnScreen(nw.getWindowHandle(), null == nw.getParent(), 0, 0);
         /**
-         * FIXME: Move implementation to a impl. depending plug-in system (SPI)
+         * FIXME: Needs service provider interface (SPI) for TK dependent implementation
         } else if( NativeWindowFactory.TYPE_BCM_VC_IV == nwt ) {
         } else if( NativeWindowFactory.TYPE_ANDROID== nwt ) {
         } else if( NativeWindowFactory.TYPE_EGL == nwt ) {
