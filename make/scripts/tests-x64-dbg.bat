@@ -55,7 +55,7 @@ REM set D_ARGS="-Djogl.debug.GLCanvas" "-Djogl.debug.Animator" "-Djogl.debug.GLC
 REM set D_ARGS="-Djogl.debug.GLCanvas" "-Djogl.debug.GLJPanel" "-Djogl.debug.TileRenderer" "-Djogl.debug.TileRenderer.PNG"
 REM set D_ARGS="-Djogl.debug.GLCanvas" "-Djogl.debug.GLJPanel" "-Djogl.debug.TileRenderer"
 REM set D_ARGS="-Djogl.gljpanel.noverticalflip"
-set D_ARGS="-Dnewt.debug=all"
+REM set D_ARGS="-Dnewt.debug=all"
 REM set D_ARGS="-Dnewt.debug.Window"
 REM set D_ARGS="-Dnewt.debug.Window.KeyEvent"
 REM set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.Window.KeyEvent" "-Dnewt.debug.EDT"
@@ -73,6 +73,9 @@ REM set D_ARGS="-Dnewt.debug.Screen" "-Dnewt.debug.EDT" "-Dnativewindow.debug=al
 REM set D_ARGS="-Dnewt.debug.Screen"
 REM set D_ARGS="-Dnewt.debug.Screen" "-Dnewt.debug.Window"
 REM set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.Display" "-Dnewt.test.Window.reparent.incompatible=true"
+
+REM set D_ARGS="-Djogamp.debug.ReflectionUtil" "-Djogamp.debug.ReflectionUtil.forNameStats"
+REM set D_ARGS="-Djogamp.debug.ReflectionUtil.forNameStats"
 
 REM set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.java2d.opengl=true" "-Dsun.awt.noerasebackground=true"
 REM set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.java2d.d3d=false" "-Dsun.java2d.ddoffscreen=false" "-Dsun.java2d.gdiblit=false" "-Dsun.java2d.opengl=false" "-Dsun.awt.noerasebackground=true" "-Xms512m" "-Xmx1024m"
