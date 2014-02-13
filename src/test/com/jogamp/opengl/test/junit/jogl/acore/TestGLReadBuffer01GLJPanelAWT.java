@@ -25,19 +25,17 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.test.junit.jogl.awt;
+package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 
 import javax.imageio.ImageIO;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLEventListener;
@@ -50,12 +48,11 @@ import javax.swing.SwingUtilities;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
-import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
-import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.awt.AWTGLReadBufferUtil;
 import com.jogamp.opengl.util.texture.TextureIO;
 
@@ -63,18 +60,18 @@ import com.jogamp.opengl.util.texture.TextureIO;
  * Multiple GLJPanels in a JFrame
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestGLJPanelResize02AWT extends UITestCase {
+public class TestGLReadBuffer01GLJPanelAWT extends GLReadBuffer00Base {
 
     @BeforeClass
     public static void initClass() {
         GLProfile.initSingleton();
     }
 
-    public void test(final GLCapabilitiesImmutable caps, final boolean useSwingDoubleBuffer) {
+    public void test(final GLCapabilitiesImmutable caps, final boolean useSwingDoubleBuffer, final boolean skipGLOrientationVerticalFlip) {
         final AWTGLReadBufferUtil awtGLReadBufferUtil = new AWTGLReadBufferUtil(caps.getGLProfile(), false);
         final JFrame frame = new JFrame();
         final Dimension d = new Dimension(320, 240);
-
+        final GLJPanel glad = createGLJPanel(skipGLOrientationVerticalFlip, useSwingDoubleBuffer, caps, d);
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
@@ -84,11 +81,10 @@ public class TestGLJPanelResize02AWT extends UITestCase {
                     panel.setDoubleBuffered(useSwingDoubleBuffer);
                     frame.getContentPane().add(panel);
 
-                    final GLJPanel glad = createGLJPanel(useSwingDoubleBuffer, caps, d);
                     final GearsES2 gears = new GearsES2(0);
+                    gears.setFlipVerticalInGLOrientation(skipGLOrientationVerticalFlip);
                     gears.setVerbose(false);
                     glad.addGLEventListener(gears);
-                    glad.addGLEventListener(new SnapshotGLEL(awtGLReadBufferUtil));
                     panel.add(glad);
                     frame.pack();
                     frame.setVisible(true);
@@ -97,10 +93,18 @@ public class TestGLJPanelResize02AWT extends UITestCase {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
+        final GLEventListener snapshotGLEL = new SnapshotGLEL(awtGLReadBufferUtil, skipGLOrientationVerticalFlip);
         final Dimension size0 = frame.getSize();
-        final Dimension size1 = new Dimension(size0.width+30, size0.height+30);
-        final Dimension size2 = new Dimension(size0.width-30, size0.height-30);
+        final Dimension size1 = new Dimension(size0.width+100, size0.height+100);
+        final Dimension size2 = new Dimension(size0.width-100, size0.height-100);
         try {
+            final Animator anim = new Animator(glad);
+            anim.start();
+            try { Thread.sleep(2*duration); } catch (InterruptedException e) { }
+            anim.stop();
+            addSnapshotGLEL(glad, snapshotGLEL);
+            glad.display();
+
             try { Thread.sleep(duration); } catch (InterruptedException e) { }
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                     public void run() {
@@ -120,6 +124,11 @@ public class TestGLJPanelResize02AWT extends UITestCase {
                         frame.validate();
                     } } );
             try { Thread.sleep(duration); } catch (InterruptedException e) { }
+
+            removeSnapshotGLEL(glad, snapshotGLEL);
+            anim.start();
+            try { Thread.sleep(2*duration); } catch (InterruptedException e) { }
+            anim.stop();
         } catch (Exception e1) {
             e1.printStackTrace();
         }
@@ -133,12 +142,24 @@ public class TestGLJPanelResize02AWT extends UITestCase {
         }
     }
 
+    private GLJPanel createGLJPanel(final boolean skipGLOrientationVerticalFlip, final boolean useSwingDoubleBuffer, final GLCapabilitiesImmutable caps, final Dimension size) {
+        final GLJPanel canvas = new GLJPanel(caps);
+        canvas.setSize(size);
+        canvas.setPreferredSize(size);
+        canvas.setMinimumSize(size);
+        canvas.setDoubleBuffered(useSwingDoubleBuffer);
+        canvas.setSkipGLOrientationVerticalFlip(skipGLOrientationVerticalFlip);
+        return canvas;
+    }
+
     private class SnapshotGLEL implements GLEventListener {
         final AWTGLReadBufferUtil glReadBufferUtil;
+        final boolean skipGLOrientationVerticalFlip;
         int i;
 
-        SnapshotGLEL(final AWTGLReadBufferUtil glReadBufferUtil) {
+        SnapshotGLEL(final AWTGLReadBufferUtil glReadBufferUtil, final boolean skipGLOrientationVerticalFlip) {
             this.glReadBufferUtil = glReadBufferUtil;
+            this.skipGLOrientationVerticalFlip = skipGLOrientationVerticalFlip;
             i = 0;
         }
 
@@ -157,39 +178,28 @@ public class TestGLJPanelResize02AWT extends UITestCase {
             final String filenameAWT = getSnapshotFilename(sn, "awt",
                                                            drawable.getChosenGLCapabilities(), drawable.getWidth(), drawable.getHeight(),
                                                            glReadBufferUtil.hasAlpha(), fileSuffix, destPath);
-            final String filenameJGL = getSnapshotFilename(sn, "jgl",
-                                                           drawable.getChosenGLCapabilities(), drawable.getWidth(), drawable.getHeight(),
-                                                           glReadBufferUtil.hasAlpha(), fileSuffix, destPath);
-            System.err.println(Thread.currentThread().getName()+": ** screenshot: "+filenameAWT+", "+filenameJGL);
-            gl.glFinish(); // just make sure rendering finished ..
-            final BufferedImage image = glReadBufferUtil.readPixelsToBufferedImage(gl, true /* awtOrientation */);
+            // gl.glFinish(); // just make sure rendering finished ..
+            drawable.swapBuffers();
+            final boolean awtOrientation = !( drawable.isGLOriented() && skipGLOrientationVerticalFlip );
+            System.err.println(Thread.currentThread().getName()+": ** screenshot: awtOrient/v-flip "+awtOrientation+", "+filenameAWT);
+
+            final BufferedImage image = glReadBufferUtil.readPixelsToBufferedImage(gl, awtOrientation);
             final File fout = new File(filenameAWT);
             try {
                 ImageIO.write(image, "png", fout);
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            /**
+            final String filenameJGL = getSnapshotFilename(sn, "jgl",
+                                                           drawable.getChosenGLCapabilities(), drawable.getWidth(), drawable.getHeight(),
+                                                           glReadBufferUtil.hasAlpha(), fileSuffix, destPath);
             glReadBufferUtil.write(new File(filenameJGL));
+            */
         }
     };
 
-    private GLJPanel createGLJPanel(final boolean useSwingDoubleBuffer, final GLCapabilitiesImmutable caps, final Dimension size) {
-        final GLJPanel canvas = new GLJPanel(caps);
-        canvas.setSize(size);
-        canvas.setPreferredSize(size);
-        canvas.setMinimumSize(size);
-        canvas.setDoubleBuffered(useSwingDoubleBuffer);
-        return canvas;
-    }
-
     static GLCapabilitiesImmutable caps = null;
-
-    @Test
-    public void test00() throws InterruptedException, InvocationTargetException {
-        test(new GLCapabilities(null), false /*useSwingDoubleBuffer*/);
-    }
-
-    static long duration = 500; // ms
 
     public static void main(String[] args) {
         for(int i=0; i<args.length; i++) {
@@ -198,7 +208,7 @@ public class TestGLJPanelResize02AWT extends UITestCase {
                 duration = MiscUtils.atol(args[i], duration);
             }
         }
-        org.junit.runner.JUnitCore.main(TestGLJPanelResize02AWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestGLReadBuffer01GLJPanelAWT.class.getName());
     }
 
 }

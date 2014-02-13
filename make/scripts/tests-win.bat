@@ -97,6 +97,9 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.anim.TestAnimat
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.anim.TestAWTCardLayoutAnimatorStartStopBug532 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.anim.Bug898AnimatorFromEDTAWT %*
 
+scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLJPanelAWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLWindowNEWT %*
+
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestSwingAWT01GLn
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAWTActionDeadlock00AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAWTActionDeadlock02AWT %*
@@ -108,7 +111,6 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestJScrollPaneMi
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestBug642JSplitPaneMixHwLw01AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestIsRealizedConcurrency01AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelResize01AWT %*
-scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelResize02AWT %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.glsl.TestTransformFeedbackVaryingsBug407NEWT

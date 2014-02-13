@@ -485,6 +485,9 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.acore.anim.TestAnimatorGLJPanel01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.anim.Bug898AnimatorFromEDTAWT $*
 
+testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLJPanelAWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLWindowNEWT $*
+
 #
 # NEWT
 #
@@ -582,7 +585,6 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAWTActionDeadlock02AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelTextureStateAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelResize01AWT $*
-testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelResize02AWT $*
 
 #testawt com.jogamp.opengl.test.bugs.Bug735Inv0AppletAWT $*
 #testawt com.jogamp.opengl.test.bugs.Bug735Inv1AppletAWT $*
