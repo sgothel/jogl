@@ -392,8 +392,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestFloatUtil01MatrixMatrixMultNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestBinary16NOUI $*
 
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT $*
-
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent02NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextSurfaceLockNEWT $*
@@ -583,6 +582,7 @@ testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAWTActionDeadlock02AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelTextureStateAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelResize01AWT $*
+testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelResize02AWT $*
 
 #testawt com.jogamp.opengl.test.bugs.Bug735Inv0AppletAWT $*
 #testawt com.jogamp.opengl.test.bugs.Bug735Inv1AppletAWT $*

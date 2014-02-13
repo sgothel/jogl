@@ -324,9 +324,19 @@ public class GLPixelBuffer {
 
     /** The {@link GLPixelAttributes}. */
     public final GLPixelAttributes pixelAttributes;
-    /** Width in pixels. */
+    /**
+     * Width in pixels, representing {@link #buffer}'s {@link #byteSize}.
+     * <p>
+     * May not represent actual image width as user may re-use buffer for different dimensions, see {@link #requiresNewBuffer(GL, int, int, int)}.
+     * </p>
+     */
     public final int width;
-    /** Height in pixels. */
+    /**
+     * Height in pixels, representing {@link #buffer}'s {@link #byteSize}.
+     * <p>
+     * May not represent actual image height as user may re-use buffer for different dimensions, see {@link #requiresNewBuffer(GL, int, int, int)}.
+     * </p>
+     */
     public final int height;
     /** Depth in pixels. */
     public final int depth;

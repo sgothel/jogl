@@ -30,6 +30,7 @@ package com.jogamp.opengl.util.awt;
 import java.awt.image.BufferedImage;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.opengl.util.GLReadBufferUtil;
@@ -51,12 +52,53 @@ public class AWTGLReadBufferUtil extends GLReadBufferUtil {
 
     public AWTGLPixelBuffer getAWTGLPixelBuffer() { return (AWTGLPixelBuffer)this.getPixelBuffer(); }
 
+    /**
+     * Read the drawable's pixels to TextureData and Texture, if requested at construction,
+     * and returns an aligned {@link BufferedImage}.
+     *
+     * @param gl the current GL context object. It's read drawable is being used as the pixel source.
+     * @param awtOrientation flips the data vertically if <code>true</code>.
+     *                       The context's drawable {@link GLDrawable#isGLOriented()} state
+     *                       is taken into account.
+     *                       Vertical flipping is propagated to TextureData
+     *                       and handled in a efficient manner there (TextureCoordinates and TextureIO writer).
+     * @see #AWTGLReadBufferUtil(GLProfile, boolean)
+     */
     public BufferedImage readPixelsToBufferedImage(GL gl, boolean awtOrientation) {
         return readPixelsToBufferedImage(gl, 0, 0, 0, 0, awtOrientation);
     }
+
+    /**
+     * Read the drawable's pixels to TextureData and Texture, if requested at construction,
+     * and returns an aligned {@link BufferedImage}.
+     *
+     * @param gl the current GL context object. It's read drawable is being used as the pixel source.
+     * @param inX readPixel x offset
+     * @param inY readPixel y offset
+     * @param inWidth optional readPixel width value, used if [1 .. drawable.width], otherwise using drawable.width
+     * @param inHeight optional readPixel height, used if [1 .. drawable.height], otherwise using drawable.height
+     * @param awtOrientation flips the data vertically if <code>true</code>.
+     *                       The context's drawable {@link GLDrawable#isGLOriented()} state
+     *                       is taken into account.
+     *                       Vertical flipping is propagated to TextureData
+     *                       and handled in a efficient manner there (TextureCoordinates and TextureIO writer).
+     * @see #AWTGLReadBufferUtil(GLProfile, boolean)
+     */
     public BufferedImage readPixelsToBufferedImage(GL gl, int inX, int inY, int inWidth, int inHeight, boolean awtOrientation) {
-        if( readPixels(gl, inX, inY, inWidth, inHeight, awtOrientation) ) {
-            final BufferedImage image = getAWTGLPixelBuffer().image;
+        final GLDrawable drawable = gl.getContext().getGLReadDrawable();
+        final int width, height;
+        if( 0 >= inWidth || drawable.getWidth() < inWidth ) {
+            width = drawable.getWidth();
+        } else {
+            width = inWidth;
+        }
+        if( 0 >= inHeight || drawable.getHeight() < inHeight ) {
+            height = drawable.getHeight();
+        } else {
+            height= inHeight;
+        }
+        if( readPixelsImpl(drawable, gl, inX, inY, width, height, awtOrientation) ) {
+            final BufferedImage image = getAWTGLPixelBuffer().getAlignedImage(width, height);
             if( getTextureData().getMustFlipVertically()  ) {
                 ImageUtil.flipImageVertically(image);
             }

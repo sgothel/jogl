@@ -151,17 +151,6 @@ public class GLReadBufferUtil {
      * @see #GLReadBufferUtil(boolean, boolean)
      */
     public boolean readPixels(GL gl, int inX, int inY, int inWidth, int inHeight, boolean mustFlipVertically) {
-        final int glerr0 = gl.glGetError();
-        if(GL.GL_NO_ERROR != glerr0) {
-            System.err.println("Info: GLReadBufferUtil.readPixels: pre-exisiting GL error 0x"+Integer.toHexString(glerr0));
-        }
-        final GLPixelAttributes pixelAttribs = pixelBufferProvider.getAttributes(gl, componentCount);
-        final int internalFormat;
-        if(gl.isGL2GL3() && 3 == componentCount) {
-            internalFormat = GL.GL_RGB;
-        } else {
-            internalFormat = (4 == componentCount) ? GL.GL_RGBA : GL.GL_RGB;
-        }
         final GLDrawable drawable = gl.getContext().getGLReadDrawable();
         final int width, height;
         if( 0 >= inWidth || drawable.getWidth() < inWidth ) {
@@ -173,6 +162,23 @@ public class GLReadBufferUtil {
             height = drawable.getHeight();
         } else {
             height= inHeight;
+        }
+        return readPixelsImpl(drawable, gl, inX, inY, width, height, mustFlipVertically);
+    }
+
+    protected boolean readPixelsImpl(final GLDrawable drawable, final GL gl,
+                                     final int inX, final int inY, final int width, final int height,
+                                     final boolean mustFlipVertically) {
+        final int glerr0 = gl.glGetError();
+        if(GL.GL_NO_ERROR != glerr0) {
+            System.err.println("Info: GLReadBufferUtil.readPixels: pre-exisiting GL error 0x"+Integer.toHexString(glerr0));
+        }
+        final GLPixelAttributes pixelAttribs = pixelBufferProvider.getAttributes(gl, componentCount);
+        final int internalFormat;
+        if(gl.isGL2GL3() && 3 == componentCount) {
+            internalFormat = GL.GL_RGB;
+        } else {
+            internalFormat = (4 == componentCount) ? GL.GL_RGBA : GL.GL_RGB;
         }
 
         final boolean flipVertically;
@@ -216,7 +222,7 @@ public class GLReadBufferUtil {
         if(res) {
             psm.setAlignment(gl, alignment, alignment);
             if(gl.isGL2GL3()) {
-                gl.getGL2GL3().glPixelStorei(GL2GL3.GL_PACK_ROW_LENGTH, readPixelBuffer.width);
+                gl.getGL2GL3().glPixelStorei(GL2GL3.GL_PACK_ROW_LENGTH, width);
             }
             readPixelBuffer.clear();
             try {

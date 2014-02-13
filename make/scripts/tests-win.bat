@@ -38,7 +38,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintin
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintingNIOImageSwingAWT %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLCapabilities01NEWT %*
-scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT -time 5000
 
@@ -107,6 +107,8 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestAWTCardLayout
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestJScrollPaneMixHwLw01AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestBug642JSplitPaneMixHwLw01AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestIsRealizedConcurrency01AWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelResize01AWT %*
+scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelResize02AWT %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.glsl.TestTransformFeedbackVaryingsBug407NEWT
