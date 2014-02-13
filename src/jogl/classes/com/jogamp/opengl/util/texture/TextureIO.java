@@ -1414,7 +1414,7 @@ public class TextureIO {
                         final ByteBuffer buf = (ByteBuffer) buf0;
                         buf.rewind();
                         final PNGPixelRect image = new PNGPixelRect(pixFmt, size,
-                                                                    0 /* stride */, true /* isGLOriented */, buf /* pixels */,
+                                                                    0 /* stride */, !data.getMustFlipVertically() /* isGLOriented */, buf /* pixels */,
                                                                     -1f, -1f);
                         final OutputStream outs = new BufferedOutputStream(IOUtil.getFileOutputStream(file, true /* allowOverwrite */));
                         image.write(outs, true /* close */);
@@ -1424,7 +1424,7 @@ public class TextureIO {
                         buf.rewind();
                         final OutputStream outs = new BufferedOutputStream(IOUtil.getFileOutputStream(file, true /* allowOverwrite */));
                         PNGPixelRect.write(pixFmt, size,
-                                           0 /* stride */, true /* isGLOriented */, buf /* pixels */,
+                                           0 /* stride */, !data.getMustFlipVertically() /* isGLOriented */, buf /* pixels */,
                                            -1f, -1f, outs, true /* closeOutstream */);
                         return true;
                     } else {
