@@ -438,30 +438,6 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   }
 
   //
-  // SurfaceUpdateListener
-  //
-
-  @Override
-  public void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
-      surfaceUpdatedHelper.addSurfaceUpdatedListener(l);
-  }
-
-  @Override
-  public void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
-      surfaceUpdatedHelper.addSurfaceUpdatedListener(index, l);
-  }
-
-  @Override
-  public void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
-      surfaceUpdatedHelper.removeSurfaceUpdatedListener(l);
-  }
-
-  @Override
-  public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
-      surfaceUpdatedHelper.surfaceUpdated(updater, ns, when);
-  }
-
-  //
   // NativeSurface
   //
 
@@ -569,6 +545,26 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   @Override
   public boolean surfaceSwap() {
     return false;
+  }
+
+  @Override
+  public void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+      surfaceUpdatedHelper.addSurfaceUpdatedListener(l);
+  }
+
+  @Override
+  public void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
+      surfaceUpdatedHelper.addSurfaceUpdatedListener(index, l);
+  }
+
+  @Override
+  public void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+      surfaceUpdatedHelper.removeSurfaceUpdatedListener(l);
+  }
+
+  @Override
+  public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
+      surfaceUpdatedHelper.surfaceUpdated(updater, ns, when);
   }
 
   @Override

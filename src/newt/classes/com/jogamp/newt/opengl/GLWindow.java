@@ -683,21 +683,6 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
-    public final void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
-        window.removeSurfaceUpdatedListener(l);
-    }
-
-    @Override
-    public final void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
-        window.addSurfaceUpdatedListener(l);
-    }
-
-    @Override
-    public final void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
-        window.addSurfaceUpdatedListener(index, l);
-    }
-
-    @Override
     public void sendWindowEvent(int eventType) {
         window.sendWindowEvent(eventType);
     }
@@ -851,6 +836,26 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
+    public final void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+        window.removeSurfaceUpdatedListener(l);
+    }
+
+    @Override
+    public final void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+        window.addSurfaceUpdatedListener(l);
+    }
+
+    @Override
+    public final void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
+        window.addSurfaceUpdatedListener(index, l);
+    }
+
+    @Override
+    public final void surfaceUpdated(Object updater, NativeSurface ns, long when) {
+        window.surfaceUpdated(updater, ns, when);
+    }
+
+    @Override
     public final long getWindowHandle() {
         return window.getWindowHandle();
 
@@ -875,11 +880,6 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     @Override
     public final int  getScreenIndex() {
         return window.getScreenIndex();
-    }
-
-    @Override
-    public final void surfaceUpdated(Object updater, NativeSurface ns, long when) {
-        window.surfaceUpdated(updater, ns, when);
     }
 
     /**

@@ -811,6 +811,26 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
+    public final void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+        surfaceUpdatedHelper.addSurfaceUpdatedListener(l);
+    }
+
+    @Override
+    public final void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
+        surfaceUpdatedHelper.addSurfaceUpdatedListener(index, l);
+    }
+
+    @Override
+    public final void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+        surfaceUpdatedHelper.removeSurfaceUpdatedListener(l);
+    }
+
+    @Override
+    public final void surfaceUpdated(Object updater, NativeSurface ns, long when) {
+        surfaceUpdatedHelper.surfaceUpdated(updater, ns, when);
+    }
+
+    @Override
     public final AbstractGraphicsConfiguration getGraphicsConfiguration() {
         return config.getNativeGraphicsConfiguration();
     }
@@ -2504,29 +2524,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             throw new NativeWindowException("Unexpected NEWTEvent type " + e);
         }
         return true;
-    }
-
-    //
-    // SurfaceUpdatedListener Support
-    //
-    @Override
-    public final void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
-        surfaceUpdatedHelper.addSurfaceUpdatedListener(l);
-    }
-
-    @Override
-    public final void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
-        surfaceUpdatedHelper.addSurfaceUpdatedListener(index, l);
-    }
-
-    @Override
-    public final void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
-        surfaceUpdatedHelper.removeSurfaceUpdatedListener(l);
-    }
-
-    @Override
-    public final void surfaceUpdated(Object updater, NativeSurface ns, long when) {
-        surfaceUpdatedHelper.surfaceUpdated(updater, ns, when);
     }
 
     //

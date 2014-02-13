@@ -36,22 +36,23 @@ import javax.media.nativewindow.SurfaceUpdatedListener;
 public class SurfaceUpdatedHelper implements SurfaceUpdatedListener {
     private final Object surfaceUpdatedListenersLock = new Object();
     private final ArrayList<SurfaceUpdatedListener> surfaceUpdatedListeners = new ArrayList<SurfaceUpdatedListener>();
+    private volatile boolean isEmpty = true;
 
     //
     // Management Utils
     //
-    public int size() { return surfaceUpdatedListeners.size(); }
-    public SurfaceUpdatedListener get(int i) { return surfaceUpdatedListeners.get(i); }
+    public final int size() { return surfaceUpdatedListeners.size(); }
+    public final SurfaceUpdatedListener get(int i) { return surfaceUpdatedListeners.get(i); }
 
     //
     // Implementation of NativeSurface SurfaceUpdatedListener methods
     //
 
-    public void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+    public final void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
         addSurfaceUpdatedListener(-1, l);
     }
 
-    public void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l)
+    public final void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l)
         throws IndexOutOfBoundsException
     {
         if(l == null) {
@@ -62,23 +63,29 @@ public class SurfaceUpdatedHelper implements SurfaceUpdatedListener {
                 index = surfaceUpdatedListeners.size();
             }
             surfaceUpdatedListeners.add(index, l);
+            isEmpty = false;
         }
     }
 
-    public void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+    public final boolean removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
         if (l == null) {
-            return;
+            return false;
         }
         synchronized(surfaceUpdatedListenersLock) {
-            surfaceUpdatedListeners.remove(l);
+            final boolean res = surfaceUpdatedListeners.remove(l);
+            isEmpty = 0 == surfaceUpdatedListeners.size();
+            return res;
         }
     }
 
     @Override
-    public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
+    public final void surfaceUpdated(Object updater, NativeSurface ns, long when) {
+        if( isEmpty ) {
+            return;
+        }
         synchronized(surfaceUpdatedListenersLock) {
           for(int i = 0; i < surfaceUpdatedListeners.size(); i++ ) {
-            SurfaceUpdatedListener l = surfaceUpdatedListeners.get(i);
+            final SurfaceUpdatedListener l = surfaceUpdatedListeners.get(i);
             l.surfaceUpdated(updater, ns, when);
           }
         }
