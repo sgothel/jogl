@@ -52,6 +52,7 @@ import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.awt.AWTGLReadBufferUtil;
 import com.jogamp.opengl.util.texture.TextureIO;
@@ -72,6 +73,7 @@ public class TestGLReadBuffer01GLJPanelAWT extends GLReadBuffer00Base {
         final JFrame frame = new JFrame();
         final Dimension d = new Dimension(320, 240);
         final GLJPanel glad = createGLJPanel(skipGLOrientationVerticalFlip, useSwingDoubleBuffer, caps, d);
+        final SnapshotGLELAWT snapshotGLEL = new SnapshotGLELAWT(awtGLReadBufferUtil, skipGLOrientationVerticalFlip);
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
@@ -81,10 +83,14 @@ public class TestGLReadBuffer01GLJPanelAWT extends GLReadBuffer00Base {
                     panel.setDoubleBuffered(useSwingDoubleBuffer);
                     frame.getContentPane().add(panel);
 
-                    final GearsES2 gears = new GearsES2(0);
+                    final GearsES2 gears = new GearsES2(1);
                     gears.setFlipVerticalInGLOrientation(skipGLOrientationVerticalFlip);
                     gears.setVerbose(false);
                     glad.addGLEventListener(gears);
+                    final TextRendererGLEL textRendererGLEL = new TextRendererGLEL();
+                    textRendererGLEL.setFlipVerticalInGLOrientation(skipGLOrientationVerticalFlip);
+                    glad.addGLEventListener(textRendererGLEL);
+                    glad.addGLEventListener(snapshotGLEL);
                     panel.add(glad);
                     frame.pack();
                     frame.setVisible(true);
@@ -93,18 +99,11 @@ public class TestGLReadBuffer01GLJPanelAWT extends GLReadBuffer00Base {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
-        final GLEventListener snapshotGLEL = new SnapshotGLEL(awtGLReadBufferUtil, skipGLOrientationVerticalFlip);
+        glad.display(); // trigger initialization to get chosen-caps!
         final Dimension size0 = frame.getSize();
         final Dimension size1 = new Dimension(size0.width+100, size0.height+100);
         final Dimension size2 = new Dimension(size0.width-100, size0.height-100);
         try {
-            final Animator anim = new Animator(glad);
-            anim.start();
-            try { Thread.sleep(2*duration); } catch (InterruptedException e) { }
-            anim.stop();
-            addSnapshotGLEL(glad, snapshotGLEL);
-            glad.display();
-
             try { Thread.sleep(duration); } catch (InterruptedException e) { }
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                     public void run() {
@@ -125,7 +124,8 @@ public class TestGLReadBuffer01GLJPanelAWT extends GLReadBuffer00Base {
                     } } );
             try { Thread.sleep(duration); } catch (InterruptedException e) { }
 
-            removeSnapshotGLEL(glad, snapshotGLEL);
+            glad.disposeGLEventListener(snapshotGLEL, true /* remove */);
+            final Animator anim = new Animator(glad);
             anim.start();
             try { Thread.sleep(2*duration); } catch (InterruptedException e) { }
             anim.stop();
@@ -152,21 +152,31 @@ public class TestGLReadBuffer01GLJPanelAWT extends GLReadBuffer00Base {
         return canvas;
     }
 
-    private class SnapshotGLEL implements GLEventListener {
+    private class SnapshotGLELAWT implements GLEventListener {
         final AWTGLReadBufferUtil glReadBufferUtil;
         final boolean skipGLOrientationVerticalFlip;
+        boolean defAutoSwapMode;
+        boolean swapBuffersBeforeRead;
         int i;
 
-        SnapshotGLEL(final AWTGLReadBufferUtil glReadBufferUtil, final boolean skipGLOrientationVerticalFlip) {
+        SnapshotGLELAWT(final AWTGLReadBufferUtil glReadBufferUtil, final boolean skipGLOrientationVerticalFlip) {
             this.glReadBufferUtil = glReadBufferUtil;
             this.skipGLOrientationVerticalFlip = skipGLOrientationVerticalFlip;
+            this.defAutoSwapMode = true;
+            this.swapBuffersBeforeRead = false;
             i = 0;
         }
 
         @Override
-        public void init(GLAutoDrawable drawable) { }
+        public void init(GLAutoDrawable drawable) {
+            defAutoSwapMode = drawable.getAutoSwapBufferMode();
+            swapBuffersBeforeRead = UITestCase.swapBuffersBeforeRead(drawable.getChosenGLCapabilities());
+            drawable.setAutoSwapBufferMode( !swapBuffersBeforeRead );
+        }
         @Override
-        public void dispose(GLAutoDrawable drawable) { }
+        public void dispose(GLAutoDrawable drawable) {
+            drawable.setAutoSwapBufferMode( defAutoSwapMode );
+        }
         @Override
         public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
         @Override
@@ -178,10 +188,17 @@ public class TestGLReadBuffer01GLJPanelAWT extends GLReadBuffer00Base {
             final String filenameAWT = getSnapshotFilename(sn, "awt",
                                                            drawable.getChosenGLCapabilities(), drawable.getWidth(), drawable.getHeight(),
                                                            glReadBufferUtil.hasAlpha(), fileSuffix, destPath);
-            // gl.glFinish(); // just make sure rendering finished ..
-            drawable.swapBuffers();
+            if( swapBuffersBeforeRead ) {
+                drawable.swapBuffers();
+                // Just to test whether we use the right buffer,
+                // i.e. back-buffer shall no more be required ..
+                gl.glClear(GL.GL_COLOR_BUFFER_BIT);
+            } else {
+                gl.glFinish(); // just make sure rendering finished ..
+            }
+
             final boolean awtOrientation = !( drawable.isGLOriented() && skipGLOrientationVerticalFlip );
-            System.err.println(Thread.currentThread().getName()+": ** screenshot: awtOrient/v-flip "+awtOrientation+", "+filenameAWT);
+            System.err.println(Thread.currentThread().getName()+": ** screenshot: awtOrient/v-flip "+awtOrientation+", swapBuffersBeforeRead "+swapBuffersBeforeRead+", "+filenameAWT);
 
             final BufferedImage image = glReadBufferUtil.readPixelsToBufferedImage(gl, awtOrientation);
             final File fout = new File(filenameAWT);

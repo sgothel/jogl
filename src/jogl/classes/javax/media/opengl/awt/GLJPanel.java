@@ -60,7 +60,6 @@ import java.util.List;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.SurfaceUpdatedListener;
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
@@ -355,7 +354,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     this.chooser = chooser;
 
     helper = new GLDrawableHelper();
-    helper.setAutoSwapBufferMode(false); /** Always handles buffer swapping in Backend! */
     if( null != shareWith ) {
         helper.setSharedContext(null, shareWith);
     }
@@ -945,18 +943,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public void setAutoSwapBufferMode(boolean onOrOff) {
-    // In the current implementation this is a no-op.
-    // All Backend's require control of buffer swapping,
-    // i.e. as required for MSAA offscreen FBO buffer.
+  public void setAutoSwapBufferMode(boolean enable) {
+    helper.setAutoSwapBufferMode(enable);
   }
 
   @Override
   public boolean getAutoSwapBufferMode() {
-    // In the current implementation this is a no-op.
-    // All Backend's require control of buffer swapping,
-    // i.e. as required for MSAA offscreen FBO buffer.
-    return true;
+    return helper.getAutoSwapBufferMode();
   }
 
   @Override
@@ -1402,8 +1395,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     private volatile GLContextImpl offscreenContext; // volatile: avoid locking for read-only access
     private boolean flipVertical;
 
-    private boolean needsSwapBuffers = true;
-
     // For saving/restoring of OpenGL state during ReadPixels
     private final GLPixelStorageModes psm =  new GLPixelStorageModes();
 
@@ -1439,12 +1430,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                                                     chooser,
                                                     panelWidth, panelHeight);
           offscreenDrawable.setRealized(true);
-          offscreenDrawable.getNativeSurface().addSurfaceUpdatedListener(new SurfaceUpdatedListener() {
-              @Override
-              public final void surfaceUpdated(Object updater, NativeSurface ns, long when) {
-                  needsSwapBuffers = false;
-              } } );
-
           offscreenContext = (GLContextImpl) offscreenDrawable.createContext(shareWith[0]);
           offscreenContext.setContextCreationFlags(additionalCtxCreationFlags);
           if( GLContext.CONTEXT_NOT_CURRENT < offscreenContext.makeCurrent() ) {
@@ -1564,7 +1549,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
     @Override
     public final boolean preGL(Graphics g) {
-      needsSwapBuffers = true;
+      // Empty in this implementation
       return true;
     }
 
@@ -1579,6 +1564,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     @Override
     public final void postGL(Graphics g, boolean isDisplay) {
       if (isDisplay) {
+        // offscreenDrawable is already swapped,
+        // either by GLDrawableHelper.invoke or user's GLEL according to auto-swap-buffer-mode.
+
         final GL gl = offscreenContext.getGL();
 
         final int componentCount;
@@ -1664,10 +1652,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             final GL2ES3 gl2es3 = gl.getGL2ES3();
             gl2es3.glPixelStorei(GL2ES3.GL_PACK_ROW_LENGTH, panelWidth);
             gl2es3.glReadBuffer(gl2es3.getDefaultReadBuffer());
-        }
-
-        if( needsSwapBuffers ) {
-            offscreenDrawable.swapBuffers();
         }
 
         if(null != glslTextureRaster) { // implies flippedVertical

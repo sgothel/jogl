@@ -34,7 +34,6 @@ import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 
@@ -46,6 +45,7 @@ import org.junit.runners.MethodSorters;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.texture.TextureIO;
@@ -67,29 +67,26 @@ public class TestGLReadBuffer01GLWindowNEWT extends GLReadBuffer00Base {
         }
         final GLReadBufferUtil glReadBufferUtil = new GLReadBufferUtil(false, false);
         final GLWindow glad= GLWindow.create(caps);
+        final SnapshotGLEL snapshotGLEL = new SnapshotGLEL(glReadBufferUtil);
         try {
             glad.setPosition(64, 64);
             glad.setSize(320, 240);
-            final GearsES2 gears = new GearsES2(0);
+            final GearsES2 gears = new GearsES2(1);
             gears.setVerbose(false);
             glad.addGLEventListener(gears);
+            final TextRendererGLEL textRendererGLEL = new TextRendererGLEL();
+            textRendererGLEL.setFlipVerticalInGLOrientation(skipGLOrientationVerticalFlip);
+            glad.addGLEventListener(textRendererGLEL);
+            glad.addGLEventListener(snapshotGLEL);
             glad.setVisible(true);
         } catch( Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
-        final GLEventListener snapshotGLEL = new SnapshotGLEL(glReadBufferUtil);
         final DimensionImmutable size0 = new Dimension(glad.getWidth(), glad.getHeight());
         final DimensionImmutable size1 = new Dimension(size0.getWidth()+100, size0.getHeight()+100);
         final DimensionImmutable size2 = new Dimension(size0.getWidth()-100, size0.getHeight()-100);
         try {
-            final Animator anim = new Animator(glad);
-            anim.start();
-            try { Thread.sleep(2*duration); } catch (InterruptedException e) { }
-            anim.stop();
-            addSnapshotGLEL(glad, snapshotGLEL);
-            glad.display();
-
             try { Thread.sleep(duration); } catch (InterruptedException e) { }
             glad.setSize(size1.getWidth(), size1.getHeight());
             try { Thread.sleep(duration); } catch (InterruptedException e) { }
@@ -98,7 +95,8 @@ public class TestGLReadBuffer01GLWindowNEWT extends GLReadBuffer00Base {
             glad.setSize(size0.getWidth(), size0.getHeight());
             try { Thread.sleep(duration); } catch (InterruptedException e) { }
 
-            removeSnapshotGLEL(glad, snapshotGLEL);
+            glad.disposeGLEventListener(snapshotGLEL, true /* remove */);
+            final Animator anim = new Animator(glad);
             anim.start();
             try { Thread.sleep(2*duration); } catch (InterruptedException e) { }
             anim.stop();
@@ -110,32 +108,48 @@ public class TestGLReadBuffer01GLWindowNEWT extends GLReadBuffer00Base {
 
     private class SnapshotGLEL implements GLEventListener {
         final GLReadBufferUtil glReadBufferUtil;
+        boolean defAutoSwapMode;
+        boolean swapBuffersBeforeRead;
         int i;
 
         SnapshotGLEL(final GLReadBufferUtil glReadBufferUtil) {
             this.glReadBufferUtil = glReadBufferUtil;
+            this.defAutoSwapMode = true;
+            this.swapBuffersBeforeRead = false;
             i = 0;
         }
 
         @Override
-        public void init(GLAutoDrawable drawable) { }
+        public void init(GLAutoDrawable drawable) {
+            defAutoSwapMode = drawable.getAutoSwapBufferMode();
+            swapBuffersBeforeRead = UITestCase.swapBuffersBeforeRead(drawable.getChosenGLCapabilities());
+            drawable.setAutoSwapBufferMode( !swapBuffersBeforeRead );
+        }
         @Override
-        public void dispose(GLAutoDrawable drawable) { }
+        public void dispose(GLAutoDrawable drawable) {
+            drawable.setAutoSwapBufferMode( defAutoSwapMode );
+        }
         @Override
         public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
         @Override
         public void display(GLAutoDrawable drawable) {
-            snapshot(i++, drawable.getGL(), TextureIO.PNG, null);
+            snapshot(i++, drawable, TextureIO.PNG, null);
         }
-        public void snapshot(int sn, GL gl, String fileSuffix, String destPath) {
-            final GLDrawable drawable = gl.getContext().getGLReadDrawable();
+        public void snapshot(int sn, GLAutoDrawable drawable, String fileSuffix, String destPath) {
+            final GL gl = drawable.getGL();
             final String filenameJGL = getSnapshotFilename(sn, "jgl",
                                                            drawable.getChosenGLCapabilities(), drawable.getWidth(), drawable.getHeight(),
                                                            glReadBufferUtil.hasAlpha(), fileSuffix, destPath);
-            // gl.glFinish(); // just make sure rendering finished ..
-            drawable.swapBuffers();
+            if( swapBuffersBeforeRead ) {
+                drawable.swapBuffers();
+                // Just to test whether we use the right buffer,
+                // i.e. back-buffer shall no more be required ..
+                gl.glClear(GL.GL_COLOR_BUFFER_BIT);
+            } else {
+                gl.glFinish(); // just make sure rendering finished ..
+            }
             final boolean mustFlipVertically = !drawable.isGLOriented();
-            System.err.println(Thread.currentThread().getName()+": ** screenshot: v-flip "+mustFlipVertically+", "+filenameJGL);
+            System.err.println(Thread.currentThread().getName()+": ** screenshot: v-flip "+mustFlipVertically+", swapBuffersBeforeRead "+swapBuffersBeforeRead+", "+filenameJGL);
 
             if(glReadBufferUtil.readPixels(gl, mustFlipVertically)) {
                 glReadBufferUtil.write(new File(filenameJGL));

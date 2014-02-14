@@ -27,8 +27,10 @@
  */
 package com.jogamp.opengl.test.junit.jogl.acore;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
+import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
@@ -40,7 +42,15 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.graph.curve.opengl.TextRenderer;
+import com.jogamp.graph.font.Font;
+import com.jogamp.graph.font.FontFactory;
+import com.jogamp.graph.geom.opengl.SVertex;
+import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.util.glsl.ShaderState;
 
 /**
  * Multiple GLJPanels in a JFrame
@@ -48,24 +58,128 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public abstract class GLReadBuffer00Base extends UITestCase {
 
+    public static abstract class TextRendererGLELBase implements GLEventListener {
+        final float[] textPosition = new float[] {0,0,0};
+        final int[] texSize = new int[] { 0 };
+        final int fontSize = 24;
+
+        final Font font;
+        final RenderState rs;
+        final TextRenderer renderer;
+
+        boolean flipVerticalInGLOrientation = false;
+
+        public TextRendererGLELBase() {
+            {
+                Font _font = null;
+                try {
+                    _font = FontFactory.get(FontFactory.UBUNTU).getDefault();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                this.font = _font;
+            }
+            if( null != font ) {
+                this.rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
+                this.renderer = TextRenderer.create(rs, Region.VBAA_RENDERING_BIT);
+            } else {
+                this.rs = null;
+                this.renderer = null;
+            }
+        }
+
+        public void setFlipVerticalInGLOrientation(boolean v) { flipVerticalInGLOrientation=v; }
+        public final TextRenderer getRenderer() { return renderer; }
+
+        public void init(GLAutoDrawable drawable) {
+            if( null != renderer ) {
+                final GL2ES2 gl = drawable.getGL().getGL2ES2();
+                renderer.init(gl);
+                renderer.setAlpha(gl, 0.99f);
+                renderer.setColorStatic(gl, 1.0f, 1.0f, 1.0f);
+                final ShaderState st = rs.getShaderState();
+                st.useProgram(gl, false);
+            }
+        }
+
+        public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+            if( null != renderer ) {
+                final GL2ES2 gl = drawable.getGL().getGL2ES2();
+                final ShaderState st = rs.getShaderState();
+                st.useProgram(gl, true);
+                // renderer.reshapePerspective(gl, 45.0f, width, height, 0.1f, 1000.0f);
+                renderer.reshapeOrtho(gl, width, height, 0.1f, 1000.0f);
+                st.useProgram(gl, false);
+                texSize[0] = width * 2;
+            }
+        }
+
+        public abstract void display(GLAutoDrawable drawable);
+
+        public void dispose(GLAutoDrawable drawable) {
+            if( null != renderer ) {
+                final GL2ES2 gl = drawable.getGL().getGL2ES2();
+                renderer.destroy(gl);
+            }
+        }
+
+        int lastRow = -1;
+
+        public void renderString(GLAutoDrawable drawable, String text, int column, int row, int z0) {
+            if( null != renderer ) {
+                final GL2ES2 gl = drawable.getGL().getGL2ES2();
+                final int height = drawable.getHeight();
+
+                int dx = 0;
+                int dy = height;
+                if(0>row) {
+                    row = lastRow + 1;
+                }
+                AABBox textBox = font.getStringBounds(text, fontSize);
+                dx += font.getAdvanceWidth('X', fontSize) * column;
+                dy -= (int)textBox.getHeight() * ( row + 1 );
+
+                final ShaderState st = rs.getShaderState();
+                st.useProgram(gl, true);
+                gl.glEnable(GL2ES2.GL_BLEND);
+                renderer.resetModelview(null);
+                renderer.translate(gl, dx, dy, z0);
+                if( flipVerticalInGLOrientation && drawable.isGLOriented() ) {
+                    renderer.scale(gl, 1f, -1f, 1f);
+                }
+                renderer.drawString3D(gl, font, text, textPosition, fontSize, texSize);
+                st.useProgram(gl, false);
+                gl.glDisable(GL2ES2.GL_BLEND);
+
+                lastRow = row;
+            }
+        }
+    }
+    public static class TextRendererGLEL extends TextRendererGLELBase {
+        int frameNo = 0;
+
+        public TextRendererGLEL() {
+            super();
+        }
+
+        @Override
+        public void display(GLAutoDrawable drawable) {
+            frameNo++;
+            final String text = String.format("Frame %04d: %04dx%04d", frameNo, drawable.getWidth(), drawable.getHeight());
+            if( null != renderer ) {
+                renderString(drawable, text, 0,  0, -1);
+            } else {
+                System.err.println(text);
+            }
+        }
+    }
+
     @BeforeClass
-    public static void initClass() {
+    public static void initClass() throws IOException {
         GLProfile.initSingleton();
     }
 
     protected abstract void test(final GLCapabilitiesImmutable caps, final boolean useSwingDoubleBuffer, final boolean skipGLOrientationVerticalFlip);
-
-    private boolean defAutoSwapBufferMode = true;
-    protected void addSnapshotGLEL(final GLAutoDrawable glad, final GLEventListener snapshotGLEL) {
-        defAutoSwapBufferMode = glad.getAutoSwapBufferMode();
-        glad.setAutoSwapBufferMode(false);
-        glad.addGLEventListener(snapshotGLEL);
-    }
-    protected void removeSnapshotGLEL(final GLAutoDrawable glad, final GLEventListener snapshotGLEL) {
-        glad.removeGLEventListener(snapshotGLEL);
-        glad.setAutoSwapBufferMode(defAutoSwapBufferMode);
-    }
-
 
     @Test
     public void test00_MSAA0_DefFlip() throws InterruptedException, InvocationTargetException {
@@ -78,17 +192,17 @@ public abstract class GLReadBuffer00Base extends UITestCase {
     }
 
     @Test
-    public void test10_MSAA4_DefFlip() throws InterruptedException, InvocationTargetException {
+    public void test10_MSAA8_DefFlip() throws InterruptedException, InvocationTargetException {
         final GLCapabilities caps = new GLCapabilities(null);
-        caps.setNumSamples(4);
+        caps.setNumSamples(8);
         caps.setSampleBuffers(true);
         test(caps, false /*useSwingDoubleBuffer*/, false /* skipGLOrientationVerticalFlip */);
     }
 
     @Test
-    public void test11_MSAA4_UsrFlip() throws InterruptedException, InvocationTargetException {
+    public void test11_MSAA8_UsrFlip() throws InterruptedException, InvocationTargetException {
         final GLCapabilities caps = new GLCapabilities(null);
-        caps.setNumSamples(4);
+        caps.setNumSamples(8);
         caps.setSampleBuffers(true);
         test(caps, false /*useSwingDoubleBuffer*/, true /* skipGLOrientationVerticalFlip */);
     }
