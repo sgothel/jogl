@@ -66,14 +66,14 @@ public class TextureSequenceCubeES2 implements GLEventListener {
     }
 
     private TextureSequence texSeq;
-    private ShaderState st;
-    private PMVMatrix pmvMatrix;
+    public ShaderState st;
+    public PMVMatrix pmvMatrix;
     private GLUniformData pmvMatrixUniform;
     // private TextureCoords[] textureCoords = null;
     private float nearPlaneNormalized;
     // private float zoom0=-5.0f, zoom=zoom0;
     // private float view_rotx = 20.0f, view_roty = 30.0f, view_rotz = 0.0f;
-    private float zoom=-2.3f;
+    public float zoom=-2.3f;
     private float view_rotx = 0.0f, view_roty = 0.0f;
     private final float view_rotz = 0.0f;
     int[] vboNames = new int[4];
