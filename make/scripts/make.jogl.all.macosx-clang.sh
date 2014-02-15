@@ -25,5 +25,6 @@ export GLUEGEN_PROPERTIES_FILE="../../gluegen/make/lib/gluegen-xcode_clang.prope
 export JOGAMP_JAR_CODEBASE="Codebase: *.goethel.localnet"
 
 ant \
+    -Dc.compiler.debug=true \
     -Drootrel.build=build-macosx \
     $* 2>&1 | tee make.jogl.all.macosx.log
