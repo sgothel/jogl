@@ -241,6 +241,14 @@ public abstract class Renderer {
         }
     }
 
+    /** No PMVMatrix operation is performed here. PMVMatrix will be updated if gl is not null. */
+    public boolean reshapeNotify(GL2ES2 gl, int width, int height) {
+        this.vp_width = width;
+        this.vp_height = height;
+        updateMatrix(gl);
+        return true;
+    }
+
     public boolean reshapePerspective(GL2ES2 gl, float angle, int width, int height, float near, float far) {
         this.vp_width = width;
         this.vp_height = height;

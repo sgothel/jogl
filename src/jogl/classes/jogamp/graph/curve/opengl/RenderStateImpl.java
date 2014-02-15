@@ -61,10 +61,6 @@ public class RenderStateImpl extends RenderState {
 //        st.ownUniform(gcu_Strength);
     }
 
-    public RenderStateImpl(ShaderState st, Vertex.Factory<? extends Vertex> pointFactory) {
-        this(st, pointFactory, new PMVMatrix());
-    }
-
     @Override
     public final GLUniformData getWeight() { return gcu_Weight; }
     @Override
