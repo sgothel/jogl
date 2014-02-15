@@ -63,6 +63,13 @@ fi
 #export INTEL_DEBUG="buf bat"
 #export INTEL_STRICT_CONFORMANCE=1 
 
+# export ALSOFT_LOGLEVEL=[0..4]
+export ALSOFT_LOGLEVEL=3
+#export ALSOFT_TRAP_ERROR=true
+#export ALSOFT_TRAP_AL_ERROR=true
+#export ALSOFT_TRAP_ALC_ERROR=true
+#export ALSOFT_LOGFILE=openal-soft.log
+
 which "$javaexe" 2>&1 | tee -a java-run.log
 "$javaexe" -version 2>&1 | tee -a java-run.log
 echo LD_LIBRARY_PATH $LD_LIBRARY_PATH 2>&1 | tee -a java-run.log
@@ -145,7 +152,7 @@ function jrun() {
     #D_ARGS="-Djogl.1thread=false -Djogl.debug.Threading"
     #D_ARGS="-Djogl.1thread=true -Djogl.debug.Threading"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.GLContext.TraceSwitch -Djogl.debug=all"
-    #D_ARGS="-Djogl.debug.AudioSink"
+    D_ARGS="-Djogl.debug.AudioSink"
     #D_ARGS="-Djogl.debug.GLArrayData"
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Screen"
@@ -245,7 +252,8 @@ function jrun() {
     #X_ARGS="-Xrs"
     #X_ARGS="-Dsun.awt.disableMixing=true"
     #D_ARGS="-Djogamp.debug.IOUtil -Djogl.debug.GLSLCode -Djogl.debug.GLMediaPlayer"
-    #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.AudioSink"
+    #D_ARGS="-Djogl.debug.AudioSink"
+    #D_ARGS="-Djogl.debug.AudioSink.trace"
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLMediaPlayer.Native"
     #D_ARGS="-Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25 -Djogl.debug.GLMediaPlayer"
@@ -360,7 +368,7 @@ function testawtswt() {
 #
 #testnoawt jogamp.opengl.openal.av.ALDummyUsage $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 
 #
 # performance tests
@@ -487,7 +495,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.acore.anim.TestAnimatorGLJPanel01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.anim.Bug898AnimatorFromEDTAWT $*
 
-testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLJPanelAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLJPanelAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLWindowNEWT $*
 
 #
