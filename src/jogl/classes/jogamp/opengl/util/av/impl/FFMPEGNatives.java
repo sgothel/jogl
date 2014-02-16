@@ -29,17 +29,23 @@ package jogamp.opengl.util.av.impl;
 
 import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
-interface FFMPEGNatives {
+/* pp */ abstract class FFMPEGNatives {
 
-    boolean initSymbols0(long[] symbols, int count);
-    int getAvUtilMajorVersionCC0();
-    int getAvFormatMajorVersionCC0();
-    int getAvCodecMajorVersionCC0();
-    int getAvResampleMajorVersionCC0();
-    int getSwResampleMajorVersionCC0();
+    private static final Object mutex_avcodec_openclose = new Object();
 
-    long createInstance0(FFMPEGMediaPlayer upstream, boolean verbose);
-    void destroyInstance0(long moviePtr);
+    abstract boolean initSymbols0(long[] symbols, int count);
+    abstract int getAvUtilMajorVersionCC0();
+    abstract int getAvFormatMajorVersionCC0();
+    abstract int getAvCodecMajorVersionCC0();
+    abstract int getAvResampleMajorVersionCC0();
+    abstract int getSwResampleMajorVersionCC0();
+
+    final long createInstance0(FFMPEGMediaPlayer upstream, boolean verbose) {
+        return createInstance0(mutex_avcodec_openclose, upstream, verbose);
+    }
+    abstract long createInstance0(Object mutex_avcodec_openclose, FFMPEGMediaPlayer upstream, boolean verbose);
+
+    abstract void destroyInstance0(long moviePtr);
 
     /**
      * Issues {@link #updateAttributes(int, int, int, int, int, int, int, float, int, int, String, String)}
@@ -56,24 +62,24 @@ interface FFMPEGNatives {
      * @param aPrefSampleRate
      * @param aPrefChannelCount
      */
-    void setStream0(long moviePtr, String url, boolean isCameraInput,
-                    int vid, String sizes, int vWidth, int vHeight,
-                    int vRate, int aid, int aMaxChannelCount, int aPrefSampleRate);
+    abstract void setStream0(long moviePtr, String url, boolean isCameraInput,
+                             int vid, String sizes, int vWidth, int vHeight,
+                             int vRate, int aid, int aMaxChannelCount, int aPrefSampleRate);
 
-    void setGLFuncs0(long moviePtr, long procAddrGLTexSubImage2D, long procAddrGLGetError, long procAddrGLFlush, long procAddrGLFinish);
+    abstract void setGLFuncs0(long moviePtr, long procAddrGLTexSubImage2D, long procAddrGLGetError, long procAddrGLFlush, long procAddrGLFinish);
 
-    int getVideoPTS0(long moviePtr);
+    abstract int getVideoPTS0(long moviePtr);
 
-    int getAudioPTS0(long moviePtr);
+    abstract int getAudioPTS0(long moviePtr);
 
     /**
      * @return resulting current video PTS, or {@link TextureFrame#INVALID_PTS}
      */
-    int readNextPacket0(long moviePtr, int texTarget, int texFmt, int texType);
+    abstract int readNextPacket0(long moviePtr, int texTarget, int texFmt, int texType);
 
-    int play0(long moviePtr);
-    int pause0(long moviePtr);
-    int seek0(long moviePtr, int position);
+    abstract int play0(long moviePtr);
+    abstract int pause0(long moviePtr);
+    abstract int seek0(long moviePtr, int position);
 
     /** FFMPEG/libAV Audio Sample Format */
     public static enum SampleFormat {
