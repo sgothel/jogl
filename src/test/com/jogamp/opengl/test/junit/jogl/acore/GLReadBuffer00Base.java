@@ -51,7 +51,8 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 public abstract class GLReadBuffer00Base extends UITestCase {
 
     public static class TextRendererGLEL extends TextRendererGLELBase {
-        int frameNo = 0;
+        public int frameNo = 0;
+        public int userCounter = 0;
 
         public TextRendererGLEL() {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
@@ -68,13 +69,14 @@ public abstract class GLReadBuffer00Base extends UITestCase {
 
         @Override
         public void display(GLAutoDrawable drawable) {
-            frameNo++;
-            final String text = String.format("Frame %04d: %04dx%04d", frameNo, drawable.getWidth(), drawable.getHeight());
+            final String text = String.format("Frame %04d (%03d): %04dx%04d", frameNo, userCounter, drawable.getWidth(), drawable.getHeight());
+            System.err.println("TextRendererGLEL.display: "+text);
             if( null != renderer ) {
                 renderString(drawable, text, 0 /* col */, 0 /* row */, 0, 0, -1);
             } else {
                 System.err.println(text);
             }
+            frameNo++;
         }
     }
 

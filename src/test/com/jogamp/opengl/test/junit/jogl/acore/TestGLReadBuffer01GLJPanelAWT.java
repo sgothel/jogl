@@ -73,7 +73,8 @@ public class TestGLReadBuffer01GLJPanelAWT extends GLReadBuffer00Base {
         final JFrame frame = new JFrame();
         final Dimension d = new Dimension(320, 240);
         final GLJPanel glad = createGLJPanel(skipGLOrientationVerticalFlip, useSwingDoubleBuffer, caps, d);
-        final SnapshotGLELAWT snapshotGLEL = new SnapshotGLELAWT(awtGLReadBufferUtil, skipGLOrientationVerticalFlip);
+        final TextRendererGLEL textRendererGLEL = new TextRendererGLEL();
+        final SnapshotGLELAWT snapshotGLEL = new SnapshotGLELAWT(textRendererGLEL, awtGLReadBufferUtil, skipGLOrientationVerticalFlip);
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
@@ -87,7 +88,6 @@ public class TestGLReadBuffer01GLJPanelAWT extends GLReadBuffer00Base {
                     gears.setFlipVerticalInGLOrientation(skipGLOrientationVerticalFlip);
                     gears.setVerbose(false);
                     glad.addGLEventListener(gears);
-                    final TextRendererGLEL textRendererGLEL = new TextRendererGLEL();
                     textRendererGLEL.setFlipVerticalInGLOrientation(skipGLOrientationVerticalFlip);
                     glad.addGLEventListener(textRendererGLEL);
                     glad.addGLEventListener(snapshotGLEL);
@@ -104,6 +104,15 @@ public class TestGLReadBuffer01GLJPanelAWT extends GLReadBuffer00Base {
         final Dimension size1 = new Dimension(size0.width+100, size0.height+100);
         final Dimension size2 = new Dimension(size0.width-100, size0.height-100);
         try {
+            for(int i=0; i<3; i++) {
+                final String str = "Frame# "+textRendererGLEL.frameNo+", user #"+(i+1);
+                System.err.println(str);
+                if( keyFrame ) {
+                    waitForKey(str);
+                }
+                textRendererGLEL.userCounter = i + 1;
+                glad.display();
+            }
             try { Thread.sleep(duration); } catch (InterruptedException e) { }
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                     public void run() {
@@ -153,13 +162,15 @@ public class TestGLReadBuffer01GLJPanelAWT extends GLReadBuffer00Base {
     }
 
     private class SnapshotGLELAWT implements GLEventListener {
+        final TextRendererGLEL textRendererGLEL;
         final AWTGLReadBufferUtil glReadBufferUtil;
         final boolean skipGLOrientationVerticalFlip;
         boolean defAutoSwapMode;
         boolean swapBuffersBeforeRead;
         int i;
 
-        SnapshotGLELAWT(final AWTGLReadBufferUtil glReadBufferUtil, final boolean skipGLOrientationVerticalFlip) {
+        SnapshotGLELAWT(final TextRendererGLEL textRendererGLEL, final AWTGLReadBufferUtil glReadBufferUtil, final boolean skipGLOrientationVerticalFlip) {
+            this.textRendererGLEL = textRendererGLEL;
             this.glReadBufferUtil = glReadBufferUtil;
             this.skipGLOrientationVerticalFlip = skipGLOrientationVerticalFlip;
             this.defAutoSwapMode = true;
@@ -185,7 +196,8 @@ public class TestGLReadBuffer01GLJPanelAWT extends GLReadBuffer00Base {
         }
         public void snapshot(int sn, GL gl, String fileSuffix, String destPath) {
             final GLDrawable drawable = gl.getContext().getGLReadDrawable();
-            final String filenameAWT = getSnapshotFilename(sn, "awt",
+            final String postSNDetail = String.format("awt-usr%03d", textRendererGLEL.userCounter);
+            final String filenameAWT = getSnapshotFilename(sn, postSNDetail,
                                                            drawable.getChosenGLCapabilities(), drawable.getWidth(), drawable.getHeight(),
                                                            glReadBufferUtil.hasAlpha(), fileSuffix, destPath);
             if( swapBuffersBeforeRead ) {
@@ -217,12 +229,15 @@ public class TestGLReadBuffer01GLJPanelAWT extends GLReadBuffer00Base {
     };
 
     static GLCapabilitiesImmutable caps = null;
+    static boolean keyFrame = false;
 
     public static void main(String[] args) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 duration = MiscUtils.atol(args[i], duration);
+            } else if(args[i].equals("-keyFrame")) {
+                keyFrame = true;
             }
         }
         org.junit.runner.JUnitCore.main(TestGLReadBuffer01GLJPanelAWT.class.getName());
