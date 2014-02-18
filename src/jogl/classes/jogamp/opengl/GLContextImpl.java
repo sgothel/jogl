@@ -2231,7 +2231,7 @@ public abstract class GLContextImpl extends GLContext {
   @Override
   public final int getDefaultReadFramebuffer() { return drawable.getDefaultReadFramebuffer(); }
   @Override
-  public final int getDefaultReadBuffer() { return drawable.getDefaultReadBuffer(gl); }
+  public final int getDefaultReadBuffer() { return drawable.getDefaultReadBuffer(gl, drawableRead != drawable); }
 
   //---------------------------------------------------------------------------
   // GL_ARB_debug_output, GL_AMD_debug_output helpers
