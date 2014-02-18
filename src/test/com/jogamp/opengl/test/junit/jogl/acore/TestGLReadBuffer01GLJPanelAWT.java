@@ -54,6 +54,7 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.GLDrawableUtil;
 import com.jogamp.opengl.util.awt.AWTGLReadBufferUtil;
 import com.jogamp.opengl.util.texture.TextureIO;
 
@@ -74,7 +75,7 @@ public class TestGLReadBuffer01GLJPanelAWT extends GLReadBuffer00Base {
         final Dimension d = new Dimension(320, 240);
         final GLJPanel glad = createGLJPanel(skipGLOrientationVerticalFlip, useSwingDoubleBuffer, caps, d);
         final TextRendererGLEL textRendererGLEL = new TextRendererGLEL();
-        final SnapshotGLELAWT snapshotGLEL = new SnapshotGLELAWT(textRendererGLEL, awtGLReadBufferUtil, skipGLOrientationVerticalFlip);
+        final SnapshotGLELAWT snapshotGLEL = doSnapshot ? new SnapshotGLELAWT(textRendererGLEL, awtGLReadBufferUtil, skipGLOrientationVerticalFlip) : null;
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
@@ -90,7 +91,9 @@ public class TestGLReadBuffer01GLJPanelAWT extends GLReadBuffer00Base {
                     glad.addGLEventListener(gears);
                     textRendererGLEL.setFlipVerticalInGLOrientation(skipGLOrientationVerticalFlip);
                     glad.addGLEventListener(textRendererGLEL);
-                    glad.addGLEventListener(snapshotGLEL);
+                    if( doSnapshot ) {
+                        glad.addGLEventListener(snapshotGLEL);
+                    }
                     panel.add(glad);
                     frame.pack();
                     frame.setVisible(true);
@@ -133,7 +136,9 @@ public class TestGLReadBuffer01GLJPanelAWT extends GLReadBuffer00Base {
                     } } );
             try { Thread.sleep(duration); } catch (InterruptedException e) { }
 
-            glad.disposeGLEventListener(snapshotGLEL, true /* remove */);
+            if( doSnapshot ) {
+                glad.disposeGLEventListener(snapshotGLEL, true /* remove */);
+            }
             final Animator anim = new Animator(glad);
             anim.start();
             try { Thread.sleep(2*duration); } catch (InterruptedException e) { }
@@ -181,7 +186,7 @@ public class TestGLReadBuffer01GLJPanelAWT extends GLReadBuffer00Base {
         @Override
         public void init(GLAutoDrawable drawable) {
             defAutoSwapMode = drawable.getAutoSwapBufferMode();
-            swapBuffersBeforeRead = UITestCase.swapBuffersBeforeRead(drawable.getChosenGLCapabilities());
+            swapBuffersBeforeRead = GLDrawableUtil.swapBuffersBeforeRead(drawable.getChosenGLCapabilities());
             drawable.setAutoSwapBufferMode( !swapBuffersBeforeRead );
         }
         @Override
@@ -229,6 +234,7 @@ public class TestGLReadBuffer01GLJPanelAWT extends GLReadBuffer00Base {
     };
 
     static GLCapabilitiesImmutable caps = null;
+    static boolean doSnapshot = true;
     static boolean keyFrame = false;
 
     public static void main(String[] args) {
@@ -238,6 +244,8 @@ public class TestGLReadBuffer01GLJPanelAWT extends GLReadBuffer00Base {
                 duration = MiscUtils.atol(args[i], duration);
             } else if(args[i].equals("-keyFrame")) {
                 keyFrame = true;
+            } else if(args[i].equals("-noSnapshot")) {
+                doSnapshot = false;
             }
         }
         org.junit.runner.JUnitCore.main(TestGLReadBuffer01GLJPanelAWT.class.getName());

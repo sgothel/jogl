@@ -30,6 +30,8 @@ package com.jogamp.opengl.util;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLBase;
+import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLEventListener;
@@ -168,4 +170,23 @@ public class GLDrawableUtil {
     if(bIsPaused) { bAnim.resume(); }
   }
 
+  /**
+   * Determines whether the chosen {@link GLCapabilitiesImmutable}
+   * requires a {@link GLDrawable#swapBuffers() swap-buffers}
+   * before reading pixels.
+   * <p>
+   * Usually one uses the {@link GLBase#getDefaultReadBuffer() default-read-buffer}
+   * in which case {@link GLDrawable#swapBuffers() swap-buffers} shall happen <b>after</b> calling reading pixels, the default.
+   * </p>
+   * <p>
+   * However, <i>multisampling</i> offscreen {@link javax.media.opengl.GLFBODrawable}s
+   * utilize {@link GLDrawable#swapBuffers() swap-buffers} to <i>downsample</i>
+   * the multisamples into the readable sampling sink.
+   * In this case, we require {@link GLDrawable#swapBuffers() swap-buffers} <b>before</b> reading pixels.
+   * </p>
+   * @return chosenCaps.isFBO() && chosenCaps.getSampleBuffers()
+   */
+  public static final boolean swapBuffersBeforeRead(final GLCapabilitiesImmutable chosenCaps) {
+      return chosenCaps.isFBO() && chosenCaps.getSampleBuffers();
+  }
 }

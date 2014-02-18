@@ -412,22 +412,11 @@ public abstract class TileRendererBase {
      * requires a <i>pre-{@link GLDrawable#swapBuffers() swap-buffers}</i>
      * before accessing the results, i.e. before {@link #endTile(GL)}.
      * <p>
-     * Usually one uses the {@link GL#getDefaultReadBuffer() default-read-buffer}, i.e.
-     * {@link GL#GL_FRONT} for single-buffer and {@link GL#GL_BACK} for double-buffer {@link GLDrawable}s
-     * and {@link GL#GL_COLOR_ATTACHMENT0} for offscreen framebuffer objects.<br>
-     * Here {@link GLDrawable#swapBuffers() swap-buffers} shall happen <b>after</b> calling {@link #endTile(GL)}, the default.
+     * See {@link GLDrawableUtil#swapBuffersBeforeRead(GLCapabilitiesImmutable)}.
      * </p>
-     * <p>
-     * However, <i>multisampling</i> offscreen {@link GLFBODrawable}s
-     * utilize {@link GLDrawable#swapBuffers() swap-buffers} to <i>downsample</i>
-     * the multisamples into the readable sampling sink.
-     * In this case, we require a {@link GLDrawable#swapBuffers() swap-buffers} <b>before</b> calling {@link #endTile(GL)}.
-     * </p>
-     * @param chosenCaps the chosen {@link GLCapabilitiesImmutable}
-     * @return chosenCaps.isFBO() && chosenCaps.getSampleBuffers()
      */
     public final boolean reqPreSwapBuffers(GLCapabilitiesImmutable chosenCaps) {
-        return chosenCaps.isFBO() && chosenCaps.getSampleBuffers();
+        return GLDrawableUtil.swapBuffersBeforeRead(chosenCaps);
     }
 
     /**

@@ -277,29 +277,6 @@ public abstract class UITestCase {
 
     static final String unsupportedTestMsg = "Test not supported on this platform.";
 
-    /**
-     * Determines whether the chosen {@link GLCapabilitiesImmutable}
-     * requires a {@link GLDrawable#swapBuffers() swap-buffers}
-     * before reading pixels.
-     * <p>
-     * Usually one uses the {@link GL#getDefaultReadBuffer() default-read-buffer}, i.e.
-     * {@link GL#GL_FRONT} for single-buffer and {@link GL#GL_BACK} for double-buffer {@link GLDrawable}s
-     * and {@link GL#GL_COLOR_ATTACHMENT0} for offscreen framebuffer objects.<br>
-     * Here {@link GLDrawable#swapBuffers() swap-buffers} shall happen <b>after</b> calling reading pixels, the default.
-     * </p>
-     * <p>
-     * However, <i>multisampling</i> offscreen {@link javax.media.opengl.GLFBODrawable}s
-     * utilize {@link GLDrawable#swapBuffers() swap-buffers} to <i>downsample</i>
-     * the multisamples into the readable sampling sink.
-     * In this case, we require a {@link GLDrawable#swapBuffers() swap-buffers} <b>before</b> reading pixels.
-     * </p>
-     * @param chosenCaps the chosen {@link GLCapabilitiesImmutable}
-     * @return chosenCaps.isFBO() && chosenCaps.getSampleBuffers()
-     */
-    public static final boolean swapBuffersBeforeRead(GLCapabilitiesImmutable chosenCaps) {
-        return chosenCaps.isFBO() && chosenCaps.getSampleBuffers();
-    }
-
     public String getSnapshotFilename(int sn, String postSNDetail, GLCapabilitiesImmutable caps, int width, int height, boolean sinkHasAlpha, String fileSuffix, String destPath) {
         if(null == fileSuffix) {
             fileSuffix = TextureIO.PNG;
