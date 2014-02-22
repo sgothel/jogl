@@ -35,10 +35,6 @@ import com.jogamp.opengl.util.av.GLMediaPlayer.StreamException;
 import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
-import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLException;
-
 import java.io.File;
 import java.net.URI;
 
@@ -48,7 +44,7 @@ import java.net.URI;
  */
 public class CrossFadePlayer
 {
-	static GLMediaPlayer[] player;	
+	static GLMediaPlayer[] player;
 	static volatile boolean stop = false;
 
 	public static void main(String[] args)
@@ -63,13 +59,11 @@ public class CrossFadePlayer
 
 		GLMediaEventListener mediaEventListener = new GLMediaEventListener()
 		{
+			@Override
+			public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) { }
 
 			@Override
-			public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame,
-					long when) { }
-
-			@Override
-			public void attributesChanged(GLMediaPlayer mp, int event_mask, long when)
+			public void attributesChanged(final GLMediaPlayer mp, int event_mask, long when)
 			{
 				System.out.println("\n***\nEvent mask changed: " + event_mask);
 				System.out.println("Timestamp: "+ when);
@@ -78,32 +72,41 @@ public class CrossFadePlayer
 				if ((event_mask & GLMediaEventListener.EVENT_CHANGE_INIT) !=0) {
 					System.out.println("Duration: " + mp.getDuration() + "ms");
 					System.out.println("Volume: " + mp.getAudioVolume());
-					try {
-						System.out.println("player.initGL()...");
-						mp.initGL(null);
-					}
-					catch (IllegalStateException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					catch (GLException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					catch (StreamException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}else if ((event_mask & GLMediaEventListener.EVENT_CHANGE_PAUSE) !=0) {
-					System.out.println("player.play()...");
-					System.out.println("mp.setPlaySpeed(1f) returned: " + mp.setPlaySpeed(1f));
-					mp.seek(0);
-					mp.play();
-				}else if ((event_mask & GLMediaEventListener.EVENT_CHANGE_PLAY) !=0) {
+					System.out.println("player.initGL()...");
+                    new Thread() {
+                        public void run() {
+                            try {
+                                mp.initGL(null);
+                                if ( GLMediaPlayer.State.Paused == mp.getState() ) { // init OK
+                                    mp.play();
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }.start();
+				} else if ((event_mask & GLMediaEventListener.EVENT_CHANGE_PAUSE) !=0) {
+					System.out.println("player.paused()...");
+				} else if ((event_mask & GLMediaEventListener.EVENT_CHANGE_PLAY) !=0) {
 					System.out.println("playing...");
 					System.out.println(mp.toString());
 					System.out.println(mp.getAudioSink().toString());
-				}
+				} else if( 0 != ( GLMediaEventListener.EVENT_CHANGE_EOS & event_mask ) ) {
+                    final StreamException se = mp.getStreamException();
+                    if( null != se ) {
+                        System.err.println("Player State: EOS + Exception");
+                        stop = true;
+                    } else {
+                        System.err.println("Player State: EOS");
+                        new Thread() {
+                            public void run() {
+                                System.out.println("mp.setPlaySpeed(1f) returned: " + mp.setPlaySpeed(1f));
+                                mp.seek(0);
+                                mp.play();
+                            }
+                        }.start();
+                    }
+                }
 				if( 0 != ( ( GLMediaEventListener.EVENT_CHANGE_ERR | GLMediaEventListener.EVENT_CHANGE_EOS ) & event_mask ) ) {
 					final StreamException se = mp.getStreamException();
 					if( null != se ) {
@@ -111,7 +114,7 @@ public class CrossFadePlayer
 					}
 					new Thread() {
 						public void run() {
-							System.out.println("terminating...");														
+							System.out.println("terminating...");
 							stop = true;
 						}
 					}.start();
@@ -123,13 +126,13 @@ public class CrossFadePlayer
         // Initialize media players
         player = new GLMediaPlayer[args.length];
         int i=0;
-        for( String arg: args) {
+        for( String arg: args ) {
             player[i] = GLMediaPlayerFactory.createDefault();
             if(player[i]!=null){
                 System.out.println("Created CrossFade player: "+ i + " " + player[i].getClass().getName());
                 player[i].addEventListener(mediaEventListener);
                 try {
-                    String filename = args[i];
+                    final String filename = arg;
                     if(filename.equals("")){
                         System.out.println("No file selected: arg " + i +" = "+ filename);
                         player[i]=null;
@@ -157,7 +160,7 @@ public class CrossFadePlayer
 
         // Main thread CrossFade until playback is done
 		long startTime = com.jogamp.common.os.Platform.currentTimeMillis();
-        double piPlayers = Math.PI*2.0f/(double)args.length;
+        double piPlayers = Math.PI*2.0f/args.length;
 		StreamException se = null;
 		while( null == se && stop == false ) {
 				try {
@@ -173,18 +176,18 @@ public class CrossFadePlayer
                         }
                     }
                 }
-				
+
 				// tune the volume on players to crossfade!
-				float progress = (float)(com.jogamp.common.os.Platform.currentTimeMillis()-startTime)/maxDuration;
+				float progress = (com.jogamp.common.os.Platform.currentTimeMillis()-startTime)/maxDuration;
 
                 i = 0;
                 for(GLMediaPlayer p: player){
                     if(p!=null){
                         AudioSink sink = p.getAudioSink();
 				        if(sink != null){
-                            float volume = (float) (0.5f+(0.5f*(Math.cos(40.0f*progress+(piPlayers*(float)i)))));
-                            float playbacktime = (float)(com.jogamp.common.os.Platform.currentTimeMillis()-startTime);
-                            System.out.println("player: "+ i +" volume = " + volume +" progress = "+ progress +" time = "+ playbacktime + " / duration = " + maxDuration);
+                            float volume = (float) (0.5f+(0.5f*(Math.cos(40.0f*progress+(piPlayers*i)))));
+                            float playbacktime = com.jogamp.common.os.Platform.currentTimeMillis()-startTime;
+                            // System.out.println("player: "+ i +" volume = " + volume +" progress = "+ progress +" time = "+ playbacktime + " / duration = " + maxDuration);
                             sink.setVolume(volume);
 				        }
 

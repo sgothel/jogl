@@ -64,7 +64,8 @@ fi
 #export INTEL_STRICT_CONFORMANCE=1 
 
 # export ALSOFT_LOGLEVEL=[0..4]
-export ALSOFT_LOGLEVEL=3
+# export ALSOFT_LOGLEVEL=3
+# export ALSOFT_LOGLEVEL=3
 #export ALSOFT_TRAP_ERROR=true
 #export ALSOFT_TRAP_AL_ERROR=true
 #export ALSOFT_TRAP_ALC_ERROR=true
@@ -244,7 +245,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.GLJPanel -Djogl.debug.TileRenderer -Djogl.debug.TileRenderer.PNG"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.GLJPanel -Djogl.debug.TileRenderer"
     #D_ARGS="-Djogl.debug.PNG -Dnewt.debug.Display.PointerIcon"
-    #D_ARGS="-Djogl.debug.JPEGImage"
+    #D_ARGS="-Djogl.debug.JPEGImage -Djogamp.debug.Bitstream"
     #D_ARGS="-Djogl.debug.GLDrawable -Dnativewindow.debug.GraphicsConfiguration -Djogl.debug.CapabilitiesChooser"
     #X_ARGS="-Dsun.java2d.noddraw=True -Dsun.java2d.opengl=True -Dsun.java2d.xrender=false"
     #X_ARGS="-Dsun.java2d.noddraw=True -Dsun.java2d.opengl=false -Dsun.java2d.xrender=false"
@@ -368,7 +369,8 @@ function testawtswt() {
 #
 #testnoawt jogamp.opengl.openal.av.ALDummyUsage $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.CrossFadePlayer $*
 
 #
 # performance tests

@@ -112,9 +112,12 @@ public class MovieCube implements GLEventListener {
                     resetGLState();
                 }
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_EOS & event_mask ) ) {
-                    // loop for-ever ..
-                    mPlayer.seek(0);
-                    mPlayer.play();
+                    new Thread() {
+                        public void run() {
+                            // loop for-ever ..
+                            mPlayer.seek(0);
+                            mPlayer.play();
+                        } }.start();
                 }
             }
         });

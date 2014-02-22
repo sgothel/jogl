@@ -321,9 +321,12 @@ public class MovieSimple implements GLEventListener {
                     resetGLState();
                 }
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_EOS & event_mask ) ) {
-                    // loop for-ever ..
-                    mPlayer.seek(0);
-                    mPlayer.play();
+                    new Thread() {
+                        public void run() {
+                            // loop for-ever ..
+                            mPlayer.seek(0);
+                            mPlayer.play();
+                        } }.start();
                 }
             }
         });
@@ -801,19 +804,24 @@ public class MovieSimple implements GLEventListener {
                     final GLAnimatorControl anim = window.getAnimator();
                     anim.setUpdateFPSFrames(60, null);
                     anim.resetFPSCounter();
-
                     /**
                      * Kick off player w/o GLEventListener, i.e. for audio only.
                      *
-                        try {
-                            ms.mPlayer.initGL(null);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            destroyWindow();
-                            return;
-                        }
-                        ms.mPlayer.play();
-                        System.out.println("play.1 "+ms.mPlayer);
+                        new Thread() {
+                            public void run() {
+                                try {
+                                    mp.initGL(null);
+                                    if ( GLMediaPlayer.State.Paused == mp.getState() ) { // init OK
+                                        mp.play();
+                                    }
+                                    System.out.println("play.1 "+mp);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    destroyWindow();
+                                    return;
+                                }
+                            }
+                        }.start();
                     */
                 }
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_PLAY & event_mask ) ) {
@@ -831,8 +839,13 @@ public class MovieSimple implements GLEventListener {
                     } else {
                         System.err.println("MovieSimple State: EOS");
                         if( loopEOS ) {
-                            ms.mPlayer.seek(0);
-                            ms.mPlayer.play();
+                            new Thread() {
+                                public void run() {
+                                    mp.setPlaySpeed(1f);
+                                    mp.seek(0);
+                                    mp.play();
+                                }
+                            }.start();
                         } else {
                             destroy = true;
                         }

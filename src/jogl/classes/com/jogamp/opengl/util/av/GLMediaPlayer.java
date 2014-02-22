@@ -30,6 +30,7 @@ package com.jogamp.opengl.util.av;
 import java.net.URI;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 
 import jogamp.opengl.Debug;
@@ -255,7 +256,12 @@ public interface GLMediaPlayer extends TextureSequence {
     /**
      * {@inheritDoc}
      * <p>
-     * See {@link TexSeqEventListener} for semantics and usage.
+     * As the contract of {@link TexSeqEventListener} requests,
+     * implementations of {@link GLMediaEventListener} shall also:
+     * <ul>
+     *   <li>off-load complex or {@link GLMediaPlayer} commands on another thread, or</li>
+     *   <li>simply changing a volatile state of their {@link GLEventListener} implementation.</li>
+     * </ul>
      * </p>
      */
     public interface GLMediaEventListener extends TexSeqEventListener<GLMediaPlayer> {
