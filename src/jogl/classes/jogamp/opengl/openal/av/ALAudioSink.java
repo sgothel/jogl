@@ -140,70 +140,71 @@ public class ALAudioSink implements AudioSink {
         if( !staticAvailable ) {
             return;
         }
-
-        try {
-            // Get handle to default device.
-            device = alc.alcOpenDevice(null);
-            if (device == null) {
-                throw new RuntimeException("ALAudioSink: Error opening default OpenAL device");
-            }
-
-            // Get the device specifier.
-            deviceSpecifier = alc.alcGetString(device, ALC.ALC_DEVICE_SPECIFIER);
-            if (deviceSpecifier == null) {
-                throw new RuntimeException("ALAudioSink: Error getting specifier for default OpenAL device");
-            }
-
-            // Create audio context.
-            context = alc.alcCreateContext(device, null);
-            if (context == null) {
-                throw new RuntimeException("ALAudioSink: Error creating OpenAL context for "+deviceSpecifier);
-            }
-
-            lockContext();
+        synchronized(ALAudioSink.class) {
             try {
-                // Check for an error.
-                if ( alc.alcGetError(device) != ALC.ALC_NO_ERROR ) {
-                    throw new RuntimeException("ALAudioSink: Error making OpenAL context current");
+                // Get handle to default device.
+                device = alc.alcOpenDevice(null);
+                if (device == null) {
+                    throw new RuntimeException(getThreadName()+": ALAudioSink: Error opening default OpenAL device");
                 }
 
-                hasSOFTBufferSamples = al.alIsExtensionPresent(AL_SOFT_buffer_samples);
-                hasALC_thread_local_context = alc.alcIsExtensionPresent(null, ALC_EXT_thread_local_context) ||
-                                              alc.alcIsExtensionPresent(device, ALC_EXT_thread_local_context) ;
-                preferredAudioFormat = queryPreferredAudioFormat();
-                if( DEBUG ) {
-                    System.out.println("ALAudioSink: OpenAL Extensions:"+al.alGetString(AL.AL_EXTENSIONS));
-                    System.out.println("ALAudioSink: Null device OpenAL Extensions:"+alc.alcGetString(null, ALC.ALC_EXTENSIONS));
-                    System.out.println("ALAudioSink: Device "+deviceSpecifier+" OpenAL Extensions:"+alc.alcGetString(device, ALC.ALC_EXTENSIONS));
-                    System.out.println("ALAudioSink: hasSOFTBufferSamples "+hasSOFTBufferSamples);
-                    System.out.println("ALAudioSink: hasALC_thread_local_context "+hasALC_thread_local_context);
-                    System.out.println("ALAudioSink: preferredAudioFormat "+preferredAudioFormat);
+                // Get the device specifier.
+                deviceSpecifier = alc.alcGetString(device, ALC.ALC_DEVICE_SPECIFIER);
+                if (deviceSpecifier == null) {
+                    throw new RuntimeException(getThreadName()+": ALAudioSink: Error getting specifier for default OpenAL device");
                 }
 
-                // Create source
-                {
-                    alSource = new int[1];
-                    al.alGenSources(1, alSource, 0);
-                    final int err = al.alGetError();
-                    if( AL.AL_NO_ERROR != err ) {
-                        alSource = null;
-                        throw new RuntimeException("ALAudioSink: Error generating Source: 0x"+Integer.toHexString(err));
+                // Create audio context.
+                context = alc.alcCreateContext(device, null);
+                if (context == null) {
+                    throw new RuntimeException(getThreadName()+": ALAudioSink: Error creating OpenAL context for "+deviceSpecifier);
+                }
+
+                lockContext();
+                try {
+                    // Check for an error.
+                    if ( alc.alcGetError(device) != ALC.ALC_NO_ERROR ) {
+                        throw new RuntimeException(getThreadName()+": ALAudioSink: Error making OpenAL context current");
                     }
-                }
 
-                if( DEBUG ) {
-                    System.err.println("ALAudioSink: Using device: " + deviceSpecifier);
+                    hasSOFTBufferSamples = al.alIsExtensionPresent(AL_SOFT_buffer_samples);
+                    hasALC_thread_local_context = alc.alcIsExtensionPresent(null, ALC_EXT_thread_local_context) ||
+                                                  alc.alcIsExtensionPresent(device, ALC_EXT_thread_local_context) ;
+                    preferredAudioFormat = queryPreferredAudioFormat();
+                    if( DEBUG ) {
+                        System.out.println("ALAudioSink: OpenAL Extensions:"+al.alGetString(AL.AL_EXTENSIONS));
+                        System.out.println("ALAudioSink: Null device OpenAL Extensions:"+alc.alcGetString(null, ALC.ALC_EXTENSIONS));
+                        System.out.println("ALAudioSink: Device "+deviceSpecifier+" OpenAL Extensions:"+alc.alcGetString(device, ALC.ALC_EXTENSIONS));
+                        System.out.println("ALAudioSink: hasSOFTBufferSamples "+hasSOFTBufferSamples);
+                        System.out.println("ALAudioSink: hasALC_thread_local_context "+hasALC_thread_local_context);
+                        System.out.println("ALAudioSink: preferredAudioFormat "+preferredAudioFormat);
+                    }
+
+                    // Create source
+                    {
+                        alSource = new int[1];
+                        al.alGenSources(1, alSource, 0);
+                        final int err = al.alGetError();
+                        if( AL.AL_NO_ERROR != err ) {
+                            alSource = null;
+                            throw new RuntimeException(getThreadName()+": ALAudioSink: Error generating Source: 0x"+Integer.toHexString(err));
+                        }
+                    }
+
+                    if( DEBUG ) {
+                        System.err.println("ALAudioSink: Using device: " + deviceSpecifier);
+                    }
+                    initialized = true;
+                } finally {
+                    unlockContext();
                 }
-                initialized = true;
-            } finally {
-                unlockContext();
+                return;
+            } catch ( Exception e ) {
+                if( DEBUG ) {
+                    System.err.println(e.getMessage());
+                }
+                destroy();
             }
-            return;
-        } catch ( Exception e ) {
-            if( DEBUG ) {
-                System.err.println(e.getMessage());
-            }
-            destroy();
         }
     }
 
