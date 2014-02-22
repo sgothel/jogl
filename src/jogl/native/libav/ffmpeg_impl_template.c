@@ -200,11 +200,36 @@ static SWR_FREE sp_swr_free;
 static SWR_CONVERT sp_swr_convert;
 // count: 65
 
+// We use JNI Monitor Locking, since this removes the need 
+// to statically link-in pthreads on window ..
+// #define USE_PTHREAD_LOCKING 1
+//
+#define USE_JNI_LOCKING 1
+
+#if defined (USE_PTHREAD_LOCKING)
+    #include <pthread.h>
+    #warning USE LOCKING PTHREAD
+    static pthread_mutex_t mutex_avcodec_openclose;
+    #define MY_MUTEX_LOCK(e,s) pthread_mutex_lock(&(s))
+    #define MY_MUTEX_UNLOCK(e,s) pthread_mutex_unlock(&(s))
+#elif defined (USE_JNI_LOCKING)
+    static jobject mutex_avcodec_openclose;
+    #define MY_MUTEX_LOCK(e,s) (*e)->MonitorEnter(e, s)
+    #define MY_MUTEX_UNLOCK(e,s) (*e)->MonitorExit(e, s)
+#else
+    #warning USE LOCKING NONE
+    #define MY_MUTEX_LOCK(e,s)
+    #define MY_MUTEX_UNLOCK(e,s)
+#endif
+
 #define SYMBOL_COUNT 65
 
 JNIEXPORT jboolean JNICALL FF_FUNC(initSymbols0)
-  (JNIEnv *env, jobject instance, jobject jSymbols, jint count)
+  (JNIEnv *env, jobject instance, jobject jmutex_avcodec_openclose, jobject jSymbols, jint count)
 {
+    #ifdef USE_PTHREAD_LOCKING
+        pthread_mutexattr_t renderLockAttr;
+    #endif
     int64_t* symbols; // jlong -> int64_t -> intptr_t -> FUNC_PTR
     int i;
 
@@ -315,6 +340,23 @@ JNIEXPORT jboolean JNICALL FF_FUNC(initSymbols0)
         }
     #endif
 
+    #if defined (USE_PTHREAD_LOCKING)
+        pthread_mutexattr_init(&renderLockAttr);
+        pthread_mutexattr_settype(&renderLockAttr, PTHREAD_MUTEX_RECURSIVE);
+        pthread_mutex_init(&mutex_avcodec_openclose, &renderLockAttr); // recursive
+    #elif defined (USE_JNI_LOCKING)
+        mutex_avcodec_openclose = (*env)->NewGlobalRef(env, jmutex_avcodec_openclose);
+    #endif
+
+    /** At static destroy: Never
+    #if defined (USE_PTHREAD_LOCKING)
+        pthread_mutex_unlock(&mutex_avcodec_openclose);
+        pthread_mutex_destroy(&mutex_avcodec_openclose);
+    #elif defined (USE_JNI_LOCKING)
+        (*env)->DeleteGlobalRef(env, mutex_avcodec_openclose);
+    #endif
+    */
+
     return JNI_TRUE;
 }
 
@@ -344,14 +386,6 @@ static void _setIsGLOriented(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
     }
 }
 
-#ifdef USE_PTHREAD_LOCKING
-  #define MY_MUTEX_LOCK(e,s) pthread_mutex_lock(&(s))
-  #define MY_MUTEX_UNLOCK(e,s) pthread_mutex_unlock(&(s))
-#else
-  #define MY_MUTEX_LOCK(e,s) (*e)->MonitorEnter(e, s)
-  #define MY_MUTEX_UNLOCK(e,s) (*e)->MonitorExit(e, s)
-#endif
-
 static void freeInstance(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
     int i;
     if(NULL != pAV) {
@@ -369,7 +403,7 @@ static void freeInstance(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
             pAV->aResampleBuffer = NULL;
         }
 
-        MY_MUTEX_LOCK(env, pAV->mutex_avcodec_openclose);
+        MY_MUTEX_LOCK(env, mutex_avcodec_openclose);
         {
             // Close the V codec
             if(NULL != pAV->pVCodecCtx) {
@@ -385,7 +419,7 @@ static void freeInstance(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
             }
             pAV->pACodec=NULL;
         }
-        MY_MUTEX_UNLOCK(env, pAV->mutex_avcodec_openclose);
+        MY_MUTEX_UNLOCK(env, mutex_avcodec_openclose);
 
         // Close the frames
         if(NULL != pAV->pVFrame) {
@@ -433,13 +467,6 @@ static void freeInstance(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
             (*env)->DeleteGlobalRef(env, pAV->ffmpegMediaPlayer);
             pAV->ffmpegMediaPlayer = NULL;
         }
-
-        #ifdef USE_PTHREAD_LOCKING
-            pthread_mutex_unlock(&pAV->mutex_avcodec_openclose);
-            pthread_mutex_destroy(&pAV->mutex_avcodec_openclose);
-        #else
-            (*env)->DeleteGlobalRef(env, pAV->mutex_avcodec_openclose);
-        #endif
 
         free(pAV);
     }
@@ -508,11 +535,8 @@ JNIEXPORT jint JNICALL FF_FUNC(getSwResampleMajorVersionCC0)
 }
 
 JNIEXPORT jlong JNICALL FF_FUNC(createInstance0)
-  (JNIEnv *env, jobject instance, jobject mutex_avcodec_openclose, jobject ffmpegMediaPlayer, jboolean verbose)
+  (JNIEnv *env, jobject instance, jobject ffmpegMediaPlayer, jboolean verbose)
 {
-    #ifdef USE_PTHREAD_LOCKING
-        pthread_mutexattr_t renderLockAttr;
-    #endif
     FFMPEGToolBasicAV_t * pAV = calloc(1, sizeof(FFMPEGToolBasicAV_t));
     if(NULL==pAV) {
         JoglCommon_throwNewRuntimeException(env, "Couldn't alloc instance");
@@ -546,14 +570,6 @@ JNIEXPORT jlong JNICALL FF_FUNC(createInstance0)
     pAV->verbose = verbose;
     pAV->vid=AV_STREAM_ID_AUTO;
     pAV->aid=AV_STREAM_ID_AUTO;
-
-    #ifdef USE_PTHREAD_LOCKING
-        pthread_mutexattr_init(&renderLockAttr);
-        pthread_mutexattr_settype(&renderLockAttr, PTHREAD_MUTEX_RECURSIVE);
-        pthread_mutex_init(&pAV->mutex_avcodec_openclose, &renderLockAttr); // recursive
-    #else
-        pAV->mutex_avcodec_openclose = (*env)->NewGlobalRef(env, mutex_avcodec_openclose);
-    #endif
 
     if(pAV->verbose) {
         fprintf(stderr, "Info: Use avresample %d, swresample %d, device %d, refCount %d\n", 
@@ -740,29 +756,35 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
             sp_av_dict_set(&inOpts, "framerate", buffer, 0);
         }
     }
-    res = sp_avformat_open_input(&pAV->pFormatCtx, filename, inFmt, NULL != inOpts ? &inOpts : NULL);
-    if( NULL != inOpts ) {
-        sp_av_dict_free(&inOpts);
-    }
-    if(res != 0) {
-        JoglCommon_throwNewRuntimeException(env, "Couldn't open URI: %s [%dx%d @ %d hz], err %d", filename, vWidth, vHeight, vRate, res);
-        (*env)->ReleaseStringChars(env, jURL, (const jchar *)urlPath);
-        return;
-    }
 
-    // Retrieve detailed stream information
-    if(sp_avformat_find_stream_info(pAV->pFormatCtx, NULL)<0) {
-        (*env)->ReleaseStringChars(env, jURL, (const jchar *)urlPath);
-        JoglCommon_throwNewRuntimeException(env, "Couldn't find stream information");
-        return;
+    MY_MUTEX_LOCK(env, mutex_avcodec_openclose);
+    {
+        res = sp_avformat_open_input(&pAV->pFormatCtx, filename, inFmt, NULL != inOpts ? &inOpts : NULL);
+        if( NULL != inOpts ) {
+            sp_av_dict_free(&inOpts);
+        }
+        if(res != 0) {
+            MY_MUTEX_UNLOCK(env, mutex_avcodec_openclose);
+            JoglCommon_throwNewRuntimeException(env, "Couldn't open URI: %s [%dx%d @ %d hz], err %d", filename, vWidth, vHeight, vRate, res);
+            (*env)->ReleaseStringChars(env, jURL, (const jchar *)urlPath);
+            return;
+        }
+
+        // Retrieve detailed stream information
+        if(sp_avformat_find_stream_info(pAV->pFormatCtx, NULL)<0) {
+            MY_MUTEX_UNLOCK(env, mutex_avcodec_openclose);
+            (*env)->ReleaseStringChars(env, jURL, (const jchar *)urlPath);
+            JoglCommon_throwNewRuntimeException(env, "Couldn't find stream information");
+            return;
+        }
     }
+    MY_MUTEX_UNLOCK(env, mutex_avcodec_openclose);
 
     if(pAV->verbose) {
         // Dump information about file onto standard error
         sp_av_dump_format(pAV->pFormatCtx, 0, filename, JNI_FALSE);
     }
     (*env)->ReleaseStringChars(env, jURL, (const jchar *)urlPath);
-
 
     // FIXME: Libav Binary compatibility! JAU01
     if (pAV->pFormatCtx->duration != AV_NOPTS_VALUE) {
@@ -855,14 +877,14 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
         }
 
         // Open codec
-        MY_MUTEX_LOCK(env, pAV->mutex_avcodec_openclose);
+        MY_MUTEX_LOCK(env, mutex_avcodec_openclose);
         {
             #if LIBAVCODEC_VERSION_MAJOR >= 55
                 pAV->pACodecCtx->refcounted_frames = pAV->useRefCountedFrames;
             #endif
             res = sp_avcodec_open2(pAV->pACodecCtx, pAV->pACodec, NULL);
         }
-        MY_MUTEX_UNLOCK(env, pAV->mutex_avcodec_openclose);
+        MY_MUTEX_UNLOCK(env, mutex_avcodec_openclose);
         if(res<0) {
             JoglCommon_throwNewRuntimeException(env, "Couldn't open audio codec %d, %s", pAV->pACodecCtx->codec_id, pAV->acodec);
             return;
@@ -1017,14 +1039,14 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
         }
 
         // Open codec
-        MY_MUTEX_LOCK(env, pAV->mutex_avcodec_openclose);
+        MY_MUTEX_LOCK(env, mutex_avcodec_openclose);
         {
             #if LIBAVCODEC_VERSION_MAJOR >= 55
                 pAV->pVCodecCtx->refcounted_frames = pAV->useRefCountedFrames;
             #endif
             res = sp_avcodec_open2(pAV->pVCodecCtx, pAV->pVCodec, NULL);
         }
-        MY_MUTEX_UNLOCK(env, pAV->mutex_avcodec_openclose);
+        MY_MUTEX_UNLOCK(env, mutex_avcodec_openclose);
         if(res<0) {
             JoglCommon_throwNewRuntimeException(env, "Couldn't open video codec %d, %s", pAV->pVCodecCtx->codec_id, pAV->vcodec);
             return;

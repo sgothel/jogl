@@ -31,20 +31,19 @@ import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 /* pp */ abstract class FFMPEGNatives {
 
-    private static final Object mutex_avcodec_openclose = new Object();
+    private static final Object mutex_avcodec_openclose_jni = new Object();
 
-    abstract boolean initSymbols0(long[] symbols, int count);
+    final boolean initSymbols0(long[] symbols, int count) {
+        return initSymbols0(mutex_avcodec_openclose_jni, symbols, count);
+    }
+    abstract boolean initSymbols0(Object mutex_avcodec_openclose, long[] symbols, int count);
     abstract int getAvUtilMajorVersionCC0();
     abstract int getAvFormatMajorVersionCC0();
     abstract int getAvCodecMajorVersionCC0();
     abstract int getAvResampleMajorVersionCC0();
     abstract int getSwResampleMajorVersionCC0();
 
-    final long createInstance0(FFMPEGMediaPlayer upstream, boolean verbose) {
-        return createInstance0(mutex_avcodec_openclose, upstream, verbose);
-    }
-    abstract long createInstance0(Object mutex_avcodec_openclose, FFMPEGMediaPlayer upstream, boolean verbose);
-
+    abstract long createInstance0(FFMPEGMediaPlayer upstream, boolean verbose);
     abstract void destroyInstance0(long moviePtr);
 
     /**

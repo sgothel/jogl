@@ -29,7 +29,7 @@ package jogamp.opengl.util.av.impl;
 
 class FFMPEGv08Natives extends FFMPEGNatives {
     @Override
-    native boolean initSymbols0(long[] symbols, int count);
+    native boolean initSymbols0(Object mutex_avcodec_openclose, long[] symbols, int count);
 
     @Override
     native int getAvUtilMajorVersionCC0();
@@ -47,7 +47,7 @@ class FFMPEGv08Natives extends FFMPEGNatives {
     native int getSwResampleMajorVersionCC0();
 
     @Override
-    native long createInstance0(Object mutex_avcodec_openclose, FFMPEGMediaPlayer upstream, boolean verbose);
+    native long createInstance0(FFMPEGMediaPlayer upstream, boolean verbose);
 
     @Override
     native void destroyInstance0(long moviePtr);

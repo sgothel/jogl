@@ -64,15 +64,6 @@ typedef struct SwrContext SwrContext;
 #include <stdio.h>
 #include <stdlib.h>
 
-// We use JNI Monitor Locking, since this removes the need 
-// to statically link-in pthreads on window ..
-//   #define USE_PTHREAD_LOCKING 1
-//
-#ifdef USE_PTHREAD_LOCKING
-    #include <pthread.h>
-    #error PTHREAD path not tested yet
-#endif
-
 #include <GL/gl.h>
 
 typedef void (APIENTRYP PFNGLTEXSUBIMAGE2DPROC) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *pixels);
@@ -139,7 +130,6 @@ typedef struct {
     int64_t dtsLast;  // DTS of the last frame
 } PTSStats;
 
-
 typedef struct {
     jobject          ffmpegMediaPlayer;
     int32_t          verbose;
@@ -156,12 +146,6 @@ typedef struct {
     PFNGLGETERRORPROC procAddrGLGetError;
     PFNGLFLUSH procAddrGLFlush;
     PFNGLFINISH procAddrGLFinish;
-
-    #ifdef USE_PTHREAD_LOCKING
-        pthread_mutex_t  mutex_avcodec_openclose;
-    #else
-        jobject mutex_avcodec_openclose;
-    #endif
 
     AVFormatContext* pFormatCtx;
     int32_t          vid;
