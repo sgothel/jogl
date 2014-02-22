@@ -227,7 +227,7 @@ public class ALAudioSink implements AudioSink {
         }
         final int alcErr = alc.alcGetError(null);
         if( ALC.ALC_NO_ERROR != alcErr ) {
-            final String err = "ALCError "+toHexString(alcErr)+" while makeCurrent. "+this;
+            final String err = getThreadName()+": ALCError "+toHexString(alcErr)+" while makeCurrent. "+this;
             System.err.println(err);
             Thread.dumpStack();
             lock.unlock();
@@ -235,8 +235,10 @@ public class ALAudioSink implements AudioSink {
         }
         final int alErr = al.alGetError();
         if( ALC.ALC_NO_ERROR != alErr ) {
-            System.err.println("Prev - ALError "+toHexString(alErr)+" @ makeCurrent. "+this);
-            Thread.dumpStack();
+            if( DEBUG ) {
+                System.err.println(getThreadName()+": Prev - ALError "+toHexString(alErr)+" @ makeCurrent. "+this);
+                Thread.dumpStack();
+            }
         }
     }
     private final void unlockContext() {
@@ -368,7 +370,7 @@ public class ALAudioSink implements AudioSink {
                 final int err = al.alGetError();
                 if( AL.AL_NO_ERROR != err ) {
                     alBufferNames = null;
-                    throw new RuntimeException("ALAudioSink: Error generating Buffers: 0x"+Integer.toHexString(err));
+                    throw new RuntimeException(getThreadName()+": ALAudioSink: Error generating Buffers: 0x"+Integer.toHexString(err));
                 }
                 final ALAudioFrame[] alFrames = new ALAudioFrame[initialFrameCount];
                 for(int i=0; i<initialFrameCount; i++) {
@@ -482,7 +484,7 @@ public class ALAudioSink implements AudioSink {
             lockContext();
         }
         try {
-            stopImpl();
+            stopImpl(true);
             if( null != alSource ) {
                 try {
                     al.alDeleteSources(1, alSource, 0);
@@ -529,7 +531,7 @@ public class ALAudioSink implements AudioSink {
                 al.alGetSourcei(alSource[0], AL.AL_BUFFERS_PROCESSED, val, 0);
                 alErr = al.alGetError();
                 if( AL.AL_NO_ERROR != alErr ) {
-                    throw new RuntimeException("ALError "+toHexString(alErr)+" while quering processed buffers at source. "+this);
+                    throw new RuntimeException(getThreadName()+": ALError "+toHexString(alErr)+" while quering processed buffers at source. "+this);
                 }
                 if( wait && val[0] < releaseBufferLimes ) {
                     i++;
@@ -537,7 +539,7 @@ public class ALAudioSink implements AudioSink {
                     final int avgBufferDura = chosenFormat.getBytesDuration( alBufferBytesQueued / alFramesPlaying.size() );
                     final int sleep = Math.max(2, Math.min(100, releaseBufferLimes * avgBufferDura));
                     if( DEBUG ) {
-                        System.err.println(getThreadName()+": ALAudioSink: Dequeue.wait["+i+"]: avgBufferDura "+avgBufferDura+", releaseBufferLimes "+releaseBufferLimes+", sleep "+sleep+" ms, playImpl "+(AL.AL_PLAYING == getSourceState())+", processed "+val[0]+", "+this);
+                        System.err.println(getThreadName()+": ALAudioSink: Dequeue.wait["+i+"]: avgBufferDura "+avgBufferDura+", releaseBufferLimes "+releaseBufferLimes+", sleep "+sleep+" ms, playImpl "+(AL.AL_PLAYING == getSourceState(false))+", processed "+val[0]+", "+this);
                     }
                     unlockContext();
                     try {
@@ -558,7 +560,7 @@ public class ALAudioSink implements AudioSink {
             al.alSourceUnqueueBuffers(alSource[0], releaseBufferCount, buffers, 0);
             alErr = al.alGetError();
             if( AL.AL_NO_ERROR != alErr ) {
-                throw new RuntimeException("ALError "+toHexString(alErr)+" while dequeueing "+releaseBufferCount+" buffers. "+this);
+                throw new RuntimeException(getThreadName()+": ALError "+toHexString(alErr)+" while dequeueing "+releaseBufferCount+" buffers. "+this);
             }
             for ( int i=0; i<releaseBufferCount; i++ ) {
                 final ALAudioFrame releasedBuffer = alFramesPlaying.get();
@@ -694,7 +696,7 @@ public class ALAudioSink implements AudioSink {
             al.alSourceQueueBuffers(alSource[0], 1, alBufferNames, 0);
             final int alErr = al.alGetError();
             if( AL.AL_NO_ERROR != alErr ) {
-                throw new RuntimeException("ALError "+toHexString(alErr)+" while queueing buffer "+toHexString(alBufferNames[0])+". "+this);
+                throw new RuntimeException(getThreadName()+": ALError "+toHexString(alErr)+" while queueing buffer "+toHexString(alBufferNames[0])+". "+this);
             }
             alBufferBytesQueued += byteCount;
             enqueuedFrameCount++;
@@ -728,17 +730,24 @@ public class ALAudioSink implements AudioSink {
     }
     private final boolean isPlayingImpl0() {
         if( playRequested ) {
-            return AL.AL_PLAYING == getSourceState();
+            return AL.AL_PLAYING == getSourceState(false);
         } else {
             return false;
         }
     }
-    private final int getSourceState() {
+    private final int getSourceState(boolean ignoreError) {
         final int[] val = new int[1];
         al.alGetSourcei(alSource[0], AL.AL_SOURCE_STATE, val, 0);
         final int alErr = al.alGetError();
         if( AL.AL_NO_ERROR != alErr ) {
-            throw new RuntimeException("ALError "+toHexString(alErr)+" while querying SOURCE_STATE. "+this);
+            final String msg = getThreadName()+": ALError "+toHexString(alErr)+" while querying SOURCE_STATE. "+this;
+            if( ignoreError ) {
+                if( DEBUG ) {
+                    System.err.println(msg);
+                }
+            } else {
+                throw new RuntimeException(msg);
+            }
         }
         return val[0];
     }
@@ -753,18 +762,18 @@ public class ALAudioSink implements AudioSink {
         try {
             playImpl();
             if( DEBUG ) {
-                System.err.println(getThreadName()+": ALAudioSink: PLAY playImpl "+(AL.AL_PLAYING == getSourceState())+", "+this);
+                System.err.println(getThreadName()+": ALAudioSink: PLAY playImpl "+(AL.AL_PLAYING == getSourceState(false))+", "+this);
             }
         } finally {
             unlockContext();
         }
     }
     private final void playImpl() {
-        if( playRequested && AL.AL_PLAYING != getSourceState() ) {
+        if( playRequested && AL.AL_PLAYING != getSourceState(false) ) {
             al.alSourcePlay(alSource[0]);
             final int alErr = al.alGetError();
             if( AL.AL_NO_ERROR != alErr ) {
-                throw new RuntimeException("ALError "+toHexString(alErr)+" while start playing. "+this);
+                throw new RuntimeException(getThreadName()+": ALError "+toHexString(alErr)+" while start playing. "+this);
             }
         }
     }
@@ -779,7 +788,7 @@ public class ALAudioSink implements AudioSink {
             try {
                 pauseImpl();
                 if( DEBUG ) {
-                    System.err.println(getThreadName()+": ALAudioSink: PAUSE playImpl "+(AL.AL_PLAYING == getSourceState())+", "+this);
+                    System.err.println(getThreadName()+": ALAudioSink: PAUSE playImpl "+(AL.AL_PLAYING == getSourceState(false))+", "+this);
                 }
             } finally {
                 unlockContext();
@@ -792,17 +801,24 @@ public class ALAudioSink implements AudioSink {
             al.alSourcePause(alSource[0]);
             final int alErr = al.alGetError();
             if( AL.AL_NO_ERROR != alErr ) {
-                throw new RuntimeException("ALError "+toHexString(alErr)+" while pausing. "+this);
+                throw new RuntimeException(getThreadName()+": ALError "+toHexString(alErr)+" while pausing. "+this);
             }
         }
     }
-    private final void stopImpl() {
-        if( AL.AL_STOPPED != getSourceState() ) {
+    private final void stopImpl(boolean ignoreError) {
+        if( AL.AL_STOPPED != getSourceState(ignoreError) ) {
             playRequested = false;
             al.alSourceStop(alSource[0]);
             final int alErr = al.alGetError();
             if( AL.AL_NO_ERROR != alErr ) {
-                throw new RuntimeException("ALError "+toHexString(alErr)+" while pausing. "+this);
+                final String msg = "ALError "+toHexString(alErr)+" while stopping. "+this;
+                if( ignoreError ) {
+                    if( DEBUG ) {
+                        System.err.println(getThreadName()+": "+msg);
+                    }
+                } else {
+                    throw new RuntimeException(getThreadName()+": ALError "+toHexString(alErr)+" while stopping. "+this);
+                }
             }
         }
     }
@@ -867,14 +883,14 @@ public class ALAudioSink implements AudioSink {
         lockContext();
         try {
             // pauseImpl();
-            stopImpl();
+            stopImpl(false);
             // Redundant: dequeueBuffer( false /* wait */, true /* ignoreBufferInconsistency */);
             dequeueForceAll();
             if( alBufferNames.length != alFramesAvail.size() || alFramesPlaying.size() != 0 ) {
                 throw new InternalError("XXX: "+this);
             }
             if( DEBUG ) {
-                System.err.println(getThreadName()+": ALAudioSink: FLUSH playImpl "+(AL.AL_PLAYING == getSourceState())+", "+this);
+                System.err.println(getThreadName()+": ALAudioSink: FLUSH playImpl "+(AL.AL_PLAYING == getSourceState(false))+", "+this);
             }
         } finally {
             unlockContext();
