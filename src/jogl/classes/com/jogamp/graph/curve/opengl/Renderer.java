@@ -101,7 +101,7 @@ public abstract class Renderer {
      * Initialize shader and bindings for GPU based rendering bound to the given GL object's GLContext
      * if not initialized yet.
      * <p>Leaves the renderer enabled, ie ShaderState.</p>
-     * <p>Shall be called by a {@code draw()} method, e.g. {@link RegionRenderer#draw(GL2ES2, Region, float[], int)}</p>
+     * <p>Shall be called by a {@code draw()} method, e.g. {@link RegionRenderer#draw(GL2ES2, Region, int)}</p>
      *  
      * @param gl referencing the current GLContext to which the ShaderState is bound to
      * @throws GLException if initialization failed

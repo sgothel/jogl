@@ -55,7 +55,6 @@ public class TestTextRendererNEWT10 extends UITestCase {
     static final boolean TRACE = false;
     static long duration = 100; // ms
     
-    static final float[] textPosition = new float[] {0,0,0};
     static final int[] texSize = new int[] { 0 }; 
     static final int fontSize = 24;
     static Font font;
@@ -160,7 +159,7 @@ public class TestTextRendererNEWT10 extends UITestCase {
         dy -= (int)textBox.getHeight() * ( row + 1 );
         renderer.resetModelview(null);
         renderer.translate(gl, dx, dy, z0);
-        renderer.drawString3D(gl, font, text, textPosition, fontSize, texSize);
+        renderer.drawString3D(gl, font, text, fontSize, texSize);
         
         lastRow = row;
     }        

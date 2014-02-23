@@ -27,14 +27,9 @@
  */
 package jogamp.graph.font;
 
-import java.util.ArrayList;
-
 import jogamp.graph.geom.plane.Path2D;
 
-import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
 
 public interface FontInt extends Font {
 
@@ -43,5 +38,4 @@ public interface FontInt extends Font {
         public Path2D getPath(float pixelSize);         
     }
 
-    public ArrayList<OutlineShape> getOutlineShapes(CharSequence string, float pixelSize, Factory<? extends Vertex> vertexFactory);
 }

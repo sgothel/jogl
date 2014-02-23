@@ -125,8 +125,9 @@ public class CDTriangulator2D implements Triangulator{
                 }
             }
             Triangle tri = loop.cut(true);
-            if(tri != null)
+            if(tri != null) {
                 triangles.add(tri);
+            }
         }
         return triangles;
     }

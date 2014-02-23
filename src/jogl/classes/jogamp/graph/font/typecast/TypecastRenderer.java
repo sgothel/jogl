@@ -28,6 +28,7 @@
 package jogamp.graph.font.typecast;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import jogamp.graph.font.FontInt.GlyphInt;
 import jogamp.graph.font.typecast.ot.OTGlyph;
@@ -64,9 +65,10 @@ public class TypecastRenderer {
         }
         AffineTransform t = new AffineTransform();
 
+        final int len = string.length();
         float advanceY = lineGap - descent + ascent;
         float y = 0;
-        for (int i=0; i<string.length(); i++)
+        for (int i=0; i<len; i++)
         {
             p[i] = new Path2D();
             p[i].reset();
@@ -75,26 +77,44 @@ public class TypecastRenderer {
             if (character == '\n') {
                 y += advanceY;
                 advanceTotal = 0;
-                continue;
             } else if (character == ' ') {
                 advanceTotal += font.getAdvanceWidth(Glyph.ID_SPACE, pixelSize);
-                continue;
-            }        
-            Glyph glyph = font.getGlyph(character);
-            Path2D gp = ((GlyphInt)glyph).getPath();
-            float scale = metrics.getScale(pixelSize);
-            t.translate(advanceTotal, y);
-            t.scale(scale, scale);
-            p[i].append(gp.iterator(t), false);
-            advanceTotal += glyph.getAdvance(pixelSize, true); 
+            } else {         
+                final Glyph glyph = font.getGlyph(character);
+                final Path2D gp = ((GlyphInt)glyph).getPath();
+                final float scale = metrics.getScale(pixelSize);
+                t.translate(advanceTotal, y);
+                t.scale(scale, scale);
+                p[i].append(gp.iterator(t), false);
+                advanceTotal += glyph.getAdvance(pixelSize, true);
+            }
         }
     }
 
-    public static ArrayList<OutlineShape> getOutlineShapes(TypecastFont font, CharSequence string, float pixelSize, AffineTransform transform, Factory<? extends Vertex> vertexFactory) {
+    public static OutlineShape getOutlineShape(TypecastFont font, Glyph glyph, Factory<? extends Vertex> vertexFactory) {
+        Path2D path = ((GlyphInt)glyph).getPath();
+        AffineTransform transform = new AffineTransform(vertexFactory);
+        OutlineShape shape = new OutlineShape(vertexFactory);
+        
+        PathIterator iterator = path.iterator(transform);
+        if(null != iterator){
+            while(!iterator.isDone()){
+                float[] coords = new float[6];
+                int segmentType = iterator.currentSegment(coords);
+                addPathVertexToOutline(shape, vertexFactory, coords, segmentType);
+                iterator.next();
+            }
+        }
+        return shape;
+    }
+      
+    public static List<OutlineShape> getOutlineShapes(List<OutlineShape> shapes, TypecastFont font, CharSequence string, float pixelSize, AffineTransform transform, Factory<? extends Vertex> vertexFactory) {
         Path2D[] paths = new Path2D[string.length()];
         getPaths(font, string, pixelSize, transform, paths);
 
-        ArrayList<OutlineShape> shapes = new ArrayList<OutlineShape>();
+        if(null == shapes) {
+            shapes = new ArrayList<OutlineShape>();
+        }
         final int numGlyps = paths.length;
         for (int index=0;index<numGlyps;index++) {
             if(paths[index] == null){

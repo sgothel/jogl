@@ -320,7 +320,8 @@ public class AABBox implements Cloneable {
     }
     
     public final String toString() {
-        return "[ "+low[0]+"/"+low[1]+"/"+low[1]+" .. "+high[0]+"/"+high[0]+"/"+high[0]+", ctr "+
-                    center[0]+"/"+center[1]+"/"+center[1]+" ]";
+        return "[ dim "+getWidth()+" x "+getHeight()+" x "+getDepth()+
+               ", box "+low[0]+" / "+low[1]+" / "+low[2]+" .. "+high[0]+" / "+high[1]+" / "+high[2]+
+               ", ctr "+center[0]+" / "+center[1]+" / "+center[2]+" ]";
     }
 }

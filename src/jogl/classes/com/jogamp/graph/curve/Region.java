@@ -28,159 +28,199 @@
 package com.jogamp.graph.curve;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import jogamp.graph.curve.opengl.RegionFactory;
 import jogamp.opengl.Debug;
 
+import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
 
-/** Abstract Outline shape GL representation
- *  define the method an OutlineShape(s) is
- *  binded rendered.
- *  
- *  @see GLRegion
- */
+/** Abstract Outline shape GL representation define the method an OutlineShape(s)
+ * is bound and rendered.
+ * 
+ * @see GLRegion */
 public abstract class Region {
-    
-    /** Debug flag for region impl (graph.curve)
-     */
+
+    /** Debug flag for region impl (graph.curve) */
     public static final boolean DEBUG = Debug.debug("graph.curve");
-    
+
     public static final boolean DEBUG_INSTANCE = false;
 
-    /** View based Anti-Aliasing, A Two pass region rendering, slower 
-     *  and more resource hungry (FBO), but AA is perfect. 
-     *  Otherwise the default fast one pass MSAA region rendering is being used. 
-     */
+    /** View based Anti-Aliasing, A Two pass region rendering, slower and more
+     * resource hungry (FBO), but AA is perfect. Otherwise the default fast one
+     * pass MSAA region rendering is being used. */
     public static final int VBAA_RENDERING_BIT = 1 << 0;
 
     /** Use non uniform weights [0.0 .. 1.9] for curve region rendering.
-     *  Otherwise the default weight 1.0 for uniform curve region rendering is being applied.  
-     */
+     * Otherwise the default weight 1.0 for uniform curve region rendering is
+     * being applied. */
     public static final int VARIABLE_CURVE_WEIGHT_BIT = 1 << 1;
 
     public static final int TWO_PASS_DEFAULT_TEXTURE_UNIT = 0;
 
     private final int renderModes;
-    private boolean dirty = true;    
-    protected int numVertices = 0;    
+    private boolean dirty = true;
+    protected int numVertices = 0;
     protected final AABBox box = new AABBox();
     protected ArrayList<Triangle> triangles = new ArrayList<Triangle>();
     protected ArrayList<Vertex> vertices = new ArrayList<Vertex>();
 
-    public static boolean isVBAA(int renderModes) { 
-        return 0 != ( renderModes & Region.VBAA_RENDERING_BIT ); 
+    public static boolean isVBAA(int renderModes) {
+        return 0 != (renderModes & Region.VBAA_RENDERING_BIT);
     }
 
     /** Check if render mode capable of non uniform weights
-     * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, 
-     * {@link Region#VBAA_RENDERING_BIT} 
-     * @return true of capable of non uniform weights
-     */
-    public static boolean isNonUniformWeight(int renderModes) { 
-        return 0 != ( renderModes & Region.VARIABLE_CURVE_WEIGHT_BIT ); 
+     * 
+     * @param renderModes
+     *            bit-field of modes, e.g.
+     *            {@link Region#VARIABLE_CURVE_WEIGHT_BIT},
+     *            {@link Region#VBAA_RENDERING_BIT}
+     * @return true of capable of non uniform weights */
+    public static boolean isNonUniformWeight(int renderModes) {
+        return 0 != (renderModes & Region.VARIABLE_CURVE_WEIGHT_BIT);
     }
 
+    /** Create a {@link Region} defining the list of {@link OutlineShape}.
+     * Combining the Shapes into single buffers.
+     * @return the resulting Region inclusive the generated region
+     */
+    public static Region create(List<OutlineShape> outlineShapes, int renderModes) {
+        final Region region = RegionFactory.create(renderModes);
+        region.addOutlineShapes(outlineShapes);
+        return region;
+    }
+
+    /** 
+     * Create a {@link Region} defining this {@link OutlineShape}
+     * @return the resulting Region.
+     */
+    public static Region create(OutlineShape outlineShape, int renderModes) {
+        final Region region = RegionFactory.create(renderModes);
+        region.addOutlineShape(outlineShape);
+        return region;
+    }        
+        
     protected Region(int regionRenderModes) {
         this.renderModes = regionRenderModes;
     }
 
     /** Get current Models
-     * @return bit-field of render modes 
-     */
-    public final int getRenderModes() { 
-        return renderModes; 
+     * 
+     * @return bit-field of render modes */
+    public final int getRenderModes() {
+        return renderModes;
     }
 
     /** Check if current Region is using VBAA
-     * @return true if capable of two pass rendering - VBAA
-     */
-    public boolean isVBAA() { 
-        return Region.isVBAA(renderModes);  
+     * 
+     * @return true if capable of two pass rendering - VBAA */
+    public boolean isVBAA() {
+        return Region.isVBAA(renderModes);
     }
 
-    /** Check if current instance uses non uniform weights 
-     * @return true if capable of nonuniform weights
-     */
-    public boolean isNonUniformWeight() { 
-        return Region.isNonUniformWeight(renderModes); 
+    /** Check if current instance uses non uniform weights
+     * 
+     * @return true if capable of nonuniform weights */
+    public boolean isNonUniformWeight() {
+        return Region.isNonUniformWeight(renderModes);
     }
 
-    /** Get the current number of vertices associated
-     * with this region. This number is not necessary equal to 
-     * the OGL bound number of vertices.
-     * @return vertices count
-     */
-    public final int getNumVertices(){
+    /** Get the current number of vertices associated with this region. This
+     * number is not necessary equal to the OGL bound number of vertices.
+     * 
+     * @return vertices count */
+    public final int getNumVertices() {
         return numVertices;
     }
 
-    /** Adds a {@link Triangle} object to the Region
-     * This triangle will be bound to OGL objects 
-     * on the next call to {@code update}
-     * @param tri a triangle object
+    /** Adds a {@link Triangle} object to the Region This triangle will be bound
+     * to OGL objects on the next call to {@code update}
      * 
-     * @see update(GL2ES2)
-     */
+     * @param tri
+     *            a triangle object
+     * 
+     * @see update(GL2ES2) */
     public void addTriangle(Triangle tri) {
         triangles.add(tri);
         setDirty(true);
     }
 
-    /** Adds a list of {@link Triangle} objects to the Region
-     * These triangles are to be binded to OGL objects 
-     * on the next call to {@code update}
-     * @param tris an arraylist of triangle objects
+    /** Adds a list of {@link Triangle} objects to the Region These triangles are
+     * to be binded to OGL objects on the next call to {@code update}
      * 
-     * @see update(GL2ES2)
-     */
-    public void addTriangles(ArrayList<Triangle> tris) {
+     * @param tris
+     *            a list of triangle objects
+     * 
+     * @see update(GL2ES2) */
+    public void addTriangles(List<Triangle> tris) {
         triangles.addAll(tris);
         setDirty(true);
     }
 
-    /** Adds a {@link Vertex} object to the Region
-     * This vertex will be bound to OGL objects 
-     * on the next call to {@code update}
-     * @param vert a vertex objects
+    /** Adds a {@link Vertex} object to the Region This vertex will be bound to
+     * OGL objects on the next call to {@code update}
      * 
-     * @see update(GL2ES2)
-     */
+     * @param vert
+     *            a vertex objects
+     * 
+     * @see update(GL2ES2) */
     public void addVertex(Vertex vert) {
         vertices.add(vert);
         numVertices++;
         setDirty(true);
     }
 
-    /** Adds a list of {@link Vertex} objects to the Region
-     * These vertices are to be binded to OGL objects 
-     * on the next call to {@code update}
-     * @param verts an arraylist of vertex objects
+    /** Adds a list of {@link Vertex} objects to the Region These vertices are to
+     * be binded to OGL objects on the next call to {@code update}
      * 
-     * @see update(GL2ES2)
-     */
-    public void addVertices(ArrayList<Vertex> verts) {
+     * @param verts
+     *            a list of vertex objects
+     * 
+     * @see update(GL2ES2) */
+    public void addVertices(List<Vertex> verts) {
         vertices.addAll(verts);
         numVertices = vertices.size();
         setDirty(true);
     }
 
-    /**
-     * @return the AxisAligned bounding box of
-     * current region
-     */
-    public final AABBox getBounds(){
+    public void addOutlineShape(OutlineShape shape) {
+        shape.transformOutlines(OutlineShape.VerticesState.QUADRATIC_NURBS);
+        List<Triangle> tris = shape.triangulate();
+        if(null != tris) {
+            triangles.addAll(tris);
+            for (int j = 0; j < shape.outlines.size(); j++) {
+                final ArrayList<Vertex> sovs = shape.outlines.get(j).getVertices();
+                for (int k = 0; k < sovs.size(); k++) {
+                    final Vertex v = sovs.get(k);
+                    v.setId(numVertices++);
+                    vertices.add(v);
+                }
+            }
+        }
+        setDirty(true);
+    }
+    
+    public void addOutlineShapes(List<OutlineShape> shapes) {
+        for (int i = 0; i < shapes.size(); i++) {
+            addOutlineShape(shapes.get(i));
+        }
+        setDirty(true);
+    }
+
+    /** @return the AxisAligned bounding box of current region */
+    public final AABBox getBounds() {
         return box;
     }
 
-    /** Check if this region is dirty. A region is marked dirty
-     * when new Vertices, Triangles, and or Lines are added after a 
-     * call to update()
+    /** Check if this region is dirty. A region is marked dirty when new
+     * Vertices, Triangles, and or Lines are added after a call to update()
+     * 
      * @return true if region is Dirty, false otherwise
      * 
-     * @see update(GL2ES2)
-     */
+     * @see update(GL2ES2) */
     public final boolean isDirty() {
         return dirty;
     }

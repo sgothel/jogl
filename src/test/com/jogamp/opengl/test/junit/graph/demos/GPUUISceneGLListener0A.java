@@ -301,7 +301,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         regionRenderer.scale(gl, 1.5f, 1.5f, 1.0f);
         regionRenderer.rotate(gl, angText , 0, 1, 0);
         regionRenderer.setColorStatic(gl, 0.0f, 1.0f, 0.0f);
-        regionRenderer.draw(gl, jogampRegion.getRegion(gl, rs, 0), new float[]{0,0,0}, null);
+        regionRenderer.draw(gl, jogampRegion.getRegion(gl, rs, 0), null);
         
         if(null == labelRegions[currentText]) {
             if( null == labels[currentText]) {
@@ -322,7 +322,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         regionRenderer.rotate(gl, zoomText, 0, 1, 0);
         
         regionRenderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
-        regionRenderer.draw(gl, labelRegions[currentText].getRegion(gl, rs, renderModes2), new float[]{0,0,0}, texSize2);
+        regionRenderer.draw(gl, labelRegions[currentText].getRegion(gl, rs, renderModes2), texSize2);
         
         final GLAnimatorControl animator = drawable.getAnimator();
         final boolean _drawFPS = showFPS && null != animator;
@@ -345,7 +345,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         if(showFPS && null != fpsRegion) {
             regionRenderer.translate(gl, 0, -60, 0);
             regionRenderer.scale(null, zoomText, zoomText, 1);
-            regionRenderer.draw(gl, fpsRegion.getRegion(gl, rs, 0), new float[]{0,0,0}, null);
+            regionRenderer.draw(gl, fpsRegion.getRegion(gl, rs, 0), null);
         }
     }
     

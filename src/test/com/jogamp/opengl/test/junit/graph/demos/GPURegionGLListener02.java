@@ -28,6 +28,9 @@
 
 package com.jogamp.opengl.test.junit.graph.demos;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
@@ -42,7 +45,7 @@ import com.jogamp.graph.curve.opengl.RenderState;
  *
  */
 public class GPURegionGLListener02 extends GPURegionRendererListenerBase01 {
-    OutlineShape[] outlineShapes = new OutlineShape[2];
+    List<OutlineShape> outlineShapes = new ArrayList<OutlineShape>();
 
     public GPURegionGLListener02 (RenderState rs, int renderModes, int fbosize, boolean debug, boolean trace) {
         super(rs, renderModes, debug, trace);
@@ -51,39 +54,41 @@ public class GPURegionGLListener02 extends GPURegionRendererListenerBase01 {
         
     private void createTestOutline(){
         float offset = 0;
-        outlineShapes[0] = new OutlineShape(getRenderer().getRenderState().getVertexFactory());
-        outlineShapes[0].addVertex(0.0f,-10.0f,true);
-        outlineShapes[0].addVertex(15.0f,-10.0f, true);
-        outlineShapes[0].addVertex(10.0f,5.0f, false);
-        outlineShapes[0].addVertex(15.0f,10.0f, true);
-        outlineShapes[0].addVertex(6.0f,15.0f, false);
-        outlineShapes[0].addVertex(5.0f,8.0f, false);
-        outlineShapes[0].addVertex(0.0f,10.0f,true);
-        outlineShapes[0].closeLastOutline();
-        outlineShapes[0].addEmptyOutline();
-        outlineShapes[0].addVertex(5.0f,-5.0f,true);
-        outlineShapes[0].addVertex(10.0f,-5.0f, false);
-        outlineShapes[0].addVertex(10.0f,0.0f, true);
-        outlineShapes[0].addVertex(5.0f,0.0f, false);
-        outlineShapes[0].closeLastOutline();
+        OutlineShape shape = new OutlineShape(getRenderer().getRenderState().getVertexFactory());
+        outlineShapes.add(shape);
+        shape.addVertex(0.0f,-10.0f,true);
+        shape.addVertex(15.0f,-10.0f, true);
+        shape.addVertex(10.0f,5.0f, false);
+        shape.addVertex(15.0f,10.0f, true);
+        shape.addVertex(6.0f,15.0f, false);
+        shape.addVertex(5.0f,8.0f, false);
+        shape.addVertex(0.0f,10.0f,true);
+        shape.closeLastOutline();
+        shape.addEmptyOutline();
+        shape.addVertex(5.0f,-5.0f,true);
+        shape.addVertex(10.0f,-5.0f, false);
+        shape.addVertex(10.0f,0.0f, true);
+        shape.addVertex(5.0f,0.0f, false);
+        shape.closeLastOutline();
         
         /** Same shape as above but without any off-curve vertices */
-        outlineShapes[1] = new OutlineShape(getRenderer().getRenderState().getVertexFactory());
+        shape = new OutlineShape(getRenderer().getRenderState().getVertexFactory());
+        outlineShapes.add(shape);
         offset = 30;
-        outlineShapes[1].addVertex(offset+0.0f,-10.0f, true);
-        outlineShapes[1].addVertex(offset+17.0f,-10.0f, true);
-        outlineShapes[1].addVertex(offset+11.0f,5.0f, true);
-        outlineShapes[1].addVertex(offset+16.0f,10.0f, true);
-        outlineShapes[1].addVertex(offset+7.0f,15.0f, true);
-        outlineShapes[1].addVertex(offset+6.0f,8.0f, true);
-        outlineShapes[1].addVertex(offset+0.0f,10.0f, true);
-        outlineShapes[1].closeLastOutline();
-        outlineShapes[1].addEmptyOutline();
-        outlineShapes[1].addVertex(offset+5.0f,0.0f, true);
-        outlineShapes[1].addVertex(offset+5.0f,-5.0f, true);
-        outlineShapes[1].addVertex(offset+10.0f,-5.0f, true);
-        outlineShapes[1].addVertex(offset+10.0f,0.0f, true);
-        outlineShapes[1].closeLastOutline();
+        shape.addVertex(offset+0.0f,-10.0f, true);
+        shape.addVertex(offset+17.0f,-10.0f, true);
+        shape.addVertex(offset+11.0f,5.0f, true);
+        shape.addVertex(offset+16.0f,10.0f, true);
+        shape.addVertex(offset+7.0f,15.0f, true);
+        shape.addVertex(offset+6.0f,8.0f, true);
+        shape.addVertex(offset+0.0f,10.0f, true);
+        shape.closeLastOutline();
+        shape.addEmptyOutline();
+        shape.addVertex(offset+5.0f,0.0f, true);
+        shape.addVertex(offset+5.0f,-5.0f, true);
+        shape.addVertex(offset+10.0f,-5.0f, true);
+        shape.addVertex(offset+10.0f,0.0f, true);
+        shape.closeLastOutline();
         
         region = GLRegion.create(outlineShapes, getRenderModes());
     }
@@ -118,7 +123,7 @@ public class GPURegionGLListener02 extends GPURegionRendererListenerBase01 {
         if( weight != regionRenderer.getWeight()) {
             regionRenderer.setWeight(gl, weight);
         }
-        regionRenderer.draw(gl, region, getPosition(), getTexSize());            
+        regionRenderer.draw(gl, region, getTexSize());            
         
     }        
 }

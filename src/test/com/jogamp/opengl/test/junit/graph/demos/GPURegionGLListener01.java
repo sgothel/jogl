@@ -120,6 +120,6 @@ public class GPURegionGLListener01 extends GPURegionRendererListenerBase01 {
         if( weight != regionRenderer.getWeight()) {
             regionRenderer.setWeight(gl, weight);
         }
-        regionRenderer.draw(gl, region, getPosition(), getTexSize());
+        regionRenderer.draw(gl, region, getTexSize());
     }        
 }

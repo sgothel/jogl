@@ -114,7 +114,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
     /** The list of {@link Outline}s that are part of this 
      *  outline shape.
      */
-    private ArrayList<Outline> outlines;
+    /* pp */ ArrayList<Outline> outlines;
     private AABBox bbox;
 
     /** dirty bits DIRTY_BOUNDS */

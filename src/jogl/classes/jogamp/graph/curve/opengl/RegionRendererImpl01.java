@@ -87,7 +87,7 @@ public class RegionRendererImpl01 extends RegionRenderer {
     }
 
     @Override
-    protected void drawImpl(GL2ES2 gl, Region region, float[] position, int[] texSize) {
+    protected void drawImpl(GL2ES2 gl, Region region, int[] texSize) {
         ((GLRegion)region).draw(gl, rs, vp_width, vp_height, texSize);
     }    
 }

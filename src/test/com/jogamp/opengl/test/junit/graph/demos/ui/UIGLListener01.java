@@ -109,10 +109,10 @@ public class UIGLListener01 extends UIListenerBase01 {
         }        
         
         regionRenderer.setColorStatic(gl, bColor[0], bColor[1], bColor[2]);
-        regionRenderer.draw(gl, regionButton.getRegion(gl, rs, 0), getPosition(), null);
-//        regionRenderer.translate(gl, button.getPosition()[0], button.getPosition()[1], button.getPosition()[2]);
+        regionRenderer.translate(gl, button.getPosition()[0], button.getPosition()[1], button.getPosition()[2]);
+        regionRenderer.draw(gl, regionButton.getRegion(gl, rs, 0), null);
         regionRenderer.setColorStatic(gl, lColor[0], lColor[1], lColor[2]);
-        regionRenderer.draw(gl, regionLabel.getRegion(gl, rs, 0), getPosition(), null);
+        regionRenderer.draw(gl, regionLabel.getRegion(gl, rs, 0), null);
     }        
     
     public void dispose(GLAutoDrawable drawable) {

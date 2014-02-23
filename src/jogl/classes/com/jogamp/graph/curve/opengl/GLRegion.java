@@ -27,17 +27,13 @@
  */
 package com.jogamp.graph.curve.opengl;
 
-
-import java.util.ArrayList;
+import java.util.List;
 
 import javax.media.opengl.GL2ES2;
 import com.jogamp.opengl.util.PMVMatrix;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.geom.Triangle;
-import com.jogamp.graph.geom.Vertex;
-import jogamp.graph.curve.opengl.RegionFactory;
 
 /** A GLRegion is the OGL binding of one or more OutlineShapes
  *  Defined by its vertices and generated triangles. The Region
@@ -55,44 +51,18 @@ public abstract class GLRegion extends Region {
      * Combining the Shapes into single buffers.
      * @return the resulting Region inclusive the generated region
      */
-    public static GLRegion create(OutlineShape[] outlineShapes, int renderModes) {
-        final GLRegion region = RegionFactory.create(renderModes);
-        
-        int numVertices = region.getNumVertices();
-        
-        for(int index=0; index<outlineShapes.length; index++) {
-            OutlineShape outlineShape = outlineShapes[index];
-            outlineShape.transformOutlines(OutlineShape.VerticesState.QUADRATIC_NURBS);
-    
-            ArrayList<Triangle> triangles = outlineShape.triangulate();
-            region.addTriangles(triangles);
-            
-            ArrayList<Vertex> vertices = outlineShape.getVertices();
-            for(int pos=0; pos < vertices.size(); pos++){
-                Vertex vert = vertices.get(pos);
-                vert.setId(numVertices++);
-            }
-            region.addVertices(vertices);
-        }
-        
-        return region;
+    public static GLRegion create(List<OutlineShape> outlineShapes, int renderModes) {
+        return (GLRegion) Region.create(outlineShapes, renderModes);
     }
 
     /** 
-     * Create an ogl {@link GLRegion} defining this {@link OutlineShape}
+     * Create an ogl {@link Region} defining this {@link OutlineShape}
      * @return the resulting Region.
      */
     public static GLRegion create(OutlineShape outlineShape, int renderModes) {
-        final GLRegion region = RegionFactory.create(renderModes);
-        
-        outlineShape.transformOutlines(OutlineShape.VerticesState.QUADRATIC_NURBS);
-        ArrayList<Triangle> triangles = (ArrayList<Triangle>) outlineShape.triangulate();
-        ArrayList<Vertex> vertices = (ArrayList<Vertex>) outlineShape.getVertices();
-        region.addVertices(vertices);
-        region.addTriangles(triangles);
-        return region;
+        return (GLRegion) Region.create(outlineShape, renderModes);
     }        
-    
+        
     protected GLRegion(int renderModes) {
         super(renderModes);
     }

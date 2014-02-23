@@ -162,7 +162,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             final int fpsSp = fpsS.indexOf('.');
             textRenderer.resetModelview(null);
             textRenderer.translate(gl, fontSizeFixed, fontSizeFixed, -6000);
-            textRenderer.drawString3D(gl, font, fpsS.substring(0, fpsSp+2)+" fps", getPosition(), fontSizeFixed*3, getTexSize());
+            textRenderer.drawString3D(gl, font, fpsS.substring(0, fpsSp+2)+" fps", fontSizeFixed*3, getTexSize());
         }
         
         int dx = width-(int)fontNameBox.getWidth()-2 ;
@@ -170,7 +170,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         
         textRenderer.resetModelview(null);
         textRenderer.translate(gl, dx, dy, -6000);
-        textRenderer.drawString3D(gl, font, fontName, getPosition(), fontSizeFixed*2, getTexSize());
+        textRenderer.drawString3D(gl, font, fontName, fontSizeFixed*2, getTexSize());
         
         dx  =  10;
         dy += -(int)fontNameBox.getHeight() - 10;
@@ -178,7 +178,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         if(null != headtext) { 
             textRenderer.resetModelview(null);
             textRenderer.translate(gl, dx, dy, -6000);
-            textRenderer.drawString3D(gl, font, headtext, getPosition(), fontSizeFixed*3, getTexSize());
+            textRenderer.drawString3D(gl, font, headtext, fontSizeFixed*3, getTexSize());
         }
         
         textRenderer.reshapePerspective(null, 45.0f, width, height, 0.1f, 7000.0f);             
@@ -188,9 +188,9 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         textRenderer.rotate(gl, getAngle(), 0, 1, 0);
         textRenderer.setColorStatic(gl, 1.0f, 0.0f, 0.0f);
         if(!userInput) {
-            textRenderer.drawString3D(gl, font, text2, getPosition(), fontSize, getTexSize());
+            textRenderer.drawString3D(gl, font, text2, fontSize, getTexSize());
         } else {
-            textRenderer.drawString3D(gl, font, userString.toString(), getPosition(), fontSize, getTexSize());
+            textRenderer.drawString3D(gl, font, userString.toString(), fontSize, getTexSize());
         }
     }        
         

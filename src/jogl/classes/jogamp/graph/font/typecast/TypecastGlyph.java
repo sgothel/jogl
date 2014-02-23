@@ -228,5 +228,11 @@ public class TypecastGlyph implements FontInt.GlyphInt {
             this.pathSized = AffineTransform.getScaleInstance(null, size, size).createTransformedShape(getPath());
         }        
         return this.pathSized;
+    }
+    
+    public int hashCode() {
+        // 31 * x == (x << 5) - x
+        int hash = 31 + font.getName(Font.NAME_UNIQUNAME).hashCode();
+        return ((hash << 5) - hash) + id;
     }    
 }

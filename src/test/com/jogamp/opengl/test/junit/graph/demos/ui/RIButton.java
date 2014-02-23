@@ -215,7 +215,7 @@ public abstract class RIButton extends UIShape {
         if(!selection){
             renderer.setColorStatic(gl, bColor[0], bColor[1], bColor[2]);
         }
-        renderer.draw(gl, buttonRegion.getRegion(gl, rs, renderModes), getPosition(), texSize);
+        renderer.draw(gl, buttonRegion.getRegion(gl, rs, renderModes), texSize);
         gl.glDisable(GL2ES2.GL_POLYGON_OFFSET_FILL);
         
         float[] lColor = labelColor;
@@ -225,7 +225,7 @@ public abstract class RIButton extends UIShape {
         if(!selection){
             renderer.setColorStatic(gl, lColor[0], lColor[1], lColor[2]);
         }
-        renderer.draw(gl, labelRegion.getRegion(gl, rs, renderModes), getPosition(), texSize);
+        renderer.draw(gl, labelRegion.getRegion(gl, rs, renderModes), texSize);
     }
     public void setPressed(boolean b) {
         super.setPressed(b);

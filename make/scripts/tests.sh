@@ -339,7 +339,9 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestFBOMRTNEWT01 $*
 
-testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT10 $*
+#testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWTPerf01 $*
+#testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT10 $*
+testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT20 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT00 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01 $*
