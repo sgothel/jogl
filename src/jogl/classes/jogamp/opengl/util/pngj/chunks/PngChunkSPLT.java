@@ -4,11 +4,17 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import jogamp.opengl.util.pngj.ImageInfo;
-import jogamp.opengl.util.pngj.PngHelper;
+import jogamp.opengl.util.pngj.PngHelperInternal;
 import jogamp.opengl.util.pngj.PngjException;
 
+/**
+ * sPLT chunk.
+ * <p>
+ * see http://www.w3.org/TR/PNG/#11sPLT
+ */
+public class PngChunkSPLT extends PngChunkMultiple {
+	public final static String ID = ChunkHelper.sPLT;
 
-public class PngChunkSPLT extends PngChunk {
 	// http://www.w3.org/TR/PNG/#11sPLT
 
 	private String palName;
@@ -16,35 +22,30 @@ public class PngChunkSPLT extends PngChunk {
 	private int[] palette; // 5 elements per entry
 
 	public PngChunkSPLT(ImageInfo info) {
-		super(ChunkHelper.sPLT, info);
+		super(ID, info);
 	}
 
 	@Override
-	public boolean allowsMultiple() {
-		return true; // allows multiple, but pallete name should be different
+	public ChunkOrderingConstraint getOrderingConstraint() {
+		return ChunkOrderingConstraint.BEFORE_IDAT;
 	}
 
 	@Override
-	public boolean mustGoBeforeIDAT() {
-		return true;
-	}
-
-	@Override
-	public ChunkRaw createChunk() {
+	public ChunkRaw createRawChunk() {
 		try {
 			ByteArrayOutputStream ba = new ByteArrayOutputStream();
-			ba.write(palName.getBytes(PngHelper.charsetLatin1));
+			ba.write(palName.getBytes(PngHelperInternal.charsetLatin1));
 			ba.write(0); // separator
 			ba.write((byte) sampledepth);
 			int nentries = getNentries();
 			for (int n = 0; n < nentries; n++) {
 				for (int i = 0; i < 4; i++) {
 					if (sampledepth == 8)
-						PngHelper.writeByte(ba, (byte) palette[n * 5 + i]);
+						PngHelperInternal.writeByte(ba, (byte) palette[n * 5 + i]);
 					else
-						PngHelper.writeInt2(ba, palette[n * 5 + i]);
+						PngHelperInternal.writeInt2(ba, palette[n * 5 + i]);
 				}
-				PngHelper.writeInt2(ba, palette[n * 5 + 4]);
+				PngHelperInternal.writeInt2(ba, palette[n * 5 + 4]);
 			}
 			byte[] b = ba.toByteArray();
 			ChunkRaw chunk = createEmptyChunk(b.length, false);
@@ -56,7 +57,7 @@ public class PngChunkSPLT extends PngChunk {
 	}
 
 	@Override
-	public void parseFromChunk(ChunkRaw c) {
+	public void parseFromRaw(ChunkRaw c) {
 		int t = -1;
 		for (int i = 0; i < c.data.length; i++) { // look for first zero
 			if (c.data[i] == 0) {
@@ -66,8 +67,8 @@ public class PngChunkSPLT extends PngChunk {
 		}
 		if (t <= 0 || t > c.data.length - 2)
 			throw new PngjException("bad sPLT chunk: no separator found");
-		palName = new String(c.data, 0, t, PngHelper.charsetLatin1);
-		sampledepth = PngHelper.readInt1fromByte(c.data, t + 1);
+		palName = new String(c.data, 0, t, PngHelperInternal.charsetLatin1);
+		sampledepth = PngHelperInternal.readInt1fromByte(c.data, t + 1);
 		t += 2;
 		int nentries = (c.data.length - t) / (sampledepth == 8 ? 6 : 10);
 		palette = new int[nentries * 5];
@@ -75,21 +76,21 @@ public class PngChunkSPLT extends PngChunk {
 		ne = 0;
 		for (int i = 0; i < nentries; i++) {
 			if (sampledepth == 8) {
-				r = PngHelper.readInt1fromByte(c.data, t++);
-				g = PngHelper.readInt1fromByte(c.data, t++);
-				b = PngHelper.readInt1fromByte(c.data, t++);
-				a = PngHelper.readInt1fromByte(c.data, t++);
+				r = PngHelperInternal.readInt1fromByte(c.data, t++);
+				g = PngHelperInternal.readInt1fromByte(c.data, t++);
+				b = PngHelperInternal.readInt1fromByte(c.data, t++);
+				a = PngHelperInternal.readInt1fromByte(c.data, t++);
 			} else {
-				r = PngHelper.readInt2fromBytes(c.data, t);
+				r = PngHelperInternal.readInt2fromBytes(c.data, t);
 				t += 2;
-				g = PngHelper.readInt2fromBytes(c.data, t);
+				g = PngHelperInternal.readInt2fromBytes(c.data, t);
 				t += 2;
-				b = PngHelper.readInt2fromBytes(c.data, t);
+				b = PngHelperInternal.readInt2fromBytes(c.data, t);
 				t += 2;
-				a = PngHelper.readInt2fromBytes(c.data, t);
+				a = PngHelperInternal.readInt2fromBytes(c.data, t);
 				t += 2;
 			}
-			f = PngHelper.readInt2fromBytes(c.data, t);
+			f = PngHelperInternal.readInt2fromBytes(c.data, t);
 			t += 2;
 			palette[ne++] = r;
 			palette[ne++] = g;

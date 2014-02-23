@@ -44,14 +44,14 @@ import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
 
 /**
- * Factory to build a {@link com.jogamp.graph.geom.Path2D Path2D} from 
- * {@link jogamp.graph.font.typecast.ot.OTGlyph Glyph}s. 
+ * Factory to build a {@link com.jogamp.graph.geom.Path2D Path2D} from
+ * {@link jogamp.graph.font.typecast.ot.OTGlyph Glyph}s.
  */
 public class TypecastRenderer {
 
-    private static void getPaths(TypecastFont font, 
+    private static void getPaths(TypecastFont font,
             CharSequence string, float pixelSize, AffineTransform transform, Path2D[] p)
-    {        
+    {
         if (string == null) {
             return;
         }
@@ -79,7 +79,7 @@ public class TypecastRenderer {
                 advanceTotal = 0;
             } else if (character == ' ') {
                 advanceTotal += font.getAdvanceWidth(Glyph.ID_SPACE, pixelSize);
-            } else {         
+            } else {
                 final Glyph glyph = font.getGlyph(character);
                 final Path2D gp = ((GlyphInt)glyph).getPath();
                 final float scale = metrics.getScale(pixelSize);
@@ -95,7 +95,7 @@ public class TypecastRenderer {
         Path2D path = ((GlyphInt)glyph).getPath();
         AffineTransform transform = new AffineTransform(vertexFactory);
         OutlineShape shape = new OutlineShape(vertexFactory);
-        
+
         PathIterator iterator = path.iterator(transform);
         if(null != iterator){
             while(!iterator.isDone()){
@@ -107,7 +107,7 @@ public class TypecastRenderer {
         }
         return shape;
     }
-      
+
     public static List<OutlineShape> getOutlineShapes(List<OutlineShape> shapes, TypecastFont font, CharSequence string, float pixelSize, AffineTransform transform, Factory<? extends Vertex> vertexFactory) {
         Path2D[] paths = new Path2D[string.length()];
         getPaths(font, string, pixelSize, transform, paths);
@@ -139,19 +139,19 @@ public class TypecastRenderer {
         case PathIterator.SEG_MOVETO:
             shape.closeLastOutline();
             shape.addEmptyOutline();
-            shape.addVertex(0, vertexFactory.create(coords, 0, 2, true));            
+            shape.addVertex(0, vertexFactory.create(coords, 0, 2, true));
             break;
         case PathIterator.SEG_LINETO:
-            shape.addVertex(0, vertexFactory.create(coords, 0, 2, true));            
+            shape.addVertex(0, vertexFactory.create(coords, 0, 2, true));
             break;
         case PathIterator.SEG_QUADTO:
             shape.addVertex(0, vertexFactory.create(coords, 0, 2, false));
-            shape.addVertex(0, vertexFactory.create(coords, 2, 2, true));            
+            shape.addVertex(0, vertexFactory.create(coords, 2, 2, true));
             break;
         case PathIterator.SEG_CUBICTO:
             shape.addVertex(0, vertexFactory.create(coords, 0, 2, false));
             shape.addVertex(0, vertexFactory.create(coords, 2, 2, false));
-            shape.addVertex(0, vertexFactory.create(coords, 4, 2, true));            
+            shape.addVertex(0, vertexFactory.create(coords, 4, 2, true));
             break;
         case PathIterator.SEG_CLOSE:
             shape.closeLastOutline();
@@ -204,12 +204,12 @@ public class TypecastRenderer {
                 if (point_plus1.onCurve) {
                     // s = new Line2D.Float(point.x, point.y, point_plus1.x, point_plus1.y);
                     gp.lineTo( point_plus1.x, point_plus1.y );
-                    offset++;                    
+                    offset++;
                 } else {
                     if (point_plus2.onCurve) {
                         // s = new QuadCurve2D.Float( point.x, point.y, point_plus1.x, point_plus1.y, point_plus2.x, point_plus2.y);
                         gp.quadTo(point_plus1.x, point_plus1.y, point_plus2.x, point_plus2.y);
-                        offset+=2;                    
+                        offset+=2;
                     } else {
                         // s = new QuadCurve2D.Float(point.x,point.y,point_plus1.x,point_plus1.y,
                         //                           midValue(point_plus1.x, point_plus2.x), midValue(point_plus1.y, point_plus2.y));
@@ -230,7 +230,7 @@ public class TypecastRenderer {
                     //                           midValue(point.x, point_plus1.x), midValue(point.y, point_plus1.y));
                     //gp.curve3(midValue(point.x, point_plus1.x), midValue(point.y, point_plus1.y), point.x, point.y);
                     gp.quadTo(point.x, point.y, midValue(point.x, point_plus1.x), midValue(point.y, point_plus1.y));
-                    offset++;                    
+                    offset++;
                 }
             }
         }

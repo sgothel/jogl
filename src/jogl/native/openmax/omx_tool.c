@@ -1049,21 +1049,17 @@ void OMXToolBasicAV_SetStream(OMXToolBasicAV_t * pOMXAV, int vBufferNum, const K
     DBG_PRINT( "SetStream X\n");
 }
 
-void OMXToolBasicAV_SetStreamEGLImageTexture2D(OMXToolBasicAV_t * pOMXAV, KDint i, GLuint tex, EGLImageKHR image, EGLSyncKHR sync)
+void OMXToolBasicAV_SetStreamEGLImageTexture2D(OMXToolBasicAV_t * pOMXAV, GLuint tex, EGLImageKHR image, EGLSyncKHR sync)
 {
     if(NULL==pOMXAV) {
         JoglCommon_throwNewRuntimeException(0, "OMX instance null\n");
         return;
     }
-    DBG_PRINT( "SetStreamEGLImg %p #%d/%d t:%d i:%p s:%p..\n", pOMXAV, i, pOMXAV->vBufferNum, tex, image, sync);
-    if(i<0||i>=pOMXAV->vBufferNum) {
-        JoglCommon_throwNewRuntimeException(0, "Buffer index out of range: %d\n", i);
-        return;
-    }
+    DBG_PRINT( "SetStreamEGLImg %p count %d t:%d i:%p s:%p..\n", pOMXAV, pOMXAV->vBufferNum, tex, image, sync);
 
     kdThreadMutexLock(pOMXAV->mutex);
     {
-        OMXToolImageBuffer_t *pBuf = &pOMXAV->buffers[i];
+        OMXToolImageBuffer_t *pBuf = &pOMXAV->buffers[0]; // FIXME: Move all sync/buffer handling to Java - Already done -> GLMediaPlayerImpl
         pBuf->tex=tex;
         pBuf->image=image;
         pBuf->sync=sync;
@@ -1644,7 +1640,7 @@ int ModuleTest()
 
         printf("6 eglGetError: 0x%x\n", eglGetError());
 
-        if(OMXToolBasicAV_SetStreamEGLImageTexture2D(pOMXAV, i, tex, image, sync)) {
+        if(OMXToolBasicAV_SetStreamEGLImageTexture2D(pOMXAV, tex, image, sync)) {
             return -1;
         }
     }

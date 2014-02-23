@@ -1,23 +1,16 @@
 // Copyright 2010 JogAmp Community. All rights reserved.
 
-/**
- * AMD complains: #version must occur before any other statement in the program
-#ifdef GL_ES
-    #version 100
+#if __VERSION__ >= 130
+  #define varying in
+  out vec4 mgl_FragColor;
 #else
-    #version 110
-#endif
- */
-
-#ifdef GL_ES
-  precision mediump float;
-  precision mediump int;
+  #define mgl_FragColor gl_FragColor   
 #endif
 
-varying   vec4    frontColor;
+varying vec4 frontColor;
 
 void main (void)
 {
-    gl_FragColor = frontColor;
+    mgl_FragColor = frontColor;
 }
 

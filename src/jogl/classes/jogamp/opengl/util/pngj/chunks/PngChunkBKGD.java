@@ -1,14 +1,18 @@
 package jogamp.opengl.util.pngj.chunks;
 
 import jogamp.opengl.util.pngj.ImageInfo;
-import jogamp.opengl.util.pngj.PngHelper;
+import jogamp.opengl.util.pngj.PngHelperInternal;
 import jogamp.opengl.util.pngj.PngjException;
 
-/*
+/**
+ * bKGD Chunk.
+ * <p>
+ * see http://www.w3.org/TR/PNG/#11bKGD
+ * <p>
+ * this chunk structure depends on the image type
  */
-public class PngChunkBKGD extends PngChunk {
-	// http://www.w3.org/TR/PNG/#11bKGD
-	// this chunk structure depends on the image type
+public class PngChunkBKGD extends PngChunkSingle {
+	public final static String ID = ChunkHelper.bKGD;
 	// only one of these is meaningful
 	private int gray;
 	private int red, green, blue;
@@ -19,43 +23,38 @@ public class PngChunkBKGD extends PngChunk {
 	}
 
 	@Override
-	public boolean mustGoBeforeIDAT() {
-		return true;
+	public ChunkOrderingConstraint getOrderingConstraint() {
+		return ChunkOrderingConstraint.AFTER_PLTE_BEFORE_IDAT;
 	}
 
 	@Override
-	public boolean mustGoAfterPLTE() {
-		return true;
-	}
-
-	@Override
-	public ChunkRaw createChunk() {
+	public ChunkRaw createRawChunk() {
 		ChunkRaw c = null;
 		if (imgInfo.greyscale) {
 			c = createEmptyChunk(2, true);
-			PngHelper.writeInt2tobytes(gray, c.data, 0);
+			PngHelperInternal.writeInt2tobytes(gray, c.data, 0);
 		} else if (imgInfo.indexed) {
 			c = createEmptyChunk(1, true);
 			c.data[0] = (byte) paletteIndex;
 		} else {
 			c = createEmptyChunk(6, true);
-			PngHelper.writeInt2tobytes(red, c.data, 0);
-			PngHelper.writeInt2tobytes(green, c.data, 0);
-			PngHelper.writeInt2tobytes(blue, c.data, 0);
+			PngHelperInternal.writeInt2tobytes(red, c.data, 0);
+			PngHelperInternal.writeInt2tobytes(green, c.data, 0);
+			PngHelperInternal.writeInt2tobytes(blue, c.data, 0);
 		}
 		return c;
 	}
 
 	@Override
-	public void parseFromChunk(ChunkRaw c) {
+	public void parseFromRaw(ChunkRaw c) {
 		if (imgInfo.greyscale) {
-			gray = PngHelper.readInt2fromBytes(c.data, 0);
+			gray = PngHelperInternal.readInt2fromBytes(c.data, 0);
 		} else if (imgInfo.indexed) {
 			paletteIndex = (int) (c.data[0] & 0xff);
 		} else {
-			red = PngHelper.readInt2fromBytes(c.data, 0);
-			green = PngHelper.readInt2fromBytes(c.data, 2);
-			blue = PngHelper.readInt2fromBytes(c.data, 4);
+			red = PngHelperInternal.readInt2fromBytes(c.data, 0);
+			green = PngHelperInternal.readInt2fromBytes(c.data, 2);
+			blue = PngHelperInternal.readInt2fromBytes(c.data, 4);
 		}
 	}
 
@@ -71,7 +70,7 @@ public class PngChunkBKGD extends PngChunk {
 
 	/**
 	 * Set gray value (0-255 if bitdept=8)
-	 * 
+	 *
 	 * @param gray
 	 */
 	public void setGray(int gray) {
@@ -88,7 +87,7 @@ public class PngChunkBKGD extends PngChunk {
 
 	/**
 	 * Set pallette index
-	 * 
+	 *
 	 */
 	public void setPaletteIndex(int i) {
 		if (!imgInfo.indexed)
@@ -104,7 +103,7 @@ public class PngChunkBKGD extends PngChunk {
 
 	/**
 	 * Set rgb values
-	 * 
+	 *
 	 */
 	public void setRGB(int r, int g, int b) {
 		if (imgInfo.greyscale || imgInfo.indexed)
@@ -119,4 +118,5 @@ public class PngChunkBKGD extends PngChunk {
 			throw new PngjException("only rgb or rgba images support this");
 		return new int[] { red, green, blue };
 	}
+
 }

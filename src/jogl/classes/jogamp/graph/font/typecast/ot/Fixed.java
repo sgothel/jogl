@@ -840,11 +840,11 @@ public class Fixed {
         }
         return n;
     }
-    
+
     public static float floatValue(long fixed) {
         return (fixed >> 16) + (float)(fixed & 0xffff) / 0x10000;
     }
-    
+
     public static float roundedFloatValue(long fixed, int decimalPlaces) {
         int factor = 10 * decimalPlaces;
         return (float)((int)(floatValue(fixed) * factor)) / factor;

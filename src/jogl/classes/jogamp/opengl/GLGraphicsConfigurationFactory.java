@@ -38,7 +38,7 @@ import javax.media.opengl.DefaultGLCapabilitiesChooser;
 public abstract class GLGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
 
     protected static int chooseCapabilities(CapabilitiesChooser chooser, CapabilitiesImmutable capsRequested,
-                                            List /*<CapabilitiesImmutable>*/ availableCaps, int recommendedIndex) {
+                                            List<? extends CapabilitiesImmutable> availableCaps, int recommendedIndex) {
         if (null == capsRequested) {
             throw new NativeWindowException("Null requested capabilities");
         }

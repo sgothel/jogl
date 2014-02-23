@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,11 +28,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -67,7 +67,7 @@ public class GLWorkerThread {
   private static volatile Runnable work;
   // Queue of Runnables to be asynchronously invoked
   private static List<Runnable> queue = new ArrayList<Runnable>();
-  
+
   /** Should only be called by Threading class if creation of the
       GLWorkerThread was requested via the opengl.1thread system
       property. <br>
@@ -149,7 +149,7 @@ public class GLWorkerThread {
     }
   }
 
-  public static void invoke(boolean wait, Runnable runnable) 
+  public static void invoke(boolean wait, Runnable runnable)
       throws InvocationTargetException, InterruptedException {
       if(wait) {
           invokeAndWait(runnable);
@@ -157,7 +157,7 @@ public class GLWorkerThread {
           invokeLater(runnable);
       }
   }
-  
+
   public static void invokeAndWait(Runnable runnable)
     throws InvocationTargetException, InterruptedException {
     if (!started) {
@@ -219,11 +219,10 @@ public class GLWorkerThread {
     return (Thread.currentThread() == thread);
   }
 
-  protected static String getThreadName() {
-    return Thread.currentThread().getName();
-  }
-  
+  protected static String getThreadName() { return Thread.currentThread().getName(); }
+
   static class WorkerRunnable implements Runnable {
+    @Override
     public void run() {
       // Notify starting thread that we're ready
       synchronized (lock) {
@@ -246,7 +245,7 @@ public class GLWorkerThread {
               break;
             }
           }
-          
+
           if (shouldTerminate) {
             lock.notifyAll();
             thread = null;

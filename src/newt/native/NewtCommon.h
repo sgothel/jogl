@@ -34,6 +34,7 @@
 
 void NewtCommon_init(JNIEnv *env);
 
+const char * NewtCommon_GetStaticStringMethod(JNIEnv *jniEnv, jclass clazz, jmethodID jGetStrID, char *dest, int destSize, const char *altText);
 jchar* NewtCommon_GetNullTerminatedStringChars(JNIEnv* env, jstring str);
 
 void NewtCommon_FatalError(JNIEnv *env, const char* msg, ...);
@@ -41,23 +42,18 @@ void NewtCommon_throwNewRuntimeException(JNIEnv *env, const char* msg, ...);
 
 /**
  *
- * 1) Store jvmHandle and jvmVersion
+ * 1) Init static jvmHandle, jvmVersion and clazz references
+ *    from an early initialization call w/ valid 'JNIEnv * env'
 
-    JavaVM *jvmHandle = NULL;
-    int jvmVersion = 0;
-
-    if(0 != (*env)->GetJavaVM(env, &jvmHandle)) {
-        jvmHandle = NULL;
-    } else {
-        jvmVersion = (*env)->GetVersion(env);
-    }
+    NewtCommon_init(env);
 
  *
  * 2) Use current thread JNIEnv or attach current thread to JVM, generating new JNIEnv
  *
 
+    int asDaemon = 0;
     int shallBeDetached = 0;
-    JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
+    JNIEnv* env = NewtCommon_GetJNIEnv(asDaemon, &shallBeDetached);
     if(NULL==env) {
         DBG_PRINT("drawRect: null JNIEnv\n");
         return;
@@ -69,12 +65,13 @@ void NewtCommon_throwNewRuntimeException(JNIEnv *env, const char* msg, ...);
     .. your JNIEnv code here ..
 
  *
- * 4) Detach thread from JVM, if required
+ * 4) Detach thread from JVM if required, i.e. not attached as daemon!
+ *    Not recommended for recurring _daemon_ threads (performance)
  *
-    if (shallBeDetached) {
-        (*jvmHandle)->DetachCurrentThread(jvmHandle);
-    }
+    NativewindowCommon_ReleaseJNIEnv(shallBeDetached);
  */
-JNIEnv* NewtCommon_GetJNIEnv (JavaVM * jvmHandle, int jvmVersion, int * shallBeDetached);
+JNIEnv* NewtCommon_GetJNIEnv (int asDaemon, int * shallBeDetached);
+
+void NewtCommon_ReleaseJNIEnv (int shallBeDetached);
 
 #endif

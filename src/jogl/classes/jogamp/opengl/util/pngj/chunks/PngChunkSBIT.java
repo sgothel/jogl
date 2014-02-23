@@ -1,31 +1,31 @@
 package jogamp.opengl.util.pngj.chunks;
 
 import jogamp.opengl.util.pngj.ImageInfo;
-import jogamp.opengl.util.pngj.PngHelper;
+import jogamp.opengl.util.pngj.PngHelperInternal;
 import jogamp.opengl.util.pngj.PngjException;
 
-/*
+/**
+ * sBIT chunk.
+ * <p>
+ * see http://www.w3.org/TR/PNG/#11sBIT
+ * <p>
+ * this chunk structure depends on the image type
  */
-public class PngChunkSBIT extends PngChunk {
+public class PngChunkSBIT extends PngChunkSingle {
+	public final static String ID = ChunkHelper.sBIT;
 	// http://www.w3.org/TR/PNG/#11sBIT
-	// this chunk structure depends on the image type
 
 	// significant bits
 	private int graysb, alphasb;
 	private int redsb, greensb, bluesb;
 
 	public PngChunkSBIT(ImageInfo info) {
-		super(ChunkHelper.sBIT, info);
+		super(ID, info);
 	}
 
 	@Override
-	public boolean mustGoBeforeIDAT() {
-		return true;
-	}
-
-	@Override
-	public boolean mustGoBeforePLTE() {
-		return true;
+	public ChunkOrderingConstraint getOrderingConstraint() {
+		return ChunkOrderingConstraint.BEFORE_PLTE_AND_IDAT;
 	}
 
 	private int getLen() {
@@ -36,24 +36,24 @@ public class PngChunkSBIT extends PngChunk {
 	}
 
 	@Override
-	public void parseFromChunk(ChunkRaw c) {
+	public void parseFromRaw(ChunkRaw c) {
 		if (c.len != getLen())
 			throw new PngjException("bad chunk length " + c);
 		if (imgInfo.greyscale) {
-			graysb = PngHelper.readInt1fromByte(c.data, 0);
+			graysb = PngHelperInternal.readInt1fromByte(c.data, 0);
 			if (imgInfo.alpha)
-				alphasb = PngHelper.readInt1fromByte(c.data, 1);
+				alphasb = PngHelperInternal.readInt1fromByte(c.data, 1);
 		} else {
-			redsb = PngHelper.readInt1fromByte(c.data, 0);
-			greensb = PngHelper.readInt1fromByte(c.data, 1);
-			bluesb = PngHelper.readInt1fromByte(c.data, 2);
+			redsb = PngHelperInternal.readInt1fromByte(c.data, 0);
+			greensb = PngHelperInternal.readInt1fromByte(c.data, 1);
+			bluesb = PngHelperInternal.readInt1fromByte(c.data, 2);
 			if (imgInfo.alpha)
-				alphasb = PngHelper.readInt1fromByte(c.data, 3);
+				alphasb = PngHelperInternal.readInt1fromByte(c.data, 3);
 		}
 	}
 
 	@Override
-	public ChunkRaw createChunk() {
+	public ChunkRaw createRawChunk() {
 		ChunkRaw c = null;
 		c = createEmptyChunk(getLen(), true);
 		if (imgInfo.greyscale) {
@@ -106,7 +106,7 @@ public class PngChunkSBIT extends PngChunk {
 
 	/**
 	 * Set rgb values
-	 * 
+	 *
 	 */
 	public void setRGB(int r, int g, int b) {
 		if (imgInfo.greyscale || imgInfo.indexed)

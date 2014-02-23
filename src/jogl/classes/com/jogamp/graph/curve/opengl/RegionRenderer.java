@@ -35,25 +35,25 @@ import com.jogamp.graph.curve.Region;
 
 public abstract class RegionRenderer extends Renderer {
 
-    /** 
+    /**
      * Create a Hardware accelerated Region Renderer.
-     * @param rs the used {@link RenderState} 
-     * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, {@link Region#VBAA_RENDERING_BIT} 
+     * @param rs the used {@link RenderState}
+     * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, {@link Region#VBAA_RENDERING_BIT}
      * @return an instance of Region Renderer
      */
     public static RegionRenderer create(RenderState rs, int renderModes) {
         return new jogamp.graph.curve.opengl.RegionRendererImpl01(rs, renderModes);
     }
-    
+
     protected RegionRenderer(RenderState rs, int renderModes) {
         super(rs, renderModes);
     }
-    
-    
+
+
     /** Render an {@link OutlineShape} in 3D space at the position provided
      *  the triangles of the shapes will be generated, if not yet generated
      * @param region the OutlineShape to Render.
-     * @param texWidth desired texture width for multipass-rendering. 
+     * @param texWidth desired texture width for multipass-rendering.
      *        The actual used texture-width is written back when mp rendering is enabled, otherwise the store is untouched.
      * @throws Exception if HwRegionRenderer not initialized
      */
@@ -64,10 +64,10 @@ public abstract class RegionRenderer extends Renderer {
         if( !areRenderModesCompatible(region) ) {
             throw new GLException("Incompatible render modes, : region modes "+region.getRenderModes()+
                                   " doesn't contain renderer modes "+this.getRenderModes());
-        }        
+        }
         drawImpl(gl, region, texWidth);
     }
-    
+
     /**
      * Usually just dispatched the draw call to the Region's draw implementation,
      * e.g. {@link com.jogamp.graph.curve.opengl.GLRegion#draw(GL2ES2, RenderState, int, int, int[]) GLRegion#draw(GL2ES2, RenderState, int, int, int[])}.
@@ -78,6 +78,6 @@ public abstract class RegionRenderer extends Renderer {
     protected void destroyImpl(GL2ES2 gl) {
         // nop
     }
-    
-    
+
+
 }

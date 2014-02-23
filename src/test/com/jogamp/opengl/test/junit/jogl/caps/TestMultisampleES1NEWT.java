@@ -40,17 +40,26 @@
 
 package com.jogamp.opengl.test.junit.jogl.caps;
 
+import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesChooser;
+import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.test.junit.jogl.demos.es1.MultisampleDemoES1;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.util.GLReadBufferUtil;
+import com.jogamp.opengl.util.texture.TextureIO;
 
-public class TestMultisampleES1NEWT {
-  static long durationPerTest = 500; // ms
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+public class TestMultisampleES1NEWT extends UITestCase {
+  static long durationPerTest = 60; // ms
   private GLWindow window;
 
   public static void main(String[] args) {
@@ -65,35 +74,74 @@ public class TestMultisampleES1NEWT {
   }
 
   @Test
-  public void testMultiSampleAA4() throws InterruptedException {
-    testMultiSampleAAImpl(4);
+  public void testOnscreenMultiSampleAA0() throws InterruptedException {
+    testMultiSampleAAImpl(false, false, 0);
   }
 
-  // @Test
-  public void testMultiSampleNone() throws InterruptedException {
-    testMultiSampleAAImpl(0);
+  @Test
+  public void testOnscreenMultiSampleAA2() throws InterruptedException {
+    testMultiSampleAAImpl(false, false, 2);
   }
 
-  private void testMultiSampleAAImpl(int samples) throws InterruptedException {
+  @Test
+  public void testOnscreenMultiSampleAA4() throws InterruptedException {
+    testMultiSampleAAImpl(false, false, 4);
+  }
+
+  @Test
+  public void testOnscreenMultiSampleAA8() throws InterruptedException {
+    testMultiSampleAAImpl(false, false, 8);
+  }
+
+  @Test
+  public void testOffscreenPBufferMultiSampleAA0() throws InterruptedException {
+    testMultiSampleAAImpl(false, true, 0);
+  }
+
+  @Test
+  public void testOffsreenPBufferMultiSampleAA8() throws InterruptedException {
+    testMultiSampleAAImpl(false, true, 8);
+  }
+
+  @Test
+  public void testOffscreenFBOMultiSampleAA0() throws InterruptedException {
+    testMultiSampleAAImpl(true, false, 0);
+  }
+
+  @Test
+  public void testOffsreenFBOMultiSampleAA8() throws InterruptedException {
+    testMultiSampleAAImpl(true, false, 8);
+  }
+
+  private void testMultiSampleAAImpl(boolean useFBO, boolean usePBuffer, int reqSamples) throws InterruptedException {
+    final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
     GLProfile glp = GLProfile.getMaxFixedFunc(true);
     GLCapabilities caps = new GLCapabilities(glp);
     GLCapabilitiesChooser chooser = new MultisampleChooser01();
 
-    if(samples>0) {
+    caps.setAlphaBits(1);
+    caps.setFBO(useFBO);
+    caps.setPBuffer(usePBuffer);
+    
+    if(reqSamples>0) {
         caps.setSampleBuffers(true);
-        caps.setNumSamples(4);
+        caps.setNumSamples(reqSamples);
     }
-    // turns out we need to have alpha, 
-    // otherwise no AA will be visible.
-    // This is done implicit now ..
-    // caps.setAlphaBits(1); 
 
     window = GLWindow.create(caps);
     window.setCapabilitiesChooser(chooser);
-    window.addGLEventListener(new MultisampleDemoES1(samples>0?true:false));
+    window.addGLEventListener(new MultisampleDemoES1(reqSamples>0?true:false));
+    window.addGLEventListener(new GLEventListener() {
+        int displayCount = 0;
+        public void init(GLAutoDrawable drawable) {}
+        public void dispose(GLAutoDrawable drawable) {}
+        public void display(GLAutoDrawable drawable) {
+            snapshot(displayCount++, null, drawable.getGL(), screenshot, TextureIO.PNG, null);
+        }
+        public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
+    });
     window.setSize(512, 512);
     window.setVisible(true);
-    window.setPosition(0, 0);
     window.requestFocus();
 
     Thread.sleep(durationPerTest);

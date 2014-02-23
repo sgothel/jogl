@@ -61,6 +61,31 @@ static void _initClazzAccess(JNIEnv *env) {
 
 /*   Java->C glue code:
  *   Java package: jogamp.opengl.x11.glx.GLX
+ *    Java method: int glXGetFBConfigAttributes(long dpy, long config, IntBuffer attributes, IntBuffer values)
+ */
+JNIEXPORT jint JNICALL 
+Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXGetFBConfigAttributes(JNIEnv *env, jclass _unused, jlong dpy, jlong config, jint attributeCount, jobject attributes, jint attributes_byte_offset, jobject values, jint values_byte_offset, jlong procAddress) {
+  typedef int (APIENTRY*_local_PFNGLXGETFBCONFIGATTRIBPROC)(Display *  dpy, GLXFBConfig config, int attribute, int *  value);
+  _local_PFNGLXGETFBCONFIGATTRIBPROC ptr_glXGetFBConfigAttrib = (_local_PFNGLXGETFBCONFIGATTRIBPROC) (intptr_t) procAddress;
+  assert(ptr_glXGetFBConfigAttrib != NULL);
+
+  int err = 0;
+  if ( attributeCount > 0 && NULL != attributes ) {
+    int i;
+    int * attributes_ptr = (int *) (((char*) (*env)->GetDirectBufferAddress(env, attributes)) + attributes_byte_offset);
+    int * values_ptr = (int *) (((char*) (*env)->GetDirectBufferAddress(env, values)) + values_byte_offset);
+    for(i=0; 0 == err && i<attributeCount; i++) {
+        err = (* ptr_glXGetFBConfigAttrib) ((Display *) (intptr_t) dpy, (GLXFBConfig) (intptr_t) config, attributes_ptr[i], &values_ptr[i]);
+    }
+    if( 0 != err ) {
+        values_ptr[0] = i;
+    }
+  }
+  return (jint)err;
+}
+
+/*   Java->C glue code:
+ *   Java package: jogamp.opengl.x11.glx.GLX
  *    Java method: XVisualInfo glXGetVisualFromFBConfig(long dpy, long config)
  *     C function: XVisualInfo *  glXGetVisualFromFBConfig(Display *  dpy, GLXFBConfig config);
  */
@@ -89,36 +114,30 @@ Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXGetVisualFromFBConfig(JNIEnv *env, j
 
 /*   Java->C glue code:
  *   Java package: jogamp.opengl.x11.glx.GLX
- *    Java method: java.nio.LongBuffer glXChooseFBConfig(long dpy, int screen, java.nio.IntBuffer attribList, java.nio.IntBuffer nitems)
+ *    Java method: com.jogamp.common.nio.PointerBuffer dispatch_glXChooseFBConfig(long dpy, int screen, java.nio.IntBuffer attribList, java.nio.IntBuffer nitems)
  *     C function: GLXFBConfig *  glXChooseFBConfig(Display *  dpy, int screen, const int *  attribList, int *  nitems);
  */
 JNIEXPORT jobject JNICALL 
 Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXChooseFBConfig(JNIEnv *env, jclass _unused, jlong dpy, jint screen, jobject attribList, jint attribList_byte_offset, jobject nitems, jint nitems_byte_offset, jlong procAddress) {
-  typedef GLXFBConfig* (APIENTRY*_local_PFNGLXCHOOSEFBCONFIG)(Display *  dpy, int screen, const int *  attribList, int *  nitems);
-  _local_PFNGLXCHOOSEFBCONFIG ptr_glXChooseFBConfig;
-  int * _ptr2 = NULL;
-  int * _ptr3 = NULL;
+  typedef GLXFBConfig *  (APIENTRY*_local_PFNGLXCHOOSEFBCONFIGPROC)(Display *  dpy, int screen, const int *  attribList, int *  nitems);
+  _local_PFNGLXCHOOSEFBCONFIGPROC ptr_glXChooseFBConfig;
+  int * _attribList_ptr = NULL;
+  int * _nitems_ptr = NULL;
   GLXFBConfig *  _res;
   int count;
   jobject jbyteSource;
   jobject jbyteCopy;
-  ptr_glXChooseFBConfig = (_local_PFNGLXCHOOSEFBCONFIG) (intptr_t) procAddress;
+    if ( NULL != attribList ) {
+        _attribList_ptr = (int *) (((char*) (*env)->GetDirectBufferAddress(env, attribList)) + attribList_byte_offset);
+    }
+    if ( NULL != nitems ) {
+        _nitems_ptr = (int *) (((char*) (*env)->GetDirectBufferAddress(env, nitems)) + nitems_byte_offset);
+    }
+  ptr_glXChooseFBConfig = (_local_PFNGLXCHOOSEFBCONFIGPROC) (intptr_t) procAddress;
   assert(ptr_glXChooseFBConfig != NULL);
-  if (attribList != NULL) {
-    _ptr2 = (int *) (((char*) (*env)->GetPrimitiveArrayCritical(env, attribList, NULL)) + attribList_byte_offset);
-  }
-  if (nitems != NULL) {
-    _ptr3 = (int *) (((char*) (*env)->GetPrimitiveArrayCritical(env, nitems, NULL)) + nitems_byte_offset);
-  }
-  _res = (*ptr_glXChooseFBConfig)((Display *) (intptr_t) dpy, (int) screen, (int *) _ptr2, (int *) _ptr3);
-  count = _ptr3[0];
-  if (attribList != NULL) {
-    (*env)->ReleasePrimitiveArrayCritical(env, attribList, _ptr2, 0);
-  }
-  if (nitems != NULL) {
-    (*env)->ReleasePrimitiveArrayCritical(env, nitems, _ptr3, 0);
-  }
-  if (_res == NULL) return NULL;
+  _res = (* ptr_glXChooseFBConfig) ((Display *) (intptr_t) dpy, (int) screen, (int *) _attribList_ptr, (int *) _nitems_ptr);
+  count = _nitems_ptr[0];
+  if (NULL == _res) return NULL;
 
   _initClazzAccess(env);
 
@@ -130,29 +149,27 @@ Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXChooseFBConfig(JNIEnv *env, jclass _
   return jbyteCopy;
 }
 
+
 /*   Java->C glue code:
  *   Java package: jogamp.opengl.x11.glx.GLX
- *    Java method: XVisualInfo glXChooseVisual(long dpy, int screen, java.nio.IntBuffer attribList)
+ *    Java method: XVisualInfo dispatch_glXChooseVisual(long dpy, int screen, java.nio.IntBuffer attribList)
  *     C function: XVisualInfo *  glXChooseVisual(Display *  dpy, int screen, int *  attribList);
  */
 JNIEXPORT jobject JNICALL 
 Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXChooseVisual(JNIEnv *env, jclass _unused, jlong dpy, jint screen, jobject attribList, jint attribList_byte_offset, jlong procAddress) {
-  typedef XVisualInfo* (APIENTRY*_local_PFNGLXCHOOSEVISUAL)(Display *  dpy, int screen, int *  attribList);
-  _local_PFNGLXCHOOSEVISUAL ptr_glXChooseVisual;
-  int * _ptr2 = NULL;
+  typedef XVisualInfo *  (APIENTRY*_local_PFNGLXCHOOSEVISUALPROC)(Display *  dpy, int screen, int *  attribList);
+  _local_PFNGLXCHOOSEVISUALPROC ptr_glXChooseVisual;
+  int * _attribList_ptr = NULL;
   XVisualInfo *  _res;
   jobject jbyteSource;
   jobject jbyteCopy;
-  ptr_glXChooseVisual = (_local_PFNGLXCHOOSEVISUAL) (intptr_t) procAddress;
+    if ( NULL != attribList ) {
+        _attribList_ptr = (int *) (((char*) (*env)->GetDirectBufferAddress(env, attribList)) + attribList_byte_offset);
+    }
+  ptr_glXChooseVisual = (_local_PFNGLXCHOOSEVISUALPROC) (intptr_t) procAddress;
   assert(ptr_glXChooseVisual != NULL);
-  if (attribList != NULL) {
-    _ptr2 = (int *) (((char*) (*env)->GetPrimitiveArrayCritical(env, attribList, NULL)) + attribList_byte_offset);
-  }
-  _res = (*ptr_glXChooseVisual)((Display *) (intptr_t) dpy, (int) screen, (int *) _ptr2);
-  if (attribList != NULL) {
-    (*env)->ReleasePrimitiveArrayCritical(env, attribList, _ptr2, 0);
-  }
-  if (_res == NULL) return NULL;
+  _res = (* ptr_glXChooseVisual) ((Display *) (intptr_t) dpy, (int) screen, (int *) _attribList_ptr);
+  if (NULL == _res) return NULL;
 
   _initClazzAccess(env);
 

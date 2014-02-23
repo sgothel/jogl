@@ -32,11 +32,20 @@ package javax.media.nativewindow.util;
 import com.jogamp.common.type.WriteCloneable;
 
 /** Immutable Point interface */
-public interface PointImmutable extends WriteCloneable {
+public interface PointImmutable extends WriteCloneable, Comparable<PointImmutable> {
 
     int getX();
 
     int getY();
+
+    /**
+     * <p>
+     * Compares the square of the position.
+     * </p>
+     * {@inheritDoc}
+     */
+    @Override
+    public int compareTo(final PointImmutable d);
 
     /**
      * Checks whether two points objects are equal. Two instances
@@ -45,8 +54,10 @@ public interface PointImmutable extends WriteCloneable {
      * @return <code>true</code> if the two points are equal;
      *         otherwise <code>false</code>.
      */
+    @Override
     public boolean equals(Object obj);
 
+    @Override
     public int hashCode();
-    
+
 }

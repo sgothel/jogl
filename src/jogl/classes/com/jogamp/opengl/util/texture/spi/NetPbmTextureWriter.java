@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,11 +28,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -77,16 +77,19 @@ public class NetPbmTextureWriter implements TextureWriter {
 
     public int getMagic() { return magic; }
 
-    public static final String PPM     = "ppm";
-    public static final String PAM     = "pam";
+    /** @see TextureIO#PPM */
+    public static final String PPM     = TextureIO.PPM;
+    /** @see TextureIO#PAM */
+    public static final String PAM     = TextureIO.PAM;
 
     public String getSuffix() { return (magic==6)?PPM:PAM; }
 
+    @Override
     public boolean write(File file, TextureData data) throws IOException {
         boolean res;
         final int magic_old = magic;
-        
-        // file suffix selection        
+
+        // file suffix selection
         if (0==magic) {
             if (PPM.equals(IOUtil.getFileSuffix(file))) {
                 magic = 6;
@@ -95,7 +98,7 @@ public class NetPbmTextureWriter implements TextureWriter {
             } else {
                 return false;
             }
-        }        
+        }
         try {
             res = writeImpl(file, data);
         } finally {
@@ -103,7 +106,7 @@ public class NetPbmTextureWriter implements TextureWriter {
         }
         return res;
     }
-    
+
     private boolean writeImpl(File file, TextureData data) throws IOException {
         int pixelFormat = data.getPixelFormat();
         final int pixelType   = data.getPixelType();
@@ -113,16 +116,16 @@ public class NetPbmTextureWriter implements TextureWriter {
              pixelFormat == GL.GL_BGRA ) &&
             (pixelType == GL.GL_BYTE ||
              pixelType == GL.GL_UNSIGNED_BYTE)) {
-    
+
             ByteBuffer buf = (ByteBuffer) data.getBuffer();
             if (null == buf ) {
                 buf = (ByteBuffer) data.getMipmapData()[0];
             }
             buf.rewind();
-            
+
             int comps = ( pixelFormat == GL.GL_RGBA || pixelFormat == GL.GL_BGRA ) ? 4 : 3 ;
-            
-            if( pixelFormat == GL2.GL_BGR || pixelFormat == GL.GL_BGRA ) { 
+
+            if( pixelFormat == GL2.GL_BGR || pixelFormat == GL.GL_BGRA ) {
                 // Must reverse order of red and blue channels to get correct results
                 for (int i = 0; i < buf.remaining(); i += comps) {
                     byte red  = buf.get(i + 0);
@@ -139,7 +142,7 @@ public class NetPbmTextureWriter implements TextureWriter {
             }
 
             FileOutputStream fos = IOUtil.getFileOutputStream(file, true);
-            
+
             StringBuilder header = new StringBuilder();
             header.append("P");
             header.append(magic);
@@ -169,7 +172,7 @@ public class NetPbmTextureWriter implements TextureWriter {
             }
 
             fos.write(header.toString().getBytes());
-            
+
             FileChannel fosc = fos.getChannel();
             fosc.write(buf);
             fosc.force(true);
@@ -178,7 +181,7 @@ public class NetPbmTextureWriter implements TextureWriter {
             buf.rewind();
 
             return true;
-        }      
+        }
         throw new IOException("NetPbmTextureWriter writer doesn't support this pixel format / type (only GL_RGB/A + bytes)");
     }
 }

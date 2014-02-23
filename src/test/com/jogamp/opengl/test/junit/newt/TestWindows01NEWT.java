@@ -31,21 +31,23 @@ package com.jogamp.opengl.test.junit.newt;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import javax.media.nativewindow.*;
-import javax.media.nativewindow.util.Point;
 
 import com.jogamp.newt.*;
 import java.io.IOException;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestWindows01NEWT extends UITestCase {
     static int width, height;
 
     @BeforeClass
     public static void initClass() {
-        NativeWindowFactory.initSingleton(true);
+        NativeWindowFactory.initSingleton();
         width  = 256;
         height = 256;
     }

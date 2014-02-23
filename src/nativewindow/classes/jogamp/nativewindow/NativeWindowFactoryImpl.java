@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -39,7 +39,6 @@ import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.ToolkitLock;
 
-import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.ReflectionUtil.AWTNames;
 
@@ -47,11 +46,12 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
     private static final ToolkitLock nullToolkitLock = new NullToolkitLock();
 
     public static ToolkitLock getNullToolkitLock() {
-            return nullToolkitLock;
+        return nullToolkitLock;
     }
-    
+
     // This subclass of NativeWindowFactory handles the case of
     // NativeWindows being passed in
+    @Override
     protected NativeWindow getNativeWindowImpl(Object winObj, AbstractGraphicsConfiguration config) throws IllegalArgumentException {
         if (winObj instanceof NativeWindow) {
             // Use the NativeWindow directly
@@ -70,31 +70,31 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
                                            winObj.getClass().getName() + " is unsupported; expected " +
                                            "javax.media.nativewindow.NativeWindow or "+AWTNames.ComponentClass);
     }
-    
+
     private Constructor<?> nativeWindowConstructor = null;
 
     private NativeWindow getAWTNativeWindow(Object winObj, AbstractGraphicsConfiguration config) {
         if (nativeWindowConstructor == null) {
             try {
-                String windowingType = getNativeWindowType(true);
-                String windowClassName = null;
+                final String windowingType = getNativeWindowType(true);
+                final String windowClassName;
 
                 // We break compile-time dependencies on the AWT here to
                 // make it easier to run this code on mobile devices
 
-                if (windowingType.equals(TYPE_WINDOWS)) {
+                if (TYPE_WINDOWS == windowingType) {
                     windowClassName = "jogamp.nativewindow.jawt.windows.WindowsJAWTWindow";
-                } else if (windowingType.equals(TYPE_MACOSX)) {
+                } else if (TYPE_MACOSX == windowingType) {
                     windowClassName = "jogamp.nativewindow.jawt.macosx.MacOSXJAWTWindow";
-                } else if (windowingType.equals(TYPE_X11)) {
+                } else if (TYPE_X11 == windowingType) {
                     // Assume Linux, Solaris, etc. Should probably test for these explicitly.
                     windowClassName = "jogamp.nativewindow.jawt.x11.X11JAWTWindow";
                 } else {
-                    throw new IllegalArgumentException("OS " + Platform.getOSName() + " not yet supported");
+                    throw new IllegalArgumentException("Native windowing type " + windowingType + " (custom) not yet supported, platform reported native windowing type: "+getNativeWindowType(false));
                 }
 
                 nativeWindowConstructor = ReflectionUtil.getConstructor(
-                                            windowClassName, new Class[] { Object.class, AbstractGraphicsConfiguration.class }, 
+                                            windowClassName, new Class[] { Object.class, AbstractGraphicsConfiguration.class },
                                             getClass().getClassLoader());
             } catch (Exception e) {
                 throw new IllegalArgumentException(e);

@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -42,82 +42,90 @@ package jogamp.opengl.windows.wgl;
 
 import java.nio.Buffer;
 import java.nio.ShortBuffer;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.DefaultGraphicsScreen;
 import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.ProxySurface;
-import javax.media.opengl.GL;
-import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.nativewindow.UpstreamSurfaceHook;
+import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesChooser;
+import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
-import javax.media.opengl.GLProfile.ShutdownType;
 
-import com.jogamp.common.JogampRuntimeException;
-import com.jogamp.common.nio.PointerBuffer;
-import com.jogamp.common.os.Platform;
-import com.jogamp.common.util.ReflectionUtil;
-import com.jogamp.common.util.VersionNumber;
-import com.jogamp.nativewindow.WrappedSurface;
-import com.jogamp.nativewindow.windows.WindowsGraphicsDevice;
-
+import jogamp.nativewindow.WrappedSurface;
 import jogamp.nativewindow.windows.GDI;
-import jogamp.nativewindow.windows.GDIUtil;
+import jogamp.nativewindow.windows.GDIDummyUpstreamSurfaceHook;
 import jogamp.nativewindow.windows.GDISurface;
 import jogamp.nativewindow.windows.RegisteredClassFactory;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
+import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableFactoryImpl;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLDynamicLookupHelper;
+import jogamp.opengl.GLGraphicsConfigurationUtil;
 import jogamp.opengl.SharedResourceRunner;
+
+import com.jogamp.common.nio.PointerBuffer;
+import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.nativewindow.windows.WindowsGraphicsDevice;
+import com.jogamp.opengl.GLExtensions;
+import com.jogamp.opengl.GLRendererQuirks;
 
 public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   private static DesktopGLDynamicLookupHelper windowsWGLDynamicLookupHelper = null;
-  
+
   public WindowsWGLDrawableFactory() {
     super();
 
     synchronized(WindowsWGLDrawableFactory.class) {
-        if(null==windowsWGLDynamicLookupHelper) {
-            DesktopGLDynamicLookupHelper tmp = null;
-            try {
-                tmp = new DesktopGLDynamicLookupHelper(new WindowsWGLDynamicLibraryBundleInfo());
-            } catch (GLException gle) {
-                if(DEBUG) {
-                    gle.printStackTrace();
+        if( null == windowsWGLDynamicLookupHelper ) {
+            windowsWGLDynamicLookupHelper = AccessController.doPrivileged(new PrivilegedAction<DesktopGLDynamicLookupHelper>() {
+                @Override
+                public DesktopGLDynamicLookupHelper run() {
+                    DesktopGLDynamicLookupHelper tmp;
+                    try {
+                        tmp = new DesktopGLDynamicLookupHelper(new WindowsWGLDynamicLibraryBundleInfo());
+                        if(null!=tmp && tmp.isLibComplete()) {
+                            WGL.getWGLProcAddressTable().reset(tmp);
+                        }
+                    } catch (Exception ex) {
+                        tmp = null;
+                        if(DEBUG) {
+                            ex.printStackTrace();
+                        }
+                    }
+                    return tmp;
                 }
-            }            
-            if(null!=tmp && tmp.isLibComplete()) {
-                windowsWGLDynamicLookupHelper = tmp;
-                WGL.getWGLProcAddressTable().reset(windowsWGLDynamicLookupHelper);
-            }               
+            } );
         }
     }
-    
+
     defaultDevice = new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
-    
+
     if(null!=windowsWGLDynamicLookupHelper) {
         // Register our GraphicsConfigurationFactory implementations
         // The act of constructing them causes them to be registered
         WindowsWGLGraphicsConfigurationFactory.registerFactory();
         if(GLProfile.isAWTAvailable()) {
             try {
-              ReflectionUtil.callStaticMethod("jogamp.opengl.windows.wgl.awt.WindowsAWTWGLGraphicsConfigurationFactory", 
-                                              "registerFactory", null, null, getClass().getClassLoader());                
-            } catch (JogampRuntimeException jre) { /* n/a .. */ }
+              ReflectionUtil.callStaticMethod("jogamp.opengl.windows.wgl.awt.WindowsAWTWGLGraphicsConfigurationFactory",
+                                              "registerFactory", null, null, getClass().getClassLoader());
+            } catch (Exception jre) { /* n/a .. */ }
         }
-    
+
         sharedMap = new HashMap<String, SharedResourceRunner.Resource>();
-    
+
         // Init shared resources off thread
         // Will be released via ShutdownHook
         sharedResourceRunner = new SharedResourceRunner(new SharedResourceImplementation());
@@ -125,7 +133,17 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     }
   }
 
-  protected final void destroy(ShutdownType shutdownType) {
+  @Override
+  protected final boolean isComplete() {
+      return null != windowsWGLDynamicLookupHelper;
+  }
+
+
+  @Override
+  protected final void shutdownImpl() {
+    if( DEBUG ) {
+        System.err.println("WindowsWGLDrawableFactory.shutdown");
+    }
     if(null != sharedResourceRunner) {
         sharedResourceRunner.stop();
         sharedResourceRunner = null;
@@ -137,15 +155,15 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     defaultDevice = null;
     /**
      * Pulling away the native library may cause havoc ..
-     * 
-    if(ShutdownType.COMPLETE == shutdownType && null != windowsWGLDynamicLookupHelper) {
-        windowsWGLDynamicLookupHelper.destroy();
-        windowsWGLDynamicLookupHelper = null;
-    } */
-    
+     *
+       windowsWGLDynamicLookupHelper.destroy();
+     */
+    windowsWGLDynamicLookupHelper = null;
+
     RegisteredClassFactory.shutdownSharedClasses();
   }
 
+  @Override
   public GLDynamicLookupHelper getGLDynamicLookupHelper(int profile) {
       return windowsWGLDynamicLookupHelper;
   }
@@ -155,16 +173,17 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   private HashMap<String /*connection*/, SharedResourceRunner.Resource> sharedMap;
 
   private long processAffinityChanges = 0;
-  private PointerBuffer procMask = PointerBuffer.allocateDirect(1);
-  private PointerBuffer sysMask = PointerBuffer.allocateDirect(1);
+  private final PointerBuffer procMask = PointerBuffer.allocateDirect(1);
+  private final PointerBuffer sysMask = PointerBuffer.allocateDirect(1);
 
+  @Override
   protected void enterThreadCriticalZone() {
     synchronized (sysMask) {
         if( 0 == processAffinityChanges) {
             long pid = GDI.GetCurrentProcess();
             if ( GDI.GetProcessAffinityMask(pid, procMask, sysMask) ) {
                 if(DEBUG) {
-                    System.err.println("WindowsWGLDrawableFactory.enterThreadCriticalZone() - 0x" + Long.toHexString(pid) + " - " + Thread.currentThread().getName());
+                    System.err.println("WindowsWGLDrawableFactory.enterThreadCriticalZone() - 0x" + Long.toHexString(pid) + " - " + getThreadName());
                     // Thread.dumpStack();
                 }
                 processAffinityChanges = pid;
@@ -174,6 +193,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     }
   }
 
+  @Override
   protected void leaveThreadCriticalZone() {
     synchronized (sysMask) {
         if( 0 != processAffinityChanges) {
@@ -183,35 +203,25 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
                                                        " this PID 0x" + Long.toHexString(pid) );
             }
             if(DEBUG) {
-                System.err.println("WindowsWGLDrawableFactory.leaveThreadCriticalZone() - 0x" + Long.toHexString(pid) + " - " + Thread.currentThread().getName());
+                System.err.println("WindowsWGLDrawableFactory.leaveThreadCriticalZone() - 0x" + Long.toHexString(pid) + " - " + getThreadName());
             }
             GDI.SetProcessAffinityMask(pid, sysMask.get(0));
         }
     }
   }
 
-  /**
-   * http://msdn.microsoft.com/en-us/library/ms724832%28v=vs.85%29.aspx
-   * Windows XP    5.1
-   */
-  static final VersionNumber winXPVersionNumber = new VersionNumber ( 5, 1, 0); 
-    
   static class SharedResource implements SharedResourceRunner.Resource {
+      private final boolean hasARBPixelFormat;
+      private final boolean hasARBMultisample;
+      private final boolean hasARBPBuffer;
+      private final boolean hasARBReadDrawable;
       private WindowsGraphicsDevice device;
       private AbstractGraphicsScreen screen;
-      private WindowsDummyWGLDrawable drawable;
-      private WindowsWGLContext context;
-      private boolean hasARBPixelFormat;
-      private boolean hasARBMultisample;
-      private boolean hasARBPBuffer;
-      private boolean hasARBReadDrawable;
-      private String vendor;
-      private boolean isVendorATI;
-      private boolean isVendorNVIDIA;
-      private boolean needsCurrenContext4ARBPFDQueries;
+      private GLDrawableImpl drawable;
+      private GLContextImpl context;
 
-      SharedResource(WindowsGraphicsDevice dev, AbstractGraphicsScreen scrn, WindowsDummyWGLDrawable draw, WindowsWGLContext ctx,
-                     boolean arbPixelFormat, boolean arbMultisample, boolean arbPBuffer, boolean arbReadDrawable, String glVendor) {
+      SharedResource(WindowsGraphicsDevice dev, AbstractGraphicsScreen scrn, GLDrawableImpl draw, GLContextImpl ctx,
+                     boolean arbPixelFormat, boolean arbMultisample, boolean arbPBuffer, boolean arbReadDrawable) {
           device = dev;
           screen = scrn;
           drawable = draw;
@@ -220,90 +230,71 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
           hasARBMultisample = arbMultisample;
           hasARBPBuffer = arbPBuffer;
           hasARBReadDrawable = arbReadDrawable;
-          vendor = glVendor;
-          if(null != vendor) {
-              isVendorNVIDIA = vendor.startsWith("NVIDIA") ;
-              isVendorATI = vendor.startsWith("ATI") ;
-          }
-          
-            if ( isVendorATI() ) {
-              final VersionNumber winVersion = Platform.getOSVersionNumber();
-              final boolean isWinXPOrLess = winVersion.compareTo(winXPVersionNumber) <= 0;
-              if(DEBUG) {
-                  System.err.println("needsCurrenContext4ARBPFDQueries: "+winVersion+" <= "+winXPVersionNumber+" = "+isWinXPOrLess+" - "+Platform.getOSVersion());
-              }
-              needsCurrenContext4ARBPFDQueries = isWinXPOrLess;
-            } else { 
-            if(DEBUG) {
-                  System.err.println("needsCurrenContext4ARBPFDQueries: false");
-              }
-              needsCurrenContext4ARBPFDQueries = false;
-          }                   
       }
-      
+
+      @Override
+      public final boolean isValid() {
+          return null != context;
+      }
+      @Override
       final public AbstractGraphicsDevice getDevice() { return device; }
+      @Override
       final public AbstractGraphicsScreen getScreen() { return screen; }
-      final public WindowsWGLDrawable getDrawable() { return drawable; }
-      final public WindowsWGLContext getContext() { return context; }
+      @Override
+      final public GLDrawableImpl getDrawable() { return drawable; }
+      @Override
+      final public GLContextImpl getContext() { return context; }
+      @Override
+      public GLRendererQuirks getRendererQuirks() {
+          return null != context ? context.getRendererQuirks() : null;
+      }
 
       final boolean hasARBPixelFormat() { return hasARBPixelFormat; }
       final boolean hasARBMultisample() { return hasARBMultisample; }
       final boolean hasARBPBuffer() { return hasARBPBuffer; }
       final boolean hasReadDrawable() { return hasARBReadDrawable; }
-      
-      final String vendor() { return vendor; }
-      final boolean isVendorATI() { return isVendorATI; }
-      final boolean isVendorNVIDIA() { return isVendorNVIDIA; }
-      
-      /**
-       * Solves bug #480
-       * 
-       * TODO: Validate if bug is actually relates to the 'old' ATI Windows driver for old GPU's like X300 etc
-       * and unrelated to the actual Windows version !
-       * 
-       * @return true if GL_VENDOR is ATI _and_ platform is Windows version XP or less! 
-       */
-      final boolean needsCurrentContext4ARBPFDQueries() { return needsCurrenContext4ARBPFDQueries; }      
   }
 
   class SharedResourceImplementation implements SharedResourceRunner.Implementation {
+        @Override
         public void clear() {
-            synchronized(sharedMap) {
-                sharedMap.clear();
-            }
+            sharedMap.clear();
         }
+        @Override
         public SharedResourceRunner.Resource mapPut(String connection, SharedResourceRunner.Resource resource) {
-            synchronized(sharedMap) {
-                return sharedMap.put(connection, resource);
-            }
+            return sharedMap.put(connection, resource);
         }
+        @Override
         public SharedResourceRunner.Resource mapGet(String connection) {
-            synchronized(sharedMap) {
-                return sharedMap.get(connection);
-            }
+            return sharedMap.get(connection);
         }
+        @Override
         public Collection<SharedResourceRunner.Resource> mapValues() {
             synchronized(sharedMap) {
                 return sharedMap.values();
             }
         }
 
+        @Override
+        public boolean isDeviceSupported(String connection) {
+            return true;
+        }
+
+        @Override
         public SharedResourceRunner.Resource createSharedResource(String connection) {
-            WindowsGraphicsDevice sharedDevice = new WindowsGraphicsDevice(connection, AbstractGraphicsDevice.DEFAULT_UNIT);
+            final WindowsGraphicsDevice sharedDevice = new WindowsGraphicsDevice(connection, AbstractGraphicsDevice.DEFAULT_UNIT);
             sharedDevice.lock();
             try {
-                AbstractGraphicsScreen absScreen = new DefaultGraphicsScreen(sharedDevice, 0);
-                GLProfile glp = GLProfile.get(sharedDevice, GLProfile.GL_PROFILE_LIST_MIN_DESKTOP, false);
+                final AbstractGraphicsScreen absScreen = new DefaultGraphicsScreen(sharedDevice, 0);
+                final GLProfile glp = GLProfile.get(sharedDevice, GLProfile.GL_PROFILE_LIST_MIN_DESKTOP, false);
                 if (null == glp) {
                     throw new GLException("Couldn't get default GLProfile for device: "+sharedDevice);
                 }
-                final int f_dim = 64;
-                long hwnd = GDIUtil.CreateDummyWindow(0, 0, f_dim, f_dim);
-                WindowsDummyWGLDrawable sharedDrawable = WindowsDummyWGLDrawable.create(WindowsWGLDrawableFactory.this, glp, absScreen, hwnd, f_dim, f_dim, true);
-                if (null == sharedDrawable) {
-                    throw new GLException("Couldn't create shared drawable for screen: "+absScreen+", "+glp);
-                }
-                WindowsWGLContext sharedContext  = (WindowsWGLContext) sharedDrawable.createContext(null);
+                final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
+                final GLDrawableImpl sharedDrawable = createOnscreenDrawableImpl(createDummySurfaceImpl(sharedDevice, false, caps, caps, null, 64, 64));
+                sharedDrawable.setRealized(true);
+
+                final GLContextImpl sharedContext  = (GLContextImpl) sharedDrawable.createContext(null);
                 if (null == sharedContext) {
                     throw new GLException("Couldn't create shared context for drawable: "+sharedDrawable);
                 }
@@ -311,15 +302,13 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
                 boolean hasARBMultisample;
                 boolean hasARBPBuffer;
                 boolean hasARBReadDrawableAvailable;
-                String vendor;
                 sharedContext.makeCurrent();
                 try {
                     hasARBPixelFormat = sharedContext.isExtensionAvailable(WGL_ARB_pixel_format);
                     hasARBMultisample = sharedContext.isExtensionAvailable(WGL_ARB_multisample);
-                    hasARBPBuffer = sharedContext.isExtensionAvailable(GL_ARB_pbuffer);
+                    hasARBPBuffer = sharedContext.isExtensionAvailable(GLExtensions.ARB_pbuffer);
                     hasARBReadDrawableAvailable = sharedContext.isExtensionAvailable(WGL_ARB_make_current_read) &&
                                             sharedContext.isFunctionAvailable(wglMakeContextCurrent);
-                    vendor = sharedContext.getGL().glGetString(GL.GL_VENDOR);
                 } finally {
                     sharedContext.release();
                 }
@@ -331,11 +320,10 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
                     System.err.println("multisample:   " + hasARBMultisample);
                     System.err.println("pbuffer:       " + hasARBPBuffer);
                     System.err.println("readDrawable:  " + hasARBReadDrawableAvailable);
-                    System.err.println("vendor:        " + vendor);
                 }
-                return new SharedResource(sharedDevice, absScreen, sharedDrawable, sharedContext, 
+                return new SharedResource(sharedDevice, absScreen, sharedDrawable, sharedContext,
                                           hasARBPixelFormat, hasARBMultisample,
-                                          hasARBPBuffer, hasARBReadDrawableAvailable, vendor);
+                                          hasARBPBuffer, hasARBReadDrawableAvailable);
             } catch (Throwable t) {
                 throw new GLException("WindowsWGLDrawableFactory - Could not initialize shared resources for "+connection, t);
             } finally {
@@ -343,6 +331,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
             }
         }
 
+        @Override
         public void releaseSharedResource(SharedResourceRunner.Resource shared) {
             SharedResource sr = (SharedResource) shared;
             if (DEBUG) {
@@ -359,7 +348,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
             }
 
             if (null != sr.drawable) {
-                sr.drawable.destroy();
+                sr.drawable.setRealized(false);
                 sr.drawable = null;
             }
 
@@ -374,10 +363,12 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
         }
   }
 
+  @Override
   public final AbstractGraphicsDevice getDefaultDevice() {
       return defaultDevice;
   }
 
+  @Override
   public final boolean getIsDeviceCompatible(AbstractGraphicsDevice device) {
       if(null!=windowsWGLDynamicLookupHelper && device instanceof WindowsGraphicsDevice) {
           return true;
@@ -385,64 +376,37 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
       return false;
   }
 
-  final static String GL_ARB_pbuffer = "GL_ARB_pbuffer";
+  final static String WGL_ARB_pbuffer      = "WGL_ARB_pbuffer";
   final static String WGL_ARB_pixel_format = "WGL_ARB_pixel_format";
   final static String WGL_ARB_multisample = "WGL_ARB_multisample";
   final static String WGL_NV_float_buffer = "WGL_NV_float_buffer";
   final static String WGL_ARB_make_current_read = "WGL_ARB_make_current_read";
   final static String wglMakeContextCurrent = "wglMakeContextCurrent";
 
+  @Override
   protected final Thread getSharedResourceThread() {
     return sharedResourceRunner.start();
   }
-  
-  protected final boolean createSharedResource(AbstractGraphicsDevice device) {
-    try {
-        SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
-        if(null!=sr) {
-          return null != sr.getContext();
-        }
-    } catch (GLException gle) {
-        if(DEBUG) {
-            System.err.println("Catched Exception while WindowsWGL Shared Resource initialization");
-            gle.printStackTrace();
-        }
-    }
-    return false;
-  }
-  
-  protected final GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device) {
-    SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
-    if(null!=sr) {
-      return sr.getContext();
-    }
-    return null;
+
+  @Override
+  protected final SharedResource getOrCreateSharedResourceImpl(AbstractGraphicsDevice device) {
+    return (SharedResource) sharedResourceRunner.getOrCreateShared(device);
   }
 
-  protected AbstractGraphicsDevice getOrCreateSharedDeviceImpl(AbstractGraphicsDevice device) {
-    SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
-    if(null!=sr) {
-        return sr.getDevice();
-    }
-    return null;
-  }
-
-  protected WindowsWGLDrawable getOrCreateSharedDrawable(AbstractGraphicsDevice device) {
-    SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
+  protected final WindowsWGLDrawable getOrCreateSharedDrawable(AbstractGraphicsDevice device) {
+    SharedResourceRunner.Resource sr = getOrCreateSharedResourceImpl(device);
     if(null!=sr) {
         return (WindowsWGLDrawable) sr.getDrawable();
     }
     return null;
   }
 
-  SharedResource getOrCreateSharedResource(AbstractGraphicsDevice device) {
-    return (SharedResource) sharedResourceRunner.getOrCreateShared(device);
-  }
-
+  @Override
   protected List<GLCapabilitiesImmutable> getAvailableCapabilitiesImpl(AbstractGraphicsDevice device) {
     return WindowsWGLGraphicsConfigurationFactory.getAvailableCapabilities(this, device);
   }
 
+  @Override
   protected final GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
@@ -450,6 +414,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     return new WindowsOnscreenWGLDrawable(this, target);
   }
 
+  @Override
   protected final GLDrawableImpl createOffscreenDrawableImpl(final NativeSurface target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
@@ -457,7 +422,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     AbstractGraphicsConfiguration config = target.getGraphicsConfiguration();
     GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     if(!chosenCaps.isPBuffer()) {
-        return new WindowsBitmapWGLDrawable(this, target);
+        return WindowsBitmapWGLDrawable.create(this, target);
     }
 
     // PBuffer GLDrawable Creation
@@ -468,7 +433,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
      * Similar to ATI Bug https://bugzilla.mozilla.org/show_bug.cgi?id=486277,
      * we need to have a context current on the same Display to create a PBuffer.
      */
-    final SharedResource sr = (SharedResource) sharedResourceRunner.getOrCreateShared(device);
+    final SharedResource sr = getOrCreateSharedResourceImpl(device);
     if(null!=sr) {
         GLContext lastContext = GLContext.getCurrent();
         if (lastContext != null) {
@@ -494,46 +459,77 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
    *           and -1 if undefined yet, ie no shared device exist at this point.
    */
   public final int isReadDrawableAvailable(AbstractGraphicsDevice device) {
-    SharedResource sr = (SharedResource) sharedResourceRunner.getOrCreateShared((null!=device)?device:defaultDevice);
+    SharedResource sr = getOrCreateSharedResourceImpl( ( null != device ) ? device : defaultDevice );
     if(null!=sr) {
         return sr.hasReadDrawable() ? 1 : 0 ;
     }
     return -1; // undefined
   }
 
-  public final boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
-    SharedResource sr = (SharedResource) sharedResourceRunner.getOrCreateShared((null!=device)?device:defaultDevice);
+  @Override
+  public final boolean canCreateGLPbuffer(AbstractGraphicsDevice device, GLProfile glp) {
+    SharedResource sr = getOrCreateSharedResourceImpl( ( null != device ) ? device : defaultDevice );
     if(null!=sr) {
         return sr.hasARBPBuffer();
     }
     return false;
   }
 
-  protected final NativeSurface createOffscreenSurfaceImpl(AbstractGraphicsDevice device, GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, int width, int height) {
-    AbstractGraphicsScreen screen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
-    WrappedSurface ns = new WrappedSurface(WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
-                                     capsChosen, capsRequested, chooser, screen) );
-    ns.surfaceSizeChanged(width, height);
-    return ns;
+  @Override
+  protected final ProxySurface createMutableSurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice,
+                                                        GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested,
+                                                        GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstreamHook) {
+    final WindowsGraphicsDevice device;
+    if(createNewDevice || !(deviceReq instanceof WindowsGraphicsDevice)) {
+        device = new WindowsGraphicsDevice(deviceReq.getConnection(), deviceReq.getUnitID());
+    } else {
+        device = (WindowsGraphicsDevice)deviceReq;
+    }
+    final AbstractGraphicsScreen screen = new DefaultGraphicsScreen(device, 0);
+    final WindowsWGLGraphicsConfiguration config = WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, screen);
+    if(null == config) {
+        throw new GLException("Choosing GraphicsConfiguration failed w/ "+capsChosen+" on "+screen);
+    }
+    return new WrappedSurface(config, 0, upstreamHook, createNewDevice);
   }
- 
-  protected final ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice adevice, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser) {
-    // FIXME device/windowHandle -> screen ?!
-    WindowsGraphicsDevice device = (WindowsGraphicsDevice) adevice;
-    AbstractGraphicsScreen screen = new DefaultGraphicsScreen(device, 0);
-    WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsRequested, capsRequested, chooser, screen);    
-    GDISurface ns = new GDISurface(cfg, windowHandle);
-    return ns;
+
+  @Override
+  public final ProxySurface createDummySurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice,
+                                                   GLCapabilitiesImmutable chosenCaps, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height) {
+    final WindowsGraphicsDevice device;
+    if( createNewDevice || !(deviceReq instanceof WindowsGraphicsDevice) ) {
+        device = new WindowsGraphicsDevice(deviceReq.getConnection(), deviceReq.getUnitID());
+    } else {
+        device = (WindowsGraphicsDevice)deviceReq;
+    }
+    final AbstractGraphicsScreen screen = new DefaultGraphicsScreen(device, 0);
+    chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(chosenCaps);
+    final WindowsWGLGraphicsConfiguration config = WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(chosenCaps, requestedCaps, chooser, screen);
+    if(null == config) {
+        throw new GLException("Choosing GraphicsConfiguration failed w/ "+chosenCaps+" on "+screen);
+    }
+    return new GDISurface(config, 0, new GDIDummyUpstreamSurfaceHook(width, height), createNewDevice);
   }
- 
+
+  @Override
+  protected final ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice deviceReq, int screenIdx, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstream) {
+    final WindowsGraphicsDevice device = new WindowsGraphicsDevice(deviceReq.getConnection(), deviceReq.getUnitID());
+    final AbstractGraphicsScreen screen = new DefaultGraphicsScreen(device, screenIdx);
+    final WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsRequested, capsRequested, chooser, screen);
+    return new GDISurface(cfg, windowHandle, upstream, true);
+  }
+
+  @Override
   protected final GLContext createExternalGLContextImpl() {
     return WindowsExternalWGLContext.create(this, null);
   }
 
+  @Override
   public final boolean canCreateExternalGLDrawable(AbstractGraphicsDevice device) {
     return true;
   }
 
+  @Override
   protected final GLDrawable createExternalGLDrawableImpl() {
     return WindowsExternalWGLDrawable.create(this, null);
   }
@@ -553,25 +549,18 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     return detail;
   }
 
-  public final boolean canCreateContextOnJava2DSurface(AbstractGraphicsDevice device) {
-    return false;
-  }
-
-  public final GLContext createContextOnJava2DSurface(Object graphics, GLContext shareWith)
-    throws GLException {
-    throw new GLException("Unimplemented on this platform");
-  }
-
   //------------------------------------------------------
   // Gamma-related functionality
   //
 
   private static final int GAMMA_RAMP_LENGTH = 256;
 
+  @Override
   protected final int getGammaRampLength() {
     return GAMMA_RAMP_LENGTH;
   }
 
+  @Override
   protected final boolean setGammaRamp(float[] ramp) {
     short[] rampData = new short[3 * GAMMA_RAMP_LENGTH];
     for (int i = 0; i < GAMMA_RAMP_LENGTH; i++) {
@@ -587,6 +576,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     return res;
   }
 
+  @Override
   protected final Buffer getGammaRamp() {
     ShortBuffer rampData = ShortBuffer.wrap(new short[3 * GAMMA_RAMP_LENGTH]);
     long screenDC = GDI.GetDC(0);
@@ -598,6 +588,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     return rampData;
   }
 
+  @Override
   protected final void resetGammaRamp(Buffer originalGammaRamp) {
     if (originalGammaRamp == null) {
       // getGammaRamp failed earlier

@@ -34,14 +34,24 @@ import com.jogamp.opengl.util.GLReadBufferUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 import javax.media.nativewindow.*;
 
 public class Surface2File implements SurfaceUpdatedListener {
 
-    GLReadBufferUtil readBufferUtil = new GLReadBufferUtil(false, false);
+    final String filename;
+    final boolean alpha;
+    final GLReadBufferUtil readBufferUtil;
     int shotNum = 0;
 
+    public Surface2File(String filename, boolean alpha) {
+        this.filename = filename;
+        this.alpha = alpha;        
+        this.readBufferUtil = new GLReadBufferUtil(alpha, false);
+    }
+    
     public void dispose(GL gl) {
         readBufferUtil.dispose(gl);
     }
@@ -54,10 +64,10 @@ public class Surface2File implements SurfaceUpdatedListener {
                 GL gl = ctx.getGL();
                 // FIXME glFinish() is an expensive paranoia sync, should not be necessary due to spec
                 gl.glFinish();
-                if(readBufferUtil.readPixels(gl, drawable, false)) {
+                if(readBufferUtil.readPixels(gl, false)) {
                     gl.glFinish();
                     try {
-                        surface2File("shot");
+                        surface2File();
                     } catch (IOException ex) {
                         throw new RuntimeException("can not write survace to file", ex);
                     }
@@ -66,14 +76,17 @@ public class Surface2File implements SurfaceUpdatedListener {
         }
     }
 
-    public void surface2File(String basename) throws IOException {
+    public void surface2File() throws IOException {
         if (!readBufferUtil.isValid()) {
             return;
         }
-
-        File file = File.createTempFile(basename + shotNum + "-", ".tga");
+        final StringWriter sw = new StringWriter();
+        {
+            final String pfmt = alpha ? "rgba" : "rgb_" ;
+            new PrintWriter(sw).printf("%s-I_%s-%04d.png", filename, pfmt, shotNum);
+        }
+        File file = new File(sw.toString());
         readBufferUtil.write(file);
-        System.err.println("Wrote: " + file.getAbsolutePath() + ", ...");
         shotNum++;
     }
 }

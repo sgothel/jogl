@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2012 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -28,154 +28,100 @@
 
 package javax.media.nativewindow;
 
-
 import jogamp.nativewindow.Debug;
-import jogamp.nativewindow.SurfaceUpdatedHelper;
 
-import com.jogamp.common.util.locks.LockFactory;
-import com.jogamp.common.util.locks.RecursiveLock;
-
-public abstract class ProxySurface implements NativeSurface {
+/**
+ * Provides a mutable {@link NativeSurface}, i.e. {@link MutableSurface}, while allowing an
+ * {@link UpstreamSurfaceHook} to influence the lifecycle and information.
+ *
+ * @see UpstreamSurfaceHook
+ * @see MutableSurface
+ * @see NativeSurface
+ */
+public interface ProxySurface extends MutableSurface {
     public static final boolean DEBUG = Debug.debug("ProxySurface");
-    
-    private SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
-    private AbstractGraphicsConfiguration config; // control access due to delegation
-    protected RecursiveLock surfaceLock = LockFactory.createRecursiveLock();
-    private long surfaceHandle_old;
-    protected long displayHandle;
-    protected int height;
-    protected int scrnIndex;
-    protected int width;
 
-    public ProxySurface(AbstractGraphicsConfiguration cfg) {
-        invalidate();
-        config = cfg;
-        displayHandle=cfg.getNativeGraphicsConfiguration().getScreen().getDevice().getHandle();
-        surfaceHandle_old = 0;
-    }
+    /**
+     * Implementation specific bit-value stating this {@link ProxySurface} owns the upstream's surface handle
+     * @see #addUpstreamOptionBits(int)
+     * @see #clearUpstreamOptionBits(int)
+     * @see #getUpstreamOptionBits()
+     */
+    public static final int OPT_PROXY_OWNS_UPSTREAM_SURFACE = 1 << 6;
 
-    void invalidate() {
-        displayHandle = 0;
-        invalidateImpl();
-    }
-    protected abstract void invalidateImpl();
+    /**
+     * Implementation specific bit-value stating this {@link ProxySurface} owns the upstream's {@link AbstractGraphicsDevice}.
+     * @see #addUpstreamOptionBits(int)
+     * @see #clearUpstreamOptionBits(int)
+     * @see #getUpstreamOptionBits()
+     */
+    public static final int OPT_PROXY_OWNS_UPSTREAM_DEVICE = 1 << 7;
 
-    public final long getDisplayHandle() {
-        return displayHandle;
-    }
+    /**
+     * Implementation specific bitvalue stating the upstream's {@link NativeSurface} is an invisible window, i.e. maybe incomplete.
+     * @see #addUpstreamOptionBits(int)
+     * @see #clearUpstreamOptionBits(int)
+     * @see #getUpstreamOptionBits()
+     */
+    public static final int OPT_UPSTREAM_WINDOW_INVISIBLE = 1 << 8;
 
-    protected final AbstractGraphicsConfiguration getPrivateGraphicsConfiguration() {
-        return config;
-    }
-    
-    public final AbstractGraphicsConfiguration getGraphicsConfiguration() {
-        return config.getNativeGraphicsConfiguration();
-    }
+    /** Allow redefining the AbstractGraphicsConfiguration */
+    public void setGraphicsConfiguration(AbstractGraphicsConfiguration cfg);
 
-    public final int getScreenIndex() {
-        return getGraphicsConfiguration().getScreen().getIndex();
-    }
+    /**
+     * Return the upstream {@link NativeSurface} if used, otherwise <code>null</code>.
+     * <p>
+     * An upstream {@link NativeSurface} may backup this {@link ProxySurface} instance's representation,
+     * e.g. via a {@link #setUpstreamSurfaceHook(UpstreamSurfaceHook) set} {@link UpstreamSurfaceHook}.
+     * </p>
+     * <p>
+     * One example is the JOGL EGLWrappedSurface, which might be backed up by a
+     * native platform NativeSurface (X11, WGL, CGL, ..).
+     * </p>
+     */
+    public NativeSurface getUpstreamSurface();
 
-    public abstract long getSurfaceHandle();
+    /** Returns the {@link UpstreamSurfaceHook} if {@link #setUpstreamSurfaceHook(UpstreamSurfaceHook) set}, otherwise <code>null</code>. */
+    public UpstreamSurfaceHook getUpstreamSurfaceHook();
 
-    public final int getWidth() {
-        return width;
-    }
+    /**
+     * Sets the {@link UpstreamSurfaceHook} and returns the previous value.
+     */
+    public void setUpstreamSurfaceHook(UpstreamSurfaceHook hook);
 
-    public final int getHeight() {
-        return height;
-    }
+    /**
+     * Enables or disables the {@link UpstreamSurfaceHook} lifecycle functions
+     * {@link UpstreamSurfaceHook#create(ProxySurface)} and {@link UpstreamSurfaceHook#destroy(ProxySurface)}.
+     * <p>
+     * Use this for small code blocks where the native resources shall not change,
+     * i.e. resizing a derived (OpenGL) drawable.
+     * </p>
+     */
+    public void enableUpstreamSurfaceHookLifecycle(boolean enable);
 
-    public void surfaceSizeChanged(int width, int height) {
-        this.width = width;
-        this.height = height;
-    }
+    /**
+     * {@link UpstreamSurfaceHook#create(ProxySurface)} is being issued and the proxy surface/window handles shall be set.
+     */
+    public void createNotify();
 
-    public boolean surfaceSwap() {
-        return false;
-    }
+    /**
+     * {@link UpstreamSurfaceHook#destroy(ProxySurface)} is being issued and all proxy surface/window handles shall be cleared.
+     */
+    public void destroyNotify();
 
-    public void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
-        surfaceUpdatedHelper.addSurfaceUpdatedListener(l);
-    }
+    public StringBuilder getUpstreamOptionBits(StringBuilder sink);
+    public int getUpstreamOptionBits();
 
-    public void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
-        surfaceUpdatedHelper.addSurfaceUpdatedListener(index, l);
-    }
+    /** Returns <code>true</code> if the give bit-mask <code>v</code> is set in this instance upstream-option-bits, otherwise <code>false</code>.*/
+    public boolean containsUpstreamOptionBits(int v);
 
-    public void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
-        surfaceUpdatedHelper.removeSurfaceUpdatedListener(l);
-    }
+    /** Add the given bit-mask to this instance upstream-option-bits using bit-or w/ <code>v</code>.*/
+    public void addUpstreamOptionBits(int v);
 
-    public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
-        surfaceUpdatedHelper.surfaceUpdated(updater, ns, when);
-    }    
-    
-    public int lockSurface() throws NativeWindowException {
-        surfaceLock.lock();
-        int res = surfaceLock.getHoldCount() == 1 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS; // new lock ?
+    /** Clear the given bit-mask from this instance upstream-option-bits using bit-and w/ <code>~v</code>*/
+    public void clearUpstreamOptionBits(int v);
 
-        if ( LOCK_SURFACE_NOT_READY == res ) {
-            try {
-                final AbstractGraphicsDevice adevice = getGraphicsConfiguration().getScreen().getDevice();
-                adevice.lock();
-                try {
-                    res = lockSurfaceImpl();
-                    if(LOCK_SUCCESS == res && surfaceHandle_old != getSurfaceHandle()) {
-                        res = LOCK_SURFACE_CHANGED;
-                        if(DEBUG) {            
-                            System.err.println("ProxySurface: surface change 0x"+Long.toHexString(surfaceHandle_old)+" -> 0x"+Long.toHexString(getSurfaceHandle()));
-                            // Thread.dumpStack();
-                        }
-                    }                    
-                } finally {
-                    if (LOCK_SURFACE_NOT_READY >= res) {
-                        adevice.unlock();
-                    }
-                }
-            } finally {
-                if (LOCK_SURFACE_NOT_READY >= res) {
-                    surfaceLock.unlock();
-                }
-            }
-        }
-        return res;
-    }
-
-    public final void unlockSurface() {
-        surfaceLock.validateLocked();
-        surfaceHandle_old = getSurfaceHandle();
-
-        if (surfaceLock.getHoldCount() == 1) {
-            final AbstractGraphicsDevice adevice = getGraphicsConfiguration().getScreen().getDevice();
-            try {
-                unlockSurfaceImpl();
-            } finally {
-                adevice.unlock();
-            }
-        }
-        surfaceLock.unlock();
-    }
-
-    protected abstract int lockSurfaceImpl();
-
-    protected abstract void unlockSurfaceImpl() ;
-
-    public final void validateSurfaceLocked() {
-        surfaceLock.validateLocked();
-    }
-
-    public final boolean isSurfaceLocked() {
-        return surfaceLock.isLocked();
-    }
-
-    public final boolean isSurfaceLockedByOtherThread() {
-        return surfaceLock.isLockedByOtherThread();
-    }
-
-    public final Thread getSurfaceLockOwner() {
-        return surfaceLock.getOwner();
-    }
-
-    public abstract String toString();    
+    public StringBuilder toString(StringBuilder sink);
+    @Override
+    public String toString();
 }

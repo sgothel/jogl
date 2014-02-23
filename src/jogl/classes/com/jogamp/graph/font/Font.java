@@ -30,16 +30,16 @@ package com.jogamp.graph.font;
 import java.util.List;
 
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
+import com.jogamp.opengl.math.geom.AABBox;
 
 /**
  * Interface wrapper for font implementation.
- * 
+ *
  * TrueType Font Specification:
  *   http://developer.apple.com/fonts/ttrefman/rm06/Chap6.html
- *   
+ *
  * TrueType Font Table Introduction:
  *   http://scripts.sil.org/cms/scripts/page.php?item_id=IWS-Chapter08
  */
@@ -55,22 +55,22 @@ public interface Font {
     public static final int NAME_VERSION = 5;
     public static final int NAME_MANUFACTURER = 8;
     public static final int NAME_DESIGNER = 9;
-    
-    
+
+
     /**
      * Metrics for font
-     * 
+     *
      * Depending on the font's direction, horizontal or vertical,
      * the following tables shall be used:
-     * 
+     *
      * Vertical http://developer.apple.com/fonts/TTRefMan/RM06/Chap6vhea.html
      * Horizontal http://developer.apple.com/fonts/TTRefMan/RM06/Chap6hhea.html
      */
-    public interface Metrics {  
+    public interface Metrics {
         float getAscent(float pixelSize);
         float getDescent(float pixelSize);
         float getLineGap(float pixelSize);
-        float getMaxExtend(float pixelSize);        
+        float getMaxExtend(float pixelSize);
         float getScale(float pixelSize);
         AABBox getBBox(float pixelSize);
     }
@@ -79,12 +79,12 @@ public interface Font {
      * Glyph for font
      */
     public interface Glyph {
-        // reserved special glyph IDs 
+        // reserved special glyph IDs
         // http://scripts.sil.org/cms/scripts/page.php?item_id=IWS-Chapter08#ba57949e
         public static final int ID_UNKNOWN = 0;
         public static final int ID_CR = 2;
         public static final int ID_SPACE = 3;
-                
+
         public Font getFont();
         public char getSymbol();
         public short getID();
@@ -97,24 +97,24 @@ public interface Font {
 
     public String getName(int nameIndex);
     public StringBuilder getName(StringBuilder string, int nameIndex);
-    
+
     /** Shall return the family and subfamily name, separated a dash.
      * <p>{@link #getName(StringBuilder, int)} w/ {@link #NAME_FAMILY} and {@link #NAME_SUBFAMILY}</p>
      * <p>Example: "{@code Ubuntu-Regular}"</p>  */
     public StringBuilder getFullFamilyName(StringBuilder buffer);
-    
+
     public StringBuilder getAllNames(StringBuilder string, String separator);
-    
+
     public float getAdvanceWidth(int i, float pixelSize);
     public Metrics getMetrics();
     public Glyph getGlyph(char symbol);
     public int getNumGlyphs();
-    
+
     public float getStringWidth(CharSequence string, float pixelSize);
     public float getStringHeight(CharSequence string, float pixelSize);
     public AABBox getStringBounds(CharSequence string, float pixelSize);
-    
-    public boolean isPrintableChar( char c );  
+
+    public boolean isPrintableChar( char c );
 
     /**
      * @param glyph source of the created OutlineShape
@@ -122,7 +122,7 @@ public interface Font {
      * @return OutlineShape of the glyph
      */
     public OutlineShape getOutlineShape(Glyph glyph, Factory<? extends Vertex> vertexFactory);
-    
+
     /**
      * @param shapes optional storage of OutlineShapes passed by user, new shapes are appended
      * @param string source of the created OutlineShapes
@@ -131,7 +131,8 @@ public interface Font {
      * @return List of OutlineShapes, one OutlineShape per character
      */
     public List<OutlineShape> getOutlineShapes(List<OutlineShape> shapes, CharSequence string, float pixelSize, Factory<? extends Vertex> vertexFactory);
-    
+
     /** Shall return {@link #getFullFamilyName()} */
+    @Override
     public String toString();
 }

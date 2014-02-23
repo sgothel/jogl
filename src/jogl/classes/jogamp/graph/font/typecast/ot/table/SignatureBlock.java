@@ -1,9 +1,9 @@
 /*****************************************************************************
  * Copyright (C) The Apache Software Foundation. All rights reserved.        *
- * ------------------------------------------------------------------------- * 
- * This software is published under the terms of the Apache Software License * 
- * version 1.1, a copy of which has been included with this distribution in  * 
- * the LICENSE file.                                                         * 
+ * ------------------------------------------------------------------------- *
+ * This software is published under the terms of the Apache Software License *
+ * version 1.1, a copy of which has been included with this distribution in  *
+ * the LICENSE file.                                                         *
  *****************************************************************************/
 
 package jogamp.graph.font.typecast.ot.table;
@@ -22,7 +22,7 @@ public class SignatureBlock {
     private int reserved2;
     private int signatureLen;
     private byte[] signature;
-    
+
     /** Creates new SignatureBlock */
     protected SignatureBlock(DataInput di) throws IOException {
         reserved1 = di.readUnsignedShort();
@@ -32,6 +32,7 @@ public class SignatureBlock {
         di.readFully(signature);
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < signatureLen; i += 16) {

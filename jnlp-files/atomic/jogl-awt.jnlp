@@ -14,83 +14,83 @@
       <all-permissions/>
   </security>
     <resources>
-      <jar href="jar/atomic/jogl.core.jar" />
-      <jar href="jar/atomic/jogl.sdk.jar" />
-      <jar href="jar/atomic/jogl.util.jar" />
-      <jar href="jar/atomic/jogl.awt.jar" />
-      <jar href="jar/atomic/jogl.util.awt.jar" />
-      <jar href="jar/atomic/jogl.glutess.jar" />
-      <jar href="jar/atomic/jogl.glumipmap.jar" />
-      <jar href="jar/atomic/jogl.gldesktop.jar" />
-      <jar href="jar/atomic/jogl.gldesktop.dbg.jar" />
-      <jar href="jar/atomic/jogl.glugldesktop.jar" />
-      <jar href="jar/atomic/jogl.util.gldesktop.jar" />
+      <jar href="jar/atomic/jogl-core.jar" />
+      <jar href="jar/atomic/jogl-sdk.jar" />
+      <jar href="jar/atomic/jogl-util.jar" />
+      <jar href="jar/atomic/jogl-awt.jar" />
+      <jar href="jar/atomic/jogl-util.awt.jar" />
+      <jar href="jar/atomic/jogl-glutess.jar" />
+      <jar href="jar/atomic/jogl-glumipmap.jar" />
+      <jar href="jar/atomic/jogl-gldesktop.jar" />
+      <jar href="jar/atomic/jogl-gldesktop-dbg.jar" />
+      <jar href="jar/atomic/jogl-glu-gldesktop.jar" />
+      <jar href="jar/atomic/jogl-util-gldesktop.jar" />
 
       <extension name="nativewindow" href="JOGL_CODEBASE_TAG/nativewindow-awt.jnlp" />
     </resources>
 
     <resources os="Windows" arch="x86">
-      <jar href="jar/atomic/jogl.os.win.jar" />
+      <jar href="jar/atomic/jogl-os-win.jar" />
       <nativelib href = "jar/atomic/jogl-natives-windows-i586.jar" />
     </resources>
     <resources os="Windows" arch="amd64">
-      <jar href="jar/atomic/jogl.os.win.jar" />
+      <jar href="jar/atomic/jogl-os-win.jar" />
       <nativelib href = "jar/atomic/jogl-natives-windows-amd64.jar" />
     </resources>
     <resources os="Windows" arch="x86_64">
-      <jar href="jar/atomic/jogl.os.win.jar" />
+      <jar href="jar/atomic/jogl-os-win.jar" />
       <nativelib href = "jar/atomic/jogl-natives-windows-amd64.jar" />
     </resources>
     <resources os="SunOS" arch="sparc">
-      <jar href="jar/atomic/jogl.os.x11.jar" />
+      <jar href="jar/atomic/jogl-os-x11.jar" />
       <nativelib href = "jar/atomic/jogl-natives-solaris-sparc.jar" />
     </resources>
     <resources os="SunOS" arch="sparcv9">
-      <jar href="jar/atomic/jogl.os.x11.jar" />
+      <jar href="jar/atomic/jogl-os-x11.jar" />
       <nativelib href = "jar/atomic/jogl-natives-solaris-sparcv9.jar" />
     </resources>
     <resources os="SunOS" arch="x86">
-      <jar href="jar/atomic/jogl.os.x11.jar" />
+      <jar href="jar/atomic/jogl-os-x11.jar" />
       <nativelib href = "jar/atomic/jogl-natives-solaris-i586.jar" />
     </resources>
     <resources os="SunOS" arch="amd64">
-      <jar href="jar/atomic/jogl.os.x11.jar" />
+      <jar href="jar/atomic/jogl-os-x11.jar" />
       <nativelib href = "jar/atomic/jogl-natives-solaris-amd64.jar" />
     </resources>
     <resources os="SunOS" arch="x86_64">
-      <jar href="jar/atomic/jogl.os.x11.jar" />
+      <jar href="jar/atomic/jogl-os-x11.jar" />
       <nativelib href = "jar/atomic/jogl-natives-solaris-amd64.jar" />
     </resources>
     <resources os="Linux" arch="i386">
-      <jar href="jar/atomic/jogl.os.x11.jar" />
+      <jar href="jar/atomic/jogl-os-x11.jar" />
       <nativelib href = "jar/atomic/jogl-natives-linux-i586.jar" />
     </resources>
     <resources os="Linux" arch="x86">
-      <jar href="jar/atomic/jogl.os.x11.jar" />
+      <jar href="jar/atomic/jogl-os-x11.jar" />
       <nativelib href = "jar/atomic/jogl-natives-linux-i586.jar" />
     </resources>
     <resources os="Linux" arch="amd64">
-      <jar href="jar/atomic/jogl.os.x11.jar" />
+      <jar href="jar/atomic/jogl-os-x11.jar" />
       <nativelib href = "jar/atomic/jogl-natives-linux-amd64.jar" />
     </resources>
     <resources os="Linux" arch="x86_64">
-      <jar href="jar/atomic/jogl.os.x11.jar" />
+      <jar href="jar/atomic/jogl-os-x11.jar" />
       <nativelib href = "jar/atomic/jogl-natives-linux-amd64.jar" />
     </resources>
     <resources os="Linux" arch="arm">
-      <jar href="jar/atomic/jogl.os.x11.jar" />
+      <jar href="jar/atomic/jogl-os-x11.jar" />
       <nativelib href = "jar/atomic/jogl-natives-linux-armv7.jar" />
     </resources>
     <resources os="Linux" arch="armv7">
-      <jar href="jar/atomic/jogl.os.x11.jar" />
+      <jar href="jar/atomic/jogl-os-x11.jar" />
       <nativelib href = "jar/atomic/jogl-natives-linux-armv7.jar" />
     </resources>
     <resources os="Mac OS X" arch="i386">
-      <jar href="jar/atomic/jogl.os.osx.jar" />
+      <jar href="jar/atomic/jogl-os-osx.jar" />
       <nativelib href = "jar/atomic/jogl-natives-macosx-universal.jar" />
     </resources>
     <resources os="Mac OS X" arch="x86_64">
-      <jar href="jar/atomic/jogl.os.osx.jar" />
+      <jar href="jar/atomic/jogl-os-osx.jar" />
       <nativelib href = "jar/atomic/jogl-natives-macosx-universal.jar" />
     </resources>
 

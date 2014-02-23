@@ -149,7 +149,7 @@
         <property name="javadoc" value="${project.root}/javadoc_nativewindow_public" />
         <property name="javadoc.spec" value="${project.root}/javadoc_nativewindow_spec" />
         <property name="javadoc.dev" value="${project.root}/javadoc_nativewindow_dev" />
-        <property name="javadoc.windowtitle" value="Native Windowing Interface (NativeWindow) API -- ${nativewindow_base_version} Specification" />
+        <property name="javadoc.windowtitle" value="Native Windowing Interface (NativeWindow) API -- ${jogamp.version.base} Specification" />
         <property name="javadoc.overview" value="../src/nativewindow/classes/javax/media/nativewindow/package.html" />
         <property name="javadoc.spec.packagenames" value="javax.media.nativewindow.*" />
 
@@ -342,7 +342,7 @@
         <includepath path="/usr/local/include" />
       </compiler>
 
-      <compiler id="compiler.cfg.linux.armv7.nativewindow.x11" extends="compiler.cfg.linux.armv7">
+      <compiler id="compiler.cfg.linux.armv6.nativewindow.x11" extends="compiler.cfg.linux.armv6">
         <!-- Need to force /usr/include headers on to include path (after all others), due to crosscompiler usage -->
         <compilerarg value="-idirafter" />
         <compilerarg value="/usr/include" />
@@ -361,7 +361,6 @@
       </compiler>
 
       <compiler id="compiler.cfg.macosx.nativewindow" extends="compiler.cfg.macosx">
-        <compilerarg value="-I${java.osx.frameworks.dir}/JavaNativeFoundation.framework/Headers" />
       </compiler>
 
       <!-- linker configuration -->
@@ -396,7 +395,7 @@
         <syslibset libs="Xrender"/>
       </linker>
 
-      <linker id="linker.cfg.linux.armv7.nativewindow.x11" extends="linker.cfg.linux.armv7">
+      <linker id="linker.cfg.linux.armv6.nativewindow.x11" extends="linker.cfg.linux.armv6">
         <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="X11" />
         <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xxf86vm" />
         <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xrender" />
@@ -446,9 +445,6 @@
         <linkerarg value="QuartzCore" />
         <linkerarg value="-weak_framework" />
         <linkerarg value="Cocoa" />
-        <linkerarg value="-weak_framework" />
-        <linkerarg value="JavaNativeFoundation" />
-        <linkerarg value="-F${java.osx.frameworks.dir}" />
       </linker>
 
       <linker id="linker.cfg.hpux.nativewindow" extends="linker.cfg.hpux">
@@ -487,10 +483,10 @@
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.amd64.nativewindow.x11" />
     </target>
     
-    <target name="c.configure.linux.armv7" if="isLinuxARMv7">
-      <echo message="Linux.armv7" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.armv7.nativewindow.x11" />
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.armv7.nativewindow.x11" />
+    <target name="c.configure.linux.armv6" if="isLinuxARMv6">
+      <echo message="Linux.armv6" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.armv6.nativewindow.x11" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.armv6.nativewindow.x11" />
     </target>
     
     <target name="c.configure.linux.ia64" if="isLinuxIA64">
@@ -535,7 +531,7 @@
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.nativewindow.x11" />
     </target>
 
-    <target name="c.configure.linux" depends="c.configure.linux.armv7,c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.ia64,c.configure.linux.hppa,c.configure.linux.mips,c.configure.linux.mipsel,c.configure.linux.ppc,c.configure.linux.s390,c.configure.linux.sparc,c.configure.x11" if="isLinux" />
+    <target name="c.configure.linux" depends="c.configure.linux.armv6,c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.ia64,c.configure.linux.hppa,c.configure.linux.mips,c.configure.linux.mipsel,c.configure.linux.ppc,c.configure.linux.s390,c.configure.linux.sparc,c.configure.x11" if="isLinux" />
 
     <target name="c.configure.android" if="isAndroid">
       <echo message="Android" />
@@ -695,8 +691,9 @@
                 <includepath path="${src.generated.c}/X11"     if="isX11"/>
                 <includepath path="${src.generated.c}/MacOSX"  if="isOSX"/>
                 <includepath path="${src.generated.c}/Windows" if="isWindows"/>
-                <includepath path="${src.c}/win32"             if="isWindows"/>
                 <includepath path="${src.c}/x11"               if="isX11"/>
+                <includepath path="${src.c}/macosx"            if="isOSX"/>
+                <includepath path="${src.c}/win32"             if="isWindows"/>
                 <includepath path="${src.c}"/>
       
                 <!-- This must come last to not override real include paths -->
@@ -735,20 +732,6 @@
       </sequential>
     </macrodef>  
 
-    <target name="c.fixup.jawt.version.macosx" if="isOSX" unless="setup.noNativeAWT">
-      <!-- Edit the link to the JAWT version in the resulting jnilib
-           file; this isn't strictly needed but seems to allow the
-           universal binaries to work on 10.3 machines as well, which
-           is desirable for some end users -->
-      <apply executable="install_name_tool">
-        <arg value="-change" />
-        <arg value="/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Libraries/libjawt.dylib" />
-        <arg value="/System/Library/Frameworks/JavaVM.framework/Libraries/libjawt.dylib" />
-        <srcfile />
-        <fileset dir="${obj.nativewindow}" includes="libnativewindow_awt.jnilib" />
-      </apply>
-    </target>
-
     <target name="c.build.nativewindow.awt" unless="setup.noNativeAWT">
       <c.build c.compiler.src.files="c.src.files.awt"
                c.compiler.use-jawt="true"
@@ -758,7 +741,7 @@
     </target>
 
     <target name="c.build.nativewindow.windowlib.x11" if="isX11">
-      <javah destdir="${src.generated.c}/X11" classpath="${javah.classpath}" class="jogamp.nativewindow.x11.X11Lib" />
+      <javah destdir="${src.generated.c}/X11" classpath="${javah.classpath}" class="jogamp.nativewindow.x11.X11Lib, jogamp.nativewindow.x11.X11Util" />
 
       <c.build c.compiler.src.files="c.src.files.x11"
                output.lib.name="nativewindow_x11"
@@ -767,8 +750,7 @@
     </target>
 
     <target name="c.build.nativewindow.windowlib.windows" if="isWindows">
-      <javah destdir="${src.generated.c}/Windows" classpath="${javah.classpath}" class="jogamp.nativewindow.windows.GDI" />
-      <javah destdir="${src.generated.c}/Windows" classpath="${javah.classpath}" class="jogamp.nativewindow.windows.GDIUtil" />
+      <javah destdir="${src.generated.c}/Windows" classpath="${javah.classpath}" class="jogamp.nativewindow.windows.GDI, jogamp.nativewindow.windows.GDIUtil" />
 
       <c.build c.compiler.src.files="c.src.files.windows"
                output.lib.name="nativewindow_win32"
@@ -777,8 +759,7 @@
     </target>
 
     <target name="c.build.nativewindow.windowlib.macosx" if="isOSX">
-      <javah destdir="${src.generated.c}/MacOSX" classpath="${javah.classpath}" class="jogamp.nativewindow.macosx.OSXUtil" />
-      <javah destdir="${src.generated.c}/MacOSX" classpath="${javah.classpath}" class="jogamp.nativewindow.jawt.macosx.MacOSXJAWTWindow" />
+      <javah destdir="${src.generated.c}/MacOSX" classpath="${javah.classpath}" class="jogamp.nativewindow.macosx.OSXUtil, jogamp.nativewindow.jawt.macosx.MacOSXJAWTWindow" />
 
       <c.build c.compiler.src.files="c.src.files.macosx"
                output.lib.name="nativewindow_macosx"
@@ -795,7 +776,6 @@
     </target>
 
     <target name="c.build.nativewindow" depends="c.configure,c.build.nativewindow.windowlib,c.build.nativewindow.awt">
-      <antcall target="c.fixup.jawt.version.macosx" inheritrefs="true" />
       <antcall target="c.manifest" inheritRefs="true" />
     </target>
 
@@ -811,16 +791,18 @@
           tofile="${build.nativewindow}/manifest.mf"
           overwrite="true">
           <filterset>
-              <filter token="VERSION" value="${nativewindow.version}"/>
+              <filter token="VERSION" value="${jogamp.version}"/>
+              <filter token="BUILD_VERSION" value="${jogl.version}"/>
               <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
               <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
-              <filter token="BASEVERSION" value="${nativewindow_base_version}"/>
+              <filter token="BASEVERSION" value="${jogamp.version.base}"/>
+              <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
           </filterset>
         </copy>
     </target>
 
     <target name="build-jars-awt" depends="setup-manifestfile" unless="setup.noAWT">
-        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow.awt.jar}" filesonly="true">
+        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow-awt.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.awt}"
                      excludes="${java.excludes.awt}"/>
@@ -828,28 +810,28 @@
     </target>
 
     <target name="build-jars-x11" depends="setup-manifestfile">
-        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow.os.x11.jar}" filesonly="true">
+        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow-os-x11.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.x11}" />
         </jar>
     </target>
 
     <target name="build-jars-windows" depends="setup-manifestfile">
-        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow.os.win.jar}" filesonly="true">
+        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow-os-win.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.windows}" />
         </jar>
     </target>
 
     <target name="build-jars-macosx" depends="setup-manifestfile">
-        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow.os.macosx.jar}" filesonly="true">
+        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow-os-osx.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.macosx}" />
         </jar>
     </target>
 
     <target name="build-jars-javase" depends="setup-manifestfile,build-jars-awt,build-jars-x11,build-jars-windows,build-jars-macosx">
-        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow.core.jar}" filesonly="true">
+        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow-core.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"
                      excludes="${java.part.awt} ${java.part.x11} ${java.part.windows}"/>
@@ -951,7 +933,7 @@
 
     <target name="generate.version.txt" depends="init">
         <!-- Create a version.txt file indicating which version we just built -->
-        <echo message="${nativewindow.version}" file="${build.nativewindow}/version.txt" />
+        <echo message="${jogl.version}" file="${build.nativewindow}/version.txt" />
     </target>
 
 </project>

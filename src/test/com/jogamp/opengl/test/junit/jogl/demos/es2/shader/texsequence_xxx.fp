@@ -1,5 +1,13 @@
 // Copyright 2012 JogAmp Community. All rights reserved.
 
+#if __VERSION__ >= 130
+  #define varying in
+  out vec4 mgl_FragColor;
+  #define texture2D texture
+#else
+  #define mgl_FragColor gl_FragColor   
+#endif
+
 varying  vec2          mgl_texCoord;
 varying  vec4          frontColor;
 
@@ -17,6 +25,6 @@ void main (void)
   }
 
   // mix frontColor with texture ..
-  gl_FragColor = vec4(frontColor*texColor);
+  mgl_FragColor = vec4(frontColor*texColor);
 }
 

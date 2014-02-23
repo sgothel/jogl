@@ -100,6 +100,7 @@ public class SceneUIController implements GLEventListener{
     public void dispose(GLAutoDrawable drawable) {
         System.err.println("SceneUIController: dispose");
         cDrawable = null;
+        drawable.removeGLEventListener(this);
     }
 
     public void reshape(GLAutoDrawable drawable, int x, int y, int width,

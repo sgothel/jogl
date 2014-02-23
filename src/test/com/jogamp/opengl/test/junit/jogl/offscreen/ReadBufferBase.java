@@ -70,7 +70,7 @@ public class ReadBufferBase implements GLEventListener {
 
         _gl.getContext().setGLReadDrawable(externalRead);
         if(_gl.isGL2GL3()) {
-            _gl.getGL2GL3().glReadBuffer(GL2GL3.GL_FRONT);
+            _gl.getGL2GL3().glReadBuffer(GL.GL_FRONT);
         }
         System.out.println("---------------------------");
         System.out.println(_gl.getContext());
@@ -85,9 +85,7 @@ public class ReadBufferBase implements GLEventListener {
     }
 
     public void display(GLAutoDrawable drawable) {
-        GL gl = drawable.getGL();
-
-        readBufferUtil.readPixels(gl, drawable, false);
+        readBufferUtil.readPixels(drawable.getGL(), false);
     }
 
 }

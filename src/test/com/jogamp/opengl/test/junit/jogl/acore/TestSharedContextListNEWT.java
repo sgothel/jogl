@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,23 +20,22 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.io.IOException;
 
-import com.jogamp.common.os.Platform;
 import com.jogamp.newt.opengl.GLWindow;
 
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLPbuffer;
+import javax.media.opengl.GLOffscreenAutoDrawable;
 import javax.media.opengl.GLProfile;
 import com.jogamp.opengl.util.Animator;
 
@@ -47,22 +46,19 @@ import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestSharedContextListNEWT extends UITestCase {
     static GLProfile glp;
     static GLCapabilities caps;
     static int width, height;
-    GLPbuffer sharedDrawable;
+    GLOffscreenAutoDrawable sharedDrawable;
     Gears sharedGears;
 
     @BeforeClass
     public static void initClass() {
-        if(Platform.CPUFamily.X86 != Platform.CPU_ARCH.family) { // FIXME
-            // FIXME: Turns out on some mobile GL drivers and platforms 
-            // using shared context is instable, Linux ARM (Omap4, Tegra2, Mesa3d, ..)
-            setTestSupported(false);
-            return;
-        }
         if(GLProfile.isAvailable(GLProfile.GL2)) {
             glp = GLProfile.get(GLProfile.GL2);
             Assert.assertNotNull(glp);
@@ -76,7 +72,7 @@ public class TestSharedContextListNEWT extends UITestCase {
     }
 
     private void initShared() {
-        sharedDrawable = GLDrawableFactory.getFactory(glp).createGLPbuffer(null, caps, null, width, height, null);
+        sharedDrawable = GLDrawableFactory.getFactory(glp).createOffscreenAutoDrawable(null, caps, null, width, height);
         Assert.assertNotNull(sharedDrawable);
         sharedGears = new Gears();
         Assert.assertNotNull(sharedGears);
@@ -123,27 +119,22 @@ public class TestSharedContextListNEWT extends UITestCase {
         Animator animator = new Animator();
         GLWindow f1 = runTestGL(animator, 0, 0, true, false);
         InsetsImmutable insets = f1.getInsets();
-        GLWindow f2 = runTestGL(animator, f1.getX()+width+insets.getTotalWidth(), 
+        GLWindow f2 = runTestGL(animator, f1.getX()+width+insets.getTotalWidth(),
                                           f1.getY()+0, true, false);
-        GLWindow f3 = runTestGL(animator, f1.getX()+0, 
+        GLWindow f3 = runTestGL(animator, f1.getX()+0,
                                           f1.getY()+height+insets.getTotalHeight(), false, true);
-        animator.setUpdateFPSFrames(1, null);        
+        animator.setUpdateFPSFrames(1, null);
         animator.start();
         while(animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
         }
         animator.stop();
 
-        // here we go again: On AMD/X11 the create/destroy sequence must be the same
-        // even though this is against the chicken/egg logic here ..
-        releaseShared();
-
         f1.destroy();
         f2.destroy();
         f3.destroy();
 
-        // see above ..
-        // releaseShared();
+        releaseShared();
     }
 
     static long duration = 500; // ms
@@ -160,7 +151,7 @@ public class TestSharedContextListNEWT extends UITestCase {
         /**
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
         System.err.println("Press enter to continue");
-        System.err.println(stdin.readLine()); */         
+        System.err.println(stdin.readLine()); */
         org.junit.runner.JUnitCore.main(TestSharedContextListNEWT.class.getName());
     }
 }

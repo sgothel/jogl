@@ -76,7 +76,7 @@
                         <li> <b>GNU Linux</b> x86, 32- and 64-bit<br/>
                             You may have to install a few developer packages ...
                             <ul>
-                                <li> <b>[K]Ubuntu</b> 10.04 or later
+                                <li> <b>Debian</b> 5.00 or later
                                     <ul>
                                         <li>git</li>
                                         <li>gcc</li>
@@ -91,8 +91,23 @@
                                         <li>libxinerama-dev</li>
                                         <li>libxrandr-dev</li>
                                         <li>libxrender-dev</li>
+                                        <li>libxcursor-dev</li>
                                         <li>Optional: Your card vendor's proprietary driver</li>
                                     </ul>
+                                    One liner install command:
+                                    <pre>
+apt-get install git-all gcc libgl1-mesa-dev libglu1-mesa-dev xorg-dev libice-dev libsm-dev libx11-dev libxext-dev libxxf86vm-dev libxinerama-dev libxrandr-dev libxrender-dev libxcursor-dev libc6-dev g++ libstdc++6 libstdc++6-4.7-dev
+                                    </pre>
+                                    Optional: Add <i>kernel</i> build utilities:
+                                    <pre>
+apt-get install kernel-package build-essential 
+                                    </pre>
+                                    Optional: Add <i>multiarch</i> i386 next to amd64, requires Debian 7.00 or later:
+                                    <pre>
+dpkg --add-architecture i386
+apt-get update
+apt-get install ia32-libs ia32-libs-gtk gcc-multilib lib32gcc1 lib32gomp1 lib32itm1 lib32quadmath0 libc6-i386 libc6-dev-i386 g++-multilib lib32stdc++6
+                                    </pre>
                                 </li>
                                 <li> <b>OpenSuSE</b> 10.2 or later
                                     <ul>
@@ -119,6 +134,7 @@
                                         <li>libXinerama-devel</li>
                                         <li>libXrandr-devel</li>
                                         <li>libXrender-devel</li>
+                                        <li>libXcursor-devel</li>
                                         <li>Optional: Your card vendor's proprietary driver</li>
                                     </ul>
                                 </li>
@@ -136,25 +152,44 @@
                                 <li> <a href="http://developer.apple.com/technologies/xcode.html">Xcode</a> for gcc, etc (included in OSX)</li>
                             </ul>
                         </li>
-                        <li> <b>Windows</b>/x86 (32-bit)
+                        <li> <b>Windows</b>/x86 (32 bit)
                             <ul>
                                 <li>Windows XP or later </li>
                                 <li>git, see above</li>
-                                <li> <a href="http://www.mingw.org/">MinGW</a><br/>
-                                    Read <a href="http://www.mingw.org/wiki/Getting_Started">MinGW Getting Started</a>.<br/>
-                                    We used the download script <code>mingwdl.sh</code> shown at
-                                    <a href="http://www.mingw.org/wiki/HOWTO_Install_the_MinGW_GCC_Compiler_Suite">HOWTO Install the MinGW GCC Compiler Suite</a>.<br/></li>
-                                <li> Not supported: Microsoft Visual C++ 6.0 or later, but may work. Last successful try in 2008.</li>
+                                <li> <a href="http://mingw-w64.sourceforge.net/">MinGW64</a>
+                                  <ul>
+                                    <li> <a href="http://sourceforge.net/projects/mingwbuilds/files/mingw-builds-install/mingw-builds-install.exe/download">Installer</a>
+                                      <ul>
+                                        <li>mingw-build-install</li>
+                                        <li>version: 4.8.1</li>
+                                        <li>host: x32</li>
+                                        <li>threading: win32</li>
+                                        <li>exceptions: SJLJ</li>
+                                        <li>revision: 5</li>
+                                      </ul></li>
+                                    <li> or <a href="http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/">manual</a> 
+                                         via  <a href="http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/4.8.1/32-bit/threads-win32/sjlj/">7z archive file</a></li>
+                                  </ul></li>
                             </ul>
                         </li>
-                        <li> <b>Windows</b>/x86_64 (64-bit)<br/>
+                        <li> <b>Windows</b>/x86_64 (64-bit)
                             <ul>
                                 <li>Windows XP or later </li>
                                 <li>git, see above</li>
-                                <li> <a href="http://mingw-w64.sourceforge.net/">MinGW64</a><br/>
-                                    We used the build <code>mingw-w64-bin_x86_64-mingw_20100515_sezero.zip</code> available at
-                                    <a href="http://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/sezero_20100515/">MingW64 Personal Builds - sezero</a>.<br/></li>
-                                <li> Not supported: Microsoft Visual C++, never tried.</li>
+                                <li> <a href="http://mingw-w64.sourceforge.net/">MinGW64</a>
+                                  <ul>
+                                    <li> <a href="http://sourceforge.net/projects/mingwbuilds/files/mingw-builds-install/mingw-builds-install.exe/download">Installer</a>
+                                      <ul>
+                                        <li>mingw-build-install</li>
+                                        <li>version: 4.8.1</li>
+                                        <li>host: x64</li>
+                                        <li>threading: win32</li>
+                                        <li>exceptions: SJLJ</li>
+                                        <li>revision: 5</li>
+                                      </ul></li>
+                                    <li> or <a href="http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/">manual</a> 
+                                         via  <a href="http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/4.8.1/64-bit/threads-win32/sjlj/">7z archive file</a></li>
+                                  </ul></li>
                             </ul>
                         </li>
                     </ul>

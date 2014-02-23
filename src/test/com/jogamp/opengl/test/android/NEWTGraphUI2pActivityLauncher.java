@@ -7,7 +7,8 @@ import com.jogamp.opengl.test.android.LauncherUtil.OrderedProperties;
 
 public class NEWTGraphUI2pActivityLauncher extends LauncherUtil.BaseActivityLauncher {
     static String demo = "com.jogamp.opengl.test.android.NEWTGraphUI2pActivity";
-    static String[] pkgs = new String[] { "com.jogamp.opengl.test" };
+    static String[] sys_pkgs = new String[] { "com.jogamp.common", "javax.media.opengl" };    
+    static String[] usr_pkgs = new String[] { "com.jogamp.opengl.test" };
     
     @Override
     public void init() {
@@ -37,8 +38,14 @@ public class NEWTGraphUI2pActivityLauncher extends LauncherUtil.BaseActivityLaun
     public String getActivityName() {
         return demo;
     }
+    
     @Override
-    public List<String> getPackages() {
-        return Arrays.asList(pkgs);
+    public List<String> getSysPackages() {
+        return Arrays.asList(sys_pkgs);
+    }
+    
+    @Override
+    public List<String> getUsrPackages() {
+        return Arrays.asList(usr_pkgs);
     }
 }

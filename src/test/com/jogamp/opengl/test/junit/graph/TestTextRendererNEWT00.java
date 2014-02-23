@@ -45,19 +45,22 @@ import javax.media.opengl.GLRunnable;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.TextRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
-import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestTextRendererNEWT00 extends UITestCase {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
@@ -193,7 +196,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
             pw.printf("%s-%03dx%03d-T%04d", objName, drawable.getWidth(), drawable.getHeight(), texSize[0]);
             
             final String filename = dir + sw +".png";
-            if(screenshot.readPixels(drawable.getGL(), drawable, false)) {
+            if(screenshot.readPixels(drawable.getGL(), false)) {
                 screenshot.write(new File(filename));
             }
         }

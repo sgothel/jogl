@@ -55,10 +55,12 @@ public class X11GLCapabilities extends GLCapabilities {
       this.fbcfgid = VisualIDHolder.VID_UNDEFINED;
   }
 
+  @Override
   public Object cloneMutable() {
     return clone();
   }
 
+  @Override
   public Object clone() {
     try {
       return super.clone();
@@ -86,9 +88,10 @@ public class X11GLCapabilities extends GLCapabilities {
               return getFBConfigID();
           default:
               throw new NativeWindowException("Invalid type <"+type+">");
-      }      
+      }
   }
-  
+
+  @Override
   public StringBuilder toString(StringBuilder sink) {
     if(null == sink) {
         sink = new StringBuilder();

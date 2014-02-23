@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,17 +20,19 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.newt.parenting;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import java.awt.Button;
 import java.awt.BorderLayout;
@@ -49,6 +51,7 @@ import java.lang.reflect.InvocationTargetException;
 import com.jogamp.opengl.test.junit.util.*;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestParenting02AWT extends UITestCase {
     static int width, height;
     static long durationPerTest = 500;
@@ -62,22 +65,22 @@ public class TestParenting02AWT extends UITestCase {
     }
 
     @Test
-    public void testWindowParenting01NewtChildOnAWTParentLayouted() throws InterruptedException, InvocationTargetException {
+    public void test01NewtChildOnAWTParentLayouted() throws InterruptedException, InvocationTargetException {
         runNewtChildOnAWTParent(true, false);
     }
 
     @Test
-    public void testWindowParenting02NewtChildOnAWTParentLayoutedDef() throws InterruptedException, InvocationTargetException {
+    public void test02NewtChildOnAWTParentLayoutedDef() throws InterruptedException, InvocationTargetException {
         runNewtChildOnAWTParent(true, true);
     }
 
     @Test
-    public void testWindowParenting03NewtChildOnAWTParentDirect() throws InterruptedException, InvocationTargetException {
+    public void test03NewtChildOnAWTParentDirect() throws InterruptedException, InvocationTargetException {
         runNewtChildOnAWTParent(false, false);
     }
 
     @Test
-    public void testWindowParenting04NewtChildOnAWTParentDirectDef() throws InterruptedException, InvocationTargetException {
+    public void test04NewtChildOnAWTParentDirectDef() throws InterruptedException, InvocationTargetException {
         runNewtChildOnAWTParent(false, true);
     }
 
@@ -118,11 +121,10 @@ public class TestParenting02AWT extends UITestCase {
             }
         }
 
-        // frame.setSize(width, height);
-        frame.setBounds(100, 100, width, height);
-
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
+                // frame.setSize(width, height);
+                frame.setBounds(100, 100, width, height);
                 frame.setVisible(true);
             }});
         // X11: true, Windows: false - Assert.assertEquals(true, glWindow.isVisible());
@@ -149,6 +151,8 @@ public class TestParenting02AWT extends UITestCase {
             glWindow.display();
         } while(!glWindow.isNativeValid()) ;
 
+        final boolean wasOnscreen = glWindow.getChosenCapabilities().isOnscreen();
+
         Assert.assertEquals(true, glWindow.isNativeValid());
         Assert.assertNotNull(glWindow.getParent());
         if(verbose) {
@@ -164,7 +168,9 @@ public class TestParenting02AWT extends UITestCase {
                     frame.validate();
                 }});
             Assert.assertEquals(false, glWindow.isVisible());
-            Assert.assertEquals(true, glWindow.isNativeValid());
+            if( wasOnscreen ) {
+                Assert.assertEquals(true, glWindow.isNativeValid());
+            } // else OK to be destroyed - due to offscreen/onscreen transition
             Assert.assertNull(glWindow.getParent());
             if(verbose) {
                 System.out.println("+++++++++++++++++++ REMOVED!");
@@ -197,7 +203,7 @@ public class TestParenting02AWT extends UITestCase {
             Thread.sleep(step);
             duration -= step;
 
-            while( null != ( event = (NEWTEvent) eventFifo.get() ) ) {
+            while( null != ( event = eventFifo.get() ) ) {
                 Window source = (Window) event.getSource();
                 if(event instanceof KeyEvent) {
                     KeyEvent keyEvent = (KeyEvent) event;
@@ -209,7 +215,7 @@ public class TestParenting02AWT extends UITestCase {
                             source.setFullscreen(!source.isFullscreen());
                             break;
                     }
-                } 
+                }
             }
         }
         if(verbose) {

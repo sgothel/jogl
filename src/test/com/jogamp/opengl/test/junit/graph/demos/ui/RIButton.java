@@ -32,9 +32,9 @@ import javax.media.opengl.GL2ES2;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
+import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.test.junit.graph.demos.ui.opengl.UIRegion;
 
 /** GPU based resolution independent Button impl

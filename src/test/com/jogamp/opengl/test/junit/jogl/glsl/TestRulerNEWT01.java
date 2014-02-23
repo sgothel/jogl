@@ -28,8 +28,8 @@
 package com.jogamp.opengl.test.junit.jogl.glsl;
 
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.newt.ScreenMode;
-import com.jogamp.newt.util.MonitorMode;
+import com.jogamp.newt.MonitorDevice;
+import com.jogamp.newt.MonitorMode;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderCode;
@@ -53,7 +53,10 @@ import javax.media.opengl.GLUniformData;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestRulerNEWT01 extends UITestCase {
     static long durationPerTest = 10; // ms
 
@@ -74,14 +77,16 @@ public class TestRulerNEWT01 extends UITestCase {
         final ShaderState st = new ShaderState();
         
         final ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, RedSquareES2.class, "shader",
-                "shader/bin", "default", false);
+                "shader/bin", "default", true);
         final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, RedSquareES2.class, "shader",
-                "shader/bin", "ruler", false);
+                "shader/bin", "ruler", true);
+        vp0.defaultShaderCustomization(gl, true, true);
+        fp0.defaultShaderCustomization(gl, true, true);
 
         final ShaderProgram sp0 = new ShaderProgram();
         sp0.add(gl, vp0, System.err);
         sp0.add(gl, fp0, System.err);       
-        Assert.assertTrue(0<=sp0.program()); 
+        Assert.assertTrue(0 != sp0.program()); 
         Assert.assertTrue(!sp0.inUse());
         Assert.assertTrue(!sp0.linked());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
@@ -107,11 +112,13 @@ public class TestRulerNEWT01 extends UITestCase {
         Assert.assertNotNull(winctx);
         Assert.assertNotNull(winctx.window);
         Assert.assertNotNull(winctx.window.getScreen());
-        ScreenMode sm = winctx.window.getScreen().getCurrentScreenMode();
-        Assert.assertNotNull(sm);
-        System.err.println(sm);
-        final MonitorMode mmode = sm.getMonitorMode();
-        final DimensionImmutable sdim = mmode.getScreenSizeMM();
+        final MonitorDevice monitor = winctx.window.getMainMonitor();
+        Assert.assertNotNull(monitor);
+        System.err.println(monitor);
+        final MonitorMode mmode = monitor.getCurrentMode();
+        Assert.assertNotNull(mmode);
+        System.err.println(mmode);
+        final DimensionImmutable sdim = monitor.getSizeMM();
         final DimensionImmutable spix = mmode.getSurfaceSize().getResolution();   
         final GLUniformData rulerPixFreq = new GLUniformData("gcu_RulerPixFreq", 2, Buffers.newDirectFloatBuffer(2));
         final FloatBuffer rulerPixFreqV = (FloatBuffer) rulerPixFreq.getBuffer();

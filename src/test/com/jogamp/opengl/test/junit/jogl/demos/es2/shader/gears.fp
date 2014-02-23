@@ -1,9 +1,11 @@
 // Copyright (C) 2011 JogAmp Community. All rights reserved.
 // Details see GearsES2.java
 
-#ifdef GL_ES
-  precision mediump float;
-  precision mediump int;
+#if __VERSION__ >= 130
+  #define varying in
+  out vec4 mgl_FragColor;
+#else
+  #define mgl_FragColor gl_FragColor   
 #endif
 
 uniform vec4 color;
@@ -42,5 +44,5 @@ void main()
         specular += color * pow(NdotHV, matShininess) * attenuation * matSpecular;
     }
         
-    gl_FragColor = ambient + diffuse + specular ;
+    mgl_FragColor = ambient + diffuse + specular ;
 }

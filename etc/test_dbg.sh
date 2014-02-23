@@ -12,7 +12,7 @@ echo LIBGL_DRIVERS_PATH: $LIBGL_DRIVERS_PATH 2>&1 | tee -a $logfile
 echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a $logfile
 echo java $X_ARGS $D_ARGS $* 2>&1 | tee -a $logfile
 
-CLASSPATH=jar/gluegen-rt.jar:jar/jogl.all.jar
+CLASSPATH=jar/gluegen-rt.jar:jar/jogl-all.jar
 export CLASSPATH
 
 echo CLASSPATH: $CLASSPATH

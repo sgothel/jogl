@@ -3,6 +3,8 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 import jogamp.nativewindow.x11.X11Util;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GLCapabilities;
@@ -14,6 +16,7 @@ import java.awt.Frame;
 /**
  * Tests the closing the device of GLCanvas in JOGL
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestAWTCloseX11DisplayBug565 {
 
   @Test
@@ -29,19 +32,16 @@ public class TestAWTCloseX11DisplayBug565 {
         }
                 
         GLCapabilitiesImmutable caps = new GLCapabilities( GLProfile.getDefault( ) );
-        Frame frame = new Frame( "AWT Resource X11 Leak - #" + j );
+        final Frame frame = new Frame( "AWT Resource X11 Leak - #" + j );
   
-        GLCanvas glCanvas = new GLCanvas( caps );
+        final GLCanvas glCanvas = new GLCanvas( caps );
         frame.add( glCanvas );
-        frame.setSize( 128, 128 );
-  
-        final Frame _frame = frame;
-        final GLCanvas _glCanvas = glCanvas;
   
         try {
           javax.swing.SwingUtilities.invokeAndWait( new Runnable() {
             public void run() {
-              _frame.setVisible( true );
+              frame.setSize( 128, 128 );
+              frame.setVisible( true );
             }
           } );
         }
@@ -53,9 +53,9 @@ public class TestAWTCloseX11DisplayBug565 {
         try {
           javax.swing.SwingUtilities.invokeAndWait( new Runnable() {
             public void run() {
-              _frame.setVisible( false );
-              _frame.remove( _glCanvas );
-              _frame.dispose();
+              frame.setVisible( false );
+              frame.remove( glCanvas );
+              frame.dispose();
             }
           } );
         }

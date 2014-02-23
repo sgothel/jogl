@@ -46,15 +46,15 @@ public class ResourceHeader {
     public int getDataOffset() {
         return dataOffset;
     }
-    
+
     public int getMapOffset() {
         return mapOffset;
     }
-    
+
     public int getDataLength() {
         return dataLen;
     }
-    
+
     public int getMapLength() {
         return mapLen;
     }

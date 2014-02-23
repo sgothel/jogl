@@ -1,9 +1,0 @@
-//Copyright 2010 JogAmp Community. All rights reserved.
-
-#version 100
-
-precision mediump float;
-precision mediump int;
-
-#include curverenderer01-xxx.vp
-

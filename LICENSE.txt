@@ -45,7 +45,9 @@ L.1) The JOGL source tree contains code from the JogAmp Community
    You can address the JogAmp Community via:
        Web                http://jogamp.org/
        Forum/Mailinglist  http://forum.jogamp.org
-       JogAmp Channel     server: conference.jabber.org room: jogamp
+       Chatrooms
+         IRC              irc.freenode.net #jogamp 
+         Jabber           conference.jabber.org room: jogamp (deprecated!)
        Repository         http://jogamp.org/git/
        Email              mediastream _at_ jogamp _dot_ org
 
@@ -344,7 +346,7 @@ A.6) The JOGL source tree contains code from Hernan J. Gonzalez and Shawn Hartso
 
    PNGJ: Java library for reading and writing PNG images.
 
-   Version 0.85  (1 April 2012)
+   Version 1.12  (3 Dec 2012)
 
    <http://code.google.com/p/pngj/>
 

@@ -72,7 +72,7 @@ public class FeatureRecord {
     public int getTag() {
         return _tag;
     }
-    
+
     public int getOffset() {
         return _offset;
     }

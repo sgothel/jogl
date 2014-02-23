@@ -35,4 +35,5 @@ function checkresult() {
 }
 
 checkresult results
+checkresult results-java7
 checkresult results-x32

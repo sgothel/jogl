@@ -36,7 +36,7 @@ public abstract class Issue344Base implements GLEventListener
     protected abstract String getText();
 
     protected void run(String[] args) {
-        Frame frame = new Frame(getClass().getName());
+        final Frame frame = new Frame(getClass().getName());
         frame.setLayout(new BorderLayout());
 
         GLCanvas canvas = new GLCanvas();
@@ -53,7 +53,14 @@ public abstract class Issue344Base implements GLEventListener
                         }).start();
                 }
             });
-        frame.setVisible(true);
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.setVisible(true);
+                } } );
+        } catch(Exception ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     public void init(GLAutoDrawable drawable)

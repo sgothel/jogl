@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -58,6 +58,7 @@ class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
     private Map<RepaintManager,RepaintManager> repaintManagers = new IdentityHashMap<RepaintManager,RepaintManager>();
     private Map<JComponent,Rectangle>  dirtyRegions    = new IdentityHashMap<JComponent,Rectangle>();
 
+    @Override
     public void display(ArrayList<GLAutoDrawable> drawables,
                         boolean ignoreExceptions,
                         boolean printExceptions) {
@@ -97,6 +98,7 @@ class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
     // Uses RepaintManager APIs to implement more efficient redrawing of
     // the Swing widgets we're animating
     private Runnable drawWithRepaintManagerRunnable = new Runnable() {
+            @Override
             public void run() {
                 for (Iterator<JComponent> iter = lightweights.iterator(); iter.hasNext(); ) {
                     JComponent comp = iter.next();
@@ -164,7 +166,8 @@ class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
             }
         };
 
+    @Override
     public boolean blockUntilDone(Thread thread) {
-        return ((Thread.currentThread() != thread) && !EventQueue.isDispatchThread());
+        return Thread.currentThread() != thread && !EventQueue.isDispatchThread();
     }
 }

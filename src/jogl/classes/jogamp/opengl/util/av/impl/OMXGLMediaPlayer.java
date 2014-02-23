@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -29,11 +29,9 @@
 package jogamp.opengl.util.av.impl;
 
 import java.io.IOException;
-import java.net.URL;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
 
 import com.jogamp.opengl.util.texture.TextureSequence;
 
@@ -47,18 +45,18 @@ import jogamp.opengl.util.av.EGLMediaPlayerImpl;
  */
 public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     static final boolean available;
-    
+
     static {
-        // OMX binding is included in jogl_desktop and jogl_mobile     
+        available = false;
+        /** FIXME!
+        // OMX binding is included in jogl_desktop and jogl_mobile
         GLProfile.initSingleton();
-        available = initIDs0();
+        available = initIDs0(); */
     }
-    
+
     public static final boolean isAvailable() { return available; }
-    
+
     protected long moviePtr = 0;
-    
-    protected TextureSequence.TextureFrame lastTex = null;
 
     public OMXGLMediaPlayer() {
         super(TextureType.KHRImage, true);
@@ -72,51 +70,60 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
         moviePtr = _createInstance();
         if(0==moviePtr) {
             throw new GLException("Couldn't create OMXInstance");
-        }        
+        }
     }
-    
+
     @Override
-    protected TextureSequence.TextureFrame createTexImage(GL gl, int idx, int[] tex) {
-        final EGLTextureFrame eglTex = (EGLTextureFrame) super.createTexImage(gl, idx, tex);
-        _setStreamEGLImageTexture2D(moviePtr, idx, tex[idx], eglTex.getImage(), eglTex.getSync());
-        lastTex = eglTex;
+    protected TextureSequence.TextureFrame createTexImage(GL gl, int texName) {
+        final EGLTextureFrame eglTex = (EGLTextureFrame) super.createTexImage(gl, texName);
+        _setStreamEGLImageTexture2D(moviePtr, texName, eglTex.getImage(), eglTex.getSync());
         return eglTex;
     }
-    
+
     @Override
-    protected void destroyTexImage(GL gl, TextureSequence.TextureFrame imgTex) {
-        lastTex = null;
-        super.destroyTexImage(gl, imgTex);        
+    protected void destroyTexFrame(GL gl, TextureSequence.TextureFrame imgTex) {
+        super.destroyTexFrame(gl, imgTex);
     }
-    
+
     @Override
     protected void destroyImpl(GL gl) {
-        _detachVideoRenderer(moviePtr);
         if (moviePtr != 0) {
+            _stop(moviePtr);
+            _detachVideoRenderer(moviePtr);
             _destroyInstance(moviePtr);
             moviePtr = 0;
         }
     }
-    
+
     @Override
-    protected void initGLStreamImpl(GL gl, int[] texNames) throws IOException {
+    protected void initStreamImpl(int vid, int aid) throws IOException {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }
-        final URL url = urlConn.getURL();
-        if(!url.getProtocol().equals("file")) {
-            throw new IOException("Only file URLs are allowed: "+url);            
+        if(!streamLoc.getScheme().equals("file")) {
+            throw new IOException("Only file schemes are allowed: "+streamLoc);
         }
-        final String path=url.getPath();
-        System.out.println("setURL: clean path "+path);
-    
-        System.out.println("setURL: p1 "+this);
+        final String path=streamLoc.getPath();
+        if(DEBUG) {
+            System.out.println("initGLStream: clean path "+path);
+        }
+
+        if(DEBUG) {
+            System.out.println("initGLStream: p1 "+this);
+        }
         _setStream(moviePtr, textureCount, path);
-        System.out.println("setURL: p2 "+this);        
+        if(DEBUG) {
+            System.out.println("initGLStream: p2 "+this);
+        }
     }
-    
     @Override
-    protected int getCurrentPositionImpl() {
+    protected final void initGLImpl(GL gl) throws IOException, GLException {
+        // NOP
+        isInGLOrientation = true;
+    }
+
+    @Override
+    protected int getAudioPTSImpl() {
         return 0!=moviePtr ? _getCurrentPosition(moviePtr) : 0;
     }
 
@@ -130,7 +137,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
 
     @Override
-    public synchronized boolean startImpl() {
+    public synchronized boolean playImpl() {
         if(0==moviePtr) {
             return false;
         }
@@ -150,16 +157,6 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
 
     /** @return time position after issuing the command */
     @Override
-    public synchronized boolean stopImpl() {
-        if(0==moviePtr) {
-            return false;
-        }
-        _stop(moviePtr);
-        return true;
-    }
-
-    /** @return time position after issuing the command */
-    @Override
     protected int seekImpl(int msec) {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
@@ -168,36 +165,33 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
 
     @Override
-    protected TextureSequence.TextureFrame getLastTextureImpl() {
-        return lastTex;
-    }
-    
-    @Override
-    protected TextureSequence.TextureFrame getNextTextureImpl(GL gl, boolean blocking) {
+    protected int getNextTextureImpl(GL gl, TextureFrame nextFrame) {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }
-        final int nextTex = _getNextTextureID(moviePtr, blocking);
+        final int nextTex = _getNextTextureID(moviePtr, true);
         if(0 < nextTex) {
-            final TextureSequence.TextureFrame eglImgTex = texFrameMap.get(new Integer(_getNextTextureID(moviePtr, blocking)));
+            // FIXME set pts !
+            /* FIXME
+            final TextureSequence.TextureFrame eglImgTex =
+                    texFrameMap.get(new Integer(_getNextTextureID(moviePtr, blocking)));
             if(null!=eglImgTex) {
                 lastTex = eglImgTex;
-            }
+            } */
         }
-        return lastTex;
+        return 0; // FIXME: return pts
     }
-    
+
     private String replaceAll(String orig, String search, String repl) {
-        String dest=null;
+        StringBuilder dest = new StringBuilder();
         // In case replaceAll / java.util.regex.* is not supported (-> CVM)
         int i=0,j;
-        dest = new String();
         while((j=orig.indexOf(search, i))>=0) {
-            dest=dest.concat(orig.substring(i, j));
-            dest=dest.concat(repl);
+            dest.append(orig.substring(i, j));
+            dest.append(repl);
             i=j+1;
         }
-        return dest.concat(orig.substring(i, orig.length()));
+        return dest.append(orig.substring(i, orig.length())).toString();
     }
 
     private void errorCheckEGL(String s) {
@@ -208,15 +202,15 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
 
     private static native boolean initIDs0();
-    private native long _createInstance();    
+    private native long _createInstance();
     private native void _destroyInstance(long moviePtr);
-    
+
     private native void _detachVideoRenderer(long moviePtr); // stop before
     private native void _attachVideoRenderer(long moviePtr); // detach before
     private native void _setStream(long moviePtr, int textureNum, String path);
     private native void _activateStream(long moviePtr);
-    
-    private native void _setStreamEGLImageTexture2D(long moviePtr, int i, int tex, long image, long sync);
+
+    private native void _setStreamEGLImageTexture2D(long moviePtr, int tex, long image, long sync);
     private native int  _seek(long moviePtr, int position);
     private native void _setPlaySpeed(long moviePtr, float rate);
     private native void _play(long moviePtr);

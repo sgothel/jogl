@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -39,33 +39,40 @@ import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.VisualIDHolder;
 
 import com.jogamp.nativewindow.x11.X11GraphicsConfiguration;
 import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 
 public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactory {
     public static void registerFactory() {
-        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.x11.X11GraphicsDevice.class, new X11GraphicsConfigurationFactory());
-    }    
+        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.x11.X11GraphicsDevice.class, CapabilitiesImmutable.class, new X11GraphicsConfigurationFactory());
+    }
     private X11GraphicsConfigurationFactory() {
     }
-    
+
+    @Override
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
-        CapabilitiesImmutable  capsChosen, CapabilitiesImmutable capsRequested, CapabilitiesChooser chooser, AbstractGraphicsScreen screen)
+        CapabilitiesImmutable  capsChosen, CapabilitiesImmutable capsRequested, CapabilitiesChooser chooser, AbstractGraphicsScreen screen, int nativeVisualID)
         throws IllegalArgumentException, NativeWindowException {
 
         if(!(screen instanceof X11GraphicsScreen)) {
             throw new NativeWindowException("Only valid X11GraphicsScreen are allowed");
         }
-        final X11Capabilities x11CapsChosen = new X11Capabilities(getXVisualInfo(screen, capsChosen)); 
-        AbstractGraphicsConfiguration res = new X11GraphicsConfiguration((X11GraphicsScreen)screen,  x11CapsChosen, capsRequested, x11CapsChosen.getXVisualInfo());
+        final X11Capabilities x11CapsChosen;
+        if(VisualIDHolder.VID_UNDEFINED == nativeVisualID) {
+            x11CapsChosen = new X11Capabilities(getXVisualInfo(screen, capsChosen));
+        } else {
+            x11CapsChosen = new X11Capabilities(getXVisualInfo(screen, nativeVisualID));
+        }
+        final AbstractGraphicsConfiguration res = new X11GraphicsConfiguration((X11GraphicsScreen)screen,  x11CapsChosen, capsRequested, x11CapsChosen.getXVisualInfo());
         if(DEBUG) {
-            System.err.println("X11GraphicsConfigurationFactory.chooseGraphicsConfigurationImpl("+screen+","+capsChosen+"): "+res);
+            System.err.println("X11GraphicsConfigurationFactory.chooseGraphicsConfigurationImpl(visualID 0x"+Integer.toHexString(nativeVisualID)+", "+screen+","+capsChosen+"): "+res);
         }
         return res;
     }
 
-    public static XVisualInfo getXVisualInfo(AbstractGraphicsScreen screen, long visualID)
+    public static XVisualInfo getXVisualInfo(AbstractGraphicsScreen screen, int visualID)
     {
         XVisualInfo xvi_temp = XVisualInfo.create();
         xvi_temp.setVisualid(visualID);
@@ -103,7 +110,7 @@ public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactor
         XVisualInfo best=null;
         int rdepth = capabilities.getRedBits() + capabilities.getGreenBits() + capabilities.getBlueBits() + capabilities.getAlphaBits();
         for (int i = 0; vinfos!=null && i < num[0]; i++) {
-            if ( best == null || 
+            if ( best == null ||
                  best.getDepth() < vinfos[i].getDepth() )
             {
                 best = vinfos[i];

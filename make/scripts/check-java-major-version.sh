@@ -24,4 +24,8 @@ function do_it() {
 }
 
 do_it $1 2>&1 | tee check-java-major-version.log
+echo 
+echo VERSIONS found:
+echo
+grep 'major version' check-java-major-version.log | sort -u
 

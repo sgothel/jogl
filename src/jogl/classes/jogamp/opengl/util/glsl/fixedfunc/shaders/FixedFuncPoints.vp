@@ -1,0 +1,40 @@
+
+#if __VERSION__ >= 130
+  #define attribute in
+  #define varying out
+#endif
+
+#include es_precision.glsl
+
+#include mgl_const.glsl
+#include mgl_uniform.glsl
+#include mgl_attribute.glsl
+#include mgl_varying.glsl
+
+#include mgl_settexcoord.vp
+
+void main(void)
+{
+  if( mgl_ColorEnabled > 0 ) {
+    frontColor = mgl_Color;
+  } else {
+    frontColor = mgl_ColorStatic;
+  }
+
+  vec4 eyeCoord = mgl_PMVMatrix[1] * mgl_Vertex;
+  gl_Position = mgl_PMVMatrix[0] * eyeCoord;
+
+  float dist = distance(eyeCoord, vec4(0.0, 0.0, 0.0, 1.0));
+  float atten = sqrt( 1.0 / ( pointDistanceConstantAtten +
+                              ( pointDistanceLinearAtten +
+                                pointDistanceQuadraticAtten * dist
+                              ) * dist
+                            )
+                    );
+  float size = clamp(pointSize * atten, pointSizeMin, pointSizeMax);
+  gl_PointSize = max(size, pointFadeThresholdSize);
+
+  float fade = min(size, pointFadeThresholdSize) / pointFadeThresholdSize;
+  frontColor.a *= fade * fade;
+}
+

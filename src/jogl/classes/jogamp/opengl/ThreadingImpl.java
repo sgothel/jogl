@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2009 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  */
 
 package jogamp.opengl;
@@ -49,14 +49,14 @@ import com.jogamp.common.util.ReflectionUtil;
 
 public class ThreadingImpl {
     public enum Mode {
-        MT(0), ST_AWT(1), ST_WORKER(2); 
-        
+        MT(0), ST_AWT(1), ST_WORKER(2);
+
         public final int id;
 
         Mode(int id){
             this.id = id;
         }
-    }    
+    }
 
     protected static final boolean DEBUG = Debug.debug("Threading");
 
@@ -68,10 +68,11 @@ public class ThreadingImpl {
     private static boolean _isX11;
 
     private static final ToolkitThreadingPlugin threadingPlugin;
-  
+
     static {
         threadingPlugin =
             AccessController.doPrivileged(new PrivilegedAction<ToolkitThreadingPlugin>() {
+                    @Override
                     public ToolkitThreadingPlugin run() {
                         final String singleThreadProp;
                         {
@@ -89,13 +90,12 @@ public class ThreadingImpl {
                         // problems.
                         hasAWT = GLProfile.isAWTAvailable();
 
-                        String osType = NativeWindowFactory.getNativeWindowType(false);
-                        _isX11 = NativeWindowFactory.TYPE_X11.equals(osType);
+                        _isX11 = NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(false);
 
                         // default setting
                         singleThreaded = true;
                         mode  = ( hasAWT ? Mode.ST_AWT : Mode.ST_WORKER );
-                        
+
                         if (singleThreadProp != null) {
                             if (singleThreadProp.equals("true") ||
                                 singleThreadProp.equals("auto")) {
@@ -114,7 +114,7 @@ public class ThreadingImpl {
                                 throw new RuntimeException("Unsupported value for property jogl.1thread: "+singleThreadProp+", should be [true/auto, worker, awt or false]");
                             }
                         }
-                        
+
                         ToolkitThreadingPlugin threadingPlugin=null;
                         if(hasAWT) {
                             // try to fetch the AWTThreadingPlugin
@@ -140,9 +140,9 @@ public class ThreadingImpl {
     public static boolean isX11() { return _isX11; }
     public static Mode getMode() { return mode; }
 
-    /** If an implementation of the javax.media.opengl APIs offers a 
-        multithreading option but the default behavior is single-threading, 
-        this API provides a mechanism for end users to disable single-threading 
+    /** If an implementation of the javax.media.opengl APIs offers a
+        multithreading option but the default behavior is single-threading,
+        this API provides a mechanism for end users to disable single-threading
         in this implementation.  Users are strongly discouraged from
         calling this method unless they are aware of all of the
         consequences and are prepared to enforce some amount of
@@ -152,7 +152,7 @@ public class ThreadingImpl {
         GLPbuffer. Currently there is no supported way to re-enable it
         once disabled, partly to discourage careless use of this
         method. This method should be called as early as possible in an
-        application. */ 
+        application. */
     public static final void disableSingleThreading() {
         singleThreaded = false;
         if (Debug.verbose()) {
@@ -184,7 +184,7 @@ public class ThreadingImpl {
                 throw new InternalError("Illegal single-threading mode " + mode);
         }
     }
-    
+
     public static final boolean isToolkitThread() throws GLException {
         if(null!=threadingPlugin) {
             return threadingPlugin.isToolkitThread();
@@ -216,7 +216,7 @@ public class ThreadingImpl {
                 throw new InternalError("Illegal single-threading mode " + mode);
         }
     }
-    
+
     public static final void invokeOnWorkerThread(boolean wait, Runnable r) throws GLException {
         GLWorkerThread.start(); // singleton start via volatile-dbl-checked-locking
         try {
@@ -225,6 +225,6 @@ public class ThreadingImpl {
             throw new GLException(e.getTargetException());
         } catch (InterruptedException e) {
             throw new GLException(e);
-        }        
+        }
     }
 }

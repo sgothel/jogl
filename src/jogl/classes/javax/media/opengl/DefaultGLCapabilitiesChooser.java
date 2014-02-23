@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003-2009 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -85,25 +85,31 @@ import jogamp.opengl.Debug;
 */
 
 public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
-  private static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.CapabilitiesChooser", true);
+  private static final boolean DEBUG;
 
-  final static int NO_SCORE = -9999999;
-  final static int DOUBLE_BUFFER_MISMATCH_PENALTY = 1000;
-  final static int OPAQUE_MISMATCH_PENALTY = 750;
-  final static int STENCIL_MISMATCH_PENALTY = 500;
-  final static int MULTISAMPLE_MISMATCH_PENALTY = 500;
-  final static int MULTISAMPLE_EXTENSION_MISMATCH_PENALTY = 250; // just a little drop, no scale
+  static {
+      Debug.initSingleton();
+      DEBUG = Debug.isPropertyDefined("jogl.debug.CapabilitiesChooser", true);
+  }
+
+  private final static int NO_SCORE = -9999999;
+  private final static int DOUBLE_BUFFER_MISMATCH_PENALTY = 1000;
+  private final static int OPAQUE_MISMATCH_PENALTY = 750;
+  private final static int STENCIL_MISMATCH_PENALTY = 500;
+  private final static int MULTISAMPLE_MISMATCH_PENALTY = 500;
+  private final static int MULTISAMPLE_EXTENSION_MISMATCH_PENALTY = 250; // just a little drop, no scale
   // Pseudo attempt to keep equal rank penalties scale-equivalent
   // (e.g., stencil mismatch is 3 * accum because there are 3 accum
   // components)
-  final static int COLOR_MISMATCH_PENALTY_SCALE     = 36;
-  final static int DEPTH_MISMATCH_PENALTY_SCALE     = 6;
-  final static int ACCUM_MISMATCH_PENALTY_SCALE     = 1;
-  final static int STENCIL_MISMATCH_PENALTY_SCALE   = 3;
-  final static int MULTISAMPLE_MISMATCH_PENALTY_SCALE   = 3;
-  
+  private final static int COLOR_MISMATCH_PENALTY_SCALE     = 36;
+  private final static int DEPTH_MISMATCH_PENALTY_SCALE     = 6;
+  private final static int ACCUM_MISMATCH_PENALTY_SCALE     = 1;
+  private final static int STENCIL_MISMATCH_PENALTY_SCALE   = 3;
+  private final static int MULTISAMPLE_MISMATCH_PENALTY_SCALE   = 3;
+
+  @Override
   public int chooseCapabilities(final CapabilitiesImmutable desired,
-                                final List /*<CapabilitiesImmutable>*/ available,
+                                final List<? extends CapabilitiesImmutable> available,
                                 final int windowSystemRecommendedChoice) {
     if ( null == desired ) {
       throw new NativeWindowException("Null desired capabilities");
@@ -116,6 +122,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
     final int availnum = available.size();
 
     if (DEBUG) {
+      Thread.dumpStack();
       System.err.println("Desired: " + gldes);
       System.err.println("Available: " + availnum);
       for (int i = 0; i < available.size(); i++) {
@@ -136,38 +143,46 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
 
     // Create score array
     int[] scores = new int[availnum];
-    
+
     for (int i = 0; i < scores.length; i++) {
       scores[i] = NO_SCORE;
     }
-    final int gldes_samples = gldes.getSampleBuffers() ? gldes.getNumSamples() : 0;
-    
+    final int gldes_samples = gldes.getNumSamples();
+
     // Compute score for each
     for (int i = 0; i < availnum; i++) {
-      GLCapabilitiesImmutable cur = (GLCapabilitiesImmutable) available.get(i);
+      final GLCapabilitiesImmutable cur = (GLCapabilitiesImmutable) available.get(i);
       if (cur == null) {
         continue;
       }
-      if (gldes.isOnscreen() != cur.isOnscreen()) {
-        continue;
+      if (gldes.isOnscreen() && !cur.isOnscreen()) {
+        continue; // requested onscreen, but n/a
       }
-      if (!gldes.isOnscreen() && gldes.isPBuffer() && !cur.isPBuffer()) {
-        continue; // only skip if requested Offscreen && PBuffer, but no PBuffer available
+      if (!gldes.isOnscreen()) {
+          /** FBO is generic ..
+          if (gldes.isFBO() && !cur.isFBO()) {
+            continue; // requested FBO, but n/a
+          }  */
+          if (gldes.isPBuffer() && !cur.isPBuffer()) {
+            continue; // requested pBuffer, but n/a
+          }
+          if (gldes.isBitmap() && !cur.isBitmap()) {
+            continue; // requested pBuffer, but n/a
+          }
       }
       if (gldes.getStereo() != cur.getStereo()) {
         continue;
       }
-      final int cur_samples = 
-              cur.getSampleBuffers() ? cur.getNumSamples() : 0;
+      final int cur_samples = cur.getNumSamples() ;
       int score = 0;
-              
+
       // Compute difference in color depth
       // (Note that this decides the direction of all other penalties)
       score += (COLOR_MISMATCH_PENALTY_SCALE *
                 ((cur.getRedBits() + cur.getGreenBits() + cur.getBlueBits() + cur.getAlphaBits()) -
                  (gldes.getRedBits() + gldes.getGreenBits() + gldes.getBlueBits() + gldes.getAlphaBits())));
       // Compute difference in depth buffer depth
-      score += (DEPTH_MISMATCH_PENALTY_SCALE * sign(score) * 
+      score += (DEPTH_MISMATCH_PENALTY_SCALE * sign(score) *
                 Math.abs(cur.getDepthBits() - gldes.getDepthBits()));
       // Compute difference in accumulation buffer depth
       score += (ACCUM_MISMATCH_PENALTY_SCALE * sign(score) *
@@ -207,7 +222,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
       if (score == NO_SCORE) {
         continue;
       }
-      GLCapabilitiesImmutable cur = (GLCapabilitiesImmutable) available.get(i);
+      final GLCapabilitiesImmutable cur = (GLCapabilitiesImmutable) available.get(i);
       if (cur.getHardwareAccelerated()) {
         int absScore = Math.abs(score);
         if (!gotHW ||
@@ -223,7 +238,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
         if (score == NO_SCORE) {
           continue;
         }
-        GLCapabilitiesImmutable cur = (GLCapabilitiesImmutable) available.get(i);
+        final GLCapabilitiesImmutable cur = (GLCapabilitiesImmutable) available.get(i);
         if (!cur.getHardwareAccelerated()) {
           if (score <= 0) {
             score -= maxAbsoluteHWScore;
@@ -241,12 +256,12 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
         if (i > 0) {
           System.err.print(",");
         }
-        System.err.print(" " + scores[i]);
+        System.err.print(" " + i +": " + scores[i]);
       }
       System.err.println(" ]");
     }
 
-    // Ready to select. Choose score closest to 0. 
+    // Ready to select. Choose score closest to 0.
     int scoreClosestToZero = NO_SCORE;
     int chosenIndex = -1;
     for (int i = 0; i < availnum; i++) {

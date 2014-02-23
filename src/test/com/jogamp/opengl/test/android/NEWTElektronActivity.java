@@ -32,8 +32,8 @@ import javax.media.opengl.GLProfile;
 
 import jogamp.newt.driver.android.NewtBaseActivity;
 
-import com.jogamp.newt.ScreenMode;
-import com.jogamp.newt.event.ScreenModeListener;
+import com.jogamp.newt.event.MonitorEvent;
+import com.jogamp.newt.event.MonitorModeListener;
 import com.jogamp.newt.opengl.GLWindow;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.ElektronenMultiplizierer;
@@ -51,22 +51,23 @@ public class NEWTElektronActivity extends NewtBaseActivity {
        super.onCreate(savedInstanceState);
        
        // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
-       GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
+       GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2ES2));
        Log.d(TAG, "req caps: "+caps);
        GLWindow glWindow = GLWindow.create(caps);
        glWindow.setFullscreen(true);
        setContentView(getWindow(), glWindow);
        
        glWindow.addGLEventListener(new ElektronenMultiplizierer());
-       glWindow.getScreen().addScreenModeListener(new ScreenModeListener() {
-        public void screenModeChangeNotify(ScreenMode sm) { }
-        public void screenModeChanged(ScreenMode sm, boolean success) {
-            System.err.println("ScreenMode Changed: "+sm);
-        }
+       glWindow.getScreen().addMonitorModeListener(new MonitorModeListener() {
+           @Override
+           public void monitorModeChangeNotify(MonitorEvent me) { }
+           @Override
+           public void monitorModeChanged(MonitorEvent me, boolean success) {
+               System.err.println("MonitorMode Changed (success "+success+"): "+me);
+           }
        });
        glWindow.setVisible(true);
        Animator animator = new Animator(glWindow);
-       setAnimator(animator);
        
        animator.setUpdateFPSFrames(60, System.err);
        animator.resetFPSCounter();

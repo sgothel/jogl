@@ -112,7 +112,7 @@ public class Mapdesc {
   float clampfactor;
 
   /**
-   * Value of N_MINSAVINGS property 
+   * Value of N_MINSAVINGS property
    */
   private float minsavings;
 
@@ -162,7 +162,7 @@ public class Mapdesc {
   private float[] bboxsize;
 
   /**
-   * Makes new mapdesc 
+   * Makes new mapdesc
    * @param type map type
    * @param rational is rational
    * @param ncoords number of control points coords
@@ -318,7 +318,7 @@ public class Mapdesc {
   }
 
   /**
-   * Tells whether map is culling 
+   * Tells whether map is culling
    * @return is map culling
    */
   public boolean isCulling() {
@@ -327,7 +327,7 @@ public class Mapdesc {
   }
 
   /**
-   * Tells whether map is constantly sampling 
+   * Tells whether map is constantly sampling
    * @return is map constant sampling
    */
   public boolean isConstantSampling() {
@@ -335,7 +335,7 @@ public class Mapdesc {
   }
 
   /**
-   * Tells whether map is domain sampling 
+   * Tells whether map is domain sampling
    * @return is map domain sampling
    */
   public boolean isDomainSampling() {
@@ -343,7 +343,7 @@ public class Mapdesc {
   }
 
   /**
-   * Returns property of specified tag value 
+   * Returns property of specified tag value
    * @param tag property tag
    * @return property value
    */

@@ -142,6 +142,7 @@ public class HeadTable implements Table {
         return _modified;
     }
 
+    @Override
     public int getType() {
         return head;
     }
@@ -170,6 +171,7 @@ public class HeadTable implements Table {
         return _yMin;
     }
 
+    @Override
     public String toString() {
         return new StringBuilder()
             .append("'head' Table - Font Header\n--------------------------")
@@ -192,15 +194,16 @@ public class HeadTable implements Table {
             .append("\n  glyphDataFormat:     ").append(_glyphDataFormat)
             .toString();
     }
-    
+
     /**
      * Get a directory entry for this table.  This uniquely identifies the
      * table in collections where there may be more than one instance of a
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }
-    
+
 }

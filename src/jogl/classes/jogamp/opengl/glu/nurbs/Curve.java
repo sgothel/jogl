@@ -103,7 +103,7 @@ public class Curve {
 
   /**
    * Makes new Curve
-   * 
+   *
    * @param geo
    * @param pta
    * @param ptb
@@ -143,7 +143,7 @@ public class Curve {
     range[0] = qs.get().breakpoints[qs.get().index];
     range[1] = qs.get().breakpoints[qs.get().index + 1];
     range[2] = range[1] - range[0];
-    // TODO it is necessary to solve problem with "this" pointer here 
+    // TODO it is necessary to solve problem with "this" pointer here
     if (range[0] != pta[0]) {
       //                System.out.println("TODO curve.Curve-range0");
       // Curve lower=new Curve(this,pta,0);
@@ -229,7 +229,7 @@ public class Curve {
 
   /**
    * Tells whether curve needs subdivision
-   * 
+   *
    * @return curve needs subdivison
    */
   public boolean needsSamplingSubdivision() {

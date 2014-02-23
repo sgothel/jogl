@@ -1,5 +1,10 @@
 //Copyright 2010 JogAmp Community. All rights reserved.
 
+#if __VERSION__ >= 130
+  #define attribute in
+  #define varying out
+#endif
+
 #ifdef GL_ES
   #define MEDIUMP mediump
   #define HIGHP highp

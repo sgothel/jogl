@@ -37,7 +37,6 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 
 import java.awt.Frame;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Assert;
 import org.junit.Assume;
@@ -45,6 +44,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /*
  * Unit tests for Bug464
@@ -62,6 +63,7 @@ import org.junit.Test;
  *   TestTextRendererTraceGL2Mock01
  */
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestAWTTextRendererUseVertexArrayBug464 extends UITestCase {
     static GLProfile glp;
     static GLCapabilities caps;
@@ -84,9 +86,16 @@ public class TestAWTTextRendererUseVertexArrayBug464 extends UITestCase {
         frame = new Frame("TextRenderer Test");
         Assert.assertNotNull(frame);
         frame.add(glCanvas);
-        frame.setSize(512, 512);
-        frame.setVisible(true);
-        
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.setSize(512, 512);
+                    frame.setVisible(true);
+                }});
+        } catch( Throwable throwable ) {
+            throwable.printStackTrace();
+            Assume.assumeNoException( throwable );
+        }
     }
 
     @After

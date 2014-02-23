@@ -26,15 +26,27 @@
  * or implied, of JogAmp Community.
  */
  
+#include "NativewindowCommon.h"
+#include "Xmisc.h"
+#include "jogamp_nativewindow_x11_X11Lib.h"
+#include "jogamp_nativewindow_x11_X11Util.h"
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdarg.h>
-#include <unistd.h>
-#include <errno.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
+#include <X11/Xatom.h>
+
+#include <X11/extensions/Xrender.h>
+
+/** Remove memcpy GLIBC > 2.4 dependencies */
+#include <glibc-compat-symbols.h>
+
+// #define VERBOSE_ON 1
+
+#ifdef VERBOSE_ON
+    #define DBG_PRINT(args...) fprintf(stderr, args);
+#else
+    #define DBG_PRINT(args...)
+#endif
+
+
 /* Linux headers don't work properly */
 #define __USE_GNU
 #include <dlfcn.h>
@@ -80,16 +92,7 @@ Bool XF86VidModeSetGammaRamp(
 #define RTLD_DEFAULT NULL
 #endif
 
-#include "NativewindowCommon.h"
-#include "jogamp_nativewindow_x11_X11Lib.h"
-
-// #define VERBOSE_ON 1
-
-#ifdef VERBOSE_ON
-    #define DBG_PRINT(args...) fprintf(stderr, args);
-#else
-    #define DBG_PRINT(args...)
-#endif
+#define X11_MOUSE_EVENT_MASK (ButtonPressMask | ButtonReleaseMask | PointerMotionMask | EnterWindowMask | LeaveWindowMask)
 
 static const char * const ClazzNameBuffers = "com/jogamp/common/nio/Buffers";
 static const char * const ClazzNameBuffersStaticCstrName = "copyByteBuffer";
@@ -98,6 +101,9 @@ static const char * const ClazzNameByteBuffer = "java/nio/ByteBuffer";
 static const char * const ClazzNamePoint = "javax/media/nativewindow/util/Point";
 static const char * const ClazzAnyCstrName = "<init>";
 static const char * const ClazzNamePointCstrSignature = "(II)V";
+static jclass X11UtilClazz = NULL;
+static jmethodID getCurrentThreadNameID = NULL;
+static jmethodID dumpStackID = NULL;
 static jclass clazzBuffers = NULL;
 static jmethodID cstrBuffers = NULL;
 static jclass clazzByteBuffer = NULL;
@@ -107,121 +113,123 @@ static jmethodID pointCstr = NULL;
 static void _initClazzAccess(JNIEnv *env) {
     jclass c;
 
-    if(!NativewindowCommon_init(env)) return;
+    if( NativewindowCommon_init(env) ) {
+        getCurrentThreadNameID = (*env)->GetStaticMethodID(env, X11UtilClazz, "getCurrentThreadName", "()Ljava/lang/String;");
+        if(NULL==getCurrentThreadNameID) {
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't get method getCurrentThreadName");
+        }
+        dumpStackID = (*env)->GetStaticMethodID(env, X11UtilClazz, "dumpStack", "()V");
+        if(NULL==dumpStackID) {
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't get method dumpStack");
+        }
 
-    c = (*env)->FindClass(env, ClazzNameBuffers);
-    if(NULL==c) {
-        NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't find %s", ClazzNameBuffers);
-    }
-    clazzBuffers = (jclass)(*env)->NewGlobalRef(env, c);
-    (*env)->DeleteLocalRef(env, c);
-    if(NULL==clazzBuffers) {
-        NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't use %s", ClazzNameBuffers);
-    }
-    c = (*env)->FindClass(env, ClazzNameByteBuffer);
-    if(NULL==c) {
-        NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't find %s", ClazzNameByteBuffer);
-    }
-    clazzByteBuffer = (jclass)(*env)->NewGlobalRef(env, c);
-    (*env)->DeleteLocalRef(env, c);
-    if(NULL==c) {
-        NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't use %s", ClazzNameByteBuffer);
-    }
+        c = (*env)->FindClass(env, ClazzNameBuffers);
+        if(NULL==c) {
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't find %s", ClazzNameBuffers);
+        }
+        clazzBuffers = (jclass)(*env)->NewGlobalRef(env, c);
+        (*env)->DeleteLocalRef(env, c);
+        if(NULL==clazzBuffers) {
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't use %s", ClazzNameBuffers);
+        }
+        c = (*env)->FindClass(env, ClazzNameByteBuffer);
+        if(NULL==c) {
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't find %s", ClazzNameByteBuffer);
+        }
+        clazzByteBuffer = (jclass)(*env)->NewGlobalRef(env, c);
+        (*env)->DeleteLocalRef(env, c);
+        if(NULL==c) {
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't use %s", ClazzNameByteBuffer);
+        }
 
-    cstrBuffers = (*env)->GetStaticMethodID(env, clazzBuffers, 
-                            ClazzNameBuffersStaticCstrName, ClazzNameBuffersStaticCstrSignature);
-    if(NULL==cstrBuffers) {
-        NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't create %s.%s %s",
-            ClazzNameBuffers, ClazzNameBuffersStaticCstrName, ClazzNameBuffersStaticCstrSignature);
-    }
+        cstrBuffers = (*env)->GetStaticMethodID(env, clazzBuffers, 
+                                ClazzNameBuffersStaticCstrName, ClazzNameBuffersStaticCstrSignature);
+        if(NULL==cstrBuffers) {
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't create %s.%s %s",
+                ClazzNameBuffers, ClazzNameBuffersStaticCstrName, ClazzNameBuffersStaticCstrSignature);
+        }
 
-    c = (*env)->FindClass(env, ClazzNamePoint);
-    if(NULL==c) {
-        NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't find %s", ClazzNamePoint);
+        c = (*env)->FindClass(env, ClazzNamePoint);
+        if(NULL==c) {
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't find %s", ClazzNamePoint);
+        }
+        pointClz = (jclass)(*env)->NewGlobalRef(env, c);
+        (*env)->DeleteLocalRef(env, c);
+        if(NULL==pointClz) {
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't use %s", ClazzNamePoint);
+        }
+        pointCstr = (*env)->GetMethodID(env, pointClz, ClazzAnyCstrName, ClazzNamePointCstrSignature);
+        if(NULL==pointCstr) {
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't fetch %s.%s %s",
+                ClazzNamePoint, ClazzAnyCstrName, ClazzNamePointCstrSignature);
+        }
     }
-    pointClz = (jclass)(*env)->NewGlobalRef(env, c);
-    (*env)->DeleteLocalRef(env, c);
-    if(NULL==pointClz) {
-        NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't use %s", ClazzNamePoint);
-    }
-    pointCstr = (*env)->GetMethodID(env, pointClz, ClazzAnyCstrName, ClazzNamePointCstrSignature);
-    if(NULL==pointCstr) {
-        NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't fetch %s.%s %s",
-            ClazzNamePoint, ClazzAnyCstrName, ClazzNamePointCstrSignature);
-    }
-}
-
-static JavaVM *jvmHandle = NULL;
-static int jvmVersion = 0;
-
-static void setupJVMVars(JNIEnv * env) {
-    if(0 != (*env)->GetJavaVM(env, &jvmHandle)) {
-        jvmHandle = NULL;
-    }
-    jvmVersion = (*env)->GetVersion(env);
 }
 
 static XErrorHandler origErrorHandler = NULL ;
-static int errorHandlerBlocked = 0 ;
-static int errorHandlerQuiet = 0 ;
+static int errorHandlerQuiet = 1 ;
+static int errorHandlerDebug = 0 ;
+static int errorHandlerThrowException = 0;
 
 static int x11ErrorHandler(Display *dpy, XErrorEvent *e)
 {
-    if(!errorHandlerQuiet) {
-        JNIEnv *curEnv = NULL;
-        JNIEnv *newEnv = NULL;
-        int envRes ;
-        const char * errStr = strerror(errno);
+    if( !errorHandlerQuiet || errorHandlerDebug ) {
+        const char * errnoStr = strerror(errno);
+        char errCodeStr[80];
+        char reqCodeStr[80];
+        int shallBeDetached = 0;
+        JNIEnv *jniEnv = NULL;
 
-        fprintf(stderr, "Info: Nativewindow X11 Error: Display %p, Code 0x%X, errno %s\n", dpy, e->error_code, errStr);
+        snprintf(errCodeStr, sizeof(errCodeStr), "%d", e->request_code);
+        XGetErrorDatabaseText(dpy, "XRequest", errCodeStr, "Unknown", reqCodeStr, sizeof(reqCodeStr));
+        XGetErrorText(dpy, e->error_code, errCodeStr, sizeof(errCodeStr));
+
+        fprintf(stderr, "Info: Nativewindow X11 Error: %d - %s, dpy %p, id %x, # %d: %d:%d %s\n",
+            e->error_code, errCodeStr, e->display, (int)e->resourceid, (int)e->serial,
+            (int)e->request_code, (int)e->minor_code, reqCodeStr);
         fflush(stderr);
 
-        // retrieve this thread's JNIEnv curEnv - or detect it's detached
-        envRes = (*jvmHandle)->GetEnv(jvmHandle, (void **) &curEnv, jvmVersion) ;
-        if( JNI_EDETACHED == envRes ) {
-            // detached thread - attach to JVM
-            if( JNI_OK != ( envRes = (*jvmHandle)->AttachCurrentThread(jvmHandle, (void**) &newEnv, NULL) ) ) {
-                fprintf(stderr, "Nativewindow X11 Error: can't attach thread: %d\n", envRes);
-                return 0;
+        if( errorHandlerDebug || errorHandlerThrowException ) {
+            jniEnv = NativewindowCommon_GetJNIEnv(0 /* asDaemon */, &shallBeDetached);
+            if(NULL == jniEnv) {
+                fprintf(stderr, "Nativewindow X11 Error: null JNIEnv");
+                fflush(stderr);
             }
-            curEnv = newEnv;
-        } else if( JNI_OK != envRes ) {
-            // oops ..
-            fprintf(stderr, "Nativewindow X11 Error: can't GetEnv: %d\n", envRes);
-            return 0;
         }
-        NativewindowCommon_throwNewRuntimeException(curEnv, "Info: Nativewindow X11 Error: Display %p, Code 0x%X, errno %s", 
-                                                    dpy, e->error_code, errStr);
 
-        if( NULL != newEnv ) {
-            // detached attached thread
-            (*jvmHandle)->DetachCurrentThread(jvmHandle);
+        if( NULL != jniEnv ) {
+            if( errorHandlerDebug ) {
+                (*jniEnv)->CallStaticVoidMethod(jniEnv, X11UtilClazz, dumpStackID);
+            }
+
+            if(errorHandlerThrowException) {
+                NativewindowCommon_throwNewRuntimeException(jniEnv, "Nativewindow X11 Error: %d - %s, dpy %p, id %x, # %d: %d:%d %s\n",
+                                                            e->error_code, errCodeStr, e->display, (int)e->resourceid, (int)e->serial,
+                                                            (int)e->request_code, (int)e->minor_code, reqCodeStr);
+            }
+            NativewindowCommon_ReleaseJNIEnv(shallBeDetached);
         }
     }
-
-#if 0
-    if(NULL!=origErrorHandler) {
-        origErrorHandler(dpy, e);
-    }
-#endif
 
     return 0;
 }
 
-static void x11ErrorHandlerEnable(Display *dpy, int onoff, JNIEnv * env) {
-    if(errorHandlerBlocked) return;
-
+static void NativewindowCommon_x11ErrorHandlerEnable(JNIEnv * env, Display *dpy, int force, int onoff, int quiet, int sync) {
+    errorHandlerQuiet = quiet;
     if(onoff) {
-        if(NULL==origErrorHandler) {
-            setupJVMVars(env);
-            if(NULL!=dpy) {
+        if(force || NULL==origErrorHandler) {
+            XErrorHandler prevErrorHandler;
+            prevErrorHandler = XSetErrorHandler(x11ErrorHandler);
+            if(x11ErrorHandler != prevErrorHandler) { // if forced don't overwrite w/ orig w/ our handler
+                origErrorHandler = prevErrorHandler;
+            }
+            if(sync && NULL!=dpy) {
                 XSync(dpy, False);
             }
-            origErrorHandler = XSetErrorHandler(x11ErrorHandler);
         }
     } else {
         if(NULL!=origErrorHandler) {
-            if(NULL!=dpy) {
+            if(sync && NULL!=dpy) {
                 XSync(dpy, False);
             }
             XSetErrorHandler(origErrorHandler);
@@ -230,46 +238,22 @@ static void x11ErrorHandlerEnable(Display *dpy, int onoff, JNIEnv * env) {
     }
 }
 
-static void x11ErrorHandlerEnableBlocking(JNIEnv * env, int onoff, int quiet) {
-    errorHandlerBlocked = 0 ;
-    x11ErrorHandlerEnable(NULL, onoff, env);
-    errorHandlerBlocked = onoff ;
-    errorHandlerQuiet = quiet;
-}
-
-
 static XIOErrorHandler origIOErrorHandler = NULL;
 
 static int x11IOErrorHandler(Display *dpy)
 {
-    JNIEnv *curEnv = NULL;
-    JNIEnv *newEnv = NULL;
-    int envRes ;
     const char * dpyName = XDisplayName(NULL);
-    const char * errStr = strerror(errno);
+    const char * errnoStr = strerror(errno);
+    int shallBeDetached = 0;
+    JNIEnv *jniEnv = NULL;
 
-    fprintf(stderr, "Nativewindow X11 IOError: Display %p (%s): %s\n", dpy, dpyName, errStr);
+    fprintf(stderr, "Nativewindow X11 IOError: Display %p (%s): %s\n", dpy, dpyName, errnoStr);
+    fflush(stderr);
 
-    // retrieve this thread's JNIEnv curEnv - or detect it's detached
-    envRes = (*jvmHandle)->GetEnv(jvmHandle, (void **) &curEnv, jvmVersion) ;
-    if( JNI_EDETACHED == envRes ) {
-        // detached thread - attach to JVM
-        if( JNI_OK != ( envRes = (*jvmHandle)->AttachCurrentThread(jvmHandle, (void**) &newEnv, NULL) ) ) {
-            fprintf(stderr, "Nativewindow X11 IOError: can't attach thread: %d\n", envRes);
-            return;
-        }
-        curEnv = newEnv;
-    } else if( JNI_OK != envRes ) {
-        // oops ..
-        fprintf(stderr, "Nativewindow X11 IOError: can't GetEnv: %d\n", envRes);
-        return;
-    }
-
-    NativewindowCommon_FatalError(curEnv, "Nativewindow X11 IOError: Display %p (%s): %s", dpy, dpyName, errStr);
-
-    if( NULL != newEnv ) {
-        // detached attached thread
-        (*jvmHandle)->DetachCurrentThread(jvmHandle);
+    jniEnv = NativewindowCommon_GetJNIEnv(0 /* asDaemon */, &shallBeDetached);
+    if (NULL != jniEnv) {
+        NativewindowCommon_FatalError(jniEnv, "Nativewindow X11 IOError: Display %p (%s): %s", dpy, dpyName, errnoStr);
+        NativewindowCommon_ReleaseJNIEnv(shallBeDetached);
     }
     if(NULL!=origIOErrorHandler) {
         origIOErrorHandler(dpy);
@@ -280,7 +264,6 @@ static int x11IOErrorHandler(Display *dpy)
 static void x11IOErrorHandlerEnable(int onoff, JNIEnv * env) {
     if(onoff) {
         if(NULL==origIOErrorHandler) {
-            setupJVMVars(env);
             origIOErrorHandler = XSetIOErrorHandler(x11IOErrorHandler);
         }
     } else {
@@ -289,38 +272,49 @@ static void x11IOErrorHandlerEnable(int onoff, JNIEnv * env) {
     }
 }
 
-static int _initialized=0;
-static jboolean _xinitThreadsOK=JNI_FALSE;
+static int _initialized = 0;
 
 JNIEXPORT jboolean JNICALL 
-Java_jogamp_nativewindow_x11_X11Util_initialize0(JNIEnv *env, jclass _unused, jboolean firstUIActionOnProcess) {
-    if(0==_initialized) {
-        if( JNI_TRUE == firstUIActionOnProcess ) {
-            if( 0 == XInitThreads() ) {
-                fprintf(stderr, "Warning: XInitThreads() failed\n");
-            } else {
-                _xinitThreadsOK=JNI_TRUE;
-                DBG_PRINT( "X11: XInitThreads() called for concurrent Thread support\n");
-            }
-        } else {
-            DBG_PRINT( "X11: XInitThreads() _not_ called for concurrent Thread support\n");
+Java_jogamp_nativewindow_x11_X11Util_initialize0(JNIEnv *env, jclass clazz, jboolean debug) {
+    if( 0 == _initialized ) {
+        if(debug) {
+            errorHandlerDebug = 1;
         }
+        X11UtilClazz = (jclass)(*env)->NewGlobalRef(env, clazz);
 
         _initClazzAccess(env);
         x11IOErrorHandlerEnable(1, env);
+        NativewindowCommon_x11ErrorHandlerEnable(env, NULL, 1, 1, debug ? 0 : 1, 0 /* no dpy, force, no sync */);
         _initialized=1;
+        if(JNI_TRUE == debug) {
+            fprintf(stderr, "Info: NativeWindow native init passed\n");
+        }
     }
-    return _xinitThreadsOK;
+    return JNI_TRUE;
 }
 
 JNIEXPORT void JNICALL 
 Java_jogamp_nativewindow_x11_X11Util_shutdown0(JNIEnv *env, jclass _unused) {
+    NativewindowCommon_x11ErrorHandlerEnable(env, NULL, 0, 0, errorHandlerQuiet, 0 /* no dpy, no sync */);
     x11IOErrorHandlerEnable(0, env);
 }
 
 JNIEXPORT void JNICALL 
 Java_jogamp_nativewindow_x11_X11Util_setX11ErrorHandler0(JNIEnv *env, jclass _unused, jboolean onoff, jboolean quiet) {
-  x11ErrorHandlerEnableBlocking(env, ( JNI_TRUE == onoff ) ? 1 : 0, ( JNI_TRUE == quiet ) ? 1 : 0);
+    NativewindowCommon_x11ErrorHandlerEnable(env, NULL, 1, onoff ? 1 : 0, quiet ? 1 : 0, 0 /* no dpy, force, no sync */);
+}
+
+/*   Java->C glue code:
+ *   Java package: jogamp.nativewindow.x11.X11Lib
+ *    Java method: boolean XRenderFindVisualFormat(long dpy, long visual, XRenderPictFormat dest)
+ */
+JNIEXPORT jboolean JNICALL 
+Java_jogamp_nativewindow_x11_X11Lib_XRenderFindVisualFormat1(JNIEnv *env, jclass _unused, jlong dpy, jlong visual, jobject xRenderPictFormat) {
+  XRenderPictFormat * dest = (XRenderPictFormat *) (*env)->GetDirectBufferAddress(env, xRenderPictFormat);
+  XRenderPictFormat * src = XRenderFindVisualFormat((Display *) (intptr_t) dpy, (Visual *) (intptr_t) visual);
+  if (NULL == src) return JNI_FALSE;
+  memcpy(dest, src, sizeof(XRenderPictFormat));
+  return JNI_TRUE;
 }
 
 /*   Java->C glue code:
@@ -332,45 +326,71 @@ JNIEXPORT jobject JNICALL
 Java_jogamp_nativewindow_x11_X11Lib_XGetVisualInfo1__JJLjava_nio_ByteBuffer_2Ljava_lang_Object_2I(JNIEnv *env, jclass _unused, jlong arg0, jlong arg1, jobject arg2, jobject arg3, jint arg3_byte_offset) {
   XVisualInfo * _ptr2 = NULL;
   int * _ptr3 = NULL;
-  XVisualInfo *  _res;
-  int count;
-  jobject jbyteSource;
-  jobject jbyteCopy;
-    if(0==arg0) {
-        NativewindowCommon_FatalError(env, "invalid display connection..");
-    }
-    if (arg2 != NULL) {
-        _ptr2 = (XVisualInfo *) (((char*) (*env)->GetDirectBufferAddress(env, arg2)) + 0);
-    }
-  if (arg3 != NULL) {
-    _ptr3 = (int *) (((char*) (*env)->GetPrimitiveArrayCritical(env, arg3, NULL)) + arg3_byte_offset);
+  XVisualInfo *  _res = NULL;
+  int count = 0;
+  jobject jbyteSource = NULL;
+  jobject jbyteCopy = NULL;
+  if( 0 == arg0 || 0 == arg2 || 0 == arg3 ) {
+    NativewindowCommon_FatalError(env, "invalid display connection, vinfo_template or nitems_return");
+    return NULL;
   }
-  x11ErrorHandlerEnable((Display *) (intptr_t) arg0, 1, env);
-  _res = XGetVisualInfo((Display *) (intptr_t) arg0, (long) arg1, (XVisualInfo *) _ptr2, (int *) _ptr3);
-  x11ErrorHandlerEnable((Display *) (intptr_t) arg0, 0, env);
-  count = _ptr3[0];
-  if (arg3 != NULL) {
-    (*env)->ReleasePrimitiveArrayCritical(env, arg3, _ptr3, 0);
+  _ptr2 = (XVisualInfo *) (((char*) (*env)->GetDirectBufferAddress(env, arg2)) + 0);
+  if( NULL != _ptr2 ) {
+      _ptr3 = (int *) (((char*) (*env)->GetPrimitiveArrayCritical(env, arg3, NULL)) + arg3_byte_offset);
+      if( NULL != _ptr3 ) {
+          NativewindowCommon_x11ErrorHandlerEnable(env, (Display *) (intptr_t) arg0, 0, 1, errorHandlerQuiet, 0);
+          _res = XGetVisualInfo((Display *) (intptr_t) arg0, (long) arg1, (XVisualInfo *) _ptr2, (int *) _ptr3);
+          // NativewindowCommon_x11ErrorHandlerEnable(env, (Display *) (intptr_t) arg0, 0, 0, errorHandlerQuiet, 0);
+          count = _ptr3[0];
+          (*env)->ReleasePrimitiveArrayCritical(env, arg3, _ptr3, 0);
+      }
   }
   if (_res == NULL) return NULL;
 
   jbyteSource = (*env)->NewDirectByteBuffer(env, _res, count * sizeof(XVisualInfo));
   jbyteCopy   = (*env)->CallStaticObjectMethod(env, clazzBuffers, cstrBuffers, jbyteSource);
+  (*env)->DeleteLocalRef(env, jbyteSource);
 
   XFree(_res);
 
   return jbyteCopy;
 }
 
-JNIEXPORT jlong JNICALL 
+JNIEXPORT jint JNICALL 
+Java_jogamp_nativewindow_x11_X11Lib_GetVisualIDFromWindow(JNIEnv *env, jclass _unused, jlong display, jlong window) {
+    Display * dpy = (Display *)(intptr_t)display;
+    Window      w = (Window) window;
+    XWindowAttributes xwa;
+    jlong r = 0; // undefinded
+
+    if(NULL==dpy) {
+        NativewindowCommon_throwNewRuntimeException(env, "invalid display connection..");
+        return 0;
+    }
+
+    NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 1, errorHandlerQuiet, 1);
+    memset(&xwa, 0, sizeof(XWindowAttributes));
+    XGetWindowAttributes(dpy, w, &xwa);
+    if(NULL != xwa.visual) {
+        r = (jint) XVisualIDFromVisual( xwa.visual );
+    } else {
+        r = 0;
+    }
+    // NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 0, errorHandlerQuiet, 1);
+
+    return r;
+}
+
+
+JNIEXPORT jint JNICALL 
 Java_jogamp_nativewindow_x11_X11Lib_DefaultVisualID(JNIEnv *env, jclass _unused, jlong display, jint screen) {
   jlong r;
     if(0==display) {
         NativewindowCommon_FatalError(env, "invalid display connection..");
     }
-  x11ErrorHandlerEnable((Display *) (intptr_t) display, 1, env);
-  r = (jlong) XVisualIDFromVisual( DefaultVisual( (Display*) (intptr_t) display, screen ) );
-  x11ErrorHandlerEnable((Display *) (intptr_t) display, 0, env);
+  NativewindowCommon_x11ErrorHandlerEnable(env, (Display *) (intptr_t) display, 0, 1, errorHandlerQuiet, 0);
+  r = (jint) XVisualIDFromVisual( DefaultVisual( (Display*) (intptr_t) display, screen ) );
+  // NativewindowCommon_x11ErrorHandlerEnable(env, (Display *) (intptr_t) display, 0, 0, errorHandlerQuiet, 0);
   return r;
 }
 
@@ -411,23 +431,68 @@ Java_jogamp_nativewindow_x11_X11Lib_XCloseDisplay__J(JNIEnv *env, jclass _unused
   if(0==display) {
       NativewindowCommon_FatalError(env, "invalid display connection..");
   }
-  x11ErrorHandlerEnable((Display *) (intptr_t) display, 1, env);
+  NativewindowCommon_x11ErrorHandlerEnable(env, NULL, 0, 1, errorHandlerQuiet, 0);
   _res = XCloseDisplay((Display *) (intptr_t) display);
-  x11ErrorHandlerEnable(NULL, 0, env);
+  // NativewindowCommon_x11ErrorHandlerEnable(env, NULL, 0, 0, errorHandlerQuiet, 0);
   return _res;
+}
+
+static void NativewindowX11_setNormalWindowEWMH (Display *dpy, Window w) {
+    Atom _NET_WM_WINDOW_TYPE = XInternAtom( dpy, "_NET_WM_WINDOW_TYPE", False );
+    Atom types[1]={0};
+    types[0] = XInternAtom( dpy, "_NET_WM_WINDOW_TYPE_NORMAL", False );
+    XChangeProperty( dpy, w, _NET_WM_WINDOW_TYPE, XA_ATOM, 32, PropModeReplace, (unsigned char *)&types, 1);
+    XSync(dpy, False);
+}
+
+#define DECOR_USE_MWM 1     // works for known WMs
+// #define DECOR_USE_EWMH 1 // haven't seen this to work (NORMAL->POPUP, never gets undecorated)
+
+/* see <http://tonyobryan.com/index.php?article=9> */
+#define MWM_HINTS_DECORATIONS   (1L << 1)
+#define PROP_MWM_HINTS_ELEMENTS 5
+
+static void NativewindowX11_setDecorations (Display *dpy, Window w, Bool decorated) {
+
+#ifdef DECOR_USE_MWM
+    unsigned long mwmhints[PROP_MWM_HINTS_ELEMENTS] = { MWM_HINTS_DECORATIONS, 0, decorated, 0, 0 }; // flags, functions, decorations, input_mode, status
+    Atom _MOTIF_WM_HINTS = XInternAtom( dpy, "_MOTIF_WM_HINTS", False );
+#endif
+
+#ifdef DECOR_USE_EWMH
+    Atom _NET_WM_WINDOW_TYPE = XInternAtom( dpy, "_NET_WM_WINDOW_TYPE", False );
+    Atom types[3]={0};
+    int ntypes=0;
+    if(True==decorated) {
+        types[ntypes++] = XInternAtom( dpy, "_NET_WM_WINDOW_TYPE_NORMAL", False );
+    } else {
+        types[ntypes++] = XInternAtom( dpy, "_NET_WM_WINDOW_TYPE_POPUP_MENU", False );
+    }
+#endif
+
+#ifdef DECOR_USE_MWM
+    XChangeProperty( dpy, w, _MOTIF_WM_HINTS, _MOTIF_WM_HINTS, 32, PropModeReplace, (unsigned char *)&mwmhints, PROP_MWM_HINTS_ELEMENTS);
+#endif
+
+#ifdef DECOR_USE_EWMH
+    XChangeProperty( dpy, w, _NET_WM_WINDOW_TYPE, XA_ATOM, 32, PropModeReplace, (unsigned char *)&types, ntypes);
+#endif
+
+    XSync(dpy, False);
 }
 
 /*
  * Class:     jogamp_nativewindow_x11_X11Lib
- * Method:    CreateDummyWindow
- * Signature: (JIIII)J
+ * Method:    CreateWindow
+ * Signature: (JJIIIIZZ)J
  */
-JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_x11_X11Lib_CreateDummyWindow
-  (JNIEnv *env, jclass unused, jlong display, jint screen_index, jint visualID, jint width, jint height)
+JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_x11_X11Lib_CreateWindow
+  (JNIEnv *env, jclass unused, jlong parent, jlong display, jint screen_index, jint visualID, jint width, jint height, jboolean input, jboolean visible)
 {
     Display * dpy  = (Display *)(intptr_t)display;
     int       scrn_idx = (int)screen_index;
-    Window  windowParent = 0;
+    Window root = RootWindow(dpy, scrn_idx);
+    Window  windowParent = (Window) parent;
     Window  window = 0;
 
     XVisualInfo visualTemplate;
@@ -451,9 +516,12 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_x11_X11Lib_CreateDummyWindow
         return 0;
     }
 
-    x11ErrorHandlerEnable(dpy, 1, env);
+    NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 1, errorHandlerQuiet, 0);
 
     scrn = ScreenOfDisplay(dpy, scrn_idx);
+    if(0==windowParent) {
+        windowParent = root;
+    }
 
     // try given VisualID on screen
     memset(&visualTemplate, 0, sizeof(XVisualInfo));
@@ -471,7 +539,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_x11_X11Lib_CreateDummyWindow
 
     if (visual==NULL)
     { 
-        x11ErrorHandlerEnable(dpy, 0, env);
+        // NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 0, errorHandlerQuiet, 1);
         NativewindowCommon_throwNewRuntimeException(env, "could not query Visual by given VisualID, bail out!");
         return 0;
     } 
@@ -481,9 +549,6 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_x11_X11Lib_CreateDummyWindow
         pVisualQuery=NULL;
     }
 
-    if(0==windowParent) {
-        windowParent = XRootWindowOfScreen(scrn);
-    }
 
     attrMask  = ( CWBackingStore | CWBackingPlanes | CWBackingPixel | CWBackPixmap | 
                   CWBorderPixel | CWColormap | CWOverrideRedirect ) ;
@@ -495,15 +560,22 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_x11_X11Lib_CreateDummyWindow
     xswa.backing_store=NotUseful; /* NotUseful, WhenMapped, Always */
     xswa.backing_planes=0;        /* planes to be preserved if possible */
     xswa.backing_pixel=0;         /* value to use in restoring planes */
+    if( input ) {
+        xswa.event_mask  = X11_MOUSE_EVENT_MASK;
+        xswa.event_mask |= KeyPressMask | KeyReleaseMask ;
+    }
+    if( visible ) {
+        xswa.event_mask |= FocusChangeMask | SubstructureNotifyMask | StructureNotifyMask | ExposureMask ;
+    }
 
     xswa.colormap = XCreateColormap(dpy,
-                                    XRootWindow(dpy, scrn_idx),
+                                    windowParent,
                                     visual,
                                     AllocNone);
 
     window = XCreateWindow(dpy,
                            windowParent,
-                           0, 0,
+                           0, 0, // only a hint, WM most likely will override
                            width, height,
                            0, // border width
                            depth,
@@ -511,13 +583,27 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_x11_X11Lib_CreateDummyWindow
                            visual,
                            attrMask,
                            &xswa);
+    if(0==window) {
+        NativewindowCommon_throwNewRuntimeException(env, "could not create Window, bail out!");
+        return 0;
+    }
+
+    NativewindowX11_setNormalWindowEWMH(dpy, window);
+    NativewindowX11_setDecorations(dpy, window, False);
+
+    if( visible ) {
+        XEvent event;
+
+        XMapWindow(dpy, window);
+    }
 
     XSync(dpy, False);
 
-    XSelectInput(dpy, window, 0); // no events
-    XSync(dpy, False);
+    if( !input ) {
+        XSelectInput(dpy, window, 0); // no events
+    }
 
-    x11ErrorHandlerEnable(dpy, 0, env);
+    // NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 0, errorHandlerQuiet, 1);
 
     DBG_PRINT( "X11: [CreateWindow] created window %p on display %p\n", window, dpy);
 
@@ -527,25 +613,57 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_x11_X11Lib_CreateDummyWindow
 
 /*
  * Class:     jogamp_nativewindow_x11_X11Lib
- * Method:    DestroyDummyWindow
+ * Method:    DestroyWindow
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_jogamp_nativewindow_x11_X11Lib_DestroyDummyWindow
+JNIEXPORT void JNICALL Java_jogamp_nativewindow_x11_X11Lib_DestroyWindow
   (JNIEnv *env, jclass unused, jlong display, jlong window)
 {
     Display * dpy = (Display *)(intptr_t)display;
     Window      w = (Window) window;
+    XWindowAttributes xwa;
 
     if(NULL==dpy) {
         NativewindowCommon_throwNewRuntimeException(env, "invalid display connection..");
         return;
     }
 
-    x11ErrorHandlerEnable(dpy, 1, env);
+    NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 1, errorHandlerQuiet, 0);
+    XSync(dpy, False);
+    memset(&xwa, 0, sizeof(XWindowAttributes));
+    XGetWindowAttributes(dpy, w, &xwa); // prefetch colormap to be destroyed after window destruction
+    XSelectInput(dpy, w, 0);
     XUnmapWindow(dpy, w);
     XSync(dpy, False);
     XDestroyWindow(dpy, w);
-    x11ErrorHandlerEnable(dpy, 0, env);
+    if( None != xwa.colormap ) {
+        XFreeColormap(dpy, xwa.colormap);
+    }
+    // NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 0, errorHandlerQuiet, 1);
+}
+
+JNIEXPORT void JNICALL Java_jogamp_nativewindow_x11_X11Lib_SetWindowPosSize
+  (JNIEnv *env, jclass unused, jlong display, jlong window, jint x, jint y, jint width, jint height) {
+    Display * dpy = (Display *)(intptr_t)display;
+    Window      w = (Window) window;
+    XWindowChanges xwc;
+    int flags = 0;
+    
+    memset(&xwc, 0, sizeof(XWindowChanges));
+
+    if(0<=x && 0<=y) {
+        flags |= CWX | CWY;
+        xwc.x=x;
+        xwc.y=y;
+    }
+
+    if(0<width && 0<height) {
+        flags |= CWWidth | CWHeight;
+        xwc.width=width;
+        xwc.height=height;
+    }
+    XConfigureWindow(dpy, w, flags, &xwc);
+    XSync(dpy, False);
 }
 
 /*
@@ -569,15 +687,50 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_x11_X11Lib_GetRelativeLocatio
     if( 0 == jdest_win ) { dest_win = root; }
     if( 0 == jsrc_win ) { src_win = root; }
 
-    x11ErrorHandlerEnable(dpy, 1, env);
+    NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 1, errorHandlerQuiet, 0);
 
     res = XTranslateCoordinates(dpy, src_win, dest_win, src_x, src_y, &dest_x, &dest_y, &child);
 
-    x11ErrorHandlerEnable(dpy, 0, env);
+    // NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 0, errorHandlerQuiet, 0);
 
     DBG_PRINT( "X11: GetRelativeLocation0: %p %d/%d -> %p %d/%d - ok: %d\n",
         (void*)src_win, src_x, src_y, (void*)dest_win, dest_x, dest_y, (int)res);
 
     return (*env)->NewObject(env, pointClz, pointCstr, (jint)dest_x, (jint)dest_y);
+}
+
+/*
+ * Class:     jogamp_nativewindow_x11_X11Lib
+ * Method:    QueryExtension0
+ * Signature: (JLjava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_x11_X11Lib_QueryExtension0
+  (JNIEnv *env, jclass unused, jlong jdisplay, jstring jextensionName)
+{
+    int32_t major_opcode, first_event, first_error;
+    jboolean res = JNI_FALSE;
+    Display * display = (Display *) (intptr_t) jdisplay;
+    const char* extensionName = NULL;
+
+    if(NULL==display) {
+        NativewindowCommon_throwNewRuntimeException(env, "NULL argument \"display\"");
+        return res;
+    }
+    if ( NULL == jextensionName ) {
+        NativewindowCommon_throwNewRuntimeException(env, "NULL argument \"extensionName\"");
+        return res;
+    }
+    extensionName = (*env)->GetStringUTFChars(env, jextensionName, (jboolean*)NULL);
+    if ( NULL == extensionName ) {
+        NativewindowCommon_throwNewRuntimeException(env, "Failed to get UTF-8 chars for argument \"extensionName\"");
+        return res;
+    }
+
+    res = True == XQueryExtension(display, extensionName, &major_opcode, &first_event, &first_error) ? JNI_TRUE : JNI_FALSE;
+
+    if ( NULL != jextensionName ) {
+        (*env)->ReleaseStringUTFChars(env, jextensionName, extensionName);
+    }
+    return res;
 }
 

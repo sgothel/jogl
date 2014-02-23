@@ -44,11 +44,14 @@ import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  * Duplicates bug 459, where a vertex shader won't compile when 8 bits of stencil are requested.
  * This bug is Windows-only; it works on Mac OS X and CentOS.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestShaderCompilationBug459AWT extends UITestCase {
     static int width, height;
     static long duration = 500; // ms
@@ -81,7 +84,6 @@ public class TestShaderCompilationBug459AWT extends UITestCase {
         final GLCanvas glCanvas = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas);
         frame.add(glCanvas);
-        frame.setSize(512, 512);
 
         glCanvas.addGLEventListener(new GLEventListener() {
             /* @Override */
@@ -131,7 +133,15 @@ public class TestShaderCompilationBug459AWT extends UITestCase {
         });
 
         Animator animator = new Animator(glCanvas);
-        frame.setVisible(true);
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.setSize(512, 512);
+                    frame.setVisible(true);
+                } } );
+        } catch(Exception ex) {
+            throw new RuntimeException(ex);
+        }
         animator.setUpdateFPSFrames(1, null);        
         animator.start();
 

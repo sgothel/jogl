@@ -33,39 +33,43 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
+import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
+
 
 public class EGLGLCapabilities extends GLCapabilities {
   private long eglcfg;
   final private int  eglcfgid;
-  final private int  renderableType;  
+  final private int  renderableType;
   final private int  nativeVisualID;
-  
+
   /**
-   * 
+   *
    * @param eglcfg
    * @param eglcfgid
    * @param visualID native visualID if valid, otherwise VisualIDHolder.VID_UNDEFINED
-   * @param glp desired GLProfile, or null if determined by renderableType
+   * @param glp desired GLProfile
    * @param renderableType actual EGL renderableType
-   * 
+   *
    * May throw GLException if given GLProfile is not compatible w/ renderableType
    */
   public EGLGLCapabilities(long eglcfg, int eglcfgid, int visualID, GLProfile glp, int renderableType) {
-      super( ( null != glp ) ? glp : getCompatible(renderableType) );
+      super( glp );
       this.eglcfg = eglcfg;
       this.eglcfgid = eglcfgid;
       if(!isCompatible(glp, renderableType)) {
-          throw new GLException("Incompatible "+glp+
-                                " with EGL-RenderableType["+renderableTypeToString(null, renderableType)+"]");
+          throw new GLException("Requested GLProfile "+glp+
+                                " not compatible with EGL-RenderableType["+renderableTypeToString(null, renderableType)+"]");
       }
       this.renderableType = renderableType;
       this.nativeVisualID = visualID;
   }
 
+  @Override
   public Object cloneMutable() {
     return clone();
   }
 
+  @Override
   public Object clone() {
     try {
       return super.clone();
@@ -73,13 +77,13 @@ public class EGLGLCapabilities extends GLCapabilities {
       throw new GLException(e);
     }
   }
-  
+
   final protected void setEGLConfig(long v) { eglcfg=v; }
   final public long getEGLConfig() { return eglcfg; }
   final public int getEGLConfigID() { return eglcfgid; }
   final public int getRenderableType() { return renderableType; }
   final public int getNativeVisualID() { return nativeVisualID; }
-  
+
   @Override
   final public int getVisualID(VIDType type) throws NativeWindowException {
       switch(type) {
@@ -90,17 +94,20 @@ public class EGLGLCapabilities extends GLCapabilities {
               return getNativeVisualID();
           default:
               throw new NativeWindowException("Invalid type <"+type+">");
-      }      
+      }
   }
-  
+
   public static boolean isCompatible(GLProfile glp, int renderableType) {
     if(null == glp) {
         return true;
     }
-    if(0 != (renderableType & EGL.EGL_OPENGL_ES_BIT) && glp.usesNativeGLES1()) {
+    if(0 != (renderableType & EGLExt.EGL_OPENGL_ES3_BIT_KHR) && glp.usesNativeGLES3()) {
         return true;
     }
     if(0 != (renderableType & EGL.EGL_OPENGL_ES2_BIT) && glp.usesNativeGLES2()) {
+        return true;
+    }
+    if(0 != (renderableType & EGL.EGL_OPENGL_ES_BIT) && glp.usesNativeGLES1()) {
         return true;
     }
     if(0 != (renderableType & EGL.EGL_OPENGL_BIT) && !glp.usesNativeGLES()) {
@@ -109,24 +116,28 @@ public class EGLGLCapabilities extends GLCapabilities {
     return false;
   }
 
-  public static GLProfile getCompatible(int renderableType) {
-    if(0 != (renderableType & EGL.EGL_OPENGL_ES2_BIT) && GLProfile.isAvailable(GLProfile.GLES2)) {
-        return GLProfile.get(GLProfile.GLES2);
+  public static GLProfile getCompatible(EGLGraphicsDevice device, int renderableType) {
+    if(0 != (renderableType & EGLExt.EGL_OPENGL_ES3_BIT_KHR) && GLProfile.isAvailable(device, GLProfile.GLES3)) {
+        return GLProfile.get(device, GLProfile.GLES3);
     }
-    if(0 != (renderableType & EGL.EGL_OPENGL_ES_BIT) && GLProfile.isAvailable(GLProfile.GLES1)) {
-        return GLProfile.get(GLProfile.GLES1);
+    if(0 != (renderableType & EGL.EGL_OPENGL_ES2_BIT) && GLProfile.isAvailable(device, GLProfile.GLES2)) {
+        return GLProfile.get(device, GLProfile.GLES2);
+    }
+    if(0 != (renderableType & EGL.EGL_OPENGL_ES_BIT) && GLProfile.isAvailable(device, GLProfile.GLES1)) {
+        return GLProfile.get(device, GLProfile.GLES1);
     }
     if(0 != (renderableType & EGL.EGL_OPENGL_BIT)) {
-        return GLProfile.getDefault();
+        return GLProfile.getDefault(device);
     }
     return null;
   }
-  
+
   public static StringBuilder renderableTypeToString(StringBuilder sink, int renderableType) {
     if(null == sink) {
         sink = new StringBuilder();
     }
     boolean first=true;
+    sink.append("0x").append(Integer.toHexString(renderableType)).append(": ");
     if(0 != (renderableType & EGL.EGL_OPENGL_BIT)) {
         sink.append("GL"); first=false;
     }
@@ -136,12 +147,16 @@ public class EGLGLCapabilities extends GLCapabilities {
     if(0 != (renderableType & EGL.EGL_OPENGL_ES2_BIT)) {
         if(!first) sink.append(", "); sink.append("GLES2");  first=false;
     }
+    if(0 != (renderableType & EGLExt.EGL_OPENGL_ES3_BIT_KHR)) {
+        if(!first) sink.append(", "); sink.append("GLES3");  first=false;
+    }
     if(0 != (renderableType & EGL.EGL_OPENVG_API)) {
         if(!first) sink.append(", "); sink.append("VG");  first=false;
     }
-    return sink;      
+    return sink;
   }
-  
+
+  @Override
   public StringBuilder toString(StringBuilder sink) {
     if(null == sink) {
         sink = new StringBuilder();

@@ -34,13 +34,13 @@ import jogamp.graph.curve.opengl.RegionFactory;
 import jogamp.opengl.Debug;
 
 import com.jogamp.graph.curve.opengl.GLRegion;
-import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
+import com.jogamp.opengl.math.geom.AABBox;
 
 /** Abstract Outline shape GL representation define the method an OutlineShape(s)
  * is bound and rendered.
- * 
+ *
  * @see GLRegion */
 public abstract class Region {
 
@@ -73,7 +73,7 @@ public abstract class Region {
     }
 
     /** Check if render mode capable of non uniform weights
-     * 
+     *
      * @param renderModes
      *            bit-field of modes, e.g.
      *            {@link Region#VARIABLE_CURVE_WEIGHT_BIT},
@@ -93,7 +93,7 @@ public abstract class Region {
         return region;
     }
 
-    /** 
+    /**
      * Create a {@link Region} defining this {@link OutlineShape}
      * @return the resulting Region.
      */
@@ -101,28 +101,28 @@ public abstract class Region {
         final Region region = RegionFactory.create(renderModes);
         region.addOutlineShape(outlineShape);
         return region;
-    }        
-        
+    }
+
     protected Region(int regionRenderModes) {
         this.renderModes = regionRenderModes;
     }
 
     /** Get current Models
-     * 
+     *
      * @return bit-field of render modes */
     public final int getRenderModes() {
         return renderModes;
     }
 
     /** Check if current Region is using VBAA
-     * 
+     *
      * @return true if capable of two pass rendering - VBAA */
     public boolean isVBAA() {
         return Region.isVBAA(renderModes);
     }
 
     /** Check if current instance uses non uniform weights
-     * 
+     *
      * @return true if capable of nonuniform weights */
     public boolean isNonUniformWeight() {
         return Region.isNonUniformWeight(renderModes);
@@ -130,7 +130,7 @@ public abstract class Region {
 
     /** Get the current number of vertices associated with this region. This
      * number is not necessary equal to the OGL bound number of vertices.
-     * 
+     *
      * @return vertices count */
     public final int getNumVertices() {
         return numVertices;
@@ -138,10 +138,10 @@ public abstract class Region {
 
     /** Adds a {@link Triangle} object to the Region This triangle will be bound
      * to OGL objects on the next call to {@code update}
-     * 
+     *
      * @param tri
      *            a triangle object
-     * 
+     *
      * @see update(GL2ES2) */
     public void addTriangle(Triangle tri) {
         triangles.add(tri);
@@ -150,10 +150,10 @@ public abstract class Region {
 
     /** Adds a list of {@link Triangle} objects to the Region These triangles are
      * to be binded to OGL objects on the next call to {@code update}
-     * 
+     *
      * @param tris
      *            a list of triangle objects
-     * 
+     *
      * @see update(GL2ES2) */
     public void addTriangles(List<Triangle> tris) {
         triangles.addAll(tris);
@@ -162,10 +162,10 @@ public abstract class Region {
 
     /** Adds a {@link Vertex} object to the Region This vertex will be bound to
      * OGL objects on the next call to {@code update}
-     * 
+     *
      * @param vert
      *            a vertex objects
-     * 
+     *
      * @see update(GL2ES2) */
     public void addVertex(Vertex vert) {
         vertices.add(vert);
@@ -175,10 +175,10 @@ public abstract class Region {
 
     /** Adds a list of {@link Vertex} objects to the Region These vertices are to
      * be binded to OGL objects on the next call to {@code update}
-     * 
+     *
      * @param verts
      *            a list of vertex objects
-     * 
+     *
      * @see update(GL2ES2) */
     public void addVertices(List<Vertex> verts) {
         vertices.addAll(verts);
@@ -202,7 +202,7 @@ public abstract class Region {
         }
         setDirty(true);
     }
-    
+
     public void addOutlineShapes(List<OutlineShape> shapes) {
         for (int i = 0; i < shapes.size(); i++) {
             addOutlineShape(shapes.get(i));
@@ -217,9 +217,9 @@ public abstract class Region {
 
     /** Check if this region is dirty. A region is marked dirty when new
      * Vertices, Triangles, and or Lines are added after a call to update()
-     * 
+     *
      * @return true if region is Dirty, false otherwise
-     * 
+     *
      * @see update(GL2ES2) */
     public final boolean isDirty() {
         return dirty;

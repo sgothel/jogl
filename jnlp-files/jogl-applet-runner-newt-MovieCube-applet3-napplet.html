@@ -1,0 +1,80 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>JogAmp's Applet3 MovieCube - GLMediaPlayer Demo 01 (NApplet)</title>
+</head>
+<body  BGCOLOR="#ffffff">
+
+<P>
+JogAmp's Applet3 MovieCube - GLMediaPlayer Demo 01
+</P>
+
+<P>
+<object classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93"
+      width="510" height="300">
+   <param name="code" value="com.jogamp.newt.util.applet.JOGLNewtApplet3Run">
+   <param name="archive" value="jar/gluegen-rt.jar,
+                                jar/joal.jar,
+                                jar/jogl-all-noawt.jar,
+                                jar/jogl-test.jar">
+   <param name="gl_event_listener_class" value="com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube">
+   <param name="gl_profile" value="GL2ES2">
+   <param name="gl_swap_interval" value="1">
+   <param name="gl_debug" value="false">
+   <param name="gl_trace" value="false">
+   <comment>
+     <embed code="com.jogamp.newt.util.applet.JOGLNewtApplet3Run"
+          width="510" height="300"
+          type="application/x-java-applet;version=1.6"
+          pluginspage="http://java.sun.com/javase/downloads/ea.jsp"
+          archive="jar/gluegen-rt.jar,
+                   jar/joal.jar,
+                   jar/jogl-all-noawt.jar,
+                   jar/jogl-test.jar"
+          codebase_lookup" value="false"
+          gl_event_listener_class="com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube"
+          gl_profile="GL2ES2"
+          gl_swap_interval="1"
+          gl_debug="false"
+          gl_trace="false">
+        <noembed>Sorry, no Java support detected.</noembed>
+     </embed>
+   </comment>
+</object>
+
+</P>
+
+<P>
+MovieCube Keys:<br>
+<ul>
+    <li> BWD / FWD:
+      <ul>
+        <li> 01s - Cursor left/right</li>
+        <li> 10s - Cursor down/up</li>
+        <li> 30s - Page   down/up</li>
+      </ul></li>
+    <li> Speed:
+      <ul>
+        <li> Pause  - Space bar</li>
+        <li> Half   - Keypad minus</li>
+        <li> Double - Keypad plus</li>
+        <li> Reset  - Keypad multiply</li>
+      </ul></li>
+    <li> Mute       - M</li>
+</ul>
+</P>
+<P>
+JOGL NEWT JNLP Applet Runner Special Keys:<br>
+<ul>
+    <li> d - toggle decoration </li>
+    <li> f - toggle fullscreen </li>
+    <li> r - in/out browser window </li>
+    <li> a - on/off always-on-top </li>
+    <li> c - change mouse pointer </li>
+    <li> i - invisible mouse pointer </li>
+    <li> w - warp mouse pointer to center </li>
+</ul>
+</P>
+
+</body>
+</html>

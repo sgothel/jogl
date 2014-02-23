@@ -1,0 +1,835 @@
+format 74
+"jogl"
+  revision 15
+  modified_by 2 "qun"
+
+
+  
+  // class settings
+  default_attribute_visibility private default_relation_visibility private default_operation_visibility public
+  //class diagram settings
+  draw_all_relations yes hide_attributes no hide_operations no hide_getset_operations no show_members_full_definition no show_members_visibility no show_members_stereotype no show_members_context no show_members_multiplicity no show_members_initialization no show_attribute_modifiers no member_max_width 127 show_parameter_dir yes show_parameter_name yes package_name_in_tab no class_drawing_mode natural drawing_language uml show_context_mode no auto_label_position yes show_relation_modifiers no show_relation_visibility no show_infonote no shadow yes show_stereotype_properties no
+  //use case diagram settings
+  package_name_in_tab no show_context no auto_label_position yes draw_all_relations yes class_drawing_mode actor shadow yes show_stereotype_properties no
+  //sequence diagram settings
+  show_full_operations_definition no write_horizontally yes class_drawing_mode natural drawing_language uml draw_all_relations yes shadow yes show_stereotype_properties no show_class_context_mode no show_msg_context_mode no
+  //collaboration diagram settings
+  show_full_operations_definition no show_hierarchical_rank no write_horizontally yes drawing_language uml package_name_in_tab no show_context no show_msg_context no draw_all_relations yes shadow yes show_stereotype_properties no
+  //object diagram settings
+   write_horizontally yes package_name_in_tab no show_context no auto_label_position yes draw_all_relations yes shadow yes show_stereotype_properties no
+  //component diagram settings
+  package_name_in_tab no show_context no auto_label_position yes draw_all_relations yes shadow yes
+  draw_component_as_icon no show_component_req_prov no show_component_rea no show_stereotype_properties no
+  //deployment diagram settings
+  package_name_in_tab no show_context no write_horizontally yes auto_label_position yes draw_all_relations yes shadow yes
+  draw_component_as_icon no show_component_req_prov no show_component_rea no show_stereotype_properties no
+  //state diagram settings
+  package_name_in_tab no show_context no auto_label_position yes write_trans_label_horizontally yes show_trans_definition no draw_all_relations yes shadow yes
+  show_activities yes region_horizontally yes drawing_language uml show_stereotype_properties no
+  //activity diagram settings
+  package_name_in_tab no show_context no show_opaque_action_definition no auto_label_position yes write_flow_label_horizontally no draw_all_relations yes shadow yes
+  show_infonote yes drawing_language uml show_stereotype_properties no
+  
+  class_color yellow duration_color transparent continuation_color gray note_color blue fragment_color transparent subject_color transparent usecase_color yellow package_color transparent component_color green artifact_color green deploymentnode_color gray state_color yellow stateaction_color transparent activity_color transparent activityregion_color transparent activitypartition_color transparent activityaction_color transparent parameterpin_color white 
+  font_size 7
+  diagram_format A4
+
+  mark_for_import
+  
+  ncouples 1
+  key "html dir" value "/usr/local/projects/JOGL/jogl/doc/uml/html/"
+  classview 128069 "javax.media.opengl"
+    //class diagram settings
+    draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+    //collaboration diagram settings
+    show_full_operations_definition default show_hierarchical_rank default write_horizontally default drawing_language default package_name_in_tab default show_context default show_msg_context default draw_all_relations default shadow default show_stereotype_properties default
+    //object diagram settings
+     write_horizontally default package_name_in_tab default show_context default auto_label_position default draw_all_relations default shadow default show_stereotype_properties default
+    //sequence diagram settings
+    show_full_operations_definition default write_horizontally default class_drawing_mode default drawing_language default draw_all_relations default shadow default show_stereotype_properties default show_class_context_mode default show_msg_context_mode default
+    //state diagram settings
+    package_name_in_tab default show_context default auto_label_position default write_trans_label_horizontally default show_trans_definition default draw_all_relations default shadow default
+    show_activities default region_horizontally default drawing_language default show_stereotype_properties default
+    //class settings
+    //activity diagram settings
+    package_name_in_tab default show_context default show_opaque_action_definition default auto_label_position default write_flow_label_horizontally default draw_all_relations default shadow default
+    show_infonote default drawing_language default show_stereotype_properties default
+    classdiagram 128069 "OpenGL Interfaces - All"
+      draw_all_relations no hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+      size A3-Landscape
+    end
+
+    classdiagram 134786 "OpenGL Interfaces - Core Only"
+      draw_all_relations no hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+      size A3-Landscape
+    end
+
+    class 128069 "GL"
+      visibility public stereotype "interface"
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}interface ${name}${extends} {
+${members}}
+"
+      php_decl "${comment}${visibility}interface ${name} {
+${members}}
+"
+      python_2_2 python_decl ""
+      idl_decl "${comment}${abstract}${local}interface ${name}${inherit} {
+${members}};
+"
+      explicit_switch_type ""
+      
+      classrelation 134085 // <generalisation>
+	relation 133061 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 134085 // <generalisation>
+	  b parent class_ref 132549 // GLBase
+      end
+    end
+
+    class 128197 "GL2ES1"
+      visibility public stereotype "interface"
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}interface ${name}${extends} {
+${members}}
+"
+      php_decl "${comment}${visibility}interface ${name} {
+${members}}
+"
+      python_2_2 python_decl ""
+      idl_decl "${comment}${abstract}${local}interface ${name}${inherit} {
+${members}};
+"
+      explicit_switch_type ""
+      
+      classrelation 129221 // <generalisation>
+	relation 129221 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 129221 // <generalisation>
+	  b parent class_ref 128069 // GL
+      end
+    end
+
+    class 128325 "GLES1"
+      visibility public stereotype "interface"
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}interface ${name}${extends} {
+${members}}
+"
+      php_decl "${comment}${visibility}interface ${name} {
+${members}}
+"
+      python_2_2 python_decl ""
+      idl_decl "${comment}${abstract}${local}interface ${name}${inherit} {
+${members}};
+"
+      explicit_switch_type ""
+      
+      classrelation 129477 // <generalisation>
+	relation 129477 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 129477 // <generalisation>
+	  b parent class_ref 128197 // GL2ES1
+      end
+    end
+
+    class 128453 "GL2"
+      visibility public stereotype "interface"
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}interface ${name}${extends} {
+${members}}
+"
+      php_decl "${comment}${visibility}interface ${name} {
+${members}}
+"
+      python_2_2 python_decl ""
+      idl_decl "${comment}${abstract}${local}interface ${name}${inherit} {
+${members}};
+"
+      explicit_switch_type ""
+      
+      classrelation 129989 // <generalisation>
+	relation 129989 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 129989 // <generalisation>
+	  b parent class_ref 128709 // GL2GL3
+      end
+
+      classrelation 130245 // <generalisation>
+	relation 130245 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 130245 // <generalisation>
+	  b parent class_ref 128197 // GL2ES1
+      end
+    end
+
+    class 128581 "GL2ES2"
+      visibility public stereotype "interface"
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}interface ${name}${extends} {
+${members}}
+"
+      php_decl "${comment}${visibility}interface ${name} {
+${members}}
+"
+      python_2_2 python_decl ""
+      idl_decl "${comment}${abstract}${local}interface ${name}${inherit} {
+${members}};
+"
+      explicit_switch_type ""
+      
+      classrelation 129349 // <generalisation>
+	relation 129349 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 129349 // <generalisation>
+	  b parent class_ref 128069 // GL
+      end
+    end
+
+    class 128709 "GL2GL3"
+      visibility public stereotype "interface"
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}interface ${name}${extends} {
+${members}}
+"
+      php_decl "${comment}${visibility}interface ${name} {
+${members}}
+"
+      python_2_2 python_decl ""
+      idl_decl "${comment}${abstract}${local}interface ${name}${inherit} {
+${members}};
+"
+      explicit_switch_type ""
+      
+      classrelation 130117 // <generalisation>
+	relation 130117 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 130117 // <generalisation>
+	  b parent class_ref 128581 // GL2ES2
+      end
+
+      classrelation 136322 // <generalisation>
+	relation 136322 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 136322 // <generalisation>
+	  b parent class_ref 135298 // GL2ES3
+      end
+    end
+
+    class 128837 "GL3"
+      visibility public stereotype "interface"
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}interface ${name}${extends} {
+${members}}
+"
+      php_decl "${comment}${visibility}interface ${name} {
+${members}}
+"
+      python_2_2 python_decl ""
+      idl_decl "${comment}${abstract}${local}interface ${name}${inherit} {
+${members}};
+"
+      explicit_switch_type ""
+      
+      classrelation 129861 // <generalisation>
+	relation 129861 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 129861 // <generalisation>
+	  b parent class_ref 128709 // GL2GL3
+      end
+
+      classrelation 136834 // <generalisation>
+	relation 136834 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 136834 // <generalisation>
+	  b parent class_ref 135170 // GL3ES3
+      end
+    end
+
+    class 128965 "GLES2"
+      visibility public stereotype "interface"
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}interface ${name}${extends} {
+${members}}
+"
+      php_decl "${comment}${visibility}interface ${name} {
+${members}}
+"
+      python_2_2 python_decl ""
+      idl_decl "${comment}${abstract}${local}interface ${name}${inherit} {
+${members}};
+"
+      explicit_switch_type ""
+      
+      classrelation 129605 // <generalisation>
+	relation 129605 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 129605 // <generalisation>
+	  b parent class_ref 128581 // GL2ES2
+      end
+    end
+
+    class 130117 "GLContext"
+      abstract visibility package 
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}${final}${abstract}class ${name}${extends}${implements} {
+${members}}
+"
+      php_decl ""
+      python_2_2 python_decl ""
+      idl_decl ""
+      explicit_switch_type ""
+      
+      classrelation 130757 // <association>
+	relation_ref 130501 // <association>
+      end
+
+      classrelation 134341 // <association>
+	relation_ref 133189 // <association>
+      end
+    end
+
+    class 130245 "GLDrawable"
+      abstract visibility package 
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}${final}${abstract}class ${name}${extends}${implements} {
+${members}}
+"
+      php_decl ""
+      python_2_2 python_decl ""
+      idl_decl ""
+      explicit_switch_type ""
+      
+      classrelation 130629 // <association>
+	relation 130501 ----
+	  a role_name "" multiplicity "0..1" private
+	    java "  ${comment}${@}${visibility}${static}${final}${transient}${volatile}${type} ${name}${value};
+"
+	    classrelation_ref 130629 // <association>
+	  b role_name "" multiplicity "1" private
+	    java "  ${comment}${@}${visibility}${static}${final}${transient}${volatile}${type} ${name}${value};
+"
+	    classrelation_ref 130757 // <association>
+      end
+
+      classrelation 132421 // <association>
+	relation_ref 131653 // <association>
+      end
+    end
+
+    class 130501 "GL4bcImpl"
+      visibility private stereotype "entity"
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}${final}${abstract}class ${name}${extends}${implements} {
+${members}}
+"
+      php_decl ""
+      python_2_2 python_decl ""
+      idl_decl ""
+      explicit_switch_type ""
+      
+      classrelation 131141 // <realization>
+	relation 130885 -_-|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 131141 // <realization>
+	  b parent class_ref 128837 // GL3
+      end
+
+      classrelation 128002 // <realization>
+	relation 128002 -_-|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 128002 // <realization>
+	  b parent class_ref 128002 // GL3bc
+      end
+
+      classrelation 128130 // <realization>
+	relation 128130 -_-|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 128130 // <realization>
+	  b parent class_ref 128258 // GL4bc
+      end
+
+      classrelation 128258 // <realization>
+	relation 128258 -_-|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 128258 // <realization>
+	  b parent class_ref 128453 // GL2
+      end
+
+      classrelation 128386 // <realization>
+	relation 128386 -_-|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 128386 // <realization>
+	  b parent class_ref 128130 // GL4
+      end
+    end
+
+    class 130629 "GLES3Impl"
+      visibility private stereotype "entity"
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}${final}${abstract}class ${name}${extends}${implements} {
+${members}}
+"
+      php_decl ""
+      python_2_2 python_decl ""
+      idl_decl ""
+      explicit_switch_type ""
+      
+      classrelation 137090 // <realization>
+	relation 137090 -_-|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 137090 // <realization>
+	  b parent class_ref 128965 // GLES2
+      end
+
+      classrelation 137218 // <realization>
+	relation 137218 -_-|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 137218 // <realization>
+	  b parent class_ref 134914 // GLES3
+      end
+    end
+
+    class 130757 "GLES1Impl"
+      visibility private stereotype "entity"
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}${final}${abstract}class ${name}${extends}${implements} {
+${members}}
+"
+      php_decl ""
+      python_2_2 python_decl ""
+      idl_decl ""
+      explicit_switch_type ""
+      
+      classrelation 130885 // <realization>
+	relation 130629 -_-|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 130885 // <realization>
+	  b parent class_ref 128325 // GLES1
+      end
+    end
+
+    class 130885 "NativeWindow"
+      visibility package stereotype "interface"
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}interface ${name}${extends} {
+${members}}
+"
+      php_decl "${comment}${visibility}interface ${name} {
+${members}}
+"
+      python_2_2 python_decl ""
+      idl_decl "${comment}${abstract}${local}interface ${name}${inherit} {
+${members}};
+"
+      explicit_switch_type ""
+      
+      classrelation 132165 // <association>
+	relation_ref 131525 // <association>
+      end
+
+      classrelation 132293 // <association>
+	relation 131653 ----
+	  a role_name "" private
+	    java "  ${comment}${@}${visibility}${static}${final}${transient}${volatile}${type} ${name}${value};
+"
+	    classrelation_ref 132293 // <association>
+	  b role_name "" private
+	    java "  ${comment}${@}${visibility}${static}${final}${transient}${volatile}${type} ${name}${value};
+"
+	    classrelation_ref 132421 // <association>
+      end
+    end
+
+    class 131013 "AbstractGraphicsConfiguration"
+      abstract visibility package 
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}${final}${abstract}class ${name}${extends}${implements} {
+${members}}
+"
+      php_decl ""
+      python_2_2 python_decl ""
+      idl_decl ""
+      explicit_switch_type ""
+      
+      classrelation 131525 // chosen (<association>)
+	relation 131269 ----
+	  a role_name "chosen" multiplicity "1" private
+	    java "  ${comment}${@}${visibility}${static}${final}${transient}${volatile}${type} ${name}${value};
+"
+	    classrelation_ref 131525 // chosen (<association>)
+	  b role_name "" private
+	    java "  ${comment}${@}${visibility}${static}${final}${transient}${volatile}${type} ${name}${value};
+"
+	    classrelation_ref 131653 // <association>
+      end
+
+      classrelation 131909 // <association>
+	relation_ref 131397 // <association>
+      end
+
+      classrelation 132037 // <association>
+	relation 131525 ----
+	  a role_name "" private
+	    java "  ${comment}${@}${visibility}${static}${final}${transient}${volatile}${type} ${name}${value};
+"
+	    classrelation_ref 132037 // <association>
+	  b role_name "" private
+	    java "  ${comment}${@}${visibility}${static}${final}${transient}${volatile}${type} ${name}${value};
+"
+	    classrelation_ref 132165 // <association>
+      end
+    end
+
+    class 131141 "GLCapabilities"
+      visibility package 
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}${final}${abstract}class ${name}${extends}${implements} {
+${members}}
+"
+      php_decl ""
+      python_2_2 python_decl ""
+      idl_decl ""
+      explicit_switch_type ""
+      
+      classrelation 131397 // <generalisation>
+	relation 131141 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 131397 // <generalisation>
+	  b parent class_ref 131269 // Capabilities
+      end
+
+      classrelation 132677 // <association>
+	relation_ref 131781 // <association>
+      end
+
+      classrelation 132933 // <association>
+	relation_ref 131909 // <association>
+      end
+    end
+
+    class 131269 "Capabilities"
+      visibility package 
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}${final}${abstract}class ${name}${extends}${implements} {
+${members}}
+"
+      php_decl ""
+      python_2_2 python_decl ""
+      idl_decl ""
+      explicit_switch_type ""
+      
+      classrelation 131653 // <association>
+	relation_ref 131269 // <association>
+      end
+
+      classrelation 131781 // <association>
+	relation 131397 ----
+	  a role_name "" private
+	    java "  ${comment}${@}${visibility}${static}${final}${transient}${volatile}${type} ${name}${value};
+"
+	    classrelation_ref 131781 // <association>
+	  b role_name "requested" multiplicity "1" private
+	    java "  ${comment}${@}${visibility}${static}${final}${transient}${volatile}${type} ${name}${value};
+"
+	    classrelation_ref 131909 // <association>
+      end
+    end
+
+    class 131397 "GLProfile"
+      visibility package 
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}${final}${abstract}class ${name}${extends}${implements} {
+${members}}
+"
+      php_decl ""
+      python_2_2 python_decl ""
+      idl_decl ""
+      explicit_switch_type ""
+      
+      classrelation 132549 // <association>
+	relation 131781 ----
+	  a role_name "" private
+	    java "  ${comment}${@}${visibility}${static}${final}${transient}${volatile}${type} ${name}${value};
+"
+	    classrelation_ref 132549 // <association>
+	  b role_name "" private
+	    java "  ${comment}${@}${visibility}${static}${final}${transient}${volatile}${type} ${name}${value};
+"
+	    classrelation_ref 132677 // <association>
+      end
+
+      classrelation 132805 // <association>
+	relation 131909 ----
+	  a role_name "" private
+	    java "  ${comment}${@}${visibility}${static}${final}${transient}${volatile}${type} ${name}${value};
+"
+	    classrelation_ref 132805 // <association>
+	  b role_name "" private
+	    java "  ${comment}${@}${visibility}${static}${final}${transient}${volatile}${type} ${name}${value};
+"
+	    classrelation_ref 132933 // <association>
+      end
+    end
+
+    class 132549 "GLBase"
+      visibility public stereotype "interface"
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}interface ${name}${extends} {
+${members}}
+"
+      php_decl "${comment}${visibility}interface ${name} {
+${members}}
+"
+      python_2_2 python_decl ""
+      idl_decl "${comment}${abstract}${local}interface ${name}${inherit} {
+${members}};
+"
+      explicit_switch_type ""
+      
+      classrelation 134213 // <association>
+	relation 133189 ----
+	  a role_name "" multiplicity "1" private
+	    java "  ${comment}${@}${visibility}${static}${final}${transient}${volatile}${type} ${name}${value};
+"
+	    classrelation_ref 134213 // <association>
+	  b role_name "" multiplicity "1" private
+	    java "  ${comment}${@}${visibility}${static}${final}${transient}${volatile}${type} ${name}${value};
+"
+	    classrelation_ref 134341 // <association>
+      end
+    end
+
+    class 128002 "GL3bc"
+      visibility package stereotype "interface"
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}interface ${name}${extends} {
+${members}}
+"
+      php_decl "${comment}${visibility}interface ${name} {
+${members}}
+"
+      python_2_2 python_decl ""
+      idl_decl "${comment}${abstract}${local}interface ${name}${inherit} {
+${members}};
+"
+      explicit_switch_type ""
+      
+      classrelation 128514 // <generalisation>
+	relation 128514 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 128514 // <generalisation>
+	  b parent class_ref 128453 // GL2
+      end
+
+      classrelation 128642 // <generalisation>
+	relation 128642 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 128642 // <generalisation>
+	  b parent class_ref 128837 // GL3
+      end
+    end
+
+    class 128130 "GL4"
+      visibility package stereotype "interface"
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}interface ${name}${extends} {
+${members}}
+"
+      php_decl "${comment}${visibility}interface ${name} {
+${members}}
+"
+      python_2_2 python_decl ""
+      idl_decl "${comment}${abstract}${local}interface ${name}${inherit} {
+${members}};
+"
+      explicit_switch_type ""
+      
+      classrelation 128770 // <generalisation>
+	relation 128770 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 128770 // <generalisation>
+	  b parent class_ref 128837 // GL3
+      end
+
+      classrelation 136962 // <generalisation>
+	relation 136962 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 136962 // <generalisation>
+	  b parent class_ref 135042 // GL4ES3
+      end
+    end
+
+    class 128258 "GL4bc"
+      visibility package stereotype "interface"
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}interface ${name}${extends} {
+${members}}
+"
+      php_decl "${comment}${visibility}interface ${name} {
+${members}}
+"
+      python_2_2 python_decl ""
+      idl_decl "${comment}${abstract}${local}interface ${name}${inherit} {
+${members}};
+"
+      explicit_switch_type ""
+      
+      classrelation 128898 // <generalisation>
+	relation 128898 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 128898 // <generalisation>
+	  b parent class_ref 128002 // GL3bc
+      end
+
+      classrelation 129026 // <generalisation>
+	relation 129026 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 129026 // <generalisation>
+	  b parent class_ref 128130 // GL4
+      end
+    end
+
+    class 128386 "GL2ES12"
+      visibility package stereotype "entity"
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}${final}${abstract}class ${name}${extends}${implements} {
+${members}}
+"
+      php_decl ""
+      python_2_2 python_decl ""
+      idl_decl ""
+      explicit_switch_type ""
+      
+      classrelation 129154 // <realization>
+	relation 129154 -_-|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 129154 // <realization>
+	  b parent class_ref 128197 // GL2ES1
+      end
+
+      classrelation 129282 // <realization>
+	relation 129282 -_-|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 129282 // <realization>
+	  b parent class_ref 128581 // GL2ES2
+      end
+    end
+
+    class 134914 "GLES3"
+      visibility public stereotype "@interface"
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}@interface ${name}${extends} {
+${members}}
+"
+      php_decl ""
+      python_2_2 python_decl ""
+      idl_decl ""
+      explicit_switch_type ""
+      
+      classrelation 135810 // <generalisation>
+	relation 135810 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 135810 // <generalisation>
+	  b parent class_ref 135042 // GL4ES3
+      end
+
+      classrelation 143746 // <generalisation>
+	relation 143746 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 143746 // <generalisation>
+	  b parent class_ref 128965 // GLES2
+      end
+    end
+
+    class 135042 "GL4ES3"
+      visibility public stereotype "@interface"
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}@interface ${name}${extends} {
+${members}}
+"
+      php_decl ""
+      python_2_2 python_decl ""
+      idl_decl ""
+      explicit_switch_type ""
+      
+      classrelation 135938 // <generalisation>
+	relation 135938 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 135938 // <generalisation>
+	  b parent class_ref 135170 // GL3ES3
+      end
+    end
+
+    class 135170 "GL3ES3"
+      visibility public stereotype "@interface"
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}@interface ${name}${extends} {
+${members}}
+"
+      php_decl ""
+      python_2_2 python_decl ""
+      idl_decl ""
+      explicit_switch_type ""
+      
+      classrelation 136066 // <generalisation>
+	relation 136066 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 136066 // <generalisation>
+	  b parent class_ref 135298 // GL2ES3
+      end
+    end
+
+    class 135298 "GL2ES3"
+      abstract visibility package stereotype "metaclass"
+      cpp_decl ""
+      java_decl "${comment}${@}${visibility}@interface ${name}${extends} {
+${members}}
+"
+      php_decl ""
+      python_2_2 python_decl ""
+      idl_decl ""
+      explicit_switch_type ""
+      
+      classrelation 136194 // <generalisation>
+	relation 136194 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 136194 // <generalisation>
+	  b parent class_ref 128581 // GL2ES2
+      end
+    end
+  end
+end

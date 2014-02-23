@@ -31,6 +31,8 @@ package com.jogamp.opengl.test.junit.newt;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import javax.media.opengl.*;
 
@@ -43,6 +45,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLWindows01NEWT extends UITestCase {
     static GLProfile glp;
     static int width, height;

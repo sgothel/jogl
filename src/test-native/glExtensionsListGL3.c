@@ -59,6 +59,8 @@ void dumpGLExtension() {
     int i, n;
 
     fprintf(stderr, "GL_VENDOR: %s\n", glGetString(GL_VENDOR));
+    fprintf(stderr, "GL_VERSION: %s\n", glGetString(GL_VERSION));
+    fprintf(stderr, "GL_RENDERER: %s\n", glGetString(GL_RENDERER));
 
     glGetIntegerv(GL_NUM_EXTENSIONS, &n);
     fprintf(stderr, "GL_NUM_EXTENSIONS: %d\n", n);
@@ -153,9 +155,6 @@ int main (int argc, char ** argv)
 
   GLXFBConfig bestFbc = fbc[ best_fbc ];
 
-  // Be sure to free the FBConfig list allocated by glXChooseFBConfig()
-  XFree( fbc );
-
   // Get a visual
   XVisualInfo *vi = glXGetVisualFromFBConfig( display, bestFbc );
   printf( "Chosen visual ID = 0x%x\n", (int) vi->visualid );
@@ -190,8 +189,9 @@ int main (int argc, char ** argv)
   XMapWindow( display, win );
 
   // Get the default screen's GLX extension list
-  const char *glxExts = glXQueryExtensionsString( display,
-                                                  DefaultScreen( display ) );
+  const char *glxExts01 = glXQueryExtensionsString( display, DefaultScreen( display ) );
+  const char *glxExts02 = glXGetClientString( display, GLX_EXTENSIONS);
+  const char *glxExts03 = glXQueryServerString( display, DefaultScreen( display ), GLX_EXTENSIONS);
 
   // NOTE: It is not necessary to create or make current to a context before
   // calling glXGetProcAddressARB
@@ -213,11 +213,16 @@ int main (int argc, char ** argv)
 
   // Check for the GLX_ARB_create_context extension string and the function.
   // If either is not present, use GLX 1.3 context creation method.
-  if ( !isExtensionSupported( glxExts, "GLX_ARB_create_context" ) ||
-       !glXCreateContextAttribsARB )
+  bool isGLX_ARB_create_contextAvail = isExtensionSupported( glxExts01, "GLX_ARB_create_context" ) || 
+                                       isExtensionSupported( glxExts02, "GLX_ARB_create_context" ) ||
+                                       isExtensionSupported( glxExts03, "GLX_ARB_create_context" );
+  if ( !isGLX_ARB_create_contextAvail || !glXCreateContextAttribsARB )
   {
     printf( "glXCreateContextAttribsARB() not found"
             " ... using old-style GLX context\n" );
+    printf( "extensions 01: %s\n", glxExts01);
+    printf( "extensions 02: %s\n", glxExts02);
+    printf( "extensions 03: %s\n", glxExts03);
     ctx = glXCreateNewContext( display, bestFbc, GLX_RGBA_TYPE, 0, True );
   }
 
@@ -229,7 +234,8 @@ int main (int argc, char ** argv)
         GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
         GLX_CONTEXT_MINOR_VERSION_ARB, 0,
         GLX_RENDER_TYPE              , GLX_RGBA_TYPE,
-        GLX_CONTEXT_FLAGS_ARB        , GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+        // GLX_CONTEXT_FLAGS_ARB        , GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+        // GLX_CONTEXT_PROFILE_MASK_ARB , GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB
         None
       };
 
@@ -260,6 +266,9 @@ int main (int argc, char ** argv)
                                         True, context_attribs );
     }
   }
+
+  // Be sure to free the FBConfig list allocated by glXChooseFBConfig()
+  XFree( fbc );
 
   // Sync to ensure any errors generated are processed.
   XSync( display, False );

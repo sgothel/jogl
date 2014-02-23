@@ -41,17 +41,21 @@ import jogamp.nativewindow.jawt.JAWTUtil;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.util.RunnableTask;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
+@SuppressWarnings("deprecation")
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestPBufferDeadlockAWT extends UITestCase {
   static GLProfile glp;
   static int width, height;
 
   @BeforeClass
   public static void initClass() {
-    glp = GLProfile.getGL2ES2();
+    glp = GLProfile.getMaxFixedFunc(true);
     Assert.assertNotNull( glp );
     width = 512;
     height = 512;
@@ -80,7 +84,7 @@ public class TestPBufferDeadlockAWT extends UITestCase {
             Assert.assertTrue(EventQueue.isDispatchThread());
             JAWTUtil.lockToolkit();
             try {
-                final RunnableTask rTask = new RunnableTask(pbufferCreationAction, new Object(), false);                    
+                final RunnableTask rTask = new RunnableTask(pbufferCreationAction, new Object(), false, null);                    
                 System.err.println("BB.0: "+rTask.getSyncObject());
                 synchronized (rTask.getSyncObject()) {
                     System.err.println("BB.1: "+rTask.getSyncObject());
@@ -100,6 +104,7 @@ public class TestPBufferDeadlockAWT extends UITestCase {
         }        
     });
     Assert.assertTrue(done[0]);
+    pbuffer.destroy();
   }
 
   @Test(timeout = 2000) // 2s timeout

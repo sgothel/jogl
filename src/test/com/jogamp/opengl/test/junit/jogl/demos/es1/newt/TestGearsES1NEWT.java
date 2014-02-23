@@ -31,6 +31,7 @@ package com.jogamp.opengl.test.junit.jogl.demos.es1.newt;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 
@@ -45,26 +46,36 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGearsES1NEWT extends UITestCase {
     static int width, height;
+    static boolean forceES2 = false;
+    static boolean forceFFPEmu = false;
+    static int swapInterval = 1;
 
     @BeforeClass
     public static void initClass() {
-        width  = 512;
-        height = 512;
+        width  = 640;
+        height = 480;
     }
 
     @AfterClass
     public static void releaseClass() {
     }
 
-    protected void runTestGL(GLCapabilities caps) throws InterruptedException {
+    protected void runTestGL(GLCapabilities caps, boolean forceFFPEmu) throws InterruptedException {
         GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Gears NEWT Test");
 
-        glWindow.addGLEventListener(new GearsES1());
+        final GearsES1 demo = new GearsES1(swapInterval);
+        demo.setForceFFPEmu(forceFFPEmu, forceFFPEmu, false, false);
+        glWindow.addGLEventListener(demo);
+        final SnapshotGLEventListener snap = new SnapshotGLEventListener();
+        glWindow.addGLEventListener(snap);
 
         Animator animator = new Animator(glWindow);
         QuitAdapter quitAdapter = new QuitAdapter();
@@ -76,7 +87,10 @@ public class TestGearsES1NEWT extends UITestCase {
 
         final GLWindow f_glWindow = glWindow;
         glWindow.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
+            public void keyReleased(KeyEvent e) {
+                if( !e.isPrintableKey() || e.isAutoRepeat() ) {
+                    return;
+                }            
                 if(e.getKeyChar()=='f') {
                     new Thread() {
                         public void run() {
@@ -95,6 +109,7 @@ public class TestGearsES1NEWT extends UITestCase {
         glWindow.setVisible(true);
         animator.setUpdateFPSFrames(1, null);
         animator.start();
+        snap.setMakeSnapshot();
 
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
@@ -105,13 +120,13 @@ public class TestGearsES1NEWT extends UITestCase {
     }
 
     @Test
-    public void test01() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES1());
-        runTestGL(caps);
+    public void test00() throws InterruptedException {
+        GLCapabilities caps = new GLCapabilities(forceES2 ? GLProfile.get(GLProfile.GLES2) : GLProfile.getGL2ES1());
+        runTestGL(caps, forceFFPEmu);
     }
-
+    
     static long duration = 500; // ms
-
+    
     public static void main(String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
@@ -119,6 +134,13 @@ public class TestGearsES1NEWT extends UITestCase {
                 try {
                     duration = Integer.parseInt(args[i]);
                 } catch (Exception ex) { ex.printStackTrace(); }
+            } else if(args[i].equals("-vsync")) {
+                i++;
+                swapInterval = MiscUtils.atoi(args[i], swapInterval);
+            } else if(args[i].equals("-es2")) {
+                forceES2 = true;
+            } else if(args[i].equals("-ffpemu")) {
+                forceFFPEmu = true;
             }
         }
         org.junit.runner.JUnitCore.main(TestGearsES1NEWT.class.getName());

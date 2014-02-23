@@ -28,47 +28,36 @@
 
 package jogamp.opengl.util;
 
-import javax.media.opengl.*;
-import javax.media.opengl.fixedfunc.*;
+import javax.media.opengl.GL;
+import javax.media.opengl.GLException;
+import javax.media.opengl.fixedfunc.GLPointerFunc;
 
 import com.jogamp.opengl.util.GLArrayDataEditable;
 
-import java.nio.*;
-
 /**
- * Used for 1:1 fixed function arrays, i.e. where the buffer data 
- * represents this array only. 
+ * Used for 1:1 fixed function arrays, i.e. where the buffer data
+ * represents this array only.
  */
-public class GLFixedArrayHandler implements GLArrayHandler {
-  private GLArrayDataEditable ad;
-
+public class GLFixedArrayHandler extends GLVBOArrayHandler {
   public GLFixedArrayHandler(GLArrayDataEditable ad) {
-    this.ad = ad;
+    super(ad);
   }
-  
+
+  @Override
   public final void setSubArrayVBOName(int vboName) {
       throw new UnsupportedOperationException();
   }
-  
+
+  @Override
   public final void addSubHandler(GLArrayHandlerFlat handler) {
       throw new UnsupportedOperationException();
   }
-  
-  public final void syncData(GL gl, boolean enable, Object ext) {
+
+  @Override
+  public final void enableState(GL gl, boolean enable, Object ext) {
+    final GLPointerFunc glp = gl.getGL2ES1();
     if(enable) {
-        final Buffer buffer = ad.getBuffer();
-        if(ad.isVBO()) {
-            // always bind and refresh the VBO mgr, 
-            // in case more than one gl*Pointer objects are in use
-            gl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
-            if(!ad.isVBOWritten()) {
-                if(null!=buffer) {
-                    gl.glBufferData(ad.getVBOTarget(), buffer.limit() * ad.getComponentSizeInBytes(), buffer, ad.getVBOUsage());
-                }
-                ad.setVBOWritten(true);
-            }
-        }
-        final GLPointerFunc glp = gl.getGL2ES1();
+        final boolean vboBound = bindBuffer(gl, true);
         switch(ad.getIndex()) {
             case GLPointerFunc.GL_VERTEX_ARRAY:
                 glp.glVertexPointer(ad);
@@ -83,17 +72,12 @@ public class GLFixedArrayHandler implements GLArrayHandler {
                 glp.glTexCoordPointer(ad);
                 break;
             default:
-                throw new GLException("invalid glArrayIndex: "+ad.getIndex()+":\n\t"+ad); 
+                throw new GLException("invalid glArrayIndex: "+ad.getIndex()+":\n\t"+ad);
         }
-    } else if(ad.isVBO()) {
-        gl.glBindBuffer(ad.getVBOTarget(), 0);
-    }
-  }
-  
-  public final void enableState(GL gl, boolean enable, Object ext) {
-    final GLPointerFunc glp = gl.getGL2ES1();
-    if(enable) {
-        glp.glEnableClientState(ad.getIndex());        
+        if(vboBound) {
+            bindBuffer(gl, false);
+        }
+        glp.glEnableClientState(ad.getIndex());
     } else {
         glp.glDisableClientState(ad.getIndex());
     }

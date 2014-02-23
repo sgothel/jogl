@@ -33,6 +33,8 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.*;
 
 import java.lang.reflect.InvocationTargetException;
+
+import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLCapabilities;
@@ -66,7 +68,10 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
     static long durationPerTest = 150; // ms
     static Robot robot;
@@ -140,24 +145,33 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
             }
         });
         frame.setContentPane(panel);
-        frame.setSize(512, 512);
-        frame.setLocation(0, 0);
-        frame.pack();
 
         // AWT/Swing: From here on (post setVisible(true)
         //            you need to use AWT/Swing's invokeAndWait()
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
+                frame.setSize(512, 512);
+                frame.setLocation(0, 0);
+                frame.pack();
                 frame.setVisible(true);
                 colorPanel.setBackground(Color.white);
                 colorPanel.repaint();
             }});
-
+        
         robot = new Robot();
         robot.setAutoWaitForIdle(true);
 
-        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
+        // NativeWindow/JOGL is not initialized yet ..
+        for (int wait=0; wait<AWTRobotUtil.POLL_DIVIDER && !frame.isVisible(); wait++) {
+            Thread.sleep(AWTRobotUtil.TIME_SLICE);
+        }
+        Assert.assertEquals(true,  frame.isVisible());
+        
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.setup(): Before NativeWindow init");
+        
+        NativeWindowFactory.initSingleton();
+        
         AWTRobotUtil.clearAWTFocus(robot);        
         AWTRobotUtil.toFrontAndRequestFocus(robot, frame);
         AWTRobotUtil.requestFocus(robot, button);
@@ -198,6 +212,8 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         });
 
         AWTRobotUtil.toFrontAndRequestFocus(robot, frame);
+
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(drawable, true));
 
         drawable.addGLEventListener(new GearsES2());
 
@@ -251,6 +267,8 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         GLWindow win0 = GLWindow.create(caps);
         win0.setSize(100,100);
         win0.setVisible(true);
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(win0, true));
+        
         Screen screen = win0.getScreen();
         win0.setPosition(screen.getWidth()-150, 0);
         win0.addGLEventListener(new GearsES2());
@@ -263,6 +281,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         runTestGL(newtCanvasAWT, win1);
 
         win0.destroy();
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(win0, false));
         Assert.assertEquals(false, win0.isNativeValid());        
         Assert.assertEquals(true, anim.isAnimating()); // due to newtCanvasAWT/win1
 
@@ -302,8 +321,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         GLCanvas glCanvas = new GLCanvas(caps);
         anim.add(glCanvas);
         runTestGL(glCanvas, glCanvas);
-
-        Assert.assertEquals(true, anim.isAnimating());
+        
         anim.remove(glCanvas);
         Assert.assertEquals(false, anim.isAnimating());
         

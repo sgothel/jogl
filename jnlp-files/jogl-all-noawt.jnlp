@@ -14,7 +14,7 @@
       <all-permissions/>
   </security>
     <resources>
-      <jar href="jar/jogl.all-noawt.jar" />
+      <jar href="jar/jogl-all-noawt.jar" />
 
       <extension name="gluegen-rt"   href="GLUEGEN_CODEBASE_TAG/gluegen-rt.jnlp" />
     </resources>
@@ -56,10 +56,12 @@
       <nativelib href = "jar/jogl-all-natives-linux-amd64.jar" />
     </resources>
     <resources os="Linux" arch="arm">
-      <nativelib href = "jar/jogl-all-natives-linux-armv7.jar" />
+      <nativelib href = "jar/jogl-all-natives-linux-armv6.jar" />
+      <nativelib href = "jar/jogl-all-natives-linux-armv6hf.jar" />
     </resources>
     <resources os="Linux" arch="armv7">
-      <nativelib href = "jar/jogl-all-natives-linux-armv7.jar" />
+      <nativelib href = "jar/jogl-all-natives-linux-armv6.jar" />
+      <nativelib href = "jar/jogl-all-natives-linux-armv6hf.jar" />
     </resources>
     <resources os="Mac OS X" arch="i386">
       <nativelib href = "jar/jogl-all-natives-macosx-universal.jar" />

@@ -30,7 +30,6 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.io.IOException;
 
-import com.jogamp.common.os.Platform;
 import com.jogamp.newt.opengl.GLWindow;
 
 import javax.media.nativewindow.util.InsetsImmutable;
@@ -45,7 +44,10 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestSharedContextListNEWT2 extends UITestCase {
     static GLProfile glp;
     static GLCapabilities caps;
@@ -55,12 +57,6 @@ public class TestSharedContextListNEWT2 extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        if(Platform.CPUFamily.X86 != Platform.CPU_ARCH.family) { // FIXME
-            // FIXME: Turns out on some mobile GL drivers and platforms 
-            // using shared context is instable, Linux ARM (Omap4, Tegra2, Mesa3d, ..)
-            setTestSupported(false);
-            return;
-        }
         if(GLProfile.isAvailable(GLProfile.GL2)) {
             glp = GLProfile.get(GLProfile.GL2);
             Assert.assertNotNull(glp);
@@ -122,12 +118,13 @@ public class TestSharedContextListNEWT2 extends UITestCase {
     @Test(timeout=10000)
     public void test01() throws InterruptedException {
         initShared();
-        GLWindow f1 = runTestGL(new Animator(), 0, 0, true, false);
-        InsetsImmutable insets = f1.getInsets();
-        GLWindow f2 = runTestGL(new Animator(), f1.getX()+width+insets.getTotalWidth(), 
-                                f1.getY()+0, true, false);
-        GLWindow f3 = runTestGL(new Animator(), f1.getX()+0, 
-                                f1.getY()+height+insets.getTotalHeight(), true, false);
+        
+        final GLWindow f1 = runTestGL(new Animator(), 0, 0, true, false);
+        final InsetsImmutable insets = f1.getInsets();
+        final GLWindow f2 = runTestGL(new Animator(), f1.getX()+width+insets.getTotalWidth(), 
+                                      f1.getY()+0, true, false);
+        final GLWindow f3 = runTestGL(new Animator(), f1.getX()+0, 
+                                      f1.getY()+height+insets.getTotalHeight(), true, false);
 
         try {
 			Thread.sleep(duration);
@@ -135,16 +132,15 @@ public class TestSharedContextListNEWT2 extends UITestCase {
 			e.printStackTrace();
 		}
 
-        // here we go again: On AMD/X11 the create/destroy sequence must be the same
-        // even though this is against the chicken/egg logic here ..
-        releaseShared();
-
         f1.destroy();
         f2.destroy();
         f3.destroy();
+        
+        // f1.getAnimator().stop();
+        // f2.getAnimator().stop();
+        // f3.getAnimator().stop();
 
-        // see above ..
-        // releaseShared();
+        releaseShared();
     }
 
     static long duration = 2000; // ms

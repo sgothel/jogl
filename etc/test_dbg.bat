@@ -1,7 +1,7 @@
 
 set BLD_DIR=jar
 
-set CP_ALL=.;%BLD_DIR%\gluegen-rt.jar;%BLD_DIR%\jogl.all.jar
+set CP_ALL=.;%BLD_DIR%\gluegen-rt.jar;%BLD_DIR%\jogl-all.jar
 echo CP_ALL %CP_ALL%
 
 set D_ARGS="-Djogamp.debug=all" "-Dnativewindow.debug=all" "-Djogl.debug=all" "-Dnewt.debug=all"

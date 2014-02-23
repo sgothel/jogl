@@ -27,8 +27,11 @@ extern void XLockDisplay(Display *display);
 
 extern void XUnlockDisplay(Display *display);
 
-extern Window RootWindow(Display *display, int screen_number);
 extern int DefaultScreen(Display *display);
+
+extern int ScreenCount(Display *display);
+
+extern Window RootWindow(Display *display, int screen_number);
 
 extern XVisualInfo *XGetVisualInfo(
     Display*		/* display */,

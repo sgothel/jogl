@@ -43,9 +43,9 @@ import javax.media.opengl.glu.GLUnurbs;
 
 /**
  * Base object for working with NURBS curves and surfaces
- * 
+ *
  * @author Tomas Hrasky
- * 
+ *
  */
 public class GLUgl2nurbsImpl implements GLUnurbs {
 
@@ -272,7 +272,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Sets domain distance for dom.dist. sampling in u direction
-   * 
+   *
    * @param d
    *            distance
    */
@@ -283,7 +283,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Sets domain distance for dom.dist. sampling in v direction
-   * 
+   *
    * @param d
    *            distance
    */
@@ -303,7 +303,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Calls a method with given name and passes argumet
-   * 
+   *
    * @param name
    *            name of a method to be called
    * @param arg
@@ -329,7 +329,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Calls a method with given name
-   * 
+   *
    * @param name
    *            name of a method to be called
    */
@@ -349,7 +349,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Begins a NURBS curve
-   * 
+   *
    * @param o_curve
    *            curve object
    */
@@ -381,7 +381,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Begins new surface
-   * 
+   *
    * @param o_surface
    *            surface object
    */
@@ -503,7 +503,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Method for handling error codes
-   * 
+   *
    * @param i
    *            error code
    */
@@ -539,7 +539,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Make a NURBS curve
-   * 
+   *
    * @param nknots
    *            number of knots in knot vector
    * @param knot
@@ -587,7 +587,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Check knot vector specification
-   * 
+   *
    * @param knots
    *            knot vector
    * @param msg
@@ -607,7 +607,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Draw a curve
-   * 
+   *
    * @param o_nurbscurve
    *            NURBS curve object
    */
@@ -660,7 +660,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Draw NURBS surface
-   * 
+   *
    * @param o_nurbssurface
    *            NURBS surface object
    */
@@ -704,7 +704,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Define a map of given properties
-   * 
+   *
    * @param type
    *            map type
    * @param rational
@@ -719,7 +719,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Set NURBS property
-   * 
+   *
    * @param type
    *            property type
    * @param tag
@@ -744,7 +744,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Set parameters of existing property
-   * 
+   *
    * @param prop
    *            property
    */
@@ -755,7 +755,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Set given property to rendering hints
-   * 
+   *
    * @param prop
    *            property to be set
    */
@@ -767,7 +767,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Sets wheteher we use domain distance sampling
-   * 
+   *
    * @param i
    *            domain distance sampling flag
    */
@@ -805,7 +805,7 @@ public class GLUgl2nurbsImpl implements GLUnurbs {
 
   /**
    * Make NURBS surface
-   * 
+   *
    * @param sknot_count
    *            number of knots in s direction
    * @param sknot

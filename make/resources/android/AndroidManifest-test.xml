@@ -4,13 +4,14 @@
       package="com.jogamp.opengl.test">
 
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
-    <!-- uses-feature android:name="android.hardware.camera" android:required="false" / --> <!-- not yet -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
     <uses-library android:name="com.jogamp.common" android:required="true" />
     <uses-library android:name="javax.media.opengl" android:required="true" />
     <uses-library android:name="jogamp.android.launcher" android:required="true" />
 
-    <uses-sdk android:minSdkVersion="9" />
+    <uses-sdk android:minSdkVersion="9" android:targetSdkVersion="14"/>
 
     <application android:icon="@drawable/icon" 
                  android:label="@string/app_name"
@@ -18,9 +19,9 @@
                  android:persistent="false"
                  >
 
-        <activity android:name="com.jogamp.opengl.test.android.NEWTRedSquareES1ActivityLauncher"
-                  android:label="@string/activity_redsquarees1_name"
-                  android:description="@string/activity_redsquarees1_descr"
+        <activity android:name="com.jogamp.opengl.test.android.NEWTGearsES2ActivityLauncher"
+                  android:label="@string/activity_gearses2_name"
+                  android:description="@string/activity_gearses2_descr"
                   android:theme="@android:style/Theme.NoDisplay"
                   >
             <intent-filter>
@@ -28,9 +29,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.jogamp.opengl.test.android.NEWTRedSquareES2ActivityLauncher"
-                  android:label="@string/activity_redsquarees2_name"
-                  android:description="@string/activity_redsquarees2_descr"
+        <activity android:name="com.jogamp.opengl.test.android.NEWTGearsES2RGB565ActivityLauncher"
+                  android:label="@string/activity_gearses2rgb565_name"
+                  android:description="@string/activity_gearses2rgb565_descr"
                   android:theme="@android:style/Theme.NoDisplay"
                   >
             <intent-filter>
@@ -38,7 +39,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
+        <activity android:name="com.jogamp.opengl.test.android.NEWTGearsES2ECTActivityLauncher"
+                  android:label="@string/activity_gearses2ect_name"
+                  android:description="@string/activity_gearses2ect_descr"
+                  android:theme="@android:style/Theme.NoDisplay"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity android:name="com.jogamp.opengl.test.android.NEWTGearsES1ActivityLauncher"
                   android:label="@string/activity_gearses1_name"
                   android:description="@string/activity_gearses1_descr"
@@ -49,9 +59,20 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.jogamp.opengl.test.android.NEWTGearsES2ActivityLauncher"
-                  android:label="@string/activity_gearses2_name"
-                  android:description="@string/activity_gearses2_descr"
+
+        <activity android:name="com.jogamp.opengl.test.android.NEWTRedSquareES2ActivityLauncher"
+                  android:label="@string/activity_redsquarees2_name"
+                  android:description="@string/activity_redsquarees2_descr"
+                  android:theme="@android:style/Theme.NoDisplay"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.jogamp.opengl.test.android.NEWTRedSquareES1ActivityLauncher"
+                  android:label="@string/activity_redsquarees1_name"
+                  android:description="@string/activity_redsquarees1_descr"
                   android:theme="@android:style/Theme.NoDisplay"
                   >
             <intent-filter>
@@ -100,8 +121,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.jogamp.opengl.test.android.MovieSimpleActivityLauncher00a"
-                  android:label="@string/activity_moviesimple0a_name"
+        <activity android:name="com.jogamp.opengl.test.android.MovieSimpleActivityLauncher00b"
+                  android:label="@string/activity_moviesimple0b_name"
                   android:description="@string/activity_moviesimple_descr"
                   android:theme="@android:style/Theme.NoDisplay"
                   >
@@ -110,8 +131,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.jogamp.opengl.test.android.MovieSimpleActivityLauncher00b"
-                  android:label="@string/activity_moviesimple0b_name"
+        <activity android:name="com.jogamp.opengl.test.android.MovieSimpleActivityLauncher00c"
+                  android:label="@string/activity_moviesimple0c_name"
                   android:description="@string/activity_moviesimple_descr"
                   android:theme="@android:style/Theme.NoDisplay"
                   >
@@ -152,6 +173,26 @@
         </activity>
         <activity android:name="com.jogamp.opengl.test.android.MovieCubeActivityLauncher0"
                   android:label="@string/activity_moviecube0_name"
+                  android:description="@string/activity_moviecube_descr"
+                  android:theme="@android:style/Theme.NoDisplay"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.jogamp.opengl.test.android.MovieCubeActivityLauncher1a"
+                  android:label="@string/activity_moviecube1a_name"
+                  android:description="@string/activity_moviecube_descr"
+                  android:theme="@android:style/Theme.NoDisplay"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.jogamp.opengl.test.android.MovieCubeActivityLauncher1b"
+                  android:label="@string/activity_moviecube1b_name"
                   android:description="@string/activity_moviecube_descr"
                   android:theme="@android:style/Theme.NoDisplay"
                   >

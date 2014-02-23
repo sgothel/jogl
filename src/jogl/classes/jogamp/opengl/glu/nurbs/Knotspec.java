@@ -36,9 +36,9 @@ package jogamp.opengl.glu.nurbs;
 
 /**
  * Knot vector specification
- * 
+ *
  * @author Tomas Hrasky
- * 
+ *
  */
 public class Knotspec {
 
@@ -314,7 +314,7 @@ public class Knotspec {
 
   /**
    * Copies control points
-   * 
+   *
    * @param _inpt
    *            input control points
    * @param _outpt
@@ -346,7 +346,7 @@ public class Knotspec {
 
   /**
    * Copies one control point to other
-   * 
+   *
    * @param topt
    *            source control point
    * @param frompt
@@ -374,7 +374,7 @@ public class Knotspec {
 
   /**
    * Inserts a knot
-   * 
+   *
    * @param _p
    *            inserted knot
    */
@@ -402,7 +402,7 @@ public class Knotspec {
         }
       }
 
-    } else {//code for curve 
+    } else {//code for curve
       if (this.equals(kspectotrans)) {
         insert(p);
       } else {
@@ -428,7 +428,7 @@ public class Knotspec {
 
   /**
    * Inserts a knot and computes new control points
-   * 
+   *
    * @param p
    *            inserted knot
    */
@@ -490,7 +490,7 @@ public class Knotspec {
 
   /**
    * Copies one control point to another
-   * 
+   *
    * @param topt
    *            source ctrl point
    * @param frompt
@@ -519,7 +519,7 @@ public class Knotspec {
 
   /**
    * Computes new control point
-   * 
+   *
    * @param x
    *            first point
    * @param y
@@ -549,7 +549,7 @@ public class Knotspec {
                                 * z.getRelative(0)));
       break;
     default:
-      //no need of default - see previous method and its case statement                
+      //no need of default - see previous method and its case statement
       //                System.out.println("TODO pt_oo_sum default");
       break;
     }

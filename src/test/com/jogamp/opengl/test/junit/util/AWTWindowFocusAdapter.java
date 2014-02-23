@@ -35,11 +35,14 @@ public class AWTWindowFocusAdapter implements FocusEventCountAdapter, WindowFocu
 
     String prefix;
     int focusCount;
+    boolean verbose = true;
 
     public AWTWindowFocusAdapter(String prefix) {
         this.prefix = prefix;
         reset();
     }
+
+    public void setVerbose(boolean v) { verbose = false; }
 
     public boolean focusLost() {
         return focusCount<0;        
@@ -57,14 +60,18 @@ public class AWTWindowFocusAdapter implements FocusEventCountAdapter, WindowFocu
     public void windowGainedFocus(WindowEvent e) {
         if(focusCount<0) { focusCount=0; }
         focusCount++;
-        System.err.println("FOCUS AWT  GAINED (Window) [fc "+focusCount+"]: "+prefix+", "+e);
+        if( verbose ) {
+            System.err.println("FOCUS AWT  GAINED (Window) [fc "+focusCount+"]: "+prefix+", "+e);
+        }
     }
 
     /* @Override */
     public void windowLostFocus(WindowEvent e) {
         if(focusCount>0) { focusCount=0; }
         focusCount--;
-        System.err.println("FOCUS AWT  LOST   (Window) [fc "+focusCount+"]: "+prefix+", "+e);
+        if( verbose ) {
+            System.err.println("FOCUS AWT  LOST   (Window) [fc "+focusCount+"]: "+prefix+", "+e);
+        }
     }
     
     public String toString() { return prefix+"[focusCount "+focusCount +"]"; }

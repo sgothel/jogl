@@ -12,6 +12,14 @@
 //When I wrote this, only God and I understood what I was doing ...
 // ... now only God knows! X-)
 
+#if __VERSION__ >= 130
+  #define varying in
+  out vec4 mgl_FragColor;
+  #define texture2D texture
+#else
+  #define mgl_FragColor gl_FragColor   
+#endif
+
 uniform int en;
 uniform float et;
 uniform sampler2D fb;
@@ -209,7 +217,7 @@ void main() {
     } else
         n=D(c.xy);
     if(en==2||en==7)
-        gl_FragColor=n;
+        mgl_FragColor=n;
     else {
         vec2 i=c.xy/v.xy;
         i.y*=-1.;
@@ -229,6 +237,6 @@ void main() {
         x*=.9+.1*sin(1.5*tm+i.y*1000.);
         x*=.97+.13*sin(2.5*tm);
         x*=br;
-        gl_FragColor=vec4(x,1.);
+        mgl_FragColor=vec4(x,1.);
     }
 }

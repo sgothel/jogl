@@ -34,23 +34,23 @@ import jogamp.graph.font.typecast.ot.table.CharstringType2;
  * @version $Id: T2Interpreter.java,v 1.2 2007-07-26 11:10:18 davidsch Exp $
  */
 public class T2Interpreter {
-    
+
     private static final int ARGUMENT_STACK_LIMIT = 48;
     private static final int SUBR_STACK_LIMIT = 10;
     private static final int TRANSIENT_ARRAY_ELEMENT_COUNT = 32;
-    
+
     private Number[] _argStack = new Number[ARGUMENT_STACK_LIMIT];
     private int _argStackIndex = 0;
     private int[] _subrStack = new int[SUBR_STACK_LIMIT];
     private int _subrStackIndex = 0;
     private Number[] _transientArray = new Number[TRANSIENT_ARRAY_ELEMENT_COUNT];
-    
+
     private ArrayList<Point> _points;
 
     /** Creates a new instance of T2Interpreter */
     public T2Interpreter() {
     }
-    
+
     /**
      * Moves the current point to a position at the relative coordinates
      * (dx1, dy1).
@@ -72,7 +72,7 @@ public class T2Interpreter {
         Point lastPoint = getLastPoint();
         moveTo(lastPoint.x + dx1, lastPoint.y);
     }
-    
+
     /**
      * Moves the current point dy1 units in the vertical direction.
      */
@@ -82,7 +82,7 @@ public class T2Interpreter {
         Point lastPoint = getLastPoint();
         moveTo(lastPoint.x, lastPoint.y + dy1);
     }
-    
+
     /**
      * Appends a line from the current point to a position at the
      * relative coordinates dxa, dya. Additional rlineto operations are
@@ -103,7 +103,7 @@ public class T2Interpreter {
         }
         clearArg();
     }
-    
+
     /**
      * Appends a horizontal line of length dx1 to the current point.
      * With an odd number of arguments, subsequent argument pairs
@@ -130,7 +130,7 @@ public class T2Interpreter {
         }
         clearArg();
     }
-    
+
     /**
      * Appends a vertical line of length dy1 to the current point. With
      * an odd number of arguments, subsequent argument pairs are
@@ -157,7 +157,7 @@ public class T2Interpreter {
         }
         clearArg();
     }
-    
+
     /**
      * Appends a Bezier curve, defined by dxa...dyc, to the current
      * point. For each subsequent set of six arguments, an additional
@@ -194,7 +194,7 @@ public class T2Interpreter {
         }
         clearArg();
     }
-    
+
     /**
      * Appends one or more Bezier curves, as described by the
      * dxa...dxc set of arguments, to the current point. For each curve,
@@ -230,7 +230,7 @@ public class T2Interpreter {
         }
         clearArg();
     }
-    
+
     /**
      * Appends one or more Bezier curves to the current point. The
      * tangent for the first Bezier must be horizontal, and the second
@@ -327,13 +327,13 @@ public class T2Interpreter {
                 int yf = ye + dyf[i];
                 curveTo(xa, ya, xb, yb, xc, yc);
                 curveTo(xd, yd, xe, ye, xf, yf);
-                
+
                 // What on earth do we do with dx1, dx2, dy2 and dy3?
             }
         }
         clearArg();
     }
-    
+
     /**
      * Is equivalent to one rrcurveto for each set of six arguments
      * dxa...dyc, followed by exactly one rlineto using the dxd, dyd
@@ -373,7 +373,7 @@ public class T2Interpreter {
         lineTo(xc + dxd, yc + dyd);
         clearArg();
     }
-    
+
     /**
      * Is equivalent to one rlineto for each pair of arguments beyond
      * the six arguments dxb...dyd needed for the one rrcurveto
@@ -411,7 +411,7 @@ public class T2Interpreter {
         curveTo(xb, yb, xc, yc, xd, yd);
         clearArg();
     }
-    
+
     /**
      * Appends one or more Bezier curves to the current point, where
      * the first tangent is vertical and the second tangent is horizontal.
@@ -465,7 +465,7 @@ public class T2Interpreter {
         }
         clearArg();
     }
-    
+
     /**
      * Appends one or more curves to the current point. If the argument
      * count is a multiple of four, the curve starts and ends vertical. If
@@ -473,10 +473,10 @@ public class T2Interpreter {
      * vertical tangent.
      */
     private void _vvcurveto() {
-        
+
         clearArg();
     }
-    
+
     /**
      * Causes two Bezier curves, as described by the arguments (as
      * shown in Figure 2 below), to be rendered as a straight line when
@@ -485,10 +485,10 @@ public class T2Interpreter {
      * pixels.
      */
     private void _flex() {
-        
+
         clearArg();
     }
-    
+
     /**
      * Causes the two curves described by the arguments dx1...dx6 to
      * be rendered as a straight line when the flex depth is less than
@@ -496,10 +496,10 @@ public class T2Interpreter {
      * flex depth is greater than or equal to 0.5 device pixels.
      */
     private void _hflex() {
-        
+
         clearArg();
     }
-    
+
     /**
      * Causes the two curves described by the arguments to be
      * rendered as a straight line when the flex depth is less than 0.5
@@ -507,10 +507,10 @@ public class T2Interpreter {
      * than or equal to 0.5 device pixels.
      */
     private void _hflex1() {
-        
+
         clearArg();
     }
-    
+
     /**
      * Causes the two curves described by the arguments to be
      * rendered as a straight line when the flex depth is less than 0.5
@@ -518,10 +518,10 @@ public class T2Interpreter {
      * than or equal to 0.5 device pixels.
      */
     private void _flex1() {
-        
+
         clearArg();
     }
-    
+
     /**
      * Finishes a charstring outline definition, and must be the
      * last operator in a character's outline.
@@ -530,37 +530,37 @@ public class T2Interpreter {
         endContour();
         clearArg();
     }
-    
+
     private void _hstem() {
-        
+
         clearArg();
     }
-    
+
     private void _vstem() {
-        
+
         clearArg();
     }
-    
+
     private void _hstemhm() {
-        
+
         clearArg();
     }
-    
+
     private void _vstemhm() {
-        
+
         clearArg();
     }
-    
+
     private void _hintmask() {
-        
+
         clearArg();
     }
-    
+
     private void _cntrmask() {
-        
+
         clearArg();
     }
-    
+
     /**
      * Returns the absolute value of num.
      */
@@ -568,7 +568,7 @@ public class T2Interpreter {
         double num = popArg().doubleValue();
         pushArg(Math.abs(num));
     }
-    
+
     /**
      * Returns the sum of the two numbers num1 and num2.
      */
@@ -577,7 +577,7 @@ public class T2Interpreter {
         double num1 = popArg().doubleValue();
         pushArg(num1 + num2);
     }
-    
+
     /**
      * Returns the result of subtracting num2 from num1.
      */
@@ -586,7 +586,7 @@ public class T2Interpreter {
         double num1 = popArg().doubleValue();
         pushArg(num1 - num2);
     }
-    
+
     /**
      * Returns the quotient of num1 divided by num2. The result is
      * undefined if overflow occurs and is zero for underflow.
@@ -596,7 +596,7 @@ public class T2Interpreter {
         double num1 = popArg().doubleValue();
         pushArg(num1 / num2);
     }
-    
+
     /**
      * Returns the negative of num.
      */
@@ -604,7 +604,7 @@ public class T2Interpreter {
         double num = popArg().doubleValue();
         pushArg(-num);
     }
-    
+
     /**
      * Returns a pseudo random number num2 in the range (0,1], that
      * is, greater than zero and less than or equal to one.
@@ -612,7 +612,7 @@ public class T2Interpreter {
     private void _random() {
         pushArg(1.0 - Math.random());
     }
-    
+
     /**
      * Returns the product of num1 and num2. If overflow occurs, the
      * result is undefined, and zero is returned for underflow.
@@ -622,7 +622,7 @@ public class T2Interpreter {
         double num1 = popArg().doubleValue();
         pushArg(num1 * num2);
     }
-    
+
     /**
      * Returns the square root of num. If num is negative, the result is
      * undefined.
@@ -631,14 +631,14 @@ public class T2Interpreter {
         double num = popArg().doubleValue();
         pushArg(Math.sqrt(num));
     }
-    
+
     /**
      * Removes the top element num from the Type 2 argument stack.
      */
     private void _drop() {
         popArg();
     }
-    
+
     /**
      * Exchanges the top two elements on the argument stack.
      */
@@ -648,7 +648,7 @@ public class T2Interpreter {
         pushArg(num2);
         pushArg(num1);
     }
-    
+
     /**
      * Retrieves the element i from the top of the argument stack and
      * pushes a copy of that element onto that stack. If i is negative,
@@ -666,7 +666,7 @@ public class T2Interpreter {
         }
         pushArg(nums[i]);
     }
-    
+
     /**
      * Performs a circular shift of the elements num(Nx1) ... num0 on
      * the argument stack by the amount J. Positive J indicates upward
@@ -685,7 +685,7 @@ public class T2Interpreter {
             pushArg(nums[(n + i + j) % n]);
         }
     }
-    
+
     /**
      * Duplicates the top element on the argument stack.
      */
@@ -694,7 +694,7 @@ public class T2Interpreter {
         pushArg(any);
         pushArg(any);
     }
-    
+
     /**
      * Stores val into the transient array at the location given by i.
      */
@@ -703,7 +703,7 @@ public class T2Interpreter {
         Number val = popArg();
         _transientArray[i] = val;
     }
-    
+
     /**
      * Retrieves the value stored in the transient array at the location
      * given by i and pushes the value onto the argument stack. If get
@@ -714,7 +714,7 @@ public class T2Interpreter {
         int i = popArg().intValue();
         pushArg(_transientArray[i]);
     }
-    
+
     /**
      * Puts a 1 on the stack if num1 and num2 are both non-zero, and
      * puts a 0 on the stack if either argument is zero.
@@ -724,7 +724,7 @@ public class T2Interpreter {
         double num1 = popArg().doubleValue();
         pushArg((num1!=0.0) && (num2!=0.0) ? 1 : 0);
     }
-    
+
     /**
      * Puts a 1 on the stack if either num1 or num2 are non-zero, and
      * puts a 0 on the stack if both arguments are zero.
@@ -734,7 +734,7 @@ public class T2Interpreter {
         double num1 = popArg().doubleValue();
         pushArg((num1!=0.0) || (num2!=0.0) ? 1 : 0);
     }
-    
+
     /**
      * Returns a 0 if num1 is non-zero; returns a 1 if num1 is zero.
      */
@@ -742,7 +742,7 @@ public class T2Interpreter {
         double num1 = popArg().doubleValue();
         pushArg((num1!=0.0) ? 0 : 1);
     }
-    
+
     /**
      * Puts a 1 on the stack if num1 equals num2, otherwise a 0 (zero)
      * is put on the stack.
@@ -752,7 +752,7 @@ public class T2Interpreter {
         double num1 = popArg().doubleValue();
         pushArg(num1 == num2 ? 1 : 0);
     }
-    
+
     /**
      * Leaves the value s1 on the stack if v1 ? v2, or leaves s2 on the
      * stack if v1 > v2. The value of s1 and s2 is usually the biased
@@ -765,7 +765,7 @@ public class T2Interpreter {
         Number s1 = popArg();
         pushArg(v1 <= v2 ? s1 : s2);
     }
-    
+
     /**
      * Calls a charstring subroutine with index subr# (actually the subr
      * number plus the subroutine bias number, as described in section
@@ -777,25 +777,25 @@ public class T2Interpreter {
      * Calling an undefined subr (gsubr) has undefined results.
      */
     private void _callsubr() {
-        
+
     }
-    
+
     /**
      * Operates in the same manner as callsubr except that it calls a
      * global subroutine.
      */
     private void _callgsubr() {
-        
+
     }
-    
+
     /**
      * Returns from either a local or global charstring subroutine, and
      * continues execution after the corresponding call(g)subr.
      */
     private void _return() {
-        
+
     }
-    
+
     public Point[] execute(CharstringType2 cs) {
         _points = new ArrayList<Point>();
         cs.resetIP();
@@ -975,7 +975,7 @@ public class T2Interpreter {
     private int getArgCount() {
         return _argStackIndex;
     }
-    
+
     /**
      * Pop a value off the argument stack
      */
@@ -989,7 +989,7 @@ public class T2Interpreter {
     private void pushArg(Number n) {
         _argStack[_argStackIndex++] = n;
     }
-    
+
     /**
      * Pop a value off the subroutine stack
      */
@@ -1003,14 +1003,14 @@ public class T2Interpreter {
     private void pushSubr(int n) {
         _subrStack[_subrStackIndex++] = n;
     }
-    
+
     /**
      * Clear the argument stack
      */
     private void clearArg() {
         _argStackIndex = 0;
     }
-    
+
     private Point getLastPoint() {
         int size = _points.size();
         if (size > 0) {
@@ -1019,22 +1019,22 @@ public class T2Interpreter {
             return new Point(0, 0, true, false);
         }
     }
-    
+
     private void moveTo(int x, int y) {
         endContour();
         _points.add(new Point(x, y, true, false));
     }
-    
+
     private void lineTo(int x, int y) {
         _points.add(new Point(x, y, true, false));
     }
-    
+
     private void curveTo(int cx1, int cy1, int cx2, int cy2, int x, int y) {
         _points.add(new Point(cx1, cy1, false, false));
         _points.add(new Point(cx2, cy2, false, false));
         _points.add(new Point(x, y, true, false));
     }
-    
+
     private void endContour() {
         Point lastPoint = getLastPoint();
         if (lastPoint != null) {

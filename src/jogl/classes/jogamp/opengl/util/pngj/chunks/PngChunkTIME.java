@@ -3,22 +3,33 @@ package jogamp.opengl.util.pngj.chunks;
 import java.util.Calendar;
 
 import jogamp.opengl.util.pngj.ImageInfo;
-import jogamp.opengl.util.pngj.PngHelper;
+import jogamp.opengl.util.pngj.PngHelperInternal;
 import jogamp.opengl.util.pngj.PngjException;
 
+/**
+ * tIME chunk.
+ * <p>
+ * see http://www.w3.org/TR/PNG/#11tIME
+ */
+public class PngChunkTIME extends PngChunkSingle {
+	public final static String ID = ChunkHelper.tIME;
 
-public class PngChunkTIME extends PngChunk {
 	// http://www.w3.org/TR/PNG/#11tIME
 	private int year, mon, day, hour, min, sec;
 
 	public PngChunkTIME(ImageInfo info) {
-		super(ChunkHelper.tIME, info);
+		super(ID, info);
 	}
 
 	@Override
-	public ChunkRaw createChunk() {
+	public ChunkOrderingConstraint getOrderingConstraint() {
+		return ChunkOrderingConstraint.NONE;
+	}
+
+	@Override
+	public ChunkRaw createRawChunk() {
 		ChunkRaw c = createEmptyChunk(7, true);
-		PngHelper.writeInt2tobytes(year, c.data, 0);
+		PngHelperInternal.writeInt2tobytes(year, c.data, 0);
 		c.data[2] = (byte) mon;
 		c.data[3] = (byte) day;
 		c.data[4] = (byte) hour;
@@ -28,15 +39,15 @@ public class PngChunkTIME extends PngChunk {
 	}
 
 	@Override
-	public void parseFromChunk(ChunkRaw chunk) {
+	public void parseFromRaw(ChunkRaw chunk) {
 		if (chunk.len != 7)
 			throw new PngjException("bad chunk " + chunk);
-		year = PngHelper.readInt2fromBytes(chunk.data, 0);
-		mon = PngHelper.readInt1fromByte(chunk.data, 2);
-		day = PngHelper.readInt1fromByte(chunk.data, 3);
-		hour = PngHelper.readInt1fromByte(chunk.data, 4);
-		min = PngHelper.readInt1fromByte(chunk.data, 5);
-		sec = PngHelper.readInt1fromByte(chunk.data, 6);
+		year = PngHelperInternal.readInt2fromBytes(chunk.data, 0);
+		mon = PngHelperInternal.readInt1fromByte(chunk.data, 2);
+		day = PngHelperInternal.readInt1fromByte(chunk.data, 3);
+		hour = PngHelperInternal.readInt1fromByte(chunk.data, 4);
+		min = PngHelperInternal.readInt1fromByte(chunk.data, 5);
+		sec = PngHelperInternal.readInt1fromByte(chunk.data, 6);
 	}
 
 	@Override
@@ -69,15 +80,14 @@ public class PngChunkTIME extends PngChunk {
 		min = minx;
 		sec = secx;
 	}
+
 	public int[] getYMDHMS() {
 		return new int[] { year, mon, day, hour, min, sec };
 	}
 
 	/** format YYYY/MM/DD HH:mm:SS */
 	public String getAsString() {
-		return String.format("%04/%02d/%02d %02d:%02d:%02d", year, mon, day, hour, min, sec);
+		return String.format("%04d/%02d/%02d %02d:%02d:%02d", year, mon, day, hour, min, sec);
 	}
-
-	
 
 }

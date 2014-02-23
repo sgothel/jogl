@@ -45,7 +45,10 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGearsNEWT extends UITestCase {
     static GLProfile glp;
     static int width, height;
@@ -55,8 +58,8 @@ public class TestGearsNEWT extends UITestCase {
         if(GLProfile.isAvailable(GLProfile.GL2)) {
             glp = GLProfile.get(GLProfile.GL2);
             Assert.assertNotNull(glp);
-            width  = 512;
-            height = 512;
+            width  = 640;
+            height = 480;
         } else {
             setTestSupported(false);
         }
@@ -83,7 +86,10 @@ public class TestGearsNEWT extends UITestCase {
 
         final GLWindow f_glWindow = glWindow;
         glWindow.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
+            public void keyReleased(KeyEvent e) {
+                if( !e.isPrintableKey() || e.isAutoRepeat() ) {
+                    return;
+                }            
                 if(e.getKeyChar()=='f') {
                     new Thread() {
                         public void run() {

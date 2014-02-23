@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -51,7 +51,7 @@ import com.jogamp.gluegen.SymbolFilter;
 import com.jogamp.gluegen.cgram.types.FunctionSymbol;
 import com.jogamp.gluegen.procaddress.ProcAddressEmitter;
 import com.jogamp.gluegen.procaddress.ProcAddressJavaMethodBindingEmitter;
-import com.jogamp.gluegen.runtime.opengl.GLExtensionNames;
+import com.jogamp.gluegen.runtime.opengl.GLNameResolver;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -74,7 +74,7 @@ public class GLEmitter extends ProcAddressEmitter {
     // Buffer Object variants. Used as a Set rather than a Map.
     private Map<MethodBinding, MethodBinding> bufferObjectMethodBindings = new IdentityHashMap<MethodBinding, MethodBinding>();
 
-    enum BufferObjectKind { UNPACK_PIXEL, PACK_PIXEL, ARRAY, ELEMENT}
+    enum BufferObjectKind { UNPACK_PIXEL, PACK_PIXEL, ARRAY, ELEMENT, INDIRECT}
 
     @Override
     public void beginEmission(GlueEmitterControls controls) throws IOException {
@@ -110,13 +110,13 @@ public class GLEmitter extends ProcAddressEmitter {
             if (declarations != null) {
                 for (Iterator<String> iterator = declarations.iterator(); iterator.hasNext();) {
                     String decl = iterator.next();
-                    boolean isGLFunction = GLExtensionNames.isGLFunction(decl);
+                    boolean isGLFunction = GLNameResolver.isGLFunction(decl);
                     boolean isGLEnumeration = false;
                     if (!isGLFunction) {
-                        isGLEnumeration = GLExtensionNames.isGLEnumeration(decl);
+                        isGLEnumeration = GLNameResolver.isGLEnumeration(decl);
                     }
                     if (isGLFunction || isGLEnumeration) {
-                        String renamed = GLExtensionNames.normalize(decl, isGLFunction);
+                        String renamed = GLNameResolver.normalize(decl, isGLFunction);
                         if (!renamed.equals(decl)) {
                             config.addJavaSymbolRename(decl, renamed);
                         }
@@ -125,7 +125,7 @@ public class GLEmitter extends ProcAddressEmitter {
             }
             if(JavaConfiguration.DEBUG_RENAMES) {
                 System.err.println("RenameExtensionIntoCore: "+extension+" END>");
-            }            
+            }
         }
     }
 
@@ -134,6 +134,7 @@ public class GLEmitter extends ProcAddressEmitter {
         private List<ConstantDefinition> constants;
         private List<FunctionSymbol> functions;
 
+        @Override
         public void filterSymbols(List<ConstantDefinition> constants,
                 List<FunctionSymbol> functions) {
             this.constants = constants;
@@ -141,10 +142,12 @@ public class GLEmitter extends ProcAddressEmitter {
             doWork();
         }
 
+        @Override
         public List<ConstantDefinition> getConstants() {
             return constants;
         }
 
+        @Override
         public List<FunctionSymbol> getFunctions() {
             return functions;
         }
@@ -181,7 +184,7 @@ public class GLEmitter extends ProcAddressEmitter {
                 String cause = null;
                 for (String decl : declarations) {
                     boolean isFunc = !decl.startsWith("GL_");
-                    if (!GLExtensionNames.isExtension(decl, isFunc)) {
+                    if (!GLNameResolver.isExtension(decl, isFunc)) {
                         isExtension = false;
                         break;
                     }
@@ -199,7 +202,7 @@ public class GLEmitter extends ProcAddressEmitter {
                         }
                     }
                     cause = decl;
-                    String unifiedName = GLExtensionNames.normalize(decl, isFunc);
+                    String unifiedName = GLNameResolver.normalize(decl, isFunc);
                     // NOTE that we look up the unified name in the
                     // BuildStaticGLInfo's notion of the APIs -- since
                     // we might not be emitting glue code for the
@@ -262,18 +265,23 @@ public class GLEmitter extends ProcAddressEmitter {
     case (though we default to true currently). */
     @Override
     protected List<MethodBinding> expandMethodBinding(MethodBinding binding) {
-        List<MethodBinding> bindings = super.expandMethodBinding(binding);
+        final GLConfiguration glConfig = getGLConfig();
+        final List<MethodBinding> bindings = super.expandMethodBinding(binding);
 
-        if (!getGLConfig().isBufferObjectFunction(binding.getName())) {
+        if ( !glConfig.isBufferObjectFunction(binding.getName()) ) {
             return bindings;
         }
+        final boolean bufferObjectOnly = glConfig.isBufferObjectOnly(binding.getName());
 
-        List<MethodBinding> newBindings = new ArrayList<MethodBinding>(bindings);
+        final List<MethodBinding> newBindings = new ArrayList<MethodBinding>();
 
         // Need to expand each one of the generated bindings to take a
         // Java long instead of a Buffer for each void* argument
 
-        for (MethodBinding cur : bindings) {
+        // for (MethodBinding cur : bindings) {
+        int j=0;
+        while( j < bindings.size() ) {
+            final MethodBinding cur = bindings.get(j);
 
             // Some of these routines (glBitmap) take strongly-typed
             // primitive pointers as arguments which are expanded into
@@ -281,6 +289,7 @@ public class GLEmitter extends ProcAddressEmitter {
             // This test (rather than !signatureUsesNIO) is used to catch
             // more unexpected situations
             if (cur.signatureUsesJavaPrimitiveArrays()) {
+                j++;
                 continue;
             }
 
@@ -300,9 +309,16 @@ public class GLEmitter extends ProcAddressEmitter {
             // Now need to flag this MethodBinding so that we generate the
             // correct flags in the emitters later
             bufferObjectMethodBindings.put(result, result);
-        }
 
-        return newBindings;
+            if( bufferObjectOnly ) {
+                bindings.remove(j);
+            } else {
+                j++;
+            }
+        }
+        bindings.addAll(newBindings);
+
+        return bindings;
     }
 
     @Override
@@ -384,7 +400,7 @@ public class GLEmitter extends ProcAddressEmitter {
     }
     private int addExtensionListOfAliasedSymbols2Buffer(BuildStaticGLInfo glInfo, StringBuilder buf, String sep1, String sep2, String name, Collection<String> exclude) {
         int num = 0;
-        if(null != name) { 
+        if(null != name) {
             num += addExtensionListOfSymbol2Buffer(glInfo, buf, sep1, name); // extensions of given name
             boolean needsSep2 = 0<num;
             Set<String> origNames = cfg.getRenamedJavaSymbols(name);
@@ -393,7 +409,7 @@ public class GLEmitter extends ProcAddressEmitter {
                     if(!exclude.contains(origName)) {
                         if (needsSep2) {
                             buf.append(sep2); // diff-name seperator
-                        }            
+                        }
                         int num2 = addExtensionListOfSymbol2Buffer(glInfo, buf, sep1, origName); // extensions of orig-name
                         needsSep2 = num<num2;
                         num += num2;
@@ -403,7 +419,7 @@ public class GLEmitter extends ProcAddressEmitter {
         }
         return num;
     }
-    
+
     public int addExtensionsOfSymbols2Buffer(StringBuilder buf, String sep1, String sep2, String first, Collection<String> col) {
         BuildStaticGLInfo glInfo = getGLConfig().getGLInfo();
         if (null == glInfo) {
@@ -454,34 +470,69 @@ public class GLEmitter extends ProcAddressEmitter {
         return (GLConfiguration) getConfig();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void endProcAddressTable() throws Exception {
         PrintWriter w = tableWriter;
 
-        w.println("  /**");
-        w.println("   * This is a convenience method to get (by name) the native function");
-        w.println("   * pointer for a given function. It lets you avoid having to");
-        w.println("   * manually compute the &quot;" + PROCADDRESS_VAR_PREFIX + " + ");
-        w.println("   * &lt;functionName&gt;&quot; member variable name and look it up via");
-        w.println("   * reflection; it also will throw an exception if you try to get the");
-        w.println("   * address of an unknown function, or one that is statically linked");
-        w.println("   * and therefore does not have a function pointer in this table.");
-        w.println("   *");
-        w.println("   * @throws RuntimeException if the function pointer was not found in");
-        w.println("   *   this table, either because the function was unknown or because");
-        w.println("   *   it was statically linked.");
-        w.println("   */");
-        w.println("  public long getAddressFor(String functionNameUsr) {");
-        w.println("    String functionNameBase = "+GLExtensionNames.class.getName()+".normalizeVEN(com.jogamp.gluegen.runtime.opengl.GLExtensionNames.normalizeARB(functionNameUsr, true), true);");
-        w.println("    String addressFieldNameBase = PROCADDRESS_VAR_PREFIX + functionNameBase;");
-        w.println("    java.lang.reflect.Field addressField = null;");
-        w.println("    int  funcNamePermNum = "+GLExtensionNames.class.getName()+".getFuncNamePermutationNumber(functionNameBase);");
-        w.println("    for(int i = 0; null==addressField && i < funcNamePermNum; i++) {");
-        w.println("        String addressFieldName = "+GLExtensionNames.class.getName()+".getFuncNamePermutation(addressFieldNameBase, i);");
-        w.println("        try {");
-        w.println("          addressField = getClass().getField(addressFieldName);");
-        w.println("        } catch (Exception e) { }");
+        w.println("  @Override");
+        w.println("  protected boolean isFunctionAvailableImpl(String functionNameUsr) throws IllegalArgumentException  {");
+        w.println("    final String functionNameBase = "+GLNameResolver.class.getName()+".normalizeVEN(com.jogamp.gluegen.runtime.opengl.GLNameResolver.normalizeARB(functionNameUsr, true), true);");
+        w.println("    final String addressFieldNameBase = \"" + PROCADDRESS_VAR_PREFIX + "\" + functionNameBase;");
+        w.println("    final int funcNamePermNum = "+GLNameResolver.class.getName()+".getFuncNamePermutationNumber(functionNameBase);");
+        w.println("    final java.lang.reflect.Field addressField = java.security.AccessController.doPrivileged(new java.security.PrivilegedAction<java.lang.reflect.Field>() {");
+        w.println("        public final java.lang.reflect.Field run() {");
+        w.println("            java.lang.reflect.Field addressField = null;");
+        w.println("            for(int i = 0; i < funcNamePermNum; i++) {");
+        w.println("                final String addressFieldName = "+GLNameResolver.class.getName()+".getFuncNamePermutation(addressFieldNameBase, i);");
+        w.println("                try {");
+        w.println("                    addressField = "+tableClassName+".class.getDeclaredField( addressFieldName );");
+        w.println("                    addressField.setAccessible(true); // we need to read the protected value!");
+        w.println("                    return addressField;");
+        w.println("                } catch (NoSuchFieldException ex) { }");
+        w.println("            }");
+        w.println("            return null;");
+        w.println("        } } );");
+        w.println();
+        w.println("    if(null==addressField) {");
+        w.println("      // The user is calling a bogus function or one which is not");
+        w.println("      // runtime linked");
+        w.println("      throw new RuntimeException(");
+        w.println("          \"WARNING: Address field query failed for \\\"\" + functionNameBase + \"\\\"/\\\"\" + functionNameUsr +");
+        w.println("          \"\\\"; it's either statically linked or address field is not a known \" +");
+        w.println("          \"function\");");
+        w.println("    } ");
+        w.println("    try {");
+        w.println("      return 0 != addressField.getLong(this);");
+        w.println("    } catch (Exception e) {");
+        w.println("      throw new RuntimeException(");
+        w.println("          \"WARNING: Address query failed for \\\"\" + functionNameBase + \"\\\"/\\\"\" + functionNameUsr +");
+        w.println("          \"\\\"; it's either statically linked or is not a known \" +");
+        w.println("          \"function\", e);");
         w.println("    }");
+        w.println("  }");
+
+        w.println("  @Override");
+        w.println("  public long getAddressFor(String functionNameUsr) throws SecurityException, IllegalArgumentException {");
+        w.println("    SecurityUtil.checkAllLinkPermission();");
+        w.println("    final String functionNameBase = "+GLNameResolver.class.getName()+".normalizeVEN(com.jogamp.gluegen.runtime.opengl.GLNameResolver.normalizeARB(functionNameUsr, true), true);");
+        w.println("    final String addressFieldNameBase = \"" + PROCADDRESS_VAR_PREFIX + "\" + functionNameBase;");
+        w.println("    final int  funcNamePermNum = "+GLNameResolver.class.getName()+".getFuncNamePermutationNumber(functionNameBase);");
+        w.println("    final java.lang.reflect.Field addressField = java.security.AccessController.doPrivileged(new java.security.PrivilegedAction<java.lang.reflect.Field>() {");
+        w.println("        public final java.lang.reflect.Field run() {");
+        w.println("            java.lang.reflect.Field addressField = null;");
+        w.println("            for(int i = 0; i < funcNamePermNum; i++) {");
+        w.println("                final String addressFieldName = "+GLNameResolver.class.getName()+".getFuncNamePermutation(addressFieldNameBase, i);");
+        w.println("                try {");
+        w.println("                    addressField = "+tableClassName+".class.getDeclaredField( addressFieldName );");
+        w.println("                    addressField.setAccessible(true); // we need to read the protected value!");
+        w.println("                    return addressField;");
+        w.println("                } catch (NoSuchFieldException ex) { }");
+        w.println("            }");
+        w.println("            return null;");
+        w.println("        } } );");
         w.println();
         w.println("    if(null==addressField) {");
         w.println("      // The user is calling a bogus function or one which is not");

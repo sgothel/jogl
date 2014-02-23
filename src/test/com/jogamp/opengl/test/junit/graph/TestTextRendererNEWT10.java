@@ -38,22 +38,28 @@ import javax.media.opengl.GLProfile;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.TextRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
-import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.opengl.SVertex;
+import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.test.junit.util.NEWTGLContext;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestTextRendererNEWT10 extends UITestCase {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
     static long duration = 100; // ms
+    static boolean forceES2 = false;
+    static boolean forceGL3 = false;
+    static boolean mainRun = false;
     
     static final int[] texSize = new int[] { 0 }; 
     static final int fontSize = 24;
@@ -71,10 +77,15 @@ public class TestTextRendererNEWT10 extends UITestCase {
     }
     
     public static void main(String args[]) throws IOException {
+        mainRun = true;
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 duration = atoi(args[i]);
+            } else if(args[i].equals("-es2")) {
+                forceES2 = true;
+            } else if(args[i].equals("-gl3")) {
+                forceGL3 = true;
             }
         }
         String tstname = TestTextRendererNEWT10.class.getName();
@@ -90,8 +101,15 @@ public class TestTextRendererNEWT10 extends UITestCase {
     
     @Test
     public void testTextRendererMSAA01() throws InterruptedException {
-        GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLProfile glp;
+        if(forceGL3) {
+            glp = GLProfile.get(GLProfile.GL3);
+        } else if(forceES2) {
+            glp = GLProfile.get(GLProfile.GLES2);
+        } else {
+            glp = GLProfile.getGL2ES2();
+        }
+        final GLCapabilities caps = new GLCapabilities( glp );
         caps.setAlphaBits(4);    
         caps.setSampleBuffers(true);
         caps.setNumSamples(4);

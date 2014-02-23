@@ -30,10 +30,10 @@ package jogamp.graph.curve.tess;
 import java.util.ArrayList;
 
 
-import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Triangle;
-import com.jogamp.graph.math.VectorUtil;
+import com.jogamp.opengl.math.VectorUtil;
+import com.jogamp.opengl.math.geom.AABBox;
 
 public class Loop {
     private HEdge root = null;
@@ -51,7 +51,7 @@ public class Loop {
 
     public Triangle cut(boolean delaunay){
         if(isSimplex()){
-            Triangle t = new Triangle(root.getGraphPoint().getPoint(), root.getNext().getGraphPoint().getPoint(), 
+            Triangle t = new Triangle(root.getGraphPoint().getPoint(), root.getNext().getGraphPoint().getPoint(),
                     root.getNext().getNext().getGraphPoint().getPoint());
             t.setVerticesBoundary(checkVerticesBoundary(root));
             return t;
@@ -103,20 +103,20 @@ public class Loop {
             throw new IllegalArgumentException("outline's vertices < 3: " + vertices.size());
         }
         final VectorUtil.Winding hasWinding = VectorUtil.getWinding(
-                                 vertices.get(0).getPoint(), 
+                                 vertices.get(0).getPoint(),
                                  vertices.get(1).getPoint(),
                                  vertices.get(2).getPoint());
         //FIXME: handle case when vertices come inverted - Rami
         // skips inversion CW -> CCW
         final boolean invert =  hasWinding != reqWinding &&
                                 reqWinding == VectorUtil.Winding.CW;
-       
+
         final int max;
         final int edgeType = reqWinding == VectorUtil.Winding.CCW ? HEdge.BOUNDARY : HEdge.HOLE ;
         int index;
         HEdge firstEdge = null;
         HEdge lastEdge = null;
-        
+
         if(!invert) {
             max = vertices.size();
             index = 0;
@@ -160,7 +160,7 @@ public class Loop {
     public void addConstraintCurve(GraphOutline polyline) {
         //        GraphOutline outline = new GraphOutline(polyline);
         /**needed to generate vertex references.*/
-        initFromPolyline(polyline, VectorUtil.Winding.CW); 
+        initFromPolyline(polyline, VectorUtil.Winding.CW);
 
         GraphVertex v3 = locateClosestVertex(polyline);
         HEdge v3Edge = v3.findBoundEdge();
@@ -180,9 +180,9 @@ public class Loop {
         HEdge.connect(crossEdgeSib, root);
     }
 
-    /** Locates the vertex and update the loops root 
-     * to have (root + vertex) as closest pair 
-     * @param polyline the control polyline 
+    /** Locates the vertex and update the loops root
+     * to have (root + vertex) as closest pair
+     * @param polyline the control polyline
      * to search for closestvertices
      * @return the vertex that is closest to the newly set root Hedge.
      */
@@ -205,7 +205,7 @@ public class Loop {
                     for (GraphVertex vert:vertices){
                         if(vert == v || vert == nextV || vert == cand)
                             continue;
-                        inValid = VectorUtil.inCircle(v.getPoint(), nextV.getPoint(), 
+                        inValid = VectorUtil.inCircle(v.getPoint(), nextV.getPoint(),
                                 cand.getPoint(), vert.getPoint());
                         if(inValid){
                             break;
@@ -243,14 +243,14 @@ public class Loop {
             Vertex cand = candEdge.getGraphPoint().getPoint();
             HEdge e = candEdge.getNext();
             while (e != candEdge){
-                if(e.getGraphPoint() == root.getGraphPoint() 
-                        || e.getGraphPoint() == next.getGraphPoint() 
+                if(e.getGraphPoint() == root.getGraphPoint()
+                        || e.getGraphPoint() == next.getGraphPoint()
                         || e.getGraphPoint().getPoint() == cand){
                     e = e.getNext();
                     continue;
                 }
                 inValid = VectorUtil.inCircle(root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
-                        cand, e.getGraphPoint().getPoint());
+                                              cand, e.getGraphPoint().getPoint());
                 if(inValid){
                     break;
                 }
@@ -311,15 +311,15 @@ public class Loop {
                   (v.getX() < (v2.getX() - v1.getX()) * (v.getY() - v1.getY()) / (v2.getY() - v1.getY()) + v1.getX()) ){
                 inside = !inside;
             }
-            
+
             current = next;
             next = current.getNext();
-            
+
         } while(current != root);
-        
+
         return inside;
     }
-    
+
     public int computeLoopSize(){
         int size = 0;
         HEdge e = root;

@@ -35,50 +35,52 @@ import com.jogamp.graph.curve.tess.Triangulator;
 import com.jogamp.graph.geom.Outline;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.math.VectorUtil;
+import com.jogamp.opengl.math.VectorUtil;
 
 import jogamp.opengl.Debug;
 
-/** Constrained Delaunay Triangulation 
+/** Constrained Delaunay Triangulation
  * implementation of a list of Outlines that define a set of
  * Closed Regions with optional n holes.
- * 
+ *
  */
 public class CDTriangulator2D implements Triangulator{
 
     protected static final boolean DEBUG = Debug.debug("Triangulation");
-    
+
     private float sharpness = 0.5f;
     private ArrayList<Loop> loops;
     private ArrayList<Vertex> vertices;
-    
+
     private ArrayList<Triangle> triangles;
     private int maxTriID = 0;
 
-    
+
     /** Constructor for a new Delaunay triangulator
      */
     public CDTriangulator2D() {
         reset();
     }
-    
+
     /** Reset the triangulation to initial state
      *  Clearing cached data
      */
+    @Override
     public void reset() {
         maxTriID = 0;
         vertices = new ArrayList<Vertex>();
         triangles = new ArrayList<Triangle>(3);
         loops = new ArrayList<Loop>();
     }
-    
+
+    @Override
     public void addCurve(Outline polyline) {
         Loop loop = null;
-        
+
         if(!loops.isEmpty()) {
             loop = getContainerLoop(polyline);
         }
-        
+
         if(loop == null) {
             GraphOutline outline = new GraphOutline(polyline);
             GraphOutline innerPoly = extractBoundaryTriangles(outline, false);
@@ -92,8 +94,9 @@ public class CDTriangulator2D implements Triangulator{
             loop.addConstraintCurve(innerPoly);
         }
     }
-    
-    public ArrayList<Triangle> generate() {    
+
+    @Override
+    public ArrayList<Triangle> generate() {
         for(int i=0;i<loops.size();i++) {
             Loop loop = loops.get(i);
             int numTries = 0;
@@ -141,16 +144,16 @@ public class CDTriangulator2D implements Triangulator{
             GraphVertex gv0 = outVertices.get((i+size-1)%size);
             GraphVertex gv2 = outVertices.get((i+1)%size);
             GraphVertex gv1 = currentVertex;
-            
+
             if(!currentVertex.getPoint().isOnCurve()) {
                 Vertex v0 = gv0.getPoint().clone();
                 Vertex v2 = gv2.getPoint().clone();
                 Vertex v1 = gv1.getPoint().clone();
-                
+
                 gv0.setBoundaryContained(true);
                 gv1.setBoundaryContained(true);
                 gv2.setBoundaryContained(true);
-                
+
                 final Triangle t;
                 final boolean holeLike;
                 if(VectorUtil.ccw(v0,v1,v2)) {
@@ -185,7 +188,7 @@ public class CDTriangulator2D implements Triangulator{
         }
         return innerOutline;
     }
-    
+
     private Loop getContainerLoop(Outline polyline) {
         ArrayList<Vertex> vertices = polyline.getVertices();
         for(int i=0; i < loops.size(); i++) {

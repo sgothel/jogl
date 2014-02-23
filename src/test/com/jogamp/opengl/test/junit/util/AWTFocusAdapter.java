@@ -36,11 +36,14 @@ public class AWTFocusAdapter implements FocusEventCountAdapter, FocusListener {
     String prefix;
     int focusCount;
     boolean wasTemporary;
+    boolean verbose = true;
 
     public AWTFocusAdapter(String prefix) {
         this.prefix = prefix;
         reset();
     }
+
+    public void setVerbose(boolean v) { verbose = false; }
 
     public boolean focusLost() {
         return focusCount<0;        
@@ -65,7 +68,9 @@ public class AWTFocusAdapter implements FocusEventCountAdapter, FocusListener {
         if(focusCount<0) { focusCount=0; }
         focusCount++;
         wasTemporary = e.isTemporary();
-        System.err.println("FOCUS AWT  GAINED "+(wasTemporary?"TEMP":"PERM")+" [fc "+focusCount+"]: "+prefix+", "+e);
+        if( verbose ) {
+            System.err.println("FOCUS AWT  GAINED "+(wasTemporary?"TEMP":"PERM")+" [fc "+focusCount+"]: "+prefix+", "+e);
+        }
     }
 
     /* @Override */
@@ -73,7 +78,9 @@ public class AWTFocusAdapter implements FocusEventCountAdapter, FocusListener {
         if(focusCount>0) { focusCount=0; }
         focusCount--;
         wasTemporary = e.isTemporary();
-        System.err.println("FOCUS AWT  LOST   "+(wasTemporary?"TEMP":"PERM")+" [fc "+focusCount+"]: "+prefix+", "+e);
+        if( verbose ) {
+            System.err.println("FOCUS AWT  LOST   "+(wasTemporary?"TEMP":"PERM")+" [fc "+focusCount+"]: "+prefix+", "+e);
+        }
     }
     
     public String toString() { return prefix+"[focusCount "+focusCount +", temp "+wasTemporary+"]"; }    

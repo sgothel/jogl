@@ -29,75 +29,119 @@ package jogamp.nativewindow.windows;
 
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.NativeWindowFactory;
 
 import jogamp.nativewindow.NWJNILibLoader;
 import jogamp.nativewindow.Debug;
-import jogamp.nativewindow.x11.X11Util;
+import jogamp.nativewindow.ToolkitProperties;
 
-public class GDIUtil {
+public class GDIUtil implements ToolkitProperties {
     private static final boolean DEBUG = Debug.debug("GDIUtil");
-  
+
     private static final String dummyWindowClassNameBase = "_dummyWindow_clazz" ;
     private static RegisteredClassFactory dummyWindowClassFactory;
     private static boolean isInit = false;
-  
-    public static synchronized void initSingleton(boolean firstX11ActionOnProcess) {
+
+    /**
+     * Called by {@link NativeWindowFactory#initSingleton()}
+     * @see ToolkitProperties
+     */
+    public static synchronized void initSingleton() {
         if(!isInit) {
-            synchronized(X11Util.class) {
+            synchronized(GDIUtil.class) {
                 if(!isInit) {
-                    isInit = true;
+                    if(DEBUG) {
+                        System.out.println("GDI.initSingleton()");
+                    }
                     if(!NWJNILibLoader.loadNativeWindow("win32")) {
                         throw new NativeWindowException("NativeWindow Windows native library load error.");
                     }
-
                     if( !initIDs0() ) {
                         throw new NativeWindowException("GDI: Could not initialized native stub");
                     }
-
+                    dummyWindowClassFactory = new RegisteredClassFactory(dummyWindowClassNameBase, getDummyWndProc0(),
+                                                                         true /* useDummyDispatchThread */,
+                                                                         0 /* iconSmallHandle */, 0 /* iconBigHandle */);
                     if(DEBUG) {
-                        System.out.println("GDI.isFirstX11ActionOnProcess: "+firstX11ActionOnProcess);
+                        System.out.println("GDI.initSingleton() dummyWindowClassFactory "+dummyWindowClassFactory);
                     }
-
-                    dummyWindowClassFactory = new RegisteredClassFactory(dummyWindowClassNameBase, getDummyWndProc0());
+                    isInit = true;
                 }
             }
         }
     }
-  
+
+    /**
+     * Called by {@link NativeWindowFactory#shutdown()}
+     * @see ToolkitProperties
+     */
+    public static void shutdown() {
+    }
+
+    /**
+     * Called by {@link NativeWindowFactory#initSingleton()}
+     * @see ToolkitProperties
+     */
     public static boolean requiresToolkitLock() { return false; }
-  
+
+    /**
+     * Called by {@link NativeWindowFactory#initSingleton()}
+     * @see ToolkitProperties
+     */
+    public static final boolean hasThreadingIssues() { return false; }
+
     private static RegisteredClass dummyWindowClass = null;
     private static Object dummyWindowSync = new Object();
-  
+
     public static long CreateDummyWindow(int x, int y, int width, int height) {
         synchronized(dummyWindowSync) {
             dummyWindowClass = dummyWindowClassFactory.getSharedClass();
-            return CreateDummyWindow0(dummyWindowClass.getHandle(), dummyWindowClass.getName(), dummyWindowClass.getName(), x, y, width, height);
+            if(DEBUG) {
+                System.out.println("GDI.CreateDummyWindow() dummyWindowClassFactory "+dummyWindowClassFactory);
+                System.out.println("GDI.CreateDummyWindow() dummyWindowClass "+dummyWindowClass);
+            }
+            return CreateDummyWindow0(dummyWindowClass.getHInstance(), dummyWindowClass.getName(), dummyWindowClass.getHDispThreadContext(), dummyWindowClass.getName(), x, y, width, height);
         }
     }
-  
+
     public static boolean DestroyDummyWindow(long hwnd) {
         boolean res;
         synchronized(dummyWindowSync) {
             if( null == dummyWindowClass ) {
                 throw new InternalError("GDI Error ("+dummyWindowClassFactory.getSharedRefCount()+"): SharedClass is null");
             }
-            res = GDI.DestroyWindow(hwnd);
+            res = DestroyWindow0(dummyWindowClass.getHDispThreadContext(), hwnd);
             dummyWindowClassFactory.releaseSharedClass();
         }
         return res;
     }
-  
+
     public static Point GetRelativeLocation(long src_win, long dest_win, int src_x, int src_y) {
         return (Point) GetRelativeLocation0(src_win, dest_win, src_x, src_y);
     }
-    
-    public static native boolean CreateWindowClass(long hInstance, String clazzName, long wndProc);
-    public static native boolean DestroyWindowClass(long hInstance, String className);
-    
+
+    public static boolean IsUndecorated(long win) {
+        return IsUndecorated0(win);
+    }
+
+    public static boolean IsChild(long win) {
+        return IsChild0(win);
+    }
+
+    private static final void dumpStack() { Thread.dumpStack(); } // Callback for JNI
+
+    /** Creates WNDCLASSEX instance */
+    static native boolean CreateWindowClass0(long hInstance, String clazzName, long wndProc, long iconSmallHandle, long iconBigHandle);
+    /** Destroys WNDCLASSEX instance */
+    static native boolean DestroyWindowClass0(long hInstance, String className, long dispThreadCtx);
+    static native long CreateDummyDispatchThread0();
+
     private static native boolean initIDs0();
-    private static native long getDummyWndProc0();  
+    private static native long getDummyWndProc0();
     private static native Object GetRelativeLocation0(long src_win, long dest_win, int src_x, int src_y);
-  
-    static native long CreateDummyWindow0(long hInstance, String className, String windowName, int x, int y, int width, int height);  
+    private static native boolean IsChild0(long win);
+    private static native boolean IsUndecorated0(long win);
+
+    private static native long CreateDummyWindow0(long hInstance, String className, long dispThreadCtx, String windowName, int x, int y, int width, int height);
+    private static native boolean DestroyWindow0(long dispThreadCtx, long win);
 }

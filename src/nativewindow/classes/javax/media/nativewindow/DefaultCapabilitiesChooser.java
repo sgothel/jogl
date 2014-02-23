@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -66,10 +66,19 @@ import jogamp.nativewindow.Debug;
 */
 
 public class DefaultCapabilitiesChooser implements CapabilitiesChooser {
-  private static final boolean DEBUG = Debug.isPropertyDefined("nativewindow.debug.CapabilitiesChooser", true); 
+  private static final boolean DEBUG;
 
+  static {
+      Debug.initSingleton();
+      DEBUG = Debug.isPropertyDefined("nativewindow.debug.CapabilitiesChooser", true);
+  }
+
+  private final static int NO_SCORE = -9999999;
+  private final static int COLOR_MISMATCH_PENALTY_SCALE     = 36;
+
+  @Override
   public int chooseCapabilities(final CapabilitiesImmutable desired,
-                                final List /*<CapabilitiesImmutable>*/ available,
+                                final List<? extends CapabilitiesImmutable> available,
                                 final int windowSystemRecommendedChoice) {
     if (DEBUG) {
       System.err.println("Desired: " + desired);
@@ -92,17 +101,19 @@ public class DefaultCapabilitiesChooser implements CapabilitiesChooser {
 
     // Create score array
     int[] scores = new int[availnum];
-    int NO_SCORE = -9999999;
-    int COLOR_MISMATCH_PENALTY_SCALE     = 36;
     for (int i = 0; i < availnum; i++) {
       scores[i] = NO_SCORE;
     }
     // Compute score for each
     for (int i = 0; i < availnum; i++) {
-      CapabilitiesImmutable cur = (CapabilitiesImmutable) available.get(i);
+      final CapabilitiesImmutable cur = available.get(i);
       if (cur == null) {
         continue;
       }
+      if (desired.isOnscreen() && !cur.isOnscreen()) {
+        continue; // requested onscreen, but n/a
+      }
+
       int score = 0;
       // Compute difference in color depth
       score += (COLOR_MISMATCH_PENALTY_SCALE *
@@ -122,7 +133,7 @@ public class DefaultCapabilitiesChooser implements CapabilitiesChooser {
       System.err.println(" ]");
     }
 
-    // Ready to select. Choose score closest to 0. 
+    // Ready to select. Choose score closest to 0.
     int scoreClosestToZero = NO_SCORE;
     int chosenIndex = -1;
     for (int i = 0; i < availnum; i++) {

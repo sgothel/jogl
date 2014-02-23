@@ -31,18 +31,23 @@ package com.jogamp.opengl.test.junit.newt;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import javax.media.opengl.*;
 
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
 import com.jogamp.newt.opengl.*;
+import com.jogamp.newt.util.EDTUtil;
+
 import java.io.IOException;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestDisplayLifecycle01NEWT extends UITestCase {
     static GLProfile glp;
     static GLCapabilities caps;
@@ -199,8 +204,17 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
         Assert.assertEquals(0,display.getReferenceCount());
         Assert.assertEquals(false,display.isNativeValid());
-        Assert.assertNotNull(display.getEDTUtil());
-        Assert.assertEquals(false,display.getEDTUtil().isRunning());
+        {
+            final EDTUtil edtUtil = display.getEDTUtil();
+            Assert.assertNotNull(edtUtil);
+            Assert.assertEquals(false,edtUtil.isRunning());
+            edtUtil.start();
+            edtUtil.invoke(true, null);
+            Assert.assertEquals(true,edtUtil.isRunning());
+            edtUtil.invokeStop(true, null);
+            edtUtil.waitUntilStopped();
+            Assert.assertEquals(false,edtUtil.isRunning());
+        }
         Assert.assertEquals(0,screen.getReferenceCount());
         Assert.assertEquals(false,screen.isNativeValid());
 

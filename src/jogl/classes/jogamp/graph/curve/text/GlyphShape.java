@@ -33,16 +33,15 @@ import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex.Factory;
-
 import com.jogamp.graph.curve.OutlineShape;
-// import com.jogamp.graph.math.Quaternion;
+// import com.jogamp.opengl.math.Quaternion;
 
 public class GlyphShape {
-    
+
     // private Quaternion quat= null;
     private Glyph glyph;
     private OutlineShape shape;
-    
+
     /** Create a new Glyph shape
      * based on Parametric curve control polyline
      */
@@ -50,7 +49,7 @@ public class GlyphShape {
         this.shape = new OutlineShape(factory);
         this.glyph = null;
     }
-    
+
     /** Create a new GlyphShape from a {@link OutlineShape}
      * @param factory vertex impl factory {@link Factory}
      * @param shape {@link OutlineShape} representation of the Glyph
@@ -58,44 +57,45 @@ public class GlyphShape {
     public GlyphShape(Vertex.Factory<? extends Vertex> factory, Glyph glyph, OutlineShape shape){
         this(factory);
         this.shape = shape;
-        this.shape.transformOutlines(OutlineShape.VerticesState.QUADRATIC_NURBS);        
+        this.shape.transformOutlines(OutlineShape.VerticesState.QUADRATIC_NURBS);
         this.glyph = glyph;
     }
-      
+
     public final void destroy() {
         shape.clear();
         shape = null;
         glyph = null;
     }
-    
+
     public final Vertex.Factory<? extends Vertex> vertexFactory() { return shape.vertexFactory(); }
-    
-    public final Glyph getGlyph() { 
+
+    public final Glyph getGlyph() {
         return glyph;
     }
-    
+
     public final OutlineShape getShape() {
         return shape;
     }
-    
+
     public final int getNumVertices() {
         return shape.getVertices().size();
     }
-    
-    /** Get the rotational Quaternion attached to this Shape
+
+    /** Get the rotational quaternion attached to this Shape.
      * @return the Quaternion Object
     public final Quaternion getQuat() {
         return quat;
     }
-    
-     * Set the Quaternion that shall defien the rotation
+
+    /**
+     * Set the Quaternion that shall define the rotation
      * of this shape.
      * @param quat
     public final void setQuat(Quaternion quat) {
         this.quat = quat;
     }
-     */
-    
+    */
+
     /** Triangluate the glyph shape
      * @return ArrayList of triangles which define this shape
      */
@@ -108,5 +108,5 @@ public class GlyphShape {
      */
     public final ArrayList<Vertex> getVertices(){
         return shape.getVertices();
-    }    
+    }
 }

@@ -7,15 +7,15 @@ function print_usage()
 
 function concat_jogl_list()
 {
-    ITEMDIR=$1
+    ITEMDIR="$1"
     shift
-    for j in $ITEMDIR $ITEMDIR/jar ; do
+    for j in "$ITEMDIR" "$ITEMDIR"/jar ; do
         for i in $* ; do
-            if [ -e $j/$i ] ; then 
+            if [ -e "$j"/$i ] ; then 
                 if [ -z "$JOGL_LIST" ] ; then
-                    JOGL_LIST=$j/$i
+                    JOGL_LIST="$j"/$i
                 else
-                    JOGL_LIST=$JOGL_LIST:$j/$i
+                    JOGL_LIST="$JOGL_LIST":"$j"/$i
                 fi
             fi
         done
@@ -24,18 +24,25 @@ function concat_jogl_list()
 }
 
 ARCH=`uname -m`
+if [ "$ARCH" = "i86pc" ] ; then
+    ARCH="x86"
+fi
+
 KERNEL=`uname -s | awk ' { printf "%s",tolower($0) ; } '`
+if [ "$KERNEL" = "sunos" ] ; then
+    KERNEL="solaris"
+fi
 
 uname -a | grep -i LINUX && OSS=x11
 uname -a | grep -i Darwin && OSS=osx
 uname -a | grep -i CYGWIN && OSS=win
 
-JOGL_TEST="jogl.test.jar"
+JOGL_TEST="jogl-test.jar"
 
-JOGL_JAR_ALL="jogl.all.jar"
-JOGL_JAR_ALL_NOAWT="jogl.all-noawt.jar"
-JOGL_JAR_ALL_MOBILE="jogl.all-mobile.jar"
-JOGL_JAR_SWT="atomic/jogl.swt.jar"
+JOGL_JAR_ALL="jogl-all.jar"
+JOGL_JAR_ALL_NOAWT="jogl-all-noawt.jar"
+JOGL_JAR_ALL_MOBILE="jogl-all-mobile.jar"
+JOGL_JAR_SWT="atomic/jogl-swt.jar"
 
 JOGL_LIB_ALL="libnativewindow_x11.so libnativewindow_awt.so libjogl_desktop.so libjogl_mobile.so libjogl_cg.so libnewt.so"
 JOGL_LIB_ALL_NOAWT="libnativewindow_x11.so libjogl_desktop.so libjogl_mobile.so libjogl_cg.so libnewt.so"
@@ -61,23 +68,23 @@ AUTOBUILD=0
 
 if [ ! -z "$JOGL_BUILD_DIR" -a -e "$JOGL_BUILD_DIR" ] ; then
     AUTOBUILD=0
-elif [ -e $THISDIR/jar ] ; then
+elif [ -e "$THISDIR"/jar ] ; then
     # Autobuild
-    JOGL_BUILD_DIR=$THISDIR/jar
+    JOGL_BUILD_DIR="$THISDIR"/jar
     AUTOBUILD=1
 else
-    echo invalid JOGL_BUILD_DIR $JOGL_BUILD_DIR and no AUTOBUILD
+    echo invalid JOGL_BUILD_DIR "$JOGL_BUILD_DIR" and no AUTOBUILD
     print_usage
 fi 
 export JOGL_BUILD_DIR
 
-JOGL_LIB_DIR=$JOGL_BUILD_DIR/lib
+JOGL_LIB_DIR="$JOGL_BUILD_DIR"/lib
 export JOGL_LIB_DIR
 
-JOGL_ALL_AWT_CLASSPATH=$(concat_jogl_list $JOGL_BUILD_DIR $JOGL_JAR_ALL $JOGL_TEST)
-JOGL_ALL_NOAWT_CLASSPATH=$(concat_jogl_list $JOGL_BUILD_DIR $JOGL_JAR_ALL_NOAWT $JOGL_TEST)
-JOGL_MOBILE_CLASSPATH=$(concat_jogl_list $JOGL_BUILD_DIR $JOGL_JAR_ALL_MOBILE)
-JOGL_SWT_CLASSPATH=$(concat_jogl_list $JOGL_BUILD_DIR $JOGL_JAR_SWT)
+JOGL_ALL_AWT_CLASSPATH=$(concat_jogl_list "$JOGL_BUILD_DIR" $JOGL_JAR_ALL $JOGL_TEST)
+JOGL_ALL_NOAWT_CLASSPATH=$(concat_jogl_list "$JOGL_BUILD_DIR" $JOGL_JAR_ALL_NOAWT $JOGL_TEST)
+JOGL_MOBILE_CLASSPATH=$(concat_jogl_list "$JOGL_BUILD_DIR" $JOGL_JAR_ALL_MOBILE $JOGL_TEST)
+JOGL_SWT_CLASSPATH=$(concat_jogl_list "$JOGL_BUILD_DIR" $JOGL_JAR_SWT $JOGL_TEST)
 export JOGL_ALL_AWT_CLASSPATH JOGL_ALL_NOAWT_CLASSPATH JOGL_MOBILE_CLASSPATH JOGL_SWT_CLASSPATH
 
 if [ ! -z "$JOGL_PROFILE" ] ; then
@@ -98,6 +105,8 @@ fi
 export JOGL_CLASSPATH
 
 if [ "$KERNEL" = "linux" ] ; then
+    SWT_SUB="gtk"
+elif [ "$KERNEL" = "solaris" ] ; then
     SWT_SUB="gtk"
 elif [ "$KERNEL" = "darwin" ] ; then
     SWT_SUB="cocoa"

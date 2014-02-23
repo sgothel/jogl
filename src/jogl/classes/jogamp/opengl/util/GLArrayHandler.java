@@ -31,41 +31,52 @@ package jogamp.opengl.util;
 import javax.media.opengl.*;
 
 /**
- * Handles consistency of buffer data and array state.
- * Implementations shall consider buffer types (VBO, ..), interleaved, etc.
- * They also need to consider array state types, i.e. fixed function or GLSL.
+ * Handles consistency of buffer data and array state.<br/>
+ * Implementations shall consider buffer types (VBO, ..), interleaved, etc.<br/>
+ * They also need to consider array state types, i.e. fixed function or GLSL.<br/>
  */
 public interface GLArrayHandler {
 
+
   /**
-   * Implementation shall associate the data with the array
-   * and synchronize the data with the GPU.
-   * 
+   * if <code>bind</code> is true and the data uses VBO,
+   * the latter will be bound and data written to the GPU if required.
+   * <p>
+   * If  <code>bind</code> is false and the data uses VBO,
+   * the latter will be unbound.
+   * </p>
+   *
    * @param gl current GL object
-   * @param enable true if array data shall be valid, otherwise false.
-   * @param ext extension object allowing passing of an implementation detail 
+   * @param bind true if VBO shall be bound and data written,
+   *        otherwise clear VBO binding.
+   * @return true if data uses VBO and action was performed, otherwise false
    */
-  public void syncData(GL gl, boolean enable, Object ext);
-  
+  public boolean bindBuffer(GL gl, boolean bind);
+
   /**
    * Implementation shall enable or disable the array state.
-   * 
+   * <p>
+   * Before enabling the array state,
+   * implementation shall synchronize the data with the GPU
+   * and associate the data with the array.
+   * </p>
+   *
    * @param gl current GL object
    * @param enable true if array shall be enabled, otherwise false.
-   * @param ext extension object allowing passing of an implementation detail 
+   * @param ext extension object allowing passing of an implementation detail
    */
   public void enableState(GL gl, boolean enable, Object ext);
-  
+
   /**
-   * Supporting interleaved arrays, where sub handlers may handle 
+   * Supporting interleaved arrays, where sub handlers may handle
    * the array state and the <i>master</i> handler the buffer consistency.
-   *   
+   *
    * @param handler the sub handler
    * @throws UnsupportedOperationException if this array handler does not support interleaved arrays
    */
   public void addSubHandler(GLArrayHandlerFlat handler) throws UnsupportedOperationException;
 
   public void setSubArrayVBOName(int vboName);
-  
+
 }
 

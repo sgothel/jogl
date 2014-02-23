@@ -2,21 +2,36 @@ package jogamp.opengl.util.pngj.chunks;
 
 import jogamp.opengl.util.pngj.ImageInfo;
 
-public class PngChunkIDAT extends PngChunk {
+/**
+ * IDAT chunk.
+ * <p>
+ * see http://www.w3.org/TR/PNG/#11IDAT
+ * <p>
+ * This is dummy placeholder - we write/read this chunk (actually several) by
+ * special code.
+ */
+public class PngChunkIDAT extends PngChunkMultiple {
+	public final static String ID = ChunkHelper.IDAT;
+
 	// http://www.w3.org/TR/PNG/#11IDAT
-	// This is dummy placeholder - we write/read this chunk (actually several)
-	// by special code.
-	public PngChunkIDAT(ImageInfo i) {
-		super(ChunkHelper.IDAT, i);
+	public PngChunkIDAT(ImageInfo i, int len, long offset) {
+		super(ID, i);
+		this.length = len;
+		this.offset = offset;
 	}
 
 	@Override
-	public ChunkRaw createChunk() {// does nothing
+	public ChunkOrderingConstraint getOrderingConstraint() {
+		return ChunkOrderingConstraint.NA;
+	}
+
+	@Override
+	public ChunkRaw createRawChunk() {// does nothing
 		return null;
 	}
 
 	@Override
-	public void parseFromChunk(ChunkRaw c) { // does nothing
+	public void parseFromRaw(ChunkRaw c) { // does nothing
 	}
 
 	@Override

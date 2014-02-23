@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -41,7 +41,7 @@
 package com.jogamp.opengl.util;
 
 import javax.media.opengl.GLAutoDrawable;
-
+import javax.media.opengl.GLException;
 
 /** <P> An Animator can be attached to one or more {@link
     GLAutoDrawable}s to drive their display() methods in a loop. </P>
@@ -56,12 +56,8 @@ import javax.media.opengl.GLAutoDrawable;
  * so it is able to keep an application from terminating.<br>
  * Call {@link #stop() } to terminate the animation and it's execution thread.
  * </p>
-*/
-
+ */
 public class Animator extends AnimatorBase {
-    /** timeout in milliseconds, 15 frames @ 60Hz = 240ms, limiting {@link #finishLifecycleAction(Condition)} */
-    private static final long TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION = 15*16;
-    
     protected ThreadGroup threadGroup;
     private Runnable runnable;
     private boolean runAsFastAsPossible;
@@ -69,6 +65,9 @@ public class Animator extends AnimatorBase {
     protected boolean pauseIssued;
     protected volatile boolean stopIssued;
 
+    /**
+     * Creates a new, empty Animator.
+     */
     public Animator() {
         super();
         if(DEBUG) {
@@ -76,28 +75,42 @@ public class Animator extends AnimatorBase {
         }
     }
 
+    /**
+     * Creates a new Animator w/ an associated ThreadGroup.
+     */
     public Animator(ThreadGroup tg) {
         super();
-        threadGroup = tg;
-
+        setThreadGroup(tg);
         if(DEBUG) {
             System.err.println("Animator created, ThreadGroup: "+threadGroup);
         }
     }
 
-    /** Creates a new Animator for a particular drawable. */
+    /**
+     * Creates a new Animator for a particular drawable.
+     */
     public Animator(GLAutoDrawable drawable) {
         super();
         add(drawable);
+        if(DEBUG) {
+            System.err.println("Animator created, w/ "+drawable);
+        }
     }
 
-    /** Creates a new Animator for a particular drawable. */
+    /**
+     * Creates a new Animator w/ an associated ThreadGroup for a particular drawable.
+     */
     public Animator(ThreadGroup tg, GLAutoDrawable drawable) {
-        this(tg);
+        super();
+        setThreadGroup(tg);
         add(drawable);
+        if(DEBUG) {
+            System.err.println("Animator created, ThreadGroup: "+threadGroup+" and "+drawable);
+        }
     }
 
-    protected String getBaseName(String prefix) {
+    @Override
+    protected final String getBaseName(String prefix) {
         return prefix + "Animator" ;
     }
 
@@ -107,68 +120,67 @@ public class Animator extends AnimatorBase {
      * animation loop which prevents the CPU from getting swamped.
      * This method may not have an effect on subclasses.
      */
-    public final void setRunAsFastAsPossible(boolean runFast) {
-        stateSync.lock();
-        try {
-            runAsFastAsPossible = runFast;
-        } finally {
-            stateSync.unlock();
-        }
-    }
-
-    private final void setIsAnimatingSynced(boolean v) {
-        stateSync.lock();
-        try {
-            isAnimating = v;
-        } finally {
-            stateSync.unlock();
-        }
+    public final synchronized void setRunAsFastAsPossible(boolean runFast) {
+        runAsFastAsPossible = runFast;
     }
 
     class MainLoop implements Runnable {
+        @Override
         public String toString() {
-            return "[started "+isStartedImpl()+", animating "+isAnimatingImpl()+", paused "+isPausedImpl()+", drawable "+drawables.size()+"]";
+            return "[started "+isStarted()+", animating "+isAnimating()+", paused "+isPaused()+", drawable "+drawables.size()+", drawablesEmpty "+drawablesEmpty+"]";
         }
 
+        @Override
         public void run() {
             try {
                 synchronized (Animator.this) {
                     if(DEBUG) {
-                        System.err.println("Animator start:" + Thread.currentThread() + ": " + toString());
+                        System.err.println("Animator start on " + getThreadName() + ": " + toString());
                     }
                     fpsCounter.resetFPSCounter();
                     animThread = Thread.currentThread();
-                    setIsAnimatingSynced(false); // barrier
-                    Animator.this.notifyAll();
+                    isAnimating = false;
+                    // 'waitForStartedCondition' wake-up is handled below!
                 }
 
                 while (!stopIssued) {
                     synchronized (Animator.this) {
-                        // Don't consume CPU unless there is work to be done and not paused
+                        // Pause; Also don't consume CPU unless there is work to be done and not paused
+                        boolean ectCleared = false;
                         while (!stopIssued && (pauseIssued || drawablesEmpty)) {
+                            if( drawablesEmpty ) {
+                                pauseIssued = true;
+                            }
                             boolean wasPaused = pauseIssued;
                             if (DEBUG) {
-                                System.err.println("Animator pause:" + Thread.currentThread() + ": " + toString());
+                                System.err.println("Animator pause on " + animThread.getName() + ": " + toString());
                             }
-                            setIsAnimatingSynced(false); // barrier
+                            if ( exclusiveContext && !drawablesEmpty && !ectCleared ) {
+                                ectCleared = true;
+                                setDrawablesExclCtxState(false);
+                                display(); // propagate exclusive change!
+                            }
+                            isAnimating = false;
                             Animator.this.notifyAll();
                             try {
                                 Animator.this.wait();
                             } catch (InterruptedException e) {
                             }
-
                             if (wasPaused) {
                                 // resume from pause -> reset counter
                                 fpsCounter.resetFPSCounter();
                                 if (DEBUG) {
-                                    System.err.println("Animator resume:" + Thread.currentThread() + ": " + toString());
+                                    System.err.println("Animator resume on " + animThread.getName() + ": " + toString());
                                 }
                             }
                         }
                         if (!stopIssued && !isAnimating) {
-                            // resume from pause or drawablesEmpty,
+                            // Wakes up 'waitForStartedCondition' sync
+                            // - and -
+                            // Resume from pause or drawablesEmpty,
                             // implies !pauseIssued and !drawablesEmpty
-                            setIsAnimatingSynced(true);
+                            isAnimating = true;
+                            setDrawablesExclCtxState(exclusiveContext);
                             Animator.this.notifyAll();
                         }
                     } // sync Animator.this
@@ -180,179 +192,124 @@ public class Animator extends AnimatorBase {
                         Thread.yield();
                     }
                 }
+            } catch( ThreadDeath td) {
+                if(DEBUG) {
+                    System.err.println("Animator Catched: "+td.getClass().getName()+": "+td.getMessage());
+                    td.printStackTrace();
+                }
             } finally {
+                if( exclusiveContext && !drawablesEmpty ) {
+                    setDrawablesExclCtxState(false);
+                    display(); // propagate exclusive change!
+                }
                 synchronized (Animator.this) {
                     if(DEBUG) {
-                        System.err.println("Animator stop " + Thread.currentThread() + ": " + toString());
+                        System.err.println("Animator stop on " + animThread.getName() + ": " + toString());
                     }
                     stopIssued = false;
                     pauseIssued = false;
                     animThread = null;
-                    setIsAnimatingSynced(false); // barrier
+                    isAnimating = false;
                     Animator.this.notifyAll();
                 }
             }
         }
     }
 
-    private final boolean isStartedImpl() {
-        return animThread != null ;
-    }
-    public final boolean isStarted() {
-        stateSync.lock();
-        try {
-            return animThread != null ;
-        } finally {
-            stateSync.unlock();
-        }
-    }
-
-    private final boolean isAnimatingImpl() {
+    @Override
+    public final synchronized boolean isAnimating() {
         return animThread != null && isAnimating ;
     }
-    public final boolean isAnimating() {
-        stateSync.lock();
-        try {
-            return animThread != null && isAnimating ;
-        } finally {
-            stateSync.unlock();
-        }
-    }
 
-    private final boolean isPausedImpl() {
+    @Override
+    public final synchronized boolean isPaused() {
         return animThread != null && pauseIssued ;
     }
-    public final boolean isPaused() {
-        stateSync.lock();
-        try {
-            return animThread != null && pauseIssued ;
-        } finally {
-            stateSync.unlock();
+
+    /**
+     * Set a {@link ThreadGroup} for the {@link #getThread() animation thread}.
+     *
+     * @param tg the {@link ThreadGroup}
+     * @throws GLException if the animator has already been started
+     */
+    public final synchronized void setThreadGroup(ThreadGroup tg) throws GLException {
+        if ( isStarted() ) {
+            throw new GLException("Animator already started.");
         }
+        threadGroup = tg;
     }
 
-    interface Condition {
-        /**
-         * @return true if branching (cont waiting, action), otherwise false
-         */
-        boolean result();
-    }
-
-    private synchronized void finishLifecycleAction(Condition condition) {
-        // It's hard to tell whether the thread which changes the lifecycle has
-        // dependencies on the Animator's internal thread. Currently we
-        // use a couple of heuristics to determine whether we should do
-        // the blocking wait().
-        final boolean blocking = impl.blockUntilDone(animThread);
-        long remaining = blocking ? TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION : 0;
-        while (remaining>0 && condition.result()) {
-            long td = System.currentTimeMillis();
-            try {
-                wait(remaining);
-            } catch (InterruptedException ie) {  }
-            remaining -= (System.currentTimeMillis() - td) ;
-        }
-        if(DEBUG) {
-            if(remaining<0) {
-                System.err.println("finishLifecycleAction(" + condition.getClass().getName() + "): ++++++ timeout reached ++++++ " + Thread.currentThread().getName());
-            }
-            System.err.println("finishLifecycleAction(" + condition.getClass().getName() + "): finished "+
-                    "- blocking "+blocking+
-                    ", waited " + (blocking ? ( TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION - remaining ) : 0 ) + "/" + TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION + 
-                    ", started: " + isStartedImpl() +", animating: " + isAnimatingImpl() +
-                    ", paused: " + isPausedImpl() + ", drawables " + drawables.size() + " - " + Thread.currentThread().getName());
-        }
-    }
-
-    public synchronized boolean start() {
-        if ( isStartedImpl() ) {
+    @Override
+    public final synchronized boolean start() {
+        if ( isStarted() ) {
             return false;
         }
         if (runnable == null) {
             runnable = new MainLoop();
         }
         fpsCounter.resetFPSCounter();
-        String threadName = Thread.currentThread().getName()+"-"+baseName;
+        String threadName = getThreadName()+"-"+baseName;
         Thread thread;
         if(null==threadGroup) {
             thread = new Thread(runnable, threadName);
         } else {
             thread = new Thread(threadGroup, runnable, threadName);
         }
-        thread.setDaemon(false); // force to be non daemon, regardless of parent thread 
+        thread.setDaemon(false); // force to be non daemon, regardless of parent thread
         if(DEBUG) {
             final Thread ct = Thread.currentThread();
             System.err.println("Animator "+ct.getName()+"[daemon "+ct.isDaemon()+"]: starting "+thread.getName()+"[daemon "+thread.isDaemon()+"]");
         }
         thread.start();
-        finishLifecycleAction(waitForStartedCondition);
-        return true;
+        return finishLifecycleAction(waitForStartedCondition, 0);
     }
+    private final Condition waitForStartedCondition = new Condition() {
+        @Override
+        public boolean eval() {
+            return !isStarted() || (!drawablesEmpty && !isAnimating) ;
+        } };
 
-    private class WaitForStartedCondition implements Condition {
-        public boolean result() {
-            return !isStartedImpl() || (!drawablesEmpty && !isAnimating) ;
-        }
-    }
-    Condition waitForStartedCondition = new WaitForStartedCondition();
-
-    public synchronized boolean stop() {
-        if ( !isStartedImpl() ) {
+    @Override
+    public final synchronized boolean stop() {
+        if ( !isStarted() ) {
             return false;
         }
         stopIssued = true;
-        notifyAll();
-        finishLifecycleAction(waitForStoppedCondition);
-        return true;
+        return finishLifecycleAction(waitForStoppedCondition, 0);
     }
-    private class WaitForStoppedCondition implements Condition {
-        public boolean result() {
-            return isStartedImpl();
-        }
-    }
-    Condition waitForStoppedCondition = new WaitForStoppedCondition();
+    private final Condition waitForStoppedCondition = new Condition() {
+        @Override
+        public boolean eval() {
+            return isStarted();
+        } };
 
-    public synchronized boolean pause() {
-        if ( !isStartedImpl() || pauseIssued ) {
+    @Override
+    public final synchronized boolean pause() {
+        if ( !isStarted() || pauseIssued ) {
             return false;
         }
-        stateSync.lock();
-        try {
-            pauseIssued = true;
-        } finally {
-            stateSync.unlock();
-        }
-        notifyAll();
-        finishLifecycleAction(waitForPausedCondition);
-        return true;
+        pauseIssued = true;
+        return finishLifecycleAction(waitForPausedCondition, 0);
     }
-    private class WaitForPausedCondition implements Condition {
-        public boolean result() {
+    private final Condition waitForPausedCondition = new Condition() {
+        @Override
+        public boolean eval() {
             // end waiting if stopped as well
-            return isAnimating && isStartedImpl();
-        }
-    }
-    Condition waitForPausedCondition = new WaitForPausedCondition();
+            return isStarted() && isAnimating;
+        } };
 
-    public synchronized boolean resume() {
-        if ( !isStartedImpl() || !pauseIssued ) {
+    @Override
+    public final synchronized boolean resume() {
+        if ( !isStarted() || !pauseIssued ) {
             return false;
         }
-        stateSync.lock();
-        try {
-            pauseIssued = false;
-        } finally {
-            stateSync.unlock();
-        }
-        notifyAll();
-        finishLifecycleAction(waitForResumeCondition);
-        return true;
+        pauseIssued = false;
+        return finishLifecycleAction(waitForResumeCondition, 0);
     }
-    private class WaitForResumeCondition implements Condition {
-        public boolean result() {
+    private final Condition waitForResumeCondition = new Condition() {
+        @Override
+        public boolean eval() {
             // end waiting if stopped as well
-            return !drawablesEmpty && !isAnimating && isStartedImpl();
-        }
-    }
-    Condition waitForResumeCondition = new WaitForResumeCondition();
+            return isStarted() && ( !drawablesEmpty && !isAnimating || drawablesEmpty && !pauseIssued ) ;
+        } };
 }

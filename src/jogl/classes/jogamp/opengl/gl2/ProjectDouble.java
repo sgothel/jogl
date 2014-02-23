@@ -6,9 +6,9 @@
 ** this file except in compliance with the License. You may obtain a copy
 ** of the License at Silicon Graphics, Inc., attn: Legal Services, 1600
 ** Amphitheatre Parkway, Mountain View, CA 94043-1351, or at:
-** 
+**
 ** http://oss.sgi.com/projects/FreeB
-** 
+**
 ** Note that, as provided in the License, the Software is distributed on an
 ** "AS IS" basis, with ALL EXPRESS AND IMPLIED WARRANTIES AND CONDITIONS
 ** DISCLAIMED, INCLUDING, WITHOUT LIMITATION, ANY IMPLIED WARRANTIES AND
@@ -24,13 +24,13 @@
 ** except that Section 2.2 and 11 are omitted.  Any differences between
 ** the Alternative License and the SGI License are offered solely by Sun
 ** and not by SGI.
-** 
+**
 ** Original Code. The Original Code is: OpenGL Sample Implementation,
 ** Version 1.2.1, released January 26, 2000, developed by Silicon Graphics,
 ** Inc. The Original Code is Copyright (c) 1991-2000 Silicon Graphics, Inc.
 ** Copyright in any portions created by third parties is as indicated
 ** elsewhere herein. All Rights Reserved.
-** 
+**
 ** Additional Notice Provisions: The application programming interfaces
 ** established by SGI in conjunction with the Original Code are The
 ** OpenGL(R) Graphics System: A Specification (Version 1.2.1), released
@@ -45,56 +45,56 @@
 ** $Header$
 */
 
-/* 
+/*
  * Copyright (c) 2002-2004 LWJGL Project
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are 
+ * modification, are permitted provided that the following conditions are
  * met:
- * 
- * * Redistributions of source code must retain the above copyright 
+ *
+ * * Redistributions of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
  *
  * * Redistributions in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
  *
- * * Neither the name of 'LWJGL' nor the names of 
- *   its contributors may be used to endorse or promote products derived 
+ * * Neither the name of 'LWJGL' nor the names of
+ *   its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
  * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -107,7 +107,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
@@ -125,7 +125,7 @@ import com.jogamp.common.nio.Buffers;
  * <p/>
  * <p/>
  * Created 11-jan-2004
- * 
+ *
  * @author Erik Duijs
  * @author Kenneth Russell
  */
@@ -155,7 +155,7 @@ public class ProjectDouble {
   private final double[] forward = new double[3];
   private final double[] side = new double[3];
   private final double[] up = new double[3];
-  
+
   // Buffer-based implementation
   private DoubleBuffer locbuf;
   private final DoubleBuffer matrixBuf;
@@ -227,7 +227,7 @@ public class ProjectDouble {
 
   /**
    * Method __gluMultMatrixVecd
-   * 
+   *
    * @param matrix
    * @param in
    * @param out
@@ -244,7 +244,7 @@ public class ProjectDouble {
 
   /**
    * Method __gluMultMatrixVecd
-   * 
+   *
    * @param matrix
    * @param in
    * @param out
@@ -265,7 +265,7 @@ public class ProjectDouble {
   /**
    * @param src
    * @param inverse
-   * 
+   *
    * @return
    */
   private boolean __gluInvertMatrixd(double[] src, double[] inverse) {
@@ -335,7 +335,7 @@ public class ProjectDouble {
   /**
    * @param src
    * @param inverse
-   * 
+   *
    * @return
    */
   private boolean __gluInvertMatrixd(DoubleBuffer src, DoubleBuffer inverse) {
@@ -525,7 +525,7 @@ public class ProjectDouble {
 
   /**
    * Method gluOrtho2D.
-   * 
+   *
    * @param left
    * @param right
    * @param bottom
@@ -537,7 +537,7 @@ public class ProjectDouble {
 
   /**
    * Method gluPerspective.
-   * 
+   *
    * @param fovy
    * @param aspect
    * @param zNear
@@ -570,7 +570,7 @@ public class ProjectDouble {
 
   /**
    * Method gluLookAt
-   * 
+   *
    * @param eyex
    * @param eyey
    * @param eyez
@@ -631,7 +631,7 @@ public class ProjectDouble {
 
   /**
    * Method gluProject
-   * 
+   *
    * @param objx
    * @param objy
    * @param objz
@@ -639,7 +639,7 @@ public class ProjectDouble {
    * @param projMatrix
    * @param viewport
    * @param win_pos
-   * 
+   *
    * @return
    */
   public boolean gluProject(double objx,
@@ -685,7 +685,7 @@ public class ProjectDouble {
 
   /**
    * Method gluProject
-   * 
+   *
    * @param objx
    * @param objy
    * @param objz
@@ -693,7 +693,7 @@ public class ProjectDouble {
    * @param projMatrix
    * @param viewport
    * @param win_pos
-   * 
+   *
    * @return
    */
   public boolean gluProject(double objx,
@@ -738,7 +738,7 @@ public class ProjectDouble {
 
   /**
    * Method gluUnproject
-   * 
+   *
    * @param winx
    * @param winy
    * @param winz
@@ -746,7 +746,7 @@ public class ProjectDouble {
    * @param projMatrix
    * @param viewport
    * @param obj_pos
-   * 
+   *
    * @return
    */
   public boolean gluUnProject(double winx,
@@ -799,7 +799,7 @@ public class ProjectDouble {
 
   /**
    * Method gluUnproject
-   * 
+   *
    * @param winx
    * @param winy
    * @param winz
@@ -807,7 +807,7 @@ public class ProjectDouble {
    * @param projMatrix
    * @param viewport
    * @param obj_pos
-   * 
+   *
    * @return
    */
   public boolean gluUnProject(double winx,
@@ -858,7 +858,7 @@ public class ProjectDouble {
 
   /**
    * Method gluUnproject4
-   * 
+   *
    * @param winx
    * @param winy
    * @param winz
@@ -869,7 +869,7 @@ public class ProjectDouble {
    * @param near
    * @param far
    * @param obj_pos
-   * 
+   *
    * @return
    */
   public boolean gluUnProject4(double winx,
@@ -923,7 +923,7 @@ public class ProjectDouble {
 
   /**
    * Method gluUnproject4
-   * 
+   *
    * @param winx
    * @param winy
    * @param winz
@@ -934,7 +934,7 @@ public class ProjectDouble {
    * @param near
    * @param far
    * @param obj_pos
-   * 
+   *
    * @return
    */
   public boolean gluUnProject4(double winx,
@@ -987,7 +987,7 @@ public class ProjectDouble {
 
   /**
    * Method gluPickMatrix
-   * 
+   *
    * @param x
    * @param y
    * @param deltaX
@@ -1014,7 +1014,7 @@ public class ProjectDouble {
 
   /**
    * Method gluPickMatrix
-   * 
+   *
    * @param x
    * @param y
    * @param deltaX

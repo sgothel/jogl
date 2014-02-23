@@ -1,6 +1,9 @@
 //Copyright 2010 JogAmp Community. All rights reserved.
 
-#version 110
+#if __VERSION__ >= 130
+  #define attribute in
+  #define varying out
+#endif
 
 uniform mat4    gcu_PMVMatrix[2]; // P, Mv, and Mvi
 attribute vec4  gca_Vertices;

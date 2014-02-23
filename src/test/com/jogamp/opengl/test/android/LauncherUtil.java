@@ -65,11 +65,15 @@ public class LauncherUtil {
    /** The host <code>jogamp.org</code> */
    public static final String HOST = "jogamp.org";
    
-   static final String PKG = "pkg";
+   static final String SYS_PKG = "sys";
+   
+   static final String USR_PKG = "pkg";
+   
+   static final String ARG = "arg";
    
    public static abstract class BaseActivityLauncher extends Activity {
        final OrderedProperties props = new OrderedProperties();
-       
+       final ArrayList<String> args = new ArrayList<String>();
        /** 
         * Returns the default {@link LauncherUtil#LAUNCH_ACTIVITY_NORMAL} action.
         * <p>
@@ -86,6 +90,14 @@ public class LauncherUtil {
         */
        public final OrderedProperties getProperties() { return props; }
        
+       /**
+        * Returns the commandline arguments, which are being propagated to the target activity.
+        * <p>
+        * Maybe be used to set custom commandline arguments.
+        * </p>
+        */
+       public final ArrayList<String> getArguments() { return args; } 
+       
        /** Custom initialization hook which can be overriden to setup data, e.g. fill the properties retrieved by {@link #getProperties()}. */
        public void init() { }
        
@@ -95,8 +107,11 @@ public class LauncherUtil {
        /** Must return the downstream Activity class name */
        public abstract String getActivityName();
        
-       /** Must return a list of required packages, at least one. */
-       public abstract List<String> getPackages();
+       /** Must return a list of required user packages, at least one containing the activity. */
+       public abstract List<String> getUsrPackages();
+       
+       /** Return a list of required system packages w/ native libraries, may return null or a zero sized list. */
+       public abstract List<String> getSysPackages();
 
        @Override
        public void onCreate(Bundle savedInstanceState) {
@@ -106,8 +121,10 @@ public class LauncherUtil {
            
            final DataSet data = new DataSet();
            data.setActivityName(getActivityName());
-           data.addAllPackages(getPackages());
+           data.addAllSysPackages(getSysPackages());
+           data.addAllUsrPackages(getUsrPackages());
            data.addAllProperties(props);
+           data.addAllArguments(args);
            
            final Intent intent = LauncherUtil.getIntent(getAction(), data);
            Log.d(getClass().getSimpleName(), "Launching Activity: "+intent);
@@ -124,8 +141,14 @@ public class LauncherUtil {
        ArrayList<String> keyList = new ArrayList<String>(); 
               
        public final void setProperty(String key, String value) { 
-           if(key.equals(PKG)) {
-               throw new IllegalArgumentException("Illegal property key, '"+PKG+"' is reserved");
+           if(key.equals(SYS_PKG)) {
+               throw new IllegalArgumentException("Illegal property key, '"+SYS_PKG+"' is reserved");
+           }
+           if(key.equals(USR_PKG)) {
+               throw new IllegalArgumentException("Illegal property key, '"+USR_PKG+"' is reserved");
+           }
+           if(key.equals(ARG)) {
+               throw new IllegalArgumentException("Illegal property key, '"+ARG+"' is reserved");
            }
            final String oval = map.put(key, value);
            if(null != oval) {
@@ -164,6 +187,17 @@ public class LauncherUtil {
        public final List<String> getPropertyKeys() { return keyList; }       
    }
    
+   /**
+    * Data set to transfer from and to launch URI consisting out of:
+    * <ul>
+    *   <li>system packages w/ native libraries used on Android, which may use a cached ClassLoader, see {@link DataSet#getSysPackages()}.</li>
+    *   <li>user packages w/o native libraries used on Android, which do not use a cached ClassLoader, see {@link DataSet#getUsrPackages()}.</li>
+    *   <li>activity name, used to launch an Android activity, see {@link DataSet#getActivityName()}.</li>
+    *   <li>properties, which will be added to the system properties, see {@link DataSet#getProperties()}.</li>
+    *   <li>arguments, used to launch a class main-entry, see {@link DataSet#getArguments()}.</li>
+    * </ul>
+    * {@link DataSet#getUri()} returns a URI representation of all components.
+    */
    public static class DataSet {
        static final char SLASH = '/';
        static final char QMARK = '?';
@@ -173,19 +207,29 @@ public class LauncherUtil {
        static final String EMPTY = "";
        
        String activityName = null;
-       ArrayList<String> packages = new ArrayList<String>();
+       ArrayList<String> sysPackages = new ArrayList<String>();
+       ArrayList<String> usrPackages = new ArrayList<String>();
        OrderedProperties properties = new OrderedProperties();
+       ArrayList<String> arguments = new ArrayList<String>();
        
        public final void setActivityName(String name) { activityName = name; }
        public final String getActivityName() { return activityName; }
+              
+       public final void addSysPackage(String p) { 
+           sysPackages.add(p); 
+       }   
+       public final void addAllSysPackages(List<String> plist) { 
+           sysPackages.addAll(plist);
+       }   
+       public final List<String> getSysPackages()  { return sysPackages; }
        
-       public final void addPackage(String p) { 
-           packages.add(p); 
+       public final void addUsrPackage(String p) { 
+           usrPackages.add(p); 
        }   
-       public final void addAllPackages(List<String> plist) { 
-           packages.addAll(plist);
+       public final void addAllUsrPackages(List<String> plist) { 
+           usrPackages.addAll(plist);
        }   
-       public final List<String> getPackages()  { return packages; }
+       public final List<String> getUsrPackages()  { return usrPackages; }
        
        public final void setProperty(String key, String value) {
            properties.setProperty(key, value);
@@ -201,31 +245,70 @@ public class LauncherUtil {
        }   
        public final String getProperty(String key) { return properties.getProperty(key); }
        public final OrderedProperties getProperties() { return properties; }
-       public final List<String> getPropertyKeys() { return properties.getPropertyKeys(); }       
+       public final List<String> getPropertyKeys() { return properties.getPropertyKeys(); }
+       
+       public final void addArgument(String arg) { arguments.add(arg); }
+       public final void addAllArguments(List<String> args) {
+           arguments.addAll(args);
+       }
+       public final ArrayList<String> getArguments() { return arguments; }
        
        public final Uri getUri() {
            StringBuilder sb = new StringBuilder();
            sb.append(SCHEME).append(COLSLASH2).append(HOST).append(SLASH).append(getActivityName());
+           boolean needsQMark = true;
            boolean needsSep = false;
-           if(packages.size()>0) {
-               sb.append(QMARK);
-               for(int i=0; i<packages.size(); i++) {
+           if(sysPackages.size()>0) {
+               if( needsQMark ) {
+                   sb.append(QMARK);
+                   needsQMark = false;
+               }
+               for(int i=0; i<sysPackages.size(); i++) {
                    if(needsSep) {
                        sb.append(AMPER);
                    }
-                   sb.append(PKG).append(ASSIG).append(packages.get(i));
+                   sb.append(SYS_PKG).append(ASSIG).append(sysPackages.get(i));
                    needsSep = true;
                }
            }
-           Iterator<String> argKeys = properties.keyList.iterator();
-           while(argKeys.hasNext()) {
+           if(usrPackages.size()>0) {
+               if( needsQMark ) {
+                   sb.append(QMARK);
+                   needsQMark = false;
+               }
+               for(int i=0; i<usrPackages.size(); i++) {
                    if(needsSep) {
                        sb.append(AMPER);
                    }
-                   final String key = argKeys.next();
-                   sb.append(key).append(ASSIG).append(properties.map.get(key));
+                   sb.append(USR_PKG).append(ASSIG).append(usrPackages.get(i));
                    needsSep = true;
+               }
            }
+           Iterator<String> propKeys = properties.keyList.iterator();
+           while(propKeys.hasNext()) {
+               if( needsQMark ) {
+                   sb.append(QMARK);
+                   needsQMark = false;
+               }
+               if(needsSep) {
+                   sb.append(AMPER);
+               }
+               final String key = propKeys.next();
+               sb.append(key).append(ASSIG).append(properties.map.get(key));
+               needsSep = true;
+           }
+           Iterator<String> args = arguments.iterator();
+           while(args.hasNext()) {
+               if( needsQMark ) {
+                   sb.append(QMARK);
+                   needsQMark = false;
+               }
+               if(needsSep) {
+                   sb.append(AMPER);
+               }
+               sb.append(ARG).append(ASSIG).append(args.next());
+               needsSep = true;
+           }           
            return Uri.parse(sb.toString());
        }
        
@@ -255,7 +338,7 @@ public class LauncherUtil {
                int q_b = q_e + 1; // next term
                q_e = q.indexOf(AMPER, q_b);
                if(0 == q_e) {
-                   // single seperator
+                   // single separator
                    continue; 
                }
                if(0 > q_e) {
@@ -269,18 +352,28 @@ public class LauncherUtil {
                    // assignment
                    final String k = part.substring(0, assignment);
                    final String v = part.substring(assignment+1);
-                   if(k.equals(PKG)) {
+                   if(k.equals(SYS_PKG)) {
                        if(v.length()==0) {
                            throw new IllegalArgumentException("Empty package name: part <"+part+">, query <"+q+"> of "+uri);
                        }
-                       data.addPackage(v);
+                       data.addSysPackage(v);
+                   } else if(k.equals(USR_PKG)) {
+                       if(v.length()==0) {
+                           throw new IllegalArgumentException("Empty package name: part <"+part+">, query <"+q+"> of "+uri);
+                       }
+                       data.addUsrPackage(v);
+                   } else if(k.equals(ARG)) {
+                       if(v.length()==0) {
+                           throw new IllegalArgumentException("Empty argument name: part <"+part+">, query <"+q+"> of "+uri);
+                       }
+                       data.addArgument(v);
                    } else {
                        data.setProperty(k, v);
                    }
                } else {
                    // property key only
-                   if(part.equals(PKG)) {
-                       throw new IllegalArgumentException("Empty package name: part <"+part+">, query <"+q+"> of "+uri);
+                   if( part.equals(USR_PKG) || part.equals(ARG) ) {
+                       throw new IllegalArgumentException("Reserved key <"+part+"> in query <"+q+"> of "+uri);
                    }
                    data.setProperty(part, EMPTY);
                }
@@ -304,23 +397,34 @@ public class LauncherUtil {
    public static void main(String[] args) {
        if(args.length==0) {
            args = new String[] {
-               SCHEME+"://"+HOST+"/com.jogamp.TestActivity?"+PKG+"=jogamp.pack1&"+PKG+"=javax.pack2&"+PKG+"=com.jogamp.pack3&jogamp.common.debug=true&com.jogamp.test=false",   
-               SCHEME+"://"+HOST+"/com.jogamp.TestActivity?"+PKG+"=jogamp.pack1&jogamp.common.debug=true&com.jogamp.test=false",   
-               SCHEME+"://"+HOST+"/com.jogamp.TestActivity?"+PKG+"=jogamp.pack1"   
+               SCHEME+"://"+HOST+"/com.jogamp.TestActivity?"+SYS_PKG+"=jogamp.pack1&"+SYS_PKG+"=javax.pack2&"+USR_PKG+"=com.jogamp.pack3&"+USR_PKG+"=com.jogamp.pack4&jogamp.common.debug=true&com.jogamp.test=false",   
+               SCHEME+"://"+HOST+"/com.jogamp.TestActivity?"+SYS_PKG+"=jogamp.pack1&jogamp.common.debug=true&com.jogamp.test=false",
+               SCHEME+"://"+HOST+"/com.jogamp.TestActivity?"+USR_PKG+"=jogamp.pack1&jogamp.common.debug=true&com.jogamp.test=false",
+               SCHEME+"://"+HOST+"/com.jogamp.TestActivity?"+USR_PKG+"=jogamp.pack1&"+USR_PKG+"=com.jogamp.pack2",
+               SCHEME+"://"+HOST+"/com.jogamp.TestActivity?"+USR_PKG+"=jogamp.pack1&"+USR_PKG+"=javax.pack2&"+USR_PKG+"=com.jogamp.pack3&jogamp.common.debug=true&com.jogamp.test=false&"+ARG+"=arg1&"+ARG+"=arg2=arg2value&"+ARG+"=arg3",   
+               SCHEME+"://"+HOST+"/com.jogamp.TestActivity?"+USR_PKG+"=jogamp.pack1&jogamp.common.debug=true&com.jogamp.test=false&"+ARG+"=arg1&"+ARG+"=arg2=arg2value&"+ARG+"=arg3",   
+               SCHEME+"://"+HOST+"/com.jogamp.TestActivity?"+USR_PKG+"=jogamp.pack1&"+ARG+"=arg1&"+ARG+"=arg2=arg2value&"+ARG+"=arg3"   
            };
        }
+       int errors = 0;
        for(int i=0; i<args.length; i++) {
            String uri_s = args[i];
            Uri uri0 = Uri.parse(uri_s);
            DataSet data = DataSet.create(uri0);
            if(null == data) {
+               errors++;
                System.err.println("Error: NULL JogAmpLauncherUtil: <"+uri_s+"> -> "+uri0+" -> NULL");
-           }
-           Uri uri1 = data.getUri();
-           if(!uri0.equals(uri1)) {
-               System.err.println("Error: Not equal: <"+uri_s+"> -> "+uri0+" -> "+uri1);
+           } else {
+               Uri uri1 = data.getUri();
+               if(!uri0.equals(uri1)) {
+                   errors++;
+                   System.err.println("Error: Not equal: <"+uri_s+"> -> "+uri0+" -> "+uri1);
+               } else {
+                   System.err.println("OK: "+uri1);
+               }
            }
        }
+       System.err.println("LauncherUtil Self Test: Errors: "+errors);
    }
    
 }

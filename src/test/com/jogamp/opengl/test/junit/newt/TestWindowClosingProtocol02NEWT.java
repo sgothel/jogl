@@ -31,6 +31,8 @@ package com.jogamp.opengl.test.junit.newt;
 import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 import org.junit.Assert;
 
 import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
@@ -45,6 +47,7 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestWindowClosingProtocol02NEWT extends UITestCase {
 
     @Test
@@ -52,7 +55,7 @@ public class TestWindowClosingProtocol02NEWT extends UITestCase {
         GLProfile glp = GLProfile.getGL2ES2();
         GLCapabilities caps = new GLCapabilities(glp);
         final GLWindow glWindow = GLWindow.create(caps);
-        final AWTRobotUtil.WindowClosingListener windowClosingListener = AWTRobotUtil.addClosingListener(glWindow);
+        final AWTRobotUtil.WindowClosingListener closingListener = AWTRobotUtil.addClosingListener(glWindow);
 
         glWindow.addGLEventListener(new GearsES2());
         glWindow.setSize(512, 512);
@@ -69,11 +72,13 @@ public class TestWindowClosingProtocol02NEWT extends UITestCase {
         glWindow.setDefaultCloseOperation(WindowClosingMode.DO_NOTHING_ON_CLOSE);
         op = glWindow.getDefaultCloseOperation();
         Assert.assertEquals(WindowClosingMode.DO_NOTHING_ON_CLOSE, op);
+        
+        Thread.sleep(300);
 
-        Assert.assertEquals(true, AWTRobotUtil.closeWindow(glWindow, false)); // nop
+        Assert.assertEquals(true, AWTRobotUtil.closeWindow(glWindow, false, closingListener)); // nop
         Assert.assertEquals(true, glWindow.isNativeValid());
-        Assert.assertEquals(true, windowClosingListener.isWindowClosing());
-        windowClosingListener.reset();
+        Assert.assertEquals(true, closingListener.isWindowClosing());
+        closingListener.reset();
 
         //
         // close with op (GLCanvas): DISPOSE_ON_CLOSE -> dispose
@@ -82,9 +87,9 @@ public class TestWindowClosingProtocol02NEWT extends UITestCase {
         op = glWindow.getDefaultCloseOperation();
         Assert.assertEquals(WindowClosingMode.DISPOSE_ON_CLOSE, op);
 
-        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(glWindow, true));
+        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(glWindow, true, closingListener));
         Assert.assertEquals(false, glWindow.isNativeValid());
-        Assert.assertEquals(true,  windowClosingListener.isWindowClosing());
+        Assert.assertEquals(true,  closingListener.isWindowClosing());
     }
 
     public static void main(String[] args) {

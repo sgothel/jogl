@@ -184,9 +184,9 @@ bundles.
 
 Modify your <code>CLASSPATH</code>
 environment variable to include the full paths to 
-<code>gluegen-rt.jar</code> and <code>jogl.all.jar</code>, for example
+<code>gluegen-rt.jar</code> and <code>jogl-all.jar</code>, for example
 <pre>
-".;C:\Some\Other\Package\foo.jar;C:\Users\myhome\jogamp-all-platforms\jar\gluegen-rt.jar;C:\Users\myhome\jogamp-all-platforms\jar\jogl.all.jar".
+".;C:\Some\Other\Package\foo.jar;C:\Users\myhome\jogamp-all-platforms\jar\gluegen-rt.jar;C:\Users\myhome\jogamp-all-platforms\jar\jogl-all.jar".
 </pre>
 (If you did not previously set the CLASSPATH environment variable, you
 may want to make sure that ".", the current directory, is on your new
@@ -208,9 +208,12 @@ size, in particular on smaller devices. See <a href="../deployment/JOGL-DEPLOYME
 <p>
 
 JOGL 2.0 has a brand new feature allowing to automatically extract the proper native 
-libraries required to use JOGL from JARs containing them without relying on the Java 
+libraries required to use JOGL 
+<a href="../deployment/JOGL-DEPLOYMENT.html#NativeJARFiles">from JARs containing them</a> 
+without relying on the Java 
 library path or any platform-dependent environment variable allowing to set the location 
 of native libraries. This allows desktop applications as well as traditional Applets 
+<a href="../deployment/JOGL-DEPLOYMENT.html#NApplets">as NApplets</a> 
 to utilize the native library JAR files the same way Webstart/JNLP does.
 
 </p>

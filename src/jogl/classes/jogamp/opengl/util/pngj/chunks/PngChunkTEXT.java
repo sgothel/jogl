@@ -1,28 +1,40 @@
 package jogamp.opengl.util.pngj.chunks;
 
 import jogamp.opengl.util.pngj.ImageInfo;
-import jogamp.opengl.util.pngj.PngHelper;
+import jogamp.opengl.util.pngj.PngHelperInternal;
+import jogamp.opengl.util.pngj.PngjException;
 
+/**
+ * tEXt chunk.
+ * <p>
+ * see http://www.w3.org/TR/PNG/#11tEXt
+ */
 public class PngChunkTEXT extends PngChunkTextVar {
+	public final static String ID = ChunkHelper.tEXt;
+
 	public PngChunkTEXT(ImageInfo info) {
-		super(ChunkHelper.tEXt, info);
+		super(ID, info);
 	}
 
 	@Override
-	public ChunkRaw createChunk() {
-		if (val.isEmpty() || key.isEmpty())
-			return null;
-		byte[] b = (key + "\0" + val).getBytes(PngHelper.charsetLatin1);
+	public ChunkRaw createRawChunk() {
+		if (key.isEmpty())
+			throw new PngjException("Text chunk key must be non empty");
+		byte[] b = (key + "\0" + val).getBytes(PngHelperInternal.charsetLatin1);
 		ChunkRaw chunk = createEmptyChunk(b.length, false);
 		chunk.data = b;
 		return chunk;
 	}
 
 	@Override
-	public void parseFromChunk(ChunkRaw c) {
-		String[] k = (new String(c.data, PngHelper.charsetLatin1)).split("\0");
-		key = k[0];
-		val = k[1];
+	public void parseFromRaw(ChunkRaw c) {
+		int i;
+		for (i = 0; i < c.data.length; i++)
+			if (c.data[i] == 0)
+				break;
+		key = new String(c.data, 0, i, PngHelperInternal.charsetLatin1);
+		i++;
+		val = i < c.data.length ? new String(c.data, i, c.data.length - i, PngHelperInternal.charsetLatin1) : "";
 	}
 
 	@Override

@@ -31,7 +31,7 @@ package javax.media.nativewindow.util;
 import com.jogamp.common.type.WriteCloneable;
 
 /** Immutable Rectangle interface */
-public interface RectangleImmutable extends WriteCloneable {
+public interface RectangleImmutable extends WriteCloneable, Comparable<RectangleImmutable> {
 
     int getHeight();
 
@@ -41,6 +41,35 @@ public interface RectangleImmutable extends WriteCloneable {
 
     int getY();
 
+    /** Returns the union of this rectangle and the given rectangle. */
+    RectangleImmutable union(final RectangleImmutable r);
+    /** Returns the union of this rectangleand the given coordinates. */
+    RectangleImmutable union(final int rx1, final int ry1, final int rx2, final int ry2);
+    /** Returns the intersection of this rectangleand the given rectangle. */
+    RectangleImmutable intersection(RectangleImmutable r);
+    /** Returns the intersection of this rectangleand the given coordinates. */
+    RectangleImmutable intersection(final int rx1, final int ry1, final int rx2, final int ry2);
+    /**
+     * Returns the coverage of given rectangle w/ this this one, i.e. between <code>0.0</code> and <code>1.0</code>.
+     * <p>
+     * Coverage is computed by:
+     * <pre>
+     *    isect = this.intersection(r);
+     *    coverage = area( isect ) / area( this ) ;
+     * </pre>
+     * </p>
+     */
+    float coverage(RectangleImmutable r);
+
+    /**
+     * <p>
+     * Compares square of size 1st, if equal the square of position.
+     * </p>
+     * {@inheritDoc}
+     */
+    @Override
+    public int compareTo(final RectangleImmutable d);
+
     /**
      * Checks whether two rect objects are equal. Two instances
      * of <code>Rectangle</code> are equal if the four integer values
@@ -49,8 +78,10 @@ public interface RectangleImmutable extends WriteCloneable {
      * @return      <code>true</code> if the two rectangles are equal;
      * otherwise <code>false</code>.
      */
+    @Override
     boolean equals(Object obj);
 
+    @Override
     int hashCode();
 
 }

@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -33,7 +33,6 @@
 
 package com.jogamp.nativewindow.x11;
 
-import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
 
@@ -46,8 +45,8 @@ import javax.media.nativewindow.ToolkitLock;
  */
 
 public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
-    public static final boolean DEBUG = Debug.debug("GraphicsDevice");
-    final boolean closeDisplay;
+    /* final */ boolean handleOwner;
+    final boolean isXineramaEnabled;
 
     /** Constructs a new X11GraphicsDevice corresponding to the given connection and default
      *  {@link javax.media.nativewindow.ToolkitLock} via {@link NativeWindowFactory#getDefaultToolkitLock(String)}.<br>
@@ -57,25 +56,21 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
      */
     public X11GraphicsDevice(String connection, int unitID) {
         super(NativeWindowFactory.TYPE_X11, connection, unitID);
-        closeDisplay = false;
+        handleOwner = false;
+        isXineramaEnabled = false;
     }
 
     /** Constructs a new X11GraphicsDevice corresponding to the given native display handle and default
-     *  {@link javax.media.nativewindow.ToolkitLock} via {@link NativeWindowFactory#createDefaultToolkitLock(String, long)}.
+     *  {@link javax.media.nativewindow.ToolkitLock} via {@link NativeWindowFactory#getDefaultToolkitLock(String, long)}.
      *  @see DefaultGraphicsDevice#DefaultGraphicsDevice(String, String, int, long)
      */
     public X11GraphicsDevice(long display, int unitID, boolean owner) {
-        // FIXME: derive unitID from connection could be buggy, one DISPLAY for all screens for example..
-        super(NativeWindowFactory.TYPE_X11, X11Lib.XDisplayString(display), unitID, display);
-        if(0==display) {
-            throw new NativeWindowException("null display");
-        }
-        closeDisplay = owner;
+        this(display, unitID, NativeWindowFactory.getDefaultToolkitLock(NativeWindowFactory.TYPE_X11, display), owner);
     }
 
     /**
      * @param display the Display connection
-     * @param locker custom {@link javax.media.nativewindow.ToolkitLock}, eg to force null locking in NEWT
+     * @param locker custom {@link javax.media.nativewindow.ToolkitLock}, eg to force null locking w/ private connection
      * @see DefaultGraphicsDevice#DefaultGraphicsDevice(String, String, int, long, ToolkitLock)
      */
     public X11GraphicsDevice(long display, int unitID, ToolkitLock locker, boolean owner) {
@@ -83,16 +78,83 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         if(0==display) {
             throw new NativeWindowException("null display");
         }
-        closeDisplay = owner;
+        handleOwner = owner;
+        isXineramaEnabled = X11Util.XineramaIsEnabled(this);
     }
 
+    /**
+     * Constructs a new X11GraphicsDevice corresponding to the given display connection.
+     * <p>
+     * The constructor opens the native connection and takes ownership.
+     * </p>
+     * @param displayConnection the semantic display connection name
+     * @param locker custom {@link javax.media.nativewindow.ToolkitLock}, eg to force null locking w/ private connection
+     * @see DefaultGraphicsDevice#DefaultGraphicsDevice(String, String, int, long, ToolkitLock)
+     */
+    public X11GraphicsDevice(String displayConnection, int unitID, ToolkitLock locker) {
+        super(NativeWindowFactory.TYPE_X11, displayConnection, unitID, 0, locker);
+        handleOwner = true;
+        open();
+        isXineramaEnabled = X11Util.XineramaIsEnabled(this);
+    }
+
+    private static int getDefaultScreenImpl(long dpy) {
+        return X11Lib.DefaultScreen(dpy);
+    }
+
+    /**
+     * Returns the default screen number as referenced by the display connection, i.e. 'somewhere:0.1' -> 1
+     * <p>
+     * Implementation uses the XLib macro <code>DefaultScreen(display)</code>.
+     * </p>
+     */
+    public int getDefaultScreen() {
+        final long display = getHandle();
+        if(0==display) {
+            throw new NativeWindowException("null display");
+        }
+        final int ds = getDefaultScreenImpl(display);
+        if(DEBUG) {
+            System.err.println(Thread.currentThread().getName() + " - X11GraphicsDevice.getDefaultDisplay() of "+this+": "+ds+", count "+X11Lib.ScreenCount(display));
+        }
+        return ds;
+    }
+
+    public int getDefaultVisualID() {
+        final long display = getHandle();
+        if(0==display) {
+            throw new NativeWindowException("null display");
+        }
+        return X11Lib.DefaultVisualID(display, getDefaultScreenImpl(display));
+    }
+
+    public final boolean isXineramaEnabled() {
+        return isXineramaEnabled;
+    }
+
+    @Override
     public Object clone() {
       return super.clone();
     }
 
+    @Override
+    public boolean open() {
+        if(handleOwner && 0 == handle) {
+            if(DEBUG) {
+                System.err.println(Thread.currentThread().getName() + " - X11GraphicsDevice.open(): "+this);
+            }
+            handle = X11Util.openDisplay(connection);
+            if(0 == handle) {
+                throw new NativeWindowException("X11GraphicsDevice.open() failed: "+this);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public boolean close() {
-        // FIXME: shall we respect the unitID ?
-        if(closeDisplay && 0 != handle) {
+        if(handleOwner && 0 != handle) {
             if(DEBUG) {
                 System.err.println(Thread.currentThread().getName() + " - X11GraphicsDevice.close(): "+this);
             }
@@ -100,5 +162,23 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         }
         return super.close();
     }
-}
 
+    @Override
+    public boolean isHandleOwner() {
+        return handleOwner;
+    }
+    @Override
+    public void clearHandleOwner() {
+        handleOwner = false;
+    }
+    @Override
+    protected Object getHandleOwnership() {
+        return Boolean.valueOf(handleOwner);
+    }
+    @Override
+    protected Object setHandleOwnership(Object newOwnership) {
+        final Boolean oldOwnership = Boolean.valueOf(handleOwner);
+        handleOwner = ((Boolean) newOwnership).booleanValue();
+        return oldOwnership;
+    }
+}

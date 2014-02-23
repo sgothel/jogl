@@ -60,8 +60,8 @@ public class WindowUtilNEWT {
         }
     }
 
-    public static void run(GLWindow windowOffScreen, GLEventListener demo, 
-                           GLWindow windowOnScreen, WindowListener wl, MouseListener ml, 
+    public static void run(String testName, GLWindow windowOffScreen, GLEventListener demo, 
+                           GLWindow windowOnScreenBlit, WindowListener wl, MouseListener ml, 
                            SurfaceUpdatedListener ul, int frames, boolean snapshot, boolean debug) {
         Assert.assertNotNull(windowOffScreen);
         Assert.assertNotNull(demo);
@@ -69,35 +69,34 @@ public class WindowUtilNEWT {
         setDemoFields(demo, windowOffScreen, windowOffScreen, debug);
         windowOffScreen.addGLEventListener(demo);
 
-        if ( null != windowOnScreen ) {
+        if ( null != windowOnScreenBlit ) {
             if(null!=wl) {
-                windowOnScreen.addWindowListener(wl);
+                windowOnScreenBlit.addWindowListener(wl);
             }
             if(null!=ml) {
-                windowOnScreen.addMouseListener(ml);
+                windowOnScreenBlit.addMouseListener(ml);
             }
-            windowOnScreen.setVisible(true);
+            windowOnScreenBlit.setVisible(true);
         }
 
         GLDrawable readDrawable = windowOffScreen.getContext().getGLDrawable() ;
-
-        if ( null == windowOnScreen ) {
-            if(snapshot) {
-                Surface2File s2f = new Surface2File();
-                windowOffScreen.addSurfaceUpdatedListener(s2f);
-            }
-        } else {
+        if ( null != windowOnScreenBlit ) {
             ReadBuffer2Screen readDemo = new ReadBuffer2Screen( readDrawable ) ;
-            windowOnScreen.addGLEventListener(readDemo);
+            windowOnScreenBlit.addGLEventListener(readDemo);
+        }
+        if(snapshot) {
+            final boolean alpha = windowOffScreen.getChosenGLCapabilities().getAlphaBits()>0;
+            Surface2File s2f = new Surface2File(testName, alpha);
+            windowOffScreen.addSurfaceUpdatedListener(s2f);
         }
         if(null!=ul) {
             windowOffScreen.addSurfaceUpdatedListener(ul);
         }
 
         if(debug) {
-            System.err.println("+++++++++++++++++++++++++++");
+            System.err.println("+++++++++++++++++++++++++++ "+testName);
             System.err.println(windowOffScreen);
-            System.err.println("+++++++++++++++++++++++++++");
+            System.err.println("+++++++++++++++++++++++++++ "+testName);
         }
 
         while ( windowOffScreen.getTotalFPSFrames() < frames) {

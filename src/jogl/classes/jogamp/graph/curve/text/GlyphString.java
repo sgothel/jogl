@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex.Factory;
@@ -46,6 +45,7 @@ import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.PMVMatrix;
 
 /**

@@ -194,7 +194,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         pw.printf("-%03dx%03d-Z%04d-T%04d-%s", drawable.getWidth(), drawable.getHeight(), (int)Math.abs(zoom), texSize[0], objName);
         
         final String filename = dir + tech + sw +".png";
-        if(screenshot.readPixels(drawable.getGL(), drawable, false)) {
+        if(screenshot.readPixels(drawable.getGL(), false)) {
             screenshot.write(new File(filename));
         }
     }
@@ -293,7 +293,6 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
                     }                
             }  
         }
-        public void keyTyped(KeyEvent arg0) {}
         public void keyReleased(KeyEvent arg0) {}
     }
 }

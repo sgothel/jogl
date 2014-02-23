@@ -32,7 +32,7 @@ package javax.media.opengl;
 /**
  * <P>The base interface from which all GL profiles derive, providing
  * checked conversion down to concrete profiles, access to the
- * OpenGL context associated with the GL and extension/function 
+ * OpenGL context associated with the GL and extension/function
  * availability queries as described below.</P>
  *
  * <P> While the APIs for vendor extensions are unconditionally
@@ -79,7 +79,7 @@ package javax.media.opengl;
  *
  */
 public interface GLBase {
-    
+
   /**
    * Indicates whether this GL object conforms to any of the OpenGL profiles.
    */
@@ -88,35 +88,41 @@ public interface GLBase {
   /**
    * Indicates whether this GL object conforms to the OpenGL &ge; 4.0 compatibility profile.
    * The GL4 compatibility profile includes the GL2, GL2ES1, GL2ES2, GL3, GL3bc and GL4 profile.
+   * @see GLContext#isGL4bc()
    */
   public boolean isGL4bc();
 
   /**
    * Indicates whether this GL object conforms to the OpenGL &ge; 4.0 core profile.
    * The GL4 core profile includes the GL2ES2, and GL3 profile.
+   * @see GLContext#isGL4()
    */
   public boolean isGL4();
 
   /**
    * Indicates whether this GL object conforms to the OpenGL &ge; 3.1 compatibility profile.
    * The GL3 compatibility profile includes the GL2, GL2ES1, GL2ES2 and GL3 profile.
+   * @see GLContext#isGL3bc()
    */
   public boolean isGL3bc();
 
   /**
    * Indicates whether this GL object conforms to the OpenGL &ge; 3.1 core profile.
    * The GL3 core profile includes the GL2ES2 profile.
+   * @see GLContext#isGL3()
    */
   public boolean isGL3();
 
   /**
    * Indicates whether this GL object conforms to the OpenGL &le; 3.0 profile.
    * The GL2 profile includes the GL2ES1 and GL2ES2 profile.
+   * @see GLContext#isGL2()
    */
   public boolean isGL2();
 
   /**
    * Indicates whether this GL object conforms to the OpenGL ES1 &ge; 1.0 profile.
+   * @see GLContext#isGLES1()
    */
   public boolean isGLES1();
 
@@ -125,105 +131,219 @@ public interface GLBase {
    * <p>
    * Remark: ES2 compatible desktop profiles are not included.
    * To query whether core ES2 functionality is provided, use {@link #isGLES2Compatible()}.
-   * </p> 
+   * </p>
    * @see #isGLES2Compatible()
+   * @see GLContext#isGLES2()
    */
   public boolean isGLES2();
 
   /**
+   * Indicates whether this GL object conforms to the OpenGL ES2 &ge; 3.0 profile.
+   * <p>
+   * Remark: ES3 compatible desktop profiles are not included.
+   * To query whether core ES3 functionality is provided, use {@link #isGLES3Compatible()}.
+   * </p>
+   * @see #isGLES3Compatible()
+   * @see GLContext#isGLES3()
+   */
+  public boolean isGLES3();
+
+  /**
    * Indicates whether this GL object conforms to one of the OpenGL ES profiles,
-   * see {@link #isGLES1()} and {@link #isGLES2()}.
+   * see {@link #isGLES1()}, {@link #isGLES2()} and {@link #isGLES3()}.
+   * @see GLContext#isGLES()
    */
   public boolean isGLES();
 
   /**
    * Indicates whether this GL object conforms to a GL2ES1 compatible profile.
+   * @see GLContext#isGL2ES1()
    */
   public boolean isGL2ES1();
 
   /**
    * Indicates whether this GL object conforms to a GL2ES2 compatible profile.
+   * @see GLContext#isGL2ES2()
    */
   public boolean isGL2ES2();
 
   /**
+   * Indicates whether this GL object conforms to a either a GL2GL3 or GL3ES3 compatible profile.
+   * @see GLContext#isGL2ES3()
+   */
+  public boolean isGL2ES3();
+
+  /**
+   * Indicates whether this GL object conforms to a GL3ES3 compatible profile.
+   * @see GLContext#isGL3ES3()
+   */
+  public boolean isGL3ES3();
+
+  /**
+   * Returns true if this GL object conforms to a GL4ES3 compatible profile, i.e. if {@link #isGLES3Compatible()} returns true.
+   * <p>Includes [ GL &ge; 4.3, GL &ge; 3.1 w/ GL_ARB_ES3_compatibility and GLES3 ]</p>
+   * @see GLContext#isGL4ES3()
+   */
+  public boolean isGL4ES3();
+
+  /**
+   * Indicates whether this GL object conforms to a GL2GL3 compatible profile.
+   * @see GLContext#isGL2GL3()
+   */
+  public boolean isGL2GL3();
+
+  /**
+   * Indicates whether this GL object uses a GL4 core profile. <p>Includes [ GL4 ].</p>
+   * @see GLContext#isGL4core()
+   */
+  public boolean isGL4core();
+
+  /**
+   * Indicates whether this GL object uses a GL3 core profile. <p>Includes [ GL4, GL3 ].</p>
+   * @see GLContext#isGL3core()
+   */
+  public boolean isGL3core();
+
+  /**
+   * Indicates whether this GL object uses a GL core profile. <p>Includes [ GL4, GL3, GLES3, GL2ES2 ].</p>
+   * @see GLContext#isGLcore()
+   */
+  public boolean isGLcore();
+
+  /**
    * Indicates whether this GL object is compatible with the core OpenGL ES2 functionality.
-   * @return true if this context is an ES2 context or implements 
-   *         the extension <code>GL_ARB_ES2_compatibility</code>, otherwise false 
+   * @return true if this context is an ES2 context or implements
+   *         the extension <code>GL_ARB_ES2_compatibility</code>, otherwise false
+   * @see GLContext#isGLES2Compatible()
    */
   public boolean isGLES2Compatible();
 
   /**
-   * Indicates whether this GL object conforms to a GL2GL3 compatible profile.
+   * Indicates whether this GL object is compatible with the core OpenGL ES3 functionality.
+   * <p>
+   * Return true if the underlying context is an ES3 context or implements
+   * the extension <code>GL_ARB_ES3_compatibility</code>, otherwise false.
+   * </p>
+   * <p>
+   * Includes [ GL &ge; 4.3, GL &ge; 3.1 w/ GL_ARB_ES3_compatibility and GLES3 ]
+   * </p>
+   * @see GLContext#isGLES3Compatible()
    */
-  public boolean isGL2GL3();
+  public boolean isGLES3Compatible();
 
-  /** Indicates whether this GL object supports GLSL. */
+  /**
+   * Indicates whether this GL object supports GLSL.
+   * @see GLContext#hasGLSL()
+   */
   public boolean hasGLSL();
 
   /**
+   * Returns the downstream GL instance in case this is a wrapping pipeline, otherwise <code>null</code>.
+   * <p>
+   * See {@link #getRootGL()} for retrieving the implementing root instance.
+   * </p>
+   * @throws GLException if the downstream instance is not null and not a GL implementation
+   * @see #getRootGL()
+   */
+  public GL getDownstreamGL() throws GLException;
+
+  /**
+   * Returns the implementing root instance, considering a wrapped pipelined hierarchy, see {@link #getDownstreamGL()}.
+   * <p>
+   * If this instance is not a wrapping pipeline, i.e. has no downstream instance,
+   * this instance is returned.
+   * </p>
+   * @throws GLException if the root instance is not a GL implementation
+   */
+  public GL getRootGL() throws GLException;
+
+  /**
    * Casts this object to the GL interface.
-   * @throws GLException if this GLObject is not a GL implementation
+   * @throws GLException if this object is not a GL implementation
    */
   public GL getGL() throws GLException;
 
   /**
    * Casts this object to the GL4bc interface.
-   * @throws GLException if this GLObject is not a GL4bc implementation
+   * @throws GLException if this object is not a GL4bc implementation
    */
   public GL4bc getGL4bc() throws GLException;
 
   /**
    * Casts this object to the GL4 interface.
-   * @throws GLException if this GLObject is not a GL4 implementation
+   * @throws GLException if this object is not a GL4 implementation
    */
   public GL4 getGL4() throws GLException;
 
   /**
    * Casts this object to the GL3bc interface.
-   * @throws GLException if this GLObject is not a GL3bc implementation
+   * @throws GLException if this object is not a GL3bc implementation
    */
   public GL3bc getGL3bc() throws GLException;
 
   /**
    * Casts this object to the GL3 interface.
-   * @throws GLException if this GLObject is not a GL3 implementation
+   * @throws GLException if this object is not a GL3 implementation
    */
   public GL3 getGL3() throws GLException;
 
   /**
    * Casts this object to the GL2 interface.
-   * @throws GLException if this GLObject is not a GL2 implementation
+   * @throws GLException if this object is not a GL2 implementation
    */
   public GL2 getGL2() throws GLException;
 
   /**
    * Casts this object to the GLES1 interface.
-   * @throws GLException if this GLObject is not a GLES1 implementation
+   * @throws GLException if this object is not a GLES1 implementation
    */
   public GLES1 getGLES1() throws GLException;
 
   /**
    * Casts this object to the GLES2 interface.
-   * @throws GLException if this GLObject is not a GLES2 implementation
+   * @throws GLException if this object is not a GLES2 implementation
    */
   public GLES2 getGLES2() throws GLException;
 
   /**
+   * Casts this object to the GLES3 interface.
+   * @throws GLException if this object is not a GLES3 implementation
+   */
+  public GLES3 getGLES3() throws GLException;
+
+  /**
    * Casts this object to the GL2ES1 interface.
-   * @throws GLException if this GLObject is not a GL2ES1 implementation
+   * @throws GLException if this object is not a GL2ES1 implementation
    */
   public GL2ES1 getGL2ES1() throws GLException;
 
   /**
    * Casts this object to the GL2ES2 interface.
-   * @throws GLException if this GLObject is not a GL2ES2 implementation
+   * @throws GLException if this object is not a GL2ES2 implementation
    */
   public GL2ES2 getGL2ES2() throws GLException;
 
   /**
+   * Casts this object to the GL2ES3 interface.
+   * @throws GLException if this object is not a GL2ES3 implementation
+   */
+  public GL2ES3 getGL2ES3() throws GLException;
+
+  /**
+   * Casts this object to the GL3ES3 interface.
+   * @throws GLException if this object is not a GL3ES3 implementation
+   */
+  public GL3ES3 getGL3ES3() throws GLException;
+
+  /**
+   * Casts this object to the GL4ES3 interface.
+   * @throws GLException if this object is not a GL4ES3 implementation
+   */
+  public GL4ES3 getGL4ES3() throws GLException;
+
+  /**
    * Casts this object to the GL2GL3 interface.
-   * @throws GLException if this GLObject is not a GL2GL3 implementation
+   * @throws GLException if this object is not a GL2GL3 implementation
    */
   public GL2GL3 getGL2GL3() throws GLException;
 
@@ -240,14 +360,14 @@ public interface GLBase {
    /**
     * Returns true if the specified OpenGL core- or extension-function can be
     * used successfully through this GL instance given the current host (OpenGL
-    * <i>client</i>) and display (OpenGL <i>server</i>) configuration.<P> 
-    * By "successfully" we mean that the function is both <i>callable</i> 
-    * on the machine running the program and <i>available</i> on the current 
-    * display.<P> 
+    * <i>client</i>) and display (OpenGL <i>server</i>) configuration.<P>
+    * By "successfully" we mean that the function is both <i>callable</i>
+    * on the machine running the program and <i>available</i> on the current
+    * display.<P>
     *
     * In order to call a function successfully, the function must be both
-    * <i>callable</i> on the machine running the program and <i>available</i> on 
-    * the display device that is rendering the output (note: on non-networked, 
+    * <i>callable</i> on the machine running the program and <i>available</i> on
+    * the display device that is rendering the output (note: on non-networked,
     * single-display machines these two conditions are identical; on networked and/or
     * multi-display machines this becomes more complicated). These conditions are
     * met if the function is either part of the core OpenGL version supported by
@@ -256,7 +376,7 @@ public interface GLBase {
     *
     * A GL function is <i>callable</i> if it is successfully linked at runtime,
     * hence the GLContext must be made current at least once.
-    * 
+    *
     * @param glFunctionName the name of the OpenGL function (e.g., use
     * "glBindRenderbufferEXT" or "glBindRenderbuffer" to check if {@link
     * GL#glBindRenderbuffer(int,int)} is available).
@@ -266,12 +386,48 @@ public interface GLBase {
    /**
     * Returns true if the specified OpenGL extension can be
     * used successfully through this GL instance given the current host (OpenGL
-    * <i>client</i>) and display (OpenGL <i>server</i>) configuration.<P> 
+    * <i>client</i>) and display (OpenGL <i>server</i>) configuration.<P>
     *
     * @param glExtensionName the name of the OpenGL extension (e.g.,
     * "GL_ARB_vertex_program").
     */
    public boolean isExtensionAvailable(String glExtensionName);
+
+   /**
+    * Returns <code>true</code> if basic FBO support is available, otherwise <code>false</code>.
+    * <p>
+    * Basic FBO is supported if the context is either GL-ES >= 2.0, GL >= 3.0 [core, compat] or implements the extensions
+    * <code>GL_ARB_ES2_compatibility</code>, <code>GL_ARB_framebuffer_object</code>, <code>GL_EXT_framebuffer_object</code> or <code>GL_OES_framebuffer_object</code>.
+    * </p>
+    * <p>
+    * Basic FBO support may only include one color attachment and no multisampling,
+    * as well as limited internal formats for renderbuffer.
+    * </p>
+    * @see GLContext#hasBasicFBOSupport()
+    */
+   public boolean hasBasicFBOSupport();
+
+   /**
+    * Returns <code>true</code> if full FBO support is available, otherwise <code>false</code>.
+    * <p>
+    * Full FBO is supported if the context is either GL >= core 3.0 [ES, core, compat] or implements the extensions
+    * <code>ARB_framebuffer_object</code>, or all of
+    * <code>EXT_framebuffer_object</code>, <code>EXT_framebuffer_multisample</code>,
+    * <code>EXT_framebuffer_blit</code>, <code>GL_EXT_packed_depth_stencil</code>.
+    * </p>
+    * <p>
+    * Full FBO support includes multiple color attachments and multisampling.
+    * </p>
+    * @see GLContext#hasFullFBOSupport()
+    */
+   public boolean hasFullFBOSupport();
+
+   /**
+    * Returns the maximum number of FBO RENDERBUFFER samples
+    * if {@link #hasFullFBOSupport() full FBO is supported}, otherwise false.
+    * @see GLContext#getMaxRenderbufferSamples()
+    */
+   public int getMaxRenderbufferSamples();
 
    /**
     * Returns true if the GL context supports non power of two (NPOT) textures,
@@ -280,9 +436,10 @@ public interface GLBase {
     * NPOT textures are supported in OpenGL >= 3, GLES2 or if the
     * 'GL_ARB_texture_non_power_of_two' extension is available.
     * </p>
-    * @return
     */
    public boolean isNPOTTextureAvailable();
+
+   public boolean isTextureFormatBGRA8888Available();
 
    /** Provides a platform-independent way to specify the minimum swap
        interval for buffer swaps. An argument of 0 disables
@@ -292,7 +449,7 @@ public interface GLBase {
        is usually either 0 or 1. This function is not guaranteed to
        have an effect, and in particular only affects heavyweight
        onscreen components.
-       
+
        @see #getSwapInterval
        @throws GLException if this context is not the current
     */
@@ -301,8 +458,8 @@ public interface GLBase {
    /** Provides a platform-independent way to get the swap
        interval set by {@link #setSwapInterval}. <br>
 
-       If the interval is not set by {@link #setSwapInterval} yet, 
-       -1 is returned, indicating that the platforms default 
+       If the interval is not set by {@link #setSwapInterval} yet,
+       -1 is returned, indicating that the platforms default
        is being used.
 
        @see #setSwapInterval
@@ -340,5 +497,154 @@ public interface GLBase {
     * completeness.
     */
    public Object getExtension(String extensionName);
+
+   /** Aliased entrypoint of <code> void {@native glClearDepth}(GLclampd depth); </code> and <code> void {@native glClearDepthf}(GLclampf depth); </code>. */
+   public void glClearDepth( double depth );
+
+   /** Aliased entrypoint of <code> void {@native glDepthRange}(GLclampd depth); </code> and <code> void {@native glDepthRangef}(GLclampf depth); </code>. */
+   public void glDepthRange(double zNear, double zFar);
+
+   /**
+    * @deprecated Avoid original GL API namespace conflict. Use {@link #getBoundBuffer(int)}
+    */
+   public int glGetBoundBuffer(int target);
+   /**
+    * @param target a GL buffer (VBO) target as used in {@link GL#glBindBuffer(int, int)}, ie {@link GL#GL_ELEMENT_ARRAY_BUFFER}, {@link GL#GL_ARRAY_BUFFER}, ..
+    * @return the GL buffer name bound to a target via {@link GL#glBindBuffer(int, int)} or 0 if unbound.
+    * @see #getBufferStorage(int)
+    */
+   public int getBoundBuffer(int target);
+
+   /**
+    * @deprecated Use {@link #getBufferStorage(int)}.
+    */
+   public long glGetBufferSize(int bufferName);
+   /**
+    * @param bufferName a GL buffer name, generated with e.g. {@link GL#glGenBuffers(int, int[], int)} and used in {@link GL#glBindBuffer(int, int)}, {@link GL#glBufferData(int, long, java.nio.Buffer, int)} or {@link GL2#glNamedBufferDataEXT(int, long, java.nio.Buffer, int)}.
+    * @return the size of the given GL buffer storage, see {@link GLBufferStorage}
+    * @see #getBoundBuffer(int)
+    */
+   public GLBufferStorage getBufferStorage(int bufferName);
+
+   /**
+    * Returns the {@link GLBufferStorage} instance as mapped via OpenGL's native {@link GL#glMapBuffer(int, int) glMapBuffer(..)} implementation.
+    * <p>
+    * Throws a {@link GLException} if GL-function constraints are not met.
+    * </p>
+    * <p>
+    * {@link GL#glMapBuffer(int, int)} wrapper calls this method and returns {@link GLBufferStorage#getMappedBuffer()}.
+    * </p>
+    * <p>
+    * A zero {@link GLBufferStorage#getSize()} will avoid a native call and returns the unmapped {@link GLBufferStorage}.
+    * </p>
+    * <p>
+    * A null native mapping result indicating an error will
+    * not cause a GLException but returns the unmapped {@link GLBufferStorage}.
+    * This allows the user to handle this case.
+    * </p>
+    * @param target denotes the buffer via it's bound target
+    * @param access the mapping access mode
+    * @throws GLException if buffer is not bound to target
+    * @throws GLException if buffer is not tracked
+    * @throws GLException if buffer is already mapped
+    * @throws GLException if buffer has invalid store size, i.e. less-than zero
+    */
+   public GLBufferStorage mapBuffer(int target, int access) throws GLException;
+
+   /**
+    * Returns the {@link GLBufferStorage} instance as mapped via OpenGL's native {@link GL#glMapBufferRange(int, long, long, int) glMapBufferRange(..)} implementation.
+    * <p>
+    * Throws a {@link GLException} if GL-function constraints are not met.
+    * </p>
+    * <p>
+    * {@link GL#glMapBufferRange(int, long, long, int)} wrapper calls this method and returns {@link GLBufferStorage#getMappedBuffer()}.
+    * </p>
+    * <p>
+    * A zero {@link GLBufferStorage#getSize()} will avoid a native call and returns the unmapped {@link GLBufferStorage}.
+    * </p>
+    * <p>
+    * A null native mapping result indicating an error will
+    * not cause a GLException but returns the unmapped {@link GLBufferStorage}.
+    * This allows the user to handle this case.
+    * </p>
+    * @param target denotes the buffer via it's bound target
+    * @param offset offset of the mapped buffer's storage
+    * @param length length of the mapped buffer's storage
+    * @param access the mapping access mode
+    * @throws GLException if buffer is not bound to target
+    * @throws GLException if buffer is not tracked
+    * @throws GLException if buffer is already mapped
+    * @throws GLException if buffer has invalid store size, i.e. less-than zero
+    * @throws GLException if buffer mapping range does not fit, incl. offset
+    */
+   public GLBufferStorage mapBufferRange(final int target, final long offset, final long length, final int access) throws GLException;
+
+   /**
+    * @deprecated Avoid original GL API namespace conflict. Use {@link #isVBOArrayBound()}
+    */
+   public boolean glIsVBOArrayBound();
+   /**
+    * @return true if a VBO is bound to {@link GL#GL_ARRAY_BUFFER} via {@link GL#glBindBuffer(int, int)}, otherwise false
+    */
+   public boolean isVBOArrayBound();
+
+   /**
+    * @deprecated Avoid original GL API namespace conflict. Use {@link #isVBOElementArrayBound()}
+    */
+   public boolean glIsVBOElementArrayBound();
+   /**
+    * @return true if a VBO is bound to {@link GL#GL_ELEMENT_ARRAY_BUFFER} via {@link GL#glBindBuffer(int, int)}, otherwise false
+    */
+   public boolean isVBOElementArrayBound();
+
+   /**
+    * Return the framebuffer name bound to this context,
+    * see {@link GL#glBindFramebuffer(int, int)}.
+    */
+   public int getBoundFramebuffer(int target);
+
+   /**
+    * Return the default draw framebuffer name.
+    * <p>
+    * May differ from it's default <code>zero</code>
+    * in case an framebuffer object ({@link com.jogamp.opengl.FBObject}) based drawable
+    * is being used.
+    * </p>
+    */
+   public int getDefaultDrawFramebuffer();
+
+   /**
+    * Return the default read framebuffer name.
+    * <p>
+    * May differ from it's default <code>zero</code>
+    * in case an framebuffer object ({@link com.jogamp.opengl.FBObject}) based drawable
+    * is being used.
+    * </p>
+    */
+   public int getDefaultReadFramebuffer();
+
+   /**
+    * Returns the default color buffer within the current bound
+    * {@link #getDefaultReadFramebuffer()}, i.e. GL_READ_FRAMEBUFFER,
+    * which will be used as the source for pixel reading commands,
+    * like {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer) glReadPixels} etc.
+    * <p>
+    * For offscreen framebuffer objects this is {@link GL#GL_COLOR_ATTACHMENT0},
+    * otherwise this is {@link GL#GL_FRONT} for single buffer configurations
+    * and {@link GL#GL_BACK} for double buffer configurations.
+    * </p>
+    * <p>
+    * Note-1: Neither ES1 nor ES2 supports selecting the read buffer via glReadBuffer
+    * and {@link GL#GL_BACK} is the default.
+    * </p>
+    * <p>
+    * Note-2: ES3 only supports {@link GL#GL_BACK}, {@link GL#GL_NONE} or {@link GL#GL_COLOR_ATTACHMENT0}+i
+    * </p>
+    * <p>
+    * Note-3: See {@link com.jogamp.opengl.util.GLDrawableUtil#swapBuffersBeforeRead(GLCapabilitiesImmutable) swapBuffersBeforeRead}
+    * for read-pixels and swap-buffers implications.
+    * </p>
+    */
+   public int getDefaultReadBuffer();
 }
 

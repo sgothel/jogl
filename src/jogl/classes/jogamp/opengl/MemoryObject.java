@@ -31,19 +31,22 @@ package jogamp.opengl;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 
+import javax.media.opengl.GLBufferStorage;
+
+import com.jogamp.common.util.HashUtil;
+
 /**
- *
+ * @deprecated No more used for GL buffer storage tracking, see {@link GLBufferStorage} and {@link GLBufferObjectTracker}.
  */
 public class MemoryObject {
-    private long addr;
-    private long size;
-    private int  hash32;
+    private final long addr;
+    private final long size;
+    private final int  hash;
     private ByteBuffer buffer=null;
-
     public MemoryObject(long addr, long size) {
         this.addr = addr;
         this.size = size;
-        this.hash32 = getHash32(addr, size);
+        this.hash = HashUtil.getAddrSizeHash32_EqualDist(addr, size);
     }
 
     public void setBuffer(ByteBuffer buffer) {
@@ -55,54 +58,31 @@ public class MemoryObject {
     }
 
     /**
-     * @return the 32bit hash value generated via {@link #getHash32(long, long)}
+     * @return the 32bit hash value generated via {@link HashUtil#getAddrSizeHash32_EqualDist(long, long)}.
      */
+    @Override
     public int hashCode() {
-        return hash32;
+        return hash;
+    }
+
+    @Override
+    public String toString() {
+        return "MemoryObject[addr 0x"+Long.toHexString(addr)+", size 0x"+Long.toHexString(size)+", hash32: 0x"+Integer.toHexString(hash)+"]";
     }
 
     /**
      * Ignores the optional attached <code>ByteBuffer</code> intentionally.<br>
-     * 
+     *
      * @return true of reference is equal or <code>obj</code> is of type <code>MemoryObject</code>
      *         and <code>addr</code> and <code>size</code> is equal.<br>
      */
     public boolean equals(Object obj) {
         if(this == obj) { return true; }
         if(obj instanceof MemoryObject) {
-            MemoryObject m = (MemoryObject) obj;
+            final MemoryObject m = (MemoryObject) obj;
             return addr == m.addr && size == m.size ;
         }
         return false;
-    }
-
-    /**
-     * Generates a 32bit hash value by <code>addr</code> and <code>size</code>.<br>
-     * Ignores the optional attached <code>ByteBuffer</code> intentionally.<br>
-     */
-    public static int getHash32(long addr, long size) {
-        // avoid xor collisions of eg low/high parts
-        // 31 * x == (x << 5) - x
-        int  hash = 31 +              (int)   addr          ; // lo addr
-        hash = ((hash << 5) - hash) + (int) ( addr >>> 32 ) ; // hi addr
-        hash = ((hash << 5) - hash) + (int)   size          ; // lo size
-        hash = ((hash << 5) - hash) + (int) ( size >>> 32 ) ; // hi size
-
-        return hash;
-    }
-
-    /**
-     * Generates a 64bit hash value by <code>addr</code> and <code>size</code>.<br>
-     * Ignores the optional attached <code>ByteBuffer</code> intentionally.<br>
-     */
-    public static long getHash64(long addr, long size) {
-        // 31 * x == (x << 5) - x
-        final long hash = 31 + addr;
-        return ((hash << 5) - hash) + size;
-    }
-
-    public String toString() {
-        return "MemoryObject[addr 0x"+Long.toHexString(addr)+", size 0x"+Long.toHexString(size)+", hash32: 0x"+Integer.toHexString(hash32)+"]";
     }
 
     /**
@@ -111,12 +91,13 @@ public class MemoryObject {
      * @return either the already mapped MemoryObject - not changing the map, or the newly mapped one.
      */
     public static MemoryObject getOrAddSafe(HashMap<MemoryObject,MemoryObject> map, MemoryObject obj0) {
-        MemoryObject obj1 = map.get(obj0); // get identity (fast)
+        final MemoryObject obj1 = map.get(obj0); // get identity (fast)
         if(null == obj1) {
             map.put(obj0, obj0);
-            obj1 = obj0;
+            return obj0;
+        } else {
+            return obj1;
         }
-        return obj1;
     }
 
 }

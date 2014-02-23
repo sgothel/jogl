@@ -35,7 +35,7 @@ public interface FontInt extends Font {
 
     public interface GlyphInt extends Font.Glyph {
         public Path2D getPath();  // unscaled path
-        public Path2D getPath(float pixelSize);         
+        public Path2D getPath(float pixelSize);
     }
 
 }

@@ -56,7 +56,7 @@ import jogamp.graph.font.typecast.ot.table.GlyfDescript;
 import jogamp.graph.font.typecast.ot.table.GlyphDescription;
 import jogamp.graph.font.typecast.t2.T2Interpreter;
 
-import com.jogamp.graph.geom.AABBox;
+import com.jogamp.opengl.math.geom.AABBox;
 
 
 
@@ -102,10 +102,10 @@ public class OTGlyph {
         }
     }
 
-    public AABBox getBBox() { 
-        return _bbox; 
+    public AABBox getBBox() {
+        return _bbox;
     }
-    
+
     public int getAdvanceWidth() {
         return _advanceWidth;
     }
@@ -163,7 +163,7 @@ public class OTGlyph {
         // Append the origin and advanceWidth points (n & n+1)
         // _points[gd.getPointCount()] = new Point(0, 0, true, true);
         // _points[gd.getPointCount()+1] = new Point(_advanceWidth, 0, true, true);
-        
+
         _bbox = new AABBox(gd.getXMinimum(), gd.getYMinimum(), 0, gd.getXMaximum(), gd.getYMaximum(), 0);
     }
 }

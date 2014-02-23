@@ -28,10 +28,51 @@
             <div id="main">
                 <div id="text" class="fill">
 
+                    <h1><a name="NApplets">New Applets</a></h1>
+
+                    <p>
+                    You may choose to use traditional <a href="http://java.sun.com/applets/">Java Applets</a> to deploy your 
+                    in-browser applet and reference the JOGL resources.<p/>
+
+                    <p>
+                    This method simply requires a Java plugin and uses JogAmp's
+                    <a href="../userguide/index.html#automatednativelibraryloading">build-in method to automatically load</a>
+                    the <a href="#NativeJARFiles">native JAR files</a>.
+                    </p>
+
+                    <a href="http://jogamp.org/deployment/jogamp-current/jogl-demos/applet-gears-napplet.html">AWT/JOGL NApplet Example</a>:
+                    <pre>
+                        &lt;object classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93"
+                              width="600" height="400"&gt;
+                           &lt;param name="code" value="demos.applets.GearsApplet"&gt;
+                           &lt;param name="archive" value="../jar/gluegen-rt.jar,
+                                                           ../jar/jogl-all.jar,
+                                                           jar/jogl-demos.jar"&gt;
+                           &lt;comment&gt;
+                             &lt;embed code="demos.applets.GearsApplet"
+                                  width="600" height="400"
+                                  type="application/x-java-applet;version=1.6"
+                                  pluginspage="http://java.sun.com/javase/downloads/ea.jsp"
+                                  archive="../jar/gluegen-rt.jar,
+                                           ../jar/jogl-all.jar,
+                                           jar/jogl-demos.jar"&gt;
+                                &lt;noembed&gt;Sorry, no Java support detected.&lt;/noembed&gt;
+                             &lt;/embed&gt;
+                           &lt;/comment&gt;
+                        &lt;/object&gt;
+                    </pre>
+                    <p>
+                    NEWT/JOGL NApplet Examples:
+                    <ul>
+                        <li><a href="http://jausoft.com/jogamp/jogl-applet-runner-newt-gears-normal-napplet.html">Demo on jausoft.com and modules on jogamp.org</a></li>
+                        <li><a href="http://jogamp.org/deployment/jogamp-current/jogl-applet-runner-newt-gears-normal-napplet.html">Demo and modules on jogamp.org</a></li>
+                    </ul>
+                    </p>
+
                     <h1><a name="JNLPFiles">JNLP Files</a></h1>
 
                     <p>
-                    You may choose to use JNLP to deploy your application
+                    You may choose to use JNLP to deploy your application or in-browser applet
                     and reference the JOGL resources.<p/>
 
                     <p>
@@ -45,7 +86,7 @@
                     <ul>
                         <li> <code><b> http://jogamp.org/deployment/jogamp-current/ </b></code> Current Version </li>
                         <li> <code><b> http://jogamp.org/deployment/jogamp-next/ </b></code> Next Version </li>
-                        <li> <code><b> http://jogamp.org/deployment/v2.0-rc3/ </b></code> Specific Version </li>
+                        <li> <code><b> http://jogamp.org/deployment/v2.0-rc10/ </b></code> Specific Version </li>
                     </ul>
 
                     <h2>Desktop All in One</h2>
@@ -103,8 +144,9 @@
                         <li>linux-amd64</li>
                         <li>linux-ia64</li>
                         <li>linux-i586</li>
-                        <li>linux-armv7</li>
-                        <li>android-armv7</li>
+                        <li>linux-armv6</li>
+                        <li>linux-armv6hf</li>
+                        <li>android-armv6</li>
                         <li>macosx-universal</li>
                         <li>solaris-sparc</li>
                         <li>solaris-sparcv9</li>
@@ -138,7 +180,7 @@
 
                     <a name="JOGLAllInOneJARsAWT">With AWT</a>:
                     <ul>
-                        <li><code>jogl.all.jar</code><br/>
+                        <li><code>jogl-all.jar</code><br/>
                             <ul>
                                 <li><code>jogl-all-natives-<b><i>os.and.arch</i></b>.jar</code></li>
                             </ul>
@@ -147,7 +189,7 @@
 
                     <a name="JOGLAllInOneJARsNoAWT">Without AWT</a>:
                     <ul>
-                        <li><code>jogl.all-noawt.jar</code><br/>
+                        <li><code>jogl-all-noawt.jar</code><br/>
                             <ul>
                                 <li><code>jogl-all-natives-<b><i>os.and.arch</i></b>.jar</code></li>
                             </ul>
@@ -156,7 +198,7 @@
 
                     <a name="JOGLAllInOneJARsMobile">Mobile</a>:
                     <ul>
-                        <li><code>jogl.all-mobile.jar</code><br/>
+                        <li><code>jogl-all-mobile.jar</code><br/>
                             <ul>
                                 <li><code>jogl-all-natives-<b><i>os.and.arch</i></b>.jar</code></li>
                             </ul>
@@ -165,7 +207,7 @@
 
                     <a name="JOGLAllInOneJARsAndroid">Android</a>:
                     <ul>
-                        <li><code>jogl.all-android.jar</code><br/>
+                        <li><code>jogl-all-android.jar</code><br/>
                             <ul>
                                 <li><code>jogl-all-natives-<b><i>os.and.arch</i></b>.jar</code></li>
                             </ul>
@@ -185,14 +227,14 @@
                     <ul>
                         <li>Mandatory:<br/>
                             <ul>
-                                <li>nativewindow.core.jar</li>
-                                <li>jogl.core.jar</li>
+                                <li>nativewindow-core.jar</li>
+                                <li>jogl-core.jar</li>
                             </ul></li>
 
                         <li>Newt (optional):<br/>
                             <ul>
-                                <li>newt.core.jar</li>
-                                <li>newt.ogl.jar  (to use NEWT with JOGL)</li>
+                                <li>newt-core.jar</li>
+                                <li>newt-ogl.jar  (to use NEWT with JOGL)</li>
                             </ul></li>
                     </ul>
 
@@ -203,23 +245,26 @@
                     <ul>
                         <li>NativeWindow [pick your platfrom, if available]:<br/>
                             <ul>
-                                <li>nativewindow.os.x11.jar</li>
+                                <li>nativewindow-os-x11.jar</li>
                             </ul></li>
 
                         <li>JOGL [pick your platform]:<br/>
                             <ul>
-                                <li>jogl.os.x11.jar</li>
-                                <li>jogl.os.win.jar</li>
-                                <li>jogl.os.osx.jar</li>
+                                <li>jogl-os-x11.jar</li>
+                                <li>jogl-os-win.jar</li>
+                                <li>jogl-os-osx.jar</li>
                                 <li>none</li>
                             </ul></li>
 
                         <li>Newt [pick your platform] (optional):<br/>
                             <ul>
-                                <li>newt.driver.x11.jar</li>
-                                <li>newt.driver.win.jar</li>
-                                <li>newt.driver.osx.jar</li>
-                                <li>newt.driver.kd.jar</li>
+                                <li>newt-driver-x11.jar</li>
+                                <li>newt-driver-win.jar</li>
+                                <li>newt-driver-osx.jar</li>
+                                <li>newt-driver-kd.jar</li>
+                                <li>newt-driver-bcm-vc.jar</li>
+                                <li>newt-driver-bcm-old.jar</li>
+                                <li>newt-driver-intelgdl.jar</li>
                                 <li>none</li>
                             </ul></li>
                     </ul>
@@ -231,17 +276,17 @@
                     <ul>
                         <li>Embedded Device Profiles<br/>
                             <ul>
-                                <li>jogl.glmobile.jar<br/>
+                                <li>jogl-glmobile.jar<br/>
                                     <ul>
-                                        <li>jogl.glmobile.dbg.jar</li>
+                                        <li>jogl-glmobile-dbg.jar</li>
                                     </ul></li>
                             </ul></li>
 
                         <li>Desktop Profiles<br/>
                             <ul>
-                                <li>jogl.gldesktop.jar<br/>
+                                <li>jogl-gldesktop.jar<br/>
                                     <ul>
-                                        <li>jogl.gldesktop.dbg.jar</li>
+                                        <li>jogl-gldesktop-dbg.jar</li>
                                     </ul></li>
                             </ul></li>
                     </ul>
@@ -249,26 +294,26 @@
 
                     <h4>JOGL Toolkits/Misc (optional)</h4>
                     <ul>
-                        <li>jogl.util.jar</li>
-                        <li>jogl.util.gl2.jar</li>
-                        <li>jogl.util.fixedfuncemu.jar</li>
+                        <li>jogl-util.jar</li>
+                        <li>jogl-util-gldesktop.jar</li>
+                        <li>jogl-util-fixedfuncemu.jar</li>
                     </ul>
 
 
                     <h4>AWT (optional) </h4>
 
                     <ul>
-                        <li> nativewindow.awt.jar</li>
-                        <li> jogl.awt.jar</li>
-                        <li> jogl.util.awt.jar (if using jogl.util)</li>
-                        <li> newt.awt.jar (if using with NEWT)</li>
+                        <li> nativewindow-awt.jar</li>
+                        <li> jogl-awt.jar</li>
+                        <li> jogl-util-awt.jar (if using jogl-util)</li>
+                        <li> newt-awt.jar (if using with NEWT)</li>
                     </ul>
 
                     <h4>GLU (optional) </h4>
                     <ul>
-                        <li>jogl.glutess.jar</li>
-                        <li>jogl.glumipmap.jar</li>
-                        <li>jogl.glugl2.jar</li>
+                        <li>jogl-glu-tess.jar</li>
+                        <li>jogl-glu-mipmap.jar</li>
+                        <li>jogl-glu-gldesktop.jar</li>
                     </ul>
 
                     <h2><a name="NativeLibraryFiles">Native Library Files</a></h2>

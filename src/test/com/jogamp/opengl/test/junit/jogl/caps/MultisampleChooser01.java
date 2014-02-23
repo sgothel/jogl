@@ -40,12 +40,17 @@
 package com.jogamp.opengl.test.junit.jogl.caps;
 
 import java.util.List;
+
+import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
 
 class MultisampleChooser01 extends DefaultGLCapabilitiesChooser {
 
-    public int chooseCapabilities(GLCapabilitiesImmutable desired, List/*<GLCapabilitiesImmutable>*/ available, int windowSystemRecommendedChoice) {
+    @Override
+    public int chooseCapabilities(final CapabilitiesImmutable desired, 
+                                  final List<? extends CapabilitiesImmutable> available, 
+                                  final int windowSystemRecommendedChoice) {
         boolean anyHaveSampleBuffers = false;
         for (int i = 0; i < available.size(); i++) {
             GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) available.get(i);

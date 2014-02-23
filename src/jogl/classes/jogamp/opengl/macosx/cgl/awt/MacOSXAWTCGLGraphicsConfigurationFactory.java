@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -58,14 +58,15 @@ import jogamp.opengl.macosx.cgl.MacOSXCGLGraphicsConfiguration;
 
 public class MacOSXAWTCGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
     public static void registerFactory() {
-        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.awt.AWTGraphicsDevice.class, new MacOSXAWTCGLGraphicsConfigurationFactory());
-    }    
+        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.awt.AWTGraphicsDevice.class, GLCapabilitiesImmutable.class, new MacOSXAWTCGLGraphicsConfigurationFactory());
+    }
     private MacOSXAWTCGLGraphicsConfigurationFactory() {
     }
 
+    @Override
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
             CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
-            CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {
+            CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, int nativeVisualID) {
         GraphicsDevice device = null;
         if (absScreen != null &&
             !(absScreen instanceof AWTGraphicsScreen)) {
@@ -103,9 +104,9 @@ public class MacOSXAWTCGLGraphicsConfigurationFactory extends GLGraphicsConfigur
 
         GraphicsConfiguration gc = device.getDefaultConfiguration();
         MacOSXCGLGraphicsConfiguration macConfig = (MacOSXCGLGraphicsConfiguration)
-            GraphicsConfigurationFactory.getFactory(macDevice).chooseGraphicsConfiguration(capsChosen,
+            GraphicsConfigurationFactory.getFactory(macDevice, capsChosen).chooseGraphicsConfiguration(capsChosen,
                                                                                            capsRequested,
-                                                                                           chooser, macScreen);
+                                                                                           chooser, macScreen, nativeVisualID);
 
         if (macConfig == null) {
             throw new GLException("Unable to choose a GraphicsConfiguration: "+capsChosen+",\n\t"+chooser+"\n\t"+macScreen);

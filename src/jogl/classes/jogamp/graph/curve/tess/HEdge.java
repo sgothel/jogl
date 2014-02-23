@@ -35,14 +35,14 @@ public class HEdge {
     public static int BOUNDARY = 3;
     public static int INNER = 1;
     public static int HOLE = 2;
-    
+
     private GraphVertex vert;
     private HEdge prev = null;
     private HEdge next = null;
     private HEdge sibling = null;
     private int type = BOUNDARY;
     private Triangle triangle = null;
-    
+
     public HEdge(GraphVertex vert, int type) {
         this.vert = vert;
         this.type = type;
@@ -112,19 +112,19 @@ public class HEdge {
     public void setTriangle(Triangle triangle) {
         this.triangle = triangle;
     }
-    
+
     public static <T extends Vertex> void connect(HEdge first, HEdge next){
         first.setNext(next);
         next.setPrev(first);
     }
-    
+
     public static <T extends Vertex> void makeSiblings(HEdge first, HEdge second){
         first.setSibling(second);
         second.setSibling(first);
     }
-    
+
     public boolean vertexOnCurveVertex(){
         return vert.getPoint().isOnCurve();
     }
-    
+
 }

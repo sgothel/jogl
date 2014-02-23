@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -32,12 +32,15 @@ import java.net.URLConnection;
 import java.nio.ByteBuffer;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import jogamp.opengl.util.av.GLMediaPlayerImpl;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureData;
 import com.jogamp.opengl.util.texture.TextureIO;
@@ -49,114 +52,126 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  */
 public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     private TextureData texData = null;
-    private TextureSequence.TextureFrame frame = null;
     private int pos_ms = 0;
-    private int pos_start = 0;
-    
+    private long pos_start = 0;
+
     public NullGLMediaPlayer() {
         super();
-        this.setTextureCount(1);
+
     }
 
     @Override
-    protected boolean setPlaySpeedImpl(float rate) {
+    protected final boolean setPlaySpeedImpl(float rate) {
         return false;
     }
 
     @Override
-    protected boolean startImpl() {
-        pos_start = (int)System.currentTimeMillis();
+    protected final boolean playImpl() {
+        pos_start = Platform.currentTimeMillis();
         return true;
     }
 
     @Override
-    protected boolean pauseImpl() {
+    protected final boolean pauseImpl() {
         return true;
     }
 
     @Override
-    protected boolean stopImpl() {
-        return true;
-    }
-    
-    @Override
-    protected int seekImpl(int msec) {
+    protected final int seekImpl(int msec) {
         pos_ms = msec;
         validatePos();
         return pos_ms;
     }
-    
+
     @Override
-    protected TextureSequence.TextureFrame getLastTextureImpl() {
-        return frame;
+    protected final int getNextTextureImpl(GL gl, TextureFrame nextFrame) {
+        final int pts = getAudioPTSImpl();
+        nextFrame.setPTS( pts );
+        return pts;
     }
 
     @Override
-    protected TextureSequence.TextureFrame getNextTextureImpl(GL gl, boolean blocking) {
-        return frame;
-    }
-    
-    @Override
-    protected int getCurrentPositionImpl() {
-        pos_ms = (int)System.currentTimeMillis() - pos_start;
+    protected final int getAudioPTSImpl() {
+        pos_ms = (int) ( Platform.currentTimeMillis() - pos_start );
         validatePos();
         return pos_ms;
     }
 
     @Override
-    protected void destroyImpl(GL gl) {
+    protected final void destroyImpl(GL gl) {
+        if(null != texData) {
+            texData.destroy();
+            texData = null;
+        }
     }
-    
-    @Override
-    protected void initGLStreamImpl(GL gl, int[] texNames) throws IOException {
+
+    public final static TextureData createTestTextureData() {
+        TextureData res = null;
         try {
-            URLConnection urlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-160x90.png", NullGLMediaPlayer.class.getClassLoader());
+            URLConnection urlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-57x32.png", NullGLMediaPlayer.class.getClassLoader());
             if(null != urlConn) {
-                texData = TextureIO.newTextureData(GLProfile.getGL2ES2(), urlConn.getInputStream(), false, TextureIO.PNG);
+                res = TextureIO.newTextureData(GLProfile.getGL2ES2(), urlConn.getInputStream(), false, TextureIO.PNG);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if(null != texData) {
-            width = texData.getWidth();
-            height = texData.getHeight();            
-        } else {
-            width = 640;
-            height = 480;
-            ByteBuffer buffer = Buffers.newDirectByteBuffer(width*height*4);
+        if(null == res) {
+            final int w = 160;
+            final int h =  90;
+            ByteBuffer buffer = Buffers.newDirectByteBuffer(w*h*4);
             while(buffer.hasRemaining()) {
                 buffer.put((byte) 0xEA); buffer.put((byte) 0xEA); buffer.put((byte) 0xEA); buffer.put((byte) 0xEA);
             }
             buffer.rewind();
-            texData = new TextureData(GLProfile.getGL2ES2(),
-                   GL.GL_RGBA, width, height, 0,
-                   GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, false, 
+            res = new TextureData(GLProfile.getGL2ES2(),
+                   GL.GL_RGBA, w, h, 0,
+                   GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, false,
                    false, false, buffer, null);
         }
-        fps = 24f;
-        duration = 10*60*1000; // msec
-        totalFrames = (int) ( (duration/1000)*fps );
-        vcodec = "png-static";
+        return res;
     }
-    
+
     @Override
-    protected TextureSequence.TextureFrame createTexImage(GL gl, int idx, int[] tex) {
-        Texture texture = super.createTexImageImpl(gl, idx, tex, width, height, false);
+    protected final void initStreamImpl(int vid, int aid) throws IOException {
+        texData = createTestTextureData();
+        final float _fps = 24f;
+        final int _duration = 10*60*1000; // msec
+        final int _totalFrames = (int) ( (_duration/1000)*_fps );
+        updateAttributes(0 /* fake */, GLMediaPlayer.STREAM_ID_NONE,
+                         texData.getWidth(), texData.getHeight(), 0,
+                         0, 0, _fps,
+                         _totalFrames, 0, _duration, "png-static", null);
+    }
+    @Override
+    protected final void initGLImpl(GL gl) throws IOException, GLException {
+        isInGLOrientation = true;
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Returns {@link GLMediaPlayer#TEXTURE_COUNT_MIN}.
+     * </p>
+     */
+    @Override
+    protected int validateTextureCount(int desiredTextureCount) {
+        return TEXTURE_COUNT_MIN;
+    }
+
+    @Override
+    protected final TextureSequence.TextureFrame createTexImage(GL gl, int texName) {
+        final Texture texture = super.createTexImageImpl(gl, texName, width, height);
         if(null != texData) {
             texture.updateImage(gl, texData);
-            texData.destroy();
-            texData = null;
-        }                      
-        frame = new TextureSequence.TextureFrame( texture );
-        return frame;
+        }
+        return new TextureSequence.TextureFrame( texture );
     }
-    
+
     @Override
-    protected void destroyTexImage(GL gl, TextureSequence.TextureFrame imgTex) {
-        frame = null;
-        super.destroyTexImage(gl, imgTex);
+    protected final void destroyTexFrame(GL gl, TextureSequence.TextureFrame frame) {
+        super.destroyTexFrame(gl, frame);
     }
-    
+
     private void validatePos() {
         boolean considerPausing = false;
         if( 0 > pos_ms) {

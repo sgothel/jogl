@@ -6,15 +6,15 @@
  * this file except in compliance with the License. You may obtain a copy
  * of the License at Silicon Graphics, Inc., attn: Legal Services, 1600
  * Amphitheatre Parkway, Mountain View, CA 94043-1351, or at:
- * 
+ *
  * http://oss.sgi.com/projects/FreeB
- * 
+ *
  * Note that, as provided in the License, the Software is distributed on an
  * "AS IS" basis, with ALL EXPRESS AND IMPLIED WARRANTIES AND CONDITIONS
  * DISCLAIMED, INCLUDING, WITHOUT LIMITATION, ANY IMPLIED WARRANTIES AND
  * CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY, FITNESS FOR A
  * PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
- * 
+ *
  * NOTE:  The Original Code (as defined below) has been licensed to Sun
  * Microsystems, Inc. ("Sun") under the SGI Free Software License B
  * (Version 1.1), shown above ("SGI License").   Pursuant to Section
@@ -30,7 +30,7 @@
  * Inc. The Original Code is Copyright (c) 1991-2000 Silicon Graphics, Inc.
  * Copyright in any portions created by third parties is as indicated
  * elsewhere herein. All Rights Reserved.
- * 
+ *
  * Additional Notice Provisions: The application programming interfaces
  * established by SGI in conjunction with the Original Code are The
  * OpenGL(R) Graphics System: A Specification (Version 1.2.1), released
@@ -57,11 +57,11 @@ import com.jogamp.common.nio.Buffers;
  * @author  Administrator
  */
 public class Mipmap {
-  
+
   /** Creates a new instance of Mipmap */
   public Mipmap() {
   }
-  
+
   public static int computeLog( int value ) {
     int i = 0;
     // Error
@@ -79,7 +79,7 @@ public class Mipmap {
       i++;
     }
   }
-  
+
   /* Compute the nearest power of 2 number.  This algorithm is a little strange
    * but it works quite well.
    */
@@ -99,7 +99,7 @@ public class Mipmap {
       i *= 2;
     }
   }
-  
+
   public static short GLU_SWAP_2_BYTES( short s ) {
     byte b = 0;
     b = (byte)( s >>> 8 );
@@ -107,7 +107,7 @@ public class Mipmap {
     s = (short)( s | (0x00FF & b) );
     return( s );
   }
-  
+
   public static int GLU_SWAP_4_BYTES( int i ) {
     int t = i << 24;
     t |= 0x00FF0000 & ( i << 8 );
@@ -115,13 +115,13 @@ public class Mipmap {
     t |= 0x000000FF & ( i >>> 24 );
     return( t );
   }
-  
+
   public static float GLU_SWAP_4_BYTES( float f ) {
     int i = Float.floatToRawIntBits( f );
     float temp = Float.intBitsToFloat( i );
     return( temp );
   }
-  
+
   public static int checkMipmapArgs( int internalFormat, int format, int type ) {
     if( !legalFormat( format ) || !legalType( type ) ) {
       return( GLU.GLU_INVALID_ENUM );
@@ -134,7 +134,7 @@ public class Mipmap {
     }
     return( 0 );
   }
-  
+
   public static boolean legalFormat( int format ) {
     switch( format ) {
       case( GL2.GL_COLOR_INDEX ):
@@ -155,7 +155,7 @@ public class Mipmap {
         return( false );
     }
   }
-  
+
   public static boolean legalType( int type ) {
     switch( type ) {
       case( GL2.GL_BITMAP ):
@@ -183,10 +183,10 @@ public class Mipmap {
         return( false );
     }
   }
-  
+
   public static boolean isTypePackedPixel( int type ) {
     assert( legalType( type ) );
-    
+
     if( type == GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ||
         type == GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ||
         type == GL2GL3.GL_UNSIGNED_SHORT_5_6_5 ||
@@ -203,20 +203,20 @@ public class Mipmap {
     }
     return( false );
   }
-  
+
   public static boolean isLegalFormatForPackedPixelType( int format, int type ) {
     // if not a packed pixel type then return true
     if( isTypePackedPixel( type ) ) {
       return( true );
     }
-    
+
     // 3_3_2/2_3_3_REV & 5_6_5/5_6_5_REV are only compatible with RGB
     if( (type == GL2GL3.GL_UNSIGNED_BYTE_3_3_2 || type == GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ||
         type == GL2GL3.GL_UNSIGNED_SHORT_5_6_5 || type == GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV )
         & format != GL2GL3.GL_RGB ) {
           return( false );
     }
-    
+
     // 4_4_4_4/4_4_4_4_REV & 5_5_5_1/1_5_5_5_REV & 8_8_8_8/8_8_8_8_REV &
     // 10_10_10_2/2_10_10_10_REV are only campatible with RGBA, BGRA & ARGB_EXT
     if( ( type == GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4 ||
@@ -232,7 +232,7 @@ public class Mipmap {
     }
     return( true );
   }
-  
+
   public static boolean isLegalLevels( int userLevel, int baseLevel, int maxLevel,
                                             int totalLevels ) {
     if( (baseLevel < 0) || (baseLevel < userLevel) || (maxLevel < baseLevel) ||
@@ -241,7 +241,7 @@ public class Mipmap {
     }
     return( true );
   }
-  
+
   /* Given user requested textures size, determine if it fits. If it doesn't then
    * halve both sides and make the determination again until it does fit ( for
    * IR only ).
@@ -257,7 +257,7 @@ public class Mipmap {
       int heightPowerOf2 = nearestPower( height );
       int[] proxyWidth = new int[1];
       boolean noProxyTextures = false;
-      
+
       // Some drivers (in particular, ATI's) seem to set a GL error
       // when proxy textures are used even though this is in violation
       // of the spec. Guard against this and interactions with the
@@ -268,20 +268,20 @@ public class Mipmap {
           int widthAtLevelOne = ( ( width > 1 ) ? (widthPowerOf2 >> 1) : widthPowerOf2 );
           int heightAtLevelOne = ( ( height > 1 ) ? (heightPowerOf2 >> 1) : heightPowerOf2 );
           int proxyTarget;
-        
+
           assert( widthAtLevelOne > 0 );
           assert( heightAtLevelOne > 0 );
-        
+
           // does width x height at level 1 & all their mipmaps fit?
           if( target == GL2GL3.GL_TEXTURE_2D || target == GL2GL3.GL_PROXY_TEXTURE_2D ) {
             proxyTarget = GL2GL3.GL_PROXY_TEXTURE_2D;
             gl.glTexImage2D( proxyTarget, 1, internalFormat, widthAtLevelOne,
                              heightAtLevelOne, 0, format, type, null );
-          } else if( (target == GL2GL3.GL_TEXTURE_CUBE_MAP_POSITIVE_X) || 
-                     (target == GL2GL3.GL_TEXTURE_CUBE_MAP_NEGATIVE_X) || 
-                     (target == GL2GL3.GL_TEXTURE_CUBE_MAP_POSITIVE_Y) || 
-                     (target == GL2GL3.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y) || 
-                     (target == GL2GL3.GL_TEXTURE_CUBE_MAP_POSITIVE_Z) || 
+          } else if( (target == GL2GL3.GL_TEXTURE_CUBE_MAP_POSITIVE_X) ||
+                     (target == GL2GL3.GL_TEXTURE_CUBE_MAP_NEGATIVE_X) ||
+                     (target == GL2GL3.GL_TEXTURE_CUBE_MAP_POSITIVE_Y) ||
+                     (target == GL2GL3.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y) ||
+                     (target == GL2GL3.GL_TEXTURE_CUBE_MAP_POSITIVE_Z) ||
                      (target == GL2GL3.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z) ) {
             proxyTarget = GL2GL3.GL_PROXY_TEXTURE_CUBE_MAP;
             gl.glTexImage2D( proxyTarget, 1, internalFormat, widthAtLevelOne,
@@ -289,7 +289,7 @@ public class Mipmap {
           } else {
             assert( target == GL2GL3.GL_TEXTURE_1D || target == GL2GL3.GL_PROXY_TEXTURE_1D );
             proxyTarget = GL2GL3.GL_PROXY_TEXTURE_1D;
-            gl.getGL2GL3().glTexImage1D( proxyTarget, 1, internalFormat, widthAtLevelOne, 
+            gl.getGL2GL3().glTexImage1D( proxyTarget, 1, internalFormat, widthAtLevelOne,
                              0, format, type, null );
           }
           if(gl.isGL2GL3()) {
@@ -336,15 +336,15 @@ public class Mipmap {
       newHeight[0] = maxsize[0];
     }
   }
-  
-  public static void closestFit3D( GL gl, int target, int width, int height, int depth, 
+
+  public static void closestFit3D( GL gl, int target, int width, int height, int depth,
           int internalFormat, int format, int type, int[] newWidth, int[] newHeight,
           int[] newDepth ) {
     int widthPowerOf2 = nearestPower( width );
     int heightPowerOf2 = nearestPower( height );
     int depthPowerOf2 = nearestPower( depth );
     int[] proxyWidth = new int[1];
-    
+
     do {
       // compute level 1 width & height & depth, clamping each at 1
       int widthAtLevelOne = (widthPowerOf2 > 1) ? widthPowerOf2 >> 1 : widthPowerOf2;
@@ -354,7 +354,7 @@ public class Mipmap {
       assert( widthAtLevelOne > 0 );
       assert( heightAtLevelOne > 0 );
       assert( depthAtLevelOne > 0 );
-      
+
       // does width x height x depth at level 1 & all their mipmaps fit?
       if( target == GL2GL3.GL_TEXTURE_3D || target == GL2GL3.GL_PROXY_TEXTURE_3D ) {
         proxyTarget = GL2GL3.GL_PROXY_TEXTURE_3D;
@@ -378,16 +378,16 @@ public class Mipmap {
       }
     } while( proxyWidth[0] == 0 );
     // loop must terminate
-    
+
     // return the width & height at level 0 that fits
     newWidth[0] = widthPowerOf2;
     newHeight[0] = heightPowerOf2;
     newDepth[0] = depthPowerOf2;
   }
-  
+
   public static int elements_per_group( int format, int type ) {
     // Return the number of elements per grtoup of a specified gromat
-    
+
     // If the type is packedpixels then answer is 1
     if( type == GL2GL3.GL_UNSIGNED_BYTE_3_3_2 ||
         type == GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV ||
@@ -403,7 +403,7 @@ public class Mipmap {
         type == GL2GL3.GL_UNSIGNED_INT_2_10_10_10_REV ) {
           return( 1 );
     }
-    
+
     // Types are not packed pixels so get elements per group
     switch( format ) {
       case( GL2GL3.GL_RGB ):
@@ -418,10 +418,10 @@ public class Mipmap {
         return( 1 );
     }
   }
-  
+
   public static int bytes_per_element( int type ) {
     // return the number of bytes per element, based on the element type
-    
+
     switch( type ) {
       case( GL2.GL_BITMAP ):
       case( GL2GL3.GL_BYTE ):
@@ -450,17 +450,17 @@ public class Mipmap {
         return( 4 );
     }
   }
-  
+
   public static boolean is_index( int format ) {
     return( format == GL2.GL_COLOR_INDEX || format == GL2GL3.GL_STENCIL_INDEX );
   }
-  
+
   /* Compute memory required for internal packed array of data of given type and format. */
-  
+
   public static int image_size( int width, int height, int format, int type ) {
     int bytes_per_row;
     int components;
-    
+
     assert( width > 0 );
     assert( height > 0 );
     components = elements_per_group( format, type );
@@ -471,17 +471,17 @@ public class Mipmap {
     }
     return( bytes_per_row * height * components );
   }
-  
+
   public static int imageSize3D( int width, int height, int depth, int format, int type ) {
     int components = elements_per_group( format, type );
     int bytes_per_row = bytes_per_element( type ) * width;
-    
+
     assert( width > 0 && height > 0 && depth > 0 );
     assert( type != GL2.GL_BITMAP );
-    
+
     return( bytes_per_row * height * depth * components );
   }
-  
+
   public static void retrieveStoreModes( GL gl, PixelStorageModes psm ) {
     int[] a = new int[1];
     gl.glGetIntegerv( GL2GL3.GL_UNPACK_ALIGNMENT, a, 0);
@@ -496,7 +496,7 @@ public class Mipmap {
     psm.setUnpackLsbFirst( ( a[0] == 1 ) );
     gl.glGetIntegerv( GL2GL3.GL_UNPACK_SWAP_BYTES, a, 0);
     psm.setUnpackSwapBytes( ( a[0] == 1 ) );
-    
+
     gl.glGetIntegerv( GL2GL3.GL_PACK_ALIGNMENT, a, 0);
     psm.setPackAlignment( a[0] );
     gl.glGetIntegerv( GL2GL3.GL_PACK_ROW_LENGTH, a, 0);
@@ -510,7 +510,7 @@ public class Mipmap {
     gl.glGetIntegerv( GL2GL3.GL_PACK_SWAP_BYTES, a, 0);
     psm.setPackSwapBytes( ( a[0] == 1 ) );
   }
-  
+
   public static void retrieveStoreModes3D( GL gl, PixelStorageModes psm ) {
     int[] a = new int[1];
     gl.glGetIntegerv( GL2GL3.GL_UNPACK_ALIGNMENT, a, 0);
@@ -529,7 +529,7 @@ public class Mipmap {
     psm.setUnpackSkipImages( a[0] );
     gl.glGetIntegerv( GL2GL3.GL_UNPACK_IMAGE_HEIGHT, a, 0);
     psm.setUnpackImageHeight( a[0] );
-    
+
     gl.glGetIntegerv( GL2GL3.GL_PACK_ALIGNMENT, a, 0);
     psm.setPackAlignment( a[0] );
     gl.glGetIntegerv( GL2GL3.GL_PACK_ROW_LENGTH, a, 0);
@@ -547,9 +547,9 @@ public class Mipmap {
     gl.glGetIntegerv( GL2GL3.GL_PACK_IMAGE_HEIGHT, a, 0 );
     psm.setPackImageHeight( a[0] );
   }
-  
-  public static int gluScaleImage( GL gl, int format, int widthin, int heightin, 
-          int typein, ByteBuffer datain, int widthout, int heightout, 
+
+  public static int gluScaleImage( GL gl, int format, int widthin, int heightin,
+          int typein, ByteBuffer datain, int widthout, int heightout,
           int typeout, ByteBuffer dataout ) {
     int datainPos = datain.position();
     int dataoutPos = dataout.position();
@@ -559,7 +559,7 @@ public class Mipmap {
       ByteBuffer beforeimage;
       ByteBuffer afterimage;
       PixelStorageModes psm = new PixelStorageModes();
-    
+
       if( (widthin == 0)  || (heightin == 0) || (widthout == 0) || (heightout == 0) ) {
         return( 0 );
       }
@@ -580,20 +580,20 @@ public class Mipmap {
       if( beforeimage == null || afterimage == null ) {
         return( GLU.GLU_OUT_OF_MEMORY );
       }
-    
+
       retrieveStoreModes( gl, psm );
       Image.fill_image( psm, widthin, heightin, format, typein, is_index( format ), datain, beforeimage.asShortBuffer() );
       components = elements_per_group( format, 0 );
       ScaleInternal.scale_internal( components, widthin, heightin, beforeimage.asShortBuffer(), widthout, heightout, afterimage.asShortBuffer() );
       Image.empty_image( psm, widthout, heightout, format, typeout, is_index( format ), afterimage.asShortBuffer(), dataout );
-    
+
       return( 0 );
     } finally {
       datain.position(datainPos);
       dataout.position(dataoutPos);
     }
   }
-  
+
   public static int gluBuild1DMipmapLevels( GL gl, int target, int internalFormat,
                           int width, int format, int type, int userLevel, int baseLevel,
                           int maxLevel, ByteBuffer data ) {
@@ -601,30 +601,30 @@ public class Mipmap {
     try {
 
       int levels;
-    
+
       int rc = checkMipmapArgs( internalFormat, format, type );
       if( rc != 0 ) {
         return( rc );
       }
-    
+
       if( width < 1 ) {
         return( GLU.GLU_INVALID_VALUE );
       }
-    
+
       levels = computeLog( width );
-    
+
       levels += userLevel;
       if( !isLegalLevels( userLevel, baseLevel, maxLevel, levels ) ) {
         return( GLU.GLU_INVALID_VALUE );
       }
-    
+
       return( BuildMipmap.gluBuild1DMipmapLevelsCore( gl, target, internalFormat, width,
               width, format, type, userLevel, baseLevel, maxLevel, data ) );
     } finally {
       data.position(dataPos);
     }
   }
-  
+
   public static int gluBuild1DMipmaps( GL gl, int target, int internalFormat, int width,
               int format, int type, ByteBuffer data ) {
     int dataPos = data.position();
@@ -633,54 +633,54 @@ public class Mipmap {
       int[] widthPowerOf2 = new int[1];
       int levels;
       int[] dummy = new int[1];
-    
+
       int rc = checkMipmapArgs( internalFormat, format, type );
       if( rc != 0 ) {
         return( rc );
       }
-    
+
       if( width < 1 ) {
         return( GLU.GLU_INVALID_VALUE );
       }
-    
+
       closestFit( gl, target, width, 1, internalFormat, format, type, widthPowerOf2, dummy );
       levels = computeLog( widthPowerOf2[0] );
-    
-      return( BuildMipmap.gluBuild1DMipmapLevelsCore( gl, target, internalFormat, 
+
+      return( BuildMipmap.gluBuild1DMipmapLevelsCore( gl, target, internalFormat,
                     width, widthPowerOf2[0], format, type, 0, 0, levels, data ) );
     } finally {
       data.position(dataPos);
     }
   }
 
- 
+
   public static int gluBuild2DMipmapLevels( GL gl, int target, int internalFormat,
           int width, int height, int format, int type, int userLevel,
           int baseLevel, int maxLevel, Object data ) {
     int dataPos = 0;
 
     int level, levels;
-    
+
     int rc = checkMipmapArgs( internalFormat, format, type );
     if( rc != 0 ) {
       return( rc );
     }
-    
+
     if( width < 1 || height < 1 ) {
       return( GLU.GLU_INVALID_VALUE );
     }
-    
+
     levels = computeLog( width );
     level = computeLog( height );
     if( level > levels ) {
       levels = level;
     }
-    
+
     levels += userLevel;
     if( !isLegalLevels( userLevel, baseLevel, maxLevel, levels ) ) {
       return( GLU.GLU_INVALID_VALUE );
     }
-    
+
     //PointerWrapper pointer = PointerWrapperFactory.getPointerWrapper( data );
     ByteBuffer buffer = null;
     if( data instanceof ByteBuffer ) {
@@ -706,7 +706,7 @@ public class Mipmap {
         FloatBuffer fb = buffer.asFloatBuffer();
         fb.put( array );
     }
-    
+
     try {
       return( BuildMipmap.gluBuild2DMipmapLevelsCore( gl, target, internalFormat,
               width, height, width, height, format, type, userLevel, baseLevel,
@@ -716,7 +716,7 @@ public class Mipmap {
     }
   }
 
- 
+
   public static int gluBuild2DMipmaps( GL gl, int target, int internalFormat,
           int width, int height, int format, int type, Object data ) {
     int dataPos = 0;
@@ -724,25 +724,25 @@ public class Mipmap {
     int[] widthPowerOf2 = new int[1];
     int[] heightPowerOf2 = new int[1];
     int level, levels;
-    
+
     int rc = checkMipmapArgs( internalFormat, format, type );
     if( rc != 0 ) {
       return( rc );
     }
-    
+
     if( width < 1 || height < 1 ) {
       return( GLU.GLU_INVALID_VALUE );
     }
-    
-    closestFit( gl, target, width, height, internalFormat, format, type, 
+
+    closestFit( gl, target, width, height, internalFormat, format, type,
             widthPowerOf2, heightPowerOf2 );
-    
+
     levels = computeLog( widthPowerOf2[0] );
     level = computeLog( heightPowerOf2[0] );
     if( level > levels ) {
       levels = level;
     }
-    
+
     //PointerWrapper pointer = PointerWrapperFactory.getPointerWrapper( data );
     ByteBuffer buffer = null;
     if( data instanceof ByteBuffer ) {
@@ -768,17 +768,17 @@ public class Mipmap {
         FloatBuffer fb = buffer.asFloatBuffer();
         fb.put( array );
     }
-    
+
     try {
-      return( BuildMipmap.gluBuild2DMipmapLevelsCore( gl, target, internalFormat, 
-              width, height, widthPowerOf2[0], heightPowerOf2[0], format, type, 0, 
+      return( BuildMipmap.gluBuild2DMipmapLevelsCore( gl, target, internalFormat,
+              width, height, widthPowerOf2[0], heightPowerOf2[0], format, type, 0,
               0, levels, buffer ) );
     } finally {
       buffer.position(dataPos);
     }
   }
- 
- 
+
+
   public static int gluBuild3DMipmaps( GL gl, int target, int internalFormat,
           int width, int height, int depth, int format, int type, ByteBuffer data ) {
     int dataPos = data.position();
@@ -788,23 +788,23 @@ public class Mipmap {
       int[] heightPowerOf2 = new int[1];
       int[] depthPowerOf2 = new int[1];
       int level, levels;
-    
+
       int rc = checkMipmapArgs( internalFormat, format, type );
       if( rc != 0 ) {
         return( rc );
       }
-    
+
       if( width < 1 || height < 1 || depth < 1 ) {
         return( GLU.GLU_INVALID_VALUE );
       }
-    
+
       if( type == GL2.GL_BITMAP ) {
         return( GLU.GLU_INVALID_ENUM );
       }
-    
+
       closestFit3D( gl, target, width, height, depth, internalFormat, format,
                     type, widthPowerOf2, heightPowerOf2, depthPowerOf2 );
-    
+
       levels = computeLog( widthPowerOf2[0] );
       level = computeLog( heightPowerOf2[0] );
       if( level > levels ) {
@@ -814,7 +814,7 @@ public class Mipmap {
       if( level > levels ) {
         levels = level;
       }
-    
+
       return( BuildMipmap.gluBuild3DMipmapLevelsCore( gl, target, internalFormat, width,
               height, depth, widthPowerOf2[0], heightPowerOf2[0], depthPowerOf2[0],
               format, type, 0, 0, levels, data ) );
@@ -822,27 +822,27 @@ public class Mipmap {
       data.position(dataPos);
     }
   }
-  
+
   public static int gluBuild3DMipmapLevels( GL gl, int target, int internalFormat,
           int width, int height, int depth, int format, int type, int userLevel,
           int baseLevel, int maxLevel, ByteBuffer data ) {
     int dataPos = data.position();
     try {
       int level, levels;
-    
+
       int rc = checkMipmapArgs( internalFormat, format, type );
       if( rc != 0 ) {
         return( rc );
       }
-    
+
       if( width < 1 || height < 1 || depth < 1 ) {
         return( GLU.GLU_INVALID_VALUE );
       }
-    
+
       if( type == GL2.GL_BITMAP ) {
         return( GLU.GLU_INVALID_ENUM );
       }
-    
+
       levels = computeLog( width );
       level = computeLog( height );
       if( level > levels ) {
@@ -852,12 +852,12 @@ public class Mipmap {
       if( level > levels ) {
         levels = level;
       }
-    
+
       levels += userLevel;
       if( !isLegalLevels( userLevel, baseLevel, maxLevel, levels ) ) {
         return( GLU.GLU_INVALID_VALUE );
       }
-    
+
       return( BuildMipmap.gluBuild3DMipmapLevelsCore( gl, target, internalFormat, width,
               height, depth, width, height, depth, format, type, userLevel,
               baseLevel, maxLevel, data ) );

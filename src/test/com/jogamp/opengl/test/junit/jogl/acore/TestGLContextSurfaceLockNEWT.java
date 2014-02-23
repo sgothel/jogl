@@ -33,15 +33,18 @@ import java.io.IOException;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLContextSurfaceLockNEWT extends UITestCase {
     static final int demoSize = 64;
     
@@ -69,7 +72,7 @@ public class TestGLContextSurfaceLockNEWT extends UITestCase {
         }
         
         public void run() {
-            System.err.println("Animatr "+id+": PRE: "+Thread.currentThread().getName());
+            System.err.println("Animatr "+id+", count "+frameCount+": PRE: "+Thread.currentThread().getName());
             
             for(int c=0; c<frameCount; c++) {
                 glad.display();
@@ -99,10 +102,10 @@ public class TestGLContextSurfaceLockNEWT extends UITestCase {
         }
         
         public void run() {
-            System.err.println("Resizer "+id+": PRE: "+Thread.currentThread().getName());
+            System.err.println("Resizer "+id+", count "+actionCount+": PRE: "+Thread.currentThread().getName());
             
             for(int c=0; c<actionCount; c++) {
-                win.runOnEDTIfAvail(false, new Runnable() {
+                win.runOnEDTIfAvail(true, new Runnable() {
                     public void run() {
                         // Normal resize, may trigger immediate display within lock
                         win.setSize(win.getWidth()+1, win.getHeight()+1);
@@ -148,41 +151,80 @@ public class TestGLContextSurfaceLockNEWT extends UITestCase {
         return true;
     }
     
+    protected class MyEventCounter implements GLEventListener {
+        volatile int reshapeCount = 0;
+        volatile int displayCount = 0;
+        
+        @Override
+        public void init(GLAutoDrawable drawable) {
+        }
+
+        @Override
+        public void dispose(GLAutoDrawable drawable) {
+            System.err.println("*** reshapes: "+reshapeCount+", displays "+displayCount);
+        }
+
+        @Override
+        public void display(GLAutoDrawable drawable) {
+            displayCount++;
+        }
+
+        @Override
+        public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+            reshapeCount++;
+        }
+        
+        public void reset() {
+            reshapeCount = 0;
+            displayCount = 0;            
+        }
+    }
+    
     protected void runJOGLTasks(int animThreadCount, int frameCount, int reszThreadCount, int resizeCount) throws InterruptedException {
-        GLWindow glWindow = GLWindow.create(new GLCapabilities(GLProfile.getDefault()));
-        Assert.assertNotNull(glWindow);
+        final GLWindow glWindow = GLWindow.create(new GLCapabilities(GLProfile.getDefault()));
+        final MyEventCounter myEventCounter = new MyEventCounter();
         
         glWindow.addGLEventListener(new GearsES2(0));
+        glWindow.addGLEventListener(myEventCounter);
         glWindow.setSize(demoSize, demoSize);
         glWindow.setVisible(true);
         
         final String currentThreadName = Thread.currentThread().getName();
         final Object sync = new Object();
-        final MyRunnable[] tasks = new MyRunnable[animThreadCount+reszThreadCount];
-        final Thread[] threads = new Thread[animThreadCount+reszThreadCount];
-        int i=0;
+        final MyRunnable[] animTasks = new MyRunnable[animThreadCount];
+        final MyRunnable[] resizeTasks = new MyRunnable[animThreadCount];
+        final Thread[] animThreads = new Thread[reszThreadCount];
+        final Thread[] resizeThreads = new Thread[reszThreadCount];
         
         System.err.println("animThreadCount "+animThreadCount+", frameCount "+frameCount);
         System.err.println("reszThreadCount "+reszThreadCount+", resizeCount "+resizeCount);
-        System.err.println("tasks "+tasks.length+", threads "+threads.length);
+        System.err.println("tasks "+(animTasks.length+resizeTasks.length)+", threads "+(animThreads.length+resizeThreads.length));
 
-        for(; i<animThreadCount; i++) {
+        for(int i=0; i<animThreadCount; i++) {
             System.err.println("create anim task/thread "+i);
-            tasks[i] = new RudeAnimator(glWindow, frameCount, sync, i);                
-            threads[i] = new Thread(tasks[i], currentThreadName+"-anim"+i);
+            animTasks[i] = new RudeAnimator(glWindow, frameCount, sync, i);
+            animThreads[i] = new Thread(animTasks[i], currentThreadName+"-anim"+i);
         }
-        for(; i<animThreadCount+reszThreadCount; i++) {
+        for(int i=0; i<reszThreadCount; i++) {
             System.err.println("create resz task/thread "+i);
-            tasks[i] = new RudeResizer(glWindow, resizeCount, sync, i);
-            threads[i] = new Thread(tasks[i], currentThreadName+"-resz"+i);
+            resizeTasks[i] = new RudeResizer(glWindow, resizeCount, sync, i);
+            resizeThreads[i] = new Thread(resizeTasks[i], currentThreadName+"-resz"+i);
         }
 
-        for(i=0; i<animThreadCount+reszThreadCount; i++) {
-            System.err.println("start thread "+i);
-            threads[i].start();
+        myEventCounter.reset();
+        
+        int j=0, k=0;
+        for(int i=0; i<reszThreadCount+animThreadCount; i++) {
+            if(0==i%2) {
+                System.err.println("start resize thread "+j);
+                resizeThreads[j++].start();
+            } else {
+                System.err.println("start anim thread "+k);
+                animThreads[k++].start();
+            }
         }
         synchronized (sync) {
-            while(!done(tasks)) {
+            while(!done(resizeTasks) || !done(animTasks)) {
                 try {
                     sync.wait();
                 } catch (InterruptedException e) {
@@ -190,8 +232,8 @@ public class TestGLContextSurfaceLockNEWT extends UITestCase {
                 }
             }
         }
-        i=0;
-        while(i<30 && !isDead(threads)) {
+        int i=0;
+        while(i<30 && !isDead(animThreads) && !isDead(resizeThreads)) {
             Thread.sleep(100);
             i++;
         }
@@ -200,8 +242,13 @@ public class TestGLContextSurfaceLockNEWT extends UITestCase {
     }
     
     @Test
-    public void test01_1AThreads_600Frames() throws InterruptedException {
-        runJOGLTasks(1, 600, 1, 600);
+    public void test01_1A1RThreads_100Resizes() throws InterruptedException {
+        runJOGLTasks(1, 200, 1, 100);
+    }
+    
+    @Test
+    public void test01_3A3RThreads_50Resizes() throws InterruptedException {
+        runJOGLTasks(3, 100, 3, 50);
     }
     
     public static void main(String args[]) throws IOException {

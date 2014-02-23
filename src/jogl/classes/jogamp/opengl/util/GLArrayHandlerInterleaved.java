@@ -28,8 +28,6 @@
 
 package jogamp.opengl.util;
 
-
-import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,61 +36,46 @@ import javax.media.opengl.GL;
 import com.jogamp.opengl.util.GLArrayDataEditable;
 
 /**
- * Interleaved fixed function arrays, i.e. where this buffer data 
- * represents many arrays. 
+ * Interleaved fixed function arrays, i.e. where this buffer data
+ * represents many arrays.
  */
-public class GLArrayHandlerInterleaved implements GLArrayHandler {
-  private GLArrayDataEditable ad;
-  private List<GLArrayHandlerFlat> subArrays = new ArrayList<GLArrayHandlerFlat>();
+public class GLArrayHandlerInterleaved extends GLVBOArrayHandler {
+  private final List<GLArrayHandlerFlat> subArrays = new ArrayList<GLArrayHandlerFlat>();
 
   public GLArrayHandlerInterleaved(GLArrayDataEditable ad) {
-    this.ad = ad;
+    super(ad);
   }
-  
+
+  @Override
   public final void setSubArrayVBOName(int vboName) {
       for(int i=0; i<subArrays.size(); i++) {
           subArrays.get(i).getData().setVBOName(vboName);
-      }      
+      }
   }
-  
+
+  @Override
   public final void addSubHandler(GLArrayHandlerFlat handler) {
       subArrays.add(handler);
   }
 
-  private final void syncSubData(GL gl, boolean enable, boolean force, Object ext) {
+  private final void syncSubData(GL gl, Object ext) {
       for(int i=0; i<subArrays.size(); i++) {
-          subArrays.get(i).syncData(gl, enable, force, ext);
-      }      
-  }  
-  
-  public final void syncData(GL gl, boolean enable, Object ext) {
-    if(enable) {
-        final Buffer buffer = ad.getBuffer();
+          subArrays.get(i).syncData(gl, ext);
+      }
+  }
 
-        if(ad.isVBO()) {
-            // always bind and refresh the VBO mgr, 
-            // in case more than one gl*Pointer objects are in use
-            gl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
-            if(!ad.isVBOWritten()) {
-                if(null!=buffer) {
-                    gl.glBufferData(ad.getVBOTarget(), buffer.limit() * ad.getComponentSizeInBytes(), buffer, ad.getVBOUsage());
-                }
-                ad.setVBOWritten(true);
-            }
-        }
-        syncSubData(gl, true, true, ext);
-    } else {
-        syncSubData(gl, false, true, ext);
-        if(ad.isVBO()) {
-            gl.glBindBuffer(ad.getVBOTarget(), 0);
+  @Override
+  public final void enableState(GL gl, boolean enable, Object ext) {
+    if(enable) {
+        final boolean vboBound = bindBuffer(gl, true);
+        syncSubData(gl, ext);
+        if(vboBound) {
+            bindBuffer(gl, false);
         }
     }
-  }
-  
-  public final void enableState(GL gl, boolean enable, Object ext) {
     for(int i=0; i<subArrays.size(); i++) {
         subArrays.get(i).enableState(gl, enable, ext);
-    }      
+    }
   }
 }
 

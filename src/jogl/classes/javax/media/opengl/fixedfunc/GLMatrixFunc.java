@@ -31,69 +31,122 @@ package javax.media.opengl.fixedfunc;
 
 import java.nio.*;
 
+import javax.media.opengl.GL;
+
+/**
+ * Subset of OpenGL fixed function pipeline's matrix operations.
+ */
 public interface GLMatrixFunc {
 
-  public static final int GL_MATRIX_MODE = 0x0BA0;
-  public static final int GL_MODELVIEW = 0x1700;
-  public static final int GL_PROJECTION = 0x1701;
-  // public static final int GL_TEXTURE = 0x1702; // Use GL.GL_TEXTURE due to ambiguous GL usage
-  public static final int GL_MODELVIEW_MATRIX = 0x0BA6;
-  public static final int GL_PROJECTION_MATRIX = 0x0BA7;
-  public static final int GL_TEXTURE_MATRIX = 0x0BA8;
+    public static final int GL_MATRIX_MODE = 0x0BA0;
+    /** Matrix mode modelview */
+    public static final int GL_MODELVIEW = 0x1700;
+    /** Matrix mode projection */
+    public static final int GL_PROJECTION = 0x1701;
+    // public static final int GL_TEXTURE = 0x1702; // Use GL.GL_TEXTURE due to ambiguous GL usage
+    /** Matrix access name for modelview */
+    public static final int GL_MODELVIEW_MATRIX = 0x0BA6;
+    /** Matrix access name for projection */
+    public static final int GL_PROJECTION_MATRIX = 0x0BA7;
+    /** Matrix access name for texture */
+    public static final int GL_TEXTURE_MATRIX = 0x0BA8;
 
-  /**
-   * glGetFloatv
-   * @param pname GL_MODELVIEW_MATRIX, GL_PROJECTION_MATRIX or GL_TEXTURE_MATRIX
-   * @param params the FloatBuffer's position remains unchanged,
-   *        which is the same behavior than the native JOGL GL impl
-   */
-  public void glGetFloatv(int pname, java.nio.FloatBuffer params);
-  public void glGetFloatv(int pname, float[] params, int params_offset);
-  /**
-   * glGetIntegerv
-   * @param pname GL_MATRIX_MODE
-   * @param params the FloatBuffer's position remains unchanged
-   *        which is the same behavior than the native JOGL GL impl
-   */
-  public void glGetIntegerv(int pname, IntBuffer params);
-  public void glGetIntegerv(int pname, int[] params, int params_offset);
+    /**
+     * Copy the named matrix into the given storage.
+     * @param pname {@link #GL_MODELVIEW_MATRIX}, {@link #GL_PROJECTION_MATRIX} or {@link #GL_TEXTURE_MATRIX}
+     * @param params the FloatBuffer's position remains unchanged,
+     *        which is the same behavior than the native JOGL GL impl
+     */
+    public void glGetFloatv(int pname, java.nio.FloatBuffer params);
 
-  /**
-   * sets the current matrix
-   * @param pname GL_MODELVIEW, GL_PROJECTION or GL.GL_TEXTURE
-   */
-  public void glMatrixMode(int mode) ;
+    /**
+     * Copy the named matrix to the given storage at offset.
+     * @param pname {@link #GL_MODELVIEW_MATRIX}, {@link #GL_PROJECTION_MATRIX} or {@link #GL_TEXTURE_MATRIX}
+     * @param params storage
+     * @param params_offset storage offset
+     */
+    public void glGetFloatv(int pname, float[] params, int params_offset);
 
-  public void glPushMatrix();
-  public void glPopMatrix();
+    /**
+     * glGetIntegerv
+     * @param pname {@link #GL_MATRIX_MODE} to receive the current matrix mode
+     * @param params the FloatBuffer's position remains unchanged
+     *        which is the same behavior than the native JOGL GL impl
+     */
+    public void glGetIntegerv(int pname, IntBuffer params);
+    public void glGetIntegerv(int pname, int[] params, int params_offset);
 
-  public void glLoadIdentity() ;
+    /**
+     * Sets the current matrix mode.
+     * @param mode {@link #GL_MODELVIEW}, {@link #GL_PROJECTION} or {@link GL#GL_TEXTURE GL_TEXTURE}.
+     */
+    public void glMatrixMode(int mode) ;
 
-  /**
-   * glLoadMatrixf
-   * @param params the FloatBuffer's position remains unchanged,
-   *        which is the same behavior than the native JOGL GL impl
-   */
-  public void glLoadMatrixf(java.nio.FloatBuffer m) ;
-  public void glLoadMatrixf(float[] m, int m_offset);
+    /**
+     * Push the current matrix to it's stack, while preserving it's values.
+     * <p>
+     * There exist one stack per matrix mode, i.e. {@link #GL_MODELVIEW}, {@link #GL_PROJECTION} and {@link GL#GL_TEXTURE GL_TEXTURE}.
+     * </p>
+     */
+    public void glPushMatrix();
 
-  /**
-   * glMultMatrixf
-   * @param m the FloatBuffer's position remains unchanged,
-   *        which is the same behavior than the native JOGL GL impl
-   */
-  public void glMultMatrixf(java.nio.FloatBuffer m) ;
-  public void glMultMatrixf(float[] m, int m_offset);
+    /**
+     * Pop the current matrix from it's stack.
+     * @see #glPushMatrix()
+     */
+    public void glPopMatrix();
 
-  public void glTranslatef(float x, float y, float z) ;
+    /**
+     * Load the current matrix with the identity matrix
+     */
+    public void glLoadIdentity() ;
 
-  public void glRotatef(float angle, float x, float y, float z);
+    /**
+     * Load the current matrix w/ the provided one.
+     * @param params the FloatBuffer's position remains unchanged,
+     *        which is the same behavior than the native JOGL GL impl
+     */
+    public void glLoadMatrixf(java.nio.FloatBuffer m) ;
+    /**
+     * Load the current matrix w/ the provided one.
+     */
+    public void glLoadMatrixf(float[] m, int m_offset);
 
-  public void glScalef(float x, float y, float z) ;
+    /**
+     * Multiply the current matrix
+     * @param m the FloatBuffer's position remains unchanged,
+     *        which is the same behavior than the native JOGL GL impl
+     */
+    public void glMultMatrixf(java.nio.FloatBuffer m) ;
+    /**
+     * Multiply the current matrix
+     */
+    public void glMultMatrixf(float[] m, int m_offset);
 
-  public void glOrthof(float left, float right, float bottom, float top, float zNear, float zFar) ;
+    /**
+     * Translate the current matrix.
+     */
+    public void glTranslatef(float x, float y, float z) ;
 
-  public void glFrustumf(float left, float right, float bottom, float top, float zNear, float zFar);
+    /**
+     * Rotate the current matrix.
+     */
+    public void glRotatef(float angle, float x, float y, float z);
+
+    /**
+     * Scale the current matrix.
+     */
+    public void glScalef(float x, float y, float z) ;
+
+    /**
+     * {@link #glMultMatrixf(FloatBuffer) Multiply} the current matrix with the orthogonal matrix.
+     */
+    public void glOrthof(float left, float right, float bottom, float top, float zNear, float zFar) ;
+
+    /**
+     * {@link #glMultMatrixf(FloatBuffer) Multiply} the current matrix with the frustum matrix.
+     */
+    public void glFrustumf(float left, float right, float bottom, float top, float zNear, float zFar);
 
 }
 

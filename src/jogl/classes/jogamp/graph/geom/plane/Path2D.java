@@ -21,11 +21,10 @@ package jogamp.graph.geom.plane;
 
 import java.util.NoSuchElementException;
 
-import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.opengl.SVertex;
+import com.jogamp.opengl.math.geom.AABBox;
 
-import jogamp.graph.math.plane.Crossing;
 
 public final class Path2D implements Cloneable {
 
@@ -34,12 +33,12 @@ public final class Path2D implements Cloneable {
 
     static final String invalidWindingRuleValue = "Invalid winding rule value";
     static final String iteratorOutOfBounds = "Iterator out of bounds";
-    
+
     /**
      * The buffers size
      */
     private static final int BUFFER_SIZE = 10;
-    
+
     /**
      * The buffers capacity
      */
@@ -49,24 +48,24 @@ public final class Path2D implements Cloneable {
      * The point's types buffer
      */
     byte[] types;
-    
+
     /**
      * The points buffer
      */
     float[] points;
-    
+
     /**
      * The point's type buffer size
      */
     int typeSize;
-    
+
     /**
      * The points buffer size
      */
     int pointSize;
-    
+
     /**
-     * The path rule 
+     * The path rule
      */
     int rule;
 
@@ -81,7 +80,7 @@ public final class Path2D implements Cloneable {
             0}; // CLOSE
 
     /*
-     * GeneralPath path iterator 
+     * GeneralPath path iterator
      */
     class Iterator implements PathIterator {
 
@@ -89,17 +88,17 @@ public final class Path2D implements Cloneable {
          * The current cursor position in types buffer
          */
         int typeIndex;
-        
+
         /**
          * The current cursor position in points buffer
          */
         int pointIndex;
-        
+
         /**
          * The source GeneralPath object
          */
         Path2D p;
-        
+
         /**
          * The path iterator transformation
          */
@@ -123,18 +122,22 @@ public final class Path2D implements Cloneable {
             this.t = at;
         }
 
+        @Override
         public int getWindingRule() {
             return p.getWindingRule();
         }
 
+        @Override
         public boolean isDone() {
             return typeIndex >= p.typeSize;
         }
 
+        @Override
         public void next() {
             typeIndex++;
         }
 
+        @Override
         public int currentSegment(float[] coords) {
             if (isDone()) {
                 throw new NoSuchElementException(iteratorOutOfBounds);
@@ -184,7 +187,7 @@ public final class Path2D implements Cloneable {
     }
 
     /**
-     * Checks points and types buffer size to add pointCount points. If necessary realloc buffers to enlarge size.   
+     * Checks points and types buffer size to add pointCount points. If necessary realloc buffers to enlarge size.
      * @param pointCount - the point count to be added in buffer
      */
     void checkBuf(int pointCount, boolean checkMove) {
@@ -245,18 +248,19 @@ public final class Path2D implements Cloneable {
     final public int size() {
         return typeSize;
     }
-    
+
     final public boolean isClosed() {
         return typeSize > 0 && types[typeSize - 1] == PathIterator.SEG_CLOSE ;
     }
-    
+
     public void closePath() {
         if (!isClosed()) {
             checkBuf(0, true);
             types[typeSize++] = PathIterator.SEG_CLOSE;
         }
     }
-    
+
+    @Override
     public String toString() {
         return "[size "+size()+", closed "+isClosed()+"]";
     }
@@ -296,7 +300,7 @@ public final class Path2D implements Cloneable {
                     closePath();
                     break;
                 default:
-                    throw new IllegalArgumentException("Unhandled Segment Type: "+segmentType);                
+                    throw new IllegalArgumentException("Unhandled Segment Type: "+segmentType);
             }
             path.next();
             connect = false;
@@ -367,9 +371,9 @@ public final class Path2D implements Cloneable {
     }
 
     /**
-     * Checks cross count according to path rule to define is it point inside shape or not. 
+     * Checks cross count according to path rule to define is it point inside shape or not.
      * @param cross - the point cross count
-     * @return true if point is inside path, or false otherwise 
+     * @return true if point is inside path, or false otherwise
      */
     boolean isInside(int cross) {
         if (rule == WIND_NON_ZERO) {
@@ -397,7 +401,7 @@ public final class Path2D implements Cloneable {
     }
 
     public boolean contains(AABBox r) {
-        return contains(r);
+        return contains(r.getMinX(), r.getMinY(), r.getWidth(), r.getHeight());
     }
 
     public boolean intersects(AABBox r) {
@@ -405,9 +409,9 @@ public final class Path2D implements Cloneable {
     }
 
     public PathIterator iterator() {
-        return new Iterator(this);        
+        return new Iterator(this);
     }
-       
+
     public PathIterator iterator(AffineTransform t) {
         return new Iterator(this, t);
     }

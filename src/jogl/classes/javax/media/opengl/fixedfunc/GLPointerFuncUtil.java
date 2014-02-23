@@ -28,7 +28,7 @@
 
 package javax.media.opengl.fixedfunc;
 
-public class GLPointerFuncUtil { 
+public class GLPointerFuncUtil {
     public static final String mgl_Vertex = "mgl_Vertex";
     public static final String mgl_Normal = "mgl_Normal";
     public static final String mgl_Color = "mgl_Color";
@@ -37,9 +37,18 @@ public class GLPointerFuncUtil {
 
     /**
      * @param glArrayIndex the fixed function array index
-     * @return default fixed function array name 
+     * @return default fixed function array name
      */
     public static String getPredefinedArrayIndexName(int glArrayIndex) {
+        return getPredefinedArrayIndexName(glArrayIndex, -1);
+    }
+
+    /**
+     * @param glArrayIndex the fixed function array index
+     * @param multiTexCoordIndex index for multiTexCoordIndex
+     * @return default fixed function array name
+     */
+    public static String getPredefinedArrayIndexName(int glArrayIndex, int multiTexCoordIndex) {
         switch(glArrayIndex) {
             case GLPointerFunc.GL_VERTEX_ARRAY:
                 return mgl_Vertex;
@@ -48,7 +57,11 @@ public class GLPointerFuncUtil {
             case GLPointerFunc.GL_COLOR_ARRAY:
                 return mgl_Color;
             case GLPointerFunc.GL_TEXTURE_COORD_ARRAY:
-                return mgl_MultiTexCoord;
+                if(0<=multiTexCoordIndex) {
+                    return mgl_MultiTexCoord+multiTexCoordIndex;
+                } else {
+                    return mgl_MultiTexCoord+multiTexCoordIndex;
+                }
         }
         return null;
     }

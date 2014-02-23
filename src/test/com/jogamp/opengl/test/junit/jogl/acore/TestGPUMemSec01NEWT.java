@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawable;
@@ -44,7 +45,10 @@ import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGPUMemSec01NEWT extends UITestCase {
     static String hexString(int i) {
         return "0x"+Integer.toHexString(i);
@@ -61,6 +65,8 @@ public class TestGPUMemSec01NEWT extends UITestCase {
                 new GLCapabilities(glp), width, height, true);
         final GL gl = winctx.context.getGL();
 
+        // System.err.println("Pre GL Error: 0x"+Integer.toHexString(gl.glGetError()));
+        // System.err.println(winctx.drawable);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
         // misc GL setup
@@ -249,7 +255,7 @@ public class TestGPUMemSec01NEWT extends UITestCase {
         
         NEWTGLContext.destroyWindow(winctx);
     }
-    
+
     @Test
     public void testReadPixelsGL_99x100xRGBxUB() throws InterruptedException {
         GLProfile glp = GLProfile.getGL2ES2();
@@ -275,8 +281,8 @@ public class TestGPUMemSec01NEWT extends UITestCase {
     @Test
     public void testReadPixelsGL2GL3_640x480xRGBxUB() throws InterruptedException {
         GLProfile glp = GLProfile.getGL2ES2();
-        if(!glp.isGL2GL3()) {
-            System.err.println("GL2GL3 n/a skip test");
+        if(!glp.isGL2ES3()) {
+            System.err.println("GL2ES3 n/a skip test");
             return;
         }
         final int width = 640;
@@ -299,8 +305,8 @@ public class TestGPUMemSec01NEWT extends UITestCase {
     @Test
     public void testReadPixelsGL2GL3_99x100xRGBxUB() throws InterruptedException {
         GLProfile glp = GLProfile.getGL2ES2();
-        if(!glp.isGL2GL3()) {
-            System.err.println("GL2GL3 n/a skip test");
+        if(!glp.isGL2ES3()) {
+            System.err.println("GL2ES3 n/a skip test");
             return;
         }
         final int wwidth = 640;
@@ -325,8 +331,8 @@ public class TestGPUMemSec01NEWT extends UITestCase {
     @Test
     public void testReadPixelsGL2GL3_640x480xREDxUB() throws InterruptedException {
         GLProfile glp = GLProfile.getGL2ES2();
-        if(!glp.isGL2GL3()) {
-            System.err.println("GL2GL3 n/a skip test");
+        if(!glp.isGL2ES3()) {
+            System.err.println("GL2ES3 n/a skip test");
             return;
         }
         final int width = 640;
@@ -338,7 +344,7 @@ public class TestGPUMemSec01NEWT extends UITestCase {
         final GL2GL3 gl = winctx.context.getGL().getGL2GL3();
         
         // 2 x too small - 0 x alignment
-        Assert.assertEquals(2, readPixelsCheck(gl, GL2GL3.GL_RED, GL.GL_UNSIGNED_BYTE, 1, width, height));
+        Assert.assertEquals(2, readPixelsCheck(gl, GL2ES2.GL_RED, GL.GL_UNSIGNED_BYTE, 1, width, height));
                         
         drawable.swapBuffers();
         Thread.sleep(50);
@@ -349,8 +355,8 @@ public class TestGPUMemSec01NEWT extends UITestCase {
     @Test
     public void testReadPixelsGL2GL3_102x100xREDxUB() throws InterruptedException {
         GLProfile glp = GLProfile.getGL2ES2();
-        if(!glp.isGL2GL3()) {
-            System.err.println("GL2GL3 n/a skip test");
+        if(!glp.isGL2ES3()) {
+            System.err.println("GL2ES3 n/a skip test");
             return;
         }
         int wwidth = 640;
@@ -364,7 +370,7 @@ public class TestGPUMemSec01NEWT extends UITestCase {
         final GL2GL3 gl = winctx.context.getGL().getGL2GL3();
         
         // 2 x too small - 2 x alignment
-        Assert.assertEquals(4, readPixelsCheck(gl, GL2GL3.GL_RED, GL.GL_UNSIGNED_BYTE, 1, rwidth, rheight));
+        Assert.assertEquals(4, readPixelsCheck(gl, GL2ES2.GL_RED, GL.GL_UNSIGNED_BYTE, 1, rwidth, rheight));
                         
         drawable.swapBuffers();
         Thread.sleep(50);

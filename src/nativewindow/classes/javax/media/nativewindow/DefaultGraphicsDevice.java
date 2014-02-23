@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -37,10 +37,10 @@ import jogamp.nativewindow.NativeWindowFactoryImpl;
 
 public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice {
     private static final String separator = "_";
-    private String type;
-    protected String connection;
-    protected int unitID;
-    protected String uniqueID;
+    private final String type;
+    protected final String connection;
+    protected final int unitID;
+    protected final String uniqueID;
     protected long handle;
     protected ToolkitLock toolkitLock;
 
@@ -50,34 +50,24 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
      * @param type
      */
     public DefaultGraphicsDevice(String type, String connection, int unitID) {
-        this.type = type;
-        this.connection = connection;
-        this.unitID = unitID;
-        this.uniqueID = getUniqueID(type, connection, unitID);
-        this.handle = 0;
-        this.toolkitLock = NativeWindowFactory.getDefaultToolkitLock(type);
+        this(type, connection, unitID, 0, NativeWindowFactory.getDefaultToolkitLock(type));
     }
 
     /**
      * Create an instance with the system default {@link ToolkitLock}.
-     * gathered via {@link NativeWindowFactory#createDefaultToolkitLock(String, long)}.
+     * gathered via {@link NativeWindowFactory#getDefaultToolkitLock(String, long)}.
      * @param type
      * @param handle
      */
     public DefaultGraphicsDevice(String type, String connection, int unitID, long handle) {
-        this.type = type;
-        this.connection = connection;
-        this.unitID = unitID;
-        this.uniqueID = getUniqueID(type, connection, unitID);
-        this.handle = handle;
-        this.toolkitLock = NativeWindowFactory.createDefaultToolkitLock(type, handle);
+        this(type, connection, unitID, handle, NativeWindowFactory.getDefaultToolkitLock(type, handle));
     }
 
     /**
-     * Create an instance with the given {@link ToolkitLock} instance.
+     * Create an instance with the given {@link ToolkitLock} instance, or <i>null</i> {@link ToolkitLock} if null.
      * @param type
      * @param handle
-     * @param locker
+     * @param locker if null, a non blocking <i>null</i> lock is used.
      */
     public DefaultGraphicsDevice(String type, String connection, int unitID, long handle, ToolkitLock locker) {
         this.type = type;
@@ -97,49 +87,72 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
         }
     }
 
+    @Override
     public final String getType() {
         return type;
     }
 
+    @Override
     public final String getConnection() {
         return connection;
     }
 
+    @Override
     public final int getUnitID() {
         return unitID;
     }
 
+    @Override
     public final String getUniqueID() {
       return uniqueID;
     }
 
+    @Override
     public final long getHandle() {
         return handle;
     }
 
     /**
-     * No lock is performed on the graphics device per default,
-     * instead the aggregated recursive {@link ToolkitLock#lock()} is invoked.
+     * {@inheritDoc}
+     * <p>
+     * Locking is perfomed via delegation to {@link ToolkitLock#lock()}, {@link ToolkitLock#unlock()}.
+     * </p>
      *
      * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long)
      * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long, javax.media.nativewindow.ToolkitLock)
      */
+    @Override
     public final void lock() {
         toolkitLock.lock();
     }
 
-    /** 
-     * No lock is performed on the graphics device per default,
-     * instead the aggregated recursive {@link ToolkitLock#unlock()} is invoked.
+    @Override
+    public final void validateLocked() throws RuntimeException {
+        toolkitLock.validateLocked();
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Locking is perfomed via delegation to {@link ToolkitLock#lock()}, {@link ToolkitLock#unlock()}.
+     * </p>
      *
      * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long)
      * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long, javax.media.nativewindow.ToolkitLock)
      */
+    @Override
     public final void unlock() {
         toolkitLock.unlock();
     }
 
+    @Override
+    public boolean open() {
+        return false;
+    }
+
+    @Override
     public boolean close() {
+        toolkitLock.dispose();
         if(0 != handle) {
             handle = 0;
             return true;
@@ -148,8 +161,53 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
     }
 
     @Override
+    public boolean isHandleOwner() {
+        return false;
+    }
+
+    @Override
+    public void clearHandleOwner() {
+    }
+
+    @Override
     public String toString() {
-        return getClass().getSimpleName()+"[type "+getType()+", connection "+getConnection()+", unitID "+getUnitID()+", handle 0x"+Long.toHexString(getHandle())+"]";
+        return getClass().getSimpleName()+"[type "+getType()+", connection "+getConnection()+", unitID "+getUnitID()+", handle 0x"+Long.toHexString(getHandle())+", owner "+isHandleOwner()+", "+toolkitLock+"]";
+    }
+
+    /**
+     * Set the native handle of the underlying native device
+     * and return the previous one.
+     */
+    protected final long setHandle(long newHandle) {
+        final long oldHandle = handle;
+        handle = newHandle;
+        return oldHandle;
+    }
+
+    protected Object getHandleOwnership() {
+        return null;
+    }
+    protected Object setHandleOwnership(Object newOwnership) {
+        return null;
+    }
+
+    public static final void swapDeviceHandleAndOwnership(final DefaultGraphicsDevice aDevice1, final DefaultGraphicsDevice aDevice2) {
+        aDevice1.lock();
+        try {
+            aDevice2.lock();
+            try {
+                final long aDevice1Handle = aDevice1.getHandle();
+                final long aDevice2Handle = aDevice2.setHandle(aDevice1Handle);
+                aDevice1.setHandle(aDevice2Handle);
+                final Object aOwnership1 = aDevice1.getHandleOwnership();
+                final Object aOwnership2 = aDevice2.setHandleOwnership(aOwnership1);
+                aDevice1.setHandleOwnership(aOwnership2);
+            } finally {
+                aDevice2.unlock();
+            }
+        } finally {
+            aDevice1.unlock();
+        }
     }
 
     /**
@@ -160,10 +218,11 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
      * The current ToolkitLock is being locked/unlocked while swapping the reference,
      * ensuring no concurrent access can occur during the swap.
      * </p>
-     * 
+     *
      * @param locker the ToolkitLock, if null, {@link jogamp.nativewindow.NullToolkitLock} is being used
+     * @return the previous ToolkitLock instance
      */
-    protected void setToolkitLock(ToolkitLock locker) {
+    protected ToolkitLock setToolkitLock(ToolkitLock locker) {
         final ToolkitLock _toolkitLock = toolkitLock;
         _toolkitLock.lock();
         try {
@@ -171,6 +230,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
         } finally {
             _toolkitLock.unlock();
         }
+        return _toolkitLock;
     }
 
     /**
@@ -183,7 +243,12 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
          return toolkitLock;
     }
 
-    protected static String getUniqueID(String type, String connection, int unitID) {
-      return (type + separator + connection + separator + unitID).intern();
+   /**
+    * Returns a unique String object using {@link String#intern()} for the given arguments,
+    * which object reference itself can be used as a key.
+    */
+    private static String getUniqueID(String type, String connection, int unitID) {
+      final String r = (type + separator + connection + separator + unitID).intern();
+      return r.intern();
     }
 }

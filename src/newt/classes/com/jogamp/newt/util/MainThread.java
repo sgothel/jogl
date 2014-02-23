@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2009 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
@@ -54,13 +54,13 @@ import jogamp.newt.NEWTJNILibLoader;
  * NEWT Utility class MainThread<P>
  *
  * <p>
- * FIXME: Update this documentation! 
+ * FIXME: Update this documentation!
  * This class just provides a main-thread utility, forking of a main java class
  * on another thread while being able to continue doing platform specific things
  * on the main-thread. The latter is essential for eg. MacOSX, where we continue
  * to run NSApp.run().
  * </p>
- * 
+ *
  * This class provides a startup singleton <i>main thread</i>,
  * from which a new thread with the users main class is launched.<br>
  *
@@ -72,17 +72,17 @@ import jogamp.newt.NEWTJNILibLoader;
  * use a NEWT multithreaded application with window handling within the different threads,
  * even on these restricted platforms.<br>
  *
- * To support your NEWT Window platform, 
+ * To support your NEWT Window platform,
  * you have to pass your <i>main thread</i> actions to {@link #invoke invoke(..)},
- * have a look at the {@link com.jogamp.newt.macosx.MacWindow MacWindow} implementation.<br>
- * <i>TODO</i>: Some hardcoded dependencies exist in this implementation, 
+ * have a look at the {@link jogamp.newt.driver.macosx.WindowDriver NEWT Mac OSX Window} driver implementation.<br>
+ * <i>TODO</i>: Some hardcoded dependencies exist in this implementation,
  * where you have to patch this code or factor it out. <P>
- * 
+ *
  * If your platform is not Mac OS X, but you want to test your code without modifying
  * this class, you have to set the system property <code>newt.MainThread.force</code> to <code>true</code>.<P>
  *
  * The code is compatible with all other platform, which support multithreaded windowing handling.
- * Since those platforms won't trigger the <i>main thread</i> serialization, the main method 
+ * Since those platforms won't trigger the <i>main thread</i> serialization, the main method
  * will be simply executed, in case you haven't set <code>newt.MainThread.force</code> to <code>true</code>.<P>
  *
  * Test case on Mac OS X (or any other platform):
@@ -92,39 +92,39 @@ import jogamp.newt.NEWTJNILibLoader;
  * Which starts 4 threads, each with a window and OpenGL rendering.<br>
  */
 public class MainThread {
-    private static final String MACOSXDisplayClassName = "jogamp.newt.driver.macosx.MacDisplay";
+    private static final String MACOSXDisplayClassName = "jogamp.newt.driver.macosx.DisplayDriver";
     private static final Platform.OSType osType;
     private static final boolean isMacOSX;
     private static final ThreadGroup rootThreadGroup;
-    
+
     /** if true, use the main thread EDT, otherwise AWT's EDT */
     public static final boolean  HINT_USE_MAIN_THREAD;
-    
+
     static {
-        NativeWindowFactory.initSingleton(true);
+        NativeWindowFactory.initSingleton();
         NEWTJNILibLoader.loadNEWT();
-        HINT_USE_MAIN_THREAD = !NativeWindowFactory.isAWTAvailable() || 
+        HINT_USE_MAIN_THREAD = !NativeWindowFactory.isAWTAvailable() ||
                                 Debug.getBooleanProperty("newt.MainThread.force", true);
         osType = Platform.getOSType();
         isMacOSX = osType == Platform.OSType.MACOS;
         rootThreadGroup = getRootThreadGroup();
     }
-    
+
     public static boolean useMainThread = false;
-    
+
     protected static final boolean DEBUG = Debug.debug("MainThread");
 
     private static final MainThread singletonMainThread = new MainThread(); // one singleton MainThread
-    
+
     private static final ThreadGroup getRootThreadGroup() {
         ThreadGroup rootGroup = Thread.currentThread( ).getThreadGroup( );
         ThreadGroup parentGroup;
         while ( ( parentGroup = rootGroup.getParent() ) != null ) {
             rootGroup = parentGroup;
         }
-        return rootGroup;   
+        return rootGroup;
     }
-    
+
     private static final Thread[] getAllThreads(int[] count) {
         int tn;
         Thread[] threads = new Thread[ rootThreadGroup.activeCount() ];
@@ -149,17 +149,17 @@ public class MainThread {
                 t.printStackTrace();
             }
         }
-        return res;        
+        return res;
     }
     private static final int getNonDaemonThreadCount(List<Thread> ignoreThreads) {
         int res = 0;
         int[] tn = { 0 };
         Thread[] threads = getAllThreads(tn);
-        
+
         for(int i = tn[0] - 1; i >= 0; i--) {
             final Thread thread = threads[i];
             try {
-                if(thread.isAlive() && !thread.isDaemon() && !ignoreThreads.contains(thread)) {                    
+                if(thread.isAlive() && !thread.isDaemon() && !ignoreThreads.contains(thread)) {
                     res++;
                     if(DEBUG) System.err.println("MainAction.run(): non daemon thread: "+thread);
                 }
@@ -167,9 +167,9 @@ public class MainThread {
                 t.printStackTrace();
             }
         }
-        return res;        
+        return res;
     }
-    
+
     static class UserApp extends Thread {
         private final String mainClassNameShort;
         private final String mainClassName;
@@ -181,7 +181,7 @@ public class MainThread {
             super();
             this.mainClassName=mainClassName;
             this.mainClassArgs=mainClassArgs;
-            
+
             final Class<?> mainClass = ReflectionUtil.getClass(mainClassName, true, getClass().getClassLoader());
             if(null==mainClass) {
                 throw new ClassNotFoundException("MainAction couldn't find main class "+mainClassName);
@@ -192,7 +192,7 @@ public class MainThread {
 
             setName(getName()+"-UserApp-"+mainClassNameShort);
             setDaemon(false);
-            
+
             if(DEBUG) System.err.println("MainAction(): instantiated: "+getName()+", is daemon "+isDaemon()+", main-class: "+mainClass.getName());
         }
 
@@ -230,32 +230,32 @@ public class MainThread {
                 if(isMacOSX) {
                     try {
                         if(DEBUG) {
-                            System.err.println("MainAction.main(): "+Thread.currentThread()+" MainAction fin - stopNSApp.0"); 
+                            System.err.println("MainAction.main(): "+Thread.currentThread()+" MainAction fin - stopNSApp.0");
                         }
-                        ReflectionUtil.callStaticMethod(MACOSXDisplayClassName, "stopNSApplication", 
+                        ReflectionUtil.callStaticMethod(MACOSXDisplayClassName, "stopNSApplication",
                             null, null, MainThread.class.getClassLoader());
                         if(DEBUG) {
-                            System.err.println("MainAction.main(): "+Thread.currentThread()+" MainAction fin - stopNSApp.X"); 
+                            System.err.println("MainAction.main(): "+Thread.currentThread()+" MainAction fin - stopNSApp.X");
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 } else {
                     if(DEBUG) System.err.println("MainAction.run(): "+Thread.currentThread().getName()+" MainAction fin - System.exit(0)");
-                    System.exit(0);                
-                }   
+                    System.exit(0);
+                }
             }
         }
     }
     private static UserApp mainAction;
 
-    /** Your new java application main entry, which pipelines your application 
-     * @throws ClassNotFoundException 
-     * @throws NoSuchMethodException 
+    /** Your new java application main entry, which pipelines your application
+     * @throws ClassNotFoundException
+     * @throws NoSuchMethodException
      * @throws SecurityException */
     public static void main(String[] args) throws SecurityException, NoSuchMethodException, ClassNotFoundException {
         final Thread cur = Thread.currentThread();
-        
+
         useMainThread = HINT_USE_MAIN_THREAD;
 
         if(DEBUG) {
@@ -268,7 +268,7 @@ public class MainThread {
         if(!useMainThread && !NativeWindowFactory.isAWTAvailable()) {
             throw new RuntimeException("!USE_MAIN_THREAD and no AWT available");
         }
-        
+
         if(args.length==0) {
             return;
         }
@@ -282,7 +282,7 @@ public class MainThread {
         mainAction = new UserApp(mainClassName, mainClassArgs);
 
         if(isMacOSX) {
-            ReflectionUtil.callStaticMethod(MACOSXDisplayClassName, "initSingleton", 
+            ReflectionUtil.callStaticMethod(MACOSXDisplayClassName, "initSingleton",
                 null, null, MainThread.class.getClassLoader());
         }
 
@@ -290,24 +290,24 @@ public class MainThread {
             try {
                 cur.setName(cur.getName()+"-MainThread");
             } catch (Exception e) {}
-            
+
             // dispatch user's main thread ..
             mainAction.start();
-            
+
             if(isMacOSX) {
                 try {
                     if(DEBUG) {
-                        System.err.println("MainThread.main(): "+cur.getName()+"- runNSApp"); 
+                        System.err.println("MainThread.main(): "+cur.getName()+"- runNSApp");
                     }
-                    ReflectionUtil.callStaticMethod(MACOSXDisplayClassName, "runNSApplication", 
+                    ReflectionUtil.callStaticMethod(MACOSXDisplayClassName, "runNSApplication",
                         null, null, MainThread.class.getClassLoader());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }   
-            if(DEBUG) { System.err.println("MainThread - wait until last non daemon thread ends ..."); }            
+            }
+            if(DEBUG) { System.err.println("MainThread - wait until last non daemon thread ends ..."); }
         } else {
-            // run user's main in this thread 
+            // run user's main in this thread
             mainAction.run();
         }
     }

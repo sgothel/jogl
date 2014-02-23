@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -63,14 +63,15 @@ import javax.media.opengl.GLDrawableFactory;
 
 public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
     public static void registerFactory() {
-        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.awt.AWTGraphicsDevice.class, new WindowsAWTWGLGraphicsConfigurationFactory());
+        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.awt.AWTGraphicsDevice.class, GLCapabilitiesImmutable.class, new WindowsAWTWGLGraphicsConfigurationFactory());
     }
-    private WindowsAWTWGLGraphicsConfigurationFactory() {        
+    private WindowsAWTWGLGraphicsConfigurationFactory() {
     }
 
+    @Override
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
             CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
-            CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {
+            CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, int nativeVisualID) {
         GraphicsDevice device = null;
         if (absScreen != null &&
             !(absScreen instanceof AWTGraphicsScreen)) {
@@ -105,16 +106,16 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigu
 
         WindowsGraphicsDevice winDevice = new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
         DefaultGraphicsScreen winScreen = new DefaultGraphicsScreen(winDevice, awtScreen.getIndex());
-        GraphicsConfigurationFactory configFactory = GraphicsConfigurationFactory.getFactory(winDevice);
+        GraphicsConfigurationFactory configFactory = GraphicsConfigurationFactory.getFactory(winDevice, capsChosen);
         WindowsWGLGraphicsConfiguration winConfig = (WindowsWGLGraphicsConfiguration)
                                                        configFactory.chooseGraphicsConfiguration(capsChosen,
                                                                                                  capsRequested,
-                                                                                                 chooser, winScreen);
+                                                                                                 chooser, winScreen, nativeVisualID);
         if (winConfig == null) {
             throw new GLException("Unable to choose a GraphicsConfiguration: "+capsChosen+",\n\t"+chooser+"\n\t"+winScreen);
         }
 
-        GLDrawableFactory drawableFactory = GLDrawableFactory.getFactory(((GLCapabilitiesImmutable)capsChosen).getGLProfile());        
+        GLDrawableFactory drawableFactory = GLDrawableFactory.getFactory(((GLCapabilitiesImmutable)capsChosen).getGLProfile());
         GraphicsConfiguration chosenGC = null;
 
         if ( drawableFactory instanceof WindowsWGLDrawableFactory ) {
@@ -138,7 +139,7 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigu
                 }
                 // go on ..
             }
-    
+
             if( null == chosenGC ) {
                 // 2nd Choice: Choose and match the GL Visual with AWT:
                 //   - collect all AWT PFDs
@@ -147,7 +148,7 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigu
                 // The resulting GraphicsConfiguration has to be 'forced' on the AWT native peer,
                 // ie. returned by GLCanvas's getGraphicsConfiguration() befor call by super.addNotify().
                 //
-    
+
                 // collect all available PFD IDs
                 GraphicsConfiguration[] configs = device.getConfigurations();
                 int[] pfdIDs = new int[configs.length];
@@ -171,11 +172,11 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigu
                         System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: Found matching AWT PFD ID "+winConfig.getPixelFormatID()+" -> "+winConfig);
                     }
                 }
-            }                
+            }
         } else {
             chosenGC = device.getDefaultConfiguration();
         }
-        
+
         if ( null == chosenGC ) {
             throw new GLException("Unable to determine GraphicsConfiguration: "+winConfig);
         }

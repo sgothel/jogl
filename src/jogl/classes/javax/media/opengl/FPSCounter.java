@@ -36,28 +36,28 @@ import java.io.PrintStream;
  */
 public interface FPSCounter {
     public static final int DEFAULT_FRAMES_PER_INTERVAL = 5*60;
-    
+
     /**
-     * @param frames Update interval in frames.<br> At every rendered <i>frames</i> interval the currentTime and fps values are updated. 
+     * @param frames Update interval in frames.<br> At every rendered <i>frames</i> interval the currentTime and fps values are updated.
      *        If the <i>frames</i> interval is <= 0, no update will be issued, ie the FPSCounter feature is turned off. You may choose {@link #DEFAULT_FRAMES_PER_INTERVAL}.
-     * @param out optional print stream where the fps values gets printed if not null at every <i>frames</i> interval 
+     * @param out optional print stream where the fps values gets printed if not null at every <i>frames</i> interval
      */
     void setUpdateFPSFrames(int frames, PrintStream out);
-    
+
     /**
      * Reset all performance counter (startTime, currentTime, frame number)
      */
     void resetFPSCounter();
-    
+
     /**
      * @return update interval in frames
-     * 
+     *
      * @see #setUpdateFPSFrames(int, PrintStream)
      */
     int getUpdateFPSFrames();
-    
+
     /**
-     * Returns the time of the first display call in milliseconds after enabling this feature via {@link #setUpdateFPSFrames(int, PrintStream)}.<br> 
+     * Returns the time of the first display call in milliseconds after enabling this feature via {@link #setUpdateFPSFrames(int, PrintStream)}.<br>
      * This value is reset via {@link #resetFPSCounter()}.
      *
      * @see #setUpdateFPSFrames(int, PrintStream)
@@ -81,18 +81,18 @@ public interface FPSCounter {
      * @see #resetFPSCounter()
      */
     long getLastFPSPeriod();
-    
+
     /**
      * @return Last update interval's frames per seconds, {@link #getUpdateFPSFrames()} / {@link #getLastFPSPeriod()}
-     * 
+     *
      * @see #setUpdateFPSFrames(int, PrintStream)
      * @see #resetFPSCounter()
      */
-    float getLastFPS(); 
-    
+    float getLastFPS();
+
     /**
      * @return Number of frame rendered since {@link #getFPSStartTime()} up to {@link #getLastFPSUpdateTime()}
-     *  
+     *
      * @see #setUpdateFPSFrames(int, PrintStream)
      * @see #resetFPSCounter()
      */
@@ -108,10 +108,10 @@ public interface FPSCounter {
 
 
     /**
-     * @return Total frames per seconds, {@link #getTotalFPSFrames()} / {@link #getTotalFPSDuration()} 
-     * 
+     * @return Total frames per seconds, {@link #getTotalFPSFrames()} / {@link #getTotalFPSDuration()}
+     *
      * @see #setUpdateFPSFrames(int, PrintStream)
      * @see #resetFPSCounter()
      */
-    float getTotalFPS();       
+    float getTotalFPS();
 }

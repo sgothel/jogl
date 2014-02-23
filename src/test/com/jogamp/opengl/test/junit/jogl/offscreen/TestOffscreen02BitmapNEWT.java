@@ -33,14 +33,13 @@ import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
-import com.jogamp.newt.event.MouseListener;
-import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.opengl.GLWindow;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import javax.media.opengl.*;
-import javax.media.nativewindow.*;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquareES1;
@@ -50,6 +49,7 @@ import java.io.IOException;
  * Using ES1 GL demo, since pixmap might not be hw accelerated, 
  * hence it is possible to not have GLSL. 
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestOffscreen02BitmapNEWT extends UITestCase {
     static final int width = 640, height = 480;
 
@@ -119,14 +119,8 @@ public class TestOffscreen02BitmapNEWT extends UITestCase {
         Assert.assertNotNull(glWindow);
         glWindow.setVisible(true);
 
-        WindowListener wl=null;
-        MouseListener ml=null;
-        SurfaceUpdatedListener ul=null;
-
-        GLEventListener demo = new RedSquareES1();
-        Assert.assertNotNull(demo);
-
-        WindowUtilNEWT.run(glWindow, demo, null, wl, ml, ul, 2, true /*snapshot*/, false /*debug*/);
+        WindowUtilNEWT.run(getSimpleTestName("."), glWindow, new RedSquareES1(), null, null, null, null, 
+                           2 /* frames */, true /*snapshot*/, false /*debug*/);
 
         if(null!=glWindow) {
             glWindow.destroy();

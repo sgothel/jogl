@@ -45,12 +45,12 @@ public class Flist {
 
   /**
    * Data elements end index
-   * 
+   *
    */
   public int end;
 
   /**
-   *Data elements start index 
+   *Data elements start index
    */
   public int start;
 
@@ -80,7 +80,7 @@ public class Flist {
   }
 
   /**
-   * Removes duplicate array elemnts 
+   * Removes duplicate array elemnts
    */
   public void filter() {
     // INFO the aim of this method is to remove duplicates from array

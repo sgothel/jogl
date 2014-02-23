@@ -11,6 +11,10 @@
     <string name="activity_gearses1_descr">GearsES1</string>
     <string name="activity_gearses2_name">GearsES2</string>
     <string name="activity_gearses2_descr">GearsES2</string>
+    <string name="activity_gearses2rgb565_name">Gears565</string>
+    <string name="activity_gearses2rgb565_descr">Gears565</string>
+    <string name="activity_gearses2ect_name">GearsECT</string>
+    <string name="activity_gearses2ect_descr">GearsECT</string>
     <string name="activity_gearses2t_name">GearsES2T</string>
     <string name="activity_gearses2t_descr">GearsES2T</string>
     <string name="activity_graphui1p_name">GraphUI1p</string>
@@ -19,12 +23,14 @@
     <string name="activity_graphui2p_descr">GraphUI 2-pass</string>
     <string name="activity_elektro_name">Elektro</string>
     <string name="activity_elektro_descr">Elektro</string>
-    <string name="activity_moviesimple0a_name">MovieSimple0a</string>
     <string name="activity_moviesimple0b_name">MovieSimple0b</string>
+    <string name="activity_moviesimple0c_name">CamSimple0</string>
     <string name="activity_moviesimple1a_name">MovieSimple1a</string>
     <string name="activity_moviesimple1b_name">MovieSimple1b</string>
     <string name="activity_moviesimple2_name">MovieSimple2</string>
     <string name="activity_moviesimple_descr">MovieSimple</string>
     <string name="activity_moviecube0_name">MovieCube0</string>
+    <string name="activity_moviecube1a_name">CamCube0</string>
+    <string name="activity_moviecube1b_name">CamCube1</string>
     <string name="activity_moviecube_descr">MovieCube</string>
 </resources>

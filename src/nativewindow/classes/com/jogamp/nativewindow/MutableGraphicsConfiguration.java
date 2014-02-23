@@ -37,7 +37,14 @@ public class MutableGraphicsConfiguration extends DefaultGraphicsConfiguration {
         super(screen, capsChosen, capsRequested);
     }
 
+    @Override
     public void setChosenCapabilities(CapabilitiesImmutable caps) {
         super.setChosenCapabilities(caps);
     }
+
+    @Override
+    public void setScreen(AbstractGraphicsScreen screen) {
+        super.setScreen(screen);
+    }
+
 }

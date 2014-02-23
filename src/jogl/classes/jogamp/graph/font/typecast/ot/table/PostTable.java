@@ -1,9 +1,9 @@
 /*****************************************************************************
  * Copyright (C) The Apache Software Foundation. All rights reserved.        *
- * ------------------------------------------------------------------------- * 
- * This software is published under the terms of the Apache Software License * 
- * version 1.1, a copy of which has been included with this distribution in  * 
- * the LICENSE file.                                                         * 
+ * ------------------------------------------------------------------------- *
+ * This software is published under the terms of the Apache Software License *
+ * version 1.1, a copy of which has been included with this distribution in  *
+ * the LICENSE file.                                                         *
  *****************************************************************************/
 
 package jogamp.graph.font.typecast.ot.table;
@@ -294,7 +294,7 @@ public class PostTable implements Table {
     private int maxMemType42;
     private int minMemType1;
     private int maxMemType1;
-    
+
     // v2
     private int numGlyphs;
     private int[] glyphNameIndex;
@@ -312,7 +312,7 @@ public class PostTable implements Table {
         maxMemType42 = di.readInt();
         minMemType1 = di.readInt();
         maxMemType1 = di.readInt();
-        
+
         if (version == 0x00020000) {
             numGlyphs = di.readUnsignedShort();
             glyphNameIndex = new int[numGlyphs];
@@ -366,14 +366,16 @@ public class PostTable implements Table {
             return false;
         }
     }
-    
+
     /** Get the table type, as a table directory value.
      * @return The table type
      */
+    @Override
     public int getType() {
         return post;
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("'post' Table - PostScript Metrics\n---------------------------------\n")
@@ -409,15 +411,16 @@ public class PostTable implements Table {
         }
         return sb.toString();
     }
-    
+
     /**
      * Get a directory entry for this table.  This uniquely identifies the
      * table in collections where there may be more than one instance of a
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return de;
     }
-    
+
 }

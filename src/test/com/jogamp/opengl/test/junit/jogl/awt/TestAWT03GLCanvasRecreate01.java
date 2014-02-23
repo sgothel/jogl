@@ -46,8 +46,11 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestAWT03GLCanvasRecreate01 extends UITestCase {
     static long durationPerTest = 1000; // ms
 
@@ -139,7 +142,7 @@ public class TestAWT03GLCanvasRecreate01 extends UITestCase {
     }
 
     private void setVisible(final Frame frame, final boolean v) {
-            try {
+        try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     frame.setVisible(v);

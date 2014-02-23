@@ -33,49 +33,70 @@ import com.jogamp.common.type.WriteCloneable;
 /**
  * Specifies an immutable set of capabilities that a window's rendering context
  * must support, such as color depth per channel.
- * 
+ *
  * @see javax.media.nativewindow.Capabilities
  */
-public interface CapabilitiesImmutable extends VisualIDHolder, WriteCloneable {
+public interface CapabilitiesImmutable extends VisualIDHolder, WriteCloneable, Comparable<CapabilitiesImmutable> {
 
     /**
-     * Returns the number of bits requested for the color buffer's red
+     * Returns the number of bits for the color buffer's red
      * component. On some systems only the color depth, which is the sum of the
      * red, green, and blue bits, is considered.
      */
     int getRedBits();
 
     /**
-     * Returns the number of bits requested for the color buffer's green
+     * Returns the number of bits for the color buffer's green
      * component. On some systems only the color depth, which is the sum of the
      * red, green, and blue bits, is considered.
      */
     int getGreenBits();
 
     /**
-     * Returns the number of bits requested for the color buffer's blue
+     * Returns the number of bits for the color buffer's blue
      * component. On some systems only the color depth, which is the sum of the
      * red, green, and blue bits, is considered.
      */
     int getBlueBits();
 
     /**
-     * Returns the number of bits requested for the color buffer's alpha
+     * Returns the number of bits for the color buffer's alpha
      * component. On some systems only the color depth, which is the sum of the
      * red, green, and blue bits, is considered.
      */
     int getAlphaBits();
 
     /**
-     * Indicates whether the background of this OpenGL context should be
-     * considered opaque. Defaults to true.
+     * Returns whether an opaque or translucent surface is requested, supported or chosen.
+     * <p>
+     * Default is true, i.e. opaque.
+     * </p>
      */
     boolean isBackgroundOpaque();
 
     /**
-     * Indicates whether the drawable surface is onscreen. Defaults to true.
+     * Returns whether an on- or offscreen surface is requested, available or chosen.
+     * <p>
+     * Default is true, i.e. onscreen.
+     * </p>
+     * <p>
+     * Mind that an capabilities intance w/ <i>available</i> semantics
+     * may show onscreen, but also the offscreen modes FBO, Pbuffer or {@link #setBitmap(boolean) bitmap}.
+     * This is valid, since one native configuration maybe used for either functionality.
+     * </p>
      */
     boolean isOnscreen();
+
+    /**
+     * Returns whether bitmap offscreen mode is requested, available or chosen.
+     * <p>
+     * Default is false.
+     * </p>
+     * <p>
+     * For chosen capabilities, only the selected offscreen surface is set to <code>true</code>.
+     * </p>
+     */
+    boolean isBitmap();
 
     /**
      * Gets the transparent red value for the frame buffer configuration. This
@@ -109,7 +130,7 @@ public interface CapabilitiesImmutable extends VisualIDHolder, WriteCloneable {
     @Override
     int hashCode();
 
-    /** Return a textual representation of this object. Use the given StringBuffer [optional]. */
+    /** Return a textual representation of this object. Use the given StringBuilder [optional]. */
     StringBuilder toString(StringBuilder sink);
 
     /** Returns a textual representation of this object. */

@@ -45,9 +45,11 @@
 
 #include <X11/extensions/Xrandr.h>
 
-#include "jogamp_newt_driver_x11_X11Screen.h"
-#include "jogamp_newt_driver_x11_X11Display.h"
-#include "jogamp_newt_driver_x11_X11Window.h"
+#include "jogamp_newt_driver_x11_DisplayDriver.h"
+#include "jogamp_newt_driver_x11_ScreenDriver.h"
+#include "jogamp_newt_driver_x11_RandR11.h"
+#include "jogamp_newt_driver_x11_RandR13.h"
+#include "jogamp_newt_driver_x11_WindowDriver.h"
 
 #include "Window.h"
 #include "MouseEvent.h"
@@ -72,7 +74,6 @@ extern jmethodID visibleChangedID;
 
 jobject getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlong javaObjectAtom, Bool showWarning);
 
-void NewtDisplay_displayDispatchErrorHandlerEnable(int onoff, JNIEnv * env);
 Status NewtWindows_getRootAndParent (Display *dpy, Window w, Window * root_return, Window * parent_return);
 Status NewtWindows_updateInsets(JNIEnv *env, jobject jwindow, Display *dpy, Window window, int *left, int *right, int *top, int *bottom);
 

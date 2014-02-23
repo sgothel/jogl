@@ -45,7 +45,10 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestTranslucencyNEWT extends UITestCase {
     static GLProfile glp;
     static int width, height;
@@ -85,7 +88,10 @@ public class TestTranslucencyNEWT extends UITestCase {
 
         final GLWindow f_glWindow = glWindow;
         glWindow.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
+            public void keyReleased(KeyEvent e) {
+                if( !e.isPrintableKey() || e.isAutoRepeat() ) {
+                    return;
+                }            
                 if(e.getKeyChar()=='f') {
                     new Thread() {
                         public void run() {

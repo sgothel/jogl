@@ -1,10 +1,11 @@
 // Copyright (C) 2011 JogAmp Community. All rights reserved.
 // Details see GearsES2.java
 
-#ifdef GL_ES
-  precision mediump float;
-  precision mediump int;
+#if __VERSION__ >= 130
+  #define attribute in
+  #define varying out
 #endif
+
 uniform mat4 pmvMatrix[4]; // P, Mv, Mvi and Mvit
 uniform vec3 lightPos;
 

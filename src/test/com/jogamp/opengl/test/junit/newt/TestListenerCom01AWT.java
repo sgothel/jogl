@@ -31,6 +31,8 @@ package com.jogamp.opengl.test.junit.newt;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import java.awt.Frame;
 
@@ -47,6 +49,7 @@ import java.lang.reflect.InvocationTargetException;
 import com.jogamp.opengl.test.junit.util.*;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestListenerCom01AWT extends UITestCase {
     static int width, height;
     static long durationPerTest = 500;

@@ -42,7 +42,8 @@ import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
@@ -50,6 +51,7 @@ import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLDebug00NEWT extends UITestCase {
     
     static String dbgTstMsg0 = "Hello World";
@@ -144,9 +146,9 @@ public class TestGLDebug00NEWT extends UITestCase {
         WindowContext winctx = createWindow(glp, true);
         
         MyGLDebugListener myGLDebugListener = new MyGLDebugListener(
-                GL2GL3.GL_DEBUG_SOURCE_API_ARB,
-                GL2GL3.GL_DEBUG_TYPE_ERROR_ARB,
-                GL2GL3.GL_DEBUG_SEVERITY_HIGH_ARB);
+                GL2GL3.GL_DEBUG_SOURCE_API,
+                GL2GL3.GL_DEBUG_TYPE_ERROR,
+                GL2GL3.GL_DEBUG_SEVERITY_HIGH);
         winctx.context.addGLDebugListener(myGLDebugListener);
         
         GL gl = winctx.context.getGL();
@@ -171,10 +173,10 @@ public class TestGLDebug00NEWT extends UITestCase {
         Assert.assertEquals((null == glDebugExt) ? false : true, winctx.context.isGLDebugMessageEnabled());
         
         if( winctx.context.isGLDebugMessageEnabled() ) {
-            winctx.context.glDebugMessageInsert(GL2GL3.GL_DEBUG_SOURCE_APPLICATION_ARB, 
-                                                GL2GL3.GL_DEBUG_TYPE_OTHER_ARB,
+            winctx.context.glDebugMessageInsert(GL2GL3.GL_DEBUG_SOURCE_APPLICATION, 
+                                                GL2GL3.GL_DEBUG_TYPE_OTHER,
                                                 dbgTstId0, 
-                                                GL2GL3.GL_DEBUG_SEVERITY_MEDIUM_ARB, dbgTstMsg0);
+                                                GL2GL3.GL_DEBUG_SEVERITY_MEDIUM, dbgTstMsg0);
             Assert.assertEquals(true, myGLDebugListener.received());
         }                
         

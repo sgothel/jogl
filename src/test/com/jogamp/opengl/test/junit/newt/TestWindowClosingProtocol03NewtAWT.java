@@ -31,6 +31,8 @@ package com.jogamp.opengl.test.junit.newt;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 import org.junit.Assert;
 
 import java.lang.reflect.InvocationTargetException;
@@ -46,17 +48,20 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil.WindowClosingListener;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestWindowClosingProtocol03NewtAWT extends UITestCase {
 
     @Test
     public void testCloseJFrameNewtCanvasAWT() throws InterruptedException, InvocationTargetException {
         final JFrame frame = new JFrame("testCloseJFrameNewtCanvasAWT");
-
+        final WindowClosingListener awtClosingListener = AWTRobotUtil.addClosingListener(frame);
+        
         GLProfile glp = GLProfile.getGL2ES2();
         GLCapabilities caps = new GLCapabilities(glp);
         final GLWindow glWindow = GLWindow.create(caps);
-        final AWTRobotUtil.WindowClosingListener windowClosingListener = AWTRobotUtil.addClosingListener(glWindow);
+        final AWTRobotUtil.WindowClosingListener newtClosingListener = AWTRobotUtil.addClosingListener(glWindow);
 
         glWindow.addGLEventListener(new GearsES2());
 
@@ -81,42 +86,60 @@ public class TestWindowClosingProtocol03NewtAWT extends UITestCase {
         //
         // close with op: DO_NOTHING_ON_CLOSE -> NOP / HIDE (default)
         //
-        Assert.assertEquals(JFrame.HIDE_ON_CLOSE, frame.getDefaultCloseOperation());
-        WindowClosingMode op = newtCanvas.getDefaultCloseOperation();
-        Assert.assertEquals(WindowClosingMode.DO_NOTHING_ON_CLOSE, op);
+        {
+            Assert.assertEquals(JFrame.HIDE_ON_CLOSE, frame.getDefaultCloseOperation());
+            WindowClosingMode op = newtCanvas.getDefaultCloseOperation();
+            Assert.assertEquals(WindowClosingMode.DO_NOTHING_ON_CLOSE, op);
+        }
 
-        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, false));
+        Thread.sleep(300);
+        
+        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, false, awtClosingListener)); // hide
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, false)); // hide -> invisible        
         Assert.assertEquals(true,  frame.isDisplayable());
         Assert.assertEquals(false, frame.isVisible());
         Assert.assertEquals(true,  newtCanvas.isValid());
         Assert.assertEquals(true,  newtCanvas.isDisplayable());
         Assert.assertEquals(true,  glWindow.isNativeValid());
-        Assert.assertEquals(true,  windowClosingListener.isWindowClosing());
-        windowClosingListener.reset();
+        Assert.assertEquals(true,  awtClosingListener.isWindowClosing());
+        Assert.assertEquals(false, awtClosingListener.isWindowClosed());
+        Assert.assertEquals(true,  newtClosingListener.isWindowClosing());
+        Assert.assertEquals(false, newtClosingListener.isWindowClosed());
+        awtClosingListener.reset();
+        newtClosingListener.reset();
 
         SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 frame.setVisible(true);
             } });
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, true));
         Assert.assertEquals(true,  frame.isDisplayable());
         Assert.assertEquals(true,  frame.isVisible());
         
         //
         // close with op (JFrame): DISPOSE_ON_CLOSE -- newtCanvas -- glWindow --> dispose
         //
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        Assert.assertEquals(JFrame.DISPOSE_ON_CLOSE, frame.getDefaultCloseOperation());
-        op = newtCanvas.getDefaultCloseOperation();
-        Assert.assertEquals(WindowClosingMode.DISPOSE_ON_CLOSE, op);
+        {
+            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            Assert.assertEquals(JFrame.DISPOSE_ON_CLOSE, frame.getDefaultCloseOperation());
+            WindowClosingMode op = newtCanvas.getDefaultCloseOperation();
+            Assert.assertEquals(WindowClosingMode.DISPOSE_ON_CLOSE, op);
+        }
+        
+        Thread.sleep(300);
 
-        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, true));
+        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, true, awtClosingListener));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false));
         Assert.assertEquals(false, frame.isDisplayable());
         Assert.assertEquals(false, frame.isVisible());
         Assert.assertEquals(false, newtCanvas.isValid());
         Assert.assertEquals(false, newtCanvas.isDisplayable());
         Assert.assertEquals(false, glWindow.isNativeValid());
-        Assert.assertEquals(true,  windowClosingListener.isWindowClosing());
+        Assert.assertEquals(true,  awtClosingListener.isWindowClosing());
+        Assert.assertEquals(true,  awtClosingListener.isWindowClosed());
+        Assert.assertEquals(true,  newtClosingListener.isWindowClosing());
+        Assert.assertEquals(true,  newtClosingListener.isWindowClosed());
     }
 
     public static void main(String[] args) {

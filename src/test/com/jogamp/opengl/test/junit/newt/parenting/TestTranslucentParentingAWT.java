@@ -49,6 +49,8 @@ import javax.media.opengl.GLEventListener;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.newt.Window;
@@ -59,6 +61,7 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestTranslucentParentingAWT extends UITestCase {
     static Dimension size;
     static long durationPerTest = 400;
@@ -69,7 +72,6 @@ public class TestTranslucentParentingAWT extends UITestCase {
     public static void initClass() {
         size = new Dimension(400,200);
         glCaps = new GLCapabilities(null);
-        glCaps.setAlphaBits(8);
         glCaps.setBackgroundOpaque(false);
     }
 
@@ -138,10 +140,10 @@ public class TestTranslucentParentingAWT extends UITestCase {
         frame1.setLayout(new BorderLayout());
         frame1.add(cont1, BorderLayout.EAST);
         frame1.add(new Label("center"), BorderLayout.CENTER);
-        frame1.setLocation(0, 0);
-        frame1.setSize((int)size.getWidth(), (int)size.getHeight());
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
+                frame1.setLocation(0, 0);
+                frame1.setSize((int)size.getWidth(), (int)size.getHeight());
                 frame1.pack();
                 frame1.setVisible(true);
             }});
@@ -158,7 +160,10 @@ public class TestTranslucentParentingAWT extends UITestCase {
         Assert.assertEquals(false, animator1.isPaused());
         Assert.assertEquals(null, animator1.getThread());
 
-        frame1.dispose();
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                frame1.dispose();
+            } } );
         glWindow1.destroy();
     }
 
@@ -175,20 +180,12 @@ public class TestTranslucentParentingAWT extends UITestCase {
         }
     }
 
-    static int atoi(String a) {
-        int i=0;
-        try {
-            i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
-        return i;
-    }
-
     public static void main(String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
-                durationPerTest = atoi(args[++i]);
+                durationPerTest = MiscUtils.atol(args[++i], durationPerTest);
             } else if(args[i].equals("-wait")) {
-                waitAdd2nd = atoi(args[++i]);
+                waitAdd2nd = MiscUtils.atol(args[++i], waitAdd2nd);
             }
         }
         String tstname = TestTranslucentParentingAWT.class.getName();

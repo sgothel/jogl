@@ -30,19 +30,30 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.io.IOException;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestMainVersionGLWindowNEWT extends UITestCase {
+    private static String[] args = null;
 
     @Test
     public void testMain() throws InterruptedException {
-        GLWindow.main(null);
+        JoglVersion j = JoglVersion.getInstance();
+        System.out.println("Implementation-Version: "+j.getImplementationVersion());
+        System.out.println("Implementation-Build: "+j.getImplementationBuild());
+        System.out.println("Implementation-Branch: "+j.getImplementationBranch());
+        System.out.println("Implementation-Commit: "+j.getImplementationCommit());
+        GLWindow.main(args);
     }
 
 
-    public static void main(String args[]) throws IOException {
+    public static void main(String[] args) throws IOException {
+        TestMainVersionGLWindowNEWT.args = args;
         String tstname = TestMainVersionGLWindowNEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }

@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,18 +20,20 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 
 package com.jogamp.opengl.test.junit.newt.parenting;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import javax.media.opengl.*;
 import javax.media.nativewindow.*;
@@ -48,6 +50,7 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 // import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquareES1;
 // import com.jogamp.opengl.test.junit.jogl.demos.es1.GearsES1;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestParenting02NEWT extends UITestCase {
     static int width, height;
     static long durationPerTest = 500;
@@ -89,7 +92,7 @@ public class TestParenting02NEWT extends UITestCase {
     }
 
     @Test
-    public void testWindowParenting01NewtOnNewtParentChildDraw() throws InterruptedException {
+    public void test01NewtOnNewtParentChildDraw() throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(null);
         Assert.assertNotNull(caps);
         Display display = NewtFactory.createDisplay(null); // local display
@@ -109,10 +112,10 @@ public class TestParenting02NEWT extends UITestCase {
         glWindow1.setSize(width, height);
         Assert.assertEquals(width,glWindow1.getWidth());
         Assert.assertEquals(height,glWindow1.getHeight());
-        glWindow1.setTitle("testWindowParenting01NewtOnNewtParentChildDraw - PARENT");
+        glWindow1.setTitle("test01NewtOnNewtParentChildDraw - PARENT");
         glWindow1.setPosition(x,y);
-        glWindow1.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
-        glWindow1.addWindowListener(new TraceWindowAdapter());
+        //glWindow1.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
+        //glWindow1.addWindowListener(new TraceWindowAdapter());
 
         GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, window1, glWindow1, false);
@@ -130,10 +133,10 @@ public class TestParenting02NEWT extends UITestCase {
         glWindow2.setSize(width/2, height/2);
         //Assert.assertEquals(width/2,glWindow2.getWidth());
         //Assert.assertEquals(height/2,glWindow2.getHeight());
-        glWindow2.setTitle("testWindowParenting01NewtOnNewtParentChildDraw - CHILD");
+        glWindow2.setTitle("test01NewtOnNewtParentChildDraw - CHILD");
         glWindow2.setPosition(glWindow1.getWidth()/2, glWindow1.getHeight()/2);
-        glWindow2.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
-        glWindow2.addWindowListener(new TraceWindowAdapter(new WindowAction(eventFifo)));
+        //glWindow2.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
+        //glWindow2.addWindowListener(new TraceWindowAdapter(new WindowAction(eventFifo)));
         // glWindow2.addMouseListener(new TraceMouseAdapter());
 
         GLEventListener demo2 = new GearsES2();
@@ -163,7 +166,7 @@ public class TestParenting02NEWT extends UITestCase {
             glWindow2.setPosition(glWindow1.getWidth()/2,glWindow1.getHeight()/2-y);
             Thread.sleep(step);
 
-            while( null != ( event = (NEWTEvent) eventFifo.get() ) ) {
+            while( null != ( event = eventFifo.get() ) ) {
                 Window source = (Window) event.getSource();
                 if(WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY == event.getEventType()) {
                     shouldQuit = true;
@@ -177,7 +180,7 @@ public class TestParenting02NEWT extends UITestCase {
                             source.setFullscreen(!source.isFullscreen());
                             break;
                     }
-                } 
+                }
             }
         }
         destroyWindow(null, null, window2, glWindow2);

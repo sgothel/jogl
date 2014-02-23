@@ -40,61 +40,38 @@ import java.awt.Frame;
 
 import org.junit.Assert;
 import org.junit.Assume;
-import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.After;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestAWT01GLn extends UITestCase {
-    Frame frame=null;
-    GLCanvas glCanvas=null;
-
     @BeforeClass
     public static void startup() {
         System.out.println("GLProfile "+GLProfile.glAvailabilityToString());
     }
 
-    @Before
-    public void init() {
-        frame = new Frame("Texture Test");
-        Assert.assertNotNull(frame);
-    }
-
-    @After
-    public void release() {
-        Assert.assertNotNull(frame);
-        Assert.assertNotNull(glCanvas);
-        try {
-            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-                public void run() {
-                    frame.setVisible(false);
-                    frame.remove(glCanvas);
-                    frame.dispose();
-                }});
-        } catch (Throwable t) {
-            t.printStackTrace();
-            Assume.assumeNoException(t);
-        }
-        frame=null;
-        glCanvas=null;
-    }
-
     protected void runTestGL(GLCapabilities caps) throws InterruptedException {
-        glCanvas = new GLCanvas(caps);
+        final Frame frame = new Frame("Texture Test");
+        Assert.assertNotNull(frame);
+        
+        final GLCanvas glCanvas = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas);
+        
         glCanvas.addGLEventListener(new GearsES2());
         frame.add(glCanvas);
 
-        // Revalidate size/layout.
-        // Always validate if component added/removed.
-        // Ensure 1st paint of GLCanvas will have a valid size, hence drawable gets created.
-        frame.setSize(512, 512);
-        frame.validate();
-
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
+                    // Revalidate size/layout.
+                    // Always validate if component added/removed.
+                    // Ensure 1st paint of GLCanvas will have a valid size, hence drawable gets created.
+                    frame.setSize(512, 512);
+                    frame.validate();
+            
                     frame.setVisible(true);
                 }});
         } catch (Throwable t) {
@@ -110,6 +87,18 @@ public class TestAWT01GLn extends UITestCase {
         Thread.sleep(500); // 500 ms
 
         animator.stop();
+        
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.setVisible(false);
+                    frame.remove(glCanvas);
+                    frame.dispose();
+                }});
+        } catch (Throwable t) {
+            t.printStackTrace();
+            Assume.assumeNoException(t);
+        }
     }
 
     @Test
@@ -136,6 +125,18 @@ public class TestAWT01GLn extends UITestCase {
         }
     }
 
+    @Test
+    public void test02ES2() throws InterruptedException {
+        if(GLProfile.isAvailable(GLProfile.GLES2)) {
+            GLProfile glprofile = GLProfile.get(GLProfile.GLES2);
+            System.out.println( "GLProfile GLES2: " + glprofile );
+            GLCapabilities caps = new GLCapabilities(glprofile);
+            runTestGL(caps);
+        } else {
+            System.out.println("GLES2 n/a");
+        }
+    }
+    
     public static void main(String args[]) {
         org.junit.runner.JUnitCore.main(TestAWT01GLn.class.getName());
     }

@@ -3,6 +3,9 @@ package javax.media.opengl;
 
 import java.nio.*;
 
+import com.jogamp.common.nio.Buffers;
+import com.jogamp.opengl.math.FloatUtil;
+
 public class GLUniformData {
 
     /**
@@ -69,14 +72,34 @@ public class GLUniformData {
     public IntBuffer intBufferValue()   { return (IntBuffer)data; };
     public FloatBuffer floatBufferValue() { return (FloatBuffer)data; };
 
+    public StringBuilder toString(StringBuilder sb) {
+      if(null == sb) {
+          sb = new StringBuilder();
+      }
+      sb.append("GLUniformData[name ").append(name).
+                       append(", location ").append(location).
+                       append(", size ").append(rows).append("x").append(columns).
+                       append(", count ").append(count).
+                       append(", data ");
+      if(isMatrix() && data instanceof FloatBuffer) {
+          sb.append("\n");
+          final FloatBuffer fb = (FloatBuffer)getBuffer();
+          for(int i=0; i<count; i++) {
+              FloatUtil.matrixToString(sb, i+": ", "%10.5f", fb, i*rows*columns, rows, columns, false);
+              sb.append(",\n");
+          }
+      } else if(isBuffer()) {
+          Buffers.toString(sb, null, getBuffer());
+      } else {
+          sb.append(data);
+      }
+      sb.append("]");
+      return sb;
+    }
+
+    @Override
     public String toString() {
-      return "GLUniformData[name "+name+
-                       ", location "+location+ 
-                       ", size "+rows+"*"+columns+
-                       ", count "+count+ 
-                       ", matrix "+isMatrix+ 
-                       ", data "+data+ 
-                       "]";
+        return toString(null).toString();
     }
 
     private void init(String name, int rows, int columns, Object data) {
@@ -125,9 +148,25 @@ public class GLUniformData {
     public int getLocation() { return location; }
 
     /**
-     * Sets the determined location of the shader uniform.
+     * Sets the given location of the shader uniform.
+     * @return the given location
      */
-    public GLUniformData setLocation(int location) { this.location=location; return this; }
+    public int setLocation(int location) { this.location=location; return location; }
+
+    /**
+     * Retrieves the location of the shader uniform from the linked shader program.
+     * <p>
+     * No validation is performed within the implementation.
+     * </p>
+     * @param gl
+     * @param program
+     * @return &ge;0 denotes a valid uniform location as found and used in the given shader program.
+     *         &lt;0 denotes an invalid location, i.e. not found or used in the given shader program.
+     */
+    public int setLocation(GL2ES2 gl, int program) {
+        location = gl.glGetUniformLocation(program, name);
+        return location;
+    }
 
     public Object getObject() {
         return data;

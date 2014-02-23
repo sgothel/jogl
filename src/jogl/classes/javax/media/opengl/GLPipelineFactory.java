@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,7 +28,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
@@ -49,10 +49,25 @@ import jogamp.opengl.*;
 public class GLPipelineFactory {
     public static final boolean DEBUG = Debug.debug("GLPipelineFactory");
 
-    /** 
+    /**
      * Creates a pipelined GL instance using the given downstream <code>downstream</code>
-     * and optional arguments <code>additionalArgs</code> for the constructor.<br>
+     * and optional arguments <code>additionalArgs</code> for the constructor.
      *
+     * <p>
+     * Sample code which installs a Debug and Trace pipeline
+     * automatic w/ user defined interface, here: GL2ES2:
+     * <pre>
+     *     gl = drawable.setGL( GLPipelineFactory.create("javax.media.opengl.Debug", GL2ES2.class, gl, null) );
+     *     gl = drawable.setGL( GLPipelineFactory.create("javax.media.opengl.Trace", GL2ES2.class, gl, new Object[] { System.err } ) );
+     * </pre>
+     * or automatic w/ automatic defined class:
+     * <pre>
+     *     gl = drawable.setGL( GLPipelineFactory.create("javax.media.opengl.Debug",         null, gl, null) );
+     *     gl = drawable.setGL( GLPipelineFactory.create("javax.media.opengl.Trace",         null, gl, new Object[] { System.err } ) );
+     * </pre>
+     * </p>
+     *
+     * <p>
      * The upstream GL instance is determined as follows:
      * <ul>
      *   <li> Use <code>pipelineClazzBaseName</code> as the class name's full basename, incl. package name</li>
@@ -61,11 +76,12 @@ public class GLPipelineFactory {
      *      <li> For all <code>downstream</code> class and superclass interfaces, do:</li>
      *      <ul>
      *        <li> If <code>reqInterface</code> is not null and the interface is unequal, continue loop.</li>
-     *        <li> If <code>downstream</code> is not instance of interface, continue loop.</li> 
+     *        <li> If <code>downstream</code> is not instance of interface, continue loop.</li>
      *        <li> If upstream class is available use it, end loop.</li>
      *      </ul>
      *   </ul>
-     * </ul><br>
+     * </ul>
+     * </p>
      *
      * @param pipelineClazzBaseName the basename of the pipline class name
      * @param reqInterface optional requested interface to be used, may be null, in which case the first matching one is used
@@ -100,7 +116,7 @@ public class GLPipelineFactory {
                     if(DEBUG) {
                         System.out.println("GLPipelineFactory: "+downstream.getClass().getName() + " is _not_ instance of "+ clazzes[i].getName());
                     }
-                    continue; // not a compatible one 
+                    continue; // not a compatible one
                 } else {
                     if(DEBUG) {
                         System.out.println("GLPipelineFactory: "+downstream.getClass().getName() + " _is_ instance of "+ clazzes[i].getName());
@@ -137,7 +153,7 @@ public class GLPipelineFactory {
         // throws exception if cstr not found!
         Constructor<?> cstr = ReflectionUtil.getConstructor(upstreamClazz, cstrArgTypes);
         Object instance = null;
-        try { 
+        try {
             Object[] cstrArgs = new Object[ 1 + ( ( null==additionalArgs ) ? 0 : additionalArgs.length ) ] ;
             {
                 int i = 0;

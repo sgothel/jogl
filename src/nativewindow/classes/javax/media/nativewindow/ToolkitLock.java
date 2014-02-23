@@ -33,12 +33,46 @@ import jogamp.nativewindow.Debug;
 /**
  * Marker for a singleton global recursive blocking lock implementation,
  * optionally locking a native windowing toolkit as well.
- * <br>
- * One use case is the AWT locking on X11, see {@link jogamp.nativewindow.jawt.JAWTToolkitLock}.
+ * <p>
+ * Toolkit locks are created solely via {@link NativeWindowFactory}.
+ * </p>
+ * <p>
+ * One use case is the AWT locking on X11, see {@link NativeWindowFactory#getDefaultToolkitLock(String, long)}.
+ * </p>
  */
 public interface ToolkitLock {
+    public static final boolean DEBUG = Debug.debug("ToolkitLock");
     public static final boolean TRACE_LOCK = Debug.isPropertyDefined("nativewindow.debug.ToolkitLock.TraceLock", true);
 
+    /**
+     * Blocking until the lock is acquired by this Thread or a timeout is reached.
+     * <p>
+     * Timeout is implementation specific, if used at all.
+     * </p>
+     *
+     * @throws RuntimeException in case of a timeout
+     */
     public void lock();
+
+    /**
+     * Release the lock.
+     *
+     * @throws RuntimeException in case the lock is not acquired by this thread.
+     */
     public void unlock();
+
+    /**
+     * @throws RuntimeException if current thread does not hold the lock
+     */
+    public void validateLocked() throws RuntimeException;
+
+    /**
+     * Dispose this instance.
+     * <p>
+     * Shall be called when instance is no more required.
+     * </p>
+     * This allows implementations sharing a lock via resources
+     * to decrease the reference counter.
+     */
+    public void dispose();
 }

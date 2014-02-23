@@ -71,10 +71,12 @@ public class CmapFormat0 extends CmapFormat {
         }
     }
 
+    @Override
     public int getRangeCount() {
         return 1;
     }
-    
+
+    @Override
     public Range getRange(int index) throws ArrayIndexOutOfBoundsException {
         if (index != 0) {
             throw new ArrayIndexOutOfBoundsException();
@@ -82,6 +84,7 @@ public class CmapFormat0 extends CmapFormat {
         return new Range(0, 255);
     }
 
+    @Override
     public int mapCharCode(int charCode) {
         if (0 <= charCode && charCode < 256) {
             return _glyphIdArray[charCode];

@@ -6,15 +6,15 @@
 ** this file except in compliance with the License. You may obtain a copy
 ** of the License at Silicon Graphics, Inc., attn: Legal Services, 1600
 ** Amphitheatre Parkway, Mountain View, CA 94043-1351, or at:
-** 
+**
 ** http://oss.sgi.com/projects/FreeB
-** 
+**
 ** Note that, as provided in the License, the Software is distributed on an
 ** "AS IS" basis, with ALL EXPRESS AND IMPLIED WARRANTIES AND CONDITIONS
 ** DISCLAIMED, INCLUDING, WITHOUT LIMITATION, ANY IMPLIED WARRANTIES AND
 ** CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY, FITNESS FOR A
 ** PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
-** 
+**
 ** NOTE:  The Original Code (as defined below) has been licensed to Sun
 ** Microsystems, Inc. ("Sun") under the SGI Free Software License B
 ** (Version 1.1), shown above ("SGI License").   Pursuant to Section
@@ -30,7 +30,7 @@
 ** Inc. The Original Code is Copyright (c) 1991-2000 Silicon Graphics, Inc.
 ** Copyright in any portions created by third parties is as indicated
 ** elsewhere herein. All Rights Reserved.
-** 
+**
 ** Additional Notice Provisions: The application programming interfaces
 ** established by SGI in conjunction with the Original Code are The
 ** OpenGL(R) Graphics System: A Specification (Version 1.2.1), released
@@ -45,56 +45,56 @@
 ** $Header$
 */
 
-/* 
+/*
  * Copyright (c) 2002-2004 LWJGL Project
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are 
+ * modification, are permitted provided that the following conditions are
  * met:
- * 
- * * Redistributions of source code must retain the above copyright 
+ *
+ * * Redistributions of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
  *
  * * Redistributions in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
  *
- * * Neither the name of 'LWJGL' nor the names of 
- *   its contributors may be used to endorse or promote products derived 
+ * * Neither the name of 'LWJGL' nor the names of
+ *   its contributors may be used to endorse or promote products derived
  *   from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
  * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
  * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -107,7 +107,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
@@ -115,15 +115,17 @@
 
 package jogamp.opengl.glu;
 
-import javax.media.opengl.*;
-import javax.media.opengl.glu.*;
+import javax.media.opengl.GL;
+import javax.media.opengl.glu.GLU;
+import javax.media.opengl.glu.GLUquadric;
+
 import com.jogamp.opengl.util.ImmModeSink;
-import java.nio.*;
+import com.jogamp.opengl.util.glsl.ShaderState;
 
 /**
  * GLUquadricImpl.java
- * 
- * 
+ *
+ *
  * Created 22-dec-2003 (originally Quadric.java)
  * @author Erik Duijs
  * @author Kenneth Russell, Sven Gothel
@@ -139,25 +141,30 @@ public class GLUquadricImpl implements GLUquadric {
   private boolean immModeSinkImmediate;
   public int normalType;
   public GL gl;
+  public ShaderState shaderState;
+  public int shaderProgram;
 
   public static final boolean USE_NORM = true;
   public static final boolean USE_TEXT = false;
 
   private ImmModeSink immModeSink=null;
 
-  public GLUquadricImpl(GL gl, boolean useGLSL) {
+  public GLUquadricImpl(GL gl, boolean useGLSL, ShaderState st, int shaderProgram) {
     this.gl=gl;
     this.useGLSL = useGLSL;
-    drawStyle = GLU.GLU_FILL;
-    orientation = GLU.GLU_OUTSIDE;
-    textureFlag = false;
-    normals = GLU.GLU_SMOOTH;
-    normalType = gl.isGLES1()?GL.GL_BYTE:GL.GL_FLOAT;
-    immModeSinkImmediate=true;
-    immModeSinkEnabled=!gl.isGL2();
+    this.drawStyle = GLU.GLU_FILL;
+    this.orientation = GLU.GLU_OUTSIDE;
+    this.textureFlag = false;
+    this.normals = GLU.GLU_SMOOTH;
+    this.normalType = gl.isGLES1()?GL.GL_BYTE:GL.GL_FLOAT;
+    this.immModeSinkImmediate=true;
+    this.immModeSinkEnabled=!gl.isGL2();
+    this.shaderState = st;
+    this.shaderProgram = shaderProgram;
     replaceImmModeSink();
   }
 
+  @Override
   public void enableImmModeSink(boolean val) {
     if(gl.isGL2()) {
         immModeSinkEnabled=val;
@@ -169,10 +176,12 @@ public class GLUquadricImpl implements GLUquadric {
     }
   }
 
+  @Override
   public boolean isImmModeSinkEnabled() {
     return immModeSinkEnabled;
   }
 
+  @Override
   public void setImmMode(boolean val) {
     if(immModeSinkEnabled) {
         immModeSinkImmediate=val;
@@ -181,30 +190,44 @@ public class GLUquadricImpl implements GLUquadric {
     }
   }
 
+  @Override
   public boolean getImmMode() {
     return immModeSinkImmediate;
   }
 
+  @Override
   public ImmModeSink replaceImmModeSink() {
     if(!immModeSinkEnabled) return null;
 
     ImmModeSink res = immModeSink;
     if(useGLSL) {
-        immModeSink = ImmModeSink.createGLSL (gl, GL.GL_STATIC_DRAW, 32, 
-                                              3, GL.GL_FLOAT,  // vertex
-                                              0, GL.GL_FLOAT,  // color
-                                              USE_NORM?3:0, normalType,// normal
-                                              USE_TEXT?2:0, GL.GL_FLOAT); // texture
+        if(null != shaderState) {
+            immModeSink = ImmModeSink.createGLSL (32,
+                                                  3, GL.GL_FLOAT,             // vertex
+                                                  0, GL.GL_FLOAT,             // color
+                                                  USE_NORM?3:0, normalType,   // normal
+                                                  USE_TEXT?2:0, GL.GL_FLOAT,  // texCoords
+                                                  GL.GL_STATIC_DRAW, shaderState);
+        } else {
+            immModeSink = ImmModeSink.createGLSL (32,
+                                                  3, GL.GL_FLOAT,             // vertex
+                                                  0, GL.GL_FLOAT,             // color
+                                                  USE_NORM?3:0, normalType,   // normal
+                                                  USE_TEXT?2:0, GL.GL_FLOAT,  // texCoords
+                                                  GL.GL_STATIC_DRAW, shaderProgram);
+        }
     } else {
-        immModeSink = ImmModeSink.createFixed(gl, GL.GL_STATIC_DRAW, 32, 
-                                              3, GL.GL_FLOAT,  // vertex
-                                              0, GL.GL_FLOAT,  // color
-                                              USE_NORM?3:0, normalType,// normal
-                                              USE_TEXT?2:0, GL.GL_FLOAT); // texture
+        immModeSink = ImmModeSink.createFixed(32,
+                                              3, GL.GL_FLOAT,             // vertex
+                                              0, GL.GL_FLOAT,             // color
+                                              USE_NORM?3:0, normalType,   // normal
+                                              USE_TEXT?2:0, GL.GL_FLOAT,  // texCoords
+                                              GL.GL_STATIC_DRAW);
     }
     return res;
   }
 
+  @Override
   public void resetImmModeSink(GL gl) {
     if(immModeSinkEnabled) {
         immModeSink.reset(gl);
@@ -212,7 +235,7 @@ public class GLUquadricImpl implements GLUquadric {
   }
 
   /**
-   * specifies the draw style for quadrics.  
+   * specifies the draw style for quadrics.
    *
    * The legal values are as follows:
    *
@@ -226,7 +249,7 @@ public class GLUquadricImpl implements GLUquadric {
    *            separating coplanar faces will not be drawn.
    *
    * GLU.POINT:       Quadrics are rendered as a set of points.
-   * 
+   *
    * @param drawStyle The drawStyle to set
    */
   public void setDrawStyle(int drawStyle) {
@@ -243,7 +266,7 @@ public class GLUquadricImpl implements GLUquadric {
    *
    * GLU.SMOOTH:   One normal is generated for every vertex of a quadric.  This
    *               is the default.
-   * 
+   *
    * @param normals The normals to set
    */
   public void setNormals(int normals) {
@@ -260,7 +283,7 @@ public class GLUquadricImpl implements GLUquadric {
    *
    * Note that the interpretation of outward and inward depends on the quadric
    * being drawn.
-   * 
+   *
    * @param orientation The orientation to set
    */
   public void setOrientation(int orientation) {
@@ -275,7 +298,7 @@ public class GLUquadricImpl implements GLUquadric {
    *
    * The manner in which texture coordinates are generated depends upon the
    * specific quadric rendered.
-   * 
+   *
    * @param textureFlag The textureFlag to set
    */
   public void setTextureFlag(boolean textureFlag) {
@@ -430,7 +453,7 @@ public class GLUquadricImpl implements GLUquadric {
       r = baseRadius;
       for (j = 0; j < stacks; j++) {
         float s = 0.0f;
-        glBegin(gl, immModeSink.GL_QUAD_STRIP);
+        glBegin(gl, ImmModeSink.GL_QUAD_STRIP);
         for (i = 0; i <= slices; i++) {
           if (i == slices) {
             x = sin(0.0f);
@@ -495,10 +518,10 @@ public class GLUquadricImpl implements GLUquadric {
         glNormal3f(gl, 0.0f, 0.0f, -1.0f);
       }
     }
-    
+
     da = 2.0f * PI / slices;
     dr = (outerRadius - innerRadius) /  loops;
-    
+
     switch (drawStyle) {
     case GLU.GLU_FILL:
       {
@@ -514,7 +537,7 @@ public class GLUquadricImpl implements GLUquadric {
           float r2 = r1 + dr;
           if (orientation == GLU.GLU_OUTSIDE) {
             int s;
-            glBegin(gl, immModeSink.GL_QUAD_STRIP);
+            glBegin(gl, ImmModeSink.GL_QUAD_STRIP);
             for (s = 0; s <= slices; s++) {
               float a;
               if (s == slices)
@@ -532,7 +555,7 @@ public class GLUquadricImpl implements GLUquadric {
           }
           else {
             int s;
-            glBegin(gl, immModeSink.GL_QUAD_STRIP);
+            glBegin(gl, ImmModeSink.GL_QUAD_STRIP);
             for (s = slices; s >= 0; s--) {
               float a;
               if (s == slices)
@@ -631,18 +654,18 @@ public class GLUquadricImpl implements GLUquadric {
    * through startAngle + sweepAngle is included (where 0 degrees is along
    * the +y axis, 90 degrees along the +x axis, 180 along the -y axis, and
    * 270 along the -x axis).
-   * 
+   *
    * The partial disk has a radius of outerRadius, and contains a concentric
    * circular hole with a radius of innerRadius. If innerRadius is zero, then
    * no hole is generated. The partial disk is subdivided around the z axis
    * into slices (like pizza slices), and also about the z axis into rings
    * (as specified by slices and loops, respectively).
-   * 
+   *
    * With respect to orientation, the +z side of the partial disk is
    * considered to be outside (see gluQuadricOrientation). This means that if
    * the orientation is set to GLU.GLU_OUTSIDE, then any normals generated point
    * along the +z axis. Otherwise, they point along the -z axis.
-   * 
+   *
    * If texturing is turned on (with gluQuadricTexture), texture coordinates
    * are generated linearly such that where r=outerRadius, the value at (r, 0, 0)
    * is (1, 0.5), at (0, r, 0) it is (0.5, 1), at (-r, 0, 0) it is (0, 0.5),
@@ -655,11 +678,10 @@ public class GLUquadricImpl implements GLUquadric {
                               int loops,
                               float startAngle,
                               float sweepAngle) {
-    int i, j, max;
+    int i, j;
     float[] sinCache = new float[CACHE_SIZE];
     float[] cosCache = new float[CACHE_SIZE];
     float angle;
-    float x, y;
     float sintemp, costemp;
     float deltaRadius;
     float radiusLow, radiusHigh;
@@ -770,7 +792,7 @@ public class GLUquadricImpl implements GLUquadric {
           texHigh = radiusHigh / outerRadius / 2;
         }
 
-        glBegin(gl, immModeSink.GL_QUAD_STRIP);
+        glBegin(gl, ImmModeSink.GL_QUAD_STRIP);
         for (i = 0; i <= slices; i++) {
           if (orientation == GLU.GLU_OUTSIDE) {
             if (textureFlag) {
@@ -984,7 +1006,7 @@ public class GLUquadricImpl implements GLUquadric {
       // draw intermediate stacks as quad strips
       for (i = imin; i < imax; i++) {
         rho = i * drho;
-        glBegin(gl, immModeSink.GL_QUAD_STRIP);
+        glBegin(gl, ImmModeSink.GL_QUAD_STRIP);
         s = 0.0f;
         for (j = 0; j <= slices; j++) {
           theta = (j == slices) ? 0.0f : j * dtheta;
@@ -1188,7 +1210,7 @@ public class GLUquadricImpl implements GLUquadric {
    */
   private void normal3f(GL gl, float x, float y, float z) {
     float mag;
-    
+
     mag = (float)Math.sqrt(x * x + y * y + z * z);
     if (mag > 0.00001F) {
       x /= mag;

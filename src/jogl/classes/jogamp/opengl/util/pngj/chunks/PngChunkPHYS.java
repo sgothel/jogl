@@ -1,44 +1,50 @@
 package jogamp.opengl.util.pngj.chunks;
 
 import jogamp.opengl.util.pngj.ImageInfo;
-import jogamp.opengl.util.pngj.PngHelper;
+import jogamp.opengl.util.pngj.PngHelperInternal;
 import jogamp.opengl.util.pngj.PngjException;
+/**
+ * pHYs chunk.
+ * <p>
+ * see http://www.w3.org/TR/PNG/#11pHYs
+ */
+public class PngChunkPHYS extends PngChunkSingle {
+	public final static String ID = ChunkHelper.pHYs;
 
-public class PngChunkPHYS extends PngChunk {
 	// http://www.w3.org/TR/PNG/#11pHYs
 	private long pixelsxUnitX;
 	private long pixelsxUnitY;
 	private int units; // 0: unknown 1:metre
 
 	public PngChunkPHYS(ImageInfo info) {
-		super(ChunkHelper.pHYs, info);
+		super(ID, info);
 	}
 
 	@Override
-	public boolean mustGoBeforeIDAT() {
-		return true;
+	public ChunkOrderingConstraint getOrderingConstraint() {
+		return ChunkOrderingConstraint.BEFORE_IDAT;
 	}
 
 	@Override
-	public ChunkRaw createChunk() {
+	public ChunkRaw createRawChunk() {
 		ChunkRaw c = createEmptyChunk(9, true);
-		PngHelper.writeInt4tobytes((int) pixelsxUnitX, c.data, 0);
-		PngHelper.writeInt4tobytes((int) pixelsxUnitY, c.data, 4);
+		PngHelperInternal.writeInt4tobytes((int) pixelsxUnitX, c.data, 0);
+		PngHelperInternal.writeInt4tobytes((int) pixelsxUnitY, c.data, 4);
 		c.data[8] = (byte) units;
 		return c;
 	}
 
 	@Override
-	public void parseFromChunk(ChunkRaw chunk) {
+	public void parseFromRaw(ChunkRaw chunk) {
 		if (chunk.len != 9)
 			throw new PngjException("bad chunk length " + chunk);
-		pixelsxUnitX = PngHelper.readInt4fromBytes(chunk.data, 0);
+		pixelsxUnitX = PngHelperInternal.readInt4fromBytes(chunk.data, 0);
 		if (pixelsxUnitX < 0)
 			pixelsxUnitX += 0x100000000L;
-		pixelsxUnitY = PngHelper.readInt4fromBytes(chunk.data, 4);
+		pixelsxUnitY = PngHelperInternal.readInt4fromBytes(chunk.data, 4);
 		if (pixelsxUnitY < 0)
 			pixelsxUnitY += 0x100000000L;
-		units = PngHelper.readInt1fromByte(chunk.data, 8);
+		units = PngHelperInternal.readInt1fromByte(chunk.data, 8);
 	}
 
 	@Override

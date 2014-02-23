@@ -50,12 +50,15 @@ import javax.media.opengl.awt.GLCanvas;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestTranslucencyAWT extends UITestCase {
     static Dimension size;
     static long durationPerTest = 400;
@@ -65,7 +68,6 @@ public class TestTranslucencyAWT extends UITestCase {
     public static void initClass() {
         size = new Dimension(400,200);
         glCaps = new GLCapabilities(null);
-        glCaps.setAlphaBits(8);
         glCaps.setBackgroundOpaque(false);
     }
 
@@ -120,18 +122,21 @@ public class TestTranslucencyAWT extends UITestCase {
         GLAnimatorControl animator1 = new Animator(glCanvas);
         animator1.start();
 
-        Container cont1 = new Container();
+        final Container cont1 = new Container();
         cont1.setLayout(new BorderLayout());
         cont1.add(glCanvas, BorderLayout.CENTER);
-        cont1.setVisible(true);
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                cont1.setVisible(true);
+            }});
 
         frame1.setLayout(new BorderLayout());
         frame1.add(cont1, BorderLayout.EAST);
         frame1.add(new Label("center"), BorderLayout.CENTER);
-        frame1.setLocation(0, 0);
-        frame1.setSize((int)size.getWidth(), (int)size.getHeight());
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
+                frame1.setLocation(0, 0);
+                frame1.setSize((int)size.getWidth(), (int)size.getHeight());
                 frame1.pack();
                 frame1.setVisible(true);
             }});

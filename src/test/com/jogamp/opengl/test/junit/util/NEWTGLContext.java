@@ -43,10 +43,12 @@ public class NEWTGLContext {
 
     public static class WindowContext {        
         public final Window window;
+        public final GLDrawable drawable;
         public final GLContext context;
         
-        public WindowContext(Window w, GLContext c) {
+        public WindowContext(Window w, GLDrawable d, GLContext c) {
             window = w;
+            drawable = d;
             context = c;
         }
     }
@@ -68,8 +70,8 @@ public class NEWTGLContext {
         Assert.assertNotNull(window);
         window.setSize(width, height);
         window.setVisible(true);
-        AWTRobotUtil.waitForVisible(window, true);
-        AWTRobotUtil.waitForRealized(window, true);
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(window, true));
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(window, true));
             
         GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
         GLDrawable drawable = factory.createGLDrawable(window);
@@ -86,7 +88,7 @@ public class NEWTGLContext {
         int res = context.makeCurrent();
         Assert.assertTrue(GLContext.CONTEXT_CURRENT_NEW==res || GLContext.CONTEXT_CURRENT==res);
         
-        return new WindowContext(window, context);
+        return new WindowContext(window, drawable, context);
     }
 
     public static WindowContext createOnscreenWindow(GLCapabilities caps, int width, int height, boolean debugGL) throws InterruptedException {        
@@ -121,7 +123,7 @@ public class NEWTGLContext {
         int res = context.makeCurrent();
         Assert.assertTrue(GLContext.CONTEXT_CURRENT_NEW==res || GLContext.CONTEXT_CURRENT==res);
         
-        return new WindowContext(window, context);
+        return new WindowContext(window, drawable, context);
     }
 
     public static void destroyWindow(WindowContext winctx) {

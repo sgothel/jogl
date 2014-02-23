@@ -12,19 +12,10 @@ JOGL Graph UI-Scene Demo 01
 <P>
 <object classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93"
       width="640" height="480">
-   <param name="code" value="org.jdesktop.applet.util.JNLPAppletLauncher">
-   <param name="archive" value="jar/applet-launcher.jar,
-                                jar/gluegen-rt.jar,
-                                jar/jogl.all.jar,
-                                jar/jogl.test.jar">
-   <param name="codebase_lookup" value="false">
-   <param name="subapplet.classname" value="com.jogamp.newt.awt.applet.JOGLNewtApplet1Run">
-   <param name="subapplet.displayname" value="JOGL Graph UI Demo01">
-   <param name="noddraw.check" value="true">
-   <param name="progressbar" value="true">
-   <param name="jnlpNumExtensions" value="1">
-   <param name="jnlpExtension1" value="jogl-all-awt.jnlp">
-   <param name="java_arguments" value="-Dsun.java2d.noddraw=true">
+   <param name="code" value="com.jogamp.newt.awt.applet.JOGLNewtApplet1Run">
+   <param name="archive" value="jar/gluegen-rt.jar,
+                                jar/jogl-all.jar,
+                                jar/jogl-test.jar">
    <param name="gl_event_listener_class" value="com.jogamp.opengl.test.junit.graph.demos.GPUUISceneGLListener0A">
    <param name="gl_profile" value="GL2ES2">
    <param name="gl_swap_interval" value="1">
@@ -34,22 +25,13 @@ JOGL Graph UI-Scene Demo 01
    <param name="gl_trace" value="false">
    <param name="jnlp_href" value="jogl-applet-runner-newt.jnlp">
    <comment>
-     <embed code="org.jdesktop.applet.util.JNLPAppletLauncher"
+     <embed code="com.jogamp.newt.awt.applet.JOGLNewtApplet1Run"
           width="640" height="480"
           type="application/x-java-applet;version=1.6"
           pluginspage="http://java.sun.com/javase/downloads/ea.jsp"
-          archive="jar/applet-launcher.jar,
-                   jar/gluegen-rt.jar,
-                   jar/jogl.all.jar,
-                   jar/jogl.test.jar"
-          codebase_lookup" value="false"
-          subapplet.classname="com.jogamp.newt.awt.applet.JOGLNewtApplet1Run"
-          subapplet.displayname="JOGL Graph UI Demo01"
-          noddraw.check="true"
-          progressbar="true"
-          jnlpNumExtensions="1"
-          jnlpExtension1="jogl-all-awt.jnlp"
-          java_arguments="-Dsun.java2d.noddraw=true"
+          archive="jar/gluegen-rt.jar,
+                   jar/jogl-all.jar,
+                   jar/jogl-test.jar"
           gl_event_listener_class="com.jogamp.opengl.test.junit.graph.demos.GPUUISceneGLListener0A"
           gl_profile="GL2ES2"
           gl_swap_interval="1"
@@ -78,6 +60,9 @@ JOGL NEWT JNLP Applet Runner Special Keys:<br>
     <li> f - toggle fullscreen </li>
     <li> r - in/out browser window </li>
     <li> a - on/off always-on-top </li>
+    <li> c - change mouse pointer </li>
+    <li> i - invisible mouse pointer </li>
+    <li> w - warp mouse pointer to center </li>
 </ul>
 </P>
 

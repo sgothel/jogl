@@ -28,18 +28,18 @@
 
 package jogamp.nativewindow;
 
+import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.ToolkitLock;
 
 /**
- * Implementing a singleton global recursive {@link javax.media.nativewindow.ToolkitLock}
- * without any locking. Since there is no locking it all,
- * it is intrinsically recursive.
+ * Implementing a singleton global NOP {@link javax.media.nativewindow.ToolkitLock}
+ * without any locking. Since there is no locking it all, it is intrinsically recursive.
  */
 public class NullToolkitLock implements ToolkitLock {
-
     /** Singleton via {@link NativeWindowFactoryImpl#getNullToolkitLock()} */
     protected NullToolkitLock() { }
-    
+
+    @Override
     public final void lock() {
         if(TRACE_LOCK) {
             System.err.println("NullToolkitLock.lock()");
@@ -47,7 +47,26 @@ public class NullToolkitLock implements ToolkitLock {
         }
     }
 
+    @Override
     public final void unlock() {
         if(TRACE_LOCK) { System.err.println("NullToolkitLock.unlock()"); }
     }
+
+    @Override
+    public final void validateLocked() throws RuntimeException {
+        if( NativeWindowFactory.requiresToolkitLock() ) {
+            throw new RuntimeException("NullToolkitLock does not lock, but locking is required.");
+        }
+    }
+
+    @Override
+    public final void dispose() {
+        // nop
+    }
+
+    @Override
+    public String toString() {
+        return "NullToolkitLock[]";
+    }
+
 }

@@ -106,10 +106,12 @@ public class HmtxTable implements Table {
         }
     }
 
+    @Override
     public int getType() {
         return hmtx;
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("'hmtx' Table - Horizontal Metrics\n---------------------------------\n");
@@ -135,6 +137,7 @@ public class HmtxTable implements Table {
      * particular table.
      * @return A directory entry
      */
+    @Override
     public DirectoryEntry getDirectoryEntry() {
         return _de;
     }

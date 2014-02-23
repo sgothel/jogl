@@ -1,21 +1,21 @@
 /*
  * Portions Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,11 +28,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -72,15 +72,15 @@ public class SGIImage {
         byte  storage;      // Storage format
         // 0 for uncompressed
         // 1 for RLE compression
-        byte  bpc;          // Number of bytes per pixel channel 
+        byte  bpc;          // Number of bytes per pixel channel
         // Legally 1 or 2
         short dimension;    // Number of dimensions
         // Legally 1, 2, or 3
         // 1 means a single row, XSIZE long
         // 2 means a single 2D image
         // 3 means multiple 2D images
-        short xsize;        // X size in pixels 
-        short ysize;        // Y size in pixels 
+        short xsize;        // X size in pixels
+        short ysize;        // Y size in pixels
         short zsize;        // Number of channels
         // 1 indicates greyscale
         // 3 indicates RGB
@@ -126,6 +126,7 @@ public class SGIImage {
             in.read(tmp);
         }
 
+        @Override
         public String toString() {
             return ("magic: " + magic +
                     " storage: " + (int) storage +
@@ -226,6 +227,7 @@ public class SGIImage {
         (bottom-to-top) order for calls to glTexImage2D. */
     public byte[] getData()  { return data; }
 
+    @Override
     public String toString() {
         return header.toString();
     }
@@ -233,7 +235,7 @@ public class SGIImage {
     //----------------------------------------------------------------------
     // Internals only below this point
     //
-  
+
     private void decodeImage(DataInputStream in) throws IOException {
         if (header.storage == 1) {
             // Read RLE compression data; row starts and sizes
@@ -478,7 +480,7 @@ public class SGIImage {
         for (int z = 0; z < zsize; z++) {
             for (int y = ystart; y != yend; y += yincr) {
                 // RLE-compress each row.
-      
+
                 int x = 0;
                 byte count = 0;
                 boolean repeat_mode = false;
@@ -486,7 +488,7 @@ public class SGIImage {
                 int start_ptr = ptr;
                 int num_ptr = ptr++;
                 byte repeat_val = 0;
-      
+
                 while (x < xsize) {
                     // see if we should switch modes
                     should_switch = false;
@@ -503,7 +505,7 @@ public class SGIImage {
                                 if (DEBUG)
                                     System.err.println("left side was " + ((int) imgref(data, x, y, z, xsize, ysize, zsize)) +
                                                        ", right side was " + (int)imgref(data, x+i, y, z, xsize, ysize, zsize));
-              
+
                                 if (imgref(data, x, y, z, xsize, ysize, zsize) !=
                                     imgref(data, x+i, y, z, xsize, ysize, zsize))
                                     should_switch = false;
@@ -531,7 +533,7 @@ public class SGIImage {
                                 repeat_mode = true;
                             repeat_val = imgref(data, x, y, z, xsize, ysize, zsize);
                         }
-          
+
                         if (x > 0) {
                             // reset the number pointer
                             num_ptr = ptr++;
@@ -539,7 +541,7 @@ public class SGIImage {
                             count = 0;
                         }
                     }
-            
+
                     // if not in repeat mode, copy element to ptr
                     if (!repeat_mode) {
                         rlebuf[ptr++] = imgref(data, x, y, z, xsize, ysize, zsize);
@@ -581,8 +583,8 @@ public class SGIImage {
         // Now we have the offset tables computed, as well as the RLE data.
         // Output this information to the file.
         total_size = ptr;
-  
-        if (DEBUG) 
+
+        if (DEBUG)
             System.err.println("total_size was " + total_size);
 
         DataOutputStream stream = new DataOutputStream(new BufferedOutputStream(IOUtil.getFileOutputStream(file, true)));
@@ -604,7 +606,7 @@ public class SGIImage {
         byte[] dest = new byte[16384];
         int pos = 0;
         int numRead = 0;
-    
+
         boolean done = false;
 
         do {

@@ -1,21 +1,22 @@
 /*
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ * Copyright (c) 2013 JogAmp Community. All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
@@ -43,20 +44,30 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import javax.imageio.ImageIO;
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
+import javax.media.opengl.GL2GL3;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLException;
-import javax.media.opengl.glu.gl2.GLUgl2;
 
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.util.GLPixelStorageModes;
 import com.jogamp.opengl.util.TGAWriter;
 
-/** Utilities for taking screenshots of OpenGL applications. */
-
+/**
+ * Utilities for taking screenshots of OpenGL applications.
+ * @deprecated Please consider using {@link com.jogamp.opengl.util.GLReadBufferUtil},
+ *             which is AWT independent and does not require a CPU based vertical image flip
+ *             in case drawable {@link GLDrawable#isGLOriented() is in OpenGL orientation}.
+ *             Further more you may use {@link AWTGLReadBufferUtil} to read out
+ *             the framebuffer into a BufferedImage for further AWT processing.
+ */
 public class Screenshot {
   private Screenshot() {}
 
-  /** 
+  /**
    * Takes a fast screenshot of the current OpenGL drawable to a Targa
    * file. Requires the OpenGL context for the desired drawable to be
    * current. Takes the screenshot from the last assigned read buffer,
@@ -83,7 +94,7 @@ public class Screenshot {
     writeToTargaFile(file, width, height, false);
   }
 
-  /** 
+  /**
    * Takes a fast screenshot of the current OpenGL drawable to a Targa
    * file. Requires the OpenGL context for the desired drawable to be
    * current. Takes the screenshot from the last assigned read buffer,
@@ -111,7 +122,7 @@ public class Screenshot {
     writeToTargaFile(file, 0, 0, width, height, alpha);
   }
 
-  /** 
+  /**
    * Takes a fast screenshot of the current OpenGL drawable to a Targa
    * file. Requires the OpenGL context for the desired drawable to be
    * current. Takes the screenshot from the last assigned read buffer,
@@ -148,17 +159,17 @@ public class Screenshot {
     writer.open(file, width, height, alpha);
     ByteBuffer bgr = writer.getImageData();
 
-    GL2 gl = GLUgl2.getCurrentGL2();
+    GL gl = GLContext.getCurrentGL();
 
     // Set up pixel storage modes
     GLPixelStorageModes psm = new GLPixelStorageModes();
     psm.setPackAlignment(gl, 1);
 
-    int readbackType = (alpha ? GL2.GL_ABGR_EXT : GL2.GL_BGR);
+    int readbackType = (alpha ? GL2.GL_ABGR_EXT : GL2GL3.GL_BGR);
 
     // read the BGR values into the image buffer
     gl.glReadPixels(x, y, width, height, readbackType,
-                    GL2.GL_UNSIGNED_BYTE, bgr);
+                    GL.GL_UNSIGNED_BYTE, bgr);
 
     // Restore pixel storage modes
     psm.restore(gl);
@@ -246,7 +257,7 @@ public class Screenshot {
                                                   int height,
                                                   boolean alpha) throws GLException {
     int bufImgType = (alpha ? BufferedImage.TYPE_4BYTE_ABGR : BufferedImage.TYPE_3BYTE_BGR);
-    int readbackType = (alpha ? GL2.GL_ABGR_EXT : GL2.GL_BGR);
+    int readbackType = (alpha ? GL2.GL_ABGR_EXT : GL2GL3.GL_BGR);
 
     if (alpha) {
       checkExtABGR();
@@ -255,7 +266,8 @@ public class Screenshot {
     // Allocate necessary storage
     BufferedImage image = new BufferedImage(width, height, bufImgType);
 
-    GL2 gl = GLUgl2.getCurrentGL2();
+    GLContext glc = GLContext.getCurrent();
+    GL gl = glc.getGL();
 
     // Set up pixel storage modes
     GLPixelStorageModes psm = new GLPixelStorageModes();
@@ -263,14 +275,16 @@ public class Screenshot {
 
     // read the BGR values into the image
     gl.glReadPixels(x, y, width, height, readbackType,
-                    GL2.GL_UNSIGNED_BYTE,
+                    GL.GL_UNSIGNED_BYTE,
                     ByteBuffer.wrap(((DataBufferByte) image.getRaster().getDataBuffer()).getData()));
 
     // Restore pixel storage modes
     psm.restore(gl);
 
-    // Must flip BufferedImage vertically for correct results
-    ImageUtil.flipImageVertically(image);
+    if( glc.getGLDrawable().isGLOriented() ) {
+        // Must flip BufferedImage vertically for correct results
+        ImageUtil.flipImageVertically(image);
+    }
     return image;
   }
 
@@ -391,9 +405,10 @@ public class Screenshot {
   }
 
   private static void checkExtABGR() {
-    GL2 gl = GLUgl2.getCurrentGL2();
-    if (!gl.isExtensionAvailable("GL_EXT_abgr")) {
+    GL gl = GLContext.getCurrentGL();
+
+    if (!gl.isExtensionAvailable(GLExtensions.EXT_abgr)) {
       throw new IllegalArgumentException("Saving alpha channel requires GL_EXT_abgr");
     }
-  } 
+  }
 }

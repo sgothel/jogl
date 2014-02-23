@@ -4,11 +4,12 @@
       package="javax.media.opengl">
 
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
-    <!-- uses-feature android:name="android.hardware.camera" android:required="false" / --> <!-- not yet -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
     <uses-library android:name="com.jogamp.common" android:required="true" />
 
-    <uses-sdk android:minSdkVersion="9" />
+    <uses-sdk android:minSdkVersion="9" android:targetSdkVersion="14"/>
 
     <application android:icon="@drawable/icon" 
                  android:label="@string/app_name"
@@ -19,8 +20,8 @@
                   android:finishOnTaskLaunch="true"
                   android:launchMode="singleTop"
                   android:configChanges="keyboardHidden|orientation"
-                  android:label="@string/activity_v_name"
-                  android:description="@string/activity_v_descr"
+                  android:label="@string/activity_version_name"
+                  android:description="@string/activity_version_descr"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

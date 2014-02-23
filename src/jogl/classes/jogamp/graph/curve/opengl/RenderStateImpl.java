@@ -38,9 +38,9 @@ import com.jogamp.graph.geom.Vertex;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-public class RenderStateImpl extends RenderState {    
+public class RenderStateImpl extends RenderState {
     /**
-     * weight is equivalent to the 
+     * weight is equivalent to the
      * global off-curve vertex weight.
      * TODO: change to per vertex
      */
@@ -50,7 +50,7 @@ public class RenderStateImpl extends RenderState {
 
     public RenderStateImpl(ShaderState st, Vertex.Factory<? extends Vertex> pointFactory, PMVMatrix pmvMatrix) {
         super(st, pointFactory, pmvMatrix);
-        
+
         gcu_Weight = new GLUniformData(UniformNames.gcu_Weight, 1.0f);
         st.ownUniform(gcu_PMVMatrix);
         gcu_Alpha = new GLUniformData(UniformNames.gcu_Alpha, 1.0f);
@@ -60,15 +60,14 @@ public class RenderStateImpl extends RenderState {
 //        gcu_Strength = new GLUniformData(UniformNames.gcu_Strength, 3.0f);
 //        st.ownUniform(gcu_Strength);
     }
-    
-    public RenderStateImpl(ShaderState st, Vertex.Factory<? extends Vertex> pointFactory) {
-        this(st, pointFactory, new PMVMatrix());
-    }
-    
+
+    @Override
     public final GLUniformData getWeight() { return gcu_Weight; }
+    @Override
     public final GLUniformData getAlpha() { return gcu_Alpha; }
+    @Override
     public final GLUniformData getColorStatic() { return gcu_ColorStatic; }
     //public final GLUniformData getStrength() { return gcu_Strength; }
-    
-    
+
+
 }
