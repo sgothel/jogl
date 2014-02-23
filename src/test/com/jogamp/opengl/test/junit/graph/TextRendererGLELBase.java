@@ -44,7 +44,6 @@ import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 public abstract class TextRendererGLELBase implements GLEventListener {
-    protected final float[] textPosition = new float[] {0,0,0};
     protected final int[] texSize = new int[] { 0 };
     protected final float[] staticRGBAColor = new float[] { 1f, 1f, 1f, 1f };
 
@@ -182,7 +181,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
                 pmvMatrix.glScalef(pixelScale, pixelScale, 1f);
             }
             renderer.updateMatrix(gl);
-            renderer.drawString3D(gl, font, text, textPosition, fontSize, texSize);
+            renderer.drawString3D(gl, font, text, fontSize, texSize);
             st.useProgram(gl, false);
             gl.glDisable(GL2ES2.GL_BLEND);
 
