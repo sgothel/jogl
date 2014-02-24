@@ -56,31 +56,32 @@ import com.jogamp.opengl.util.GLReadBufferUtil;
  * Action Keys:
  * - 1/2: zoom in/out
  * - 6/7: 2nd pass texture size
- * - 0/9: rotate 
+ * - 0/9: rotate
  * - Q/W: change weight
  * - v: toggle v-sync
  * - s: screenshot
  */
 public abstract class GPURendererListenerBase01 implements GLEventListener {
-    private GLReadBufferUtil screenshot;
-    private Renderer renderer;
-    private int renderModes;
-    private boolean debug;
-    private boolean trace;
-    
+    private final Renderer renderer;
+    private final int renderModes;
+    private final boolean debug;
+    private final boolean trace;
+
     protected GLRegion region;
 
+    private final GLReadBufferUtil screenshot;
+
     private KeyAction keyAction;
-    
+
     private volatile GLAutoDrawable autoDrawable = null;
-    
+
     private final float[] position = new float[] {0,0,0};
-    
+
     private float xTran = -10;
-    private float yTran =  10;    
+    private float yTran =  10;
     private float ang = 0f;
     private float zoom = -70f;
-    private int[] texSize = new int[] { 400 }; 
+    private final int[] texSize = new int[] { 400 };
 
     protected volatile float weight = 1.0f;
     boolean ignoreInput = false;
@@ -92,7 +93,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         this.trace = trace;
         this.screenshot = new GLReadBufferUtil(false, false);
     }
-    
+
     public final Renderer getRenderer() { return renderer; }
     public final int getRenderModes() { return renderModes; }
     public final float getZoom() { return zoom; }
@@ -104,12 +105,12 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
 
     public void setMatrix(float xtrans, float ytrans, float angle, int zoom, int fbosize) {
         this.xTran = xtrans;
-        this.yTran = ytrans; 
-        this.ang = angle;  
+        this.yTran = ytrans;
+        this.ang = angle;
         this.zoom = zoom;
-        this.texSize[0] = fbosize;     
+        this.texSize[0] = fbosize;
     }
-    
+
     public void init(GLAutoDrawable drawable) {
         autoDrawable = drawable;
         GL2ES2 gl = drawable.getGL().getGL2ES2();
@@ -125,17 +126,17 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         getRenderer().init(gl);
     }
-    
+
     public void reshape(GLAutoDrawable drawable, int xstart, int ystart, int width, int height) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
-        
-        gl.glViewport(xstart, ystart, width, height);        
+
+        gl.glViewport(xstart, ystart, width, height);
         renderer.reshapePerspective(gl, 45.0f, width, height, 0.1f, 7000.0f);
-        
+
         dumpMatrix();
-        System.err.println("Reshape: "+renderer.getRenderState());        
+        System.err.println("Reshape: "+renderer.getRenderState());
     }
-    
+
     public void dispose(GLAutoDrawable drawable) {
         autoDrawable = null;
         GL2ES2 gl = drawable.getGL().getGL2ES2();
@@ -144,13 +145,13 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         }
         screenshot.dispose(gl);
         renderer.destroy(gl);
-    }    
-    
+    }
+
     public void zoom(int v){
         zoom += v;
         dumpMatrix();
     }
-    
+
     public void move(float x, float y){
         xTran += x;
         yTran += y;
@@ -168,37 +169,37 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         weight += delta;
         System.err.println("Global Weight: "+ weight);
     }
-    
+
     void dumpMatrix() {
         System.err.println("Matrix: " + xTran + "/" + yTran + " x"+zoom + " @"+ang);
     }
-    
-    /** Attach the input listener to the window */ 
+
+    /** Attach the input listener to the window */
     public void attachInputListenerTo(GLWindow window) {
         if ( null == keyAction ) {
             keyAction = new KeyAction();
-            window.addKeyListener(keyAction);        
+            window.addKeyListener(keyAction);
         }
     }
-    
+
     public void detachInputListenerFrom(GLWindow window) {
         if ( null == keyAction ) {
             return;
         }
         window.removeKeyListener(keyAction);
     }
-    
+
     public void printScreen(GLAutoDrawable drawable, String dir, String tech, String objName, boolean exportAlpha) throws GLException, IOException {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         pw.printf("-%03dx%03d-Z%04d-T%04d-%s", drawable.getWidth(), drawable.getHeight(), (int)Math.abs(zoom), texSize[0], objName);
-        
+
         final String filename = dir + tech + sw +".png";
         if(screenshot.readPixels(drawable.getGL(), false)) {
             screenshot.write(new File(filename));
         }
     }
-    
+
     int screenshot_num = 0;
 
     public void setIgnoreInput(boolean v) {
@@ -207,13 +208,13 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     public boolean getIgnoreInput() {
         return ignoreInput;
     }
-    
+
     public class KeyAction implements KeyListener {
         public void keyPressed(KeyEvent arg0) {
             if(ignoreInput) {
                 return;
             }
-            
+
             if(arg0.getKeyCode() == KeyEvent.VK_1){
                 zoom(10);
             }
@@ -239,13 +240,13 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
             else if(arg0.getKeyCode() == KeyEvent.VK_7){
                 texSize[0] += 10;
                 System.err.println("Tex Size: " + texSize[0]);
-            }            
+            }
             else if(arg0.getKeyCode() == KeyEvent.VK_0){
                 rotate(1);
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_9){
                 rotate(-1);
-            }  
+            }
             else if(arg0.getKeyCode() == KeyEvent.VK_Q){
                 editGlobalWeight(-0.1f);
             }
@@ -257,7 +258,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
                     autoDrawable.invoke(false, new GLRunnable() {
                         public boolean run(GLAutoDrawable drawable) {
                             GL gl = drawable.getGL();
-                            int i = gl.getSwapInterval();      
+                            int i = gl.getSwapInterval();
                             i = i==0 ? 1 : 0;
                             gl.setSwapInterval(i);
                             final GLAnimatorControl a = drawable.getAnimator();
@@ -271,7 +272,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
                             return true;
                         }
                     });
-                }                
+                }
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_S){
                 rotate(-1);
@@ -279,19 +280,19 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
                         autoDrawable.invoke(false, new GLRunnable() {
                             public boolean run(GLAutoDrawable drawable) {
                                 try {
-                                    final String type = Region.isVBAA(renderModes) ? "vbaa0-msaa1" : "vbaa1-msaa0" + ( Region.isNonUniformWeight(renderModes) ? "-vc" : "-uc" ) ; 
+                                    final String type = Region.isVBAA(renderModes) ? "vbaa0-msaa1" : "vbaa1-msaa0" + ( Region.isNonUniformWeight(renderModes) ? "-vc" : "-uc" ) ;
                                     printScreen(drawable, "./", "demo-"+type, "snap"+screenshot_num, false);
                                     screenshot_num++;
                                 } catch (GLException e) {
                                     e.printStackTrace();
                                 } catch (IOException e) {
                                     e.printStackTrace();
-                                }     
+                                }
                                 return true;
                             }
                         });
-                    }                
-            }  
+                    }
+            }
         }
         public void keyReleased(KeyEvent arg0) {}
     }

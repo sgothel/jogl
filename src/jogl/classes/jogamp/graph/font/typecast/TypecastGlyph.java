@@ -33,6 +33,7 @@ import jogamp.graph.font.FontInt;
 import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.graph.geom.plane.Path2D;
 
+import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
 import com.jogamp.opengl.math.geom.AABBox;
 
@@ -136,30 +137,36 @@ public class TypecastGlyph implements FontInt.GlyphInt {
     public static final short MAX_ID        = (short)((1 << 16) - 2);
 
     private final Font font;
+    protected final char symbol;
+    protected final OutlineShape shape; // in EM units
 
-    char        symbol;
+    protected final Path2D path; // in EM units FIXME remove!
+
     short       id;
     int         advance;
     Metrics     metrics;
 
-    protected Path2D path; // in EM units
-    protected Path2D pathSized;
-    protected float numberSized;
+    protected Path2D pathSized; // FIXME remove!
+    protected float numberSized; // FIXME remove!
 
     protected TypecastGlyph(Font font, char symbol) {
         this.font = font;
         this.symbol = symbol;
+        this.shape = null;
+        this.path = null;
     }
 
     protected TypecastGlyph(Font font,
-                            char symbol, short id, AABBox bbox, int advance, Path2D path) {
+                            char symbol, short id, AABBox bbox, int advance, Path2D path, OutlineShape shape) {
         this.font = font;
         this.symbol = symbol;
+        this.shape = shape;
+        this.path = path;
+
         this.advance = advance;
 
         init(id, bbox, advance);
 
-        this.path = path;
         this.pathSized = null;
         this.numberSized = 0.0f;
     }
@@ -170,10 +177,11 @@ public class TypecastGlyph implements FontInt.GlyphInt {
         this.metrics = new Metrics(this.font, bbox, this.advance);
     }
 
+    /**
     public void reset(Path2D path) {
         this.path = path;
         this.metrics.reset();
-    }
+    } */
 
     @Override
     public Font getFont() {
@@ -220,6 +228,11 @@ public class TypecastGlyph implements FontInt.GlyphInt {
     @Override
     public float getAdvance(float pixelSize, boolean useFrationalMetrics) {
         return this.metrics.getAdvance(pixelSize, useFrationalMetrics);
+    }
+
+    @Override
+    public OutlineShape getShape() {
+        return this.shape;
     }
 
     @Override

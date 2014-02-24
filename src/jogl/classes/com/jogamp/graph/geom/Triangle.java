@@ -27,14 +27,52 @@
  */
 package com.jogamp.graph.geom;
 
-public class Triangle {
-    private int id = Integer.MAX_VALUE;
-    final private Vertex[] vertices;
-    private boolean[] boundaryEdges = new boolean[3];
-    private boolean[] boundaryVertices = null;
+import com.jogamp.graph.curve.Region;
 
-    public Triangle(Vertex ... v123){
-        vertices = v123;
+import jogamp.graph.geom.plane.AffineTransform;
+
+public class Triangle {
+    private final Vertex[] vertices = new Vertex[3];
+    private final boolean[] boundaryEdges = new boolean[3];
+    private boolean[] boundaryVertices = null;
+    private int id;
+
+    public Triangle(Vertex v1, Vertex v2, Vertex v3) {
+        id = Integer.MAX_VALUE;
+        vertices[0] = v1;
+        vertices[1] = v2;
+        vertices[2] = v3;
+    }
+
+    public Triangle(Triangle src) {
+        id = src.id;
+        vertices[0] = src.vertices[0].clone();
+        vertices[1] = src.vertices[1].clone();
+        vertices[2] = src.vertices[2].clone();
+        System.arraycopy(src.boundaryEdges, 0, boundaryEdges, 0, 3);
+        boundaryVertices = src.boundaryVertices;
+    }
+
+    private Triangle(final int id, final boolean[] boundaryEdges, final boolean[] boundaryVertices){
+        this.id = id;
+        System.arraycopy(boundaryEdges, 0, this.boundaryEdges, 0, 3);
+        this.boundaryVertices = boundaryVertices;
+        /**
+        if( null != boundaryVertices ) {
+            this.boundaryVertices = new boolean[3];
+            System.arraycopy(boundaryVertices, 0, this.boundaryVertices, 0, 3);
+        } */
+    }
+
+    /**
+     * Returns a transformed a clone of this instance using the given AffineTransform.
+     */
+    public Triangle transform(AffineTransform t) {
+        final Triangle tri = new Triangle(id, boundaryEdges, boundaryVertices);
+        tri.vertices[0] = t.transform(vertices[0], null);
+        tri.vertices[1] = t.transform(vertices[1], null);
+        tri.vertices[2] = t.transform(vertices[2], null);
+        return tri;
     }
 
     public int getId() {
@@ -45,6 +83,21 @@ public class Triangle {
         this.id = id;
     }
 
+    public void addVertexIndicesOffset(int offset) {
+        if( 0 < offset ) {
+            final int i0 = vertices[0].getId();
+            if( Integer.MAX_VALUE-offset > i0 ) { // Integer.MAX_VALUE != i0 // FIXME: renderer uses SHORT!
+                if(Region.DEBUG_INSTANCE) {
+                    System.err.println("Triangle.addVertexIndicesOffset: "+i0+" + "+offset+" -> "+(i0+offset));
+                }
+                vertices[0].setId(i0+offset);
+                vertices[1].setId(vertices[1].getId()+offset);
+                vertices[2].setId(vertices[2].getId()+offset);
+            }
+        }
+    }
+
+    /** Returns array of 3 vertices, denominating the triangle. */
     public Vertex[] getVertices() {
         return vertices;
     }
@@ -55,10 +108,6 @@ public class Triangle {
 
     public boolean isVerticesBoundary() {
         return boundaryVertices[0] || boundaryVertices[1] || boundaryVertices[2];
-    }
-
-    public void setEdgesBoundary(boolean[] boundary) {
-        this.boundaryEdges = boundary;
     }
 
     public boolean[] getEdgeBoundary() {

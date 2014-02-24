@@ -37,7 +37,7 @@ import com.jogamp.opengl.math.geom.AABBox;
 
 public class Loop {
     private HEdge root = null;
-    private AABBox box = new AABBox();
+    private final AABBox box = new AABBox();
     private GraphOutline initialOutline = null;
 
     public Loop(GraphOutline polyline, VectorUtil.Winding winding){
@@ -272,13 +272,13 @@ public class Loop {
      * @return the triangle iff it satisfies, null otherwise
      */
     private Triangle createTriangle(Vertex v1, Vertex v2, Vertex v3, HEdge rootT){
-        Triangle t = new Triangle(v1, v2, v3);
+        final Triangle t = new Triangle(v1, v2, v3);
         t.setVerticesBoundary(checkVerticesBoundary(rootT));
         return t;
     }
 
     private boolean[] checkVerticesBoundary(HEdge rootT) {
-        boolean[] boundary = new boolean[3];
+        final boolean[] boundary = new boolean[3];
         HEdge e1 = rootT;
         HEdge e2 = rootT.getNext();
         HEdge e3 = rootT.getNext().getNext();

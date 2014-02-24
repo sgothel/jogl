@@ -34,10 +34,10 @@ import java.io.StringWriter;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
@@ -48,14 +48,15 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.common.os.Platform;
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.graph.curve.opengl.TextRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
-import com.jogamp.graph.geom.opengl.SVertex;
+import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
@@ -65,8 +66,8 @@ public class TestTextRendererNEWT00 extends UITestCase {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
     static long duration = 100; // ms
-    
-    static final int[] texSize = new int[] { 0 }; 
+
+    static final int[] texSize = new int[] { 0 };
     static final int fontSize = 24;
     static Font font;
 
@@ -74,13 +75,13 @@ public class TestTextRendererNEWT00 extends UITestCase {
     public static void setup() throws IOException {
         font = FontFactory.get(FontFactory.UBUNTU).getDefault();
     }
-    
+
     static int atoi(String a) {
         try {
             return Integer.parseInt(a);
         } catch (Exception ex) { throw new RuntimeException(ex); }
     }
-    
+
     public static void main(String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
@@ -90,15 +91,15 @@ public class TestTextRendererNEWT00 extends UITestCase {
         }
         String tstname = TestTextRendererNEWT00.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
-    }    
-        
+    }
+
     static void sleep() {
         try {
             System.err.println("** new frame ** (sleep: "+duration+"ms)");
             Thread.sleep(duration);
         } catch (InterruptedException ie) {}
     }
-    
+
     static void destroyWindow(GLWindow window) {
         if(null!=window) {
             window.destroy();
@@ -117,12 +118,12 @@ public class TestTextRendererNEWT00 extends UITestCase {
 
         return window;
     }
-    
+
     @Test
     public void testTextRendererMSAA01() throws InterruptedException {
         GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
         GLCapabilities caps = new GLCapabilities(glp);
-        caps.setAlphaBits(4);    
+        caps.setAlphaBits(4);
         caps.setSampleBuffers(true);
         caps.setNumSamples(4);
         System.err.println("Requested: "+caps);
@@ -130,109 +131,114 @@ public class TestTextRendererNEWT00 extends UITestCase {
         GLWindow window = createWindow("text-vbaa0-msaa1", caps, 800, 400);
         window.display();
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
-        
+
         final RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
-        final TextRendererListener textGLListener = new TextRendererListener(rs);
-        final TextRenderer renderer = textGLListener.getRenderer();
+        final TextRendererGLEL textGLListener = new TextRendererGLEL(rs);
+        System.err.println(textGLListener.getFontInfo());
+
         window.addGLEventListener(textGLListener);
 
         window.invoke(true, new GLRunnable() {
             @Override
             public boolean run(GLAutoDrawable drawable) {
-                int c=0;
-                renderString(drawable, renderer, "GlueGen", c++, -1, -1000);
-                renderString(drawable, renderer, "JOAL", c++, -1, -1000);
-                renderString(drawable, renderer, "JOGL", c++, -1, -1000);
-                renderString(drawable, renderer, "JOCL", c++, -1, -1000);
                 try {
                     textGLListener.printScreen(drawable, "./", "TestTextRendererNEWT00-snap"+screenshot_num, false);
+                    screenshot_num++;
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
                 return true;
-            }            
+            }
         });
-        sleep();            
-
-        destroyWindow(window); 
-    }    
-    int screenshot_num = 0;
-    
-    int lastRow = -1;
-    
-    void renderString(GLAutoDrawable drawable, TextRenderer renderer, String text, int column, int row, int z0) {
-        final GL2ES2 gl = drawable.getGL().getGL2ES2();
-        final int height = drawable.getHeight();
-        
-        int dx = 0;
-        int dy = height;        
-        if(0>row) {
-            row = lastRow + 1;
-        }
-        AABBox textBox = font.getStringBounds(text, fontSize);
-        dx += font.getAdvanceWidth('X', fontSize) * column;
-        dy -= (int)textBox.getHeight() * ( row + 1 );
-        renderer.resetModelview(null);
-        renderer.translate(gl, dx, dy, z0);
-        renderer.drawString3D(gl, font, text, fontSize, texSize);
-        
-        lastRow = row;
+        Animator anim = new Animator();
+        anim.add(window);
+        anim.start();
+        anim.setUpdateFPSFrames(60, null);
+        sleep();
+        anim.stop();
+        destroyWindow(window);
     }
-        
-    public class TextRendererListener implements GLEventListener {
-        private GLReadBufferUtil screenshot;
-        private TextRenderer renderer;
-        
-        public TextRendererListener(RenderState rs) {
+    int screenshot_num = 0;
+
+    private final class TextRendererGLEL extends TextRendererGLELBase {
+        private final GLReadBufferUtil screenshot;
+        private long t0;
+
+        TextRendererGLEL(final RenderState rs) {
+            super(rs, true /* exclusivePMV */, 0); // Region.VBAA_RENDERING_BIT);
+            texSizeScale = 2;
+
+            fontSize = 24;
+
+            staticRGBAColor[0] = 0.0f;
+            staticRGBAColor[1] = 0.0f;
+            staticRGBAColor[2] = 0.0f;
+            staticRGBAColor[3] = 1.0f;
+
             this.screenshot = new GLReadBufferUtil(false, false);
-            this.renderer = TextRenderer.create(rs, 0);
         }
-    
-        public final TextRenderer getRenderer() { return renderer; }
-        
+
+        @Override
+        public void init(GLAutoDrawable drawable) {
+            super.init(drawable);
+            drawable.getGL().setSwapInterval(0);
+            t0 = Platform.currentTimeMillis();
+        }
+        public void dispose(GLAutoDrawable drawable) {
+            final GL2ES2 gl = drawable.getGL().getGL2ES2();
+            screenshot.dispose(gl);
+            super.dispose(drawable);
+        }
+
         public void printScreen(GLAutoDrawable drawable, String dir, String objName, boolean exportAlpha) throws GLException, IOException {
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
             pw.printf("%s-%03dx%03d-T%04d", objName, drawable.getWidth(), drawable.getHeight(), texSize[0]);
-            
+
             final String filename = dir + sw +".png";
             if(screenshot.readPixels(drawable.getGL(), false)) {
                 screenshot.write(new File(filename));
             }
         }
-        
-        public void init(GLAutoDrawable drawable) {
-            final GL2ES2 gl = drawable.getGL().getGL2ES2();
-            gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-            renderer.init(gl);
-            renderer.setAlpha(gl, 1.0f);
-            renderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);        
+
+        String getFontInfo() {
+            final float unitsPerEM_Inv = font.getMetrics().getScale(1f);
+            final float unitsPerEM = 1f / unitsPerEM_Inv;
+            return String.format("Font %s, unitsPerEM %f", font.getName(Font.NAME_UNIQUNAME), unitsPerEM);
         }
-        
-        public void reshape(GLAutoDrawable drawable, int xstart, int ystart, int width, int height) {
-            final GL2ES2 gl = drawable.getGL().getGL2ES2();
-            
-            gl.glViewport(xstart, ystart, width, height);        
-            // renderer.reshapePerspective(gl, 45.0f, width, height, 0.1f, 1000.0f);
-            renderer.reshapeOrtho(gl, width, height, 0.1f, 1000.0f);
-        }
-    
+
+        @Override
         public void display(GLAutoDrawable drawable) {
-            final GL2ES2 gl = drawable.getGL().getGL2ES2();            
+            final GL2ES2 gl = drawable.getGL().getGL2ES2();
+
+            gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
             gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-            
-            renderString(drawable, renderer, "012345678901234567890123456789", 0,  0, -1000);
-            renderString(drawable, renderer, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 0, -1, -1000);
-            renderString(drawable, renderer, "Hello World", 0, -1, -1000);
-            renderString(drawable, renderer, "4567890123456", 4, -1, -1000);
-            renderString(drawable, renderer, "I like JogAmp", 4, -1, -1000);
-        }        
-    
-        public void dispose(GLAutoDrawable drawable) {
-            final GL2ES2 gl = drawable.getGL().getGL2ES2();            
-            screenshot.dispose(gl);
-            renderer.destroy(gl);
-        }            
-    }
+
+            final GLAnimatorControl anim = drawable.getAnimator();
+            final float lfps = null != anim ? anim.getLastFPS() : 0f;
+            final float tfps = null != anim ? anim.getTotalFPS() : 0f;
+
+            // Note: MODELVIEW is from [ 0 .. height ]
+
+            final long t1 = Platform.currentTimeMillis();
+
+            final String text1 = String.format("%03.3f/%03.3f s, vsync %d, elapsed %4.4f s",
+                    lfps, tfps, gl.getSwapInterval(), (t1-t0)/1000.0);
+
+            int row = 0;
+            if( false ) {
+                renderString(drawable, "112",         0, row++, 0, 0, -1000);
+                // renderString(drawable, getFontInfo(),    0, row++, 0, 0, -1000);
+            } else {
+                renderString(drawable, getFontInfo(),                    0, row++, 0, 0, -1000);
+                renderString(drawable, "012345678901234567890123456789", 0, row++, 0, 0, -1000);
+                renderString(drawable, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 0, row++, 0, 0, -1000);
+                renderString(drawable, "Hello World",                    0, row++, 0, 0, -1000);
+                renderString(drawable, "4567890123456",                  4, row++, 0, 0, -1000);
+                renderString(drawable, "I like JogAmp",                  4, row++, 0, 0, -1000);
+                renderString(drawable, "Hello World",                    0, row++, 0, 0, -1000);
+                renderString(drawable, text1,                            0, row++, 0, 0, -1000);
+            }
+        } };
 
 }

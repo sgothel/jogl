@@ -169,7 +169,7 @@ public class SceneUIController implements GLEventListener{
             renderer.rotate(gl, rotation[1], 0, 1, 0);
             renderer.rotate(gl, rotation[2], 0, 0, 1);
             
-            shapes.get(index).render(gl, rs, renderer, renderModes, texSize, select);
+            shapes.get(index).render(gl, renderer, renderModes, texSize, select);
             renderer.rotate(gl, -rotation[0], 1, 0, 0);
             renderer.rotate(gl, -rotation[1], 0, 1, 0);
             renderer.rotate(gl, -rotation[2], 0, 0, 1);

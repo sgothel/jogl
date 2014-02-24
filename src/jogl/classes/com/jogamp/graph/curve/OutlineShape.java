@@ -107,15 +107,27 @@ public class OutlineShape implements Comparable<OutlineShape> {
     }
 
     public static final int DIRTY_BOUNDS = 1 << 0;
+    /**
+     * Modified shape, requires to update the vertices and triangles, here: vertices.
+     */
+    public static final int DIRTY_VERTICES  = 1 << 1;
+    /**
+     * Modified shape, requires to update the vertices and triangles, here: triangulation.
+     */
+    public static final int DIRTY_TRIANGLES  = 1 << 2;
 
     private final Vertex.Factory<? extends Vertex> vertexFactory;
-    private VerticesState outlineState;
 
     /** The list of {@link Outline}s that are part of this
      *  outline shape.
      */
-    /* pp */ ArrayList<Outline> outlines;
+    /* pp */ final ArrayList<Outline> outlines;
+
     private final AABBox bbox;
+    private final ArrayList<Triangle> triangles;
+    private final ArrayList<Vertex> vertices;
+
+    private VerticesState outlineState;
 
     /** dirty bits DIRTY_BOUNDS */
     private int dirtyBits;
@@ -128,6 +140,8 @@ public class OutlineShape implements Comparable<OutlineShape> {
         this.outlines.add(new Outline());
         this.outlineState = VerticesState.UNDEFINED;
         this.bbox = new AABBox();
+        this.triangles = new ArrayList<Triangle>();
+        this.vertices = new ArrayList<Vertex>();
         this.dirtyBits = 0;
     }
 
@@ -137,6 +151,8 @@ public class OutlineShape implements Comparable<OutlineShape> {
         outlines.add(new Outline());
         outlineState = VerticesState.UNDEFINED;
         bbox.reset();
+        vertices.clear();
+        triangles.clear();
         dirtyBits = 0;
     }
 
@@ -200,6 +216,8 @@ public class OutlineShape implements Comparable<OutlineShape> {
                 if( 0 == ( dirtyBits & DIRTY_BOUNDS ) ) {
                     bbox.resize(outline.getBounds());
                 }
+                // vertices.addAll(outline.getVertices()); // FIXME: can do and remove DIRTY_VERTICES ?
+                dirtyBits |= DIRTY_TRIANGLES | DIRTY_VERTICES;
                 return;
             }
         }
@@ -207,6 +225,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
         if( 0 == ( dirtyBits & DIRTY_BOUNDS ) ) {
             bbox.resize(outline.getBounds());
         }
+        dirtyBits |= DIRTY_TRIANGLES | DIRTY_VERTICES;
     }
 
     /** Insert the {@link OutlineShape} elements of type {@link Outline}, .. at the end of this shape,
@@ -239,7 +258,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
             throw new NullPointerException("outline is null");
         }
         outlines.set(position, outline);
-        dirtyBits |= DIRTY_BOUNDS;
+        dirtyBits |= DIRTY_BOUNDS | DIRTY_TRIANGLES | DIRTY_VERTICES;
     }
 
     /** Removes the {@link Outline} element at the given {@code position}.
@@ -249,7 +268,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
      * @throws IndexOutOfBoundsException if position is out of range (position < 0 || position >= getOutlineNumber())
      */
     public final Outline removeOutline(int position) throws IndexOutOfBoundsException {
-        dirtyBits |= DIRTY_BOUNDS;
+        dirtyBits |= DIRTY_BOUNDS | DIRTY_TRIANGLES | DIRTY_VERTICES;
         return outlines.remove(position);
     }
 
@@ -278,6 +297,8 @@ public class OutlineShape implements Comparable<OutlineShape> {
         if( 0 == ( dirtyBits & DIRTY_BOUNDS ) ) {
             bbox.resize(lo.getBounds());
         }
+        // vertices.add(v); // FIXME: can do and remove DIRTY_VERTICES ?
+        dirtyBits |= DIRTY_TRIANGLES | DIRTY_VERTICES;
     }
 
     /** Adds a vertex to the last open outline in the shape.
@@ -291,6 +312,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
         if( 0 == ( dirtyBits & DIRTY_BOUNDS ) ) {
             bbox.resize(lo.getBounds());
         }
+        dirtyBits |= DIRTY_TRIANGLES | DIRTY_VERTICES;
     }
 
     /** Add a 2D {@link Vertex} to the last outline by defining the coordniate attribute
@@ -338,7 +360,9 @@ public class OutlineShape implements Comparable<OutlineShape> {
      * is equal to the first.</p>
      */
     public void closeLastOutline() {
-        getLastOutline().setClosed(true);
+        if( getLastOutline().setClosed(true) ) {
+            dirtyBits |= DIRTY_TRIANGLES | DIRTY_VERTICES;
+        }
     }
 
     /**
@@ -348,7 +372,8 @@ public class OutlineShape implements Comparable<OutlineShape> {
         return outlineState;
     }
 
-    /** Ensure the outlines represent
+    /**
+     * Ensure the outlines represent
      * the specified destinationType.
      * and removes all overlaps in boundary triangles
      * @param destinationType the target outline's vertices state. Currently only
@@ -376,6 +401,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
 
         outline.addVertex(index, vertexFactory.create(v1, 0, 3, false));
         outline.addVertex(index+2, vertexFactory.create(v3, 0, 3, false));
+        dirtyBits |= DIRTY_VERTICES;
     }
 
     /** Check overlaps between curved triangles
@@ -480,10 +506,12 @@ public class OutlineShape implements Comparable<OutlineShape> {
                     i++;
                     vertexCount++;
                     outline.addVertex(i, v);
+                    dirtyBits |= DIRTY_VERTICES;
                 }
             }
             if(vertexCount <= 0) {
                 outlines.remove(outline);
+                dirtyBits |= DIRTY_VERTICES;
                 cc--;
                 count--;
                 continue;
@@ -511,37 +539,90 @@ public class OutlineShape implements Comparable<OutlineShape> {
         }
     }
 
-    /** @return the list of concatenated vertices associated with all
-     * {@code Outline}s of this object
+    /**
+     * Return list of concatenated vertices associated with all
+     * {@code Outline}s of this object.
+     * <p>
+     * Vertices are cached until marked dirty.
+     * </p>
+     * FIXME: Add memory optimization, i.e. VBO layout
      */
     public ArrayList<Vertex> getVertices() {
-        ArrayList<Vertex> vertices = new ArrayList<Vertex>();
-        for(int i=0; i<outlines.size(); i++) {
-            vertices.addAll(outlines.get(i).getVertices());
+        if( 0 != ( DIRTY_VERTICES & dirtyBits ) ) {
+            vertices.clear();
+            for(int i=0; i<outlines.size(); i++) {
+                vertices.addAll(outlines.get(i).getVertices());
+            }
+            dirtyBits &= ~DIRTY_VERTICES;
         }
         return vertices;
     }
 
+    private void triangulateImpl() {
+        if( 0 < outlines.size() ) {
+            sortOutlines();
+            generateVertexIds();
+
+            triangles.clear();
+            final Triangulator triangulator2d = Triangulation.create();
+            for(int index = 0; index<outlines.size(); index++) {
+                triangulator2d.addCurve(triangles, outlines.get(index));
+            }
+            triangulator2d.generate(triangles);
+            triangulator2d.reset();
+        }
+        dirtyBits &= ~DIRTY_TRIANGLES;
+    }
+
     /**
      * Triangulate the {@link OutlineShape} generating a list of triangles
+     * while {@link #transformOutlines(VerticesState)} beforehand w/
+     * {@link OutlineShape.VerticesState#QUADRATIC_NURBS}.
+     * <p>
+     * Triangles are cached until marked dirty.
+     * </p>
      * @return an arraylist of triangles representing the filled region
      * which is produced by the combination of the outlines
+     * FIXME: Add memory optimization, i.e. VBO layout
      */
-    public ArrayList<Triangle> triangulate() {
-        if(outlines.size() == 0){
-            return null;
+    public ArrayList<Triangle> getTriangles() {
+        final boolean updated;
+        if( 0 != ( DIRTY_TRIANGLES & dirtyBits ) ) {
+            transformOutlines(OutlineShape.VerticesState.QUADRATIC_NURBS);
+            triangulateImpl();
+            updated = true;
+        } else {
+            updated = false;
         }
-        sortOutlines();
-        generateVertexIds();
-
-        Triangulator triangulator2d = Triangulation.create();
-        for(int index = 0; index<outlines.size(); index++) {
-            triangulator2d.addCurve(outlines.get(index));
+        if(Region.DEBUG_INSTANCE) {
+            System.err.println("OutlineShape.getTriangles().1: "+triangles.size()+", updated "+updated);
         }
 
-        ArrayList<Triangle> triangles = triangulator2d.generate();
-        triangulator2d.reset();
+        return triangles;
+    }
 
+    /**
+     * Triangulate the {@link OutlineShape} generating a list of triangles,
+     * while {@link #transformOutlines(VerticesState)} beforehand.
+     * <p>
+     * Triangles are cached until marked dirty.
+     * </p>
+     * @return an arraylist of triangles representing the filled region
+     * which is produced by the combination of the outlines
+     * FIXME: Add memory optimization, i.e. VBO layout
+     */
+    public ArrayList<Triangle> getTriangles(VerticesState destinationType) {
+        final boolean updated;
+        if( 0 != ( DIRTY_TRIANGLES & dirtyBits ) ) {
+            transformOutlines(destinationType);
+            triangulateImpl();
+            updated = true;
+        } else {
+            updated = false;
+        }
+        if(Region.DEBUG_INSTANCE) {
+            System.err.println("OutlineShape.getTriangles().2: "+triangles.size()+", updated "+updated);
+        }
         return triangles;
     }
 

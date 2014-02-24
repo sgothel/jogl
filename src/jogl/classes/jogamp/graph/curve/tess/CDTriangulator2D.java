@@ -29,7 +29,7 @@
 package jogamp.graph.curve.tess;
 
 import java.util.ArrayList;
-
+import java.util.List;
 
 import com.jogamp.graph.curve.tess.Triangulator;
 import com.jogamp.graph.geom.Outline;
@@ -48,11 +48,10 @@ public class CDTriangulator2D implements Triangulator{
 
     protected static final boolean DEBUG = Debug.debug("Triangulation");
 
-    private float sharpness = 0.5f;
+    private final float sharpness = 0.5f;
     private ArrayList<Loop> loops;
-    private ArrayList<Vertex> vertices;
+    // FIXME ? private ArrayList<Vertex> vertices;
 
-    private ArrayList<Triangle> triangles;
     private int maxTriID = 0;
 
 
@@ -68,13 +67,12 @@ public class CDTriangulator2D implements Triangulator{
     @Override
     public void reset() {
         maxTriID = 0;
-        vertices = new ArrayList<Vertex>();
-        triangles = new ArrayList<Triangle>(3);
+        // vertices = new ArrayList<Vertex>();
         loops = new ArrayList<Loop>();
     }
 
     @Override
-    public void addCurve(Outline polyline) {
+    public void addCurve(List<Triangle> sink, Outline polyline) {
         Loop loop = null;
 
         if(!loops.isEmpty()) {
@@ -82,27 +80,27 @@ public class CDTriangulator2D implements Triangulator{
         }
 
         if(loop == null) {
-            GraphOutline outline = new GraphOutline(polyline);
-            GraphOutline innerPoly = extractBoundaryTriangles(outline, false);
-            vertices.addAll(polyline.getVertices());
+            final GraphOutline outline = new GraphOutline(polyline);
+            final GraphOutline innerPoly = extractBoundaryTriangles(sink, outline, false);
+            // vertices.addAll(polyline.getVertices());
             loop = new Loop(innerPoly, VectorUtil.Winding.CCW);
             loops.add(loop);
         } else {
-            GraphOutline outline = new GraphOutline(polyline);
-            GraphOutline innerPoly = extractBoundaryTriangles(outline, true);
-            vertices.addAll(innerPoly.getVertices());
+            final GraphOutline outline = new GraphOutline(polyline);
+            final GraphOutline innerPoly = extractBoundaryTriangles(sink, outline, true);
+            // vertices.addAll(innerPoly.getVertices());
             loop.addConstraintCurve(innerPoly);
         }
     }
 
     @Override
-    public ArrayList<Triangle> generate() {
+    public void generate(List<Triangle> sink) {
         for(int i=0;i<loops.size();i++) {
             Loop loop = loops.get(i);
             int numTries = 0;
             int size = loop.computeLoopSize();
             while(!loop.isSimplex()){
-                Triangle tri = null;
+                final Triangle tri;
                 if(numTries > size){
                     tri = loop.cut(false);
                 }
@@ -115,7 +113,7 @@ public class CDTriangulator2D implements Triangulator{
                     numTries = 0;
                     size--;
                     tri.setId(maxTriID++);
-                    triangles.add(tri);
+                    sink.add(tri);
                     if(DEBUG){
                         System.err.println(tri);
                     }
@@ -127,15 +125,14 @@ public class CDTriangulator2D implements Triangulator{
                     break;
                 }
             }
-            Triangle tri = loop.cut(true);
+            final Triangle tri = loop.cut(true);
             if(tri != null) {
-                triangles.add(tri);
+                sink.add(tri);
             }
         }
-        return triangles;
     }
 
-    private GraphOutline extractBoundaryTriangles(GraphOutline outline, boolean hole) {
+    private GraphOutline extractBoundaryTriangles(List<Triangle> sink, GraphOutline outline, boolean hole) {
         GraphOutline innerOutline = new GraphOutline();
         ArrayList<GraphVertex> outVertices = outline.getGraphPoint();
         int size = outVertices.size();
@@ -146,9 +143,9 @@ public class CDTriangulator2D implements Triangulator{
             GraphVertex gv1 = currentVertex;
 
             if(!currentVertex.getPoint().isOnCurve()) {
-                Vertex v0 = gv0.getPoint().clone();
-                Vertex v2 = gv2.getPoint().clone();
-                Vertex v1 = gv1.getPoint().clone();
+                final Vertex v0 = gv0.getPoint().clone();
+                final Vertex v2 = gv2.getPoint().clone();
+                final Vertex v1 = gv1.getPoint().clone();
 
                 gv0.setBoundaryContained(true);
                 gv1.setBoundaryContained(true);
@@ -164,7 +161,7 @@ public class CDTriangulator2D implements Triangulator{
                     t = new Triangle(v2, v1, v0);
                 }
                 t.setId(maxTriID++);
-                triangles.add(t);
+                sink.add(t);
                 if(DEBUG){
                     System.err.println(t);
                 }

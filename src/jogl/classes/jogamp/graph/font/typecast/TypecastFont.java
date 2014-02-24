@@ -44,19 +44,20 @@ import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
+import com.jogamp.graph.geom.SVertex;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.opengl.math.geom.AABBox;
 
 class TypecastFont implements FontInt {
     static final boolean DEBUG = false;
+    private static final Vertex.Factory<SVertex> vertexFactory = SVertex.factory();
 
     final OTFontCollection fontset;
     final OTFont font;
     TypecastHMetrics metrics;
     final CmapFormat cmapFormat;
     int cmapentries;
-
     // FIXME: Add cache size to limit memory usage ??
     IntObjectHashMap char2Glyph;
 
@@ -201,8 +202,10 @@ class TypecastFont implements FontInt {
             if(null == glyph) {
                 throw new RuntimeException("Could not retrieve glyph for symbol: <"+symbol+"> "+(int)symbol+" -> glyph id "+code);
             }
-            Path2D path = TypecastRenderer.buildPath(glyph);
-            result = new TypecastGlyph(this, symbol, code, glyph.getBBox(), glyph.getAdvanceWidth(), path);
+            final OutlineShape shape = TypecastRenderer.buildShape(glyph, vertexFactory);
+            // FIXME: Remove Path2D
+            final Path2D path = TypecastRenderer.buildPath(glyph);
+            result = new TypecastGlyph(this, symbol, code, glyph.getBBox(), glyph.getAdvanceWidth(), path, shape);
             if(DEBUG) {
                 System.err.println("New glyph: " + (int)symbol + " ( " + symbol +" ) -> " + code + ", contours " + glyph.getPointCount() + ": " + path);
             }
@@ -225,11 +228,7 @@ class TypecastFont implements FontInt {
         return result;
     }
 
-    @Override
-    public OutlineShape getOutlineShape(Glyph glyph, Factory<? extends Vertex> vertexFactory) {
-        return TypecastRenderer.getOutlineShape(this, glyph, vertexFactory);
-    }
-
+    // FIXME: Remove altogether
     @Override
     public List<OutlineShape> getOutlineShapes(List<OutlineShape> shapes, CharSequence string, float pixelSize, Factory<? extends Vertex> vertexFactory) {
     	AffineTransform transform = new AffineTransform(vertexFactory);

@@ -91,6 +91,7 @@ public interface Font {
         public float getScale(float pixelSize);
         public AABBox getBBox(float pixelSize);
         public float getAdvance(float pixelSize, boolean useFrationalMetrics);
+        public OutlineShape getShape();
         public int hashCode();
     }
 
@@ -117,13 +118,7 @@ public interface Font {
     public boolean isPrintableChar( char c );
 
     /**
-     * @param glyph source of the created OutlineShape
-     * @param vertexFactory factory for vertices
-     * @return OutlineShape of the glyph
-     */
-    public OutlineShape getOutlineShape(Glyph glyph, Factory<? extends Vertex> vertexFactory);
-
-    /**
+     * @deprecated Remove altogether - use {@link #getOutlineShape(Glyph, Factory)
      * @param shapes optional storage of OutlineShapes passed by user, new shapes are appended
      * @param string source of the created OutlineShapes
      * @param pixelSize

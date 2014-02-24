@@ -31,6 +31,9 @@ import jogamp.graph.geom.plane.Path2D;
 
 import com.jogamp.graph.font.Font;
 
+/**
+ * @deprecated
+ */
 public interface FontInt extends Font {
 
     public interface GlyphInt extends Font.Glyph {

@@ -121,6 +121,8 @@ public class AffineTransform implements Cloneable, Serializable {
         }
     }
 
+    public final Vertex.Factory<? extends Vertex> getFactory() { return pointFactory; }
+
     /*
      * Method returns type of affine transformation.
      *
@@ -403,12 +405,10 @@ public class AffineTransform implements Cloneable, Serializable {
 
     public Vertex transform(Vertex src, Vertex dst) {
         if (dst == null) {
-            dst = pointFactory.create();
+            dst = pointFactory.create(src.getId(), src.isOnCurve(), src.getTexCoord());
         }
-
-        float x = src.getX();
-        float y = src.getY();
-
+        final float x = src.getX();
+        final float y = src.getY();
         dst.setCoord(x * m00 + y * m01 + m02, x * m10 + y * m11 + m12, 0f);
         return dst;
     }
@@ -416,12 +416,12 @@ public class AffineTransform implements Cloneable, Serializable {
     public void transform(Vertex[] src, int srcOff, Vertex[] dst, int dstOff, int length) {
         while (--length >= 0) {
             Vertex srcPoint = src[srcOff++];
-            float x = srcPoint.getX();
-            float y = srcPoint.getY();
             Vertex dstPoint = dst[dstOff];
             if (dstPoint == null) {
                 throw new IllegalArgumentException("dst["+dstOff+"] is null");
             }
+            final float x = srcPoint.getX();
+            final float y = srcPoint.getY();
             dstPoint.setCoord(x * m00 + y * m01 + m02, x * m10 + y * m11 + m12, 0f);
             dst[dstOff++] = dstPoint;
         }
@@ -446,12 +446,10 @@ public class AffineTransform implements Cloneable, Serializable {
 
     public Vertex deltaTransform(Vertex src, Vertex dst) {
         if (dst == null) {
-            dst = pointFactory.create();
+            dst = pointFactory.create(src.getId(), src.isOnCurve(), src.getTexCoord());
         }
-
-        float x = src.getX();
-        float y = src.getY();
-
+        final float x = src.getX();
+        final float y = src.getY();
         dst.setCoord(x * m00 + y * m01, x * m10 + y * m11, 0f);
         return dst;
     }
@@ -471,12 +469,10 @@ public class AffineTransform implements Cloneable, Serializable {
             throw new NoninvertibleTransformException(determinantIsZero);
         }
         if (dst == null) {
-            dst = pointFactory.create();
+            dst = pointFactory.create(src.getId(), src.isOnCurve(), src.getTexCoord());
         }
-
-        float x = src.getX() - m02;
-        float y = src.getY() - m12;
-
+        final float x = src.getX() - m02;
+        final float y = src.getY() - m12;
         dst.setCoord((x * m11 - y * m01) / det, (y * m00 - x * m10) / det, 0f);
         return dst;
     }
@@ -502,7 +498,7 @@ public class AffineTransform implements Cloneable, Serializable {
             return null;
         }
         if (src instanceof Path2D) {
-            return ((Path2D)src).createTransformedShape(this);
+            return src.createTransformedShape(this);
         }
         PathIterator path = src.iterator(this);
         Path2D dst = new Path2D(path.getWindingRule());

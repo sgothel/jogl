@@ -31,25 +31,26 @@ import javax.media.opengl.GL2ES2;
 
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.graph.curve.opengl.Renderer;
 import com.jogamp.opengl.test.junit.graph.demos.ui.UIShape;
 import com.jogamp.opengl.test.junit.graph.demos.ui.UITextShape;
 
 public class UIRegion {
-    protected static final int DIRTY_REGION  = 1 << 0 ;    
+    protected static final int DIRTY_REGION  = 1 << 0 ;
     protected int dirty = DIRTY_REGION;
-    
-    private UIShape uiShape;
+
+    private final UIShape uiShape;
     private GLRegion region;
-    
+
     public UIRegion(UIShape uis) {
         this.uiShape = uis;
     }
-    
-    public boolean updateRegion(GL2ES2 gl, RenderState rs, int renderModes) {
+
+    public boolean updateRegion(GL2ES2 gl, Renderer renderer, int renderModes) {
         if( uiShape.updateShape() || isRegionDirty() ) {
-            destroy(gl, rs);
+            destroy(gl, renderer.getRenderState());
             if(uiShape instanceof UITextShape) {
-                region = ((UITextShape)uiShape).getGlyphString().createRegion(gl, renderModes);    
+                region = ((UITextShape)uiShape).getRegion();
             } else {
                 region = GLRegion.create(uiShape.getShape(), renderModes);
             }
@@ -58,20 +59,20 @@ public class UIRegion {
         }
         return false;
     }
-    
-    public GLRegion getRegion(GL2ES2 gl, RenderState rs, int renderModes) { 
-        updateRegion(gl, rs, renderModes);
-        return region; 
+
+    public GLRegion getRegion(GL2ES2 gl, Renderer renderer, int renderModes) {
+        updateRegion(gl, renderer, renderModes);
+        return region;
     }
-    
+
     public boolean isRegionDirty() {
         return 0 != ( dirty & DIRTY_REGION ) ;
     }
-    
+
     public void destroy(GL2ES2 gl, RenderState rs) {
         if(null != region) {
             region.destroy(gl, rs);
             region = null;
-        }                    
+        }
     }
 }

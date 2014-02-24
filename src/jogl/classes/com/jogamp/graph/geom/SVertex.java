@@ -25,9 +25,8 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.graph.geom.opengl;
+package com.jogamp.graph.geom;
 
-import com.jogamp.graph.geom.Vertex;
 import com.jogamp.opengl.math.VectorUtil;
 
 /** A Simple Vertex Implementation. Where the coordinates, and other attributes are
@@ -35,10 +34,10 @@ import com.jogamp.opengl.math.VectorUtil;
  *
  */
 public class SVertex implements Vertex {
-    private int id = Integer.MAX_VALUE;
-    protected float[] coord = new float[3];
+    private int id;
+    protected final float[] coord = new float[3];
     protected boolean onCurve;
-    private float[] texCoord = new float[2];
+    private final float[] texCoord = new float[2];
 
     static final Factory factory = new Factory();
 
@@ -50,8 +49,17 @@ public class SVertex implements Vertex {
             return new SVertex();
         }
 
+        public SVertex create(final Vertex src) {
+            return new SVertex(src);
+        }
+
         @Override
-        public SVertex create(float x, float y, float z, boolean onCurve) {
+        public SVertex create(final int id, final boolean onCurve, final float[] texCoordsBuffer) {
+            return new SVertex(id, onCurve, texCoordsBuffer);
+        }
+
+        @Override
+        public SVertex create(final float x, final float y, final float z, final boolean onCurve) {
             return new SVertex(x, y, z, onCurve);
         }
 
@@ -62,30 +70,46 @@ public class SVertex implements Vertex {
     }
 
     public SVertex() {
+        this.id = Integer.MAX_VALUE;
     }
 
-    public SVertex(float x, float y, float z, boolean onCurve) {
+    public SVertex(final Vertex src) {
+        this.id = src.getId();
+        System.arraycopy(src.getCoord(), 0, coord, 0, 3);
+        setOnCurve(src.isOnCurve());
+        System.arraycopy(src.getTexCoord(), 0, texCoord, 0, 2);
+    }
+
+    public SVertex(final int id, final boolean onCurve, final float[] texCoordsBuffer) {
+        this.id = id;
+        this.onCurve = onCurve;
+        System.arraycopy(texCoordsBuffer, 0, texCoord, 0, 2);
+    }
+
+    public SVertex(final float x, final float y, final float z, final boolean onCurve) {
+        this.id = Integer.MAX_VALUE;
         setCoord(x, y, z);
         setOnCurve(onCurve);
     }
 
-    public SVertex(float[] coordsBuffer, int offset, int length, boolean onCurve) {
+    public SVertex(final float[] coordsBuffer, final int offset, final int length, final boolean onCurve) {
+        this.id = Integer.MAX_VALUE;
         setCoord(coordsBuffer, offset, length);
         setOnCurve(onCurve);
     }
 
-    public SVertex(float[] coordsBuffer, int offset, int length,
-                   float[] texCoordsBuffer, int offsetTC, int lengthTC, boolean onCurve) {
-        setCoord(coordsBuffer, offset, length);
-        setTexCoord(texCoordsBuffer, offsetTC, lengthTC);
+    public SVertex(float[] coordsBuffer, float[] texCoordsBuffer, boolean onCurve) {
+        this.id = Integer.MAX_VALUE;
+        System.arraycopy(coordsBuffer, 0, coord, 0, 3);
+        System.arraycopy(texCoordsBuffer, 0, texCoord, 0, 2);
         setOnCurve(onCurve);
     }
 
     @Override
     public final void setCoord(float x, float y, float z) {
-        this.coord[0] = x;
-        this.coord[1] = y;
-        this.coord[2] = z;
+        coord[0] = x;
+        coord[1] = y;
+        coord[2] = z;
     }
 
     @Override
@@ -175,8 +199,8 @@ public class SVertex implements Vertex {
 
     @Override
     public final void setTexCoord(float s, float t) {
-        this.texCoord[0] = s;
-        this.texCoord[1] = t;
+        texCoord[0] = s;
+        texCoord[1] = t;
     }
 
     @Override
@@ -185,11 +209,11 @@ public class SVertex implements Vertex {
     }
 
     /**
-     * @return deep clone of this Vertex, but keeping the id blank
+     * @return deep clone of this Vertex elements
      */
     @Override
     public SVertex clone(){
-        return new SVertex(this.coord, 0, 3, this.texCoord, 0, 2, this.onCurve);
+        return new SVertex(this.coord, this.texCoord, this.onCurve);
     }
 
     @Override

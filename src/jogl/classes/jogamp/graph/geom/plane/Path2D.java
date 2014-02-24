@@ -21,8 +21,8 @@ package jogamp.graph.geom.plane;
 
 import java.util.NoSuchElementException;
 
+import com.jogamp.graph.geom.SVertex;
 import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.opengl.SVertex;
 import com.jogamp.opengl.math.geom.AABBox;
 
 

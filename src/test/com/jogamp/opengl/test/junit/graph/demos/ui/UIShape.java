@@ -31,7 +31,7 @@ import javax.media.opengl.GL2ES2;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.graph.curve.opengl.Renderer;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.opengl.math.geom.AABBox;
@@ -39,41 +39,41 @@ import com.jogamp.opengl.math.geom.AABBox;
 public abstract class UIShape {
     private final Factory<? extends Vertex> vertexFactory;
     protected OutlineShape shape;
-    
-    protected static final int DIRTY_SHAPE  = 1 << 0 ;    
+
+    protected static final int DIRTY_SHAPE  = 1 << 0 ;
     protected int dirty = DIRTY_SHAPE;
-    
+
     private boolean down = false;
 
     public UIShape(Factory<? extends Vertex> factory) {
         this.vertexFactory = factory;
         this.shape = new OutlineShape(factory);
     }
-    
+
     public void clear() {
-        clearImpl();
+        clearImpl(null, null);
         shape.clear();
     }
-    
-    public abstract void render(GL2ES2 gl, RenderState rs, RegionRenderer renderer, int renderModes, int[/*1*/] texSize, boolean selection);
-    
+
+    public abstract void render(GL2ES2 gl, RegionRenderer renderer, int renderModes, int[/*1*/] texSize, boolean selection);
+
     protected boolean positionDirty = false;
-    
-    private float[] position = new float[]{0,0,0};
-    private float[] scale = new float[]{1.0f,1.0f,1.0f};
+
+    private final float[] position = new float[]{0,0,0};
+    private final float[] scale = new float[]{1.0f,1.0f,1.0f};
     public void setScale(float x, float y, float z){
         scale[0] = x;
         scale[1] = y;
         scale[2] = z;
     }
-    
+
     public void setPosition(float x, float y, float z) {
         this.position[0] = x;
         this.position[1] = y;
         this.position[2] = z;
         positionDirty = true;
     }
-    
+
     private void updatePosition () {
         float minX = shape.getBounds().getLow()[0];
         float minY = shape.getBounds().getLow()[1];
@@ -83,18 +83,18 @@ public abstract class UIShape {
         setPosition(position[0] - minX, position[1] - minY, position[2] - minZ);
         positionDirty = false;
     }
-    
-    public float[] getScale() { return scale; }   
+
+    public float[] getScale() { return scale; }
     public float[] getPosition() { return position; }
-    
-    protected abstract void clearImpl();
-    
-    protected abstract void createShape();
-    
+
+    protected abstract void clearImpl(GL2ES2 gl, Renderer renderer);
+
+    protected abstract void createShape(Renderer renderer);
+
     public boolean updateShape() {
         if( isShapeDirty() ) {
             shape.clear();
-            createShape();
+            createShape(null);
             if(positionDirty){
                 updatePosition();
             }
@@ -103,27 +103,27 @@ public abstract class UIShape {
         }
         return false;
     }
-    
-    public final Vertex.Factory<? extends Vertex> getVertexFactory() { return vertexFactory; }    
+
+    public final Vertex.Factory<? extends Vertex> getVertexFactory() { return vertexFactory; }
     public AABBox getBounds() { return shape.getBounds(); }
-    
-    public OutlineShape getShape() { 
-        updateShape(); 
-        return shape; 
+
+    public OutlineShape getShape() {
+        updateShape();
+        return shape;
     }
-    
+
     public boolean isShapeDirty() {
         return 0 != ( dirty & DIRTY_SHAPE ) ;
-    }    
-    
+    }
+
     public void setPressed(boolean b) {
         this.down  = b;
     }
-    
+
     public boolean isPressed() {
         return this.down;
     }
-    
+
     public abstract void onClick();
     public abstract void onPressed();
     public abstract void onRelease();

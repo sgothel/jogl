@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jogamp.graph.curve.opengl.RegionFactory;
+import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.opengl.Debug;
 
 import com.jogamp.graph.curve.opengl.GLRegion;
@@ -46,8 +47,7 @@ public abstract class Region {
 
     /** Debug flag for region impl (graph.curve) */
     public static final boolean DEBUG = Debug.debug("graph.curve");
-
-    public static final boolean DEBUG_INSTANCE = false;
+    public static final boolean DEBUG_INSTANCE = Debug.debug("graph.curve.instance");
 
     /** View based Anti-Aliasing, A Two pass region rendering, slower and more
      * resource hungry (FBO), but AA is perfect. Otherwise the default fast one
@@ -65,7 +65,9 @@ public abstract class Region {
     private boolean dirty = true;
     protected int numVertices = 0;
     protected final AABBox box = new AABBox();
+    /** FIXME: Think about a rendering storage optimization (VBO ... )! */
     protected ArrayList<Triangle> triangles = new ArrayList<Triangle>();
+    /** FIXME: Think about a rendering storage optimization (VBO ... )! */
     protected ArrayList<Vertex> vertices = new ArrayList<Vertex>();
 
     public static boolean isVBAA(int renderModes) {
@@ -99,7 +101,7 @@ public abstract class Region {
      */
     public static Region create(OutlineShape outlineShape, int renderModes) {
         final Region region = RegionFactory.create(renderModes);
-        region.addOutlineShape(outlineShape);
+        region.addOutlineShape(outlineShape, null);
         return region;
     }
 
@@ -136,27 +138,32 @@ public abstract class Region {
         return numVertices;
     }
 
-    /** Adds a {@link Triangle} object to the Region This triangle will be bound
-     * to OGL objects on the next call to {@code update}
-     *
-     * @param tri
-     *            a triangle object
-     *
-     * @see update(GL2ES2) */
-    public void addTriangle(Triangle tri) {
-        triangles.add(tri);
-        setDirty(true);
-    }
-
     /** Adds a list of {@link Triangle} objects to the Region These triangles are
      * to be binded to OGL objects on the next call to {@code update}
      *
      * @param tris
      *            a list of triangle objects
+     * @param idxOffset TODO
      *
      * @see update(GL2ES2) */
-    public void addTriangles(List<Triangle> tris) {
-        triangles.addAll(tris);
+    public void addTriangles(List<Triangle> tris, AffineTransform t, int idxOffset) {
+        if( true && null != t ) {
+            for(int i=0; i<tris.size(); i++) {
+                final Triangle t2 = tris.get(i).transform(t);
+                t2.addVertexIndicesOffset(idxOffset);
+                triangles.add( t2 );
+            }
+        } else {
+            for(int i=0; i<tris.size(); i++) {
+                final Triangle t2 = new Triangle( tris.get(i) );
+                t2.addVertexIndicesOffset(idxOffset);
+                triangles.add( t2 );
+            }
+            // triangles.addAll(tris);
+        }
+        if(DEBUG_INSTANCE) {
+            System.err.println("Region.addTriangles(): tris: "+triangles.size()+", verts "+vertices.size());
+        }
         setDirty(true);
     }
 
@@ -167,9 +174,14 @@ public abstract class Region {
      *            a vertex objects
      *
      * @see update(GL2ES2) */
-    public void addVertex(Vertex vert) {
-        vertices.add(vert);
+    public void addVertex(Vertex vert, AffineTransform t) {
+        final Vertex svert = null != t ? t.transform(vert, null) : vert;
+        vertices.add(svert);
         numVertices++;
+        assert( vertices.size() == numVertices );
+        if(DEBUG_INSTANCE) {
+            System.err.println("Region.addVertex(): tris: "+triangles.size()+", verts "+vertices.size());
+        }
         setDirty(true);
     }
 
@@ -183,29 +195,51 @@ public abstract class Region {
     public void addVertices(List<Vertex> verts) {
         vertices.addAll(verts);
         numVertices = vertices.size();
+        if(DEBUG_INSTANCE) {
+            System.err.println("Region.addVertices(): tris: "+triangles.size()+", verts "+vertices.size());
+        }
         setDirty(true);
     }
 
-    public void addOutlineShape(OutlineShape shape) {
-        shape.transformOutlines(OutlineShape.VerticesState.QUADRATIC_NURBS);
-        List<Triangle> tris = shape.triangulate();
+    public void addOutlineShape(OutlineShape shape, AffineTransform t) {
+        final List<Triangle> tris = shape.getTriangles(OutlineShape.VerticesState.QUADRATIC_NURBS);
         if(null != tris) {
-            triangles.addAll(tris);
+            if( false && null != t ) {
+                for(int i=0; i<tris.size(); i++) {
+                    triangles.add( tris.get(i).transform(t) );
+                }
+            } else {
+                triangles.addAll(tris);
+            }
+            // final List<Vertex> verts = shape.getVertices();
+            // vertices.addAll(verts);
             for (int j = 0; j < shape.outlines.size(); j++) {
                 final ArrayList<Vertex> sovs = shape.outlines.get(j).getVertices();
                 for (int k = 0; k < sovs.size(); k++) {
-                    final Vertex v = sovs.get(k);
+                    final Vertex v;
+                    if( null != t ) {
+                        v = t.transform(sovs.get(k), null);
+                    } else {
+                        v = sovs.get(k);
+                    }
                     v.setId(numVertices++);
                     vertices.add(v);
                 }
             }
+            // numVertices = vertices.size();
+        }
+        if(DEBUG_INSTANCE) {
+            System.err.println("Region.addOutlineShape(): tris: "+triangles.size()+", verts "+vertices.size());
         }
         setDirty(true);
     }
 
     public void addOutlineShapes(List<OutlineShape> shapes) {
         for (int i = 0; i < shapes.size(); i++) {
-            addOutlineShape(shapes.get(i));
+            addOutlineShape(shapes.get(i), null);
+        }
+        if(DEBUG_INSTANCE) {
+            System.err.println("Region.addOutlineShapes(): tris: "+triangles.size()+", verts "+vertices.size());
         }
         setDirty(true);
     }

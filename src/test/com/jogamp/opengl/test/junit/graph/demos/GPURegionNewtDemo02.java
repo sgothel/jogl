@@ -34,7 +34,7 @@ import javax.media.opengl.GLProfile;
 
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.graph.geom.opengl.SVertex;
+import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.WindowAdapter;

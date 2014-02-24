@@ -156,17 +156,20 @@ public class Outline implements Cloneable, Comparable<Outline> {
      * equal to the first vertex. If not Equal adds a
      * vertex at the end to the list.
      * @param closed
+     * @return true if closing performed, otherwise false for NOP
      */
-    public final void setClosed(boolean closed) {
+    public final boolean setClosed(boolean closed) {
         this.closed = closed;
         if( closed && !isEmpty() ) {
-            Vertex first = vertices.get(0);
-            Vertex last = getLastVertex();
+            final Vertex first = vertices.get(0);
+            final Vertex last = getLastVertex();
             if(!VectorUtil.checkEquality(first.getCoord(), last.getCoord())){
                 Vertex v = first.clone();
                 vertices.add(v);
+                return true;
             }
         }
+        return false;
     }
 
     /** Compare two outlines with Bounding Box area

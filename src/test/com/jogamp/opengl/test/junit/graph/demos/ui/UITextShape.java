@@ -27,11 +27,11 @@
  */
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
-import jogamp.graph.curve.text.GlyphString;
+import com.jogamp.graph.curve.opengl.GLRegion;
 
 /**
  * Marker interface to mark a UIShape implementation for text usage
  */
 public interface UITextShape {
-    GlyphString getGlyphString();
+    GLRegion getRegion();
 }

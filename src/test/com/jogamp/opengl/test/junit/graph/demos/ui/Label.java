@@ -27,12 +27,15 @@
  */
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
+import java.util.HashMap;
+
 import javax.media.opengl.GL2ES2;
 
-import jogamp.graph.curve.text.GlyphString;
-
+import com.jogamp.graph.curve.OutlineShape;
+import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.graph.curve.opengl.Renderer;
+import com.jogamp.graph.curve.opengl.TextRenderUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
@@ -41,35 +44,36 @@ public abstract class Label extends UIShape implements UITextShape {
     protected Font font;
     protected int size;
     protected String text;
-    protected GlyphString glyphString; 
-    
+    protected GLRegion glyphRegion;
+
     public Label(Factory<? extends Vertex> factory, Font font, int size, String text) {
         super(factory);
         this.font = font;
         this.size = size;
         this.text = text;
     }
-    
-    public GlyphString getGlyphString() {
-        return glyphString;
+
+    @Override
+    public GLRegion getRegion() {
+        return glyphRegion;
     }
-    
+
     public String getText() {
         return text;
     }
-    
+
     public void setText(String text) {
         this.text = text;
         dirty |= DIRTY_SHAPE;
     }
-    
+
     public Font getFont() {
         return font;
     }
 
     public void setFont(Font font) {
         this.font = font;
-        dirty |= DIRTY_SHAPE;        
+        dirty |= DIRTY_SHAPE;
     }
 
     public int getSize() {
@@ -78,28 +82,29 @@ public abstract class Label extends UIShape implements UITextShape {
 
     public void setSize(int size) {
         this.size = size;
-        dirty |= DIRTY_SHAPE;        
+        dirty |= DIRTY_SHAPE;
     }
 
+    @Override
     public String toString(){
         return "Label [" + font.toString() + ", size " + size + ", " + getText() + "]";
     }
 
     @Override
-    protected void clearImpl() {
-        if(null != glyphString) {
-            glyphString.destroy(null, null);
-        }        
-    }
-    
-    @Override
-    protected void createShape() {
-        clearImpl();
-        glyphString = GlyphString.createString(shape, getVertexFactory(), font, size, text);        
+    protected void clearImpl(GL2ES2 gl, Renderer renderer) {
+        if(null != glyphRegion) {
+            glyphRegion.destroy(gl, renderer.getRenderState());
+        }
     }
 
     @Override
-    public void render(GL2ES2 gl, RenderState rs, RegionRenderer renderer,
-            int renderModes, int[/*1*/] texSize, boolean selection) {        
+    protected void createShape(Renderer renderer) {
+        clearImpl(null, null);
+        glyphRegion = TextRenderUtil.createRegion(renderer.getRenderModes(), renderer.getRenderState().getVertexFactory(),
+                                                  font, text, size);
+    }
+
+    @Override
+    public void render(GL2ES2 gl, RegionRenderer renderer, int renderModes, int[/*1*/] texSize, boolean selection) {
     }
 }

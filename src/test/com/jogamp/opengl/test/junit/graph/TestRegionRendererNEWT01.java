@@ -44,7 +44,7 @@ import org.junit.runners.MethodSorters;
 import com.jogamp.common.os.Platform;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.graph.geom.opengl.SVertex;
+import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.graph.demos.GPURegionGLListener01;
 import com.jogamp.opengl.test.junit.graph.demos.GPURegionGLListener02;
@@ -80,7 +80,7 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         return window;
     }
 
-    @Test
+    // @Test
     public void test00RegionRendererNONE01() throws InterruptedException {
         GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
         GLCapabilities caps = new GLCapabilities(glp);
@@ -109,7 +109,7 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         destroyWindow(window);
     }
 
-    @Test
+    // @Test
     public void test01RegionRendererNONE02() throws InterruptedException {
         if(Platform.CPUFamily.X86 != Platform.CPU_ARCH.family) { // FIXME
             // FIXME: Disabled for now - since it doesn't seem fit for mobile (performance wise).
@@ -174,7 +174,7 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         destroyWindow(window);
     }
 
-    @Test
+    // @Test
     public void test11RegionRendererMSAA02() throws InterruptedException {
         if(Platform.CPUFamily.X86 != Platform.CPU_ARCH.family) { // FIXME
             // FIXME: Disabled for now - since it doesn't seem fit for mobile (performance wise).

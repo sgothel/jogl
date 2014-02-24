@@ -28,7 +28,7 @@
 
 package com.jogamp.graph.curve.tess;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import com.jogamp.graph.geom.Outline;
 import com.jogamp.graph.geom.Triangle;
@@ -49,18 +49,19 @@ import com.jogamp.graph.geom.Triangle;
  */
 public interface Triangulator {
 
-    /** Add a curve to the list of Outlines
+    /**
+     * Add a curve to the list of Outlines
      * describing the shape
+     * @param sink list where the generated triangles will be added
      * @param outline a bounding {@link Outline}
      */
-    public void addCurve(Outline outline);
+    public void addCurve(List<Triangle> sink, Outline outline);
 
     /** Generate the triangulation of the provided
      *  List of {@link Outline}s
-     * @return an arraylist of {@link Triangle}s resembling the
-     * final shape.
+     * @param sink list where the generated triangles will be added
      */
-    public ArrayList<Triangle> generate();
+    public void generate(List<Triangle> sink);
 
     /** Reset the triangulation to initial state
      *  Clearing cached data

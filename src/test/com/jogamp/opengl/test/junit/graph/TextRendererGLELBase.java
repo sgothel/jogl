@@ -34,21 +34,22 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
+import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.graph.curve.opengl.TextRenderer;
+import com.jogamp.graph.curve.opengl.TextRenderUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
-import com.jogamp.graph.geom.opengl.SVertex;
+import com.jogamp.graph.geom.SVertex;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 public abstract class TextRendererGLELBase implements GLEventListener {
+    public final Font font;
+    public final int usrRenderModes;
+
     protected final int[] texSize = new int[] { 0 };
     protected final float[] staticRGBAColor = new float[] { 1f, 1f, 1f, 1f };
-
-    protected final Font font;
-    protected final int usrRenderModes;
 
     /**
      * In exclusive mode, impl. uses a pixelScale of 1f and orthogonal PMV on window dimensions
@@ -61,7 +62,8 @@ public abstract class TextRendererGLELBase implements GLEventListener {
     protected boolean exclusivePMVMatrix = true;
     protected PMVMatrix usrPMVMatrix = null;
     protected RenderState rs = null;
-    protected TextRenderer renderer = null;
+    protected RegionRenderer renderer = null;
+    protected TextRenderUtil textRenderUtil = null;
 
     /** font size in pixels, default is 24 */
     protected int fontSize = 24;
@@ -83,16 +85,25 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             this.font = _font;
         }
     }
+    public TextRendererGLELBase(final RenderState rs, final boolean exclusivePMVMatrix, final int renderModes) {
+        this(renderModes);
+        this.rs = rs;
+        this.exclusivePMVMatrix = exclusivePMVMatrix;
+    }
 
     public void setFlipVerticalInGLOrientation(boolean v) { flipVerticalInGLOrientation=v; }
-    public final TextRenderer getRenderer() { return renderer; }
+    public final RegionRenderer getRenderer() { return renderer; }
+    public final TextRenderUtil getTextRenderUtil() { return textRenderUtil; }
 
     @Override
     public void init(GLAutoDrawable drawable) {
         if( null != font ) {
-            exclusivePMVMatrix = null == usrPMVMatrix;
-            this.rs = RenderState.createRenderState(new ShaderState(), SVertex.factory(), usrPMVMatrix);
-            this.renderer = TextRenderer.create(rs, usrRenderModes);
+            if( null == this.rs ) {
+                exclusivePMVMatrix = null == usrPMVMatrix;
+                this.rs = RenderState.createRenderState(new ShaderState(), SVertex.factory(), usrPMVMatrix);
+            }
+            this.renderer = RegionRenderer.create(rs, usrRenderModes);
+            this.textRenderUtil = new TextRenderUtil(renderer);
             if( 0 == usrRenderModes ) {
                 texSizeScale = 0;
             }
@@ -103,7 +114,6 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             final ShaderState st = rs.getShaderState();
             st.useProgram(gl, false);
         } else {
-            this.rs = null;
             this.renderer = null;
         }
     }
@@ -181,7 +191,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
                 pmvMatrix.glScalef(pixelScale, pixelScale, 1f);
             }
             renderer.updateMatrix(gl);
-            renderer.drawString3D(gl, font, text, fontSize, texSize);
+            textRenderUtil.drawString3D(gl, font, text, fontSize, texSize);
             st.useProgram(gl, false);
             gl.glDisable(GL2ES2.GL_BLEND);
 

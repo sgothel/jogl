@@ -229,6 +229,8 @@ function jrun() {
     #D_ARGS="-Dnativewindow.osx.calayer.bugfree"
     #D_ARGS="-Dnativewindow.debug.ToolkitLock"
     #D_ARGS="-Djogl.debug.graph.curve"
+    #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.graph.curve.instance"
+    #D_ARGS="-Djogl.debug.graph.curve.instance"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLCode -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLState"
     #D_ARGS="-Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil -Djogamp.debug.IOUtil"
@@ -728,8 +730,8 @@ function testawtswt() {
 #
 # Graph
 #
-#testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT00 $*
-testnoawt com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01 $*
+#testnoawt com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01 $*
+testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT00 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWTPerf01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT10 $*
