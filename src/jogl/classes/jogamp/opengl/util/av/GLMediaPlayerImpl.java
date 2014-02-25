@@ -1127,7 +1127,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     if( isBlocked && isActive ) {
                         this.interrupt();
                     }
-                    while( isActive ) {
+                    while( isActive && isRunning ) {
                         try {
                             this.wait(); // wait until paused
                         } catch (InterruptedException e) {
@@ -1141,7 +1141,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             if( isRunning && !isActive ) {
                 shallPause = false;
                 if( Thread.currentThread() != this ) {
-                    while( !isActive ) {
+                    while( !isActive && !shallPause && isRunning ) {
                         this.notifyAll();  // wake-up pause-block
                         try {
                             this.wait(); // wait until resumed
