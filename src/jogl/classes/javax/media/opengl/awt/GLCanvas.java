@@ -818,9 +818,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
               printActive = false;
               return; // not yet available ..
           }
-          if( !isShowing ) {
+          if( !isVisible() ) {
               if(DEBUG) {
-                  System.err.println(getThreadName()+": Info: GLCanvas setupPrint - skipped GL render, drawable valid, canvas not showing");
+                  System.err.println(getThreadName()+": Info: GLCanvas setupPrint - skipped GL render, canvas not visible");
               }
               printActive = false;
               return; // not yet available ..

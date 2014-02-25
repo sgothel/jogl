@@ -437,7 +437,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
   @Override
   public void display() {
-    if( isShowing ) {
+    if( isShowing || ( printActive && isVisible() ) ) {
         if (EventQueue.isDispatchThread()) {
           // Want display() to be synchronous, so call paintImmediately()
           paintImmediately(0, 0, getWidth(), getHeight());
@@ -627,9 +627,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
               printActive = false;
               return; // not yet available ..
           }
-          if( !isShowing ) {
+          if( !isVisible() ) {
               if(DEBUG) {
-                  System.err.println(getThreadName()+": Info: GLJPanel setupPrint - skipped GL render, drawable valid, panel not showing");
+                  System.err.println(getThreadName()+": Info: GLJPanel setupPrint - skipped GL render, panel not visible");
               }
               printActive = false;
               return; // not yet available ..
