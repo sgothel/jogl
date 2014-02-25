@@ -45,7 +45,7 @@ import javax.media.opengl.GLRunnable;
 
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
-import com.jogamp.graph.curve.opengl.Renderer;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.opengl.GLWindow;
@@ -62,7 +62,7 @@ import com.jogamp.opengl.util.GLReadBufferUtil;
  * - s: screenshot
  */
 public abstract class GPURendererListenerBase01 implements GLEventListener {
-    private final Renderer renderer;
+    private final RegionRenderer renderer;
     private final int renderModes;
     private final boolean debug;
     private final boolean trace;
@@ -86,7 +86,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     protected volatile float weight = 1.0f;
     boolean ignoreInput = false;
 
-    public GPURendererListenerBase01(Renderer renderer, int renderModes, boolean debug, boolean trace) {
+    public GPURendererListenerBase01(RegionRenderer renderer, int renderModes, boolean debug, boolean trace) {
         this.renderer = renderer;
         this.renderModes = renderModes;
         this.debug = debug;
@@ -94,7 +94,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         this.screenshot = new GLReadBufferUtil(false, false);
     }
 
-    public final Renderer getRenderer() { return renderer; }
+    public final RegionRenderer getRenderer() { return renderer; }
     public final int getRenderModes() { return renderModes; }
     public final float getZoom() { return zoom; }
     public final float getXTran() { return xTran; }
@@ -141,7 +141,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         autoDrawable = null;
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         if(null != region) {
-            region.destroy(gl, renderer.getRenderState());
+            region.destroy(gl, renderer);
         }
         screenshot.dispose(gl);
         renderer.destroy(gl);
@@ -163,7 +163,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         dumpMatrix();
     }
     public void editGlobalWeight(float delta) {
-        if( !Renderer.isWeightValid(weight+delta) ) {
+        if( !RegionRenderer.isWeightValid(weight+delta) ) {
             return;
         }
         weight += delta;

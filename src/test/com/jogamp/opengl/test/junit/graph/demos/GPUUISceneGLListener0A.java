@@ -11,8 +11,8 @@ import javax.media.opengl.GLPipelineFactory;
 import javax.media.opengl.GLRunnable;
 
 import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.SVertex;
@@ -300,8 +300,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         regionRenderer.scale(gl, 1.5f, 1.5f, 1.0f);
         regionRenderer.rotate(gl, angText , 0, 1, 0);
         regionRenderer.setColorStatic(gl, 0.0f, 1.0f, 0.0f);
-        regionRenderer.draw(gl, jogampRegion.getRegion(gl, regionRenderer, 0), null);
-
+        jogampRegion.getRegion(gl, regionRenderer, 0).draw(gl, regionRenderer, null);
         if(null == labelRegions[currentText]) {
             if( null == labels[currentText]) {
                 labels[currentText] = new Label(SVertex.factory(), font, fontSizeFixed, strings[currentText]){
@@ -321,14 +320,14 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         regionRenderer.rotate(gl, zoomText, 0, 1, 0);
 
         regionRenderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
-        regionRenderer.draw(gl, labelRegions[currentText].getRegion(gl, regionRenderer, renderModes2), texSize2);
+        labelRegions[currentText].getRegion(gl, regionRenderer, renderModes2).draw(gl, regionRenderer, texSize2);
 
         final GLAnimatorControl animator = drawable.getAnimator();
         final boolean _drawFPS = showFPS && null != animator;
 
         if(_drawFPS && fps != animator.getTotalFPS()) {
             if(null != fpsRegion) {
-                fpsRegion.destroy(gl, rs);
+                fpsRegion.destroy(gl, regionRenderer);
             }
             fps = animator.getTotalFPS();
             final String fpsS = String.valueOf(fps);
@@ -344,7 +343,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         if(showFPS && null != fpsRegion) {
             regionRenderer.translate(gl, 0, -60, 0);
             regionRenderer.scale(null, zoomText, zoomText, 1);
-            regionRenderer.draw(gl, fpsRegion.getRegion(gl, regionRenderer, 0), null);
+            fpsRegion.getRegion(gl, regionRenderer, renderModes2).draw(gl, regionRenderer, null);
         }
     }
 

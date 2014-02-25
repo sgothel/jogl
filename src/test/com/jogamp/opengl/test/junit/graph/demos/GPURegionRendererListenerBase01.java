@@ -37,7 +37,7 @@ import com.jogamp.graph.curve.opengl.RenderState;
  * - 1/2: zoom in/out
  * - 3/4: font +/-
  * - 6/7: 2nd pass texture size
- * - 0/9: rotate 
+ * - 0/9: rotate
  * - s: toogle draw 'font set'
  * - f: toggle draw fps
  * - v: toggle v-sync
@@ -48,5 +48,5 @@ public abstract class GPURegionRendererListenerBase01 extends GPURendererListene
 
     public GPURegionRendererListenerBase01(RenderState rs, int renderModes, boolean debug, boolean trace) {
         super(RegionRenderer.create(rs, renderModes), renderModes, debug, trace);
-    }        
+    }
 }

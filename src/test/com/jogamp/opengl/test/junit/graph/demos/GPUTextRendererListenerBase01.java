@@ -35,9 +35,8 @@ import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLException;
 
-import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.graph.curve.opengl.Renderer;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.TextRenderUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
@@ -154,7 +153,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // Demo02 needs to have this set here as well .. hmm ?
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
-        final Renderer renderer = getRenderer();
+        final RegionRenderer renderer = getRenderer();
         renderer.reshapeOrtho(null, width, height, 0.1f, 7000.0f);
         renderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
         final GLAnimatorControl animator = drawable.getAnimator();

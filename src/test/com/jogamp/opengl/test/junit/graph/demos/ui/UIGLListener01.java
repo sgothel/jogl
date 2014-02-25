@@ -34,8 +34,8 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 
-import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.SVertex;
@@ -109,19 +109,19 @@ public class UIGLListener01 extends UIListenerBase01 {
 
         regionRenderer.setColorStatic(gl, bColor[0], bColor[1], bColor[2]);
         regionRenderer.translate(gl, button.getPosition()[0], button.getPosition()[1], button.getPosition()[2]);
-        regionRenderer.draw(gl, regionButton.getRegion(gl, regionRenderer, 0), null);
+        regionButton.getRegion(gl, regionRenderer, 0).draw(gl, regionRenderer, null);
         regionRenderer.setColorStatic(gl, lColor[0], lColor[1], lColor[2]);
-        regionRenderer.draw(gl, regionLabel.getRegion(gl, regionRenderer, 0), null);
+        regionLabel.getRegion(gl, regionRenderer, 0).draw(gl, regionRenderer, null);
     }
 
     public void dispose(GLAutoDrawable drawable) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         if(null != regionButton) {
-            regionButton.destroy(gl, getRegionRenderer().getRenderState());
+            regionButton.destroy(gl, getRegionRenderer());
             regionButton = null;
         }
         if(null != regionLabel) {
-            regionLabel.destroy(gl, getRegionRenderer().getRenderState());
+            regionLabel.destroy(gl, getRegionRenderer());
             regionButton = null;
         }
         super.dispose(drawable);

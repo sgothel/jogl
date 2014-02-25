@@ -30,7 +30,6 @@ package com.jogamp.opengl.test.junit.graph.demos.ui;
 import javax.media.opengl.GL2ES2;
 
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.curve.opengl.Renderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
@@ -79,12 +78,12 @@ public abstract class RIButton extends UIShape {
     }
 
     @Override
-    protected void clearImpl(GL2ES2 gl, Renderer renderer) {
+    protected void clearImpl(GL2ES2 gl, RegionRenderer renderer) {
         label.clear();
     }
 
     @Override
-    protected void createShape(Renderer renderer) {
+    protected void createShape(RegionRenderer renderer) {
         // FIXME: Only possible if all data (color) is
         //        is incl. in Outline Shape.
         //        Until then - draw each separately!
@@ -215,7 +214,7 @@ public abstract class RIButton extends UIShape {
         if(!selection){
             renderer.setColorStatic(gl, bColor[0], bColor[1], bColor[2]);
         }
-        renderer.draw(gl, buttonRegion.getRegion(gl, renderer, renderModes), texSize);
+        buttonRegion.getRegion(gl, renderer, renderModes).draw(gl, renderer, texSize);
         gl.glDisable(GL2ES2.GL_POLYGON_OFFSET_FILL);
 
         float[] lColor = labelColor;
@@ -225,7 +224,7 @@ public abstract class RIButton extends UIShape {
         if(!selection){
             renderer.setColorStatic(gl, lColor[0], lColor[1], lColor[2]);
         }
-        renderer.draw(gl, labelRegion.getRegion(gl, renderer, renderModes), texSize);
+        labelRegion.getRegion(gl, renderer, renderModes).draw(gl, renderer, texSize);
     }
     public void setPressed(boolean b) {
         super.setPressed(b);

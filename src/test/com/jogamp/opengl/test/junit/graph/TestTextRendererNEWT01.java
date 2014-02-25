@@ -45,7 +45,7 @@ import org.junit.runners.MethodSorters;
 import com.jogamp.common.os.Platform;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.graph.curve.opengl.Renderer;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.TextRenderUtil;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.SVertex;
@@ -228,7 +228,7 @@ public class TestTextRendererNEWT01 extends UITestCase {
             gl.setSwapInterval(1);
             gl.glEnable(GL.GL_DEPTH_TEST);
 
-            final Renderer renderer = getRenderer();
+            final RegionRenderer renderer = getRenderer();
 
             renderer.setAlpha(gl, 1.0f);
             renderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);

@@ -12,8 +12,8 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLRunnable;
 
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.opengl.GLWindow;

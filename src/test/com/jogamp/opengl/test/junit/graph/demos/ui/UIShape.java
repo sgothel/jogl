@@ -31,7 +31,6 @@ import javax.media.opengl.GL2ES2;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.curve.opengl.Renderer;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.opengl.math.geom.AABBox;
@@ -87,9 +86,9 @@ public abstract class UIShape {
     public float[] getScale() { return scale; }
     public float[] getPosition() { return position; }
 
-    protected abstract void clearImpl(GL2ES2 gl, Renderer renderer);
+    protected abstract void clearImpl(GL2ES2 gl, RegionRenderer renderer);
 
-    protected abstract void createShape(Renderer renderer);
+    protected abstract void createShape(RegionRenderer renderer);
 
     public boolean updateShape() {
         if( isShapeDirty() ) {

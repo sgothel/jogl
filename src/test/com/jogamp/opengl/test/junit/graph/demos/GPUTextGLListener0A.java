@@ -32,7 +32,7 @@ import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 
 import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.graph.curve.opengl.Renderer;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.glsl.ShaderState;
@@ -57,7 +57,7 @@ public class GPUTextGLListener0A extends GPUTextRendererListenerBase01 {
 
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-        final Renderer renderer = getRenderer();
+        final RegionRenderer renderer = getRenderer();
 
         gl.setSwapInterval(1);
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);

@@ -30,7 +30,8 @@ package com.jogamp.graph.curve;
 import java.util.ArrayList;
 import java.util.List;
 
-import jogamp.graph.curve.opengl.RegionFactory;
+import jogamp.graph.curve.opengl.VBORegion2PES2;
+import jogamp.graph.curve.opengl.VBORegionSPES2;
 import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.opengl.Debug;
 
@@ -39,7 +40,8 @@ import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.opengl.math.geom.AABBox;
 
-/** Abstract Outline shape GL representation define the method an OutlineShape(s)
+/**
+ * Abstract Outline shape representation define the method an OutlineShape(s)
  * is bound and rendered.
  *
  * @see GLRegion */
@@ -85,24 +87,22 @@ public abstract class Region {
         return 0 != (renderModes & Region.VARIABLE_CURVE_WEIGHT_BIT);
     }
 
-    /** Create a {@link Region} defining the list of {@link OutlineShape}.
-     * Combining the Shapes into single buffers.
-     * @return the resulting Region inclusive the generated region
-     */
-    public static Region create(List<OutlineShape> outlineShapes, int renderModes) {
-        final Region region = RegionFactory.create(renderModes);
-        region.addOutlineShapes(outlineShapes);
-        return region;
-    }
-
     /**
-     * Create a {@link Region} defining this {@link OutlineShape}
-     * @return the resulting Region.
+     * Create a Region using the passed render mode
+     *
+     * <p> In case {@link Region#VBAA_RENDERING_BIT} is being requested the default texture unit
+     * {@link Region#TWO_PASS_DEFAULT_TEXTURE_UNIT} is being used.</p>
+     *
+     * @param rs the RenderState to be used
+     * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, {@link Region#VBAA_RENDERING_BIT}
      */
-    public static Region create(OutlineShape outlineShape, int renderModes) {
-        final Region region = RegionFactory.create(renderModes);
-        region.addOutlineShape(outlineShape, null);
-        return region;
+    public static GLRegion create(int renderModes) {
+        if( 0 != ( Region.VBAA_RENDERING_BIT & renderModes ) ){
+            return new VBORegion2PES2(renderModes, Region.TWO_PASS_DEFAULT_TEXTURE_UNIT);
+        }
+        else{
+            return new VBORegionSPES2(renderModes);
+        }
     }
 
     protected Region(int regionRenderModes) {
@@ -115,6 +115,11 @@ public abstract class Region {
     public final int getRenderModes() {
         return renderModes;
     }
+
+
+    public final ArrayList<Triangle> getTriangles() { return triangles; }
+
+    public final ArrayList<Vertex> getVertices() { return vertices; }
 
     /** Check if current Region is using VBAA
      *
@@ -213,6 +218,7 @@ public abstract class Region {
             }
             // final List<Vertex> verts = shape.getVertices();
             // vertices.addAll(verts);
+            // FIXME: use OutlineShape.getVertices(Runnable task-per-vertex) !!
             for (int j = 0; j < shape.outlines.size(); j++) {
                 final ArrayList<Vertex> sovs = shape.outlines.get(j).getVertices();
                 for (int k = 0; k < sovs.size(); k++) {
@@ -232,6 +238,26 @@ public abstract class Region {
             System.err.println("Region.addOutlineShape(): tris: "+triangles.size()+", verts "+vertices.size());
         }
         setDirty(true);
+    }
+
+    public void validateIndices() {
+        final int verticeCountPre = vertices.size();
+        for(int i=0; i<triangles.size(); i++) {
+            final Triangle t = triangles.get(i);
+            final Vertex[] t_vertices = t.getVertices();
+
+            if(t_vertices[0].getId() == Integer.MAX_VALUE){
+                t_vertices[0].setId(numVertices++);
+                t_vertices[1].setId(numVertices++);
+                t_vertices[2].setId(numVertices++);
+                vertices.add(t_vertices[0]);
+                vertices.add(t_vertices[1]);
+                vertices.add(t_vertices[2]);
+            }
+        }
+        if( verticeCountPre < vertices.size() ) {
+            setDirty(true);
+        }
     }
 
     public void addOutlineShapes(List<OutlineShape> shapes) {

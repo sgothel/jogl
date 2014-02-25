@@ -27,14 +27,10 @@
  */
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
-import java.util.HashMap;
-
 import javax.media.opengl.GL2ES2;
 
-import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.curve.opengl.Renderer;
 import com.jogamp.graph.curve.opengl.TextRenderUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.Vertex;
@@ -91,14 +87,14 @@ public abstract class Label extends UIShape implements UITextShape {
     }
 
     @Override
-    protected void clearImpl(GL2ES2 gl, Renderer renderer) {
+    protected void clearImpl(GL2ES2 gl, RegionRenderer renderer) {
         if(null != glyphRegion) {
-            glyphRegion.destroy(gl, renderer.getRenderState());
+            glyphRegion.destroy(gl, renderer);
         }
     }
 
     @Override
-    protected void createShape(Renderer renderer) {
+    protected void createShape(RegionRenderer renderer) {
         clearImpl(null, null);
         glyphRegion = TextRenderUtil.createRegion(renderer.getRenderModes(), renderer.getRenderState().getVertexFactory(),
                                                   font, text, size);

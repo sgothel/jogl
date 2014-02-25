@@ -41,8 +41,8 @@ import jogamp.graph.curve.opengl.shader.UniformNames;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
-
 import com.jogamp.graph.curve.opengl.GLRegion;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.FBObject.Attachment;
@@ -62,7 +62,7 @@ public class VBORegion2PES2  extends GLRegion {
 
     private FBObject fbo;
     private TextureAttachment texA;
-    private PMVMatrix fboPMVMatrix;
+    private final PMVMatrix fboPMVMatrix;
     GLUniformData mgl_fboPMVMatrix;
 
     private int tex_width_c = 0;
@@ -70,22 +70,18 @@ public class VBORegion2PES2  extends GLRegion {
     GLUniformData mgl_ActiveTexture;
     GLUniformData mgl_TextureSize; // if GLSL < 1.30
 
-    public VBORegion2PES2(int renderModes, int textureEngine) {
+    public VBORegion2PES2(final int renderModes, final int textureUnit) {
         super(renderModes);
         fboPMVMatrix = new PMVMatrix();
         mgl_fboPMVMatrix = new GLUniformData(UniformNames.gcu_PMVMatrix, 4, 4, fboPMVMatrix.glGetPMvMatrixf());
-        mgl_ActiveTexture = new GLUniformData(UniformNames.gcu_TextureUnit, textureEngine);
+        mgl_ActiveTexture = new GLUniformData(UniformNames.gcu_TextureUnit, textureUnit);
     }
 
     @Override
-    public void update(GL2ES2 gl, RenderState rs) {
-        if(!isDirty()) {
-            return;
-        }
-
+    public void update(final GL2ES2 gl, final RegionRenderer renderer) {
         if(null == indicesFbo) {
             final int initialElementCount = 256;
-            final ShaderState st = rs.getShaderState();
+            final ShaderState st = renderer.getShaderState();
 
             indicesFbo = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialElementCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
             indicesFbo.puts((short) 0); indicesFbo.puts((short) 1); indicesFbo.puts((short) 3);
@@ -120,6 +116,7 @@ public class VBORegion2PES2  extends GLRegion {
                 System.err.println("VBORegion2PES2 Create: " + this);
             }
         }
+        validateIndices();
         // process triangles
         indicesTxt.seal(gl, false);
         indicesTxt.rewind();
@@ -128,17 +125,7 @@ public class VBORegion2PES2  extends GLRegion {
             final Vertex[] t_vertices = t.getVertices();
 
             if(t_vertices[0].getId() == Integer.MAX_VALUE){
-                t_vertices[0].setId(numVertices++);
-                t_vertices[1].setId(numVertices++);
-                t_vertices[2].setId(numVertices++);
-
-                vertices.add(t_vertices[0]);
-                vertices.add(t_vertices[1]);
-                vertices.add(t_vertices[2]);
-
-                indicesTxt.puts((short) t_vertices[0].getId());
-                indicesTxt.puts((short) t_vertices[1].getId());
-                indicesTxt.puts((short) t_vertices[2].getId());
+                throw new RuntimeException("Ooops Triangle #"+i+" - has unindexed vertices");
             } else {
                 indicesTxt.puts((short) t_vertices[0].getId());
                 indicesTxt.puts((short) t_vertices[1].getId());
@@ -187,22 +174,22 @@ public class VBORegion2PES2  extends GLRegion {
         // push data 2 GPU ..
         indicesFbo.seal(gl, true);
         indicesFbo.enableBuffer(gl, false);
-
-        setDirty(false);
-
         // the buffers were disabled, since due to real/fbo switching and other vbo usage
     }
 
-    int[] maxTexSize = new int[] { -1 } ;
+    final int[] maxTexSize = new int[] { -1 } ;
 
     @Override
-    protected void drawImpl(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int[/*1*/] texWidth) {
-        if(vp_width <=0 || vp_height <= 0 || null==texWidth || texWidth[0] <= 0){
+    protected void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int[/*1*/] texWidth) {
+        final int width = renderer.getWidth();
+        final int height = renderer.getHeight();
+        if(width <=0 || height <= 0 || null==texWidth || texWidth[0] <= 0){
             renderRegion(gl);
         } else {
             if(0 > maxTexSize[0]) {
                 gl.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE, maxTexSize, 0);
             }
+            final RenderState rs = renderer.getRenderState();
             if(texWidth[0] != tex_width_c) {
                 if(texWidth[0] > maxTexSize[0]) {
                     texWidth[0] = maxTexSize[0]; // clip to max - write-back user value!
@@ -210,11 +197,11 @@ public class VBORegion2PES2  extends GLRegion {
                 renderRegion2FBO(gl, rs, texWidth);
             }
             // System.out.println("Scale: " + matrix.glGetMatrixf().get(1+4*3) +" " + matrix.glGetMatrixf().get(2+4*3));
-            renderFBO(gl, rs, vp_width, vp_height);
+            renderFBO(gl, rs, width, height);
         }
     }
 
-    private void renderFBO(GL2ES2 gl, RenderState rs, int width, int hight) {
+    private void renderFBO(final GL2ES2 gl, final RenderState rs, final int width, final int hight) {
         final ShaderState st = rs.getShaderState();
 
         gl.glViewport(0, 0, width, hight);
@@ -235,7 +222,7 @@ public class VBORegion2PES2  extends GLRegion {
         // setback: gl.glActiveTexture(currentActiveTextureEngine[0]);
     }
 
-    private void renderRegion2FBO(GL2ES2 gl, RenderState rs, int[/*1*/] texWidth) {
+    private void renderRegion2FBO(final GL2ES2 gl, final RenderState rs, final int[/*1*/] texWidth) {
         final ShaderState st = rs.getShaderState();
 
         if(0>=texWidth[0]) {
@@ -280,13 +267,13 @@ public class VBORegion2PES2  extends GLRegion {
                 mgl_TextureSize = new GLUniformData(UniformNames.gcu_TextureSize, 2, Buffers.newDirectFloatBuffer(2));
             }
             final FloatBuffer texSize = (FloatBuffer) mgl_TextureSize.getBuffer();
-            texSize.put(0, (float)fbo.getWidth());
-            texSize.put(1, (float)fbo.getHeight());
+            texSize.put(0, fbo.getWidth());
+            texSize.put(1, fbo.getHeight());
             st.uniform(gl, mgl_TextureSize);
         //}
     }
 
-    private void renderRegion(GL2ES2 gl) {
+    private void renderRegion(final GL2ES2 gl) {
         verticeTxtAttr.enableBuffer(gl, true);
         texCoordTxtAttr.enableBuffer(gl, true);
         indicesTxt.bindBuffer(gl, true); // keeps VBO binding
@@ -299,11 +286,11 @@ public class VBORegion2PES2  extends GLRegion {
     }
 
     @Override
-    public void destroy(GL2ES2 gl, RenderState rs) {
+    public void destroy(final GL2ES2 gl, final RegionRenderer renderer) {
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegion2PES2 Destroy: " + this);
         }
-        final ShaderState st = rs.getShaderState();
+        final ShaderState st = renderer.getShaderState();
         if(null != fbo) {
             fbo.destroy(gl);
             fbo = null;

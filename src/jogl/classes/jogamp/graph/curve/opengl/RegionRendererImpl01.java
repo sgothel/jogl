@@ -32,23 +32,21 @@ import javax.media.opengl.GLException;
 
 import jogamp.graph.curve.opengl.shader.AttributeNames;
 
-import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.curve.opengl.GLRegion;
-import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class RegionRendererImpl01 extends RegionRenderer {
+
     public RegionRendererImpl01(RenderState rs, int renderModes) {
         super(rs, renderModes);
-
     }
 
     @Override
-    protected boolean initShaderProgram(GL2ES2 gl) {
+    protected final boolean initImpl(GL2ES2 gl) {
         final ShaderState st = rs.getShaderState();
 
         final ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, RegionRendererImpl01.class, "shader",
@@ -89,12 +87,7 @@ public class RegionRendererImpl01 extends RegionRenderer {
     }
 
     @Override
-    protected void destroyImpl(GL2ES2 gl) {
-        super.destroyImpl(gl);
-    }
-
-    @Override
-    protected void drawImpl(GL2ES2 gl, Region region, int[] texSize) {
-        ((GLRegion)region).draw(gl, rs, vp_width, vp_height, texSize);
+    protected final void destroyImpl(GL2ES2 gl) {
+        // NOP .. all will be destroyed via RenderState
     }
 }

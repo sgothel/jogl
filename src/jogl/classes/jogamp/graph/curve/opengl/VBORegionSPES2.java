@@ -33,7 +33,7 @@ import javax.media.opengl.GL2ES2;
 import jogamp.graph.curve.opengl.shader.AttributeNames;
 
 import com.jogamp.graph.curve.opengl.GLRegion;
-import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.opengl.util.GLArrayDataServer;
@@ -44,19 +44,15 @@ public class VBORegionSPES2 extends GLRegion {
     private GLArrayDataServer texCoordAttr = null;
     private GLArrayDataServer indicesBuffer = null;
 
-    protected VBORegionSPES2(int renderModes) {
+    public VBORegionSPES2(final int renderModes) {
         super(renderModes);
     }
 
     @Override
-    protected void update(GL2ES2 gl, RenderState rs) {
-        if(!isDirty()) {
-            return;
-        }
-
+    public void update(final GL2ES2 gl, final RegionRenderer renderer) {
         if(null == indicesBuffer) {
             final int initialElementCount = 256;
-            final ShaderState st = rs.getShaderState();
+            final ShaderState st = renderer.getShaderState();
 
             indicesBuffer = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialElementCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
 
@@ -76,6 +72,7 @@ public class VBORegionSPES2 extends GLRegion {
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegionSPES2 Indices of "+triangles.size()+", triangles");
         }
+        validateIndices();
         // process triangles
         indicesBuffer.seal(gl, false);
         indicesBuffer.rewind();
@@ -84,21 +81,7 @@ public class VBORegionSPES2 extends GLRegion {
             final Vertex[] t_vertices = t.getVertices();
 
             if(t_vertices[0].getId() == Integer.MAX_VALUE){
-                t_vertices[0].setId(numVertices++);
-                t_vertices[1].setId(numVertices++);
-                t_vertices[2].setId(numVertices++);
-
-                vertices.add(t_vertices[0]);
-                vertices.add(t_vertices[1]);
-                vertices.add(t_vertices[2]);
-
-                indicesBuffer.puts((short) t_vertices[0].getId());
-                indicesBuffer.puts((short) t_vertices[1].getId());
-                indicesBuffer.puts((short) t_vertices[2].getId());
-                if(DEBUG_INSTANCE) {
-                    System.err.println("VBORegionSPES2.Indices.1: "+
-                            t_vertices[0].getId()+", "+t_vertices[1].getId()+", "+t_vertices[2].getId());
-                }
+                throw new RuntimeException("Ooops Triangle #"+i+" - has unindexed vertices");
             } else {
                 indicesBuffer.puts((short) t_vertices[0].getId());
                 indicesBuffer.puts((short) t_vertices[1].getId());
@@ -133,12 +116,10 @@ public class VBORegionSPES2 extends GLRegion {
         verticeAttr.enableBuffer(gl, false);
         texCoordAttr.seal(gl, true);
         texCoordAttr.enableBuffer(gl, false);
-
-        setDirty(false);
     }
 
     @Override
-    protected void drawImpl(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int[/*1*/] texWidth) {
+    protected void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int[/*1*/] texWidth) {
         verticeAttr.enableBuffer(gl, true);
         texCoordAttr.enableBuffer(gl, true);
         indicesBuffer.bindBuffer(gl, true); // keeps VBO binding
@@ -151,11 +132,11 @@ public class VBORegionSPES2 extends GLRegion {
     }
 
     @Override
-    public final void destroy(GL2ES2 gl, RenderState rs) {
+    public void destroy(final GL2ES2 gl, final RegionRenderer renderer) {
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegionSPES2 Destroy: " + this);
         }
-        final ShaderState st = rs.getShaderState();
+        final ShaderState st = renderer.getShaderState();
         if(null != verticeAttr) {
             st.ownAttribute(verticeAttr, false);
             verticeAttr.destroy(gl);

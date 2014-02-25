@@ -35,7 +35,6 @@ import java.util.List;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLException;
 
-import jogamp.graph.curve.opengl.RegionFactory;
 import jogamp.graph.geom.plane.AffineTransform;
 
 import com.jogamp.graph.curve.OutlineShape;
@@ -53,9 +52,9 @@ import com.jogamp.graph.geom.Vertex.Factory;
  */
 public class TextRenderUtil {
 
-    public final Renderer renderer;
+    public final RegionRenderer renderer;
 
-    public TextRenderUtil(final Renderer renderer) {
+    public TextRenderUtil(final RegionRenderer renderer) {
         this.renderer = renderer;
     }
 
@@ -75,7 +74,7 @@ public class TextRenderUtil {
                                         final Font font, final CharSequence str, final int pixelSize) {
         final int charCount = str.length();
 
-        final GLRegion region = RegionFactory.create(renderModes);
+        final GLRegion region = Region.create(renderModes);
         // region.setFlipped(true);
         final Font.Metrics metrics = font.getMetrics();
 
@@ -108,7 +107,7 @@ public class TextRenderUtil {
 
                 final Font.Glyph glyph = font.getGlyph(character);
                 final OutlineShape glyphShape = glyph.getShape();
-                if( null == glyphShape || glyphShape.getVertices().size() < 3 ) {
+                if( null == glyphShape ) {
                     continue;
                 }
                 // glyphShape.closeLastOutline();
@@ -116,10 +115,16 @@ public class TextRenderUtil {
                 if( false ) {
                     region.addOutlineShape(glyphShape, t);
                 } else {
-                    final ArrayList<Triangle> trisIn = glyphShape.getTriangles();
+                    // System.err.println("XXXXX Pre TRI");
+                    // glyphShape.getVertices();
+                    final ArrayList<Triangle> trisIn = glyphShape.getTriangles(OutlineShape.VerticesState.QUADRATIC_NURBS);
+                    final ArrayList<Vertex> gVertices = glyphShape.getVertices();
+
+                    if( gVertices.size() < 3 ) {
+                        continue;
+                    }
                     region.addTriangles(trisIn, t, numVertices);
 
-                    final ArrayList<Vertex> gVertices = glyphShape.getVertices();
                     for(int j=0; j<gVertices.size(); j++) {
                         final Vertex vert = gVertices.get(j);
                         final Vertex svert = t.transform(vert, null);
@@ -156,13 +161,13 @@ public class TextRenderUtil {
             shapesOut.add(glyphShape);
         }
 
-        final GLRegion region = RegionFactory.create(renderModes);
+        final GLRegion region = Region.create(renderModes);
         // region.setFlipped(true);
         int numVertices = region.getNumVertices();
 
         for(int i=0; i< shapesOut.size(); i++) {
             final OutlineShape shape = shapesOut.get(i);
-            ArrayList<Triangle> gtris = shape.getTriangles();
+            ArrayList<Triangle> gtris = shape.getTriangles(OutlineShape.VerticesState.QUADRATIC_NURBS);
             region.addTriangles(gtris, null, 0);
 
             final ArrayList<Vertex> gVertices = shape.getVertices();
@@ -198,7 +203,7 @@ public class TextRenderUtil {
             region = createRegion(renderer.getRenderModes(), rs.getVertexFactory(), font, str, pixelSize);
             addCachedRegion(gl, font, str, pixelSize, region);
         }
-        region.draw(gl, rs, renderer.getWidth(), renderer.getHeight(), texSize);
+        region.draw(gl, renderer, texSize);
     }
 
     /**
@@ -212,14 +217,14 @@ public class TextRenderUtil {
      *        The actual used texture-width is written back when mp rendering is enabled, otherwise the store is untouched.
      * @throws Exception if TextRenderer not initialized
      */
-    public static void drawString3D(final Renderer renderer, final GL2ES2 gl,
+    public static void drawString3D(final RegionRenderer renderer, final GL2ES2 gl,
                                     final Font font, final CharSequence str, final int fontSize, final int[/*1*/] texSize) {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
         final RenderState rs = renderer.getRenderState();
         GLRegion region = createRegion(renderer.getRenderModes(), rs.getVertexFactory(), font, str, fontSize);
-        region.draw(gl, rs, renderer.getWidth(), renderer.getHeight(), texSize);
+        region.draw(gl, renderer, texSize);
     }
 
     /** FIXME
@@ -238,7 +243,7 @@ public class TextRenderUtil {
        final Iterator<GLRegion> iterator = stringCacheMap.values().iterator();
        while(iterator.hasNext()){
            final GLRegion region = iterator.next();
-           region.destroy(gl, renderer.getRenderState());
+           region.destroy(gl, renderer);
        }
        stringCacheMap.clear();
        stringCacheArray.clear();
@@ -304,7 +309,7 @@ public class TextRenderUtil {
        final String key = getKey(font, str, fontSize);
        GLRegion region = stringCacheMap.remove(key);
        if(null != region) {
-           region.destroy(gl, renderer.getRenderState());
+           region.destroy(gl, renderer);
        }
        stringCacheArray.remove(key);
    }
@@ -313,7 +318,7 @@ public class TextRenderUtil {
        final String key = stringCacheArray.remove(idx);
        final GLRegion region = stringCacheMap.remove(key);
        if(null != region) {
-           region.destroy(gl, renderer.getRenderState());
+           region.destroy(gl, renderer);
        }
    }
 

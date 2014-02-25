@@ -30,8 +30,8 @@ package com.jogamp.graph.curve.opengl;
 import java.util.List;
 
 import javax.media.opengl.GL2ES2;
-import com.jogamp.opengl.util.PMVMatrix;
 
+import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 
@@ -47,20 +47,17 @@ import com.jogamp.graph.curve.Region;
  */
 public abstract class GLRegion extends Region {
 
-    /** Create an ogl {@link GLRegion} defining the list of {@link OutlineShape}.
-     * Combining the Shapes into single buffers.
-     * @return the resulting Region inclusive the generated region
-     */
-    public static GLRegion create(List<OutlineShape> outlineShapes, int renderModes) {
-        return (GLRegion) Region.create(outlineShapes, renderModes);
-    }
-
     /**
-     * Create an ogl {@link Region} defining this {@link OutlineShape}
-     * @return the resulting Region.
+     * Create a GLRegion using the passed render mode
+     *
+     * <p> In case {@link Region#VBAA_RENDERING_BIT} is being requested the default texture unit
+     * {@link Region#TWO_PASS_DEFAULT_TEXTURE_UNIT} is being used.</p>
+     *
+     * @param rs the RenderState to be used
+     * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, {@link Region#VBAA_RENDERING_BIT}
      */
-    public static GLRegion create(OutlineShape outlineShape, int renderModes) {
-        return (GLRegion) Region.create(outlineShape, renderModes);
+    public static GLRegion create(int renderModes) {
+        return Region.create(renderModes);
     }
 
     protected GLRegion(int renderModes) {
@@ -73,27 +70,29 @@ public abstract class GLRegion extends Region {
      *  <p>Called by {@link #draw(GL2ES2, RenderState, int, int, int)}.</p>
      * @param rs TODO
      */
-    protected abstract void update(GL2ES2 gl, RenderState rs);
+    protected abstract void update(GL2ES2 gl, RegionRenderer renderer);
 
     /** Delete and clean the associated OGL
      *  objects
      */
-    public abstract void destroy(GL2ES2 gl, RenderState rs);
+    public abstract void destroy(GL2ES2 gl, RegionRenderer renderer);
 
-    /** Renders the associated OGL objects specifying
+    /**
+     * Renders the associated OGL objects specifying
      * current width/hight of window for multi pass rendering
      * of the region.
      * @param matrix current {@link PMVMatrix}.
-     * @param rs the RenderState to be used
-     * @param vp_width current screen width
-     * @param vp_height current screen height
+     * @param renderer the {@link RegionRenderer} to be used
      * @param texWidth desired texture width for multipass-rendering.
      *        The actual used texture-width is written back when mp rendering is enabled, otherwise the store is untouched.
      */
-    public final void draw(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int[/*1*/] texWidth) {
-        update(gl, rs);
-        drawImpl(gl, rs, vp_width, vp_height, texWidth);
+    public final void draw(GL2ES2 gl, RegionRenderer renderer, int[/*1*/] texWidth) {
+        if(isDirty()) {
+            update(gl, renderer);
+            setDirty(false);
+        }
+        drawImpl(gl, renderer, texWidth);
     }
 
-    protected abstract void drawImpl(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int[/*1*/] texWidth);
+    protected abstract void drawImpl(GL2ES2 gl, RegionRenderer renderer, int[/*1*/] texWidth);
 }
