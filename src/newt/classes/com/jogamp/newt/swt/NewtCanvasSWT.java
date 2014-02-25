@@ -163,13 +163,13 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
         addListener (SWT.Paint, listener);
         addListener (SWT.Dispose, listener);
     }
-    @Override 
+    @Override
     public void setBounds(int x, int y, int w, int h) {
     	// propagate the setBounds method coming from parent elements to this element
     	// and force newtChild to update its position in OSX
     	super.setBounds(x,y,w,h);
     	if(SWTAccessor.isOSX) {
-    		newtChild.setPosition(x, y);
+    	    newtChild.setPosition(x, y);
     		clientArea.width = w;
     		clientArea.height = h;
     		updateSizeCheck();
@@ -208,8 +208,8 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
             nativeWindow = new SWTNativeWindow(config, nativeWindowHandle);
             reparentWindow( true );
         	if(SWTAccessor.isOSX) {
-        		// initial positioning for OSX, called when the window is created
-                newtChild.setPosition(getLocation().x, getLocation().y);
+        	    // initial positioning for OSX, called when the window is created
+        	    newtChild.setPosition(getLocation().x, getLocation().y);
         	}
         }
 
@@ -267,7 +267,7 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
         nativeWindow = null;
         super.dispose();
     }
-    
+
     private Point getParentLocationOnScreen() {
     	org.eclipse.swt.graphics.Point parentLoc = getParent().toDisplay(0,0);
         return new Point(parentLoc.x,parentLoc.y);
@@ -519,7 +519,7 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
         public Point getLocationOnScreen(Point point) {
             final Point los; // client window location on screen
             if( SWTAccessor.isOSX ) {
-            	// let getLOS provide the point where the child window may be placed 
+            	// let getLOS provide the point where the child window may be placed
             	// from, as taken from SWT Control.toDisplay();
             	los = getParentLocationOnScreen();
             } else if (SWTAccessor.isX11) {
