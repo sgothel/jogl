@@ -2107,7 +2107,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("Window setPosition: "+getX()+"/"+getY()+" -> "+x+"/"+y+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle));
                 }
-                if ( !isFullscreen() && ( getX() != x || getY() != y ) ) {
+                // Let the window be positioned if !fullscreen and position changed or being a child window.
+                if ( !isFullscreen() && ( getX() != x || getY() != y || null != getParent()) ) {
                     if(isNativeValid()) {
                         // this.x/this.y will be set by sizeChanged, triggered by windowing event system
                         reconfigureWindowImpl(x, y, getWidth(), getHeight(), getReconfigureFlags(0, isVisible()));
