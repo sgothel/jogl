@@ -432,7 +432,10 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   public final boolean hideCursor() {
       AWTEDTExecutor.singleton.invoke(false, new Runnable() {
           public void run() {
-              component.setCursor(AWTMisc.getNullCursor());
+              final Cursor cursor = AWTMisc.getNullCursor();
+              if( null != cursor ) {
+                  component.setCursor(cursor);
+              }
           } } );
       return true;
   }
