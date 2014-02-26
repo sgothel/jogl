@@ -50,6 +50,8 @@ import javax.media.nativewindow.util.PixelFormat;
 import javax.media.nativewindow.util.PixelFormatUtil;
 import javax.swing.MenuSelectionManager;
 
+import jogamp.nativewindow.jawt.JAWTUtil;
+
 public class AWTMisc {
 
     public static JFrame getJFrame(Component c) {
@@ -174,9 +176,18 @@ public class AWTMisc {
     static final HashMap<Integer, Cursor> cursorMap = new HashMap<Integer, Cursor>();
     static final Cursor nulCursor;
     static {
-        final Toolkit toolkit = Toolkit.getDefaultToolkit();
-        final BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
-        nulCursor = toolkit.createCustomCursor(img, new Point(0,0), "nullCursor");
+        Cursor _nulCursor = null;
+        try {
+            final Toolkit toolkit = Toolkit.getDefaultToolkit();
+            final BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
+            _nulCursor = toolkit.createCustomCursor(img, new Point(0,0), "nullCursor");
+        } catch (Exception he) {
+            if( JAWTUtil.DEBUG ) {
+                System.err.println("Catched exception: "+he.getMessage());
+                he.printStackTrace();
+            }
+        }
+        nulCursor = _nulCursor;
     }
 
     public static synchronized Cursor getNullCursor() { return nulCursor; }
