@@ -39,11 +39,11 @@ public class T2Interpreter {
     private static final int SUBR_STACK_LIMIT = 10;
     private static final int TRANSIENT_ARRAY_ELEMENT_COUNT = 32;
 
-    private Number[] _argStack = new Number[ARGUMENT_STACK_LIMIT];
+    private final Number[] _argStack = new Number[ARGUMENT_STACK_LIMIT];
     private int _argStackIndex = 0;
-    private int[] _subrStack = new int[SUBR_STACK_LIMIT];
+    private final int[] _subrStack = new int[SUBR_STACK_LIMIT];
     private int _subrStackIndex = 0;
-    private Number[] _transientArray = new Number[TRANSIENT_ARRAY_ELEMENT_COUNT];
+    private final Number[] _transientArray = new Number[TRANSIENT_ARRAY_ELEMENT_COUNT];
 
     private ArrayList<Point> _points;
 

@@ -39,8 +39,9 @@ import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.math.geom.AABBox;
 
 
-/** A Generic shape objects which is defined by a list of Outlines.
- * This Shape can be transformed to Triangulations.
+/**
+ * A Generic shape objects which is defined by a list of Outlines.
+ * This Shape can be transformed to triangulations.
  * The list of triangles generated are render-able by a Region object.
  * The triangulation produced by this Shape will define the
  * closed region defined by the outlines.
