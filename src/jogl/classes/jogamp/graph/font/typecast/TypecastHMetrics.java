@@ -50,7 +50,7 @@ class TypecastHMetrics implements Metrics {
         headTable = this.fontImpl.font.getHeadTable();
         hheaTable = this.fontImpl.font.getHheaTable();
         // vheaTable = this.fontImpl.font.getVheaTable();
-        unitsPerEM_Inv = 1.0f / ( (float) headTable.getUnitsPerEm() );
+        unitsPerEM_Inv = 1.0f / ( headTable.getUnitsPerEm() );
 
         int maxWidth = headTable.getXMax() - headTable.getXMin();
         int maxHeight = headTable.getYMax() - headTable.getYMin();

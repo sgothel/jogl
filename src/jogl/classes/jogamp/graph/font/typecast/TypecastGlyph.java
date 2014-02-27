@@ -29,19 +29,15 @@ package jogamp.graph.font.typecast;
 
 import java.util.HashMap;
 
-import jogamp.graph.font.FontInt;
-import jogamp.graph.geom.plane.AffineTransform;
-import jogamp.graph.geom.plane.Path2D;
-
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
 import com.jogamp.opengl.math.geom.AABBox;
 
-public class TypecastGlyph implements FontInt.GlyphInt {
+public class TypecastGlyph implements Font.Glyph {
     public class Advance
     {
-        final Font      font;
-        final float     advance;
+        private final Font      font;
+        private final float     advance;
         HashMap<Float, Float> size2advance = new HashMap<Float, Float>();
 
         public Advance(Font font, float advance)
@@ -66,7 +62,7 @@ public class TypecastGlyph implements FontInt.GlyphInt {
 
         public float get(float size, boolean useFrationalMetrics)
         {
-            Float fo = size2advance.get(size);
+            final Float fo = size2advance.get(size);
             if(null == fo) {
                 float value = (this.advance * getScale(size));
                 if (useFrationalMetrics == false) {
@@ -91,8 +87,8 @@ public class TypecastGlyph implements FontInt.GlyphInt {
 
     public class Metrics
     {
-        AABBox    bbox;
-        Advance advance;
+        private final AABBox    bbox;
+        private final Advance advance;
 
         public Metrics(Font font, AABBox bbox, float advance)
         {
@@ -137,41 +133,16 @@ public class TypecastGlyph implements FontInt.GlyphInt {
     public static final short MAX_ID        = (short)((1 << 16) - 2);
 
     private final Font font;
-    protected final char symbol;
-    protected final OutlineShape shape; // in EM units
+    private final char symbol;
+    private final OutlineShape shape; // in EM units
+    private final short id;
+    private final int advance;
+    private final Metrics metrics;
 
-    protected final Path2D path; // in EM units FIXME remove!
-
-    short       id;
-    int         advance;
-    Metrics     metrics;
-
-    protected Path2D pathSized; // FIXME remove!
-    protected float numberSized; // FIXME remove!
-
-    protected TypecastGlyph(Font font, char symbol) {
-        this.font = font;
-        this.symbol = symbol;
-        this.shape = null;
-        this.path = null;
-    }
-
-    protected TypecastGlyph(Font font,
-                            char symbol, short id, AABBox bbox, int advance, Path2D path, OutlineShape shape) {
+    protected TypecastGlyph(Font font, char symbol, short id, AABBox bbox, int advance, OutlineShape shape) {
         this.font = font;
         this.symbol = symbol;
         this.shape = shape;
-        this.path = path;
-
-        this.advance = advance;
-
-        init(id, bbox, advance);
-
-        this.pathSized = null;
-        this.numberSized = 0.0f;
-    }
-
-    void init(short id, AABBox bbox, int advance) {
         this.id = id;
         this.advance = advance;
         this.metrics = new Metrics(this.font, bbox, this.advance);
@@ -184,74 +155,62 @@ public class TypecastGlyph implements FontInt.GlyphInt {
     } */
 
     @Override
-    public Font getFont() {
+    public final Font getFont() {
         return this.font;
     }
 
     @Override
-    public char getSymbol() {
+    public final char getSymbol() {
         return this.symbol;
     }
 
-    AABBox getBBoxUnsized() {
+    final AABBox getBBoxUnsized() {
         return this.metrics.getBBox();
     }
 
-    public AABBox getBBox() {
+    @Override
+    public final AABBox getBBox() {
         return this.metrics.getBBox();
     }
 
-    public Metrics getMetrics() {
+    public final Metrics getMetrics() {
         return this.metrics;
     }
 
-    public short getID() {
+    @Override
+    public final short getID() {
         return this.id;
     }
 
-    public float getScale(float pixelSize) {
+    @Override
+    public final float getScale(float pixelSize) {
         return this.metrics.getScale(pixelSize);
     }
 
     @Override
-    public AABBox getBBox(float pixelSize) {
+    public final AABBox getBBox(float pixelSize) {
         final float size = getScale(pixelSize);
         AABBox newBox = getBBox().clone();
         newBox.scale(size);
         return newBox;
     }
 
-    protected void addAdvance(float advance, float size) {
+    protected final void addAdvance(float advance, float size) {
         this.metrics.addAdvance(advance, size);
     }
 
     @Override
-    public float getAdvance(float pixelSize, boolean useFrationalMetrics) {
+    public final float getAdvance(float pixelSize, boolean useFrationalMetrics) {
         return this.metrics.getAdvance(pixelSize, useFrationalMetrics);
     }
 
     @Override
-    public OutlineShape getShape() {
+    public final OutlineShape getShape() {
         return this.shape;
     }
 
     @Override
-    public Path2D getPath() {
-        return this.path;
-    }
-
-    @Override
-    public Path2D getPath(float pixelSize) {
-        final float size = getScale(pixelSize);
-
-        if (this.numberSized != size) {
-            this.numberSized = size;
-            this.pathSized = AffineTransform.getScaleInstance(null, size, size).createTransformedShape(getPath());
-        }
-        return this.pathSized;
-    }
-
-    public int hashCode() {
+    public final int hashCode() {
         // 31 * x == (x << 5) - x
         int hash = 31 + font.getName(Font.NAME_UNIQUNAME).hashCode();
         return ((hash << 5) - hash) + id;

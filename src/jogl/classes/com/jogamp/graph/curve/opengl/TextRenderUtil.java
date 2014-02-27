@@ -144,43 +144,6 @@ public class TextRenderUtil {
         return region;
     }
 
-    private static GLRegion createRegion2(final int renderModes, final Factory<? extends Vertex> vertexFactory,
-                                         final Font font, final CharSequence str, final int pixelSize) {
-        final List<OutlineShape> shapesIn = font.getOutlineShapes(null, str, pixelSize, vertexFactory);
-        final ArrayList<OutlineShape> shapesOut = new ArrayList<OutlineShape>();
-        final int numGlyps = shapesIn.size();
-        for (int index=0;index<numGlyps;index++){
-            if(shapesIn.get(index) == null){
-                continue;
-            }
-            final OutlineShape glyphShape = shapesIn.get(index);
-
-            if(glyphShape.getVertices().size() < 3) {
-                continue;
-            }
-            shapesOut.add(glyphShape);
-        }
-
-        final GLRegion region = Region.create(renderModes);
-        // region.setFlipped(true);
-        int numVertices = region.getNumVertices();
-
-        for(int i=0; i< shapesOut.size(); i++) {
-            final OutlineShape shape = shapesOut.get(i);
-            ArrayList<Triangle> gtris = shape.getTriangles(OutlineShape.VerticesState.QUADRATIC_NURBS);
-            region.addTriangles(gtris, null, 0);
-
-            final ArrayList<Vertex> gVertices = shape.getVertices();
-            for(int j=0; j<gVertices.size(); j++) {
-                final Vertex gVert = gVertices.get(j);
-                gVert.setId(numVertices++);
-                region.addVertex(gVert, null);
-            }
-        }
-        return region;
-    }
-
-
     /**
      * Render the String in 3D space wrt to the font provided at the position provided
      * the outlines will be generated, if not yet generated

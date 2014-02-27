@@ -27,11 +27,7 @@
  */
 package com.jogamp.graph.font;
 
-import java.util.List;
-
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.opengl.math.geom.AABBox;
 
 /**
@@ -88,6 +84,7 @@ public interface Font {
         public Font getFont();
         public char getSymbol();
         public short getID();
+        public AABBox getBBox();
         public float getScale(float pixelSize);
         public AABBox getBBox(float pixelSize);
         public float getAdvance(float pixelSize, boolean useFrationalMetrics);
@@ -116,16 +113,6 @@ public interface Font {
     public AABBox getStringBounds(CharSequence string, float pixelSize);
 
     public boolean isPrintableChar( char c );
-
-    /**
-     * @deprecated Remove altogether - use {@link #getOutlineShape(Glyph, Factory)
-     * @param shapes optional storage of OutlineShapes passed by user, new shapes are appended
-     * @param string source of the created OutlineShapes
-     * @param pixelSize
-     * @param vertexFactory factory for vertices
-     * @return List of OutlineShapes, one OutlineShape per character
-     */
-    public List<OutlineShape> getOutlineShapes(List<OutlineShape> shapes, CharSequence string, float pixelSize, Factory<? extends Vertex> vertexFactory);
 
     /** Shall return {@link #getFullFamilyName()} */
     @Override

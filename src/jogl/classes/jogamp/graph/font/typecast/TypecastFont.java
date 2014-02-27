@@ -27,9 +27,6 @@
  */
 package jogamp.graph.font.typecast;
 
-import java.util.List;
-
-import jogamp.graph.font.FontInt;
 import jogamp.graph.font.typecast.ot.OTFont;
 import jogamp.graph.font.typecast.ot.OTFontCollection;
 import jogamp.graph.font.typecast.ot.table.CmapFormat;
@@ -37,8 +34,6 @@ import jogamp.graph.font.typecast.ot.table.CmapIndexEntry;
 import jogamp.graph.font.typecast.ot.table.CmapTable;
 import jogamp.graph.font.typecast.ot.table.HdmxTable;
 import jogamp.graph.font.typecast.ot.table.ID;
-import jogamp.graph.geom.plane.AffineTransform;
-import jogamp.graph.geom.plane.Path2D;
 
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.curve.OutlineShape;
@@ -46,23 +41,22 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.opengl.math.geom.AABBox;
 
-class TypecastFont implements FontInt {
+class TypecastFont implements Font {
     static final boolean DEBUG = false;
     private static final Vertex.Factory<SVertex> vertexFactory = SVertex.factory();
 
-    final OTFontCollection fontset;
-    final OTFont font;
-    TypecastHMetrics metrics;
-    final CmapFormat cmapFormat;
-    int cmapentries;
+    // private final OTFontCollection fontset;
+    /* pp */ final OTFont font;
+    private final CmapFormat cmapFormat;
+    private final int cmapentries;
+    private final IntObjectHashMap char2Glyph;
+    private final TypecastHMetrics metrics;
     // FIXME: Add cache size to limit memory usage ??
-    IntObjectHashMap char2Glyph;
 
-    public TypecastFont(OTFontCollection fontset) {
-        this.fontset = fontset;
+    public TypecastFont(final OTFontCollection fontset) {
+        // this.fontset = fontset;
         this.font = fontset.getFont(0);
 
         // FIXME: Generic attempt to find the best CmapTable,
@@ -124,10 +118,13 @@ class TypecastFont implements FontInt {
             }
         }
 
-        cmapentries = 0;
-        for (int i = 0; i < cmapFormat.getRangeCount(); ++i) {
-            CmapFormat.Range range = cmapFormat.getRange(i);
-            cmapentries += range.getEndCode() - range.getStartCode() + 1; // end included
+        {
+            int _cmapentries = 0;
+            for (int i = 0; i < cmapFormat.getRangeCount(); ++i) {
+                CmapFormat.Range range = cmapFormat.getRange(i);
+                _cmapentries += range.getEndCode() - range.getStartCode() + 1; // end included
+            }
+            cmapentries = _cmapentries;
         }
         if(DEBUG) {
             System.err.println("font direction hint: "+font.getHeadTable().getFontDirectionHint());
@@ -146,6 +143,7 @@ class TypecastFont implements FontInt {
             }
         }
         char2Glyph = new IntObjectHashMap(cmapentries + cmapentries/4);
+        metrics = new TypecastHMetrics(this);
     }
 
     @Override
@@ -173,10 +171,7 @@ class TypecastFont implements FontInt {
     }
 
     @Override
-    public Metrics getMetrics() {
-        if (metrics == null) {
-            metrics = new TypecastHMetrics(this);
-        }
+    public final Metrics getMetrics() {
         return metrics;
     }
 
@@ -203,11 +198,9 @@ class TypecastFont implements FontInt {
                 throw new RuntimeException("Could not retrieve glyph for symbol: <"+symbol+"> "+(int)symbol+" -> glyph id "+code);
             }
             final OutlineShape shape = TypecastRenderer.buildShape(glyph, vertexFactory);
-            // FIXME: Remove Path2D
-            final Path2D path = TypecastRenderer.buildPath(glyph);
-            result = new TypecastGlyph(this, symbol, code, glyph.getBBox(), glyph.getAdvanceWidth(), path, shape);
+            result = new TypecastGlyph(this, symbol, code, glyph.getBBox(), glyph.getAdvanceWidth(), shape);
             if(DEBUG) {
-                System.err.println("New glyph: " + (int)symbol + " ( " + symbol +" ) -> " + code + ", contours " + glyph.getPointCount() + ": " + path);
+                System.err.println("New glyph: " + (int)symbol + " ( " + symbol +" ) -> " + code + ", contours " + glyph.getPointCount() + ": " + shape);
             }
             final HdmxTable hdmx = font.getHdmxTable();
             if (null!= result && null != hdmx) {
@@ -226,13 +219,6 @@ class TypecastFont implements FontInt {
             char2Glyph.put(symbol, result);
         }
         return result;
-    }
-
-    // FIXME: Remove altogether
-    @Override
-    public List<OutlineShape> getOutlineShapes(List<OutlineShape> shapes, CharSequence string, float pixelSize, Factory<? extends Vertex> vertexFactory) {
-    	AffineTransform transform = new AffineTransform(vertexFactory);
-    	return TypecastRenderer.getOutlineShapes(shapes, this, string, pixelSize, transform, vertexFactory);
     }
 
     @Override
