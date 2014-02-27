@@ -73,6 +73,9 @@ public interface Font {
 
     /**
      * Glyph for font
+     *
+     * http://developer.apple.com/textfonts/TTRefMan/RM06/Chap6cmap.html
+     * http://developer.apple.com/textfonts/TTRefMan/RM06/Chap6glyf.html
      */
     public interface Glyph {
         // reserved special glyph IDs
@@ -103,11 +106,12 @@ public interface Font {
 
     public StringBuilder getAllNames(StringBuilder string, String separator);
 
-    public float getAdvanceWidth(int i, float pixelSize);
+    public float getAdvanceWidth(int glyphID, float pixelSize);
     public Metrics getMetrics();
     public Glyph getGlyph(char symbol);
     public int getNumGlyphs();
 
+    public float getLineHeight(float pixelSize);
     public float getStringWidth(CharSequence string, float pixelSize);
     public float getStringHeight(CharSequence string, float pixelSize);
     public AABBox getStringBounds(CharSequence string, float pixelSize);

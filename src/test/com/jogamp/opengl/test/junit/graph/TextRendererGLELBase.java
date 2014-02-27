@@ -34,13 +34,13 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
+import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.curve.opengl.TextRenderUtil;
+import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.SVertex;
-import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
@@ -63,7 +63,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
     protected PMVMatrix usrPMVMatrix = null;
     protected RenderState rs = null;
     protected RegionRenderer renderer = null;
-    protected TextRenderUtil textRenderUtil = null;
+    protected TextRegionUtil textRenderUtil = null;
 
     /** font size in pixels, default is 24 */
     protected int fontSize = 24;
@@ -93,7 +93,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
 
     public void setFlipVerticalInGLOrientation(boolean v) { flipVerticalInGLOrientation=v; }
     public final RegionRenderer getRenderer() { return renderer; }
-    public final TextRenderUtil getTextRenderUtil() { return textRenderUtil; }
+    public final TextRegionUtil getTextRenderUtil() { return textRenderUtil; }
 
     @Override
     public void init(GLAutoDrawable drawable) {
@@ -103,7 +103,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
                 this.rs = RenderState.createRenderState(new ShaderState(), SVertex.factory(), usrPMVMatrix);
             }
             this.renderer = RegionRenderer.create(rs, usrRenderModes);
-            this.textRenderUtil = new TextRenderUtil(renderer);
+            this.textRenderUtil = new TextRegionUtil(renderer);
             if( 0 == usrRenderModes ) {
                 texSizeScale = 0;
             }
@@ -149,13 +149,12 @@ public abstract class TextRendererGLELBase implements GLEventListener {
 
     int lastRow = -1;
 
-    public void renderString(GLAutoDrawable drawable, String text, int column, float tx, float ty, float tz) {
+    public void renderString(GLAutoDrawable drawable, String text, int column, float tx, float ty, float tz, boolean cacheRegion) {
         final int row = lastRow + 1;
-        renderString(drawable, text, column, row, tx, ty, tz);
-        lastRow = row;
+        renderString(drawable, text, column, row, tx, ty, tz, cacheRegion);
     }
 
-    public void renderString(GLAutoDrawable drawable, String text, int column, int row, float tx, float ty, float tz) {
+    public void renderString(GLAutoDrawable drawable, String text, int column, int row, float tx, float ty, float tz, boolean cacheRegion) {
         if( null != renderer ) {
             final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
@@ -168,10 +167,10 @@ public abstract class TextRendererGLELBase implements GLEventListener {
                 final int height = drawable.getHeight();
                 dy = height-ty;
             }
-
-            final AABBox textBox = font.getStringBounds(text, fontSize);
+            final int newLineCount = text.length() - text.replace("\n", "").length();
+            final float lineHeight = font.getLineHeight(fontSize);
             dx += pixelScale * font.getAdvanceWidth('X', fontSize) * column;
-            dy -= pixelScale * (int)textBox.getHeight() * ( row + 1 );
+            dy -= pixelScale * lineHeight * ( row + 1 );
 
             final ShaderState st = rs.getShaderState();
             final PMVMatrix pmvMatrix = rs.pmvMatrix();
@@ -191,14 +190,18 @@ public abstract class TextRendererGLELBase implements GLEventListener {
                 pmvMatrix.glScalef(pixelScale, pixelScale, 1f);
             }
             renderer.updateMatrix(gl);
-            textRenderUtil.drawString3D(gl, font, text, fontSize, texSize);
+            if( cacheRegion ) {
+                textRenderUtil.drawString3D(gl, font, text, fontSize, texSize);
+            } else {
+                TextRegionUtil.drawString3D(renderer, gl, font, text, fontSize, texSize);
+            }
             st.useProgram(gl, false);
             gl.glDisable(GL2ES2.GL_BLEND);
 
             if( !exclusivePMVMatrix )  {
                 pmvMatrix.glPopMatrix();
             }
-            lastRow = -1;
+            lastRow = row + newLineCount;
         }
     }
 }

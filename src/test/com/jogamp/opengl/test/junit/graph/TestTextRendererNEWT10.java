@@ -43,7 +43,7 @@ import org.junit.runners.MethodSorters;
 
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.curve.opengl.TextRenderUtil;
+import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.SVertex;
@@ -140,7 +140,7 @@ public class TestTextRendererNEWT10 extends UITestCase {
 
         final RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
         final RegionRenderer renderer = RegionRenderer.create(rs, 0);
-        final TextRenderUtil textRenderUtil = new TextRenderUtil(renderer);
+        final TextRegionUtil textRenderUtil = new TextRegionUtil(renderer);
 
         // init
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -179,7 +179,7 @@ public class TestTextRendererNEWT10 extends UITestCase {
 
     int lastRow = -1;
 
-    void renderString(GLDrawable drawable, GL2ES2 gl, TextRenderUtil textRenderUtil, String text, int column, int row, int z0) {
+    void renderString(GLDrawable drawable, GL2ES2 gl, TextRegionUtil textRenderUtil, String text, int column, int row, int z0) {
         final int height = drawable.getHeight();
 
         int dx = 0;

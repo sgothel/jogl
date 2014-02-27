@@ -72,7 +72,7 @@ public abstract class GLReadBuffer00Base extends UITestCase {
             final String text = String.format("Frame %04d (%03d): %04dx%04d", frameNo, userCounter, drawable.getWidth(), drawable.getHeight());
             System.err.println("TextRendererGLEL.display: "+text);
             if( null != renderer ) {
-                renderString(drawable, text, 0 /* col */, 0 /* row */, 0, 0, -1);
+                renderString(drawable, text, 0 /* col */, 0 /* row */, 0, 0, -1, false);
             } else {
                 System.err.println(text);
             }

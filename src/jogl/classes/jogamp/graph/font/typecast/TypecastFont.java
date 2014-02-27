@@ -166,8 +166,8 @@ class TypecastFont implements Font {
     }
 
     @Override
-    public float getAdvanceWidth(int i, float pixelSize) {
-        return font.getHmtxTable().getAdvanceWidth(i) * metrics.getScale(pixelSize);
+    public float getAdvanceWidth(int glyphID, float pixelSize) {
+        return font.getHmtxTable().getAdvanceWidth(glyphID) * metrics.getScale(pixelSize);
     }
 
     @Override
@@ -197,7 +197,7 @@ class TypecastFont implements Font {
             if(null == glyph) {
                 throw new RuntimeException("Could not retrieve glyph for symbol: <"+symbol+"> "+(int)symbol+" -> glyph id "+code);
             }
-            final OutlineShape shape = TypecastRenderer.buildShape(glyph, vertexFactory);
+            final OutlineShape shape = TypecastRenderer.buildShape(symbol, glyph, vertexFactory);
             result = new TypecastGlyph(this, symbol, code, glyph.getBBox(), glyph.getAdvanceWidth(), shape);
             if(DEBUG) {
                 System.err.println("New glyph: " + (int)symbol + " ( " + symbol +" ) -> " + code + ", contours " + glyph.getPointCount() + ": " + shape);
@@ -222,12 +222,21 @@ class TypecastFont implements Font {
     }
 
     @Override
+    public float getLineHeight(float pixelSize) {
+        final Metrics metrics = getMetrics();
+        final float lineGap = metrics.getLineGap(pixelSize) ; // negative value!
+        final float ascent = metrics.getAscent(pixelSize) ; // negative value!
+        final float descent = metrics.getDescent(pixelSize) ; // positive value!
+        final float advanceY = lineGap - descent + ascent;  // negative value!
+        return -advanceY;
+    }
+
+    @Override
     public float getStringWidth(CharSequence string, float pixelSize) {
         float width = 0;
         final int len = string.length();
-        for (int i=0; i< len; i++)
-        {
-            char character = string.charAt(i);
+        for (int i=0; i< len; i++) {
+            final char character = string.charAt(i);
             if (character == '\n') {
                 width = 0;
             } else {
@@ -235,7 +244,6 @@ class TypecastFont implements Font {
                 width += glyph.getAdvance(pixelSize, false);
             }
         }
-
         return (int)(width + 0.5f);
     }
 
@@ -243,12 +251,10 @@ class TypecastFont implements Font {
     public float getStringHeight(CharSequence string, float pixelSize) {
         int height = 0;
 
-        for (int i=0; i<string.length(); i++)
-        {
-            char character = string.charAt(i);
-            if (character != ' ')
-            {
-                Glyph glyph = getGlyph(character);
+        for (int i=0; i<string.length(); i++) {
+            final char character = string.charAt(i);
+            if (character != ' ') {
+                final Glyph glyph = getGlyph(character);
                 AABBox bbox = glyph.getBBox(pixelSize);
                 height = (int)Math.ceil(Math.max(bbox.getHeight(), height));
             }
@@ -261,11 +267,8 @@ class TypecastFont implements Font {
         if (string == null) {
             return new AABBox();
         }
-        final Metrics metrics = getMetrics();
-        final float lineGap = metrics.getLineGap(pixelSize);
-        final float ascent = metrics.getAscent(pixelSize);
-        final float descent = metrics.getDescent(pixelSize);
-        final float advanceY = lineGap - descent + ascent;
+        final float lineHeight = getLineHeight(pixelSize);
+
         float totalHeight = 0;
         float totalWidth = 0;
         float curLineWidth = 0;
@@ -274,14 +277,14 @@ class TypecastFont implements Font {
             if (character == '\n') {
                 totalWidth = Math.max(curLineWidth, totalWidth);
                 curLineWidth = 0;
-                totalHeight -= advanceY;
+                totalHeight += lineHeight;
                 continue;
             }
             Glyph glyph = getGlyph(character);
             curLineWidth += glyph.getAdvance(pixelSize, true);
         }
         if (curLineWidth > 0) {
-            totalHeight -= advanceY;
+            totalHeight += lineHeight;
             totalWidth = Math.max(curLineWidth, totalWidth);
         }
         return new AABBox(0, 0, 0, totalWidth, totalHeight,0);

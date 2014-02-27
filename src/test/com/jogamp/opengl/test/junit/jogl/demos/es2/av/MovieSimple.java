@@ -158,9 +158,7 @@ public class MovieSimple implements GLEventListener {
 
             final float aspect = (float)mPlayer.getWidth() / (float)mPlayer.getHeight();
 
-            // FIXME: Graph TextRenderer does not scale well, i.e. text update per 1/10s cause too much recompute of regions!
-            // final String text1 = String.format("%03.1f/%03.1f s, %s (%01.2fx, vol %01.2f), a %01.2f, fps %02.1f -> %02.1f / %02.1f, v-sync %d",
-            final String text1 = String.format("%03.0f/%03.0f s, %s (%01.2fx, vol %01.2f), a %01.2f, fps %02.1f -> %02.1f / %02.1f, v-sync %d",
+            final String text1 = String.format("%03.1f/%03.1f s, %s (%01.2fx, vol %01.2f), a %01.2f, fps %02.1f -> %02.1f / %02.1f, v-sync %d",
                     pts, mPlayer.getDuration() / 1000f,
                     mPlayer.getState().toString().toLowerCase(), mPlayer.getPlaySpeed(), mPlayer.getAudioVolume(),
                     aspect, mPlayer.getFramerate(), lfps, tfps, swapIntervalSet);
@@ -170,10 +168,10 @@ public class MovieSimple implements GLEventListener {
                     mPlayer.getVID(), mPlayer.getVideoBitrate()/1000, mPlayer.getVideoCodec());
             final String text4 = mPlayer.getURI().getRawPath();
             if( displayOSD && null != renderer ) {
-                renderString(drawable, text1, 1 /* col */,  1 /* row */, 0, 0,      -1);
-                renderString(drawable, text2, 1 /* col */, -4 /* row */, 0, height, -1);
-                renderString(drawable, text3, 1 /* col */, -3 /* row */, 0, height, -1);
-                renderString(drawable, text4, 1 /* col */, -2 /* row */, 0, height, -1);
+                renderString(drawable, text1, 1 /* col */,  1 /* row */, 0, 0,      -1, false);
+                renderString(drawable, text2, 1 /* col */, -4 /* row */, 0, height, -1, true);
+                renderString(drawable, text3, 1 /* col */, -3 /* row */, 0, height, -1, true);
+                renderString(drawable, text4, 1 /* col */, -2 /* row */, 0, height, -1, true);
             }
         } };
     private final InfoTextRendererGLELBase textRendererGLEL = new InfoTextRendererGLELBase();

@@ -49,7 +49,6 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.os.Platform;
-import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
@@ -66,6 +65,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
     static long duration = 100; // ms
+    static boolean waitStartEnd = false;
 
     static final int[] texSize = new int[] { 0 };
     static final int fontSize = 24;
@@ -87,6 +87,8 @@ public class TestTextRendererNEWT00 extends UITestCase {
             if(args[i].equals("-time")) {
                 i++;
                 duration = atoi(args[i]);
+            } else if(args[i].equals("-wait")) {
+                waitStartEnd = true;
             }
         }
         String tstname = TestTextRendererNEWT00.class.getName();
@@ -128,9 +130,12 @@ public class TestTextRendererNEWT00 extends UITestCase {
         caps.setNumSamples(4);
         System.err.println("Requested: "+caps);
 
-        GLWindow window = createWindow("text-vbaa0-msaa1", caps, 800, 400);
+        GLWindow window = createWindow("text-vbaa0-msaa1", caps, 1024, 640);
         window.display();
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
+        if( waitStartEnd ) {
+            UITestCase.waitForKey("Start");
+        }
 
         final RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
         final TextRendererGLEL textGLListener = new TextRendererGLEL(rs);
@@ -156,9 +161,22 @@ public class TestTextRendererNEWT00 extends UITestCase {
         anim.setUpdateFPSFrames(60, null);
         sleep();
         anim.stop();
+        if( waitStartEnd ) {
+            UITestCase.waitForKey("Stop");
+        }
         destroyWindow(window);
     }
     int screenshot_num = 0;
+
+    static final String textX2 =
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec nec sapien tellus. \n"+
+        "Ut purus odio, rhoncus sit amet commodo eget, ullamcorper vel urna. Mauris ultricies \n"+
+        "quam iaculis urna cursus ornare. Nullam ut felis a ante ultrices ultricies nec a elit. \n"+
+        "In hac habitasse platea dictumst. Vivamus et mi a quam lacinia pharetra at venenatis est.\n"+
+        "Morbi quis bibendum nibh. Donec lectus orci, sagittis in consequat nec, volutpat nec nisi.\n"+
+        "Donec ut dolor et nulla tristique varius. In nulla magna, fermentum id tempus quis, semper \n"+
+        "in lorem. Maecenas in ipsum ac justo scelerisque sollicitudin. Quisque sit amet neque lorem,\n" +
+        "------- End of Story ;-) ---------\n";
 
     private final class TextRendererGLEL extends TextRendererGLELBase {
         private final GLReadBufferUtil screenshot;
@@ -222,22 +240,23 @@ public class TestTextRendererNEWT00 extends UITestCase {
 
             final long t1 = Platform.currentTimeMillis();
 
-            final String text1 = String.format("%03.3f/%03.3f s, vsync %d, elapsed %4.4f s",
+            final String text1 = String.format("%03.1f/%03.1f fps, vsync %d, elapsed %4.1f s",
                     lfps, tfps, gl.getSwapInterval(), (t1-t0)/1000.0);
 
-            int row = 0;
             if( false ) {
-                renderString(drawable, "112",         0, row++, 0, 0, -1000);
-                // renderString(drawable, getFontInfo(),    0, row++, 0, 0, -1000);
+                renderString(drawable, textX2,      0, 0, 0, 0, -1000, true);
+                // renderString(drawable, "0",         0, 0, 0, 0, -1000);
+                // renderString(drawable, getFontInfo(),    0, 0, 0, -1000);
             } else {
-                renderString(drawable, getFontInfo(),                    0, row++, 0, 0, -1000);
-                renderString(drawable, "012345678901234567890123456789", 0, row++, 0, 0, -1000);
-                renderString(drawable, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 0, row++, 0, 0, -1000);
-                renderString(drawable, "Hello World",                    0, row++, 0, 0, -1000);
-                renderString(drawable, "4567890123456",                  4, row++, 0, 0, -1000);
-                renderString(drawable, "I like JogAmp",                  4, row++, 0, 0, -1000);
-                renderString(drawable, "Hello World",                    0, row++, 0, 0, -1000);
-                renderString(drawable, text1,                            0, row++, 0, 0, -1000);
+                renderString(drawable, getFontInfo(),                    0, 0, 0, 0, -1000, true);
+                renderString(drawable, "012345678901234567890123456789", 0, 0, 0, -1000, true);
+                renderString(drawable, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 0, 0, 0, -1000, true);
+                renderString(drawable, "Hello World",                    0, 0, 0, -1000, true);
+                renderString(drawable, "4567890123456",                  4, 0, 0, -1000, true);
+                renderString(drawable, "I like JogAmp",                  4, 0, 0, -1000, true);
+                renderString(drawable, "Hello World",                    0, 0, 0, -1000, true);
+                renderString(drawable, textX2,                           0, 0, 0, -1000, true);
+                renderString(drawable, text1,                            0, 0, 0, -1000, false); // no-cache
             }
         } };
 

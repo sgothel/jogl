@@ -30,7 +30,6 @@ package com.jogamp.graph.curve.opengl;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLException;
@@ -41,47 +40,36 @@ import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.Font.Glyph;
-import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
 
 /**
- *
- * FIXME: Add VBO Vertex Factory for drawString3D !
- *
+ * Text {@link GLRegion} Utility Class
  */
-public class TextRenderUtil {
+public class TextRegionUtil {
 
     public final RegionRenderer renderer;
 
-    public TextRenderUtil(final RegionRenderer renderer) {
+    public TextRegionUtil(final RegionRenderer renderer) {
         this.renderer = renderer;
     }
 
     /**
-     * Generate a Region to represent this Object.
-     * <p>
-     * Each glyph is cached and reused.
-     * </p>
-     *
-     * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, {@link Region#VBAA_RENDERING_BIT}
+     * Add the string in 3D space w.r.t. the font and pixelSize at the end of the {@link GLRegion}.
+     * @param region the {@link GLRegion} sink
      * @param vertexFactory vertex impl factory {@link Factory}
      * @param font the target {@link Font}
      * @param str string text
      * @param pixelSize
      */
-    public static GLRegion createRegion(final int renderModes, final Factory<? extends Vertex> vertexFactory,
-                                        final Font font, final CharSequence str, final int pixelSize) {
+    public static void addStringToRegion(final GLRegion region, final Factory<? extends Vertex> vertexFactory,
+                                         final Font font, final CharSequence str, final int pixelSize) {
         final int charCount = str.length();
 
-        final GLRegion region = GLRegion.create(renderModes);
         // region.setFlipped(true);
         final Font.Metrics metrics = font.getMetrics();
+        final float lineHeight = font.getLineHeight(pixelSize);
 
-        final float lineGap = metrics.getLineGap(pixelSize) ;
-        final float ascent = metrics.getAscent(pixelSize) ;
-        final float descent = metrics.getDescent(pixelSize) ;
-        final float advanceY = lineGap - descent + ascent;
         final float scale = metrics.getScale(pixelSize);
         final AffineTransform transform = new AffineTransform(vertexFactory);
         final AffineTransform t = new AffineTransform(vertexFactory);
@@ -92,7 +80,7 @@ public class TextRenderUtil {
         for(int i=0; i< charCount; i++) {
             final char character = str.charAt(i);
             if( '\n' == character ) {
-                y += advanceY;
+                y -= lineHeight;
                 advanceTotal = 0;
             } else if (character == ' ') {
                 advanceTotal += font.getAdvanceWidth(Glyph.ID_SPACE, pixelSize);
@@ -114,37 +102,41 @@ public class TextRenderUtil {
                 advanceTotal += glyph.getAdvance(pixelSize, true);
             }
         }
-        return region;
     }
 
     /**
-     * Render the String in 3D space wrt to the font provided at the position provided
-     * the outlines will be generated, if not yet generated
+     * Render the string in 3D space w.r.t. the font and pixelSize
+     * using a cached {@link GLRegion} for reuse.
+     * <p>
+     * Cached {@link GLRegion}s will be destroyed w/ {@link #clear(GL2ES2)} or to free memory.
+     * </p>
      * @param gl the current GL state
      * @param font {@link Font} to be used
      * @param str text to be rendered
      * @param pixelSize font size
-     * @param texWidth desired texture width for multipass-rendering.
+     * @param texSize desired texture width for multipass-rendering.
      *        The actual used texture-width is written back when mp rendering is enabled, otherwise the store is untouched.
      * @throws Exception if TextRenderer not initialized
      */
     public void drawString3D(final GL2ES2 gl,
-                             final Font font, final CharSequence str, final int pixelSize, final int[/*1*/] texSize) {
-        if(!renderer.isInitialized()){
+                             final Font font, final CharSequence str, final int pixelSize,
+                             final int[/*1*/] texSize) {
+        if( !renderer.isInitialized() ) {
             throw new GLException("TextRendererImpl01: not initialized!");
         }
         final RenderState rs = renderer.getRenderState();
         GLRegion region = getCachedRegion(font, str, pixelSize);
         if(null == region) {
-            region = createRegion(renderer.getRenderModes(), rs.getVertexFactory(), font, str, pixelSize);
+            region = GLRegion.create(renderer.getRenderModes());
+            addStringToRegion(region, rs.getVertexFactory(), font, str, pixelSize);
             addCachedRegion(gl, font, str, pixelSize, region);
         }
         region.draw(gl, renderer, texSize);
     }
 
     /**
-     * Render the String in 3D space wrt to the font provided at the position provided
-     * the outlines will be generated, if not yet generated
+     * Render the string in 3D space w.r.t. the font and pixelSize
+     * using a temporary {@link GLRegion}, which will be destroyed afterwards.
      * @param gl the current GL state
      * @param font {@link Font} to be used
      * @param str text to be rendered
@@ -154,27 +146,22 @@ public class TextRenderUtil {
      * @throws Exception if TextRenderer not initialized
      */
     public static void drawString3D(final RegionRenderer renderer, final GL2ES2 gl,
-                                    final Font font, final CharSequence str, final int fontSize, final int[/*1*/] texSize) {
+                                    final Font font, final CharSequence str, final int fontSize,
+                                    final int[/*1*/] texSize) {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
         final RenderState rs = renderer.getRenderState();
-        GLRegion region = createRegion(renderer.getRenderModes(), rs.getVertexFactory(), font, str, fontSize);
+        final GLRegion region = GLRegion.create(renderer.getRenderModes());
+        addStringToRegion(region, rs.getVertexFactory(), font, str, fontSize);
         region.draw(gl, renderer, texSize);
+        region.destroy(gl, renderer);
     }
 
-    /** FIXME
-   public void flushCache(GL2ES2 gl) {
-       Iterator<GlyphString> iterator = stringCacheMap.values().iterator();
-       while(iterator.hasNext()){
-           GlyphString glyphString = iterator.next();
-           glyphString.destroy(gl, rs);
-       }
-       stringCacheMap.clear();
-       stringCacheArray.clear();
-   } */
-
-   public void destroy(GL2ES2 gl) {
+   /**
+    * Clear all cached {@link GLRegions}.
+    */
+   public void clear(GL2ES2 gl) {
        // fluchCache(gl) already called
        final Iterator<GLRegion> iterator = stringCacheMap.values().iterator();
        while(iterator.hasNext()){
@@ -252,9 +239,11 @@ public class TextRenderUtil {
 
    protected final void removeCachedRegion(GL2ES2 gl, int idx) {
        final String key = stringCacheArray.remove(idx);
-       final GLRegion region = stringCacheMap.remove(key);
-       if(null != region) {
-           region.destroy(gl, renderer);
+       if( null != key ) {
+           final GLRegion region = stringCacheMap.remove(key);
+           if(null != region) {
+               region.destroy(gl, renderer);
+           }
        }
    }
 

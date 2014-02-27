@@ -31,7 +31,7 @@ import javax.media.opengl.GL2ES2;
 
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.curve.opengl.TextRenderUtil;
+import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
@@ -96,8 +96,9 @@ public abstract class Label extends UIShape implements UITextShape {
     @Override
     protected void createShape(RegionRenderer renderer) {
         clearImpl(null, null);
-        glyphRegion = TextRenderUtil.createRegion(renderer.getRenderModes(), renderer.getRenderState().getVertexFactory(),
-                                                  font, text, size);
+        glyphRegion = GLRegion.create(renderer.getRenderModes());
+        TextRegionUtil.addStringToRegion(glyphRegion, renderer.getRenderState().getVertexFactory(),
+                                         font, text, size);
     }
 
     @Override

@@ -37,7 +37,7 @@ import javax.media.opengl.GLException;
 
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.curve.opengl.TextRenderUtil;
+import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.newt.event.KeyEvent;
@@ -62,7 +62,7 @@ import com.jogamp.opengl.math.geom.AABBox;
  * - i: live input text input (CR ends it, backspace supported)
  */
 public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerBase01 {
-    public final TextRenderUtil textRenderUtil;
+    public final TextRegionUtil textRenderUtil;
     int fontSet = FontFactory.UBUNTU;
     Font font;
 
@@ -103,7 +103,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
 
     public GPUTextRendererListenerBase01(RenderState rs, int renderModes, boolean debug, boolean trace) {
         super(RegionRenderer.create(rs, renderModes), renderModes, debug, trace);
-        this.textRenderUtil = new TextRenderUtil(this.getRenderer());
+        this.textRenderUtil = new TextRegionUtil(this.getRenderer());
         try {
             this.font = FontFactory.get(fontSet).getDefault();
             dumpFontNames();
@@ -165,7 +165,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             final int fpsSp = fpsS.indexOf('.');
             renderer.resetModelview(null);
             renderer.translate(gl, fontSizeFixed, fontSizeFixed, -6000);
-            textRenderUtil.drawString3D(gl, font, fpsS.substring(0, fpsSp+2)+" fps", fontSizeFixed*3, getTexSize());
+            TextRegionUtil.drawString3D(renderer, gl, font, fpsS.substring(0, fpsSp+2)+" fps", fontSizeFixed*3, getTexSize()); // no cache!
         }
 
         int dx = width-(int)fontNameBox.getWidth()-2 ;
