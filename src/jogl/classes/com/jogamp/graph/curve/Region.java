@@ -142,8 +142,9 @@ public abstract class Region {
         return Region.isNonUniformWeight(renderModes);
     }
 
+    final float[] coordsEx = new float[3];
+
     private void pushNewVertexImpl(final Vertex vertIn, final AffineTransform transform) {
-        final float[] coordsEx = new float[3];
         if( null != transform ) {
             final float[] coordsIn = vertIn.getCoord();
             transform.transform(coordsIn, coordsEx);
