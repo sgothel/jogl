@@ -110,18 +110,10 @@ public abstract class Region {
         this.renderModes = regionRenderModes;
     }
 
-    /**
-     * Returns true, if the implementation uses indices to render the vertices,
-     * otherwise false.
-     * <p>
-     * Impacts {@link #validateIndices()} and {@link #addOutlineShape(OutlineShape, AffineTransform)} ..,
-     * i.e. defines unique indices if this method returns true.
-     * </p>
-     */
-    public abstract boolean usesIndices();
+    // FIXME: Better handling of impl. buffer growth .. !
 
-    public abstract void pushVertex(float[] coords, float[] texParams);
-    public abstract void pushIndex(int idx);
+    protected abstract void pushVertex(float[] coords, float[] texParams);
+    protected abstract void pushIndex(int idx);
 
     /**
      * Return bit-field of render modes, see {@link #create(int)}.

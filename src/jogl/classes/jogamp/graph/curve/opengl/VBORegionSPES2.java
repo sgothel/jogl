@@ -56,7 +56,7 @@ public class VBORegionSPES2 extends GLRegion {
     }
 
     @Override
-    public final void clearImpl(final GL2ES2 gl, final RegionRenderer renderer) {
+    protected final void clearImpl(final GL2ES2 gl, final RegionRenderer renderer) {
         indicesBuffer.seal(gl, false);
         indicesBuffer.rewind();
         verticeAttr.seal(gl, false);
@@ -66,10 +66,7 @@ public class VBORegionSPES2 extends GLRegion {
     }
 
     @Override
-    public final boolean usesIndices() { return true; }
-
-    @Override
-    public final void pushVertex(float[] coords, float[] texParams) {
+    protected final void pushVertex(float[] coords, float[] texParams) {
         verticeAttr.putf(coords[0]);
         verticeAttr.putf(coords[1]);
         verticeAttr.putf(coords[2]);
@@ -79,12 +76,12 @@ public class VBORegionSPES2 extends GLRegion {
     }
 
     @Override
-    public final void pushIndex(int idx) {
+    protected final void pushIndex(int idx) {
         indicesBuffer.puts((short)idx);
     }
 
     @Override
-    public void update(final GL2ES2 gl, final RegionRenderer renderer) {
+    protected void update(final GL2ES2 gl, final RegionRenderer renderer) {
         if( !buffersAttached ) {
             final ShaderState st = renderer.getShaderState();
             st.ownAttribute(verticeAttr, true);
@@ -119,7 +116,7 @@ public class VBORegionSPES2 extends GLRegion {
     }
 
     @Override
-    public void destroy(final GL2ES2 gl, final RegionRenderer renderer) {
+    protected void destroyImpl(final GL2ES2 gl, final RegionRenderer renderer) {
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegionSPES2 Destroy: " + this);
         }

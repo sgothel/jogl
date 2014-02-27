@@ -61,18 +61,15 @@ public abstract class GLRegion extends Region {
         super(renderModes);
     }
 
-    /** Updates a graph region by updating the ogl related
-     *  objects for use in rendering if {@link #isDirty()}.
-     *  <p>Allocates the ogl related data and initializes it the 1st time.<p>
-     *  <p>Called by {@link #draw(GL2ES2, RenderState, int, int, int)}.</p>
-     * @param rs TODO
+    /**
+     * Updates a graph region by updating the ogl related
+     * objects for use in rendering if {@link #isDirty()}.
+     * <p>Allocates the ogl related data and initializes it the 1st time.<p>
+     * <p>Called by {@link #draw(GL2ES2, RenderState, int, int, int)}.</p>
      */
     protected abstract void update(GL2ES2 gl, RegionRenderer renderer);
 
-    /** Delete and clean the associated OGL
-     *  objects
-     */
-    public abstract void destroy(GL2ES2 gl, RegionRenderer renderer);
+    protected abstract void destroyImpl(GL2ES2 gl, RegionRenderer renderer);
 
     protected abstract void clearImpl(final GL2ES2 gl, final RegionRenderer renderer);
 
@@ -82,6 +79,14 @@ public abstract class GLRegion extends Region {
     public void clear(final GL2ES2 gl, final RegionRenderer renderer) {
         clearImpl(gl, renderer);
         clearImpl();
+    }
+
+    /**
+     * Delete and clear the associated OGL objects.
+     */
+    public final void destroy(GL2ES2 gl, RegionRenderer renderer) {
+        clear(gl, renderer);
+        destroyImpl(gl, renderer);
     }
 
     /**
