@@ -91,7 +91,7 @@ public class GPURegionGLListener02 extends GPURegionRendererListenerBase01 {
         shape.closeLastOutline();
 
         region = GLRegion.create(getRenderModes());
-        region.addOutlineShapes(outlineShapes);
+        region.addOutlineShapes(outlineShapes, null);
     }
 
     public void init(GLAutoDrawable drawable) {

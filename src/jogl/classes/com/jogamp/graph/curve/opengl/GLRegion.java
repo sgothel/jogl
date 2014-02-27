@@ -27,12 +27,9 @@
  */
 package com.jogamp.graph.curve.opengl;
 
-import java.util.List;
-
 import javax.media.opengl.GL2ES2;
 
 import com.jogamp.opengl.util.PMVMatrix;
-import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 
 /** A GLRegion is the OGL binding of one or more OutlineShapes
@@ -76,6 +73,16 @@ public abstract class GLRegion extends Region {
      *  objects
      */
     public abstract void destroy(GL2ES2 gl, RegionRenderer renderer);
+
+    protected abstract void clearImpl(final GL2ES2 gl, final RegionRenderer renderer);
+
+    /**
+     * Clears all data, i.e. triangles, vertices etc.
+     */
+    public void clear(final GL2ES2 gl, final RegionRenderer renderer) {
+        clearImpl(gl, renderer);
+        clearImpl();
+    }
 
     /**
      * Renders the associated OGL objects specifying

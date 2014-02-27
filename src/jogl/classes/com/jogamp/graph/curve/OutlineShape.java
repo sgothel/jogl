@@ -560,8 +560,6 @@ public class OutlineShape implements Comparable<OutlineShape> {
      * Should always be called <i>after</i> {@link #getTriangles(VerticesState)},
      * since the latter will mark all cached vertices dirty!
      * </p>
-     * FIXME: Add memory optimization, i.e. VBO layout
-     * FIXME: Add Runnable task-per-vertices !
      */
     public final ArrayList<Vertex> getVertices() {
         final boolean updated;
@@ -604,7 +602,6 @@ public class OutlineShape implements Comparable<OutlineShape> {
      * </p>
      * @return an arraylist of triangles representing the filled region
      * which is produced by the combination of the outlines
-     * FIXME: Add memory optimization, i.e. VBO layout
      */
     public ArrayList<Triangle> getTriangles(VerticesState destinationType) {
         final boolean updated;

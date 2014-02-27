@@ -83,20 +83,6 @@ public class Triangle {
         this.id = id;
     }
 
-    public void addVertexIndicesOffset(int offset) {
-        if( 0 < offset ) {
-            final int i0 = vertices[0].getId();
-            if( Integer.MAX_VALUE-offset > i0 ) { // Integer.MAX_VALUE != i0 // FIXME: renderer uses SHORT!
-                if(Region.DEBUG_INSTANCE) {
-                    System.err.println("Triangle.addVertexIndicesOffset: "+i0+" + "+offset+" -> "+(i0+offset));
-                }
-                vertices[0].setId(i0+offset);
-                vertices[1].setId(vertices[1].getId()+offset);
-                vertices[2].setId(vertices[2].getId()+offset);
-            }
-        }
-    }
-
     /** Returns array of 3 vertices, denominating the triangle. */
     public Vertex[] getVertices() {
         return vertices;
@@ -124,6 +110,6 @@ public class Triangle {
 
     @Override
     public String toString() {
-        return "Tri ID: " + id + "\n" +  vertices[0]  + "\n" +  vertices[1] + "\n" +  vertices[2];
+        return "Tri ID: " + id + "\n\t" +  vertices[0]  + "\n\t" +  vertices[1] + "\n\t" +  vertices[2];
     }
 }

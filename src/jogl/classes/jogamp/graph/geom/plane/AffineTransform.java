@@ -403,17 +403,17 @@ public class AffineTransform implements Cloneable, Serializable {
         );
     }
 
-    public Vertex transform(Vertex src, Vertex dst) {
+    public final Vertex transform(final Vertex src, Vertex dst) {
         if (dst == null) {
             dst = pointFactory.create(src.getId(), src.isOnCurve(), src.getTexCoord());
         }
         final float x = src.getX();
         final float y = src.getY();
-        dst.setCoord(x * m00 + y * m01 + m02, x * m10 + y * m11 + m12, 0f);
+        dst.setCoord(x * m00 + y * m01 + m02, x * m10 + y * m11 + m12, src.getZ());
         return dst;
     }
 
-    public void transform(Vertex[] src, int srcOff, Vertex[] dst, int dstOff, int length) {
+    public final void transform(Vertex[] src, int srcOff, Vertex[] dst, int dstOff, int length) {
         while (--length >= 0) {
             Vertex srcPoint = src[srcOff++];
             Vertex dstPoint = dst[dstOff];
@@ -422,12 +422,26 @@ public class AffineTransform implements Cloneable, Serializable {
             }
             final float x = srcPoint.getX();
             final float y = srcPoint.getY();
-            dstPoint.setCoord(x * m00 + y * m01 + m02, x * m10 + y * m11 + m12, 0f);
+            dstPoint.setCoord(x * m00 + y * m01 + m02, x * m10 + y * m11 + m12, srcPoint.getZ());
             dst[dstOff++] = dstPoint;
         }
     }
 
-    public void transform(float[] src, int srcOff, float[] dst, int dstOff, int length) {
+    public final void transform(final float[] src, final float[] dst) {
+        final float x = src[0];
+        final float y = src[1];
+        dst[0] = x * m00 + y * m01 + m02;
+        dst[1] = x * m10 + y * m11 + m12;
+    }
+
+    public final void transform(final float[] src, final int srcOff, final float[] dst, final int dstOff) {
+        final float x = src[srcOff + 0];
+        final float y = src[srcOff + 1];
+        dst[dstOff + 0] = x * m00 + y * m01 + m02;
+        dst[dstOff + 1] = x * m10 + y * m11 + m12;
+    }
+
+    public final void transform(final float[] src, int srcOff, final float[] dst, int dstOff, int length) {
         int step = 2;
         if (src == dst && srcOff < dstOff && dstOff < srcOff + length * 2) {
             srcOff = srcOff + length * 2 - 2;
@@ -435,8 +449,8 @@ public class AffineTransform implements Cloneable, Serializable {
             step = -2;
         }
         while (--length >= 0) {
-            float x = src[srcOff + 0];
-            float y = src[srcOff + 1];
+            final float x = src[srcOff + 0];
+            final float y = src[srcOff + 1];
             dst[dstOff + 0] = x * m00 + y * m01 + m02;
             dst[dstOff + 1] = x * m10 + y * m11 + m12;
             srcOff += step;
@@ -450,7 +464,7 @@ public class AffineTransform implements Cloneable, Serializable {
         }
         final float x = src.getX();
         final float y = src.getY();
-        dst.setCoord(x * m00 + y * m01, x * m10 + y * m11, 0f);
+        dst.setCoord(x * m00 + y * m01, x * m10 + y * m11, src.getZ());
         return dst;
     }
 
@@ -473,7 +487,7 @@ public class AffineTransform implements Cloneable, Serializable {
         }
         final float x = src.getX() - m02;
         final float y = src.getY() - m12;
-        dst.setCoord((x * m11 - y * m01) / det, (y * m00 - x * m10) / det, 0f);
+        dst.setCoord((x * m11 - y * m01) / det, (y * m00 - x * m10) / det, src.getZ());
         return dst;
     }
 

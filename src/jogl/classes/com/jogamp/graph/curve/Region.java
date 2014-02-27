@@ -51,32 +51,33 @@ public abstract class Region {
     public static final boolean DEBUG = Debug.debug("graph.curve");
     public static final boolean DEBUG_INSTANCE = Debug.debug("graph.curve.instance");
 
-    /** View based Anti-Aliasing, A Two pass region rendering, slower and more
+    /**
+     * View based Anti-Aliasing, A Two pass region rendering, slower and more
      * resource hungry (FBO), but AA is perfect. Otherwise the default fast one
-     * pass MSAA region rendering is being used. */
+     * pass MSAA region rendering is being used.
+     */
     public static final int VBAA_RENDERING_BIT = 1 << 0;
 
-    /** Use non uniform weights [0.0 .. 1.9] for curve region rendering.
+    /**
+     * Use non uniform weights [0.0 .. 1.9] for curve region rendering.
      * Otherwise the default weight 1.0 for uniform curve region rendering is
-     * being applied. */
+     * being applied.
+     */
     public static final int VARIABLE_CURVE_WEIGHT_BIT = 1 << 1;
 
     public static final int TWO_PASS_DEFAULT_TEXTURE_UNIT = 0;
 
     private final int renderModes;
     private boolean dirty = true;
-    protected int numVertices = 0;
+    private int numVertices = 0;
     protected final AABBox box = new AABBox();
-    /** FIXME: Think about a rendering storage optimization (VBO ... )! */
-    protected ArrayList<Triangle> triangles = new ArrayList<Triangle>();
-    /** FIXME: Think about a rendering storage optimization (VBO ... )! */
-    protected ArrayList<Vertex> vertices = new ArrayList<Vertex>();
 
     public static boolean isVBAA(int renderModes) {
         return 0 != (renderModes & Region.VBAA_RENDERING_BIT);
     }
 
-    /** Check if render mode capable of non uniform weights
+    /**
+     * Check if render mode capable of non uniform weights
      *
      * @param renderModes
      *            bit-field of modes, e.g.
@@ -109,165 +110,132 @@ public abstract class Region {
         this.renderModes = regionRenderModes;
     }
 
-    /** Get current Models
-     *
-     * @return bit-field of render modes */
+    /**
+     * Returns true, if the implementation uses indices to render the vertices,
+     * otherwise false.
+     * <p>
+     * Impacts {@link #validateIndices()} and {@link #addOutlineShape(OutlineShape, AffineTransform)} ..,
+     * i.e. defines unique indices if this method returns true.
+     * </p>
+     */
+    public abstract boolean usesIndices();
+
+    public abstract void pushVertex(float[] coords, float[] texParams);
+    public abstract void pushIndex(int idx);
+
+    /**
+     * Return bit-field of render modes, see {@link #create(int)}.
+     */
     public final int getRenderModes() {
         return renderModes;
     }
 
-
-    public final ArrayList<Triangle> getTriangles() { return triangles; }
-
-    public final ArrayList<Vertex> getVertices() { return vertices; }
-
-    /** Check if current Region is using VBAA
-     *
-     * @return true if capable of two pass rendering - VBAA */
-    public boolean isVBAA() {
-        return Region.isVBAA(renderModes);
+    protected void clearImpl() {
+        dirty = true;
+        numVertices = 0;
+        box.reset();
     }
 
-    /** Check if current instance uses non uniform weights
-     *
-     * @return true if capable of nonuniform weights */
-    public boolean isNonUniformWeight() {
+    /**
+     * Return  true if capable of two pass rendering - VBAA, otherwise false.
+     */
+    public final boolean isVBAA() {
+        return isVBAA(renderModes);
+    }
+
+    /**
+     * Return true if capable of nonuniform weights, otherwise false.
+     */
+    public final boolean isNonUniformWeight() {
         return Region.isNonUniformWeight(renderModes);
     }
 
-    /** Get the current number of vertices associated with this region. This
-     * number is not necessary equal to the OGL bound number of vertices.
-     *
-     * @return vertices count */
-    public final int getNumVertices() {
-        return numVertices;
-    }
-
-    /** Adds a list of {@link Triangle} objects to the Region These triangles are
-     * to be binded to OGL objects on the next call to {@code update}
-     *
-     * @param tris
-     *            a list of triangle objects
-     * @param idxOffset TODO
-     *
-     * @see update(GL2ES2) */
-    public void addTriangles(List<Triangle> tris, AffineTransform t, int idxOffset) {
-        if( true && null != t ) {
-            for(int i=0; i<tris.size(); i++) {
-                final Triangle t2 = tris.get(i).transform(t);
-                t2.addVertexIndicesOffset(idxOffset);
-                triangles.add( t2 );
-            }
+    private void pushNewVertexImpl(final Vertex vertIn, final AffineTransform transform) {
+        final float[] coordsEx = new float[3];
+        if( null != transform ) {
+            final float[] coordsIn = vertIn.getCoord();
+            transform.transform(coordsIn, coordsEx);
+            coordsEx[2] = coordsIn[2];
+            box.resize(coordsEx[0], coordsEx[1], coordsEx[2]);
+            pushVertex(coordsEx, vertIn.getTexCoord());
         } else {
-            for(int i=0; i<tris.size(); i++) {
-                final Triangle t2 = new Triangle( tris.get(i) );
-                t2.addVertexIndicesOffset(idxOffset);
-                triangles.add( t2 );
-            }
-            // triangles.addAll(tris);
+            box.resize(vertIn.getX(), vertIn.getY(), vertIn.getZ());
+            pushVertex(vertIn.getCoord(), vertIn.getTexCoord());
         }
-        if(DEBUG_INSTANCE) {
-            System.err.println("Region.addTriangles(): tris: "+triangles.size()+", verts "+vertices.size());
-        }
-        setDirty(true);
-    }
-
-    /** Adds a {@link Vertex} object to the Region This vertex will be bound to
-     * OGL objects on the next call to {@code update}
-     *
-     * @param vert
-     *            a vertex objects
-     *
-     * @see update(GL2ES2) */
-    public void addVertex(Vertex vert, AffineTransform t) {
-        final Vertex svert = null != t ? t.transform(vert, null) : vert;
-        vertices.add(svert);
         numVertices++;
-        assert( vertices.size() == numVertices );
-        if(DEBUG_INSTANCE) {
-            System.err.println("Region.addVertex(): tris: "+triangles.size()+", verts "+vertices.size());
-        }
-        setDirty(true);
     }
 
-    /** Adds a list of {@link Vertex} objects to the Region These vertices are to
-     * be binded to OGL objects on the next call to {@code update}
-     *
-     * @param verts
-     *            a list of vertex objects
-     *
-     * @see update(GL2ES2) */
-    public void addVertices(List<Vertex> verts) {
-        vertices.addAll(verts);
-        numVertices = vertices.size();
-        if(DEBUG_INSTANCE) {
-            System.err.println("Region.addVertices(): tris: "+triangles.size()+", verts "+vertices.size());
-        }
-        setDirty(true);
+    private void pushNewVertexIdxImpl(final Vertex vertIn, final AffineTransform transform) {
+        pushIndex(numVertices);
+        pushNewVertexImpl(vertIn, transform);
     }
 
-    public void addOutlineShape(OutlineShape shape, AffineTransform t) {
-        final List<Triangle> tris = shape.getTriangles(OutlineShape.VerticesState.QUADRATIC_NURBS);
-        if(null != tris) {
-            if( false && null != t ) {
-                for(int i=0; i<tris.size(); i++) {
-                    triangles.add( tris.get(i).transform(t) );
-                }
-            } else {
-                triangles.addAll(tris);
+    public final void addOutlineShape(final OutlineShape shape, final AffineTransform transform) {
+        final List<Triangle> trisIn = shape.getTriangles(OutlineShape.VerticesState.QUADRATIC_NURBS);
+        final ArrayList<Vertex> vertsIn = shape.getVertices();
+        if(DEBUG_INSTANCE) {
+            System.err.println("Region.addOutlineShape().0: tris: "+trisIn.size()+", verts "+vertsIn.size()+", transform "+transform);
+        }
+        final int idxOffset = numVertices;
+        int vertsVNewIdxCount = 0, vertsTMovIdxCount = 0, vertsTNewIdxCount = 0, tris = 0;
+        int vertsDupCountV = 0, vertsDupCountT = 0, vertsKnownMovedT = 0;
+        if( vertsIn.size() >= 3 ) {
+            if(DEBUG_INSTANCE) {
+                System.err.println("Region.addOutlineShape(): Processing Vertices");
             }
-            // final List<Vertex> verts = shape.getVertices();
-            // vertices.addAll(verts);
-            // FIXME: use OutlineShape.getVertices(Runnable task-per-vertex) !!
-            for (int j = 0; j < shape.outlines.size(); j++) {
-                final ArrayList<Vertex> sovs = shape.outlines.get(j).getVertices();
-                for (int k = 0; k < sovs.size(); k++) {
-                    final Vertex v;
-                    if( null != t ) {
-                        v = t.transform(sovs.get(k), null);
-                    } else {
-                        v = sovs.get(k);
+            for(int i=0; i<vertsIn.size(); i++) {
+                pushNewVertexImpl(vertsIn.get(i), transform);
+                vertsVNewIdxCount++;
+            }
+            if(DEBUG_INSTANCE) {
+                System.err.println("Region.addOutlineShape(): Processing Triangles");
+            }
+            for(int i=0; i<trisIn.size(); i++) {
+                final Triangle triIn = trisIn.get(i);
+                if(Region.DEBUG_INSTANCE) {
+                    System.err.println("T["+i+"]: "+triIn);
+                }
+                // triEx.addVertexIndicesOffset(idxOffset);
+                // triangles.add( triEx );
+                final Vertex[] triInVertices = triIn.getVertices();
+                final int tv0Idx = triInVertices[0].getId();
+                if( Integer.MAX_VALUE-idxOffset > tv0Idx ) { // Integer.MAX_VALUE != i0 // FIXME: renderer uses SHORT!
+                    // valid 'known' idx - move by offset
+                    if(Region.DEBUG_INSTANCE) {
+                        System.err.println("T["+i+"]: Moved "+tv0Idx+" + "+idxOffset+" -> "+(tv0Idx+idxOffset));
                     }
-                    v.setId(numVertices++);
-                    vertices.add(v);
+                    pushIndex(tv0Idx+idxOffset);
+                    pushIndex(triInVertices[1].getId()+idxOffset);
+                    pushIndex(triInVertices[2].getId()+idxOffset);
+                    vertsTMovIdxCount+=3;
+                } else {
+                    // invalid idx - generate new one
+                    if(Region.DEBUG_INSTANCE) {
+                        System.err.println("T["+i+"]: New Idx "+numVertices);
+                    }
+                    pushNewVertexIdxImpl(triInVertices[0], transform);
+                    pushNewVertexIdxImpl(triInVertices[1], transform);
+                    pushNewVertexIdxImpl(triInVertices[2], transform);
+                    vertsTNewIdxCount+=3;
                 }
+                tris++;
             }
-            // numVertices = vertices.size();
         }
         if(DEBUG_INSTANCE) {
-            System.err.println("Region.addOutlineShape(): tris: "+triangles.size()+", verts "+vertices.size());
+            System.err.println("Region.addOutlineShape().X: idxOffset "+idxOffset+", tris: "+tris+", verts [idx "+vertsTNewIdxCount+", add "+vertsTNewIdxCount+" = "+(vertsVNewIdxCount+vertsTNewIdxCount)+"]");
+            System.err.println("Region.addOutlineShape().X: verts: idx[v-new "+vertsVNewIdxCount+", t-new "+vertsTNewIdxCount+" = "+(vertsVNewIdxCount+vertsTNewIdxCount)+"]");
+            System.err.println("Region.addOutlineShape().X: verts: idx t-moved "+vertsTMovIdxCount+", numVertices "+numVertices);
+            System.err.println("Region.addOutlineShape().X: verts: v-dups "+vertsDupCountV+", t-dups "+vertsDupCountT+", t-known "+vertsKnownMovedT);
+            // int vertsDupCountV = 0, vertsDupCountT = 0;
+            System.err.println("Region.addOutlineShape().X: box "+box);
         }
         setDirty(true);
     }
 
-    public void validateIndices() {
-        final int verticeCountPre = vertices.size();
-        for(int i=0; i<triangles.size(); i++) {
-            final Triangle t = triangles.get(i);
-            final Vertex[] t_vertices = t.getVertices();
-
-            if(t_vertices[0].getId() == Integer.MAX_VALUE){
-                t_vertices[0].setId(numVertices++);
-                t_vertices[1].setId(numVertices++);
-                t_vertices[2].setId(numVertices++);
-                vertices.add(t_vertices[0]);
-                vertices.add(t_vertices[1]);
-                vertices.add(t_vertices[2]);
-            }
-        }
-        if( verticeCountPre < vertices.size() ) {
-            setDirty(true);
-        }
-    }
-
-    public void addOutlineShapes(List<OutlineShape> shapes) {
+    public final void addOutlineShapes(final List<OutlineShape> shapes, final AffineTransform transform) {
         for (int i = 0; i < shapes.size(); i++) {
-            addOutlineShape(shapes.get(i), null);
+            addOutlineShape(shapes.get(i), transform);
         }
-        if(DEBUG_INSTANCE) {
-            System.err.println("Region.addOutlineShapes(): tris: "+triangles.size()+", verts "+vertices.size());
-        }
-        setDirty(true);
     }
 
     /** @return the AxisAligned bounding box of current region */

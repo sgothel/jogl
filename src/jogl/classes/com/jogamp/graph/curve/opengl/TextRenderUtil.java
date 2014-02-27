@@ -74,7 +74,7 @@ public class TextRenderUtil {
                                         final Font font, final CharSequence str, final int pixelSize) {
         final int charCount = str.length();
 
-        final GLRegion region = Region.create(renderModes);
+        final GLRegion region = GLRegion.create(renderModes);
         // region.setFlipped(true);
         final Font.Metrics metrics = font.getMetrics();
 
@@ -88,7 +88,6 @@ public class TextRenderUtil {
 
         float y = 0;
         float advanceTotal = 0;
-        int numVertices = region.getNumVertices();
 
         for(int i=0; i< charCount; i++) {
             final char character = str.charAt(i);
@@ -110,33 +109,7 @@ public class TextRenderUtil {
                 if( null == glyphShape ) {
                     continue;
                 }
-                // glyphShape.closeLastOutline();
-
-                if( false ) {
-                    region.addOutlineShape(glyphShape, t);
-                } else {
-                    // System.err.println("XXXXX Pre TRI");
-                    // glyphShape.getVertices();
-                    final ArrayList<Triangle> trisIn = glyphShape.getTriangles(OutlineShape.VerticesState.QUADRATIC_NURBS);
-                    final ArrayList<Vertex> gVertices = glyphShape.getVertices();
-
-                    if( gVertices.size() < 3 ) {
-                        continue;
-                    }
-                    region.addTriangles(trisIn, t, numVertices);
-
-                    for(int j=0; j<gVertices.size(); j++) {
-                        final Vertex vert = gVertices.get(j);
-                        final Vertex svert = t.transform(vert, null);
-                        svert.setId(numVertices++);
-                        if(Region.DEBUG_INSTANCE) {
-                            System.err.println("IN: "+vert);
-                            System.err.println("EX: "+svert);
-                        }
-                        region.addVertex(svert, null);
-                    }
-                }
-                assert( numVertices == region.getNumVertices() );
+                region.addOutlineShape(glyphShape, t);
 
                 advanceTotal += glyph.getAdvance(pixelSize, true);
             }
