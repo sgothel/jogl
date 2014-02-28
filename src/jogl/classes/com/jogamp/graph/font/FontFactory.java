@@ -50,10 +50,10 @@ public class FontFactory {
     private static final String FontConstructorPropKey = "jogamp.graph.font.ctor";
     private static final String DefaultFontConstructor = "jogamp.graph.font.typecast.TypecastFontConstructor";
 
-    /** Ubuntu is the default font family */
+    /** Ubuntu is the default font family, {@value} */
     public static final int UBUNTU = 0;
 
-    /** Java fonts are optional */
+    /** Java fonts are optional, {@value} */
     public static final int JAVA = 1;
 
     private static final FontConstructor fontConstr;
