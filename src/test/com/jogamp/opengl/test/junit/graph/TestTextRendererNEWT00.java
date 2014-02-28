@@ -66,9 +66,10 @@ public class TestTextRendererNEWT00 extends UITestCase {
     static final boolean TRACE = false;
     static long duration = 100; // ms
     static boolean waitStartEnd = false;
+    static int msaaSamples = 4;
 
     static final int[] texSize = new int[] { 0 };
-    static final int fontSize = 24;
+    static int fontSize = 18;
     static Font font;
 
     @BeforeClass
@@ -87,10 +88,17 @@ public class TestTextRendererNEWT00 extends UITestCase {
             if(args[i].equals("-time")) {
                 i++;
                 duration = atoi(args[i]);
+            } else if(args[i].equals("-fontSize")) {
+                i++;
+                fontSize = atoi(args[i]);
+            } else if(args[i].equals("-msaa")) {
+                i++;
+                msaaSamples = atoi(args[i]);
             } else if(args[i].equals("-wait")) {
                 waitStartEnd = true;
             }
         }
+        System.err.println("msaaSamples "+msaaSamples);
         String tstname = TestTextRendererNEWT00.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
@@ -126,8 +134,10 @@ public class TestTextRendererNEWT00 extends UITestCase {
         GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);
-        caps.setSampleBuffers(true);
-        caps.setNumSamples(4);
+        if( 0 < msaaSamples ) {
+            caps.setSampleBuffers(true);
+            caps.setNumSamples(msaaSamples);
+        }
         System.err.println("Requested: "+caps);
 
         GLWindow window = createWindow("text-vbaa0-msaa1", caps, 1024, 640);
@@ -176,7 +186,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
         "Morbi quis bibendum nibh. Donec lectus orci, sagittis in consequat nec, volutpat nec nisi.\n"+
         "Donec ut dolor et nulla tristique varius. In nulla magna, fermentum id tempus quis, semper \n"+
         "in lorem. Maecenas in ipsum ac justo scelerisque sollicitudin. Quisque sit amet neque lorem,\n" +
-        "------- End of Story ;-) ---------\n";
+        "-------Press H to change text---------\n";
 
     private final class TextRendererGLEL extends TextRendererGLELBase {
         private final GLReadBufferUtil screenshot;
@@ -186,7 +196,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
             super(rs, true /* exclusivePMV */, 0); // Region.VBAA_RENDERING_BIT);
             texSizeScale = 2;
 
-            fontSize = 24;
+            fontSize = TestTextRendererNEWT00.fontSize;
 
             staticRGBAColor[0] = 0.0f;
             staticRGBAColor[1] = 0.0f;
@@ -211,7 +221,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
         public void printScreen(GLAutoDrawable drawable, String dir, String objName, boolean exportAlpha) throws GLException, IOException {
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
-            pw.printf("%s-%03dx%03d-T%04d", objName, drawable.getWidth(), drawable.getHeight(), texSize[0]);
+            pw.printf("%s-msaa%02d-fontsz%02d-%03dx%03d-T%04d", objName, msaaSamples, fontSize, drawable.getWidth(), drawable.getHeight(), texSize[0]);
 
             final String filename = dir + sw +".png";
             if(screenshot.readPixels(drawable.getGL(), false)) {
@@ -244,9 +254,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
                     lfps, tfps, gl.getSwapInterval(), (t1-t0)/1000.0);
 
             if( false ) {
-                renderString(drawable, textX2,      0, 0, 0, 0, -1000, true);
-                // renderString(drawable, "0",         0, 0, 0, 0, -1000);
-                // renderString(drawable, getFontInfo(),    0, 0, 0, -1000);
+                renderString(drawable, textX2,      0, 0, 0, 0, -1000, false);
             } else {
                 renderString(drawable, getFontInfo(),                    0, 0, 0, 0, -1000, true);
                 renderString(drawable, "012345678901234567890123456789", 0, 0, 0, -1000, true);

@@ -41,7 +41,7 @@ import com.jogamp.graph.geom.Vertex.Factory;
  * http://developer.apple.com/textfonts/TTRefMan/RM06/Chap6.html
  */
 public class TypecastRenderer {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private static void addShapeMoveTo(final OutlineShape shape, Factory<? extends Vertex> vertexFactory, Point p1) {
         shape.closeLastOutline(false);
