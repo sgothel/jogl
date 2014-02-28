@@ -115,7 +115,7 @@ public class TypecastRenderer {
                     final Point p0 = glyph.getPoint(startIndex + offset%count);
                     final Point p1 = glyph.getPoint(startIndex + (offset+1)%count);
                     final Point p2 = glyph.getPoint(startIndex + (offset+2)%count);
-                    final Point p3 = glyph.getPoint(startIndex + (offset+3)%count);
+                    final Point p3 = offset+3 < count ? glyph.getPoint(startIndex + offset+3) : null;
                     if( DEBUG  ) {
                         System.err.println("GlyphShape<"+symbol+">: offset "+offset+" of "+count+"/"+totalPoints+" points");
                         final int pMIdx= (offset==0) ? startIndex+count-1 : startIndex+(offset-1)%count;
@@ -159,7 +159,7 @@ public class TypecastRenderer {
                                 addShapeQuadTo(shape, vertexFactory, p1, p2);
                                 offset+=2;
                             } else {
-                                if (p3.onCurve) {
+                                if (null != p3 && p3.onCurve) {
                                     // Branch-3: point.onCurve && !p1.onCurve && !p2.onCurve && p3.onCurve
                                     if( DEBUG ) { System.err.println("B3 .. cubic-to p0-p1-p2-p3 **** CUBIC"); }
                                     addShapeCubicTo(shape, vertexFactory, p1, p2, p3);
