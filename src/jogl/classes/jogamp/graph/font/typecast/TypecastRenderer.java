@@ -55,7 +55,8 @@ public class TypecastRenderer {
         shape.addVertex(0, vertexFactory.create(p1.x,  p1.y, 0, p1.onCurve));
         shape.addVertex(0, vertexFactory.create(p2.x,  p2.y, 0, p2.onCurve));
     }
-    private static void addShapeQuadTo(final OutlineShape shape, Factory<? extends Vertex> vertexFactory, Point p1, float p2x, float p2y, boolean p2OnCurve) {
+    private static void addShapeQuadTo(final OutlineShape shape, Factory<? extends Vertex> vertexFactory, Point p1,
+                                       float p2x, float p2y, boolean p2OnCurve) {
         shape.addVertex(0, vertexFactory.create(p1.x,  p1.y, 0, p1.onCurve));
         shape.addVertex(0, vertexFactory.create(p2x,    p2y, 0, p2OnCurve));
     }
@@ -111,90 +112,90 @@ public class TypecastRenderer {
             if ( glyph.getPoint(i).endOfContour ) {
                 int offset = 0;
                 while ( offset < count - 1 ) { // require at least +1 point (last one is end-of-contour)
-                    final Point point = glyph.getPoint(startIndex + offset%count);
-                    final Point point_plus1 = glyph.getPoint(startIndex + (offset+1)%count);
-                    final Point point_plus2 = glyph.getPoint(startIndex + (offset+2)%count);
-                    final Point point_plus3 = glyph.getPoint(startIndex + (offset+3)%count);
+                    final Point p0 = glyph.getPoint(startIndex + offset%count);
+                    final Point p1 = glyph.getPoint(startIndex + (offset+1)%count);
+                    final Point p2 = glyph.getPoint(startIndex + (offset+2)%count);
+                    final Point p3 = glyph.getPoint(startIndex + (offset+3)%count);
                     if( DEBUG  ) {
-                        System.err.println("GlyphShape<"+symbol+">: "+count+"/"+totalPoints+" points, offset "+offset);
+                        System.err.println("GlyphShape<"+symbol+">: offset "+offset+" of "+count+"/"+totalPoints+" points");
                         final int pMIdx= (offset==0) ? startIndex+count-1 : startIndex+(offset-1)%count;
-                        final Point point_minus1 = glyph.getPoint(pMIdx);
+                        final Point pM = glyph.getPoint(pMIdx);
                         final int p0Idx = startIndex + offset%count;
                         final int p1Idx = startIndex + (offset+1)%count;
                         final int p2Idx = startIndex + (offset+2)%count;
                         final int p3Idx = startIndex + (offset+3)%count;
-                        System.err.println("\t pM["+pMIdx+"] "+point_minus1);
-                        System.err.println("\t p0["+p0Idx+"] "+point);
-                        System.err.println("\t p1["+p1Idx+"] "+point_plus1);
-                        System.err.println("\t p2["+p2Idx+"] "+point_plus2);
-                        System.err.println("\t p3["+p3Idx+"] "+point_plus3);
+                        System.err.println("\t pM["+pMIdx+"] "+pM);
+                        System.err.println("\t p0["+p0Idx+"] "+p0);
+                        System.err.println("\t p1["+p1Idx+"] "+p1);
+                        System.err.println("\t p2["+p2Idx+"] "+p2);
+                        System.err.println("\t p3["+p3Idx+"] "+p3);
                     }
                     if(offset == 0) {
-                        addShapeMoveTo(shape, vertexFactory, point);
+                        addShapeMoveTo(shape, vertexFactory, p0);
                         // gp.moveTo(point.x, point.y);
                     }
 
-                    if( point.endOfContour ) {
+                    if( p0.endOfContour ) {
                         // Branch-0: EOC ** SHALL NEVER HAPPEN **
                         if( DEBUG ) { System.err.println("B0 .. end-of-contour **** EOC"); }
                         shape.closeLastOutline(false);
                         break;
-                    } else if (point.onCurve) {
-                        if (point_plus1.onCurve) {
-                            // Branch-1: point.onCurve && point_plus1.onCurve
+                    } else if (p0.onCurve) {
+                        if (p1.onCurve) {
+                            // Branch-1: point.onCurve && p1.onCurve
                             if( DEBUG ) { System.err.println("B1 .. line-to p0-p1"); }
 
-                            // s = new Line2D.Float(point.x, point.y, point_plus1.x, point_plus1.y);
-                            // gp.lineTo( point_plus1.x, point_plus1.y );
-                            addShapeLineTo(shape, vertexFactory, point_plus1);
+                            // s = new Line2D.Float(point.x, point.y, p1.x, p1.y);
+                            // gp.lineTo( p1.x, p1.y );
+                            addShapeLineTo(shape, vertexFactory, p1);
                             offset++;
                         } else {
-                            if (point_plus2.onCurve) {
-                                // Branch-2: point.onCurve && !point_plus1.onCurve && point_plus2.onCurve
+                            if (p2.onCurve) {
+                                // Branch-2: point.onCurve && !p1.onCurve && p2.onCurve
                                 if( DEBUG ) { System.err.println("B2 .. quad-to p0-p1-p2"); }
 
-                                // s = new QuadCurve2D.Float( point.x, point.y, point_plus1.x, point_plus1.y, point_plus2.x, point_plus2.y);
-                                // gp.quadTo(point_plus1.x, point_plus1.y, point_plus2.x, point_plus2.y);
-                                addShapeQuadTo(shape, vertexFactory, point_plus1, point_plus2);
+                                // s = new QuadCurve2D.Float( point.x, point.y, p1.x, p1.y, p2.x, p2.y);
+                                // gp.quadTo(p1.x, p1.y, p2.x, p2.y);
+                                addShapeQuadTo(shape, vertexFactory, p1, p2);
                                 offset+=2;
                             } else {
-                                if (point_plus3.onCurve) {
-                                    // Branch-3: point.onCurve && !point_plus1.onCurve && !point_plus2.onCurve && point_plus3.onCurve
+                                if (p3.onCurve) {
+                                    // Branch-3: point.onCurve && !p1.onCurve && !p2.onCurve && p3.onCurve
                                     if( DEBUG ) { System.err.println("B3 .. cubic-to p0-p1-p2-p3 **** CUBIC"); }
-                                    addShapeCubicTo(shape, vertexFactory, point_plus1, point_plus2, point_plus3);
+                                    addShapeCubicTo(shape, vertexFactory, p1, p2, p3);
                                     offset+=3;
                                 } else {
-                                    // Branch-4: point.onCurve && !point_plus1.onCurve && !point_plus2.onCurve && !point_plus3.onCurve
+                                    // Branch-4: point.onCurve && !p1.onCurve && !p2.onCurve && !p3.onCurve
                                     if( DEBUG ) { System.err.println("B4 .. quad-to p0-p1-p2h **** MID"); }
 
-                                    // s = new QuadCurve2D.Float(point.x,point.y,point_plus1.x,point_plus1.y,
-                                    //                           midValue(point_plus1.x, point_plus2.x), midValue(point_plus1.y, point_plus2.y));
-                                    // gp.quadTo(point_plus1.x, point_plus1.y, midValue(point_plus1.x, point_plus2.x), midValue(point_plus1.y, point_plus2.y));
-                                    addShapeQuadTo(shape, vertexFactory, point_plus1,
-                                                   midValue(point_plus1.x, point_plus2.x),
-                                                   midValue(point_plus1.y, point_plus2.y), true);
-                                    // offset++; // Don't skip point_plus2, not completed yet FIXME ?
-                                    offset+=2; // As done in Typecast
+                                    // s = new QuadCurve2D.Float(point.x,point.y,p1.x,p1.y,
+                                    //                           midValue(p1.x, p2.x), midValue(p1.y, p2.y));
+                                    // gp.quadTo(p1.x, p1.y, midValue(p1.x, p2.x), midValue(p1.y, p2.y));
+                                    addShapeQuadTo(shape, vertexFactory, p1,
+                                                   midValue(p1.x, p2.x),
+                                                   midValue(p1.y, p2.y), true);
+                                    // offset++; // Don't skip p2, not completed yet FIXME ?
+                                    offset+=2; // Skip p2 as done in Typecast
                                 }
                             }
                         }
                     } else {
-                        if (!point_plus1.onCurve) {
-                            // Branch-5: !point.onCurve && !point_plus1.onCurve
-                            if( DEBUG ) { System.err.println("B5 .. quad-to pM-p0-p1h ***** MID"); }
-                            // s = new QuadCurve2D.Float(midValue(point_minus1.x, point.x), midValue(point_minus1.y, point.y),
+                        if (!p1.onCurve) {
+                            // Branch-5: !point.onCurve && !p1.onCurve
+                            if( DEBUG ) { System.err.println("B5 .. quad-to pMh-p0-p1h ***** MID"); }
+                            // s = new QuadCurve2D.Float(midValue(pM.x, point.x), midValue(pM.y, point.y),
                             //                           point.x, point.y,
-                            //                           midValue(point.x, point_plus1.x), midValue(point.y, point_plus1.y));
-                            addShapeQuadTo(shape, vertexFactory, point,
-                                           midValue(point.x, point_plus1.x), midValue(point.y, point_plus1.y), true);
+                            //                           midValue(point.x, p1.x), midValue(point.y, p1.y));
+                            addShapeQuadTo(shape, vertexFactory, p0,
+                                           midValue(p0.x, p1.x), midValue(p0.y, p1.y), true);
                             offset++;
                         } else {
-                            // Branch-6: !point.onCurve && point_plus1.onCurve
-                            if( DEBUG ) { System.err.println("B6 .. quad-to pM-p0-p1"); }
-                            // s = new QuadCurve2D.Float(midValue(point_minus1.x, point.x), midValue(point_minus1.y, point.y),
-                            //                           point.x, point.y, point_plus1.x, point_plus1.y);
-                            // gp.quadTo(point.x, point.y, point_plus1.x, point_plus1.y);
-                            addShapeQuadTo(shape, vertexFactory, point, point_plus1);
+                            // Branch-6: !point.onCurve && p1.onCurve
+                            if( DEBUG ) { System.err.println("B6 .. quad-to pMh-p0-p1"); }
+                            // s = new QuadCurve2D.Float(midValue(pM.x, point.x), midValue(pM.y, point.y),
+                            //                           point.x, point.y, p1.x, p1.y);
+                            // gp.quadTo(point.x, point.y, p1.x, p1.y);
+                            addShapeQuadTo(shape, vertexFactory, p0, p1);
                             offset++;
                         }
                     }
