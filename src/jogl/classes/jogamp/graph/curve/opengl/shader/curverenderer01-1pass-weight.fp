@@ -45,7 +45,6 @@ void main (void)
             float gd = (aph*rtex.x*rtex.x + 2.0*rtex.x + 1.0)*(aph*rtex.x*rtex.x + 2.0*rtex.x + 1.0);
             vec2 f = vec2((dtx.y - (w*dtx.x*(1.0 - 2.0*rtex.x))/gd), (dty.y - (w*dty.x*(1.0 - 2.0*rtex.x))/gd));
 
-            // FIXME: will we ever set gcu_Alpha != 1.0 ? If not, a==alpha!
             float a = clamp(0.5 - ( position/length(f) ) * sign(gcv_TexCoord.y), 0.0, 1.0);
             alpha = gcu_Alpha * a;
         }

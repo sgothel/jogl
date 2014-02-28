@@ -81,7 +81,6 @@ void main (void)
             vec2 f = vec2((dtx.y - dtx.x + 2.0*rtex.x*dtx.x), (dty.y - dty.x + 2.0*rtex.x*dty.x));
             float position = rtex.y - (rtex.x * (1.0 - rtex.x));
 
-            // FIXME: will we ever set gcu_Alpha != 1.0 ? If not, a==alpha!
             float a = clamp(0.5 - ( position/length(f) ) * sign(gcv_TexCoord.y), 0.0, 1.0);
             alpha = gcu_Alpha * a;
         }

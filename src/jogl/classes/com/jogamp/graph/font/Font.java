@@ -35,6 +35,8 @@ import com.jogamp.opengl.math.geom.AABBox;
  *
  * TrueType Font Specification:
  *   http://developer.apple.com/fonts/ttrefman/rm06/Chap6.html
+ *   http://www.microsoft.com/typography/SpecificationsOverview.mspx
+ *   http://www.microsoft.com/typography/otspec/
  *
  * TrueType Font Table Introduction:
  *   http://scripts.sil.org/cms/scripts/page.php?item_id=IWS-Chapter08
@@ -76,6 +78,7 @@ public interface Font {
      *
      * http://developer.apple.com/textfonts/TTRefMan/RM06/Chap6cmap.html
      * http://developer.apple.com/textfonts/TTRefMan/RM06/Chap6glyf.html
+     * http://www.microsoft.com/typography/otspec/glyf.htm
      */
     public interface Glyph {
         // reserved special glyph IDs

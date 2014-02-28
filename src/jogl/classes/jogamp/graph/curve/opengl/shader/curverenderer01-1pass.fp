@@ -16,6 +16,14 @@
 
 void main (void)
 {
+    // CDTriangulator2D.extractBoundaryTriangles(..):
+    //     0 > gcv_TexCoord.y : hole or holeLike
+    //     0 < gcv_TexCoord.y : !hole (outer)
+    //      
+    //     0   == gcv_TexCoord.x : vertex-0 of triangle
+    //     0.5 == gcv_TexCoord.x : vertex-1 of triangle
+    //     1   == gcv_TexCoord.x : vertex-2 of triangle
+    //
     vec2 rtex = vec2(abs(gcv_TexCoord.x),abs(gcv_TexCoord.y));
     vec3 c = gcu_ColorStatic.rgb;
     
@@ -39,7 +47,6 @@ void main (void)
             vec2 f = vec2((dtx.y - dtx.x + 2.0*rtex.x*dtx.x), (dty.y - dty.x + 2.0*rtex.x*dty.x));
             float position = rtex.y - (rtex.x * (1.0 - rtex.x));
 
-            // FIXME: will we ever set gcu_Alpha != 1.0 ? If not, a==alpha!
             float a = clamp(0.5 - ( position/length(f) ) * sign(gcv_TexCoord.y), 0.0, 1.0);
             alpha = gcu_Alpha * a;
         }

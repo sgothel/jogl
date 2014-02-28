@@ -125,11 +125,12 @@ public class TextRegionUtil {
             throw new GLException("TextRendererImpl01: not initialized!");
         }
         final RenderState rs = renderer.getRenderState();
-        GLRegion region = getCachedRegion(font, str, pixelSize);
+        final int special = 0;
+        GLRegion region = getCachedRegion(font, str, pixelSize, special);
         if(null == region) {
             region = GLRegion.create(renderer.getRenderModes());
             addStringToRegion(region, rs.getVertexFactory(), font, str, pixelSize);
-            addCachedRegion(gl, font, str, pixelSize, region);
+            addCachedRegion(gl, font, str, pixelSize, special, region);
         }
         region.draw(gl, renderer, texSize);
     }
@@ -212,13 +213,13 @@ public class TextRegionUtil {
        }
    }
 
-   protected final GLRegion getCachedRegion(Font font, CharSequence str, int fontSize) {
-       return stringCacheMap.get(getKey(font, str, fontSize));
+   protected final GLRegion getCachedRegion(Font font, CharSequence str, int fontSize, int special) {
+       return stringCacheMap.get(getKey(font, str, fontSize, special));
    }
 
-   protected final void addCachedRegion(GL2ES2 gl, Font font, CharSequence str, int fontSize, GLRegion glyphString) {
+   protected final void addCachedRegion(GL2ES2 gl, Font font, CharSequence str, int fontSize, int special, GLRegion glyphString) {
        if ( 0 != getCacheLimit() ) {
-           final String key = getKey(font, str, fontSize);
+           final String key = getKey(font, str, fontSize, special);
            final GLRegion oldRegion = stringCacheMap.put(key, glyphString);
            if ( null == oldRegion ) {
                // new entry ..
@@ -228,8 +229,8 @@ public class TextRegionUtil {
        }
    }
 
-   protected final void removeCachedRegion(GL2ES2 gl, Font font, CharSequence str, int fontSize) {
-       final String key = getKey(font, str, fontSize);
+   protected final void removeCachedRegion(GL2ES2 gl, Font font, CharSequence str, int fontSize, int special) {
+       final String key = getKey(font, str, fontSize, special);
        GLRegion region = stringCacheMap.remove(key);
        if(null != region) {
            region.destroy(gl, renderer);
@@ -247,10 +248,10 @@ public class TextRegionUtil {
        }
    }
 
-   protected final String getKey(Font font, CharSequence str, int fontSize) {
+   protected final String getKey(Font font, CharSequence str, int fontSize, int special) {
        final StringBuilder sb = new StringBuilder();
        return font.getName(sb, Font.NAME_UNIQUNAME)
-              .append(".").append(str.hashCode()).append(".").append(fontSize).toString();
+              .append(".").append(str.hashCode()).append(".").append(fontSize).append(special).toString();
    }
 
    /** Default cache limit, see {@link #setCacheLimit(int)} */
