@@ -192,7 +192,7 @@ public class TestTextRendererNEWT10 extends UITestCase {
         dy -= (int)textBox.getHeight() * ( row + 1 );
         textRenderUtil.renderer.resetModelview(null);
         textRenderUtil.renderer.translate(gl, dx, dy, z0);
-        textRenderUtil.drawString3D(gl, font, text, fontSize, texSize);
+        textRenderUtil.drawString3D(gl, font, fontSize, text, texSize);
 
         lastRow = row;
     }

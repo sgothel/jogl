@@ -43,7 +43,6 @@ import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
 
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
@@ -51,9 +50,9 @@ import org.junit.runners.MethodSorters;
 import com.jogamp.common.os.Platform;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
@@ -67,15 +66,14 @@ public class TestTextRendererNEWT00 extends UITestCase {
     static long duration = 100; // ms
     static boolean waitStartEnd = false;
     static int msaaSamples = 4;
+    static int swapInterval = 0;
 
     static final int[] texSize = new int[] { 0 };
-    static int fontSize = 18;
-    static Font font;
 
-    @BeforeClass
-    public static void setup() throws IOException {
-        font = FontFactory.get(FontFactory.UBUNTU).getDefault();
-    }
+    static int fontSet = 0;
+    static int fontFamily = 0;
+    static int fontStylebits = 0;
+    static float fontSizeFixed = 18f;
 
     static int atoi(String a) {
         try {
@@ -88,17 +86,31 @@ public class TestTextRendererNEWT00 extends UITestCase {
             if(args[i].equals("-time")) {
                 i++;
                 duration = atoi(args[i]);
+            } else if(args[i].equals("-fontSet")) {
+                i++;
+                fontSet = atoi(args[i]);
+            } else if(args[i].equals("-fontFamily")) {
+                i++;
+                fontFamily = atoi(args[i]);
+            } else if(args[i].equals("-fontStyle")) {
+                i++;
+                fontStylebits = atoi(args[i]);
             } else if(args[i].equals("-fontSize")) {
                 i++;
-                fontSize = atoi(args[i]);
+                fontSizeFixed = atoi(args[i]);
             } else if(args[i].equals("-msaa")) {
                 i++;
                 msaaSamples = atoi(args[i]);
+            } else if(args[i].equals("-vsync")) {
+                i++;
+                swapInterval = MiscUtils.atoi(args[i], swapInterval);
             } else if(args[i].equals("-wait")) {
                 waitStartEnd = true;
             }
         }
+        System.err.println("Font [set "+fontSet+", family "+fontFamily+", style "+fontStylebits+", size "+fontSizeFixed+"]");
         System.err.println("msaaSamples "+msaaSamples);
+        System.err.println("swapInterval "+swapInterval);
         String tstname = TestTextRendererNEWT00.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
@@ -191,12 +203,13 @@ public class TestTextRendererNEWT00 extends UITestCase {
     private final class TextRendererGLEL extends TextRendererGLELBase {
         private final GLReadBufferUtil screenshot;
         private long t0;
+        final Font font = getFont(fontSet, fontFamily, fontStylebits);
+        final float fontSizeMin, fontSizeMax;
+        float fontSizeAnim, fontSizeDelta;
 
         TextRendererGLEL(final RenderState rs) {
             super(rs, true /* exclusivePMV */, 0); // Region.VBAA_RENDERING_BIT);
             texSizeScale = 2;
-
-            fontSize = TestTextRendererNEWT00.fontSize;
 
             staticRGBAColor[0] = 0.0f;
             staticRGBAColor[1] = 0.0f;
@@ -204,12 +217,17 @@ public class TestTextRendererNEWT00 extends UITestCase {
             staticRGBAColor[3] = 1.0f;
 
             this.screenshot = new GLReadBufferUtil(false, false);
+            // fontSizeMin = Math.max(8, fontSizeFixed-5);
+            fontSizeMin = fontSizeFixed;
+            fontSizeMax = fontSizeFixed+8;
+            fontSizeAnim = fontSizeFixed;
+            fontSizeDelta = 0.01f;
         }
 
         @Override
         public void init(GLAutoDrawable drawable) {
             super.init(drawable);
-            drawable.getGL().setSwapInterval(0);
+            drawable.getGL().setSwapInterval(swapInterval);
             t0 = Platform.currentTimeMillis();
         }
         public void dispose(GLAutoDrawable drawable) {
@@ -221,7 +239,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
         public void printScreen(GLAutoDrawable drawable, String dir, String objName, boolean exportAlpha) throws GLException, IOException {
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
-            pw.printf("%s-msaa%02d-fontsz%02d-%03dx%03d-T%04d", objName, msaaSamples, fontSize, drawable.getWidth(), drawable.getHeight(), texSize[0]);
+            pw.printf("%s-msaa%02d-fontsz%02.1f-%03dx%03d-T%04d", objName, msaaSamples, TestTextRendererNEWT00.fontSizeFixed, drawable.getWidth(), drawable.getHeight(), texSize[0]);
 
             final String filename = dir + sw +".png";
             if(screenshot.readPixels(drawable.getGL(), false)) {
@@ -232,7 +250,10 @@ public class TestTextRendererNEWT00 extends UITestCase {
         String getFontInfo() {
             final float unitsPerEM_Inv = font.getMetrics().getScale(1f);
             final float unitsPerEM = 1f / unitsPerEM_Inv;
-            return String.format("Font %s, unitsPerEM %f", font.getName(Font.NAME_UNIQUNAME), unitsPerEM);
+            return String.format("Font %s%n %s%nunitsPerEM %f",
+                    font.getFullFamilyName(null).toString(),
+                    font.getName(Font.NAME_UNIQUNAME),
+                    unitsPerEM);
         }
 
         @Override
@@ -250,21 +271,34 @@ public class TestTextRendererNEWT00 extends UITestCase {
 
             final long t1 = Platform.currentTimeMillis();
 
-            final String text1 = String.format("%03.1f/%03.1f fps, vsync %d, elapsed %4.1f s",
-                    lfps, tfps, gl.getSwapInterval(), (t1-t0)/1000.0);
+            // final float fontSize = TestTextRendererNEWT00.fontSize;
+
+            fontSizeAnim += fontSizeDelta;
+            if( fontSizeMin >= fontSizeAnim || fontSizeAnim >= fontSizeMax ) {
+                fontSizeDelta *= -1f;
+            }
+
+            final float fontSize = fontSizeFixed;
+
+            final String text1 = String.format("%03.1f/%03.1f fps, vsync %d, elapsed %4.1f s, fontSize %2.2f",
+                    lfps, tfps, gl.getSwapInterval(), (t1-t0)/1000.0, fontSize);
+            final String text1A = String.format("%03.1f/%03.1f fps, vsync %d, elapsed %4.1f s, fontSize %2.2f",
+                    lfps, tfps, gl.getSwapInterval(), (t1-t0)/1000.0, fontSizeAnim);
 
             if( false ) {
-                renderString(drawable, textX2,      0, 0, 0, 0, -1000, false);
+                // renderString(drawable, font, fontSize, textX2,      0, 0, 0, 0, -1000, false);
+                renderString(drawable, font, fontSize, "0", 0, 0, 0, 0, -1000, true);
             } else {
-                renderString(drawable, getFontInfo(),                    0, 0, 0, 0, -1000, true);
-                renderString(drawable, "012345678901234567890123456789", 0, 0, 0, -1000, true);
-                renderString(drawable, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 0, 0, 0, -1000, true);
-                renderString(drawable, "Hello World",                    0, 0, 0, -1000, true);
-                renderString(drawable, "4567890123456",                  4, 0, 0, -1000, true);
-                renderString(drawable, "I like JogAmp",                  4, 0, 0, -1000, true);
-                renderString(drawable, "Hello World",                    0, 0, 0, -1000, true);
-                renderString(drawable, textX2,                           0, 0, 0, -1000, true);
-                renderString(drawable, text1,                            0, 0, 0, -1000, false); // no-cache
+                renderString(drawable, font, fontSize, getFontInfo(),                    0, 0, 0, 0, -1000, true);
+                renderString(drawable, font, fontSize, "012345678901234567890123456789", 0, 0, 0, -1000, true);
+                renderString(drawable, font, fontSize, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 0, 0, 0, -1000, true);
+                renderString(drawable, font, fontSize, "Hello World",                    0, 0, 0, -1000, true);
+                renderString(drawable, font, fontSize, "4567890123456",                  4, 0, 0, -1000, true);
+                renderString(drawable, font, fontSize, "I like JogAmp",                  4, 0, 0, -1000, true);
+                renderString(drawable, font, fontSize, "Hello World",                    0, 0, 0, -1000, true);
+                renderString(drawable, font, fontSize, textX2,                           0, 0, 0, -1000, true);
+                renderString(drawable, font, fontSize, text1,                            0, 0, 0, -1000, false); // no-cache
+                renderString(drawable, font, fontSizeAnim, text1A,                       0, 0, 0, -1000, false); // no-cache
             }
         } };
 

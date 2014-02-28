@@ -158,7 +158,9 @@ public class MovieCube implements GLEventListener {
 
     private final class InfoTextRendererGLELBase extends TextRendererGLELBase {
         static final float z_diff = 0.001f;
+        final Font font = getFont(0, 0, 0);
         final float underlineSize;
+        final float fontSize;
 
         InfoTextRendererGLELBase() {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
@@ -225,10 +227,10 @@ public class MovieCube implements GLEventListener {
                     mPlayer.getVID(), mPlayer.getVideoBitrate()/1000, mPlayer.getVideoCodec());
             final String text4 = mPlayer.getURI().getRawPath();
             if( displayOSD && null != renderer ) {
-                renderString(drawable, text1, 1 /* col */, -1 /* row */, -1+z_diff, yoff1, 1f+z_diff, false);
-                renderString(drawable, text2, 1 /* col */,  0 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
-                renderString(drawable, text3, 1 /* col */,  1 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
-                renderString(drawable, text4, 1 /* col */,  2 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
+                renderString(drawable, font, fontSize, text1, 1 /* col */, -1 /* row */, -1+z_diff, yoff1, 1f+z_diff, false);
+                renderString(drawable, font, fontSize, text2, 1 /* col */, 0 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
+                renderString(drawable, font, fontSize, text3, 1 /* col */, 1 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
+                renderString(drawable, font, fontSize, text4, 1 /* col */, 2 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
             }
         } };
     private final InfoTextRendererGLELBase textRendererGLEL = new InfoTextRendererGLELBase();

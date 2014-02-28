@@ -98,7 +98,7 @@ public abstract class Label extends UIShape implements UITextShape {
         clearImpl(null, null);
         glyphRegion = GLRegion.create(renderer.getRenderModes());
         TextRegionUtil.addStringToRegion(glyphRegion, renderer.getRenderState().getVertexFactory(),
-                                         font, text, size);
+                                         font, size, text);
     }
 
     @Override

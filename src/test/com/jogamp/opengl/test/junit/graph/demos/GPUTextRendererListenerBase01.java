@@ -165,7 +165,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             final int fpsSp = fpsS.indexOf('.');
             renderer.resetModelview(null);
             renderer.translate(gl, fontSizeFixed, fontSizeFixed, -6000);
-            TextRegionUtil.drawString3D(renderer, gl, font, fpsS.substring(0, fpsSp+2)+" fps", fontSizeFixed*3, getTexSize()); // no cache!
+            TextRegionUtil.drawString3D(renderer, gl, font, fontSizeFixed*3, fpsS.substring(0, fpsSp+2)+" fps", getTexSize()); // no cache!
         }
 
         int dx = width-(int)fontNameBox.getWidth()-2 ;
@@ -173,7 +173,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
 
         renderer.resetModelview(null);
         renderer.translate(gl, dx, dy, -6000);
-        textRenderUtil.drawString3D(gl, font, fontName, fontSizeFixed*2, getTexSize());
+        textRenderUtil.drawString3D(gl, font, fontSizeFixed*2, fontName, getTexSize());
 
         dx  =  10;
         dy += -(int)fontNameBox.getHeight() - 10;
@@ -181,7 +181,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         if(null != headtext) {
             renderer.resetModelview(null);
             renderer.translate(gl, dx, dy, -6000);
-            textRenderUtil.drawString3D(gl, font, headtext, fontSizeFixed*3, getTexSize());
+            textRenderUtil.drawString3D(gl, font, fontSizeFixed*3, headtext, getTexSize());
         }
 
         renderer.reshapePerspective(null, 45.0f, width, height, 0.1f, 7000.0f);
@@ -191,9 +191,9 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         renderer.rotate(gl, getAngle(), 0, 1, 0);
         renderer.setColorStatic(gl, 1.0f, 0.0f, 0.0f);
         if(!userInput) {
-            textRenderUtil.drawString3D(gl, font, text2, fontSize, getTexSize());
+            textRenderUtil.drawString3D(gl, font, fontSize, text2, getTexSize());
         } else {
-            textRenderUtil.drawString3D(gl, font, userString.toString(), fontSize, getTexSize());
+            textRenderUtil.drawString3D(gl, font, fontSize, userString.toString(), getTexSize());
         }
     }
 

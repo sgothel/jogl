@@ -41,6 +41,7 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.font.Font;
 import com.jogamp.opengl.test.junit.graph.TextRendererGLELBase;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
@@ -51,6 +52,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 public abstract class GLReadBuffer00Base extends UITestCase {
 
     public static class TextRendererGLEL extends TextRendererGLELBase {
+        final Font font = getFont(0, 0, 0);
         public int frameNo = 0;
         public int userCounter = 0;
 
@@ -58,8 +60,6 @@ public abstract class GLReadBuffer00Base extends UITestCase {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
             super(Region.VBAA_RENDERING_BIT);
             texSizeScale = 2;
-
-            fontSize = 24;
 
             staticRGBAColor[0] = 1.0f;
             staticRGBAColor[1] = 1.0f;
@@ -72,7 +72,7 @@ public abstract class GLReadBuffer00Base extends UITestCase {
             final String text = String.format("Frame %04d (%03d): %04dx%04d", frameNo, userCounter, drawable.getWidth(), drawable.getHeight());
             System.err.println("TextRendererGLEL.display: "+text);
             if( null != renderer ) {
-                renderString(drawable, text, 0 /* col */, 0 /* row */, 0, 0, -1, false);
+                renderString(drawable, font, 24f, text, 0 /* col */, 0 /* row */, 0, 0, -1, false);
             } else {
                 System.err.println(text);
             }

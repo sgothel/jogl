@@ -39,12 +39,12 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
+import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 public abstract class TextRendererGLELBase implements GLEventListener {
-    public final Font font;
     public final int usrRenderModes;
 
     protected final int[] texSize = new int[] { 0 };
@@ -64,25 +64,29 @@ public abstract class TextRendererGLELBase implements GLEventListener {
     protected RegionRenderer renderer = null;
     protected TextRegionUtil textRenderUtil = null;
 
-    /** font size in pixels, default is 24 */
-    protected int fontSize = 24;
     /** scale pixel, default is 1f */
     protected float pixelScale = 1.0f;
     protected int texSizeScale = 2;
 
     boolean flipVerticalInGLOrientation = false;
 
-    public TextRendererGLELBase(final int renderModes) {
-        usrRenderModes = renderModes;
-        {
-            Font _font = null;
-            try {
-                _font = FontFactory.get(FontFactory.UBUNTU).getDefault();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            this.font = _font;
+    /**
+     * @param fontSet e.g. default is {@link FontFactory#UBUNTU}
+     * @param fontFamily e.g. default is {@link FontSet#FAMILY_REGULAR}
+     * @param fontStylebits e.g. default is {@link FontSet#STYLE_NONE}
+     * @return the resulting font.
+     */
+    public static Font getFont(final int fontSet, final int fontFamily, final int fontStylebits) {
+        try {
+            return FontFactory.get(fontSet).get(fontFamily, fontStylebits);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+        return null;
+    }
+
+    public TextRendererGLELBase(final int renderModes) {
+        this.usrRenderModes = renderModes;
     }
     public TextRendererGLELBase(final RenderState rs, final boolean exclusivePMVMatrix, final int renderModes) {
         this(renderModes);
@@ -96,25 +100,21 @@ public abstract class TextRendererGLELBase implements GLEventListener {
 
     @Override
     public void init(GLAutoDrawable drawable) {
-        if( null != font ) {
-            if( null == this.rs ) {
-                exclusivePMVMatrix = null == usrPMVMatrix;
-                this.rs = RenderState.createRenderState(new ShaderState(), SVertex.factory(), usrPMVMatrix);
-            }
-            this.renderer = RegionRenderer.create(rs, usrRenderModes);
-            this.textRenderUtil = new TextRegionUtil(renderer);
-            if( 0 == usrRenderModes ) {
-                texSizeScale = 0;
-            }
-            final GL2ES2 gl = drawable.getGL().getGL2ES2();
-            renderer.init(gl);
-            renderer.setAlpha(gl, staticRGBAColor[3]);
-            renderer.setColorStatic(gl, staticRGBAColor[0], staticRGBAColor[1], staticRGBAColor[2]);
-            final ShaderState st = rs.getShaderState();
-            st.useProgram(gl, false);
-        } else {
-            this.renderer = null;
+        if( null == this.rs ) {
+            exclusivePMVMatrix = null == usrPMVMatrix;
+            this.rs = RenderState.createRenderState(new ShaderState(), SVertex.factory(), usrPMVMatrix);
         }
+        this.renderer = RegionRenderer.create(rs, usrRenderModes);
+        this.textRenderUtil = new TextRegionUtil(renderer);
+        if( 0 == usrRenderModes ) {
+            texSizeScale = 0;
+        }
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
+        renderer.init(gl);
+        renderer.setAlpha(gl, staticRGBAColor[3]);
+        renderer.setColorStatic(gl, staticRGBAColor[0], staticRGBAColor[1], staticRGBAColor[2]);
+        final ShaderState st = rs.getShaderState();
+        st.useProgram(gl, false);
     }
 
     @Override
@@ -148,12 +148,17 @@ public abstract class TextRendererGLELBase implements GLEventListener {
 
     int lastRow = -1;
 
-    public void renderString(GLAutoDrawable drawable, String text, int column, float tx, float ty, float tz, boolean cacheRegion) {
+    public void renderString(GLAutoDrawable drawable,
+                             Font font, float fontSize, String text,
+                             int column, float tx, float ty, float tz, boolean cacheRegion) {
         final int row = lastRow + 1;
-        renderString(drawable, text, column, row, tx, ty, tz, cacheRegion);
+        renderString(drawable, font, fontSize, text, column, row, tx, ty, tz, cacheRegion);
     }
 
-    public void renderString(GLAutoDrawable drawable, String text, int column, int row, float tx, float ty, float tz, boolean cacheRegion) {
+    public void renderString(GLAutoDrawable drawable,
+                             Font font, float fontSize, String text,
+                             int column, int row,
+                             float tx, float ty, float tz, boolean cacheRegion) {
         if( null != renderer ) {
             final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
@@ -190,9 +195,9 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             }
             renderer.updateMatrix(gl);
             if( cacheRegion ) {
-                textRenderUtil.drawString3D(gl, font, text, fontSize, texSize);
+                textRenderUtil.drawString3D(gl, font, fontSize, text, texSize);
             } else {
-                TextRegionUtil.drawString3D(renderer, gl, font, text, fontSize, texSize);
+                TextRegionUtil.drawString3D(renderer, gl, font, fontSize, text, texSize);
             }
             st.useProgram(gl, false);
             gl.glDisable(GL2ES2.GL_BLEND);
