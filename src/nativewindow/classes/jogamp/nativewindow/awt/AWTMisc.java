@@ -177,14 +177,16 @@ public class AWTMisc {
     static final Cursor nulCursor;
     static {
         Cursor _nulCursor = null;
-        try {
-            final Toolkit toolkit = Toolkit.getDefaultToolkit();
-            final BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
-            _nulCursor = toolkit.createCustomCursor(img, new Point(0,0), "nullCursor");
-        } catch (Exception he) {
-            if( JAWTUtil.DEBUG ) {
-                System.err.println("Catched exception: "+he.getMessage());
-                he.printStackTrace();
+        if( !JAWTUtil.isHeadlessMode() ) {
+            try {
+                final Toolkit toolkit = Toolkit.getDefaultToolkit();
+                final BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
+                _nulCursor = toolkit.createCustomCursor(img, new Point(0,0), "nullCursor");
+            } catch (Exception he) {
+                if( JAWTUtil.DEBUG ) {
+                    System.err.println("Catched exception: "+he.getMessage());
+                    he.printStackTrace();
+                }
             }
         }
         nulCursor = _nulCursor;

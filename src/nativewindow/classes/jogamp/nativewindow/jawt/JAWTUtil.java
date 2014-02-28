@@ -296,60 +296,71 @@ public class JAWTUtil {
         System.err.println("JAWTUtil initialization (JAWT/JNI/...");
         // Thread.dumpStack();
     }
-    JAWTJNILibLoader.initSingleton();
-    if(!JAWTJNILibLoader.loadNativeWindow("awt")) {
-        throw new NativeWindowException("NativeWindow AWT native library load error.");
-    }
 
     headlessMode = GraphicsEnvironment.isHeadless();
-    boolean ok = false;
-    Class<?> jC = null;
-    Method m = null;
-    if (!headlessMode) {
-        jawtLockObject = getJAWT(false); // don't care for offscreen layer here
-        try {
-            jC = Class.forName("jogamp.opengl.awt.Java2D");
-            m = jC.getMethod("isQueueFlusherThread", (Class[])null);
-            ok = true;
-        } catch (Exception e) {
-        }
+
+    if( headlessMode ) {
+        // Headless case
+        jawtLockObject = null;
+        isQueueFlusherThread = null;
+        j2dExist = false;
+        sunToolkitAWTLockMethod = null;
+        sunToolkitAWTUnlockMethod = null;
+        hasSunToolkitAWTLock = false;
+        // hasSunToolkitAWTLock = false;
     } else {
-        jawtLockObject = null; // headless !
-    }
-    isQueueFlusherThread = m;
-    j2dExist = ok;
-
-    PrivilegedDataBlob1 pdb1 = (PrivilegedDataBlob1) AccessController.doPrivileged(new PrivilegedAction<Object>() {
-        @Override
-        public Object run() {
-            PrivilegedDataBlob1 d = new PrivilegedDataBlob1();
-            try {
-                final Class<?> sunToolkitClass = Class.forName("sun.awt.SunToolkit");
-                d.sunToolkitAWTLockMethod = sunToolkitClass.getDeclaredMethod("awtLock", new Class[]{});
-                d.sunToolkitAWTLockMethod.setAccessible(true);
-                d.sunToolkitAWTUnlockMethod = sunToolkitClass.getDeclaredMethod("awtUnlock", new Class[]{});
-                d.sunToolkitAWTUnlockMethod.setAccessible(true);
-                d.ok=true;
-            } catch (Exception e) {
-                // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
-            }
-            return d;
+        // Non-headless case
+        JAWTJNILibLoader.initSingleton(); // load libjawt.so
+        if(!JAWTJNILibLoader.loadNativeWindow("awt")) { // load libnativewindow_awt.so
+            throw new NativeWindowException("NativeWindow AWT native library load error.");
         }
-    });
-    sunToolkitAWTLockMethod = pdb1.sunToolkitAWTLockMethod;
-    sunToolkitAWTUnlockMethod = pdb1.sunToolkitAWTUnlockMethod;
+        jawtLockObject = getJAWT(false); // don't care for offscreen layer here
 
-    boolean _hasSunToolkitAWTLock = false;
-    if ( pdb1.ok ) {
+        boolean j2dExistTmp = false;
+        Class<?> java2DClass = null;
+        Method isQueueFlusherThreadTmp = null;
         try {
-            sunToolkitAWTLockMethod.invoke(null, (Object[])null);
-            sunToolkitAWTUnlockMethod.invoke(null, (Object[])null);
-            _hasSunToolkitAWTLock = true;
+            java2DClass = Class.forName("jogamp.opengl.awt.Java2D");
+            isQueueFlusherThreadTmp = java2DClass.getMethod("isQueueFlusherThread", (Class[])null);
+            j2dExistTmp = true;
         } catch (Exception e) {
         }
+        isQueueFlusherThread = isQueueFlusherThreadTmp;
+        j2dExist = j2dExistTmp;
+
+        PrivilegedDataBlob1 pdb1 = (PrivilegedDataBlob1) AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            @Override
+            public Object run() {
+                PrivilegedDataBlob1 d = new PrivilegedDataBlob1();
+                try {
+                    final Class<?> sunToolkitClass = Class.forName("sun.awt.SunToolkit");
+                    d.sunToolkitAWTLockMethod = sunToolkitClass.getDeclaredMethod("awtLock", new Class[]{});
+                    d.sunToolkitAWTLockMethod.setAccessible(true);
+                    d.sunToolkitAWTUnlockMethod = sunToolkitClass.getDeclaredMethod("awtUnlock", new Class[]{});
+                    d.sunToolkitAWTUnlockMethod.setAccessible(true);
+                    d.ok=true;
+                } catch (Exception e) {
+                    // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
+                }
+                return d;
+            }
+        });
+        sunToolkitAWTLockMethod = pdb1.sunToolkitAWTLockMethod;
+        sunToolkitAWTUnlockMethod = pdb1.sunToolkitAWTUnlockMethod;
+
+        boolean _hasSunToolkitAWTLock = false;
+        if ( pdb1.ok ) {
+            try {
+                sunToolkitAWTLockMethod.invoke(null, (Object[])null);
+                sunToolkitAWTUnlockMethod.invoke(null, (Object[])null);
+                _hasSunToolkitAWTLock = true;
+            } catch (Exception e) {
+            }
+        }
+        hasSunToolkitAWTLock = _hasSunToolkitAWTLock;
+        // hasSunToolkitAWTLock = false;
     }
-    hasSunToolkitAWTLock = _hasSunToolkitAWTLock;
-    // hasSunToolkitAWTLock = false;
+
     jawtLock = LockFactory.createRecursiveLock();
 
     jawtToolkitLock = new ToolkitLock() {
