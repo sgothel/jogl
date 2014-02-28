@@ -63,13 +63,13 @@ public class GPURegionGLListener02 extends GPURegionRendererListenerBase01 {
         shape.addVertex(6.0f,15.0f, false);
         shape.addVertex(5.0f,8.0f, false);
         shape.addVertex(0.0f,10.0f,true);
-        shape.closeLastOutline();
+        shape.closeLastOutline(true);
         shape.addEmptyOutline();
         shape.addVertex(5.0f,-5.0f,true);
         shape.addVertex(10.0f,-5.0f, false);
         shape.addVertex(10.0f,0.0f, true);
         shape.addVertex(5.0f,0.0f, false);
-        shape.closeLastOutline();
+        shape.closeLastOutline(true);
 
         /** Same shape as above but without any off-curve vertices */
         shape = new OutlineShape(getRenderer().getRenderState().getVertexFactory());
@@ -82,13 +82,13 @@ public class GPURegionGLListener02 extends GPURegionRendererListenerBase01 {
         shape.addVertex(offset+7.0f,15.0f, true);
         shape.addVertex(offset+6.0f,8.0f, true);
         shape.addVertex(offset+0.0f,10.0f, true);
-        shape.closeLastOutline();
+        shape.closeLastOutline(true);
         shape.addEmptyOutline();
         shape.addVertex(offset+5.0f,0.0f, true);
         shape.addVertex(offset+5.0f,-5.0f, true);
         shape.addVertex(offset+10.0f,-5.0f, true);
         shape.addVertex(offset+10.0f,0.0f, true);
-        shape.closeLastOutline();
+        shape.closeLastOutline(true);
 
         region = GLRegion.create(getRenderModes());
         region.addOutlineShapes(outlineShapes, null);

@@ -44,11 +44,10 @@ import jogamp.opengl.Debug;
  * Closed Regions with optional n holes.
  *
  */
-public class CDTriangulator2D implements Triangulator{
+public class CDTriangulator2D implements Triangulator {
 
     protected static final boolean DEBUG = Debug.debug("Triangulation");
 
-    private final float sharpness = 0.5f;
     private ArrayList<Loop> loops;
     // FIXME ? private ArrayList<Vertex> vertices;
 
@@ -61,18 +60,15 @@ public class CDTriangulator2D implements Triangulator{
         reset();
     }
 
-    /** Reset the triangulation to initial state
-     *  Clearing cached data
-     */
     @Override
-    public void reset() {
+    public final void reset() {
         maxTriID = 0;
         // vertices = new ArrayList<Vertex>();
         loops = new ArrayList<Loop>();
     }
 
     @Override
-    public void addCurve(List<Triangle> sink, Outline polyline) {
+    public final void addCurve(final List<Triangle> sink, final Outline polyline, final float sharpness) {
         Loop loop = null;
 
         if(!loops.isEmpty()) {
@@ -81,20 +77,20 @@ public class CDTriangulator2D implements Triangulator{
 
         if(loop == null) {
             final GraphOutline outline = new GraphOutline(polyline);
-            final GraphOutline innerPoly = extractBoundaryTriangles(sink, outline, false);
+            final GraphOutline innerPoly = extractBoundaryTriangles(sink, outline, false, sharpness);
             // vertices.addAll(polyline.getVertices());
             loop = new Loop(innerPoly, VectorUtil.Winding.CCW);
             loops.add(loop);
         } else {
             final GraphOutline outline = new GraphOutline(polyline);
-            final GraphOutline innerPoly = extractBoundaryTriangles(sink, outline, true);
+            final GraphOutline innerPoly = extractBoundaryTriangles(sink, outline, true, sharpness);
             // vertices.addAll(innerPoly.getVertices());
             loop.addConstraintCurve(innerPoly);
         }
     }
 
     @Override
-    public void generate(List<Triangle> sink) {
+    public final void generate(List<Triangle> sink) {
         for(int i=0;i<loops.size();i++) {
             Loop loop = loops.get(i);
             int numTries = 0;
@@ -132,7 +128,7 @@ public class CDTriangulator2D implements Triangulator{
         }
     }
 
-    private GraphOutline extractBoundaryTriangles(List<Triangle> sink, GraphOutline outline, boolean hole) {
+    private GraphOutline extractBoundaryTriangles(final List<Triangle> sink, final GraphOutline outline, final boolean hole, final float sharpness) {
         GraphOutline innerOutline = new GraphOutline();
         ArrayList<GraphVertex> outVertices = outline.getGraphPoint();
         int size = outVertices.size();
@@ -168,7 +164,7 @@ public class CDTriangulator2D implements Triangulator{
                 if( hole || holeLike ) {
                     v0.setTexCoord(0, -0.1f);
                     v2.setTexCoord(1, -0.1f);
-                    v1.setTexCoord(0.5f, -1*sharpness -0.1f);
+                    v1.setTexCoord(0.5f, -1*sharpness-0.1f);
                     innerOutline.addVertex(currentVertex);
                 } else {
                     v0.setTexCoord(0, 0.1f);

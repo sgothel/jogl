@@ -62,7 +62,8 @@ public class Outline implements Cloneable, Comparable<Outline> {
         return vertices.size();
     }
 
-    /** Appends a vertex to the outline loop/strip.
+    /**
+     * Appends a vertex to the outline loop/strip.
      * @param vertex Vertex to be added
      * @throws NullPointerException if the  {@link Vertex} element is null
      */
@@ -70,7 +71,8 @@ public class Outline implements Cloneable, Comparable<Outline> {
         addVertex(vertices.size(), vertex);
     }
 
-    /** Insert the {@link Vertex} element at the given {@code position} to the outline loop/strip.
+    /**
+     * Insert the {@link Vertex} element at the given {@code position} to the outline loop/strip.
      * @param position of the added Vertex
      * @param vertex Vertex object to be added
      * @throws NullPointerException if the  {@link Vertex} element is null
@@ -151,21 +153,28 @@ public class Outline implements Cloneable, Comparable<Outline> {
         return closed;
     }
 
-    /** define if this outline is closed or not.
-     * if set to closed, checks if the last vertex is
-     * equal to the first vertex. If not Equal adds a
-     * vertex at the end to the list.
-     * @param closed
+    /**
+     * Ensure this outline is closed.
+     * <p>
+     * Checks whether the last vertex equals to the first.
+     * If not equal, it either appends a clone of the first vertex
+     * or prepends a clone of the last vertex, depending on <code>closeTail</code>.
+     * </p>
+     * @param closeTail if true, a clone of the first vertex will be appended,
+     *                  otherwise a clone of the last vertex will be prepended.
      * @return true if closing performed, otherwise false for NOP
      */
-    public final boolean setClosed(boolean closed) {
-        this.closed = closed;
-        if( closed && !isEmpty() ) {
+    public final boolean setClosed(boolean closeTail) {
+        this.closed = true;
+        if( !isEmpty() ) {
             final Vertex first = vertices.get(0);
             final Vertex last = getLastVertex();
-            if(!VectorUtil.checkEquality(first.getCoord(), last.getCoord())){
-                Vertex v = first.clone();
-                vertices.add(v);
+            if( !VectorUtil.checkEquality( first.getCoord(), last.getCoord() ) ) {
+                if( closeTail ) {
+                    vertices.add(first.clone());
+                } else {
+                    vertices.add(0, last.clone());
+                }
                 return true;
             }
         }

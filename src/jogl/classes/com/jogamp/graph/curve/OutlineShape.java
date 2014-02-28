@@ -133,6 +133,8 @@ public class OutlineShape implements Comparable<OutlineShape> {
     /** dirty bits DIRTY_BOUNDS */
     private int dirtyBits;
 
+    private float sharpness;
+
     /** Create a new Outline based Shape
      */
     public OutlineShape(Vertex.Factory<? extends Vertex> factory) {
@@ -144,6 +146,16 @@ public class OutlineShape implements Comparable<OutlineShape> {
         this.triangles = new ArrayList<Triangle>();
         this.vertices = new ArrayList<Vertex>();
         this.dirtyBits = 0;
+        this.sharpness = 0.5f;
+    }
+
+    public float getSharpness() { return sharpness; }
+
+    public void setSharpness(final float s) {
+        if( this.sharpness != s ) {
+            clearCache();
+            sharpness=s;
+        }
     }
 
     /** Clears all data and reset all states as if this instance was newly created */
@@ -155,6 +167,13 @@ public class OutlineShape implements Comparable<OutlineShape> {
         vertices.clear();
         triangles.clear();
         dirtyBits = 0;
+    }
+
+    /** Clears cached triangulated data, i.e. {@link #getTriangles(VerticesState)} and {@link #getVertices()}.  */
+    public void clearCache() {
+        vertices.clear();
+        triangles.clear();
+        dirtyBits |= DIRTY_TRIANGLES | DIRTY_VERTICES;
     }
 
     /**
@@ -236,7 +255,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
     /**
      * Insert the {@link OutlineShape} elements of type {@link Outline}, .. at the end of this shape,
      * using {@link #addOutline(Outline)} for each element.
-     * <p>Closes the current last outline via {@link #closeLastOutline()} before adding the new ones.</p>
+     * <p>Closes the current last outline via {@link #closeLastOutline(boolean)} before adding the new ones.</p>
      * @param outlineShape OutlineShape elements to be added.
      * @throws NullPointerException if the  {@link OutlineShape} is null
      * @throws IndexOutOfBoundsException if position is out of range (position < 0 || position > getOutlineNumber())
@@ -245,7 +264,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
         if (null == outlineShape) {
             throw new NullPointerException("OutlineShape is null");
         }
-        closeLastOutline();
+        closeLastOutline(true);
         for(int i=0; i<outlineShape.getOutlineNumber(); i++) {
             addOutline(outlineShape.getOutline(i));
         }
@@ -369,11 +388,15 @@ public class OutlineShape implements Comparable<OutlineShape> {
 
     /**
      * Closes the last outline in the shape.
-     * <p>If last vertex is not equal to first vertex.
-     * A new temp vertex is added at the end which
-     * is equal to the first.</p>
+     * <p>
+     * Checks whether the last vertex equals to the first of the last outline.
+     * If not equal, it either appends a clone of the first vertex
+     * or prepends a clone of the last vertex, depending on <code>closeTail</code>.
+     * </p>
+     * @param closeTail if true, a clone of the first vertex will be appended,
+     *                  otherwise a clone of the last vertex will be prepended.
      */
-    public final void closeLastOutline() {
+    public final void closeLastOutline(boolean closeTail) {
         if( getLastOutline().setClosed(true) ) {
             dirtyBits |= DIRTY_TRIANGLES | DIRTY_VERTICES;
         }
@@ -588,7 +611,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
             triangles.clear();
             final Triangulator triangulator2d = Triangulation.create();
             for(int index = 0; index<outlines.size(); index++) {
-                triangulator2d.addCurve(triangles, outlines.get(index));
+                triangulator2d.addCurve(triangles, outlines.get(index), sharpness);
             }
             triangulator2d.generate(triangles);
             triangulator2d.reset();

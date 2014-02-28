@@ -115,7 +115,7 @@ public abstract class RIButton extends UIShape {
         shape.addVertex(minX+tw, minY,  minZ, true);
         shape.addVertex(minX+tw, minY + th, minZ,  true);
         shape.addVertex(minX, minY + th, minZ,  true);
-        shape.closeLastOutline();
+        shape.closeLastOutline(true);
     }
 
     private void createCurvedOutline(AABBox lbox){
@@ -140,7 +140,7 @@ public abstract class RIButton extends UIShape {
         shape.addVertex(minX + cw, minY + th, minZ,  true);
         shape.addVertex(minX, minY + th, minZ,  false);
         shape.addVertex(minX, minY + th - ch, minZ,  true);
-        shape.closeLastOutline();
+        shape.closeLastOutline(true);
     }
 
     public void setCorner(float corner) {

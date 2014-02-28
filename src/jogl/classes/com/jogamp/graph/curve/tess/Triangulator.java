@@ -54,8 +54,9 @@ public interface Triangulator {
      * describing the shape
      * @param sink list where the generated triangles will be added
      * @param outline a bounding {@link Outline}
+     * @param sharpness TODO
      */
-    public void addCurve(List<Triangle> sink, Outline outline);
+    public void addCurve(List<Triangle> sink, Outline outline, float sharpness);
 
     /** Generate the triangulation of the provided
      *  List of {@link Outline}s
