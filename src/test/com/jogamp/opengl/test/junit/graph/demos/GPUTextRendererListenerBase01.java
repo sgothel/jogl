@@ -35,6 +35,7 @@ import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLException;
 
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
@@ -203,8 +204,9 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                 tfps = 0f;
                 td = 0f;
             }
-            final String text = String.format("%03.1f/%03.1f fps, v-sync %d, fontSize [head %.1f, bottom %.1f], sampleCount %d, td %4.1f",
-                    lfps, tfps, gl.getSwapInterval(), fontSizeHead, fontSizeBottom, getSampleCount()[0], td);
+            final String modeS = Region.getRenderModeString(renderer.getRenderModes());
+            final String text = String.format("%03.1f/%03.1f fps, v-sync %d, fontSize [head %.1f, bottom %.1f], %s-samples %d, td %4.1f",
+                    lfps, tfps, gl.getSwapInterval(), fontSizeHead, fontSizeBottom, modeS, getSampleCount()[0], td);
             renderer.resetModelview(null);
             renderer.translate(gl, 0, pixelSizeFPS/2, -6000); // bottom, half line up
 

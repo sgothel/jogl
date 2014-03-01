@@ -77,7 +77,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     public GPUUISceneGLListener0A(RenderState rs, int renderModes, boolean debug, boolean trace) {
         this.rs = rs;
         this.renderModes = renderModes;
-        this.sampleCount[0] = Region.isVBAA(renderModes) ? 4 : 0;
+        this.sampleCount[0] = 4;
         this.renderModes2 = 0;
         this.texSize2[0] = 0;
 

@@ -41,7 +41,7 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-public class GPUTextNewtDemo02 {
+public class GPUTextNewtDemo03 {
     /**
      * FIXME:
      *
@@ -66,10 +66,10 @@ public class GPUTextNewtDemo02 {
 
         window.setPosition(10, 10);
         window.setSize(800, 400);
-        window.setTitle("GPU Text Newt Demo 02 - gvbaa4 gmsaa0");
+        window.setTitle("GPU Text Newt Demo 02 - gvbaa0 gmsaa4");
 
         RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
-        GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(rs, Region.VBAA_RENDERING_BIT, 4, DEBUG, TRACE);
+        GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(rs, Region.MSAA_RENDERING_BIT, 4, DEBUG, TRACE);
         // ((TextRenderer)textGLListener.getRenderer()).setCacheLimit(32);
         window.addGLEventListener(textGLListener);
         window.setVisible(true);

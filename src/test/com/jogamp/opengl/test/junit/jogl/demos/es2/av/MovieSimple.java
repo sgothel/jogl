@@ -49,6 +49,7 @@ import javax.media.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.font.Font;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
@@ -134,16 +135,31 @@ public class MovieSimple implements GLEventListener {
     final int[] textSampleCount = { 4 };
 
     private final class InfoTextRendererGLELBase extends TextRendererGLELBase {
-        final Font font = getFont(0, 0, 0);
-        final float fontSize = 18f;
+        private final Font font = getFont(0, 0, 0);
+        private final float fontSize = 12f;
+        private final GLRegion regionFPS;
+
         InfoTextRendererGLELBase() {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
             super(Region.VBAA_RENDERING_BIT, textSampleCount);
+            regionFPS = GLRegion.create(usrRenderModes);
+            System.err.println("RegionFPS "+Region.getRenderModeString(usrRenderModes)+", sampleCount "+textSampleCount[0]+", class "+regionFPS.getClass().getName());
 
             staticRGBAColor[0] = 1.0f;
             staticRGBAColor[1] = 1.0f;
             staticRGBAColor[2] = 1.0f;
             staticRGBAColor[3] = 1.0f;
+        }
+
+        @Override
+        public void init(GLAutoDrawable drawable) {
+            super.init(drawable);
+        }
+
+        @Override
+        public void dispose(GLAutoDrawable drawable) {
+            regionFPS.destroy(drawable.getGL().getGL2ES2(), renderer);
+            super.dispose(drawable);
         }
 
         @Override
@@ -170,10 +186,11 @@ public class MovieSimple implements GLEventListener {
                     mPlayer.getVID(), mPlayer.getVideoBitrate()/1000, mPlayer.getVideoCodec());
             final String text4 = mPlayer.getURI().getRawPath();
             if( displayOSD && null != renderer ) {
-                renderString(drawable, font, fontSize, text1, 1 /* col */, 1 /* row */,      0, 0, -1, false);
-                renderString(drawable, font, fontSize, text2, 1 /* col */, -4 /* row */, 0, height, -1, true);
-                renderString(drawable, font, fontSize, text3, 1 /* col */, -3 /* row */, 0, height, -1, true);
-                renderString(drawable, font, fontSize, text4, 1 /* col */, -2 /* row */, 0, height, -1, true);
+                final float pixelSize = font.getPixelSize(fontSize, dpiH);
+                renderString(drawable, font, pixelSize, text1, 1 /* col */,  1 /* row */, 0,      0, -1, regionFPS); // no-cache
+                renderString(drawable, font, pixelSize, text2, 1 /* col */, -4 /* row */, 0, height, -1, true);
+                renderString(drawable, font, pixelSize, text3, 1 /* col */, -3 /* row */, 0, height, -1, true);
+                renderString(drawable, font, pixelSize, text4, 1 /* col */, -2 /* row */, 0, height, -1, true);
             }
         } };
     private final InfoTextRendererGLELBase textRendererGLEL = new InfoTextRendererGLELBase();

@@ -23,15 +23,11 @@ void main (void)
     vec3 c = gcu_ColorStatic.rgb;
 
     float alpha = 0.0;
-    float enable = 1.0;
     
     if((gcv_TexCoord.x == 0.0) && (gcv_TexCoord.y == 0.0)) {
          alpha = gcu_Alpha;
     }
     else if((gcv_TexCoord.x >= 5.0)) {
-        vec2 dfx = dFdx(gcv_TexCoord);
-        vec2 dfy = dFdy(gcv_TexCoord);
-        
         vec2 size = 1.0/gcu_TextureSize;
 
         rtex -= 5.0;

@@ -43,6 +43,7 @@ import javax.media.opengl.GLProfile;
 
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.font.Font;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
@@ -159,24 +160,17 @@ public class MovieCube implements GLEventListener {
     final int[] textSampleCount = { 4 };
 
     private final class InfoTextRendererGLELBase extends TextRendererGLELBase {
-        static final float z_diff = 0.001f;
-        final Font font = getFont(0, 0, 0);
-        final float underlineSize;
-        final float fontSize;
+        private static final float z_diff = 0.001f;
+        private final Font font = getFont(0, 0, 0);
+        private final float fontSize = 12;
+        private final GLRegion regionFPS;
+        private float pixelSize, underlineSize;
 
         InfoTextRendererGLELBase() {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
             super(Region.VBAA_RENDERING_BIT, MovieCube.this.textSampleCount);
-
-            fontSize = 1;
-            pixelScale = 1.0f / ( fontSize * 20f );
-
-            // underlineSize: 'underline' amount of pixel below 0/0 (Note: lineGap is negative)
-            final Font.Metrics metrics = font.getMetrics();
-            final float lineGap = metrics.getLineGap(fontSize);
-            final float descent = metrics.getDescent(fontSize);
-            underlineSize = descent - lineGap;
-            // System.err.println("XXX: fLG "+lineGap+", fDesc "+descent+", underlineSize "+underlineSize);
+            regionFPS = GLRegion.create(usrRenderModes);
+            System.err.println("RegionFPS "+Region.getRenderModeString(usrRenderModes)+", sampleCount "+textSampleCount[0]+", class "+regionFPS.getClass().getName());
 
             staticRGBAColor[0] = 0.0f;
             staticRGBAColor[1] = 0.0f;
@@ -189,6 +183,21 @@ public class MovieCube implements GLEventListener {
             // non-exclusive mode!
             this.usrPMVMatrix = cube.pmvMatrix;
             super.init(drawable);
+
+            pixelSize = font.getPixelSize(fontSize, dpiH);
+            pixelScale = 1.0f / ( pixelSize * 20f );
+            // underlineSize: 'underline' amount of pixel below 0/0 (Note: lineGap is negative)
+            final Font.Metrics metrics = font.getMetrics();
+            final float lineGap = metrics.getLineGap(pixelSize);
+            final float descent = metrics.getDescent(pixelSize);
+            underlineSize = descent - lineGap;
+            System.err.println("XXX: dpiH "+dpiH+", fontSize "+fontSize+", pixelSize "+pixelSize+", pixelScale "+pixelScale+", fLG "+lineGap+", fDesc "+descent+", underlineSize "+underlineSize);
+        }
+
+        @Override
+        public void dispose(GLAutoDrawable drawable) {
+            regionFPS.destroy(drawable.getGL().getGL2ES2(), renderer);
+            super.dispose(drawable);
         }
 
         @Override
@@ -228,10 +237,10 @@ public class MovieCube implements GLEventListener {
                     mPlayer.getVID(), mPlayer.getVideoBitrate()/1000, mPlayer.getVideoCodec());
             final String text4 = mPlayer.getURI().getRawPath();
             if( displayOSD && null != renderer ) {
-                renderString(drawable, font, fontSize, text1, 1 /* col */, -1 /* row */, -1+z_diff, yoff1, 1f+z_diff, false);
-                renderString(drawable, font, fontSize, text2, 1 /* col */, 0 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
-                renderString(drawable, font, fontSize, text3, 1 /* col */, 1 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
-                renderString(drawable, font, fontSize, text4, 1 /* col */, 2 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
+                renderString(drawable, font, pixelSize, text1, 1 /* col */, -1 /* row */, -1+z_diff, yoff1, 1f+z_diff, regionFPS); // no-cache
+                renderString(drawable, font, pixelSize, text2, 1 /* col */,  0 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
+                renderString(drawable, font, pixelSize, text3, 1 /* col */,  1 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
+                renderString(drawable, font, pixelSize, text4, 1 /* col */,  2 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
             }
         } };
     private final InfoTextRendererGLELBase textRendererGLEL = new InfoTextRendererGLELBase();

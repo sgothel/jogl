@@ -50,7 +50,7 @@ import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-public class VBORegion2PES2  extends GLRegion {
+public class VBORegion2PVBAAES2  extends GLRegion {
     private static final boolean DEBUG_FBO_1 = false;
     private static final boolean DEBUG_FBO_2 = false;
     private GLArrayDataServer verticeTxtAttr;
@@ -72,7 +72,7 @@ public class VBORegion2PES2  extends GLRegion {
 
     final int[] maxTexSize = new int[] { -1 } ;
 
-    public VBORegion2PES2(final int renderModes, final int textureUnit) {
+    public VBORegion2PVBAAES2(final int renderModes, final int textureUnit) {
         super(renderModes);
         final int initialElementCount = 256;
         fboPMVMatrix = new PMVMatrix();
@@ -227,7 +227,7 @@ public class VBORegion2PES2  extends GLRegion {
             if( pctFboDelta > 0.1f ) { // more than 10% !
                 if( DEBUG_FBO_1 ) {
                     System.err.printf("XXX.maxDelta: %d / %d = %.3f%n", maxDeltaFbo, maxLengthFbo, pctFboDelta);
-                    System.err.printf("XXX.Scale %d * [%f x %f]: %dx%d%n",
+                    System.err.printf("XXX.Scale %d * [%f x %f]: %d x %d%n",
                             sampleCount[0], winWidth, winHeight, targetFboWidth, targetFboHeight);
                 }
                 final int maxLength = Math.max(targetFboWidth, targetFboHeight);
@@ -240,8 +240,13 @@ public class VBORegion2PES2  extends GLRegion {
                     targetFboWidth = Math.round(winWidth*sampleCount[0]);
                     targetFboHeight= Math.round(winHeight*sampleCount[0]);
                     if( DEBUG_FBO_1 ) {
-                        System.err.printf("XXX.Rescale (MAX): %d * [%f x %f]: %dx%d%n",
+                        System.err.printf("XXX.Rescale (MAX): %d * [%f x %f]: %d x %d%n",
                                 sampleCount[0], winWidth, winHeight, targetFboWidth, targetFboHeight);
+                    }
+                    if( sampleCount[0] <= 0 ) {
+                        // Last way out!
+                        renderRegion(gl);
+                        return;
                     }
                 }
                 renderRegion2FBO(gl, rs, targetFboWidth, targetFboHeight);
@@ -286,9 +291,9 @@ public class VBORegion2PES2  extends GLRegion {
             fboHeight  = targetFboHeight;
             fbo = new FBObject();
             fbo.reset(gl, fboWidth, fboHeight);
-            // FIXME: shall not use bilinear, due to own AA ? However, w/o bilinear result is not smooth
-            texA = fbo.attachTexture2D(gl, 0, true, GL2ES2.GL_LINEAR, GL2ES2.GL_LINEAR, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
-            // texA = fbo.attachTexture2D(gl, 0, GL2ES2.GL_NEAREST, GL2ES2.GL_NEAREST, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
+            // FIXME: shall not use bilinear (GL_LINEAR), due to own VBAA. Seems result is smooth w/o it now!
+            // texA = fbo.attachTexture2D(gl, 0, true, GL2ES2.GL_LINEAR, GL2ES2.GL_LINEAR, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
+            texA = fbo.attachTexture2D(gl, 0, true, GL2ES2.GL_NEAREST, GL2ES2.GL_NEAREST, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
             fbo.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
             if( DEBUG_FBO_1 ) {
                 System.err.printf("XXX.createFBO: %dx%d%n%s%n", fboWidth, fboHeight, fbo.toString());

@@ -731,18 +731,19 @@ function testawtswt() {
 # Graph
 #
 #testnoawt com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01 $*
-testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT00 $*
+#testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT00 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWTPerf01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT10 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.ui.UINewtDemo01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo02 $*
+#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo03 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo02 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo02 $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 
 #

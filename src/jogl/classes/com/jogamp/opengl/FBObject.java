@@ -2316,8 +2316,8 @@ public class FBObject {
         return "FBO[name r/w "+fbName+"/"+getReadFramebuffer()+", init "+initialized+", bound "+bound+", size "+width+"x"+height+
                ", samples "+samples+"/"+maxSamples+", depth "+depth+", stencil "+stencil+
                ", color attachments: "+colorAttachmentCount+"/"+maxColorAttachments+
-               ": "+caps+", msaa-sink "+samplingSinkTexture+", hasSamplesSink "+(null != samplingSink)+
-               ", state "+getStatusString()+", obj "+toHexString(objectHashCode())+"]";
+               ": "+caps+", msaa["+samplingSinkTexture+", hasSink "+(null != samplingSink)+
+               ", dirty "+samplingSinkDirty+"], state "+getStatusString()+", obj "+toHexString(objectHashCode())+"]";
     }
 
     private final void updateStatus(GL gl) {

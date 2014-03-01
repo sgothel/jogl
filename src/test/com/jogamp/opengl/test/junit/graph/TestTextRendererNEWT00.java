@@ -41,8 +41,8 @@ import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
 
 import org.junit.Assert;
-import org.junit.Test;
 import org.junit.FixMethodOrder;
+import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.os.Platform;
@@ -69,8 +69,9 @@ public class TestTextRendererNEWT00 extends UITestCase {
     static long Duration = 2000; // ms
     static boolean WaitStartEnd = false;
     static boolean TextAnim = false;
-    static int MSAASamples = 4;
-    static int VBAASamples = 4;
+    static int SceneMSAASamples = 4;
+    static int GraphVBAASamples = 4;
+    static int GraphMSAASamples = 4;
     static int SwapInterval = 0;
 
     static String fontFileName = null;
@@ -105,14 +106,21 @@ public class TestTextRendererNEWT00 extends UITestCase {
             } else if(args[i].equals("-fontSize")) {
                 i++;
                 fontSizeFixed = atoi(args[i]);
-            } else if(args[i].equals("-msaa")) {
+            } else if(args[i].equals("-smsaa")) {
                 i++;
-                MSAASamples = atoi(args[i]);
-                VBAASamples = 0;
-            } else if(args[i].equals("-vbaa")) {
+                SceneMSAASamples = atoi(args[i]);
+                GraphMSAASamples = 0;
+                GraphVBAASamples = 0;
+            } else if(args[i].equals("-gmsaa")) {
                 i++;
-                VBAASamples = atoi(args[i]);
-                MSAASamples = 0;
+                SceneMSAASamples = 0;
+                GraphMSAASamples = atoi(args[i]);
+                GraphVBAASamples = 0;
+            } else if(args[i].equals("-gvbaa")) {
+                i++;
+                SceneMSAASamples = 0;
+                GraphMSAASamples = 0;
+                GraphVBAASamples = atoi(args[i]);
             } else if(args[i].equals("-textAnim")) {
                 TextAnim = true;
             } else if(args[i].equals("-vsync")) {
@@ -123,8 +131,9 @@ public class TestTextRendererNEWT00 extends UITestCase {
             }
         }
         System.err.println("Font [set "+fontSet+", family "+fontFamily+", style "+fontStylebits+", size "+fontSizeFixed+"], fontFileName "+fontFileName);
-        System.err.println("msaaSamples "+MSAASamples);
-        System.err.println("vbaaSamples "+VBAASamples);
+        System.err.println("Scene MSAA Samples "+SceneMSAASamples);
+        System.err.println("Graph MSAA Samples "+GraphMSAASamples);
+        System.err.println("Graph VBAA Samples "+GraphVBAASamples);
         System.err.println("swapInterval "+SwapInterval);
         String tstname = TestTextRendererNEWT00.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
@@ -157,29 +166,35 @@ public class TestTextRendererNEWT00 extends UITestCase {
     }
 
     @Test
-    public void testTextRendererMSAA01() throws InterruptedException {
-        if( MSAASamples > 0 ) {
-            testTextRendererImpl(MSAASamples, 0);
+    public void test01SceneMSAA01() throws InterruptedException {
+        if( SceneMSAASamples > 0 ) {
+            testImpl(SceneMSAASamples, 0, 0);
         }
     }
     @Test
-    public void testTextRendererVBAA01() throws InterruptedException {
-        if( VBAASamples > 0 ) {
-            testTextRendererImpl(0, VBAASamples);
+    public void test02GraphMSAA01() throws InterruptedException {
+        if( GraphMSAASamples > 0 ) {
+            testImpl(0, GraphMSAASamples, 0);
+        }
+    }
+    @Test
+    public void test03GraphVBAA01() throws InterruptedException {
+        if( GraphVBAASamples > 0 ) {
+            testImpl(0, 0, GraphVBAASamples);
         }
     }
 
-    public void testTextRendererImpl(final int msaaSamples, final int vbaaSampleCount) throws InterruptedException {
+    public void testImpl(final int sceneMSAASamples, final int graphMSAASamples, final int graphVBAASamples) throws InterruptedException {
         GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);
-        if( 0 < msaaSamples ) {
+        if( 0 < sceneMSAASamples ) {
             caps.setSampleBuffers(true);
-            caps.setNumSamples(msaaSamples);
+            caps.setNumSamples(sceneMSAASamples);
         }
-        System.err.println("Requested: "+caps+", vbaaSamples "+vbaaSampleCount);
+        System.err.println("Requested: "+caps+", graph[msaaSamples "+graphMSAASamples+", vbaaSamples "+graphVBAASamples+"]");
 
-        GLWindow window = createWindow("text-vbaa"+vbaaSampleCount+"-msaa"+msaaSamples, caps, 1024, 640);
+        GLWindow window = createWindow("text-gvbaa"+graphVBAASamples+"-gmsaa"+graphMSAASamples+"-smsaa"+sceneMSAASamples, caps, 1024, 640);
         window.display();
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
         if( WaitStartEnd ) {
@@ -187,7 +202,18 @@ public class TestTextRendererNEWT00 extends UITestCase {
         }
 
         final RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
-        final TextRendererGLEL textGLListener = new TextRendererGLEL(rs, vbaaSampleCount>0 ? Region.VBAA_RENDERING_BIT:0, vbaaSampleCount);
+        final int rendererMode, sampleCount;
+        if( graphVBAASamples > 0 ) {
+            rendererMode = Region.VBAA_RENDERING_BIT;
+            sampleCount = graphVBAASamples;
+        } else if ( graphMSAASamples > 0 ) {
+            rendererMode = Region.MSAA_RENDERING_BIT;
+            sampleCount = graphMSAASamples;
+        } else {
+            rendererMode = 0;
+            sampleCount = 0;
+        }
+        final TextRendererGLEL textGLListener = new TextRendererGLEL(rs, rendererMode, sampleCount);
         System.err.println(textGLListener.getFontInfo());
 
         window.addGLEventListener(textGLListener);
@@ -280,6 +306,8 @@ public class TestTextRendererNEWT00 extends UITestCase {
             System.err.println(getFontInfo());
             System.err.println("fontSize "+fontSizeFixed+", dotsPerMM "+pixelsPerMM[0]+"x"+pixelsPerMM[1]+", dpi "+dotsPerInch[0]+"x"+dotsPerInch[1]+", pixelSize "+font.getPixelSize(fontSizeFixed, dotsPerInch[1] /* dpi display */));
         }
+
+        @Override
         public void dispose(GLAutoDrawable drawable) {
             final GL2ES2 gl = drawable.getGL().getGL2ES2();
             screenshot.dispose(gl);
@@ -289,9 +317,10 @@ public class TestTextRendererNEWT00 extends UITestCase {
         }
 
         public void printScreen(GLAutoDrawable drawable, String dir, String objName, boolean exportAlpha) throws GLException, IOException {
-            final String bname = String.format("%s-msaa%02d-fontsz%02.1f-%03dx%03d-T%04d", objName,
+            final String modeS = Region.getRenderModeString(renderer.getRenderModes());
+            final String bname = String.format("%s-msaa%02d-fontsz%02.1f-%03dx%03d-%s%04d", objName,
                     drawable.getChosenGLCapabilities().getNumSamples(),
-                    TestTextRendererNEWT00.fontSizeFixed, drawable.getWidth(), drawable.getHeight(), vbaaSampleCount[0]);
+                    TestTextRendererNEWT00.fontSizeFixed, drawable.getWidth(), drawable.getHeight(), modeS, vbaaSampleCount[0]);
             final String filename = dir + bname +".png";
             if(screenshot.readPixels(drawable.getGL(), false)) {
                 screenshot.write(new File(filename));
@@ -332,17 +361,18 @@ public class TestTextRendererNEWT00 extends UITestCase {
             final float pixelSize = font.getPixelSize(fontSizeFixed, dpiH);
             final float pixelSizeAnim = font.getPixelSize(fontSizeAnim, dpiH);
 
-            final String text1 = String.format("%03.1f/%03.1f fps, vsync %d, elapsed %4.1f s, fontSize %2.2f, msaa %d, vba-samples %d",
+            final String modeS = Region.getRenderModeString(renderer.getRenderModes());
+            final String text1 = String.format("%03.1f/%03.1f fps, vsync %d, elapsed %4.1f s, fontSize %2.2f, msaa %d, %s-samples %d",
                     lfps, tfps, gl.getSwapInterval(), (t1-t0)/1000.0, fontSizeFixed,
-                    drawable.getChosenGLCapabilities().getNumSamples(), vbaaSampleCount[0]);
-            final String text1A = String.format("%03.1f/%03.1f fps, vsync %d, elapsed %4.1f s, fontSize %2.2f, msaa %d, vba-samples %d",
+                    drawable.getChosenGLCapabilities().getNumSamples(), modeS, vbaaSampleCount[0]);
+            final String text1A = String.format("%03.1f/%03.1f fps, vsync %d, elapsed %4.1f s, fontSize %2.2f, msaa %d, %s-samples %d",
                     lfps, tfps, gl.getSwapInterval(), (t1-t0)/1000.0, fontSizeAnim,
-                    drawable.getChosenGLCapabilities().getNumSamples(), vbaaSampleCount[0]);
+                    drawable.getChosenGLCapabilities().getNumSamples(), modeS, vbaaSampleCount[0]);
 
             if( false ) {
-                renderString(drawable, font, pixelSize, getFontInfo(), 0, 0, 0, 0, -1000f, true);
-                renderString(drawable, font, pixelSize, textX2,        0,    0, 0, -1000f, true);
-                renderString(drawable, font, pixelSize, text1,         0,    0, 0, -1000f, false); // no-cache
+                // renderString(drawable, font, pixelSize, getFontInfo(), 0, 0, 0, 0, -1000f, true);
+                renderString(drawable, font, pixelSize, textX2,        0, 0,   0, 0, -1000f, true);
+                // renderString(drawable, font, pixelSize, text1,         0,    0, 0, -1000f, regionFPS); // no-cache
             } else {
                 renderString(drawable, font, pixelSize, getFontInfo(),                    0, 0, 0, 0, -1000, true);
                 renderString(drawable, font, pixelSize, "012345678901234567890123456789", 0, 0, 0, -1000, true);

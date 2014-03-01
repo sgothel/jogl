@@ -30,7 +30,8 @@ package com.jogamp.graph.curve;
 import java.util.ArrayList;
 import java.util.List;
 
-import jogamp.graph.curve.opengl.VBORegion2PES2;
+import jogamp.graph.curve.opengl.VBORegion2PVBAAES2;
+import jogamp.graph.curve.opengl.VBORegion2PMSAAES2;
 import jogamp.graph.curve.opengl.VBORegionSPES2;
 import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.opengl.Debug;
@@ -52,18 +53,25 @@ public abstract class Region {
     public static final boolean DEBUG_INSTANCE = Debug.debug("graph.curve.instance");
 
     /**
-     * View based Anti-Aliasing, A Two pass region rendering, slower and more
+     * MSAA based Anti-Aliasing, a two pass region rendering, slower and more
+     * resource hungry (FBO), but providing fast MSAA in case
+     * the whole scene is not rendered with MSAA.
+     */
+    public static final int MSAA_RENDERING_BIT        = 1 << 0;
+
+    /**
+     * View based Anti-Aliasing, a two pass region rendering, slower and more
      * resource hungry (FBO), but AA is perfect. Otherwise the default fast one
      * pass MSAA region rendering is being used.
      */
-    public static final int VBAA_RENDERING_BIT = 1 << 0;
+    public static final int VBAA_RENDERING_BIT        = 1 << 1;
 
     /**
      * Use non uniform weights [0.0 .. 1.9] for curve region rendering.
      * Otherwise the default weight 1.0 for uniform curve region rendering is
      * being applied.
      */
-    public static final int VARIABLE_CURVE_WEIGHT_BIT = 1 << 1;
+    public static final int VARIABLE_CURVE_WEIGHT_BIT = 1 << 8;
 
     public static final int TWO_PASS_DEFAULT_TEXTURE_UNIT = 0;
 
@@ -74,6 +82,18 @@ public abstract class Region {
 
     public static boolean isVBAA(int renderModes) {
         return 0 != (renderModes & Region.VBAA_RENDERING_BIT);
+    }
+    public static boolean isMSAA(int renderModes) {
+        return 0 != (renderModes & Region.MSAA_RENDERING_BIT);
+    }
+    public static String getRenderModeString(int renderModes) {
+        if( Region.isVBAA(renderModes) ) {
+            return "vbaa";
+        } else if( Region.isMSAA(renderModes) ) {
+            return "msaa";
+        } else {
+            return "norm" ;
+        }
     }
 
     /**
@@ -98,10 +118,11 @@ public abstract class Region {
      * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, {@link Region#VBAA_RENDERING_BIT}
      */
     public static GLRegion create(int renderModes) {
-        if( 0 != ( Region.VBAA_RENDERING_BIT & renderModes ) ){
-            return new VBORegion2PES2(renderModes, Region.TWO_PASS_DEFAULT_TEXTURE_UNIT);
-        }
-        else{
+        if( isVBAA(renderModes) ) {
+            return new VBORegion2PVBAAES2(renderModes, Region.TWO_PASS_DEFAULT_TEXTURE_UNIT);
+        } else if( isMSAA(renderModes) ) {
+            return new VBORegion2PMSAAES2(renderModes, Region.TWO_PASS_DEFAULT_TEXTURE_UNIT);
+        } else {
             return new VBORegionSPES2(renderModes);
         }
     }
@@ -133,6 +154,13 @@ public abstract class Region {
      */
     public final boolean isVBAA() {
         return isVBAA(renderModes);
+    }
+
+    /**
+     * Return  true if capable of two pass rendering - MSAA, otherwise false.
+     */
+    public final boolean isMSAA() {
+        return isMSAA(renderModes);
     }
 
     /**

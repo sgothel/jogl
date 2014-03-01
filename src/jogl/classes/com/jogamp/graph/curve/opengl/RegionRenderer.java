@@ -294,7 +294,14 @@ public abstract class RegionRenderer {
 
     protected String getFragmentShaderName() {
         final String version = getImplVersion();
-        final String pass = Region.isVBAA(renderModes) ? "-2pass" : "-1pass" ;
+        final String pass;
+        if( Region.isVBAA(renderModes) ) {
+            pass = "-2pass_vbaa";
+        } else if( Region.isMSAA(renderModes) ) {
+            pass = "-2pass_msaa";
+        } else {
+            pass = "-1pass_norm" ;
+        }
         final String weight = Region.isNonUniformWeight(renderModes) ? "-weight" : "" ;
         return "curverenderer" + version + pass + weight;
     }

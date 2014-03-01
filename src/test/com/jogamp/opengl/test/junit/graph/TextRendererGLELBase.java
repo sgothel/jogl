@@ -42,6 +42,7 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.geom.SVertex;
+import com.jogamp.newt.Window;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
@@ -67,6 +68,9 @@ public abstract class TextRendererGLELBase implements GLEventListener {
 
     /** scale pixel, default is 1f */
     protected float pixelScale = 1.0f;
+
+    /** dpi display resolution, queried at {@link #init(GLAutoDrawable)} if NEWT, otherwise 96. */
+    protected float dpiH = 96;
 
     boolean flipVerticalInGLOrientation = false;
 
@@ -126,6 +130,13 @@ public abstract class TextRendererGLELBase implements GLEventListener {
         renderer.setColorStatic(gl, staticRGBAColor[0], staticRGBAColor[1], staticRGBAColor[2]);
         final ShaderState st = rs.getShaderState();
         st.useProgram(gl, false);
+
+        final Object upObj = drawable.getUpstreamWidget();
+        if( upObj instanceof Window ) {
+            final float[] pixelsPerMM = new float[2];
+            ((Window)upObj).getMainMonitor().getPixelsPerMM(pixelsPerMM);
+            dpiH = pixelsPerMM[1]*25.4f;
+        }
     }
 
     @Override
