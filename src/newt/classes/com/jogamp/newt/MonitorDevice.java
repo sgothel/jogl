@@ -33,7 +33,7 @@ import java.util.List;
 import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
-
+import javax.media.nativewindow.util.SurfaceSize;
 import com.jogamp.common.util.ArrayHashSet;
 
 /**
@@ -116,6 +116,32 @@ public abstract class MonitorDevice {
      */
     public final DimensionImmutable getSizeMM() {
         return sizeMM;
+    }
+
+    /**
+     * Stores the <i>pixels per millimeter</i> value according to <i>current</i> {@link MonitorMode}
+     * {@link SurfaceSize#getResolution() SurfaceSize's resolution} in the given storage <code>ppmmStore</code>.
+     * <p>
+     * To convert the result to <i>dpi</i>, i.e. dots-per-inch, multiply both components with <code>25.4f</code>.
+     * </p>
+     */
+    public final void getPixelsPerMM(final float[] ppmmStore) {
+        final MonitorMode mode = getCurrentMode();
+        getPixelsPerMM(mode, ppmmStore);
+    }
+
+    /**
+     * Stores the <i>pixels per millimeter</i> value according to the given {@link MonitorMode}
+     * {@link SurfaceSize#getResolution() SurfaceSize's resolution} in the given storage <code>ppmmStore</code>.
+     * <p>
+     * To convert the result to <i>dpi</i>, i.e. dots-per-inch, multiply both components with <code>25.4f</code>.
+     * </p>
+     */
+    public final void getPixelsPerMM(final MonitorMode mode, final float[] ppmmStore) {
+        final DimensionImmutable sdim = getSizeMM();
+        final DimensionImmutable spix = mode.getSurfaceSize().getResolution();
+        ppmmStore[0] = (float)spix.getWidth() / (float)sdim.getWidth();
+        ppmmStore[1] = (float)spix.getHeight() / (float)sdim.getHeight();
     }
 
     /**
