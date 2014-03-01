@@ -133,7 +133,7 @@ public interface AudioSink {
          * @param sampleCount sample count per frame and channel
          */
         public final float getSamplesDuration(int sampleCount) {
-            return ( 1000f * (float) sampleCount ) / (float)sampleRate;
+            return ( 1000f * sampleCount ) / sampleRate;
         }
 
         /**
@@ -152,7 +152,7 @@ public interface AudioSink {
          * @param frameDuration duration per frame in milliseconds.
          */
         public final int getFrameCount(int millisecs, float frameDuration) {
-            return Math.max(1, (int) ( (float)millisecs / frameDuration + 0.5f ));
+            return Math.max(1, (int) ( millisecs / frameDuration + 0.5f ));
         }
 
         /**
@@ -187,7 +187,7 @@ public interface AudioSink {
          * <p>
          * Byte Count -> Sample Count
          * </p>
-         * @param sampleCount sample count
+         * @param byteCount number of bytes
          */
         public final int getBytesSampleCount(int byteCount) {
             return ( byteCount << 3 ) / sampleSize;
