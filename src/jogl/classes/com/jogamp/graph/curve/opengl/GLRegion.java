@@ -95,16 +95,16 @@ public abstract class GLRegion extends Region {
      * of the region.
      * @param matrix current {@link PMVMatrix}.
      * @param renderer the {@link RegionRenderer} to be used
-     * @param texWidth desired texture width for multipass-rendering.
-     *        The actual used texture-width is written back when mp rendering is enabled, otherwise the store is untouched.
+     * @param sampleCount desired multisampling sample count for msaa-rendering.
+     *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
      */
-    public final void draw(GL2ES2 gl, RegionRenderer renderer, int[/*1*/] texWidth) {
+    public final void draw(GL2ES2 gl, RegionRenderer renderer, int[/*1*/] sampleCount) {
         if(isDirty()) {
             update(gl, renderer);
             setDirty(false);
         }
-        drawImpl(gl, renderer, texWidth);
+        drawImpl(gl, renderer, sampleCount);
     }
 
-    protected abstract void drawImpl(GL2ES2 gl, RegionRenderer renderer, int[/*1*/] texWidth);
+    protected abstract void drawImpl(GL2ES2 gl, RegionRenderer renderer, int[/*1*/] sampleCount);
 }

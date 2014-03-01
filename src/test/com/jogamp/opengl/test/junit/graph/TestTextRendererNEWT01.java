@@ -46,7 +46,6 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.curve.opengl.TextRenderUtil;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
@@ -127,29 +126,29 @@ public class TestTextRendererNEWT01 extends UITestCase {
         window.addGLEventListener(textGLListener);
 
         if(textGLListener.setFontSet(FontFactory.UBUNTU, 0, 0)) {
-            textGLListener.setTech(-400, -30, 0f, -1000, window.getWidth()*2);
+            textGLListener.setTech(-400, -30, 0f, -1000, 2);
             window.display();
             sleep();
 
-            textGLListener.setTech(-400, -30, 0, -380, window.getWidth()*3);
+            textGLListener.setTech(-400, -30, 0f,  -380, 3);
             window.display();
             sleep();
 
-            textGLListener.setTech(-400, -20, 0, -80, window.getWidth()*4);
+            textGLListener.setTech(-400, -20, 0f,   -80, 4);
             window.display();
             sleep();
         }
 
         if(textGLListener.setFontSet(FontFactory.JAVA, 0, 0)) {
-            textGLListener.setTech(-400, -30, 0f, -1000, window.getWidth()*2);
+            textGLListener.setTech(-400, -30, 0f, -1000, 2);
             window.display();
             sleep();
 
-            textGLListener.setTech(-400, -30, 0, -380, window.getWidth()*3);
+            textGLListener.setTech(-400, -30, 0f,  -380, 3);
             window.display();
             sleep();
 
-            textGLListener.setTech(-400, -20, 0, -80, window.getWidth()*4);
+            textGLListener.setTech(-400, -20, 0f,   -80, 4);
             window.display();
             sleep();
         }
@@ -180,11 +179,11 @@ public class TestTextRendererNEWT01 extends UITestCase {
             window.display();
             sleep();
 
-            textGLListener.setTech(-400, -30, 0, -380, 0);
+            textGLListener.setTech(-400, -30, 0,   -380, 0);
             window.display();
             sleep();
 
-            textGLListener.setTech(-400, -20, 0, -80, 0);
+            textGLListener.setTech(-400, -20, 0,    -80, 0);
             window.display();
             sleep();
         }
@@ -194,11 +193,11 @@ public class TestTextRendererNEWT01 extends UITestCase {
             window.display();
             sleep();
 
-            textGLListener.setTech(-400, -30, 0, -380, 0);
+            textGLListener.setTech(-400, -30, 0,   -380, 0);
             window.display();
             sleep();
 
-            textGLListener.setTech(-400, -20, 0, -80, 0);
+            textGLListener.setTech(-400, -20, 0,    -80, 0);
             window.display();
             sleep();
         }
@@ -210,15 +209,15 @@ public class TestTextRendererNEWT01 extends UITestCase {
         String winTitle;
 
         public TextGLListener(RenderState rs, int type, boolean debug, boolean trace) {
-            super(rs, type, debug, trace);
+            super(rs, type, 4, debug, trace);
         }
 
         public void attachInputListenerTo(GLWindow window) {
             super.attachInputListenerTo(window);
             winTitle = window.getTitle();
         }
-        public void setTech(float xt, float yt, float angle, int zoom, int fboSize){
-            setMatrix(xt, yt, angle, zoom, fboSize);
+        public void setTech(float xt, float yt, float angle, int zoom, int sampleCount){
+            setMatrix(xt, yt, zoom, angle, sampleCount);
         }
 
         public void init(GLAutoDrawable drawable) {

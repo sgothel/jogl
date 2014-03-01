@@ -12,50 +12,46 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLRunnable;
 
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.opengl.GLWindow;
 
 public class SceneUIController implements GLEventListener{
-    private ArrayList<UIShape> shapes = new ArrayList<UIShape>();
+    private final ArrayList<UIShape> shapes = new ArrayList<UIShape>();
 
     private int count = 0;
-    private int renderModes; 
-    private int[] texSize; 
+    private int renderModes;
+    private int[] sampleCount;
     private RegionRenderer renderer = null;
-    private RenderState rs = null;
 
-    private float[] translate = new float[3];
-    private float[] scale = new float[3];
-    private float[] rotation = new float[3];
+    private final float[] translate = new float[3];
+    private final float[] scale = new float[3];
+    private final float[] rotation = new float[3];
 
-    private float[] sceneClearColor = new float[]{0,0,0,1};
-    
+    private final float[] sceneClearColor = new float[]{0,0,0,1};
+
     private int activeId = -1;
-    
+
     private SBCMouseListener sbcMouseListener = null;
-    
+
     private GLAutoDrawable cDrawable = null;
 
     public SceneUIController() {
     }
-    
-    public void setRenderer(RegionRenderer renderer, RenderState rs, int renderModes, int[] texSize) {
+
+    public SceneUIController(RegionRenderer renderer, int renderModes, int[] sampleCount) {
         this.renderer = renderer;
-        this.rs = rs;
         this.renderModes = renderModes;
-        this.texSize = texSize;
+        this.sampleCount = sampleCount;
     }
-    
-    public SceneUIController(RegionRenderer renderer, RenderState rs, int renderModes, int[] texSize) {
+
+    public void setRenderer(RegionRenderer renderer, int renderModes, int[] sampleCount) {
         this.renderer = renderer;
-        this.rs = rs;
         this.renderModes = renderModes;
-        this.texSize = texSize;
+        this.sampleCount = sampleCount;
     }
-    
+
     public void attachInputListenerTo(GLWindow window) {
         if(null == sbcMouseListener) {
             sbcMouseListener = new SBCMouseListener();
@@ -68,7 +64,7 @@ public class SceneUIController implements GLEventListener{
             window.removeMouseListener(sbcMouseListener);
         }
     }
-    
+
     public ArrayList<UIShape> getShapes() {
         return shapes;
     }
@@ -83,7 +79,7 @@ public class SceneUIController implements GLEventListener{
             count--;
         }
     }
-    
+
     public void init(GLAutoDrawable drawable) {
         System.err.println("SceneUIController: init");
         cDrawable = drawable;
@@ -94,9 +90,9 @@ public class SceneUIController implements GLEventListener{
         final int height = drawable.getHeight();
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-        render(gl, width, height, renderModes, texSize, false);
+        render(gl, width, height, renderModes, sampleCount, false);
     }
-   
+
     public void dispose(GLAutoDrawable drawable) {
         System.err.println("SceneUIController: dispose");
         cDrawable = null;
@@ -107,7 +103,7 @@ public class SceneUIController implements GLEventListener{
             int height) {
         System.err.println("SceneUIController: reshape");
         GL2ES2 gl = drawable.getGL().getGL2ES2();
-        renderer.reshapePerspective(gl, 45.0f, width, height, 5f, 70.0f);        
+        renderer.reshapePerspective(gl, 45.0f, width, height, 5f, 70.0f);
     }
 
     public UIShape getShape(GLAutoDrawable drawable,int x, int y) {
@@ -120,13 +116,13 @@ public class SceneUIController implements GLEventListener{
             return null;
         return shapes.get(index);
     }
-    
+
     public UIShape getActiveUI() {
         if(activeId == -1)
             return null;
         return shapes.get(activeId);
     }
-    
+
     public void release() {
         activeId = -1;
     }
@@ -152,9 +148,9 @@ public class SceneUIController implements GLEventListener{
         return index;
     }
 
-    private void render(GL2ES2 gl, int width, int height, int renderModes, int[/*1*/] texSize, boolean select) {
+    private void render(GL2ES2 gl, int width, int height, int renderModes, int[/*1*/] sampleCount, boolean select) {
         renderer.reshapePerspective(null, 45.0f, width, height, 0.1f, 7000.0f);
-        
+
         for(int index=0; index < count;index++){
             if(select) {
                 float color= index+1;
@@ -168,8 +164,8 @@ public class SceneUIController implements GLEventListener{
             renderer.rotate(gl, rotation[0], 1, 0, 0);
             renderer.rotate(gl, rotation[1], 0, 1, 0);
             renderer.rotate(gl, rotation[2], 0, 0, 1);
-            
-            shapes.get(index).render(gl, renderer, renderModes, texSize, select);
+
+            shapes.get(index).render(gl, renderer, renderModes, sampleCount, select);
             renderer.rotate(gl, -rotation[0], 1, 0, 0);
             renderer.rotate(gl, -rotation[1], 0, 1, 0);
             renderer.rotate(gl, -rotation[2], 0, 0, 1);
@@ -203,11 +199,11 @@ public class SceneUIController implements GLEventListener{
         this.sceneClearColor[2] = b;
         this.sceneClearColor[3] = a;
     }
-    
+
     private class SBCMouseListener implements MouseListener {
         int mouseX = -1;
         int mouseY = -1;
-        
+
         public void mouseClicked(MouseEvent e) {
             UIShape uiShape = getActiveUI();
             if(uiShape != null){
@@ -221,7 +217,7 @@ public class SceneUIController implements GLEventListener{
             }
             mouseX = e.getX();
             mouseY = e.getY();
-            
+
             GLRunnable runnable = new GLRunnable() {
                 public boolean run(GLAutoDrawable drawable) {
                     UIShape s = getShape(drawable, mouseX, mouseY);
@@ -235,16 +231,16 @@ public class SceneUIController implements GLEventListener{
                 }
             };
             cDrawable.invoke(true, runnable);
-            
+
             UIShape uiShape = getActiveUI();
-            
+
             if(uiShape != null) {
                 uiShape.setPressed(true);
                 uiShape.onPressed();
             }
         }
 
-        public void mouseReleased(MouseEvent e) { 
+        public void mouseReleased(MouseEvent e) {
             UIShape uiShape = getActiveUI();
             if(uiShape != null){
                 uiShape.setPressed(false);
@@ -257,6 +253,6 @@ public class SceneUIController implements GLEventListener{
         public void mouseExited(MouseEvent e) { }
         public void mouseDragged(MouseEvent e) { }
         public void mouseWheelMoved(MouseEvent e) { }
-        
+
     }
 }

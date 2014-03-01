@@ -156,6 +156,8 @@ public class MovieCube implements GLEventListener {
         resetGLState = true;
     }
 
+    final int[] textSampleCount = { 4 };
+
     private final class InfoTextRendererGLELBase extends TextRendererGLELBase {
         static final float z_diff = 0.001f;
         final Font font = getFont(0, 0, 0);
@@ -164,8 +166,7 @@ public class MovieCube implements GLEventListener {
 
         InfoTextRendererGLELBase() {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
-            super(Region.VBAA_RENDERING_BIT);
-            texSizeScale = 2;
+            super(Region.VBAA_RENDERING_BIT, MovieCube.this.textSampleCount);
 
             fontSize = 1;
             pixelScale = 1.0f / ( fontSize * 20f );

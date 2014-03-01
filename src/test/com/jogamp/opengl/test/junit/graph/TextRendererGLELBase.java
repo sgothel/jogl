@@ -34,6 +34,7 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
+import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
@@ -47,7 +48,7 @@ import com.jogamp.opengl.util.glsl.ShaderState;
 public abstract class TextRendererGLELBase implements GLEventListener {
     public final int usrRenderModes;
 
-    protected final int[] texSize = new int[] { 0 };
+    protected final int[] vbaaSampleCount;
     protected final float[] staticRGBAColor = new float[] { 1f, 1f, 1f, 1f };
 
     /**
@@ -66,7 +67,6 @@ public abstract class TextRendererGLELBase implements GLEventListener {
 
     /** scale pixel, default is 1f */
     protected float pixelScale = 1.0f;
-    protected int texSizeScale = 2;
 
     boolean flipVerticalInGLOrientation = false;
 
@@ -85,11 +85,25 @@ public abstract class TextRendererGLELBase implements GLEventListener {
         return null;
     }
 
-    public TextRendererGLELBase(final int renderModes) {
+    /**
+     *
+     * @param renderModes
+     * @param sampleCount desired multisampling sample count for msaa-rendering.
+     */
+    public TextRendererGLELBase(final int renderModes, int[] sampleCount) {
         this.usrRenderModes = renderModes;
+        this.vbaaSampleCount = sampleCount;
     }
-    public TextRendererGLELBase(final RenderState rs, final boolean exclusivePMVMatrix, final int renderModes) {
-        this(renderModes);
+
+    /**
+     *
+     * @param rs
+     * @param exclusivePMVMatrix
+     * @param renderModes
+     * @param sampleCount desired multisampling sample count for msaa-rendering.
+     */
+    public TextRendererGLELBase(final RenderState rs, final boolean exclusivePMVMatrix, final int renderModes, int[] sampleCount) {
+        this(renderModes, sampleCount);
         this.rs = rs;
         this.exclusivePMVMatrix = exclusivePMVMatrix;
     }
@@ -106,9 +120,6 @@ public abstract class TextRendererGLELBase implements GLEventListener {
         }
         this.renderer = RegionRenderer.create(rs, usrRenderModes);
         this.textRenderUtil = new TextRegionUtil(renderer);
-        if( 0 == usrRenderModes ) {
-            texSizeScale = 0;
-        }
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         renderer.init(gl);
         renderer.setAlpha(gl, staticRGBAColor[3]);
@@ -131,7 +142,6 @@ public abstract class TextRendererGLELBase implements GLEventListener {
                 renderer.reshapeNotify(gl, width, height);
             }
             st.useProgram(gl, false);
-            texSize[0] = width * texSizeScale;
         }
     }
 
@@ -148,17 +158,63 @@ public abstract class TextRendererGLELBase implements GLEventListener {
 
     int lastRow = -1;
 
+    /**
+     *
+     * @param drawable
+     * @param font
+     * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
+     * @param text
+     * @param column
+     * @param tx
+     * @param ty
+     * @param tz
+     * @param cacheRegion
+     */
     public void renderString(GLAutoDrawable drawable,
-                             Font font, float fontSize, String text,
+                             Font font, float pixelSize, String text,
                              int column, float tx, float ty, float tz, boolean cacheRegion) {
         final int row = lastRow + 1;
-        renderString(drawable, font, fontSize, text, column, row, tx, ty, tz, cacheRegion);
+        renderStringImpl(drawable, font, pixelSize, text, column, row, tx, ty, tz, cacheRegion, null);
     }
 
     public void renderString(GLAutoDrawable drawable,
-                             Font font, float fontSize, String text,
+                             Font font, float pixelSize, String text,
+                             int column, float tx, float ty, float tz, GLRegion region) {
+        final int row = lastRow + 1;
+        renderStringImpl(drawable, font, pixelSize, text, column, row, tx, ty, tz, false, region);
+    }
+
+    /**
+     *
+     * @param drawable
+     * @param font
+     * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
+     * @param text
+     * @param column
+     * @param row
+     * @param tx
+     * @param ty
+     * @param tz
+     * @param cacheRegion
+     */
+    public void renderString(GLAutoDrawable drawable,
+                             Font font, float pixelSize, String text,
                              int column, int row,
                              float tx, float ty, float tz, boolean cacheRegion) {
+        renderStringImpl(drawable, font, pixelSize, text, column, row, tx, ty, tz, cacheRegion, null);
+    }
+
+    public void renderString(GLAutoDrawable drawable,
+                             Font font, float pixelSize, String text,
+                             int column, int row,
+                             float tx, float ty, float tz, GLRegion region) {
+        renderStringImpl(drawable, font, pixelSize, text, column, row, tx, ty, tz, false, region);
+    }
+
+    private void renderStringImpl(GLAutoDrawable drawable,
+                                  Font font, float pixelSize, String text,
+                                  int column, int row,
+                                  float tx, float ty, float tz, boolean cacheRegion, GLRegion region) {
         if( null != renderer ) {
             final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
@@ -172,8 +228,8 @@ public abstract class TextRendererGLELBase implements GLEventListener {
                 dy = height-ty;
             }
             final int newLineCount = text.length() - text.replace("\n", "").length();
-            final float lineHeight = font.getLineHeight(fontSize);
-            dx += pixelScale * font.getAdvanceWidth('X', fontSize) * column;
+            final float lineHeight = font.getLineHeight(pixelSize);
+            dx += pixelScale * font.getAdvanceWidth('X', pixelSize) * column;
             dy -= pixelScale * lineHeight * ( row + 1 );
 
             final ShaderState st = rs.getShaderState();
@@ -195,9 +251,11 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             }
             renderer.updateMatrix(gl);
             if( cacheRegion ) {
-                textRenderUtil.drawString3D(gl, font, fontSize, text, texSize);
+                textRenderUtil.drawString3D(gl, font, pixelSize, text, vbaaSampleCount);
+            } else if( null != region ) {
+                TextRegionUtil.drawString3D(region, renderer, gl, font, pixelSize, text, vbaaSampleCount);
             } else {
-                TextRegionUtil.drawString3D(renderer, gl, font, fontSize, text, texSize);
+                TextRegionUtil.drawString3D(renderer, gl, font, pixelSize, text, vbaaSampleCount);
             }
             st.useProgram(gl, false);
             gl.glDisable(GL2ES2.GL_BLEND);

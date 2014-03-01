@@ -222,6 +222,11 @@ class TypecastFont implements Font {
     }
 
     @Override
+    public final float getPixelSize(float fontSize /* points per inch */, float resolution) {
+        return fontSize * resolution / ( 72 /* points per inch */ );
+    }
+
+    @Override
     public float getLineHeight(float pixelSize) {
         final Metrics metrics = getMetrics();
         final float lineGap = metrics.getLineGap(pixelSize) ; // negative value!

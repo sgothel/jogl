@@ -32,14 +32,28 @@ import com.jogamp.opengl.math.geom.AABBox;
 
 /**
  * Interface wrapper for font implementation.
- *
+ * <p>
  * TrueType Font Specification:
- *   http://developer.apple.com/fonts/ttrefman/rm06/Chap6.html
- *   http://www.microsoft.com/typography/SpecificationsOverview.mspx
- *   http://www.microsoft.com/typography/otspec/
- *
+ * <ul>
+ *   <li>http://www.freetype.org/freetype2/documentation.html</li>
+ *   <li>http://developer.apple.com/fonts/ttrefman/rm06/Chap6.html</li>
+ *   <li>http://www.microsoft.com/typography/SpecificationsOverview.mspx</li>
+ *   <li>http://www.microsoft.com/typography/otspec/</li>
+ * </ul>
+ * </p>
+ * <p>
  * TrueType Font Table Introduction:
- *   http://scripts.sil.org/cms/scripts/page.php?item_id=IWS-Chapter08
+ * <ul>
+ *   <li>http://scripts.sil.org/cms/scripts/page.php?item_id=IWS-Chapter08</li>
+ * </ul>
+ * </p>
+ * <p>
+ * Misc.:
+ * <ul>
+ *   <li>Treatis on Font <code>Rasterization https://freddie.witherden.org/pages/font-rasterisation/</code></li>
+ *   <li>Glyph Hell <code>http://walon.org/pub/ttf/ttf_glyphs.htm</code></li>
+ * </ul>
+ * </p>
  */
 
 public interface Font {
@@ -108,6 +122,22 @@ public interface Font {
     public StringBuilder getFullFamilyName(StringBuilder buffer);
 
     public StringBuilder getAllNames(StringBuilder string, String separator);
+
+    /**
+     * <pre>
+        Font Scale Formula:
+         inch: 25.4 mm
+         pointSize: [point] = [1/72 inch]
+
+         [1]      Scale := pointSize * resolution / ( 72 points per inch * units_per_em )
+         [2]  PixelSize := pointSize * resolution / ( 72 points per inch )
+         [3]      Scale := PixelSize / units_per_em
+     * </pre>
+     * @param fontSize in point-per-inch
+     * @param resolution display resolution in dots-per-inch
+     * @return pixel-per-inch, pixelSize scale factor for font operations.
+     */
+    public float getPixelSize(float fontSize /* points per inch */, float resolution);
 
     public float getAdvanceWidth(int glyphID, float pixelSize);
     public Metrics getMetrics();

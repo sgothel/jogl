@@ -103,7 +103,7 @@ public class VBORegionSPES2 extends GLRegion {
     }
 
     @Override
-    protected void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int[/*1*/] texWidth) {
+    protected void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int[/*1*/] sampleCount) {
         verticeAttr.enableBuffer(gl, true);
         texCoordAttr.enableBuffer(gl, true);
         indicesBuffer.bindBuffer(gl, true); // keeps VBO binding

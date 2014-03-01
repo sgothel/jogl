@@ -97,13 +97,13 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         RegionGLListener listener = new RegionGLListener(demo01Listener, window.getTitle(), "GPURegion01");
         window.addGLEventListener(listener);
 
-        listener.setTech(-20, 00, 0f, -300, 400);
+        listener.setTech(-20, 0, -300, 0f, 2);
         window.display();
 
-        listener.setTech(-20, 00, 0f, -150, 800);
+        listener.setTech(-20, 0, -150, 0f, 3);
         window.display();
 
-        listener.setTech(-20, 00, 0f, -50, 1000);
+        listener.setTech(-20, 0,  -50, 0f, 4);
         window.display();
 
         destroyWindow(window);
@@ -131,13 +131,13 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         RegionGLListener listener = new RegionGLListener(demo01Listener, window.getTitle(), "GPURegion02");
         window.addGLEventListener(listener);
 
-        listener.setTech(-20, 00, 0f, -300, 400);
+        listener.setTech(-20, 0, -300, 0f, 2);
         window.display();
 
-        listener.setTech(-20, 00, 0f, -150, 800);
+        listener.setTech(-20, 0, -150, 0f, 3);
         window.display();
 
-        listener.setTech(-20, 00, 0f, -50, 1000);
+        listener.setTech(-20, 0,  -50, 0f, 4);
         window.display();
 
         destroyWindow(window);
@@ -162,13 +162,13 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         RegionGLListener listener = new RegionGLListener(demo01Listener, window.getTitle(), "GPURegion01");
         window.addGLEventListener(listener);
 
-        listener.setTech(-20, 00, 0f, -300, 400);
+        listener.setTech(-20, 00, -300, 0f, 2);
         window.display();
 
-        listener.setTech(-20, 00, 0f, -150, 800);
+        listener.setTech(-20, 00, -150, 0f, 3);
         window.display();
 
-        listener.setTech(-20, 00, 0f, -50, 1000);
+        listener.setTech(-20, 00,  -50, 0f, 4);
         window.display();
 
         destroyWindow(window);
@@ -198,13 +198,13 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         RegionGLListener listener = new RegionGLListener(demo01Listener, window.getTitle(), "GPURegion02");
         window.addGLEventListener(listener);
 
-        listener.setTech(-20, 00, 0f, -300, 400);
+        listener.setTech(-20, 00, -300, 0f, 2);
         window.display();
 
-        listener.setTech(-20, 00, 0f, -150, 800);
+        listener.setTech(-20, 00, -150, 0f, 3);
         window.display();
 
-        listener.setTech(-20, 00, 0f, -50, 1000);
+        listener.setTech(-20, 00,  -50, 0f, 4);
         window.display();
 
         destroyWindow(window);
@@ -225,20 +225,20 @@ public class TestRegionRendererNEWT01 extends UITestCase {
 
         GLWindow window = createWindow("shape-vbaa1-msaa0", caps, 800,400);
         RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
-        GPURegionGLListener02  demo02Listener = new GPURegionGLListener02 (rs, Region.VBAA_RENDERING_BIT, 1140, false, false);
+        GPURegionGLListener02  demo02Listener = new GPURegionGLListener02 (rs, Region.VBAA_RENDERING_BIT, 4, false, false);
         demo02Listener.attachInputListenerTo(window);
         window.addGLEventListener(demo02Listener);
 
         RegionGLListener listener = new RegionGLListener(demo02Listener, window.getTitle(), "GPURegionNewtDemo02");
         window.addGLEventListener(listener);
 
-        listener.setTech(-20, 00, 0f, -300, 400);
+        listener.setTech(-20, 00, -300, 0f, 2);
         window.display();
 
-        listener.setTech(-20, 00, 0f, -150, 800);
+        listener.setTech(-20, 00, -150, 0f, 3);
         window.display();
 
-        listener.setTech(-20, 00, 0f, -50, 1000);
+        listener.setTech(-20, 00,  -50, 0f, 4);
         window.display();
 
         destroyWindow(window);
@@ -255,8 +255,8 @@ public class TestRegionRendererNEWT01 extends UITestCase {
             this.name = name;
         }
 
-        public void setTech(float xt, float yt, float angle, int zoom, int fboSize){
-            impl.setMatrix(xt, yt, angle, zoom, fboSize);
+        public void setTech(float xt, float yt, int zt, float angle, int sampleCount){
+            impl.setMatrix(xt, yt, zt, angle, sampleCount);
         }
 
         public void init(GLAutoDrawable drawable) {

@@ -55,22 +55,22 @@ public class TextRegionUtil {
     }
 
     /**
-     * Add the string in 3D space w.r.t. the font and fontSize at the end of the {@link GLRegion}.
+     * Add the string in 3D space w.r.t. the font and pixelSize at the end of the {@link GLRegion}.
      * @param region the {@link GLRegion} sink
      * @param vertexFactory vertex impl factory {@link Factory}
      * @param font the target {@link Font}
-     * @param fontSize
+     * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
      * @param str string text
      */
     public static void addStringToRegion(final GLRegion region, final Factory<? extends Vertex> vertexFactory,
-                                         final Font font, final float fontSize, final CharSequence str) {
+                                         final Font font, final float pixelSize, final CharSequence str) {
         final int charCount = str.length();
 
         // region.setFlipped(true);
         final Font.Metrics metrics = font.getMetrics();
-        final float lineHeight = font.getLineHeight(fontSize);
+        final float lineHeight = font.getLineHeight(pixelSize);
 
-        final float scale = metrics.getScale(fontSize);
+        final float scale = metrics.getScale(pixelSize);
         final AffineTransform transform = new AffineTransform(vertexFactory);
         final AffineTransform t = new AffineTransform(vertexFactory);
 
@@ -83,7 +83,7 @@ public class TextRegionUtil {
                 y -= lineHeight;
                 advanceTotal = 0;
             } else if (character == ' ') {
-                advanceTotal += font.getAdvanceWidth(Glyph.ID_SPACE, fontSize);
+                advanceTotal += font.getAdvanceWidth(Glyph.ID_SPACE, pixelSize);
             } else {
                 if(Region.DEBUG_INSTANCE) {
                     System.err.println("XXXXXXXXXXXXXXx char: "+character+", scale: "+scale+"; translate: "+advanceTotal+", "+y);
@@ -99,64 +99,90 @@ public class TextRegionUtil {
                 }
                 region.addOutlineShape(glyphShape, t);
 
-                advanceTotal += glyph.getAdvance(fontSize, true);
+                advanceTotal += glyph.getAdvance(pixelSize, true);
             }
         }
     }
 
     /**
-     * Render the string in 3D space w.r.t. the font and fontSize
+     * Render the string in 3D space w.r.t. the font and pixelSize
      * using a cached {@link GLRegion} for reuse.
      * <p>
      * Cached {@link GLRegion}s will be destroyed w/ {@link #clear(GL2ES2)} or to free memory.
      * </p>
      * @param gl the current GL state
      * @param font {@link Font} to be used
-     * @param fontSize font size
+     * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
      * @param str text to be rendered
-     * @param texSize desired texture width for multipass-rendering.
-     *        The actual used texture-width is written back when mp rendering is enabled, otherwise the store is untouched.
+     * @param sampleCount desired multisampling sample count for msaa-rendering.
+     *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
      * @throws Exception if TextRenderer not initialized
      */
     public void drawString3D(final GL2ES2 gl,
-                             final Font font, final float fontSize, final CharSequence str,
-                             final int[/*1*/] texSize) {
+                             final Font font, final float pixelSize, final CharSequence str,
+                             final int[/*1*/] sampleCount) {
         if( !renderer.isInitialized() ) {
             throw new GLException("TextRendererImpl01: not initialized!");
         }
-        final RenderState rs = renderer.getRenderState();
         final int special = 0;
-        GLRegion region = getCachedRegion(font, str, fontSize, special);
+        GLRegion region = getCachedRegion(font, str, pixelSize, special);
         if(null == region) {
             region = GLRegion.create(renderer.getRenderModes());
-            addStringToRegion(region, rs.getVertexFactory(), font, fontSize, str);
-            addCachedRegion(gl, font, str, fontSize, special, region);
+            addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, pixelSize, str);
+            addCachedRegion(gl, font, str, pixelSize, special, region);
         }
-        region.draw(gl, renderer, texSize);
+        region.draw(gl, renderer, sampleCount);
     }
 
     /**
-     * Render the string in 3D space w.r.t. the font and fontSize
+     * Render the string in 3D space w.r.t. the font and pixelSize
      * using a temporary {@link GLRegion}, which will be destroyed afterwards.
+     * <p>
+     * In case of a multisampling region renderer, i.e. {@link Region#VBAA_RENDERING_BIT}, recreating the {@link GLRegion}
+     * is a huge performance impact.
+     * In such case better use {@link #drawString3D(GLRegion, RegionRenderer, GL2ES2, Font, float, CharSequence, int[])}
+     * instead.
+     * </p>
      * @param gl the current GL state
      * @param font {@link Font} to be used
-     * @param fontSize font size
+     * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
      * @param str text to be rendered
-     * @param texWidth desired texture width for multipass-rendering.
-     *        The actual used texture-width is written back when mp rendering is enabled, otherwise the store is untouched.
+     * @param sampleCount desired multisampling sample count for msaa-rendering.
+     *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
      * @throws Exception if TextRenderer not initialized
      */
     public static void drawString3D(final RegionRenderer renderer, final GL2ES2 gl,
-                                    final Font font, final float fontSize, final CharSequence str,
-                                    final int[/*1*/] texSize) {
+                                    final Font font, final float pixelSize, final CharSequence str,
+                                    final int[/*1*/] sampleCount) {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
-        final RenderState rs = renderer.getRenderState();
         final GLRegion region = GLRegion.create(renderer.getRenderModes());
-        addStringToRegion(region, rs.getVertexFactory(), font, fontSize, str);
-        region.draw(gl, renderer, texSize);
+        addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, pixelSize, str);
+        region.draw(gl, renderer, sampleCount);
         region.destroy(gl, renderer);
+    }
+
+    /**
+     * Render the string in 3D space w.r.t. the font and pixelSize
+     * using the given {@link GLRegion}, which will {@link GLRegion#clear(GL2ES2, RegionRenderer) cleared} beforehand.
+     * @param gl the current GL state
+     * @param font {@link Font} to be used
+     * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
+     * @param str text to be rendered
+     * @param sampleCount desired multisampling sample count for msaa-rendering.
+     *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
+     * @throws Exception if TextRenderer not initialized
+     */
+    public static void drawString3D(final GLRegion region, final RegionRenderer renderer, final GL2ES2 gl,
+                                    final Font font, final float pixelSize, final CharSequence str,
+                                    final int[/*1*/] sampleCount) {
+        if(!renderer.isInitialized()){
+            throw new GLException("TextRendererImpl01: not initialized!");
+        }
+        region.clear(gl, renderer);
+        addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, pixelSize, str);
+        region.draw(gl, renderer, sampleCount);
     }
 
    /**
@@ -213,13 +239,13 @@ public class TextRegionUtil {
        }
    }
 
-   protected final GLRegion getCachedRegion(Font font, CharSequence str, float fontSize, int special) {
-       return stringCacheMap.get(getKey(font, str, fontSize, special));
+   protected final GLRegion getCachedRegion(Font font, CharSequence str, float pixelSize, int special) {
+       return stringCacheMap.get(getKey(font, str, pixelSize, special));
    }
 
-   protected final void addCachedRegion(GL2ES2 gl, Font font, CharSequence str, float fontSize, int special, GLRegion glyphString) {
+   protected final void addCachedRegion(GL2ES2 gl, Font font, CharSequence str, float pixelSize, int special, GLRegion glyphString) {
        if ( 0 != getCacheLimit() ) {
-           final String key = getKey(font, str, fontSize, special);
+           final String key = getKey(font, str, pixelSize, special);
            final GLRegion oldRegion = stringCacheMap.put(key, glyphString);
            if ( null == oldRegion ) {
                // new entry ..
@@ -229,8 +255,8 @@ public class TextRegionUtil {
        }
    }
 
-   protected final void removeCachedRegion(GL2ES2 gl, Font font, CharSequence str, int fontSize, int special) {
-       final String key = getKey(font, str, fontSize, special);
+   protected final void removeCachedRegion(GL2ES2 gl, Font font, CharSequence str, int pixelSize, int special) {
+       final String key = getKey(font, str, pixelSize, special);
        final GLRegion region = stringCacheMap.remove(key);
        if(null != region) {
            region.destroy(gl, renderer);
@@ -248,10 +274,10 @@ public class TextRegionUtil {
        }
    }
 
-   protected final String getKey(Font font, CharSequence str, float fontSize, int special) {
+   protected final String getKey(Font font, CharSequence str, float pixelSize, int special) {
        final StringBuilder sb = new StringBuilder();
        return font.getName(sb, Font.NAME_UNIQUNAME)
-              .append(".").append(str.hashCode()).append(".").append(Float.floatToIntBits(fontSize)).append(special).toString();
+              .append(".").append(str.hashCode()).append(".").append(Float.floatToIntBits(pixelSize)).append(special).toString();
    }
 
    /** Default cache limit, see {@link #setCacheLimit(int)} */

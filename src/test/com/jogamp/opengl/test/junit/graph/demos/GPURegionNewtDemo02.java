@@ -28,7 +28,6 @@
 
 package com.jogamp.opengl.test.junit.graph.demos;
 
-import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
@@ -50,31 +49,29 @@ import com.jogamp.opengl.util.glsl.ShaderState;
 public class GPURegionNewtDemo02 {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
-    
+
     public static void main(String[] args) {
         GLProfile glp = GLProfile.getGL2ES2();
         GLCapabilities caps = new GLCapabilities(glp);
-        caps.setAlphaBits(4);               
+        caps.setAlphaBits(4);
         System.out.println("Requested: " + caps);
-        
+
         final GLWindow window = GLWindow.create(caps);
         window.setPosition(10, 10);
         window.setSize(800, 400);
         window.setTitle("GPU Curve Region Newt Demo 02 - vbaa1 msaa0");
-                
+
         RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
-        GPURegionGLListener02  regionGLListener = new GPURegionGLListener02 (rs, Region.VBAA_RENDERING_BIT|Region.VARIABLE_CURVE_WEIGHT_BIT, 1140, DEBUG, TRACE); 
-        regionGLListener.attachInputListenerTo(window);                
+        GPURegionGLListener02  regionGLListener = new GPURegionGLListener02 (rs, Region.VBAA_RENDERING_BIT|Region.VARIABLE_CURVE_WEIGHT_BIT, 4, DEBUG, TRACE);
+        regionGLListener.attachInputListenerTo(window);
         window.addGLEventListener(regionGLListener);
-             
-        window.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
         window.setVisible(true);
 
         //FPSAnimator animator = new FPSAnimator(60);
         final Animator animator = new Animator();
-        animator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
+        animator.setUpdateFPSFrames(60, System.err);
         animator.add(window);
-        
+
         window.addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent arg0) {
                 if(arg0.getKeyCode() == KeyEvent.VK_F4) {
@@ -87,7 +84,7 @@ public class GPURegionNewtDemo02 {
                 animator.stop();
             }
         });
-                
+
         animator.start();
-    }    
+    }
 }

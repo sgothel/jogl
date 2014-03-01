@@ -198,7 +198,7 @@ public abstract class RIButton extends UIShape {
     private boolean toggle =false;
     private boolean toggleable = false;
 
-    public void render(GL2ES2 gl, RegionRenderer renderer, int renderModes, int[/*1*/] texSize, boolean selection) {
+    public void render(GL2ES2 gl, RegionRenderer renderer, int renderModes, int[/*1*/] sampleCount, boolean selection) {
         if(null == buttonRegion) {
             buttonRegion = new UIRegion(this);
             labelRegion = new UIRegion(getLabel());
@@ -214,7 +214,7 @@ public abstract class RIButton extends UIShape {
         if(!selection){
             renderer.setColorStatic(gl, bColor[0], bColor[1], bColor[2]);
         }
-        buttonRegion.getRegion(gl, renderer, renderModes).draw(gl, renderer, texSize);
+        buttonRegion.getRegion(gl, renderer, renderModes).draw(gl, renderer, sampleCount);
         gl.glDisable(GL2ES2.GL_POLYGON_OFFSET_FILL);
 
         float[] lColor = labelColor;
@@ -224,7 +224,7 @@ public abstract class RIButton extends UIShape {
         if(!selection){
             renderer.setColorStatic(gl, lColor[0], lColor[1], lColor[2]);
         }
-        labelRegion.getRegion(gl, renderer, renderModes).draw(gl, renderer, texSize);
+        labelRegion.getRegion(gl, renderer, renderModes).draw(gl, renderer, sampleCount);
     }
     public void setPressed(boolean b) {
         super.setPressed(b);

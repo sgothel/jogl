@@ -28,11 +28,9 @@
 package com.jogamp.opengl.test.junit.graph.demos;
 
 
-import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
-import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.event.KeyAdapter;
@@ -46,7 +44,7 @@ import com.jogamp.opengl.util.glsl.ShaderState;
 public class GPUTextNewtDemo01 {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
-    
+
     public static void main(String[] args) {
         GLProfile glp = GLProfile.getGL2ES2();
         GLCapabilities caps = new GLCapabilities(glp);
@@ -54,21 +52,20 @@ public class GPUTextNewtDemo01 {
         caps.setSampleBuffers(true);
         caps.setNumSamples(4); // 2 samples is not enough ..
         System.out.println("Requested: "+caps);
-        
-        final GLWindow window = GLWindow.create(caps);        
+
+        final GLWindow window = GLWindow.create(caps);
         window.setPosition(10, 10);
         window.setSize(800, 400);
         window.setTitle("GPU Text Newt Demo 01 - vbaa0 msaa1");
-        
+
         final RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
         GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(rs, 0, 0, DEBUG, TRACE);
         window.addGLEventListener(textGLListener);
-        window.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
-        
+
         final Animator animator = new Animator();
-        animator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
+        animator.setUpdateFPSFrames(60, System.err);
         animator.add(window);
-        
+
         window.addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent arg0) {
                 if(arg0.getKeyCode() == KeyEvent.VK_F4) {
@@ -81,9 +78,9 @@ public class GPUTextNewtDemo01 {
                 animator.stop();
             }
         });
-        
+
         window.setVisible(true);
         // FPSAnimator animator = new FPSAnimator(10);
         animator.start();
-    }    
+    }
 }

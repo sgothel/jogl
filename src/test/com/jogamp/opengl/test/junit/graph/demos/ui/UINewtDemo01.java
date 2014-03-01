@@ -28,7 +28,6 @@
 
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
-import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
@@ -45,14 +44,14 @@ import com.jogamp.opengl.util.glsl.ShaderState;
 /** Demonstrate the rendering of multiple outlines into one region/OutlineShape
  *  These Outlines are not necessary connected or contained.
  *  The output of this demo shows two identical shapes but the left one
- *  has some vertices with off-curve flag set to true, and the right allt he vertices 
- *  are on the curve. Demos the Res. Independent Nurbs based Curve rendering 
+ *  has some vertices with off-curve flag set to true, and the right allt he vertices
+ *  are on the curve. Demos the Res. Independent Nurbs based Curve rendering
  *
  */
 public class UINewtDemo01 {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
-    
+
     public static void main(String[] args) {
         GLProfile glp = GLProfile.getGL2ES2();
         GLCapabilities caps = new GLCapabilities(glp);
@@ -60,23 +59,21 @@ public class UINewtDemo01 {
         caps.setSampleBuffers(true);
         caps.setNumSamples(4);
         System.out.println("Requested: " + caps);
-        
+
         final GLWindow window = GLWindow.create(caps);
         window.setPosition(10, 10);
         window.setSize(800, 400);
         window.setTitle("GPU UI Newt Demo 01");
         RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
         UIGLListener01 uiGLListener = new UIGLListener01 (rs, DEBUG, TRACE);
-        uiGLListener.attachInputListenerTo(window);        
+        uiGLListener.attachInputListenerTo(window);
         window.addGLEventListener(uiGLListener);
-
-        window.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
         window.setVisible(true);
 
         final Animator animator = new Animator();
-        animator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
+        animator.setUpdateFPSFrames(60, System.err);
         animator.add(window);
-        
+
         window.addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent arg0) {
                 if(arg0.getKeyCode() == KeyEvent.VK_F4) {
@@ -89,7 +86,7 @@ public class UINewtDemo01 {
                 animator.stop();
             }
         });
-                
+
         animator.start();
-    }    
+    }
 }

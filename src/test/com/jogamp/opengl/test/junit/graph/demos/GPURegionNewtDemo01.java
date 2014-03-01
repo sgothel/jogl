@@ -28,7 +28,6 @@
 
 package com.jogamp.opengl.test.junit.graph.demos;
 
-import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
@@ -46,14 +45,14 @@ import com.jogamp.opengl.util.glsl.ShaderState;
 /** Demonstrate the rendering of multiple outlines into one region/OutlineShape
  *  These Outlines are not necessary connected or contained.
  *  The output of this demo shows two identical shapes but the left one
- *  has some vertices with off-curve flag set to true, and the right allt he vertices 
- *  are on the curve. Demos the Res. Independent Nurbs based Curve rendering 
+ *  has some vertices with off-curve flag set to true, and the right allt he vertices
+ *  are on the curve. Demos the Res. Independent Nurbs based Curve rendering
  *
  */
 public class GPURegionNewtDemo01 {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
-    
+
     public static void main(String[] args) {
         GLProfile glp = GLProfile.getGL2ES2();
         GLCapabilities caps = new GLCapabilities(glp);
@@ -61,25 +60,23 @@ public class GPURegionNewtDemo01 {
         caps.setSampleBuffers(true);
         caps.setNumSamples(4); // 2 samples is not enough ..
         System.out.println("Requested: " + caps);
-        
+
         final GLWindow window = GLWindow.create(caps);
         window.setPosition(10, 10);
         window.setSize(800, 400);
         window.setTitle("GPU Curve Region Newt Demo 01 - vbaa0 msaa1");
-        
+
         RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
         GPURegionGLListener01 regionGLListener = new GPURegionGLListener01 (rs, Region.VARIABLE_CURVE_WEIGHT_BIT, 0, DEBUG, TRACE);
-        regionGLListener.attachInputListenerTo(window);                
+        regionGLListener.attachInputListenerTo(window);
         window.addGLEventListener(regionGLListener);
-
-        window.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);     
         window.setVisible(true);
 
         //FPSAnimator animator = new FPSAnimator(60);
         final Animator animator = new Animator();
-        animator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
+        animator.setUpdateFPSFrames(60, System.err);
         animator.add(window);
-        
+
         window.addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent arg0) {
                 if(arg0.getKeyCode() == KeyEvent.VK_F4) {
@@ -92,7 +89,7 @@ public class GPURegionNewtDemo01 {
                 animator.stop();
             }
         });
-                
+
         animator.start();
-    }    
+    }
 }

@@ -42,7 +42,6 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLPipelineFactory;
 import javax.media.opengl.GLRunnable;
 
-
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
@@ -80,8 +79,8 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     private float xTran = -10;
     private float yTran =  10;
     private float ang = 0f;
-    private float zoom = -70f;
-    private final int[] texSize = new int[] { 400 };
+    private float zTran = -70f;
+    private final int[] sampleCount = new int[] { 4 };
 
     protected volatile float weight = 1.0f;
     boolean ignoreInput = false;
@@ -96,21 +95,22 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
 
     public final RegionRenderer getRenderer() { return renderer; }
     public final int getRenderModes() { return renderModes; }
-    public final float getZoom() { return zoom; }
+    public final float getZTran() { return zTran; }
     public final float getXTran() { return xTran; }
     public final float getYTran() { return yTran; }
     public final float getAngle() { return ang; }
-    public final int[] getTexSize() { return texSize; }
+    public final int[] getSampleCount() { return sampleCount; }
     public final float[] getPosition() { return position; }
 
-    public void setMatrix(float xtrans, float ytrans, float angle, int zoom, int fbosize) {
+    public void setMatrix(float xtrans, float ytrans, int zTran, float angle, int sampleCount) {
         this.xTran = xtrans;
         this.yTran = ytrans;
+        this.zTran = zTran;
         this.ang = angle;
-        this.zoom = zoom;
-        this.texSize[0] = fbosize;
+        this.sampleCount[0] = sampleCount;
     }
 
+    @Override
     public void init(GLAutoDrawable drawable) {
         autoDrawable = drawable;
         GL2ES2 gl = drawable.getGL().getGL2ES2();
@@ -127,6 +127,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         getRenderer().init(gl);
     }
 
+    @Override
     public void reshape(GLAutoDrawable drawable, int xstart, int ystart, int width, int height) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
@@ -134,9 +135,10 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         renderer.reshapePerspective(gl, 45.0f, width, height, 0.1f, 7000.0f);
 
         dumpMatrix();
-        System.err.println("Reshape: "+renderer.getRenderState());
+        // System.err.println("Reshape: "+renderer.getRenderState());
     }
 
+    @Override
     public void dispose(GLAutoDrawable drawable) {
         autoDrawable = null;
         GL2ES2 gl = drawable.getGL().getGL2ES2();
@@ -148,7 +150,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     }
 
     public void zoom(int v){
-        zoom += v;
+        zTran += v;
         dumpMatrix();
     }
 
@@ -171,7 +173,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     }
 
     void dumpMatrix() {
-        System.err.println("Matrix: " + xTran + "/" + yTran + " x"+zoom + " @"+ang);
+        System.err.println("Matrix: " + xTran + " / " + yTran + " / "+zTran + " @ "+ang);
     }
 
     /** Attach the input listener to the window */
@@ -192,7 +194,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     public void printScreen(GLAutoDrawable drawable, String dir, String tech, String objName, boolean exportAlpha) throws GLException, IOException {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
-        pw.printf("-%03dx%03d-Z%04d-T%04d-%s", drawable.getWidth(), drawable.getHeight(), (int)Math.abs(zoom), texSize[0], objName);
+        pw.printf("-%03dx%03d-Z%04d-S%02d-%s", drawable.getWidth(), drawable.getHeight(), (int)Math.abs(zTran), sampleCount[0], objName);
 
         final String filename = dir + tech + sw +".png";
         if(screenshot.readPixels(drawable.getGL(), false)) {
@@ -210,6 +212,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     }
 
     public class KeyAction implements KeyListener {
+        @Override
         public void keyPressed(KeyEvent arg0) {
             if(ignoreInput) {
                 return;
@@ -228,18 +231,18 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
                 move(0, 1);
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_LEFT){
-                move(1, 0);
-            }
-            else if(arg0.getKeyCode() == KeyEvent.VK_RIGHT){
                 move(-1, 0);
             }
+            else if(arg0.getKeyCode() == KeyEvent.VK_RIGHT){
+                move(1, 0);
+            }
             else if(arg0.getKeyCode() == KeyEvent.VK_6){
-                texSize[0] -= 10;
-                System.err.println("Tex Size: " + texSize[0]);
+                sampleCount[0] -= 1;
+                System.err.println("Sample Count: " + sampleCount[0]);
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_7){
-                texSize[0] += 10;
-                System.err.println("Tex Size: " + texSize[0]);
+                sampleCount[0] += 1;
+                System.err.println("Sample Count: " + sampleCount[0]);
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_0){
                 rotate(1);
@@ -256,6 +259,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
             else if(arg0.getKeyCode() == KeyEvent.VK_V) {
                 if(null != autoDrawable) {
                     autoDrawable.invoke(false, new GLRunnable() {
+                        @Override
                         public boolean run(GLAutoDrawable drawable) {
                             GL gl = drawable.getGL();
                             int i = gl.getSwapInterval();
@@ -278,6 +282,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
                 rotate(-1);
                     if(null != autoDrawable) {
                         autoDrawable.invoke(false, new GLRunnable() {
+                            @Override
                             public boolean run(GLAutoDrawable drawable) {
                                 try {
                                     final String type = Region.isVBAA(renderModes) ? "vbaa0-msaa1" : "vbaa1-msaa0" + ( Region.isNonUniformWeight(renderModes) ? "-vc" : "-uc" ) ;
@@ -294,6 +299,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
                     }
             }
         }
+        @Override
         public void keyReleased(KeyEvent arg0) {}
     }
 }

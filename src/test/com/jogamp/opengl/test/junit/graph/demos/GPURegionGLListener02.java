@@ -47,9 +47,9 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 public class GPURegionGLListener02 extends GPURegionRendererListenerBase01 {
     List<OutlineShape> outlineShapes = new ArrayList<OutlineShape>();
 
-    public GPURegionGLListener02 (RenderState rs, int renderModes, int fbosize, boolean debug, boolean trace) {
+    public GPURegionGLListener02 (RenderState rs, int renderModes, int sampleCount, boolean debug, boolean trace) {
         super(rs, renderModes, debug, trace);
-        setMatrix(-20, 00, 0f, -50, fbosize);
+        setMatrix(-20, 00, -50, 0f, sampleCount);
     }
 
     private void createTestOutline(){
@@ -119,12 +119,12 @@ public class GPURegionGLListener02 extends GPURegionRendererListenerBase01 {
         final RegionRenderer regionRenderer = getRenderer();
 
         regionRenderer.resetModelview(null);
-        regionRenderer.translate(null, getXTran(), getYTran(), getZoom());
+        regionRenderer.translate(null, getXTran(), getYTran(), getZTran());
         regionRenderer.rotate(gl, getAngle(), 0, 1, 0);
         if( weight != regionRenderer.getWeight()) {
             regionRenderer.setWeight(gl, weight);
         }
-        region.draw(gl, regionRenderer, getTexSize());
+        region.draw(gl, regionRenderer, getSampleCount());
 
     }
 }

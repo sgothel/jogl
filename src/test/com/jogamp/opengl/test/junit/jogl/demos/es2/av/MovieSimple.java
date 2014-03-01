@@ -131,13 +131,14 @@ public class MovieSimple implements GLEventListener {
         defURI = _defURI;
     }
 
+    final int[] textSampleCount = { 4 };
+
     private final class InfoTextRendererGLELBase extends TextRendererGLELBase {
         final Font font = getFont(0, 0, 0);
         final float fontSize = 18f;
         InfoTextRendererGLELBase() {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
-            super(Region.VBAA_RENDERING_BIT);
-            texSizeScale = 2;
+            super(Region.VBAA_RENDERING_BIT, textSampleCount);
 
             staticRGBAColor[0] = 1.0f;
             staticRGBAColor[1] = 1.0f;

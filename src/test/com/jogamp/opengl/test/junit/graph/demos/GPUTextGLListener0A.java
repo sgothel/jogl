@@ -40,12 +40,11 @@ import com.jogamp.opengl.util.glsl.ShaderState;
 public class GPUTextGLListener0A extends GPUTextRendererListenerBase01 {
 
     public GPUTextGLListener0A() {
-        this( RenderState.createRenderState(new ShaderState(), SVertex.factory()), 0, 0, false, false ) ;
+        this( RenderState.createRenderState(new ShaderState(), SVertex.factory()), 0, 4, false, false ) ;
     }
 
-    public GPUTextGLListener0A(RenderState rs, int numpass, int fbosize, boolean debug, boolean trace) {
-        super(rs, numpass, debug, trace);
-        setMatrix(-400, -30, 0f, -500, fbosize);
+    public GPUTextGLListener0A(RenderState rs, int renderModes, int sampleCount, boolean debug, boolean trace) {
+        super(rs, renderModes, sampleCount, debug, trace);
     }
 
     public void init(GLAutoDrawable drawable) {

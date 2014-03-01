@@ -38,9 +38,7 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.font.FontFactory;
 
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URLConnection;
 import java.security.AccessController;
 import java.security.PrivilegedAction;

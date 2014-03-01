@@ -29,10 +29,13 @@ package com.jogamp.graph.font;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URLConnection;
 
+import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.common.util.cache.TempJarCache;
 
 import jogamp.graph.font.FontConstructor;
 import jogamp.graph.font.JavaFontLoader;
@@ -90,6 +93,24 @@ public class FontFactory {
 
     public static final Font get(final URLConnection conn) throws IOException {
         return fontConstr.create(conn);
+    }
+
+    public static final Font get(final Class<?> context, final String fname, final boolean useTempJarCache) throws IOException {
+        URLConnection conn = null;
+        if( useTempJarCache ) {
+            try {
+                final URI uri = TempJarCache.getResource(fname);
+                conn = null != uri ? uri.toURL().openConnection() : null;
+            } catch (Exception e) {
+                throw new IOException(e);
+            }
+        } else {
+            conn = IOUtil.getResource(context, fname);
+        }
+        if(null != conn) {
+            return FontFactory.get ( conn ) ;
+        }
+        return null;
     }
 
     public static boolean isPrintableChar( char c ) {

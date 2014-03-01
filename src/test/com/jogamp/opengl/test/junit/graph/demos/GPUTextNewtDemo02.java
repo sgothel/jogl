@@ -27,7 +27,6 @@
  */
 package com.jogamp.opengl.test.junit.graph.demos;
 
-import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
@@ -45,42 +44,40 @@ import com.jogamp.opengl.util.glsl.ShaderState;
 public class GPUTextNewtDemo02 {
     /**
      * FIXME:
-     * 
+     *
      * If DEBUG is enabled:
-     *  
-     * Caused by: javax.media.opengl.GLException: Thread[main-Display-X11_:0.0-1-EDT-1,5,main] glGetError() returned the following error codes after a call to glFramebufferRenderbuffer(<int> 0x8D40, <int> 0x1902, <int> 0x8D41, <int> 0x1): GL_INVALID_ENUM ( 1280 0x500), 
+     *
+     * Caused by: javax.media.opengl.GLException: Thread[main-Display-X11_:0.0-1-EDT-1,5,main] glGetError() returned the following error codes after a call to glFramebufferRenderbuffer(<int> 0x8D40, <int> 0x1902, <int> 0x8D41, <int> 0x1): GL_INVALID_ENUM ( 1280 0x500),
      * at javax.media.opengl.DebugGL4bc.checkGLGetError(DebugGL4bc.java:33961)
      * at javax.media.opengl.DebugGL4bc.glFramebufferRenderbuffer(DebugGL4bc.java:33077)
      * at jogamp.graph.curve.opengl.VBORegion2PGL3.initFBOTexture(VBORegion2PGL3.java:295)
      */
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
-    
+
     public static void main(String[] args) {
         GLProfile glp = GLProfile.getGL2ES2();
-        
+
         GLCapabilities caps = new GLCapabilities(glp);
-        caps.setAlphaBits(4);        
+        caps.setAlphaBits(4);
         System.out.println("Requested: "+caps);
-        
+
         final GLWindow window = GLWindow.create(caps);
-        
+
         window.setPosition(10, 10);
-        window.setSize(800, 400);        
+        window.setSize(800, 400);
         window.setTitle("GPU Text Newt Demo 02 - vbaa1 msaa0");
-        
+
         RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
-        GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(rs, Region.VBAA_RENDERING_BIT, window.getWidth()*3, DEBUG, TRACE);
+        GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(rs, Region.VBAA_RENDERING_BIT, 4, DEBUG, TRACE);
         // ((TextRenderer)textGLListener.getRenderer()).setCacheLimit(32);
         window.addGLEventListener(textGLListener);
-        
-        window.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);        
         window.setVisible(true);
         // FPSAnimator animator = new FPSAnimator(60);
         final Animator animator = new Animator();
-        animator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
+        animator.setUpdateFPSFrames(60, System.err);
         animator.add(window);
-        
+
         window.addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent arg0) {
                 if(arg0.getKeyCode() == KeyEvent.VK_F4) {
@@ -93,7 +90,7 @@ public class GPUTextNewtDemo02 {
                 animator.stop();
             }
         });
-                
+
         animator.start();
-    }    
+    }
 }

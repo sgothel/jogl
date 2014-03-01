@@ -58,8 +58,7 @@ public abstract class GLReadBuffer00Base extends UITestCase {
 
         public TextRendererGLEL() {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
-            super(Region.VBAA_RENDERING_BIT);
-            texSizeScale = 2;
+            super(Region.VBAA_RENDERING_BIT, new int[] { 4 });
 
             staticRGBAColor[0] = 1.0f;
             staticRGBAColor[1] = 1.0f;

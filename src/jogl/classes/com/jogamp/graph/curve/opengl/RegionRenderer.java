@@ -36,7 +36,6 @@ import javax.media.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderState;
 import com.jogamp.opengl.util.PMVMatrix;
-import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 
 /**

@@ -31,7 +31,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     private boolean trace = false;
 
     private final int renderModes;
-    private final int[] texSize = new int[1];
+    private final int[] sampleCount = new int[1];
     private final int renderModes2;
     private final int[] texSize2 = new int[1];
     private RegionRenderer regionRenderer;
@@ -77,7 +77,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     public GPUUISceneGLListener0A(RenderState rs, int renderModes, boolean debug, boolean trace) {
         this.rs = rs;
         this.renderModes = renderModes;
-        this.texSize[0] = Region.isVBAA(renderModes) ? 400 : 0;
+        this.sampleCount[0] = Region.isVBAA(renderModes) ? 4 : 0;
         this.renderModes2 = 0;
         this.texSize2[0] = 0;
 
@@ -237,7 +237,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         initTexts();
         initButtons(width, height);
 
-        sceneUIController.setRenderer(regionRenderer, rs, renderModes, texSize);
+        sceneUIController.setRenderer(regionRenderer, renderModes, sampleCount);
         sceneUIController.addShape(buttons[0]);
         sceneUIController.addShape(buttons[1]);
         sceneUIController.addShape(buttons[2]);
