@@ -65,7 +65,7 @@ import java.util.ArrayList;
  */
 public class GlyfCompositeDescript extends GlyfDescript {
 
-    private ArrayList<GlyfCompositeComp> _components =
+    private final ArrayList<GlyfCompositeComp> _components =
         new ArrayList<GlyfCompositeComp>();
 
     public GlyfCompositeDescript(
@@ -167,8 +167,9 @@ public class GlyfCompositeDescript extends GlyfDescript {
 
     @Override
     public int getContourCount() {
-        GlyfCompositeComp c = _components.get(_components.size()-1);
-        return c.getFirstContour() + _parentTable.getDescription(c.getGlyphIndex()).getContourCount();
+        final GlyfCompositeComp c = _components.get(_components.size()-1);
+        final GlyfDescript d = _parentTable.getDescription(c.getGlyphIndex());
+        return c.getFirstContour() + ( null != d ? d.getContourCount() : 0 );
     }
 
     public int getComponentIndex(int i) {

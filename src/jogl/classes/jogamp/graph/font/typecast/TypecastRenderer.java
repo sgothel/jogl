@@ -38,7 +38,8 @@ import com.jogamp.graph.geom.Vertex.Factory;
  * Factory to build an {@link OutlineShape} from
  * {@link jogamp.graph.font.typecast.ot.OTGlyph Glyph}s.
  *
- * http://developer.apple.com/textfonts/TTRefMan/RM06/Chap6.html
+ * http://www.freetype.org/freetype2/docs/glyphs/glyphs-3.html
+ * http://walon.org/pub/ttf/ttf_glyphs.htm
  */
 public class TypecastRenderer {
     private static final boolean DEBUG = false;
@@ -60,11 +61,12 @@ public class TypecastRenderer {
         shape.addVertex(0, vertexFactory.create(p1.x,  p1.y, 0, p1.onCurve));
         shape.addVertex(0, vertexFactory.create(p2x,    p2y, 0, p2OnCurve));
     }
+    /**
     private static void addShapeCubicTo(final OutlineShape shape, Factory<? extends Vertex> vertexFactory, Point p1, Point p2, Point p3) {
         shape.addVertex(0, vertexFactory.create(p1.x,  p1.y, 0, p1.onCurve));
         shape.addVertex(0, vertexFactory.create(p2.x,  p2.y, 0, p2.onCurve));
         shape.addVertex(0, vertexFactory.create(p3.x,  p3.y, 0, p3.onCurve));
-    }
+    } */
 
     public static OutlineShape buildShape(char symbol, OTGlyph glyph, Factory<? extends Vertex> vertexFactory) {
         //
@@ -161,8 +163,12 @@ public class TypecastRenderer {
                             } else {
                                 if (null != p3 && p3.onCurve) {
                                     // Branch-3: point.onCurve && !p1.onCurve && !p2.onCurve && p3.onCurve
-                                    if( DEBUG ) { System.err.println("B3 .. cubic-to p0-p1-p2-p3 **** CUBIC"); }
-                                    addShapeCubicTo(shape, vertexFactory, p1, p2, p3);
+                                    if( DEBUG ) { System.err.println("B3 .. 2-quad p0-p1-p1_2, p1_2-p2-p3 **** 2QUAD"); }
+                                    // addShapeCubicTo(shape, vertexFactory, p1, p2, p3);
+                                    addShapeQuadTo(shape, vertexFactory, p1,
+                                                   midValue(p1.x, p2.x),
+                                                   midValue(p1.y, p2.y), true);
+                                    addShapeQuadTo(shape, vertexFactory, p2, p3);
                                     offset+=3;
                                 } else {
                                     // Branch-4: point.onCurve && !p1.onCurve && !p2.onCurve && !p3.onCurve
@@ -174,7 +180,6 @@ public class TypecastRenderer {
                                     addShapeQuadTo(shape, vertexFactory, p1,
                                                    midValue(p1.x, p2.x),
                                                    midValue(p1.y, p2.y), true);
-                                    // offset++; // Don't skip p2, not completed yet FIXME ?
                                     offset+=2; // Skip p2 as done in Typecast
                                 }
                             }
@@ -210,8 +215,4 @@ public class TypecastRenderer {
     private static float midValue(float a, float b) {
         return a + (b - a)/2f;
     }
-    /**
-    private static Point midPoint(Point a, Point b, boolean onCurve) {
-        return new Point(midValue(a.x, b.x), midValue(a.y, b.y), onCurve, false);
-    } */
 }
