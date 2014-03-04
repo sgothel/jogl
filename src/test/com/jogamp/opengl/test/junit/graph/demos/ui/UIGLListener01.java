@@ -45,7 +45,7 @@ import com.jogamp.opengl.test.junit.graph.demos.ui.opengl.UIRegion;
 public class UIGLListener01 extends UIListenerBase01 {
 
     public UIGLListener01 (RenderState rs, boolean debug, boolean trace) {
-        super(RegionRenderer.create(rs, 0), debug, trace);
+        super(RegionRenderer.create(rs, 0, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable), debug, trace);
         setMatrix(-20, 00, 0f, -50);
         try {
             final Font font = FontFactory.get(FontFactory.UBUNTU).getDefault();

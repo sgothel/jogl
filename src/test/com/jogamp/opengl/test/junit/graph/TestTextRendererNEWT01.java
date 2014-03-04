@@ -209,7 +209,7 @@ public class TestTextRendererNEWT01 extends UITestCase {
         String winTitle;
 
         public TextGLListener(RenderState rs, int type, boolean debug, boolean trace) {
-            super(rs, type, 4, debug, trace);
+            super(rs, type, 4, true, debug, trace);
         }
 
         public void attachInputListenerTo(GLWindow window) {

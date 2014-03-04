@@ -225,7 +225,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             ioe.printStackTrace();
         }
 
-        regionRenderer = RegionRenderer.create(rs, renderModes);
+        regionRenderer = RegionRenderer.create(rs, renderModes, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
 
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
         gl.glEnable(GL2ES2.GL_BLEND);

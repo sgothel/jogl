@@ -56,10 +56,20 @@ public class GPUTextNewtDemo02 {
     static final boolean TRACE = false;
 
     public static void main(String[] args) {
-        GLProfile glp = GLProfile.getGL2ES2();
+        boolean alpha = true;
+        boolean blending = true;
+        for(int i=0; i<args.length; i++) {
+            if(args[i].equals("-noblend")) {
+                blending = false;
+            } else if(args[i].equals("-noalpha")) {
+                alpha = false;
+            }
+        }
+
+        final GLProfile glp = GLProfile.getGL2ES2();
 
         GLCapabilities caps = new GLCapabilities(glp);
-        caps.setAlphaBits(4);
+        caps.setAlphaBits( alpha ? 4 : 0 );
         System.out.println("Requested: "+caps);
 
         final GLWindow window = GLWindow.create(caps);
@@ -69,7 +79,7 @@ public class GPUTextNewtDemo02 {
         window.setTitle("GPU Text Newt Demo 02 - gvbaa4 gmsaa0");
 
         RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
-        GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(rs, Region.VBAA_RENDERING_BIT, 4, DEBUG, TRACE);
+        GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(rs, Region.VBAA_RENDERING_BIT, 4, blending, DEBUG, TRACE);
         // ((TextRenderer)textGLListener.getRenderer()).setCacheLimit(32);
         window.addGLEventListener(textGLListener);
         window.setVisible(true);

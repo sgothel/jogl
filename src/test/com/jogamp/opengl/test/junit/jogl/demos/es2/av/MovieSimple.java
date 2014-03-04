@@ -136,12 +136,14 @@ public class MovieSimple implements GLEventListener {
 
     private final class InfoTextRendererGLELBase extends TextRendererGLELBase {
         private final Font font = getFont(0, 0, 0);
-        private final float fontSize = 12f;
+        private final float fontSize = 10f;
         private final GLRegion regionFPS;
 
         InfoTextRendererGLELBase() {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
             super(Region.VBAA_RENDERING_BIT, textSampleCount);
+            // NOTE_ALPHA_BLENDING: We go w/o alpha and blending!
+            // this.setRendererCallbacks(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
             regionFPS = GLRegion.create(usrRenderModes);
             System.err.println("RegionFPS "+Region.getRenderModeString(usrRenderModes)+", sampleCount "+textSampleCount[0]+", class "+regionFPS.getClass().getName());
 
@@ -186,6 +188,7 @@ public class MovieSimple implements GLEventListener {
                     mPlayer.getVID(), mPlayer.getVideoBitrate()/1000, mPlayer.getVideoCodec());
             final String text4 = mPlayer.getURI().getRawPath();
             if( displayOSD && null != renderer ) {
+                // We share ClearColor w/ MovieSimple's init !
                 final float pixelSize = font.getPixelSize(fontSize, dpiH);
                 renderString(drawable, font, pixelSize, text1, 1 /* col */,  1 /* row */, 0,      0, -1, regionFPS); // no-cache
                 renderString(drawable, font, pixelSize, text2, 1 /* col */, -4 /* row */, 0, height, -1, true);
@@ -1010,7 +1013,8 @@ public class MovieSimple implements GLEventListener {
             glp = GLProfile.getGL2ES2();
         }
         System.err.println("GLProfile: "+glp);
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
+        // caps.setAlphaBits(4); // NOTE_ALPHA_BLENDING: We go w/o alpha and blending!
 
         final MovieSimple[] mss = new MovieSimple[windowCount];
         final GLWindow[] windows = new GLWindow[windowCount];

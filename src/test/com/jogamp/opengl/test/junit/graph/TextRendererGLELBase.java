@@ -52,17 +52,10 @@ public abstract class TextRendererGLELBase implements GLEventListener {
     protected final int[] vbaaSampleCount;
     protected final float[] staticRGBAColor = new float[] { 1f, 1f, 1f, 1f };
 
-    /**
-     * In exclusive mode, impl. uses a pixelScale of 1f and orthogonal PMV on window dimensions
-     * and renderString uses 'height' for '1'.
-     * <p>
-     * In non-exclusive mode, i.e. shared w/ custom PMV (within another 3d scene),
-     * it uses the custom pixelScale and renderString uses normalized 'height', i.e. '1'.
-     * </p>
-     */
-    protected boolean exclusivePMVMatrix = true;
-    protected PMVMatrix usrPMVMatrix = null;
-    protected RenderState rs = null;
+    private boolean exclusivePMVMatrix = true;
+    private PMVMatrix sharedPMVMatrix = null;
+    private RenderState rs = null;
+    private RegionRenderer.GLCallback enableCallback=null, disableCallback=null;
     protected RegionRenderer renderer = null;
     protected TextRegionUtil textRenderUtil = null;
 
@@ -90,9 +83,9 @@ public abstract class TextRendererGLELBase implements GLEventListener {
     }
 
     /**
-     *
      * @param renderModes
      * @param sampleCount desired multisampling sample count for msaa-rendering.
+     * @see #setRendererCallbacks(com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback)
      */
     public TextRendererGLELBase(final int renderModes, int[] sampleCount) {
         this.usrRenderModes = renderModes;
@@ -100,16 +93,37 @@ public abstract class TextRendererGLELBase implements GLEventListener {
     }
 
     /**
-     *
+     * <p>
+     * Must be called before {@link #init(GLAutoDrawable)}.
+     * </p>
      * @param rs
-     * @param exclusivePMVMatrix
-     * @param renderModes
-     * @param sampleCount desired multisampling sample count for msaa-rendering.
      */
-    public TextRendererGLELBase(final RenderState rs, final boolean exclusivePMVMatrix, final int renderModes, int[] sampleCount) {
-        this(renderModes, sampleCount);
-        this.rs = rs;
-        this.exclusivePMVMatrix = exclusivePMVMatrix;
+    public void setRenderState(RenderState rs) { this.rs = rs; }
+
+    /**
+     * In exclusive mode, impl. uses a pixelScale of 1f and orthogonal PMV on window dimensions
+     * and renderString uses 'height' for '1'.
+     * <p>
+     * In non-exclusive mode, i.e. shared w/ custom PMV (within another 3d scene),
+     * it uses the custom pixelScale and renderString uses normalized 'height', i.e. '1'.
+     * </p>
+     * <p>
+     * Must be called before {@link #init(GLAutoDrawable)}.
+     * </p>
+     */
+    public void setSharedPMVMatrix(PMVMatrix pmv) {
+        this.sharedPMVMatrix = pmv;
+    }
+
+    /**
+     * See {@link RegionRenderer#create(RenderState, int, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback)}.
+     * <p>
+     * Must be called before {@link #init(GLAutoDrawable)}.
+     * </p>
+     */
+    public void setRendererCallbacks(RegionRenderer.GLCallback enable, RegionRenderer.GLCallback disable) {
+        this.enableCallback = enable;
+        this.disableCallback = disable;
     }
 
     public void setFlipVerticalInGLOrientation(boolean v) { flipVerticalInGLOrientation=v; }
@@ -119,10 +133,10 @@ public abstract class TextRendererGLELBase implements GLEventListener {
     @Override
     public void init(GLAutoDrawable drawable) {
         if( null == this.rs ) {
-            exclusivePMVMatrix = null == usrPMVMatrix;
-            this.rs = RenderState.createRenderState(new ShaderState(), SVertex.factory(), usrPMVMatrix);
+            exclusivePMVMatrix = null == sharedPMVMatrix;
+            this.rs = RenderState.createRenderState(new ShaderState(), SVertex.factory(), sharedPMVMatrix);
         }
-        this.renderer = RegionRenderer.create(rs, usrRenderModes);
+        this.renderer = RegionRenderer.create(rs, usrRenderModes, enableCallback, disableCallback);
         this.textRenderUtil = new TextRegionUtil(renderer);
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         renderer.init(gl);
@@ -243,7 +257,6 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             dx += pixelScale * font.getAdvanceWidth('X', pixelSize) * column;
             dy -= pixelScale * lineHeight * ( row + 1 );
 
-            final ShaderState st = rs.getShaderState();
             final PMVMatrix pmvMatrix = rs.pmvMatrix();
             pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
             if( !exclusivePMVMatrix )  {
@@ -251,15 +264,13 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             } else {
                 pmvMatrix.glLoadIdentity();
             }
-
-            st.useProgram(gl, true);
-            gl.glEnable(GL2ES2.GL_BLEND);
             pmvMatrix.glTranslatef(dx, dy, tz);
             if( flipVerticalInGLOrientation && drawable.isGLOriented() ) {
                 pmvMatrix.glScalef(pixelScale, -1f*pixelScale, 1f);
             } else if( 1f != pixelScale ) {
                 pmvMatrix.glScalef(pixelScale, pixelScale, 1f);
             }
+            renderer.enable(gl, true);
             renderer.updateMatrix(gl);
             if( cacheRegion ) {
                 textRenderUtil.drawString3D(gl, font, pixelSize, text, vbaaSampleCount);
@@ -268,8 +279,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             } else {
                 TextRegionUtil.drawString3D(renderer, gl, font, pixelSize, text, vbaaSampleCount);
             }
-            st.useProgram(gl, false);
-            gl.glDisable(GL2ES2.GL_BLEND);
+            renderer.enable(gl, false);
 
             if( !exclusivePMVMatrix )  {
                 pmvMatrix.glPopMatrix();

@@ -48,6 +48,7 @@ import org.junit.runners.MethodSorters;
 import com.jogamp.common.os.Platform;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
@@ -263,7 +264,10 @@ public class TestTextRendererNEWT00 extends UITestCase {
         float dpiH;
 
         TextRendererGLEL(final RenderState rs, final int renderModes, final int sampleCount) {
-            super(rs, true /* exclusivePMV */, renderModes, new int[] { sampleCount }); // Region.VBAA_RENDERING_BIT);
+            super(renderModes, new int[] { sampleCount });
+            setRendererCallbacks(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
+            setRenderState(rs);
+
             regionFPS = GLRegion.create(renderModes);
             regionFPSAnim = GLRegion.create(renderModes);
             if( null != fontFileName ) {

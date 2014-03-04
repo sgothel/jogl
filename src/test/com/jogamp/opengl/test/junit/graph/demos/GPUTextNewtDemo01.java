@@ -59,7 +59,7 @@ public class GPUTextNewtDemo01 {
         window.setTitle("GPU Text Newt Demo 01 - smsaa1");
 
         final RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
-        GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(rs, 0, 0, DEBUG, TRACE);
+        GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(rs, 0, 0, true, DEBUG, TRACE);
         window.addGLEventListener(textGLListener);
 
         final Animator animator = new Animator();

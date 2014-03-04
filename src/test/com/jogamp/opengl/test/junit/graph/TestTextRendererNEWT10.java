@@ -139,7 +139,7 @@ public class TestTextRendererNEWT10 extends UITestCase {
         System.err.println("Chosen: "+winctx.window.getChosenCapabilities());
 
         final RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
-        final RegionRenderer renderer = RegionRenderer.create(rs, 0);
+        final RegionRenderer renderer = RegionRenderer.create(rs, 0, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
         final TextRegionUtil textRenderUtil = new TextRegionUtil(renderer);
 
         // init

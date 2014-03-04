@@ -27,6 +27,7 @@
  */
 package com.jogamp.graph.curve.opengl;
 
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 
 import com.jogamp.opengl.util.PMVMatrix;
@@ -93,10 +94,30 @@ public abstract class GLRegion extends Region {
      * Renders the associated OGL objects specifying
      * current width/hight of window for multi pass rendering
      * of the region.
+     * <p>
+     * User shall consider {@link RegionRenderer#enable(GL2ES2, boolean) enabling}
+     * the renderer beforehand and {@link RegionRenderer#enable(GL2ES2, boolean) disabling}
+     * it afterwards when used in conjunction with other renderer.
+     * </p>
+     * <p>
+     * Users shall also consider setting the {@link GL#glClearColor(float, float, float, float) Clear Color}
+     * appropriately:
+     * <ul>
+     *   <li>If {@link GL#GL_BLEND blending} is enabled, <i>RGB</i> shall be set to text color, otherwise
+     *       blending will reduce the alpha seam's contrast and the font will appear thinner.</li>
+     *   <li>If {@link GL#GL_BLEND blending} is disabled, <i>RGB</i> shall be set to the actual desired background.</li>
+     * </ul>
+     * The <i>alpha</i> component shall be set to zero.
+     * Note: If {@link GL#GL_BLEND blending} is enabled, the
+     * {@link RegionRenderer} might need to be
+     * {@link RegionRenderer#create(RenderState, int, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback) created}
+     * with the appropriate {@link {@link RegionRenderer.GLCallback callbacks}.
+     * </p>
      * @param matrix current {@link PMVMatrix}.
      * @param renderer the {@link RegionRenderer} to be used
      * @param sampleCount desired multisampling sample count for msaa-rendering.
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
+     * @see RegionRenderer#enable(GL2ES2, boolean)
      */
     public final void draw(GL2ES2 gl, RegionRenderer renderer, int[/*1*/] sampleCount) {
         if(isDirty()) {

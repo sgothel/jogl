@@ -33,18 +33,12 @@ import javax.media.opengl.GLAutoDrawable;
 
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class GPUTextGLListener0A extends GPUTextRendererListenerBase01 {
 
-    public GPUTextGLListener0A() {
-        this( RenderState.createRenderState(new ShaderState(), SVertex.factory()), 0, 4, false, false ) ;
-    }
-
-    public GPUTextGLListener0A(RenderState rs, int renderModes, int sampleCount, boolean debug, boolean trace) {
-        super(rs, renderModes, sampleCount, debug, trace);
+    public GPUTextGLListener0A(RenderState rs, int renderModes, int sampleCount, boolean blending, boolean debug, boolean trace) {
+        super(rs, renderModes, sampleCount, blending, debug, trace);
     }
 
     public void init(GLAutoDrawable drawable) {

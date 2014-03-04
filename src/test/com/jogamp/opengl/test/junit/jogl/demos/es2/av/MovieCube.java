@@ -169,6 +169,8 @@ public class MovieCube implements GLEventListener {
         InfoTextRendererGLELBase() {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
             super(Region.VBAA_RENDERING_BIT, MovieCube.this.textSampleCount);
+            // NOTE_ALPHA_BLENDING: We go w/o alpha and blending!
+            // this.setRendererCallbacks(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
             regionFPS = GLRegion.create(usrRenderModes);
             System.err.println("RegionFPS "+Region.getRenderModeString(usrRenderModes)+", sampleCount "+textSampleCount[0]+", class "+regionFPS.getClass().getName());
 
@@ -181,7 +183,7 @@ public class MovieCube implements GLEventListener {
         @Override
         public void init(GLAutoDrawable drawable) {
             // non-exclusive mode!
-            this.usrPMVMatrix = cube.pmvMatrix;
+            this.setSharedPMVMatrix(cube.pmvMatrix);
             super.init(drawable);
 
             pixelSize = font.getPixelSize(fontSize, dpiH);
@@ -237,6 +239,7 @@ public class MovieCube implements GLEventListener {
                     mPlayer.getVID(), mPlayer.getVideoBitrate()/1000, mPlayer.getVideoCodec());
             final String text4 = mPlayer.getURI().getRawPath();
             if( displayOSD && null != renderer ) {
+                drawable.getGL().glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
                 renderString(drawable, font, pixelSize, text1, 1 /* col */, -1 /* row */, -1+z_diff, yoff1, 1f+z_diff, regionFPS); // no-cache
                 renderString(drawable, font, pixelSize, text2, 1 /* col */,  0 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
                 renderString(drawable, font, pixelSize, text3, 1 /* col */,  1 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
@@ -520,7 +523,9 @@ public class MovieCube implements GLEventListener {
             glp = GLProfile.getGL2ES2();
         }
         System.err.println("GLProfile: "+glp);
-        final GLWindow window = GLWindow.create(new GLCapabilities(glp));
+        final GLCapabilities caps = new GLCapabilities(glp);
+        // caps.setAlphaBits(4); // NOTE_ALPHA_BLENDING: We go w/o alpha and blending!
+        final GLWindow window = GLWindow.create(caps);
         final Animator anim = new Animator(window);
         window.addWindowListener(new WindowAdapter() {
             public void windowDestroyed(WindowEvent e) {
@@ -529,6 +534,7 @@ public class MovieCube implements GLEventListener {
         });
         window.setSize(width, height);
         window.setVisible(true);
+        System.err.println("Chosen: "+window.getChosenGLCapabilities());
         anim.start();
 
         mc.mPlayer.addEventListener(new GLMediaEventListener() {

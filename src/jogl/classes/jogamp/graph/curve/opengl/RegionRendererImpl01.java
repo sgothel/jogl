@@ -41,8 +41,8 @@ import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class RegionRendererImpl01 extends RegionRenderer {
 
-    public RegionRendererImpl01(RenderState rs, int renderModes) {
-        super(rs, renderModes);
+    public RegionRendererImpl01(final RenderState rs, final int renderModes, final GLCallback enableCallback, final GLCallback disableCallback) {
+        super(rs, renderModes, enableCallback, disableCallback);
     }
 
     @Override

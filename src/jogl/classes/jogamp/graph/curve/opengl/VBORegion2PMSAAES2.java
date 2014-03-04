@@ -353,7 +353,6 @@ public class VBORegion2PMSAAES2  extends GLRegion {
         gl.glViewport(0, 0, fboWidth, fboHeight);
         st.uniform(gl, mgl_fboPMVMatrix); // use orthogonal matrix
 
-        gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         gl.glClear(GL2ES2.GL_COLOR_BUFFER_BIT | GL2ES2.GL_DEPTH_BUFFER_BIT);
         renderRegion(gl);
         fbo.unbind(gl);

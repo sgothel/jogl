@@ -29,6 +29,7 @@ package com.jogamp.graph.curve.opengl;
 
 import java.nio.FloatBuffer;
 
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLException;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
@@ -49,22 +50,74 @@ public abstract class RegionRenderer {
     protected static final boolean DEBUG = Region.DEBUG;
     protected static final boolean DEBUG_INSTANCE = Region.DEBUG_INSTANCE;
 
+    public interface GLCallback {
+        /**
+         * @param gl a current GL object
+         * @param renderer {@link RegionRenderer} calling this method.
+         */
+        void run(GL gl, RegionRenderer renderer);
+    }
+
+    /**
+     * Default {@link GL#GL_BLEND} <i>enable</i> {@link GLCallback},
+     * turning on the {@link GL#GL_BLEND} state and setting up
+     * {@link GL#glBlendFunc(int, int) glBlendFunc}({@link GL#GL_SRC_ALPHA}, {@link GL#GL_ONE_MINUS_SRC_ALPHA}).
+     * @see #setEnableCallback(GLCallback, GLCallback)
+     * @see #enable(GL2ES2, boolean)
+     */
+    public static final GLCallback defaultBlendEnable = new GLCallback() {
+        @Override
+        public void run(final GL gl, final RegionRenderer args) {
+            gl.glEnable(GL.GL_BLEND);
+            gl.glBlendEquation(GL.GL_FUNC_ADD); // default
+            gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+        }
+    };
+
+    /**
+     * Default {@link GL#GL_BLEND} <i>disable</i> {@link GLCallback},
+     * simply turning off the {@link GL#GL_BLEND} state.
+     * @see #setEnableCallback(GLCallback, GLCallback)
+     * @see #enable(GL2ES2, boolean)
+     */
+    public static final GLCallback defaultBlendDisable = new GLCallback() {
+        @Override
+        public void run(final GL gl, final RegionRenderer args) {
+            gl.glDisable(GL.GL_BLEND);
+        }
+    };
+
     public static boolean isWeightValid(float v) {
         return 0.0f <= v && v <= 1.9f ;
     }
 
     /**
      * Create a Hardware accelerated Region Renderer.
+     * <p>
+     * The optional {@link GLCallback}s <code>enableCallback</code> and <code>disableCallback</code>
+     * maybe used to issue certain tasks at {@link #enable(GL2ES2, boolean)}.<br/>
+     * For example, instances {@link #defaultBlendEnable} and {@link #defaultBlendDisable}
+     * can be utilized to enable and disable {@link GL#GL_BLEND}.
+     * </p>
      * @param rs the used {@link RenderState}
      * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, {@link Region#VBAA_RENDERING_BIT}
+     * @param enableCallback optional {@link GLCallback}, if not <code>null</code> will be issued at
+     *                       {@link #init(GL2ES2) init(gl)} and {@link #enable(GL2ES2, boolean) enable(gl, true)}.
+     * @param disableCallback optional {@link GLCallback}, if not <code>null</code> will be issued at
+     *                        {@link #enable(GL2ES2, boolean) enable(gl, false)}.
      * @return an instance of Region Renderer
+     * @see #enable(GL2ES2, boolean)
      */
-    public static RegionRenderer create(RenderState rs, int renderModes) {
-        return new jogamp.graph.curve.opengl.RegionRendererImpl01(rs, renderModes);
+    public static RegionRenderer create(final RenderState rs, final int renderModes,
+                                        final GLCallback enableCallback, final GLCallback disableCallback) {
+        return new jogamp.graph.curve.opengl.RegionRendererImpl01(rs, renderModes, enableCallback, disableCallback);
     }
 
     protected final int renderModes;
     protected final RenderState rs;
+
+    protected final GLCallback enableCallback;
+    protected final GLCallback disableCallback;
 
     protected int vp_width;
     protected int vp_height;
@@ -96,9 +149,11 @@ public abstract class RegionRenderer {
      * @param rs the used {@link RenderState}
      * @param renderModes bit-field of modes
      */
-    protected RegionRenderer(RenderState rs, int renderModes) {
+    protected RegionRenderer(final RenderState rs, final int renderModes, final GLCallback enableCallback, final GLCallback disableCallback) {
         this.rs = rs;
         this.renderModes = renderModes;
+        this.enableCallback = enableCallback;
+        this.disableCallback = disableCallback;
     }
 
     public final int getRenderModes() {
@@ -148,8 +203,9 @@ public abstract class RegionRenderer {
 
         rs.attachTo(gl);
 
-        gl.glEnable(GL2ES2.GL_BLEND);
-        gl.glBlendFunc(GL2ES2.GL_SRC_ALPHA, GL2ES2.GL_ONE_MINUS_SRC_ALPHA); // FIXME: alpha blending stage ?
+        if( null != enableCallback ) {
+            enableCallback.run(gl, this);
+        }
 
         initialized = initImpl(gl);
         if(!initialized) {
@@ -191,7 +247,25 @@ public abstract class RegionRenderer {
     public final RenderState getRenderState() { return rs; }
     public final ShaderState getShaderState() { return rs.getShaderState(); }
 
+    /**
+     * Enabling or disabling the {@link RenderState#getShaderState() RenderState}'s
+     * {@link ShaderState#useProgram(GL2ES2, boolean) ShaderState program}.
+     * <p>
+     * In case enable and disable {@link GLCallback}s are setup via {@link #create(RenderState, int, GLCallback, GLCallback)},
+     * they will be called before toggling the shader program.
+     * </p>
+     * @see #create(RenderState, int, GLCallback, GLCallback)
+     */
     public final void enable(GL2ES2 gl, boolean enable) {
+        if( enable ) {
+            if( null != enableCallback ) {
+                enableCallback.run(gl, this);
+            }
+        } else {
+            if( null != disableCallback ) {
+                disableCallback.run(gl, this);
+            }
+        }
         rs.getShaderState().useProgram(gl, enable);
     }
 

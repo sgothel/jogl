@@ -69,7 +69,7 @@ public class GPUTextNewtDemo03 {
         window.setTitle("GPU Text Newt Demo 02 - gvbaa0 gmsaa4");
 
         RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
-        GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(rs, Region.MSAA_RENDERING_BIT, 4, DEBUG, TRACE);
+        GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(rs, Region.MSAA_RENDERING_BIT, 4, true, DEBUG, TRACE);
         // ((TextRenderer)textGLListener.getRenderer()).setCacheLimit(32);
         window.addGLEventListener(textGLListener);
         window.setVisible(true);

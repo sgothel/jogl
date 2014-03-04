@@ -47,6 +47,6 @@ public abstract class GPURegionRendererListenerBase01 extends GPURendererListene
     OutlineShape outlineShape = null;
 
     public GPURegionRendererListenerBase01(RenderState rs, int renderModes, boolean debug, boolean trace) {
-        super(RegionRenderer.create(rs, renderModes), renderModes, debug, trace);
+        super(RegionRenderer.create(rs, renderModes, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable), renderModes, debug, trace);
     }
 }

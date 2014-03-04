@@ -305,14 +305,6 @@ public class TextureSequenceCubeES2 implements GLEventListener {
 
         gl.glViewport(0, 0, width, height);
 
-        if(innerCube) {
-            // Clear background to white
-            gl.glClearColor(1.0f, 1.0f, 1.0f, 0.4f);
-        } else {
-            // Clear background to blue
-            gl.glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
-        }
-
         if(!innerCube) {
             // lights on
         } else {
@@ -370,6 +362,13 @@ public class TextureSequenceCubeES2 implements GLEventListener {
     public void display(GLAutoDrawable drawable) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
+        if(innerCube) {
+            // Clear background to white
+            gl.glClearColor(1.0f, 1.0f, 1.0f, 0.4f);
+        } else {
+            // Clear background to blue
+            gl.glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
+        }
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
         if( null == st ) {
