@@ -6,11 +6,10 @@ uniform mat4    gcu_PMVMatrix[3]; // P, Mv, and Mvi
 uniform vec3    gcu_ColorStatic;
 uniform float   gcu_Alpha;
 uniform float   gcu_Weight;
-uniform sampler2D      gcu_TextureUnit;
+uniform sampler2D  gcu_TextureUnit;
 
-// #if __VERSION__ < 130
-uniform vec2    gcu_TextureSize;
-// #endif
+/** 3rd component: 0: pass-1, >0: pass-2, sampleCount */
+uniform vec3   gcu_TextureSize;
 
 // const   int     MAX_TEXTURE_UNITS = 8; // <= gl_MaxTextureImageUnits 
 // const   int     MAX_LIGHTS = 8; 

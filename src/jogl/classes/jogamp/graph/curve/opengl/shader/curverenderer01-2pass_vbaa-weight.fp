@@ -15,79 +15,95 @@
 #include uniforms.glsl
 #include varyings.glsl
 
-const vec4 tex_weights = vec4(0.075, 0.06, 0.045, 0.025);
+const vec3 zero3 = vec3(0);
 
 void main (void)
 {
-    vec2 rtex = vec2(abs(gcv_TexCoord.x),abs(gcv_TexCoord.y));
-    vec3 c = gcu_ColorStatic.rgb;
+    vec3 c;
+    float alpha;
     
-    float alpha = 0.0;
-    
-    if((gcv_TexCoord.x == 0.0) && (gcv_TexCoord.y == 0.0)) {
-         alpha = gcu_Alpha;
-    }
-    else if((gcv_TexCoord.x >= 5.0)) {
-        vec2 size = 1.0/gcu_TextureSize;
+    if( 0 < gcu_TextureSize.z ) {
+        // Pass-2: AA on Texture
+        // Note: gcv_TexCoord is in center of sample pixels.
 
-        rtex -= 5.0;
-        vec4 t = texture2D(gcu_TextureUnit, rtex)* 0.18;
+        float sampleCount = gcu_TextureSize.z;
+        vec2 psize = 1.0 / gcu_TextureSize.xy; // pixel size
 
-        t += texture2D(gcu_TextureUnit, rtex + size*(vec2(1, 0)))*tex_weights.x;
-        t += texture2D(gcu_TextureUnit, rtex - size*(vec2(1, 0)))*tex_weights.x;
-        t += texture2D(gcu_TextureUnit, rtex + size*(vec2(0, 1)))*tex_weights.x;
-        t += texture2D(gcu_TextureUnit, rtex - size*(vec2(0, 1)))*tex_weights.x;
-        
-        t += texture2D(gcu_TextureUnit, rtex + 2.0*size*(vec2(1, 0)))*tex_weights.y;
-        t += texture2D(gcu_TextureUnit, rtex - 2.0*size*(vec2(1, 0)))*tex_weights.y;
-        t += texture2D(gcu_TextureUnit, rtex + 2.0*size*(vec2(0, 1)))*tex_weights.y; 
-        t += texture2D(gcu_TextureUnit, rtex - 2.0*size*(vec2(0, 1)))*tex_weights.y;
-        
-        t += texture2D(gcu_TextureUnit, rtex + 3.0*size*(vec2(1, 0)))*tex_weights.z;
-        t += texture2D(gcu_TextureUnit, rtex - 3.0*size*(vec2(1, 0)))*tex_weights.z;
-        t += texture2D(gcu_TextureUnit, rtex + 3.0*size*(vec2(0, 1)))*tex_weights.z;
-        t += texture2D(gcu_TextureUnit, rtex - 3.0*size*(vec2(0, 1)))*tex_weights.z;
-        
-        t += texture2D(gcu_TextureUnit, rtex + 4.0*size*(vec2(1, 0)))*tex_weights.w;
-        t += texture2D(gcu_TextureUnit, rtex - 4.0*size*(vec2(1, 0)))*tex_weights.w;
-        t += texture2D(gcu_TextureUnit, rtex + 4.0*size*(vec2(0, 1)))*tex_weights.w;
-        t += texture2D(gcu_TextureUnit, rtex - 4.0*size*(vec2(0, 1)))*tex_weights.w;
-        
+        float sample_weight = 1 / ( 2 * sampleCount );
+        // float sample_weight = 1 / ( 2 * sampleCount + 1 );
+
+        vec4 t = vec4(0);
+        // vec4 t = texture2D(gcu_TextureUnit, gcv_TexCoord)* sample_weight; // center: +1
+
+        // SampleCount 2
+        t += texture2D(gcu_TextureUnit, gcv_TexCoord + psize*(vec2(-0.5, -0.5)))*sample_weight; // NW
+        t += texture2D(gcu_TextureUnit, gcv_TexCoord + psize*(vec2(-0.5,  0.5)))*sample_weight; // SW
+        t += texture2D(gcu_TextureUnit, gcv_TexCoord + psize*(vec2( 0.5,  0.5)))*sample_weight; // SE
+        t += texture2D(gcu_TextureUnit, gcv_TexCoord + psize*(vec2( 0.5, -0.5)))*sample_weight; // NE
+        if( sampleCount > 2 ) {
+            // SampleCount 4
+            t += texture2D(gcu_TextureUnit, gcv_TexCoord + psize*(vec2(-1.5, -1.5)))*sample_weight;
+            t += texture2D(gcu_TextureUnit, gcv_TexCoord + psize*(vec2(-1.5,  1.5)))*sample_weight;
+            t += texture2D(gcu_TextureUnit, gcv_TexCoord + psize*(vec2( 1.5,  1.5)))*sample_weight;
+            t += texture2D(gcu_TextureUnit, gcv_TexCoord + psize*(vec2( 1.5, -1.5)))*sample_weight;
+            if( sampleCount > 4 ) {
+                // SampleCount 8
+                t += texture2D(gcu_TextureUnit, gcv_TexCoord + psize*(vec2(-2.5, -2.5)))*sample_weight;
+                t += texture2D(gcu_TextureUnit, gcv_TexCoord + psize*(vec2(-2.5,  2.5)))*sample_weight;
+                t += texture2D(gcu_TextureUnit, gcv_TexCoord + psize*(vec2( 2.5,  2.5)))*sample_weight;
+                t += texture2D(gcu_TextureUnit, gcv_TexCoord + psize*(vec2( 2.5, -2.5)))*sample_weight;
+                t += texture2D(gcu_TextureUnit, gcv_TexCoord + psize*(vec2(-3.5, -3.5)))*sample_weight;
+                t += texture2D(gcu_TextureUnit, gcv_TexCoord + psize*(vec2(-3.5,  3.5)))*sample_weight;
+                t += texture2D(gcu_TextureUnit, gcv_TexCoord + psize*(vec2( 3.5,  3.5)))*sample_weight;
+                t += texture2D(gcu_TextureUnit, gcv_TexCoord + psize*(vec2( 3.5, -3.5)))*sample_weight;
+            }
+        }
         #if 0
-        if(t.w == 0.0) {
+        if(t.w == 0.0){
             discard; // discard freezes NV tegra2 compiler
         }
         #endif
         
-        c = t.xyz;
-        alpha = gcu_Alpha * t.w;
-    }
-    ///////////////////////////////////////////////////////////
-    else if ((gcv_TexCoord.x > 0.0) && (rtex.y > 0.0 || rtex.x == 1.0)) {
-        rtex.y -= 0.1;
+        c = t.rgb;
+        alpha = gcu_Alpha * t.a;
+    } else {
+        // pass-1
+        vec2 rtex = vec2(abs(gcv_TexCoord.x),abs(gcv_TexCoord.y));
+
+        if((gcv_TexCoord.x == 0.0) && (gcv_TexCoord.y == 0.0)) {
+             // pass-1: Lines
+             c = gcu_ColorStatic.rgb;
+             alpha = 1.0;
+        } else if ( gcv_TexCoord.x > 0.0 && (rtex.y > 0.0 || rtex.x == 1.0) ) {
+            // pass-1: curves
+            rtex.y -= 0.1;
         
-        if(rtex.y < 0.0 && gcv_TexCoord.y < 0.0) {
-            // discard; // freezes NV tegra2 compiler
-            alpha = 0.0;
+            if(rtex.y < 0.0 && gcv_TexCoord.y < 0.0) {
+                // discard; // freezes NV tegra2 compiler
+                c = zero3;
+                alpha = 0.0;
+            } else {
+                rtex.y = max(rtex.y, 0.0);
+
+                vec2 dtx = dFdx(rtex);
+                vec2 dty = dFdy(rtex);
+                  
+                float w = gcu_Weight;
+                float pd = ((2.0 - (2.0*w))*rtex.x*rtex.x) + 2.0*(w-1.0)*rtex.x + 1.0;
+                float position = rtex.y - ((w*rtex.x*(1.0 - rtex.x))/pd);
+
+                float aph = 2.0 - 2.0*w;
+                
+                float gd = (aph*rtex.x*rtex.x + 2.0*rtex.x + 1.0)*(aph*rtex.x*rtex.x + 2.0*rtex.x + 1.0);
+                vec2 f = vec2((dtx.y - (w*dtx.x*(1.0 - 2.0*rtex.x))/gd), (dty.y - (w*dty.x*(1.0 - 2.0*rtex.x))/gd));
+
+                c = gcu_ColorStatic.rgb;
+                alpha = clamp(0.5 - ( position/length(f) ) * sign(gcv_TexCoord.y), 0.0, 1.0);
+            }
         } else {
-            rtex.y = max(rtex.y, 0.0);
-
-            vec2 dtx = dFdx(rtex);
-            vec2 dty = dFdy(rtex);
-              
-            float w = gcu_Weight;
-            float pd = ((2.0 - (2.0*w))*rtex.x*rtex.x) + 2.0*(w-1.0)*rtex.x + 1.0;
-            float position = rtex.y - ((w*rtex.x*(1.0 - rtex.x))/pd);
-
-            float aph = 2.0 - 2.0*w;
-            
-            float gd = (aph*rtex.x*rtex.x + 2.0*rtex.x + 1.0)*(aph*rtex.x*rtex.x + 2.0*rtex.x + 1.0);
-            vec2 f = vec2((dtx.y - (w*dtx.x*(1.0 - 2.0*rtex.x))/gd), (dty.y - (w*dty.x*(1.0 - 2.0*rtex.x))/gd));
-
-            float a = clamp(0.5 - ( position/length(f) ) * sign(gcv_TexCoord.y), 0.0, 1.0);
-            alpha = gcu_Alpha * a;
+            c = zero3;
+            alpha = 0.0;
         }
     }
-
     mgl_FragColor = vec4(c, alpha);
 }

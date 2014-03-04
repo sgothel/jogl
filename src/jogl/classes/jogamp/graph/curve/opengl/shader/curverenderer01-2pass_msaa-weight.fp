@@ -15,55 +15,62 @@
 #include uniforms.glsl
 #include varyings.glsl
 
+const vec3 zero3 = vec3(0);
+
 void main (void)
 {
-    vec2 rtex = vec2(abs(gcv_TexCoord.x),abs(gcv_TexCoord.y));
-    vec3 c = gcu_ColorStatic.rgb;
+    vec3 c;
+    float alpha;
     
-    float alpha = 0.0;
-    
-    if((gcv_TexCoord.x == 0.0) && (gcv_TexCoord.y == 0.0)) {
-         alpha = gcu_Alpha;
-    }
-    else if((gcv_TexCoord.x >= 5.0)) {
-        rtex -= 5.0;
-        vec4 t = texture2D(gcu_TextureUnit, rtex);
-
+    if( 0 < gcu_TextureSize.z ) {
+        // Pass-2: Dump Texture
+        vec4 t = texture2D(gcu_TextureUnit, gcv_TexCoord);
         #if 0
-        if(t.w == 0.0) {
-            discard; // discard freezes NV tegra2 compiler
+        if( 0.0 == t.a ) {
+          discard; // discard freezes NV tegra2 compiler
         }
         #endif
-        
-        c = t.xyz;
-        alpha = gcu_Alpha * t.w;
-    }
-    ///////////////////////////////////////////////////////////
-    else if ((gcv_TexCoord.x > 0.0) && (rtex.y > 0.0 || rtex.x == 1.0)) {
-        rtex.y -= 0.1;
-        
-        if(rtex.y < 0.0 && gcv_TexCoord.y < 0.0) {
-            // discard; // freezes NV tegra2 compiler
-            alpha = 0.0;
-        } else {
-            rtex.y = max(rtex.y, 0.0);
 
-            vec2 dtx = dFdx(rtex);
-            vec2 dty = dFdy(rtex);
+        c = t.rgb;   
+        alpha = gcu_Alpha * t.a;
+    } else {
+        // Pass-1
+        vec2 rtex = vec2(abs(gcv_TexCoord.x),abs(gcv_TexCoord.y));
+
+        if( gcv_TexCoord.x == 0.0 && gcv_TexCoord.y == 0.0 ) {
+             // pass-1: Lines
+             c = gcu_ColorStatic.rgb;
+             alpha = 1.0;
+        } else if ( gcv_TexCoord.x > 0.0 && (rtex.y > 0.0 || rtex.x == 1.0) ) {
+            // pass-1: curves
+            rtex.y -= 0.1;
               
-            float w = gcu_Weight;
-            float pd = ((2.0 - (2.0*w))*rtex.x*rtex.x) + 2.0*(w-1.0)*rtex.x + 1.0;
-            float position = rtex.y - ((w*rtex.x*(1.0 - rtex.x))/pd);
+            if(rtex.y < 0.0 && gcv_TexCoord.y < 0.0) {
+                // discard; // freezes NV tegra2 compiler
+                c = zero3;
+                alpha = 0.0;
+            } else {
+                rtex.y = max(rtex.y, 0.0);
 
-            float aph = 2.0 - 2.0*w;
-            
-            float gd = (aph*rtex.x*rtex.x + 2.0*rtex.x + 1.0)*(aph*rtex.x*rtex.x + 2.0*rtex.x + 1.0);
-            vec2 f = vec2((dtx.y - (w*dtx.x*(1.0 - 2.0*rtex.x))/gd), (dty.y - (w*dty.x*(1.0 - 2.0*rtex.x))/gd));
+                vec2 dtx = dFdx(rtex);
+                vec2 dty = dFdy(rtex);
+                  
+                float w = gcu_Weight;
+                float pd = ((2.0 - (2.0*w))*rtex.x*rtex.x) + 2.0*(w-1.0)*rtex.x + 1.0;
+                float position = rtex.y - ((w*rtex.x*(1.0 - rtex.x))/pd);
 
-            float a = clamp(0.5 - ( position/length(f) ) * sign(gcv_TexCoord.y), 0.0, 1.0);
-            alpha = gcu_Alpha * a;
+                float aph = 2.0 - 2.0*w;
+                
+                float gd = (aph*rtex.x*rtex.x + 2.0*rtex.x + 1.0)*(aph*rtex.x*rtex.x + 2.0*rtex.x + 1.0);
+                vec2 f = vec2((dtx.y - (w*dtx.x*(1.0 - 2.0*rtex.x))/gd), (dty.y - (w*dty.x*(1.0 - 2.0*rtex.x))/gd));
+
+                c = gcu_ColorStatic.rgb;
+                alpha = clamp(0.5 - ( position/length(f) ) * sign(gcv_TexCoord.y), 0.0, 1.0);
+            }
+        } else {
+            c = zero3;
+            alpha = 0.0;
         }
     }
-
     mgl_FragColor = vec4(c, alpha);
 }

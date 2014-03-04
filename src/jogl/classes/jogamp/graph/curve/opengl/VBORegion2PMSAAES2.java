@@ -27,6 +27,8 @@
  */
 package jogamp.graph.curve.opengl;
 
+import java.nio.FloatBuffer;
+
 import javax.media.opengl.GL2ES2;
 // FIXME: Subsume GL2GL3.GL_DRAW_FRAMEBUFFER -> GL2ES2.GL_DRAW_FRAMEBUFFER !
 import javax.media.opengl.GL;
@@ -36,6 +38,7 @@ import javax.media.opengl.fixedfunc.GLMatrixFunc;
 import jogamp.graph.curve.opengl.shader.AttributeNames;
 import jogamp.graph.curve.opengl.shader.UniformNames;
 
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
@@ -63,7 +66,7 @@ public class VBORegion2PMSAAES2  extends GLRegion {
     private int fboWidth = 0;
     private int fboHeight = 0;
     GLUniformData mgl_ActiveTexture;
-    GLUniformData mgl_TextureSize; // if GLSL < 1.30
+    GLUniformData mgl_TextureSize;
 
     final int[] maxTexSize = new int[] { -1 } ;
 
@@ -119,10 +122,10 @@ public class VBORegion2PMSAAES2  extends GLRegion {
             texCoordFboAttr = GLArrayDataServer.createGLSL(AttributeNames.TEXCOORD_ATTR_NAME, 2, GL2ES2.GL_FLOAT,
                                                            false, 4, GL.GL_STATIC_DRAW);
             st.ownAttribute(texCoordFboAttr, true);
-            texCoordFboAttr.putf(5); texCoordFboAttr.putf(5);
-            texCoordFboAttr.putf(5); texCoordFboAttr.putf(6);
-            texCoordFboAttr.putf(6); texCoordFboAttr.putf(6);
-            texCoordFboAttr.putf(6); texCoordFboAttr.putf(5);
+            texCoordFboAttr.putf(0); texCoordFboAttr.putf(0);
+            texCoordFboAttr.putf(0); texCoordFboAttr.putf(1);
+            texCoordFboAttr.putf(1); texCoordFboAttr.putf(1);
+            texCoordFboAttr.putf(1); texCoordFboAttr.putf(0);
             texCoordFboAttr.seal(true);
 
             verticeFboAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL2ES2.GL_FLOAT,
@@ -147,16 +150,16 @@ public class VBORegion2PMSAAES2  extends GLRegion {
         // update all bbox related data
         verticeFboAttr.seal(gl, false);
         verticeFboAttr.rewind();
-        verticeFboAttr.putf(box.getLow()[0]);  verticeFboAttr.putf(box.getLow()[1]);  verticeFboAttr.putf(box.getLow()[2]);
-        verticeFboAttr.putf(box.getLow()[0]);  verticeFboAttr.putf(box.getHigh()[1]); verticeFboAttr.putf(box.getLow()[2]);
-        verticeFboAttr.putf(box.getHigh()[0]); verticeFboAttr.putf(box.getHigh()[1]); verticeFboAttr.putf(box.getLow()[2]);
-        verticeFboAttr.putf(box.getHigh()[0]); verticeFboAttr.putf(box.getLow()[1]);  verticeFboAttr.putf(box.getLow()[2]);
+        verticeFboAttr.putf(box.getMinX()); verticeFboAttr.putf(box.getMinY()); verticeFboAttr.putf(box.getMinZ());
+        verticeFboAttr.putf(box.getMinX()); verticeFboAttr.putf(box.getMaxY()); verticeFboAttr.putf(box.getMinZ());
+        verticeFboAttr.putf(box.getMaxX()); verticeFboAttr.putf(box.getMaxY()); verticeFboAttr.putf(box.getMinZ());
+        verticeFboAttr.putf(box.getMaxX()); verticeFboAttr.putf(box.getMinY()); verticeFboAttr.putf(box.getMinZ());
         verticeFboAttr.seal(gl, true);
         verticeFboAttr.enableBuffer(gl, false);
 
         fboPMVMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         fboPMVMatrix.glLoadIdentity();
-        fboPMVMatrix.glOrthof(box.getLow()[0], box.getHigh()[0], box.getLow()[1], box.getHigh()[1], -1, 1);
+        fboPMVMatrix.glOrthof(box.getMinX(), box.getMaxX(), box.getMinY(), box.getMaxY(), -1, 1);
 
         // push data 2 GPU ..
         indicesFbo.seal(gl, true);
@@ -179,7 +182,9 @@ public class VBORegion2PMSAAES2  extends GLRegion {
                 gl.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE, maxTexSize, 0);
             }
             final RenderState rs = renderer.getRenderState();
+            float renderFboWidth, renderFboHeight;
             int targetFboWidth, targetFboHeight;
+            float diffWidth, diffHeight;
             {
                 // Calculate perspective pixel width/height for FBO,
                 // considering the sampleCount.
@@ -191,14 +196,20 @@ public class VBORegion2PMSAAES2  extends GLRegion {
                 final PMVMatrix pmv = renderer.getMatrix();
                 pmv.gluProject(box.getMinX(), box.getMinY(), objZ, view, 0, winPosSzMin, 0);
                 pmv.gluProject(box.getMaxX(), box.getMaxY(), objZ, view, 0, winPosSzMax, 0);
-                targetFboWidth = Math.round(Math.abs(winPosSzMax[0] - winPosSzMin[0]));
-                targetFboHeight = Math.round(Math.abs(winPosSzMax[1] - winPosSzMin[1]));
+                renderFboWidth = Math.abs(winPosSzMax[0] - winPosSzMin[0]);
+                renderFboHeight = Math.abs(winPosSzMax[1] - winPosSzMin[1]);
+                targetFboWidth = (int)Math.ceil(renderFboWidth);
+                targetFboHeight = (int)Math.ceil(renderFboHeight);
+                diffWidth = targetFboWidth-renderFboWidth;
+                diffHeight = targetFboHeight-renderFboHeight;
                 if( DEBUG_FBO_2 ) {
                     System.err.printf("XXX.MinMax1 min [%.1f, %.1f -> %.3f, %.3f, %.3f]"+
-                                      ", max [%.1f, %.1f -> %.3f, %.3f, %.3f], view[%d, %d] -> [%d x %d], msaa %d%n",
+                                      ", max [%.1f, %.1f -> %.3f, %.3f, %.3f], view[%d, %d]: FBO f[%.3f, %.3f], i[%d x %d], d[%.3f, %.3f], msaa %d%n",
                             box.getMinX(), box.getMinY(), winPosSzMin[0], winPosSzMin[1], winPosSzMin[2],
                             box.getMaxX(), box.getMaxY(), winPosSzMax[0], winPosSzMax[1], winPosSzMax[2],
-                            view[2], view[3], targetFboWidth, targetFboHeight, sampleCount[0]);
+                            view[2], view[3],
+                            renderFboWidth, renderFboHeight, targetFboWidth, targetFboHeight,
+                            diffWidth, diffHeight, sampleCount[0]);
                 }
             }
             final int deltaFboWidth = Math.abs(targetFboWidth-fboWidth);
@@ -222,29 +233,66 @@ public class VBORegion2PMSAAES2  extends GLRegion {
                             sampleCount[0], targetFboWidth, targetFboHeight);
                 }
                 // FIXME: maxTexSize test not correct
+                boolean rescale = false;
                 if( targetFboWidth > maxTexSize[0] ) {
                     targetFboWidth = maxTexSize[0];
+                    renderFboWidth = targetFboWidth;
+                    rescale = true;
                 }
                 if( targetFboHeight > maxTexSize[0] ) {
                     targetFboHeight = maxTexSize[0];
+                    renderFboHeight = targetFboHeight;
+                    rescale = true;
                 }
-                if( DEBUG_FBO_1 ) {
-                    System.err.printf("XXX.Rescale (MAX): %d %d x %d%n",
-                            sampleCount[0], targetFboWidth, targetFboHeight);
+                if(rescale) {
+                    diffWidth = targetFboWidth-renderFboWidth;
+                    diffHeight = targetFboHeight-renderFboHeight;
+                    if( DEBUG_FBO_1 ) {
+                        System.err.printf("XXX.Rescale (MAX): FBO f[%.3f, %.3f], i[%d x %d], d[%.3f, %.3f], msaa %d%n",
+                                renderFboWidth, renderFboHeight, targetFboWidth, targetFboHeight,
+                                diffWidth, diffHeight, sampleCount[0]);
+                    }
                 }
+                verticeFboAttr.seal(false);
+                verticeFboAttr.rewind();
+                verticeFboAttr.putf(box.getMinX());           verticeFboAttr.putf(box.getMinY());            verticeFboAttr.putf(box.getMinZ());
+                verticeFboAttr.putf(box.getMinX());           verticeFboAttr.putf(box.getMaxY()+diffHeight); verticeFboAttr.putf(box.getMinZ());
+                verticeFboAttr.putf(box.getMaxX()+diffWidth); verticeFboAttr.putf(box.getMaxY()+diffHeight); verticeFboAttr.putf(box.getMinZ());
+                verticeFboAttr.putf(box.getMaxX()+diffWidth); verticeFboAttr.putf(box.getMinY());            verticeFboAttr.putf(box.getMinZ());
+                verticeFboAttr.seal(true);
+                fboPMVMatrix.glLoadIdentity();
+                fboPMVMatrix.glOrthof(box.getMinX(), box.getMaxX()+diffWidth,
+                                      box.getMinY(), box.getMaxY()+diffHeight, -1, 1);
                 renderRegion2FBO(gl, rs, targetFboWidth, targetFboHeight, sampleCount);
+            } else {
+                texCoordFboAttr.setVBOWritten(false);
             }
             // System.out.println("Scale: " + matrix.glGetMatrixf().get(1+4*3) +" " + matrix.glGetMatrixf().get(2+4*3));
             renderFBO(gl, rs, width, height);
         }
     }
+    private void setTexSize(final GL2ES2 gl, final ShaderState st, boolean firstPass) {
+        if(null == mgl_TextureSize) {
+            mgl_TextureSize = new GLUniformData(UniformNames.gcu_TextureSize, 3, Buffers.newDirectFloatBuffer(3));
+        }
+        final FloatBuffer texSize = (FloatBuffer) mgl_TextureSize.getBuffer();
+        if( firstPass ) {
+            texSize.put(2, 0f);
+        } else {
+            texSize.put(0, fboWidth);
+            texSize.put(1, fboHeight);
+            texSize.put(2, 1f);
+        }
+        st.uniform(gl, mgl_TextureSize);
+    }
 
-    private void renderFBO(final GL2ES2 gl, final RenderState rs, final int width, final int hight) {
+    private void renderFBO(final GL2ES2 gl, final RenderState rs, final int width, final int height) {
         final ShaderState st = rs.getShaderState();
 
-        gl.glViewport(0, 0, width, hight);
+        gl.glViewport(0, 0, width, height);
         st.uniform(gl, mgl_ActiveTexture);
         gl.glActiveTexture(GL.GL_TEXTURE0 + mgl_ActiveTexture.intValue());
+        setTexSize(gl, st, false);
 
         fbo.use(gl, fbo.getSamplingSink());
         verticeFboAttr.enableBuffer(gl, true);
@@ -299,6 +347,7 @@ public class VBORegion2PMSAAES2  extends GLRegion {
             fboHeight  = targetFboHeight;
         }
         fbo.bind(gl);
+        setTexSize(gl, st, true);
 
         //render texture
         gl.glViewport(0, 0, fboWidth, fboHeight);
