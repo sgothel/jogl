@@ -37,9 +37,9 @@ import com.jogamp.opengl.math.VectorUtil;
  *
  */
 public class AABBox implements Cloneable {
-    private float[] low = new float[3];
-    private float[] high = new float[3];
-    private float[] center = new float[3];
+    private final float[] low = new float[3];
+    private final float[] high = new float[3];
+    private final float[] center = new float[3];
 
     /** Create a Axis Aligned bounding box (AABBox)
      * where the low and and high MAX float Values.
@@ -275,26 +275,25 @@ public class AABBox implements Cloneable {
         return center;
     }
 
-    /** Scale the AABBox by a constant
+    /**
+     * Scale the AABBox by a constant
      * @param size a constant float value
+     * @param tmpV3 caller provided temporary 3-component vector
      */
-    public final void scale(float size) {
-        float[] diffH = new float[3];
-        diffH[0] = high[0] - center[0];
-        diffH[1] = high[1] - center[1];
-        diffH[2] = high[2] - center[2];
+    public final void scale(float size, float[] tmpV3) {
+        tmpV3[0] = high[0] - center[0];
+        tmpV3[1] = high[1] - center[1];
+        tmpV3[2] = high[2] - center[2];
 
-        diffH = VectorUtil.scale(diffH, size);
+        VectorUtil.scale(tmpV3, tmpV3, size); // in-place scale
+        VectorUtil.vectorAdd(high, center, tmpV3);
 
-        float[] diffL = new float[3];
-        diffL[0] = low[0] - center[0];
-        diffL[1] = low[1] - center[1];
-        diffL[2] = low[2] - center[2];
+        tmpV3[0] = low[0] - center[0];
+        tmpV3[1] = low[1] - center[1];
+        tmpV3[2] = low[2] - center[2];
 
-        diffL = VectorUtil.scale(diffL, size);
-
-        high = VectorUtil.vectorAdd(center, diffH);
-        low = VectorUtil.vectorAdd(center, diffL);
+        VectorUtil.scale(tmpV3, tmpV3, size); // in-place scale
+        VectorUtil.vectorAdd(low, center, tmpV3);
     }
 
     public final float getMinX() {

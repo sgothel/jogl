@@ -135,6 +135,10 @@ public class OutlineShape implements Comparable<OutlineShape> {
 
     private float sharpness;
 
+    private final float[] tmpV1 = new float[3];
+    private final float[] tmpV2 = new float[3];
+    private final float[] tmpV3 = new float[3];
+
     /** Create a new Outline based Shape
      */
     public OutlineShape(Vertex.Factory<? extends Vertex> factory) {
@@ -428,16 +432,16 @@ public class OutlineShape implements Comparable<OutlineShape> {
     }
 
     private void subdivideTriangle(final Outline outline, Vertex a, Vertex b, Vertex c, int index){
-        float[] v1 = VectorUtil.mid(a.getCoord(), b.getCoord());
-        float[] v3 = VectorUtil.mid(b.getCoord(), c.getCoord());
-        float[] v2 = VectorUtil.mid(v1, v3);
+        VectorUtil.mid(tmpV1, a.getCoord(), b.getCoord());
+        VectorUtil.mid(tmpV3, b.getCoord(), c.getCoord());
+        VectorUtil.mid(tmpV2, tmpV1, tmpV3);
 
         //drop off-curve vertex to image on the curve
-        b.setCoord(v2, 0, 3);
+        b.setCoord(tmpV2, 0, 3);
         b.setOnCurve(true);
 
-        outline.addVertex(index, vertexFactory.create(v1, 0, 3, false));
-        outline.addVertex(index+2, vertexFactory.create(v3, 0, 3, false));
+        outline.addVertex(index, vertexFactory.create(tmpV1, 0, 3, false));
+        outline.addVertex(index+2, vertexFactory.create(tmpV3, 0, 3, false));
     }
 
     /**
@@ -491,10 +495,6 @@ public class OutlineShape implements Comparable<OutlineShape> {
         }while(!overlaps.isEmpty());
     }
 
-    private final float[] tempVecAC = new float[3];
-    private final float[] tempVecAB = new float[3];
-    private final float[] tempVecAP = new float[3];
-
     private Vertex checkTriOverlaps(Vertex a, Vertex b, Vertex c) {
         int count = getOutlineNumber();
         for (int cc = 0; cc < count; cc++) {
@@ -515,7 +515,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
 
                 if( VectorUtil.vertexInTriangle3(a.getCoord(), b.getCoord(), c.getCoord(),
                                                  current.getCoord(), nextV.getCoord(), prevV.getCoord(),
-                                                 tempVecAC, tempVecAB, tempVecAP) ) {
+                                                 tmpV1, tmpV2, tmpV3) ) {
                     return current;
                 }
                 if(VectorUtil.testTri2SegIntersection(a, b, c, prevV, current) ||
@@ -538,9 +538,8 @@ public class OutlineShape implements Comparable<OutlineShape> {
                 final Vertex currentVertex = outline.getVertex(i);
                 final Vertex nextVertex = outline.getVertex((i+1)%vertexCount);
                 if ( !currentVertex.isOnCurve() && !nextVertex.isOnCurve() ) {
-                    final float[] newCoords = VectorUtil.mid(currentVertex.getCoord(),
-                            nextVertex.getCoord());
-                    final Vertex v = vertexFactory.create(newCoords, 0, 3, true);
+                    VectorUtil.mid(tmpV1, currentVertex.getCoord(), nextVertex.getCoord());
+                    final Vertex v = vertexFactory.create(tmpV1, 0, 3, true);
                     i++;
                     vertexCount++;
                     outline.addVertex(i, v);

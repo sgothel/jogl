@@ -82,9 +82,9 @@ class TypecastHMetrics implements Metrics {
         return pixelSize * unitsPerEM_Inv;
     }
     @Override
-    public final AABBox getBBox(float pixelSize) {
+    public final AABBox getBBox(float pixelSize, float[] tmpV3) {
         AABBox res = new AABBox(bbox.getLow(), bbox.getHigh());
-        res.scale(getScale(pixelSize));
+        res.scale(getScale(pixelSize), tmpV3);
         return res;
     }
 }

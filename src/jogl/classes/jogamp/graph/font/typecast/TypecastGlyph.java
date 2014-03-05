@@ -188,10 +188,10 @@ public class TypecastGlyph implements Font.Glyph {
     }
 
     @Override
-    public final AABBox getBBox(float pixelSize) {
+    public final AABBox getBBox(float pixelSize, float[] tmpV3) {
         final float size = getScale(pixelSize);
         AABBox newBox = getBBox().clone();
-        newBox.scale(size);
+        newBox.scale(size, tmpV3);
         return newBox;
     }
 

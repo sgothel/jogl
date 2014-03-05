@@ -53,6 +53,7 @@ class TypecastFont implements Font {
     private final int cmapentries;
     private final IntObjectHashMap char2Glyph;
     private final TypecastHMetrics metrics;
+    private final float[] tmpV3 = new float[3];
     // FIXME: Add cache size to limit memory usage ??
 
     public TypecastFont(final OTFontCollection fontset) {
@@ -260,7 +261,7 @@ class TypecastFont implements Font {
             final char character = string.charAt(i);
             if (character != ' ') {
                 final Glyph glyph = getGlyph(character);
-                AABBox bbox = glyph.getBBox(pixelSize);
+                AABBox bbox = glyph.getBBox(pixelSize, tmpV3);
                 height = (int)Math.ceil(Math.max(bbox.getHeight(), height));
             }
         }

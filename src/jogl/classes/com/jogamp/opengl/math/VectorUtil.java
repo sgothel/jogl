@@ -52,41 +52,26 @@ public class VectorUtil {
     {
         return (vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2]);
     }
-    /** Normalize a vector
+
+    /**
+     * Normalize a vector
      * @param vector input vector
      * @return normalized vector
      */
-    public static float[] normalize(float[] vector)
+    public static float[] normalize(final float[] result, float[] vector)
     {
-        final float[] newVector = new float[3];
-
         final float d = FloatUtil.sqrt(vector[0]*vector[0] + vector[1]*vector[1] + vector[2]*vector[2]);
         if(d> 0.0f)
         {
-            newVector[0] = vector[0]/d;
-            newVector[1] = vector[1]/d;
-            newVector[2] = vector[2]/d;
+            result[0] = vector[0]/d;
+            result[1] = vector[1]/d;
+            result[2] = vector[2]/d;
         }
-        return newVector;
+        return result;
     }
 
-    /** Scales a vector by param creating a new float[] for the result!
-     * @param vector input vector
-     * @param scale constant to scale by
-     * @return new scaled vector
-     * @deprecated Use {@link #scale(float[], float[], float)}
-     */
-    public static float[] scale(float[] vector, float scale)
-    {
-        final float[] newVector = new float[3];
-
-        newVector[0] = vector[0] * scale;
-        newVector[1] = vector[1] * scale;
-        newVector[2] = vector[2] * scale;
-        return newVector;
-    }
-
-    /** Scales a vector by param using given result float[]
+    /**
+     * Scales a vector by param using given result float[]
      * @param result vector for the result
      * @param vector input vector
      * @param scale single scale constant for all vector components
@@ -113,67 +98,61 @@ public class VectorUtil {
         return result;
     }
 
-    /** Adds to vectors
+    /**
+     * Adds to vectors
      * @param v1 vector 1
      * @param v2 vector 2
      * @return v1 + v2
      */
-    public static float[] vectorAdd(float[] v1, float[] v2)
+    public static float[] vectorAdd(float[] result, float[] v1, float[] v2)
     {
-        final float[] newVector = new float[3];
-
-        newVector[0] = v1[0] + v2[0];
-        newVector[1] = v1[1] + v2[1];
-        newVector[2] = v1[2] + v2[2];
-        return newVector;
+        result[0] = v1[0] + v2[0];
+        result[1] = v1[1] + v2[1];
+        result[2] = v1[2] + v2[2];
+        return result;
     }
 
-    /** cross product vec1 x vec2
+    /**
+     * cross product vec1 x vec2
      * @param vec1 vector 1
      * @param vec2 vecttor 2
      * @return the resulting vector
      */
-    public static float[] cross(float[] vec1, float[] vec2)
+    public static float[] cross(final float[] result, float[] vec1, float[] vec2)
     {
-        final float[] out = new float[3];
+        result[0] = vec2[2]*vec1[1] - vec2[1]*vec1[2];
+        result[1] = vec2[0]*vec1[2] - vec2[2]*vec1[0];
+        result[2] = vec2[1]*vec1[0] - vec2[0]*vec1[1];
 
-        out[0] = vec2[2]*vec1[1] - vec2[1]*vec1[2];
-        out[1] = vec2[0]*vec1[2] - vec2[2]*vec1[0];
-        out[2] = vec2[1]*vec1[0] - vec2[0]*vec1[1];
-
-        return out;
+        return result;
     }
 
     /** Column Matrix Vector multiplication
      * @param colMatrix column matrix (4x4)
      * @param vec vector(x,y,z)
-     * @return result new float[3]
+     * @return result
      */
-    public static float[] colMatrixVectorMult(float[] colMatrix, float[] vec)
+    public static float[] colMatrixVectorMult(final float[] result, float[] colMatrix, float[] vec)
     {
-        final float[] out = new float[3];
+        result[0] = vec[0]*colMatrix[0] + vec[1]*colMatrix[4] + vec[2]*colMatrix[8] + colMatrix[12];
+        result[1] = vec[0]*colMatrix[1] + vec[1]*colMatrix[5] + vec[2]*colMatrix[9] + colMatrix[13];
+        result[2] = vec[0]*colMatrix[2] + vec[1]*colMatrix[6] + vec[2]*colMatrix[10] + colMatrix[14];
 
-        out[0] = vec[0]*colMatrix[0] + vec[1]*colMatrix[4] + vec[2]*colMatrix[8] + colMatrix[12];
-        out[1] = vec[0]*colMatrix[1] + vec[1]*colMatrix[5] + vec[2]*colMatrix[9] + colMatrix[13];
-        out[2] = vec[0]*colMatrix[2] + vec[1]*colMatrix[6] + vec[2]*colMatrix[10] + colMatrix[14];
-
-        return out;
+        return result;
     }
 
     /** Matrix Vector multiplication
      * @param rawMatrix column matrix (4x4)
      * @param vec vector(x,y,z)
-     * @return result new float[3]
+     * @return result
      */
-    public static float[] rowMatrixVectorMult(float[] rawMatrix, float[] vec)
+    public static float[] rowMatrixVectorMult(final float[] result, float[] rawMatrix, float[] vec)
     {
-        final float[] out = new float[3];
+        result[0] = vec[0]*rawMatrix[0] + vec[1]*rawMatrix[1] + vec[2]*rawMatrix[2] + rawMatrix[3];
+        result[1] = vec[0]*rawMatrix[4] + vec[1]*rawMatrix[5] + vec[2]*rawMatrix[6] + rawMatrix[7];
+        result[2] = vec[0]*rawMatrix[8] + vec[1]*rawMatrix[9] + vec[2]*rawMatrix[10] + rawMatrix[11];
 
-        out[0] = vec[0]*rawMatrix[0] + vec[1]*rawMatrix[1] + vec[2]*rawMatrix[2] + rawMatrix[3];
-        out[1] = vec[0]*rawMatrix[4] + vec[1]*rawMatrix[5] + vec[2]*rawMatrix[6] + rawMatrix[7];
-        out[2] = vec[0]*rawMatrix[8] + vec[1]*rawMatrix[9] + vec[2]*rawMatrix[10] + rawMatrix[11];
-
-        return out;
+        return result;
     }
 
     /** Calculate the midpoint of two values
@@ -186,19 +165,19 @@ public class VectorUtil {
         return (p1+p2)/2.0f;
     }
 
-    /** Calculate the midpoint of two points
+    /**
+     * Calculate the midpoint of two points
      * @param p1 first point
      * @param p2 second point
      * @return midpoint
      */
-    public static float[] mid(float[] p1, float[] p2)
+    public static float[] mid(final float[] result, float[] p1, float[] p2)
     {
-        final float[] midPoint = new float[3];
-        midPoint[0] = (p1[0] + p2[0])*0.5f;
-        midPoint[1] = (p1[1] + p2[1])*0.5f;
-        midPoint[2] = (p1[2] + p2[2])*0.5f;
+        result[0] = (p1[0] + p2[0])*0.5f;
+        result[1] = (p1[1] + p2[1])*0.5f;
+        result[2] = (p1[2] + p2[2])*0.5f;
 
-        return midPoint;
+        return result;
     }
 
     /** Compute the norm of a vector
@@ -357,7 +336,8 @@ public class VectorUtil {
         return (u >= 0) && (v >= 0) && (u + v < 1);
     }
 
-    /** Check if one of three vertices are in triangle using
+    /**
+     * Check if one of three vertices are in triangle using
      * barycentric coordinates computation.
      * @param a first triangle vertex
      * @param b second triangle vertex
@@ -365,26 +345,29 @@ public class VectorUtil {
      * @param p1 the vertex in question
      * @param p2 the vertex in question
      * @param p3 the vertex in question
+     * @param tmpAC
+     * @param tmpAB
+     * @param tmpAP
      * @return true if p1 or p2 or p3 is in triangle (a, b, c), false otherwise.
      */
     public static boolean vertexInTriangle3(float[] a, float[]  b, float[]  c,
                                             float[] p1, float[] p2, float[] p3,
-                                            float[] ac, float[] ab, float[] ap){
+                                            float[] tmpAC, float[] tmpAB, float[] tmpAP){
         // Compute vectors
-        computeVector(ac, a, c); //v0
-        computeVector(ab, a, b); //v1
+        computeVector(tmpAC, a, c); //v0
+        computeVector(tmpAB, a, b); //v1
 
         // Compute dot products
-        final float dotAC_AC = dot(ac, ac);
-        final float dotAC_AB = dot(ac, ab);
-        final float dotAB_AB = dot(ab, ab);
+        final float dotAC_AC = dot(tmpAC, tmpAC);
+        final float dotAC_AB = dot(tmpAC, tmpAB);
+        final float dotAB_AB = dot(tmpAB, tmpAB);
 
         // Compute barycentric coordinates
         final float invDenom = 1 / (dotAC_AC * dotAB_AB - dotAC_AB * dotAC_AB);
         {
-            computeVector(ap, a, p1); //v2
-            final float dotAC_AP1 = dot(ac, ap);
-            final float dotAB_AP1 = dot(ab, ap);
+            computeVector(tmpAP, a, p1); //v2
+            final float dotAC_AP1 = dot(tmpAC, tmpAP);
+            final float dotAB_AP1 = dot(tmpAB, tmpAP);
             final float u1 = (dotAB_AB * dotAC_AP1 - dotAC_AB * dotAB_AP1) * invDenom;
             final float v1 = (dotAC_AC * dotAB_AP1 - dotAC_AB * dotAC_AP1) * invDenom;
 
@@ -395,9 +378,9 @@ public class VectorUtil {
         }
 
         {
-            computeVector(ap, a, p2); //v2
-            final float dotAC_AP2 = dot(ac, ap);
-            final float dotAB_AP2 = dot(ab, ap);
+            computeVector(tmpAP, a, p2); //v2
+            final float dotAC_AP2 = dot(tmpAC, tmpAP);
+            final float dotAB_AP2 = dot(tmpAB, tmpAP);
             final float u = (dotAB_AB * dotAC_AP2 - dotAC_AB * dotAB_AP2) * invDenom;
             final float v = (dotAC_AC * dotAB_AP2 - dotAC_AB * dotAC_AP2) * invDenom;
 
@@ -408,9 +391,9 @@ public class VectorUtil {
         }
 
         {
-            computeVector(ap, a, p3); //v2
-            final float dotAC_AP3 = dot(ac, ap);
-            final float dotAB_AP3 = dot(ab, ap);
+            computeVector(tmpAP, a, p3); //v2
+            final float dotAC_AP3 = dot(tmpAC, tmpAP);
+            final float dotAB_AP3 = dot(tmpAB, tmpAP);
             final float u = (dotAB_AB * dotAC_AP3 - dotAC_AB * dotAB_AP3) * invDenom;
             final float v = (dotAC_AC * dotAB_AP3 - dotAC_AB * dotAC_AP3) * invDenom;
 
@@ -473,10 +456,9 @@ public class VectorUtil {
      * @param b vertex 2 of first segment
      * @param c vertex 1 of second segment
      * @param d vertex 2 of second segment
-     * @return the intersection coordinates if the segments intersect, otherwise
-     * returns null
+     * @return the intersection coordinates if the segments intersect, otherwise returns null
      */
-    public static float[] seg2SegIntersection(Vert2fImmutable a, Vert2fImmutable b, Vert2fImmutable c, Vert2fImmutable d) {
+    public static float[] seg2SegIntersection(final float[] result, Vert2fImmutable a, Vert2fImmutable b, Vert2fImmutable c, Vert2fImmutable d) {
         final float determinant = (a.getX()-b.getX())*(c.getY()-d.getY()) - (a.getY()-b.getY())*(c.getX()-d.getX());
 
         if (determinant == 0)
@@ -492,7 +474,10 @@ public class VectorUtil {
         if(gamma <= 0 || gamma >= 1) return null;
         if(gamma1 <= 0 || gamma1 >= 1) return null;
 
-        return new float[]{xi,yi,0};
+        result[0] = xi;
+        result[1] = yi;
+        result[2] = 0;
+        return result;
     }
 
     /** Compute intersection between two segments
@@ -535,7 +520,7 @@ public class VectorUtil {
      * @return the intersection coordinates if the lines intersect, otherwise
      * returns null
      */
-    public static float[] line2lineIntersection(Vert2fImmutable a, Vert2fImmutable b, Vert2fImmutable c, Vert2fImmutable d) {
+    public static float[] line2lineIntersection(final float[] result, Vert2fImmutable a, Vert2fImmutable b, Vert2fImmutable c, Vert2fImmutable d) {
         final float determinant = (a.getX()-b.getX())*(c.getY()-d.getY()) - (a.getY()-b.getY())*(c.getX()-d.getX());
 
         if (determinant == 0)
@@ -546,7 +531,10 @@ public class VectorUtil {
         final float xi = ((c.getX()-d.getX())*alpha-(a.getX()-b.getX())*beta)/determinant;
         final float yi = ((c.getY()-d.getY())*alpha-(a.getY()-b.getY())*beta)/determinant;
 
-        return new float[]{xi,yi,0};
+        result[0] = xi;
+        result[1] = yi;
+        result[2] = 0;
+        return result;
     }
 
     /** Check if a segment intersects with a triangle

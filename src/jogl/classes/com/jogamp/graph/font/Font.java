@@ -84,7 +84,12 @@ public interface Font {
         float getLineGap(float pixelSize);
         float getMaxExtend(float pixelSize);
         float getScale(float pixelSize);
-        AABBox getBBox(float pixelSize);
+        /**
+         * @param pixelSize
+         * @param tmpV3 caller provided temporary 3-component vector
+         * @return
+         */
+        AABBox getBBox(float pixelSize, float[] tmpV3);
     }
 
     /**
@@ -106,7 +111,12 @@ public interface Font {
         public short getID();
         public AABBox getBBox();
         public float getScale(float pixelSize);
-        public AABBox getBBox(float pixelSize);
+        /**
+         * @param pixelSize
+         * @param tmpV3 caller provided temporary 3-component vector
+         * @return
+         */
+        public AABBox getBBox(float pixelSize, float[] tmpV3);
         public float getAdvance(float pixelSize, boolean useFrationalMetrics);
         public OutlineShape getShape();
         public int hashCode();

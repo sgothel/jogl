@@ -56,7 +56,8 @@ public class Quaternion {
      */
     public Quaternion(float[] vector1, float[] vector2) {
         final float theta = FloatUtil.acos(VectorUtil.dot(vector1, vector2));
-        final float[] cross = VectorUtil.cross(vector1, vector2);
+        final float[] cross = new float[3];
+        VectorUtil.cross(cross, vector1, vector2);
         fromAxis(cross, theta);
     }
 
@@ -79,7 +80,7 @@ public class Quaternion {
     public void fromAxis(float[] vector, float angle) {
         final float halfangle = angle * 0.5f;
         final float sin = FloatUtil.sin(halfangle);
-        final float[] nv = VectorUtil.normalize(vector);
+        final float[] nv = VectorUtil.normalize(vector, vector);
         x = (nv[0] * sin);
         y = (nv[1] * sin);
         z = (nv[2] * sin);
@@ -220,7 +221,7 @@ public class Quaternion {
      * Normalize a quaternion required if to be used as a rotational quaternion
      */
     public void normalize() {
-        final float norme = (float) FloatUtil.sqrt(w * w + x * x + y * y + z * z);
+        final float norme = FloatUtil.sqrt(w * w + x * x + y * y + z * z);
         if (norme == 0.0f) {
             setIdentity();
         } else {
@@ -355,7 +356,7 @@ public class Quaternion {
     public void setFromMatrix(float[] m) {
         final float T = m[0] + m[4] + m[8] + 1;
         if (T > 0) {
-            final float S = 0.5f / (float) FloatUtil.sqrt(T);
+            final float S = 0.5f / FloatUtil.sqrt(T);
             w = 0.25f / S;
             x = (m[5] - m[7]) * S;
             y = (m[6] - m[2]) * S;
