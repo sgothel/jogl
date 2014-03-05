@@ -45,6 +45,7 @@ import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.FBObject.Attachment;
 import com.jogamp.opengl.FBObject.TextureAttachment;
+import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderState;
@@ -172,6 +173,10 @@ public class VBORegion2PVBAAES2  extends GLRegion {
         // the buffers were disabled, since due to real/fbo switching and other vbo usage
     }
 
+    private final AABBox drawWinBox = new AABBox();
+    private final int[] drawView = new int[] { 0, 0, 0, 0 };
+    private final float[] drawTmpV3 = new float[3];
+
     @Override
     protected void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int[/*1*/] sampleCount) {
         final int width = renderer.getWidth();
@@ -190,16 +195,11 @@ public class VBORegion2PVBAAES2  extends GLRegion {
             {
                 // Calculate perspective pixel width/height for FBO,
                 // considering the sampleCount.
-                final int[] view = new int[] { 0, 0, width, height };
-                final float objZ = 0f;
-
-                final float[] winPosSzMin = new float[3];
-                final float[] winPosSzMax = new float[3];
-                final PMVMatrix pmv = renderer.getMatrix();
-                pmv.gluProject(box.getMinX(), box.getMinY(), objZ, view, 0, winPosSzMin, 0);
-                pmv.gluProject(box.getMaxX(), box.getMaxY(), objZ, view, 0, winPosSzMax, 0);
-                winWidth = Math.abs(winPosSzMax[0] - winPosSzMin[0]);
-                winHeight = Math.abs(winPosSzMax[1] - winPosSzMin[1]);
+                drawView[2] = width;
+                drawView[3] = height;
+                box.mapToWindow(drawWinBox, renderer.getMatrix(), drawView, true /* useCenterZ */, drawTmpV3);
+                winWidth = drawWinBox.getWidth();
+                winHeight = drawWinBox.getHeight();
                 diffWidth = (float)Math.ceil(winWidth)-winWidth;
                 diffHeight = (float)Math.ceil(winHeight)-winHeight;
                 renderFboWidth = winWidth*sampleCount[0];
@@ -207,11 +207,8 @@ public class VBORegion2PVBAAES2  extends GLRegion {
                 targetFboWidth = (int)Math.ceil(renderFboWidth);
                 targetFboHeight = (int)Math.ceil(renderFboHeight);
                 if( DEBUG_FBO_2 ) {
-                    System.err.printf("XXX.MinMax1 min [%.1f, %.1f -> %.3f, %.3f, %.3f]"+
-                                      ", max [%.1f, %.1f -> %.3f, %.3f, %.3f], view[%d, %d] -> win[%.3f, %.3f]: FBO f[%.3f, %.3f], i[%d x %d], d[%.3f, %.3f], msaa %d%n",
-                            box.getMinX(), box.getMinY(), winPosSzMin[0], winPosSzMin[1], winPosSzMin[2],
-                            box.getMaxX(), box.getMaxY(), winPosSzMax[0], winPosSzMax[1], winPosSzMax[2],
-                            view[2], view[3],
+                    System.err.printf("XXX.MinMax1 view[%d, %d] -> win[%.3f, %.3f]: FBO f[%.3f, %.3f], i[%d x %d], d[%.3f, %.3f], msaa %d%n",
+                            drawView[2], drawView[3],
                             winWidth, winHeight,
                             renderFboWidth, renderFboHeight, targetFboWidth, targetFboHeight,
                             diffWidth, diffHeight, sampleCount[0]);

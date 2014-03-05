@@ -28,6 +28,7 @@
 package com.jogamp.opengl.math.geom;
 
 import com.jogamp.opengl.math.VectorUtil;
+import com.jogamp.opengl.util.PMVMatrix;
 
 
 /**
@@ -348,6 +349,53 @@ public class AABBox implements Cloneable {
         final AABBox other = (AABBox) obj;
         return VectorUtil.checkEquality(low, other.low) &&
                VectorUtil.checkEquality(high, other.high) ;
+    }
+
+    /**
+     * Assume this bounding box as being in object space and
+     * compute the window bounding box.
+     * <p>
+     * If <code>useCenterZ</code> is <code>true</code>,
+     * only 4 {@link PMVMatrix#gluProject(float, float, float, int[], int, float[], int) gluProject}
+     * operations are made on points [1..4] using {@link #getCenter()}'s z-value.
+     * Otherwise 8 {@link PMVMatrix#gluProject(float, float, float, int[], int, float[], int) gluProject}
+     * operation on all 8 points are made.
+     * </p>
+     * <pre>
+     *  [2] ------ [4]
+     *   |          |
+     *   |          |
+     *  [1] ------ [3]
+     * </pre>
+     * @param pmv
+     * @param view
+     * @param useCenterZ
+     * @param tmpV3 TODO
+     * @return
+     */
+    public AABBox mapToWindow(final AABBox result, final PMVMatrix pmv, final int[] view, final boolean useCenterZ, float[] tmpV3) {
+        float objZ = useCenterZ ? center[2] : getMinZ();
+        pmv.gluProject(getMinX(), getMinY(), objZ, view, 0, tmpV3, 0);
+        result.reset();
+        result.resize(tmpV3, 0);
+        pmv.gluProject(getMinX(), getMaxY(), objZ, view, 0, tmpV3, 0);
+        result.resize(tmpV3, 0);
+        pmv.gluProject(getMaxX(), getMinY(), objZ, view, 0, tmpV3, 0);
+        result.resize(tmpV3, 0);
+        pmv.gluProject(getMaxX(), getMaxY(), objZ, view, 0, tmpV3, 0);
+        result.resize(tmpV3, 0);
+        if( !useCenterZ ) {
+            objZ = getMaxZ();
+            pmv.gluProject(getMinX(), getMinY(), objZ, view, 0, tmpV3, 0);
+            result.resize(tmpV3, 0);
+            pmv.gluProject(getMinX(), getMaxY(), objZ, view, 0, tmpV3, 0);
+            result.resize(tmpV3, 0);
+            pmv.gluProject(getMaxX(), getMinY(), objZ, view, 0, tmpV3, 0);
+            result.resize(tmpV3, 0);
+            pmv.gluProject(getMaxX(), getMaxY(), objZ, view, 0, tmpV3, 0);
+            result.resize(tmpV3, 0);
+        }
+        return result;
     }
 
     @Override
