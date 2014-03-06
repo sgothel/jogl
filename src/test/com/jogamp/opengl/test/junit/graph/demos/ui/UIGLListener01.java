@@ -34,13 +34,14 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 
+import jogamp.graph.geom.plane.AffineTransform;
+
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.opengl.test.junit.graph.demos.MSAATool;
-import com.jogamp.opengl.test.junit.graph.demos.ui.opengl.UIRegion;
 
 public class UIGLListener01 extends UIListenerBase01 {
 
@@ -58,7 +59,7 @@ public class UIGLListener01 extends UIListenerBase01 {
                 }
 
             };
-            button.setPosition(2,1,0);
+            button.translate(2,1);
             /** Button defaults !
                 button.setLabelColor(1.0f,1.0f,1.0f);
                 button.setButtonColor(0.6f,0.6f,0.6f);
@@ -84,9 +85,6 @@ public class UIGLListener01 extends UIListenerBase01 {
         MSAATool.dump(drawable);
     }
 
-    UIRegion regionButton;
-    UIRegion regionLabel;
-
     public void display(GLAutoDrawable drawable) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
@@ -100,30 +98,15 @@ public class UIGLListener01 extends UIListenerBase01 {
         regionRenderer.translate(null, getXTran(), getYTran(), getZoom());
         regionRenderer.rotate(gl, getAngle(), 0, 1, 0);
 
-        final float[] bColor = button.getButtonColor();
-        final float[] lColor = button.getLabelColor();
-        if(null == regionButton) {
-            regionButton = new UIRegion(button);
-            regionLabel = new UIRegion(button.getLabel());
-        }
-
-        regionRenderer.setColorStatic(gl, bColor[0], bColor[1], bColor[2]);
-        regionRenderer.translate(gl, button.getPosition()[0], button.getPosition()[1], button.getPosition()[2]);
-        regionButton.getRegion(gl, regionRenderer, 0).draw(gl, regionRenderer, null);
-        regionRenderer.setColorStatic(gl, lColor[0], lColor[1], lColor[2]);
-        regionLabel.getRegion(gl, regionRenderer, 0).draw(gl, regionRenderer, null);
+        final int[] sampleCount = { 4 };
+        final AffineTransform t = button.getTransform();
+        regionRenderer.translate(gl, t.getTranslateX(), t.getTranslateY(), 0);
+        button.drawShape(gl, regionRenderer, sampleCount, false);
     }
 
     public void dispose(GLAutoDrawable drawable) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
-        if(null != regionButton) {
-            regionButton.destroy(gl, getRegionRenderer());
-            regionButton = null;
-        }
-        if(null != regionLabel) {
-            regionLabel.destroy(gl, getRegionRenderer());
-            regionButton = null;
-        }
+        button.destroy(gl, getRegionRenderer());
         super.dispose(drawable);
     }
 }

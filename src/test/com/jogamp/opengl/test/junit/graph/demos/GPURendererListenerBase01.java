@@ -76,6 +76,8 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
 
     private final float[] position = new float[] {0,0,0};
 
+    protected final float zNear = 0.1f, zFar = 7000f;
+    
     private float xTran = -10;
     private float yTran =  10;
     private float ang = 0f;
@@ -132,7 +134,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         gl.glViewport(xstart, ystart, width, height);
-        renderer.reshapePerspective(gl, 45.0f, width, height, 0.1f, 7000.0f);
+        renderer.reshapePerspective(gl, 45.0f, width, height, zNear, zFar);
 
         dumpMatrix();
         // System.err.println("Reshape: "+renderer.getRenderState());

@@ -27,9 +27,15 @@
  */
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
+import java.util.ArrayList;
+
 import javax.media.opengl.GL2ES2;
 
+import jogamp.graph.geom.plane.AffineTransform;
+
 import com.jogamp.graph.curve.OutlineShape;
+import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
@@ -37,93 +43,237 @@ import com.jogamp.opengl.math.geom.AABBox;
 
 public abstract class UIShape {
     private final Factory<? extends Vertex> vertexFactory;
-    protected OutlineShape shape;
 
-    protected static final int DIRTY_SHAPE  = 1 << 0 ;
-    protected int dirty = DIRTY_SHAPE;
+    public class TransformedShape {
+        public final OutlineShape shape;
+        public final AffineTransform t;
+
+        public TransformedShape(final OutlineShape shape, final AffineTransform t) {
+            this.shape = shape;
+            this.t = t;
+        }
+    }
+    protected final ArrayList<TransformedShape> shapes;
+
+    protected static final int DIRTY_SHAPE     = 1 << 0 ;
+    protected static final int DIRTY_POSITION  = 1 << 1 ;
+    protected static final int DIRTY_REGION    = 1 << 2 ;
+    protected int dirty = DIRTY_SHAPE | DIRTY_POSITION | DIRTY_REGION;
+
+    protected final AABBox box;
+    protected final AffineTransform transform;
+    private GLRegion region = null;
+
+    protected final float[] color         = {0.6f, 0.6f, 0.6f};
+    protected final float[] selectedColor = {0.8f, 0.8f, 0.8f};
 
     private boolean down = false;
+    private boolean toggle =false;
+    private boolean toggleable = false;
 
     public UIShape(Factory<? extends Vertex> factory) {
         this.vertexFactory = factory;
-        this.shape = new OutlineShape(factory);
+        this.shapes = new ArrayList<TransformedShape>();
+        this.box = new AABBox();
+        this.transform = new AffineTransform(factory);
     }
 
-    public void clear() {
-        clearImpl(null, null);
-        shape.clear();
+    public final Vertex.Factory<? extends Vertex> getVertexFactory() { return vertexFactory; }
+
+    /**
+     * Clears all data and reset all states as if this instance was newly created
+     * @param gl TODO
+     * @param renderer TODO\
+     */
+    public void clear(GL2ES2 gl, RegionRenderer renderer) {
+        clearImpl(gl, renderer);
+        shapes.clear();
+        transform.setToIdentity();
+        box.reset();
+        dirty = DIRTY_SHAPE | DIRTY_POSITION | DIRTY_REGION;
     }
 
-    public abstract void render(GL2ES2 gl, RegionRenderer renderer, int renderModes, int[/*1*/] texSize, boolean selection);
-
-    protected boolean positionDirty = false;
-
-    private final float[] position = new float[]{0,0,0};
-    private final float[] scale = new float[]{1.0f,1.0f,1.0f};
-    public void setScale(float x, float y, float z){
-        scale[0] = x;
-        scale[1] = y;
-        scale[2] = z;
+    /**
+     * Destroys all data
+     * @param gl
+     * @param renderer
+     */
+    public void destroy(GL2ES2 gl, RegionRenderer renderer) {
+        destroyImpl(gl, renderer);
+        shapes.clear();
+        transform.setToIdentity();
+        box.reset();
+        dirty = DIRTY_SHAPE | DIRTY_POSITION | DIRTY_REGION;
     }
 
-    public void setPosition(float x, float y, float z) {
-        this.position[0] = x;
-        this.position[1] = y;
-        this.position[2] = z;
-        positionDirty = true;
+    public final void translate(float tx, float ty) {
+        transform.translate(tx, ty);
+        dirty |= DIRTY_POSITION;
     }
 
-    private void updatePosition () {
-        float minX = shape.getBounds().getLow()[0];
-        float minY = shape.getBounds().getLow()[1];
-        float minZ = shape.getBounds().getLow()[2];
-        System.out.println("Position was: " + (position[0]) + " " + (position[1]) + " " + (position[2]));
-        System.out.println("Position became: " + (position[0] - minX) + " " + (position[1] - minY) + " " + (position[2] - minZ));
-        setPosition(position[0] - minX, position[1] - minY, position[2] - minZ);
-        positionDirty = false;
+    public final void scale(float sx, float sy, float sz) {
+        transform.scale(sx, sy);
     }
 
-    public float[] getScale() { return scale; }
-    public float[] getPosition() { return position; }
+    public final AffineTransform getTransform() {
+        if( !isShapeDirty() ) {
+            validatePosition();
+        }
+        return transform;
+    }
 
-    protected abstract void clearImpl(GL2ES2 gl, RegionRenderer renderer);
+    public final boolean isShapeDirty() {
+        return 0 != ( dirty & DIRTY_SHAPE ) ;
+    }
 
-    protected abstract void createShape(RegionRenderer renderer);
+    public final boolean isPositionDirty() {
+        return 0 != ( dirty & DIRTY_POSITION ) ;
+    }
 
-    public boolean updateShape() {
-        if( isShapeDirty() ) {
-            shape.clear();
-            createShape(null);
-            if(positionDirty){
-                updatePosition();
+    public final boolean isRegionDirty() {
+        return 0 != ( dirty & DIRTY_REGION ) ;
+    }
+
+    public ArrayList<TransformedShape> getShapes() { return shapes; }
+
+    public final AABBox getBounds() { return box; }
+
+    public GLRegion getRegion(GL2ES2 gl, RegionRenderer renderer) {
+        validate(gl, renderer);
+        if( isRegionDirty() ) {
+            if( null == region ) {
+                region = GLRegion.create(renderer.getRenderModes());
+            } else {
+                region.clear(gl, renderer);
             }
+            addToRegion(region);
+            dirty &= ~DIRTY_REGION;
+            System.err.println("XXX.UIShape: updated: "+region);
+        }
+        return region;
+    }
+
+    /**
+     * Renders {@link OutlineShape} using local {@link GLRegion} which might be cached or updated.
+     * <p>
+     * No matrix operations (translate, scale, ..) are performed.
+     * </p>
+     * @param gl
+     * @param renderer
+     * @param sampleCount
+     * @param select
+     */
+    public void drawShape(GL2ES2 gl, RegionRenderer renderer, int[] sampleCount, boolean select) {
+        float[] _color = color;
+        if( isPressed() || toggle ){
+            _color = selectedColor;
+        }
+        if(!select){
+            /**
+            if( useBlending ) {
+                // NOTE_ALPHA_BLENDING:
+                // Due to alpha blending and VBAA, we need a background in text color
+                // otherwise blending will amplify 'white'!
+                gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+            } */
+            renderer.setColorStatic(gl, _color[0], _color[1], _color[2]);
+        }
+        getRegion(gl, renderer).draw(gl, renderer, sampleCount);
+    }
+
+    public final boolean validate(GL2ES2 gl, RegionRenderer renderer) {
+        if( !validateShape(gl, renderer) ) {
+            return validatePosition();
+        }
+        return true;
+    }
+    private final boolean validateShape(GL2ES2 gl, RegionRenderer renderer) {
+        if( isShapeDirty() ) {
+            shapes.clear();
+            box.reset();
+            createShape(gl, renderer);
             dirty &= ~DIRTY_SHAPE;
+            dirty |= DIRTY_REGION;
+            validatePosition();
+            return true;
+        }
+        return false;
+    }
+    private final boolean validatePosition () {
+        if( isPositionDirty() && !isShapeDirty() ) {
+            // Subtract the bbox minx/miny from position, i.e. the shape's offset.
+            final AABBox box = getBounds();
+            final float minX = box.getMinX();
+            final float minY = box.getMinY();
+            System.err.println("XXX.UIShape: Position pre: " + transform.getTranslateX() + " " + transform.getTranslateY() + ", sbox "+box);
+            translate(-minX, -minY);
+            System.err.println("XXX.UIShape: Position post: " + transform.getTranslateX() + " " + transform.getTranslateY() + ", sbox "+box);
+            dirty &= ~DIRTY_POSITION;
             return true;
         }
         return false;
     }
 
-    public final Vertex.Factory<? extends Vertex> getVertexFactory() { return vertexFactory; }
-    public AABBox getBounds() { return shape.getBounds(); }
-
-    public OutlineShape getShape() {
-        updateShape();
-        return shape;
+    private final void addToRegion(Region region) {
+        final int shapeCount = shapes.size();
+        for(int i=0; i<shapeCount; i++) {
+            final TransformedShape tshape = shapes.get(i);
+            region.addOutlineShape(tshape.shape, tshape.t);
+        }
     }
 
-    public boolean isShapeDirty() {
-        return 0 != ( dirty & DIRTY_SHAPE ) ;
+    public float[] getColor() {
+        return color;
     }
+
+    public void setColor(float r, float g, float b) {
+        this.color[0] = r;
+        this.color[1] = g;
+        this.color[2] = b;
+    }
+    public void setSelectedColor(float r, float g, float b){
+        this.selectedColor[0] = r;
+        this.selectedColor[1] = g;
+        this.selectedColor[2] = b;
+    }
+
+    //
+    // Input
+    //
 
     public void setPressed(boolean b) {
         this.down  = b;
+        if(isToggleable() && b) {
+            toggle = !toggle;
+        }
     }
 
     public boolean isPressed() {
         return this.down;
     }
 
-    public abstract void onClick();
-    public abstract void onPressed();
-    public abstract void onRelease();
+    public boolean isToggleable() {
+        return toggleable;
+    }
+
+    public void setToggleable(boolean toggleable) {
+        this.toggleable = toggleable;
+    }
+
+    public void onClick() { }
+    public void onPressed() { }
+    public void onRelease() { }
+
+    //
+    //
+    //
+
+    protected abstract void clearImpl(GL2ES2 gl, RegionRenderer renderer);
+    protected abstract void destroyImpl(GL2ES2 gl, RegionRenderer renderer);
+    protected abstract void createShape(GL2ES2 gl, RegionRenderer renderer);
+
+    //
+    //
+    //
+
 }

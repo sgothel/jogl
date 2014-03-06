@@ -29,29 +29,26 @@ package com.jogamp.opengl.test.junit.graph.demos.ui;
 
 import javax.media.opengl.GL2ES2;
 
-import com.jogamp.graph.curve.opengl.GLRegion;
+import jogamp.graph.geom.plane.AffineTransform;
+
+import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
+import com.jogamp.opengl.math.geom.AABBox;
 
-public abstract class Label extends UIShape implements UITextShape {
+public class Label extends UIShape {
     protected Font font;
-    protected int size;
+    protected float pixelSize;
     protected String text;
-    protected GLRegion glyphRegion;
 
-    public Label(Factory<? extends Vertex> factory, Font font, int size, String text) {
+    public Label(Factory<? extends Vertex> factory, Font font, float pixelSize, String text) {
         super(factory);
         this.font = font;
-        this.size = size;
+        this.pixelSize = pixelSize;
         this.text = text;
-    }
-
-    @Override
-    public GLRegion getRegion() {
-        return glyphRegion;
     }
 
     public String getText() {
@@ -60,7 +57,7 @@ public abstract class Label extends UIShape implements UITextShape {
 
     public void setText(String text) {
         this.text = text;
-        dirty |= DIRTY_SHAPE;
+        dirty |= DIRTY_SHAPE | DIRTY_REGION;
     }
 
     public Font getFont() {
@@ -69,39 +66,46 @@ public abstract class Label extends UIShape implements UITextShape {
 
     public void setFont(Font font) {
         this.font = font;
-        dirty |= DIRTY_SHAPE;
+        dirty |= DIRTY_SHAPE | DIRTY_REGION;
     }
 
-    public int getSize() {
-        return size;
+    public float getPixelSize() {
+        return pixelSize;
     }
 
-    public void setSize(int size) {
-        this.size = size;
-        dirty |= DIRTY_SHAPE;
-    }
-
-    @Override
-    public String toString(){
-        return "Label [" + font.toString() + ", size " + size + ", " + getText() + "]";
+    public void setPixelSize(float pixelSize) {
+        this.pixelSize = pixelSize;
+        dirty |= DIRTY_SHAPE | DIRTY_REGION;
     }
 
     @Override
     protected void clearImpl(GL2ES2 gl, RegionRenderer renderer) {
-        if(null != glyphRegion) {
-            glyphRegion.destroy(gl, renderer);
+    }
+
+    @Override
+    protected void destroyImpl(GL2ES2 gl, RegionRenderer renderer) {
+    }
+
+    private final TextRegionUtil.ShapeVisitor shapeVisitor = new TextRegionUtil.ShapeVisitor() {
+        final float[] tmp = new float[3];
+        @Override
+        public void visit(OutlineShape shape, AffineTransform t) {
+            shapes.add(new TransformedShape(shape, new AffineTransform(t)));
+            final AABBox sbox = shape.getBounds();
+            t.transform(sbox.getLow(), tmp);
+            box.resize(tmp, 0);
+            t.transform(sbox.getHigh(), tmp);
+            box.resize(tmp, 0);
         }
+    };
+
+    @Override
+    protected void createShape(GL2ES2 gl, RegionRenderer renderer) {
+        TextRegionUtil.processString(shapeVisitor, new AffineTransform(renderer.getRenderState().getVertexFactory()), font, pixelSize, text);
     }
 
     @Override
-    protected void createShape(RegionRenderer renderer) {
-        clearImpl(null, null);
-        glyphRegion = GLRegion.create(renderer.getRenderModes());
-        TextRegionUtil.addStringToRegion(glyphRegion, renderer.getRenderState().getVertexFactory(),
-                                         font, size, text);
-    }
-
-    @Override
-    public void render(GL2ES2 gl, RegionRenderer renderer, int renderModes, int[/*1*/] texSize, boolean selection) {
+    public String toString(){
+        return "Label [" + font.toString() + ", size " + pixelSize + ", " + getText() + "]";
     }
 }

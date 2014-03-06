@@ -54,16 +54,27 @@ public class TextRegionUtil {
         this.renderer = renderer;
     }
 
+    public static interface ShapeVisitor {
+        /**
+         * Visiting the given {@link OutlineShape} with it's corresponding {@link AffineTransform}.
+         * @param shape may be used as is, otherwise a copy shall be made if intended to be modified.
+         * @param t may be used immediately as is, otherwise a copy shall be made if stored.
+         */
+        public void visit(final OutlineShape shape, final AffineTransform t);
+    }
+
     /**
-     * Add the string in 3D space w.r.t. the font and pixelSize at the end of the {@link GLRegion}.
-     * @param region the {@link GLRegion} sink
-     * @param vertexFactory vertex impl factory {@link Factory}
+     * Visit each {@link Font.Glyph}'s {@link OutlineShape} with the given {@link ShapeVisitor}
+     * additionally passing the progressed {@link AffineTransform}.
+     * The latter reflects the given font metric, pixelSize and hence character position.
+     * @param visitor
+     * @param transform
      * @param font the target {@link Font}
      * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
      * @param str string text
      */
-    public static void addStringToRegion(final GLRegion region, final Factory<? extends Vertex> vertexFactory,
-                                         final Font font, final float pixelSize, final CharSequence str) {
+    public static void processString(final ShapeVisitor visitor, final AffineTransform transform,
+                                     final Font font, final float pixelSize, final CharSequence str) {
         final int charCount = str.length();
 
         // region.setFlipped(true);
@@ -71,8 +82,7 @@ public class TextRegionUtil {
         final float lineHeight = font.getLineHeight(pixelSize);
 
         final float scale = metrics.getScale(pixelSize);
-        final AffineTransform transform = new AffineTransform(vertexFactory);
-        final AffineTransform t = new AffineTransform(vertexFactory);
+        final AffineTransform t = new AffineTransform(transform);
 
         float y = 0;
         float advanceTotal = 0;
@@ -97,11 +107,28 @@ public class TextRegionUtil {
                 if( null == glyphShape ) {
                     continue;
                 }
-                region.addOutlineShape(glyphShape, t);
+                visitor.visit(glyphShape, t);
 
                 advanceTotal += glyph.getAdvance(pixelSize, true);
             }
         }
+    }
+
+    /**
+     * Add the string in 3D space w.r.t. the font and pixelSize at the end of the {@link GLRegion}.
+     * @param region the {@link GLRegion} sink
+     * @param vertexFactory vertex impl factory {@link Factory}
+     * @param font the target {@link Font}
+     * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
+     * @param str string text
+     */
+    public static void addStringToRegion(final GLRegion region, final Factory<? extends Vertex> vertexFactory,
+                                         final Font font, final float pixelSize, final CharSequence str) {
+        final ShapeVisitor visitor = new ShapeVisitor() {
+            public final void visit(final OutlineShape shape, final AffineTransform t) {
+                region.addOutlineShape(shape, t);
+            } };
+        processString(visitor, new AffineTransform(vertexFactory), font, pixelSize, str);
     }
 
     /**

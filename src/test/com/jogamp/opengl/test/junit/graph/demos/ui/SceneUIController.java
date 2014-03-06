@@ -10,12 +10,16 @@ import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLRunnable;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
+
+import jogamp.graph.geom.plane.AffineTransform;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.util.PMVMatrix;
 
 public class SceneUIController implements GLEventListener{
     private final ArrayList<UIShape> shapes = new ArrayList<UIShape>();
@@ -23,13 +27,13 @@ public class SceneUIController implements GLEventListener{
     private int count = 0;
     private int renderModes;
     private int[] sampleCount;
-    private RegionRenderer renderer = null;
+    private RegionRenderer renderer;
 
     private final float[] translate = new float[3];
     private final float[] scale = new float[3];
     private final float[] rotation = new float[3];
 
-    private final float[] sceneClearColor = new float[]{0,0,0,1};
+    private final float[] sceneClearColor = new float[]{0,0,0,0};
 
     private int activeId = -1;
 
@@ -38,12 +42,16 @@ public class SceneUIController implements GLEventListener{
     private GLAutoDrawable cDrawable = null;
 
     public SceneUIController() {
+        this(null, 0, null);
     }
 
     public SceneUIController(RegionRenderer renderer, int renderModes, int[] sampleCount) {
         this.renderer = renderer;
         this.renderModes = renderModes;
         this.sampleCount = sampleCount;
+        setScale(1f, 1f, 1f);
+        setTranslate(0f, 0f, 0f);
+        setRotation(0f, 0f, 0f);
     }
 
     public void setRenderer(RegionRenderer renderer, int renderModes, int[] sampleCount) {
@@ -96,14 +104,9 @@ public class SceneUIController implements GLEventListener{
     public void dispose(GLAutoDrawable drawable) {
         System.err.println("SceneUIController: dispose");
         cDrawable = null;
-        drawable.removeGLEventListener(this);
     }
 
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width,
-            int height) {
-        System.err.println("SceneUIController: reshape");
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
-        renderer.reshapePerspective(gl, 45.0f, width, height, 5f, 70.0f);
+    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
     }
 
     public UIShape getShape(GLAutoDrawable drawable,int x, int y) {
@@ -149,26 +152,29 @@ public class SceneUIController implements GLEventListener{
     }
 
     private void render(GL2ES2 gl, int width, int height, int renderModes, int[/*1*/] sampleCount, boolean select) {
-        renderer.reshapePerspective(null, 45.0f, width, height, 0.1f, 7000.0f);
-
         for(int index=0; index < count;index++){
             if(select) {
                 float color= index+1;
                 renderer.setColorStatic(gl, color/(count+2), color/(count+2), color/(count+2));
             }
-            float[] s = shapes.get(index).getScale();
-            float[] p = shapes.get(index).getPosition();
-            renderer.resetModelview(null);
-            renderer.translate(null, translate[0]+p[0], translate[1]+p[1], translate[2]+p[2]);
-            renderer.scale(gl, s[0], s[1], s[2]);
-            renderer.rotate(gl, rotation[0], 1, 0, 0);
-            renderer.rotate(gl, rotation[1], 0, 1, 0);
-            renderer.rotate(gl, rotation[2], 0, 0, 1);
+            final UIShape uiShape = shapes.get(index);
+            uiShape.validate(gl, renderer);
+            final AffineTransform t = uiShape.getTransform();
 
-            shapes.get(index).render(gl, renderer, renderModes, sampleCount, select);
-            renderer.rotate(gl, -rotation[0], 1, 0, 0);
-            renderer.rotate(gl, -rotation[1], 0, 1, 0);
-            renderer.rotate(gl, -rotation[2], 0, 0, 1);
+            final PMVMatrix pmv = renderer.getMatrix();
+            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+            pmv.glPushMatrix();
+            pmv.glLoadIdentity();
+            System.err.printf("SceneUICtrl.render.1.0: translate.0: %f, %f, %f%n", translate[0], translate[1], translate[2]);
+            System.err.printf("SceneUICtrl.render.1.0: translate.1: %f, %f%n", t.getTranslateX(), t.getTranslateY());
+            pmv.glTranslatef(translate[0]+t.getTranslateX(), translate[1]+t.getTranslateY(), translate[2]);
+            pmv.glScalef(scale[0]*t.getScaleX(), scale[1]*t.getScaleY(), scale[2]);
+            pmv.glRotatef(rotation[0], 1, 0, 0);
+            pmv.glRotatef(rotation[1], 0, 1, 0);
+            pmv.glRotatef(rotation[2], 0, 0, 1);
+            renderer.updateMatrix(gl);
+            uiShape.drawShape(gl, renderer, sampleCount, select);
+            pmv.glPopMatrix();
         }
     }
 

@@ -16,13 +16,13 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.SVertex;
+import com.jogamp.newt.Window;
 import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.graph.demos.ui.Label;
 import com.jogamp.opengl.test.junit.graph.demos.ui.RIButton;
 import com.jogamp.opengl.test.junit.graph.demos.ui.SceneUIController;
-import com.jogamp.opengl.test.junit.graph.demos.ui.opengl.UIRegion;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class GPUUISceneGLListener0A implements GLEventListener {
@@ -32,14 +32,18 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
     private final int renderModes;
     private final int[] sampleCount = new int[1];
-    private final int renderModes2;
     private final int[] texSize2 = new int[1];
-    private RegionRenderer regionRenderer;
     private final RenderState rs;
+    private final boolean useBlending;
+    private final SceneUIController sceneUIController;
+    protected final float zNear = 0.1f, zFar = 7000f;
+
+    private RegionRenderer renderer;
 
     int fontSet = FontFactory.UBUNTU;
     Font font;
-    final int fontSizeFixed = 6;
+    final float fontSizeFixed = 6;
+    float dpiH = 96;
 
     private float xTran = 0;
     private float yTran = 0;
@@ -50,18 +54,14 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
     private Label[] labels = null;
     private String[] strings = null;
-    private final UIRegion[] labelRegions;
-    private UIRegion fpsRegion = null;
-    private UIRegion jogampRegion = null;
     private RIButton[] buttons = null;
-
+    private Label jogampLabel = null;
+    private Label fpsLabel = null;
     private final int numSelectable = 6;
 
-    private SceneUIController sceneUIController = null;
     private MultiTouchListener multiTouchListener = null;
     private boolean showFPS = false;
     private GLAutoDrawable cDrawable;
-    private float fps = 0;
 
     private final String jogamp = "JogAmp - Jogl Graph Module Demo";
     private final float angText = 0;
@@ -78,8 +78,8 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         this.rs = rs;
         this.renderModes = renderModes;
         this.sampleCount[0] = 4;
-        this.renderModes2 = 0;
         this.texSize2[0] = 0;
+        this.useBlending = true;
 
         this.debug = debug;
         this.trace = trace;
@@ -89,7 +89,6 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             System.err.println("Catched: "+ioe.getMessage());
             ioe.printStackTrace();
         }
-        labelRegions = new UIRegion[3];
         sceneUIController = new SceneUIController();
     }
 
@@ -110,7 +109,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             public void onRelease() { }
         };
 
-        buttons[0].setPosition(xaxis,start,0);
+        buttons[0].translate(xaxis,start);
 
         buttons[1] = new RIButton(SVertex.factory(), font, "Show FPS", xSize, ySize){
             public void onClick() {
@@ -120,10 +119,8 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                 }
                 showFPS = !showFPS;
             }
-            public void onPressed() { }
-            public void onRelease() { }
         };
-        buttons[1].setPosition(xaxis,start - diff,0);
+        buttons[1].translate(xaxis,start - diff);
         buttons[1].setToggleable(true);
 
         buttons[2] = new RIButton(SVertex.factory(), font, "v-sync", xSize, ySize){
@@ -140,44 +137,34 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                     }
                 });
             }
-            public void onPressed() { }
-            public void onRelease() { }
         };
-        buttons[2].setPosition(xaxis,start-diff*2,0);
+        buttons[2].translate(xaxis,start-diff*2);
         buttons[2].setToggleable(true);
 
         buttons[3] = new RIButton(SVertex.factory(), font, "Tilt  +Y", xSize, ySize) {
             public void onClick() {
                 ang+=10;
             }
-            public void onPressed() {
-
-            }
-            public void onRelease() { }
         };
-        buttons[3].setPosition(xaxis,start-diff*3,0);
+        buttons[3].translate(xaxis,start-diff*3);
 
         buttons[4] = new RIButton(SVertex.factory(), font, "Tilt  -Y", xSize, ySize){
             public void onClick() {
                 ang-=10;
             }
-            public void onPressed() { }
-            public void onRelease() { }
         };
-        buttons[4].setPosition(xaxis,start-diff*4,0);
+        buttons[4].translate(xaxis,start-diff*4);
 
         buttons[5] = new RIButton(SVertex.factory(), font, "Quit", xSize, ySize){
             public void onClick() {
                 cDrawable.destroy();
             }
-            public void onPressed() { }
-            public void onRelease() { }
         };
-        buttons[5].setPosition(xaxis,start-diff*5,0);
-        buttons[5].setButtonColor(0.8f, 0.0f, 0.0f);
+        buttons[5].translate(xaxis,start-diff*5);
+        buttons[5].setColor(0.8f, 0.0f, 0.0f);
         buttons[5].setLabelColor(1.0f, 1.0f, 1.0f);
 
-        buttons[5].setButtonSelectedColor(0.8f, 0.8f, 0.8f);
+        buttons[5].setSelectedColor(0.8f, 0.8f, 0.8f);
         buttons[5].setLabelSelectedColor(0.8f, 0.0f, 0.0f);
     }
 
@@ -200,6 +187,12 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     }
 
     public void init(GLAutoDrawable drawable) {
+        final Object upObj = drawable.getUpstreamWidget();
+        if( upObj instanceof Window ) {
+            final float[] pixelsPerMM = new float[2];
+            ((Window)upObj).getMainMonitor().getPixelsPerMM(pixelsPerMM);
+            dpiH = pixelsPerMM[1]*25.4f;
+        }
         if(drawable instanceof GLWindow) {
             System.err.println("GPUUISceneGLListener0A: init (1)");
             final GLWindow glw = (GLWindow) drawable;
@@ -225,34 +218,30 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             ioe.printStackTrace();
         }
 
-        regionRenderer = RegionRenderer.create(rs, renderModes, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
+        renderer = RegionRenderer.create(rs, renderModes, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
 
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
         gl.glEnable(GL2ES2.GL_BLEND);
 
-        regionRenderer.init(gl);
-        regionRenderer.setAlpha(gl, 1.0f);
-        regionRenderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
+        renderer.init(gl);
+        renderer.setAlpha(gl, 1.0f);
+        renderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
 
         initTexts();
         initButtons(width, height);
 
-        sceneUIController.setRenderer(regionRenderer, renderModes, sampleCount);
+        sceneUIController.setRenderer(renderer, renderModes, sampleCount);
         sceneUIController.addShape(buttons[0]);
         sceneUIController.addShape(buttons[1]);
         sceneUIController.addShape(buttons[2]);
         sceneUIController.addShape(buttons[3]);
         sceneUIController.addShape(buttons[4]);
         sceneUIController.addShape(buttons[5]);
-        drawable.addGLEventListener(sceneUIController);
+        sceneUIController.init(drawable);
 
-        Label jlabel = new Label(SVertex.factory(), font, fontSizeFixed, jogamp){
-            public void onClick() { }
-            public void onPressed() { }
-            public void onRelease() { }
-        };
+        final float pixelSizeFixed = font.getPixelSize(fontSizeFixed, dpiH);
+        jogampLabel = new Label(SVertex.factory(), font, pixelSizeFixed, jogamp);
 
-        jogampRegion = new UIRegion(jlabel);
         final GLAnimatorControl a = drawable.getAnimator();
         if( null != a ) {
             a.resetFPSCounter();
@@ -268,82 +257,74 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             System.err.println("GPUUISceneGLListener0A: dispose (0)");
         }
 
-        // sceneUIController will remove itself from the drawable!
+        sceneUIController.dispose(drawable);
 
         GL2ES2 gl = drawable.getGL().getGL2ES2();
-        regionRenderer.destroy(gl);
+        renderer.destroy(gl);
     }
 
     public void display(GLAutoDrawable drawable) {
         // System.err.println("GPUUISceneGLListener0A: display");
-        final int width = drawable.getWidth();
-        final int height = drawable.getHeight();
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
-        regionRenderer.reshapePerspective(null, 45.0f, width, height, 0.1f, 7000.0f);
+        renderer.resetModelview(null);
         sceneUIController.setTranslate(xTran, yTran, zoom);
         sceneUIController.setRotation(0, ang, 0);
+        sceneUIController.display(drawable);
 
-        renderScene(drawable);
-  }
+        final float pixelSizeFixed = font.getPixelSize(fontSizeFixed, dpiH);
 
-    private void renderScene(GLAutoDrawable drawable) {
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
-
-        regionRenderer.resetModelview(null);
-        regionRenderer.translate(null, xTran-50, yTran+43, zoom);
-        regionRenderer.translate(gl, 0, 30, 0);
-        regionRenderer.scale(null, zoomText, zoomText, 1);
-        regionRenderer.scale(gl, 1.5f, 1.5f, 1.0f);
-        regionRenderer.rotate(gl, angText , 0, 1, 0);
-        regionRenderer.setColorStatic(gl, 0.0f, 1.0f, 0.0f);
-        jogampRegion.getRegion(gl, regionRenderer, 0).draw(gl, regionRenderer, null);
-        if(null == labelRegions[currentText]) {
-            if( null == labels[currentText]) {
-                labels[currentText] = new Label(SVertex.factory(), font, fontSizeFixed, strings[currentText]){
-                    public void onClick() { }
-                    public void onPressed() { }
-                    public void onRelease() { }
-                };
-            }
-            labelRegions[currentText] = new UIRegion(labels[currentText]);
+        renderer.resetModelview(null);
+        renderer.translate(null, xTran-50, yTran+43, zoom);
+        renderer.translate(gl, 0, 30, 0);
+        renderer.scale(null, zoomText, zoomText, 1);
+        renderer.scale(gl, 1.5f, 1.5f, 1.0f);
+        renderer.rotate(gl, angText , 0, 1, 0);
+        renderer.setColorStatic(gl, 0.0f, 1.0f, 0.0f);
+        jogampLabel.drawShape(gl, renderer, sampleCount, false);
+        if(null == labels[currentText]) {
+            labels[currentText] = new Label(SVertex.factory(), font, pixelSizeFixed, strings[currentText]);
         }
 
-        regionRenderer.resetModelview(null);
-        regionRenderer.translate(null, xTran-50, yTran, zoom);
-        regionRenderer.translate(gl, 0, 30, 0);
-        regionRenderer.scale(null, zoomText, zoomText, 1);
-        regionRenderer.scale(gl, 1.5f, 1.5f, 1.0f);
-        regionRenderer.rotate(gl, zoomText, 0, 1, 0);
+        renderer.resetModelview(null);
+        renderer.translate(null, xTran-50, yTran, zoom);
+        renderer.translate(gl, 0, 30, 0);
+        renderer.scale(null, zoomText, zoomText, 1);
+        renderer.scale(gl, 1.5f, 1.5f, 1.0f);
+        renderer.rotate(gl, zoomText, 0, 1, 0);
 
-        regionRenderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
-        labelRegions[currentText].getRegion(gl, regionRenderer, renderModes2).draw(gl, regionRenderer, texSize2);
+        renderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
+        labels[currentText].drawShape(gl, renderer, sampleCount, false);
 
-        final GLAnimatorControl animator = drawable.getAnimator();
-        final boolean _drawFPS = showFPS && null != animator;
-
-        if(_drawFPS && fps != animator.getTotalFPS()) {
-            if(null != fpsRegion) {
-                fpsRegion.destroy(gl, regionRenderer);
+        if( showFPS ) {
+            final float lfps, tfps, td;
+            final GLAnimatorControl animator = drawable.getAnimator();
+            if( null != animator ) {
+                lfps = animator.getLastFPS();
+                tfps = animator.getTotalFPS();
+                td = animator.getTotalFPSDuration()/1000f;
+            } else {
+                lfps = 0f;
+                tfps = 0f;
+                td = 0f;
             }
-            fps = animator.getTotalFPS();
-            final String fpsS = String.valueOf(fps);
-            final int fpsSp = fpsS.indexOf('.');
-
-            Label fpsLabel = new Label(SVertex.factory(), font, fontSizeFixed, fpsS.substring(0, fpsSp+2)+" fps"){
-                public void onClick() { }
-                public void onPressed() { }
-                public void onRelease() { }
-            };
-            fpsRegion = new UIRegion(fpsLabel);
-        }
-        if(showFPS && null != fpsRegion) {
-            regionRenderer.translate(gl, 0, -60, 0);
-            regionRenderer.scale(null, zoomText, zoomText, 1);
-            fpsRegion.getRegion(gl, regionRenderer, renderModes2).draw(gl, regionRenderer, null);
+            final String modeS = Region.getRenderModeString(renderer.getRenderModes());
+            final String text = String.format("%03.1f/%03.1f fps, v-sync %d, fontSize %.1f, %s-samples %d, td %4.1f, blend %b, alpha-bits %d",
+                    lfps, tfps, gl.getSwapInterval(), fontSizeFixed, modeS, sampleCount[0], td,
+                    useBlending, drawable.getChosenGLCapabilities().getAlphaBits());
+            if(null != fpsLabel) {
+                fpsLabel.clear(gl, renderer);
+                fpsLabel.setText(text);
+                fpsLabel.setPixelSize(pixelSizeFixed);
+            } else {
+                fpsLabel = new Label(renderer.getRenderState().getVertexFactory(), font, pixelSizeFixed, text);
+            }
+            renderer.translate(gl, 0, -60, 0);
+            renderer.scale(null, zoomText, zoomText, 1);
+            fpsLabel.drawShape(gl, renderer, sampleCount, false);
         }
     }
 
@@ -352,7 +333,8 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         gl.glViewport(x, y, width, height);
-        regionRenderer.reshapePerspective(gl, 45.0f, width, height, 5f, 70.0f);
+        renderer.reshapePerspective(gl, 45.0f, width, height, zNear, zFar);
+        sceneUIController.reshape(drawable, x, y, width, height);
     }
 
     public void attachInputListenerTo(GLWindow window) {

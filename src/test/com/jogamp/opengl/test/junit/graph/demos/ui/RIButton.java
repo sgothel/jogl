@@ -29,14 +29,17 @@ package com.jogamp.opengl.test.junit.graph.demos.ui;
 
 import javax.media.opengl.GL2ES2;
 
+import jogamp.graph.geom.plane.AffineTransform;
+
+import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.opengl.math.geom.AABBox;
-import com.jogamp.opengl.test.junit.graph.demos.ui.opengl.UIRegion;
 
-/** GPU based resolution independent Button impl
+/**
+ * GPU based resolution independent Button impl
  */
 public abstract class RIButton extends UIShape {
     private float width, height;
@@ -45,22 +48,15 @@ public abstract class RIButton extends UIShape {
     private float corner = 1.0f;
     private float labelZOffset = -0.05f;
 
-    private float[] buttonColor = {0.6f, 0.6f, 0.6f};
-    private float[] buttonSelectedColor = {0.8f,0.8f,0.8f};
-    private float[] labelColor = {1.0f, 1.0f, 1.0f};
-    private float[] labelSelectedColor = {0.1f, 0.1f, 0.1f};
-
-
     public RIButton(Factory<? extends Vertex> factory, Font labelFont, String labelText, float width, float height) {
         super(factory);
 
         // FIXME: Determine font size - PMV Matrix relation ?
         // this.label = new Label(factory, labelFont, (int)(height - 2f * spacing), labelText);
-        this.label = new Label(factory, labelFont, 10, labelText){
-            public void onClick() { }
-            public void onPressed() { }
-            public void onRelease() { }
-        };
+        this.label = new Label(factory, labelFont, 10, labelText);
+        this.label.setSelectedColor(this.color[0], this.color[1], this.color[2]);
+        this.label.setColor(0.9f, 0.9f, 0.9f);
+        this.label.setSelectedColor(1f, 1f, 1f);
 
         this.width = width;
         this.height = height;
@@ -74,36 +70,49 @@ public abstract class RIButton extends UIShape {
     public void setDimension(int width, int height) {
         this.width = width;
         this.height = height;
-        dirty |= DIRTY_SHAPE;
+        dirty |= DIRTY_SHAPE | DIRTY_REGION;
     }
 
     @Override
     protected void clearImpl(GL2ES2 gl, RegionRenderer renderer) {
-        label.clear();
+        label.clear(gl, renderer);
     }
 
     @Override
-    protected void createShape(RegionRenderer renderer) {
-        // FIXME: Only possible if all data (color) is
-        //        is incl. in Outline Shape.
-        //        Until then - draw each separately!
-        //shape.addOutlinShape( label.getShape() );
-        label.updateShape();
-
-        final AABBox lbox = label.getBounds();
-        if(corner == 0.0f) {
-            createSharpOutline(lbox);
-        } else {
-            createCurvedOutline(lbox);
-        }
-        float sx = getWidth() / ( 2f*spacing + lbox.getWidth() );
-        float sy = getHeight() / ( 2f*spacing + lbox.getHeight() );
-
-        setScale(sx, sy, 1);
+    protected void destroyImpl(GL2ES2 gl, RegionRenderer renderer) {
+        label.destroy(gl, renderer);
     }
 
+    @Override
+    public void drawShape(GL2ES2 gl, RegionRenderer renderer, int[] sampleCount, boolean select) {
+        gl.glEnable(GL2ES2.GL_POLYGON_OFFSET_FILL);
+        gl.glPolygonOffset(0.0f, 1f);
+        super.drawShape(gl, renderer, sampleCount, select);
+        gl.glDisable(GL2ES2.GL_POLYGON_OFFSET_FILL);
 
-    private void createSharpOutline(AABBox lbox) {
+        label.drawShape(gl, renderer, sampleCount, select);
+    }
+
+    @Override
+    protected void createShape(GL2ES2 gl, RegionRenderer renderer) {
+        label.createShape(gl, renderer);
+        box.resize(label.getBounds());
+
+        final float sx = getWidth() / ( 2f*spacing + box.getWidth() );
+        final float sy = getHeight() / ( 2f*spacing + box.getHeight() );
+        scale(sx, sy, 1);
+
+        final OutlineShape shape = new OutlineShape(renderer.getRenderState().getVertexFactory());
+        if(corner == 0.0f) {
+            createSharpOutline(shape, box);
+        } else {
+            createCurvedOutline(shape, box);
+        }
+        box.resize(shape.getBounds());
+        shapes.add(new TransformedShape(shape, new AffineTransform(renderer.getRenderState().getVertexFactory())));
+        System.err.println("XXX.UIShape.RIButton: Added Shape: "+shape+", "+box);
+    }
+    private void createSharpOutline(OutlineShape shape, AABBox lbox) {
         float th = (2f*spacing) + lbox.getHeight();
         float tw = (2f*spacing) + lbox.getWidth();
 
@@ -117,20 +126,21 @@ public abstract class RIButton extends UIShape {
         shape.addVertex(minX, minY + th, minZ,  true);
         shape.closeLastOutline(true);
     }
-
-    private void createCurvedOutline(AABBox lbox){
-        float th = 2.0f*spacing + lbox.getHeight();
-        float tw = 2.0f*spacing + lbox.getWidth();
-
-        float cw = 0.5f*corner*Math.min(tw, th);
-        float ch = 0.5f*corner*Math.min(tw, th);
+    private void createCurvedOutline(OutlineShape shape, AABBox lbox){
+        final float th = 2.0f*spacing + lbox.getHeight();
+        final float tw = 2.0f*spacing + lbox.getWidth();
+        final float cw = 0.5f*corner*Math.min(tw, th);
+        final float ch = 0.5f*corner*Math.min(tw, th);
 
         float minX = lbox.getMinX()-spacing;
         float minY = lbox.getMinY()-spacing;
         float minZ = labelZOffset;
+
         shape.addVertex(minX, minY + ch, minZ, true);
         shape.addVertex(minX, minY,  minZ, false);
+
         shape.addVertex(minX + cw, minY, minZ,  true);
+
         shape.addVertex(minX + tw - cw, minY,  minZ, true);
         shape.addVertex(minX + tw, minY, minZ,  false);
         shape.addVertex(minX + tw, minY + ch, minZ,  true);
@@ -153,7 +163,7 @@ public abstract class RIButton extends UIShape {
         else{
             this.corner = corner;
         }
-        dirty |= DIRTY_SHAPE;
+        dirty |= DIRTY_SHAPE | DIRTY_REGION;
     }
 
     public float getLabelZOffset() {
@@ -162,7 +172,7 @@ public abstract class RIButton extends UIShape {
 
     public void setLabelZOffset(float labelZOffset) {
         this.labelZOffset = -labelZOffset;
-        dirty |= DIRTY_SHAPE;
+        dirty |= DIRTY_SHAPE | DIRTY_REGION;
     }
     public float getSpacing() {
         return spacing;
@@ -175,91 +185,19 @@ public abstract class RIButton extends UIShape {
         else{
             this.spacing = spacing;
         }
-        dirty |= DIRTY_SHAPE;
-    }
-
-    public float[] getButtonColor() {
-        return buttonColor;
-    }
-
-    public void setButtonColor(float r, float g, float b) {
-        this.buttonColor = new float[3];
-        this.buttonColor[0] = r;
-        this.buttonColor[1] = g;
-        this.buttonColor[2] = b;
+        dirty |= DIRTY_SHAPE | DIRTY_REGION;
     }
 
     public float[] getLabelColor() {
-        return labelColor;
-    }
-
-    private UIRegion buttonRegion = null;
-    private UIRegion labelRegion = null;
-    private boolean toggle =false;
-    private boolean toggleable = false;
-
-    public void render(GL2ES2 gl, RegionRenderer renderer, int renderModes, int[/*1*/] sampleCount, boolean selection) {
-        if(null == buttonRegion) {
-            buttonRegion = new UIRegion(this);
-            labelRegion = new UIRegion(getLabel());
-        }
-
-        gl.glEnable(GL2ES2.GL_POLYGON_OFFSET_FILL);
-        gl.glPolygonOffset(0.0f, 1f);
-
-        float[] bColor = buttonColor;
-        if(isPressed() || toggle){
-            bColor = buttonSelectedColor;
-        }
-        if(!selection){
-            renderer.setColorStatic(gl, bColor[0], bColor[1], bColor[2]);
-        }
-        buttonRegion.getRegion(gl, renderer, renderModes).draw(gl, renderer, sampleCount);
-        gl.glDisable(GL2ES2.GL_POLYGON_OFFSET_FILL);
-
-        float[] lColor = labelColor;
-        if(isPressed() || toggle ){
-            lColor = labelSelectedColor;
-        }
-        if(!selection){
-            renderer.setColorStatic(gl, lColor[0], lColor[1], lColor[2]);
-        }
-        labelRegion.getRegion(gl, renderer, renderModes).draw(gl, renderer, sampleCount);
-    }
-    public void setPressed(boolean b) {
-        super.setPressed(b);
-        if(isToggleable() && b) {
-            toggle = !toggle;
-        }
+        return label.getColor();
     }
 
     public void setLabelColor(float r, float g, float b) {
-        this.labelColor = new float[3];
-        this.labelColor[0] = r;
-        this.labelColor[1] = g;
-        this.labelColor[2] = b;
-    }
-
-    public void setButtonSelectedColor(float r, float g, float b){
-        this.buttonSelectedColor = new float[3];
-        this.buttonSelectedColor[0] = r;
-        this.buttonSelectedColor[1] = g;
-        this.buttonSelectedColor[2] = b;
+        label.setColor(r, g, b);
     }
 
     public void setLabelSelectedColor(float r, float g, float b){
-        this.labelSelectedColor = new float[3];
-        this.labelSelectedColor[0] = r;
-        this.labelSelectedColor[1] = g;
-        this.labelSelectedColor[2] = b;
-    }
-
-    public boolean isToggleable() {
-        return toggleable;
-    }
-
-    public void setToggleable(boolean toggleable) {
-        this.toggleable = toggleable;
+        label.setSelectedColor(r, g, b);
     }
 
     public String toString() {

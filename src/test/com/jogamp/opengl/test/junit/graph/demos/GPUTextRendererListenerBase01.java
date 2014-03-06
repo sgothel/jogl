@@ -208,7 +208,6 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
-        final float zNear = 0.1f, zFar = 7000f;
         final float zDistance0 =   500f;
         final float zDistance1 =   400f;
         final float[] objPos = new float[3];
@@ -217,12 +216,11 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
 
         final RegionRenderer renderer = getRenderer();
         final PMVMatrix pmv = renderer.getMatrix();
-        renderer.reshapePerspective(null, 45.0f, width, height, zNear, zFar);
         renderer.resetModelview(null);
         renderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
         if( useBlending ) {
             // NOTE_ALPHA_BLENDING:
-            // Due to alpha blending and VBAA, we need a black background (== text color)
+            // Due to alpha blending and VBAA, we need a background in text color
             // otherwise blending will amplify 'white'!
             gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         }
@@ -285,7 +283,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         renderer.setColorStatic(gl, 1.0f, 0.0f, 0.0f);
         if( useBlending ) {
             // NOTE_ALPHA_BLENDING:
-            // Due to alpha blending and VBAA, we need a black background (== text color)
+            // Due to alpha blending and VBAA, we need a background in text color
             // otherwise blending will amplify 'white'!
             gl.glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
         }
