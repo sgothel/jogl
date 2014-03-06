@@ -19,18 +19,13 @@
  */
 package jogamp.graph.geom.plane;
 
-import java.io.IOException;
-import java.io.Serializable;
-
 // import jogamp.opengl.util.HashCode;
 
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.opengl.math.FloatUtil;
 
-public class AffineTransform implements Cloneable, Serializable {
-
-    private static final long serialVersionUID = 1330973210523860834L;
+public class AffineTransform implements Cloneable {
 
     static final String determinantIsZero = "Determinant is zero";
 
@@ -74,16 +69,12 @@ public class AffineTransform implements Cloneable, Serializable {
 
     public AffineTransform() {
         pointFactory = null;
-        type = TYPE_IDENTITY;
-        m00 = m11 = 1.0f;
-        m10 = m01 = m02 = m12 = 0.0f;
+        setToIdentity();
     }
 
     public AffineTransform(Factory<? extends Vertex> factory) {
         pointFactory = factory;
-        type = TYPE_IDENTITY;
-        m00 = m11 = 1.0f;
-        m10 = m01 = m02 = m12 = 0.0f;
+        setToIdentity();
     }
 
     public AffineTransform(AffineTransform t) {
@@ -187,35 +178,35 @@ public class AffineTransform implements Cloneable, Serializable {
         return type;
     }
 
-    public float getScaleX() {
+    public final float getScaleX() {
         return m00;
     }
 
-    public float getScaleY() {
+    public final float getScaleY() {
         return m11;
     }
 
-    public float getShearX() {
+    public final float getShearX() {
         return m01;
     }
 
-    public float getShearY() {
+    public final float getShearY() {
         return m10;
     }
 
-    public float getTranslateX() {
+    public final float getTranslateX() {
         return m02;
     }
 
-    public float getTranslateY() {
+    public final float getTranslateY() {
         return m12;
     }
 
-    public boolean isIdentity() {
+    public final boolean isIdentity() {
         return getType() == TYPE_IDENTITY;
     }
 
-    public void getMatrix(float[] matrix) {
+    public final void getMatrix(float[] matrix) {
         matrix[0] = m00;
         matrix[1] = m10;
         matrix[2] = m01;
@@ -226,11 +217,11 @@ public class AffineTransform implements Cloneable, Serializable {
         }
     }
 
-    public float getDeterminant() {
+    public final float getDeterminant() {
         return m00 * m11 - m01 * m10;
     }
 
-    public void setTransform(float m00, float m10, float m01, float m11, float m02, float m12) {
+    public final void setTransform(float m00, float m10, float m01, float m11, float m02, float m12) {
         this.type = TYPE_UNKNOWN;
         this.m00 = m00;
         this.m10 = m10;
@@ -240,18 +231,18 @@ public class AffineTransform implements Cloneable, Serializable {
         this.m12 = m12;
     }
 
-    public void setTransform(AffineTransform t) {
+    public final void setTransform(AffineTransform t) {
         type = t.type;
         setTransform(t.m00, t.m10, t.m01, t.m11, t.m02, t.m12);
     }
 
-    public void setToIdentity() {
+    public final void setToIdentity() {
         type = TYPE_IDENTITY;
         m00 = m11 = 1.0f;
         m10 = m01 = m02 = m12 = 0.0f;
     }
 
-    public void setToTranslation(float mx, float my) {
+    public final void setToTranslation(float mx, float my) {
         m00 = m11 = 1.0f;
         m01 = m10 = 0.0f;
         m02 = mx;
@@ -263,7 +254,7 @@ public class AffineTransform implements Cloneable, Serializable {
         }
     }
 
-    public void setToScale(float scx, float scy) {
+    public final void setToScale(float scx, float scy) {
         m00 = scx;
         m11 = scy;
         m10 = m01 = m02 = m12 = 0.0f;
@@ -274,7 +265,7 @@ public class AffineTransform implements Cloneable, Serializable {
         }
     }
 
-    public void setToShear(float shx, float shy) {
+    public final void setToShear(float shx, float shy) {
         m00 = m11 = 1.0f;
         m02 = m12 = 0.0f;
         m01 = shx;
@@ -286,7 +277,7 @@ public class AffineTransform implements Cloneable, Serializable {
         }
     }
 
-    public void setToRotation(float angle) {
+    public final void setToRotation(float angle) {
         float sin = FloatUtil.sin(angle);
         float cos = FloatUtil.cos(angle);
         if (FloatUtil.abs(cos) < ZERO) {
@@ -304,7 +295,7 @@ public class AffineTransform implements Cloneable, Serializable {
         type = TYPE_UNKNOWN;
     }
 
-    public void setToRotation(float angle, float px, float py) {
+    public final void setToRotation(float angle, float px, float py) {
         setToRotation(angle);
         m02 = px * (1.0f - m00) + py * m10;
         m12 = py * (1.0f - m00) - px * m10;
@@ -341,23 +332,23 @@ public class AffineTransform implements Cloneable, Serializable {
         return t;
     }
 
-    public void translate(float mx, float my) {
+    public final void translate(float mx, float my) {
         concatenate(AffineTransform.getTranslateInstance(pointFactory, mx, my));
     }
 
-    public void scale(float scx, float scy) {
+    public final void scale(float scx, float scy) {
         concatenate(AffineTransform.getScaleInstance(pointFactory, scx, scy));
     }
 
-    public void shear(float shx, float shy) {
+    public final void shear(float shx, float shy) {
         concatenate(AffineTransform.getShearInstance(pointFactory, shx, shy));
     }
 
-    public void rotate(float angle) {
+    public final void rotate(float angle) {
         concatenate(AffineTransform.getRotateInstance(pointFactory, angle));
     }
 
-    public void rotate(float angle, float px, float py) {
+    public final void rotate(float angle, float px, float py) {
         concatenate(AffineTransform.getRotateInstance(pointFactory, angle, px, py));
     }
 
@@ -379,15 +370,15 @@ public class AffineTransform implements Cloneable, Serializable {
                 t1.m02 * t2.m10 + t1.m12 * t2.m11 + t2.m12);// m12
     }
 
-    public void concatenate(AffineTransform t) {
+    public final void concatenate(AffineTransform t) {
         setTransform(multiply(t, this));
     }
 
-    public void preConcatenate(AffineTransform t) {
+    public final void preConcatenate(AffineTransform t) {
         setTransform(multiply(this, t));
     }
 
-    public AffineTransform createInverse() throws NoninvertibleTransformException {
+    public final AffineTransform createInverse() throws NoninvertibleTransformException {
         float det = getDeterminant();
         if (FloatUtil.abs(det) < ZERO) {
             throw new NoninvertibleTransformException(determinantIsZero);
@@ -458,7 +449,7 @@ public class AffineTransform implements Cloneable, Serializable {
         }
     }
 
-    public Vertex deltaTransform(Vertex src, Vertex dst) {
+    public final Vertex deltaTransform(Vertex src, Vertex dst) {
         if (dst == null) {
             dst = pointFactory.create(src.getId(), src.isOnCurve(), src.getTexCoord());
         }
@@ -468,7 +459,7 @@ public class AffineTransform implements Cloneable, Serializable {
         return dst;
     }
 
-    public void deltaTransform(float[] src, int srcOff, float[] dst, int dstOff, int length) {
+    public final void deltaTransform(float[] src, int srcOff, float[] dst, int dstOff, int length) {
         while (--length >= 0) {
             float x = src[srcOff++];
             float y = src[srcOff++];
@@ -477,7 +468,7 @@ public class AffineTransform implements Cloneable, Serializable {
         }
     }
 
-    public Vertex inverseTransform(Vertex src, Vertex dst) throws NoninvertibleTransformException {
+    public final Vertex inverseTransform(Vertex src, Vertex dst) throws NoninvertibleTransformException {
         float det = getDeterminant();
         if (FloatUtil.abs(det) < ZERO) {
             throw new NoninvertibleTransformException(determinantIsZero);
@@ -491,7 +482,7 @@ public class AffineTransform implements Cloneable, Serializable {
         return dst;
     }
 
-    public void inverseTransform(float[] src, int srcOff, float[] dst, int dstOff, int length)
+    public final void inverseTransform(float[] src, int srcOff, float[] dst, int dstOff, int length)
         throws NoninvertibleTransformException
     {
         float det = getDeterminant();
@@ -507,7 +498,7 @@ public class AffineTransform implements Cloneable, Serializable {
         }
     }
 
-    public Path2D createTransformedShape(Path2D src) {
+    public final Path2D createTransformedShape(Path2D src) {
         if (src == null) {
             return null;
         }
@@ -521,7 +512,7 @@ public class AffineTransform implements Cloneable, Serializable {
     }
 
     @Override
-    public String toString() {
+    public final String toString() {
         return
             getClass().getName() +
             "[[" + m00 + ", " + m01 + ", " + m02 + "], [" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
@@ -529,7 +520,7 @@ public class AffineTransform implements Cloneable, Serializable {
     }
 
     @Override
-    public AffineTransform clone() {
+    public final AffineTransform clone() {
         try {
             return (AffineTransform) super.clone();
         } catch (CloneNotSupportedException e) {
@@ -550,7 +541,7 @@ public class AffineTransform implements Cloneable, Serializable {
     } */
 
     @Override
-    public boolean equals(Object obj) {
+    public final boolean equals(Object obj) {
         if (obj == this) {
             return true;
         }
@@ -563,28 +554,5 @@ public class AffineTransform implements Cloneable, Serializable {
         }
         return false;
     }
-
-
-    /**
-     * Write AffineTrasform object to the output steam.
-     * @param stream - the output stream
-     * @throws IOException - if there are I/O errors while writing to the output strem
-     */
-    private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
-        stream.defaultWriteObject();
-    }
-
-
-    /**
-     * Read AffineTransform object from the input stream
-     * @param stream - the input steam
-     * @throws IOException - if there are I/O errors while reading from the input strem
-     * @throws ClassNotFoundException - if class could not be found
-     */
-    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
-        stream.defaultReadObject();
-        type = TYPE_UNKNOWN;
-    }
-
 }
 

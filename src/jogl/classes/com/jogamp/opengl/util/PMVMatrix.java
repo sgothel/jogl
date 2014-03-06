@@ -65,6 +65,7 @@ import com.jogamp.opengl.math.geom.Frustum;
  * <p>
  * All matrices are provided in column-major order,
  * as specified in the OpenGL fixed function pipeline, i.e. compatibility profile.
+ * See {@link FloatUtil}.
  * </p>
  * <p>
  * PMVMatrix can supplement {@link GL2ES2} applications w/ the
@@ -486,7 +487,7 @@ public class PMVMatrix implements GLMatrixFunc {
     public final void glGetFloatv(int matrixGetName, FloatBuffer params) {
         int pos = params.position();
         if(matrixGetName==GL_MATRIX_MODE) {
-            params.put((float)matrixMode);
+            params.put(matrixMode);
         } else {
             final FloatBuffer matrix = glGetMatrixf(matrixGetName);
             params.put(matrix); // matrix -> params
@@ -498,7 +499,7 @@ public class PMVMatrix implements GLMatrixFunc {
     @Override
     public final void glGetFloatv(int matrixGetName, float[] params, int params_offset) {
         if(matrixGetName==GL_MATRIX_MODE) {
-            params[params_offset]=(float)matrixMode;
+            params[params_offset]=matrixMode;
         } else {
             final FloatBuffer matrix = glGetMatrixf(matrixGetName);
             matrix.get(params, params_offset, 16); // matrix -> params

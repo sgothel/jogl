@@ -29,23 +29,39 @@ package com.jogamp.opengl.math;
 
 import java.nio.FloatBuffer;
 
+import jogamp.opengl.Debug;
+
 import com.jogamp.common.os.Platform;
 
 /**
  * Basic Float math utility functions.
  * <p>
  * Implementation assumes linear matrix layout in column-major order
- * matching OpenGL's implementation.
+ * matching OpenGL's implementation, translation matrix example:
+ * <pre>
+   Row-Major Order:
+     1 0 0 x
+     0 1 0 y
+     0 0 1 z
+     0 0 0 1
+ * </pre>
+ * <pre>
+   Column-Major Order:
+     1 0 0 0
+     0 1 0 0
+     0 0 1 0
+     x y z 1
+ * </pre>
  * </p>
  * <p>
  * Derived from ProjectFloat.java - Created 11-jan-2004
  * </p>
  *
- * @author Erik Duijs
- * @author Kenneth Russell
- * @author Sven Gothel
+ * @author Erik Duijs, Kenneth Russell, et al.
  */
 public class FloatUtil {
+  public static final boolean DEBUG = Debug.debug("Math");
+
   private static final float[] IDENTITY_MATRIX =
     new float[] {
       1.0f, 0.0f, 0.0f, 0.0f,
@@ -558,7 +574,7 @@ public class FloatUtil {
 
   public static final float PI = 3.14159265358979323846f;
 
-  public static float abs(float a) { return (float) java.lang.Math.abs(a);  }
+  public static float abs(float a) { return java.lang.Math.abs(a);  }
 
   public static float pow(float a, float b) { return (float) java.lang.Math.pow(a, b);  }
 

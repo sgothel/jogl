@@ -27,6 +27,7 @@
  */
 package com.jogamp.opengl.math.geom;
 
+import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.util.PMVMatrix;
 
@@ -38,6 +39,7 @@ import com.jogamp.opengl.util.PMVMatrix;
  *
  */
 public class AABBox implements Cloneable {
+    private static final boolean DEBUG = FloatUtil.DEBUG;
     private final float[] low = new float[3];
     private final float[] high = new float[3];
     private final float[] center = new float[3];
@@ -168,20 +170,26 @@ public class AABBox implements Cloneable {
      */
     public final void resize(float x, float y, float z) {
         /** test low */
-        if (x < low[0])
+        if (x < low[0]) {
             low[0] = x;
-        if (y < low[1])
+        }
+        if (y < low[1]) {
             low[1] = y;
-        if (z < low[2])
+        }
+        if (z < low[2]) {
             low[2] = z;
+        }
 
         /** test high */
-        if (x > high[0])
+        if (x > high[0]) {
             high[0] = x;
-        if (y > high[1])
+        }
+        if (y > high[1]) {
             high[1] = y;
-        if (z > high[2])
+        }
+        if (z > high[2]) {
             high[2] = z;
+        }
 
         computeCenter();
     }
@@ -359,7 +367,7 @@ public class AABBox implements Cloneable {
      * only 4 {@link PMVMatrix#gluProject(float, float, float, int[], int, float[], int) gluProject}
      * operations are made on points [1..4] using {@link #getCenter()}'s z-value.
      * Otherwise 8 {@link PMVMatrix#gluProject(float, float, float, int[], int, float[], int) gluProject}
-     * operation on all 8 points are made.
+     * operation on all 8 points are performed.
      * </p>
      * <pre>
      *  [2] ------ [4]
@@ -374,15 +382,21 @@ public class AABBox implements Cloneable {
      * @return
      */
     public AABBox mapToWindow(final AABBox result, final PMVMatrix pmv, final int[] view, final boolean useCenterZ, float[] tmpV3) {
+        // System.err.printf("AABBox.mapToWindow.0: view[%d, %d, %d, %d], this %s%n", view[0], view[1], view[2], view[3], toString());
         float objZ = useCenterZ ? center[2] : getMinZ();
         pmv.gluProject(getMinX(), getMinY(), objZ, view, 0, tmpV3, 0);
+        // System.err.printf("AABBox.mapToWindow.p1: %f, %f, %f -> %f, %f, %f%n", getMinX(), getMinY(), objZ, tmpV3[0], tmpV3[1], tmpV3[2]);
+        // System.err.printf("AABBox.mapToWindow.p1: %s%n", pmv.toString());
         result.reset();
         result.resize(tmpV3, 0);
         pmv.gluProject(getMinX(), getMaxY(), objZ, view, 0, tmpV3, 0);
+        // System.err.printf("AABBox.mapToWindow.p2: %f, %f, %f -> %f, %f, %f%n", getMinX(), getMaxY(), objZ, tmpV3[0], tmpV3[1], tmpV3[2]);
         result.resize(tmpV3, 0);
         pmv.gluProject(getMaxX(), getMinY(), objZ, view, 0, tmpV3, 0);
+        // System.err.printf("AABBox.mapToWindow.p3: %f, %f, %f -> %f, %f, %f%n", getMaxX(), getMinY(), objZ, tmpV3[0], tmpV3[1], tmpV3[2]);
         result.resize(tmpV3, 0);
         pmv.gluProject(getMaxX(), getMaxY(), objZ, view, 0, tmpV3, 0);
+        // System.err.printf("AABBox.mapToWindow.p4: %f, %f, %f -> %f, %f, %f%n", getMaxX(), getMaxY(), objZ, tmpV3[0], tmpV3[1], tmpV3[2]);
         result.resize(tmpV3, 0);
         if( !useCenterZ ) {
             objZ = getMaxZ();
@@ -394,6 +408,9 @@ public class AABBox implements Cloneable {
             result.resize(tmpV3, 0);
             pmv.gluProject(getMaxX(), getMaxY(), objZ, view, 0, tmpV3, 0);
             result.resize(tmpV3, 0);
+        }
+        if( DEBUG ) {
+            System.err.printf("AABBox.mapToWindow: view[%d, %d], this %s -> %s%n", view[0], view[1], toString(), result.toString());
         }
         return result;
     }
