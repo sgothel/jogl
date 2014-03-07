@@ -27,34 +27,40 @@
  */
 package com.jogamp.opengl.test.junit.jogl.acore;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 
-import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.DimensionImmutable;
+import javax.imageio.ImageIO;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
+import javax.media.opengl.awt.GLCanvas;
+import javax.swing.SwingUtilities;
 
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
-import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLDrawableUtil;
-import com.jogamp.opengl.util.GLReadBufferUtil;
+import com.jogamp.opengl.util.awt.AWTGLReadBufferUtil;
 import com.jogamp.opengl.util.texture.TextureIO;
 
 /**
  * Multiple GLJPanels in a JFrame
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestGLReadBuffer01GLWindowNEWT extends GLReadBuffer00Base {
+public class TestGLReadBuffer01GLCanvasAWT extends GLReadBuffer00Base {
 
     @BeforeClass
     public static void initClass() {
@@ -66,29 +72,42 @@ public class TestGLReadBuffer01GLWindowNEWT extends GLReadBuffer00Base {
         if( skipGLOrientationVerticalFlip || useSwingDoubleBuffer ) {
             return; // NOP
         }
-        final GLReadBufferUtil glReadBufferUtil = new GLReadBufferUtil(false, false);
-        final GLWindow glad= GLWindow.create(caps);
+        final AWTGLReadBufferUtil awtGLReadBufferUtil = new AWTGLReadBufferUtil(caps.getGLProfile(), false);
+        final Frame frame = new Frame();
+        final Dimension d = new Dimension(320, 240);
+        final GLCanvas glad = createGLCanvas(caps, d);
         final TextRendererGLEL textRendererGLEL = new TextRendererGLEL();
-        final SnapshotGLEL snapshotGLEL = doSnapshot ? new SnapshotGLEL(textRendererGLEL, glReadBufferUtil) : null;
+        final SnapshotGLELAWT snapshotGLEL = doSnapshot ? new SnapshotGLELAWT(textRendererGLEL, awtGLReadBufferUtil) : null;
         try {
-            glad.setPosition(64, 64);
-            glad.setSize(320, 240);
-            final GearsES2 gears = new GearsES2(1);
-            gears.setVerbose(false);
-            glad.addGLEventListener(gears);
-            textRendererGLEL.setFlipVerticalInGLOrientation(skipGLOrientationVerticalFlip);
-            glad.addGLEventListener(textRendererGLEL);
-            if( doSnapshot ) {
-                glad.addGLEventListener(snapshotGLEL);
-            }
-            glad.setVisible(true);
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.setLocation(64, 64);
+                    frame.setLayout(new BorderLayout());
+                    // final JPanel panel = new JPanel();
+                    // panel.setLayout(new BorderLayout());
+                    // panel.setDoubleBuffered(useSwingDoubleBuffer);
+                    // frame.getContentPane().add(panel);
+
+                    final GearsES2 gears = new GearsES2(1);
+                    gears.setVerbose(false);
+                    glad.addGLEventListener(gears);
+                    glad.addGLEventListener(textRendererGLEL);
+                    if( doSnapshot ) {
+                        glad.addGLEventListener(snapshotGLEL);
+                    }
+                    // panel.add(glad);
+                    frame.add(glad, BorderLayout.CENTER);
+                    frame.pack();
+                    frame.setVisible(true);
+                } } );
         } catch( Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
-        final DimensionImmutable size0 = new Dimension(glad.getWidth(), glad.getHeight());
-        final DimensionImmutable size1 = new Dimension(size0.getWidth()+100, size0.getHeight()+100);
-        final DimensionImmutable size2 = new Dimension(size0.getWidth()-100, size0.getHeight()-100);
+        glad.display(); // trigger initialization to get chosen-caps!
+        final Dimension size0 = frame.getSize();
+        final Dimension size1 = new Dimension(size0.width+100, size0.height+100);
+        final Dimension size2 = new Dimension(size0.width-100, size0.height-100);
         try {
             for(int i=0; i<3; i++) {
                 final String str = "Frame# "+textRendererGLEL.frameNo+", user #"+(i+1);
@@ -100,11 +119,23 @@ public class TestGLReadBuffer01GLWindowNEWT extends GLReadBuffer00Base {
                 glad.display();
             }
             try { Thread.sleep(duration); } catch (InterruptedException e) { }
-            glad.setSize(size1.getWidth(), size1.getHeight());
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        frame.setSize(size1);
+                        frame.validate();
+                    } } );
             try { Thread.sleep(duration); } catch (InterruptedException e) { }
-            glad.setSize(size2.getWidth(), size2.getHeight());
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        frame.setSize(size2);
+                        frame.validate();
+                    } } );
             try { Thread.sleep(duration); } catch (InterruptedException e) { }
-            glad.setSize(size0.getWidth(), size0.getHeight());
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        frame.setSize(size0);
+                        frame.validate();
+                    } } );
             try { Thread.sleep(duration); } catch (InterruptedException e) { }
 
             if( doSnapshot ) {
@@ -117,17 +148,32 @@ public class TestGLReadBuffer01GLWindowNEWT extends GLReadBuffer00Base {
         } catch (Exception e1) {
             e1.printStackTrace();
         }
-        glad.destroy();
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        frame.dispose();
+                    } } );
+        } catch (Exception e1) {
+            e1.printStackTrace();
+        }
     }
 
-    private class SnapshotGLEL implements GLEventListener {
+    private GLCanvas createGLCanvas(final GLCapabilitiesImmutable caps, final Dimension size) {
+        final GLCanvas canvas = new GLCanvas(caps);
+        canvas.setSize(size);
+        canvas.setPreferredSize(size);
+        canvas.setMinimumSize(size);
+        return canvas;
+    }
+
+    private class SnapshotGLELAWT implements GLEventListener {
         final TextRendererGLEL textRendererGLEL;
-        final GLReadBufferUtil glReadBufferUtil;
+        final AWTGLReadBufferUtil glReadBufferUtil;
         boolean defAutoSwapMode;
         boolean swapBuffersBeforeRead;
         int i;
 
-        SnapshotGLEL(final TextRendererGLEL textRendererGLEL, final GLReadBufferUtil glReadBufferUtil) {
+        SnapshotGLELAWT(final TextRendererGLEL textRendererGLEL, final AWTGLReadBufferUtil glReadBufferUtil) {
             this.textRendererGLEL = textRendererGLEL;
             this.glReadBufferUtil = glReadBufferUtil;
             this.defAutoSwapMode = true;
@@ -149,12 +195,12 @@ public class TestGLReadBuffer01GLWindowNEWT extends GLReadBuffer00Base {
         public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
         @Override
         public void display(GLAutoDrawable drawable) {
-            snapshot(i++, drawable, TextureIO.PNG, null);
+            snapshot(i++, drawable.getGL(), TextureIO.PNG, null);
         }
-        public void snapshot(int sn, GLAutoDrawable drawable, String fileSuffix, String destPath) {
-            final GL gl = drawable.getGL();
-            final String postSNDetail = String.format("jgl-usr%03d", textRendererGLEL.userCounter);
-            final String filenameJGL = getSnapshotFilename(sn, postSNDetail,
+        public void snapshot(int sn, GL gl, String fileSuffix, String destPath) {
+            final GLDrawable drawable = gl.getContext().getGLReadDrawable();
+            final String postSNDetail = String.format("awt-usr%03d", textRendererGLEL.userCounter);
+            final String filenameAWT = getSnapshotFilename(sn, postSNDetail,
                                                            drawable.getChosenGLCapabilities(), drawable.getWidth(), drawable.getHeight(),
                                                            glReadBufferUtil.hasAlpha(), fileSuffix, destPath);
             if( swapBuffersBeforeRead ) {
@@ -165,12 +211,23 @@ public class TestGLReadBuffer01GLWindowNEWT extends GLReadBuffer00Base {
             } else {
                 gl.glFinish(); // just make sure rendering finished ..
             }
-            final boolean mustFlipVertically = !drawable.isGLOriented();
-            System.err.println(Thread.currentThread().getName()+": ** screenshot: v-flip "+mustFlipVertically+", swapBuffersBeforeRead "+swapBuffersBeforeRead+", "+filenameJGL);
 
-            if(glReadBufferUtil.readPixels(gl, mustFlipVertically)) {
-                glReadBufferUtil.write(new File(filenameJGL));
+            final boolean awtOrientation = drawable.isGLOriented();
+            System.err.println(Thread.currentThread().getName()+": ** screenshot: awtOrient/v-flip "+awtOrientation+", swapBuffersBeforeRead "+swapBuffersBeforeRead+", "+filenameAWT);
+
+            final BufferedImage image = glReadBufferUtil.readPixelsToBufferedImage(gl, awtOrientation);
+            final File fout = new File(filenameAWT);
+            try {
+                ImageIO.write(image, "png", fout);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+            /**
+            final String filenameJGL = getSnapshotFilename(sn, "jgl",
+                                                           drawable.getChosenGLCapabilities(), drawable.getWidth(), drawable.getHeight(),
+                                                           glReadBufferUtil.hasAlpha(), fileSuffix, destPath);
+            glReadBufferUtil.write(new File(filenameJGL));
+            */
         }
     };
 
@@ -189,7 +246,7 @@ public class TestGLReadBuffer01GLWindowNEWT extends GLReadBuffer00Base {
                 doSnapshot = false;
             }
         }
-        org.junit.runner.JUnitCore.main(TestGLReadBuffer01GLWindowNEWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestGLReadBuffer01GLCanvasAWT.class.getName());
     }
 
 }

@@ -68,6 +68,7 @@ public class TestGLReadBuffer01GLJPanelAWT extends GLReadBuffer00Base {
         GLProfile.initSingleton();
     }
 
+    @Override
     public void test(final GLCapabilitiesImmutable caps, final boolean useSwingDoubleBuffer, final boolean skipGLOrientationVerticalFlip) {
         final AWTGLReadBufferUtil awtGLReadBufferUtil = new AWTGLReadBufferUtil(caps.getGLProfile(), false);
         final JFrame frame = new JFrame();
