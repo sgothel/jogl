@@ -258,13 +258,19 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         final long fbcfg = X11GLXGraphicsConfiguration.glXFBConfigID2FBConfig(display, screen, fbID);
         if( 0 == fbcfg || !X11GLXGraphicsConfiguration.GLXFBConfigValid( display, fbcfg ) ) {
             if(DEBUG) {
-                System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationFBConfig: Failed - GLX FBConfig invalid: ("+x11Screen+","+toHexString(fbID)+"): fbcfg: "+toHexString(fbcfg));
+                System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationFBConfig: Failed.0 - GLX FBConfig invalid: ("+x11Screen+","+toHexString(fbID)+"): fbcfg: "+toHexString(fbcfg));
             }
             return null;
         }
         final X11GLXDrawableFactory factory = (X11GLXDrawableFactory) GLDrawableFactory.getDesktopFactory();
 
         final X11GLCapabilities caps = X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities(x11Device, glp, fbcfg, GLGraphicsConfigurationUtil.ALL_BITS, factory.isGLXMultisampleAvailable(x11Device));
+        if(null==caps) {
+            if(DEBUG) {
+                System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationFBConfig: Failed.1 - GLX FBConfig invalid: ("+x11Screen+","+toHexString(fbID)+"): fbcfg: "+toHexString(fbcfg));
+            }
+            return null;
+        }
         return new X11GLXGraphicsConfiguration(x11Screen, caps, caps, new DefaultGLCapabilitiesChooser());
     }
 

@@ -254,7 +254,13 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     int val = 0;
 
     final IntBuffer tmp = Buffers.newDirectIntBuffer(1);
-    int fbtype = glXGetFBConfig(device.getHandle(), fbcfg, GLX.GLX_DRAWABLE_TYPE, tmp);
+    if( !glXGetFBConfig(device.getHandle(), fbcfg, GLX.GLX_DRAWABLE_TYPE, tmp) ) {
+        if(DEBUG) {
+            System.err.println("X11GLXGraphicsConfiguration.FBCfgDrawableTypeBits: FBConfig invalid: fbcfg: "+toHexString(fbcfg));
+        }
+        return 0;
+    }
+    final int fbtype = tmp.get(0);
 
     if ( 0 != ( fbtype & GLX.GLX_WINDOW_BIT ) ) {
         val |= GLGraphicsConfigurationUtil.WINDOW_BIT |
@@ -314,8 +320,19 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     final long display = device.getHandle();
     final int allDrawableTypeBits = FBCfgDrawableTypeBits(device, fbcfg);
     int drawableTypeBits = winattrmask & allDrawableTypeBits;
-
+    if( 0 == allDrawableTypeBits || 0 == drawableTypeBits ) {
+      if(DEBUG) {
+          System.err.println("X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities: zero drawablebits: allDrawableTypeBits: "+toHexString(allDrawableTypeBits)+", drawableTypeBits "+toHexString(drawableTypeBits));
+      }
+      return null;
+    }
     final int fbcfgid = X11GLXGraphicsConfiguration.glXFBConfig2FBConfigID(display, fbcfg);
+    if( VisualIDHolder.VID_UNDEFINED == fbcfgid ) {
+      if(DEBUG) {
+          System.err.println("X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities: FBConfig invalid (0): fbcfg: "+toHexString(fbcfg));
+      }
+      return null;
+    }
     final XVisualInfo visualInfo = GLX.glXGetVisualFromFBConfig(display, fbcfg);
     if(null == visualInfo) {
         if(DEBUG) {
@@ -415,20 +432,26 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     }
   }
 
-  static int glXGetFBConfig(long display, long cfg, int attrib, IntBuffer tmp) {
+  static boolean glXGetFBConfig(long display, long cfg, int attrib, IntBuffer tmp) {
     if (display == 0) {
       throw new GLException("No display connection");
     }
-    int res = GLX.glXGetFBConfigAttrib(display, cfg, attrib, tmp);
-    if (res != 0) {
-      throw new GLException("glXGetFBConfig("+toHexString(attrib)+") failed: error code " + glXGetFBConfigErrorCode(res));
+    final boolean res = GLX.GLX_BAD_ATTRIBUTE != GLX.glXGetFBConfigAttrib(display, cfg, attrib, tmp);
+    if( !res ) {
+        if(DEBUG) {
+            System.err.println("X11GLXGraphicsConfiguration.glXGetFBConfig: FBConfig invalid: fbcfg: "+toHexString(cfg));
+        }
     }
-    return tmp.get(tmp.position());
+    return res;
   }
 
   static int glXFBConfig2FBConfigID(long display, long cfg) {
       final IntBuffer tmpID = Buffers.newDirectIntBuffer(1);
-      return glXGetFBConfig(display, cfg, GLX.GLX_FBCONFIG_ID, tmpID);
+      if( glXGetFBConfig(display, cfg, GLX.GLX_FBCONFIG_ID, tmpID) ) {
+          return tmpID.get(0);
+      } else {
+          return VisualIDHolder.VID_UNDEFINED; // error
+      }
   }
 
   static long glXFBConfigID2FBConfig(long display, int screen, int id) {
