@@ -60,6 +60,25 @@
       @param nitems a direct only {@link java.nio.IntBuffer}   */
   private static native ByteBuffer dispatch_glXChooseFBConfig(long dpy, int screen, Object attribList, int attribList_byte_offset, Object nitems, int nitems_byte_offset, long procAddress);
 
+  /** Entry point to C language function: <code> GLXFBConfig *  glXGetFBConfigs(Display *  dpy, int screen, int *  nelements); </code> <br>Part of <code>GLX_VERSION_1_3</code>
+      @param nelements a direct only {@link java.nio.IntBuffer}   */
+  public static PointerBuffer glXGetFBConfigs(long dpy, int screen, IntBuffer nelements)  {
+
+    if (!Buffers.isDirect(nelements))
+      throw new GLException("Argument \"nelements\" is not a direct buffer");
+    final long __addr_ = glxProcAddressTable._addressof_glXGetFBConfigs;
+    if (__addr_ == 0) {
+      throw new GLException(String.format("Method \"%s\" not available", "glXGetFBConfigs"));
+    }
+    final ByteBuffer _res = dispatch_glXGetFBConfigs(dpy, screen, nelements, Buffers.getDirectBufferByteOffset(nelements), __addr_);
+    if (_res == null) return null;
+    return PointerBuffer.wrap(Buffers.nativeOrder(_res));
+  }
+
+  /** Entry point to C language function: <code> GLXFBConfig *  glXGetFBConfigs(Display *  dpy, int screen, int *  nelements); </code> <br>Part of <code>GLX_VERSION_1_3</code>
+      @param nelements a direct only {@link java.nio.IntBuffer}   */
+  private static native ByteBuffer dispatch_glXGetFBConfigs(long dpy, int screen, Object nelements, int nelements_byte_offset, long procAddress);
+
 
   /** Entry point to C language function: <code> XVisualInfo *  glXChooseVisual(Display *  dpy, int screen, int *  attribList); </code> <br>Part of <code>GLX_VERSION_1_X</code>
       @param attribList a direct only {@link java.nio.IntBuffer}   */

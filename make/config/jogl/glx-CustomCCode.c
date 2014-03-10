@@ -12,6 +12,8 @@
 #define RTLD_DEFAULT NULL
 #endif
 
+#include <string.h>
+
 /* We expect glXGetProcAddressARB to be defined */
 extern void (*glXGetProcAddressARB(const GLubyte *procname))();
 
@@ -124,7 +126,7 @@ Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXChooseFBConfig(JNIEnv *env, jclass _
   int * _attribList_ptr = NULL;
   int * _nitems_ptr = NULL;
   GLXFBConfig *  _res;
-  int count;
+  int count, i;
   jobject jbyteSource;
   jobject jbyteCopy;
     if ( NULL != attribList ) {
@@ -139,6 +141,65 @@ Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXChooseFBConfig(JNIEnv *env, jclass _
   count = _nitems_ptr[0];
   if (NULL == _res) return NULL;
 
+  /** Bug 961: Validate returned 'GLXFBConfig *', i.e. remove NULL pointer. */
+  // fprintf(stderr, "glXChooseFBConfig.0: Count %d\n", count);
+  i=0;
+  while( i < count ) {
+    if( NULL == _res[i] ) {
+       if( 0 < count-i-1 ) {
+         memmove(_res+i, _res+i+1, count-i-1); 
+       }
+       count--;
+    } else {
+       i++;
+    }
+  }
+  // fprintf(stderr, "glXChooseFBConfig.X: Count %d\n", count);
+  _initClazzAccess(env);
+
+  jbyteSource = (*env)->NewDirectByteBuffer(env, _res, count * sizeof(GLXFBConfig));
+  jbyteCopy   = (*env)->CallStaticObjectMethod(env, clazzBuffers, cstrBuffers, jbyteSource);
+  (*env)->DeleteLocalRef(env, jbyteSource);
+  XFree(_res);
+
+  return jbyteCopy;
+}
+
+/*   Java->C glue code:
+ *   Java package: jogamp.opengl.x11.glx.GLX
+ *    Java method: com.jogamp.common.nio.PointerBuffer dispatch_glXGetFBConfigs(long dpy, int screen, java.nio.IntBuffer nelements)
+ *     C function: GLXFBConfig *  glXGetFBConfigs(Display *  dpy, int screen, int *  nelements);
+ */
+JNIEXPORT jobject JNICALL 
+Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXGetFBConfigs(JNIEnv *env, jclass _unused, jlong dpy, jint screen, jobject nelements, jint nelements_byte_offset, jlong procAddress) {
+  typedef GLXFBConfig *  (APIENTRY*_local_PFNGLXGETFBCONFIGSPROC)(Display *  dpy, int screen, int *  nelements);
+  _local_PFNGLXGETFBCONFIGSPROC ptr_glXGetFBConfigs;
+  int * _nelements_ptr = NULL;
+  GLXFBConfig *  _res;
+  int count, i;
+  jobject jbyteSource;
+  jobject jbyteCopy;
+    if ( NULL != nelements ) {
+        _nelements_ptr = (int *) (((char*) (*env)->GetDirectBufferAddress(env, nelements)) + nelements_byte_offset);
+    }
+  ptr_glXGetFBConfigs = (_local_PFNGLXGETFBCONFIGSPROC) (intptr_t) procAddress;
+  assert(ptr_glXGetFBConfigs != NULL);
+  _res = (* ptr_glXGetFBConfigs) ((Display *) (intptr_t) dpy, (int) screen, (int *) _nelements_ptr);
+  count = _nelements_ptr[0];
+  if (NULL == _res) return NULL;
+
+  /** Bug 961: Validate returned 'GLXFBConfig *', i.e. remove NULL pointer. */
+  i=0;
+  while( i < count ) {
+    if( NULL == _res[i] ) {
+       if( 0 < count-i-1 ) {
+         memmove(_res+i, _res+i+1, count-i-1); 
+       }
+       count--;
+    } else {
+       i++;
+    }
+  }
   _initClazzAccess(env);
 
   jbyteSource = (*env)->NewDirectByteBuffer(env, _res, count * sizeof(GLXFBConfig));
