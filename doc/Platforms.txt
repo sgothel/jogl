@@ -60,3 +60,31 @@
             - PowerVR (ES2) 32bit only
 
 (*) Regular tested component / platform
+
+virtualbox-4.3_4.3.8-92456
+  - Host Debian 8 (Jessie)
+    - Host GPU: NV w/ NV proprietary driver
+
+  - Guest Debian 7 (Wheezy)
+    - Mesa 8.0.5 LLVM: 
+        - Onscreen: OK
+        - FBO: OK
+        - FBO.MSAA: NO (gl-error, failure)
+        - PBuffer: OK
+        - Bitmap: OK
+
+    - 3D Accel (Chromium 1.9): 
+        - Onscreen: OK
+        - FBO: NO
+        - FBO.MSAA: NO (gl-error, failure)
+        - PBuffer: NO
+        - Bitmap: NO
+
+  - Guest Debian 8 (Jessie)
+    - Mesa 9.2.2 Gallium LLVM
+        - Onscreen: OK
+        - FBO: OK
+        - FBO.MSAA: NO (properly reporting: N/A)
+        - PBuffer: OK
+        - Bitmap: OK
+

@@ -141,13 +141,16 @@ Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXChooseFBConfig(JNIEnv *env, jclass _
   count = _nitems_ptr[0];
   if (NULL == _res) return NULL;
 
-  /** Bug 961: Validate returned 'GLXFBConfig *', i.e. remove NULL pointer. */
+  /**
+   * Bug 961: Validate returned 'GLXFBConfig *', i.e. remove NULL pointer. 
+   * Note: sizeof(GLXFBConfig) == sizeof(void*), a.k.a a pointer
+   */
   // fprintf(stderr, "glXChooseFBConfig.0: Count %d\n", count);
   i=0;
   while( i < count ) {
     if( NULL == _res[i] ) {
        if( 0 < count-i-1 ) {
-         memmove(_res+i, _res+i+1, count-i-1); 
+         memmove(_res+i, _res+i+1, (count-i-1)*sizeof(GLXFBConfig)); 
        }
        count--;
     } else {
@@ -188,12 +191,15 @@ Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXGetFBConfigs(JNIEnv *env, jclass _un
   count = _nelements_ptr[0];
   if (NULL == _res) return NULL;
 
-  /** Bug 961: Validate returned 'GLXFBConfig *', i.e. remove NULL pointer. */
+  /**
+   * Bug 961: Validate returned 'GLXFBConfig *', i.e. remove NULL pointer. 
+   * Note: sizeof(GLXFBConfig) == sizeof(void*), a.k.a a pointer
+   */
   i=0;
   while( i < count ) {
     if( NULL == _res[i] ) {
        if( 0 < count-i-1 ) {
-         memmove(_res+i, _res+i+1, count-i-1); 
+         memmove(_res+i, _res+i+1, (count-i-1)*sizeof(GLXFBConfig));
        }
        count--;
     } else {
