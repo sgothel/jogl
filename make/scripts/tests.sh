@@ -398,6 +398,7 @@ function testawtswt() {
 #
 # CORE [NEWT + AWT] (testnoawt and testawt)
 #
+#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestFloatUtil01NOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix02NOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix03NOUI $*
@@ -405,6 +406,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestGluUnprojectDoubleNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestFloatUtil01MatrixMatrixMultNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestBinary16NOUI $*
+testnoawt com.jogamp.opengl.test.junit.jogl.math.TestQuaternion01NOUI $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent01NEWT $*
@@ -500,7 +502,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.acore.anim.Bug898AnimatorFromEDTAWT $*
 
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLJPanelAWT $*
-testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLCanvasAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLWindowNEWT $*
 
 #
@@ -738,7 +740,7 @@ testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT10 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.ui.UINewtDemo01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo01 $*
-testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo02 $*
+#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo02 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo03 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo02 $*

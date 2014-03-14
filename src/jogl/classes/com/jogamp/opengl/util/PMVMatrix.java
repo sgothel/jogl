@@ -48,6 +48,7 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.FloatStack;
 import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.math.geom.Frustum;
 
 /**
@@ -535,6 +536,14 @@ public class PMVMatrix implements GLMatrixFunc {
         m.position(spos);
     }
 
+    /**
+     * Load the current matrix with the values of the given {@link Quaternion}'s rotation {@link Quaternion#toMatrix(float[], int) matrix representation}.
+     */
+    public final void glLoadMatrix(final Quaternion quat) {
+        quat.toMatrix(tmpMatrix, 0);
+        glLoadMatrixf(tmpMatrix, 0);
+    }
+
     @Override
     public final void glPopMatrix() {
         final FloatStack stack;
@@ -635,6 +644,14 @@ public class PMVMatrix implements GLMatrixFunc {
         final float angrad = angdeg   * FloatUtil.PI / 180.0f;
         FloatUtil.makeRotationAxis(angrad, x, y, z, matrixRot, 0, tmpVec3f);
         glMultMatrixf(matrixRot, 0);
+    }
+
+    /**
+     * Rotate the current matrix with the given {@link Quaternion}'s rotation {@link Quaternion#toMatrix(float[], int) matrix representation}.
+     */
+    public final void glRotate(final Quaternion quat) {
+        quat.toMatrix(tmpMatrix, 0);
+        glMultMatrixf(tmpMatrix, 0);
     }
 
     @Override
