@@ -540,8 +540,21 @@ public class PMVMatrix implements GLMatrixFunc {
      * Load the current matrix with the values of the given {@link Quaternion}'s rotation {@link Quaternion#toMatrix(float[], int) matrix representation}.
      */
     public final void glLoadMatrix(final Quaternion quat) {
-        quat.toMatrix(tmpMatrix, 0);
-        glLoadMatrixf(tmpMatrix, 0);
+        if(matrixMode==GL_MODELVIEW) {
+            quat.toMatrix(matrixMv);
+            matrixMv.reset();
+            dirtyBits |= DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW | DIRTY_FRUSTUM ;
+            modifiedBits |= MODIFIED_MODELVIEW;
+        } else if(matrixMode==GL_PROJECTION) {
+            quat.toMatrix(matrixP);
+            matrixP.reset();
+            dirtyBits |= DIRTY_FRUSTUM ;
+            modifiedBits |= MODIFIED_PROJECTION;
+        } else if(matrixMode==GL.GL_TEXTURE) {
+            quat.toMatrix(matrixTex);
+            matrixTex.reset();
+            modifiedBits |= MODIFIED_TEXTURE;
+        }
     }
 
     @Override
