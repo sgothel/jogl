@@ -34,8 +34,6 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 
-import jogamp.graph.geom.plane.AffineTransform;
-
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
@@ -99,8 +97,8 @@ public class UIGLListener01 extends UIListenerBase01 {
         regionRenderer.rotate(gl, getAngle(), 0, 1, 0);
 
         final int[] sampleCount = { 4 };
-        final AffineTransform t = button.getTransform();
-        regionRenderer.translate(gl, t.getTranslateX(), t.getTranslateY(), 0);
+        final float[] translate = button.getTranslate();
+        regionRenderer.translate(gl, translate[0], translate[1], 0);
         button.drawShape(gl, regionRenderer, sampleCount, false);
     }
 

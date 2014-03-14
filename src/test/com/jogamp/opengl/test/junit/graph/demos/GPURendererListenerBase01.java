@@ -48,7 +48,9 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.GLReadBufferUtil;
+import com.jogamp.opengl.util.PMVMatrix;
 
 /**
  *
@@ -77,7 +79,9 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     private final float[] position = new float[] {0,0,0};
 
     protected final float zNear = 0.1f, zFar = 7000f;
-    
+    /** Describing the bounding box in model-coordinates of the near-plane parallel at distance one. */
+    protected final AABBox nearPlane1Box;
+
     private float xTran = -10;
     private float yTran =  10;
     private float ang = 0f;
@@ -93,6 +97,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         this.debug = debug;
         this.trace = trace;
         this.screenshot = new GLReadBufferUtil(false, false);
+        nearPlane1Box = new AABBox();
     }
 
     public final RegionRenderer getRenderer() { return renderer; }
@@ -104,7 +109,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     public final int[] getSampleCount() { return sampleCount; }
     public final float[] getPosition() { return position; }
 
-    public void setMatrix(float xtrans, float ytrans, int zTran, float angle, int sampleCount) {
+    public void setMatrix(float xtrans, float ytrans, float zTran, float angle, int sampleCount) {
         this.xTran = xtrans;
         this.yTran = ytrans;
         this.zTran = zTran;
@@ -129,12 +134,45 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         getRenderer().init(gl);
     }
 
+    public static void mapWin2ObjectCoords(final PMVMatrix pmv, final int[] view,
+                                           final float zNear, final float zFar,
+                                           float orthoX, float orthoY, float orthoDist,
+                                           final float[] winZ, final float[] objPos) {
+        winZ[0] = (1f/zNear-1f/orthoDist)/(1f/zNear-1f/zFar);
+        pmv.gluUnProject(orthoX, orthoY, winZ[0], view, 0, objPos, 0);
+    }
+
     @Override
     public void reshape(GLAutoDrawable drawable, int xstart, int ystart, int width, int height) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-        gl.glViewport(xstart, ystart, width, height);
-        renderer.reshapePerspective(gl, 45.0f, width, height, zNear, zFar);
+        final PMVMatrix pmv = renderer.getMatrix();
+        renderer.reshapePerspective(null, 45.0f, width, height, zNear, zFar);
+        renderer.resetModelview(null);
+        renderer.updateMatrix(gl);
+        System.err.printf("Reshape: zNear %f,  zFar %f%n", zNear, zFar);
+        System.err.printf("Reshape: Frustum: %s%n", pmv.glGetFrustum());
+        {
+            final float orthoDist = 1f;
+            final float[] obj00Coord = new float[3];
+            final float[] obj11Coord = new float[3];
+            final float[] winZ = new float[1];
+            final int[] view = new int[] { 0, 0, width, height };
+
+            mapWin2ObjectCoords(pmv, view, zNear, zFar, 0f, 0f, orthoDist, winZ, obj00Coord);
+            System.err.printf("Reshape: mapped.00: [%f, %f, %f], winZ %f -> [%f, %f, %f]%n", 0f, 0f, orthoDist, winZ[0], obj00Coord[0], obj00Coord[1], obj00Coord[2]);
+
+            mapWin2ObjectCoords(pmv, view, zNear, zFar, width, height, orthoDist, winZ, obj11Coord);
+            System.err.printf("Reshape: mapped.11: [%f, %f, %f], winZ %f -> [%f, %f, %f]%n", (float)width, (float)height, orthoDist, winZ[0], obj11Coord[0], obj11Coord[1], obj11Coord[2]);
+
+            nearPlane1Box.setSize( obj00Coord[0],  // lx
+                                   obj00Coord[1],  // ly
+                                   obj00Coord[2],  // lz
+                                   obj11Coord[0],  // hx
+                                   obj11Coord[1],  // hy
+                                   obj11Coord[2] );// hz
+            System.err.printf("Reshape: dist1Box: %s%n", nearPlane1Box);
+        }
 
         dumpMatrix();
         // System.err.println("Reshape: "+renderer.getRenderState());

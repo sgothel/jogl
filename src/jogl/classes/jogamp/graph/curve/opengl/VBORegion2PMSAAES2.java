@@ -111,7 +111,7 @@ public class VBORegion2PMSAAES2  extends GLRegion {
     }
 
     @Override
-    protected void update(final GL2ES2 gl, final RegionRenderer renderer) {
+    protected void updateImpl(final GL2ES2 gl, final RegionRenderer renderer) {
         if(null == indicesFbo) {
             final ShaderState st = renderer.getShaderState();
 
@@ -137,7 +137,7 @@ public class VBORegion2PMSAAES2  extends GLRegion {
             st.ownAttribute(texCoordTxtAttr, true);
 
             if(Region.DEBUG_INSTANCE) {
-                System.err.println("VBORegion2PES2 Create: " + this);
+                System.err.println("VBORegion2PMSAAES2 Create: " + this);
             }
         }
         // seal buffers
@@ -178,6 +178,18 @@ public class VBORegion2PMSAAES2  extends GLRegion {
 
     @Override
     protected void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int[/*1*/] sampleCount) {
+        if( 0 >= indicesTxtBuffer.getElementCount() ) {
+            if(DEBUG_INSTANCE) {
+                System.err.printf("VBORegion2PMSAAES2.drawImpl: Empty%n");
+            }
+            return; // empty!
+        }
+        if( Float.isInfinite(box.getWidth()) || Float.isInfinite(box.getHeight()) ) {
+            if(DEBUG_INSTANCE) {
+                System.err.printf("VBORegion2PMSAAES2.drawImpl: Inf %s%n", box);
+            }
+            return; // inf
+        }
         final int width = renderer.getWidth();
         final int height = renderer.getHeight();
         if(width <=0 || height <= 0 || null==sampleCount || sampleCount[0] <= 0){
@@ -208,6 +220,10 @@ public class VBORegion2PMSAAES2  extends GLRegion {
                             renderFboWidth, renderFboHeight, targetFboWidth, targetFboHeight,
                             diffWidth, diffHeight, sampleCount[0]);
                 }
+            }
+            if( 0 >= targetFboWidth || 0 >= targetFboHeight ) {
+                // Nothing ..
+                return;
             }
             final int deltaFboWidth = Math.abs(targetFboWidth-fboWidth);
             final int deltaFboHeight = Math.abs(targetFboHeight-fboHeight);

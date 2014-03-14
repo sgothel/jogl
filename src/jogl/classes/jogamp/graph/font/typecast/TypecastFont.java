@@ -224,7 +224,7 @@ class TypecastFont implements Font {
 
     @Override
     public final float getPixelSize(float fontSize /* points per inch */, float resolution) {
-        return fontSize * resolution / ( 72 /* points per inch */ );
+        return fontSize * resolution / ( 72f /* points per inch */ );
     }
 
     @Override

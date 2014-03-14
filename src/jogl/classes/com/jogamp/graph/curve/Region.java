@@ -30,22 +30,20 @@ package com.jogamp.graph.curve;
 import java.util.ArrayList;
 import java.util.List;
 
-import jogamp.graph.curve.opengl.VBORegion2PVBAAES2;
-import jogamp.graph.curve.opengl.VBORegion2PMSAAES2;
-import jogamp.graph.curve.opengl.VBORegionSPES2;
 import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.opengl.Debug;
 
-import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.opengl.math.geom.AABBox;
+import com.jogamp.opengl.math.geom.Frustum;
 
 /**
  * Abstract Outline shape representation define the method an OutlineShape(s)
  * is bound and rendered.
  *
- * @see GLRegion */
+ * @see com.jogamp.graph.curve.opengl.GLRegion
+ */
 public abstract class Region {
 
     /** Debug flag for region impl (graph.curve) */
@@ -53,25 +51,34 @@ public abstract class Region {
     public static final boolean DEBUG_INSTANCE = Debug.debug("graph.curve.instance");
 
     /**
+     * Rendering-Mode bit for {@link Region#getRenderModes() Region} and {@link com.jogamp.graph.curve.opengl.RegionRenderer#getRenderModes() RegionRenderer}.
+     * <p>
      * MSAA based Anti-Aliasing, a two pass region rendering, slower and more
      * resource hungry (FBO), but providing fast MSAA in case
      * the whole scene is not rendered with MSAA.
+     * </p>
      */
-    public static final int MSAA_RENDERING_BIT        = 1 << 0;
+    public static final int MSAA_RENDERING_BIT        = 1 <<  0;
 
     /**
+     * Rendering-Mode bit for {@link Region#getRenderModes() Region} and {@link com.jogamp.graph.curve.opengl.RegionRenderer#getRenderModes() RegionRenderer}.
+     * <p>
      * View based Anti-Aliasing, a two pass region rendering, slower and more
      * resource hungry (FBO), but AA is perfect. Otherwise the default fast one
      * pass MSAA region rendering is being used.
+     * </p>
      */
-    public static final int VBAA_RENDERING_BIT        = 1 << 1;
+    public static final int VBAA_RENDERING_BIT        = 1 <<  1;
 
     /**
+     * Rendering-Mode bit for {@link Region#getRenderModes() Region} and {@link com.jogamp.graph.curve.opengl.RegionRenderer#getRenderModes() RegionRenderer}.
+     * <p>
      * Use non uniform weights [0.0 .. 1.9] for curve region rendering.
      * Otherwise the default weight 1.0 for uniform curve region rendering is
      * being applied.
+     * </p>
      */
-    public static final int VARIABLE_CURVE_WEIGHT_BIT = 1 << 8;
+    public static final int VARIABLE_CURVE_WEIGHT_BIT  = 1 <<  8;
 
     public static final int TWO_PASS_DEFAULT_TEXTURE_UNIT = 0;
 
@@ -79,21 +86,13 @@ public abstract class Region {
     private boolean dirty = true;
     private int numVertices = 0;
     protected final AABBox box = new AABBox();
+    protected Frustum frustum = null;
 
     public static boolean isVBAA(int renderModes) {
         return 0 != (renderModes & Region.VBAA_RENDERING_BIT);
     }
     public static boolean isMSAA(int renderModes) {
         return 0 != (renderModes & Region.MSAA_RENDERING_BIT);
-    }
-    public static String getRenderModeString(int renderModes) {
-        if( Region.isVBAA(renderModes) ) {
-            return "vbaa";
-        } else if( Region.isMSAA(renderModes) ) {
-            return "msaa";
-        } else {
-            return "norm" ;
-        }
     }
 
     /**
@@ -108,22 +107,14 @@ public abstract class Region {
         return 0 != (renderModes & Region.VARIABLE_CURVE_WEIGHT_BIT);
     }
 
-    /**
-     * Create a Region using the passed render mode
-     *
-     * <p> In case {@link Region#VBAA_RENDERING_BIT} is being requested the default texture unit
-     * {@link Region#TWO_PASS_DEFAULT_TEXTURE_UNIT} is being used.</p>
-     *
-     * @param rs the RenderState to be used
-     * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, {@link Region#VBAA_RENDERING_BIT}
-     */
-    public static GLRegion create(int renderModes) {
-        if( isVBAA(renderModes) ) {
-            return new VBORegion2PVBAAES2(renderModes, Region.TWO_PASS_DEFAULT_TEXTURE_UNIT);
-        } else if( isMSAA(renderModes) ) {
-            return new VBORegion2PMSAAES2(renderModes, Region.TWO_PASS_DEFAULT_TEXTURE_UNIT);
+    public static String getRenderModeString(int renderModes) {
+        final String curveS = isNonUniformWeight(renderModes) ? "-curve" : "";
+        if( Region.isVBAA(renderModes) ) {
+            return "vbaa"+curveS;
+        } else if( Region.isMSAA(renderModes) ) {
+            return "msaa"+curveS;
         } else {
-            return new VBORegionSPES2(renderModes);
+            return "norm"+curveS;
         }
     }
 
@@ -170,6 +161,16 @@ public abstract class Region {
         return Region.isNonUniformWeight(renderModes);
     }
 
+    /** See {@link #setFrustum(Frustum)} */
+    public final Frustum getFrustum() { return frustum; }
+
+    /**
+     * Set {@link Frustum} culling for {@link #addOutlineShape(OutlineShape, AffineTransform)}.
+     */
+    public final void setFrustum(Frustum frustum) {
+        this.frustum = frustum;
+    }
+
     final float[] coordsEx = new float[3];
 
     private void pushNewVertexImpl(final Vertex vertIn, final AffineTransform transform) {
@@ -191,7 +192,33 @@ public abstract class Region {
         pushNewVertexImpl(vertIn, transform);
     }
 
+    private final AABBox tmpBox = new AABBox();
+
+    /**
+     * Add the given {@link OutlineShape} to this region with the given optional {@link AffineTransform}.
+     * <p>
+     * In case {@link #setFrustum(Frustum) frustum culling is set}, the {@link OutlineShape}
+     * is dropped if it's {@link OutlineShape#getBounds() bounding-box} is fully outside of the frustum.
+     * The optional {@link AffineTransform} is applied to the bounding-box beforehand.
+     * </p>
+     */
     public final void addOutlineShape(final OutlineShape shape, final AffineTransform transform) {
+        if( null != frustum ) {
+            final AABBox shapeBox = shape.getBounds();
+            final AABBox shapeBoxT;
+            if( null != transform ) {
+                transform.transform(shapeBox, tmpBox);
+                shapeBoxT = tmpBox;
+            } else {
+                shapeBoxT = shapeBox;
+            }
+            if( frustum.isAABBoxOutside(shapeBoxT) ) {
+                if(DEBUG_INSTANCE) {
+                    System.err.println("Region.addOutlineShape(): Dropping outside shapeBoxT: "+shapeBoxT);
+                }
+                return;
+            }
+        }
         final List<Triangle> trisIn = shape.getTriangles(OutlineShape.VerticesState.QUADRATIC_NURBS);
         final ArrayList<Vertex> vertsIn = shape.getVertices();
         if(DEBUG_INSTANCE) {
@@ -276,5 +303,9 @@ public abstract class Region {
 
     protected final void setDirty(boolean v) {
         dirty = v;
+    }
+
+    public String toString() {
+        return "Region["+getRenderModeString(this.renderModes)+", dirty "+dirty+", vertices "+numVertices+", box "+box+"]";
     }
 }

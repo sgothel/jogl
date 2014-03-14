@@ -112,7 +112,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
     }
 
     @Override
-    protected void update(final GL2ES2 gl, final RegionRenderer renderer) {
+    protected void updateImpl(final GL2ES2 gl, final RegionRenderer renderer) {
         if(null == indicesFbo) {
             final ShaderState st = renderer.getShaderState();
 
@@ -138,7 +138,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
             st.ownAttribute(texCoordTxtAttr, true);
 
             if(Region.DEBUG_INSTANCE) {
-                System.err.println("VBORegion2PES2 Create: " + this);
+                System.err.println("VBORegion2PVBAAES2 Create: " + this);
             }
         }
         // seal buffers
@@ -179,6 +179,18 @@ public class VBORegion2PVBAAES2  extends GLRegion {
 
     @Override
     protected void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int[/*1*/] sampleCount) {
+        if( 0 >= indicesTxtBuffer.getElementCount() ) {
+            if(DEBUG_INSTANCE) {
+                System.err.printf("VBORegion2PVBAAES2.drawImpl: Empty%n");
+            }
+            return; // empty!
+        }
+        if( Float.isInfinite(box.getWidth()) || Float.isInfinite(box.getHeight()) ) {
+            if(DEBUG_INSTANCE) {
+                System.err.printf("VBORegion2PVBAAES2.drawImpl: Inf %s%n", box);
+            }
+            return; // inf
+        }
         final int width = renderer.getWidth();
         final int height = renderer.getHeight();
         if(width <=0 || height <= 0 || null==sampleCount || sampleCount[0] <= 0){
@@ -207,12 +219,18 @@ public class VBORegion2PVBAAES2  extends GLRegion {
                 targetFboWidth = (int)Math.ceil(renderFboWidth);
                 targetFboHeight = (int)Math.ceil(renderFboHeight);
                 if( DEBUG_FBO_2 ) {
-                    System.err.printf("XXX.MinMax1 view[%d, %d] -> win[%.3f, %.3f]: FBO f[%.3f, %.3f], i[%d x %d], d[%.3f, %.3f], msaa %d%n",
+                    System.err.printf("XXX.MinMax obj %s%n", box.toString());
+                    System.err.printf("XXX.MinMax win %s%n", drawWinBox.toString());
+                    System.err.printf("XXX.MinMax view[%d, %d] -> win[%.3f, %.3f]: FBO f[%.3f, %.3f], i[%d x %d], d[%.3f, %.3f], msaa %d%n",
                             drawView[2], drawView[3],
                             winWidth, winHeight,
                             renderFboWidth, renderFboHeight, targetFboWidth, targetFboHeight,
                             diffWidth, diffHeight, sampleCount[0]);
                 }
+            }
+            if( 0 >= targetFboWidth || 0 >= targetFboHeight ) {
+                // Nothing ..
+                return;
             }
             final int deltaFboWidth = Math.abs(targetFboWidth-fboWidth);
             final int deltaFboHeight = Math.abs(targetFboHeight-fboHeight);

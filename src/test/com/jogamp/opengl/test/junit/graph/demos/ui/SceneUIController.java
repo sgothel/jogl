@@ -12,8 +12,6 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLRunnable;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
-import jogamp.graph.geom.plane.AffineTransform;
-
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.newt.event.MouseEvent;
@@ -152,6 +150,17 @@ public class SceneUIController implements GLEventListener{
     }
 
     private void render(GL2ES2 gl, int width, int height, int renderModes, int[/*1*/] sampleCount, boolean select) {
+        final PMVMatrix pmv = renderer.getMatrix();
+        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+        pmv.glLoadIdentity();
+        System.err.printf("SceneUICtrl.render.1.0: scale.0: %f, %f, %f%n", scale[0], scale[1], scale[2]);
+        System.err.printf("SceneUICtrl.render.1.0: translate.0: %f, %f, %f%n", translate[0], translate[1], translate[2]);
+        pmv.glTranslatef(translate[0], translate[1], translate[2]);
+        pmv.glScalef(scale[0], scale[1], scale[2]);
+        pmv.glRotatef(rotation[0], 1, 0, 0);
+        pmv.glRotatef(rotation[1], 0, 1, 0);
+        pmv.glRotatef(rotation[2], 0, 0, 1);
+
         for(int index=0; index < count;index++){
             if(select) {
                 float color= index+1;
@@ -159,19 +168,11 @@ public class SceneUIController implements GLEventListener{
             }
             final UIShape uiShape = shapes.get(index);
             uiShape.validate(gl, renderer);
-            final AffineTransform t = uiShape.getTransform();
+            final float[] uiTranslate = uiShape.getTranslate();
 
-            final PMVMatrix pmv = renderer.getMatrix();
-            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
             pmv.glPushMatrix();
-            pmv.glLoadIdentity();
-            System.err.printf("SceneUICtrl.render.1.0: translate.0: %f, %f, %f%n", translate[0], translate[1], translate[2]);
-            System.err.printf("SceneUICtrl.render.1.0: translate.1: %f, %f%n", t.getTranslateX(), t.getTranslateY());
-            pmv.glTranslatef(translate[0]+t.getTranslateX(), translate[1]+t.getTranslateY(), translate[2]);
-            pmv.glScalef(scale[0]*t.getScaleX(), scale[1]*t.getScaleY(), scale[2]);
-            pmv.glRotatef(rotation[0], 1, 0, 0);
-            pmv.glRotatef(rotation[1], 0, 1, 0);
-            pmv.glRotatef(rotation[2], 0, 0, 1);
+            System.err.printf("SceneUICtrl.render.1.0: translate.1: %f, %f%n", uiTranslate[0], uiTranslate[1]);
+            pmv.glTranslatef(uiTranslate[0], uiTranslate[1], 0f);
             renderer.updateMatrix(gl);
             uiShape.drawShape(gl, renderer, sampleCount, select);
             pmv.glPopMatrix();

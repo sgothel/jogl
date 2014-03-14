@@ -20,9 +20,11 @@ import com.jogamp.newt.Window;
 import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.test.junit.graph.demos.ui.Label;
 import com.jogamp.opengl.test.junit.graph.demos.ui.RIButton;
 import com.jogamp.opengl.test.junit.graph.demos.ui.SceneUIController;
+import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class GPUUISceneGLListener0A implements GLEventListener {
@@ -34,21 +36,23 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     private final int[] sampleCount = new int[1];
     private final int[] texSize2 = new int[1];
     private final RenderState rs;
-    private final boolean useBlending;
     private final SceneUIController sceneUIController;
     protected final float zNear = 0.1f, zFar = 7000f;
+    /** Describing the bounding box in model-coordinates of the near-plane parallel at distance one. */
+    protected final AABBox nearPlane1Box;
 
     private RegionRenderer renderer;
 
     int fontSet = FontFactory.UBUNTU;
     Font font;
-    final float fontSizeFixed = 6;
+    final float fontSizeFixed = 12f;
+    final float fontSizeFPS = 10f;
     float dpiH = 96;
 
-    private float xTran = 0;
+    private float xTran = 0f;
     private float yTran = 0;
-    private float ang = 0f;
-    private float zoom = -200f;
+    private float zTran = 0f;
+    private float rotY = 0f;
     private final float zoomText = 1f;
     private int currentText = 0;
 
@@ -60,7 +64,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     private final int numSelectable = 6;
 
     private MultiTouchListener multiTouchListener = null;
-    private boolean showFPS = false;
+    private boolean showFPS = true;
     private GLAutoDrawable cDrawable;
 
     private final String jogamp = "JogAmp - Jogl Graph Module Demo";
@@ -79,7 +83,6 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         this.renderModes = renderModes;
         this.sampleCount[0] = 4;
         this.texSize2[0] = 0;
-        this.useBlending = true;
 
         this.debug = debug;
         this.trace = trace;
@@ -90,26 +93,24 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             ioe.printStackTrace();
         }
         sceneUIController = new SceneUIController();
+        nearPlane1Box = new AABBox();
     }
 
     private void initButtons(int width, int height) {
         buttons = new RIButton[numSelectable];
-        int xaxis = -110;
-        float xSize = 40f;
-        float ySize = 16f;
+        float xaxis =   20f;
+        float xSize =   50f;
+        float ySize =   xSize/2.5f;
 
-        int start = 50;
-        int diff = (int)ySize + 5;
+        float ystart = 25;
+        float diff = ySize + 5;
 
         buttons[0] = new RIButton(SVertex.factory(), font, "Next Text", xSize, ySize){
             public void onClick() {
                    currentText = (currentText+1)%3;
             }
-            public void onPressed() { }
-            public void onRelease() { }
         };
-
-        buttons[0].translate(xaxis,start);
+        buttons[0].translate(xaxis,ystart);
 
         buttons[1] = new RIButton(SVertex.factory(), font, "Show FPS", xSize, ySize){
             public void onClick() {
@@ -120,7 +121,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                 showFPS = !showFPS;
             }
         };
-        buttons[1].translate(xaxis,start - diff);
+        buttons[1].translate(xaxis,ystart - diff);
         buttons[1].setToggleable(true);
 
         buttons[2] = new RIButton(SVertex.factory(), font, "v-sync", xSize, ySize){
@@ -138,29 +139,32 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                 });
             }
         };
-        buttons[2].translate(xaxis,start-diff*2);
+        buttons[2].translate(xaxis,ystart-diff*2);
         buttons[2].setToggleable(true);
+        buttons[2].setLabelColor(1.0f, 1.0f, 1.0f);
 
         buttons[3] = new RIButton(SVertex.factory(), font, "Tilt  +Y", xSize, ySize) {
             public void onClick() {
-                ang+=10;
+                rotY+=10;
             }
         };
-        buttons[3].translate(xaxis,start-diff*3);
+        buttons[3].translate(xaxis,ystart-diff*3);
+        buttons[3].setLabelColor(1.0f, 1.0f, 1.0f);
 
         buttons[4] = new RIButton(SVertex.factory(), font, "Tilt  -Y", xSize, ySize){
             public void onClick() {
-                ang-=10;
+                rotY-=10;
             }
         };
-        buttons[4].translate(xaxis,start-diff*4);
+        buttons[4].translate(xaxis,ystart-diff*4);
+        buttons[4].setLabelColor(1.0f, 1.0f, 1.0f);
 
         buttons[5] = new RIButton(SVertex.factory(), font, "Quit", xSize, ySize){
             public void onClick() {
                 cDrawable.destroy();
             }
         };
-        buttons[5].translate(xaxis,start-diff*5);
+        buttons[5].translate(xaxis,ystart-diff*5);
         buttons[5].setColor(0.8f, 0.0f, 0.0f);
         buttons[5].setLabelColor(1.0f, 1.0f, 1.0f);
 
@@ -171,7 +175,13 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     private void initTexts() {
         strings = new String[3];
 
-        strings[0] = "abcdefghijklmn\nopqrstuvwxyz\nABCDEFGHIJKL\nMNOPQRSTUVWXYZ\n0123456789.:,;(*!?/\\\")$%^&-+@~#<>{}[]";
+        strings[0] = "Next Text\n"+
+                     "Show FPS\n"+
+                     "abcdefghijklmn\nopqrstuvwxyz\n"+
+                     "ABCDEFGHIJKL\n"+
+                     "MNOPQRSTUVWXYZ\n"+
+                     "0123456789.:,;(*!?/\\\")$%^&-+@~#<>{}[]";
+
         strings[1] = "The quick brown fox\njumps over the lazy\ndog";
 
         strings[2] =
@@ -241,7 +251,6 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
         final float pixelSizeFixed = font.getPixelSize(fontSizeFixed, dpiH);
         jogampLabel = new Label(SVertex.factory(), font, pixelSizeFixed, jogamp);
-
         final GLAnimatorControl a = drawable.getAnimator();
         if( null != a ) {
             a.resetFPSCounter();
@@ -265,41 +274,46 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
     public void display(GLAutoDrawable drawable) {
         // System.err.println("GPUUISceneGLListener0A: display");
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final int width = drawable.getWidth();
+        final int height = drawable.getHeight();
 
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
-        renderer.resetModelview(null);
-        sceneUIController.setTranslate(xTran, yTran, zoom);
-        sceneUIController.setRotation(0, ang, 0);
-        sceneUIController.display(drawable);
-
         final float pixelSizeFixed = font.getPixelSize(fontSizeFixed, dpiH);
 
         renderer.resetModelview(null);
-        renderer.translate(null, xTran-50, yTran+43, zoom);
-        renderer.translate(gl, 0, 30, 0);
-        renderer.scale(null, zoomText, zoomText, 1);
-        renderer.scale(gl, 1.5f, 1.5f, 1.0f);
+        sceneUIController.setTranslate(nearPlaneX0+xTran, nearPlaneY0+yTran, nearPlaneZ0+zTran);
+        sceneUIController.setScale(nearPlaneSx, nearPlaneSy, 1f);
+        sceneUIController.setRotation(0, rotY, 0);
+        sceneUIController.display(drawable);
+
+        float dx = width * 1f/3f;
+        float dy = height - 10f - jogampLabel.getLineHeight();
+
+        renderer.resetModelview(null);
+        renderer.translate(null, nearPlaneX0+xTran+(dx*nearPlaneSx), nearPlaneY0+yTran+(dy*nearPlaneSy), nearPlaneZ0+zTran);
+        renderer.scale(null, nearPlaneSx*zoomText, nearPlaneSy*zoomText, 1f);
         renderer.rotate(gl, angText , 0, 1, 0);
         renderer.setColorStatic(gl, 0.0f, 1.0f, 0.0f);
         jogampLabel.drawShape(gl, renderer, sampleCount, false);
+
         if(null == labels[currentText]) {
             labels[currentText] = new Label(SVertex.factory(), font, pixelSizeFixed, strings[currentText]);
+            labels[currentText].setColor(0, 0, 0);
         }
-
+        labels[currentText].validate(gl, renderer);
+        dy -= labels[currentText].getBounds().getHeight();
         renderer.resetModelview(null);
-        renderer.translate(null, xTran-50, yTran, zoom);
-        renderer.translate(gl, 0, 30, 0);
-        renderer.scale(null, zoomText, zoomText, 1);
-        renderer.scale(gl, 1.5f, 1.5f, 1.0f);
-        renderer.rotate(gl, zoomText, 0, 1, 0);
-
+        renderer.translate(null, nearPlaneX0+xTran+(dx*nearPlaneSx), nearPlaneY0+yTran+(dy*nearPlaneSy), nearPlaneZ0+zTran);
+        renderer.scale(null, nearPlaneSx*zoomText, nearPlaneSy*zoomText, 1f);
+        renderer.rotate(gl, angText, 0, 1, 0);
         renderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
         labels[currentText].drawShape(gl, renderer, sampleCount, false);
 
         if( showFPS ) {
+            final float pixelSizeFPS = font.getPixelSize(fontSizeFPS, dpiH);
             final float lfps, tfps, td;
             final GLAnimatorControl animator = drawable.getAnimator();
             if( null != animator ) {
@@ -314,28 +328,75 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             final String modeS = Region.getRenderModeString(renderer.getRenderModes());
             final String text = String.format("%03.1f/%03.1f fps, v-sync %d, fontSize %.1f, %s-samples %d, td %4.1f, blend %b, alpha-bits %d",
                     lfps, tfps, gl.getSwapInterval(), fontSizeFixed, modeS, sampleCount[0], td,
-                    useBlending, drawable.getChosenGLCapabilities().getAlphaBits());
+                    renderer.getRenderState().isHintBitSet(RenderState.BITHINT_BLENDING_ENABLED),
+                    drawable.getChosenGLCapabilities().getAlphaBits());
             if(null != fpsLabel) {
                 fpsLabel.clear(gl, renderer);
                 fpsLabel.setText(text);
-                fpsLabel.setPixelSize(pixelSizeFixed);
             } else {
-                fpsLabel = new Label(renderer.getRenderState().getVertexFactory(), font, pixelSizeFixed, text);
+                fpsLabel = new Label(renderer.getRenderState().getVertexFactory(), font, pixelSizeFPS, text);
             }
-            renderer.translate(gl, 0, -60, 0);
-            renderer.scale(null, zoomText, zoomText, 1);
+            renderer.resetModelview(null);
+            renderer.translate(null, nearPlaneX0, nearPlaneY0+(nearPlaneS * pixelSizeFPS / 2f), nearPlaneZ0);
+            renderer.scale(null, nearPlaneSx, nearPlaneSy, 1f);
+            renderer.updateMatrix(gl);
             fpsLabel.drawShape(gl, renderer, sampleCount, false);
         }
+    }
+
+    public static void mapWin2ObjectCoords(final PMVMatrix pmv, final int[] view,
+                                           final float zNear, final float zFar,
+                                           float orthoX, float orthoY, float orthoDist,
+                                           final float[] winZ, final float[] objPos) {
+        winZ[0] = (1f/zNear-1f/orthoDist)/(1f/zNear-1f/zFar);
+        pmv.gluUnProject(orthoX, orthoY, winZ[0], view, 0, objPos, 0);
     }
 
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
         System.err.println("GPUUISceneGLListener0A: reshape");
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-        gl.glViewport(x, y, width, height);
+        final PMVMatrix pmv = renderer.getMatrix();
         renderer.reshapePerspective(gl, 45.0f, width, height, zNear, zFar);
+        renderer.resetModelview(null);
+        renderer.updateMatrix(gl);
+        System.err.printf("Reshape: zNear %f,  zFar %f%n", zNear, zFar);
+        System.err.printf("Reshape: Frustum: %s%n", pmv.glGetFrustum());
+        {
+            final float orthoDist = 1f;
+            final float[] obj00Coord = new float[3];
+            final float[] obj11Coord = new float[3];
+            final float[] winZ = new float[1];
+            final int[] view = new int[] { 0, 0, width, height };
+
+            mapWin2ObjectCoords(pmv, view, zNear, zFar, 0f, 0f, orthoDist, winZ, obj00Coord);
+            System.err.printf("Reshape: mapped.00: [%f, %f, %f], winZ %f -> [%f, %f, %f]%n", 0f, 0f, orthoDist, winZ[0], obj00Coord[0], obj00Coord[1], obj00Coord[2]);
+
+            mapWin2ObjectCoords(pmv, view, zNear, zFar, width, height, orthoDist, winZ, obj11Coord);
+            System.err.printf("Reshape: mapped.11: [%f, %f, %f], winZ %f -> [%f, %f, %f]%n", (float)width, (float)height, orthoDist, winZ[0], obj11Coord[0], obj11Coord[1], obj11Coord[2]);
+
+            nearPlane1Box.setSize( obj00Coord[0],  // lx
+                                   obj00Coord[1],  // ly
+                                   obj00Coord[2],  // lz
+                                   obj11Coord[0],  // hx
+                                   obj11Coord[1],  // hy
+                                   obj11Coord[2] );// hz
+            System.err.printf("Reshape: dist1Box: %s%n", nearPlane1Box);
+        }
         sceneUIController.reshape(drawable, x, y, width, height);
+
+        final float dist = 100f;
+        nearPlaneX0 = nearPlane1Box.getMinX() * dist;
+        nearPlaneY0 = nearPlane1Box.getMinY() * dist;
+        nearPlaneZ0 = nearPlane1Box.getMinZ() * dist;
+        final float xd = nearPlane1Box.getWidth() * dist;
+        final float yd = nearPlane1Box.getHeight() * dist;
+        nearPlaneSx = xd  / width;
+        nearPlaneSy = yd / height;
+        nearPlaneS = nearPlaneSy;
+        System.err.printf("Scale: [%f x %f] / [%d x %d] = [%f, %f] -> %f%n", xd, yd, width, height, nearPlaneSx, nearPlaneSy, nearPlaneS);
     }
+    float nearPlaneX0, nearPlaneY0, nearPlaneZ0, nearPlaneSx, nearPlaneSy, nearPlaneS;
 
     public void attachInputListenerTo(GLWindow window) {
         if ( null == multiTouchListener ) {
@@ -381,7 +442,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                 int nv = Math.abs(e.getY(0)-e.getY(1));
                 int dy = nv - lx;
 
-                zoom += 2 * Math.signum(dy);
+                zTran += 2 * Math.signum(dy);
 
                 lx = nv;
             } else {
@@ -410,7 +471,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         @Override
         public void mouseWheelMoved(MouseEvent e) {
             if( !e.isShiftDown() ) {
-                zoom += 2f*e.getRotation()[1]; // vertical: wheel
+                zTran += 2f*e.getRotation()[1]; // vertical: wheel
             }
         }
     }

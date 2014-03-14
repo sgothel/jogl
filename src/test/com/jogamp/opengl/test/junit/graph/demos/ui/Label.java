@@ -73,6 +73,10 @@ public class Label extends UIShape {
         return pixelSize;
     }
 
+    public float getLineHeight() {
+        return font.getLineHeight(pixelSize);
+    }
+
     public void setPixelSize(float pixelSize) {
         this.pixelSize = pixelSize;
         dirty |= DIRTY_SHAPE | DIRTY_REGION;

@@ -27,6 +27,7 @@
  */
 package com.jogamp.graph.curve.opengl;
 
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLUniformData;
 
@@ -34,12 +35,32 @@ import jogamp.graph.curve.opengl.RenderStateImpl;
 import jogamp.graph.curve.opengl.shader.UniformNames;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 public abstract class RenderState {
     private static final String thisKey = "jogamp.graph.curve.RenderState" ;
+
+    /**
+     * Bitfield hint, {@link #isHintBitSet(int) if set}
+     * stating <i>enabled</i> {@link GL#GL_BLEND}, otherwise <i>disabled</i>.
+     * <p>
+     * Shall be set via {@link #setHintBits(int)} and cleared via {@link #clearHintBits(int)}.
+     * </p>
+     * <p>
+     * Due to alpha blending and multipass rendering, e.g. {@link Region#VBAA_RENDERING_BIT},
+     * the clear-color shall be set to the {@link #getColorStatic() foreground color} and <i>zero alpha</i>,
+     * otherwise blending will amplify the scene's clear-color.
+     * </p>
+     * <p>
+     * Shall be called by custom code, e.g. via {@link RegionRenderer}'s
+     * enable and disable {@link RegionRenderer.GLCallback} as done in
+     * {@link RegionRenderer#defaultBlendEnable} and {@link RegionRenderer#defaultBlendDisable}.
+     * </p>
+     */
+    public static final int BITHINT_BLENDING_ENABLED = 1 << 0 ;
 
     public static RenderState createRenderState(ShaderState st, Vertex.Factory<? extends Vertex> pointFactory) {
         return new RenderStateImpl(st, pointFactory, null);
@@ -57,6 +78,7 @@ public abstract class RenderState {
     protected final Vertex.Factory<? extends Vertex> vertexFactory;
     protected final PMVMatrix pmvMatrix;
     protected final GLUniformData gcu_PMVMatrix;
+    protected int hintBitfield;
 
     protected RenderState(ShaderState st, Vertex.Factory<? extends Vertex> vertexFactory, PMVMatrix pmvMatrix) {
         this.st = st;
@@ -64,12 +86,23 @@ public abstract class RenderState {
         this.pmvMatrix = null != pmvMatrix ? pmvMatrix : new PMVMatrix();
         this.gcu_PMVMatrix = new GLUniformData(UniformNames.gcu_PMVMatrix, 4, 4, this.pmvMatrix.glGetPMvMatrixf());
         st.ownUniform(gcu_PMVMatrix);
+        this.hintBitfield = 0;
     }
 
     public final ShaderState getShaderState() { return st; }
     public final Vertex.Factory<? extends Vertex> getVertexFactory() { return vertexFactory; }
     public final PMVMatrix pmvMatrix() { return pmvMatrix; }
     public final GLUniformData getPMVMatrix() { return gcu_PMVMatrix; }
+
+    public final boolean isHintBitSet(int mask) {
+        return mask == ( hintBitfield & mask );
+    }
+    public final void setHintBits(int mask) {
+        hintBitfield |= mask;
+    }
+    public final void clearHintBits(int mask) {
+        hintBitfield &= ~mask;
+    }
 
     public void destroy(GL2ES2 gl) {
         st.destroy(gl);

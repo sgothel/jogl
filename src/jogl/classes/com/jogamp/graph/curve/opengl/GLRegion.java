@@ -30,6 +30,10 @@ package com.jogamp.graph.curve.opengl;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 
+import jogamp.graph.curve.opengl.VBORegion2PMSAAES2;
+import jogamp.graph.curve.opengl.VBORegion2PVBAAES2;
+import jogamp.graph.curve.opengl.VBORegionSPES2;
+
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.graph.curve.Region;
 
@@ -55,7 +59,13 @@ public abstract class GLRegion extends Region {
      * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, {@link Region#VBAA_RENDERING_BIT}
      */
     public static GLRegion create(int renderModes) {
-        return Region.create(renderModes);
+        if( isVBAA(renderModes) ) {
+            return new VBORegion2PVBAAES2(renderModes, Region.TWO_PASS_DEFAULT_TEXTURE_UNIT);
+        } else if( isMSAA(renderModes) ) {
+            return new VBORegion2PMSAAES2(renderModes, Region.TWO_PASS_DEFAULT_TEXTURE_UNIT);
+        } else {
+            return new VBORegionSPES2(renderModes);
+        }
     }
 
     protected GLRegion(int renderModes) {
@@ -68,7 +78,7 @@ public abstract class GLRegion extends Region {
      * <p>Allocates the ogl related data and initializes it the 1st time.<p>
      * <p>Called by {@link #draw(GL2ES2, RenderState, int, int, int)}.</p>
      */
-    protected abstract void update(GL2ES2 gl, RegionRenderer renderer);
+    protected abstract void updateImpl(GL2ES2 gl, RegionRenderer renderer);
 
     protected abstract void destroyImpl(GL2ES2 gl, RegionRenderer renderer);
 
@@ -121,7 +131,7 @@ public abstract class GLRegion extends Region {
      */
     public final void draw(GL2ES2 gl, RegionRenderer renderer, int[/*1*/] sampleCount) {
         if(isDirty()) {
-            update(gl, renderer);
+            updateImpl(gl, renderer);
             setDirty(false);
         }
         drawImpl(gl, renderer, sampleCount);

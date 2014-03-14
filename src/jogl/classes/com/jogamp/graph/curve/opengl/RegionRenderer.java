@@ -62,27 +62,35 @@ public abstract class RegionRenderer {
      * Default {@link GL#GL_BLEND} <i>enable</i> {@link GLCallback},
      * turning on the {@link GL#GL_BLEND} state and setting up
      * {@link GL#glBlendFunc(int, int) glBlendFunc}({@link GL#GL_SRC_ALPHA}, {@link GL#GL_ONE_MINUS_SRC_ALPHA}).
-     * @see #setEnableCallback(GLCallback, GLCallback)
+     * <p>
+     * Implementation also sets {@link RegionRenderer#getRenderState() RenderState}'s {@link RenderState#BITHINT_BLENDING_ENABLED blending bit-hint}.
+     * </p>
+     * @see #create(RenderState, int, GLCallback, GLCallback)
      * @see #enable(GL2ES2, boolean)
      */
     public static final GLCallback defaultBlendEnable = new GLCallback() {
         @Override
-        public void run(final GL gl, final RegionRenderer args) {
+        public void run(final GL gl, final RegionRenderer renderer) {
             gl.glEnable(GL.GL_BLEND);
             gl.glBlendEquation(GL.GL_FUNC_ADD); // default
             gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+            renderer.rs.setHintBits(RenderState.BITHINT_BLENDING_ENABLED);
         }
     };
 
     /**
      * Default {@link GL#GL_BLEND} <i>disable</i> {@link GLCallback},
      * simply turning off the {@link GL#GL_BLEND} state.
-     * @see #setEnableCallback(GLCallback, GLCallback)
+     * <p>
+     * Implementation also clears {@link RegionRenderer#getRenderState() RenderState}'s {@link RenderState#BITHINT_BLENDING_ENABLED blending bit-hint}.
+     * </p>
+     * @see #create(RenderState, int, GLCallback, GLCallback)
      * @see #enable(GL2ES2, boolean)
      */
     public static final GLCallback defaultBlendDisable = new GLCallback() {
         @Override
-        public void run(final GL gl, final RegionRenderer args) {
+        public void run(final GL gl, final RegionRenderer renderer) {
+            renderer.rs.clearHintBits(RenderState.BITHINT_BLENDING_ENABLED);
             gl.glDisable(GL.GL_BLEND);
         }
     };
@@ -287,7 +295,7 @@ public abstract class RegionRenderer {
 
     }
 
-    public final void getColorStatic(GL2ES2 gl, float[] rgb) {
+    public final void getColorStatic(float[] rgb) {
         FloatBuffer fb = (FloatBuffer) rs.getColorStatic().getBuffer();
         rgb[0] = fb.get(0);
         rgb[1] = fb.get(1);

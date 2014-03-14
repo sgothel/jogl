@@ -81,7 +81,7 @@ public class VBORegionSPES2 extends GLRegion {
     }
 
     @Override
-    protected void update(final GL2ES2 gl, final RegionRenderer renderer) {
+    protected void updateImpl(final GL2ES2 gl, final RegionRenderer renderer) {
         if( !buffersAttached ) {
             final ShaderState st = renderer.getShaderState();
             st.ownAttribute(verticeAttr, true);
@@ -104,6 +104,12 @@ public class VBORegionSPES2 extends GLRegion {
 
     @Override
     protected void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int[/*1*/] sampleCount) {
+        if( 0 >= indicesBuffer.getElementCount() ) {
+            if(DEBUG_INSTANCE) {
+                System.err.printf("VBORegionSPES2.drawImpl: Empty%n");
+            }
+            return; // empty!
+        }
         verticeAttr.enableBuffer(gl, true);
         texCoordAttr.enableBuffer(gl, true);
         indicesBuffer.bindBuffer(gl, true); // keeps VBO binding
