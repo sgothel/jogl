@@ -37,21 +37,21 @@ import com.jogamp.common.os.Platform;
  * Basic Float math utility functions.
  * <p>
  * Implementation assumes linear matrix layout in column-major order
- * matching OpenGL's implementation, translation matrix example:
+ * matching OpenGL's implementation, illustration:
  * <pre>
-   Row-Major Order:
-     1 0 0 x
-     0 1 0 y
-     0 0 1 z
-     0 0 0 1
+  Row-Major                    Column-Major (OpenGL):
+
+        | 0  1  2  3  |            | 0  4  8  12 |
+        |             |            |             |
+        | 4  5  6  7  |            | 1  5  9  13 |
+    M = |             |        M = |             |
+        | 8  9  10 11 |            | 2  6  10 14 |
+        |             |            |             |
+        | 12 13 14 15 |            | 3  7  11 15 |
  * </pre>
- * <pre>
-   Column-Major Order:
-     1 0 0 0
-     0 1 0 0
-     0 0 1 0
-     x y z 1
- * </pre>
+ * </p>
+ * <p>
+ * See <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html">Matrix-FAQ</a>
  * </p>
  * <p>
  * Derived from ProjectFloat.java - Created 11-jan-2004
@@ -110,6 +110,92 @@ public class FloatUtil {
     final int oldPos = m.position();
     m.put(ZERO_MATRIX);
     m.position(oldPos);
+  }
+
+  /**
+   * Make a rotation matrix from the given axis and angle in radians.
+   * @see <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q38">Matrix-FAQ Q38</a>
+   */
+  public static final void makeRotationAxis(final float angrad, float x, float y, float z, final float[] mat, final int mat_offset, final float[] tmpVec3f) {
+        final float c = cos(angrad);
+        final float ic= 1.0f - c;
+        final float s = sin(angrad);
+
+        tmpVec3f[0]=x; tmpVec3f[1]=y; tmpVec3f[2]=z;
+        VectorUtil.normalize(tmpVec3f);
+        x = tmpVec3f[0]; y = tmpVec3f[1]; z = tmpVec3f[2];
+
+        // Rotation matrix (Row Order):
+        //      xx(1-c)+c  xy(1-c)+zs xz(1-c)-ys 0
+        //      xy(1-c)-zs yy(1-c)+c  yz(1-c)+xs 0
+        //      xz(1-c)+ys yz(1-c)-xs zz(1-c)+c  0
+        //      0          0          0          1
+        final float xy = x*y;
+        final float xz = x*z;
+        final float xs = x*s;
+        final float ys = y*s;
+        final float yz = y*z;
+        final float zs = z*s;
+        mat[0+0*4+mat_offset] = x*x*ic+c;
+        mat[1+0*4+mat_offset] = xy*ic+zs;
+        mat[2+0*4+mat_offset] = xz*ic-ys;
+
+        mat[0+1*4+mat_offset] = xy*ic-zs;
+        mat[1+1*4+mat_offset] = y*y*ic+c;
+        mat[2+1*4+mat_offset] = yz*ic+xs;
+
+        mat[0+2*4+mat_offset] = xz*ic+ys;
+        mat[1+2*4+mat_offset] = yz*ic-xs;
+        mat[2+2*4+mat_offset] = z*z*ic+c;
+  }
+
+  /**
+   * Make a concatenated rotation matrix in column-major order from the given Euler rotation angles in radians.
+   * <p>
+   * The rotations are applied in the given order:
+   * <ul>
+   *  <li>y - heading</li>
+   *  <li>z - attitude</li>
+   *  <li>x - bank</li>
+   * </ul>
+   * </p>
+   * @param bankX the Euler pitch angle in radians. (rotation about the X axis)
+   * @param headingY the Euler yaw angle in radians. (rotation about the Y axis)
+   * @param attitudeZ the Euler roll angle in radians. (rotation about the Z axis)
+   * <p>
+   * Implementation does not use Quaternion and hence is exposed to
+   * <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q34">Gimbal-Lock</a>
+   * </p>
+   * @see <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q36">Matrix-FAQ Q36</a>
+   * @see <a href="http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToMatrix/index.htm">euclideanspace.com-eulerToMatrix</a>
+   */
+  public static final void makeRotationEuler(final float bankX, final float headingY, final float attitudeZ, final float[] mat, final int mat_offset) {
+      // Assuming the angles are in radians.
+      final float ch = cos(headingY);
+      final float sh = sin(headingY);
+      final float ca = cos(attitudeZ);
+      final float sa = sin(attitudeZ);
+      final float cb = cos(bankX);
+      final float sb = sin(bankX);
+
+      mat[0+0*4+mat_offset] =  ch*ca;
+      mat[0+1*4+mat_offset] =  sh*sb    - ch*sa*cb;
+      mat[0+2*4+mat_offset] =  ch*sa*sb + sh*cb;
+      mat[1+0*4+mat_offset] =  sa;
+      mat[1+1*4+mat_offset] =  ca*cb;
+      mat[1+2*4+mat_offset] = -ca*sb;
+      mat[2+0*4+mat_offset] = -sh*ca;
+      mat[2+1*4+mat_offset] =  sh*sa*cb + ch*sb;
+      mat[2+2*4+mat_offset] = -sh*sa*sb + ch*cb;
+
+      mat[3+0*4+mat_offset] =  0;
+      mat[3+1*4+mat_offset] =  0;
+      mat[3+2*4+mat_offset] =  0;
+
+      mat[0+3*4+mat_offset] =  0;
+      mat[1+3*4+mat_offset] =  0;
+      mat[2+3*4+mat_offset] =  0;
+      mat[3+3*4+mat_offset] =  1;
   }
 
   /**
@@ -252,79 +338,6 @@ public class FloatUtil {
   }
 
   /**
-   * Normalize vector
-   *
-   * @param v makes len(v)==1
-   */
-  public static final void normalize(float[] v) {
-    float r = (float) Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-
-    if ( r == 0.0 || r == 1.0) {
-      return;
-    }
-
-    r = 1.0f / r;
-
-    v[0] *= r;
-    v[1] *= r;
-    v[2] *= r;
-  }
-
-  /**
-   * Normalize vector
-   *
-   * @param v makes len(v)==1
-   */
-  public static final void normalize(FloatBuffer v) {
-    final int vPos = v.position();
-
-    float r = (float) Math.sqrt(v.get(0+vPos) * v.get(0+vPos) +
-                                v.get(1+vPos) * v.get(1+vPos) +
-                                v.get(2+vPos) * v.get(2+vPos));
-
-    if ( r == 0.0 || r == 1.0) {
-      return;
-    }
-
-    r = 1.0f / r;
-
-    v.put(0+vPos, v.get(0+vPos) * r);
-    v.put(1+vPos, v.get(1+vPos) * r);
-    v.put(2+vPos, v.get(2+vPos) * r);
-  }
-
-
-  /**
-   * Calculate cross-product of 2 vector
-   *
-   * @param v1 3-component vector
-   * @param v2 3-component vector
-   * @param result v1 X v2
-   */
-  public static final void cross(float[] v1, float[] v2, float[] result) {
-    result[0] = v1[1] * v2[2] - v1[2] * v2[1];
-    result[1] = v1[2] * v2[0] - v1[0] * v2[2];
-    result[2] = v1[0] * v2[1] - v1[1] * v2[0];
-  }
-
-  /**
-   * Calculate cross-product of 2 vector
-   *
-   * @param v1 3-component vector
-   * @param v2 3-component vector
-   * @param result v1 X v2
-   */
-  public static final void cross(FloatBuffer v1, FloatBuffer v2, FloatBuffer result) {
-    final int v1Pos = v1.position();
-    final int v2Pos = v2.position();
-    final int rPos  = result.position();
-
-    result.put(0+rPos, v1.get(1+v1Pos) * v2.get(2+v2Pos) - v1.get(2+v1Pos) * v2.get(1+v2Pos));
-    result.put(1+rPos, v1.get(2+v1Pos) * v2.get(0+v2Pos) - v1.get(0+v1Pos) * v2.get(2+v2Pos));
-    result.put(2+rPos, v1.get(0+v1Pos) * v2.get(1+v2Pos) - v1.get(1+v1Pos) * v2.get(0+v2Pos));
-  }
-
-  /**
    * @param m_in 4x4 matrix in column-major order
    * @param m_in_off
    * @param v_in 4-component column-vector
@@ -409,6 +422,46 @@ public class FloatUtil {
               v_in.get(2+inPos) * m_in.get(2*4+i+matrixPos) +
               v_in.get(3+inPos) * m_in.get(3*4+i+matrixPos));
     }
+  }
+
+  /**
+   * Copy the named column of the given column-major matrix to v_out.
+   * <p>
+   * v_out may be 3 or 4 components long, hence the 4th row may not be stored.
+   * </p>
+   * @param m_in input column-major matrix
+   * @param m_in_off offset to input matrix
+   * @param column named column to copy
+   * @param v_out the column-vector storage, at least 3 components long
+   * @param v_out_off offset to storage
+   */
+  public static final void copyMatrixColumn(final float[] m_in, final int m_in_off, final int column, final float[] v_out, final int v_out_off) {
+      v_out[0+v_out_off]=m_in[0+column*4+m_in_off];
+      v_out[1+v_out_off]=m_in[1+column*4+m_in_off];
+      v_out[2+v_out_off]=m_in[2+column*4+m_in_off];
+      if( v_out.length > 3+v_out_off ) {
+          v_out[3+v_out_off]=m_in[3+column*4+m_in_off];
+      }
+  }
+
+  /**
+   * Copy the named row of the given column-major matrix to v_out.
+   * <p>
+   * v_out may be 3 or 4 components long, hence the 4th column may not be stored.
+   * </p>
+   * @param m_in input column-major matrix
+   * @param m_in_off offset to input matrix
+   * @param row named row to copy
+   * @param v_out the row-vector storage, at least 3 components long
+   * @param v_out_off offset to storage
+   */
+  public static final void copyMatrixRow(final float[] m_in, final int m_in_off, final int row, final float[] v_out, final int v_out_off) {
+      v_out[0+v_out_off]=m_in[row+0*4+m_in_off];
+      v_out[1+v_out_off]=m_in[row+1*4+m_in_off];
+      v_out[2+v_out_off]=m_in[row+2*4+m_in_off];
+      if( v_out.length > 3+v_out_off ) {
+          v_out[3+v_out_off]=m_in[row+3*4+m_in_off];
+      }
   }
 
   /**
@@ -570,20 +623,129 @@ public class FloatUtil {
       return sb;
   }
 
+  @SuppressWarnings("unused")
+  private static void calculateMachineEpsilonFloat() {
+      final long t0;
+      if( DEBUG_EPSILON ) {
+          t0 = Platform.currentTimeMillis();
+      }
+      float machEps = 1.0f;
+      int i=0;
+      do {
+          machEps /= 2.0f;
+          i++;
+      } while (1.0f + (machEps / 2.0f) != 1.0f);
+      machEpsilon = machEps;
+      if( DEBUG_EPSILON ) {
+          final long t1 = Platform.currentTimeMillis();
+          System.err.println("MachineEpsilon: "+machEpsilon+", in "+i+" iterations within "+(t1-t0)+" ms");
+      }
+  }
+  private static volatile boolean machEpsilonAvail = false;
+  private static float machEpsilon = 0f;
+  private static final boolean DEBUG_EPSILON = false;
+
+  /**
+   * Return computed machine Epsilon value.
+   * <p>
+   * The machine Epsilon value is computed once.
+   * </p>
+   * <p>
+   * On a reference machine the result was {@link #EPSILON} in 23 iterations.
+   * </p>
+   * @see #EPSILON
+   */
+  public static float getMachineEpsilon() {
+      if( !machEpsilonAvail ) {
+          synchronized(FloatUtil.class) {
+              if( !machEpsilonAvail ) {
+                  machEpsilonAvail = true;
+                  calculateMachineEpsilonFloat();
+              }
+          }
+      }
+      return machEpsilon;
+  }
+
   public static final float E = 2.7182818284590452354f;
 
+  /** The value PI, i.e. 180 degrees in radians. */
   public static final float PI = 3.14159265358979323846f;
 
-  public static float abs(float a) { return java.lang.Math.abs(a);  }
+  /** The value 2PI, i.e. 360 degrees in radians. */
+  public static final float TWO_PI = 2f * PI;
 
-  public static float pow(float a, float b) { return (float) java.lang.Math.pow(a, b);  }
+  /** The value PI/2, i.e. 90 degrees in radians. */
+  public static final float HALF_PI = PI / 2f;
 
-  public static float sin(float a) { return (float) java.lang.Math.sin(a);  }
+  /** The value PI/4, i.e. 45 degrees in radians. */
+  public static final float QUARTER_PI = PI / 4f;
 
-  public static float cos(float a) { return (float) java.lang.Math.cos(a);  }
+  /** The value PI^2. */
+  public final static float SQUARED_PI = PI * PI;
 
-  public static float acos(float a) { return (float) java.lang.Math.acos(a);  }
+  /**
+   * Epsilon for floating point {@value}, as once computed via {@link #getMachineEpsilon()} on an AMD-64 CPU.
+   * <p>
+   * Definition of machine epsilon guarantees that:
+   * <pre>
+   *        1.0f + EPSILON != 1.0f
+   * </pre>
+   * In other words: <i>machEps</i> is the maximum relative error of the chosen rounding procedure.
+   * </p>
+   * <p>
+   * A number can be considered zero if it is in the range (or in the set):
+   * <pre>
+   *    <b>MaybeZeroSet</b> e ]-<i>machEps</i> .. <i>machEps</i>[  <i>(exclusive)</i>
+   * </pre>
+   * While comparing floating point values, <i>machEps</i> allows to clip the relative error:
+   * <pre>
+   *    boolean isZero    = afloat < EPSILON;
+   *    boolean isNotZero = afloat >= EPSILON;
+   *
+   *    boolean isEqual    = abs(bfloat - afloat) < EPSILON;
+   *    boolean isNotEqual = abs(bfloat - afloat) >= EPSILON;
+   * </pre>
+   * </p>
+   * @see #equals(float, float, float)
+   * @see #isZero(float, float)
+   */
+  public static final float EPSILON = 1.1920929E-7f; // Float.MIN_VALUE == 1.4e-45f ; double EPSILON 2.220446049250313E-16d
 
-  public static float sqrt(float a) { return (float) java.lang.Math.sqrt(a);  }
+  /**
+   * Return true if both values are equal, i.e. their absolute delta < <code>epsilon</code>.
+   * @see #EPSILON
+   */
+  public static boolean equals(final float a, final float b, final float epsilon) {
+      return Math.abs(a - b) < epsilon;
+  }
+
+  /**
+   * Return true if value is zero, i.e. it's absolute value < <code>epsilon</code>.
+   * @see #EPSILON
+   */
+  public static boolean isZero(final float a, final float epsilon) {
+      return Math.abs(a) < epsilon;
+  }
+
+  public static float abs(final float a) { return java.lang.Math.abs(a);  }
+
+  public static float pow(final float a, final float b) { return (float) java.lang.Math.pow(a, b);  }
+
+  public static float sin(final float a) { return (float) java.lang.Math.sin(a);  }
+
+  public static float asin(final float a) { return (float) java.lang.Math.asin(a);  }
+
+  public static float cos(final float a) { return (float) java.lang.Math.cos(a);  }
+
+  public static float acos(final float a) { return (float) java.lang.Math.acos(a);  }
+
+  public static float tan(final float a) { return (float) java.lang.Math.tan(a); }
+
+  public static float atan(final float a) { return (float) java.lang.Math.atan(a); }
+
+  public static float atan2(final float y, final float x) { return (float) java.lang.Math.atan2(y, x); }
+
+  public static float sqrt(final float a) { return (float) java.lang.Math.sqrt(a);  }
 
 }

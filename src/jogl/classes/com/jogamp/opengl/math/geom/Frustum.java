@@ -186,8 +186,8 @@ public class Frustum {
      * </p>
      */
     public void updateByPMV(float[] pmv, int pmv_off) {
-        // Left:   a = m41 + m11, b = m42 + m12, c = m43 + m13, d = m44 + m14  - [1..4] row-major
-        // Left:   a = m30 + m00, b = m31 + m01, c = m32 + m02, d = m33 + m03  - [0..3] row-major
+        // Left:   a = m41 + m11, b = m42 + m12, c = m43 + m13, d = m44 + m14  - [1..4] column-major
+        // Left:   a = m30 + m00, b = m31 + m01, c = m32 + m02, d = m33 + m03  - [0..3] column-major
         {
             final Plane p = planes[LEFT];
             final float[] p_n = p.n;
@@ -197,8 +197,8 @@ public class Frustum {
             p.d    = pmv[ pmv_off + 3 + 3 * 4 ] + pmv[ pmv_off + 0 + 3 * 4 ];
         }
 
-        // Right:  a = m41 - m11, b = m42 - m12, c = m43 - m13, d = m44 - m14  - [1..4] row-major
-        // Right:  a = m30 - m00, b = m31 - m01, c = m32 - m02, d = m33 - m03  - [0..3] row-major
+        // Right:  a = m41 - m11, b = m42 - m12, c = m43 - m13, d = m44 - m14  - [1..4] column-major
+        // Right:  a = m30 - m00, b = m31 - m01, c = m32 - m02, d = m33 - m03  - [0..3] column-major
         {
             final Plane p = planes[RIGHT];
             final float[] p_n = p.n;
@@ -208,8 +208,8 @@ public class Frustum {
             p.d    = pmv[ pmv_off + 3 + 3 * 4 ] - pmv[ pmv_off + 0 + 3 * 4 ];
         }
 
-        // Bottom: a = m41 + m21, b = m42 + m22, c = m43 + m23, d = m44 + m24  - [1..4] row-major
-        // Bottom: a = m30 + m10, b = m31 + m11, c = m32 + m12, d = m33 + m13  - [0..3] row-major
+        // Bottom: a = m41 + m21, b = m42 + m22, c = m43 + m23, d = m44 + m24  - [1..4] column-major
+        // Bottom: a = m30 + m10, b = m31 + m11, c = m32 + m12, d = m33 + m13  - [0..3] column-major
         {
             final Plane p = planes[BOTTOM];
             final float[] p_n = p.n;
@@ -219,8 +219,8 @@ public class Frustum {
             p.d    = pmv[ pmv_off + 3 + 3 * 4 ] + pmv[ pmv_off + 1 + 3 * 4 ];
         }
 
-        // Top:   a = m41 - m21, b = m42 - m22, c = m43 - m23, d = m44 - m24  - [1..4] row-major
-        // Top:   a = m30 - m10, b = m31 - m11, c = m32 - m12, d = m33 - m13  - [0..3] row-major
+        // Top:   a = m41 - m21, b = m42 - m22, c = m43 - m23, d = m44 - m24  - [1..4] column-major
+        // Top:   a = m30 - m10, b = m31 - m11, c = m32 - m12, d = m33 - m13  - [0..3] column-major
         {
             final Plane p = planes[TOP];
             final float[] p_n = p.n;
@@ -230,8 +230,8 @@ public class Frustum {
             p.d    = pmv[ pmv_off + 3 + 3 * 4 ] - pmv[ pmv_off + 1 + 3 * 4 ];
         }
 
-        // Near:  a = m41 + m31, b = m42 + m32, c = m43 + m33, d = m44 + m34  - [1..4] row-major
-        // Near:  a = m30 + m20, b = m31 + m21, c = m32 + m22, d = m33 + m23  - [0..3] row-major
+        // Near:  a = m41 + m31, b = m42 + m32, c = m43 + m33, d = m44 + m34  - [1..4] column-major
+        // Near:  a = m30 + m20, b = m31 + m21, c = m32 + m22, d = m33 + m23  - [0..3] column-major
         {
             final Plane p = planes[NEAR];
             final float[] p_n = p.n;
@@ -241,8 +241,8 @@ public class Frustum {
             p.d    = pmv[ pmv_off + 3 + 3 * 4 ] + pmv[ pmv_off + 2 + 3 * 4 ];
         }
 
-        // Far:   a = m41 - m31, b = m42 - m32, c = m43 - m33, d = m44 - m34  - [1..4] row-major
-        // Far:   a = m30 - m20, b = m31 - m21, c = m32 + m22, d = m33 + m23  - [0..3] row-major
+        // Far:   a = m41 - m31, b = m42 - m32, c = m43 - m33, d = m44 - m34  - [1..4] column-major
+        // Far:   a = m30 - m20, b = m31 - m21, c = m32 + m22, d = m33 + m23  - [0..3] column-major
         {
             final Plane p = planes[FAR];
             final float[] p_n = p.n;

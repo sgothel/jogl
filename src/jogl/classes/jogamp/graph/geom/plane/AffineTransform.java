@@ -24,6 +24,7 @@ package jogamp.graph.geom.plane;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.geom.AABBox;
 
 public class AffineTransform implements Cloneable {
 
@@ -355,27 +356,63 @@ public class AffineTransform implements Cloneable {
     /**
      * Multiply matrix of two AffineTransform objects.
      * The first argument's {@link Vertex.Factory} is being used.
+     * @param tL - the AffineTransform object is a multiplicand (left argument)
+     * @param tR - the AffineTransform object is a multiplier (right argument)
      *
-     * @param t1 - the AffineTransform object is a multiplicand
-     * @param t2 - the AffineTransform object is a multiplier
-     * @return an AffineTransform object that is a result of t1 multiplied by matrix t2.
+     * @return A new AffineTransform object containing the result of [tL] X [tR].
      */
-    AffineTransform multiply(AffineTransform t1, AffineTransform t2) {
-        return new AffineTransform(t1.pointFactory,
-                t1.m00 * t2.m00 + t1.m10 * t2.m01,          // m00
-                t1.m00 * t2.m10 + t1.m10 * t2.m11,          // m01
-                t1.m01 * t2.m00 + t1.m11 * t2.m01,          // m10
-                t1.m01 * t2.m10 + t1.m11 * t2.m11,          // m11
-                t1.m02 * t2.m00 + t1.m12 * t2.m01 + t2.m02, // m02
-                t1.m02 * t2.m10 + t1.m12 * t2.m11 + t2.m12);// m12
+    public final static AffineTransform multiply(final AffineTransform tL, final AffineTransform tR) {
+        return new AffineTransform(tR.pointFactory,
+                tR.m00 * tL.m00 + tR.m10 * tL.m01,          // m00
+                tR.m00 * tL.m10 + tR.m10 * tL.m11,          // m10
+                tR.m01 * tL.m00 + tR.m11 * tL.m01,          // m01
+                tR.m01 * tL.m10 + tR.m11 * tL.m11,          // m11
+                tR.m02 * tL.m00 + tR.m12 * tL.m01 + tL.m02, // m02
+                tR.m02 * tL.m10 + tR.m12 * tL.m11 + tL.m12);// m12
     }
 
-    public final void concatenate(AffineTransform t) {
-        setTransform(multiply(t, this));
+    /**
+     * Concatenates the given matrix to this.
+     * <p>
+     * Implementations performs the matrix multiplication:
+     * <pre>
+     *   [this] = [this] X [tR]
+     * </pre>
+     * </p>
+     * @param tR the right-argument of the matrix multiplication
+     */
+    public final void concatenate(AffineTransform tR) {
+        // setTransform(multiply(this, tR));
+        type = TYPE_UNKNOWN;
+        setTransform(
+                tR.m00 * m00 + tR.m10 * m01,       // m00
+                tR.m00 * m10 + tR.m10 * m11,       // m10
+                tR.m01 * m00 + tR.m11 * m01,       // m01
+                tR.m01 * m10 + tR.m11 * m11,       // m11
+                tR.m02 * m00 + tR.m12 * m01 + m02, // m02
+                tR.m02 * m10 + tR.m12 * m11 + m12);// m12
     }
 
-    public final void preConcatenate(AffineTransform t) {
-        setTransform(multiply(this, t));
+    /**
+     * Pre-concatenates the given matrix to this.
+     * <p>
+     * Implementations performs the matrix multiplication:
+     * <pre>
+     *   [this] = [tL] X [this]
+     * </pre>
+     * </p>
+     * @param tL the left-argument of the matrix multiplication
+     */
+    public final void preConcatenate(AffineTransform tL) {
+        // setTransform(multiply(tL, this));
+        type = TYPE_UNKNOWN;
+        setTransform(
+                m00 * tL.m00 + m10 * tL.m01,          // m00
+                m00 * tL.m10 + m10 * tL.m11,          // m10
+                m01 * tL.m00 + m11 * tL.m01,          // m01
+                m01 * tL.m10 + m11 * tL.m11,          // m11
+                m02 * tL.m00 + m12 * tL.m01 + tL.m02, // m02
+                m02 * tL.m10 + m12 * tL.m11 + tL.m12);// m12
     }
 
     public final AffineTransform createInverse() throws NoninvertibleTransformException {
@@ -392,6 +429,17 @@ public class AffineTransform implements Cloneable {
                 (m01 * m12 - m11 * m02) / det, // m02
                 (m10 * m02 - m00 * m12) / det  // m12
         );
+    }
+
+    public final AABBox transform(final AABBox src, AABBox dst) {
+        if (dst == null) {
+            dst = new AABBox();
+        }
+        final float[] srcLo = src.getLow();
+        final float[] srcHi = src.getHigh();
+        dst.setSize(srcLo[0] * m00 + srcLo[1] * m01 + m02, srcLo[0] * m10 + srcLo[1] * m11 + m12, srcLo[2],
+                    srcHi[0] * m00 + srcHi[1] * m01 + m02, srcHi[0] * m10 + srcHi[1] * m11 + m12, srcHi[2]);
+        return dst;
     }
 
     public final Vertex transform(final Vertex src, Vertex dst) {

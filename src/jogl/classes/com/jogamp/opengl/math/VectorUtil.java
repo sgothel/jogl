@@ -31,6 +31,9 @@ import java.util.ArrayList;
 
 public class VectorUtil {
 
+    /** Zero vector */
+    public static final float[] ZERO       = new float[] {  0f,  0f,  0f };
+
     public enum Winding {
         CW(-1), CCW(1);
 
@@ -43,31 +46,162 @@ public class VectorUtil {
 
     public static final int COLLINEAR = 0;
 
+    /**
+     * Copies a vector of length 3
+     * @param dst output vector
+     * @param dstOffset offset of dst in array
+     * @param src input vector
+     * @param srcOffset offset of src in array
+     * @return copied output vector for chaining
+     */
+    public static float[] copyVec3(final float[] dst, int dstOffset, final float[] src, int srcOffset)
+    {
+        System.arraycopy(src, srcOffset, dst, dstOffset, 3);
+        return dst;
+    }
+
+    /**
+     * Copies a vector of length 4
+     * @param dst output vector
+     * @param dstOffset offset of dst in array
+     * @param src input vector
+     * @param srcOffset offset of src in array
+     * @return copied output vector for chaining
+     */
+    public static float[] copyVec4(final float[] dst, int dstOffset, final float[] src, int srcOffset)
+    {
+        System.arraycopy(src, srcOffset, dst, dstOffset, 4);
+        return dst;
+    }
+
+    /**
+     * Return true if both vectors are equal, no {@link FloatUtil#EPSILON} is taken into consideration.
+     */
+    public static boolean equals(final float[] vec1, int vec1Offset, final float[] vec2, int vec2Offset) {
+        return vec1[0+vec1Offset] == vec2[0+vec2Offset] &&
+               vec1[1+vec1Offset] == vec2[1+vec2Offset] &&
+               vec1[2+vec1Offset] == vec2[2+vec2Offset];
+    }
+
+    /**
+     * Return true if both vectors are equal, i.e. their absolute delta < <code>epsilon</code>.
+     * @see FloatUtil#EPSILON
+     */
+    public static boolean equals(final float[] vec1, int vec1Offset, final float[] vec2, int vec2Offset, final float epsilon) {
+        return Math.abs(vec1[0+vec1Offset] - vec2[0+vec2Offset]) < epsilon &&
+               Math.abs(vec1[1+vec1Offset] - vec2[1+vec2Offset]) < epsilon &&
+               Math.abs(vec1[2+vec1Offset] - vec2[2+vec2Offset]) < epsilon ;
+    }
+
+    /**
+     * Return true if vector is zero, no {@link FloatUtil#EPSILON} is taken into consideration.
+     */
+    public static boolean isZero(final float[] vec, final int vecOffset) {
+        return 0f == vec[0+vecOffset] && 0f == vec[1+vecOffset] && 0f == vec[2+vecOffset];
+    }
+
+    /**
+     * Return true if vector is zero, i.e. it's absolute components < <code>epsilon</code>.
+     * @see FloatUtil#EPSILON
+     */
+    public static boolean isZero(final float[] vec, final int vecOffset, final float epsilon) {
+        return isZero(vec[0+vecOffset], vec[1+vecOffset], vec[2+vecOffset], epsilon);
+    }
+
+    /**
+     * Return true if all three vector components are zero, i.e. it's their absolute value < <code>epsilon</code>.
+     * @see FloatUtil#EPSILON
+     */
+    public static boolean isZero(final float x, final float y, final float z, final float epsilon) {
+        return Math.abs(x) < epsilon &&
+               Math.abs(y) < epsilon &&
+               Math.abs(z) < epsilon ;
+    }
+
+    /**
+     * Return the squared distance between the given two points described vector v1 and v2.
+     * <p>
+     * When comparing the relative distance between two points it is usually sufficient to compare the squared
+     * distances, thus avoiding an expensive square root operation.
+     * </p>
+     */
+    public static float distanceSquared(final float[] v1, final float[] v2) {
+        final float dx = v1[0] - v2[0];
+        final float dy = v1[1] - v2[1];
+        final float dz = v1[2] - v2[2];
+        return dx * dx + dy * dy + dz * dz;
+    }
+
+    /**
+     * Return the distance between the given two points described vector v1 and v2.
+     */
+    public static float distance(final float[] v1, final float[] v2) {
+        return FloatUtil.sqrt(distanceSquared(v1, v2));
+    }
+
     /** compute the dot product of two points
      * @param vec1 vector 1
      * @param vec2 vector 2
      * @return the dot product as float
      */
-    public static float dot(float[] vec1, float[] vec2)
+    public static float dot(final float[] vec1, final float[] vec2)
     {
         return (vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2]);
     }
 
     /**
-     * Normalize a vector
-     * @param vector input vector
-     * @return normalized vector
+     * Compute the squared length of a vector, a.k.a the squared <i>norm</i>
      */
-    public static float[] normalize(final float[] result, float[] vector)
-    {
-        final float d = FloatUtil.sqrt(vector[0]*vector[0] + vector[1]*vector[1] + vector[2]*vector[2]);
-        if(d> 0.0f)
-        {
-            result[0] = vector[0]/d;
-            result[1] = vector[1]/d;
-            result[2] = vector[2]/d;
+    public static float lengthSquared(final float[] vec) {
+        return vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2];
+    }
+    /**
+     * Compute the length of a vector, a.k.a the <i>norm</i>
+     */
+    public static float length(final float[] vec) {
+        return FloatUtil.sqrt(lengthSquared(vec));
+    }
+
+    /**
+     * Normalize a vector
+     * @param result output vector
+     * @param vector input vector
+     * @return normalized output vector
+     */
+    public static float[] normalize(final float[] result, final float[] vector) {
+        final float lengthSq = lengthSquared(vector);
+        if ( FloatUtil.isZero(lengthSq, FloatUtil.EPSILON) ) {
+            result[0] = 0f;
+            result[1] = 0f;
+            result[2] = 0f;
+        } else {
+            final float invSqr = 1f / FloatUtil.sqrt(lengthSq);
+            result[0] = vector[0] * invSqr;
+            result[1] = vector[1] * invSqr;
+            result[2] = vector[2] * invSqr;
         }
         return result;
+    }
+
+    /**
+     * Normalize a vector in place
+     * @param result output vector
+     * @param vector input vector
+     * @return normalized output vector
+     */
+    public static float[] normalize(final float[] vector) {
+        final float lengthSq = lengthSquared(vector);
+        if ( FloatUtil.isZero(lengthSq, FloatUtil.EPSILON) ) {
+            vector[0] = 0f;
+            vector[1] = 0f;
+            vector[2] = 0f;
+        } else {
+            final float invSqr = 1f / FloatUtil.sqrt(lengthSq);
+            vector[0] *= invSqr;
+            vector[1] *= invSqr;
+            vector[2] *= invSqr;
+        }
+        return vector;
     }
 
     /**
@@ -76,8 +210,7 @@ public class VectorUtil {
      * @param vector input vector
      * @param scale single scale constant for all vector components
      */
-    public static float[] scale(float[] result, float[] vector, float scale)
-    {
+    public static float[] scale(final float[] result, final float[] vector, final float scale) {
         result[0] = vector[0] * scale;
         result[1] = vector[1] * scale;
         result[2] = vector[2] * scale;
@@ -90,7 +223,7 @@ public class VectorUtil {
      * @param scale 3 component scale constant for each vector component
      * @return given result vector
      */
-    public static float[] scale(float[] result, float[] vector, float[] scale)
+    public static float[] scale(final float[] result, final float[] vector, final float[] scale)
     {
         result[0] = vector[0] * scale[0];
         result[1] = vector[1] * scale[1];
@@ -99,13 +232,12 @@ public class VectorUtil {
     }
 
     /**
-     * Adds to vectors
+     * Adds two vectors
      * @param v1 vector 1
      * @param v2 vector 2
      * @return v1 + v2
      */
-    public static float[] vectorAdd(float[] result, float[] v1, float[] v2)
-    {
+    public static float[] vectorAdd(final float[] result, final float[] v1, final float[] v2) {
         result[0] = v1[0] + v2[0];
         result[1] = v1[1] + v2[1];
         result[2] = v1[2] + v2[2];
@@ -113,17 +245,29 @@ public class VectorUtil {
     }
 
     /**
+     * Subtracts two vectors
+     * @param v1 vector 1
+     * @param v2 vector 2
+     * @return v1 - v2
+     */
+    public static float[] vectorSub(final float[] result, final float[] v1, final float[] v2) {
+        result[0] = v1[0] - v2[0];
+        result[1] = v1[1] - v2[1];
+        result[2] = v1[2] - v2[2];
+        return result;
+    }
+
+    /**
      * cross product vec1 x vec2
-     * @param vec1 vector 1
-     * @param vec2 vecttor 2
+     * @param v1 vector 1
+     * @param v2 vector 2
      * @return the resulting vector
      */
-    public static float[] cross(final float[] result, float[] vec1, float[] vec2)
+    public static float[] cross(final float[] result, final float[] v1, final float[] v2)
     {
-        result[0] = vec2[2]*vec1[1] - vec2[1]*vec1[2];
-        result[1] = vec2[0]*vec1[2] - vec2[2]*vec1[0];
-        result[2] = vec2[1]*vec1[0] - vec2[0]*vec1[1];
-
+        result[0] = v1[1] * v2[2] - v1[2] * v2[1];
+        result[1] = v1[2] * v2[0] - v1[0] * v2[2];
+        result[2] = v1[0] * v2[1] - v1[1] * v2[0];
         return result;
     }
 
@@ -132,7 +276,7 @@ public class VectorUtil {
      * @param vec vector(x,y,z)
      * @return result
      */
-    public static float[] colMatrixVectorMult(final float[] result, float[] colMatrix, float[] vec)
+    public static float[] colMatrixVectorMult(final float[] result, final float[] colMatrix, final float[] vec)
     {
         result[0] = vec[0]*colMatrix[0] + vec[1]*colMatrix[4] + vec[2]*colMatrix[8] + colMatrix[12];
         result[1] = vec[0]*colMatrix[1] + vec[1]*colMatrix[5] + vec[2]*colMatrix[9] + colMatrix[13];
@@ -146,7 +290,7 @@ public class VectorUtil {
      * @param vec vector(x,y,z)
      * @return result
      */
-    public static float[] rowMatrixVectorMult(final float[] result, float[] rawMatrix, float[] vec)
+    public static float[] rowMatrixVectorMult(final float[] result, final float[] rawMatrix, final float[] vec)
     {
         result[0] = vec[0]*rawMatrix[0] + vec[1]*rawMatrix[1] + vec[2]*rawMatrix[2] + rawMatrix[3];
         result[1] = vec[0]*rawMatrix[4] + vec[1]*rawMatrix[5] + vec[2]*rawMatrix[6] + rawMatrix[7];
@@ -160,7 +304,7 @@ public class VectorUtil {
      * @param p2 second vale
      * @return midpoint
      */
-    public static float mid(float p1, float p2)
+    public static float mid(final float p1, final float p2)
     {
         return (p1+p2)/2.0f;
     }
@@ -171,7 +315,7 @@ public class VectorUtil {
      * @param p2 second point
      * @return midpoint
      */
-    public static float[] mid(final float[] result, float[] p1, float[] p2)
+    public static float[] mid(final float[] result, final float[] p1, final float[] p2)
     {
         result[0] = (p1[0] + p2[0])*0.5f;
         result[1] = (p1[1] + p2[1])*0.5f;
@@ -180,22 +324,13 @@ public class VectorUtil {
         return result;
     }
 
-    /** Compute the norm of a vector
-     * @param vec vector
-     * @return vorm
-     */
-    public static float norm(float[] vec)
-    {
-        return FloatUtil.sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
-    }
-
     /** Compute distance between 2 points
      * @param p0 a ref point on the line
      * @param vec vector representing the direction of the line
      * @param point the point to compute the relative distance of
      * @return distance float
      */
-    public static float computeLength(float[] p0, float[] point)
+    public static float computeLength(final float[] p0, final float[] point)
     {
         final float w0 = point[0]-p0[0];
         final float w1 = point[1]-p0[1];
@@ -209,7 +344,7 @@ public class VectorUtil {
      * @param v2 vertex 2
      * @return
      */
-    public static boolean checkEquality(float[] v1, float[] v2)
+    public static boolean checkEquality(final float[] v1, final float[] v2)
     {
         return Float.compare(v1[0], v2[0]) == 0 &&
                Float.compare(v1[1], v2[1]) == 0 &&
@@ -221,7 +356,7 @@ public class VectorUtil {
      * @param v2 vertex 2
      * @return
      */
-    public static boolean checkEqualityVec2(float[] v1, float[] v2)
+    public static boolean checkEqualityVec2(final float[] v1, final float[] v2)
     {
         return Float.compare(v1[0], v2[0]) == 0 &&
                Float.compare(v1[1], v2[1]) == 0 ;
@@ -233,7 +368,7 @@ public class VectorUtil {
      * @param c vector 3
      * @return the determinant value
      */
-    public static float computeDeterminant(float[] a, float[] b, float[] c)
+    public static float computeDeterminant(final float[] a, final float[] b, final float[] c)
     {
         return a[0]*b[1]*c[2] + a[1]*b[2]*c[0] + a[2]*b[0]*c[1] - a[0]*b[2]*c[1] - a[1]*b[0]*c[2] - a[2]*b[1]*c[0];
     }
@@ -244,7 +379,7 @@ public class VectorUtil {
      * @param v3 vertex 3
      * @return true if collinear, false otherwise
      */
-    public static boolean checkCollinear(float[] v1, float[] v2, float[] v3)
+    public static boolean checkCollinear(final float[] v1, final float[] v2, final float[] v3)
     {
         return (computeDeterminant(v1, v2, v3) == VectorUtil.COLLINEAR);
     }
@@ -254,7 +389,7 @@ public class VectorUtil {
      * @param v1 vertex 1
      * @param v2 vertex2 2
      */
-    public static void computeVector(float[] vector, float[] v1, float[] v2) {
+    public static void computeVector(final float[] vector, final float[] v1, final float[] v2) {
         vector[0] = v2[0] - v1[0];
         vector[1] = v2[1] - v1[1];
         vector[2] = v2[2] - v1[2];
@@ -268,7 +403,7 @@ public class VectorUtil {
      * @return true if the vertex d is inside the circle defined by the
      * vertices a, b, c. from paper by Guibas and Stolfi (1985).
      */
-    public static boolean inCircle(Vert2fImmutable a, Vert2fImmutable b, Vert2fImmutable c, Vert2fImmutable d) {
+    public static boolean inCircle(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c, final Vert2fImmutable d) {
         final float[] A = a.getCoord();
         final float[] B = b.getCoord();
         final float[] C = c.getCoord();
@@ -286,7 +421,7 @@ public class VectorUtil {
      * @return compute twice the area of the oriented triangle (a,b,c), the area
      * is positive if the triangle is oriented counterclockwise.
      */
-    public static float triArea(Vert2fImmutable a, Vert2fImmutable b, Vert2fImmutable c){
+    public static float triArea(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c){
         final float[] A = a.getCoord();
         final float[] B = b.getCoord();
         final float[] C = c.getCoord();
@@ -300,7 +435,7 @@ public class VectorUtil {
      * @return compute twice the area of the oriented triangle (a,b,c), the area
      * is positive if the triangle is oriented counterclockwise.
      */
-    public static float triArea(float[] A, float[] B, float[] C){
+    public static float triArea(final float[] A, final float[] B, final float[] C){
         return (B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1])*(C[0] - A[0]);
     }
 
@@ -312,9 +447,9 @@ public class VectorUtil {
      * @param p the vertex in question
      * @return true if p is in triangle (a, b, c), false otherwise.
      */
-    public static boolean vertexInTriangle(float[] a, float[]  b, float[]  c,
-                                           float[] p,
-                                           float[] ac, float[] ab, float[] ap){
+    public static boolean vertexInTriangle(final float[] a, final float[]  b, final float[]  c,
+                                           final float[] p,
+                                           final float[] ac, final float[] ab, final float[] ap){
         // Compute vectors
         computeVector(ac, a, c); //v0
         computeVector(ab, a, b); //v1
@@ -350,9 +485,9 @@ public class VectorUtil {
      * @param tmpAP
      * @return true if p1 or p2 or p3 is in triangle (a, b, c), false otherwise.
      */
-    public static boolean vertexInTriangle3(float[] a, float[]  b, float[]  c,
-                                            float[] p1, float[] p2, float[] p3,
-                                            float[] tmpAC, float[] tmpAB, float[] tmpAP){
+    public static boolean vertexInTriangle3(final float[] a, final float[]  b, final float[]  c,
+                                            final float[] p1, final float[] p2, final float[] p3,
+                                            final float[] tmpAC, final float[] tmpAB, final float[] tmpAP){
         // Compute vectors
         computeVector(tmpAC, a, c); //v0
         computeVector(tmpAB, a, b); //v1
@@ -412,7 +547,7 @@ public class VectorUtil {
      * @param c third vertex
      * @return true if the points a,b,c are in a ccw order
      */
-    public static boolean ccw(Vert2fImmutable a, Vert2fImmutable b, Vert2fImmutable c){
+    public static boolean ccw(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c){
         return triArea(a,b,c) > 0;
     }
 
@@ -422,7 +557,7 @@ public class VectorUtil {
      * @param c third vertex
      * @return Winding
      */
-    public static Winding getWinding(Vert2fImmutable a, Vert2fImmutable b, Vert2fImmutable c) {
+    public static Winding getWinding(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c) {
         return triArea(a,b,c) > 0 ? Winding.CCW : Winding.CW ;
     }
 
@@ -430,7 +565,7 @@ public class VectorUtil {
      * @param vertices
      * @return positive area if ccw else negative area value
      */
-    public static float area(ArrayList<? extends Vert2fImmutable> vertices) {
+    public static float area(final ArrayList<? extends Vert2fImmutable> vertices) {
         final int n = vertices.size();
         float area = 0.0f;
         for (int p = n - 1, q = 0; q < n; p = q++)
@@ -446,7 +581,7 @@ public class VectorUtil {
      * @param vertices array of Vertices
      * @return CCW or CW {@link Winding}
      */
-    public static Winding getWinding(ArrayList<? extends Vert2fImmutable> vertices) {
+    public static Winding getWinding(final ArrayList<? extends Vert2fImmutable> vertices) {
         return area(vertices) >= 0 ? Winding.CCW : Winding.CW ;
     }
 
@@ -458,7 +593,7 @@ public class VectorUtil {
      * @param d vertex 2 of second segment
      * @return the intersection coordinates if the segments intersect, otherwise returns null
      */
-    public static float[] seg2SegIntersection(final float[] result, Vert2fImmutable a, Vert2fImmutable b, Vert2fImmutable c, Vert2fImmutable d) {
+    public static float[] seg2SegIntersection(final float[] result, final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c, final Vert2fImmutable d) {
         final float determinant = (a.getX()-b.getX())*(c.getY()-d.getY()) - (a.getY()-b.getY())*(c.getX()-d.getX());
 
         if (determinant == 0)
@@ -487,7 +622,7 @@ public class VectorUtil {
      * @param d vertex 2 of second segment
      * @return true if the segments intersect, otherwise returns false
      */
-    public static boolean testSeg2SegIntersection(Vert2fImmutable a, Vert2fImmutable b, Vert2fImmutable c, Vert2fImmutable d) {
+    public static boolean testSeg2SegIntersection(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c, final Vert2fImmutable d) {
         final float[] A = a.getCoord();
         final float[] B = b.getCoord();
         final float[] C = c.getCoord();
@@ -520,7 +655,7 @@ public class VectorUtil {
      * @return the intersection coordinates if the lines intersect, otherwise
      * returns null
      */
-    public static float[] line2lineIntersection(final float[] result, Vert2fImmutable a, Vert2fImmutable b, Vert2fImmutable c, Vert2fImmutable d) {
+    public static float[] line2lineIntersection(final float[] result, final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c, final Vert2fImmutable d) {
         final float determinant = (a.getX()-b.getX())*(c.getY()-d.getY()) - (a.getY()-b.getY())*(c.getX()-d.getX());
 
         if (determinant == 0)
@@ -545,7 +680,7 @@ public class VectorUtil {
      * @param e vertex 2 of first segment
      * @return true if the segment intersects at least one segment of the triangle, false otherwise
      */
-    public static boolean testTri2SegIntersection(Vert2fImmutable a, Vert2fImmutable b, Vert2fImmutable c, Vert2fImmutable d, Vert2fImmutable e){
+    public static boolean testTri2SegIntersection(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c, final Vert2fImmutable d, final Vert2fImmutable e){
         return testSeg2SegIntersection(a, b, d, e) ||
                testSeg2SegIntersection(b, c, d, e) ||
                testSeg2SegIntersection(a, c, d, e) ;

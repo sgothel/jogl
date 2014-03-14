@@ -62,17 +62,17 @@ public class RedSquareES2 implements GLEventListener, TileRendererBase.TileRende
     public RedSquareES2() {
         this.swapInterval = 1;
     }
-        
+
     @Override
     public void addTileRendererNotify(TileRendererBase tr) {
         tileRendererInUse = tr;
         doRotateBeforePrinting = doRotate;
-        setDoRotation(false);      
+        setDoRotation(false);
     }
     @Override
     public void removeTileRendererNotify(TileRendererBase tr) {
         tileRendererInUse = null;
-        setDoRotation(doRotateBeforePrinting);      
+        setDoRotation(doRotateBeforePrinting);
     }
     @Override
     public void startTileRendering(TileRendererBase tr) {
@@ -82,16 +82,16 @@ public class RedSquareES2 implements GLEventListener, TileRendererBase.TileRende
     public void endTileRendering(TileRendererBase tr) {
         System.err.println("RedSquareES2.endTileRendering: "+tr);
     }
-    
+
     public void setAspect(float aspect) { this.aspect = aspect; }
     public void setDoRotation(boolean rotate) { this.doRotate = rotate; }
     public void setClearBuffers(boolean v) { clearBuffers = v; }
-    
+
     @Override
     public void init(GLAutoDrawable glad) {
         System.err.println(Thread.currentThread()+" RedSquareES2.init: tileRendererInUse "+tileRendererInUse);
         final GL2ES2 gl = glad.getGL().getGL2ES2();
-        
+
         System.err.println("RedSquareES2 init on "+Thread.currentThread());
         System.err.println("Chosen GLCapabilities: " + glad.getChosenGLCapabilities());
         System.err.println("INIT GL IS: " + gl.getClass().getName());
@@ -112,17 +112,17 @@ public class RedSquareES2 implements GLEventListener, TileRendererBase.TileRende
         sp0.add(gl, vp0, System.err);
         sp0.add(gl, fp0, System.err);
         st.attachShaderProgram(gl, sp0, true);
-        
+
         // setup mgl_PMVMatrix
         pmvMatrix = new PMVMatrix();
         pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
-        pmvMatrix.glLoadIdentity();       
+        pmvMatrix.glLoadIdentity();
         pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf()); // P, Mv
         st.ownUniform(pmvMatrixUniform);
-        st.uniform(gl, pmvMatrixUniform);        
-        
+        st.uniform(gl, pmvMatrixUniform);
+
         // Allocate Vertex Array
         vertices = GLArrayDataServer.createGLSL("mgl_Vertex", 3, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
         vertices.putf(-2); vertices.putf( 2); vertices.putf( 0);
@@ -132,20 +132,20 @@ public class RedSquareES2 implements GLEventListener, TileRendererBase.TileRende
         vertices.seal(gl, true);
         st.ownAttribute(vertices, true);
         vertices.enableBuffer(gl, false);
-        
+
         // Allocate Color Array
         colors= GLArrayDataServer.createGLSL("mgl_Color", 4, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
         colors.putf(1); colors.putf(0); colors.putf(0); colors.putf(1);
         colors.putf(0); colors.putf(0); colors.putf(1); colors.putf(1);
         colors.putf(1); colors.putf(0); colors.putf(0); colors.putf(1);
         colors.putf(1); colors.putf(0); colors.putf(0); colors.putf(1);
-        colors.seal(gl, true);          
+        colors.seal(gl, true);
         st.ownAttribute(colors, true);
         colors.enableBuffer(gl, false);
-        
+
         // OpenGL Render Settings
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
-        st.useProgram(gl, false);        
+        st.useProgram(gl, false);
 
         t0 = System.currentTimeMillis();
         System.err.println(Thread.currentThread()+" RedSquareES2.init FIN");
@@ -173,11 +173,11 @@ public class RedSquareES2 implements GLEventListener, TileRendererBase.TileRende
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0, 0, -10);
         if(doRotate) {
-            float ang = ((float) (t1 - t0) * 360.0F) / 4000.0F;
+            float ang = ((t1 - t0) * 360.0F) / 4000.0F;
             pmvMatrix.glRotatef(ang, 0, 0, 1);
             pmvMatrix.glRotatef(ang, 0, 1, 0);
         }
-        st.uniform(gl, pmvMatrixUniform);        
+        st.uniform(gl, pmvMatrixUniform);
 
         // Draw a square
         vertices.enableBuffer(gl, true);
@@ -191,39 +191,39 @@ public class RedSquareES2 implements GLEventListener, TileRendererBase.TileRende
     @Override
     public void reshape(GLAutoDrawable glad, int x, int y, int width, int height) {
         final GL2ES2 gl = glad.getGL().getGL2ES2();
-        if(-1 != swapInterval) {        
+        if(-1 != swapInterval) {
             gl.setSwapInterval(swapInterval);
         }
         reshapeImpl(gl, x, y, width, height, width, height);
     }
-    
+
     @Override
     public void reshapeTile(TileRendererBase tr,
-                            int tileX, int tileY, int tileWidth, int tileHeight, 
+                            int tileX, int tileY, int tileWidth, int tileHeight,
                             int imageWidth, int imageHeight) {
         final GL2ES2 gl = tr.getAttachedDrawable().getGL().getGL2ES2();
         gl.setSwapInterval(0);
         reshapeImpl(gl, tileX, tileY, tileWidth, tileHeight, imageWidth, imageHeight);
     }
-    
+
     void reshapeImpl(GL2ES2 gl, int tileX, int tileY, int tileWidth, int tileHeight, int imageWidth, int imageHeight) {
         System.err.println(Thread.currentThread()+" RedSquareES2.reshape "+tileX+"/"+tileY+" "+tileWidth+"x"+tileHeight+" of "+imageWidth+"x"+imageHeight+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(gl.getContext().getGLDrawable().getHandle())+", tileRendererInUse "+tileRendererInUse);
         // Thread.dumpStack();
         if( !gl.hasGLSL() ) {
             return;
         }
-        
+
         st.useProgram(gl, true);
         // Set location in front of camera
         pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
-        
+
         // compute projection parameters 'normal' perspective
         final float fovy=45f;
         final float aspect2 = ( (float) imageWidth / (float) imageHeight ) / aspect;
         final float zNear=1f;
         final float zFar=100f;
-        
+
         // compute projection parameters 'normal' frustum
         final float top=(float)Math.tan(fovy*((float)Math.PI)/360.0f)*zNear;
         final float bottom=-1.0f*top;
@@ -231,18 +231,18 @@ public class RedSquareES2 implements GLEventListener, TileRendererBase.TileRende
         final float right=aspect2*top;
         final float w = right - left;
         final float h = top - bottom;
-        
+
         // compute projection parameters 'tiled'
         final float l = left + tileX * w / imageWidth;
         final float r = l + tileWidth * w / imageWidth;
         final float b = bottom + tileY * h / imageHeight;
         final float t = b + tileHeight * h / imageHeight;
-        
+
         pmvMatrix.glFrustumf(l, r, b, t, zNear, zFar);
         //pmvMatrix.glOrthof(-4.0f, 4.0f, -4.0f, 4.0f, 1.0f, 100.0f);
         st.uniform(gl, pmvMatrixUniform);
         st.useProgram(gl, false);
-        
+
         System.err.println(Thread.currentThread()+" RedSquareES2.reshape FIN");
     }
 
@@ -255,8 +255,7 @@ public class RedSquareES2 implements GLEventListener, TileRendererBase.TileRende
         }
         st.destroy(gl);
         st = null;
-        pmvMatrix.destroy();
         pmvMatrix = null;
         System.err.println(Thread.currentThread()+" RedSquareES2.dispose FIN");
-    }    
+    }
 }

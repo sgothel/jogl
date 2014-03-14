@@ -247,10 +247,11 @@ public class PMVMatrix implements GLMatrixFunc {
           }
           FloatUtil.makeIdentityf(matrixIdent);
 
-          vec3f         = new float[3];
+          tmpVec3f      = new float[3];
+          tmpMatrix     = new float[16];
+          matrixRot     = new float[16];
           matrixMult    = new float[16];
           matrixTrans   = new float[16];
-          matrixRot     = new float[16];
           matrixScale   = new float[16];
           matrixOrtho   = new float[16];
           matrixFrustum = new float[16];
@@ -277,44 +278,11 @@ public class PMVMatrix implements GLMatrixFunc {
           requestMask = 0;
           matrixMode = GL_MODELVIEW;
 
-          mulPMV = null;
           frustum = null;
     }
 
     /** @see #PMVMatrix(boolean) */
     public final boolean usesBackingArray() { return usesBackingArray; }
-
-    public final void destroy() {
-        if(null!=projectFloat) {
-            projectFloat.destroy(); projectFloat=null;
-        }
-
-        matrixBuffer=null;
-        matrixBuffer=null; matrixPMvMvit=null; matrixPMvMvi=null; matrixPMv=null;
-        matrixP=null; matrixTex=null; matrixMv=null; matrixMvi=null; matrixMvit=null;
-
-        vec3f         = null;
-        matrixMult    = null;
-        matrixTrans   = null;
-        matrixRot     = null;
-        matrixScale   = null;
-        matrixOrtho   = null;
-        matrixFrustum = null;
-
-        if(null!=matrixPStack) {
-            matrixPStack=null;
-        }
-        if(null!=matrixMvStack) {
-            matrixMvStack=null;
-        }
-        if(null!=matrixPStack) {
-            matrixPStack=null;
-        }
-        if(null!=matrixTStack) {
-            matrixTStack=null;
-        }
-    }
-
 
     /** Returns the current matrix-mode, one of {@link GLMatrixFunc#GL_MODELVIEW GL_MODELVIEW}, {@link GLMatrixFunc#GL_PROJECTION GL_PROJECTION} or {@link GL#GL_TEXTURE GL_TEXTURE}. */
     public final int  glGetMatrixMode() {
@@ -651,11 +619,11 @@ public class PMVMatrix implements GLMatrixFunc {
 
     @Override
     public final void glTranslatef(final float x, final float y, final float z) {
-        // Translation matrix:
-        //  1 0 0 x
-        //  0 1 0 y
-        //  0 0 1 z
-        //  0 0 0 1
+        // Translation matrix (Column Order):
+        //  1 0 0 0
+        //  0 1 0 0
+        //  0 0 1 0
+        //  x y z 1
         matrixTrans[0+4*3] = x;
         matrixTrans[1+4*3] = y;
         matrixTrans[2+4*3] = z;
@@ -663,45 +631,15 @@ public class PMVMatrix implements GLMatrixFunc {
     }
 
     @Override
-    public final void glRotatef(final float angdeg, float x, float y, float z) {
-        final float angrad = angdeg   * (float) Math.PI / 180.0f;
-        final float c = (float)Math.cos(angrad);
-        final float ic= 1.0f - c;
-        final float s = (float)Math.sin(angrad);
-
-        vec3f[0]=x; vec3f[1]=y; vec3f[2]=z;
-        FloatUtil.normalize(vec3f);
-        x = vec3f[0]; y = vec3f[1]; z = vec3f[2];
-
-        // Rotation matrix:
-        //      xx(1-c)+c  xy(1-c)+zs xz(1-c)-ys 0
-        //      xy(1-c)-zs yy(1-c)+c  yz(1-c)+xs 0
-        //      xz(1-c)+ys yz(1-c)-xs zz(1-c)+c  0
-        //      0          0          0          1
-        final float xy = x*y;
-        final float xz = x*z;
-        final float xs = x*s;
-        final float ys = y*s;
-        final float yz = y*z;
-        final float zs = z*s;
-        matrixRot[0*4+0] = x*x*ic+c;
-        matrixRot[0*4+1] = xy*ic+zs;
-        matrixRot[0*4+2] = xz*ic-ys;
-
-        matrixRot[1*4+0] = xy*ic-zs;
-        matrixRot[1*4+1] = y*y*ic+c;
-        matrixRot[1*4+2] = yz*ic+xs;
-
-        matrixRot[2*4+0] = xz*ic+ys;
-        matrixRot[2*4+1] = yz*ic-xs;
-        matrixRot[2*4+2] = z*z*ic+c;
-
+    public final void glRotatef(final float angdeg, final float x, final float y, final float z) {
+        final float angrad = angdeg   * FloatUtil.PI / 180.0f;
+        FloatUtil.makeRotationAxis(angrad, x, y, z, matrixRot, 0, tmpVec3f);
         glMultMatrixf(matrixRot, 0);
     }
 
     @Override
     public final void glScalef(final float x, final float y, final float z) {
-        // Scale matrix:
+        // Scale matrix (Any Order):
         //  x 0 0 0
         //  0 y 0 0
         //  0 0 z 0
@@ -715,11 +653,11 @@ public class PMVMatrix implements GLMatrixFunc {
 
     @Override
     public final void glOrthof(final float left, final float right, final float bottom, final float top, final float zNear, final float zFar) {
-        // Ortho matrix:
-        //  2/dx  0     0    tx
-        //  0     2/dy  0    ty
-        //  0     0     2/dz tz
-        //  0     0     0    1
+        // Ortho matrix (Column Order):
+        //  2/dx  0     0    0
+        //  0     2/dy  0    0
+        //  0     0     2/dz 0
+        //  tx    ty    tz   1
         final float dx=right-left;
         final float dy=top-bottom;
         final float dz=zFar-zNear;
@@ -745,11 +683,11 @@ public class PMVMatrix implements GLMatrixFunc {
         if(left==right || top==bottom) {
             throw new GLException("GL_INVALID_VALUE: top,bottom and left,right must not be equal");
         }
-        // Frustum matrix:
-        //  2*zNear/dx   0          A  0
-        //  0            2*zNear/dy B  0
-        //  0            0          C  D
-        //  0            0         -1  0
+        // Frustum matrix (Column Order):
+        //  2*zNear/dx   0          0   0
+        //  0            2*zNear/dy 0   0
+        //  A            B          C  -1
+        //  0            0          D   0
         final float zNear2 = 2.0f*zNear;
         final float dx=right-left;
         final float dy=top-bottom;
@@ -1041,10 +979,9 @@ public class PMVMatrix implements GLMatrixFunc {
         if( 0 != ( dirtyBits & ( DIRTY_FRUSTUM & requestMask ) ) ) {
             if( null == frustum ) {
                 frustum = new Frustum();
-                mulPMV = new float[16];
             }
-            FloatUtil.multMatrixf(matrixP, matrixMv, mulPMV, 0);
-            frustum.updateByPMV(mulPMV, 0);
+            FloatUtil.multMatrixf(matrixP, matrixMv, tmpMatrix, 0);
+            frustum.updateByPMV(tmpMatrix, 0);
             dirtyBits &= ~DIRTY_FRUSTUM;
             mod = true;
         }
@@ -1118,17 +1055,17 @@ public class PMVMatrix implements GLMatrixFunc {
         return res;
     }
 
-    protected final float[] matrixBufferArray;
     protected final boolean usesBackingArray;
-    protected Buffer matrixBuffer;
-    protected FloatBuffer matrixIdent, matrixPMvMvit, matrixPMvMvi, matrixPMv, matrixP, matrixTex, matrixMv, matrixMvi, matrixMvit;
-    protected float[] matrixMult, matrixTrans, matrixRot, matrixScale, matrixOrtho, matrixFrustum, vec3f;
-    protected FloatStack matrixTStack, matrixPStack, matrixMvStack;
+    protected final float[] matrixBufferArray;
+    protected final Buffer matrixBuffer;
+    protected final FloatBuffer matrixIdent, matrixPMvMvit, matrixPMvMvi, matrixPMv, matrixP, matrixTex, matrixMv, matrixMvi, matrixMvit;
+    protected final float[] matrixMult, matrixTrans, matrixRot, matrixScale, matrixOrtho, matrixFrustum, tmpVec3f;
+    protected final float[] tmpMatrix;
+    protected final FloatStack matrixTStack, matrixPStack, matrixMvStack;
+    protected final ProjectFloat projectFloat;
     protected int matrixMode = GL_MODELVIEW;
     protected int modifiedBits = MODIFIED_ALL;
     protected int dirtyBits = DIRTY_ALL; // contains the dirty bits, i.e. hinting for update operation
     protected int requestMask = 0; // may contain the requested dirty bits: DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW
-    protected ProjectFloat projectFloat;
-    protected float[] mulPMV; // premultiplied PMV
     protected Frustum frustum;
 }

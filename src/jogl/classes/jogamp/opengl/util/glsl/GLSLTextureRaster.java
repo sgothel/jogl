@@ -147,10 +147,7 @@ public class GLSLTextureRaster  {
         if(null != pmvMatrixUniform) {
             pmvMatrixUniform = null;
         }
-        if(null != pmvMatrix) {
-            pmvMatrix.destroy();
-            pmvMatrix=null;
-        }
+        pmvMatrix=null;
         if(null != interleavedVBO) {
             interleavedVBO.destroy(gl);
             interleavedVBO=null;

@@ -713,7 +713,6 @@ public class MovieSimple implements GLEventListener {
         }
         pmvMatrixUniform = null;
         if(null != pmvMatrix) {
-            pmvMatrix.destroy();
             pmvMatrix=null;
         }
         if(null != st) {

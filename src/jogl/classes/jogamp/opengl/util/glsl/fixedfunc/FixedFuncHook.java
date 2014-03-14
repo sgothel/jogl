@@ -101,9 +101,6 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     public void destroy() {
         fixedFunction.destroy(gl);
         fixedFunction = null;
-        if(ownsPMVMatrix) {
-            pmvMatrix.destroy();
-        }
         pmvMatrix=null;
         gl=null;
     }

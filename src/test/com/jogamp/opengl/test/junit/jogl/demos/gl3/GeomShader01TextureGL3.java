@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -60,10 +60,10 @@ import com.jogamp.opengl.util.texture.TextureIO;
  * geometry shader.
  * </p>
  * <p>
- * If the <code>XYZ flipping</code> geometry shader functions properly, 
+ * If the <code>XYZ flipping</code> geometry shader functions properly,
  * the texture will be flipped horizontally and vertically.
- * </p> 
- * 
+ * </p>
+ *
  * @author Chuck Ritola December 2012
  * @author Sven Gothel (GL3 core, pass-though, core geometry shader)
  */
@@ -77,7 +77,7 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
 
     static final String shaderBasename = "texture01_xxx";
     static final String[] geomShaderBaseNames = new String[] { "passthrough01_xxx", "flipXYZ01_xxx" };
-    
+
     public GeomShader01TextureGL3(int geomShader) {
         this.geomShader = geomShader;
     }
@@ -100,22 +100,22 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
             if( !ShaderUtil.isGeometryShaderSupported(gl) ) {
                 throw new RuntimeException("GL object not >= 3.2, i.e. no geometry shader support.: "+gl);
             }
-        }        
+        }
         final GL3 gl = drawable.getGL().getGL3();
 
         final ShaderProgram sp;
         {
             final ShaderCode vs, gs, fs;
-            vs = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, this.getClass(), 
+            vs = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, this.getClass(),
                                    "shader", "shader/bin", shaderBasename, true);
-            gs = ShaderCode.create(gl, GL3.GL_GEOMETRY_SHADER, this.getClass(), 
+            gs = ShaderCode.create(gl, GL3.GL_GEOMETRY_SHADER, this.getClass(),
                                    "shader", "shader/bin", geomShaderBaseNames[geomShader], true);
-            fs = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(), 
-                                   "shader", "shader/bin", shaderBasename, true);        
+            fs = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(),
+                                   "shader", "shader/bin", shaderBasename, true);
             vs.defaultShaderCustomization(gl, true, true);
             gs.defaultShaderCustomization(gl, true, true);
             fs.defaultShaderCustomization(gl, true, true);
-            
+
             sp = new ShaderProgram();
             sp.add(gl, vs, System.err);
             sp.add(gl, gs, System.err);
@@ -124,20 +124,20 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
                 throw new GLException("Couldn't link program: "+sp);
             }
         }
-        
+
         st=new ShaderState();
         st.attachShaderProgram(gl, sp, true);
-        
+
         // setup mgl_PMVMatrix
         pmvMatrix = new PMVMatrix();
         pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
-        pmvMatrix.glLoadIdentity();       
+        pmvMatrix.glLoadIdentity();
         pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf()); // P, Mv
         st.ownUniform(pmvMatrixUniform);
-        st.uniform(gl, pmvMatrixUniform);        
-        
+        st.uniform(gl, pmvMatrixUniform);
+
         st.ownUniform(pmvMatrixUniform);
         if(!st.uniform(gl, pmvMatrixUniform)) {
             throw new GLException("Error setting PMVMatrix in shader: "+st);
@@ -154,13 +154,13 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
         if(null == texture) {
             throw new RuntimeException("Could not load test texture");
         }
-        
+
         // Tri order:
         //   TL, BL, BR
         //   TL, TR, BR
         {
             int i=0;
-            TextureCoords tc = texture.getImageTexCoords();        
+            TextureCoords tc = texture.getImageTexCoords();
             s_triTexCoords[i++] = tc.left();  s_triTexCoords[i++] = tc.top();
             s_triTexCoords[i++] = tc.left();  s_triTexCoords[i++] = tc.bottom();
             s_triTexCoords[i++] = tc.right(); s_triTexCoords[i++] = tc.bottom();
@@ -168,25 +168,25 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
             s_triTexCoords[i++] = tc.right(); s_triTexCoords[i++] = tc.top();
             s_triTexCoords[i++] = tc.right(); s_triTexCoords[i++] = tc.bottom();
         }
-        
+
         interleavedVBO = GLArrayDataServer.createGLSLInterleaved(2+4+2, GL.GL_FLOAT, false, 3*6, GL.GL_STATIC_DRAW);
-        {        
+        {
             interleavedVBO.addGLSLSubArray("mgl_Vertex",        2, GL.GL_ARRAY_BUFFER);
             interleavedVBO.addGLSLSubArray("mgl_Color",         4, GL.GL_ARRAY_BUFFER);
             interleavedVBO.addGLSLSubArray("mgl_MultiTexCoord", 2, GL.GL_ARRAY_BUFFER);
 
             FloatBuffer ib = (FloatBuffer)interleavedVBO.getBuffer();
-            
+
             for(int i=0; i<6; i++) {
                 ib.put(s_triVertices,  i*2, 2);
                 ib.put(s_triColors,    i*4, 4);
                 ib.put(s_triTexCoords, i*2, 2);
-            }                        
+            }
         }
         interleavedVBO.seal(gl, true);
         interleavedVBO.enableBuffer(gl, false);
         st.ownAttribute(interleavedVBO, true);
-        
+
         gl.glClearColor(0f, 0f, 0f, 0f);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         st.useProgram(gl, false);
@@ -202,7 +202,7 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
         texData.destroy();
         return res;
     }
-    
+
     @Override
     public void dispose(GLAutoDrawable drawable) {
         final GL3 gl = drawable.getGL().getGL3();
@@ -213,19 +213,18 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
 
         if(null != st) {
             pmvMatrixUniform = null;
-            pmvMatrix.destroy();
             pmvMatrix=null;
             st.destroy(gl);
             st=null;
         }
     }
-    
+
     @Override
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
         GL3 gl = drawable.getGL().getGL3();
-        
+
         gl.setSwapInterval(1);
-        
+
         // Clear background to white
         gl.glClearColor(1.0f, 1.0f, 1.0f, 0.4f);
 
@@ -233,42 +232,42 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
             pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
             pmvMatrix.glLoadIdentity();
             pmvMatrix.glOrthof(-1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 10.0f);
-    
+
             pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
             pmvMatrix.glLoadIdentity();
-            
+
             st.useProgram(gl, true);
             st.uniform(gl, pmvMatrixUniform);
             st.useProgram(gl, false);
-        }        
+        }
     }
-    
+
     @Override
     public void display(GLAutoDrawable drawable)  {
         final GL3 gl = drawable.getGL().getGL3();
-        
+
         gl.glClear(GL.GL_DEPTH_BUFFER_BIT | GL.GL_COLOR_BUFFER_BIT);
 
         if(null != st) {
             //Draw the image as a pseudo-quad using two triangles
-            st.useProgram(gl, true);        
+            st.useProgram(gl, true);
             interleavedVBO.enableBuffer(gl, true);
             gl.glActiveTexture(GL.GL_TEXTURE0);
             texture.enable(gl);
             texture.bind(gl);
-            
+
             gl.glDrawArrays(GL.GL_TRIANGLES, 0, 6);
-            
-            texture.disable(gl);                                
-            interleavedVBO.enableBuffer(gl, false);        
+
+            texture.disable(gl);
+            interleavedVBO.enableBuffer(gl, false);
             st.useProgram(gl, false);
         }
     }//end display()
-    
-    private static final float[] s_triVertices = { 
+
+    private static final float[] s_triVertices = {
            -1f,  1f, // TL
            -1f, -1f, // BL
-            1f, -1f, // BR   
+            1f, -1f, // BR
            -1f,  1f, // TL
             1f,  1f, // TR
             1f, -1f  // BR
@@ -281,13 +280,13 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
             1f, 1f, 1f, 1f,
             1f, 1f, 1f, 1f
     };
-    private static final float[] s_triTexCoords = { 
+    private static final float[] s_triTexCoords = {
             0f, 1f, // TL
             0f, 0f, // BL
-            1f, 0f, // BR   
+            1f, 0f, // BR
             0f, 1f, // TL
             1f, 1f, // TR
             1f, 0f  // BR
     };
-    
+
 }//end Test

@@ -348,10 +348,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
 
         texSeq = null;
         pmvMatrixUniform = null;
-        if( null != pmvMatrix ) {
-            pmvMatrix.destroy();
-            pmvMatrix=null;
-        }
+        pmvMatrix=null;
         if( null != st ) {
             st.destroy(gl);
             st=null;

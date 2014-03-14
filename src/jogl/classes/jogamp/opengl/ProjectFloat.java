@@ -123,6 +123,7 @@ import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.VectorUtil;
 
 /**
  * ProjectFloat.java
@@ -407,14 +408,14 @@ public class ProjectFloat {
     up[1] = upy;
     up[2] = upz;
 
-    FloatUtil.normalize(forward);
+    VectorUtil.normalize(forward);
 
     /* Side = forward x up */
-    FloatUtil.cross(forward, up, side);
-    FloatUtil.normalize(side);
+    VectorUtil.cross(side, forward, up);
+    VectorUtil.normalize(side);
 
     /* Recompute up as: up = side x forward */
-    FloatUtil.cross(side, forward, up);
+    VectorUtil.cross(up, side, forward);
 
     FloatUtil.makeIdentityf(matrixBuf);
     final int mPos = matrixBuf.position();

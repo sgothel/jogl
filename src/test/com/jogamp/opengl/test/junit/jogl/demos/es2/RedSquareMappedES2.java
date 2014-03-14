@@ -274,7 +274,6 @@ public class RedSquareMappedES2 implements GLEventListener, TileRendererBase.Til
         }
         st.destroy(gl);
         st = null;
-        pmvMatrix.destroy();
         pmvMatrix = null;
         System.err.println(Thread.currentThread()+" RedSquareES2.dispose FIN");
     }
