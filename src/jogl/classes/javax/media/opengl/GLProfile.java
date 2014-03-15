@@ -39,7 +39,6 @@ package javax.media.opengl;
 
 import jogamp.nativewindow.NWJNILibLoader;
 import jogamp.opengl.Debug;
-import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableFactoryImpl;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
 
@@ -51,6 +50,7 @@ import com.jogamp.common.util.VersionUtil;
 import com.jogamp.common.util.cache.TempJarCache;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveThreadGroupLock;
+import com.jogamp.gluegen.runtime.FunctionAddressResolver;
 import com.jogamp.nativewindow.NativeWindowVersion;
 import com.jogamp.opengl.JoglVersion;
 
@@ -58,6 +58,7 @@ import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.fixedfunc.GLPointerFunc;
 
+import java.lang.reflect.Constructor;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.HashMap;
@@ -110,12 +111,16 @@ public class GLProfile {
         final boolean justInitialized;
         initLock.lock();
         try {
-            if(!initialized) { // volatile: ok
+            if(!initialized) {
                 initialized = true;
                 justInitialized = true;
                 if(DEBUG) {
                     System.err.println("GLProfile.initSingleton() - thread "+Thread.currentThread().getName());
                     Thread.dumpStack();
+                }
+
+                if(ReflectionUtil.DEBUG_STATS_FORNAME) {
+                    ReflectionUtil.resetForNameCount();
                 }
 
                 // run the whole static initialization privileged to speed up,
@@ -125,24 +130,6 @@ public class GLProfile {
                     public Object run() {
                         Platform.initSingleton();
 
-                        // Performance hack to trigger classloading of the GL classes impl, which makes up to 12%, 800ms down to 700ms
-                        new Thread(new Runnable() {
-                          @Override
-                          public void run() {
-                              final ClassLoader cl = GLProfile.class.getClassLoader();
-                              try {
-                                  ReflectionUtil.createInstance(getGLImplBaseClassName(GL4bc)+"Impl", new Class[] { GLProfile.class, GLContextImpl.class }, new Object[] { null, null }, cl);
-                              } catch (Throwable t) {}
-                              try {
-                                  ReflectionUtil.createInstance(getGLImplBaseClassName(GLES3)+"Impl", new Class[] { GLProfile.class, GLContextImpl.class }, new Object[] { null, null }, cl);
-                              } catch (Throwable t) {}
-                              try {
-                                  ReflectionUtil.createInstance(getGLImplBaseClassName(GLES1)+"Impl", new Class[] { GLProfile.class, GLContextImpl.class }, new Object[] { null, null }, cl);
-                              } catch (Throwable t) {}
-                          }
-                        }, "GLProfile-GL_Bootstrapping").start();
-
-
                         if(TempJarCache.isInitialized()) {
                            final ClassLoader cl = GLProfile.class.getClassLoader();
                            final String newtFactoryClassName = "com.jogamp.newt.NewtFactory";
@@ -150,16 +137,17 @@ public class GLProfile {
                            if( ReflectionUtil.isClassAvailable(newtFactoryClassName, cl) ) {
                                classesFromJavaJars[2] = ReflectionUtil.getClass(newtFactoryClassName, false, cl);
                            }
-<<<<<<< HEAD
-                           addNativeJarLibs(classesFromJavaJars);
-=======
                            JNILibLoaderBase.addNativeJarLibsJoglCfg(classesFromJavaJars);
->>>>>>> b92a813063212130d6205a25b1f84662e8c4c0f9
                         }
                         initProfilesForDefaultDevices();
                         return null;
                     }
                 });
+                if( ReflectionUtil.DEBUG_STATS_FORNAME ) {
+                    if( justInitialized ) {
+                        System.err.println(ReflectionUtil.getForNameStats(null).toString());
+                    }
+                }
             } else {
                 justInitialized = false;
             }
@@ -172,19 +160,7 @@ public class GLProfile {
             }
         }
     }
-<<<<<<< HEAD
-    
-    public static final boolean addNativeJarLibs(final Class<?>[] classesFromJavaJars) {
-    	// either: [jogl-all.jar, jogl-all-android.jar, jogl-all-noawt.jar, jogl-all-mobile.jar] -> jogl-all-natives-<os.and.arch>.jar
-        // or:     nativewindow-core.jar                                                         -> nativewindow-natives-<os.and.arch>.jar,
-        //         jogl-core.jar                                                                 -> jogl-natives-<os.and.arch>.jar,
-        //        (newt-core.jar                                                                 -> newt-natives-<os.and.arch>.jar)? (if available)
-    	return JNILibLoaderBase.addNativeJarLibs(classesFromJavaJars, "-all", new String[] { "-noawt", "-mobile", "-core", "-android" } );
-    }
-    
-=======
 
->>>>>>> b92a813063212130d6205a25b1f84662e8c4c0f9
     /**
      * Trigger eager initialization of GLProfiles for the given device,
      * in case it isn't done yet.
@@ -207,7 +183,7 @@ public class GLProfile {
     public static void shutdown() {
         initLock.lock();
         try {
-            if(initialized) { // volatile: ok
+            if(initialized) {
                 initialized = false;
                 if(DEBUG) {
                     System.err.println("GLProfile.shutdown() - thread "+Thread.currentThread().getName());
@@ -1061,7 +1037,6 @@ public class GLProfile {
     public final String getGLImplBaseClassName() {
         return getGLImplBaseClassName(getImplName());
     }
-
     private static final String getGLImplBaseClassName(String profileImpl) {
         if( GLES2 == profileImpl || GLES3 == profileImpl ) {
             return "jogamp.opengl.es3.GLES3";
@@ -1073,6 +1048,25 @@ public class GLProfile {
                     GL3   == profileImpl ||
                     GL2   == profileImpl ) {
             return "jogamp.opengl.gl4.GL4bc";
+        } else {
+            throw new GLException("unsupported profile \"" + profileImpl + "\"");
+        }
+    }
+
+    public final Constructor<?> getGLCtor(boolean glObject) {
+        return getGLCtor(getImplName(), glObject);
+    }
+    private static final Constructor<?> getGLCtor(String profileImpl, boolean glObject) {
+        if( GLES2 == profileImpl || GLES3 == profileImpl ) {
+            return glObject ? ctorGLES3Impl : ctorGLES3ProcAddr;
+        } else if( GLES1 == profileImpl ) {
+            return glObject ? ctorGLES1Impl : ctorGLES1ProcAddr;
+        } else if ( GL4bc == profileImpl ||
+                    GL4   == profileImpl ||
+                    GL3bc == profileImpl ||
+                    GL3   == profileImpl ||
+                    GL2   == profileImpl ) {
+            return glObject ? ctorGL234Impl : ctorGL234ProcAddr;
         } else {
             throw new GLException("unsupported profile \"" + profileImpl + "\"");
         }
@@ -1546,13 +1540,87 @@ public class GLProfile {
     private static /*final*/ boolean hasEGLFactory;
     private static /*final*/ boolean hasGLES3Impl;
     private static /*final*/ boolean hasGLES1Impl;
+    private static /*final*/ Constructor<?> ctorGL234Impl;
+    private static /*final*/ Constructor<?> ctorGLES3Impl;
+    private static /*final*/ Constructor<?> ctorGLES1Impl;
+    private static /*final*/ Constructor<?> ctorGL234ProcAddr;
+    private static /*final*/ Constructor<?> ctorGLES3ProcAddr;
+    private static /*final*/ Constructor<?> ctorGLES1ProcAddr;
 
     private static /*final*/ GLDrawableFactoryImpl eglFactory = null;
     private static /*final*/ GLDrawableFactoryImpl desktopFactory = null;
     private static /*final*/ AbstractGraphicsDevice defaultDevice = null;
 
-    private static volatile boolean initialized = false;
-    private static RecursiveThreadGroupLock initLock = LockFactory.createRecursiveThreadGroupLock();
+    private static boolean initialized = false;
+    private static final RecursiveThreadGroupLock initLock = LockFactory.createRecursiveThreadGroupLock();
+
+    private static final Class<?>[] ctorGLArgs = new Class<?>[] { GLProfile.class, jogamp.opengl.GLContextImpl.class };
+    private static final Class<?>[] ctorProcArgs = new Class<?>[] { FunctionAddressResolver.class };
+    private static final String GL4bcImplClassName = "jogamp.opengl.gl4.GL4bcImpl";
+    private static final String GL4bcProcClassName = "jogamp.opengl.gl4.GL4bcProcAddressTable";
+    private static final String GLES1ImplClassName = "jogamp.opengl.es1.GLES1Impl";
+    private static final String GLES1ProcClassName = "jogamp.opengl.es1.GLES1ProcAddressTable";
+    private static final String GLES3ImplClassName = "jogamp.opengl.es3.GLES3Impl";
+    private static final String GLES3ProcClassName = "jogamp.opengl.es3.GLES3ProcAddressTable";
+
+    private static final Constructor<?> getCtor(final String clazzName, final boolean glObject, final ClassLoader cl) {
+        try {
+            return ReflectionUtil.getConstructor(clazzName, glObject ? ctorGLArgs : ctorProcArgs, cl);
+        } catch (Throwable t) {
+            if( DEBUG ) {
+                System.err.println("Catched: "+t.getMessage());
+                t.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    private static final void initGLCtorImpl() {
+        final ClassLoader classloader = GLProfile.class.getClassLoader();
+
+        // depends on hasDesktopGLFactory
+        {
+            final Constructor<?> ctorGL = getCtor(GL4bcImplClassName, true, classloader);
+            final Constructor<?> ctorProc = null != ctorGL ?  getCtor(GL4bcProcClassName, false, classloader) : null;
+            if( null != ctorProc ) {
+                hasGL234Impl   = true;
+                ctorGL234Impl = ctorGL;
+                ctorGL234ProcAddr = ctorProc;
+            } else {
+                hasGL234Impl   = false;
+                ctorGL234Impl = null;
+                ctorGL234ProcAddr = null;
+            }
+        }
+
+        // depends on hasEGLFactory
+        {
+            final Constructor<?> ctorGL = getCtor(GLES1ImplClassName, true, classloader);
+            final Constructor<?> ctorProc = null != ctorGL ?  getCtor(GLES1ProcClassName, false, classloader) : null;
+            if( null != ctorProc ) {
+                hasGLES1Impl   = true;
+                ctorGLES1Impl = ctorGL;
+                ctorGLES1ProcAddr = ctorProc;
+            } else {
+                hasGLES1Impl   = false;
+                ctorGLES1Impl = null;
+                ctorGLES1ProcAddr = null;
+            }
+        }
+        {
+            final Constructor<?> ctorGL = getCtor(GLES3ImplClassName, true, classloader);
+            final Constructor<?> ctorProc = null != ctorGL ?  getCtor(GLES3ProcClassName, false, classloader) : null;
+            if( null != ctorProc ) {
+                hasGLES3Impl   = true;
+                ctorGLES3Impl = ctorGL;
+                ctorGLES3ProcAddr = ctorProc;
+            } else {
+                hasGLES3Impl   = false;
+                ctorGLES3Impl = null;
+                ctorGLES3ProcAddr = null;
+            }
+        }
+    }
 
     /**
      * Tries the profiles implementation and native libraries.
@@ -1567,17 +1635,12 @@ public class GLProfile {
             System.err.println(JoglVersion.getInstance());
         }
 
-        ClassLoader classloader = GLProfile.class.getClassLoader();
+        final ClassLoader classloader = GLProfile.class.getClassLoader();
 
         isAWTAvailable = NativeWindowFactory.isAWTAvailable() &&
                          ReflectionUtil.isClassAvailable("javax.media.opengl.awt.GLCanvas", classloader) ; // JOGL
 
-        // depends on hasDesktopGLFactory
-        hasGL234Impl   = ReflectionUtil.isClassAvailable("jogamp.opengl.gl4.GL4bcImpl", classloader);
-
-        // depends on hasEGLFactory
-        hasGLES1Impl   = ReflectionUtil.isClassAvailable("jogamp.opengl.es1.GLES1Impl", classloader);
-        hasGLES3Impl   = ReflectionUtil.isClassAvailable("jogamp.opengl.es3.GLES3Impl", classloader);
+        initGLCtorImpl();
 
         //
         // Iteration of desktop GL availability detection
