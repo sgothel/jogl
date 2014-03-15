@@ -1538,6 +1538,11 @@ public class GLProfile {
         isAWTAvailable = NativeWindowFactory.isAWTAvailable() &&
                          ReflectionUtil.isClassAvailable("javax.media.opengl.awt.GLCanvas", classloader) ; // JOGL
 
+        // depends on hasDesktopGLFactory
+        hasGL234Impl   = ReflectionUtil.isClassAvailable("jogamp.opengl.gl4.GL4bcImpl", classloader);
+        // depends on hasEGLFactory
+        hasGLES1Impl   = ReflectionUtil.isClassAvailable("jogamp.opengl.es1.GLES1Impl", classloader);
+        hasGLES3Impl   = ReflectionUtil.isClassAvailable("jogamp.opengl.es3.GLES3Impl", classloader);
 
         //
         // Iteration of desktop GL availability detection
