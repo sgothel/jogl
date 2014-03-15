@@ -202,12 +202,12 @@ public abstract class Region {
      * The optional {@link AffineTransform} is applied to the bounding-box beforehand.
      * </p>
      */
-    public final void addOutlineShape(final OutlineShape shape, final AffineTransform transform) {
+    public final void addOutlineShape(final OutlineShape shape, final AffineTransform t) {
         if( null != frustum ) {
             final AABBox shapeBox = shape.getBounds();
             final AABBox shapeBoxT;
-            if( null != transform ) {
-                transform.transform(shapeBox, tmpBox);
+            if( null != t ) {
+                t.transform(shapeBox, tmpBox);
                 shapeBoxT = tmpBox;
             } else {
                 shapeBoxT = shapeBox;
@@ -222,7 +222,7 @@ public abstract class Region {
         final List<Triangle> trisIn = shape.getTriangles(OutlineShape.VerticesState.QUADRATIC_NURBS);
         final ArrayList<Vertex> vertsIn = shape.getVertices();
         if(DEBUG_INSTANCE) {
-            System.err.println("Region.addOutlineShape().0: tris: "+trisIn.size()+", verts "+vertsIn.size()+", transform "+transform);
+            System.err.println("Region.addOutlineShape().0: tris: "+trisIn.size()+", verts "+vertsIn.size()+", transform "+t);
         }
         final int idxOffset = numVertices;
         int vertsVNewIdxCount = 0, vertsTMovIdxCount = 0, vertsTNewIdxCount = 0, tris = 0;
@@ -232,7 +232,7 @@ public abstract class Region {
                 System.err.println("Region.addOutlineShape(): Processing Vertices");
             }
             for(int i=0; i<vertsIn.size(); i++) {
-                pushNewVertexImpl(vertsIn.get(i), transform);
+                pushNewVertexImpl(vertsIn.get(i), t);
                 vertsVNewIdxCount++;
             }
             if(DEBUG_INSTANCE) {
@@ -261,9 +261,9 @@ public abstract class Region {
                     if(Region.DEBUG_INSTANCE) {
                         System.err.println("T["+i+"]: New Idx "+numVertices);
                     }
-                    pushNewVertexIdxImpl(triInVertices[0], transform);
-                    pushNewVertexIdxImpl(triInVertices[1], transform);
-                    pushNewVertexIdxImpl(triInVertices[2], transform);
+                    pushNewVertexIdxImpl(triInVertices[0], t);
+                    pushNewVertexIdxImpl(triInVertices[1], t);
+                    pushNewVertexIdxImpl(triInVertices[2], t);
                     vertsTNewIdxCount+=3;
                 }
                 tris++;

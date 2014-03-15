@@ -128,7 +128,7 @@ public class TextRegionUtil {
             public final void visit(final OutlineShape shape, final AffineTransform t) {
                 region.addOutlineShape(shape, t);
             } };
-        processString(visitor, new AffineTransform(vertexFactory), font, pixelSize, str);
+        processString(visitor, new AffineTransform(), font, pixelSize, str);
     }
 
     /**

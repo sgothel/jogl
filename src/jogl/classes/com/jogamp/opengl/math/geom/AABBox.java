@@ -27,6 +27,8 @@
  */
 package com.jogamp.opengl.math.geom;
 
+import jogamp.graph.geom.plane.AffineTransform;
+
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -60,8 +62,8 @@ public class AABBox implements Cloneable {
      * @param hy max y-coordinate
      * @param hz max z-coordinate
      */
-    public AABBox(float lx, float ly, float lz,
-                  float hx, float hy, float hz) {
+    public AABBox(final float lx, final float ly, final float lz,
+                  final float hx, final float hy, final float hz) {
         setSize(lx, ly, lz, hx, hy, hz);
     }
 
@@ -69,7 +71,7 @@ public class AABBox implements Cloneable {
      * @param low min xyz-coordinates
      * @param high max xyz-coordinates
      */
-    public AABBox(float[] low, float[] high) {
+    public AABBox(final float[] low, final float[] high) {
         setSize(low[0],low[1],low[2], high[0],high[1],high[2]);
     }
 
@@ -89,7 +91,7 @@ public class AABBox implements Cloneable {
         return high;
     }
 
-    private final void setHigh(float hx, float hy, float hz) {
+    private final void setHigh(final float hx, final float hy, final float hz) {
         this.high[0] = hx;
         this.high[1] = hy;
         this.high[2] = hz;
@@ -102,7 +104,7 @@ public class AABBox implements Cloneable {
         return low;
     }
 
-    private final void setLow(float lx, float ly, float lz) {
+    private final void setLow(final float lx, final float ly, final float lz) {
         this.low[0] = lx;
         this.low[1] = ly;
         this.low[2] = lz;
@@ -125,8 +127,8 @@ public class AABBox implements Cloneable {
      * @param hy max y-coordinate
      * @param hz max z-coordinate
      */
-    public final void setSize(float lx, float ly, float lz,
-                              float hx, float hy, float hz) {
+    public final void setSize(final float lx, final float ly, final float lz,
+                              final float hx, final float hy, final float hz) {
         this.low[0] = lx;
         this.low[1] = ly;
         this.low[2] = lz;
@@ -139,7 +141,7 @@ public class AABBox implements Cloneable {
     /** Resize the AABBox to encapsulate another AABox
      * @param newBox AABBox to be encapsulated in
      */
-    public final void resize(AABBox newBox) {
+    public final void resize(final AABBox newBox) {
         float[] newLow = newBox.getLow();
         float[] newHigh = newBox.getHigh();
 
@@ -162,13 +164,43 @@ public class AABBox implements Cloneable {
         computeCenter();
     }
 
+    public final void resize(final AABBox newBox, final AffineTransform t, final float[] tmpV3) {
+        /** test low */
+        {
+            final float[] newBoxLow = newBox.getLow();
+            t.transform(newBoxLow, tmpV3);
+            tmpV3[2] = newBoxLow[2];
+            if (tmpV3[0] < low[0])
+                low[0] = tmpV3[0];
+            if (tmpV3[1] < low[1])
+                low[1] = tmpV3[1];
+            if (tmpV3[2] < low[2])
+                low[2] = tmpV3[2];
+        }
+
+        /** test high */
+        {
+            final float[] newBoxHigh = newBox.getHigh();
+            t.transform(newBoxHigh, tmpV3);
+            tmpV3[2] = newBoxHigh[2];
+            if (tmpV3[0] > high[0])
+                high[0] = tmpV3[0];
+            if (tmpV3[1] > high[1])
+                high[1] = tmpV3[1];
+            if (tmpV3[2] > high[2])
+                high[2] = tmpV3[2];
+        }
+
+        computeCenter();
+    }
+
     /** Resize the AABBox to encapsulate the passed
      * xyz-coordinates.
      * @param x x-axis coordinate value
      * @param y y-axis coordinate value
      * @param z z-axis coordinate value
      */
-    public final void resize(float x, float y, float z) {
+    public final void resize(final float x, final float y, final float z) {
         /** test low */
         if (x < low[0]) {
             low[0] = x;
@@ -194,13 +226,23 @@ public class AABBox implements Cloneable {
         computeCenter();
     }
 
-    /** Resize the AABBox to encapsulate the passed
+    /**
+     * Resize the AABBox to encapsulate the passed
      * xyz-coordinates.
      * @param xyz xyz-axis coordinate values
      * @param offset of the array
      */
-    public final void resize(float[] xyz, int offset) {
+    public final void resize(final float[] xyz, final int offset) {
         resize(xyz[0+offset], xyz[1+offset], xyz[2+offset]);
+    }
+
+    /**
+     * Resize the AABBox to encapsulate the passed
+     * xyz-coordinates.
+     * @param xyz xyz-axis coordinate values
+     */
+    public final void resize(final float[] xyz) {
+        resize(xyz[0], xyz[1], xyz[2]);
     }
 
     /** Check if the x & y coordinates are bounded/contained
@@ -210,7 +252,7 @@ public class AABBox implements Cloneable {
      * @return true if  x belong to (low.x, high.x) and
      * y belong to (low.y, high.y)
      */
-    public final boolean contains(float x, float y) {
+    public final boolean contains(final float x, final float y) {
         if(x<low[0] || x>high[0]){
             return false;
         }
@@ -228,7 +270,7 @@ public class AABBox implements Cloneable {
      * @return true if  x belong to (low.x, high.x) and
      * y belong to (low.y, high.y) and  z belong to (low.z, high.z)
      */
-    public final boolean contains(float x, float y, float z) {
+    public final boolean contains(final float x, final float y, final float z) {
         if(x<low[0] || x>high[0]){
             return false;
         }
@@ -249,7 +291,7 @@ public class AABBox implements Cloneable {
      * @param h hight
      * @return true if this AABBox might have a common region with this 2D region
      */
-    public final boolean intersects(float x, float y, float w, float h) {
+    public final boolean intersects(final float x, final float y, final float w, final float h) {
         if (w <= 0 || h <= 0) {
             return false;
         }
@@ -289,7 +331,7 @@ public class AABBox implements Cloneable {
      * @param size a constant float value
      * @param tmpV3 caller provided temporary 3-component vector
      */
-    public final void scale(float size, float[] tmpV3) {
+    public final void scale(final float size, final float[] tmpV3) {
         tmpV3[0] = high[0] - center[0];
         tmpV3[1] = high[1] - center[1];
         tmpV3[2] = high[2] - center[2];

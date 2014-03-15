@@ -22,7 +22,6 @@ package jogamp.graph.geom.plane;
 // import jogamp.opengl.util.HashCode;
 
 import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.geom.AABBox;
 
@@ -51,8 +50,6 @@ public class AffineTransform implements Cloneable {
      */
     static final float ZERO = (float) 1E-10;
 
-    private final Vertex.Factory<? extends Vertex> pointFactory;
-
     /**
      * The values of transformation matrix
      */
@@ -69,17 +66,10 @@ public class AffineTransform implements Cloneable {
     transient int type;
 
     public AffineTransform() {
-        pointFactory = null;
-        setToIdentity();
-    }
-
-    public AffineTransform(Factory<? extends Vertex> factory) {
-        pointFactory = factory;
         setToIdentity();
     }
 
     public AffineTransform(AffineTransform t) {
-        this.pointFactory = t.pointFactory;
         this.type = t.type;
         this.m00 = t.m00;
         this.m10 = t.m10;
@@ -89,8 +79,7 @@ public class AffineTransform implements Cloneable {
         this.m12 = t.m12;
     }
 
-    public AffineTransform(Vertex.Factory<? extends Vertex> factory, float m00, float m10, float m01, float m11, float m02, float m12) {
-        pointFactory = factory;
+    public AffineTransform(float m00, float m10, float m01, float m11, float m02, float m12) {
         this.type = TYPE_UNKNOWN;
         this.m00 = m00;
         this.m10 = m10;
@@ -100,8 +89,7 @@ public class AffineTransform implements Cloneable {
         this.m12 = m12;
     }
 
-    public AffineTransform(Vertex.Factory<? extends Vertex> factory, float[] matrix) {
-        pointFactory = factory;
+    public AffineTransform(float[] matrix) {
         this.type = TYPE_UNKNOWN;
         m00 = matrix[0];
         m10 = matrix[1];
@@ -112,8 +100,6 @@ public class AffineTransform implements Cloneable {
             m12 = matrix[5];
         }
     }
-
-    public final Vertex.Factory<? extends Vertex> getFactory() { return pointFactory; }
 
     /*
      * Method returns type of affine transformation.
@@ -303,66 +289,65 @@ public class AffineTransform implements Cloneable {
         type = TYPE_UNKNOWN;
     }
 
-    public static <T extends Vertex> AffineTransform getTranslateInstance(Vertex.Factory<? extends Vertex> factory, float mx, float my) {
-        AffineTransform t = new AffineTransform(factory);
+    public static AffineTransform getTranslateInstance(float mx, float my) {
+        AffineTransform t = new AffineTransform();
         t.setToTranslation(mx, my);
         return t;
     }
 
-    public static <T extends Vertex> AffineTransform getScaleInstance(Vertex.Factory<? extends Vertex> factory, float scx, float scY) {
-        AffineTransform t = new AffineTransform(factory);
+    public static AffineTransform getScaleInstance(float scx, float scY) {
+        AffineTransform t = new AffineTransform();
         t.setToScale(scx, scY);
         return t;
     }
 
-    public static <T extends Vertex> AffineTransform getShearInstance(Vertex.Factory<? extends Vertex> factory, float shx, float shy) {
-        AffineTransform t = new AffineTransform(factory);
+    public static AffineTransform getShearInstance(float shx, float shy) {
+        AffineTransform t = new AffineTransform();
         t.setToShear(shx, shy);
         return t;
     }
 
-    public static <T extends Vertex> AffineTransform getRotateInstance(Vertex.Factory<? extends Vertex> factory, float angle) {
-        AffineTransform t = new AffineTransform(factory);
+    public static AffineTransform getRotateInstance(float angle) {
+        AffineTransform t = new AffineTransform();
         t.setToRotation(angle);
         return t;
     }
 
-    public static <T extends Vertex> AffineTransform getRotateInstance(Vertex.Factory<? extends Vertex> factory, float angle, float x, float y) {
-        AffineTransform t = new AffineTransform(factory);
+    public static AffineTransform getRotateInstance(float angle, float x, float y) {
+        AffineTransform t = new AffineTransform();
         t.setToRotation(angle, x, y);
         return t;
     }
 
     public final void translate(float mx, float my) {
-        concatenate(AffineTransform.getTranslateInstance(pointFactory, mx, my));
+        concatenate(AffineTransform.getTranslateInstance(mx, my));
     }
 
     public final void scale(float scx, float scy) {
-        concatenate(AffineTransform.getScaleInstance(pointFactory, scx, scy));
+        concatenate(AffineTransform.getScaleInstance(scx, scy));
     }
 
     public final void shear(float shx, float shy) {
-        concatenate(AffineTransform.getShearInstance(pointFactory, shx, shy));
+        concatenate(AffineTransform.getShearInstance(shx, shy));
     }
 
     public final void rotate(float angle) {
-        concatenate(AffineTransform.getRotateInstance(pointFactory, angle));
+        concatenate(AffineTransform.getRotateInstance(angle));
     }
 
     public final void rotate(float angle, float px, float py) {
-        concatenate(AffineTransform.getRotateInstance(pointFactory, angle, px, py));
+        concatenate(AffineTransform.getRotateInstance(angle, px, py));
     }
 
     /**
      * Multiply matrix of two AffineTransform objects.
-     * The first argument's {@link Vertex.Factory} is being used.
      * @param tL - the AffineTransform object is a multiplicand (left argument)
      * @param tR - the AffineTransform object is a multiplier (right argument)
      *
      * @return A new AffineTransform object containing the result of [tL] X [tR].
      */
     public final static AffineTransform multiply(final AffineTransform tL, final AffineTransform tR) {
-        return new AffineTransform(tR.pointFactory,
+        return new AffineTransform(
                 tR.m00 * tL.m00 + tR.m10 * tL.m01,          // m00
                 tR.m00 * tL.m10 + tR.m10 * tL.m11,          // m10
                 tR.m01 * tL.m00 + tR.m11 * tL.m01,          // m01
@@ -421,7 +406,6 @@ public class AffineTransform implements Cloneable {
             throw new NoninvertibleTransformException(determinantIsZero);
         }
         return new AffineTransform(
-                this.pointFactory,
                  m11 / det, // m00
                 -m10 / det, // m10
                 -m01 / det, // m01
@@ -431,10 +415,13 @@ public class AffineTransform implements Cloneable {
         );
     }
 
-    public final AABBox transform(final AABBox src, AABBox dst) {
-        if (dst == null) {
-            dst = new AABBox();
-        }
+    /**
+     *
+     * @param src
+     * @param dst
+     * @return dst for chaining
+     */
+    public final AABBox transform(final AABBox src, final AABBox dst) {
         final float[] srcLo = src.getLow();
         final float[] srcHi = src.getHigh();
         dst.setSize(srcLo[0] * m00 + srcLo[1] * m01 + m02, srcLo[0] * m10 + srcLo[1] * m11 + m12, srcLo[2],
@@ -442,17 +429,19 @@ public class AffineTransform implements Cloneable {
         return dst;
     }
 
-    public final Vertex transform(final Vertex src, Vertex dst) {
-        if (dst == null) {
-            dst = pointFactory.create(src.getId(), src.isOnCurve(), src.getTexCoord());
-        }
+    /**
+     * @param src
+     * @param dst
+     * @return dst for chaining
+     */
+    public final Vertex transform(final Vertex src, final Vertex dst) {
         final float x = src.getX();
         final float y = src.getY();
         dst.setCoord(x * m00 + y * m01 + m02, x * m10 + y * m11 + m12, src.getZ());
         return dst;
     }
 
-    public final void transform(Vertex[] src, int srcOff, Vertex[] dst, int dstOff, int length) {
+    public final void transform(final Vertex[] src, int srcOff, final Vertex[] dst, int dstOff, int length) {
         while (--length >= 0) {
             Vertex srcPoint = src[srcOff++];
             Vertex dstPoint = dst[dstOff];
@@ -466,11 +455,17 @@ public class AffineTransform implements Cloneable {
         }
     }
 
-    public final void transform(final float[] src, final float[] dst) {
+    /**
+     * @param src float[2] source of transformation
+     * @param dst float[2] destination of transformation, maybe be equal to <code>src</code>
+     * @return dst for chaining
+     */
+    public final float[] transform(final float[] src, final float[] dst) {
         final float x = src[0];
         final float y = src[1];
         dst[0] = x * m00 + y * m01 + m02;
         dst[1] = x * m10 + y * m11 + m12;
+        return dst;
     }
 
     public final void transform(final float[] src, final int srcOff, final float[] dst, final int dstOff) {
@@ -497,17 +492,20 @@ public class AffineTransform implements Cloneable {
         }
     }
 
-    public final Vertex deltaTransform(Vertex src, Vertex dst) {
-        if (dst == null) {
-            dst = pointFactory.create(src.getId(), src.isOnCurve(), src.getTexCoord());
-        }
+    /**
+     *
+     * @param src
+     * @param dst
+     * @return return dst for chaining
+     */
+    public final Vertex deltaTransform(final Vertex src, final Vertex dst) {
         final float x = src.getX();
         final float y = src.getY();
         dst.setCoord(x * m00 + y * m01, x * m10 + y * m11, src.getZ());
         return dst;
     }
 
-    public final void deltaTransform(float[] src, int srcOff, float[] dst, int dstOff, int length) {
+    public final void deltaTransform(final float[] src, int srcOff, final float[] dst, int dstOff, int length) {
         while (--length >= 0) {
             float x = src[srcOff++];
             float y = src[srcOff++];
@@ -516,13 +514,17 @@ public class AffineTransform implements Cloneable {
         }
     }
 
-    public final Vertex inverseTransform(Vertex src, Vertex dst) throws NoninvertibleTransformException {
+    /**
+     *
+     * @param src
+     * @param dst
+     * @return return dst for chaining
+     * @throws NoninvertibleTransformException
+     */
+    public final Vertex inverseTransform(final Vertex src, final Vertex dst) throws NoninvertibleTransformException {
         float det = getDeterminant();
         if (FloatUtil.abs(det) < ZERO) {
             throw new NoninvertibleTransformException(determinantIsZero);
-        }
-        if (dst == null) {
-            dst = pointFactory.create(src.getId(), src.isOnCurve(), src.getTexCoord());
         }
         final float x = src.getX() - m02;
         final float y = src.getY() - m12;
@@ -530,7 +532,7 @@ public class AffineTransform implements Cloneable {
         return dst;
     }
 
-    public final void inverseTransform(float[] src, int srcOff, float[] dst, int dstOff, int length)
+    public final void inverseTransform(final float[] src, int srcOff, final float[] dst, int dstOff, int length)
         throws NoninvertibleTransformException
     {
         float det = getDeterminant();

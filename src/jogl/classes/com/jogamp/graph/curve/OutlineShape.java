@@ -332,7 +332,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
         final Outline lo = getLastOutline();
         lo.addVertex(v);
         if( 0 == ( dirtyBits & DIRTY_BOUNDS ) ) {
-            bbox.resize(lo.getBounds());
+            bbox.resize(v.getCoord());
         }
         // vertices.add(v); // FIXME: can do and remove DIRTY_VERTICES ?
         dirtyBits |= DIRTY_TRIANGLES | DIRTY_VERTICES;
@@ -347,7 +347,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
         final Outline lo = getLastOutline();
         lo.addVertex(position, v);
         if( 0 == ( dirtyBits & DIRTY_BOUNDS ) ) {
-            bbox.resize(lo.getBounds());
+            bbox.resize(v.getCoord());
         }
         dirtyBits |= DIRTY_TRIANGLES | DIRTY_VERTICES;
     }
@@ -653,11 +653,11 @@ public class OutlineShape implements Comparable<OutlineShape> {
      * Note: Triangulated data is lost in returned instance!
      * </p>
      */
-    public OutlineShape transform(AffineTransform t) {
+    public final OutlineShape transform(final AffineTransform t) {
         final OutlineShape newOutlineShape = new OutlineShape(vertexFactory);
         final int osize = outlines.size();
         for(int i=0; i<osize; i++) {
-            newOutlineShape.addOutline( outlines.get(i).transform(t) );
+            newOutlineShape.addOutline( outlines.get(i).transform(t, vertexFactory) );
         }
         return newOutlineShape;
     }

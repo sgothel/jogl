@@ -227,12 +227,12 @@ public abstract class UIShape {
             System.err.printf("UIShape.addToRegion: locTranslate %f x %f, locScale %f x %f%n",
                     ltranslate[0], ltranslate[1], lscale[0], lscale[1]);
             if( hasLocTrans ) {
-                t = AffineTransform.getTranslateInstance(vertexFactory, ltranslate[0], ltranslate[1]);
+                t = AffineTransform.getTranslateInstance(ltranslate[0], ltranslate[1]);
                 if( hasLocScale ) {
                     t.scale(lscale[0], lscale[1]);
                 }
             } else if( hasLocScale ) {
-                t = AffineTransform.getScaleInstance(vertexFactory, lscale[0], lscale[1]);
+                t = AffineTransform.getScaleInstance(lscale[0], lscale[1]);
             } else {
                 t = null; // unreachable!
             }

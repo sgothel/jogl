@@ -67,11 +67,11 @@ public class Triangle {
     /**
      * Returns a transformed a clone of this instance using the given AffineTransform.
      */
-    public Triangle transform(AffineTransform t) {
+    public Triangle transform(final AffineTransform t, final Vertex.Factory<? extends Vertex> vertexFactory) {
         final Triangle tri = new Triangle(id, boundaryEdges, boundaryVertices);
-        tri.vertices[0] = t.transform(vertices[0], null);
-        tri.vertices[1] = t.transform(vertices[1], null);
-        tri.vertices[2] = t.transform(vertices[2], null);
+        tri.vertices[0] = t.transform(vertices[0], vertexFactory.create());
+        tri.vertices[1] = t.transform(vertices[1], vertexFactory.create());
+        tri.vertices[2] = t.transform(vertices[2], vertexFactory.create());
         return tri;
     }
 

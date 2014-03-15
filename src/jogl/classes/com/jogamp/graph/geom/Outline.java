@@ -87,7 +87,7 @@ public class Outline implements Cloneable, Comparable<Outline> {
         }
         vertices.add(position, vertex);
         if(!dirtyBBox) {
-            bbox.resize(vertex.getX(), vertex.getY(), vertex.getZ());
+            bbox.resize(vertex.getCoord());
         }
     }
 
@@ -187,12 +187,12 @@ public class Outline implements Cloneable, Comparable<Outline> {
     /**
      * Return a transformed instance with all vertices are copied and transformed.
      */
-    public final Outline transform(AffineTransform t) {
+    public final Outline transform(final AffineTransform t, final Vertex.Factory<? extends Vertex> vertexFactory) {
         final Outline newOutline = new Outline();
         final int vsize = vertices.size();
         for(int i=0; i<vsize; i++) {
             final Vertex v = vertices.get(i);
-            newOutline.addVertex(t.transform(v, null));
+            newOutline.addVertex(t.transform(v, vertexFactory.create()));
         }
         newOutline.closed = this.closed;
         return newOutline;
@@ -202,7 +202,7 @@ public class Outline implements Cloneable, Comparable<Outline> {
         dirtyBBox = false;
         bbox.reset();
         for (int i=0; i<vertices.size(); i++) {
-            bbox.resize(vertices.get(i).getCoord(), 0);
+            bbox.resize(vertices.get(i).getCoord());
         }
     }
 
