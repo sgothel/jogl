@@ -1043,10 +1043,6 @@ public class GLProfile {
         }
     }
 
-    public final Constructor<?> getGLCtor(boolean glObject) {
-        return getGLCtor(getImplName(), glObject);
-    }
-
     /**
      * @param o GLProfile object to compare with
      * @return true if given Object is a GLProfile and
@@ -1533,12 +1529,11 @@ public class GLProfile {
             System.err.println(JoglVersion.getInstance());
         }
 
-        final ClassLoader classloader = GLProfile.class.getClassLoader();
+        ClassLoader classloader = GLProfile.class.getClassLoader();
 
         isAWTAvailable = NativeWindowFactory.isAWTAvailable() &&
                          ReflectionUtil.isClassAvailable("javax.media.opengl.awt.GLCanvas", classloader) ; // JOGL
 
-        initGLCtorImpl();
 
         //
         // Iteration of desktop GL availability detection
