@@ -44,10 +44,10 @@ public abstract class RenderState {
     private static final String thisKey = "jogamp.graph.curve.RenderState" ;
 
     /**
-     * Bitfield hint, {@link #isHintBitSet(int) if set}
+     * Bitfield hint, {@link #isHintMaskSet(int) if set}
      * stating <i>enabled</i> {@link GL#GL_BLEND}, otherwise <i>disabled</i>.
      * <p>
-     * Shall be set via {@link #setHintBits(int)} and cleared via {@link #clearHintBits(int)}.
+     * Shall be set via {@link #setHintMask(int)} and cleared via {@link #clearHintMask(int)}.
      * </p>
      * <p>
      * Due to alpha blending and multipass rendering, e.g. {@link Region#VBAA_RENDERING_BIT},
@@ -94,13 +94,13 @@ public abstract class RenderState {
     public final PMVMatrix pmvMatrix() { return pmvMatrix; }
     public final GLUniformData getPMVMatrix() { return gcu_PMVMatrix; }
 
-    public final boolean isHintBitSet(int mask) {
+    public final boolean isHintMaskSet(int mask) {
         return mask == ( hintBitfield & mask );
     }
-    public final void setHintBits(int mask) {
+    public final void setHintMask(int mask) {
         hintBitfield |= mask;
     }
-    public final void clearHintBits(int mask) {
+    public final void clearHintMask(int mask) {
         hintBitfield &= ~mask;
     }
 

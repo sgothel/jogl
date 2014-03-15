@@ -29,12 +29,16 @@ package com.jogamp.graph.curve;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+
+import jogamp.graph.geom.plane.AffineTransform;
 
 import com.jogamp.graph.curve.tess.Triangulation;
 import com.jogamp.graph.curve.tess.Triangulator;
 import com.jogamp.graph.geom.Outline;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
+import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.math.geom.AABBox;
 
@@ -643,29 +647,51 @@ public class OutlineShape implements Comparable<OutlineShape> {
         return triangles;
     }
 
-    /** Sort the outlines from large
-     *  to small depending on the AABox
+    /**
+     * Return a transformed instance with all {@link Outline}s are copied and transformed.
+     * <p>
+     * Note: Triangulated data is lost in returned instance!
+     * </p>
      */
-    private void sortOutlines() {
-        Collections.sort(outlines);
-        Collections.reverse(outlines);
+    public OutlineShape transform(AffineTransform t) {
+        final OutlineShape newOutlineShape = new OutlineShape(vertexFactory);
+        final int osize = outlines.size();
+        for(int i=0; i<osize; i++) {
+            newOutlineShape.addOutline( outlines.get(i).transform(t) );
+        }
+        return newOutlineShape;
     }
 
     /**
-     * Compare two outline shapes with Bounding Box area
-     * as criteria.
+     * Sort the outlines from large
+     * to small depending on the AABox
+     */
+    private void sortOutlines() {
+        Collections.sort(outlines, reversSizeComparator);
+    }
+
+    private static Comparator<Outline> reversSizeComparator = new Comparator<Outline>() {
+        @Override
+        public int compare(Outline o1, Outline o2) {
+            return o2.compareTo(o1); // reverse !
+        } };
+
+    /**
+     * Compare two outline shape's Bounding Box size.
+     * @see AABBox#getSize()
      * @see java.lang.Comparable#compareTo(java.lang.Object)
      */
     @Override
     public final int compareTo(final OutlineShape other) {
         final float thisSize = getBounds().getSize();
         final float otherSize = other.getBounds().getSize();
-        if( thisSize < otherSize ){
+        if( FloatUtil.equals(thisSize, otherSize, FloatUtil.EPSILON) ) {
+            return 0;
+        } else if( thisSize < otherSize ){
             return -1;
-        } else if( thisSize > otherSize ) {
+        } else {
             return 1;
         }
-        return 0; // FIXME: No epsilon, i.e. smallest accurate float value ?
     }
 
     private void validateBoundingBox() {

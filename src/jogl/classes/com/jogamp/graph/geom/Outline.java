@@ -29,7 +29,10 @@ package com.jogamp.graph.geom;
 
 import java.util.ArrayList;
 
+import jogamp.graph.geom.plane.AffineTransform;
+
 import com.jogamp.graph.geom.Vertex;
+import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.math.geom.AABBox;
 
@@ -181,21 +184,18 @@ public class Outline implements Cloneable, Comparable<Outline> {
         return false;
     }
 
-    /** Compare two outlines with Bounding Box area
-     * as criteria.
-     * @see java.lang.Comparable#compareTo(java.lang.Object)
+    /**
+     * Return a transformed instance with all vertices are copied and transformed.
      */
-    @Override
-    public final int compareTo(Outline outline) {
-        float size = getBounds().getSize();
-        float newSize = outline.getBounds().getSize();
-        if(size < newSize){
-            return -1;
+    public final Outline transform(AffineTransform t) {
+        final Outline newOutline = new Outline();
+        final int vsize = vertices.size();
+        for(int i=0; i<vsize; i++) {
+            final Vertex v = vertices.get(i);
+            newOutline.addVertex(t.transform(v, null));
         }
-        else if(size > newSize){
-            return 1;
-        }
-        return 0;
+        newOutline.closed = this.closed;
+        return newOutline;
     }
 
     private final void validateBoundingBox() {
@@ -211,6 +211,24 @@ public class Outline implements Cloneable, Comparable<Outline> {
             validateBoundingBox();
         }
         return bbox;
+    }
+
+    /**
+     * Compare two outline's Bounding Box size.
+     * @see AABBox#getSize()
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    @Override
+    public final int compareTo(final Outline other) {
+        final float thisSize = getBounds().getSize();
+        final float otherSize = other.getBounds().getSize();
+        if( FloatUtil.equals(thisSize, otherSize, FloatUtil.EPSILON) ) {
+            return 0;
+        } else if(thisSize < otherSize){
+            return -1;
+        } else {
+            return 1;
+        }
     }
 
     /**

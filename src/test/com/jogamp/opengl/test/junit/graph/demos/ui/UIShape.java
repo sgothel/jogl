@@ -35,6 +35,7 @@ import jogamp.graph.geom.plane.AffineTransform;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.OutlineShapeXForm;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
@@ -45,16 +46,7 @@ import com.jogamp.opengl.math.geom.AABBox;
 public abstract class UIShape {
     private final Factory<? extends Vertex> vertexFactory;
 
-    public class TransformedShape {
-        public final OutlineShape shape;
-        public final AffineTransform t;
-
-        public TransformedShape(final OutlineShape shape, final AffineTransform t) {
-            this.shape = shape;
-            this.t = t;
-        }
-    }
-    protected final ArrayList<TransformedShape> shapes;
+    protected final ArrayList<OutlineShapeXForm> shapes;
 
     protected static final int DIRTY_SHAPE     = 1 << 0 ;
     protected static final int DIRTY_POSITION  = 1 << 1 ;
@@ -76,7 +68,7 @@ public abstract class UIShape {
 
     public UIShape(Factory<? extends Vertex> factory) {
         this.vertexFactory = factory;
-        this.shapes = new ArrayList<TransformedShape>();
+        this.shapes = new ArrayList<OutlineShapeXForm>();
         this.box = new AABBox();
     }
 
@@ -151,7 +143,7 @@ public abstract class UIShape {
         return 0 != ( dirty & DIRTY_REGION ) ;
     }
 
-    public ArrayList<TransformedShape> getShapes() { return shapes; }
+    public ArrayList<OutlineShapeXForm> getShapes() { return shapes; }
 
     public final AABBox getBounds() { return box; }
 
@@ -186,7 +178,7 @@ public abstract class UIShape {
             _color = selectedColor;
         }
         if(!select){
-            if( renderer.getRenderState().isHintBitSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
+            if( renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
                 gl.glClearColor(_color[0], _color[1], _color[2], 0.0f);
             }
             renderer.setColorStatic(gl, _color[0], _color[1], _color[2]);
@@ -249,7 +241,7 @@ public abstract class UIShape {
         }
         final int shapeCount = shapes.size();
         for(int i=0; i<shapeCount; i++) {
-            final TransformedShape tshape = shapes.get(i);
+            final OutlineShapeXForm tshape = shapes.get(i);
             final AffineTransform t2;
             if( null != tshape.t ) {
                 if( null != t ) {

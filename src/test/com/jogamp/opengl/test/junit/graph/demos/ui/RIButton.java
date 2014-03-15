@@ -30,6 +30,7 @@ package com.jogamp.opengl.test.junit.graph.demos.ui;
 import javax.media.opengl.GL2ES2;
 
 import com.jogamp.graph.curve.OutlineShape;
+import com.jogamp.graph.curve.OutlineShapeXForm;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.Vertex;
@@ -135,7 +136,7 @@ public abstract class RIButton extends UIShape {
         label.locTranslate(       ( box.getWidth() - lbox1.getWidth() ) / 1f,
                             -1f * ( box.getHeight() - lbox1.getHeight() ) / 1f );
 
-        shapes.add(new TransformedShape(shape, null));
+        shapes.add(new OutlineShapeXForm(shape, null));
         System.err.println("XXX.UIShape.RIButton: Added Shape: "+shape+", "+box);
     }
     private void createSharpOutline(OutlineShape shape, AABBox lbox) {

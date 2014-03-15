@@ -32,6 +32,7 @@ import javax.media.opengl.GL2ES2;
 import jogamp.graph.geom.plane.AffineTransform;
 
 import com.jogamp.graph.curve.OutlineShape;
+import com.jogamp.graph.curve.OutlineShapeXForm;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
@@ -94,7 +95,7 @@ public class Label extends UIShape {
         final float[] tmp = new float[3];
         @Override
         public void visit(OutlineShape shape, AffineTransform t) {
-            shapes.add(new TransformedShape(shape, new AffineTransform(t)));
+            shapes.add(new OutlineShapeXForm(shape, new AffineTransform(t)));
             final AABBox sbox = shape.getBounds();
             t.transform(sbox.getLow(), tmp);
             box.resize(tmp, 0);

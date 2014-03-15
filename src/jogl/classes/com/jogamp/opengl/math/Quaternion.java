@@ -380,18 +380,31 @@ public class Quaternion {
             final float vecX = vecIn[0+vecInOffset];
             final float vecY = vecIn[1+vecInOffset];
             final float vecZ = vecIn[2+vecInOffset];
-            vecOut[0+vecOutOffset] =        w * w * vecX + 2f * y * w * vecZ
-                                     - 2f * z * w * vecY +      x * x * vecX
-                                     + 2f * y * x * vecY + 2f * z * x * vecZ
-                                     -      z * z * vecX -      y * y * vecX;
-            vecOut[1+vecOutOffset] =   2f * x * y * vecX +      y * y * vecY
-                                     + 2f * z * y * vecZ + 2f * w * z * vecX
-                                     -      z * z * vecY +      w * w * vecY
-                                     - 2f * x * w * vecZ -      x * x * vecY;
-            vecOut[2+vecOutOffset] =   2f * x * z * vecX + 2f * y * z * vecY
-                                     +      z * z * vecZ - 2f * w * y * vecX
-                                     -      y * y * vecZ + 2f * w * x * vecY
-                                     -      x * x * vecZ +      w * w * vecZ;
+            final float x_x = x*x;
+            final float y_y = y*y;
+            final float z_z = z*z;
+            final float w_w = w*w;
+
+            vecOut[0+vecOutOffset] =   w_w * vecX
+                                     + x_x * vecX
+                                     - z_z * vecX
+                                     - y_y * vecX
+                                     + 2f * ( y*w*vecZ - z*w*vecY + y*x*vecY + z*x*vecZ );
+                                     ;
+
+            vecOut[1+vecOutOffset] =   y_y * vecY
+                                     - z_z * vecY
+                                     + w_w * vecY
+                                     - x_x * vecY
+                                     + 2f * ( x*y*vecX + z*y*vecZ + w*z*vecX - x*w*vecZ );
+                                     ;
+
+            vecOut[2+vecOutOffset] =   z_z * vecZ
+                                     - y_y * vecZ
+                                     - x_x * vecZ
+                                     + w_w * vecZ
+                                     + 2f * ( x*z*vecX + y*z*vecY - w*y*vecX + w*x*vecY );
+                                     ;
         }
         return vecOut;
     }

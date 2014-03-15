@@ -215,7 +215,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         final PMVMatrix pmv = renderer.getMatrix();
         renderer.resetModelview(null);
         renderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
-        if( renderer.getRenderState().isHintBitSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
+        if( renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
             gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         }
         final float pixelSizeFName = font.getPixelSize(fontSizeFName, dpiH);
@@ -238,7 +238,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             final String modeS = Region.getRenderModeString(renderer.getRenderModes());
             final String text = String.format("%03.1f/%03.1f fps, v-sync %d, fontSize [head %.1f, bottom %.1f], %s-samples [%d, this %d], td %4.1f, blend %b, alpha-bits %d",
                     lfps, tfps, gl.getSwapInterval(), fontSizeHead, fontSizeBottom, modeS, getSampleCount()[0], sampleCountFPS[0], td,
-                    renderer.getRenderState().isHintBitSet(RenderState.BITHINT_BLENDING_ENABLED),
+                    renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED),
                     drawable.getChosenGLCapabilities().getAlphaBits());
 
             // bottom, half line up
@@ -279,7 +279,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         renderer.translate(null, getXTran(), getYTran(), getZTran());
         renderer.rotate(gl, getAngle(), 0, 1, 0);
         renderer.setColorStatic(gl, 1.0f, 0.0f, 0.0f);
-        if( renderer.getRenderState().isHintBitSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
+        if( renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
             gl.glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
         }
 

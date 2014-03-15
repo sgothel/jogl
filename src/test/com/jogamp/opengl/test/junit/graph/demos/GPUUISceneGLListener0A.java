@@ -328,7 +328,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             final String modeS = Region.getRenderModeString(renderer.getRenderModes());
             final String text = String.format("%03.1f/%03.1f fps, v-sync %d, fontSize %.1f, %s-samples %d, td %4.1f, blend %b, alpha-bits %d",
                     lfps, tfps, gl.getSwapInterval(), fontSizeFixed, modeS, sampleCount[0], td,
-                    renderer.getRenderState().isHintBitSet(RenderState.BITHINT_BLENDING_ENABLED),
+                    renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED),
                     drawable.getChosenGLCapabilities().getAlphaBits());
             if(null != fpsLabel) {
                 fpsLabel.clear(gl, renderer);

@@ -74,7 +74,7 @@ public abstract class RegionRenderer {
             gl.glEnable(GL.GL_BLEND);
             gl.glBlendEquation(GL.GL_FUNC_ADD); // default
             gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
-            renderer.rs.setHintBits(RenderState.BITHINT_BLENDING_ENABLED);
+            renderer.rs.setHintMask(RenderState.BITHINT_BLENDING_ENABLED);
         }
     };
 
@@ -90,7 +90,7 @@ public abstract class RegionRenderer {
     public static final GLCallback defaultBlendDisable = new GLCallback() {
         @Override
         public void run(final GL gl, final RegionRenderer renderer) {
-            renderer.rs.clearHintBits(RenderState.BITHINT_BLENDING_ENABLED);
+            renderer.rs.clearHintMask(RenderState.BITHINT_BLENDING_ENABLED);
             gl.glDisable(GL.GL_BLEND);
         }
     };
