@@ -122,7 +122,7 @@ public class FloatUtil {
         final float s = sin(angrad);
 
         tmpVec3f[0]=x; tmpVec3f[1]=y; tmpVec3f[2]=z;
-        VectorUtil.normalize(tmpVec3f);
+        VectorUtil.normalizeVec3(tmpVec3f);
         x = tmpVec3f[0]; y = tmpVec3f[1]; z = tmpVec3f[2];
 
         // Rotation matrix (Row Order):
@@ -713,11 +713,95 @@ public class FloatUtil {
   public static final float EPSILON = 1.1920929E-7f; // Float.MIN_VALUE == 1.4e-45f ; double EPSILON 2.220446049250313E-16d
 
   /**
+   * Return true if both values are equal w/o regarding an epsilon.
+   * <p>
+   * Implementation considers following corner cases:
+   * <ul>
+   *    <li>NaN == NaN</li>
+   *    <li>+Inf == +Inf</li>
+   *    <li>-Inf == -Inf</li>
+   * </ul>
+   * </p>
+   * @see #isEqual(float, float, float)
+   */
+  public static boolean isEqual(final float a, final float b) {
+      // Values are equal (Inf, Nan .. )
+      return Float.floatToIntBits(a) == Float.floatToIntBits(b);
+  }
+
+  /**
    * Return true if both values are equal, i.e. their absolute delta < <code>epsilon</code>.
+   * <p>
+   * Implementation considers following corner cases:
+   * <ul>
+   *    <li>NaN == NaN</li>
+   *    <li>+Inf == +Inf</li>
+   *    <li>-Inf == -Inf</li>
+   * </ul>
+   * </p>
    * @see #EPSILON
    */
   public static boolean isEqual(final float a, final float b, final float epsilon) {
-      return Math.abs(a - b) < epsilon;
+      if ( Math.abs(a - b) < epsilon ) {
+          return true;
+      } else {
+          // Values are equal (Inf, Nan .. )
+          return Float.floatToIntBits(a) == Float.floatToIntBits(b);
+      }
+  }
+
+  /**
+   * Return true if both values are equal w/o regarding an epsilon.
+   * <p>
+   * Implementation considers following corner cases:
+   * <ul>
+   *    <li>NaN == NaN</li>
+   *    <li>+Inf == +Inf</li>
+   *    <li>-Inf == -Inf</li>
+   *    <li>NaN > 0</li>
+   *    <li>+Inf > -Inf</li>
+   * </ul>
+   * </p>
+   * @see #compare(float, float, float)
+   */
+  public static int compare(final float a, final float b) {
+      if (a < b) {
+          return -1; // Neither is NaN, a is smaller
+      }
+      if (a > b) {
+          return 1;  // Neither is NaN, a is larger
+      }
+      final int aBits = Float.floatToIntBits(a);
+      final int bBits = Float.floatToIntBits(b);
+      if( aBits == bBits ) {
+          return 0;  // Values are equal (Inf, Nan .. )
+      } else if( aBits < bBits ) {
+          return -1; // (-0.0,  0.0) or (!NaN,  NaN)
+      } else {
+          return 1;  // ( 0.0, -0.0) or ( NaN, !NaN)
+      }
+  }
+
+  /**
+   * Return true if both values are equal, i.e. their absolute delta < <code>epsilon</code>.
+   * <p>
+   * Implementation considers following corner cases:
+   * <ul>
+   *    <li>NaN == NaN</li>
+   *    <li>+Inf == +Inf</li>
+   *    <li>-Inf == -Inf</li>
+   *    <li>NaN > 0</li>
+   *    <li>+Inf > -Inf</li>
+   * </ul>
+   * </p>
+   * @see #EPSILON
+   */
+  public static int compare(final float a, final float b, final float epsilon) {
+      if ( Math.abs(a - b) < epsilon ) {
+          return 0;
+      } else {
+          return compare(a, b);
+      }
   }
 
   /**

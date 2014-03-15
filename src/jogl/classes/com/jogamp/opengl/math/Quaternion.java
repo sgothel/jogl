@@ -404,7 +404,7 @@ public class Quaternion {
      * @see <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q63">Matrix-FAQ Q63</a>
      */
     public final float[] rotateVector(final float[] vecOut, final int vecOutOffset, final float[] vecIn, final int vecInOffset) {
-        if ( VectorUtil.isZero(vecIn, vecInOffset, FloatUtil.EPSILON) ) {
+        if ( VectorUtil.isVec3Zero(vecIn, vecInOffset, FloatUtil.EPSILON) ) {
             vecOut[0+vecOutOffset] = 0f;
             vecOut[1+vecOutOffset] = 0f;
             vecOut[2+vecOutOffset] = 0f;
@@ -537,18 +537,18 @@ public class Quaternion {
     public Quaternion setLookAt(final float[] directionIn, final float[] upIn,
                                 final float[] xAxisOut, final float[] yAxisOut, final float[] zAxisOut) {
         // Z = norm(dir)
-        VectorUtil.normalize(zAxisOut, directionIn);
+        VectorUtil.normalizeVec3(zAxisOut, directionIn);
 
         // X = upIn x Z
         //     (borrow yAxisOut for upNorm)
-        VectorUtil.normalize(yAxisOut, upIn);
-        VectorUtil.cross(xAxisOut, yAxisOut, zAxisOut);
-        VectorUtil.normalize(xAxisOut);
+        VectorUtil.normalizeVec3(yAxisOut, upIn);
+        VectorUtil.crossVec3(xAxisOut, yAxisOut, zAxisOut);
+        VectorUtil.normalizeVec3(xAxisOut);
 
         // Y = Z x X
         //
-        VectorUtil.cross(yAxisOut, zAxisOut, xAxisOut);
-        VectorUtil.normalize(yAxisOut);
+        VectorUtil.crossVec3(yAxisOut, zAxisOut, xAxisOut);
+        VectorUtil.normalizeVec3(yAxisOut);
 
         /**
             final float m00 = xAxisOut[0];
@@ -588,16 +588,16 @@ public class Quaternion {
      * @return this quaternion for chaining.
      */
     public final Quaternion setFromVectors(final float[] v1, final float[] v2, final float[] tmpPivotVec, final float[] tmpNormalVec) {
-        final float factor = VectorUtil.length(v1) * VectorUtil.length(v2);
+        final float factor = VectorUtil.vec3Length(v1) * VectorUtil.vec3Length(v2);
         if ( FloatUtil.isZero(factor, FloatUtil.EPSILON ) ) {
             return setIdentity();
         } else {
-            final float dot = VectorUtil.dot(v1, v2) / factor; // normalize
+            final float dot = VectorUtil.vec3Dot(v1, v2) / factor; // normalize
             final float theta = FloatUtil.acos(Math.max(-1.0f, Math.min(dot, 1.0f))); // clipping [-1..1]
 
-            VectorUtil.cross(tmpPivotVec, v1, v2);
+            VectorUtil.crossVec3(tmpPivotVec, v1, v2);
 
-            if ( dot < 0.0f && FloatUtil.isZero( VectorUtil.length(tmpPivotVec), FloatUtil.EPSILON ) ) {
+            if ( dot < 0.0f && FloatUtil.isZero( VectorUtil.vec3Length(tmpPivotVec), FloatUtil.EPSILON ) ) {
                 // Vectors parallel and opposite direction, therefore a rotation of 180 degrees about any vector
                 // perpendicular to this vector will rotate vector a onto vector b.
                 //
@@ -643,16 +643,16 @@ public class Quaternion {
      * @return this quaternion for chaining.
      */
     public final Quaternion setFromNormalVectors(final float[] v1, final float[] v2, final float[] tmpPivotVec) {
-        final float factor = VectorUtil.length(v1) * VectorUtil.length(v2);
+        final float factor = VectorUtil.vec3Length(v1) * VectorUtil.vec3Length(v2);
         if ( FloatUtil.isZero(factor, FloatUtil.EPSILON ) ) {
             return setIdentity();
         } else {
-            final float dot = VectorUtil.dot(v1, v2) / factor; // normalize
+            final float dot = VectorUtil.vec3Dot(v1, v2) / factor; // normalize
             final float theta = FloatUtil.acos(Math.max(-1.0f, Math.min(dot, 1.0f))); // clipping [-1..1]
 
-            VectorUtil.cross(tmpPivotVec, v1, v2);
+            VectorUtil.crossVec3(tmpPivotVec, v1, v2);
 
-            if ( dot < 0.0f && FloatUtil.isZero( VectorUtil.length(tmpPivotVec), FloatUtil.EPSILON ) ) {
+            if ( dot < 0.0f && FloatUtil.isZero( VectorUtil.vec3Length(tmpPivotVec), FloatUtil.EPSILON ) ) {
                 // Vectors parallel and opposite direction, therefore a rotation of 180 degrees about any vector
                 // perpendicular to this vector will rotate vector a onto vector b.
                 //
@@ -696,7 +696,7 @@ public class Quaternion {
      * @see #toAngleAxis(float[])
      */
     public final Quaternion setFromAngleAxis(final float angle, final float[] vector, final float[] tmpV3f) {
-        VectorUtil.normalize(tmpV3f, vector);
+        VectorUtil.normalizeVec3(tmpV3f, vector);
         return setFromAngleNormalAxis(angle, tmpV3f);
     }
 
@@ -716,7 +716,7 @@ public class Quaternion {
      * @see #toAngleAxis(float[])
      */
     public final Quaternion setFromAngleNormalAxis(final float angle, final float[] vector) {
-        if ( VectorUtil.isZero(vector, 0, FloatUtil.EPSILON) ) {
+        if ( VectorUtil.isVec3Zero(vector, 0, FloatUtil.EPSILON) ) {
             setIdentity();
         } else {
             final float halfangle = angle * 0.5f;

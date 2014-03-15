@@ -27,6 +27,7 @@
  */
 package com.jogamp.graph.geom;
 
+import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.VectorUtil;
 
 /** A Simple Vertex Implementation. Where the coordinates, and other attributes are
@@ -188,8 +189,8 @@ public class SVertex implements Vertex {
         final Vertex v = (Vertex) obj;
         return this == v ||
                isOnCurve() == v.isOnCurve() &&
-               VectorUtil.checkEqualityVec2(getTexCoord(), v.getTexCoord()) &&
-               VectorUtil.checkEquality(getCoord(), v.getCoord()) ;
+               VectorUtil.isVec2Equal(getTexCoord(), 0, v.getTexCoord(), 0, FloatUtil.EPSILON) &&
+               VectorUtil.isVec3Equal(getCoord(), 0, v.getCoord(), 0, FloatUtil.EPSILON) ;
     }
 
     @Override

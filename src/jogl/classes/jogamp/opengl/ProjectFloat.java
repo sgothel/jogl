@@ -408,14 +408,14 @@ public class ProjectFloat {
     up[1] = upy;
     up[2] = upz;
 
-    VectorUtil.normalize(forward);
+    VectorUtil.normalizeVec3(forward);
 
     /* Side = forward x up */
-    VectorUtil.cross(side, forward, up);
-    VectorUtil.normalize(side);
+    VectorUtil.crossVec3(side, forward, up);
+    VectorUtil.normalizeVec3(side);
 
     /* Recompute up as: up = side x forward */
-    VectorUtil.cross(up, side, forward);
+    VectorUtil.crossVec3(up, side, forward);
 
     FloatUtil.makeIdentityf(matrixBuf);
     final int mPos = matrixBuf.position();

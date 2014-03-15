@@ -436,9 +436,9 @@ public class OutlineShape implements Comparable<OutlineShape> {
     }
 
     private void subdivideTriangle(final Outline outline, Vertex a, Vertex b, Vertex c, int index){
-        VectorUtil.mid(tmpV1, a.getCoord(), b.getCoord());
-        VectorUtil.mid(tmpV3, b.getCoord(), c.getCoord());
-        VectorUtil.mid(tmpV2, tmpV1, tmpV3);
+        VectorUtil.midVec3(tmpV1, a.getCoord(), b.getCoord());
+        VectorUtil.midVec3(tmpV3, b.getCoord(), c.getCoord());
+        VectorUtil.midVec3(tmpV2, tmpV1, tmpV3);
 
         //drop off-curve vertex to image on the curve
         b.setCoord(tmpV2, 0, 3);
@@ -517,7 +517,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
                     continue;
                 }
 
-                if( VectorUtil.vertexInTriangle3(a.getCoord(), b.getCoord(), c.getCoord(),
+                if( VectorUtil.isVec3InTriangle3(a.getCoord(), b.getCoord(), c.getCoord(),
                                                  current.getCoord(), nextV.getCoord(), prevV.getCoord(),
                                                  tmpV1, tmpV2, tmpV3) ) {
                     return current;
@@ -542,7 +542,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
                 final Vertex currentVertex = outline.getVertex(i);
                 final Vertex nextVertex = outline.getVertex((i+1)%vertexCount);
                 if ( !currentVertex.isOnCurve() && !nextVertex.isOnCurve() ) {
-                    VectorUtil.mid(tmpV1, currentVertex.getCoord(), nextVertex.getCoord());
+                    VectorUtil.midVec3(tmpV1, currentVertex.getCoord(), nextVertex.getCoord());
                     final Vertex v = vertexFactory.create(tmpV1, 0, 3, true);
                     i++;
                     vertexCount++;
@@ -557,8 +557,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
             }
 
             if( vertexCount > 0 ) {
-                if(VectorUtil.checkEquality(outline.getVertex(0).getCoord(),
-                        outline.getLastVertex().getCoord())) {
+                if(VectorUtil.isVec3Equal( outline.getVertex(0).getCoord(), 0, outline.getLastVertex().getCoord(), 0, FloatUtil.EPSILON )) {
                     outline.removeVertex(vertexCount-1);
                 }
             }

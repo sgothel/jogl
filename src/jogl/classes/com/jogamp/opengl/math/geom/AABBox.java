@@ -245,8 +245,9 @@ public class AABBox implements Cloneable {
         resize(xyz[0], xyz[1], xyz[2]);
     }
 
-    /** Check if the x & y coordinates are bounded/contained
-     *  by this AABBox
+    /**
+     * Check if the x & y coordinates are bounded/contained
+     * by this AABBox
      * @param x  x-axis coordinate value
      * @param y  y-axis coordinate value
      * @return true if  x belong to (low.x, high.x) and
@@ -262,8 +263,9 @@ public class AABBox implements Cloneable {
         return true;
     }
 
-    /** Check if the xyz coordinates are bounded/contained
-     *  by this AABBox.
+    /**
+     * Check if the xyz coordinates are bounded/contained
+     * by this AABBox.
      * @param x x-axis coordinate value
      * @param y y-axis coordinate value
      * @param z z-axis coordinate value
@@ -283,8 +285,9 @@ public class AABBox implements Cloneable {
         return true;
     }
 
-    /** Check if there is a common region between this AABBox and the passed
-     *     2D region irrespective of z range
+    /**
+     * Check if there is a common region between this AABBox and the passed
+     * 2D region irrespective of z range
      * @param x lower left x-coord
      * @param y lower left y-coord
      * @param w width
@@ -316,7 +319,7 @@ public class AABBox implements Cloneable {
      * @return a float representing the size of the AABBox
      */
     public final float getSize() {
-        return VectorUtil.computeLength(low, high);
+        return VectorUtil.vec3Distance(low, high);
     }
 
     /**Get the Center of the AABBox
@@ -336,15 +339,15 @@ public class AABBox implements Cloneable {
         tmpV3[1] = high[1] - center[1];
         tmpV3[2] = high[2] - center[2];
 
-        VectorUtil.scale(tmpV3, tmpV3, size); // in-place scale
-        VectorUtil.vectorAdd(high, center, tmpV3);
+        VectorUtil.scaleVec3(tmpV3, tmpV3, size); // in-place scale
+        VectorUtil.addVec3(high, center, tmpV3);
 
         tmpV3[0] = low[0] - center[0];
         tmpV3[1] = low[1] - center[1];
         tmpV3[2] = low[2] - center[2];
 
-        VectorUtil.scale(tmpV3, tmpV3, size); // in-place scale
-        VectorUtil.vectorAdd(low, center, tmpV3);
+        VectorUtil.scaleVec3(tmpV3, tmpV3, size); // in-place scale
+        VectorUtil.addVec3(low, center, tmpV3);
     }
 
     public final float getMinX() {
@@ -396,9 +399,9 @@ public class AABBox implements Cloneable {
         if( null == obj || !(obj instanceof AABBox) ) {
             return false;
         }
-        final AABBox other = (AABBox) obj;
-        return VectorUtil.checkEquality(low, other.low) &&
-               VectorUtil.checkEquality(high, other.high) ;
+        final AABBox other = (AABBox) obj;        
+        return VectorUtil.isVec2Equal(low, 0, other.low, 0, FloatUtil.EPSILON) &&
+               VectorUtil.isVec3Equal(high, 0, other.high, 0, FloatUtil.EPSILON) ;
     }
 
     /**

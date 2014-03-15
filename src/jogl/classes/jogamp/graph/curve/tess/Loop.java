@@ -192,20 +192,20 @@ public class Loop {
 
         float minDistance = Float.MAX_VALUE;
         boolean inValid = false;
-        ArrayList<GraphVertex> initVertices = initialOutline.getGraphPoint();
-        ArrayList<GraphVertex> vertices = polyline.getGraphPoint();
+        final ArrayList<GraphVertex> initVertices = initialOutline.getGraphPoint();
+        final ArrayList<GraphVertex> vertices = polyline.getGraphPoint();
 
         for(int i=0; i< initVertices.size()-1; i++){
-            GraphVertex v = initVertices.get(i);
-            GraphVertex nextV = initVertices.get(i+1);
+            final GraphVertex v = initVertices.get(i);
+            final GraphVertex nextV = initVertices.get(i+1);
             for(int pos=0; pos<vertices.size(); pos++) {
-                GraphVertex cand = vertices.get(pos);
-                float distance = VectorUtil.computeLength(v.getCoord(), cand.getCoord());
+                final GraphVertex cand = vertices.get(pos);
+                final float distance = VectorUtil.vec3Distance(v.getCoord(), cand.getCoord());
                 if(distance < minDistance){
                     for (GraphVertex vert:vertices){
                         if(vert == v || vert == nextV || vert == cand)
                             continue;
-                        inValid = VectorUtil.inCircle(v.getPoint(), nextV.getPoint(),
+                        inValid = VectorUtil.isInCircle(v.getPoint(), nextV.getPoint(),
                                 cand.getPoint(), vert.getPoint());
                         if(inValid){
                             break;
@@ -249,7 +249,7 @@ public class Loop {
                     e = e.getNext();
                     continue;
                 }
-                inValid = VectorUtil.inCircle(root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
+                inValid = VectorUtil.isInCircle(root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
                                               cand, e.getGraphPoint().getPoint());
                 if(inValid){
                     break;

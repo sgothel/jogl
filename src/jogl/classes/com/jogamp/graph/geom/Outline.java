@@ -172,7 +172,7 @@ public class Outline implements Cloneable, Comparable<Outline> {
         if( !isEmpty() ) {
             final Vertex first = vertices.get(0);
             final Vertex last = getLastVertex();
-            if( !VectorUtil.checkEquality( first.getCoord(), last.getCoord() ) ) {
+            if( !VectorUtil.isVec3Equal( first.getCoord(), 0, last.getCoord(), 0, FloatUtil.EPSILON ) ) {
                 if( closeTail ) {
                     vertices.add(first.clone());
                 } else {
