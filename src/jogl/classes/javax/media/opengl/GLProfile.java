@@ -1027,7 +1027,7 @@ public class GLProfile {
     public final String getGLImplBaseClassName() {
         return getGLImplBaseClassName(getImplName());
     }
-    
+
     private static final String getGLImplBaseClassName(String profileImpl) {
         if( GLES2 == profileImpl || GLES3 == profileImpl ) {
             return "jogamp.opengl.es3.GLES3";
