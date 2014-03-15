@@ -125,6 +125,24 @@ public class GLProfile {
                     public Object run() {
                         Platform.initSingleton();
 
+                        // Performance hack to trigger classloading of the GL classes impl, which makes up to 12%, 800ms down to 700ms
+                        new Thread(new Runnable() {
+                          @Override
+                          public void run() {
+                              final ClassLoader cl = GLProfile.class.getClassLoader();
+                              try {
+                                  ReflectionUtil.createInstance(getGLImplBaseClassName(GL4bc)+"Impl", new Class[] { GLProfile.class, GLContextImpl.class }, new Object[] { null, null }, cl);
+                              } catch (Throwable t) {}
+                              try {
+                                  ReflectionUtil.createInstance(getGLImplBaseClassName(GLES3)+"Impl", new Class[] { GLProfile.class, GLContextImpl.class }, new Object[] { null, null }, cl);
+                              } catch (Throwable t) {}
+                              try {
+                                  ReflectionUtil.createInstance(getGLImplBaseClassName(GLES1)+"Impl", new Class[] { GLProfile.class, GLContextImpl.class }, new Object[] { null, null }, cl);
+                              } catch (Throwable t) {}
+                          }
+                        }, "GLProfile-GL_Bootstrapping").start();
+
+
                         if(TempJarCache.isInitialized()) {
                            final ClassLoader cl = GLProfile.class.getClassLoader();
                            final String newtFactoryClassName = "com.jogamp.newt.NewtFactory";
@@ -1540,6 +1558,7 @@ public class GLProfile {
 
         // depends on hasDesktopGLFactory
         hasGL234Impl   = ReflectionUtil.isClassAvailable("jogamp.opengl.gl4.GL4bcImpl", classloader);
+
         // depends on hasEGLFactory
         hasGLES1Impl   = ReflectionUtil.isClassAvailable("jogamp.opengl.es1.GLES1Impl", classloader);
         hasGLES3Impl   = ReflectionUtil.isClassAvailable("jogamp.opengl.es3.GLES3Impl", classloader);
