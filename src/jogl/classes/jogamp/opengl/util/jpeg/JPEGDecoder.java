@@ -56,7 +56,6 @@
 
 package jogamp.opengl.util.jpeg;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -65,6 +64,7 @@ import java.util.Arrays;
 import jogamp.opengl.Debug;
 
 import com.jogamp.common.util.ArrayHashSet;
+import com.jogamp.common.util.Bitstream;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.opengl.util.texture.TextureData;
 import com.jogamp.opengl.util.texture.TextureData.ColorSpace;
@@ -446,9 +446,7 @@ public class JPEGDecoder {
         return "JPEG[size "+width+"x"+height+", compOut "+compOuts+", "+jfifS+", "+exifS+", "+adobeS+"]";
     }
 
-    private BufferedInputStream istream;
-    private int _ipos = 0;
-    private int _iposSave = 0;
+    private final Bitstream<InputStream> bstream = new Bitstream<InputStream>(new Bitstream.ByteInputStream(null), false /* outputMode */);
 
     private int width = 0;
     private int height = 0;
@@ -463,66 +461,36 @@ public class JPEGDecoder {
     public final int getWidth() { return width; }
     public final int getHeight() { return height; }
 
-    private final void resetInput(InputStream is) {
-        if( is instanceof BufferedInputStream ) {
-            istream = (BufferedInputStream) is;
-        } else {
-            istream = new BufferedInputStream(is);
+    private final void setStream(InputStream is) {
+        try {
+            bstream.setStream(is, false /* outputMode */);
+        } catch (Exception e) {
+            throw new RuntimeException(e); // should not happen, no flush()
         }
-        _ipos = 0;
     }
 
-    private final void markStream(int readLimit) {
-        istream.mark(readLimit);
-        _iposSave = _ipos;
-    }
-    private final void rewindStream() throws IOException {
-        if(DEBUG_IN) { System.err.println("JPG.rewindStream: "+_ipos+" -> "+_iposSave); }
-        istream.reset();
-        _ipos = _iposSave;
-        _iposSave = 0;
-    }
-    private final int readUint8() throws IOException {
-        final int r = istream.read();
-        if( -1 < r ) {
-            if(DEBUG_IN) { System.err.println("u8["+_ipos+"]: "+toHexString(r)); }
-            _ipos++;
-        } else if(DEBUG_IN) {
-            System.err.println("u8["+_ipos+"]: EOS");
-        }
-        return r;
+    private final int readUInt8() throws IOException {
+        return bstream.readUInt8(true /* msbFirst */);
     }
 
-    private final int readUint16() throws IOException {
-        final int hi = istream.read();
-        if( -1 < hi ) {
-            _ipos++;
-            final int lo = istream.read();
-            if( -1 < lo ) {
-                _ipos++;
-                final int r = hi << 8 | lo ;
-                if(DEBUG_IN) { System.err.println("u16["+(_ipos-2)+"]: "+toHexString(r)); }
-                return r;
-            }
-        }
-        if(DEBUG_IN) { System.err.println("u16["+_ipos+"]: EOS"); }
-        return -1;
+    private final int readUInt16() throws IOException {
+        return bstream.readUInt16(true /* msbFirst */, true /* bigEndian */);
     }
 
     private final int readNumber() throws IOException {
-        final int len=readUint16();
+        final int len=readUInt16();
         if(len!=4){
             throw new CodecException("ERROR: Define number format error [Len!=4, but "+len+"]");
         }
-        return readUint16();
+        return readUInt16();
     }
 
     private final byte[] readDataBlock() throws IOException {
         int count=0, i=0;
-        final int len=readUint16();   count+=2;
+        final int len=readUInt16();   count+=2;
         byte[] data = new byte[len-2];
         while(count<len){
-            data[i++] = (byte)readUint8(); count++;
+            data[i++] = (byte)readUInt8(); count++;
         }
         if(DEBUG_IN) { System.err.println("JPEG.readDataBlock: net-len "+(len-2)+", "+this); dumpData(data, 0, len-2); }
         return data;
@@ -531,14 +499,14 @@ public class JPEGDecoder {
         for(int i=0; i<len; ) {
             System.err.print(i%8+": ");
             for(int j=0; j<8 && i<len; j++, i++) {
-                System.err.println(toHexString(0x000000FF & data[offset+i])+", ");
+                System.err.print(toHexString(0x000000FF & data[offset+i])+", ");
             }
             System.err.println("");
         }
     }
 
     public synchronized void clear(InputStream inputStream) {
-        resetInput(inputStream);
+        setStream(inputStream);
         width = 0;
         height = 0;
         jfif = null;
@@ -556,12 +524,12 @@ public class JPEGDecoder {
 
         Frame frame = null;
         int resetInterval = 0;
-        int fileMarker = readUint16();
+        int fileMarker = readUInt16();
         if ( fileMarker != M_SOI ) {
             throw new CodecException("SOI not found, but has marker "+toHexString(fileMarker));
         }
 
-        fileMarker = readUint16();
+        fileMarker = readUInt16();
         while (fileMarker != M_EOI) {
             if(DEBUG) { System.err.println("JPG.parse got marker "+toHexString(fileMarker)); }
             switch(fileMarker) {
@@ -599,21 +567,21 @@ public class JPEGDecoder {
 
             case M_QTT: {
                 int count = 0;
-                final int quantizationTablesLength = readUint16(); count+=2;
+                final int quantizationTablesLength = readUInt16(); count+=2;
                 while( count < quantizationTablesLength ) {
-                    final int quantizationTableSpec = readUint8(); count++;
+                    final int quantizationTableSpec = readUInt8(); count++;
                     final int precisionID = quantizationTableSpec >> 4;
                     final int tableIdx = quantizationTableSpec & 0x0F;
                     final int[] tableData = new int[64];
                     if ( precisionID == 0 ) { // 8 bit values
                         for (int j = 0; j < 64; j++) {
                             final int z = dctZigZag[j];
-                            tableData[z] = readUint8(); count++;
+                            tableData[z] = readUInt8(); count++;
                         }
                     } else if ( precisionID == 1) { //16 bit
                         for (int j = 0; j < 64; j++) {
                             final int z = dctZigZag[j];
-                            tableData[z] = readUint16(); count+=2;
+                            tableData[z] = readUInt16(); count+=2;
                         }
                     } else {
                         throw new CodecException("DQT: invalid table precision "+precisionID+", quantizationTableSpec "+quantizationTableSpec+", idx "+tableIdx);
@@ -636,24 +604,24 @@ public class JPEGDecoder {
                     throw new CodecException("only single frame JPEGs supported");
                 }
                 int count = 0;
-                final int sofLen = readUint16(); count+=2; // header length;
+                final int sofLen = readUInt16(); count+=2; // header length;
                 final int componentsCount;
                 {
                     final boolean progressive = (fileMarker == M_SOF2);
-                    final int precision = readUint8(); count++;
-                    final int scanLines = readUint16(); count+=2;
-                    final int samplesPerLine = readUint16(); count+=2;
-                    componentsCount = readUint8(); count++;
+                    final int precision = readUInt8(); count++;
+                    final int scanLines = readUInt16(); count+=2;
+                    final int samplesPerLine = readUInt16(); count+=2;
+                    componentsCount = readUInt8(); count++;
                     frame = new Frame(progressive, precision, scanLines, samplesPerLine, componentsCount, quantizationTables);
                     width = frame.samplesPerLine;
                     height = frame.scanLines;
                 }
                 for (int i = 0; i < componentsCount; i++) {
-                    final int componentId = readUint8(); count++;
-                    final int temp = readUint8(); count++;
+                    final int componentId = readUInt8(); count++;
+                    final int temp = readUInt8(); count++;
                     final int h = temp >> 4;
                     final int v = temp & 0x0F;
-                    final int qttIdx = readUint8(); count++;
+                    final int qttIdx = readUInt8(); count++;
                     final ComponentIn compIn = new ComponentIn(h, v, qttIdx);
                     frame.putOrdered(componentId, compIn);
                 }
@@ -669,18 +637,18 @@ public class JPEGDecoder {
 
             case M_DHT: {
                 int count = 0;
-                final int huffmanLength = readUint16(); count+=2;
+                final int huffmanLength = readUInt16(); count+=2;
                 int i=count, codeLengthTotal = 0;
                 while( i < huffmanLength ) {
-                    final int huffmanTableSpec = readUint8(); count++;
+                    final int huffmanTableSpec = readUInt8(); count++;
                     final int[] codeLengths = new int[16];
                     int codeLengthSum = 0;
                     for (int j = 0; j < 16; j++) {
-                        codeLengthSum += (codeLengths[j] = readUint8()); count++;
+                        codeLengthSum += (codeLengths[j] = readUInt8()); count++;
                     }
                     final byte[] huffmanValues = new byte[codeLengthSum];
                     for (int j = 0; j < codeLengthSum; j++) {
-                        huffmanValues[j] = (byte)readUint8(); count++;
+                        huffmanValues[j] = (byte)readUInt8(); count++;
                     }
                     codeLengthTotal += codeLengthSum;
                     i += 17 + codeLengthSum;
@@ -703,21 +671,21 @@ public class JPEGDecoder {
 
             case M_SOS: {
                 int count = 0;
-                final int sosLen = readUint16(); count+=2;
-                final int selectorsCount = readUint8(); count++;
+                final int sosLen = readUInt16(); count+=2;
+                final int selectorsCount = readUInt8(); count++;
                 ArrayList<ComponentIn> components = new ArrayList<ComponentIn>();
                 if(DEBUG) { System.err.println("JPG.parse.SOS: selectorCount [0.."+(selectorsCount-1)+"]: "+frame); }
                 for (int i = 0; i < selectorsCount; i++) {
-                    final int compID = readUint8(); count++;
+                    final int compID = readUInt8(); count++;
                     final ComponentIn component = frame.getCompByID(compID);
-                    final int tableSpec = readUint8(); count++;
+                    final int tableSpec = readUInt8(); count++;
                     component.huffmanTableDC = huffmanTablesDC[tableSpec >> 4];
                     component.huffmanTableAC = huffmanTablesAC[tableSpec & 15];
                     components.add(component);
                 }
-                final int spectralStart = readUint8(); count++;
-                final int spectralEnd = readUint8(); count++;
-                final int successiveApproximation = readUint8(); count++;
+                final int spectralStart = readUInt8(); count++;
+                final int spectralEnd = readUInt8(); count++;
+                final int successiveApproximation = readUInt8(); count++;
                 if(count!=sosLen){
                     throw new CodecException("ERROR: scan header format error [count!=Length]");
                 }
@@ -736,10 +704,10 @@ public class JPEGDecoder {
                     offset -= 3;
                     break;
                 } */
-                throw new CodecException("unknown JPEG marker " + toHexString(fileMarker));
+                throw new CodecException("unknown JPEG marker " + toHexString(fileMarker) + ", " + bstream);
             }
             if( 0 == fileMarker ) {
-                fileMarker = readUint16();
+                fileMarker = readUInt16();
             }
         }
         if(DEBUG) { System.err.println("JPG.parse.2: End of parsing input "+this); }
@@ -775,13 +743,13 @@ public class JPEGDecoder {
             if (maxH < component.h) maxH = component.h;
             if (maxV < component.v) maxV = component.v;
         }
-        int mcusPerLine = (int) Math.ceil((float)frame.samplesPerLine / 8f / (float)maxH);
-        int mcusPerColumn = (int) Math.ceil((float)frame.scanLines / 8f / (float)maxV);
+        int mcusPerLine = (int) Math.ceil(frame.samplesPerLine / 8f / maxH);
+        int mcusPerColumn = (int) Math.ceil(frame.scanLines / 8f / maxV);
         // for (componentId in frame.components) {
         for (int i=0; i<compCount; i++) {
             final ComponentIn component = frame.getCompByIndex(i);
-            final int blocksPerLine = (int) Math.ceil(Math.ceil((float)frame.samplesPerLine / 8f) * component.h / maxH);
-            final int blocksPerColumn = (int) Math.ceil(Math.ceil((float)frame.scanLines  / 8f) * component.v / maxV);
+            final int blocksPerLine = (int) Math.ceil(Math.ceil(frame.samplesPerLine / 8f) * component.h / maxH);
+            final int blocksPerColumn = (int) Math.ceil(Math.ceil(frame.scanLines  / 8f) * component.v / maxV);
             final int blocksPerLineForMcu = mcusPerLine * component.h;
             final int blocksPerColumnForMcu = mcusPerColumn * component.v;
             component.allocateBlocks(blocksPerColumn, blocksPerColumnForMcu, blocksPerLine, blocksPerLineForMcu);
@@ -1066,7 +1034,6 @@ public class JPEGDecoder {
         private int mcusPerLine;
         private boolean progressive;
         // private int maxH, maxV;
-        private int bitsData, bitsCount;
         private int spectralStart, spectralEnd;
         private int successive;
         private int eobrun;
@@ -1081,8 +1048,7 @@ public class JPEGDecoder {
             this.progressive = frame.progressive;
             // this.maxH = frame.maxH;
             // this.maxV = frame.maxV;
-            this.bitsData = 0;
-            this.bitsCount = 0;
+            bstream.skip( bstream.getBitCount() ); // align to next byte
             this.spectralStart = spectralStart;
             this.spectralEnd = spectralEnd;
             this.successive = successive;
@@ -1149,16 +1115,16 @@ public class JPEGDecoder {
                     return markerException.getMarker();
                 } catch (CodecException codecException) {
                     if(DEBUG) { System.err.println("JPEG.decodeScan: Codec exception: "+codecException.getMessage()); codecException.printStackTrace(); }
-                    bitsCount = 0;
+                    bstream.skip( bstream.getBitCount() ); // align to next byte
                     return M_EOI; // force end !
                 }
 
                 // find marker
-                bitsCount = 0;
-                markStream(2);
-                marker = readUint16();
+                bstream.skip( bstream.getBitCount() ); // align to next byte
+                bstream.mark(2);
+                marker = readUInt16();
                 if( marker < 0xFF00 ) {
-                    rewindStream();
+                    bstream.reset();
                     throw new CodecException("marker not found @ mcu "+mcu+"/"+mcuExpected+", u16: "+toHexString(marker));
                 }
                 final boolean isRSTx = 0xFFD0 <= marker && marker <= 0xFFD7; // !RSTx
@@ -1172,28 +1138,25 @@ public class JPEGDecoder {
             return marker;
         }
 
-        private int readBit() throws MarkerException, IOException {
-            if (bitsCount > 0) {
-                bitsCount--;
-                return (bitsData >> bitsCount) & 1;
+        private final int readBit() throws MarkerException, IOException {
+            final int bit = bstream.readBit(true /* msbFirst */);
+            if( Bitstream.EOS == bit || 7 != bstream.getBitCount() ) {
+                return bit;
             }
-            bitsData = readUint8();
-            if( -1 == bitsData ) {
-                return -1;
-            }
-            if (bitsData == 0xFF) { // marker prefix
-                final int nextByte = readUint8(); // marker signature
+            // new byte read, i.e. bitCount == 7
+            final int bitsData = bstream.getBitBuffer(); // peek for marker
+            if ( 0xFF == bitsData ) { // marker prefix
+                final int nextByte = bstream.getStream().read(); // snoop marker signature, will be dropped!
                 if( -1 == nextByte ) {
                     throw new CodecException("marked prefix 0xFF, then EOF");
                 }
                 if (0 != nextByte) {
                     final int marker = (bitsData << 8) | nextByte;
-                    throw new MarkerException(marker, "Marker at readBit file pos " + _ipos);
+                    throw new MarkerException(marker, "Marker at readBit pos " + bstream);
                 }
                 // unstuff 0
             }
-            bitsCount = 7;
-            return bitsData >>> 7;
+            return bit;
         }
 
         private int decodeHuffman(BinObj tree) throws IOException {
@@ -1205,7 +1168,7 @@ public class JPEGDecoder {
                     return 0x000000FF & node.getValue();
                 }
             }
-            throw new CodecException("EOF reached at "+_ipos);
+            throw new CodecException("EOF reached at "+bstream);
         }
         private int receive(int length) throws IOException {
             int n = 0;

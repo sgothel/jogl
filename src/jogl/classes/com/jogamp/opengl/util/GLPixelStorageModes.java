@@ -40,8 +40,8 @@ import javax.media.opengl.GLException;
  * regardless of the GLProfile.
  */
 public class GLPixelStorageModes {
-    private int[] savedGL2GL3Modes = new int[8];
-    private int[] savedAlignment = new int[2];
+    private final int[] savedGL2GL3Modes = new int[8];
+    private final int[] savedAlignment = new int[2];
     private boolean saved = false;
 
     /** Create instance w/o {@link #save(GL)} */
@@ -127,31 +127,35 @@ public class GLPixelStorageModes {
             return;
         }
 
-        if(gl.isGL2GL3()) {
-            if(gl.isGL2()) {
+        if( gl.isGL2ES3() ) {
+            if( gl.isGL2() ) {
                 gl.getGL2().glPushClientAttrib(GL2.GL_CLIENT_PIXEL_STORE_BIT);
             } else {
                 gl.glGetIntegerv(GL2ES2.GL_PACK_ALIGNMENT,     savedAlignment,   0);
                 gl.glGetIntegerv(GL2ES2.GL_UNPACK_ALIGNMENT,   savedAlignment,   1);
-                gl.glGetIntegerv(GL2GL3.GL_PACK_ROW_LENGTH,    savedGL2GL3Modes, 0);
-                gl.glGetIntegerv(GL2GL3.GL_PACK_SKIP_ROWS,     savedGL2GL3Modes, 1);
-                gl.glGetIntegerv(GL2GL3.GL_PACK_SKIP_PIXELS,   savedGL2GL3Modes, 2);
-                gl.glGetIntegerv(GL2GL3.GL_PACK_SWAP_BYTES,    savedGL2GL3Modes, 3);
-                gl.glGetIntegerv(GL2GL3.GL_UNPACK_ROW_LENGTH,  savedGL2GL3Modes, 4);
-                gl.glGetIntegerv(GL2GL3.GL_UNPACK_SKIP_ROWS,   savedGL2GL3Modes, 5);
-                gl.glGetIntegerv(GL2GL3.GL_UNPACK_SKIP_PIXELS, savedGL2GL3Modes, 6);
-                gl.glGetIntegerv(GL2GL3.GL_UNPACK_SWAP_BYTES,  savedGL2GL3Modes, 7);
+                gl.glGetIntegerv(GL2ES3.GL_PACK_ROW_LENGTH,    savedGL2GL3Modes, 0);
+                gl.glGetIntegerv(GL2ES3.GL_PACK_SKIP_ROWS,     savedGL2GL3Modes, 1);
+                gl.glGetIntegerv(GL2ES3.GL_PACK_SKIP_PIXELS,   savedGL2GL3Modes, 2);
+                gl.glGetIntegerv(GL2ES2.GL_UNPACK_ROW_LENGTH,  savedGL2GL3Modes, 4);
+                gl.glGetIntegerv(GL2ES2.GL_UNPACK_SKIP_ROWS,   savedGL2GL3Modes, 5);
+                gl.glGetIntegerv(GL2ES2.GL_UNPACK_SKIP_PIXELS, savedGL2GL3Modes, 6);
+                if( gl.isGL2GL3() ) {
+                    gl.glGetIntegerv(GL2GL3.GL_PACK_SWAP_BYTES,    savedGL2GL3Modes, 3);
+                    gl.glGetIntegerv(GL2GL3.GL_UNPACK_SWAP_BYTES,  savedGL2GL3Modes, 7);
+                }
             }
-            gl.glPixelStorei(GL2GL3.GL_PACK_ROW_LENGTH, 0);
-            gl.glPixelStorei(GL2GL3.GL_PACK_SKIP_ROWS, 0);
-            gl.glPixelStorei(GL2GL3.GL_PACK_SKIP_PIXELS, 0);
-            gl.glPixelStorei(GL2GL3.GL_PACK_SWAP_BYTES, 0);
-            gl.glPixelStorei(GL2GL3.GL_UNPACK_ROW_LENGTH, 0);
-            gl.glPixelStorei(GL2GL3.GL_UNPACK_SKIP_ROWS, 0);
-            gl.glPixelStorei(GL2GL3.GL_UNPACK_SKIP_PIXELS, 0);
-            gl.glPixelStorei(GL2GL3.GL_UNPACK_SWAP_BYTES, 0);
+            gl.glPixelStorei(GL2ES3.GL_PACK_ROW_LENGTH, 0);
+            gl.glPixelStorei(GL2ES3.GL_PACK_SKIP_ROWS, 0);
+            gl.glPixelStorei(GL2ES3.GL_PACK_SKIP_PIXELS, 0);
+            gl.glPixelStorei(GL2ES2.GL_UNPACK_ROW_LENGTH, 0);
+            gl.glPixelStorei(GL2ES2.GL_UNPACK_SKIP_ROWS, 0);
+            gl.glPixelStorei(GL2ES2.GL_UNPACK_SKIP_PIXELS, 0);
+            if( gl.isGL2GL3() ) {
+                gl.glPixelStorei(GL2GL3.GL_PACK_SWAP_BYTES, 0);
+                gl.glPixelStorei(GL2GL3.GL_UNPACK_SWAP_BYTES, 0);
+            }
         } else {
-            // embedded deals with pack/unpack alignment only
+            // ES1 or ES2 deals with pack/unpack alignment only
             gl.glGetIntegerv(GL2ES2.GL_PACK_ALIGNMENT,   savedAlignment, 0);
             gl.glGetIntegerv(GL2ES2.GL_UNPACK_ALIGNMENT, savedAlignment, 1);
         }
@@ -167,23 +171,25 @@ public class GLPixelStorageModes {
             throw new GLException("pixel storage modes not saved");
         }
 
-        if(gl.isGL2GL3()) {
-            if(gl.isGL2()) {
+        if( gl.isGL2ES3() ) {
+            if( gl.isGL2() ) {
                 gl.getGL2().glPopClientAttrib();
             } else {
                 gl.glPixelStorei(GL2ES2.GL_PACK_ALIGNMENT,     savedAlignment[0]);
                 gl.glPixelStorei(GL2ES2.GL_UNPACK_ALIGNMENT,   savedAlignment[1]);
-                gl.glPixelStorei(GL2GL3.GL_PACK_ROW_LENGTH,    savedGL2GL3Modes[0]);
-                gl.glPixelStorei(GL2GL3.GL_PACK_SKIP_ROWS,     savedGL2GL3Modes[1]);
-                gl.glPixelStorei(GL2GL3.GL_PACK_SKIP_PIXELS,   savedGL2GL3Modes[2]);
-                gl.glPixelStorei(GL2GL3.GL_PACK_SWAP_BYTES,    savedGL2GL3Modes[3]);
-                gl.glPixelStorei(GL2GL3.GL_UNPACK_ROW_LENGTH,  savedGL2GL3Modes[4]);
-                gl.glPixelStorei(GL2GL3.GL_UNPACK_SKIP_ROWS,   savedGL2GL3Modes[5]);
-                gl.glPixelStorei(GL2GL3.GL_UNPACK_SKIP_PIXELS, savedGL2GL3Modes[6]);
-                gl.glPixelStorei(GL2GL3.GL_UNPACK_SWAP_BYTES,  savedGL2GL3Modes[7]);
+                gl.glPixelStorei(GL2ES3.GL_PACK_ROW_LENGTH,    savedGL2GL3Modes[0]);
+                gl.glPixelStorei(GL2ES3.GL_PACK_SKIP_ROWS,     savedGL2GL3Modes[1]);
+                gl.glPixelStorei(GL2ES3.GL_PACK_SKIP_PIXELS,   savedGL2GL3Modes[2]);
+                gl.glPixelStorei(GL2ES2.GL_UNPACK_ROW_LENGTH,  savedGL2GL3Modes[4]);
+                gl.glPixelStorei(GL2ES2.GL_UNPACK_SKIP_ROWS,   savedGL2GL3Modes[5]);
+                gl.glPixelStorei(GL2ES2.GL_UNPACK_SKIP_PIXELS, savedGL2GL3Modes[6]);
+                if( gl.isGL2GL3() ) {
+                    gl.glPixelStorei(GL2GL3.GL_PACK_SWAP_BYTES,    savedGL2GL3Modes[3]);
+                    gl.glPixelStorei(GL2GL3.GL_UNPACK_SWAP_BYTES,  savedGL2GL3Modes[7]);
+                }
             }
         } else {
-            // embedded deals with pack/unpack alignment only
+            // ES1 or ES2 deals with pack/unpack alignment only
             gl.glPixelStorei(GL2ES2.GL_PACK_ALIGNMENT,   savedAlignment[0]);
             gl.glPixelStorei(GL2ES2.GL_UNPACK_ALIGNMENT, savedAlignment[1]);
         }

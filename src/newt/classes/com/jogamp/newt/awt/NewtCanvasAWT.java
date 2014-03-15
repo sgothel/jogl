@@ -621,9 +621,9 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                     printActive = false;
                     return; // not yet available ..
                 }
-                if( !isShowing() ) {
+                if( !isVisible() ) {
                     if(DEBUG) {
-                        System.err.println(currentThreadName()+": Info: NewtCanvasAWT setupPrint - skipped GL render, drawable valid, canvas not showing");
+                        System.err.println(currentThreadName()+": Info: NewtCanvasAWT setupPrint - skipped GL render, canvas not visible");
                     }
                     printActive = false;
                     return; // not yet available ..

@@ -42,7 +42,7 @@ public abstract class RenderState {
     private static final String thisKey = "jogamp.graph.curve.RenderState" ;
 
     public static RenderState createRenderState(ShaderState st, Vertex.Factory<? extends Vertex> pointFactory) {
-        return new RenderStateImpl(st, pointFactory);
+        return new RenderStateImpl(st, pointFactory, null);
     }
 
     public static RenderState createRenderState(ShaderState st, Vertex.Factory<? extends Vertex> pointFactory, PMVMatrix pmvMatrix) {
@@ -61,8 +61,8 @@ public abstract class RenderState {
     protected RenderState(ShaderState st, Vertex.Factory<? extends Vertex> vertexFactory, PMVMatrix pmvMatrix) {
         this.st = st;
         this.vertexFactory = vertexFactory;
-        this.pmvMatrix = pmvMatrix;
-        this.gcu_PMVMatrix = new GLUniformData(UniformNames.gcu_PMVMatrix, 4, 4, pmvMatrix.glGetPMvMatrixf());
+        this.pmvMatrix = null != pmvMatrix ? pmvMatrix : new PMVMatrix();
+        this.gcu_PMVMatrix = new GLUniformData(UniformNames.gcu_PMVMatrix, 4, 4, this.pmvMatrix.glGetPMvMatrixf());
         st.ownUniform(gcu_PMVMatrix);
     }
 

@@ -82,6 +82,21 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         isXineramaEnabled = X11Util.XineramaIsEnabled(this);
     }
 
+    /**
+     * Constructs a new X11GraphicsDevice corresponding to the given display connection.
+     * <p>
+     * The constructor opens the native connection and takes ownership.
+     * </p>
+     * @param displayConnection the semantic display connection name
+     * @param locker custom {@link javax.media.nativewindow.ToolkitLock}, eg to force null locking w/ private connection
+     * @see DefaultGraphicsDevice#DefaultGraphicsDevice(String, String, int, long, ToolkitLock)
+     */
+    public X11GraphicsDevice(String displayConnection, int unitID, ToolkitLock locker) {
+        super(NativeWindowFactory.TYPE_X11, displayConnection, unitID, 0, locker);
+        handleOwner = true;
+        open();
+        isXineramaEnabled = X11Util.XineramaIsEnabled(this);
+    }
 
     private static int getDefaultScreenImpl(long dpy) {
         return X11Lib.DefaultScreen(dpy);

@@ -48,6 +48,7 @@ import jogamp.nativewindow.jawt.JAWTUtil;
 import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.newt.util.applet.JOGLNewtAppletBase;
 
 /**
  * Simple GLEventListener deployment as an applet using JOGL. This demo must be

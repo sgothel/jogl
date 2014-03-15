@@ -163,19 +163,27 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
 
         private JAWTComponentListener() {
             isShowing = component.isShowing();
-            if(DEBUG) {
-                System.err.println(jawtStr()+".attach @ Thread "+getThreadName()+": "+toString());
-            }
-            component.addComponentListener(this);
-            component.addHierarchyListener(this);
+            AWTEDTExecutor.singleton.invoke(false, new Runnable() { // Bug 952: Avoid deadlock via AWTTreeLock acquisition ..
+                @Override
+                public void run() {
+                    if(DEBUG) {
+                        System.err.println(jawtStr()+".attach @ Thread "+getThreadName()+": "+JAWTComponentListener.this.toString());
+                    }
+                    component.addComponentListener(JAWTComponentListener.this);
+                    component.addHierarchyListener(JAWTComponentListener.this);
+                } } );
         }
 
         private final void detach() {
-            if(DEBUG) {
-                System.err.println(jawtStr()+".detach @ Thread "+getThreadName()+": "+toString());
-            }
-            component.removeComponentListener(this);
-            component.removeHierarchyListener(this);
+            AWTEDTExecutor.singleton.invoke(false, new Runnable() { // Bug 952: Avoid deadlock via AWTTreeLock acquisition ..
+                @Override
+                public void run() {
+                    if(DEBUG) {
+                        System.err.println(jawtStr()+".detach @ Thread "+getThreadName()+": "+JAWTComponentListener.this.toString());
+                    }
+                    component.removeComponentListener(JAWTComponentListener.this);
+                    component.removeHierarchyListener(JAWTComponentListener.this);
+                } } );
         }
 
         @Override
@@ -424,33 +432,12 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   public final boolean hideCursor() {
       AWTEDTExecutor.singleton.invoke(false, new Runnable() {
           public void run() {
-              component.setCursor(AWTMisc.getNullCursor());
+              final Cursor cursor = AWTMisc.getNullCursor();
+              if( null != cursor ) {
+                  component.setCursor(cursor);
+              }
           } } );
       return true;
-  }
-
-  //
-  // SurfaceUpdateListener
-  //
-
-  @Override
-  public void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
-      surfaceUpdatedHelper.addSurfaceUpdatedListener(l);
-  }
-
-  @Override
-  public void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
-      surfaceUpdatedHelper.addSurfaceUpdatedListener(index, l);
-  }
-
-  @Override
-  public void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
-      surfaceUpdatedHelper.removeSurfaceUpdatedListener(l);
-  }
-
-  @Override
-  public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
-      surfaceUpdatedHelper.surfaceUpdated(updater, ns, when);
   }
 
   //
@@ -564,6 +551,26 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   }
 
   @Override
+  public void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+      surfaceUpdatedHelper.addSurfaceUpdatedListener(l);
+  }
+
+  @Override
+  public void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
+      surfaceUpdatedHelper.addSurfaceUpdatedListener(index, l);
+  }
+
+  @Override
+  public void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
+      surfaceUpdatedHelper.removeSurfaceUpdatedListener(l);
+  }
+
+  @Override
+  public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
+      surfaceUpdatedHelper.surfaceUpdated(updater, ns, when);
+  }
+
+  @Override
   public long getSurfaceHandle() {
     return drawable;
   }
@@ -601,6 +608,9 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   public void destroy() {
     surfaceLock.lock();
     try {
+        if(DEBUG) {
+            System.err.println(jawtStr()+".destroy @ Thread "+getThreadName());
+        }
         jawtComponentListener.detach();
         invalidate();
     } finally {

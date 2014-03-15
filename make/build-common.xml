@@ -177,6 +177,9 @@
         </condition>
         <echo message="swt.jar=${swt.jar}" />
 
+        <property name="plugin3.jar" value="${project.root}/make/lib/plugin3/plugin3-public.jar"/>
+        <echo message="plugin3.jar=${plugin3.jar}" />
+
         <condition property="isSWTRuntimeAvailable">
           <or>
               <istrue value="${isWindowsAMD64}" />
@@ -462,6 +465,7 @@
         <!-- NEWT Compilation .. -->
         <path id="jogl_nativewindow_gluegen.classpath">
             <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${plugin3.jar}" />
             <pathelement location="${swt.jar}" />
             <path refid="nativewindow_all_atoms.classpath" />
             <path refid="jogl_all_atoms.classpath" />
@@ -470,6 +474,7 @@
         <path id="jogl_nativewindow_gluegen_android.classpath">
             <pathelement location="${android.jar}" />
             <pathelement location="${gluegen-rt-android.jar}" />
+            <pathelement location="${plugin3.jar}" />
             <pathelement location="${swt.jar}" />
             <path refid="nativewindow_all_atoms.classpath" />
             <path refid="jogl_all_atoms.classpath" />

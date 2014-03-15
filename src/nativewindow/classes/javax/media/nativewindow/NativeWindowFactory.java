@@ -43,15 +43,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.media.nativewindow.util.PointImmutable;
+
 import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.NativeWindowFactoryImpl;
 import jogamp.nativewindow.ToolkitProperties;
 import jogamp.nativewindow.ResourceToolkitLock;
+import jogamp.nativewindow.WrappedWindow;
+import jogamp.nativewindow.macosx.OSXUtil;
+import jogamp.nativewindow.windows.GDIUtil;
+import jogamp.nativewindow.x11.X11Lib;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSizePos;
 import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
 import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
+import com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice;
+import com.jogamp.nativewindow.windows.WindowsGraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 
@@ -452,7 +461,7 @@ public abstract class NativeWindowFactory {
      * @see #getDefaultToolkitLock(java.lang.String)
      */
     public static ToolkitLock getDefaultToolkitLock() {
-        return getDefaultToolkitLock(getNativeWindowType(false));
+        return getDefaultToolkitLock(nativeWindowingTypePure);
     }
 
     /**
@@ -626,5 +635,76 @@ public abstract class NativeWindowFactory {
         return NativeWindowFactory.TYPE_X11 != NativeWindowFactory.getNativeWindowType(false) ||
                VisualIDHolder.VID_UNDEFINED != visualID ;
     }
+
+    /**
+     * Creates a native device type, following {@link #getNativeWindowType(boolean) getNativeWindowType(true)}.
+     * <p>
+     * The device will be opened if <code>own</code> is true, otherwise no native handle will ever be acquired.
+     * </p>
+     */
+    public static AbstractGraphicsDevice createDevice(String displayConnection, boolean own) {
+        final String nwt = NativeWindowFactory.getNativeWindowType(true);
+        if( NativeWindowFactory.TYPE_X11 == nwt ) {
+            if( own ) {
+                return new X11GraphicsDevice(displayConnection, AbstractGraphicsDevice.DEFAULT_UNIT, null /* ToolkitLock */);
+            } else {
+                return new X11GraphicsDevice(displayConnection, AbstractGraphicsDevice.DEFAULT_UNIT);
+            }
+        } else if( NativeWindowFactory.TYPE_WINDOWS == nwt ) {
+            return new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
+        } else if( NativeWindowFactory.TYPE_MACOSX == nwt ) {
+            return new MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
+        /**
+         * FIXME: Needs service provider interface (SPI) for TK dependent implementation
+        } else if( NativeWindowFactory.TYPE_BCM_VC_IV == nwt ) {
+        } else if( NativeWindowFactory.TYPE_ANDROID== nwt ) {
+        } else if( NativeWindowFactory.TYPE_EGL == nwt ) {
+        } else if( NativeWindowFactory.TYPE_BCM_VC_IV == nwt ) {
+        } else if( NativeWindowFactory.TYPE_AWT == nwt ) {
+        */
+        }
+        throw new UnsupportedOperationException("n/a for windowing system: "+nwt);
+    }
+
+    /**
+     * Creates a wrapped {@link NativeWindow} with given native handles and {@link AbstractGraphicsScreen}.
+     * <p>
+     * The given {@link UpstreamSurfaceHookMutableSizePos} maybe used to reflect resizes and repositioning of the native window.
+     * </p>
+     * <p>
+     * The {@link AbstractGraphicsScreen} may be created via {@link #createScreen(AbstractGraphicsDevice, int)}.
+     * </p>
+     * <p>
+     * The {@link AbstractGraphicsScreen} may have an underlying open {@link AbstractGraphicsDevice}
+     * or a simple <i>dummy</i> instance, see {@link #createDevice(String, boolean)}.
+     * </p>
+     */
+    public static NativeWindow createWrappedWindow(AbstractGraphicsScreen aScreen, long surfaceHandle, long windowHandle,
+                                                   UpstreamSurfaceHookMutableSizePos hook) {
+        final CapabilitiesImmutable caps = new Capabilities();
+        final AbstractGraphicsConfiguration config = new DefaultGraphicsConfiguration(aScreen, caps, caps);
+        return new WrappedWindow(config, surfaceHandle, hook, true, windowHandle);
+    }
+
+    public static PointImmutable getLocationOnScreen(NativeWindow nw) {
+        final String nwt = NativeWindowFactory.getNativeWindowType(true);
+        if( NativeWindowFactory.TYPE_X11 == nwt ) {
+            return X11Lib.GetRelativeLocation(nw.getDisplayHandle(), nw.getScreenIndex(), nw.getWindowHandle(), 0, 0, 0);
+        } else if( NativeWindowFactory.TYPE_WINDOWS == nwt ) {
+            return GDIUtil.GetRelativeLocation(nw.getWindowHandle(), 0, 0, 0);
+        } else if( NativeWindowFactory.TYPE_MACOSX == nwt ) {
+            return OSXUtil.GetLocationOnScreen(nw.getWindowHandle(), null == nw.getParent(), 0, 0);
+        /**
+         * FIXME: Needs service provider interface (SPI) for TK dependent implementation
+        } else if( NativeWindowFactory.TYPE_BCM_VC_IV == nwt ) {
+        } else if( NativeWindowFactory.TYPE_ANDROID== nwt ) {
+        } else if( NativeWindowFactory.TYPE_EGL == nwt ) {
+        } else if( NativeWindowFactory.TYPE_BCM_VC_IV == nwt ) {
+        } else if( NativeWindowFactory.TYPE_AWT == nwt ) {
+            */
+        }
+        throw new UnsupportedOperationException("n/a for windowing system: "+nwt);
+    }
+
 
 }

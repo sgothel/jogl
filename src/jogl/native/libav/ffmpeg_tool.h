@@ -130,7 +130,6 @@ typedef struct {
     int64_t dtsLast;  // DTS of the last frame
 } PTSStats;
 
-
 typedef struct {
     jobject          ffmpegMediaPlayer;
     int32_t          verbose;

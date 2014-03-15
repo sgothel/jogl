@@ -7,6 +7,10 @@
       @param indirect a direct or array-backed {@link java.nio.Buffer}   */
   public void glDrawElementsIndirect(int mode, int type, Buffer indirect);
 
+  /** Entry point to C language function: <code> void {@native glMultiDrawArraysIndirect}(GLenum mode, const void *  indirect, GLsizei drawcount, GLsizei stride); </code> <br>Part of <code>GL_VERSION_4_3</code>, <code>GL_ARB_multi_draw_indirect</code>
+      @param indirect a direct or array-backed {@link java.nio.Buffer}   */
+  public void glMultiDrawArraysIndirect(int mode, Buffer indirect, int drawcount, int stride);
+
   /** Entry point to C language function: <code> void {@native glDrawElementsInstancedBaseInstance}(GLenum mode, GLsizei count, GLenum type, const void *  indices, GLsizei instancecount, GLuint baseinstance); </code> <br>Part of <code>GL_VERSION_4_2</code>, <code>GL_ARB_base_instance</code>
       @param indices a direct or array-backed {@link java.nio.Buffer}   */
   public void glDrawElementsInstancedBaseInstance(int mode, int count, int type, Buffer indices, int instancecount, int baseinstance);

@@ -54,7 +54,6 @@ import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.common.util.VersionNumberString;
 import com.jogamp.common.util.locks.RecursiveLock;
-import com.jogamp.gluegen.runtime.FunctionAddressResolver;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLNameResolver;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
@@ -1127,17 +1126,17 @@ public abstract class GLContextImpl extends GLContext {
   // Helpers for various context implementations
   //
 
-  private Object createInstance(GLProfile glp, String suffix, Class<?>[] cstrArgTypes, Object[] cstrArgs) {
-    return ReflectionUtil.createInstance(glp.getGLImplBaseClassName()+suffix, cstrArgTypes, cstrArgs, getClass().getClassLoader());
+  private Object createInstance(GLProfile glp, boolean glObject, Object[] cstrArgs) {
+      return ReflectionUtil.createInstance(glp.getGLCtor(glObject), cstrArgs);
   }
 
   private boolean verifyInstance(GLProfile glp, String suffix, Object instance) {
-    return ReflectionUtil.instanceOf(instance, glp.getGLImplBaseClassName()+suffix);
+      return ReflectionUtil.instanceOf(instance, glp.getGLImplBaseClassName()+suffix);
   }
 
   /** Create the GL for this context. */
   protected GL createGL(GLProfile glp) {
-    final GL gl = (GL) createInstance(glp, "Impl", new Class[] { GLProfile.class, GLContextImpl.class }, new Object[] { glp, this } );
+    final GL gl = (GL) createInstance(glp, true, new Object[] { glp, this } );
 
     /* FIXME: refactor dependence on Java 2D / JOGL bridge
     if (tracker != null) {
@@ -1585,8 +1584,7 @@ public abstract class GLContextImpl extends GLContext {
             System.err.println(getThreadName() + ": GLContext GL ProcAddressTable reusing key("+contextFQN+") -> "+toHexString(table.hashCode()));
         }
     } else {
-        glProcAddressTable = (ProcAddressTable) createInstance(gl.getGLProfile(), "ProcAddressTable",
-                                                               new Class[] { FunctionAddressResolver.class } ,
+        glProcAddressTable = (ProcAddressTable) createInstance(gl.getGLProfile(), false,
                                                                new Object[] { new GLProcAddressResolver() } );
         resetProcAddressTable(getGLProcAddressTable());
         synchronized(mappedContextTypeObjectLock) {
@@ -2233,7 +2231,7 @@ public abstract class GLContextImpl extends GLContext {
   @Override
   public final int getDefaultReadFramebuffer() { return drawable.getDefaultReadFramebuffer(); }
   @Override
-  public final int getDefaultReadBuffer() { return drawable.getDefaultReadBuffer(gl); }
+  public final int getDefaultReadBuffer() { return drawable.getDefaultReadBuffer(gl, drawableRead != drawable); }
 
   //---------------------------------------------------------------------------
   // GL_ARB_debug_output, GL_AMD_debug_output helpers

@@ -1133,13 +1133,18 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_orderFront0
   (JNIEnv *env, jobject unused, jlong window)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    NSWindow* win = (NSWindow*) ((intptr_t) window);
+    NSWindow* mWin = (NSWindow*) ((intptr_t) window);
+    NSWindow* pWin = [mWin parentWindow];
 
-    DBG_PRINT( "orderFront0 - window: %p (START)\n", win);
+    DBG_PRINT( "orderFront0 - window: (parent %p) %p visible %d (START)\n", pWin, mWin, [mWin isVisible]);
 
-    [win orderFrontRegardless];
+    if( NULL == pWin ) {
+        [mWin orderFrontRegardless];
+    } else {
+        [mWin orderWindow: NSWindowAbove relativeTo: [pWin windowNumber]];
+    }
 
-    DBG_PRINT( "orderFront0 - window: %p (END)\n", win);
+    DBG_PRINT( "orderFront0 - window: (parent %p) %p (END)\n", pWin, mWin);
 
     [pool release];
 }
@@ -1155,14 +1160,13 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_orderOut0
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* mWin = (NSWindow*) ((intptr_t) window);
     NSWindow* pWin = [mWin parentWindow];
-    BOOL pWinVisible = NULL != pWin ? [pWin isVisible] : 0;
 
-    DBG_PRINT( "orderOut0 - window: (parent %p visible %d) %p visible %d (START)\n", pWin, pWinVisible, mWin, [mWin isVisible]);
+    DBG_PRINT( "orderOut0 - window: (parent %p) %p visible %d (START)\n", pWin, mWin, [mWin isVisible]);
 
-    if( NULL == pWin || !pWinVisible ) {
+    if( NULL == pWin ) {
         [mWin orderOut: mWin];
     } else {
-        [mWin orderBack: mWin];
+        [mWin orderWindow: NSWindowOut relativeTo: [pWin windowNumber]];
     }
 
     DBG_PRINT( "orderOut0 - window: (parent %p) %p (END)\n", pWin, mWin);

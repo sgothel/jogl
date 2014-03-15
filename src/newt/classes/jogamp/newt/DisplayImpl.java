@@ -76,8 +76,7 @@ public abstract class DisplayImpl extends Display {
         });
 
         final ClassLoader cl = DisplayImpl.class.getClassLoader();
-        pngUtilAvail = ReflectionUtil.isClassAvailable("jogamp.opengl.util.pngj.PngReader", cl) &&
-                       ReflectionUtil.isClassAvailable("com.jogamp.opengl.util.PNGPixelRect", cl);
+        pngUtilAvail = ReflectionUtil.isClassAvailable("com.jogamp.opengl.util.PNGPixelRect", cl);
     }
 
     public static final boolean isPNGUtilAvailable() { return pngUtilAvail; }

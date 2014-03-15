@@ -298,7 +298,7 @@ public class GLBufferObjectTracker {
     public synchronized final GLBufferStorage mapBuffer(final GLBufferStateTracker bufferStateTracker,
                                                         final GL caller, final int target, final long offset, final long length, final int access,
                                                         final MapBufferRangeDispatch dispatch, final long glProcAddress) throws GLException {
-        return this.mapBufferImpl(bufferStateTracker, caller, target, true /* useRange */, length, access, access, dispatch, glProcAddress);
+        return this.mapBufferImpl(bufferStateTracker, caller, target, true /* useRange */, offset, length, access, dispatch, glProcAddress);
     }
     /**
      * Must be called when mapping GL buffer objects via {@link GL2#mapNamedBuffer(int, int)}.
@@ -319,7 +319,7 @@ public class GLBufferObjectTracker {
      */
     public synchronized final GLBufferStorage mapBuffer(final int bufferName, final long offset, final long length, final int access, final MapBufferRangeDispatch dispatch,
                                                         final long glProcAddress) throws GLException {
-        return this.mapBufferImpl(0 /* target */, bufferName, true /* isNamedBuffer */, false /* useRange */, 0 /* offset */, 0 /* length */, access, dispatch, glProcAddress);
+        return this.mapBufferImpl(0 /* target */, bufferName, true /* isNamedBuffer */, true /* useRange */, offset, length, access, dispatch, glProcAddress);
     }
     /**
      * @throws GLException if buffer is not bound to target

@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.newt.awt.applet;
+package com.jogamp.newt.util.applet;
 
 import java.lang.reflect.Field;
 import java.security.AccessController;
@@ -74,7 +74,7 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
     GLWindow glWindow = null;
     Animator glAnimator=null;
     boolean isValid = false;
-    NativeWindow awtParent;
+    NativeWindow parentWin;
 
     public JOGLNewtAppletBase(String glEventListenerClazzName,
                               int glSwapInterval,
@@ -216,14 +216,14 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
         @Override
         public void windowDestroyNotify(WindowEvent e) {
             if( isValid() && WindowClosingMode.DO_NOTHING_ON_CLOSE == glWindow.getDefaultCloseOperation() &&
-                null == glWindow.getParent() && null != awtParent && 0 != awtParent.getWindowHandle() )
+                null == glWindow.getParent() && null != parentWin && 0 != parentWin.getWindowHandle() )
             {
                 // we may be called directly by the native EDT
                 new Thread(new Runnable() {
                    @Override
                    public void run() {
-                    if( glWindow.isNativeValid() && null != awtParent && 0 != awtParent.getWindowHandle() ) {
-                        glWindow.reparentWindow(awtParent, -1, -1, Window.REPARENT_HINT_BECOMES_VISIBLE);
+                    if( glWindow.isNativeValid() && null != parentWin && 0 != parentWin.getWindowHandle() ) {
+                        glWindow.reparentWindow(parentWin, -1, -1, Window.REPARENT_HINT_BECOMES_VISIBLE);
                     }
                    }
                 }).start();
@@ -244,7 +244,7 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
                 }
             }
             glAnimator.start();
-            awtParent = glWindow.getParent();
+            parentWin = glWindow.getParent();
             glWindow.addWindowListener(reparentHomeListener);
         }
     }
@@ -329,11 +329,11 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
                public void run() {
                    glWindow.setAlwaysOnTop(!glWindow.isAlwaysOnTop());
                } }.start();
-       } else if(e.getKeyChar()=='r' && null!=awtParent) {
+       } else if(e.getKeyChar()=='r' && null!=parentWin) {
            new Thread() {
                public void run() {
                    if(null == glWindow.getParent()) {
-                       glWindow.reparentWindow(awtParent, -1, -1, 0 /* hints */);
+                       glWindow.reparentWindow(parentWin, -1, -1, 0 /* hints */);
                    } else {
                        final InsetsImmutable insets = glWindow.getInsets();
                        final int x, y;
