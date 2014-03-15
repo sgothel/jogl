@@ -42,8 +42,6 @@ package jogamp.newt;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
-import javax.media.opengl.GLProfile;
-
 import jogamp.nativewindow.NWJNILibLoader;
 
 import com.jogamp.common.jvm.JNILibLoaderBase;
@@ -51,22 +49,6 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.cache.TempJarCache;
 
 public class NEWTJNILibLoader extends JNILibLoaderBase {
-<<<<<<< HEAD
-  
-  public static boolean loadNEWT() {
-	  return AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
-      public Boolean run() {
-        Platform.initSingleton();
-        final String libName = "newt";
-        if(TempJarCache.isInitialized() && null == TempJarCache.findLibrary(libName)) {
-           GLProfile.addNativeJarLibs(new Class<?>[] { NWJNILibLoader.class, NEWTJNILibLoader.class });
-        }
-        return Boolean.valueOf(loadLibrary(libName, false, NEWTJNILibLoader.class.getClassLoader()));
-      }
-    }).booleanValue();
-  }
-
-=======
     public static boolean loadNEWT() {
         return AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
             @Override
@@ -80,5 +62,4 @@ public class NEWTJNILibLoader extends JNILibLoaderBase {
             }
         }).booleanValue();
     }
->>>>>>> b92a813063212130d6205a25b1f84662e8c4c0f9
 }
