@@ -1027,6 +1027,7 @@ public class GLProfile {
     public final String getGLImplBaseClassName() {
         return getGLImplBaseClassName(getImplName());
     }
+    
     private static final String getGLImplBaseClassName(String profileImpl) {
         if( GLES2 == profileImpl || GLES3 == profileImpl ) {
             return "jogamp.opengl.es3.GLES3";
@@ -1515,6 +1516,9 @@ public class GLProfile {
     private static /*final*/ GLDrawableFactoryImpl eglFactory = null;
     private static /*final*/ GLDrawableFactoryImpl desktopFactory = null;
     private static /*final*/ AbstractGraphicsDevice defaultDevice = null;
+
+    private static volatile boolean initialized = false;
+    private static RecursiveThreadGroupLock initLock = LockFactory.createRecursiveThreadGroupLock();
 
     /**
      * Tries the profiles implementation and native libraries.
