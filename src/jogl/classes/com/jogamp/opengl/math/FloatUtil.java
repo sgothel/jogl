@@ -707,7 +707,7 @@ public class FloatUtil {
    *    boolean isNotEqual = abs(bfloat - afloat) >= EPSILON;
    * </pre>
    * </p>
-   * @see #equals(float, float, float)
+   * @see #isEqual(float, float, float)
    * @see #isZero(float, float)
    */
   public static final float EPSILON = 1.1920929E-7f; // Float.MIN_VALUE == 1.4e-45f ; double EPSILON 2.220446049250313E-16d
@@ -716,7 +716,7 @@ public class FloatUtil {
    * Return true if both values are equal, i.e. their absolute delta < <code>epsilon</code>.
    * @see #EPSILON
    */
-  public static boolean equals(final float a, final float b, final float epsilon) {
+  public static boolean isEqual(final float a, final float b, final float epsilon) {
       return Math.abs(a - b) < epsilon;
   }
 

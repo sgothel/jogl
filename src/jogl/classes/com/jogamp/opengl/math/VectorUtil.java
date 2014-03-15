@@ -77,7 +77,7 @@ public class VectorUtil {
     /**
      * Return true if both vectors are equal, no {@link FloatUtil#EPSILON} is taken into consideration.
      */
-    public static boolean equals(final float[] vec1, int vec1Offset, final float[] vec2, int vec2Offset) {
+    public static boolean isEqual(final float[] vec1, int vec1Offset, final float[] vec2, int vec2Offset) {
         return vec1[0+vec1Offset] == vec2[0+vec2Offset] &&
                vec1[1+vec1Offset] == vec2[1+vec2Offset] &&
                vec1[2+vec1Offset] == vec2[2+vec2Offset];
@@ -87,7 +87,7 @@ public class VectorUtil {
      * Return true if both vectors are equal, i.e. their absolute delta < <code>epsilon</code>.
      * @see FloatUtil#EPSILON
      */
-    public static boolean equals(final float[] vec1, int vec1Offset, final float[] vec2, int vec2Offset, final float epsilon) {
+    public static boolean isEqual(final float[] vec1, int vec1Offset, final float[] vec2, int vec2Offset, final float epsilon) {
         return Math.abs(vec1[0+vec1Offset] - vec2[0+vec2Offset]) < epsilon &&
                Math.abs(vec1[1+vec1Offset] - vec2[1+vec2Offset]) < epsilon &&
                Math.abs(vec1[2+vec1Offset] - vec2[2+vec2Offset]) < epsilon ;

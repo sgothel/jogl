@@ -68,6 +68,8 @@ public class Quaternion {
     }
 
     /**
+     * See {@link #magnitude()} for special handling of {@link FloatUtil#EPSILON epsilon},
+     * which is not applied here.
      * @return the squared magnitude of this quaternion.
      */
     public final float magnitudeSquared() {
@@ -75,11 +77,25 @@ public class Quaternion {
     }
 
     /**
-     * @return the magnitude of this quaternion, i.e. sqrt({@link #magnitude()})
+     * Return the magnitude of this quaternion, i.e. sqrt({@link #magnitude()})
+     * <p>
+     * A magnitude of zero shall equal {@link #isIdentity() identity},
+     * as performed by {@link #normalize()}.
+     * </p>
+     * <p>
+     * Implementation Details:
+     * <ul>
+     *   <li> returns 0f if {@link #magnitudeSquared()} is {@link FloatUtil#isZero(float, float) is zero} using {@link FloatUtil#EPSILON epsilon}</li>
+     *   <li> returns 1f if {@link #magnitudeSquared()} is {@link FloatUtil#isEqual(float, float, float) equals 1f} using {@link FloatUtil#EPSILON epsilon}</li>
+     * </ul>
+     * </p>
      */
     public final float magnitude() {
         final float magnitudeSQ = magnitudeSquared();
-        if (magnitudeSQ == 1f) {
+        if ( FloatUtil.isZero(magnitudeSQ, FloatUtil.EPSILON) ) {
+            return 0f;
+        }
+        if ( FloatUtil.isEqual(1f, magnitudeSQ, FloatUtil.EPSILON) ) {
             return 1f;
         }
         return FloatUtil.sqrt(magnitudeSQ);
@@ -132,13 +148,17 @@ public class Quaternion {
     }
 
     /**
-     * Check if this quaternion represents an identity matrix for rotation,
-     * , ie (0,0,0,1).
-     *
-     * @return true if it is an identity rep., false otherwise
+     * Returns <code>true</code> if this quaternion has identity.
+     * <p>
+     * Implementation uses {@link FloatUtil#EPSILON epsilon} to compare
+     * {@link #getW() W} {@link FloatUtil#isEqual(float, float, float) against 1f} and
+     * {@link #getX() X}, {@link #getY() Y} and {@link #getZ() Z}
+     * {@link FloatUtil#isZero(float, float) against zero}.
+     * </p>
      */
     public final boolean isIdentity() {
-        return w == 1 && x == 0 && y == 0 && z == 0;
+        return FloatUtil.isEqual(1f, w, FloatUtil.EPSILON) && VectorUtil.isZero(x, y, z, FloatUtil.EPSILON);
+        // return w == 1f && x == 0f && y == 0f && z == 0f;
     }
 
     /***
@@ -146,17 +166,23 @@ public class Quaternion {
      * @return this quaternion for chaining.
      */
     public final Quaternion setIdentity() {
-        x = y = z = 0; w = 1;
+        x = y = z = 0f; w = 1f;
         return this;
     }
 
     /**
-     * Normalize a quaternion required if to be used as a rotational quaternion
+     * Normalize a quaternion required if to be used as a rotational quaternion.
+     * <p>
+     * Implementation Details:
+     * <ul>
+     *   <li> {@link #setIdentity()} if {@link #magnitude()} is {@link FloatUtil#isZero(float, float) is zero} using {@link FloatUtil#EPSILON epsilon}</li>
+     * </ul>
+     * </p>
      * @return this quaternion for chaining.
      */
     public final Quaternion normalize() {
         final float norm = magnitude();
-        if (norm == 0.0f) {
+        if ( FloatUtil.isZero(norm, FloatUtil.EPSILON) ) {
             setIdentity();
         } else {
             w /= norm;
@@ -181,12 +207,18 @@ public class Quaternion {
 
     /**
      * Invert the quaternion If rotational, will produce a the inverse rotation
+     * <p>
+     * Implementation Details:
+     * <ul>
+     *   <li> {@link #conjugate() conjugates} if {@link #magnitudeSquared()} is is {@link FloatUtil#isEqual(float, float, float) equals 1f} using {@link FloatUtil#EPSILON epsilon}</li>
+     * </ul>
+     * </p>
      * @return this quaternion for chaining.
      * @see <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q50">Matrix-FAQ Q50</a>
      */
     public final Quaternion invert() {
         final float magnitudeSQ = magnitudeSquared();
-        if ( FloatUtil.equals(1.0f, magnitudeSQ, FloatUtil.EPSILON) ) {
+        if ( FloatUtil.isEqual(1.0f, magnitudeSQ, FloatUtil.EPSILON) ) {
             conjugate();
         } else {
             w /= magnitudeSQ;
@@ -543,6 +575,12 @@ public class Quaternion {
      *     angle = angle(v1, v2) = v1•v2
      *      axis = normal(v1 x v2)
      * </pre>
+     * <p>
+     * Implementation Details:
+     * <ul>
+     *   <li> {@link #setIdentity()} if square vector-length is {@link FloatUtil#isZero(float, float) is zero} using {@link FloatUtil#EPSILON epsilon}</li>
+     * </ul>
+     * </p>
      * @param v1 not normalized
      * @param v2 not normalized
      * @param tmpPivotVec float[3] temp storage for cross product
@@ -593,6 +631,12 @@ public class Quaternion {
      *     angle = angle(v1, v2) = v1•v2
      *      axis = v1 x v2
      * </pre>
+     * <p>
+     * Implementation Details:
+     * <ul>
+     *   <li> {@link #setIdentity()} if square vector-length is {@link FloatUtil#isZero(float, float) is zero} using {@link FloatUtil#EPSILON epsilon}</li>
+     * </ul>
+     * </p>
      * @param v1 normalized
      * @param v2 normalized
      * @param tmpPivotVec float[3] temp storage for cross product
@@ -638,7 +682,10 @@ public class Quaternion {
     /***
      * Initialize this quaternion with given non-normalized axis vector and rotation angle
      * <p>
-     * If axis == 0,0,0 the quaternion is set to identity.
+     * Implementation Details:
+     * <ul>
+     *   <li> {@link #setIdentity()} if axis is {@link FloatUtil#isZero(float, float) is zero} using {@link FloatUtil#EPSILON epsilon}</li>
+     * </ul>
      * </p>
      * @param angle rotation angle (rads)
      * @param vector axis vector not normalized
@@ -656,7 +703,10 @@ public class Quaternion {
     /***
      * Initialize this quaternion with given normalized axis vector and rotation angle
      * <p>
-     * If axis == 0,0,0 the quaternion is set to identity.
+     * Implementation Details:
+     * <ul>
+     *   <li> {@link #setIdentity()} if axis is {@link FloatUtil#isZero(float, float) is zero} using {@link FloatUtil#EPSILON epsilon}</li>
+     * </ul>
      * </p>
      * @param angle rotation angle (rads)
      * @param vector axis vector normalized
@@ -722,7 +772,12 @@ public class Quaternion {
      *  <li>x - bank</li>
      * </ul>
      * </p>
-     *
+     * <p>
+     * Implementation Details:
+     * <ul>
+     *   <li> {@link #setIdentity()} if all angles are {@link FloatUtil#isZero(float, float) is zero} using {@link FloatUtil#EPSILON epsilon}</li>
+     * </ul>
+     * </p>
      * @param angradXYZ euler angel array in radians
      * @return this quaternion for chaining.
      * @see <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q60">Matrix-FAQ Q60</a>
@@ -745,6 +800,12 @@ public class Quaternion {
      *  <li>x - bank</li>
      * </ul>
      * </p>
+     * <p>
+     * Implementation Details:
+     * <ul>
+     *   <li> {@link #setIdentity()} if all angles are {@link FloatUtil#isZero(float, float) is zero} using {@link FloatUtil#EPSILON epsilon}</li>
+     * </ul>
+     * </p>
      * @param bankX the Euler pitch angle in radians. (rotation about the X axis)
      * @param headingY the Euler yaw angle in radians. (rotation about the Y axis)
      * @param attitudeZ the Euler roll angle in radians. (rotation about the Z axis)
@@ -756,27 +817,31 @@ public class Quaternion {
      * @see #toEuler(float[])
      */
     public final Quaternion setFromEuler(final float bankX, final float headingY, float attitudeZ) {
-        float angle = headingY * 0.5f;
-        final float sinHeadingY = FloatUtil.sin(angle);
-        final float cosHeadingY = FloatUtil.cos(angle);
-        angle = attitudeZ * 0.5f;
-        final float sinAttitudeZ = FloatUtil.sin(angle);
-        final float cosAttitudeZ = FloatUtil.cos(angle);
-        angle = bankX * 0.5f;
-        final float sinBankX = FloatUtil.sin(angle);
-        final float cosBankX = FloatUtil.cos(angle);
+        if ( VectorUtil.isZero(bankX, headingY, attitudeZ, FloatUtil.EPSILON) ) {
+            return setIdentity();
+        } else {
+            float angle = headingY * 0.5f;
+            final float sinHeadingY = FloatUtil.sin(angle);
+            final float cosHeadingY = FloatUtil.cos(angle);
+            angle = attitudeZ * 0.5f;
+            final float sinAttitudeZ = FloatUtil.sin(angle);
+            final float cosAttitudeZ = FloatUtil.cos(angle);
+            angle = bankX * 0.5f;
+            final float sinBankX = FloatUtil.sin(angle);
+            final float cosBankX = FloatUtil.cos(angle);
 
-        // variables used to reduce multiplication calls.
-        final float cosHeadingXcosAttitude = cosHeadingY * cosAttitudeZ;
-        final float sinHeadingXsinAttitude = sinHeadingY * sinAttitudeZ;
-        final float cosHeadingXsinAttitude = cosHeadingY * sinAttitudeZ;
-        final float sinHeadingXcosAttitude = sinHeadingY * cosAttitudeZ;
+            // variables used to reduce multiplication calls.
+            final float cosHeadingXcosAttitude = cosHeadingY * cosAttitudeZ;
+            final float sinHeadingXsinAttitude = sinHeadingY * sinAttitudeZ;
+            final float cosHeadingXsinAttitude = cosHeadingY * sinAttitudeZ;
+            final float sinHeadingXcosAttitude = sinHeadingY * cosAttitudeZ;
 
-        w = cosHeadingXcosAttitude * cosBankX - sinHeadingXsinAttitude * sinBankX;
-        x = cosHeadingXcosAttitude * sinBankX + sinHeadingXsinAttitude * cosBankX;
-        y = sinHeadingXcosAttitude * cosBankX + cosHeadingXsinAttitude * sinBankX;
-        z = cosHeadingXsinAttitude * cosBankX - sinHeadingXcosAttitude * sinBankX;
-        return normalize();
+            w = cosHeadingXcosAttitude * cosBankX - sinHeadingXsinAttitude * sinBankX;
+            x = cosHeadingXcosAttitude * sinBankX + sinHeadingXsinAttitude * cosBankX;
+            y = sinHeadingXcosAttitude * cosBankX + cosHeadingXsinAttitude * sinBankX;
+            z = cosHeadingXsinAttitude * cosBankX - sinHeadingXcosAttitude * sinBankX;
+            return normalize();
+        }
     }
 
     /**
@@ -910,6 +975,12 @@ public class Quaternion {
 
     /**
      * Transform this quaternion to a normalized 4x4 column matrix representing the rotation.
+     * <p>
+     * Implementation Details:
+     * <ul>
+     *   <li> makes identity matrix if {@link #magnitudeSquared()} is {@link FloatUtil#isZero(float, float) is zero} using {@link FloatUtil#EPSILON epsilon}</li>
+     * </ul>
+     * </p>
      *
      * @param matrix float[16] store for the resulting normalized column matrix 4x4
      * @param mat_offset
@@ -920,7 +991,17 @@ public class Quaternion {
     public final float[] toMatrix(final float[] matrix, final int mat_offset) {
         // pre-multiply scaled-reciprocal-magnitude to reduce multiplications
         final float norm = magnitudeSquared();
-        final float srecip = norm == 1.0f ? 2.0f : norm > 0.0f ? 2.0f / norm : 0f;
+        if ( FloatUtil.isZero(norm, FloatUtil.EPSILON) ) {
+            // identity matrix -> srecip = 0f
+            FloatUtil.makeIdentityf(matrix, mat_offset);
+            return matrix;
+        }
+        final float srecip;
+        if ( FloatUtil.isEqual(1f, norm, FloatUtil.EPSILON) ) {
+            srecip = 2f;
+        } else {
+            srecip = 2.0f / norm;
+        }
 
         final float xs = srecip * x;
         final float ys = srecip * y;
@@ -960,6 +1041,12 @@ public class Quaternion {
 
     /**
      * Transform this quaternion to a normalized 4x4 column matrix representing the rotation.
+     * <p>
+     * Implementation Details:
+     * <ul>
+     *   <li> makes identity matrix if {@link #magnitudeSquared()} is {@link FloatUtil#isZero(float, float) is zero} using {@link FloatUtil#EPSILON epsilon}</li>
+     * </ul>
+     * </p>
      *
      * @param matrix FloatBuffer store for the resulting normalized column matrix 4x4
      * @param mat_offset
@@ -972,7 +1059,17 @@ public class Quaternion {
 
         // pre-multipliy scaled-reciprocal-magnitude to reduce multiplications
         final float norm = magnitudeSquared();
-        final float srecip = norm == 1.0f ? 2.0f : norm > 0.0f ? 2.0f / norm : 0f;
+        if ( FloatUtil.isZero(norm, FloatUtil.EPSILON) ) {
+            // identity matrix -> srecip = 0f
+            FloatUtil.makeIdentityf(matrix);
+            return matrix;
+        }
+        final float srecip;
+        if ( FloatUtil.isEqual(1f, norm, FloatUtil.EPSILON) ) {
+            srecip = 2f;
+        } else {
+            srecip = 2.0f / norm;
+        }
 
         final float xs = srecip * x;
         final float ys = srecip * y;

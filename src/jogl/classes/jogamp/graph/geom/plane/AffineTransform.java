@@ -365,8 +365,9 @@ public class AffineTransform implements Cloneable {
      * </pre>
      * </p>
      * @param tR the right-argument of the matrix multiplication
+     * @return this transform for chaining
      */
-    public final void concatenate(AffineTransform tR) {
+    public final AffineTransform concatenate(AffineTransform tR) {
         // setTransform(multiply(this, tR));
         type = TYPE_UNKNOWN;
         setTransform(
@@ -376,6 +377,7 @@ public class AffineTransform implements Cloneable {
                 tR.m01 * m10 + tR.m11 * m11,       // m11
                 tR.m02 * m00 + tR.m12 * m01 + m02, // m02
                 tR.m02 * m10 + tR.m12 * m11 + m12);// m12
+        return this;
     }
 
     /**
@@ -387,8 +389,9 @@ public class AffineTransform implements Cloneable {
      * </pre>
      * </p>
      * @param tL the left-argument of the matrix multiplication
+     * @return this transform for chaining
      */
-    public final void preConcatenate(AffineTransform tL) {
+    public final AffineTransform preConcatenate(AffineTransform tL) {
         // setTransform(multiply(tL, this));
         type = TYPE_UNKNOWN;
         setTransform(
@@ -398,6 +401,7 @@ public class AffineTransform implements Cloneable {
                 m01 * tL.m10 + m11 * tL.m11,          // m11
                 m02 * tL.m00 + m12 * tL.m01 + tL.m02, // m02
                 m02 * tL.m10 + m12 * tL.m11 + tL.m12);// m12
+        return this;
     }
 
     public final AffineTransform createInverse() throws NoninvertibleTransformException {

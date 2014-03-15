@@ -685,7 +685,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
     public final int compareTo(final OutlineShape other) {
         final float thisSize = getBounds().getSize();
         final float otherSize = other.getBounds().getSize();
-        if( FloatUtil.equals(thisSize, otherSize, FloatUtil.EPSILON) ) {
+        if( FloatUtil.isEqual(thisSize, otherSize, FloatUtil.EPSILON) ) {
             return 0;
         } else if( thisSize < otherSize ){
             return -1;
