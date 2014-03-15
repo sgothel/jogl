@@ -34,11 +34,12 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 
-import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.SVertex;
+import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.opengl.test.junit.graph.demos.MSAATool;
 
 public class UIGLListener01 extends UIListenerBase01 {
@@ -49,11 +50,14 @@ public class UIGLListener01 extends UIListenerBase01 {
         try {
             final Font font = FontFactory.get(FontFactory.UBUNTU).getDefault();
             button = new RIButton(SVertex.factory(), font, "Click me!", 4f, 3f){
-                public void onClick() {
+                @Override
+                public void onClick(MouseEvent e) {
                 }
-                public void onPressed() {
+                @Override
+                public void onPressed(MouseEvent e) {
                 }
-                public void onRelease() {
+                @Override
+                public void onRelease(MouseEvent e) {
                 }
 
             };
@@ -71,6 +75,7 @@ public class UIGLListener01 extends UIListenerBase01 {
         }
     }
 
+    @Override
     public void init(GLAutoDrawable drawable) {
         super.init(drawable);
 
@@ -83,6 +88,7 @@ public class UIGLListener01 extends UIListenerBase01 {
         MSAATool.dump(drawable);
     }
 
+    @Override
     public void display(GLAutoDrawable drawable) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
@@ -102,6 +108,7 @@ public class UIGLListener01 extends UIListenerBase01 {
         button.drawShape(gl, regionRenderer, sampleCount, false);
     }
 
+    @Override
     public void dispose(GLAutoDrawable drawable) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         button.destroy(gl, getRegionRenderer());

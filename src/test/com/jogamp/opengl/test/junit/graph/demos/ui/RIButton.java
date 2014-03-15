@@ -97,33 +97,30 @@ public abstract class RIButton extends UIShape {
 
     @Override
     protected void createShape(GL2ES2 gl, RegionRenderer renderer) {
-        // label.createShape(gl, renderer);
-        // final AABBox lbox = label.getBounds();
-
-        final float lw = getWidth()  * ( 1f - spacingSx*spacing );
+        // Precompute text-box size .. guessing pixelSize
+        final float lw = getWidth() * ( 1f - spacingSx*spacing );
         final float lh = getHeight() * ( 1f - spacingSy*spacing );
         final AABBox lbox0 = label.font.getStringBounds(label.text, lh);
         final float lsx = lw / lbox0.getWidth();
         final float lsy = lh / lbox0.getHeight();
-        final float ls = Math.min(lsx, lsy);
+        if( DRAW_DEBUG_BOX ) {
+            final float sx = getWidth()  / ( ( spacingSx*spacing + 1f ) *  lbox0.getWidth() * lsx );
+            final float sy = getHeight() / ( ( spacingSy*spacing + 1f ) *  lbox0.getHeight() * lsy );
+            System.err.printf("RIButton: bsize %f x %f, lsize %f x %f, lbox0 %f x %f -> ls %f x %f, bs %f x %f  .... %s%n",
+                    getWidth(), getHeight(), lw, lh, lbox0.getWidth(), lbox0.getHeight(), lsx, lsy, sx, sy, this.label.text);
+        }
 
-        final float sx = getWidth()  / ( ( spacingSx*spacing + 1f ) *  lbox0.getWidth() * ls );
-        final float sy = getHeight() / ( ( spacingSy*spacing + 1f ) *  lbox0.getHeight() * ls );
-        System.err.printf("RIButton: bsize %f x %f, lsize %f x %f, lbox0 %f x %f -> ls %f x %f, bs %f x %f  .... %s%n",
-                getWidth(), getHeight(), lw, lh, lbox0.getWidth(), lbox0.getHeight(), lsx, lsy, sx, sy, this.label.text);
-
-        final float lPixelSize1 = lh * ls;
+        // Setting pixelSize based on actual text-box size
+        final float lPixelSize1 = lh * lsy;
         label.setPixelSize(lPixelSize1);
         label.createShape(gl, renderer);
         final AABBox lbox1 = label.getBounds();
-        final float lsx1 = lw / lbox1.getWidth();
-        final float lsy1 = lh / lbox1.getHeight();
-        // final float ls1 = Math.min(lsx1, lsy1);
-        System.err.printf("RIButton: ls %f x %f, lbox1 %s .... %s%n",
-                lsx1, lsy1, lbox1, this.label.text);
-        // label.scale(ls1, ls1);
-        // scale(sx, sy);
-        // box.resize(lbox1);
+        if( DRAW_DEBUG_BOX ) {
+            final float lsx1 = lw / lbox1.getWidth();
+            final float lsy1 = lh / lbox1.getHeight();
+            System.err.printf("RIButton: ls %f x %f, lbox1 %s .... %s%n",
+                    lsx1, lsy1, lbox1, this.label.text);
+        }
 
         final OutlineShape shape = new OutlineShape(renderer.getRenderState().getVertexFactory());
         if(corner == 0.0f) {
@@ -133,11 +130,15 @@ public abstract class RIButton extends UIShape {
         }
         box.resize(shape.getBounds());
 
-        label.locTranslate(       ( box.getWidth() - lbox1.getWidth() ) / 1f,
-                            -1f * ( box.getHeight() - lbox1.getHeight() ) / 1f );
+        // Center text ..
+        final float[] lctr = lbox1.getCenter();
+        final float[] ctr = box.getCenter();
+        label.translateShape( ctr[0] - lctr[0], ctr[1] - lctr[1] );
 
         shapes.add(new OutlineShapeXForm(shape, null));
-        System.err.println("XXX.UIShape.RIButton: Added Shape: "+shape+", "+box);
+        if( DRAW_DEBUG_BOX ) {
+            System.err.println("XXX.UIShape.RIButton: Added Shape: "+shape+", "+box);
+        }
     }
     private void createSharpOutline(OutlineShape shape, AABBox lbox) {
         final float tw = getWidth(); // ( spacingSx*spacing + 1f ) * lbox.getWidth();
@@ -229,6 +230,7 @@ public abstract class RIButton extends UIShape {
         label.setSelectedColor(r, g, b);
     }
 
+    @Override
     public String toString() {
         return "RIButton [" + getWidth() + "x" + getHeight() + ", "
             + getLabel() + ", " + "spacing: " + spacing

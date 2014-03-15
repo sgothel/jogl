@@ -17,6 +17,8 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.util.PMVMatrix;
 
 public class SceneUIController implements GLEventListener{
@@ -29,7 +31,7 @@ public class SceneUIController implements GLEventListener{
 
     private final float[] translate = new float[3];
     private final float[] scale = new float[3];
-    private final float[] rotation = new float[3];
+    private final Quaternion quaternion = new Quaternion();
 
     private final float[] sceneClearColor = new float[]{0,0,0,0};
 
@@ -86,10 +88,12 @@ public class SceneUIController implements GLEventListener{
         }
     }
 
+    @Override
     public void init(GLAutoDrawable drawable) {
         System.err.println("SceneUIController: init");
         cDrawable = drawable;
     }
+    @Override
     public void display(GLAutoDrawable drawable) {
         // System.err.println("SceneUIController: display");
         final int width = drawable.getWidth();
@@ -99,11 +103,13 @@ public class SceneUIController implements GLEventListener{
         render(gl, width, height, renderModes, sampleCount, false);
     }
 
+    @Override
     public void dispose(GLAutoDrawable drawable) {
         System.err.println("SceneUIController: dispose");
         cDrawable = null;
     }
 
+    @Override
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
     }
 
@@ -153,13 +159,11 @@ public class SceneUIController implements GLEventListener{
         final PMVMatrix pmv = renderer.getMatrix();
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
-        System.err.printf("SceneUICtrl.render.1.0: scale.0: %f, %f, %f%n", scale[0], scale[1], scale[2]);
-        System.err.printf("SceneUICtrl.render.1.0: translate.0: %f, %f, %f%n", translate[0], translate[1], translate[2]);
+        // System.err.printf("SceneUICtrl.render.1.0: scale.0: %f, %f, %f%n", scale[0], scale[1], scale[2]);
+        // System.err.printf("SceneUICtrl.render.1.0: translate.0: %f, %f, %f%n", translate[0], translate[1], translate[2]);
         pmv.glTranslatef(translate[0], translate[1], translate[2]);
+        pmv.glRotate(quaternion);
         pmv.glScalef(scale[0], scale[1], scale[2]);
-        pmv.glRotatef(rotation[0], 1, 0, 0);
-        pmv.glRotatef(rotation[1], 0, 1, 0);
-        pmv.glRotatef(rotation[2], 0, 0, 1);
 
         for(int index=0; index < count;index++){
             if(select) {
@@ -171,7 +175,7 @@ public class SceneUIController implements GLEventListener{
             final float[] uiTranslate = uiShape.getTranslate();
 
             pmv.glPushMatrix();
-            System.err.printf("SceneUICtrl.render.1.0: translate.1: %f, %f%n", uiTranslate[0], uiTranslate[1]);
+            // System.err.printf("SceneUICtrl.render.1.0: translate.1: %f, %f%n", uiTranslate[0], uiTranslate[1]);
             pmv.glTranslatef(uiTranslate[0], uiTranslate[1], 0f);
             renderer.updateMatrix(gl);
             uiShape.drawShape(gl, renderer, sampleCount, select);
@@ -192,9 +196,9 @@ public class SceneUIController implements GLEventListener{
     }
 
     public void setRotation(float x, float y, float z) {
-        this.rotation[0] = x;
-        this.rotation[1] = y;
-        this.rotation[2] = z;
+        quaternion.setFromEuler(x * FloatUtil.PI / 180.0f,
+                                y * FloatUtil.PI / 180.0f,
+                                z * FloatUtil.PI / 180.0f);
     }
     public float[] getSceneClearColor() {
         return sceneClearColor;
@@ -211,13 +215,15 @@ public class SceneUIController implements GLEventListener{
         int mouseX = -1;
         int mouseY = -1;
 
+        @Override
         public void mouseClicked(MouseEvent e) {
             UIShape uiShape = getActiveUI();
             if(uiShape != null){
-                uiShape.onClick();
+                uiShape.onClick(e);
             }
         }
 
+        @Override
         public void mousePressed(MouseEvent e) {
             if(null==cDrawable) {
                 return;
@@ -226,6 +232,7 @@ public class SceneUIController implements GLEventListener{
             mouseY = e.getY();
 
             GLRunnable runnable = new GLRunnable() {
+                @Override
                 public boolean run(GLAutoDrawable drawable) {
                     UIShape s = getShape(drawable, mouseX, mouseY);
                     if(null != s) {
@@ -243,22 +250,28 @@ public class SceneUIController implements GLEventListener{
 
             if(uiShape != null) {
                 uiShape.setPressed(true);
-                uiShape.onPressed();
+                uiShape.onPressed(e);
             }
         }
 
+        @Override
         public void mouseReleased(MouseEvent e) {
             UIShape uiShape = getActiveUI();
             if(uiShape != null){
                 uiShape.setPressed(false);
-                uiShape.onRelease();
+                uiShape.onRelease(e);
             }
         }
 
+        @Override
         public void mouseMoved(MouseEvent e) { }
+        @Override
         public void mouseEntered(MouseEvent e) { }
+        @Override
         public void mouseExited(MouseEvent e) { }
+        @Override
         public void mouseDragged(MouseEvent e) { }
+        @Override
         public void mouseWheelMoved(MouseEvent e) { }
 
     }

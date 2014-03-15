@@ -38,7 +38,6 @@ import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
-import com.jogamp.opengl.math.geom.AABBox;
 
 public class Label extends UIShape {
     protected Font font;
@@ -91,16 +90,13 @@ public class Label extends UIShape {
     protected void destroyImpl(GL2ES2 gl, RegionRenderer renderer) {
     }
 
+    private final float[] tmpV3 = new float[3];
+
     private final TextRegionUtil.ShapeVisitor shapeVisitor = new TextRegionUtil.ShapeVisitor() {
-        final float[] tmp = new float[3];
         @Override
         public void visit(OutlineShape shape, AffineTransform t) {
             shapes.add(new OutlineShapeXForm(shape, new AffineTransform(t)));
-            final AABBox sbox = shape.getBounds();
-            t.transform(sbox.getLow(), tmp);
-            box.resize(tmp, 0);
-            t.transform(sbox.getHigh(), tmp);
-            box.resize(tmp, 0);
+            box.resize(shape.getBounds(), t, tmpV3);
         }
     };
 

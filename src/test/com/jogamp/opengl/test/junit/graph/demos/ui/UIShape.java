@@ -34,16 +34,19 @@ import javax.media.opengl.GL2ES2;
 import jogamp.graph.geom.plane.AffineTransform;
 
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.OutlineShapeXForm;
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
+import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.opengl.math.geom.AABBox;
 
 public abstract class UIShape {
+    public static final boolean DRAW_DEBUG_BOX = false;
+
     private final Factory<? extends Vertex> vertexFactory;
 
     protected final ArrayList<OutlineShapeXForm> shapes;
@@ -55,8 +58,8 @@ public abstract class UIShape {
 
     protected final AABBox box;
     protected final float[] translate = new float[] { 0f, 0f };
-    protected final float[] ltranslate = new float[] { 0f, 0f };
-    protected final float[] lscale = new float[] { 1f, 1f };
+    protected final float[] shapeTranslate = new float[] { 0f, 0f };
+    protected final float[] shapeScale = new float[] { 1f, 1f };
     private GLRegion region = null;
 
     protected final float[] color         = {0.6f, 0.6f, 0.6f};
@@ -84,10 +87,10 @@ public abstract class UIShape {
         shapes.clear();
         translate[0] = 0f;
         translate[1] = 0f;
-        ltranslate[0] = 0f;
-        ltranslate[1] = 0f;
-        lscale[0] = 1f;
-        lscale[1] = 1f;
+        shapeTranslate[0] = 0f;
+        shapeTranslate[1] = 0f;
+        shapeScale[0] = 1f;
+        shapeScale[1] = 1f;
         box.reset();
         dirty = DIRTY_SHAPE | DIRTY_POSITION | DIRTY_REGION;
     }
@@ -102,10 +105,10 @@ public abstract class UIShape {
         shapes.clear();
         translate[0] = 0f;
         translate[1] = 0f;
-        ltranslate[0] = 0f;
-        ltranslate[1] = 0f;
-        lscale[0] = 1f;
-        lscale[1] = 1f;
+        shapeTranslate[0] = 0f;
+        shapeTranslate[1] = 0f;
+        shapeScale[0] = 1f;
+        shapeScale[1] = 1f;
         box.reset();
         dirty = DIRTY_SHAPE | DIRTY_POSITION | DIRTY_REGION;
     }
@@ -122,13 +125,13 @@ public abstract class UIShape {
         return translate;
     }
 
-    public final void locTranslate(float tx, float ty) {
-        ltranslate[0] += tx;
-        ltranslate[1] += ty;
+    public final void translateShape(float tx, float ty) {
+        shapeTranslate[0] += tx;
+        shapeTranslate[1] += ty;
     }
-    public final void locScale(float sx, float sy) {
-        lscale[0] *= sx;
-        lscale[1] *= sy;
+    public final void scaleShape(float sx, float sy) {
+        shapeScale[0] *= sx;
+        shapeScale[1] *= sy;
     }
 
     public final boolean isShapeDirty() {
@@ -157,7 +160,7 @@ public abstract class UIShape {
             }
             addToRegion(region);
             dirty &= ~DIRTY_REGION;
-            System.err.println("XXX.UIShape: updated: "+region);
+            // System.err.println("XXX.UIShape: updated: "+region);
         }
         return region;
     }
@@ -173,9 +176,12 @@ public abstract class UIShape {
      * @param select
      */
     public void drawShape(GL2ES2 gl, RegionRenderer renderer, int[] sampleCount, boolean select) {
-        float[] _color = color;
+        final float[] _color;
         if( isPressed() || toggle ){
             _color = selectedColor;
+        } else {
+            _color = color;
+
         }
         if(!select){
             if( renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
@@ -192,11 +198,17 @@ public abstract class UIShape {
         }
         return true;
     }
+
     private final boolean validateShape(GL2ES2 gl, RegionRenderer renderer) {
         if( isShapeDirty() ) {
             shapes.clear();
             box.reset();
             createShape(gl, renderer);
+            if( DRAW_DEBUG_BOX ) {
+                shapes.clear();
+                final OutlineShape shape = new OutlineShape(renderer.getRenderState().getVertexFactory());
+                shapes.add(new OutlineShapeXForm(createDebugOutline(shape, box), null));
+            }
             dirty &= ~DIRTY_SHAPE;
             dirty |= DIRTY_REGION;
             validatePosition();
@@ -210,9 +222,9 @@ public abstract class UIShape {
             final AABBox box = getBounds();
             final float minX = box.getMinX();
             final float minY = box.getMinY();
-            System.err.println("XXX.UIShape: Position pre: " + translate[0] + " " + translate[1] + ", sbox "+box);
+            // System.err.println("XXX.UIShape: Position pre: " + translate[0] + " " + translate[1] + ", sbox "+box);
             translate(-minX, -minY);
-            System.err.println("XXX.UIShape: Position post: " + translate[0] + " " + translate[1] + ", sbox "+box);
+            // System.err.println("XXX.UIShape: Position post: " + translate[0] + " " + translate[1] + ", sbox "+box);
             dirty &= ~DIRTY_POSITION;
             return true;
         }
@@ -220,21 +232,18 @@ public abstract class UIShape {
     }
 
     private final void addToRegion(Region region) {
+        final boolean hasLocTrans = 0f != shapeTranslate[0] || 0f != shapeTranslate[1];
+        final boolean hasLocScale = 1f != shapeScale[0] || 1f != shapeScale[1];
         final AffineTransform t;
-        final boolean hasLocTrans = 0f != ltranslate[0] || 0f != ltranslate[1];
-        final boolean hasLocScale = 1f != lscale[0] || 1f != lscale[1];
-        if( hasLocTrans || hasLocScale ) {
-            System.err.printf("UIShape.addToRegion: locTranslate %f x %f, locScale %f x %f%n",
-                    ltranslate[0], ltranslate[1], lscale[0], lscale[1]);
+        if( hasLocScale || hasLocTrans ) {
+            // System.err.printf("UIShape.addToRegion: locTranslate %f x %f, locScale %f x %f%n",
+            //                                        shapeTranslate[0], shapeTranslate[1], shapeScale[0], shapeScale[1]);
+            t = new AffineTransform();
             if( hasLocTrans ) {
-                t = AffineTransform.getTranslateInstance(ltranslate[0], ltranslate[1]);
-                if( hasLocScale ) {
-                    t.scale(lscale[0], lscale[1]);
-                }
-            } else if( hasLocScale ) {
-                t = AffineTransform.getScaleInstance(lscale[0], lscale[1]);
-            } else {
-                t = null; // unreachable!
+                t.translate(shapeTranslate[0], shapeTranslate[1]);
+            }
+            if( hasLocScale ) {
+                t.scale(shapeScale[0], shapeScale[1]);
             }
         } else {
             t = null;
@@ -245,8 +254,7 @@ public abstract class UIShape {
             final AffineTransform t2;
             if( null != tshape.t ) {
                 if( null != t ) {
-                    t2 = new AffineTransform(t);
-                    t2.concatenate(tshape.t);
+                    t2 = new AffineTransform(t).concatenate(tshape.t);
                 } else {
                     t2 = tshape.t;
                 }
@@ -295,9 +303,9 @@ public abstract class UIShape {
         this.toggleable = toggleable;
     }
 
-    public void onClick() { }
-    public void onPressed() { }
-    public void onRelease() { }
+    public void onClick(MouseEvent e) { }
+    public void onPressed(MouseEvent e) { }
+    public void onRelease(MouseEvent e) { }
 
     //
     //
@@ -310,5 +318,21 @@ public abstract class UIShape {
     //
     //
     //
+
+    protected OutlineShape createDebugOutline(OutlineShape shape, AABBox box) {
+        final float tw = box.getWidth();
+        final float th = box.getHeight();
+
+        final float minX = box.getMinX();
+        final float minY = box.getMinY();
+        final float z = box.getMinZ() + 0.025f;
+
+        shape.addVertex(minX,    minY,      z, true);
+        shape.addVertex(minX+tw, minY,      z, true);
+        shape.addVertex(minX+tw, minY + th, z, true);
+        shape.addVertex(minX,    minY + th, z, true);
+        shape.closeLastOutline(true);
+        return shape;
+    }
 
 }
