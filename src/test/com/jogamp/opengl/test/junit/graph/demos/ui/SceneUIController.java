@@ -1,8 +1,5 @@
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.IntBuffer;
 import java.util.ArrayList;
 
 import javax.media.opengl.GL;
@@ -12,28 +9,30 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLRunnable;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
-import com.jogamp.common.nio.Buffers;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.Quaternion;
+import com.jogamp.opengl.math.Ray;
+import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.PMVMatrix;
 
 public class SceneUIController implements GLEventListener{
     private final ArrayList<UIShape> shapes = new ArrayList<UIShape>();
 
-    private int count = 0;
-    private int renderModes;
-    private int[] sampleCount;
+    private float sceneStartX = 0f;
+    private float sceneStartY = 0f;
+
     private RegionRenderer renderer;
 
-    private final float[] translate = new float[3];
-    private final float[] scale = new float[3];
-    private final Quaternion quaternion = new Quaternion();
+    private final int[] sampleCount = new int[1];
 
-    private final float[] sceneClearColor = new float[]{0,0,0,0};
+    private final float zNear = 0.1f, zFar = 7000f;
+    /** Describing the bounding box in model-coordinates of the near-plane parallel at distance one. */
+    private final AABBox nearPlane1Box = new AABBox();
+    private final int[] viewport = new int[] { 0, 0, 0, 0 };
+    private float nearPlaneX0, nearPlaneY0, nearPlaneZ0, nearPlaneSx, nearPlaneSy;
+    float globMvTx, globMvTy, globMvTz;
 
     private int activeId = -1;
 
@@ -42,22 +41,16 @@ public class SceneUIController implements GLEventListener{
     private GLAutoDrawable cDrawable = null;
 
     public SceneUIController() {
-        this(null, 0, null);
+        this(null);
     }
 
-    public SceneUIController(RegionRenderer renderer, int renderModes, int[] sampleCount) {
+    public SceneUIController(RegionRenderer renderer) {
         this.renderer = renderer;
-        this.renderModes = renderModes;
-        this.sampleCount = sampleCount;
-        setScale(1f, 1f, 1f);
-        setTranslate(0f, 0f, 0f);
-        setRotation(0f, 0f, 0f);
+        this.sampleCount[0] = 4;
     }
 
-    public void setRenderer(RegionRenderer renderer, int renderModes, int[] sampleCount) {
+    public void setRenderer(RegionRenderer renderer) {
         this.renderer = renderer;
-        this.renderModes = renderModes;
-        this.sampleCount = sampleCount;
     }
 
     public void attachInputListenerTo(GLWindow window) {
@@ -78,29 +71,92 @@ public class SceneUIController implements GLEventListener{
     }
     public void addShape(UIShape b) {
         shapes.add(b);
-        count++;
     }
 
     public void removeShape(UIShape b) {
-        boolean found = shapes.remove(b);
-        if(found) {
-            count--;
-        }
+        shapes.remove(b);
     }
+
+    public int getSampleCount() { return sampleCount[0]; }
+    public void setSampleCount(int v) { sampleCount[0]=v; }
 
     @Override
     public void init(GLAutoDrawable drawable) {
         System.err.println("SceneUIController: init");
         cDrawable = drawable;
     }
+
+    public int pickShape(final int winX, int winY) {
+        final float winZ0 = 0f;
+        final float winZ1 = 0.3f;
+        /**
+            final FloatBuffer winZRB = Buffers.newDirectFloatBuffer(1);
+            gl.glReadPixels( x, y, 1, 1, GL2ES2.GL_DEPTH_COMPONENT, GL.GL_FLOAT, winZRB);
+            winZ1 = winZRB.get(0); // dir
+        */
+
+        // flip to GL window coordinates
+        winY = viewport[3] - winY;
+
+        final PMVMatrix pmv = renderer.getMatrix();
+        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+
+        final Ray ray = new Ray();
+        final int shapeCount = shapes.size();
+        for(int i=0; i<shapeCount; i++) {
+            final UIShape uiShape = shapes.get(i);
+            if( uiShape.isEnabled() ) {
+                pmv.glPushMatrix();
+                transformShape(pmv, uiShape);
+
+                pmv.gluUnProjectRay(winX, winY, winZ0, winZ1, viewport, 0, ray);
+                System.err.printf("Pick: mapped.0: [%d, %d, %f/%f] -> %s%n", winX, winY, winZ0, winZ1, ray);
+
+                pmv.glPopMatrix();
+                final AABBox box = shapes.get(i).getBounds();
+                final boolean hit = box.intersectsRay(ray);
+                System.err.println("Test: "+box+" -> hit "+hit+", shape: "+uiShape);
+                if( hit ) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    private void transformShape(final PMVMatrix pmv, final UIShape uiShape) {
+        final float[] uiTranslate = uiShape.getTranslate();
+        float[] uiScale = uiShape.getScale();
+        // System.err.printf("SceneUICtrl.render.1.0: scale.0: %f, %f, %f%n", uiScale[0], uiScale[1], uiScale[2]);
+        // System.err.printf("SceneUICtrl.render.1.0: translate.0: %f, %f, %f%n", uiTranslate[0], uiTranslate[1], uiTranslate[2]);
+        pmv.glRotate(uiShape.getRotation());
+        pmv.glScalef(uiScale[0], uiScale[1], uiScale[2]);
+        pmv.glTranslatef(uiTranslate[0], uiTranslate[1], uiTranslate[2]);
+    }
+
     @Override
     public void display(GLAutoDrawable drawable) {
-        // System.err.println("SceneUIController: display");
-        final int width = drawable.getWidth();
-        final int height = drawable.getHeight();
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-        render(gl, width, height, renderModes, sampleCount, false);
+        gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+
+        final PMVMatrix pmv = renderer.getMatrix();
+        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+
+        final int shapeCount = shapes.size();
+        for(int i=0; i<shapeCount; i++) {
+            final UIShape uiShape = shapes.get(i);
+            if( uiShape.isEnabled() ) {
+                uiShape.validate(gl, renderer);
+                pmv.glPushMatrix();
+                transformShape(pmv, uiShape);
+                renderer.updateMatrix(gl);
+                uiShape.drawShape(gl, renderer, sampleCount);
+                pmv.glPopMatrix();
+                // break;
+            }
+        }
     }
 
     @Override
@@ -109,24 +165,78 @@ public class SceneUIController implements GLEventListener{
         cDrawable = null;
     }
 
-    @Override
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+    public static void mapWin2ObjectCoords(final PMVMatrix pmv, final int[] view,
+                                           final float zNear, final float zFar,
+                                           float orthoX, float orthoY, float orthoDist,
+                                           final float[] winZ, final float[] objPos) {
+        winZ[0] = (1f/zNear-1f/orthoDist)/(1f/zNear-1f/zFar);
+        pmv.gluUnProject(orthoX, orthoY, winZ[0], view, 0, objPos, 0);
     }
 
-    public UIShape getShape(GLAutoDrawable drawable,int x, int y) {
-        final int width = drawable.getWidth();
-        final int height = drawable.getHeight();
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+    @Override
+    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+        viewport[0] = x;
+        viewport[1] = y;
+        viewport[2] = width;
+        viewport[3] = height;
 
-        int index = checkSelection(gl, x, y, width, height);
-        if(index == -1)
-            return null;
-        return shapes.get(index);
+        sceneStartX = width * 1f/6f;
+        sceneStartY = height - height/6f;
+
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final PMVMatrix pmv = renderer.getMatrix();
+        renderer.reshapePerspective(gl, 45.0f, width, height, zNear, zFar);
+        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+        pmv.glLoadIdentity();
+
+        System.err.printf("Reshape: zNear %f,  zFar %f%n", zNear, zFar);
+        System.err.printf("Reshape: Frustum: %s%n", pmv.glGetFrustum());
+        {
+            final float orthoDist = 1f;
+            final float[] obj00Coord = new float[3];
+            final float[] obj11Coord = new float[3];
+            final float[] winZ = new float[1];
+            final int[] view = new int[] { 0, 0, width, height };
+
+            mapWin2ObjectCoords(pmv, view, zNear, zFar, 0f, 0f, orthoDist, winZ, obj00Coord);
+            System.err.printf("Reshape: mapped.00: [%f, %f, %f], winZ %f -> [%f, %f, %f]%n", 0f, 0f, orthoDist, winZ[0], obj00Coord[0], obj00Coord[1], obj00Coord[2]);
+
+            mapWin2ObjectCoords(pmv, view, zNear, zFar, width, height, orthoDist, winZ, obj11Coord);
+            System.err.printf("Reshape: mapped.11: [%f, %f, %f], winZ %f -> [%f, %f, %f]%n", (float)width, (float)height, orthoDist, winZ[0], obj11Coord[0], obj11Coord[1], obj11Coord[2]);
+
+            nearPlane1Box.setSize( obj00Coord[0],  // lx
+                                   obj00Coord[1],  // ly
+                                   obj00Coord[2],  // lz
+                                   obj11Coord[0],  // hx
+                                   obj11Coord[1],  // hy
+                                   obj11Coord[2] );// hz
+            System.err.printf("Reshape: dist1Box: %s%n", nearPlane1Box);
+        }
+        final float dist = 100f;
+        nearPlaneX0 = nearPlane1Box.getMinX() * dist;
+        nearPlaneY0 = nearPlane1Box.getMinY() * dist;
+        nearPlaneZ0 = nearPlane1Box.getMinZ() * dist;
+        final float xd = nearPlane1Box.getWidth() * dist;
+        final float yd = nearPlane1Box.getHeight() * dist;
+        nearPlaneSx = xd  / width;
+        nearPlaneSy = yd / height;
+        System.err.printf("Scale: [%f x %f] / [%d x %d] = [%f, %f]%n", xd, yd, width, height, nearPlaneSx, nearPlaneSy);
+
+        // globMvTx=nearPlaneX0+(sceneStartX*nearPlaneSx);
+        // globMvTy=nearPlaneY0+(sceneStartY*nearPlaneSy);
+        globMvTx=nearPlaneX0;
+        globMvTy=nearPlaneY0;
+        globMvTz=nearPlaneZ0;
+        pmv.glTranslatef(globMvTx, globMvTy, globMvTz);
+        pmv.glScalef(nearPlaneSx, nearPlaneSy, 1f);
+        pmv.glTranslatef(sceneStartX, sceneStartY, 0f);
+        renderer.updateMatrix(gl);
     }
 
     public UIShape getActiveUI() {
-        if(activeId == -1)
+        if( 0 > activeId ) {
             return null;
+        }
         return shapes.get(activeId);
     }
 
@@ -134,145 +244,86 @@ public class SceneUIController implements GLEventListener{
         activeId = -1;
     }
 
-    private int checkSelection(GL2ES2 gl,int x, int y, int width, int height) {
-        gl.glPixelStorei(GL2ES2.GL_PACK_ALIGNMENT, 4);
-        gl.glPixelStorei(GL2ES2.GL_UNPACK_ALIGNMENT, 4);
-        gl.glClearColor(sceneClearColor[0], sceneClearColor[1], sceneClearColor[2], sceneClearColor[3]);
-        gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-
-        render(gl, width, height, 0, null, true);
-        ByteBuffer pixel = Buffers.newDirectByteBuffer(4);
-        pixel.order(ByteOrder.nativeOrder());
-        IntBuffer viewport = IntBuffer.allocate(4);
-        gl.glGetIntegerv(GL2ES2.GL_VIEWPORT, viewport);
-        gl.glReadPixels(x, viewport.get(3) - y, 1, 1, GL2ES2.GL_RGBA,
-                GL2ES2.GL_UNSIGNED_BYTE, pixel);
-
-        int qp = pixel.get(0) & 0xFF;
-        int index = Math.round(((qp/255.0f)*(count+2))-1);
-        if(index < 0 || index >= count)
-            return -1;
-        return index;
-    }
-
-    private void render(GL2ES2 gl, int width, int height, int renderModes, int[/*1*/] sampleCount, boolean select) {
-        final PMVMatrix pmv = renderer.getMatrix();
-        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-        pmv.glLoadIdentity();
-        // System.err.printf("SceneUICtrl.render.1.0: scale.0: %f, %f, %f%n", scale[0], scale[1], scale[2]);
-        // System.err.printf("SceneUICtrl.render.1.0: translate.0: %f, %f, %f%n", translate[0], translate[1], translate[2]);
-        pmv.glTranslatef(translate[0], translate[1], translate[2]);
-        pmv.glRotate(quaternion);
-        pmv.glScalef(scale[0], scale[1], scale[2]);
-
-        for(int index=0; index < count;index++){
-            if(select) {
-                float color= index+1;
-                renderer.setColorStatic(gl, color/(count+2), color/(count+2), color/(count+2));
-            }
-            final UIShape uiShape = shapes.get(index);
-            uiShape.validate(gl, renderer);
-            final float[] uiTranslate = uiShape.getTranslate();
-
-            pmv.glPushMatrix();
-            // System.err.printf("SceneUICtrl.render.1.0: translate.1: %f, %f%n", uiTranslate[0], uiTranslate[1]);
-            pmv.glTranslatef(uiTranslate[0], uiTranslate[1], 0f);
-            renderer.updateMatrix(gl);
-            uiShape.drawShape(gl, renderer, sampleCount, select);
-            pmv.glPopMatrix();
-        }
-    }
-
-    public void setTranslate(float x, float y, float z) {
-        this.translate[0] = x;
-        this.translate[1] = y;
-        this.translate[2] = z;
-    }
-
-    public void setScale(float x, float y, float z) {
-        this.scale[0] = x;
-        this.scale[1] = y;
-        this.scale[2] = z;
-    }
-
-    public void setRotation(float x, float y, float z) {
-        quaternion.setFromEuler(x * FloatUtil.PI / 180.0f,
-                                y * FloatUtil.PI / 180.0f,
-                                z * FloatUtil.PI / 180.0f);
-    }
-    public float[] getSceneClearColor() {
-        return sceneClearColor;
-    }
-
-    public void setSceneClearColor(float r, float g, float b, float a) {
-        this.sceneClearColor[0] = r;
-        this.sceneClearColor[1] = g;
-        this.sceneClearColor[2] = b;
-        this.sceneClearColor[3] = a;
-    }
-
     private class SBCMouseListener implements MouseListener {
-        int mouseX = -1;
-        int mouseY = -1;
+        int lx=-1, ly=-1;
+
+        void clear() {
+            lx = -1; ly = -1;
+        }
 
         @Override
         public void mouseClicked(MouseEvent e) {
             UIShape uiShape = getActiveUI();
             if(uiShape != null){
-                uiShape.onClick(e);
+                uiShape.dispatchMouseEvent(e);
             }
+            clear();
+            release();
         }
 
         @Override
-        public void mousePressed(MouseEvent e) {
+        public void mousePressed(final MouseEvent e) {
             if(null==cDrawable) {
                 return;
             }
-            mouseX = e.getX();
-            mouseY = e.getY();
 
-            GLRunnable runnable = new GLRunnable() {
+            // Avoid race condition w/ matrix instance,
+            // even thought we do not require a GL operation!
+            cDrawable.invoke(true, new GLRunnable() {
                 @Override
                 public boolean run(GLAutoDrawable drawable) {
-                    UIShape s = getShape(drawable, mouseX, mouseY);
-                    if(null != s) {
-                        activeId = getShapes().indexOf(s);
-                    }
-                    else {
-                        activeId = -1;
+                    activeId = pickShape(e.getX(), e.getY());
+                    final UIShape uiShape = getActiveUI();
+                    if(uiShape != null) {
+                        uiShape.setPressed(true);
+                        uiShape.dispatchMouseEvent(e);
                     }
                     return false;
-                }
-            };
-            cDrawable.invoke(true, runnable);
-
-            UIShape uiShape = getActiveUI();
-
-            if(uiShape != null) {
-                uiShape.setPressed(true);
-                uiShape.onPressed(e);
-            }
+                } } );
         }
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            UIShape uiShape = getActiveUI();
+            final UIShape uiShape = getActiveUI();
             if(uiShape != null){
                 uiShape.setPressed(false);
-                uiShape.onRelease(e);
+                uiShape.dispatchMouseEvent(e);
             }
         }
 
         @Override
-        public void mouseMoved(MouseEvent e) { }
+        public void mouseDragged(MouseEvent e) {
+            final UIShape uiShape = getActiveUI();
+            if(uiShape != null) {
+                uiShape.dispatchMouseEvent(e);
+            }
+        }
+
+        @Override
+        public void mouseWheelMoved(final MouseEvent e) {
+            cDrawable.invoke(true, new GLRunnable() {
+                @Override
+                public boolean run(GLAutoDrawable drawable) {
+                    activeId = pickShape(lx, ly);
+                    final UIShape uiShape = getActiveUI();
+                    if(uiShape != null) {
+                        uiShape.dispatchMouseEvent(e);
+                    }
+                    return false;
+                } } );
+        }
+
+        @Override
+        public void mouseMoved(MouseEvent e) {
+            lx = e.getX();
+            ly = e.getY();
+        }
         @Override
         public void mouseEntered(MouseEvent e) { }
         @Override
-        public void mouseExited(MouseEvent e) { }
-        @Override
-        public void mouseDragged(MouseEvent e) { }
-        @Override
-        public void mouseWheelMoved(MouseEvent e) { }
-
+        public void mouseExited(MouseEvent e) {
+            release();
+            clear();
+        }
     }
 }

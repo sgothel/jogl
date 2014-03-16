@@ -31,11 +31,13 @@ package com.jogamp.opengl.test.junit.graph.demos;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.opengl.util.PMVMatrix;
 
 /** Demonstrate the rendering of multiple outlines into one region/OutlineShape
  *  These Outlines are not necessary connected or contained.
@@ -115,10 +117,12 @@ public class GPURegionGLListener01 extends GPURegionRendererListenerBase01 {
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
         final RegionRenderer regionRenderer = getRenderer();
-
-        regionRenderer.resetModelview(null);
-        regionRenderer.translate(null, getXTran(), getYTran(), getZTran());
-        regionRenderer.rotate(gl, getAngle(), 0, 1, 0);
+        final PMVMatrix pmv = regionRenderer.getMatrix();
+        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+        pmv.glLoadIdentity();
+        pmv.glTranslatef(getXTran(), getYTran(), getZTran());
+        pmv.glRotatef(getAngle(), 0, 1, 0);
+        regionRenderer.updateMatrix(gl);
         if( weight != regionRenderer.getWeight()) {
             regionRenderer.setWeight(gl, weight);
         }

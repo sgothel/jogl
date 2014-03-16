@@ -41,6 +41,7 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLPipelineFactory;
 import javax.media.opengl.GLRunnable;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
@@ -148,7 +149,8 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
 
         final PMVMatrix pmv = renderer.getMatrix();
         renderer.reshapePerspective(null, 45.0f, width, height, zNear, zFar);
-        renderer.resetModelview(null);
+        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+        pmv.glLoadIdentity();
         renderer.updateMatrix(gl);
         System.err.printf("Reshape: zNear %f,  zFar %f%n", zNear, zFar);
         System.err.printf("Reshape: Frustum: %s%n", pmv.glGetFrustum());

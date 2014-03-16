@@ -34,6 +34,7 @@ import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLException;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
@@ -213,7 +214,8 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
 
         final RegionRenderer renderer = getRenderer();
         final PMVMatrix pmv = renderer.getMatrix();
-        renderer.resetModelview(null);
+        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+        pmv.glLoadIdentity();
         renderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
         if( renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
             gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -242,7 +244,6 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                     drawable.getChosenGLCapabilities().getAlphaBits());
 
             // bottom, half line up
-            renderer.resetModelview(null);
             pmv.glTranslatef(nearPlaneX0, nearPlaneY0+(nearPlaneS * pixelSizeFPS / 2f), nearPlaneZ0);
             renderer.updateMatrix(gl);
 
@@ -253,7 +254,8 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         float dx = width-fontNameBox.getWidth()-2f;
         float dy = height - 10f;
 
-        renderer.resetModelview(null);
+        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+        pmv.glLoadIdentity();
         pmv.glTranslatef(nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy), nearPlaneZ0);
         renderer.updateMatrix(gl);
         System.err.printf("FontN: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
@@ -263,7 +265,8 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         dy += -fontNameBox.getHeight() - 10f;
 
         if(null != headtext) {
-            renderer.resetModelview(null);
+            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+            pmv.glLoadIdentity();
             System.err.printf("Head: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
             pmv.glTranslatef(nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy), nearPlaneZ0);
             // pmv.glTranslatef(x0, y1, z0);
@@ -273,11 +276,13 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
 
         dy += -headbox.getHeight() - font.getLineHeight(pixelSizeBottom);
 
-        renderer.resetModelview(null);
+        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+        pmv.glLoadIdentity();
         pmv.glTranslatef(nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy), nearPlaneZ0);
         System.err.printf("Bottom: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
-        renderer.translate(null, getXTran(), getYTran(), getZTran());
-        renderer.rotate(gl, getAngle(), 0, 1, 0);
+        pmv.glTranslatef(getXTran(), getYTran(), getZTran());
+        pmv.glRotatef(getAngle(), 0, 1, 0);
+        renderer.updateMatrix(gl);
         renderer.setColorStatic(gl, 1.0f, 0.0f, 0.0f);
         if( renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
             gl.glClearColor(1.0f, 0.0f, 0.0f, 0.0f);

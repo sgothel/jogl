@@ -312,27 +312,6 @@ public abstract class RegionRenderer {
         }
     }
 
-    public final void rotate(GL2ES2 gl, float angle, float x, float y, float z) {
-        rs.pmvMatrix().glRotatef(angle, x, y, z);
-        updateMatrix(gl);
-    }
-
-    public final void translate(GL2ES2 gl, float x, float y, float z) {
-        rs.pmvMatrix().glTranslatef(x, y, z);
-        updateMatrix(gl);
-    }
-
-    public final void scale(GL2ES2 gl, float x, float y, float z) {
-        rs.pmvMatrix().glScalef(x, y, z);
-        updateMatrix(gl);
-    }
-
-    public final void resetModelview(GL2ES2 gl) {
-        rs.pmvMatrix().glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-        rs.pmvMatrix().glLoadIdentity();
-        updateMatrix(gl);
-    }
-
     public final void updateMatrix(GL2ES2 gl) {
         if(initialized && null != gl && rs.getShaderState().inUse()) {
             rs.getShaderState().uniform(gl, rs.getPMVMatrix());

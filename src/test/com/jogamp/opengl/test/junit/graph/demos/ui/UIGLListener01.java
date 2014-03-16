@@ -33,14 +33,15 @@ import java.io.IOException;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.SVertex;
-import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.opengl.test.junit.graph.demos.MSAATool;
+import com.jogamp.opengl.util.PMVMatrix;
 
 public class UIGLListener01 extends UIListenerBase01 {
 
@@ -49,19 +50,8 @@ public class UIGLListener01 extends UIListenerBase01 {
         setMatrix(-20, 00, 0f, -50);
         try {
             final Font font = FontFactory.get(FontFactory.UBUNTU).getDefault();
-            button = new RIButton(SVertex.factory(), font, "Click me!", 4f, 3f){
-                @Override
-                public void onClick(MouseEvent e) {
-                }
-                @Override
-                public void onPressed(MouseEvent e) {
-                }
-                @Override
-                public void onRelease(MouseEvent e) {
-                }
-
-            };
-            button.translate(2,1);
+            button = new RIButton(SVertex.factory(), font, "Click me!", 4f, 3f);
+            button.translate(2,1,0);
             /** Button defaults !
                 button.setLabelColor(1.0f,1.0f,1.0f);
                 button.setButtonColor(0.6f,0.6f,0.6f);
@@ -95,17 +85,18 @@ public class UIGLListener01 extends UIListenerBase01 {
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
-        final RegionRenderer regionRenderer = getRegionRenderer();
-
-        regionRenderer.resetModelview(null);
-
-        regionRenderer.translate(null, getXTran(), getYTran(), getZoom());
-        regionRenderer.rotate(gl, getAngle(), 0, 1, 0);
-
         final int[] sampleCount = { 4 };
         final float[] translate = button.getTranslate();
-        regionRenderer.translate(gl, translate[0], translate[1], 0);
-        button.drawShape(gl, regionRenderer, sampleCount, false);
+
+        final RegionRenderer regionRenderer = getRegionRenderer();
+        final PMVMatrix pmv = regionRenderer.getMatrix();
+        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+        pmv.glLoadIdentity();
+        pmv.glTranslatef(getXTran(), getYTran(), getZoom());
+        pmv.glRotatef(getAngle(), 0, 1, 0);
+        pmv.glTranslatef(translate[0], translate[1], 0);
+        regionRenderer.updateMatrix(gl);
+        button.drawShape(gl, regionRenderer, sampleCount);
     }
 
     @Override

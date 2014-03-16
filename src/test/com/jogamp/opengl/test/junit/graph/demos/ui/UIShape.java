@@ -29,6 +29,7 @@ package com.jogamp.opengl.test.junit.graph.demos.ui;
 
 import java.util.ArrayList;
 
+import javax.media.nativewindow.NativeWindowException;
 import javax.media.opengl.GL2ES2;
 
 import jogamp.graph.geom.plane.AffineTransform;
@@ -42,6 +43,8 @@ import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.newt.event.MouseEvent;
+import com.jogamp.newt.event.MouseListener;
+import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.math.geom.AABBox;
 
 public abstract class UIShape {
@@ -52,14 +55,16 @@ public abstract class UIShape {
     protected final ArrayList<OutlineShapeXForm> shapes;
 
     protected static final int DIRTY_SHAPE     = 1 << 0 ;
-    protected static final int DIRTY_POSITION  = 1 << 1 ;
     protected static final int DIRTY_REGION    = 1 << 2 ;
-    protected int dirty = DIRTY_SHAPE | DIRTY_POSITION | DIRTY_REGION;
+    protected int dirty = DIRTY_SHAPE | DIRTY_REGION;
 
     protected final AABBox box;
-    protected final float[] translate = new float[] { 0f, 0f };
-    protected final float[] shapeTranslate = new float[] { 0f, 0f };
-    protected final float[] shapeScale = new float[] { 1f, 1f };
+    protected final float[] translate = new float[] { 0f, 0f, 0f };
+    protected final Quaternion rotation = new Quaternion();
+    protected final float[] scale = new float[] { 1f, 1f, 1f };
+
+    protected final float[] shapeTranslate2D = new float[] { 0f, 0f };
+    protected final float[] shapeScale2D = new float[] { 1f, 1f };
     private GLRegion region = null;
 
     protected final float[] color         = {0.6f, 0.6f, 0.6f};
@@ -68,6 +73,8 @@ public abstract class UIShape {
     private boolean down = false;
     private boolean toggle =false;
     private boolean toggleable = false;
+    private boolean enabled = true;
+    private ArrayList<MouseListener> mouseListeners = new ArrayList<MouseListener>();
 
     public UIShape(Factory<? extends Vertex> factory) {
         this.vertexFactory = factory;
@@ -76,6 +83,9 @@ public abstract class UIShape {
     }
 
     public final Vertex.Factory<? extends Vertex> getVertexFactory() { return vertexFactory; }
+
+    public boolean isEnabled() { return enabled; }
+    public void setEnabled(boolean v) { enabled = v; }
 
     /**
      * Clears all data and reset all states as if this instance was newly created
@@ -87,12 +97,17 @@ public abstract class UIShape {
         shapes.clear();
         translate[0] = 0f;
         translate[1] = 0f;
-        shapeTranslate[0] = 0f;
-        shapeTranslate[1] = 0f;
-        shapeScale[0] = 1f;
-        shapeScale[1] = 1f;
+        translate[2] = 0f;
+        rotation.setIdentity();
+        scale[0] = 1f;
+        scale[1] = 1f;
+        scale[2] = 1f;
+        shapeTranslate2D[0] = 0f;
+        shapeTranslate2D[1] = 0f;
+        shapeScale2D[0] = 1f;
+        shapeScale2D[1] = 1f;
         box.reset();
-        dirty = DIRTY_SHAPE | DIRTY_POSITION | DIRTY_REGION;
+        dirty = DIRTY_SHAPE | DIRTY_REGION;
     }
 
     /**
@@ -105,41 +120,54 @@ public abstract class UIShape {
         shapes.clear();
         translate[0] = 0f;
         translate[1] = 0f;
-        shapeTranslate[0] = 0f;
-        shapeTranslate[1] = 0f;
-        shapeScale[0] = 1f;
-        shapeScale[1] = 1f;
+        translate[2] = 0f;
+        rotation.setIdentity();
+        scale[0] = 1f;
+        scale[1] = 1f;
+        scale[2] = 1f;
+        shapeTranslate2D[0] = 0f;
+        shapeTranslate2D[1] = 0f;
+        shapeScale2D[0] = 1f;
+        shapeScale2D[1] = 1f;
         box.reset();
-        dirty = DIRTY_SHAPE | DIRTY_POSITION | DIRTY_REGION;
+        dirty = DIRTY_SHAPE | DIRTY_REGION;
     }
 
-    public final void translate(float tx, float ty) {
+    public final void setTranslate(float tx, float ty, float tz) {
+        translate[0] = tx;
+        translate[1] = ty;
+        translate[2] = tz;
+    }
+    public final void translate(float tx, float ty, float tz) {
         translate[0] += tx;
         translate[1] += ty;
-        dirty |= DIRTY_POSITION;
+        translate[2] += tz;
     }
-    public final float[] getTranslate() {
-        if( !isShapeDirty() ) {
-            validatePosition();
-        }
-        return translate;
+    public final float[] getTranslate() { return translate; }
+    public final Quaternion getRotation() { return rotation; }
+    public final void setScale(float sx, float sy, float sz) {
+        scale[0] = sx;
+        scale[1] = sy;
+        scale[2] = sz;
     }
+    public final void scale(float sx, float sy, float sz) {
+        scale[0] *= sx;
+        scale[1] *= sy;
+        scale[2] *= sz;
+    }
+    public final float[] getScale() { return scale; }
 
     public final void translateShape(float tx, float ty) {
-        shapeTranslate[0] += tx;
-        shapeTranslate[1] += ty;
+        shapeTranslate2D[0] += tx;
+        shapeTranslate2D[1] += ty;
     }
     public final void scaleShape(float sx, float sy) {
-        shapeScale[0] *= sx;
-        shapeScale[1] *= sy;
+        shapeScale2D[0] *= sx;
+        shapeScale2D[1] *= sy;
     }
 
     public final boolean isShapeDirty() {
         return 0 != ( dirty & DIRTY_SHAPE ) ;
-    }
-
-    public final boolean isPositionDirty() {
-        return 0 != ( dirty & DIRTY_POSITION ) ;
     }
 
     public final boolean isRegionDirty() {
@@ -173,9 +201,8 @@ public abstract class UIShape {
      * @param gl
      * @param renderer
      * @param sampleCount
-     * @param select
      */
-    public void drawShape(GL2ES2 gl, RegionRenderer renderer, int[] sampleCount, boolean select) {
+    public void drawShape(GL2ES2 gl, RegionRenderer renderer, int[] sampleCount) {
         final float[] _color;
         if( isPressed() || toggle ){
             _color = selectedColor;
@@ -183,23 +210,15 @@ public abstract class UIShape {
             _color = color;
 
         }
-        if(!select){
-            if( renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
-                gl.glClearColor(_color[0], _color[1], _color[2], 0.0f);
-            }
-            renderer.setColorStatic(gl, _color[0], _color[1], _color[2]);
+        if( renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
+            gl.glClearColor(_color[0], _color[1], _color[2], 0.0f);
         }
+        renderer.setColorStatic(gl, _color[0], _color[1], _color[2]);
+
         getRegion(gl, renderer).draw(gl, renderer, sampleCount);
     }
 
     public final boolean validate(GL2ES2 gl, RegionRenderer renderer) {
-        if( !validateShape(gl, renderer) ) {
-            return validatePosition();
-        }
-        return true;
-    }
-
-    private final boolean validateShape(GL2ES2 gl, RegionRenderer renderer) {
         if( isShapeDirty() ) {
             shapes.clear();
             box.reset();
@@ -211,39 +230,24 @@ public abstract class UIShape {
             }
             dirty &= ~DIRTY_SHAPE;
             dirty |= DIRTY_REGION;
-            validatePosition();
-            return true;
-        }
-        return false;
-    }
-    private final boolean validatePosition () {
-        if( isPositionDirty() && !isShapeDirty() ) {
-            // Subtract the bbox minx/miny from position, i.e. the shape's offset.
-            final AABBox box = getBounds();
-            final float minX = box.getMinX();
-            final float minY = box.getMinY();
-            // System.err.println("XXX.UIShape: Position pre: " + translate[0] + " " + translate[1] + ", sbox "+box);
-            translate(-minX, -minY);
-            // System.err.println("XXX.UIShape: Position post: " + translate[0] + " " + translate[1] + ", sbox "+box);
-            dirty &= ~DIRTY_POSITION;
             return true;
         }
         return false;
     }
 
     private final void addToRegion(Region region) {
-        final boolean hasLocTrans = 0f != shapeTranslate[0] || 0f != shapeTranslate[1];
-        final boolean hasLocScale = 1f != shapeScale[0] || 1f != shapeScale[1];
+        final boolean hasLocTrans = 0f != shapeTranslate2D[0] || 0f != shapeTranslate2D[1];
+        final boolean hasLocScale = 1f != shapeScale2D[0] || 1f != shapeScale2D[1];
         final AffineTransform t;
         if( hasLocScale || hasLocTrans ) {
             // System.err.printf("UIShape.addToRegion: locTranslate %f x %f, locScale %f x %f%n",
             //                                        shapeTranslate[0], shapeTranslate[1], shapeScale[0], shapeScale[1]);
             t = new AffineTransform();
             if( hasLocTrans ) {
-                t.translate(shapeTranslate[0], shapeTranslate[1]);
+                t.translate(shapeTranslate2D[0], shapeTranslate2D[1]);
             }
             if( hasLocScale ) {
-                t.scale(shapeScale[0], shapeScale[1]);
+                t.scale(shapeScale2D[0], shapeScale2D[1]);
             }
         } else {
             t = null;
@@ -280,6 +284,10 @@ public abstract class UIShape {
         this.selectedColor[2] = b;
     }
 
+    public String toString() {
+        return getClass().getSimpleName()+"[enabled "+enabled+", box "+box+"]";
+    }
+
     //
     // Input
     //
@@ -303,9 +311,60 @@ public abstract class UIShape {
         this.toggleable = toggleable;
     }
 
-    public void onClick(MouseEvent e) { }
-    public void onPressed(MouseEvent e) { }
-    public void onRelease(MouseEvent e) { }
+    public final void addMouseListener(MouseListener l) {
+        if(l == null) {
+            return;
+        }
+        @SuppressWarnings("unchecked")
+        ArrayList<MouseListener> clonedListeners = (ArrayList<MouseListener>) mouseListeners.clone();
+        clonedListeners.add(l);
+        mouseListeners = clonedListeners;
+    }
+
+    public final void removeMouseListener(MouseListener l) {
+        if (l == null) {
+            return;
+        }
+        @SuppressWarnings("unchecked")
+        ArrayList<MouseListener> clonedListeners = (ArrayList<MouseListener>) mouseListeners.clone();
+        clonedListeners.remove(l);
+        mouseListeners = clonedListeners;
+    }
+
+    public final void dispatchMouseEvent(MouseEvent e) {
+        e.setAttachment(this);
+        for(int i = 0; !e.isConsumed() && i < mouseListeners.size(); i++ ) {
+            final MouseListener l = mouseListeners.get(i);
+            switch(e.getEventType()) {
+                case MouseEvent.EVENT_MOUSE_CLICKED:
+                    l.mouseClicked(e);
+                    break;
+                case MouseEvent.EVENT_MOUSE_ENTERED:
+                    l.mouseEntered(e);
+                    break;
+                case MouseEvent.EVENT_MOUSE_EXITED:
+                    l.mouseExited(e);
+                    break;
+                case MouseEvent.EVENT_MOUSE_PRESSED:
+                    l.mousePressed(e);
+                    break;
+                case MouseEvent.EVENT_MOUSE_RELEASED:
+                    l.mouseReleased(e);
+                    break;
+                case MouseEvent.EVENT_MOUSE_MOVED:
+                    l.mouseMoved(e);
+                    break;
+                case MouseEvent.EVENT_MOUSE_DRAGGED:
+                    l.mouseDragged(e);
+                    break;
+                case MouseEvent.EVENT_MOUSE_WHEEL_MOVED:
+                    l.mouseWheelMoved(e);
+                    break;
+                default:
+                    throw new NativeWindowException("Unexpected mouse event type " + e.getEventType());
+            }
+        }
+    }
 
     //
     //
@@ -332,6 +391,7 @@ public abstract class UIShape {
         shape.addVertex(minX+tw, minY + th, z, true);
         shape.addVertex(minX,    minY + th, z, true);
         shape.closeLastOutline(true);
+
         return shape;
     }
 

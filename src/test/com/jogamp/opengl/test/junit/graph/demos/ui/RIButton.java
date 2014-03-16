@@ -40,7 +40,7 @@ import com.jogamp.opengl.math.geom.AABBox;
 /**
  * GPU based resolution independent Button impl
  */
-public abstract class RIButton extends UIShape {
+public class RIButton extends UIShape {
     private float width, height;
     private final Label label;
     /** 20 % to each side default */
@@ -86,13 +86,13 @@ public abstract class RIButton extends UIShape {
     }
 
     @Override
-    public void drawShape(GL2ES2 gl, RegionRenderer renderer, int[] sampleCount, boolean select) {
+    public void drawShape(GL2ES2 gl, RegionRenderer renderer, int[] sampleCount) {
         gl.glEnable(GL2ES2.GL_POLYGON_OFFSET_FILL);
         gl.glPolygonOffset(0.0f, 1f);
-        super.drawShape(gl, renderer, sampleCount, select);
+        super.drawShape(gl, renderer, sampleCount);
         gl.glDisable(GL2ES2.GL_POLYGON_OFFSET_FILL);
 
-        label.drawShape(gl, renderer, sampleCount, select);
+        label.drawShape(gl, renderer, sampleCount);
     }
 
     @Override

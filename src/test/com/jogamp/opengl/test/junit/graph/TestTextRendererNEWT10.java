@@ -34,6 +34,7 @@ import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLProfile;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -50,6 +51,7 @@ import com.jogamp.graph.geom.SVertex;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.test.junit.util.NEWTGLContext;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 
@@ -190,8 +192,12 @@ public class TestTextRendererNEWT10 extends UITestCase {
         AABBox textBox = font.getStringBounds(text, fontSize);
         dx += font.getAdvanceWidth('X', fontSize) * column;
         dy -= (int)textBox.getHeight() * ( row + 1 );
-        textRenderUtil.renderer.resetModelview(null);
-        textRenderUtil.renderer.translate(gl, dx, dy, z0);
+
+        final PMVMatrix pmv = textRenderUtil.renderer.getMatrix();
+        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+        pmv.glLoadIdentity();
+        pmv.glTranslatef(dx, dy, z0);
+        textRenderUtil.renderer.updateMatrix(gl);
         textRenderUtil.drawString3D(gl, font, fontSize, text, texSize);
 
         lastRow = row;
