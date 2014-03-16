@@ -3250,7 +3250,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     private final void dispatchMouseEvent(MouseEvent e) {
         for(int i = 0; !e.isConsumed() && i < mouseListeners.size(); i++ ) {
-            MouseListener l = mouseListeners.get(i);
+            final MouseListener l = mouseListeners.get(i);
             switch(e.getEventType()) {
                 case MouseEvent.EVENT_MOUSE_CLICKED:
                     l.mouseClicked(e);
