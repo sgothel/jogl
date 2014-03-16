@@ -880,7 +880,7 @@ public class Crossing {
      * Returns how many times rectangle stripe cross shape or the are intersect
      */
     public static int intersectShape(Path2D s, float x, float y, float w, float h) {
-        if (!s.getBounds2D().intersects(x, y, w, h)) {
+        if (!s.getBounds2D().intersects2DRegion(x, y, w, h)) {
             return 0;
         }
         return intersectPath(s.iterator(null), x, y, w, h);

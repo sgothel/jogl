@@ -30,6 +30,7 @@ package com.jogamp.opengl.math.geom;
 import jogamp.graph.geom.plane.AffineTransform;
 
 import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.Ray;
 import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.util.PMVMatrix;
 
@@ -38,6 +39,15 @@ import com.jogamp.opengl.util.PMVMatrix;
  * Axis Aligned Bounding Box. Defined by two 3D coordinates (low and high)
  * The low being the the lower left corner of the box, and the high being the upper
  * right corner of the box.
+ * <p>
+ * A few references for collision detection, intersections:
+ * <pre>
+ * http://www.realtimerendering.com/intersections.html
+ * http://www.codercorner.com/RayAABB.cpp
+ * http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter0.htm
+ * http://realtimecollisiondetection.net/files/levine_swept_sat.txt
+ * </pre>
+ * </p>
  *
  */
 public class AABBox implements Cloneable {
@@ -294,7 +304,7 @@ public class AABBox implements Cloneable {
      * @param h hight
      * @return true if this AABBox might have a common region with this 2D region
      */
-    public final boolean intersects(final float x, final float y, final float w, final float h) {
+    public final boolean intersects2DRegion(final float x, final float y, final float w, final float h) {
         if (w <= 0 || h <= 0) {
             return false;
         }
@@ -311,6 +321,56 @@ public class AABBox implements Cloneable {
                 y + h > y0 &&
                 x < x0 + _w &&
                 y < y0 + _h);
+    }
+
+    /**
+     * Check if {@link Ray} intersects this bounding box.
+     * <p>
+     * Versions uses the SAT[1], testing 6 axes.
+     * Original code for OBBs from MAGIC.
+     * Rewritten for AABBs and reorganized for early exits[2].
+     * </p>
+     * <pre>
+     * [1] SAT = Separating Axis Theorem
+     * [2] http://www.codercorner.com/RayAABB.cpp
+     * </pre>
+     * @param ray
+     * @return
+     */
+    public final boolean intersectsRay(final Ray ray) {
+        // diff[XYZ] -> VectorUtil.subVec3(diff, ray.orig, center);
+        //  ext[XYZ] -> extend VectorUtil.subVec3(ext, high, center);
+
+        final float dirX  = ray.dir[0];
+        final float diffX = ray.orig[0] - center[0];
+        final float extX  = high[0] - center[0];
+        if( Math.abs(diffX) > extX && diffX*dirX >= 0f ) return false;
+
+        final float dirY  = ray.dir[1];
+        final float diffY = ray.orig[1] - center[1];
+        final float extY  = high[1] - center[1];
+        if( Math.abs(diffY) > extY && diffY*dirY >= 0f ) return false;
+
+        final float dirZ  = ray.dir[2];
+        final float diffZ = ray.orig[2] - center[2];
+        final float extZ  = high[2] - center[2];
+        if( Math.abs(diffZ) > extZ && diffZ*dirZ >= 0f ) return false;
+
+        final float absDirY = Math.abs(dirY);
+        final float absDirZ = Math.abs(dirZ);
+
+        float f = dirY * diffZ - dirZ * diffY;
+        if( Math.abs(f) > extY*absDirZ + extZ*absDirY ) return false;
+
+        final float absDirX = Math.abs(dirX);
+
+        f = dirZ * diffX - dirX * diffZ;
+        if( Math.abs(f) > extX*absDirZ + extZ*absDirX ) return false;
+
+        f = dirX * diffY - dirY * diffX;
+        if( Math.abs(f) > extX*absDirY + extY*absDirX ) return false;
+
+        return true;
     }
 
 
@@ -399,7 +459,7 @@ public class AABBox implements Cloneable {
         if( null == obj || !(obj instanceof AABBox) ) {
             return false;
         }
-        final AABBox other = (AABBox) obj;        
+        final AABBox other = (AABBox) obj;
         return VectorUtil.isVec2Equal(low, 0, other.low, 0, FloatUtil.EPSILON) &&
                VectorUtil.isVec3Equal(high, 0, other.high, 0, FloatUtil.EPSILON) ;
     }

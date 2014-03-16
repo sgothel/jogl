@@ -601,14 +601,16 @@ public class VectorUtil {
         return result;
     }
 
-    /** Compute intersection between two segments
+    /**
+     * Compute intersection between two segments
      * @param a vertex 1 of first segment
      * @param b vertex 2 of first segment
      * @param c vertex 1 of second segment
      * @param d vertex 2 of second segment
      * @return true if the segments intersect, otherwise returns false
      */
-    public static boolean testSeg2SegIntersection(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c, final Vert2fImmutable d) {
+    public static boolean testSeg2SegIntersection(final Vert2fImmutable a, final Vert2fImmutable b,
+                                                  final Vert2fImmutable c, final Vert2fImmutable d) {
         final float[] A = a.getCoord();
         final float[] B = b.getCoord();
         final float[] C = c.getCoord();

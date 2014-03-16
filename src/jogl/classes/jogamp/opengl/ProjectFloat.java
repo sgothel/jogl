@@ -586,7 +586,7 @@ public class ProjectFloat {
    * @param viewport
    * @param obj_pos
    *
-   * @return
+   * @return true if successful, otherwise false (failed to invert matrix, or becomes z is infinity)
    */
   public boolean gluUnProject(float winx, float winy, float winz,
                               float[] modelMatrix, int modelMatrix_offset,
@@ -644,7 +644,7 @@ public class ProjectFloat {
    * @param viewport_offset
    * @param obj_pos
    * @param obj_pos_offset
-   * @return
+   * @return true if successful, otherwise false (failed to invert matrix, or becomes z is infinity)
    */
   public boolean gluUnProject(float winx, float winy, float winz,
                               FloatBuffer modelMatrix,
@@ -700,7 +700,7 @@ public class ProjectFloat {
    * @param viewport
    * @param obj_pos
    *
-   * @return
+   * @return true if successful, otherwise false (failed to invert matrix, or becomes z is infinity)
    */
   public boolean gluUnProject(float winx, float winy, float winz,
                               FloatBuffer modelMatrix,
@@ -762,7 +762,7 @@ public class ProjectFloat {
    * @param far
    * @param obj_pos
    *
-   * @return
+   * @return true if successful, otherwise false (failed to invert matrix, or becomes z is infinity)
    */
   public boolean gluUnProject4(float winx,
                                float winy,
@@ -828,7 +828,7 @@ public class ProjectFloat {
    * @param far
    * @param obj_pos
    *
-   * @return
+   * @return true if successful, otherwise false (failed to invert matrix, or becomes z is infinity)
    */
   public boolean gluUnProject4(float winx,
                                float winy,

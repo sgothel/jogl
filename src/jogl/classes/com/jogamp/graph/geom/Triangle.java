@@ -27,8 +27,6 @@
  */
 package com.jogamp.graph.geom;
 
-import com.jogamp.graph.curve.Region;
-
 import jogamp.graph.geom.plane.AffineTransform;
 
 public class Triangle {

@@ -49,6 +49,9 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.FloatStack;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Quaternion;
+import com.jogamp.opengl.math.Ray;
+import com.jogamp.opengl.math.VectorUtil;
+import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.math.geom.Frustum;
 
 /**
@@ -453,7 +456,7 @@ public class PMVMatrix implements GLMatrixFunc {
     }
 
     @Override
-    public final void glGetFloatv(int matrixGetName, FloatBuffer params) {
+    public final void glGetFloatv(final int matrixGetName, final FloatBuffer params) {
         int pos = params.position();
         if(matrixGetName==GL_MATRIX_MODE) {
             params.put(matrixMode);
@@ -466,7 +469,7 @@ public class PMVMatrix implements GLMatrixFunc {
     }
 
     @Override
-    public final void glGetFloatv(int matrixGetName, float[] params, int params_offset) {
+    public final void glGetFloatv(final int matrixGetName, float[] params, final int params_offset) {
         if(matrixGetName==GL_MATRIX_MODE) {
             params[params_offset]=matrixMode;
         } else {
@@ -477,7 +480,7 @@ public class PMVMatrix implements GLMatrixFunc {
     }
 
     @Override
-    public final void glGetIntegerv(int pname, IntBuffer params) {
+    public final void glGetIntegerv(final int pname, final IntBuffer params) {
         int pos = params.position();
         if(pname==GL_MATRIX_MODE) {
             params.put(matrixMode);
@@ -488,7 +491,7 @@ public class PMVMatrix implements GLMatrixFunc {
     }
 
     @Override
-    public final void glGetIntegerv(int pname, int[] params, int params_offset) {
+    public final void glGetIntegerv(final int pname, final int[] params, final int params_offset) {
         if(pname==GL_MATRIX_MODE) {
             params[params_offset]=matrixMode;
         } else {
@@ -516,7 +519,7 @@ public class PMVMatrix implements GLMatrixFunc {
     }
 
     @Override
-    public final void glLoadMatrixf(java.nio.FloatBuffer m) {
+    public final void glLoadMatrixf(final java.nio.FloatBuffer m) {
         int spos = m.position();
         if(matrixMode==GL_MODELVIEW) {
             matrixMv.put(m);
@@ -624,7 +627,7 @@ public class PMVMatrix implements GLMatrixFunc {
     }
 
     @Override
-    public final void glMultMatrixf(float[] m, int m_offset) {
+    public final void glMultMatrixf(final float[] m, final int m_offset) {
         if(matrixMode==GL_MODELVIEW) {
             FloatUtil.multMatrixf(matrixMv, m, m_offset);
             dirtyBits |= DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW | DIRTY_FRUSTUM ;
@@ -759,9 +762,9 @@ public class PMVMatrix implements GLMatrixFunc {
      * {@link #glMultMatrixf(FloatBuffer) Multiply} and {@link #glTranslatef(float, float, float) translate} the {@link #glGetMatrixMode() current matrix}
      * with the eye, object and orientation.
      */
-    public final void gluLookAt(float eyex, float eyey, float eyez,
-                          float centerx, float centery, float centerz,
-                          float upx, float upy, float upz) {
+    public final void gluLookAt(final float eyex, final float eyey, final float eyez,
+                                final float centerx, final float centery, final float centerz,
+                                final float upx, final float upy, final float upz) {
         projectFloat.gluLookAt(this, eyex, eyey, eyez, centerx, centery, centerz, upx, upy, upz);
     }
 
@@ -777,9 +780,9 @@ public class PMVMatrix implements GLMatrixFunc {
      * @param win_pos_offset
      * @return
      */
-    public final boolean gluProject(float objx, float objy, float objz,
-                            int[] viewport, int viewport_offset,
-                            float[] win_pos, int win_pos_offset ) {
+    public final boolean gluProject(final float objx, final float objy, final float objz,
+                                    final int[] viewport, final int viewport_offset,
+                                    final float[] win_pos, final int win_pos_offset ) {
         if(usesBackingArray) {
             return projectFloat.gluProject(objx, objy, objz,
                                            matrixMv.array(), matrixMv.position(),
@@ -805,11 +808,11 @@ public class PMVMatrix implements GLMatrixFunc {
      * @param viewport_offset
      * @param obj_pos
      * @param obj_pos_offset
-     * @return
+     * @return true if successful, otherwise false (failed to invert matrix, or becomes z is infinity)
      */
-    public final boolean gluUnProject(float winx, float winy, float winz,
-                                      int[] viewport, int viewport_offset,
-                                      float[] obj_pos, int obj_pos_offset) {
+    public final boolean gluUnProject(final float winx, final float winy, final float winz,
+                                      final int[] viewport, final int viewport_offset,
+                                      final float[] obj_pos, final int obj_pos_offset) {
         if(usesBackingArray) {
             return projectFloat.gluUnProject(winx, winy, winz,
                                              matrixMv.array(), matrixMv.position(),
@@ -825,10 +828,55 @@ public class PMVMatrix implements GLMatrixFunc {
         }
     }
 
-    public final void gluPickMatrix(float x, float y,
-                              float deltaX, float deltaY,
-                              int[] viewport, int viewport_offset) {
+    public final void gluPickMatrix(final float x, final float y,
+                                    final float deltaX, final float deltaY,
+                                    final int[] viewport, final int viewport_offset) {
         projectFloat.gluPickMatrix(this, x, y, deltaX, deltaY, viewport, viewport_offset);
+    }
+
+    /**
+     * Map two window coordinates w/ shared X/Y and distinctive Z
+     * to a {@link Ray}. The resulting {@link Ray} maybe used for <i>picking</i>
+     * using a {@link AABBox#intersectsRay(Ray, float[]) bounding box}.
+     * <p>
+     * Notes for picking <i>winz0</i> and <i>winz1</i>:
+     * </p>
+     * <p>
+     * <a href="http://www.sjbaker.org/steve/omniv/love_your_z_buffer.html">Love Your Z-Buffer</a>
+     * <pre>
+     *  delta = z * z / ( zNear * (1&lt;&lt;N) - z )
+     *
+     *  Where:
+     *    N     = number of bits of Z precision
+     *    zNear = distance from eye to near clip plane
+     *    z     = distance from the eye to the object
+     *    delta = the smallest resolvable Z separation at this range.
+     * </pre>
+     * Another equation to determine winZ for 'orthoDist' > 0
+     * <pre>
+     *  winZ = (1f/zNear-1f/orthoDist)/(1f/zNear-1f/zFar);
+     * </pre>
+     * </p>
+     *
+     * @param winx
+     * @param winy
+     * @param winz0
+     * @param winz1
+     * @param viewport
+     * @param viewport_offset
+     * @param ray storage for the resulting {@link Ray}
+     * @return true if successful, otherwise false (failed to invert matrix, or becomes z is infinity)
+     */
+    public final boolean gluUnProjectRay(final float winx, final float winy, final float winz0, final float winz1,
+                                         final int[] viewport, final int viewport_offset,
+                                         final Ray ray) {
+        if( gluUnProject(winx, winy, winz0, viewport, viewport_offset, ray.orig, 0) &&
+            gluUnProject(winx, winy, winz1, viewport, viewport_offset, ray.dir, 0) ) {
+            VectorUtil.normalizeVec3( VectorUtil.subVec3(ray.dir, ray.dir, ray.orig) );
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public StringBuilder toString(StringBuilder sb, String f) {
