@@ -20,8 +20,6 @@ public class GPUUISceneNewtDemo02 {
         GLProfile glp = GLProfile.getGL2ES2();
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);
-        caps.setSampleBuffers(true);
-        caps.setNumSamples(4);
 
         final GLWindow window = GLWindow.create(caps);
         window.setPosition(10, 10);

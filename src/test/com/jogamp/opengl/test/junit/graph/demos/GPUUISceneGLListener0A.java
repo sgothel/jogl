@@ -472,6 +472,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         } else {
             System.err.println("GPUUISceneGLListener0A: init (0)");
         }
+        System.err.println("Chosen: "+drawable.getChosenGLCapabilities());
         cDrawable = drawable;
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         if(debug) {
@@ -593,10 +594,11 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             final String modeS = Region.getRenderModeString(renderer.getRenderModes());
             final String text;
             if( null == actionText ) {
-                text = String.format("%03.1f/%03.1f fps, v-sync %d, fontSize %.1f, %s-samples %d, td %4.1f, blend %b, alpha-bits %d",
+                text = String.format("%03.1f/%03.1f fps, v-sync %d, fontSize %.1f, %s-samples %d, td %4.1f, blend %b, alpha-bits %d, msaa-bits %d",
                     lfps, tfps, gl.getSwapInterval(), fontSizeFixed, modeS, sceneUIController.getSampleCount(), td,
                     renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED),
-                    drawable.getChosenGLCapabilities().getAlphaBits());
+                    drawable.getChosenGLCapabilities().getAlphaBits(),
+                    drawable.getChosenGLCapabilities().getNumSamples());
             } else {
                 text = String.format("%03.1f/%03.1f fps, v-sync %d, fontSize %.1f, %s",
                     lfps, tfps, gl.getSwapInterval(), fontSizeFixed, actionText);
