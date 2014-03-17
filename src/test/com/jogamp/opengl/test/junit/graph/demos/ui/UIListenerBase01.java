@@ -258,12 +258,12 @@ public abstract class UIListenerBase01 implements GLEventListener {
                 move(-1, 0);
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_4){
-                button.setSpacing(button.getSpacing()-0.01f);
-                System.err.println("Button Spacing: " + button.getSpacing());
+                button.setSpacing(button.getSpacingX()-0.01f, button.getSpacingY()-0.005f);
+                System.err.println("Button Spacing: " + button.getSpacingX());
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_5){
-                button.setSpacing(button.getSpacing()+0.01f);
-                System.err.println("Button Spacing: " + button.getSpacing());
+                button.setSpacing(button.getSpacingX()+0.01f, button.getSpacingY()+0.005f);
+                System.err.println("Button Spacing: " + button.getSpacingX());
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_6){
                 button.setCorner(button.getCorner()-0.01f);

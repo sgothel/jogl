@@ -34,7 +34,7 @@ public class GPUUISceneNewtDemo02 {
         textGLListener.attachInputListenerTo(window);
 
         final Animator animator = new Animator();
-        animator.setUpdateFPSFrames(60, System.err);
+        animator.setUpdateFPSFrames(60, null); // System.err);
         animator.add(window);
 
         window.addWindowListener(new WindowAdapter() {

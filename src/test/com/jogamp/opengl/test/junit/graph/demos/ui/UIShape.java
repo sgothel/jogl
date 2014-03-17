@@ -42,9 +42,11 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
+import com.jogamp.newt.event.NEWTEvent;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.opengl.math.Quaternion;
+import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.math.geom.AABBox;
 
 public abstract class UIShape {
@@ -61,6 +63,7 @@ public abstract class UIShape {
     protected final AABBox box;
     protected final float[] translate = new float[] { 0f, 0f, 0f };
     protected final Quaternion rotation = new Quaternion();
+    protected final float[] rotOrigin = new float[] { 0f, 0f, 0f };
     protected final float[] scale = new float[] { 1f, 1f, 1f };
 
     protected final float[] shapeTranslate2D = new float[] { 0f, 0f };
@@ -99,6 +102,9 @@ public abstract class UIShape {
         translate[1] = 0f;
         translate[2] = 0f;
         rotation.setIdentity();
+        rotOrigin[0] = 0f;
+        rotOrigin[1] = 0f;
+        rotOrigin[2] = 0f;
         scale[0] = 1f;
         scale[1] = 1f;
         scale[2] = 1f;
@@ -122,6 +128,9 @@ public abstract class UIShape {
         translate[1] = 0f;
         translate[2] = 0f;
         rotation.setIdentity();
+        rotOrigin[0] = 0f;
+        rotOrigin[1] = 0f;
+        rotOrigin[2] = 0f;
         scale[0] = 1f;
         scale[1] = 1f;
         scale[2] = 1f;
@@ -133,24 +142,32 @@ public abstract class UIShape {
         dirty = DIRTY_SHAPE | DIRTY_REGION;
     }
 
-    public final void setTranslate(float tx, float ty, float tz) {
+    public void setTranslate(float tx, float ty, float tz) {
         translate[0] = tx;
         translate[1] = ty;
         translate[2] = tz;
+        // System.err.println("UIShape.setTranslate: "+tx+"/"+ty+"/"+tz+": "+toString());
     }
-    public final void translate(float tx, float ty, float tz) {
+    public void translate(float tx, float ty, float tz) {
         translate[0] += tx;
         translate[1] += ty;
         translate[2] += tz;
+        // System.err.println("UIShape.translate: "+tx+"/"+ty+"/"+tz+": "+toString());
     }
     public final float[] getTranslate() { return translate; }
     public final Quaternion getRotation() { return rotation; }
-    public final void setScale(float sx, float sy, float sz) {
+    public final float[] getRotationOrigin() { return rotOrigin; }
+    public void setRotationOrigin(float rx, float ry, float rz) {
+        rotOrigin[0] = rx;
+        rotOrigin[1] = ry;
+        rotOrigin[2] = rz;
+    }
+    public void setScale(float sx, float sy, float sz) {
         scale[0] = sx;
         scale[1] = sy;
         scale[2] = sz;
     }
-    public final void scale(float sx, float sy, float sz) {
+    public void scale(float sx, float sy, float sz) {
         scale[0] *= sx;
         scale[1] *= sy;
         scale[2] *= sz;
@@ -166,6 +183,9 @@ public abstract class UIShape {
         shapeScale2D[1] *= sy;
     }
 
+    public final void markDirty() {
+        dirty = DIRTY_SHAPE | DIRTY_REGION;
+    }
     public final boolean isShapeDirty() {
         return 0 != ( dirty & DIRTY_SHAPE ) ;
     }
@@ -204,7 +224,7 @@ public abstract class UIShape {
      */
     public void drawShape(GL2ES2 gl, RegionRenderer renderer, int[] sampleCount) {
         final float[] _color;
-        if( isPressed() || toggle ){
+        if( isPressed() || toggle ) {
             _color = selectedColor;
         } else {
             _color = color;
@@ -230,9 +250,9 @@ public abstract class UIShape {
             }
             dirty &= ~DIRTY_SHAPE;
             dirty |= DIRTY_REGION;
-            return true;
+            return false;
         }
-        return false;
+        return true;
     }
 
     private final void addToRegion(Region region) {
@@ -285,7 +305,7 @@ public abstract class UIShape {
     }
 
     public String toString() {
-        return getClass().getSimpleName()+"[enabled "+enabled+", box "+box+"]";
+        return getClass().getSimpleName()+"[enabled "+enabled+", "+translate[0]+" / "+translate[1]+", box "+box+"]";
     }
 
     //
@@ -331,8 +351,57 @@ public abstract class UIShape {
         mouseListeners = clonedListeners;
     }
 
-    public final void dispatchMouseEvent(MouseEvent e) {
-        e.setAttachment(this);
+    /**
+     * {@link UIShape} event details for propagated {@link NEWTEvent}s
+     * containing reference of {@link #shape the intended shape} as well as
+     * the {@link #rotPosition rotated relative position} and {@link #rotBounds bounding box}.
+     * The latter fields are also normalized to lower-left zero origin, allowing easier usage.
+     */
+    public static class EventDetails {
+        /** The intended {@link UIShape} instance for this event */
+        public final UIShape shape;
+        /** The {@link AABBox} of the intended {@link UIShape}, rotated about {@link UIShape#getRotation()} and normalized to lower-left zero origin.*/
+        public final AABBox rotBounds;
+        /** The relative mouse pointer position inside the intended {@link UIShape}, rotated about {@link UIShape#getRotation()} and normalized to lower-left zero origin. */
+        public final float[] rotPosition;
+
+        EventDetails(final UIShape shape, final AABBox rotatedBounds, final float[] rotatedRelPos) {
+            this.shape = shape;
+            this.rotBounds = rotatedBounds;
+            this.rotPosition = rotatedRelPos;
+        }
+
+        public String toString() {
+            return "EventDetails[pos "+rotPosition[0]+", "+rotPosition[1]+", "+rotPosition[2]+
+                                 ", "+rotBounds+", "+shape+"]";
+        }
+    }
+
+    /**
+     *
+     * @param e original Newt {@link MouseEvent}
+     * @param glX x-position in OpenGL model space
+     * @param glY x-position in OpenGL model space
+     */
+    public final void dispatchMouseEvent(final MouseEvent e, final int glX, final int glY) {
+        // rotate bounding box and normalize to 0/0
+        final Quaternion rot = getRotation();
+        final float[] bLow = new float[3];
+        VectorUtil.copyVec3(bLow, 0, getBounds().getLow(), 0);
+        VectorUtil.scaleVec3(bLow, bLow, -1f);
+        final AABBox rbox = new AABBox(getBounds());
+        rbox.translate(bLow);
+        rbox.rotate(rot);
+
+        // get unrotated relative position within shape, rotate and normalize to 0/0
+        final float[] relPos = new float[] { glX, glY, 0f };
+        VectorUtil.subVec3(relPos, relPos, getTranslate());
+        VectorUtil.addVec3(relPos, relPos, bLow);
+        rot.rotateVector(relPos, 0, relPos, 0);
+
+        // set as attachment
+        e.setAttachment(new EventDetails(this, rbox, relPos));
+
         for(int i = 0; !e.isConsumed() && i < mouseListeners.size(); i++ ) {
             final MouseListener l = mouseListeners.get(i);
             switch(e.getEventType()) {
@@ -346,9 +415,11 @@ public abstract class UIShape {
                     l.mouseExited(e);
                     break;
                 case MouseEvent.EVENT_MOUSE_PRESSED:
+                    markDirty();
                     l.mousePressed(e);
                     break;
                 case MouseEvent.EVENT_MOUSE_RELEASED:
+                    markDirty();
                     l.mouseReleased(e);
                     break;
                 case MouseEvent.EVENT_MOUSE_MOVED:
@@ -386,6 +457,7 @@ public abstract class UIShape {
         final float minY = box.getMinY();
         final float z = box.getMinZ() + 0.025f;
 
+        // CCW!
         shape.addVertex(minX,    minY,      z, true);
         shape.addVertex(minX+tw, minY,      z, true);
         shape.addVertex(minX+tw, minY + th, z, true);

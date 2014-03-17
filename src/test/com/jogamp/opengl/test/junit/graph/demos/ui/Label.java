@@ -103,6 +103,8 @@ public class Label extends UIShape {
     @Override
     protected void createShape(GL2ES2 gl, RegionRenderer renderer) {
         TextRegionUtil.processString(shapeVisitor, new AffineTransform(), font, pixelSize, text);
+        final float[] ctr = box.getCenter();
+        setRotationOrigin( ctr[0], ctr[1], ctr[2]);
     }
 
     @Override
