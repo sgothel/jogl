@@ -30,6 +30,7 @@ package com.jogamp.opengl.math.geom;
 import jogamp.graph.geom.plane.AffineTransform;
 
 import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.math.Ray;
 import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -56,14 +57,26 @@ public class AABBox implements Cloneable {
     private final float[] high = new float[3];
     private final float[] center = new float[3];
 
-    /** Create a Axis Aligned bounding box (AABBox)
+    /**
+     * Create an Axis Aligned bounding box (AABBox)
      * where the low and and high MAX float Values.
      */
     public AABBox() {
         reset();
     }
 
-    /** Create an AABBox specifying the coordinates
+    /**
+     * Create an AABBox copying all values from the given one
+     * @param src the box value to be used for the new instance
+     */
+    public AABBox(AABBox src) {
+        System.arraycopy(src.low, 0, low, 0, 3);
+        System.arraycopy(src.high, 0, high, 0, 3);
+        System.arraycopy(src.center, 0, center, 0, 3);
+    }
+
+    /**
+     * Create an AABBox specifying the coordinates
      * of the low and high
      * @param lx min x-coordinate
      * @param ly min y-coordnate
@@ -85,13 +98,17 @@ public class AABBox implements Cloneable {
         setSize(low[0],low[1],low[2], high[0],high[1],high[2]);
     }
 
-    /** resets this box to the inverse low/high, allowing the next {@link #resize(float, float, float)} command to hit. */
-    public final void reset() {
+    /**
+     * resets this box to the inverse low/high, allowing the next {@link #resize(float, float, float)} command to hit.
+     * @return this AABBox for chaining
+     */
+    public final AABBox reset() {
         setLow(Float.MAX_VALUE,Float.MAX_VALUE,Float.MAX_VALUE);
         setHigh(-1*Float.MAX_VALUE,-1*Float.MAX_VALUE,-1*Float.MAX_VALUE);
         center[0] = 0f;
         center[1] = 0f;
         center[2] = 0f;
+        return this;
     }
 
     /** Get the max xyz-coordinates
@@ -136,9 +153,10 @@ public class AABBox implements Cloneable {
      * @param hx max x-coordinate
      * @param hy max y-coordinate
      * @param hz max z-coordinate
+     * @return this AABBox for chaining
      */
-    public final void setSize(final float lx, final float ly, final float lz,
-                              final float hx, final float hy, final float hz) {
+    public final AABBox setSize(final float lx, final float ly, final float lz,
+                                final float hx, final float hy, final float hz) {
         this.low[0] = lx;
         this.low[1] = ly;
         this.low[2] = lz;
@@ -146,12 +164,15 @@ public class AABBox implements Cloneable {
         this.high[1] = hy;
         this.high[2] = hz;
         computeCenter();
+        return this;
     }
 
-    /** Resize the AABBox to encapsulate another AABox
+    /**
+     * Resize the AABBox to encapsulate another AABox
      * @param newBox AABBox to be encapsulated in
+     * @return this AABBox for chaining
      */
-    public final void resize(final AABBox newBox) {
+    public final AABBox resize(final AABBox newBox) {
         float[] newLow = newBox.getLow();
         float[] newHigh = newBox.getHigh();
 
@@ -172,9 +193,17 @@ public class AABBox implements Cloneable {
             high[2] = newHigh[2];
 
         computeCenter();
+        return this;
     }
 
-    public final void resize(final AABBox newBox, final AffineTransform t, final float[] tmpV3) {
+    /**
+     * Resize the AABBox to encapsulate another AABox, which will be <i>transformed</i> on the fly first.
+     * @param newBox AABBox to be encapsulated in
+     * @param t the {@link AffineTransform} applied on <i>newBox</i> on the fly
+     * @param tmpV3 temp float[3] storage
+     * @return this AABBox for chaining
+     */
+    public final AABBox resize(final AABBox newBox, final AffineTransform t, final float[] tmpV3) {
         /** test low */
         {
             final float[] newBoxLow = newBox.getLow();
@@ -202,15 +231,18 @@ public class AABBox implements Cloneable {
         }
 
         computeCenter();
+        return this;
     }
 
-    /** Resize the AABBox to encapsulate the passed
+    /**
+     * Resize the AABBox to encapsulate the passed
      * xyz-coordinates.
      * @param x x-axis coordinate value
      * @param y y-axis coordinate value
      * @param z z-axis coordinate value
+     * @return this AABBox for chaining
      */
-    public final void resize(final float x, final float y, final float z) {
+    public final AABBox resize(final float x, final float y, final float z) {
         /** test low */
         if (x < low[0]) {
             low[0] = x;
@@ -234,6 +266,7 @@ public class AABBox implements Cloneable {
         }
 
         computeCenter();
+        return this;
     }
 
     /**
@@ -241,18 +274,20 @@ public class AABBox implements Cloneable {
      * xyz-coordinates.
      * @param xyz xyz-axis coordinate values
      * @param offset of the array
+     * @return this AABBox for chaining
      */
-    public final void resize(final float[] xyz, final int offset) {
-        resize(xyz[0+offset], xyz[1+offset], xyz[2+offset]);
+    public final AABBox resize(final float[] xyz, final int offset) {
+        return resize(xyz[0+offset], xyz[1+offset], xyz[2+offset]);
     }
 
     /**
      * Resize the AABBox to encapsulate the passed
      * xyz-coordinates.
      * @param xyz xyz-axis coordinate values
+     * @return this AABBox for chaining
      */
-    public final void resize(final float[] xyz) {
-        resize(xyz[0], xyz[1], xyz[2]);
+    public final AABBox resize(final float[] xyz) {
+        return resize(xyz[0], xyz[1], xyz[2]);
     }
 
     /**
@@ -374,7 +409,8 @@ public class AABBox implements Cloneable {
     }
 
 
-    /** Get the size of the Box where the size is represented by the
+    /**
+     * Get the size of this AABBox where the size is represented by the
      * length of the vector between low and high.
      * @return a float representing the size of the AABBox
      */
@@ -382,7 +418,8 @@ public class AABBox implements Cloneable {
         return VectorUtil.vec3Distance(low, high);
     }
 
-    /**Get the Center of the AABBox
+    /**
+     * Get the Center of this AABBox
      * @return the xyz-coordinates of the center of the AABBox
      */
     public final float[] getCenter() {
@@ -390,11 +427,12 @@ public class AABBox implements Cloneable {
     }
 
     /**
-     * Scale the AABBox by a constant
+     * Scale this AABBox by a constant
      * @param size a constant float value
      * @param tmpV3 caller provided temporary 3-component vector
+     * @return this AABBox for chaining
      */
-    public final void scale(final float size, final float[] tmpV3) {
+    public final AABBox scale(final float size, final float[] tmpV3) {
         tmpV3[0] = high[0] - center[0];
         tmpV3[1] = high[1] - center[1];
         tmpV3[2] = high[2] - center[2];
@@ -408,16 +446,31 @@ public class AABBox implements Cloneable {
 
         VectorUtil.scaleVec3(tmpV3, tmpV3, size); // in-place scale
         VectorUtil.addVec3(low, center, tmpV3);
+        return this;
     }
 
     /**
-     * Translate the AABBox by a float[3] vector
+     * Translate this AABBox by a float[3] vector
      * @param t the float[3] translation vector
+     * @return this AABBox for chaining
      */
-    public final void translate(final float[] t) {
+    public final AABBox translate(final float[] t) {
         VectorUtil.addVec3(low, low, t); // in-place translate
         VectorUtil.addVec3(high, high, t); // in-place translate
         computeCenter();
+        return this;
+    }
+
+    /**
+     * Rotate this AABBox by a float[3] vector
+     * @param quat the {@link Quaternion} used for rotation
+     * @return this AABBox for chaining
+     */
+    public final AABBox rotate(final Quaternion quat) {
+        quat.rotateVector(low, 0, low, 0);
+        quat.rotateVector(high, 0, high, 0);
+        computeCenter();
+        return this;
     }
 
     public final float getMinX() {
@@ -458,7 +511,7 @@ public class AABBox implements Cloneable {
 
     @Override
     public final AABBox clone() {
-        return new AABBox(this.low, this.high);
+        return new AABBox(this);
     }
 
     @Override
