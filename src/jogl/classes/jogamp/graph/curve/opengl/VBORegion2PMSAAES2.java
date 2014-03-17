@@ -87,12 +87,18 @@ public class VBORegion2PMSAAES2  extends GLRegion {
 
     @Override
     protected final void clearImpl(final GL2ES2 gl, final RegionRenderer renderer) {
-        indicesTxtBuffer.seal(gl, false);
-        indicesTxtBuffer.rewind();
-        verticeTxtAttr.seal(gl, false);
-        verticeTxtAttr.rewind();
-        texCoordTxtAttr.seal(gl, false);
-        texCoordTxtAttr.rewind();
+        if( null != indicesTxtBuffer ) {
+            indicesTxtBuffer.seal(gl, false);
+            indicesTxtBuffer.rewind();
+        }
+        if( null != verticeTxtAttr ) {
+            verticeTxtAttr.seal(gl, false);
+            verticeTxtAttr.rewind();
+        }
+        if( null != texCoordTxtAttr ) {
+            texCoordTxtAttr.seal(gl, false);
+            texCoordTxtAttr.rewind();
+        }
     }
 
     @Override
