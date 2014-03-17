@@ -14,7 +14,6 @@ import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.Matrix;
 import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.math.Ray;
 import com.jogamp.opengl.math.VectorUtil;
@@ -132,8 +131,6 @@ public class SceneUIController implements GLEventListener{
         }
         return -1;
     }
-
-    final Matrix m = new Matrix();
 
     private void transformShape(final PMVMatrix pmv, final UIShape uiShape) {
         final float[] uiTranslate = uiShape.getTranslate();
