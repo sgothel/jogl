@@ -641,7 +641,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
             updated = false;
         }
         if(Region.DEBUG_INSTANCE) {
-            System.err.println("OutlineShape.getTriangles().2: "+triangles.size()+", updated "+updated);
+            System.err.println("OutlineShape.getTriangles().X: "+triangles.size()+", updated "+updated);
         }
         return triangles;
     }

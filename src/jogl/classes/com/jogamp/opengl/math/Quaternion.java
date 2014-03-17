@@ -185,10 +185,11 @@ public class Quaternion {
         if ( FloatUtil.isZero(norm, FloatUtil.EPSILON) ) {
             setIdentity();
         } else {
-            w /= norm;
-            x /= norm;
-            y /= norm;
-            z /= norm;
+            final float invNorm = 1f/norm;
+            w *= invNorm;
+            x *= invNorm;
+            y *= invNorm;
+            z *= invNorm;
         }
         return this;
     }
@@ -221,10 +222,11 @@ public class Quaternion {
         if ( FloatUtil.isEqual(1.0f, magnitudeSQ, FloatUtil.EPSILON) ) {
             conjugate();
         } else {
-            w /= magnitudeSQ;
-            x = -x / magnitudeSQ;
-            y = -y / magnitudeSQ;
-            z = -z / magnitudeSQ;
+            final float invmsq = 1f/magnitudeSQ;
+            w *= invmsq;
+            x = -x * invmsq;
+            y = -y * invmsq;
+            z = -z * invmsq;
         }
         return this;
     }
@@ -393,6 +395,61 @@ public class Quaternion {
                    -z * sin + w * cos);
     }
 
+    /**
+     * Rotates this quaternion from the given Euler rotation array <code>angradXYZ</code> in radians.
+     * <p>
+     * The <code>angradXYZ</code> array is laid out in natural order:
+     * <ul>
+     *  <li>x - bank</li>
+     *  <li>y - heading</li>
+     *  <li>z - attitude</li>
+     * </ul>
+     * </p>
+     * For details see {@link #rotateByEuler(float, float, float)}.
+     * @param angradXYZ euler angel array in radians
+     * @return this quaternion for chaining.
+     * @see #rotateByEuler(float, float, float)
+     */
+    public final Quaternion rotateByEuler(final float[] angradXYZ) {
+        return rotateByEuler(angradXYZ[0], angradXYZ[1], angradXYZ[2]);
+    }
+
+    /**
+     * Rotates this quaternion from the given Euler rotation angles in radians.
+     * <p>
+     * The rotations are applied in the given order and using chained rotation per axis:
+     * <ul>
+     *  <li>y - heading  - {@link #rotateByAngleY(float)}</li>
+     *  <li>z - attitude - {@link #rotateByAngleZ(float)}</li>
+     *  <li>x - bank     - {@link #rotateByAngleX(float)}</li>
+     * </ul>
+     * </p>
+     * <p>
+     * Implementation Details:
+     * <ul>
+     *   <li> {@link #setIdentity()} if all angles are {@link FloatUtil#isZero(float, float) is zero} using {@link FloatUtil#EPSILON epsilon}</li>
+     *   <li> result is {@link #normalize()}ed</li>
+     * </ul>
+     * </p>
+     * @param bankX the Euler pitch angle in radians. (rotation about the X axis)
+     * @param headingY the Euler yaw angle in radians. (rotation about the Y axis)
+     * @param attitudeZ the Euler roll angle in radians. (rotation about the Z axis)
+     * @return this quaternion for chaining.
+     * @see #rotateByAngleY(float)
+     * @see #rotateByAngleZ(float)
+     * @see #rotateByAngleX(float)
+     * @see #setFromEuler(float, float, float)
+     */
+    public final Quaternion rotateByEuler(final float bankX, final float headingY, float attitudeZ) {
+        if ( VectorUtil.isZero(bankX, headingY, attitudeZ, FloatUtil.EPSILON) ) {
+            return setIdentity();
+        } else {
+            // setFromEuler muls: ( 8 + 4 ) , + quat muls 24 = 36
+            // this:  8  + 8 + 8 + 4 = 28 muls
+            return rotateByAngleY(headingY).rotateByAngleZ(attitudeZ).rotateByAngleX(bankX).normalize();
+        }
+    }
+
     /***
      * Rotate the given vector by this quaternion
      *
@@ -525,7 +582,11 @@ public class Quaternion {
      * Implementation generates a 3x3 matrix
      * and is equal with ProjectFloat's lookAt(..).<br/>
      * </p>
-     *
+     * Implementation Details:
+     * <ul>
+     *   <li> result is {@link #normalize()}ed</li>
+     * </ul>
+     * </p>
      * @param directionIn where to <i>look</i> at
      * @param upIn a vector indicating the local <i>up</i> direction.
      * @param xAxisOut vector storing the <i>orthogonal</i> x-axis of the coordinate system.
@@ -764,27 +825,10 @@ public class Quaternion {
      *  <li>z - attitude</li>
      * </ul>
      * </p>
-     * <p>
-     * The rotations are applied in the given order:
-     * <ul>
-     *  <li>y - heading</li>
-     *  <li>z - attitude</li>
-     *  <li>x - bank</li>
-     * </ul>
-     * </p>
-     * <p>
-     * Implementation Details:
-     * <ul>
-     *   <li> {@link #setIdentity()} if all angles are {@link FloatUtil#isZero(float, float) is zero} using {@link FloatUtil#EPSILON epsilon}</li>
-     * </ul>
-     * </p>
+     * For details see {@link #setFromEuler(float, float, float)}.
      * @param angradXYZ euler angel array in radians
      * @return this quaternion for chaining.
-     * @see <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q60">Matrix-FAQ Q60</a>
-     * @see <a href="http://vered.rose.utoronto.ca/people/david_dir/GEMS/GEMS.html">Gems</a>
-     * @see <a href="http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/index.htm">euclideanspace.com-eulerToQuaternion</a>
      * @see #setFromEuler(float, float, float)
-     * @see #toEuler(float[])
      */
     public final Quaternion setFromEuler(final float[] angradXYZ) {
         return setFromEuler(angradXYZ[0], angradXYZ[1], angradXYZ[2]);
@@ -804,6 +848,7 @@ public class Quaternion {
      * Implementation Details:
      * <ul>
      *   <li> {@link #setIdentity()} if all angles are {@link FloatUtil#isZero(float, float) is zero} using {@link FloatUtil#EPSILON epsilon}</li>
+     *   <li> result is {@link #normalize()}ed</li>
      * </ul>
      * </p>
      * @param bankX the Euler pitch angle in radians. (rotation about the X axis)
@@ -1113,14 +1158,22 @@ public class Quaternion {
      * @return the result column-vector for chaining.
      */
     public float[] copyMatrixColumn(final int index, final float[] result, final int resultOffset) {
+        // pre-multipliy scaled-reciprocal-magnitude to reduce multiplications
         final float norm = magnitudeSquared();
-        final float s = norm == 1.0f ? 2.0f : norm > 0.0f ? 2.0f / norm : 0f;
+        final float srecip;
+        if ( FloatUtil.isZero(norm, FloatUtil.EPSILON) ) {
+            srecip= 0f;
+        } else if ( FloatUtil.isEqual(1f, norm, FloatUtil.EPSILON) ) {
+            srecip= 2f;
+        } else {
+            srecip= 2.0f / norm;
+        }
 
         // compute xs/ys/zs first to save 6 multiplications, since xs/ys/zs
         // will be used 2-4 times each.
-        final float xs = x * s;
-        final float ys = y * s;
-        final float zs = z * s;
+        final float xs = x * srecip;
+        final float ys = y * srecip;
+        final float zs = z * srecip;
         final float xx = x * xs;
         final float xy = x * ys;
         final float xz = x * zs;
@@ -1207,10 +1260,10 @@ public class Quaternion {
             return false;
         if (FloatUtil.abs(m[2] * m[2] + m[5] * m[5] + m[8] * m[8] - 1) > epsilon)
             return false;
-        return (FloatUtil.abs(determinant4f(m) - 1) < epsilon);
+        return (FloatUtil.abs(determinant3f(m) - 1) < epsilon);
     }
 
-    private final float determinant4f(float[] m) {
+    private final float determinant3f(float[] m) {
         return m[0] * m[4] * m[8] + m[3] * m[7] * m[2] + m[6] * m[1] * m[5]
              - m[0] * m[7] * m[5] - m[3] * m[1] * m[8] - m[6] * m[4] * m[2];
     }

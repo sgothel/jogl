@@ -199,6 +199,7 @@ public class FloatUtil {
   }
 
   /**
+   * Multiply matrix: [d] = [a] x [b]
    * @param a 4x4 matrix in column-major order
    * @param b 4x4 matrix in column-major order
    * @param d result a*b in column-major order
@@ -215,6 +216,7 @@ public class FloatUtil {
   }
 
   /**
+   * Multiply matrix: [a] = [a] x [b]
    * @param a 4x4 matrix in column-major order (also result)
    * @param b 4x4 matrix in column-major order
    */
@@ -231,6 +233,7 @@ public class FloatUtil {
   }
 
   /**
+   * Multiply matrix: [d] = [a] x [b]
    * @param a 4x4 matrix in column-major order
    * @param b 4x4 matrix in column-major order
    * @param d result a*b in column-major order
@@ -248,6 +251,7 @@ public class FloatUtil {
   }
 
   /**
+   * Multiply matrix: [d] = [a] x [b]
    * @param a 4x4 matrix in column-major order
    * @param b 4x4 matrix in column-major order
    * @param d result a*b in column-major order
@@ -266,6 +270,7 @@ public class FloatUtil {
   }
 
   /**
+   * Multiply matrix: [a] = [a] x [b]
    * @param a 4x4 matrix in column-major order (also result)
    * @param b 4x4 matrix in column-major order
    */
@@ -283,6 +288,7 @@ public class FloatUtil {
   }
 
   /**
+   * Multiply matrix: [d] = [a] x [b]
    * @param a 4x4 matrix in column-major order
    * @param b 4x4 matrix in column-major order
    * @param d result a*b in column-major order
@@ -302,6 +308,7 @@ public class FloatUtil {
   }
 
   /**
+   * Multiply matrix: [a] = [a] x [b]
    * @param a 4x4 matrix in column-major order (also result)
    * @param b 4x4 matrix in column-major order
    */
@@ -320,6 +327,7 @@ public class FloatUtil {
   }
 
   /**
+   * Multiply matrix: [d] = [a] x [b]
    * @param a 4x4 matrix in column-major order
    * @param b 4x4 matrix in column-major order
    * @param d result a*b in column-major order

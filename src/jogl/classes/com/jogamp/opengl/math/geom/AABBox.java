@@ -121,9 +121,9 @@ public class AABBox implements Cloneable {
     }
 
     private final void computeCenter() {
-        center[0] = (high[0] + low[0])/2;
-        center[1] = (high[1] + low[1])/2;
-        center[2] = (high[2] + low[2])/2;
+        center[0] = (high[0] + low[0])/2f;
+        center[1] = (high[1] + low[1])/2f;
+        center[2] = (high[2] + low[2])/2f;
     }
 
     /**
@@ -408,6 +408,16 @@ public class AABBox implements Cloneable {
 
         VectorUtil.scaleVec3(tmpV3, tmpV3, size); // in-place scale
         VectorUtil.addVec3(low, center, tmpV3);
+    }
+
+    /**
+     * Translate the AABBox by a float[3] vector
+     * @param t the float[3] translation vector
+     */
+    public final void translate(final float[] t) {
+        VectorUtil.addVec3(low, low, t); // in-place translate
+        VectorUtil.addVec3(high, high, t); // in-place translate
+        computeCenter();
     }
 
     public final float getMinX() {

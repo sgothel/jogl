@@ -31,6 +31,9 @@ import java.util.ArrayList;
 
 public class VectorUtil {
 
+    public static final float[] VEC3_ONE = { 1f, 1f, 1f };
+    public static final float[] VEC3_ZERO = { 0f, 0f, 0f };
+
     public enum Winding {
         CW(-1), CCW(1);
 
