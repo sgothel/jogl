@@ -88,12 +88,22 @@ public class VBORegion2PVBAAES2  extends GLRegion {
 
     @Override
     protected final void clearImpl(final GL2ES2 gl, final RegionRenderer renderer) {
-        indicesTxtBuffer.seal(gl, false);
-        indicesTxtBuffer.rewind();
-        verticeTxtAttr.seal(gl, false);
-        verticeTxtAttr.rewind();
-        texCoordTxtAttr.seal(gl, false);
-        texCoordTxtAttr.rewind();
+        if(DEBUG_INSTANCE) {
+            System.err.println("VBORegion2PES2 Clear: " + this);
+            // Thread.dumpStack();
+        }
+        if( null != indicesTxtBuffer ) {
+            indicesTxtBuffer.seal(gl, false);
+            indicesTxtBuffer.rewind();
+        }
+        if( null != verticeTxtAttr ) {
+            verticeTxtAttr.seal(gl, false);
+            verticeTxtAttr.rewind();
+        }
+        if( null != texCoordTxtAttr ) {
+            texCoordTxtAttr.seal(gl, false);
+            texCoordTxtAttr.rewind();
+        }
     }
 
     @Override
@@ -387,6 +397,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
     protected void destroyImpl(final GL2ES2 gl, final RegionRenderer renderer) {
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegion2PES2 Destroy: " + this);
+            // Thread.dumpStack();
         }
         final ShaderState st = renderer.getShaderState();
         if(null != fbo) {

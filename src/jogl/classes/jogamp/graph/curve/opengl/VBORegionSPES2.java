@@ -57,12 +57,21 @@ public class VBORegionSPES2 extends GLRegion {
 
     @Override
     protected final void clearImpl(final GL2ES2 gl, final RegionRenderer renderer) {
-        indicesBuffer.seal(gl, false);
-        indicesBuffer.rewind();
-        verticeAttr.seal(gl, false);
-        verticeAttr.rewind();
-        texCoordAttr.seal(gl, false);
-        texCoordAttr.rewind();
+        if(DEBUG_INSTANCE) {
+            System.err.println("VBORegionSPES2 Clear: " + this);
+        }
+        if( null != indicesBuffer ) {
+            indicesBuffer.seal(gl, false);
+            indicesBuffer.rewind();
+        }
+        if( null != verticeAttr ) {
+            verticeAttr.seal(gl, false);
+            verticeAttr.rewind();
+        }
+        if( null != texCoordAttr ) {
+            texCoordAttr.seal(gl, false);
+            texCoordAttr.rewind();
+        }
     }
 
     @Override
