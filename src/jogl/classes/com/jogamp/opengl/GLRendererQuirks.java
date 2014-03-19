@@ -30,6 +30,8 @@ package com.jogamp.opengl;
 import java.util.IdentityHashMap;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLDrawableFactory;
 
 import com.jogamp.common.os.Platform;
 
@@ -289,15 +291,38 @@ public class GLRendererQuirks {
      */
     public static final int SingletonEGLDisplayOnly = 16;
 
+    /**
+     * With certain drivers no reliable MSAA / FSAA
+     * {@link GLCapabilitiesImmutable#getSampleBuffers() multi}
+     * {@link GLCapabilitiesImmutable#getNumSamples() sampling} is available, read <i>a crash</i> may occur.
+     * <p>
+     * Appears on:
+     * <ul>
+     *   <li>GL_VENDOR       nouveau</li>
+     *   <li>GL_RENDERER     Gallium 0.4 on NV34</li>
+     * </ul>
+     * TODO: We have to determine the exact version range, i.e. not adding the quirk with fixed driver version!
+     * </p>
+     * TODO: Since we currently don't handle this quirk internally, a user may need to do the following:
+     * <pre>
+     * final AbstractGraphicsDevice adevice = GLDrawableFactory.getDesktopFactory(); // or similar
+     * if( GLRendererQuirks.existStickyDeviceQuirk(adevice, GLRendererQuirks.NoMultiSamplingBuffers) ) {
+     *    // don't use MSAA
+     * }
+     * </pre>
+     */
+    public static final int NoMultiSamplingBuffers  = 17;
+
     /** Number of quirks known. */
-    public static final int COUNT = 17;
+    public static final int COUNT = 18;
 
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
                                                           "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard",
                                                           "GLNonCompliant", "GLFlushBeforeRelease", "DontCloseX11Display",
                                                           "NeedCurrCtx4ARBPixFmtQueries", "NeedCurrCtx4ARBCreateContext",
                                                           "NoFullFBOSupport", "GLSLNonCompliant", "GL4NeedsGL3Request",
-                                                          "GLSharedContextBuggy", "GLES3ViaEGLES2Config", "SingletonEGLDisplayOnly"
+                                                          "GLSharedContextBuggy", "GLES3ViaEGLES2Config", "SingletonEGLDisplayOnly",
+                                                          "NoMultiSamplingBuffers"
                                                         };
 
     private static final IdentityHashMap<String, GLRendererQuirks> stickyDeviceQuirks = new IdentityHashMap<String, GLRendererQuirks>();

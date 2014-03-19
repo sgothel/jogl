@@ -1869,12 +1869,25 @@ public abstract class GLContextImpl extends GLContext {
           quirks[i++] = quirk;
         }
         if( glRenderer.contains( MesaRendererIntelsp ) &&
-            vendorVersion.compareTo(mesaIntelBuggySharedCtx921) >= 0 && isX11 ) {
+            vendorVersion.compareTo(mesaIntelBuggySharedCtx921) >= 0 && isX11 ) { // FIXME: When is it fixed ?
           final int quirk = GLRendererQuirks.GLSharedContextBuggy;
           if(DEBUG) {
               System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: X11 / Renderer " + glRenderer + " / Mesa-Version "+vendorVersion);
           }
           quirks[i++] = quirk;
+        }
+        if( glVendor.contains( "nouveau" )
+            // FIXME: && vendorVersion.compareTo(nouveauBuggyMSAAFixed) < 0
+          ) {
+          final int quirk = GLRendererQuirks.NoMultiSamplingBuffers;
+          if(DEBUG) {
+              System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: X11 / Renderer " + glRenderer + " / Vendor "+glVendor);
+          }
+          quirks[i++] = quirk;
+          if( withinGLVersionsMapping ) {
+              // Thread safe due to single threaded initialization!
+              GLRendererQuirks.addStickyDeviceQuirks(adevice, quirks, i-1, 1);
+          }
         }
         if( isWindows && glRenderer.contains("SVGA3D") ) {
             final VersionNumber mesaSafeFBOVersion = new VersionNumber(8, 0, 0);
