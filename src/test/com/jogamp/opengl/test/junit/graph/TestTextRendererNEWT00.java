@@ -167,6 +167,10 @@ public class TestTextRendererNEWT00 extends UITestCase {
     }
 
     @Test
+    public void test00SceneNoAA() throws InterruptedException {
+        testImpl(0, 0, 0);
+    }
+    @Test
     public void test01SceneMSAA01() throws InterruptedException {
         if( SceneMSAASamples > 0 ) {
             testImpl(SceneMSAASamples, 0, 0);
@@ -373,9 +377,11 @@ public class TestTextRendererNEWT00 extends UITestCase {
                     lfps, tfps, gl.getSwapInterval(), (t1-t0)/1000.0, fontSizeAnim,
                     drawable.getChosenGLCapabilities().getNumSamples(), modeS, vbaaSampleCount[0]);
 
-            if( false ) {
-                // renderString(drawable, font, pixelSize, getFontInfo(), 0, 0, 0, 0, -1000f, true);
-                renderString(drawable, font, pixelSize, textX2,        0, 0,   0, 0, -1000f, true);
+            if( true ) {
+                renderString(drawable, font, pixelSize, "I - / H P 7 0", 0, 0, 0, 0, -1000f, true);
+                // renderString(drawable, font, pixelSize, "I/- 0", 0, 0, 0, 0, -1000f, true);
+                // renderString(drawable, font, pixelSize, "012345678901234567890123456789", 0, 0, 0, -1000, true);
+                // renderString(drawable, font, pixelSize, textX2,        0, 0,   0, 0, -1000f, true);
                 // renderString(drawable, font, pixelSize, text1,         0,    0, 0, -1000f, regionFPS); // no-cache
             } else {
                 renderString(drawable, font, pixelSize, getFontInfo(),                    0, 0, 0, 0, -1000, true);

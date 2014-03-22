@@ -46,11 +46,11 @@ import com.jogamp.opengl.util.PMVMatrix;
  *  are on the curve. Demos the Res. Independent Nurbs based Curve rendering
  *
  */
-public class GPURegionGLListener01 extends GPURegionRendererListenerBase01 {
+public class GPURegionGLListener01 extends GPURendererListenerBase01 {
     OutlineShape outlineShape = null;
 
     public GPURegionGLListener01 (RenderState rs, int renderModes, int sampleCount, boolean debug, boolean trace) {
-        super(rs, renderModes, debug, trace);
+        super(RegionRenderer.create(rs, renderModes, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable), renderModes, debug, trace);
         setMatrix(-20, 00, -50, 0f, sampleCount);
     }
 

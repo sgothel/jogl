@@ -11,7 +11,13 @@
 
 void main(void)
 {
-  // gl_Position = gcu_PMVMatrix[0] * gcu_PMVMatrix[1] * vec4(gca_Vertices, 1);
-  gl_Position = gcu_PMVMatrix[0] * gcu_PMVMatrix[1] * gca_Vertices;
-  gcv_TexCoord = gca_TexCoords;
+    // gl_Position = gcu_PMVMatrix[0] * gcu_PMVMatrix[1] * vec4(gca_Vertices, 1);
+    gl_Position = gcu_PMVMatrix[0] * gcu_PMVMatrix[1] * gca_Vertices;
+    if( gcv_TexCoord.x <= -10.0 ) {
+        // const vec4 tc = gcu_PMVMatrix[0] * gcu_PMVMatrix[1] * vec4(gca_TexCoords.xy, gca_Vertices.z, 1);
+        // gcv_TexCoord = vec3(tc.xy, gca_TexCoords.z);
+        gcv_TexCoord = gca_TexCoords;
+    } else {
+        gcv_TexCoord = gca_TexCoords;
+    }
 }

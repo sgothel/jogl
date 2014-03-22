@@ -46,11 +46,11 @@ import com.jogamp.opengl.util.PMVMatrix;
  *  into one region
  *
  */
-public class GPURegionGLListener02 extends GPURegionRendererListenerBase01 {
+public class GPURegionGLListener02 extends GPURendererListenerBase01 {
     List<OutlineShape> outlineShapes = new ArrayList<OutlineShape>();
 
     public GPURegionGLListener02 (RenderState rs, int renderModes, int sampleCount, boolean debug, boolean trace) {
-        super(rs, renderModes, debug, trace);
+        super(RegionRenderer.create(rs, renderModes, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable), renderModes, debug, trace);
         setMatrix(-20, 00, -50, 0f, sampleCount);
     }
 

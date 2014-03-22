@@ -48,7 +48,7 @@ import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.graph.demos.GPURegionGLListener01;
 import com.jogamp.opengl.test.junit.graph.demos.GPURegionGLListener02;
-import com.jogamp.opengl.test.junit.graph.demos.GPURegionRendererListenerBase01;
+import com.jogamp.opengl.test.junit.graph.demos.GPURendererListenerBase01;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
@@ -247,9 +247,9 @@ public class TestRegionRendererNEWT01 extends UITestCase {
     private class RegionGLListener implements GLEventListener {
         String winTitle;
         String name;
-        GPURegionRendererListenerBase01 impl;
+        GPURendererListenerBase01 impl;
 
-        public RegionGLListener(GPURegionRendererListenerBase01 impl, String title, String name) {
+        public RegionGLListener(GPURendererListenerBase01 impl, String title, String name) {
             this.impl = impl;
             this.winTitle = title;
             this.name = name;

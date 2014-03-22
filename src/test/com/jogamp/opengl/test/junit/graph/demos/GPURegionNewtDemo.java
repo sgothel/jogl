@@ -25,6 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
+
 package com.jogamp.opengl.test.junit.graph.demos;
 
 import javax.media.opengl.GLCapabilities;
@@ -38,42 +39,86 @@ import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-public class GPUTextNewtDemo03 {
-    /**
-     * FIXME:
-     *
-     * If DEBUG is enabled:
-     *
-     * Caused by: javax.media.opengl.GLException: Thread[main-Display-X11_:0.0-1-EDT-1,5,main] glGetError() returned the following error codes after a call to glFramebufferRenderbuffer(<int> 0x8D40, <int> 0x1902, <int> 0x8D41, <int> 0x1): GL_INVALID_ENUM ( 1280 0x500),
-     * at javax.media.opengl.DebugGL4bc.checkGLGetError(DebugGL4bc.java:33961)
-     * at javax.media.opengl.DebugGL4bc.glFramebufferRenderbuffer(DebugGL4bc.java:33077)
-     * at jogamp.graph.curve.opengl.VBORegion2PGL3.initFBOTexture(VBORegion2PGL3.java:295)
-     */
+/** Demonstrate the rendering of multiple outlines into one region/OutlineShape
+ *  These Outlines are not necessary connected or contained.
+ *  The output of this demo shows two identical shapes but the left one
+ *  has some vertices with off-curve flag set to true, and the right allt he vertices
+ *  are on the curve. Demos the Res. Independent Nurbs based Curve rendering
+ *
+ */
+public class GPURegionNewtDemo {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
 
-    public static void main(String[] args) {
-        GLProfile glp = GLProfile.getGL2ES2();
+    static int SceneMSAASamples = 0;
+    static int GraphVBAASamples = 4;
+    static int GraphMSAASamples = 0;
+    static boolean GraphUseWeight = true;
 
+    public static void main(String[] args) {
+        if( 0 != args.length ) {
+            SceneMSAASamples = 0;
+            GraphMSAASamples = 0;
+            GraphVBAASamples = 0;
+            GraphUseWeight = false;
+
+            for(int i=0; i<args.length; i++) {
+                if(args[i].equals("-smsaa")) {
+                    i++;
+                    SceneMSAASamples = MiscUtils.atoi(args[i], SceneMSAASamples);
+                } else if(args[i].equals("-gmsaa")) {
+                    i++;
+                    GraphMSAASamples = MiscUtils.atoi(args[i], GraphMSAASamples);
+                    GraphVBAASamples = 0;
+                } else if(args[i].equals("-gvbaa")) {
+                    i++;
+                    GraphMSAASamples = 0;
+                    GraphVBAASamples = MiscUtils.atoi(args[i], GraphVBAASamples);
+                } else if(args[i].equals("-gweight")) {
+                    GraphUseWeight = true;
+                }
+            }
+        }
+        System.err.println("Scene MSAA Samples "+SceneMSAASamples);
+        System.err.println("Graph MSAA Samples"+GraphMSAASamples);
+        System.err.println("Graph VBAA Samples "+GraphVBAASamples);
+        System.err.println("Graph Weight Mode "+GraphUseWeight);
+
+        GLProfile glp = GLProfile.getGL2ES2();
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);
-        System.out.println("Requested: "+caps);
+        if( SceneMSAASamples > 0 ) {
+            caps.setSampleBuffers(true);
+            caps.setNumSamples(SceneMSAASamples);
+        }
+        System.out.println("Requested: " + caps);
+
+        int rmode = GraphUseWeight ? Region.VARIABLE_CURVE_WEIGHT_BIT : 0;
+        int sampleCount = 0;
+        if( GraphVBAASamples > 0 ) {
+            rmode |= Region.VBAA_RENDERING_BIT;
+            sampleCount += GraphVBAASamples;
+        } else if( GraphMSAASamples > 0 ) {
+            rmode |= Region.MSAA_RENDERING_BIT;
+            sampleCount += GraphMSAASamples;
+        }
 
         final GLWindow window = GLWindow.create(caps);
-
         window.setPosition(10, 10);
         window.setSize(800, 400);
-        window.setTitle("GPU Text Newt Demo 03 - gvbaa0 gmsaa4");
+        window.setTitle("GPU Curve Region Newt Demo - graph[vbaa"+GraphVBAASamples+" msaa"+GraphMSAASamples+"], msaa "+SceneMSAASamples);
 
         RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
-        GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(rs, Region.MSAA_RENDERING_BIT, 4, true, DEBUG, TRACE);
-        // ((TextRenderer)textGLListener.getRenderer()).setCacheLimit(32);
-        window.addGLEventListener(textGLListener);
+        GPURegionGLListener01 regionGLListener = new GPURegionGLListener01 (rs, rmode, sampleCount, DEBUG, TRACE);
+        regionGLListener.attachInputListenerTo(window);
+        window.addGLEventListener(regionGLListener);
         window.setVisible(true);
-        // FPSAnimator animator = new FPSAnimator(60);
+
+        //FPSAnimator animator = new FPSAnimator(60);
         final Animator animator = new Animator();
         animator.setUpdateFPSFrames(60, System.err);
         animator.add(window);

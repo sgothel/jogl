@@ -120,4 +120,8 @@ public class GraphVertex {
     public void setBoundaryContained(boolean boundaryContained) {
         this.boundaryContained = boundaryContained;
     }
+
+    public String toString() {
+        return "GraphVertex[contained "+boundaryContained+", "+point+"]";
+    }
 }

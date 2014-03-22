@@ -45,6 +45,20 @@ public class VectorUtil {
     }
 
     /**
+     * Copies a vector of length 2
+     * @param dst output vector
+     * @param dstOffset offset of dst in array
+     * @param src input vector
+     * @param srcOffset offset of src in array
+     * @return copied output vector for chaining
+     */
+    public static float[] copyVec2(final float[] dst, int dstOffset, final float[] src, int srcOffset)
+    {
+        System.arraycopy(src, srcOffset, dst, dstOffset, 2);
+        return dst;
+    }
+
+    /**
      * Copies a vector of length 3
      * @param dst output vector
      * @param dstOffset offset of dst in array
@@ -121,6 +135,13 @@ public class VectorUtil {
     /**
      * Return true if vector is zero, no {@link FloatUtil#EPSILON} is taken into consideration.
      */
+    public static boolean isVec2Zero(final float[] vec, final int vecOffset) {
+        return 0f == vec[0+vecOffset] && 0f == vec[1+vecOffset];
+    }
+
+    /**
+     * Return true if vector is zero, no {@link FloatUtil#EPSILON} is taken into consideration.
+     */
     public static boolean isVec3Zero(final float[] vec, final int vecOffset) {
         return 0f == vec[0+vecOffset] && 0f == vec[1+vecOffset] && 0f == vec[2+vecOffset];
     }
@@ -131,8 +152,29 @@ public class VectorUtil {
      * Implementation uses {@link FloatUtil#isZero(float, float)}, see API doc for details.
      * </p>
      */
+    public static boolean isVec2Zero(final float[] vec, final int vecOffset, final float epsilon) {
+        return isZero(vec[0+vecOffset], vec[1+vecOffset], epsilon);
+    }
+
+    /**
+     * Return true if vector is zero, i.e. it's absolute components < <code>epsilon</code>.
+     * <p>
+     * Implementation uses {@link FloatUtil#isZero(float, float)}, see API doc for details.
+     * </p>
+     */
     public static boolean isVec3Zero(final float[] vec, final int vecOffset, final float epsilon) {
         return isZero(vec[0+vecOffset], vec[1+vecOffset], vec[2+vecOffset], epsilon);
+    }
+
+    /**
+     * Return true if all two vector components are zero, i.e. it's their absolute value < <code>epsilon</code>.
+     * <p>
+     * Implementation uses {@link FloatUtil#isZero(float, float)}, see API doc for details.
+     * </p>
+     */
+    public static boolean isZero(final float x, final float y, final float epsilon) {
+        return FloatUtil.isZero(x, epsilon) &&
+               FloatUtil.isZero(y, epsilon) ;
     }
 
     /**
@@ -174,22 +216,39 @@ public class VectorUtil {
      * @param vec2 vector 2
      * @return the dot product as float
      */
-    public static float vec3Dot(final float[] vec1, final float[] vec2)
-    {
+    public static float vec3Dot(final float[] vec1, final float[] vec2)  {
         return vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2];
     }
 
     /**
-     * Compute the squared length of a vector, a.k.a the squared <i>norm</i>
+     * Compute the cos of the angle between to vectors
+     * @param vec1 vector 1
+     * @param vec2 vector 2
      */
-    public static float vec3LengthSquare(final float[] vec) {
+    public static float vec3CosAngle(final float[] vec1, final float[] vec2)  {
+        return vec3Dot(vec1, vec2) / ( vec3Norm(vec1) * vec3Norm(vec2) ) ;
+    }
+
+    /**
+     * Compute the angle between to vectors in radians
+     * @param vec1 vector 1
+     * @param vec2 vector 2
+     */
+    public static float vec3Angle(final float[] vec1, final float[] vec2)  {
+        return FloatUtil.acos(vec3CosAngle(vec1, vec2));
+    }
+
+    /**
+     * Compute the squared length of a vector, a.k.a the squared <i>norm</i> or squared <i>magnitude</i>
+     */
+    public static float vec3NormSquare(final float[] vec) {
         return vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2];
     }
     /**
-     * Compute the length of a vector, a.k.a the <i>norm</i>
+     * Compute the length of a vector, a.k.a the <i>norm</i> or <i>magnitude</i>
      */
-    public static float vec3Length(final float[] vec) {
-        return FloatUtil.sqrt(vec3LengthSquare(vec));
+    public static float vec3Norm(final float[] vec) {
+        return FloatUtil.sqrt(vec3NormSquare(vec));
     }
 
     /**
@@ -200,7 +259,7 @@ public class VectorUtil {
      * @return result vector for chaining
      */
     public static float[] normalizeVec3(final float[] result, final float[] vector) {
-        final float lengthSq = vec3LengthSquare(vector);
+        final float lengthSq = vec3NormSquare(vector);
         if ( FloatUtil.isZero(lengthSq, FloatUtil.EPSILON) ) {
             result[0] = 0f;
             result[1] = 0f;
@@ -220,7 +279,7 @@ public class VectorUtil {
      * @return normalized output vector
      */
     public static float[] normalizeVec3(final float[] vector) {
-        final float lengthSq = vec3LengthSquare(vector);
+        final float lengthSq = vec3NormSquare(vector);
         if ( FloatUtil.isZero(lengthSq, FloatUtil.EPSILON) ) {
             vector[0] = 0f;
             vector[1] = 0f;
@@ -274,6 +333,19 @@ public class VectorUtil {
         result[0] = v1[0] + v2[0];
         result[1] = v1[1] + v2[1];
         result[2] = v1[2] + v2[2];
+        return result;
+    }
+
+    /**
+     * Subtracts two vectors, result = v1 - v2
+     * @param result float[2] result vector, may be either v1 or v2 (in-place)
+     * @param v1 vector 1
+     * @param v2 vector 2
+     * @return result vector for chaining
+     */
+    public static float[] subVec2(final float[] result, final float[] v1, final float[] v2) {
+        result[0] = v1[0] - v2[0];
+        result[1] = v1[1] - v2[1];
         return result;
     }
 
@@ -342,7 +414,7 @@ public class VectorUtil {
      * @return midpoint
      */
     public static float mid(final float p1, final float p2) {
-        return (p1+p2)/2.0f;
+        return (p1+p2)*0.5f;
     }
 
     /**

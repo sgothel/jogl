@@ -258,7 +258,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         pmv.glLoadIdentity();
         pmv.glTranslatef(nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy), nearPlaneZ0);
         renderer.updateMatrix(gl);
-        System.err.printf("FontN: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
+        // System.err.printf("FontN: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
         textRegionUtil.drawString3D(gl, font, nearPlaneS * pixelSizeFName, fontName, getSampleCount());
 
         dx  =  10f;
@@ -267,7 +267,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         if(null != headtext) {
             pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
             pmv.glLoadIdentity();
-            System.err.printf("Head: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
+            // System.err.printf("Head: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
             pmv.glTranslatef(nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy), nearPlaneZ0);
             // pmv.glTranslatef(x0, y1, z0);
             renderer.updateMatrix(gl);
@@ -279,7 +279,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         pmv.glTranslatef(nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy), nearPlaneZ0);
-        System.err.printf("Bottom: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
+        // System.err.printf("Bottom: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
         pmv.glTranslatef(getXTran(), getYTran(), getZTran());
         pmv.glRotatef(getAngle(), 0, 1, 0);
         renderer.updateMatrix(gl);

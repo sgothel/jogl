@@ -48,7 +48,7 @@ public abstract class Region {
 
     /** Debug flag for region impl (graph.curve) */
     public static final boolean DEBUG = Debug.debug("graph.curve");
-    public static final boolean DEBUG_INSTANCE = Debug.debug("graph.curve.instance");
+    public static final boolean DEBUG_INSTANCE = Debug.debug("graph.curve.Instance");
 
     /**
      * Rendering-Mode bit for {@link Region#getRenderModes() Region} and {@link com.jogamp.graph.curve.opengl.RegionRenderer#getRenderModes() RegionRenderer}.

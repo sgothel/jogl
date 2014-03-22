@@ -39,14 +39,18 @@ import com.jogamp.opengl.math.VectorUtil;
 
 import jogamp.opengl.Debug;
 
-/** Constrained Delaunay Triangulation
+/**
+ * Constrained Delaunay Triangulation
  * implementation of a list of Outlines that define a set of
  * Closed Regions with optional n holes.
- *
  */
 public class CDTriangulator2D implements Triangulator {
 
-    protected static final boolean DEBUG = Debug.debug("Triangulation");
+    protected static final boolean DEBUG = Debug.debug("graph.curve.Triangulation");
+
+    private static final boolean TEST_LINE_AA = Debug.debug("graph.curve.triangulation.LINE_AA");
+    private static final boolean TEST_MARK_LINE = Debug.debug("graph.curve.triangulation.MARK_AA");
+    private static final boolean TEST_ENABLED = TEST_LINE_AA || TEST_MARK_LINE;
 
     private final ArrayList<Loop> loops = new ArrayList<Loop>();
 
@@ -89,7 +93,8 @@ public class CDTriangulator2D implements Triangulator {
 
     @Override
     public final void generate(List<Triangle> sink) {
-        for(int i=0;i<loops.size();i++) {
+        final int loopsSize = loops.size();
+        for(int i=0;i<loopsSize;i++) {
             final Loop loop = loops.get(i);
             int numTries = 0;
             int size = loop.computeLoopSize();
@@ -109,12 +114,12 @@ public class CDTriangulator2D implements Triangulator {
                     tri.setId(maxTriID++);
                     sink.add(tri);
                     if(DEBUG){
-                        System.err.println(tri);
+                        System.err.println("CDTri.gen["+i+"].0: "+tri);
                     }
                 }
                 if(numTries > size*2){
                     if(DEBUG){
-                        System.err.println("Triangulation not complete!");
+                        System.err.println("CDTri.gen["+i+"].X: Triangulation not complete!");
                     }
                     break;
                 }
@@ -122,6 +127,26 @@ public class CDTriangulator2D implements Triangulator {
             final Triangle tri = loop.cut(true);
             if(tri != null) {
                 sink.add(tri);
+                if(DEBUG){
+                    System.err.println("CDTri.gen["+i+"].1: "+tri);
+                }
+            }
+        }
+        if( TEST_ENABLED ) {
+            final float[] tempV2 = new float[2];
+            final CDTriangulator2DExpAddOn addOn = new CDTriangulator2DExpAddOn();
+            final int sinkSize = sink.size();
+            if( TEST_MARK_LINE ) {
+                for(int i=0; i<sinkSize; i++) {
+                    final Triangle t0 = sink.get(i);
+                    addOn.markLineInTriangle(t0, tempV2);
+                }
+            } else if ( TEST_LINE_AA ){
+                for(int i=0; i<sinkSize-1; i+=2) {
+                    final Triangle t0 = sink.get(i);
+                    final Triangle t1 = sink.get(i+1);
+                    /* final float[] rect =  */ addOn.processLineAA(i, t0, t1, tempV2);
+                }
             }
         }
     }
@@ -131,15 +156,15 @@ public class CDTriangulator2D implements Triangulator {
         final ArrayList<GraphVertex> outVertices = outline.getGraphPoint();
         final int size = outVertices.size();
         for(int i=0; i < size; i++) {
-            final GraphVertex currentVertex = outVertices.get(i);
-            final GraphVertex gv0 = outVertices.get((i+size-1)%size);
-            final GraphVertex gv2 = outVertices.get((i+1)%size);
-            final GraphVertex gv1 = currentVertex;
+            final GraphVertex gv1 = outVertices.get(i);               // currentVertex
+            final GraphVertex gv0 = outVertices.get((i+size-1)%size); // -1
+            final GraphVertex gv2 = outVertices.get((i+1)%size);      // +1
 
-            if( !currentVertex.getPoint().isOnCurve() ) {
+            if( !gv1.getPoint().isOnCurve() ) {
                 final Vertex v0 = gv0.getPoint().clone();
                 final Vertex v2 = gv2.getPoint().clone();
                 final Vertex v1 = gv1.getPoint().clone();
+                final boolean[] boundaryVertices = { true, true, true };
 
                 gv0.setBoundaryContained(true);
                 gv1.setBoundaryContained(true);
@@ -149,10 +174,10 @@ public class CDTriangulator2D implements Triangulator {
                 final boolean holeLike;
                 if(VectorUtil.ccw(v0,v1,v2)) {
                     holeLike = false;
-                    t = new Triangle(v0, v1, v2);
+                    t = new Triangle(v0, v1, v2, boundaryVertices);
                 } else {
                     holeLike = true;
-                    t = new Triangle(v2, v1, v0);
+                    t = new Triangle(v2, v1, v0, boundaryVertices);
                 }
                 t.setId(maxTriID++);
                 sink.add(t);
@@ -160,20 +185,26 @@ public class CDTriangulator2D implements Triangulator {
                     System.err.println(t);
                 }
                 if( hole || holeLike ) {
-                    v0.setTexCoord(0, -0.1f);
-                    v2.setTexCoord(1, -0.1f);
-                    v1.setTexCoord(0.5f, -1*sharpness-0.1f);
-                    innerOutline.addVertex(currentVertex);
+                    v0.setTexCoord(0.0f,           -0.1f, 0f);
+                    v2.setTexCoord(1.0f,           -0.1f, 0f);
+                    v1.setTexCoord(0.5f, -sharpness-0.1f, 0f);
+                    innerOutline.addVertex(gv1);
                 } else {
-                    v0.setTexCoord(0, 0.1f);
-                    v2.setTexCoord(1, 0.1f);
-                    v1.setTexCoord(0.5f, sharpness+0.1f);
+                    v0.setTexCoord(0.0f,            0.1f, 0f);
+                    v2.setTexCoord(1.0f,            0.1f, 0f);
+                    v1.setTexCoord(0.5f,  sharpness+0.1f, 0f);
+                }
+                if(DEBUG) {
+                    System.err.println("CDTri.ebt["+i+"].0: hole "+(hole || holeLike)+" "+gv1+", "+t);
                 }
             } else {
                 if( !gv2.getPoint().isOnCurve() || !gv0.getPoint().isOnCurve() ) {
-                    currentVertex.setBoundaryContained(true);
+                    gv1.setBoundaryContained(true);
                 }
-                innerOutline.addVertex(currentVertex);
+                innerOutline.addVertex(gv1);
+                if(DEBUG) {
+                    System.err.println("CDTri.ebt["+i+"].1: "+gv1);
+                }
             }
         }
         return innerOutline;

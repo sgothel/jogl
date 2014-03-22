@@ -27,6 +27,8 @@
  */
 package com.jogamp.graph.geom;
 
+import com.jogamp.opengl.math.VectorUtil;
+
 import jogamp.graph.geom.plane.AffineTransform;
 
 public class Triangle {
@@ -35,31 +37,29 @@ public class Triangle {
     private boolean[] boundaryVertices = null;
     private int id;
 
-    public Triangle(Vertex v1, Vertex v2, Vertex v3) {
+    public Triangle(final Vertex v1, final Vertex v2, final Vertex v3, final boolean[] boundaryVertices) {
         id = Integer.MAX_VALUE;
         vertices[0] = v1;
         vertices[1] = v2;
         vertices[2] = v3;
+        this.boundaryVertices = boundaryVertices;
     }
 
-    public Triangle(Triangle src) {
+    public Triangle(final Triangle src) {
         id = src.id;
         vertices[0] = src.vertices[0].clone();
         vertices[1] = src.vertices[1].clone();
         vertices[2] = src.vertices[2].clone();
         System.arraycopy(src.boundaryEdges, 0, boundaryEdges, 0, 3);
-        boundaryVertices = src.boundaryVertices;
+        boundaryVertices = new boolean[3];
+        System.arraycopy(src.boundaryVertices, 0, boundaryVertices, 0, 3);
     }
 
     private Triangle(final int id, final boolean[] boundaryEdges, final boolean[] boundaryVertices){
         this.id = id;
         System.arraycopy(boundaryEdges, 0, this.boundaryEdges, 0, 3);
-        this.boundaryVertices = boundaryVertices;
-        /**
-        if( null != boundaryVertices ) {
-            this.boundaryVertices = new boolean[3];
-            System.arraycopy(boundaryVertices, 0, this.boundaryVertices, 0, 3);
-        } */
+        this.boundaryVertices = new boolean[3];
+        System.arraycopy(boundaryVertices, 0, this.boundaryVertices, 0, 3);
     }
 
     /**
@@ -71,6 +71,22 @@ public class Triangle {
         tri.vertices[1] = t.transform(vertices[1], vertexFactory.create());
         tri.vertices[2] = t.transform(vertices[2], vertexFactory.create());
         return tri;
+    }
+
+    /**
+     * Returns true if all vertices are on-curve, otherwise false.
+     */
+    public final boolean isOnCurve() {
+        return vertices[0].isOnCurve() && vertices[1].isOnCurve() && vertices[2].isOnCurve();
+    }
+
+    /**
+     * Returns true if all vertices are lines, i.e. zero tex-coord, otherwise false.
+     */
+    public final boolean isLine() {
+        return VectorUtil.isVec2Zero(vertices[0].getTexCoord(), 0) &&
+               VectorUtil.isVec2Zero(vertices[1].getTexCoord(), 0) &&
+               VectorUtil.isVec2Zero(vertices[2].getTexCoord(), 0) ;
     }
 
     public int getId() {
@@ -108,6 +124,9 @@ public class Triangle {
 
     @Override
     public String toString() {
-        return "Tri ID: " + id + "\n\t" +  vertices[0]  + "\n\t" +  vertices[1] + "\n\t" +  vertices[2];
+        return "Tri ID: " + id + ", onCurve "+isOnCurve()+"\n\t" +
+                            vertices[0]  + ", bound "+boundaryVertices[0]+"\n\t" +
+                            vertices[1]  + ", bound "+boundaryVertices[1]+"\n\t" +
+                            vertices[2]  + ", bound "+boundaryVertices[2];
     }
 }

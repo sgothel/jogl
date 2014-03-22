@@ -81,7 +81,7 @@ public class VBORegion2PMSAAES2  extends GLRegion {
         indicesTxtBuffer = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialElementCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
         verticeTxtAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL2ES2.GL_FLOAT,
                                                       false, initialElementCount, GL.GL_STATIC_DRAW);
-        texCoordTxtAttr = GLArrayDataServer.createGLSL(AttributeNames.TEXCOORD_ATTR_NAME, 2, GL2ES2.GL_FLOAT,
+        texCoordTxtAttr = GLArrayDataServer.createGLSL(AttributeNames.TEXCOORD_ATTR_NAME, 3, GL2ES2.GL_FLOAT,
                                                        false, initialElementCount, GL.GL_STATIC_DRAW);
     }
 
@@ -109,6 +109,7 @@ public class VBORegion2PMSAAES2  extends GLRegion {
 
         texCoordTxtAttr.putf(texParams[0]);
         texCoordTxtAttr.putf(texParams[1]);
+        texCoordTxtAttr.putf(texParams[2]);
     }
 
     @Override

@@ -38,10 +38,11 @@ import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-public class GPUTextNewtDemo02 {
+public class GPUTextNewtDemo {
     /**
      * FIXME:
      *
@@ -55,31 +56,62 @@ public class GPUTextNewtDemo02 {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
 
+    static int SceneMSAASamples = 0;
+    static int GraphVBAASamples = 4;
+    static int GraphMSAASamples = 0;
+
     public static void main(String[] args) {
-        boolean alpha = true;
-        boolean blending = true;
-        for(int i=0; i<args.length; i++) {
-            if(args[i].equals("-noblend")) {
-                blending = false;
-            } else if(args[i].equals("-noalpha")) {
-                alpha = false;
+        if( 0 != args.length ) {
+            SceneMSAASamples = 0;
+            GraphMSAASamples = 0;
+            GraphVBAASamples = 0;
+
+            for(int i=0; i<args.length; i++) {
+                if(args[i].equals("-smsaa")) {
+                    i++;
+                    SceneMSAASamples = MiscUtils.atoi(args[i], SceneMSAASamples);
+                } else  if(args[i].equals("-gmsaa")) {
+                    i++;
+                    GraphMSAASamples = MiscUtils.atoi(args[i], GraphMSAASamples);
+                    GraphVBAASamples = 0;
+                } else if(args[i].equals("-gvbaa")) {
+                    i++;
+                    GraphMSAASamples = 0;
+                    GraphVBAASamples = MiscUtils.atoi(args[i], GraphVBAASamples);
+                }
             }
         }
+        System.err.println("Scene MSAA Samples "+SceneMSAASamples);
+        System.err.println("Graph MSAA Samples "+GraphMSAASamples);
+        System.err.println("Graph VBAA Samples "+GraphVBAASamples);
 
-        final GLProfile glp = GLProfile.getGL2ES2();
+        GLProfile glp = GLProfile.getGL2ES2();
 
         GLCapabilities caps = new GLCapabilities(glp);
-        caps.setAlphaBits( alpha ? 4 : 0 );
-        System.out.println("Requested: "+caps);
+        caps.setAlphaBits(4);
+        if( SceneMSAASamples > 0 ) {
+            caps.setSampleBuffers(true);
+            caps.setNumSamples(SceneMSAASamples);
+        }
+        System.out.println("Requested: " + caps);
+
+        int rmode = Region.VARIABLE_CURVE_WEIGHT_BIT;
+        int sampleCount = 0;
+        if( GraphVBAASamples > 0 ) {
+            rmode |= Region.VBAA_RENDERING_BIT;
+            sampleCount += GraphVBAASamples;
+        } else if( GraphMSAASamples > 0 ) {
+            rmode |= Region.MSAA_RENDERING_BIT;
+            sampleCount += GraphMSAASamples;
+        }
 
         final GLWindow window = GLWindow.create(caps);
-
         window.setPosition(10, 10);
         window.setSize(800, 400);
-        window.setTitle("GPU Text Newt Demo 02 - gvbaa4 gmsaa0");
+        window.setTitle("GPU Text Newt Demo - graph[vbaa"+GraphVBAASamples+" msaa"+GraphMSAASamples+"], msaa "+SceneMSAASamples);
 
         RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
-        GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(rs, Region.VBAA_RENDERING_BIT, 4, blending, DEBUG, TRACE);
+        GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(rs, rmode, sampleCount, true, DEBUG, TRACE);
         // ((TextRenderer)textGLListener.getRenderer()).setCacheLimit(32);
         window.addGLEventListener(textGLListener);
         window.setVisible(true);

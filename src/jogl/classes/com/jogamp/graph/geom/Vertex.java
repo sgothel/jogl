@@ -69,7 +69,7 @@ public interface Vertex extends Vert3fImmutable, Cloneable {
 
     float[] getTexCoord();
 
-    void setTexCoord(float s, float t);
+    void setTexCoord(float s, float t, float p);
 
     /**
      * @see System#arraycopy(Object, int, Object, int, int) for thrown IndexOutOfBoundsException

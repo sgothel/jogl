@@ -121,20 +121,22 @@ public abstract class RegionRenderer {
         return new jogamp.graph.curve.opengl.RegionRendererImpl01(rs, renderModes, enableCallback, disableCallback);
     }
 
-    protected final int renderModes;
-    protected final RenderState rs;
+    private final int renderModes;
+    private final RenderState rs;
 
-    protected final GLCallback enableCallback;
-    protected final GLCallback disableCallback;
+    private final GLCallback enableCallback;
+    private final GLCallback disableCallback;
 
-    protected int vp_width;
-    protected int vp_height;
-    protected boolean initialized;
+    private int vp_width;
+    private int vp_height;
+    private boolean initialized;
     private boolean vboSupported = false;
 
     public final boolean isInitialized() { return initialized; }
 
+    /** Return width of current viewport */
     public final int getWidth() { return vp_width; }
+    /** Return height of current viewport */
     public final int getHeight() { return vp_height; }
 
     public final float getWeight() { return rs.getWeight().floatValue(); }

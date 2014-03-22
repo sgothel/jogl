@@ -47,7 +47,7 @@ public class RegionRendererImpl01 extends RegionRenderer {
 
     @Override
     protected final boolean initImpl(GL2ES2 gl) {
-        final ShaderState st = rs.getShaderState();
+        final ShaderState st = getShaderState();
 
         final ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, RegionRendererImpl01.class, "shader",
                                                   "shader/bin", getVertexShaderName(), true);

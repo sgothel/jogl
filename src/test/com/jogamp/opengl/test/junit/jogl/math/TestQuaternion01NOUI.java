@@ -786,11 +786,11 @@ public class TestQuaternion01NOUI {
         if( DEBUG )System.err.println("quat0 "+quat);
         quat.rotateVector(vecHas, 0, UNIT_Z, 0);
         if( DEBUG ) {
-            System.err.println("xAxis "+Arrays.toString(xAxis)+", len "+VectorUtil.vec3Length(xAxis));
-            System.err.println("yAxis "+Arrays.toString(yAxis)+", len "+VectorUtil.vec3Length(yAxis));
-            System.err.println("zAxis "+Arrays.toString(zAxis)+", len "+VectorUtil.vec3Length(zAxis));
-            System.err.println("exp0 "+Arrays.toString(direction)+", len "+VectorUtil.vec3Length(direction));
-            System.err.println("has0 "+Arrays.toString(vecHas)+", len "+VectorUtil.vec3Length(vecHas));
+            System.err.println("xAxis "+Arrays.toString(xAxis)+", len "+VectorUtil.vec3Norm(xAxis));
+            System.err.println("yAxis "+Arrays.toString(yAxis)+", len "+VectorUtil.vec3Norm(yAxis));
+            System.err.println("zAxis "+Arrays.toString(zAxis)+", len "+VectorUtil.vec3Norm(zAxis));
+            System.err.println("exp0 "+Arrays.toString(direction)+", len "+VectorUtil.vec3Norm(direction));
+            System.err.println("has0 "+Arrays.toString(vecHas)+", len "+VectorUtil.vec3Norm(vecHas));
         }
         // Assert.assertEquals(0f, VectorUtil.distance(direction, quat.rotateVector(vecHas, 0, UNIT_Z, 0)), Quaternion.ALLOWED_DEVIANCE);
         Assert.assertEquals(0f, VectorUtil.vec3Distance(direction, vecHas), Quaternion.ALLOWED_DEVIANCE);
@@ -801,11 +801,11 @@ public class TestQuaternion01NOUI {
         if( DEBUG )System.err.println("quat0 "+quat);
         quat.rotateVector(vecHas, 0, UNIT_Z, 0);
         if( DEBUG ) {
-            System.err.println("xAxis "+Arrays.toString(xAxis)+", len "+VectorUtil.vec3Length(xAxis));
-            System.err.println("yAxis "+Arrays.toString(yAxis)+", len "+VectorUtil.vec3Length(yAxis));
-            System.err.println("zAxis "+Arrays.toString(zAxis)+", len "+VectorUtil.vec3Length(zAxis));
-            System.err.println("exp0 "+Arrays.toString(direction)+", len "+VectorUtil.vec3Length(direction));
-            System.err.println("has0 "+Arrays.toString(vecHas)+", len "+VectorUtil.vec3Length(vecHas));
+            System.err.println("xAxis "+Arrays.toString(xAxis)+", len "+VectorUtil.vec3Norm(xAxis));
+            System.err.println("yAxis "+Arrays.toString(yAxis)+", len "+VectorUtil.vec3Norm(yAxis));
+            System.err.println("zAxis "+Arrays.toString(zAxis)+", len "+VectorUtil.vec3Norm(zAxis));
+            System.err.println("exp0 "+Arrays.toString(direction)+", len "+VectorUtil.vec3Norm(direction));
+            System.err.println("has0 "+Arrays.toString(vecHas)+", len "+VectorUtil.vec3Norm(vecHas));
         }
         // Assert.assertEquals(0f, VectorUtil.distance(direction, quat.rotateVector(vecHas, 0, UNIT_Z, 0)), Quaternion.ALLOWED_DEVIANCE);
         Assert.assertEquals(0f, VectorUtil.vec3Distance(direction, vecHas), Quaternion.ALLOWED_DEVIANCE);

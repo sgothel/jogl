@@ -36,9 +36,9 @@ import com.jogamp.opengl.math.VectorUtil;
  */
 public class SVertex implements Vertex {
     private int id;
-    protected final float[] coord = new float[3];
     protected boolean onCurve;
-    private final float[] texCoord = new float[2];
+    protected final float[] coord = new float[3];
+    private final float[] texCoord = new float[3];
 
     static final Factory factory = new Factory();
 
@@ -78,13 +78,13 @@ public class SVertex implements Vertex {
         this.id = src.getId();
         System.arraycopy(src.getCoord(), 0, coord, 0, 3);
         setOnCurve(src.isOnCurve());
-        System.arraycopy(src.getTexCoord(), 0, texCoord, 0, 2);
+        System.arraycopy(src.getTexCoord(), 0, texCoord, 0, 3);
     }
 
     public SVertex(final int id, final boolean onCurve, final float[] texCoordsBuffer) {
         this.id = id;
         this.onCurve = onCurve;
-        System.arraycopy(texCoordsBuffer, 0, texCoord, 0, 2);
+        System.arraycopy(texCoordsBuffer, 0, texCoord, 0, 3);
     }
 
     public SVertex(final float x, final float y, final float z, final boolean onCurve) {
@@ -102,7 +102,7 @@ public class SVertex implements Vertex {
     public SVertex(float[] coordsBuffer, float[] texCoordsBuffer, boolean onCurve) {
         this.id = Integer.MAX_VALUE;
         System.arraycopy(coordsBuffer, 0, coord, 0, 3);
-        System.arraycopy(texCoordsBuffer, 0, texCoord, 0, 2);
+        System.arraycopy(texCoordsBuffer, 0, texCoord, 0, 3);
         setOnCurve(onCurve);
     }
 
@@ -189,7 +189,7 @@ public class SVertex implements Vertex {
         final Vertex v = (Vertex) obj;
         return this == v ||
                isOnCurve() == v.isOnCurve() &&
-               VectorUtil.isVec2Equal(getTexCoord(), 0, v.getTexCoord(), 0, FloatUtil.EPSILON) &&
+               VectorUtil.isVec3Equal(getTexCoord(), 0, v.getTexCoord(), 0, FloatUtil.EPSILON) &&
                VectorUtil.isVec3Equal(getCoord(), 0, v.getCoord(), 0, FloatUtil.EPSILON) ;
     }
 
@@ -199,9 +199,10 @@ public class SVertex implements Vertex {
     }
 
     @Override
-    public final void setTexCoord(float s, float t) {
+    public final void setTexCoord(float s, float t, float p) {
         texCoord[0] = s;
         texCoord[1] = t;
+        texCoord[2] = p;
     }
 
     @Override
@@ -221,6 +222,6 @@ public class SVertex implements Vertex {
     public String toString() {
         return "[ID: " + id + ", onCurve: " + onCurve +
                ": p " + coord[0] + ", " + coord[1] + ", " + coord[2] +
-               ", t " + texCoord[0] + ", " + texCoord[1] + "]";
+               ", t " + texCoord[0] + ", " + texCoord[1] + ", " + texCoord[2] + "]";
     }
 }

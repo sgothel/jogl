@@ -490,6 +490,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         }
 
         renderer = RegionRenderer.create(rs, renderModes, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
+        // renderer = RegionRenderer.create(rs, renderModes, null, null);
 
         gl.setSwapInterval(1);
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);

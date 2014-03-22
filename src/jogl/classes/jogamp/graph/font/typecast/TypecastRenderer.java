@@ -29,6 +29,7 @@ package jogamp.graph.font.typecast;
 
 import jogamp.graph.font.typecast.ot.OTGlyph;
 import jogamp.graph.font.typecast.ot.Point;
+import jogamp.opengl.Debug;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.geom.Vertex;
@@ -42,7 +43,7 @@ import com.jogamp.graph.geom.Vertex.Factory;
  * http://walon.org/pub/ttf/ttf_glyphs.htm
  */
 public class TypecastRenderer {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = Debug.debug("graph.font.Renderer");
 
     private static void addShapeMoveTo(final OutlineShape shape, Factory<? extends Vertex> vertexFactory, Point p1) {
         shape.closeLastOutline(false);

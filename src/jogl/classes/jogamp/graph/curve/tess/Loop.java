@@ -49,25 +49,23 @@ public class Loop {
         return root;
     }
 
-    public Triangle cut(boolean delaunay){
+    public Triangle cut(final boolean delaunay){
         if(isSimplex()){
-            Triangle t = new Triangle(root.getGraphPoint().getPoint(), root.getNext().getGraphPoint().getPoint(),
-                    root.getNext().getNext().getGraphPoint().getPoint());
-            t.setVerticesBoundary(checkVerticesBoundary(root));
-            return t;
+            return new Triangle(root.getGraphPoint().getPoint(), root.getNext().getGraphPoint().getPoint(),
+                                root.getNext().getNext().getGraphPoint().getPoint(), checkVerticesBoundary(root));
         }
-        HEdge prev = root.getPrev();
-        HEdge next1 = root.getNext();
+        final HEdge prev = root.getPrev();
+        final HEdge next1 = root.getNext();
 
-        HEdge next2 = findClosestValidNeighbor(next1.getNext(), delaunay);
+        final HEdge next2 = findClosestValidNeighbor(next1.getNext(), delaunay);
         if(next2 == null){
             root = root.getNext();
             return null;
         }
 
-        GraphVertex v1 = root.getGraphPoint();
-        GraphVertex v2 = next1.getGraphPoint();
-        GraphVertex v3 = next2.getGraphPoint();
+        final GraphVertex v1 = root.getGraphPoint();
+        final GraphVertex v2 = next1.getGraphPoint();
+        final GraphVertex v3 = next2.getGraphPoint();
 
         HEdge v3Edge = new HEdge(v3, HEdge.INNER);
 
@@ -83,7 +81,7 @@ public class Loop {
         HEdge.connect(prev, v3EdgeSib);
         HEdge.connect(v3EdgeSib, next2);
 
-        Triangle t = createTriangle(v1.getPoint(), v2.getPoint(), v3.getPoint(), root);
+        final Triangle t = createTriangle(v1.getPoint(), v2.getPoint(), v3.getPoint(), root);
         this.root = next2;
         return t;
     }
@@ -272,24 +270,18 @@ public class Loop {
      * @return the triangle iff it satisfies, null otherwise
      */
     private Triangle createTriangle(Vertex v1, Vertex v2, Vertex v3, HEdge rootT){
-        final Triangle t = new Triangle(v1, v2, v3);
-        t.setVerticesBoundary(checkVerticesBoundary(rootT));
-        return t;
+        return new Triangle(v1, v2, v3, checkVerticesBoundary(rootT));
     }
 
-    private boolean[] checkVerticesBoundary(HEdge rootT) {
+    private boolean[] checkVerticesBoundary(final HEdge rootT) {
         final boolean[] boundary = new boolean[3];
-        HEdge e1 = rootT;
-        HEdge e2 = rootT.getNext();
-        HEdge e3 = rootT.getNext().getNext();
-
-        if(e1.getGraphPoint().isBoundaryContained()){
+        if(rootT.getGraphPoint().isBoundaryContained()){
                 boundary[0] = true;
         }
-        if(e2.getGraphPoint().isBoundaryContained()){
+        if(rootT.getNext().getGraphPoint().isBoundaryContained()){
                 boundary[1] = true;
         }
-        if(e3.getGraphPoint().isBoundaryContained()){
+        if(rootT.getNext().getNext().getGraphPoint().isBoundaryContained()){
                 boundary[2] = true;
         }
         return boundary;
