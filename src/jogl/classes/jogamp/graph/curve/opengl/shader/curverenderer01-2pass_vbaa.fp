@@ -26,7 +26,7 @@ void main (void)
 
     // Note: gcu_Alpha is multiplied in pass2!
     
-    if( 0 < gcu_TextureSize.z ) {
+    if( 0.0 < gcu_TextureSize.z ) {
 
 // Quality: allsamples > [flipquad,rgss, quincunx] > poles
 #include curverenderer01-pass2-vbaa_allsamples_equal.glsl

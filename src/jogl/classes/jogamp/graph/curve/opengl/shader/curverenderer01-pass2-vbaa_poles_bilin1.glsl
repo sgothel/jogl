@@ -1,11 +1,11 @@
         // Pass-2: AA on Texture
         // Note: gcv_TexCoord is in center of sample pixels.
 
-        const vec2 texCoord = gcv_TexCoord.st;
+        vec2 texCoord = gcv_TexCoord.st;
 
-        const float sampleCount = gcu_TextureSize.z;
-        const vec2 tsize = gcu_TextureSize.xy; // tex size
-        const vec2 psize = 1.0 / gcu_TextureSize.xy; // pixel size
+        float sampleCount = gcu_TextureSize.z;
+        vec2 tsize = gcu_TextureSize.xy; // tex size
+        vec2 psize = 1.0 / gcu_TextureSize.xy; // pixel size
 
         // mix(x,y,a): x*(1-a) + y*a
         //
@@ -17,16 +17,16 @@
         //
         // so we can use the build in mix function for these 2 computations ;-)
         //
-        const vec2 uv_ratio     = fract(texCoord*tsize); // texCoord*tsize - floor(texCoord*tsize);
+        vec2 uv_ratio     = fract(texCoord*tsize); // texCoord*tsize - floor(texCoord*tsize);
 
         // Just poles (NW, SW, ..)
-        const float pixelCount = 2 * sampleCount;
+        float pixelCount = 2 * sampleCount;
 
         // sampleCount [0, 1, 3, 5, 7] are undefined!
-        const float layerCount = ( sampleCount / 2.0 );
+        float layerCount = ( sampleCount / 2.0 );
 
         // sum of all integer [layerCount .. 1] -> Gauss
-        const float denom = ( layerCount / 2.0 ) * ( layerCount + 1.0 );
+        float denom = ( layerCount / 2.0 ) * ( layerCount + 1.0 );
 
         vec4 t, p1, p2, p3, p4;
 
@@ -42,7 +42,7 @@
 
         t *= (layerCount - 0.0) / ( denom ); // weight layer 1
 
-        if( sampleCount > 2 ) {
+        if( sampleCount > 2.0 ) {
             // Layer-2: SampleCount 4 -> +4x = 8p
             p1 = texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-1.5, -1.5))); // NW
             p2 = texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-1.5,  1.5))); // SW
@@ -54,7 +54,7 @@
             p3  = mix ( p1, p2, uv_ratio.y );
             t += p3 * (layerCount - 1) / ( denom ); // weight layer 2
 
-            if( sampleCount > 4 ) {
+            if( sampleCount > 4.0 ) {
                 // Layer-3: SampleCount 6 -> +4 = 12p
                 p1 = texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-2.5, -2.5))); // NW
                 p2 = texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-2.5,  2.5))); // SW
@@ -66,7 +66,7 @@
                 p3  = mix ( p1, p2, uv_ratio.y );
                 t += p3 * (layerCount - 2) / ( denom ); // weight layer 3
 
-                if( sampleCount > 6 ) {
+                if( sampleCount > 6.0 ) {
                     // Layer-4: SampleCount 8 -> +4 = 16p
                     p1 = texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-3.5, -3.5))); // NW
                     p2 = texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-3.5,  3.5))); // SW

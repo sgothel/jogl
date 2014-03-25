@@ -121,13 +121,13 @@ public interface GLBase {
   public boolean isGL2();
 
   /**
-   * Indicates whether this GL object conforms to the OpenGL ES1 &ge; 1.0 profile.
+   * Indicates whether this GL object conforms to the OpenGL ES &ge; 1.0 profile.
    * @see GLContext#isGLES1()
    */
   public boolean isGLES1();
 
   /**
-   * Indicates whether this GL object conforms to the OpenGL ES2 &ge; 2.0 profile.
+   * Indicates whether this GL object conforms to the OpenGL ES &ge; 2.0 profile.
    * <p>
    * Remark: ES2 compatible desktop profiles are not included.
    * To query whether core ES2 functionality is provided, use {@link #isGLES2Compatible()}.
@@ -138,7 +138,7 @@ public interface GLBase {
   public boolean isGLES2();
 
   /**
-   * Indicates whether this GL object conforms to the OpenGL ES2 &ge; 3.0 profile.
+   * Indicates whether this GL object conforms to the OpenGL ES &ge; 3.0 profile.
    * <p>
    * Remark: ES3 compatible desktop profiles are not included.
    * To query whether core ES3 functionality is provided, use {@link #isGLES3Compatible()}.

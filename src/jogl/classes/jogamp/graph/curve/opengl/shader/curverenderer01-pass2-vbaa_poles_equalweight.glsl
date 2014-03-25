@@ -2,35 +2,35 @@
         // Pass-2: AA on Texture
         // Note: gcv_TexCoord is in center of sample pixels.
 
-        const float sampleCount = gcu_TextureSize.z;
-        const vec2 psize = 1.0 / gcu_TextureSize.xy; // pixel size
+        float sampleCount = gcu_TextureSize.z;
+        vec2 psize = 1.0 / gcu_TextureSize.xy; // pixel size
 
         // Just poles (NW, SW, ..)
-        const float sample_weight = 1 / ( 2 * sampleCount );
+        float sample_weight = 1 / ( 2 * sampleCount );
 
-        const vec2 texCoord = gcv_TexCoord.st;
+        vec2 texCoord = gcv_TexCoord.st;
 
-        vec4 t = vec4(0);
+        vec4 t;
 
         // SampleCount 2 -> 4x
-        t += texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-0.5, -0.5)))*sample_weight; // NW
+        t  = texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-0.5, -0.5)))*sample_weight; // NW
         t += texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-0.5,  0.5)))*sample_weight; // SW
         t += texture2D(gcu_TextureUnit, texCoord + psize*(vec2( 0.5,  0.5)))*sample_weight; // SE
         t += texture2D(gcu_TextureUnit, texCoord + psize*(vec2( 0.5, -0.5)))*sample_weight; // NE
-        if( sampleCount > 2 ) {
+        if( sampleCount > 2.0 ) {
             // SampleCount 4 -> +4 = 8p
             t += texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-1.5, -1.5)))*sample_weight; // NW
             t += texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-1.5,  1.5)))*sample_weight; // SW
             t += texture2D(gcu_TextureUnit, texCoord + psize*(vec2( 1.5,  1.5)))*sample_weight; // SE
             t += texture2D(gcu_TextureUnit, texCoord + psize*(vec2( 1.5, -1.5)))*sample_weight; // NE
 
-            if( sampleCount > 4 ) {
+            if( sampleCount > 4.0 ) {
                 // SampleCount 6 -> +4 = 12p
                 t += texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-2.5, -2.5)))*sample_weight; // NW
                 t += texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-2.5,  2.5)))*sample_weight; // SW
                 t += texture2D(gcu_TextureUnit, texCoord + psize*(vec2( 2.5,  2.5)))*sample_weight; // SE
                 t += texture2D(gcu_TextureUnit, texCoord + psize*(vec2( 2.5, -2.5)))*sample_weight; // NE
-                if( sampleCount > 6 ) {
+                if( sampleCount > 6.0 ) {
                     // SampleCount 8 -> +4 = 16p
                     t += texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-3.5, -3.5)))*sample_weight; // NW
                     t += texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-3.5,  3.5)))*sample_weight; // SW

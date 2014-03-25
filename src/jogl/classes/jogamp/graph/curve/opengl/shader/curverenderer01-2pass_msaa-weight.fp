@@ -22,7 +22,7 @@ void main (void)
     vec3 color;
     float alpha;
     
-    if( 0 < gcu_TextureSize.z ) {
+    if( 0.0 < gcu_TextureSize.z ) {
         // Pass-2: Dump Texture
         vec4 t = texture2D(gcu_TextureUnit, gcv_TexCoord.st);
         #if 0

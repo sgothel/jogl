@@ -16,11 +16,11 @@
         } else {
             rtex.y = max(rtex.y, 0.0); // always >= 0 
 
-            const vec2 dtx = dFdx(rtex);
-            const vec2 dty = dFdy(rtex);
+            vec2 dtx = dFdx(rtex);
+            vec2 dty = dFdy(rtex);
               
-            const vec2 f = vec2((dtx.y - dtx.x + 2.0*rtex.x*dtx.x), (dty.y - dty.x + 2.0*rtex.x*dty.x));
-            const float position = rtex.y - (rtex.x * (1.0 - rtex.x));
+            vec2 f = vec2((dtx.y - dtx.x + 2.0*rtex.x*dtx.x), (dty.y - dty.x + 2.0*rtex.x*dty.x));
+            float position = rtex.y - (rtex.x * (1.0 - rtex.x));
 
             color = gcu_ColorStatic.rgb;
             alpha = clamp(0.5 - ( position/length(f) ) * sign(gcv_TexCoord.y), 0.0, 1.0);

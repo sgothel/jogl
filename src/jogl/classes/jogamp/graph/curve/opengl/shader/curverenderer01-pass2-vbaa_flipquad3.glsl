@@ -4,35 +4,35 @@
         // 
         // Same as flipquad - but w/ rgss coordinates
 
-        const float sampleCount = gcu_TextureSize.z;
-        const vec2 psize = 1.0 / gcu_TextureSize.xy; // pixel size
+        float sampleCount = gcu_TextureSize.z;
+        vec2 psize = 1.0 / gcu_TextureSize.xy; // pixel size
 
-        const vec2 normFragCoord = gl_FragCoord.xy - vec2(0.5, 0.5); // normalize center 0.5/0.5 -> 0/0
-        const vec2 modPos = mod(normFragCoord, 2.0);
-        const float orient = mod(modPos.x + modPos.y, 2.0); // mirrored on all odd columns, alternating each row (checker-board pattern)
+        vec2 normFragCoord = gl_FragCoord.xy - vec2(0.5, 0.5); // normalize center 0.5/0.5 -> 0/0
+        vec2 modPos = mod(normFragCoord, 2.0);
+        float orient = mod(modPos.x + modPos.y, 2.0); // mirrored on all odd columns, alternating each row (checker-board pattern)
 
-        const vec2 texCoord = gcv_TexCoord.st;
+        vec2 texCoord = gcv_TexCoord.st;
         vec4 t;
 
 // #define GetSample(texUnit, texCoord, psize, cx, cy, offX, offY) texture2D(texUnit, texCoord + psize *  vec2(cx+offX, cy+offY))
 
-        if( 1 == sampleCount ) {
+        if( 1.0 == sampleCount ) {
             t = texture2D(gcu_TextureUnit, texCoord);
 
-        } else if( 4 > sampleCount ) {
+        } else if( 4.0 > sampleCount ) {
             // SampleCount 2 -> 2p 
             const float weight = 1.0 / 2.0;
-            const float edge = ( sampleCount / 2.0 ) - 1.0;
+            float edge = ( sampleCount / 2.0 ) - 1.0;
 
             t  = GetSample(gcu_TextureUnit, texCoord, psize,      -edge,       edge, -0.5,  0.5)*weight;  // center
             t += GetSample(gcu_TextureUnit, texCoord, psize,       edge,      -edge,  0.5, -0.5)*weight;  // center
 
-        } else if( 8 > sampleCount ) {
+        } else if( 8.0 > sampleCount ) {
             // SampleCount 4 -> 4p
             const float weight = 1.0 / 4.0;
-            const float edgeS4_1Q = ( sampleCount / 2.0 ) - 1.0;
+            float edgeS4_1Q = ( sampleCount / 2.0 ) - 1.0;
 
-            if( 0 == orient ) {
+            if( 0.0 == orient ) {
                                                                                                            // SWIPE LEFT -> RIGHT
                 t  = GetSample(gcu_TextureUnit, texCoord, psize, -edgeS4_1Q,        0.0, -0.5,  0.5)*weight; // upper-left  [p1]
                 t += GetSample(gcu_TextureUnit, texCoord, psize,        0.0, -edgeS4_1Q, -0.5, -0.5)*weight; // lower-left  [p3]
@@ -49,7 +49,7 @@
             const float weight = 1.0 / 16.0;
             const float edgeS4_1Q = 1.0;
 
-            if( 0 == orient ) {
+            if( 0.0 == orient ) {
                                                                                                            // SWIPE LEFT -> RIGHT
                 t  = GetSample(gcu_TextureUnit, texCoord, psize, -edgeS4_1Q,        0.0, -2.0-0.5, -2.0+0.5)*weight; // upper-left  [p1]
                 t += GetSample(gcu_TextureUnit, texCoord, psize,        0.0, -edgeS4_1Q, -2.0-0.5, -2.0-0.5)*weight; // lower-left  [p3]

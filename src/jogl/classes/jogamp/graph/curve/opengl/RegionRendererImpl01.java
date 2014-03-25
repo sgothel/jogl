@@ -69,7 +69,7 @@ public class RegionRendererImpl01 extends RegionRenderer {
         rsVp.defaultShaderCustomization(gl, true, true);
         // rsFp.defaultShaderCustomization(gl, true, true);
         int pos = rsFp.addGLSLVersion(gl);
-        if( gl.isGLES() ) {
+        if( gl.isGLES2() && ! gl.isGLES3() ) {
             pos = rsFp.insertShaderSource(0, pos, ShaderCode.createExtensionDirective(GLExtensions.OES_standard_derivatives, ShaderCode.ENABLE));
         }
         final String rsFpDefPrecision =  getFragmentShaderPrecision(gl);
