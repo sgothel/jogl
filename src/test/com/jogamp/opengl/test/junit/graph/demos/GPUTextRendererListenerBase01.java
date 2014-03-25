@@ -216,7 +216,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         final PMVMatrix pmv = renderer.getMatrix();
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
-        renderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
+        renderer.setColorStatic(gl, 0.1f, 0.1f, 0.1f);
         if( renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
             gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         }
@@ -283,7 +283,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         pmv.glTranslatef(getXTran(), getYTran(), getZTran());
         pmv.glRotatef(getAngle(), 0, 1, 0);
         renderer.updateMatrix(gl);
-        renderer.setColorStatic(gl, 1.0f, 0.0f, 0.0f);
+        renderer.setColorStatic(gl, 0.9f, 0.0f, 0.0f);
         if( renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
             gl.glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
         }

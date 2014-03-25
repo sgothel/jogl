@@ -56,7 +56,7 @@ public class GPUTextGLListener0A extends GPUTextRendererListenerBase01 {
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
         gl.glEnable(GL2ES2.GL_BLEND);
         renderer.setAlpha(gl, 1.0f);
-        renderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
+        renderer.setColorStatic(gl, 0.1f, 0.1f, 0.1f);
     }
 
     public void dispose(GLAutoDrawable drawable) {

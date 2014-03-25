@@ -70,9 +70,10 @@ public class TestTextRendererNEWT00 extends UITestCase {
     static long Duration = 2000; // ms
     static boolean WaitStartEnd = false;
     static boolean TextAnim = false;
-    static int SceneMSAASamples = 4;
-    static int GraphVBAASamples = 4;
-    static int GraphMSAASamples = 4;
+    static int SceneMSAASamples = 0;
+    static int GraphVBAASamples = 0;
+    static int GraphMSAASamples = 0;
+    static boolean ManualTest = false;
     static int SwapInterval = 0;
 
     static String fontFileName = null;
@@ -88,6 +89,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
     }
 
     public static void main(String args[]) throws IOException {
+        ManualTest = args.length > 0;
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
@@ -110,17 +112,11 @@ public class TestTextRendererNEWT00 extends UITestCase {
             } else if(args[i].equals("-smsaa")) {
                 i++;
                 SceneMSAASamples = atoi(args[i]);
-                GraphMSAASamples = 0;
-                GraphVBAASamples = 0;
             } else if(args[i].equals("-gmsaa")) {
                 i++;
-                SceneMSAASamples = 0;
                 GraphMSAASamples = atoi(args[i]);
-                GraphVBAASamples = 0;
             } else if(args[i].equals("-gvbaa")) {
                 i++;
-                SceneMSAASamples = 0;
-                GraphMSAASamples = 0;
                 GraphVBAASamples = atoi(args[i]);
             } else if(args[i].equals("-textAnim")) {
                 TextAnim = true;
@@ -167,25 +163,33 @@ public class TestTextRendererNEWT00 extends UITestCase {
     }
 
     @Test
+    public void test00Manual() throws InterruptedException {
+        if( ManualTest ) {
+            testImpl(SceneMSAASamples, GraphMSAASamples, GraphVBAASamples);
+        }
+    }
+    @Test
     public void test00SceneNoAA() throws InterruptedException {
-        testImpl(0, 0, 0);
-    }
-    @Test
-    public void test01SceneMSAA01() throws InterruptedException {
-        if( SceneMSAASamples > 0 ) {
-            testImpl(SceneMSAASamples, 0, 0);
+        if( !ManualTest ) {
+            testImpl(0, 0, 0);
         }
     }
     @Test
-    public void test02GraphMSAA01() throws InterruptedException {
-        if( GraphMSAASamples > 0 ) {
-            testImpl(0, GraphMSAASamples, 0);
+    public void test01SceneMSAA04() throws InterruptedException {
+        if( !ManualTest ) {
+            testImpl(4, 0, 0);
         }
     }
     @Test
-    public void test03GraphVBAA01() throws InterruptedException {
-        if( GraphVBAASamples > 0 ) {
-            testImpl(0, 0, GraphVBAASamples);
+    public void test02GraphMSAA04() throws InterruptedException {
+        if( !ManualTest ) {
+            testImpl(0, 4, 0);
+        }
+    }
+    @Test
+    public void test03GraphVBAA04() throws InterruptedException {
+        if( !ManualTest ) {
+            testImpl(0, 0, 4);
         }
     }
 
@@ -286,9 +290,9 @@ public class TestTextRendererNEWT00 extends UITestCase {
                 font = getFont(fontSet, fontFamily, fontStylebits);
             }
 
-            staticRGBAColor[0] = 0.0f;
-            staticRGBAColor[1] = 0.0f;
-            staticRGBAColor[2] = 0.0f;
+            staticRGBAColor[0] = 0.1f;
+            staticRGBAColor[1] = 0.1f;
+            staticRGBAColor[2] = 0.1f;
             staticRGBAColor[3] = 1.0f;
 
             this.screenshot = new GLReadBufferUtil(false, false);
@@ -377,9 +381,9 @@ public class TestTextRendererNEWT00 extends UITestCase {
                     lfps, tfps, gl.getSwapInterval(), (t1-t0)/1000.0, fontSizeAnim,
                     drawable.getChosenGLCapabilities().getNumSamples(), modeS, vbaaSampleCount[0]);
 
-            if( true ) {
-                renderString(drawable, font, pixelSize, "I - / H P 7 0", 0, 0, 0, 0, -1000f, true);
-                // renderString(drawable, font, pixelSize, "I/- 0", 0, 0, 0, 0, -1000f, true);
+            if( false ) {
+                // renderString(drawable, font, pixelSize, "I - / H P 7 0", 0, 0, 0, 0, -1000f, true);
+                renderString(drawable, font, pixelSize, "A M > } ] ", 0, 0, 0, 0, -1000f, true);
                 // renderString(drawable, font, pixelSize, "012345678901234567890123456789", 0, 0, 0, -1000, true);
                 // renderString(drawable, font, pixelSize, textX2,        0, 0,   0, 0, -1000f, true);
                 // renderString(drawable, font, pixelSize, text1,         0,    0, 0, -1000f, regionFPS); // no-cache

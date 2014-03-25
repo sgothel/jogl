@@ -28,9 +28,10 @@ void main (void)
     
     if( 0 < gcu_TextureSize.z ) {
 
-// Quality: wholeedge > [flipquad,rgss, quincunx] > poles
-#include curverenderer01-pass2-vbaa_flipquad3.glsl
+// Quality: allsamples > [flipquad,rgss, quincunx] > poles
+#include curverenderer01-pass2-vbaa_allsamples_equal.glsl
 
+// #include curverenderer01-pass2-vbaa_flipquad3.glsl
 // #include curverenderer01-pass2-vbaa_flipquad2.glsl
 // #include curverenderer01-pass2-vbaa_flipquad.glsl
 // #include curverenderer01-pass2-vbaa_rgss.glsl
@@ -39,8 +40,7 @@ void main (void)
 // #include curverenderer01-pass2-vbaa_poles_equalweight.glsl
 // #include curverenderer01-pass2-vbaa_poles_bilin1.glsl
 // #include curverenderer01-pass2-vbaa_poles_propweight1.glsl
-// #include curverenderer01-pass2-vbaa_wholeedge_propweight1.glsl
-// #include curverenderer01-pass2-vbaa_wholeedge_equalweight.glsl
+// #include curverenderer01-pass2-vbaa_allsamples_prop01.glsl
 // #include curverenderer01-pass2-vbaa_fxaa3.glsl
 
     } else {

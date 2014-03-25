@@ -230,7 +230,7 @@ public class TestTextRendererNEWT01 extends UITestCase {
             final RegionRenderer renderer = getRenderer();
 
             renderer.setAlpha(gl, 1.0f);
-            renderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
+            renderer.setColorStatic(gl, 0.1f, 0.1f, 0.1f);
         }
 
         public void display(GLAutoDrawable drawable) {

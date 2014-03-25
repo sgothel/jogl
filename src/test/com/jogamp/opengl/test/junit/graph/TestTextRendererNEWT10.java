@@ -148,7 +148,7 @@ public class TestTextRendererNEWT10 extends UITestCase {
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         renderer.init(gl);
         renderer.setAlpha(gl, 1.0f);
-        renderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
+        renderer.setColorStatic(gl, 0.1f, 0.1f, 0.1f);
 
         // reshape
         gl.glViewport(0, 0, drawable.getWidth(), drawable.getHeight());

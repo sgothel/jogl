@@ -19,6 +19,7 @@ import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.SVertex;
+import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.MouseAdapter;
@@ -54,8 +55,11 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
     final float buttonXSize = 84f;
     final float buttonYSize = buttonXSize/2.5f;
-    final float fontSizeFixed = 12f;
-    final float fontSizeFPS = 10f;
+    final float fontSizePt = 10f;
+    /** Proportional Window Height Font Size for Main Text, per-vertical-pixels [PVP] */
+    final float fontSizeFixedPVP = 0.046f;
+    /** Proportional Window Height Font Size for FPS Status Line, per-vertical-pixels [PVP] */
+    final float fontSizeFpsPVP = 0.038f;
     float dpiH = 96;
 
     private int currentText = 0;
@@ -64,6 +68,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     private Label[] labels = null;
     private String[] strings = null;
     private final List<RIButton> buttons = new ArrayList<RIButton>();
+    private Label truePtSizeLabel = null;
     private Label jogampLabel = null;
     private Label fpsLabel = null;
     private CrossHair crossHairCtr = null;
@@ -74,6 +79,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     private final GLReadBufferUtil screenshot;
 
     private final String jogamp = "JogAmp - Jogl Graph Module Demo";
+    private final String truePtSize = fontSizePt+" pt font size label - true scale!";
 
     public GPUUISceneGLListener0A() {
       this(0);
@@ -430,10 +436,9 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                      "\n"+
                      "- Mouse Drag On Object\n"+
                      "   - Click on Object and drag mouse\n"+
-                     "   - Notice current postion in status line at buttom\n"+
+                     "   - Notice current postion in status line at bottom\n"+
                      "\n"+
-                     "- Tilt Button Rotate Whole Button Group\n"+
-                     "- Window Resize Shall Maintain Layout\n";
+                     "- Tilt Button Rotate Whole Button Group\n";
 
         strings[i++] = "abcdefghijklmn\nopqrstuvwxyz\n"+
                        "ABCDEFGHIJKL\n"+
@@ -443,13 +448,13 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         strings[i++] = "The quick brown fox\njumps over the lazy\ndog";
 
         strings[i++] =
-            "Lorem ipsum dolor sit amet, consectetur\n"+
-            "Ut purus odio, rhoncus sit amet com\n"+
-            "quam iaculis urna cursus ornare. Nullam\n"+
-            "In hac habitasse platea dictumst. Vivam\n"+
-            "Morbi quis bibendum nibh. Donec lectus\n"+
-            "Donec ut dolor et nulla tristique variu\n"+
-            "in lorem. Maecenas in ipsum ac justo sc\n";
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec \n"+
+            "Ut purus odio, rhoncus sit amet commodo eget, ullamcorper vel\n"+
+            "quam iaculis urna cursus ornare. Nullam ut felis a ante ultrices\n"+
+            "In hac habitasse platea dictumst. Vivamus et mi a quam lacinia\n"+
+            "Morbi quis bibendum nibh. Donec lectus orci, sagittis in consequat\n"+
+            "Donec ut dolor et nulla tristique varius. In nulla magna, fermentum\n"+
+            "in lorem. Maecenas in ipsum ac justo scelerisque sollicitudin.\n";
 
         labels = new Label[i];
     }
@@ -462,8 +467,13 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         final Object upObj = drawable.getUpstreamWidget();
         if( upObj instanceof Window ) {
             final float[] pixelsPerMM = new float[2];
-            ((Window)upObj).getMainMonitor().getPixelsPerMM(pixelsPerMM);
+            final MonitorDevice mm = ((Window)upObj).getMainMonitor();
+            mm.getPixelsPerMM(pixelsPerMM);
             dpiH = pixelsPerMM[1]*25.4f;
+            System.err.println("Monitor detected: "+mm);
+            System.err.println("Using monitor's DPI of "+(pixelsPerMM[0]*25.4f)+" x "+dpiH+" -> "+dpiH);
+        } else {
+            System.err.println("Using default DPI of "+dpiH);
         }
         if(drawable instanceof GLWindow) {
             System.err.println("GPUUISceneGLListener0A: init (1)");
@@ -503,22 +513,37 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
         sceneUIController.setRenderer(renderer);
 
-        final float pixelSizeFixed = font.getPixelSize(fontSizeFixed, dpiH);
+        final float pixelSizeFixed = fontSizeFixedPVP * drawable.getHeight();
         jogampLabel = new Label(SVertex.factory(), font, pixelSizeFixed, jogamp);
         jogampLabel.addMouseListener(dragZoomRotateListener);
         sceneUIController.addShape(jogampLabel);
         jogampLabel.setEnabled(enableOthers);
 
-        final float pixelSizeFPS = font.getPixelSize(fontSizeFPS, dpiH);
+        final float pixelSize10Pt = font.getPixelSize(fontSizePt, dpiH);
+        System.err.println("10Pt PixelSize: Display "+dpiH+" dpi, fontSize "+fontSizePt+" ppi -> "+pixelSize10Pt+" pixel-size");
+        truePtSizeLabel = new Label(SVertex.factory(), font, pixelSize10Pt, truePtSize);
+        sceneUIController.addShape(truePtSizeLabel);
+        truePtSizeLabel.setEnabled(enableOthers);
+        truePtSizeLabel.translate(0, - 1.5f * jogampLabel.getLineHeight(), 0f);
+        truePtSizeLabel.setColor(0.1f, 0.1f, 0.1f);
+
+        /**
+         *
+         * [Label] Display 112.88889 dpi, fontSize 12.0 ppi -> pixelSize 18.814816
+         * [FPS] Display 112.88889 dpi, fontSize 12.0 ppi -> pixelSize 15.679012
+         */
+        final float pixelSizeFPS = fontSizeFpsPVP * drawable.getHeight();
         fpsLabel = new Label(renderer.getRenderState().getVertexFactory(), font, pixelSizeFPS, "Nothing there yet");
         fpsLabel.addMouseListener(dragZoomRotateListener);
         sceneUIController.addShape(fpsLabel);
         fpsLabel.setEnabled(enableOthers);
+        fpsLabel.setColor(0.3f, 0.3f, 0.3f);
 
         crossHairCtr = new CrossHair(renderer.getRenderState().getVertexFactory(), 100f, 100f, 2f);
         crossHairCtr.addMouseListener(dragZoomRotateListener);
         sceneUIController.addShape(crossHairCtr);
         crossHairCtr.setEnabled(true);
+        crossHairCtr.translate(0f, 0f, -1f);
 
         initButtons(gl, renderer);
         for(int i=0; i<buttons.size(); i++) {
@@ -570,13 +595,15 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         if(null == labels[currentText]) {
-            final float pixelSizeFixed = font.getPixelSize(fontSizeFixed, dpiH);
+            final float pixelSizeFixed = fontSizeFixedPVP * drawable.getHeight();
             final float dyTop = drawable.getHeight() * relTop;
             final float dxRight = drawable.getWidth() * relRight;
             labels[currentText] = new Label(SVertex.factory(), font, pixelSizeFixed, strings[currentText]);
-            labels[currentText].setColor(0, 0, 0);
+            labels[currentText].setColor(0.1f, 0.1f, 0.1f);
             labels[currentText].setEnabled(enableOthers);
-            labels[currentText].translate(dxRight, dyTop - 1.5f * jogampLabel.getLineHeight(), 0f);
+            labels[currentText].translate(dxRight,
+                                          dyTop - 1.5f * jogampLabel.getLineHeight()
+                                                - 1.5f * truePtSizeLabel.getLineHeight(), 0f);
             labels[currentText].addMouseListener(dragZoomRotateListener);
             sceneUIController.addShape(labels[currentText]);
         }
@@ -596,13 +623,13 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             final String text;
             if( null == actionText ) {
                 text = String.format("%03.1f/%03.1f fps, v-sync %d, fontSize %.1f, %s-samples %d, td %4.1f, blend %b, alpha-bits %d, msaa-bits %d",
-                    lfps, tfps, gl.getSwapInterval(), fontSizeFixed, modeS, sceneUIController.getSampleCount(), td,
+                    lfps, tfps, gl.getSwapInterval(), fontSizeFixedPVP, modeS, sceneUIController.getSampleCount(), td,
                     renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED),
                     drawable.getChosenGLCapabilities().getAlphaBits(),
                     drawable.getChosenGLCapabilities().getNumSamples());
             } else {
                 text = String.format("%03.1f/%03.1f fps, v-sync %d, fontSize %.1f, %s",
-                    lfps, tfps, gl.getSwapInterval(), fontSizeFixed, actionText);
+                    lfps, tfps, gl.getSwapInterval(), fontSizeFixedPVP, actionText);
             }
             fpsLabel.setText(text);
         }
@@ -631,6 +658,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             buttons.get(i).translate(dxLeft, dyTop, dz);
         }
         jogampLabel.translate(dxRight, dyTop, dz);
+        truePtSizeLabel.translate(dxRight, dyTop, dz);
         fpsLabel.translate(0f, 0f, 0f);
         if( null != labels[currentText] ) {
             labels[currentText].translate(dxRight, dyTop, 0f);

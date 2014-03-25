@@ -147,9 +147,9 @@ public class MovieSimple implements GLEventListener {
             regionFPS = GLRegion.create(usrRenderModes);
             System.err.println("RegionFPS "+Region.getRenderModeString(usrRenderModes)+", sampleCount "+textSampleCount[0]+", class "+regionFPS.getClass().getName());
 
-            staticRGBAColor[0] = 1.0f;
-            staticRGBAColor[1] = 1.0f;
-            staticRGBAColor[2] = 1.0f;
+            staticRGBAColor[0] = 0.9f;
+            staticRGBAColor[1] = 0.9f;
+            staticRGBAColor[2] = 0.9f;
             staticRGBAColor[3] = 1.0f;
         }
 

@@ -65,9 +65,9 @@ public abstract class GLReadBuffer00Base extends UITestCase {
             this.setRendererCallbacks(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
             regionFPS = GLRegion.create(usrRenderModes);
 
-            staticRGBAColor[0] = 1.0f;
-            staticRGBAColor[1] = 1.0f;
-            staticRGBAColor[2] = 1.0f;
+            staticRGBAColor[0] = 0.9f;
+            staticRGBAColor[1] = 0.9f;
+            staticRGBAColor[2] = 0.9f;
             staticRGBAColor[3] = 0.99f;
         }
 

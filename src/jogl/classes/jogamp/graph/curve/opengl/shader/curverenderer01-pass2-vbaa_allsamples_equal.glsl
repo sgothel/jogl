@@ -11,10 +11,10 @@
 
         const vec2 texCoord = gcv_TexCoord.st;
 
-        vec4 t = vec4(0);
+        vec4 t;
 
         // SampleCount 2 -> 4x
-        t += texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-0.5, -0.5)))*sample_weight; // NW
+        t  = texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-0.5, -0.5)))*sample_weight; // NW
         t += texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-0.5,  0.5)))*sample_weight; // SW
         t += texture2D(gcu_TextureUnit, texCoord + psize*(vec2( 0.5,  0.5)))*sample_weight; // SE
         t += texture2D(gcu_TextureUnit, texCoord + psize*(vec2( 0.5, -0.5)))*sample_weight; // NE

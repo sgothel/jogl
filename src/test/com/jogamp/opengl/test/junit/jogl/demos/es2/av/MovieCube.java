@@ -174,9 +174,9 @@ public class MovieCube implements GLEventListener {
             regionFPS = GLRegion.create(usrRenderModes);
             System.err.println("RegionFPS "+Region.getRenderModeString(usrRenderModes)+", sampleCount "+textSampleCount[0]+", class "+regionFPS.getClass().getName());
 
-            staticRGBAColor[0] = 0.0f;
-            staticRGBAColor[1] = 0.0f;
-            staticRGBAColor[2] = 0.0f;
+            staticRGBAColor[0] = 0.1f;
+            staticRGBAColor[1] = 0.1f;
+            staticRGBAColor[2] = 0.1f;
             staticRGBAColor[3] = 1.0f;
         }
 
