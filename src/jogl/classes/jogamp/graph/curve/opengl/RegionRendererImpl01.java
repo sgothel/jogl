@@ -31,6 +31,7 @@ import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLException;
 
 import jogamp.graph.curve.opengl.shader.AttributeNames;
+import jogamp.opengl.Debug;
 
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
@@ -40,6 +41,12 @@ import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class RegionRendererImpl01 extends RegionRenderer {
+    private static final String CUSTOM_FP, CUSTOM_VP;
+    static {
+        Debug.initSingleton();
+        CUSTOM_VP = Debug.getProperty("jogl.debug.graph.curve.vp", false);
+        CUSTOM_FP = Debug.getProperty("jogl.debug.graph.curve.fp", false);
+    }
 
     public RegionRendererImpl01(final RenderState rs, final int renderModes, final GLCallback enableCallback, final GLCallback disableCallback) {
         super(rs, renderModes, enableCallback, disableCallback);
@@ -48,11 +55,17 @@ public class RegionRendererImpl01 extends RegionRenderer {
     @Override
     protected final boolean initImpl(GL2ES2 gl) {
         final ShaderState st = getShaderState();
-
-        final ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, RegionRendererImpl01.class, "shader",
-                                                  "shader/bin", getVertexShaderName(), true);
-        final ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, RegionRendererImpl01.class, "shader",
-                                                  "shader/bin", getFragmentShaderName(), true);
+        final ShaderCode rsVp, rsFp;
+        if( null != CUSTOM_VP ) {
+            rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, RegionRendererImpl01.class, null, null, CUSTOM_VP, true);
+        } else {
+            rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, RegionRendererImpl01.class, "shader", "shader/bin", getVertexShaderName(), true);
+        }
+        if( null != CUSTOM_FP ) {
+            rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, RegionRendererImpl01.class, null, null, CUSTOM_FP, true);
+        } else {
+            rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, RegionRendererImpl01.class, "shader", "shader/bin", getFragmentShaderName(), true);
+        }
         rsVp.defaultShaderCustomization(gl, true, true);
         // rsFp.defaultShaderCustomization(gl, true, true);
         int pos = rsFp.addGLSLVersion(gl);

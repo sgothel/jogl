@@ -327,7 +327,7 @@ public class ShaderCode {
      * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER} or {@link GL3#GL_GEOMETRY_SHADER}
      * @param count number of shaders
      * @param context class used to help resolving the source and binary location
-     * @param srcRoot relative <i>root</i> path for <code>srcBasenames</code>
+     * @param srcRoot relative <i>root</i> path for <code>srcBasenames</code> optional
      * @param srcBasenames basenames w/o path or suffix relative to <code>srcRoot</code> for the shader's source code
      * @param binRoot relative <i>root</i> path for <code>binBasenames</code>
      * @param binBasename basename w/o path or suffix relative to <code>binRoot</code> for the shader's binary code
@@ -355,11 +355,17 @@ public class ShaderCode {
         String srcPathString = null;
         String binFileName = null;
 
-        if(null!=srcRoot && null!=srcBasenames && ShaderUtil.isShaderCompilerAvailable(gl)) {
+        if( null!=srcBasenames && ShaderUtil.isShaderCompilerAvailable(gl) ) {
             srcPath = new String[srcBasenames.length];
             final String srcSuffix = getFileSuffix(false, type);
-            for(int i=0; i<srcPath.length; i++) {
-                srcPath[i] = srcRoot + '/' + srcBasenames[i] + "." + srcSuffix;
+            if( null != srcRoot && srcRoot.length() > 0 ) {
+                for(int i=0; i<srcPath.length; i++) {
+                    srcPath[i] = srcRoot + '/' + srcBasenames[i] + "." + srcSuffix;
+                }
+            } else {
+                for(int i=0; i<srcPath.length; i++) {
+                    srcPath[i] = srcBasenames[i] + "." + srcSuffix;
+                }
             }
             res = create(gl, type, count, context, srcPath, mutableStringBuilder);
             if(null!=res) {
@@ -369,12 +375,12 @@ public class ShaderCode {
         } else {
             srcPath = null;
         }
-        if(null!=binRoot && null!=binBasename) {
+        if( null!=binBasename ) {
             Set<Integer> binFmts = ShaderUtil.getShaderBinaryFormats(gl);
             final String binSuffix = getFileSuffix(true, type);
             for(Iterator<Integer> iter=binFmts.iterator(); iter.hasNext(); ) {
                 int bFmt = iter.next().intValue();
-                String bFmtPath = getBinarySubPath(bFmt);
+                final String bFmtPath = getBinarySubPath(bFmt);
                 if(null==bFmtPath) continue;
                 binFileName = binRoot + '/' + bFmtPath + '/' + binBasename + "." + binSuffix;
                 res = create(type, count, context, bFmt, binFileName);
@@ -426,7 +432,7 @@ public class ShaderCode {
      *           or to determine the shader binary format (if <code>binary</code> is used).
      * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER} or {@link GL3#GL_GEOMETRY_SHADER}
      * @param context class used to help resolving the source and binary location
-     * @param srcRoot relative <i>root</i> path for <code>basename</code>
+     * @param srcRoot relative <i>root</i> path for <code>basename</code> optional
      * @param binRoot relative <i>root</i> path for <code>basename</code>
      * @param mutableStringBuilder TODO
      * @param basenames basename w/o path or suffix relative to <code>srcRoot</code> and <code>binRoot</code>
