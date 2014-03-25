@@ -46,19 +46,23 @@ public class TypecastRenderer {
     private static final boolean DEBUG = Debug.debug("graph.font.Renderer");
 
     private static void addShapeMoveTo(final OutlineShape shape, Factory<? extends Vertex> vertexFactory, Point p1) {
+        if( DEBUG ) { System.err.println("Shape.MoveTo: "+p1); }
         shape.closeLastOutline(false);
         shape.addEmptyOutline();
         shape.addVertex(0, vertexFactory.create(p1.x,  p1.y, 0, p1.onCurve));
     }
     private static void addShapeLineTo(final OutlineShape shape, Factory<? extends Vertex> vertexFactory, Point p1) {
+        if( DEBUG ) { System.err.println("Shape.LineTo: "+p1); }
         shape.addVertex(0, vertexFactory.create(p1.x,  p1.y, 0, p1.onCurve));
     }
     private static void addShapeQuadTo(final OutlineShape shape, Factory<? extends Vertex> vertexFactory, Point p1, Point p2) {
+        if( DEBUG ) { System.err.println("Shape.QuadTo: "+p1+", "+p2); }
         shape.addVertex(0, vertexFactory.create(p1.x,  p1.y, 0, p1.onCurve));
         shape.addVertex(0, vertexFactory.create(p2.x,  p2.y, 0, p2.onCurve));
     }
     private static void addShapeQuadTo(final OutlineShape shape, Factory<? extends Vertex> vertexFactory, Point p1,
                                        float p2x, float p2y, boolean p2OnCurve) {
+        if( DEBUG ) { System.err.println("Shape.QuadTo: "+p1+", p2 "+p2x+", "+p2y+", onCurve "+p2OnCurve); }
         shape.addVertex(0, vertexFactory.create(p1.x,  p1.y, 0, p1.onCurve));
         shape.addVertex(0, vertexFactory.create(p2x,    p2y, 0, p2OnCurve));
     }
