@@ -66,6 +66,7 @@ public class VBORegion2PMSAAES2  extends GLRegion {
 
     private int fboWidth = 0;
     private int fboHeight = 0;
+    private boolean fboDirty = true;
     GLUniformData mgl_ActiveTexture;
     GLUniformData mgl_TextureSize;
 
@@ -99,6 +100,7 @@ public class VBORegion2PMSAAES2  extends GLRegion {
             texCoordTxtAttr.seal(gl, false);
             texCoordTxtAttr.rewind();
         }
+        fboDirty = true;
     }
 
     @Override
@@ -174,14 +176,14 @@ public class VBORegion2PMSAAES2  extends GLRegion {
         indicesFbo.enableBuffer(gl, false);
 
         // trigger renderRegion2FBO !
-        fboHeight = 0;
-        fboWidth = 0;
+        fboDirty = true;
         // the buffers were disabled, since due to real/fbo switching and other vbo usage
     }
 
     private final AABBox drawWinBox = new AABBox();
     private final int[] drawView = new int[] { 0, 0, 0, 0 };
     private final float[] drawTmpV3 = new float[3];
+    private final int border = 2; // surrounding border, i.e. width += 2*border, height +=2*border
 
     @Override
     protected void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int[/*1*/] sampleCount) {
@@ -197,35 +199,62 @@ public class VBORegion2PMSAAES2  extends GLRegion {
             }
             return; // inf
         }
-        final int width = renderer.getWidth();
-        final int height = renderer.getHeight();
-        if(width <=0 || height <= 0 || null==sampleCount || sampleCount[0] <= 0){
+        final int vpWidth = renderer.getWidth();
+        final int vpHeight = renderer.getHeight();
+        if(vpWidth <=0 || vpHeight <= 0 || null==sampleCount || sampleCount[0] <= 0){
             renderRegion(gl);
         } else {
             if(0 > maxTexSize[0]) {
                 gl.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE, maxTexSize, 0);
             }
             final RenderState rs = renderer.getRenderState();
-            float renderFboWidth, renderFboHeight;
+            final float winWidth, winHeight;
+
+            final float ratioObjWinWidth, ratioObjWinHeight;
+            final float diffObjWidth, diffObjHeight;
+            final float diffObjBorderWidth, diffObjBorderHeight;
             int targetFboWidth, targetFboHeight;
-            float diffWidth, diffHeight;
             {
+                final float diffWinWidth, diffWinHeight;
+                final int targetWinWidth, targetWinHeight;
+
                 // Calculate perspective pixel width/height for FBO,
                 // considering the sampleCount.
-                drawView[2] = width;
-                drawView[3] = height;
+                drawView[2] = vpWidth;
+                drawView[3] = vpHeight;
                 box.mapToWindow(drawWinBox, renderer.getMatrix(), drawView, true /* useCenterZ */, drawTmpV3);
-                renderFboWidth = drawWinBox.getWidth();
-                renderFboHeight = drawWinBox.getHeight();
-                targetFboWidth = (int)Math.ceil(renderFboWidth);
-                targetFboHeight = (int)Math.ceil(renderFboHeight);
-                diffWidth = targetFboWidth-renderFboWidth;
-                diffHeight = targetFboHeight-renderFboHeight;
+                winWidth = drawWinBox.getWidth();
+                winHeight = drawWinBox.getHeight();
+                targetWinWidth = (int)Math.ceil(winWidth);
+                targetWinHeight = (int)Math.ceil(winHeight);
+                diffWinWidth = targetWinWidth-winWidth;
+                diffWinHeight = targetWinHeight-winHeight;
+
+                ratioObjWinWidth = box.getWidth() / winWidth;
+                ratioObjWinHeight= box.getHeight() / winHeight;
+                diffObjWidth = diffWinWidth * ratioObjWinWidth;
+                diffObjHeight = diffWinHeight * ratioObjWinHeight;
+                diffObjBorderWidth = border * ratioObjWinWidth;
+                diffObjBorderHeight = border * ratioObjWinHeight;
+
+                targetFboWidth = targetWinWidth+2*border;
+                targetFboHeight = targetWinHeight+2*border;
+
                 if( DEBUG_FBO_2 ) {
-                    System.err.printf("XXX.MinMax view[%d, %d]: FBO f[%.3f, %.3f], i[%d x %d], d[%.3f, %.3f], msaa %d%n",
+                    final float ratioWinWidth, ratioWinHeight;
+                    ratioWinWidth = winWidth/targetWinWidth;
+                    ratioWinHeight = winHeight/targetWinHeight;
+
+                    System.err.printf("XXX.MinMax obj %s%n", box.toString());
+                    System.err.printf("XXX.MinMax obj d[%.3f, %.3f], r[%f, %f], b[%f, %f]%n",
+                            diffObjWidth, diffObjHeight, ratioObjWinWidth, ratioObjWinWidth, diffObjBorderWidth, diffObjBorderHeight);
+                    System.err.printf("XXX.MinMax win %s%n", drawWinBox.toString());
+                    System.err.printf("XXX.MinMax view[%d, %d] -> win[%.3f, %.3f], i[%d x %d], d[%.3f, %.3f], r[%f, %f]: FBO i[%d x %d], samples %d%n",
                             drawView[2], drawView[3],
-                            renderFboWidth, renderFboHeight, targetFboWidth, targetFboHeight,
-                            diffWidth, diffHeight, sampleCount[0]);
+                            winWidth, winHeight, targetWinWidth, targetWinHeight, diffWinWidth,
+                            diffWinHeight, ratioWinWidth, ratioWinHeight,
+                            targetFboWidth, targetFboHeight,
+                            sampleCount[0]);
                 }
             }
             if( 0 >= targetFboWidth || 0 >= targetFboHeight ) {
@@ -234,85 +263,61 @@ public class VBORegion2PMSAAES2  extends GLRegion {
             }
             final int deltaFboWidth = Math.abs(targetFboWidth-fboWidth);
             final int deltaFboHeight = Math.abs(targetFboHeight-fboHeight);
-            final int maxDeltaFbo, maxLengthFbo;
-            if( deltaFboWidth >= deltaFboHeight ) {
-                maxDeltaFbo = deltaFboWidth;
-                maxLengthFbo = fboWidth > 0 ? fboWidth : 1;
-            } else {
-                maxDeltaFbo = deltaFboHeight;
-                maxLengthFbo = fboHeight > 0 ? fboHeight : 1;
-            }
-            final float pctFboDelta = (float)maxDeltaFbo / (float)maxLengthFbo;
+            final boolean hasDelta = 0!=deltaFboWidth || 0!=deltaFboHeight;
             if( DEBUG_FBO_2 ) {
-                System.err.printf("XXX.maxDelta: %d / %d = %.3f%n", maxDeltaFbo, maxLengthFbo, pctFboDelta);
+                System.err.printf("XXX.maxDelta: hasDelta %b: %d / %d,  %.3f, %.3f%n",
+                        hasDelta, deltaFboWidth, deltaFboHeight, (float)deltaFboWidth/fboWidth, (float)deltaFboHeight/fboHeight);
+                System.err.printf("XXX.Scale %d * [%f x %f]: %d x %d%n",
+                        sampleCount[0], winWidth, winHeight, targetFboWidth, targetFboHeight);
             }
-            if( pctFboDelta > 0.1f || ( fbo != null && fbo.getNumSamples() != sampleCount[0] ) ) { // more than 10% !
-                if( DEBUG_FBO_1 ) {
-                    System.err.printf("XXX.maxDelta: %d / %d = %.3f%n", maxDeltaFbo, maxLengthFbo, pctFboDelta);
-                    System.err.printf("XXX.MSAA %d, %d x %d%n",
-                            sampleCount[0], targetFboWidth, targetFboHeight);
-                }
-                // FIXME: maxTexSize test not correct
-                boolean rescale = false;
-                if( targetFboWidth > maxTexSize[0] ) {
-                    targetFboWidth = maxTexSize[0];
-                    renderFboWidth = targetFboWidth;
-                    rescale = true;
-                }
-                if( targetFboHeight > maxTexSize[0] ) {
-                    targetFboHeight = maxTexSize[0];
-                    renderFboHeight = targetFboHeight;
-                    rescale = true;
-                }
-                if(rescale) {
-                    diffWidth = targetFboWidth-renderFboWidth;
-                    diffHeight = targetFboHeight-renderFboHeight;
-                    if( DEBUG_FBO_1 ) {
-                        System.err.printf("XXX.Rescale (MAX): FBO f[%.3f, %.3f], i[%d x %d], d[%.3f, %.3f], msaa %d%n",
-                                renderFboWidth, renderFboHeight, targetFboWidth, targetFboHeight,
-                                diffWidth, diffHeight, sampleCount[0]);
-                    }
-                }
+            if( hasDelta || fboDirty || null == fbo || ( fbo != null && fbo.getNumSamples() != sampleCount[0] ) ) {
+                // FIXME: rescale
+
+                final float minX = box.getMinX()-diffObjBorderWidth;
+                final float minY = box.getMinY()-diffObjBorderHeight;
+                final float maxX = box.getMaxX()+diffObjBorderWidth+diffObjWidth;
+                final float maxY = box.getMaxY()+diffObjBorderHeight+diffObjHeight;
                 verticeFboAttr.seal(false);
-                verticeFboAttr.rewind();
-                verticeFboAttr.putf(box.getMinX());           verticeFboAttr.putf(box.getMinY());            verticeFboAttr.putf(box.getMinZ());
-                verticeFboAttr.putf(box.getMinX());           verticeFboAttr.putf(box.getMaxY()+diffHeight); verticeFboAttr.putf(box.getMinZ());
-                verticeFboAttr.putf(box.getMaxX()+diffWidth); verticeFboAttr.putf(box.getMaxY()+diffHeight); verticeFboAttr.putf(box.getMinZ());
-                verticeFboAttr.putf(box.getMaxX()+diffWidth); verticeFboAttr.putf(box.getMinY());            verticeFboAttr.putf(box.getMinZ());
+                {
+                    final FloatBuffer fb = (FloatBuffer)verticeFboAttr.getBuffer();
+                    fb.put(0, minX); fb.put( 1, minY);
+                    fb.put(3, minX); fb.put( 4, maxY);
+                    fb.put(6, maxX); fb.put( 7, maxY);
+                    fb.put(9, maxX); fb.put(10, minY);
+                }
                 verticeFboAttr.seal(true);
                 fboPMVMatrix.glLoadIdentity();
-                fboPMVMatrix.glOrthof(box.getMinX(), box.getMaxX()+diffWidth,
-                                      box.getMinY(), box.getMaxY()+diffHeight, -1, 1);
-                renderRegion2FBO(gl, rs, targetFboWidth, targetFboHeight, sampleCount);
+                fboPMVMatrix.glOrthof(minX, maxX, minY, maxY, -1, 1);
+                renderRegion2FBO(gl, rs, targetFboWidth, targetFboHeight, vpWidth, vpHeight, sampleCount);
             } else {
                 texCoordFboAttr.setVBOWritten(false);
             }
             // System.out.println("Scale: " + matrix.glGetMatrixf().get(1+4*3) +" " + matrix.glGetMatrixf().get(2+4*3));
-            renderFBO(gl, rs, width, height);
+            renderFBO(gl, rs, vpWidth, vpHeight, sampleCount[0]);
         }
     }
-    private void setTexSize(final GL2ES2 gl, final ShaderState st, boolean firstPass) {
+    private void setTexSize(final GL2ES2 gl, final ShaderState st, final boolean firstPass, final int width, final int height, final int sampleCount) {
         if(null == mgl_TextureSize) {
             mgl_TextureSize = new GLUniformData(UniformNames.gcu_TextureSize, 3, Buffers.newDirectFloatBuffer(3));
         }
         final FloatBuffer texSize = (FloatBuffer) mgl_TextureSize.getBuffer();
+        texSize.put(0, width);
+        texSize.put(1, height);
         if( firstPass ) {
             texSize.put(2, 0f);
         } else {
-            texSize.put(0, fboWidth);
-            texSize.put(1, fboHeight);
-            texSize.put(2, 1f);
+            texSize.put(2, 1f+sampleCount);
         }
         st.uniform(gl, mgl_TextureSize);
     }
 
-    private void renderFBO(final GL2ES2 gl, final RenderState rs, final int width, final int height) {
+    private void renderFBO(final GL2ES2 gl, final RenderState rs, final int width, final int height, final int sampleCount) {
         final ShaderState st = rs.getShaderState();
 
         gl.glViewport(0, 0, width, height);
         st.uniform(gl, mgl_ActiveTexture);
         gl.glActiveTexture(GL.GL_TEXTURE0 + mgl_ActiveTexture.intValue());
-        setTexSize(gl, st, false);
+        setTexSize(gl, st, false, fboWidth, fboHeight, sampleCount);
 
         fbo.use(gl, fbo.getSamplingSink());
         verticeFboAttr.enableBuffer(gl, true);
@@ -329,7 +334,8 @@ public class VBORegion2PMSAAES2  extends GLRegion {
         // setback: gl.glActiveTexture(currentActiveTextureEngine[0]);
     }
 
-    private void renderRegion2FBO(final GL2ES2 gl, final RenderState rs, final int targetFboWidth, final int targetFboHeight, int[] sampleCount) {
+    private void renderRegion2FBO(final GL2ES2 gl, final RenderState rs, final int targetFboWidth, final int targetFboHeight,
+                                  final int vpWidth, final int vpHeight, final int[] sampleCount) {
         final ShaderState st = rs.getShaderState();
 
         if( 0 >= targetFboWidth || 0 >= targetFboHeight ) {
@@ -367,7 +373,7 @@ public class VBORegion2PMSAAES2  extends GLRegion {
             fboHeight  = targetFboHeight;
         }
         fbo.bind(gl);
-        setTexSize(gl, st, true);
+        setTexSize(gl, st, true, vpWidth, vpHeight, sampleCount[0]);
 
         //render texture
         gl.glViewport(0, 0, fboWidth, fboHeight);

@@ -17,6 +17,8 @@
 
 const vec3 zero3 = vec3(0);
 
+#define GetSample(texUnit, texCoord, psize, cx, cy, offX, offY) texture2D(texUnit, texCoord + psize *  vec2(cx+offX, cy+offY))
+
 void main (void)
 {
     vec3 color;
@@ -26,9 +28,15 @@ void main (void)
     
     if( 0 < gcu_TextureSize.z ) {
 
-// 1st Choice VBAA
-#include curverenderer01-pass2-vbaa_poles_equalweight.glsl
+// Quality: wholeedge > [flipquad,rgss, quincunx] > poles
+#include curverenderer01-pass2-vbaa_flipquad3.glsl
 
+// #include curverenderer01-pass2-vbaa_flipquad2.glsl
+// #include curverenderer01-pass2-vbaa_flipquad.glsl
+// #include curverenderer01-pass2-vbaa_rgss.glsl
+// #include curverenderer01-pass2-vbaa_quincunx.glsl
+
+// #include curverenderer01-pass2-vbaa_poles_equalweight.glsl
 // #include curverenderer01-pass2-vbaa_poles_bilin1.glsl
 // #include curverenderer01-pass2-vbaa_poles_propweight1.glsl
 // #include curverenderer01-pass2-vbaa_wholeedge_propweight1.glsl

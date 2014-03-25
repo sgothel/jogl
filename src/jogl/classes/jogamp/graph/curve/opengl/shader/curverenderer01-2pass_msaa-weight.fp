@@ -31,12 +31,12 @@ void main (void)
         }
         #endif
 
-        c = t.rgb;   
+        color = t.rgb;   
         alpha = gcu_Alpha * t.a;
     } else {
 
 #include curverenderer01-pass1-curve-weight.glsl
 
     }
-    mgl_FragColor = vec4(c, alpha);
+    mgl_FragColor = vec4(color, alpha);
 }

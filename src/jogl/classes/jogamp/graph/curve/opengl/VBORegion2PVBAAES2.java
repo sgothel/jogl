@@ -403,7 +403,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
             renderFBO(gl, rs, targetFboWidth, targetFboHeight, vpWidth, vpHeight, sampleCount[0]);
         }
     }
-    private void setTexSize(final GL2ES2 gl, final ShaderState st, boolean firstPass, int width, int height, int sampleCount) {
+    private void setTexSize(final GL2ES2 gl, final ShaderState st, final boolean firstPass, final int width, final int height, final int sampleCount) {
         if(null == mgl_TextureSize) {
             mgl_TextureSize = new GLUniformData(UniformNames.gcu_TextureSize, 3, Buffers.newDirectFloatBuffer(3));
         }
@@ -419,7 +419,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
     }
 
     private void renderFBO(final GL2ES2 gl, final RenderState rs, final int targetFboWidth, final int targetFboHeight,
-                           final int vpWidth, final int vpHeight, int sampleCount) {
+                           final int vpWidth, final int vpHeight, final int sampleCount) {
         final ShaderState st = rs.getShaderState();
 
         gl.glViewport(0, 0, vpWidth, vpHeight);

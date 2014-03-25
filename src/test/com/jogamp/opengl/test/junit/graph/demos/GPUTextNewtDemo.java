@@ -95,7 +95,7 @@ public class GPUTextNewtDemo {
         }
         System.out.println("Requested: " + caps);
 
-        int rmode = Region.VARIABLE_CURVE_WEIGHT_BIT;
+        int rmode = 0; // Region.VARIABLE_CURVE_WEIGHT_BIT;
         int sampleCount = 0;
         if( GraphVBAASamples > 0 ) {
             rmode |= Region.VBAA_RENDERING_BIT;
