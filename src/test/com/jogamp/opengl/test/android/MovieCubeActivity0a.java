@@ -55,8 +55,8 @@ import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 import android.os.Bundle;
 import android.util.Log;
 
-public class MovieCubeActivity0 extends NewtBaseActivity {
-   static String TAG = "MovieCubeActivity0";
+public class MovieCubeActivity0a extends NewtBaseActivity {
+   static String TAG = "MovieCubeActivity0a";
 
    MouseAdapter showKeyboardMouseListener = new MouseAdapter() {
         @Override
@@ -98,7 +98,7 @@ public class MovieCubeActivity0 extends NewtBaseActivity {
            glWindowMain.setVisible(true);
            glWindowMain.addMouseListener(showKeyboardMouseListener);
 
-           final MovieCube demoMain = new MovieCube(MovieCube.zoom_def, 0f, 0f);
+           final MovieCube demoMain = new MovieCube(MovieCube.zoom_def, 0f, 0f, false);
            final GLMediaPlayer mPlayer = demoMain.getGLMediaPlayer();
            mPlayer.addEventListener(new GLMediaEventListener() {
                 @Override

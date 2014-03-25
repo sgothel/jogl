@@ -139,9 +139,9 @@ public class MovieSimple implements GLEventListener {
         private final float fontSize = 10f;
         private final GLRegion regionFPS;
 
-        InfoTextRendererGLELBase() {
+        InfoTextRendererGLELBase(int rmode) {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
-            super(Region.VBAA_RENDERING_BIT, textSampleCount);
+            super(rmode, textSampleCount);
             // NOTE_ALPHA_BLENDING: We go w/o alpha and blending!
             // this.setRendererCallbacks(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
             regionFPS = GLRegion.create(usrRenderModes);
@@ -178,7 +178,9 @@ public class MovieSimple implements GLEventListener {
 
             final float aspect = (float)mPlayer.getWidth() / (float)mPlayer.getHeight();
 
-            final String text1 = String.format("%03.1f/%03.1f s, %s (%01.2fx, vol %01.2f), a %01.2f, fps %02.1f -> %02.1f / %02.1f, v-sync %d",
+            final GL gl = drawable.getGL();
+            final String ptsPrec = gl.isGLES() ? "3.0" : "3.1";
+            final String text1 = String.format("%0"+ptsPrec+"f/%0"+ptsPrec+"f s, %s (%01.2fx, vol %01.2f), a %01.2f, fps %02.1f -> %02.1f / %02.1f, v-sync %d",
                     pts, mPlayer.getDuration() / 1000f,
                     mPlayer.getState().toString().toLowerCase(), mPlayer.getPlaySpeed(), mPlayer.getAudioVolume(),
                     aspect, mPlayer.getFramerate(), lfps, tfps, swapIntervalSet);
@@ -196,7 +198,7 @@ public class MovieSimple implements GLEventListener {
                 renderString(drawable, font, pixelSize, text4, 1 /* col */, -2 /* row */, 0, height, -1, true);
             }
         } };
-    private final InfoTextRendererGLELBase textRendererGLEL = new InfoTextRendererGLELBase();
+    private InfoTextRendererGLELBase textRendererGLEL = null;
     private boolean displayOSD = true;
 
     private final MouseListener mouseAction = new MouseAdapter() {
@@ -593,6 +595,7 @@ public class MovieSimple implements GLEventListener {
             winWidth = window.getWidth();
             winHeight = window.getHeight();
         }
+        textRendererGLEL = new InfoTextRendererGLELBase(drawable.getChosenGLCapabilities().getSampleBuffers() ? 0 : Region.VBAA_RENDERING_BIT);
         drawable.addGLEventListener(textRendererGLEL);
     }
 
@@ -689,6 +692,7 @@ public class MovieSimple implements GLEventListener {
     @Override
     public void dispose(GLAutoDrawable drawable) {
         drawable.disposeGLEventListener(textRendererGLEL, true);
+        textRendererGLEL = null;
         disposeImpl(drawable, true);
     }
 

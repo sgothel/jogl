@@ -32,7 +32,7 @@ import java.util.List;
 
 import com.jogamp.opengl.test.android.LauncherUtil.OrderedProperties;
 
-public class MovieCubeActivityLauncher1b extends LauncherUtil.BaseActivityLauncher {
+public class MovieCubeActivityLauncher0a extends LauncherUtil.BaseActivityLauncher {
 
     static String demo = "com.jogamp.opengl.test.android.MovieCubeActivity0a";
     static String[] sys_pkgs = new String[] { "com.jogamp.common", "javax.media.opengl" };
@@ -41,7 +41,8 @@ public class MovieCubeActivityLauncher1b extends LauncherUtil.BaseActivityLaunch
     @Override
     public void init() {
        final OrderedProperties props = getProperties();
-       props.setProperty("jnlp.media0_url2", "camera:/1");
+       // props.setProperty("jnlp.media0_url2", "http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_640x360.m4v");
+       props.setProperty("jnlp.media0_url2", "");
        props.setProperty("jnlp.media0_url1", "http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4");
        props.setProperty("jnlp.media0_url0", "file:///mnt/sdcard/Movies/BigBuckBunny_320x180.mp4");
        props.setProperty("jnlp.media1_url0", "http://archive.org/download/ElephantsDream/ed_1024_512kb.mp4");
@@ -57,7 +58,7 @@ public class MovieCubeActivityLauncher1b extends LauncherUtil.BaseActivityLaunch
        // props.setProperty("jogl.debug.GLProfile", "true");
        // props.setProperty("jogl.debug.GLDrawable", "true");
        // props.setProperty("jogl.debug.GLContext", "true");
-       // props.setProperty("jogl.debug.GLMediaPlayer", "true");
+       props.setProperty("jogl.debug.GLMediaPlayer", "true");
        props.setProperty("jogl.debug.GLSLCode", "true");
        // props.setProperty("jogl.debug.CapabilitiesChooser", "true");
        // props.setProperty("jogl.debug.GLSLState", "true");
@@ -67,7 +68,7 @@ public class MovieCubeActivityLauncher1b extends LauncherUtil.BaseActivityLaunch
        // props.setProperty("newt.debug.Window", "true");
        // props.setProperty("newt.debug.Window.MouseEvent", "true");
        // props.setProperty("newt.debug.Window.KeyEvent", "true");
-       // props.setProperty("jogamp.debug.IOUtil", "true");
+       props.setProperty("jogamp.debug.IOUtil", "true");
     }
 
     @Override

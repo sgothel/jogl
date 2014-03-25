@@ -27,6 +27,7 @@
  */
 package com.jogamp.opengl.test.android;
 
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -40,12 +41,11 @@ import jogamp.newt.driver.android.NewtBaseActivity;
 
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.newt.NewtFactory;
-import com.jogamp.newt.Window;
 import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.opengl.GLWindow;
 
-import com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
@@ -55,22 +55,23 @@ import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 import android.os.Bundle;
 import android.util.Log;
 
-public class MovieSimpleActivity0 extends NewtBaseActivity {
-   static String TAG = "MovieSimpleActivity0";
+public class MovieCubeActivity0b extends NewtBaseActivity {
+   static String TAG = "MovieCubeActivity0a";
 
-   MouseAdapter toFrontMouseListener = new MouseAdapter() {
-       public void mouseClicked(MouseEvent e) {
-           Object src = e.getSource();
-           if(src instanceof Window) {
-               ((Window)src).requestFocus(false);
+   MouseAdapter showKeyboardMouseListener = new MouseAdapter() {
+        @Override
+        public void mousePressed(MouseEvent e) {
+           if( e.getPointerCount() == 4 && e.getPressure(0, true) > 0.7f ) {
+               ((com.jogamp.newt.Window) e.getSource()).setKeyboardVisible(true);
            }
-       } };
+        }
+   };
 
    @Override
    public void onCreate(Bundle savedInstanceState) {
        super.onCreate(savedInstanceState);
 
-       final String[] streamLocs = new String[] {
+       String[] streamLocs = new String[] {
                System.getProperty("jnlp.media0_url2"),
                System.getProperty("jnlp.media0_url1"),
                System.getProperty("jnlp.media0_url0") };
@@ -88,41 +89,49 @@ public class MovieSimpleActivity0 extends NewtBaseActivity {
        final com.jogamp.newt.Screen scrn = NewtFactory.createScreen(dpy, 0);
        scrn.addReference();
 
-       final Animator anim = new Animator();
+       try {
+           final Animator anim = new Animator();
 
-       // Main
-       final GLWindow glWindowMain = GLWindow.create(scrn, capsMain);
-       glWindowMain.setFullscreen(true);
-       setContentView(getWindow(), glWindowMain);
-       anim.add(glWindowMain);
-       glWindowMain.setVisible(true);
+           // Main
+           final GLWindow glWindowMain = GLWindow.create(scrn, capsMain);
+           glWindowMain.setFullscreen(true);
+           setContentView(getWindow(), glWindowMain);
+           anim.add(glWindowMain);
+           glWindowMain.setVisible(true);
+           glWindowMain.addMouseListener(showKeyboardMouseListener);
 
-       final MovieSimple demoMain = new MovieSimple(null);
-       demoMain.setScaleOrig(true);
-       final GLMediaPlayer mPlayer = demoMain.getGLMediaPlayer();
-       mPlayer.addEventListener( new GLMediaPlayer.GLMediaEventListener() {
-           @Override
-           public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) { }
+           final MovieCube demoMain = new MovieCube(MovieCube.zoom_def, 0f, 0f, true);
+           final GLMediaPlayer mPlayer = demoMain.getGLMediaPlayer();
+           mPlayer.addEventListener(new GLMediaEventListener() {
+                @Override
+                public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) {
+                }
 
-           @Override
-           public void attributesChanged(GLMediaPlayer mp, int event_mask, long when) {
-               System.err.println("MovieSimpleActivity0 AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
-               System.err.println("MovieSimpleActivity0 State: "+mp);
-               if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
-                   glWindowMain.addGLEventListener(demoMain);
-                   anim.setUpdateFPSFrames(60, System.err);
-                   anim.resetFPSCounter();
-               }
-               if( 0 != ( ( GLMediaEventListener.EVENT_CHANGE_ERR | GLMediaEventListener.EVENT_CHANGE_EOS ) & event_mask ) ) {
-                   final StreamException se = mPlayer.getStreamException();
-                   if( null != se ) {
-                       se.printStackTrace();
-                   }
-                   getActivity().finish();
-               }
-           }
-       });
-       demoMain.initStream(streamLoc, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, 0);
+                @Override
+                public void attributesChanged(final GLMediaPlayer mp, int event_mask, long when) {
+                    System.err.println("MovieCubeActivity0 AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
+                    System.err.println("MovieCubeActivity0 State: "+mp);
+                    if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
+                        glWindowMain.addGLEventListener(demoMain);
+                        anim.setUpdateFPSFrames(60, null);
+                        anim.resetFPSCounter();
+                    }
+                    if( 0 != ( GLMediaEventListener.EVENT_CHANGE_PLAY & event_mask ) ) {
+                        anim.resetFPSCounter();
+                    }
+                    if( 0 != ( ( GLMediaEventListener.EVENT_CHANGE_ERR | GLMediaEventListener.EVENT_CHANGE_EOS ) & event_mask ) ) {
+                        final StreamException se = mPlayer.getStreamException();
+                        if( null != se ) {
+                            se.printStackTrace();
+                        }
+                        getActivity().finish();
+                    }
+                }
+            });
+           demoMain.initStream(streamLoc, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, 0);
+       } catch (IOException e) {
+           e.printStackTrace();
+       }
 
        scrn.removeReference();
 

@@ -32,9 +32,9 @@ import java.util.List;
 
 import com.jogamp.opengl.test.android.LauncherUtil.OrderedProperties;
 
-public class MovieCubeActivityLauncher0 extends LauncherUtil.BaseActivityLauncher {
+public class MovieCubeActivityLauncher0b extends LauncherUtil.BaseActivityLauncher {
 
-    static String demo = "com.jogamp.opengl.test.android.MovieCubeActivity0";
+    static String demo = "com.jogamp.opengl.test.android.MovieCubeActivity0b";
     static String[] sys_pkgs = new String[] { "com.jogamp.common", "javax.media.opengl" };
     static String[] usr_pkgs = new String[] { "com.jogamp.opengl.test" };
 

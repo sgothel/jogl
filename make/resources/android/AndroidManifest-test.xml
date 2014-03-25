@@ -171,8 +171,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.jogamp.opengl.test.android.MovieCubeActivityLauncher0"
-                  android:label="@string/activity_moviecube0_name"
+        <activity android:name="com.jogamp.opengl.test.android.MovieCubeActivityLauncher0a"
+                  android:label="@string/activity_moviecube0a_name"
+                  android:description="@string/activity_moviecube_descr"
+                  android:theme="@android:style/Theme.NoDisplay"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.jogamp.opengl.test.android.MovieCubeActivityLauncher0b"
+                  android:label="@string/activity_moviecube0b_name"
                   android:description="@string/activity_moviecube_descr"
                   android:theme="@android:style/Theme.NoDisplay"
                   >

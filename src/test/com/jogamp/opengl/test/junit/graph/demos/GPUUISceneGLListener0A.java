@@ -53,12 +53,13 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     final float relRight = 2f/6f;
     final float relLeft = 1f/6f;
 
-    final float buttonXSize = 84f;
-    final float buttonYSize = buttonXSize/2.5f;
+    /** Proportional Button Size to Window Height, per-vertical-pixels [PVP] */
+    final float buttonYSizePVP = 0.084f;
+    final float buttonXSizePVP = 0.105f;
     final float fontSizePt = 10f;
-    /** Proportional Window Height Font Size for Main Text, per-vertical-pixels [PVP] */
+    /** Proportional Font Size to Window Height  for Main Text, per-vertical-pixels [PVP] */
     final float fontSizeFixedPVP = 0.046f;
-    /** Proportional Window Height Font Size for FPS Status Line, per-vertical-pixels [PVP] */
+    /** Proportional Font Size to Window Height for FPS Status Line, per-vertical-pixels [PVP] */
     final float fontSizeFpsPVP = 0.038f;
     float dpiH = 96;
 
@@ -141,10 +142,13 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         }
     }
 
-    private void initButtons(final GL gl, final RegionRenderer renderer) {
+    private void initButtons(final GL gl, final int width, final int height, final RegionRenderer renderer) {
         final boolean pass2Mode = 0 != ( renderer.getRenderModes() & ( Region.VBAA_RENDERING_BIT | Region.MSAA_RENDERING_BIT ) ) ;
         buttons.clear();
 
+        final float buttonXSize = buttonXSizePVP * width;
+        final float buttonYSize = buttonYSizePVP * height;
+        System.err.println("Button Size: "+buttonXSizePVP+" x "+buttonYSizePVP+" * "+width+" x "+height+" -> "+buttonXSize+" x "+buttonYSize);
         final float xstart = 0f;
         final float ystart = 0f;
         final float diffX = 1.2f * buttonXSize;
@@ -545,7 +549,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         crossHairCtr.setEnabled(true);
         crossHairCtr.translate(0f, 0f, -1f);
 
-        initButtons(gl, renderer);
+        initButtons(gl, drawable.getWidth(), drawable.getHeight(), renderer);
         for(int i=0; i<buttons.size(); i++) {
             sceneUIController.addShape(buttons.get(i));
         }
@@ -622,7 +626,8 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             final String modeS = Region.getRenderModeString(renderer.getRenderModes());
             final String text;
             if( null == actionText ) {
-                text = String.format("%03.1f/%03.1f fps, v-sync %d, fontSize %.1f, %s-samples %d, td %4.1f, blend %b, alpha-bits %d, msaa-bits %d",
+                final String timePrec = gl.isGLES() ? "4.0" : "4.1";
+                text = String.format("%03.1f/%03.1f fps, v-sync %d, fontSize %.1f, %s-samples %d, td %"+timePrec+"f, blend %b, alpha-bits %d, msaa-bits %d",
                     lfps, tfps, gl.getSwapInterval(), fontSizeFixedPVP, modeS, sceneUIController.getSampleCount(), td,
                     renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED),
                     drawable.getChosenGLCapabilities().getAlphaBits(),

@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
@@ -99,7 +100,7 @@ public class MovieCube implements GLEventListener {
      * </p>
      */
     public MovieCube() throws IOException, URISyntaxException {
-        this(zoom_def, 0f, 0f);
+        this(zoom_def, 0f, 0f, true);
 
         mPlayer.addEventListener(new GLMediaEventListener() {
             @Override
@@ -136,11 +137,14 @@ public class MovieCube implements GLEventListener {
         }
     }
 
-    /** Custom constructor, user needs to issue {@link #initStream(URI, int, int, int)} afterwards. */
-    public MovieCube(float zoom0, float rotx, float roty) throws IOException {
+    /**
+     * Custom constructor, user needs to issue {@link #initStream(URI, int, int, int)} afterwards.
+     */
+    public MovieCube(float zoom0, float rotx, float roty, boolean showText) throws IOException {
         this.zoom0 = zoom0;
         this.rotx = rotx;
         this.roty = roty;
+        this.showText = showText;
         mPlayer = GLMediaPlayerFactory.createDefault();
     }
 
@@ -166,9 +170,9 @@ public class MovieCube implements GLEventListener {
         private final GLRegion regionFPS;
         private float pixelSize, underlineSize;
 
-        InfoTextRendererGLELBase() {
+        InfoTextRendererGLELBase(final int rmode) {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
-            super(Region.VBAA_RENDERING_BIT, MovieCube.this.textSampleCount);
+            super(rmode, MovieCube.this.textSampleCount);
             // NOTE_ALPHA_BLENDING: We go w/o alpha and blending!
             // this.setRendererCallbacks(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
             regionFPS = GLRegion.create(usrRenderModes);
@@ -229,7 +233,9 @@ public class MovieCube implements GLEventListener {
                                "; underlineSize "+underlineSize+" "+(pixelScale*underlineSize)+
                                "; yoff "+yoff1+", yoff2 "+yoff2); */
 
-            final String text1 = String.format("%03.1f/%03.1f s, %s (%01.2fx, vol %01.2f), a %01.2f, fps %02.1f -> %02.1f / %02.1f, v-sync %d",
+            final GL gl = drawable.getGL();
+            final String ptsPrec = gl.isGLES() ? "3.0" : "3.1";
+            final String text1 = String.format("%0"+ptsPrec+"f/%0"+ptsPrec+"f s, %s (%01.2fx, vol %01.2f), a %01.2f, fps %02.1f -> %02.1f / %02.1f, v-sync %d",
                     pts, mPlayer.getDuration() / 1000f,
                     mPlayer.getState().toString().toLowerCase(), mPlayer.getPlaySpeed(), mPlayer.getAudioVolume(),
                     aspect, mPlayer.getFramerate(), lfps, tfps, swapIntervalSet);
@@ -239,14 +245,15 @@ public class MovieCube implements GLEventListener {
                     mPlayer.getVID(), mPlayer.getVideoBitrate()/1000, mPlayer.getVideoCodec());
             final String text4 = mPlayer.getURI().getRawPath();
             if( displayOSD && null != renderer ) {
-                drawable.getGL().glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+                gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
                 renderString(drawable, font, pixelSize, text1, 1 /* col */, -1 /* row */, -1+z_diff, yoff1, 1f+z_diff, regionFPS); // no-cache
                 renderString(drawable, font, pixelSize, text2, 1 /* col */,  0 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
                 renderString(drawable, font, pixelSize, text3, 1 /* col */,  1 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
                 renderString(drawable, font, pixelSize, text4, 1 /* col */,  2 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
             }
         } };
-    private final InfoTextRendererGLELBase textRendererGLEL = new InfoTextRendererGLELBase();
+    private InfoTextRendererGLELBase textRendererGLEL = null;
+    final boolean showText;
     private boolean displayOSD = true;
 
     private final KeyListener keyAction = new KeyAdapter() {
@@ -370,7 +377,11 @@ public class MovieCube implements GLEventListener {
             added = true;
         } else { added = false; }
         System.err.println("MC.init: kl-added "+added+", "+drawable.getClass().getName());
-        drawable.addGLEventListener(textRendererGLEL);
+
+        if( showText ) {
+            textRendererGLEL = new InfoTextRendererGLELBase(drawable.getChosenGLCapabilities().getSampleBuffers() ? 0 : Region.VBAA_RENDERING_BIT);
+            drawable.addGLEventListener(textRendererGLEL);
+        }
     }
 
     @Override
@@ -382,7 +393,10 @@ public class MovieCube implements GLEventListener {
     @Override
     public void dispose(GLAutoDrawable drawable) {
         System.err.println(Thread.currentThread()+" MovieCube.dispose ... ");
-        drawable.disposeGLEventListener(textRendererGLEL, true);
+        if( null != textRendererGLEL ) {
+            drawable.disposeGLEventListener(textRendererGLEL, true);
+            textRendererGLEL = null;
+        }
         disposeImpl(drawable, true);
     }
 
@@ -507,7 +521,7 @@ public class MovieCube implements GLEventListener {
         System.err.println("forceGLDef "+forceGLDef);
         System.err.println("swapInterval "+swapInterval);
 
-        final MovieCube mc = new MovieCube(zoom_def, 0f, 0f);
+        final MovieCube mc = new MovieCube(zoom_def, 0f, 0f, true);
         mc.setSwapInterval(swapInterval);
 
         final GLProfile glp;
