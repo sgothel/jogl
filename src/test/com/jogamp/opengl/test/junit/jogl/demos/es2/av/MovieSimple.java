@@ -139,14 +139,17 @@ public class MovieSimple implements GLEventListener {
         private final float fontSize = 10f;
         private final GLRegion regionFPS;
 
-        InfoTextRendererGLELBase(int rmode) {
+        InfoTextRendererGLELBase(final int rmode, final boolean lowPerfDevice) {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
             super(rmode, textSampleCount);
             // NOTE_ALPHA_BLENDING: We go w/o alpha and blending!
             // this.setRendererCallbacks(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
-            regionFPS = GLRegion.create(usrRenderModes);
-            System.err.println("RegionFPS "+Region.getRenderModeString(usrRenderModes)+", sampleCount "+textSampleCount[0]+", class "+regionFPS.getClass().getName());
-
+            if( lowPerfDevice ) {
+                regionFPS = null;
+            } else {
+                regionFPS = GLRegion.create(usrRenderModes);
+                System.err.println("RegionFPS "+Region.getRenderModeString(usrRenderModes)+", sampleCount "+textSampleCount[0]+", class "+regionFPS.getClass().getName());
+            }
             staticRGBAColor[0] = 0.9f;
             staticRGBAColor[1] = 0.9f;
             staticRGBAColor[2] = 0.9f;
@@ -160,7 +163,9 @@ public class MovieSimple implements GLEventListener {
 
         @Override
         public void dispose(GLAutoDrawable drawable) {
-            regionFPS.destroy(drawable.getGL().getGL2ES2(), renderer);
+            if( null != regionFPS ) {
+                regionFPS.destroy(drawable.getGL().getGL2ES2(), renderer);
+            }
             super.dispose(drawable);
         }
 
@@ -178,8 +183,7 @@ public class MovieSimple implements GLEventListener {
 
             final float aspect = (float)mPlayer.getWidth() / (float)mPlayer.getHeight();
 
-            final GL gl = drawable.getGL();
-            final String ptsPrec = gl.isGLES() ? "3.0" : "3.1";
+            final String ptsPrec = null != regionFPS ? "3.1" : "3.0";
             final String text1 = String.format("%0"+ptsPrec+"f/%0"+ptsPrec+"f s, %s (%01.2fx, vol %01.2f), a %01.2f, fps %02.1f -> %02.1f / %02.1f, v-sync %d",
                     pts, mPlayer.getDuration() / 1000f,
                     mPlayer.getState().toString().toLowerCase(), mPlayer.getPlaySpeed(), mPlayer.getAudioVolume(),
@@ -192,7 +196,11 @@ public class MovieSimple implements GLEventListener {
             if( displayOSD && null != renderer ) {
                 // We share ClearColor w/ MovieSimple's init !
                 final float pixelSize = font.getPixelSize(fontSize, dpiH);
-                renderString(drawable, font, pixelSize, text1, 1 /* col */,  1 /* row */, 0,      0, -1, regionFPS); // no-cache
+                if( null != regionFPS ) {
+                    renderString(drawable, font, pixelSize, text1, 1 /* col */,  1 /* row */, 0,      0, -1, regionFPS); // no-cache
+                } else {
+                    renderString(drawable, font, pixelSize, text1, 1 /* col */,  1 /* row */, 0,      0, -1, true);
+                }
                 renderString(drawable, font, pixelSize, text2, 1 /* col */, -4 /* row */, 0, height, -1, true);
                 renderString(drawable, font, pixelSize, text3, 1 /* col */, -3 /* row */, 0, height, -1, true);
                 renderString(drawable, font, pixelSize, text4, 1 /* col */, -2 /* row */, 0, height, -1, true);
@@ -595,7 +603,9 @@ public class MovieSimple implements GLEventListener {
             winWidth = window.getWidth();
             winHeight = window.getHeight();
         }
-        textRendererGLEL = new InfoTextRendererGLELBase(drawable.getChosenGLCapabilities().getSampleBuffers() ? 0 : Region.VBAA_RENDERING_BIT);
+        final int rmode = drawable.getChosenGLCapabilities().getSampleBuffers() ? 0 : Region.VBAA_RENDERING_BIT;
+        final boolean lowPerfDevice = gl.isGLES();
+        textRendererGLEL = new InfoTextRendererGLELBase(rmode, lowPerfDevice);
         drawable.addGLEventListener(textRendererGLEL);
     }
 

@@ -170,14 +170,17 @@ public class MovieCube implements GLEventListener {
         private final GLRegion regionFPS;
         private float pixelSize, underlineSize;
 
-        InfoTextRendererGLELBase(final int rmode) {
+        InfoTextRendererGLELBase(final int rmode, final boolean lowPerfDevice) {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
             super(rmode, MovieCube.this.textSampleCount);
             // NOTE_ALPHA_BLENDING: We go w/o alpha and blending!
             // this.setRendererCallbacks(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
-            regionFPS = GLRegion.create(usrRenderModes);
-            System.err.println("RegionFPS "+Region.getRenderModeString(usrRenderModes)+", sampleCount "+textSampleCount[0]+", class "+regionFPS.getClass().getName());
-
+            if( lowPerfDevice ) {
+                regionFPS = null;
+            } else {
+                regionFPS = GLRegion.create(usrRenderModes);
+                System.err.println("RegionFPS "+Region.getRenderModeString(usrRenderModes)+", sampleCount "+textSampleCount[0]+", class "+regionFPS.getClass().getName());
+            }
             staticRGBAColor[0] = 0.1f;
             staticRGBAColor[1] = 0.1f;
             staticRGBAColor[2] = 0.1f;
@@ -202,7 +205,9 @@ public class MovieCube implements GLEventListener {
 
         @Override
         public void dispose(GLAutoDrawable drawable) {
-            regionFPS.destroy(drawable.getGL().getGL2ES2(), renderer);
+            if( null != regionFPS ) {
+                regionFPS.destroy(drawable.getGL().getGL2ES2(), renderer);
+            }
             super.dispose(drawable);
         }
 
@@ -234,7 +239,7 @@ public class MovieCube implements GLEventListener {
                                "; yoff "+yoff1+", yoff2 "+yoff2); */
 
             final GL gl = drawable.getGL();
-            final String ptsPrec = gl.isGLES() ? "3.0" : "3.1";
+            final String ptsPrec = null != regionFPS ? "3.1" : "3.0";
             final String text1 = String.format("%0"+ptsPrec+"f/%0"+ptsPrec+"f s, %s (%01.2fx, vol %01.2f), a %01.2f, fps %02.1f -> %02.1f / %02.1f, v-sync %d",
                     pts, mPlayer.getDuration() / 1000f,
                     mPlayer.getState().toString().toLowerCase(), mPlayer.getPlaySpeed(), mPlayer.getAudioVolume(),
@@ -246,7 +251,11 @@ public class MovieCube implements GLEventListener {
             final String text4 = mPlayer.getURI().getRawPath();
             if( displayOSD && null != renderer ) {
                 gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
-                renderString(drawable, font, pixelSize, text1, 1 /* col */, -1 /* row */, -1+z_diff, yoff1, 1f+z_diff, regionFPS); // no-cache
+                if( null != regionFPS ) {
+                    renderString(drawable, font, pixelSize, text1, 1 /* col */, -1 /* row */, -1+z_diff, yoff1, 1f+z_diff, regionFPS); // no-cache
+                } else {
+                    renderString(drawable, font, pixelSize, text1, 1 /* col */, -1 /* row */, -1+z_diff, yoff1, 1f+z_diff, true);
+                }
                 renderString(drawable, font, pixelSize, text2, 1 /* col */,  0 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
                 renderString(drawable, font, pixelSize, text3, 1 /* col */,  1 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
                 renderString(drawable, font, pixelSize, text4, 1 /* col */,  2 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
@@ -379,7 +388,9 @@ public class MovieCube implements GLEventListener {
         System.err.println("MC.init: kl-added "+added+", "+drawable.getClass().getName());
 
         if( showText ) {
-            textRendererGLEL = new InfoTextRendererGLELBase(drawable.getChosenGLCapabilities().getSampleBuffers() ? 0 : Region.VBAA_RENDERING_BIT);
+            final int rmode = drawable.getChosenGLCapabilities().getSampleBuffers() ? 0 : Region.VBAA_RENDERING_BIT;
+            final boolean lowPerfDevice = gl.isGLES();
+            textRendererGLEL = new InfoTextRendererGLELBase(rmode, lowPerfDevice);
             drawable.addGLEventListener(textRendererGLEL);
         }
     }
