@@ -79,12 +79,14 @@ public class MovieCube implements GLEventListener {
     private long lastPerfPos = 0;
     private volatile boolean resetGLState = false;
 
-    /** Blender's Big Buck Bunny Trailer: 24f 640p VP8, Vorbis 44100Hz mono, WebM/Matroska Stream. */
+    /** Blender's Big Buck Bunny: 24f 416p H.264,  AAC 48000 Hz, 2 ch, mpeg stream. */
     public static final URI defURI;
     static {
         URI _defURI = null;
         try {
-            _defURI = new URI("http://video.webmfiles.org/big-buck-bunny_trailer.webm");
+            // Blender's Big Buck Bunny Trailer: 24f 640p VP8, Vorbis 44100Hz mono, WebM/Matroska Stream.
+            // _defURI = new URI("http://video.webmfiles.org/big-buck-bunny_trailer.webm");
+            _defURI = new URI("http://archive.org/download/BigBuckBunny_328/BigBuckBunny_512kb.mp4");
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }

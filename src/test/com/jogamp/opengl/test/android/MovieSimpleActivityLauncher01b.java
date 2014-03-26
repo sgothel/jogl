@@ -44,11 +44,9 @@ public class MovieSimpleActivityLauncher01b extends LauncherUtil.BaseActivityLau
        props.setProperty("jnlp.mplayer.nozoom",     "false");
        props.setProperty("jnlp.mplayer.hud",        "true");
        props.setProperty("jnlp.mplayer.hud.shared", "true");
-       // props.setProperty("jnlp.media0_url2", "http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_640x360.m4v");
-       props.setProperty("jnlp.media0_url2", "");
-       props.setProperty("jnlp.media0_url1", "http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4");
-       props.setProperty("jnlp.media0_url0", "file:///mnt/sdcard/Movies/BigBuckBunny_320x180.mp4");
-       props.setProperty("jnlp.media1_url0", "http://archive.org/download/ElephantsDream/ed_1024_512kb.mp4");
+       props.setProperty("jnlp.media0_url0", "http://archive.org/download/BigBuckBunny_328/BigBuckBunny_512kb.mp4");
+       props.setProperty("jnlp.media1_url1", "http://archive.org/download/ElephantsDream/ed_1024_512kb.mp4");
+       props.setProperty("jnlp.media0_url2", "file:///mnt/sdcard/Movies/BigBuckBunny_320x180.mp4");
        // props.setProperty("jogamp.debug.JNILibLoader", "true");
        // props.setProperty("jogamp.debug.NativeLibrary", "true");
        // props.setProperty("jogamp.debug.NativeLibrary.Lookup", "true");

@@ -73,17 +73,16 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
    public void onCreate(Bundle savedInstanceState) {
        super.onCreate(savedInstanceState);
 
-       final boolean mPlayerLocal = Boolean.valueOf(System.getProperty("jnlp.mplayer.local"));
        final boolean mPlayerNoZoom = Boolean.valueOf(System.getProperty("jnlp.mplayer.nozoom"));
        final boolean mPlayerHUD = Boolean.valueOf(System.getProperty("jnlp.mplayer.hud"));
        final boolean mPlayerSharedHUD = mPlayerHUD && Boolean.valueOf(System.getProperty("jnlp.mplayer.hud.shared"));
-       Log.d(TAG, "onCreate - 0 - mPlayerLocal "+mPlayerLocal+", mPlayerNoScale "+mPlayerNoZoom+", mPlayerHUD "+mPlayerHUD+", mPlayerSharedHUD "+mPlayerSharedHUD);
+       Log.d(TAG, "onCreate - 0 - mPlayerNoScale "+mPlayerNoZoom+", mPlayerHUD "+mPlayerHUD+", mPlayerSharedHUD "+mPlayerSharedHUD);
 
        String[] streamLocs = new String[] {
-               System.getProperty("jnlp.media0_url2"),
+               System.getProperty("jnlp.media0_url0"),
                System.getProperty("jnlp.media0_url1"),
-               System.getProperty("jnlp.media0_url0") };
-       final URI streamLoc0 = getURI(streamLocs, mPlayerLocal ? 2 : 0, false);
+               System.getProperty("jnlp.media0_url2") };
+       final URI streamLoc0 = getURI(streamLocs, 2, false);
        if(null == streamLoc0) { throw new RuntimeException("no media reachable: "+Arrays.asList(streamLocs)); }
 
        final URI streamLoc1;
@@ -91,7 +90,7 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
            URI _streamLoc1 = null;
            if(mPlayerHUD && !mPlayerSharedHUD) {
                String[] urls1 = new String[] { System.getProperty("jnlp.media1_url0") };
-               _streamLoc1 = getURI(urls1, 0, false);
+               _streamLoc1 = getURI(urls1, 1, false);
            }
            if(null == _streamLoc1) { _streamLoc1 = streamLoc0; }
            streamLoc1 = _streamLoc1;
@@ -147,7 +146,7 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
                System.err.println("MovieSimpleActivity1 State: "+mp);
                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
                    glWindowMain.addGLEventListener(demoMain);
-                   anim.setUpdateFPSFrames(60, System.err);
+                   anim.setUpdateFPSFrames(60*5, System.err);
                    anim.resetFPSCounter();
                }
                if( 0 != ( ( GLMediaEventListener.EVENT_CHANGE_ERR | GLMediaEventListener.EVENT_CHANGE_EOS ) & event_mask ) ) {

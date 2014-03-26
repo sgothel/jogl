@@ -72,9 +72,9 @@ public class MovieCubeActivity0b extends NewtBaseActivity {
        super.onCreate(savedInstanceState);
 
        String[] streamLocs = new String[] {
-               System.getProperty("jnlp.media0_url2"),
+               System.getProperty("jnlp.media0_url0"),
                System.getProperty("jnlp.media0_url1"),
-               System.getProperty("jnlp.media0_url0") };
+               System.getProperty("jnlp.media0_url2") };
        final URI streamLoc = getURI(streamLocs, 0, false);
        if(null == streamLoc) { throw new RuntimeException("no media reachable: "+Arrays.asList(streamLocs)); }
 
@@ -113,7 +113,7 @@ public class MovieCubeActivity0b extends NewtBaseActivity {
                     System.err.println("MovieCubeActivity0 State: "+mp);
                     if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
                         glWindowMain.addGLEventListener(demoMain);
-                        anim.setUpdateFPSFrames(60, null);
+                        anim.setUpdateFPSFrames(60*5, null);
                         anim.resetFPSCounter();
                     }
                     if( 0 != ( GLMediaEventListener.EVENT_CHANGE_PLAY & event_mask ) ) {

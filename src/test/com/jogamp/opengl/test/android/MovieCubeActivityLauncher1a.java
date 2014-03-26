@@ -41,10 +41,9 @@ public class MovieCubeActivityLauncher1a extends LauncherUtil.BaseActivityLaunch
     @Override
     public void init() {
        final OrderedProperties props = getProperties();
-       props.setProperty("jnlp.media0_url2", "camera:/0");
-       props.setProperty("jnlp.media0_url1", "http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4");
-       props.setProperty("jnlp.media0_url0", "file:///mnt/sdcard/Movies/BigBuckBunny_320x180.mp4");
-       props.setProperty("jnlp.media1_url0", "http://archive.org/download/ElephantsDream/ed_1024_512kb.mp4");
+       props.setProperty("jnlp.media0_url0", "camera:/0");
+       props.setProperty("jnlp.media0_url1", "");
+       props.setProperty("jnlp.media1_url2", "");
        // props.setProperty("jogamp.debug.JNILibLoader", "true");
        // props.setProperty("jogamp.debug.NativeLibrary", "true");
        // props.setProperty("jogamp.debug.NativeLibrary.Lookup", "true");
