@@ -31,11 +31,18 @@ package com.jogamp.opengl.test.junit.graph.demos;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class GPUTextGLListener0A extends GPUTextRendererListenerBase01 {
+
+    public GPUTextGLListener0A() {
+        super(RenderState.createRenderState(new ShaderState(), SVertex.factory()), Region.VBAA_RENDERING_BIT, 4, true, false, false);
+    }
 
     public GPUTextGLListener0A(RenderState rs, int renderModes, int sampleCount, boolean blending, boolean debug, boolean trace) {
         super(rs, renderModes, sampleCount, blending, debug, trace);
