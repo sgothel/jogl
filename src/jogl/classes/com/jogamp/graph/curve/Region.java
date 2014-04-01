@@ -78,11 +78,31 @@ public abstract class Region {
      * being applied.
      * </p>
      */
-    public static final int VARIABLE_CURVE_WEIGHT_BIT  = 1 <<  8;
+    public static final int VARWEIGHT_RENDERING_BIT    = 1 <<  8;
+
+    /**
+     * Rendering-Mode bit for {@link Region#getRenderModes() Region} and {@link com.jogamp.graph.curve.opengl.RegionRenderer#getRenderModes() RegionRenderer}.
+     * <p>
+     * If set, a color channel attribute per vertex is added to the stream,
+     * otherwise only the
+     * {@link com.jogamp.graph.curve.opengl.RegionRenderer#setColorStatic(javax.media.opengl.GL2ES2, float, float, float, float) static color}
+     * is being used.
+     * </p>
+     */
+    public static final int COLORCHANNEL_RENDERING_BIT = 1 <<  9;
+
+    /**
+     * Rendering-Mode bit for {@link Region#getRenderModes() Region} and {@link com.jogamp.graph.curve.opengl.RegionRenderer#getRenderModes() RegionRenderer}.
+     * <p>
+     * If set, a color texture is used to determine the color.
+     * </p>
+     */
+    public static final int COLORTEXTURE_RENDERING_BIT = 1 <<  10;
 
     public static final int TWO_PASS_DEFAULT_TEXTURE_UNIT = 0;
 
     private final int renderModes;
+    private int quality;
     private boolean dirty = true;
     private int numVertices = 0;
     protected final AABBox box = new AABBox();
@@ -91,48 +111,73 @@ public abstract class Region {
     public static boolean isVBAA(int renderModes) {
         return 0 != (renderModes & Region.VBAA_RENDERING_BIT);
     }
+
     public static boolean isMSAA(int renderModes) {
         return 0 != (renderModes & Region.MSAA_RENDERING_BIT);
     }
 
+    public static boolean isTwoPass(int renderModes) {
+        return 0 != ( renderModes & ( Region.VBAA_RENDERING_BIT | Region.MSAA_RENDERING_BIT) );
+    }
+
     /**
-     * Check if render mode capable of non uniform weights
-     *
-     * @param renderModes
-     *            bit-field of modes, e.g.
-     *            {@link Region#VARIABLE_CURVE_WEIGHT_BIT},
-     *            {@link Region#VBAA_RENDERING_BIT}
-     * @return true of capable of non uniform weights */
-    public static boolean isNonUniformWeight(int renderModes) {
-        return 0 != (renderModes & Region.VARIABLE_CURVE_WEIGHT_BIT);
+     * Returns true if render mode capable of variable weights,
+     * i.e. the bit {@link #VARWEIGHT_RENDERING_BIT} is set,
+     * otherwise false.
+     */
+    public static boolean hasVariableWeight(int renderModes) {
+        return 0 != (renderModes & Region.VARWEIGHT_RENDERING_BIT);
+    }
+
+    /**
+     * Returns true if render mode has a color channel,
+     * i.e. the bit {@link #COLORCHANNEL_RENDERING_BIT} is set,
+     * otherwise false.
+     */
+    public static boolean hasColorChannel(int renderModes) {
+        return 0 != (renderModes & Region.COLORCHANNEL_RENDERING_BIT);
+    }
+
+    /**
+     * Returns true if render mode has a color texture,
+     * i.e. the bit {@link #COLORTEXTURE_RENDERING_BIT} is set,
+     * otherwise false.
+     */
+    public static boolean hasColorTexture(int renderModes) {
+        return 0 != (renderModes & Region.COLORTEXTURE_RENDERING_BIT);
     }
 
     public static String getRenderModeString(int renderModes) {
-        final String curveS = isNonUniformWeight(renderModes) ? "-curve" : "";
+        final String curveS = hasVariableWeight(renderModes) ? "-curve" : "";
+        final String cChanS = hasColorChannel(renderModes) ? "-cols" : "";
+        final String cTexS = hasColorTexture(renderModes) ? "-ctex" : "";
         if( Region.isVBAA(renderModes) ) {
-            return "vbaa"+curveS;
+            return "vbaa"+curveS+cChanS+cTexS;
         } else if( Region.isMSAA(renderModes) ) {
-            return "msaa"+curveS;
+            return "msaa"+curveS+cChanS+cTexS;
         } else {
-            return "norm"+curveS;
+            return "norm"+curveS+cChanS+cTexS;
         }
     }
 
     protected Region(int regionRenderModes) {
         this.renderModes = regionRenderModes;
+        this.quality = 99;
     }
 
     // FIXME: Better handling of impl. buffer growth .. !
+    // protected abstract void setupInitialComponentCount(int attributeCount, int indexCount);
 
-    protected abstract void pushVertex(float[] coords, float[] texParams);
+    protected abstract void pushVertex(final float[] coords, final float[] texParams, float[] rgba);
     protected abstract void pushIndex(int idx);
 
     /**
      * Return bit-field of render modes, see {@link #create(int)}.
      */
-    public final int getRenderModes() {
-        return renderModes;
-    }
+    public final int getRenderModes() { return renderModes; }
+
+    public final int getQuality() { return quality; }
+    public final void setQuality(int q) { quality=q; }
 
     protected void clearImpl() {
         dirty = true;
@@ -141,31 +186,50 @@ public abstract class Region {
     }
 
     /**
-     * Return  true if capable of two pass rendering - VBAA, otherwise false.
+     * Returns true if capable of two pass rendering - VBAA, otherwise false.
      */
     public final boolean isVBAA() {
-        return isVBAA(renderModes);
+        return Region.isVBAA(renderModes);
     }
 
     /**
-     * Return  true if capable of two pass rendering - MSAA, otherwise false.
+     * Returns true if capable of two pass rendering - MSAA, otherwise false.
      */
     public final boolean isMSAA() {
-        return isMSAA(renderModes);
+        return Region.isMSAA(renderModes);
     }
 
     /**
-     * Return true if capable of nonuniform weights, otherwise false.
+     * Returns true if capable of variable weights, otherwise false.
      */
-    public final boolean isNonUniformWeight() {
-        return Region.isNonUniformWeight(renderModes);
+    public final boolean hasVariableWeight() {
+        return Region.hasVariableWeight(renderModes);
     }
+
+    /**
+     * Returns true if render mode has a color channel,
+     * i.e. the bit {@link #COLORCHANNEL_RENDERING_BIT} is set,
+     * otherwise false.
+     */
+    public boolean hasColorChannel() {
+        return Region.hasColorChannel(renderModes);
+    }
+
+    /**
+     * Returns true if render mode has a color texture,
+     * i.e. the bit {@link #COLORTEXTURE_RENDERING_BIT} is set,
+     * otherwise false.
+     */
+    public boolean hasColorTexture() {
+        return Region.hasColorTexture(renderModes);
+    }
+
 
     /** See {@link #setFrustum(Frustum)} */
     public final Frustum getFrustum() { return frustum; }
 
     /**
-     * Set {@link Frustum} culling for {@link #addOutlineShape(OutlineShape, AffineTransform)}.
+     * Set {@link Frustum} culling for {@link #addOutlineShape(OutlineShape, AffineTransform, float[])}.
      */
     public final void setFrustum(Frustum frustum) {
         this.frustum = frustum;
@@ -173,23 +237,23 @@ public abstract class Region {
 
     final float[] coordsEx = new float[3];
 
-    private void pushNewVertexImpl(final Vertex vertIn, final AffineTransform transform) {
+    private void pushNewVertexImpl(final Vertex vertIn, final AffineTransform transform, float[] rgba) {
         if( null != transform ) {
             final float[] coordsIn = vertIn.getCoord();
             transform.transform(coordsIn, coordsEx);
             coordsEx[2] = coordsIn[2];
             box.resize(coordsEx[0], coordsEx[1], coordsEx[2]);
-            pushVertex(coordsEx, vertIn.getTexCoord());
+            pushVertex(coordsEx, vertIn.getTexCoord(), rgba);
         } else {
             box.resize(vertIn.getX(), vertIn.getY(), vertIn.getZ());
-            pushVertex(vertIn.getCoord(), vertIn.getTexCoord());
+            pushVertex(vertIn.getCoord(), vertIn.getTexCoord(), rgba);
         }
         numVertices++;
     }
 
-    private void pushNewVertexIdxImpl(final Vertex vertIn, final AffineTransform transform) {
+    private void pushNewVertexIdxImpl(final Vertex vertIn, final AffineTransform transform, float[] rgba) {
         pushIndex(numVertices);
-        pushNewVertexImpl(vertIn, transform);
+        pushNewVertexImpl(vertIn, transform, rgba);
     }
 
     private final AABBox tmpBox = new AABBox();
@@ -201,8 +265,9 @@ public abstract class Region {
      * is dropped if it's {@link OutlineShape#getBounds() bounding-box} is fully outside of the frustum.
      * The optional {@link AffineTransform} is applied to the bounding-box beforehand.
      * </p>
+     * @param rgbaColor TODO
      */
-    public final void addOutlineShape(final OutlineShape shape, final AffineTransform t) {
+    public final void addOutlineShape(final OutlineShape shape, final AffineTransform t, final float[] rgbaColor) {
         if( null != frustum ) {
             final AABBox shapeBox = shape.getBounds();
             final AABBox shapeBoxT;
@@ -222,8 +287,15 @@ public abstract class Region {
         final List<Triangle> trisIn = shape.getTriangles(OutlineShape.VerticesState.QUADRATIC_NURBS);
         final ArrayList<Vertex> vertsIn = shape.getVertices();
         if(DEBUG_INSTANCE) {
+            final int addedVerticeCount = shape.getAddedVerticeCount();
+            final int verticeCount = vertsIn.size() + addedVerticeCount;
+            final int indexCount = trisIn.size() * 3;
             System.err.println("Region.addOutlineShape().0: tris: "+trisIn.size()+", verts "+vertsIn.size()+", transform "+t);
+            System.err.println("Region.addOutlineShape().0: VerticeCount "+vertsIn.size()+" + "+addedVerticeCount+" = "+verticeCount);
+            System.err.println("Region.addOutlineShape().0: IndexCount "+indexCount);
         }
+        // setupInitialComponentCount(verticeCount, indexCount); // FIXME: Use it ?
+
         final int idxOffset = numVertices;
         int vertsVNewIdxCount = 0, vertsTMovIdxCount = 0, vertsTNewIdxCount = 0, tris = 0;
         int vertsDupCountV = 0, vertsDupCountT = 0, vertsKnownMovedT = 0;
@@ -232,7 +304,7 @@ public abstract class Region {
                 System.err.println("Region.addOutlineShape(): Processing Vertices");
             }
             for(int i=0; i<vertsIn.size(); i++) {
-                pushNewVertexImpl(vertsIn.get(i), t);
+                pushNewVertexImpl(vertsIn.get(i), t, rgbaColor);
                 vertsVNewIdxCount++;
             }
             if(DEBUG_INSTANCE) {
@@ -261,9 +333,9 @@ public abstract class Region {
                     if(Region.DEBUG_INSTANCE) {
                         System.err.println("T["+i+"]: New Idx "+numVertices);
                     }
-                    pushNewVertexIdxImpl(triInVertices[0], t);
-                    pushNewVertexIdxImpl(triInVertices[1], t);
-                    pushNewVertexIdxImpl(triInVertices[2], t);
+                    pushNewVertexIdxImpl(triInVertices[0], t, rgbaColor);
+                    pushNewVertexIdxImpl(triInVertices[1], t, rgbaColor);
+                    pushNewVertexIdxImpl(triInVertices[2], t, rgbaColor);
                     vertsTNewIdxCount+=3;
                 }
                 tris++;
@@ -280,9 +352,9 @@ public abstract class Region {
         setDirty(true);
     }
 
-    public final void addOutlineShapes(final List<OutlineShape> shapes, final AffineTransform transform) {
+    public final void addOutlineShapes(final List<OutlineShape> shapes, final AffineTransform transform, final float[] rgbaColor) {
         for (int i = 0; i < shapes.size(); i++) {
-            addOutlineShape(shapes.get(i), transform);
+            addOutlineShape(shapes.get(i), transform, rgbaColor);
         }
     }
 
@@ -306,6 +378,6 @@ public abstract class Region {
     }
 
     public String toString() {
-        return "Region["+getRenderModeString(this.renderModes)+", dirty "+dirty+", vertices "+numVertices+", box "+box+"]";
+        return "Region["+getRenderModeString(this.renderModes)+", q "+quality+", dirty "+dirty+", vertices "+numVertices+", box "+box+"]";
     }
 }

@@ -2,14 +2,17 @@
 #ifndef uniforms_glsl
 #define uniforms_glsl
 
-uniform mat4    gcu_PMVMatrix[3]; // P, Mv, and Mvi
-uniform vec3    gcu_ColorStatic;
-uniform float   gcu_Alpha;
+uniform mat4    gcu_PMVMatrix01[3]; // P, Mv, and Mvi
+uniform vec4    gcu_ColorStatic;
 uniform float   gcu_Weight;
-uniform sampler2D  gcu_TextureUnit;
 
-/** 3rd component: 0: pass-1, >0: pass-2, sampleCount */
-uniform vec3   gcu_TextureSize;
+uniform mat4    gcu_PMVMatrix02[3]; // P, Mv, and Mvi
+uniform sampler2D  gcu_FboTexUnit;
+
+/** 
+ * .x .y : texture-, fbo- or screen-size
+ */
+uniform vec2   gcu_FboTexSize;
 
 // const   int     MAX_TEXTURE_UNITS = 8; // <= gl_MaxTextureImageUnits 
 // const   int     MAX_LIGHTS = 8; 

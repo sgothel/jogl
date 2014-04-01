@@ -27,88 +27,76 @@
  */
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
-import javax.media.opengl.GL2ES2;
-
 import jogamp.graph.geom.plane.AffineTransform;
 
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
+import com.jogamp.opengl.math.geom.AABBox;
 
-public class Label extends UIShape {
+public class Label0 {
     protected Font font;
-    protected float pixelSize;
     protected String text;
+    protected final float[] rgbaColor;
+    protected final AABBox box;
 
-    public Label(Factory<? extends Vertex> factory, Font font, float pixelSize, String text) {
-        super(factory);
+    public Label0(Font font, String text, float[] rgbaColor) {
         this.font = font;
-        this.pixelSize = pixelSize;
+        this.text = text;
+        this.rgbaColor = rgbaColor;
+        this.box = new AABBox();
+    }
+
+    public final String getText() { return text; }
+
+    public final float[] getColor() { return rgbaColor; }
+
+    public final void setColor(float r, float g, float b, float a) {
+        this.rgbaColor[0] = r;
+        this.rgbaColor[1] = g;
+        this.rgbaColor[2] = b;
+        this.rgbaColor[3] = a;
+    }
+
+    public final void setText(String text) {
         this.text = text;
     }
 
-    public String getText() {
-        return text;
-    }
+    public final Font getFont() { return font; }
 
-    public void setText(String text) {
-        this.text = text;
-        dirty |= DIRTY_SHAPE;
-    }
-
-    public Font getFont() {
-        return font;
-    }
-
-    public void setFont(Font font) {
+    public final void setFont(Font font) {
         this.font = font;
-        dirty |= DIRTY_SHAPE;
     }
 
-    public float getPixelSize() {
-        return pixelSize;
-    }
-
-    public float getLineHeight() {
-        return font.getLineHeight(pixelSize);
-    }
-
-    public void setPixelSize(float pixelSize) {
-        this.pixelSize = pixelSize;
-        dirty |= DIRTY_SHAPE;
-    }
-
-    @Override
-    protected void clearImpl(GL2ES2 gl, RegionRenderer renderer) {
-    }
-
-    @Override
-    protected void destroyImpl(GL2ES2 gl, RegionRenderer renderer) {
-    }
+    public final AABBox getBounds() { return box; }
 
     private final float[] tmpV3 = new float[3];
 
     private final TextRegionUtil.ShapeVisitor shapeVisitor = new TextRegionUtil.ShapeVisitor() {
         @Override
         public void visit(OutlineShape shape, AffineTransform t) {
-            shape.setSharpness(shapesSharpness);
-            region.addOutlineShape(shape, t, rgbaColor);
-            box.resize(shape.getBounds(), t, tmpV3);
+            final AffineTransform t1 = new AffineTransform(tLeft).concatenate( t );
+            region.addOutlineShape(shape, t1, rgbaColor);
+            box.resize(shape.getBounds(), t1, tmpV3);
         }
     };
 
-    @Override
-    protected void addShapeToRegion(GL2ES2 gl, RegionRenderer renderer) {
+    private Region region;
+    private AffineTransform tLeft;
+
+    public final AABBox addShapeToRegion(final float pixelSize, final Region region, final AffineTransform tLeft) {
+        box.reset();
+        this.region = region;
+        this.tLeft = tLeft;
         TextRegionUtil.processString(shapeVisitor, null, font, pixelSize, text);
-        final float[] ctr = box.getCenter();
-        setRotationOrigin( ctr[0], ctr[1], ctr[2]);
+        this.region = null;
+        this.tLeft = null;
+        return box;
     }
 
     @Override
-    public String toString(){
-        return "Label [" + font.toString() + ", size " + pixelSize + ", " + getText() + "]";
+    public final String toString(){
+        return "Label0 [" + font.toString() + ", " + getText() + "]";
     }
 }

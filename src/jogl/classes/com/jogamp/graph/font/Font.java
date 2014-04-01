@@ -27,7 +27,10 @@
  */
 package com.jogamp.graph.font;
 
+import jogamp.graph.geom.plane.AffineTransform;
+
 import com.jogamp.graph.curve.OutlineShape;
+import com.jogamp.graph.curve.opengl.TextRegionUtil.ShapeVisitor;
 import com.jogamp.opengl.math.geom.AABBox;
 
 /**
@@ -155,9 +158,26 @@ public interface Font {
     public int getNumGlyphs();
 
     public float getLineHeight(float pixelSize);
-    public float getStringWidth(CharSequence string, float pixelSize);
-    public float getStringHeight(CharSequence string, float pixelSize);
-    public AABBox getStringBounds(CharSequence string, float pixelSize);
+    public float getMetricWidth(CharSequence string, float pixelSize);
+    public float getMetricHeight(CharSequence string, float pixelSize);
+    /**
+     * Return the <i>layout</i> bounding box as computed by each glyph's metrics.
+     * The result is not pixel correct, bit reflects layout specific metrics.
+     * <p>
+     * See {@link #getPointsBounds(AffineTransform, CharSequence, float)} for pixel correct results.
+     * </p>
+     * @param string string text
+     * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
+     */
+    public AABBox getMetricBounds(CharSequence string, float pixelSize);
+
+    /**
+     * Return the bounding box by taking each glyph's point-based bounding box into account.
+     * @param transform optional given transform
+     * @param string string text
+     * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
+     */
+    public AABBox getPointsBounds(final AffineTransform transform, CharSequence string, float pixelSize);
 
     public boolean isPrintableChar( char c );
 

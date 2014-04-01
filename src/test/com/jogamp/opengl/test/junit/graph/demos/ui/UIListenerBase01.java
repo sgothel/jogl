@@ -119,7 +119,7 @@ public abstract class UIListenerBase01 implements GLEventListener {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         gl.glViewport(xstart, ystart, width, height);
-        rRenderer.reshapePerspective(gl, 45.0f, width, height, 0.1f, 7000.0f);
+        rRenderer.reshapePerspective(45.0f, width, height, 0.1f, 7000.0f);
         dumpMatrix();
     }
 
@@ -208,12 +208,12 @@ public abstract class UIListenerBase01 implements GLEventListener {
 
         public void mousePressed(MouseEvent e) {
             button.setLabelColor(0.8f,0.8f,0.8f);
-            button.setColor(0.1f, 0.1f, 0.1f);
+            button.setColor(0.1f, 0.1f, 0.1f, 1.0f);
         }
 
         public void mouseReleased(MouseEvent e) {
             button.setLabelColor(1.0f,1.0f,1.0f);
-            button.setColor(0.6f,0.6f,0.6f);
+            button.setColor(0.6f,0.6f,0.6f, 1.0f);
         }
 
         public void mouseMoved(MouseEvent e) {

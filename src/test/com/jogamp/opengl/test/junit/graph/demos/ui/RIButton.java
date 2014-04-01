@@ -29,8 +29,9 @@ package com.jogamp.opengl.test.junit.graph.demos.ui;
 
 import javax.media.opengl.GL2ES2;
 
+import jogamp.graph.geom.plane.AffineTransform;
+
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.curve.OutlineShapeXForm;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.Vertex;
@@ -49,7 +50,7 @@ public class RIButton extends UIShape {
     public static final float DEFAULT_CORNER = 1f;
 
     private float width, height;
-    private final Label label;
+    private final Label0 label;
     private float spacingX = DEFAULT_SPACING_X;
     private float spacingY = DEFAULT_SPACING_Y;
     private float corner = DEFAULT_CORNER;
@@ -58,13 +59,7 @@ public class RIButton extends UIShape {
     public RIButton(Factory<? extends Vertex> factory, Font labelFont, String labelText, float width, float height) {
         super(factory);
 
-        final float pixelSize = height * ( 1f - spacingY ) ;
-        System.err.printf("RIButton: height %f -> pixelSize %f%n", height, pixelSize);
-        this.label = new Label(factory, labelFont, pixelSize, labelText);
-        this.label.setSelectedColor(this.color[0], this.color[1], this.color[2]);
-        this.label.setColor(0.9f, 0.9f, 0.9f);
-        this.label.setSelectedColor(1f, 1f, 1f);
-
+        this.label = new Label0(labelFont, labelText, new float[] { 0.9f, 0.9f, 0.9f, 1.0f });
         this.width = width;
         this.height = height;
     }
@@ -72,82 +67,73 @@ public class RIButton extends UIShape {
     public final float getWidth() { return width; }
     public final float getHeight() { return height; }
     public final float getCorner() { return corner; }
-    public final Label getLabel() { return label; }
 
     public void setDimension(float width, float height) {
         this.width = width;
         this.height = height;
-        dirty |= DIRTY_SHAPE | DIRTY_REGION;
+        dirty |= DIRTY_SHAPE;
     }
 
     @Override
     protected void clearImpl(GL2ES2 gl, RegionRenderer renderer) {
-        label.clear(gl, renderer);
     }
 
     @Override
     protected void destroyImpl(GL2ES2 gl, RegionRenderer renderer) {
-        label.destroy(gl, renderer);
     }
 
     @Override
     public void drawShape(GL2ES2 gl, RegionRenderer renderer, int[] sampleCount) {
-        gl.glEnable(GL2ES2.GL_POLYGON_OFFSET_FILL);
-        gl.glPolygonOffset(0.0f, 1f);
+        // No need to setup an poly offset for z-fighting, using one region now
+        // gl.glEnable(GL2ES2.GL_POLYGON_OFFSET_FILL);
+        // gl.glPolygonOffset(0.0f, 1f);
         super.drawShape(gl, renderer, sampleCount);
-        gl.glDisable(GL2ES2.GL_POLYGON_OFFSET_FILL);
-
-        label.drawShape(gl, renderer, sampleCount);
+        // gl.glDisable(GL2ES2.GL_POLYGON_OFFSET_FILL);
     }
 
     @Override
-    protected void createShape(GL2ES2 gl, RegionRenderer renderer) {
-        label.clear(gl, renderer);
-
+    protected void addShapeToRegion(GL2ES2 gl, RegionRenderer renderer) {
         final OutlineShape shape = new OutlineShape(renderer.getRenderState().getVertexFactory());
         if(corner == 0.0f) {
             createSharpOutline(shape);
         } else {
             createCurvedOutline(shape);
         }
+        shape.setIsQuadraticNurbs();
+        shape.setSharpness(shapesSharpness);
+        region.addOutlineShape(shape, null, rgbaColor);
         box.resize(shape.getBounds());
 
         // Precompute text-box size .. guessing pixelSize
         final float lPixelSize0 = 10f;
         final float lw = width * ( 1f - spacingX ) ;
         final float lh = height * ( 1f - spacingY ) ;
-        final AABBox lbox0 = label.font.getStringBounds(label.text, lPixelSize0);
+        final AABBox lbox0 = label.font.getMetricBounds(label.text, lPixelSize0);
         final float lsx = lw / lbox0.getWidth();
         final float lsy = lh / lbox0.getHeight();
         final float lPixelSize1 = lsx < lsy ? lPixelSize0 * lsx : lPixelSize0 * lsy;
         if( DRAW_DEBUG_BOX ) {
             System.err.println("RIButton: spacing "+spacingX+", "+spacingY);
             System.err.println("RIButton: bbox "+box);
-            System.err.println("RIButton: lbox "+lbox0);
+            System.err.println("RIButton: lbox "+lbox0+", "+label.text);
             System.err.println("RIButton: net-text "+lw+" x "+lh);
             System.err.println("RIButton: lsx "+lsx+", lsy "+lsy+": pixelSize "+lPixelSize0+" -> "+lPixelSize1);
         }
 
         // Setting pixelSize based on actual text-box size
-        label.setPixelSize(lPixelSize1);
-        label.createShape(gl, renderer);
-        final AABBox lbox1 = label.getBounds();
-        if( DRAW_DEBUG_BOX ) {
-            System.err.printf("RIButton: lbox1 %s .... %s%n", lbox1, this.label.text);
-        }
-
+        final AABBox lbox1 = label.font.getPointsBounds(null, label.text, lPixelSize1);
         // Center text .. (share same center w/ button)
         final float[] lctr = lbox1.getCenter();
         final float[] ctr = box.getCenter();
         final float[] ltx = new float[] { ctr[0] - lctr[0], ctr[1] - lctr[1], 0f };
-        label.translateShape( ltx[0], ltx[1] );
-        lbox1.translate( ltx );
 
-        // rotate center of button/label ..
-        label.setRotationOrigin( ctr[0], ctr[1], ctr[2]);
+        final AABBox lbox2 = label.addShapeToRegion(lPixelSize1, region, AffineTransform.getTranslateInstance(ltx[0], ltx[1]));
+        if( DRAW_DEBUG_BOX ) {
+            System.err.printf("RIButton.0: lbox1 %s%n", lbox1);
+            System.err.printf("RIButton.0: lbox2 %s%n", lbox2);
+        }
+
         setRotationOrigin( ctr[0], ctr[1], ctr[2]);
-
-        shapes.add(new OutlineShapeXForm(shape, null));
 
         if( DRAW_DEBUG_BOX ) {
             System.err.println("XXX.UIShape.RIButton: Added Shape: "+shape+", "+box);
@@ -205,7 +191,7 @@ public class RIButton extends UIShape {
         else{
             this.corner = corner;
         }
-        dirty |= DIRTY_SHAPE | DIRTY_REGION;
+        dirty |= DIRTY_SHAPE;
     }
 
     public float getLabelZOffset() {
@@ -214,7 +200,7 @@ public class RIButton extends UIShape {
 
     public void setLabelZOffset(float labelZOffset) {
         this.labelZOffset = -labelZOffset;
-        dirty |= DIRTY_SHAPE | DIRTY_REGION;
+        dirty |= DIRTY_SHAPE;
     }
     public final float getSpacingX() { return spacingX; }
     public final float getSpacingY() { return spacingY; }
@@ -239,7 +225,7 @@ public class RIButton extends UIShape {
         } else {
             this.spacingY = spacingY;
         }
-        dirty |= DIRTY_SHAPE | DIRTY_REGION;
+        dirty |= DIRTY_SHAPE;
     }
 
     public float[] getLabelColor() {
@@ -247,17 +233,13 @@ public class RIButton extends UIShape {
     }
 
     public void setLabelColor(float r, float g, float b) {
-        label.setColor(r, g, b);
-    }
-
-    public void setLabelSelectedColor(float r, float g, float b){
-        label.setSelectedColor(r, g, b);
+        label.setColor(r, g, b, 1.0f);
     }
 
     @Override
     public String toString() {
         return "RIButton [" + translate[0]+getWidth()/2f+" / "+translate[1]+getHeight()/2f+" "+getWidth() + "x" + getHeight() + ", "
-                + getLabel() + ", " + "spacing: " + spacingX+"/"+spacingY
+                + label + ", " + "spacing: " + spacingX+"/"+spacingY
                 + ", " + "corner: " + corner + ", " + "shapeOffset: " + labelZOffset + ", "+box+" ]";
     }
 }

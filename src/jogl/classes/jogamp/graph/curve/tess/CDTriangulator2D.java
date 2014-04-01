@@ -54,7 +54,8 @@ public class CDTriangulator2D implements Triangulator {
 
     private final ArrayList<Loop> loops = new ArrayList<Loop>();
 
-    private int maxTriID = 0;
+    private int addedVerticeCount;
+    private int maxTriID;
 
 
     /** Constructor for a new Delaunay triangulator
@@ -66,8 +67,15 @@ public class CDTriangulator2D implements Triangulator {
     @Override
     public final void reset() {
         maxTriID = 0;
+        addedVerticeCount = 0;
         loops.clear();
     }
+
+    @Override
+    public final int getAddedVerticeCount() {
+        return addedVerticeCount;
+    }
+
 
     @Override
     public final void addCurve(final List<Triangle> sink, final Outline polyline, final float sharpness) {
@@ -164,6 +172,7 @@ public class CDTriangulator2D implements Triangulator {
                 final Vertex v0 = gv0.getPoint().clone();
                 final Vertex v2 = gv2.getPoint().clone();
                 final Vertex v1 = gv1.getPoint().clone();
+                addedVerticeCount += 3;
                 final boolean[] boundaryVertices = { true, true, true };
 
                 gv0.setBoundaryContained(true);

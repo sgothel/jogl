@@ -156,7 +156,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
               headtext = text1;
         }
         if(null != headtext) {
-            headbox = font.getStringBounds(headtext, font.getPixelSize(fontSizeHead, dpiH));
+            headbox = font.getMetricBounds(headtext, font.getPixelSize(fontSizeHead, dpiH));
         }
     }
 
@@ -169,7 +169,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             ((Window)upObj).getMainMonitor().getPixelsPerMM(pixelsPerMM);
             dpiH = pixelsPerMM[1]*25.4f;
         }
-        fontNameBox = font.getStringBounds(fontName, font.getPixelSize(fontSizeFName, dpiH));
+        fontNameBox = font.getMetricBounds(fontName, font.getPixelSize(fontSizeFName, dpiH));
         switchHeadBox();
 
     }
@@ -213,10 +213,11 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         // final int[] view = new int[] { 0, 0, drawable.getWidth(),  drawable.getHeight() };
 
         final RegionRenderer renderer = getRenderer();
-        final PMVMatrix pmv = renderer.getMatrix();
+        final RenderState rs = renderer.getRenderState();
+        final PMVMatrix pmv = renderer.getMatrixMutable();
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
-        renderer.setColorStatic(gl, 0.1f, 0.1f, 0.1f);
+        rs.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
         if( renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
             gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         }
@@ -245,45 +246,44 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
 
             // bottom, half line up
             pmv.glTranslatef(nearPlaneX0, nearPlaneY0+(nearPlaneS * pixelSizeFPS / 2f), nearPlaneZ0);
-            renderer.updateMatrix(gl);
 
             // No cache, keep region alive!
-            TextRegionUtil.drawString3D(regionFPS, renderer, gl, font, nearPlaneS * pixelSizeFPS, text, sampleCountFPS);
+            TextRegionUtil.drawString3D(regionFPS, renderer, gl, font, nearPlaneS * pixelSizeFPS, text, null, sampleCountFPS);
         }
 
         float dx = width-fontNameBox.getWidth()-2f;
         float dy = height - 10f;
 
+        renderer.setMatrixDirty();
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         pmv.glTranslatef(nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy), nearPlaneZ0);
-        renderer.updateMatrix(gl);
         // System.err.printf("FontN: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
-        textRegionUtil.drawString3D(gl, font, nearPlaneS * pixelSizeFName, fontName, getSampleCount());
+        textRegionUtil.drawString3D(gl, font, nearPlaneS * pixelSizeFName, fontName, null, getSampleCount());
 
         dx  =  10f;
         dy += -fontNameBox.getHeight() - 10f;
 
         if(null != headtext) {
+            renderer.setMatrixDirty();
             pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
             pmv.glLoadIdentity();
             // System.err.printf("Head: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
             pmv.glTranslatef(nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy), nearPlaneZ0);
             // pmv.glTranslatef(x0, y1, z0);
-            renderer.updateMatrix(gl);
-            textRegionUtil.drawString3D(gl, font, nearPlaneS * pixelSizeHead, headtext, getSampleCount());
+            textRegionUtil.drawString3D(gl, font, nearPlaneS * pixelSizeHead, headtext, null, getSampleCount());
         }
 
         dy += -headbox.getHeight() - font.getLineHeight(pixelSizeBottom);
 
+        renderer.setMatrixDirty();
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         pmv.glTranslatef(nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy), nearPlaneZ0);
         // System.err.printf("Bottom: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
         pmv.glTranslatef(getXTran(), getYTran(), getZTran());
         pmv.glRotatef(getAngle(), 0, 1, 0);
-        renderer.updateMatrix(gl);
-        renderer.setColorStatic(gl, 0.9f, 0.0f, 0.0f);
+        rs.setColorStatic(0.9f, 0.0f, 0.0f, 1.0f);
         if( renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
             gl.glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
         }
@@ -293,15 +293,15 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         }
         if(!userInput) {
             if( bottomTextUseFrustum ) {
-                TextRegionUtil.drawString3D(regionBottom, renderer, gl, font, nearPlaneS * pixelSizeBottom, text2, getSampleCount());
+                TextRegionUtil.drawString3D(regionBottom, renderer, gl, font, nearPlaneS * pixelSizeBottom, text2, null, getSampleCount());
             } else {
-                textRegionUtil.drawString3D(gl, font, nearPlaneS * pixelSizeBottom, text2, getSampleCount());
+                textRegionUtil.drawString3D(gl, font, nearPlaneS * pixelSizeBottom, text2, null, getSampleCount());
             }
         } else {
             if( bottomTextUseFrustum ) {
-                TextRegionUtil.drawString3D(regionBottom, renderer, gl, font, nearPlaneS * pixelSizeBottom, userString.toString(), getSampleCount());
+                TextRegionUtil.drawString3D(regionBottom, renderer, gl, font, nearPlaneS * pixelSizeBottom, userString.toString(), null, getSampleCount());
             } else {
-                textRegionUtil.drawString3D(gl, font, nearPlaneS * pixelSizeBottom, userString.toString(), getSampleCount());
+                textRegionUtil.drawString3D(gl, font, nearPlaneS * pixelSizeBottom, userString.toString(), null, getSampleCount());
             }
         }
     }
@@ -315,7 +315,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     public void fontHeadIncr(int v) {
         fontSizeHead = Math.abs((fontSizeHead + v) % fontSizeModulo) ;
         if(null != headtext) {
-            headbox = font.getStringBounds(headtext, font.getPixelSize(fontSizeHead, dpiH));
+            headbox = font.getMetricBounds(headtext, font.getPixelSize(fontSizeHead, dpiH));
         }
     }
 
@@ -327,7 +327,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                 fontSet = set;
                 font = _font;
                 fontName = font.getFullFamilyName(null).toString();
-                fontNameBox = font.getStringBounds(fontName, font.getPixelSize(fontSizeFName, dpiH));
+                fontNameBox = font.getMetricBounds(fontName, font.getPixelSize(fontSizeFName, dpiH));
                 dumpFontNames();
                 return true;
             }
@@ -344,7 +344,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                 fontSet = set;
                 font = _font;
                 fontName = font.getFullFamilyName(null).toString();
-                fontNameBox = font.getStringBounds(fontName, font.getPixelSize(fontSizeFName, dpiH));
+                fontNameBox = font.getMetricBounds(fontName, font.getPixelSize(fontSizeFName, dpiH));
                 dumpFontNames();
                 return true;
             }
@@ -359,7 +359,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     void dumpMatrix(boolean bbox) {
         System.err.println("Matrix: " + getXTran() + "/" + getYTran() + " x"+getZTran() + " @"+getAngle() +" fontSize "+fontSizeBottom);
         if(bbox) {
-            System.err.println("bbox: "+font.getStringBounds(text2, nearPlaneS * font.getPixelSize(fontSizeBottom, dpiH)));
+            System.err.println("bbox: "+font.getMetricBounds(text2, nearPlaneS * font.getPixelSize(fontSizeBottom, dpiH)));
         }
     }
 

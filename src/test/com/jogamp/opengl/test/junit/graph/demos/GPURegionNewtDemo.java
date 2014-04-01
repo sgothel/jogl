@@ -41,7 +41,6 @@ import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.util.glsl.ShaderState;
 
 /** Demonstrate the rendering of multiple outlines into one region/OutlineShape
  *  These Outlines are not necessary connected or contained.
@@ -97,7 +96,7 @@ public class GPURegionNewtDemo {
         }
         System.out.println("Requested: " + caps);
 
-        int rmode = GraphUseWeight ? Region.VARIABLE_CURVE_WEIGHT_BIT : 0;
+        int rmode = GraphUseWeight ? Region.VARWEIGHT_RENDERING_BIT : 0;
         int sampleCount = 0;
         if( GraphVBAASamples > 0 ) {
             rmode |= Region.VBAA_RENDERING_BIT;
@@ -112,7 +111,7 @@ public class GPURegionNewtDemo {
         window.setSize(800, 400);
         window.setTitle("GPU Curve Region Newt Demo - graph[vbaa"+GraphVBAASamples+" msaa"+GraphMSAASamples+"], msaa "+SceneMSAASamples);
 
-        RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
+        RenderState rs = RenderState.createRenderState(SVertex.factory());
         GPURegionGLListener01 regionGLListener = new GPURegionGLListener01 (rs, rmode, sampleCount, DEBUG, TRACE);
         regionGLListener.attachInputListenerTo(window);
         window.addGLEventListener(regionGLListener);

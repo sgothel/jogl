@@ -56,7 +56,7 @@ public abstract class GLRegion extends Region {
      * {@link Region#TWO_PASS_DEFAULT_TEXTURE_UNIT} is being used.</p>
      *
      * @param rs the RenderState to be used
-     * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, {@link Region#VBAA_RENDERING_BIT}
+     * @param renderModes bit-field of modes, e.g. {@link Region#VARWEIGHT_RENDERING_BIT}, {@link Region#VBAA_RENDERING_BIT}
      */
     public static GLRegion create(int renderModes) {
         if( isVBAA(renderModes) ) {

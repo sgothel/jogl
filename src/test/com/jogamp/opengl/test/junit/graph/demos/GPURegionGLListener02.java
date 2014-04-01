@@ -93,7 +93,7 @@ public class GPURegionGLListener02 extends GPURendererListenerBase01 {
         shape.closeLastOutline(true);
 
         region = GLRegion.create(getRenderModes());
-        region.addOutlineShapes(outlineShapes, null);
+        region.addOutlineShapes(outlineShapes, null, null);
     }
 
     public void init(GLAutoDrawable drawable) {
@@ -101,13 +101,12 @@ public class GPURegionGLListener02 extends GPURendererListenerBase01 {
 
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-        final RegionRenderer regionRenderer = getRenderer();
+        final RenderState rs = getRenderer().getRenderState();
 
         gl.setSwapInterval(1);
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
         gl.glEnable(GL2ES2.GL_BLEND);
-        regionRenderer.setAlpha(gl, 1.0f);
-        regionRenderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
+        rs.setColorStatic(0.0f, 0.0f, 0.0f, 1.0f);
 
         createTestOutline();
     }
@@ -120,14 +119,13 @@ public class GPURegionGLListener02 extends GPURendererListenerBase01 {
 
         final RegionRenderer regionRenderer = getRenderer();
 
-        final PMVMatrix pmv = regionRenderer.getMatrix();
+        final PMVMatrix pmv = regionRenderer.getMatrixMutable();
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         pmv.glTranslatef(getXTran(), getYTran(), getZTran());
         pmv.glRotatef(getAngle(), 0, 1, 0);
-        regionRenderer.updateMatrix(gl);
-        if( weight != regionRenderer.getWeight()) {
-            regionRenderer.setWeight(gl, weight);
+        if( weight != regionRenderer.getRenderState().getWeight() ) {
+            regionRenderer.getRenderState().setWeight(weight);
         }
         region.draw(gl, regionRenderer, getSampleCount());
 

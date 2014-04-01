@@ -766,7 +766,7 @@ public class ShaderState {
         activeAttribLocationMap.clear();
 
         for(int i=0; i<managedAttributes.size(); i++) {
-            ((GLArrayData)managedAttributes.get(i)).setLocation(-1);
+            managedAttributes.get(i).setLocation(-1);
         }
         for(Iterator<GLArrayData> iter = activeAttribDataMap.values().iterator(); iter.hasNext(); ) {
             relocateAttribute(gl, iter.next());
@@ -816,7 +816,7 @@ public class ShaderState {
      *         otherwise >= 0
      */
     public final int getCachedUniformLocation(String name) {
-        Integer idx = (Integer) activeUniformLocationMap.get(name);
+        Integer idx = activeUniformLocationMap.get(name);
         return (null!=idx)?idx.intValue():-1;
     }
 
@@ -1075,16 +1075,16 @@ public class ShaderState {
     private boolean verbose = DEBUG;
     private ShaderProgram shaderProgram=null;
 
-    private HashMap<String, Boolean> activedAttribEnabledMap = new HashMap<String, Boolean>();
-    private HashMap<String, Integer> activeAttribLocationMap = new HashMap<String, Integer>();
-    private HashMap<String, GLArrayData> activeAttribDataMap = new HashMap<String, GLArrayData>();
-    private ArrayList<GLArrayData> managedAttributes = new ArrayList<GLArrayData>();
+    private final HashMap<String, Boolean> activedAttribEnabledMap = new HashMap<String, Boolean>();
+    private final HashMap<String, Integer> activeAttribLocationMap = new HashMap<String, Integer>();
+    private final HashMap<String, GLArrayData> activeAttribDataMap = new HashMap<String, GLArrayData>();
+    private final ArrayList<GLArrayData> managedAttributes = new ArrayList<GLArrayData>();
 
-    private HashMap<String, Integer> activeUniformLocationMap = new HashMap<String, Integer>();
-    private HashMap<String, GLUniformData> activeUniformDataMap = new HashMap<String, GLUniformData>();
-    private ArrayList<GLUniformData> managedUniforms = new ArrayList<GLUniformData>();
+    private final HashMap<String, Integer> activeUniformLocationMap = new HashMap<String, Integer>();
+    private final HashMap<String, GLUniformData> activeUniformDataMap = new HashMap<String, GLUniformData>();
+    private final ArrayList<GLUniformData> managedUniforms = new ArrayList<GLUniformData>();
 
-    private HashMap<String, Object> attachedObjectsByString = new HashMap<String, Object>();
+    private final HashMap<String, Object> attachedObjectsByString = new HashMap<String, Object>();
     private boolean resetAllShaderData = false;
 }
 

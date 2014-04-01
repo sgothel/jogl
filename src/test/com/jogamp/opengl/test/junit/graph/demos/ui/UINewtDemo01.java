@@ -39,7 +39,6 @@ import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.util.glsl.ShaderState;
 
 /** Demonstrate the rendering of multiple outlines into one region/OutlineShape
  *  These Outlines are not necessary connected or contained.
@@ -64,7 +63,7 @@ public class UINewtDemo01 {
         window.setPosition(10, 10);
         window.setSize(800, 400);
         window.setTitle("GPU UI Newt Demo 01");
-        RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
+        RenderState rs = RenderState.createRenderState(SVertex.factory());
         UIGLListener01 uiGLListener = new UIGLListener01 (rs, DEBUG, TRACE);
         uiGLListener.attachInputListenerTo(window);
         window.addGLEventListener(uiGLListener);

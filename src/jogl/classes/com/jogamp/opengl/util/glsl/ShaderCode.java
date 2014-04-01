@@ -686,13 +686,13 @@ public class ShaderCode {
     }
 
     /**
-     * Adds <code>data</code> at <code>offset</code> in shader source for shader <code>shaderIdx</code>.
+     * Adds <code>data</code> at <code>position</code> in shader source for shader <code>shaderIdx</code>.
      * <p>
      * Note: The shader source to be edit must be created using a mutable StringBuilder.
      * </p>
      *
      * @param shaderIdx the shader index to be used.
-     * @param position in shader source segments of shader <code>shaderIdx</code>
+     * @param position in shader source segments of shader <code>shaderIdx</code>, -1 will append data
      * @param data the text to be inserted. Shall end with an EOL '\n' character
      * @return index after the inserted <code>data</code>
      *
@@ -718,12 +718,45 @@ public class ShaderCode {
             }
             final StringBuilder sb = (StringBuilder)src[j];
             curEndIndex += sb.length();
-            if(position < curEndIndex) {
+            if( 0 > position && j == src.length - 1 ) {
+                position = curEndIndex;
+            }
+            if(0 <= position && position <= curEndIndex ) {
                 sb.insert(position, data);
                 return position+data.length();
             }
         }
         return -1;
+    }
+
+    /**
+     * Adds shader source located in <code>path</code>,
+     * either relative to the <code>context</code> class or absolute <i>as-is</i>
+     * at <code>position</code> in shader source for shader <code>shaderIdx</code>.
+     * <p>
+     * Final location lookup is performed via {@link ClassLoader#getResource(String)} and {@link ClassLoader#getSystemResource(String)},
+     * see {@link IOUtil#getResource(Class, String)}.
+     * </p>
+     * <p>
+     * Note: The shader source to be edit must be created using a mutable StringBuilder.
+     * </p>
+     *
+     * @param shaderIdx the shader index to be used.
+     * @param position in shader source segments of shader <code>shaderIdx</code>, -1 will append data
+     * @param context class used to help resolve the source location
+     * @param path location of shader source
+     * @return index after the inserted code.
+     * @throws IOException
+     * @throws IllegalStateException if the shader source's CharSequence is immutable, i.e. not of type <code>StringBuilder</code>
+     * @see IOUtil#getResource(Class, String)
+     */
+    public int insertShaderSource(int shaderIdx, int position, Class<?> context, String path) throws IOException {
+        final CharSequence data = readShaderSource(context, path, true);
+        if( null != data ) {
+            return insertShaderSource(shaderIdx, position, data);
+        } else {
+            return position;
+        }
     }
 
     @SuppressWarnings("resource")
@@ -869,7 +902,7 @@ public class ShaderCode {
      * @return the complete extension directive
      */
     public static String createExtensionDirective(String extensionName, String behavior) {
-        return "#extension " + extensionName + " : " + behavior;
+        return "#extension " + extensionName + " : " + behavior + "\n";
     }
 
     /**

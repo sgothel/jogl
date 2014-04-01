@@ -32,7 +32,6 @@ import java.nio.FloatBuffer;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLUniformData;
-import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import jogamp.graph.curve.opengl.shader.AttributeNames;
 import jogamp.graph.curve.opengl.shader.UniformNames;
@@ -49,7 +48,7 @@ import com.jogamp.opengl.FBObject.TextureAttachment;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
-import com.jogamp.opengl.util.glsl.ShaderState;
+import com.jogamp.opengl.util.glsl.ShaderProgram;
 
 public class VBORegion2PVBAAES2  extends GLRegion {
     private static final boolean DEBUG_FBO_1 = false;
@@ -85,38 +84,102 @@ public class VBORegion2PVBAAES2  extends GLRegion {
     }
 
 
-    private GLArrayDataServer verticeTxtAttr;
-    private GLArrayDataServer texCoordTxtAttr;
-    private GLArrayDataServer indicesTxtBuffer;
-    private GLArrayDataServer verticeFboAttr;
-    private GLArrayDataServer texCoordFboAttr;
+    // Pass-1:
+    private GLArrayDataServer gca_VerticesAttr;
+    private GLArrayDataServer gca_CurveParamsAttr;
+    private GLArrayDataServer gca_ColorsAttr;
+    private GLArrayDataServer indicesBuffer;
+    private ShaderProgram spPass1 = null;
+
+    // Pass-2:
+    private GLArrayDataServer gca_FboVerticesAttr;
+    private GLArrayDataServer gca_FboTexCoordsAttr;
     private GLArrayDataServer indicesFbo;
+    private final GLUniformData gcu_FboTexUnit;
+    private final GLUniformData gcu_FboTexSize;
+    private final PMVMatrix fboPMVMatrix;
+    private final GLUniformData gcu_PMVMatrix02;
+    private boolean gcu_FboTexSize_dirty = true;
+    private boolean gcu_PMVMatrix02_dirty = true;
+    private ShaderProgram spPass2 = null;
 
     private FBObject fbo;
     private TextureAttachment texA;
-    private final PMVMatrix fboPMVMatrix;
-    GLUniformData mgl_fboPMVMatrix;
 
     private int fboWidth = 0;
     private int fboHeight = 0;
     private boolean fboDirty = true;
-    GLUniformData mgl_ActiveTexture;
-    GLUniformData mgl_TextureSize;
 
     final int[] maxTexSize = new int[] { -1 } ;
+
+    public void useShaderProgram(final GL2ES2 gl, final RegionRenderer renderer, final int renderModes, final boolean pass1, final int quality, final int sampleCount) {
+        final RenderState rs = renderer.getRenderState();
+        final boolean updateLocation0 = renderer.useShaderProgram(gl, renderModes, pass1, quality, sampleCount);
+        final ShaderProgram sp = renderer.getRenderState().getShaderProgram();
+        final boolean updateLocation;
+        if( pass1 ) {
+            updateLocation = !sp.equals(spPass1);
+            spPass1 = sp;
+            rs.update(gl, updateLocation, renderModes, true);
+            rs.updateUniformLoc(gl, updateLocation, gcu_PMVMatrix02);
+            rs.updateAttributeLoc(gl, updateLocation, gca_VerticesAttr);
+            rs.updateAttributeLoc(gl, updateLocation, gca_CurveParamsAttr);
+            if( null != gca_ColorsAttr ) {
+                rs.updateAttributeLoc(gl, updateLocation, gca_ColorsAttr);
+            }
+            System.err.println("XXX changedSP.p1 "+updateLocation+" / "+updateLocation0+", "+rs);
+        } else {
+            updateLocation = !sp.equals(spPass2);
+            spPass2 = sp;
+            rs.update(gl, updateLocation, renderModes, false);
+            rs.updateAttributeLoc(gl, updateLocation, gca_FboVerticesAttr);
+            rs.updateAttributeLoc(gl, updateLocation, gca_FboTexCoordsAttr);
+            rs.updateUniformDataLoc(gl, updateLocation, true, gcu_FboTexUnit);
+            rs.updateUniformLoc(gl, updateLocation, gcu_FboTexSize);
+            System.err.println("XXX changedSP.p2 "+updateLocation+" / "+updateLocation0+", "+rs);
+        }
+    }
 
     public VBORegion2PVBAAES2(final int renderModes, final int textureUnit) {
         super(renderModes);
         final int initialElementCount = 256;
-        fboPMVMatrix = new PMVMatrix();
-        mgl_fboPMVMatrix = new GLUniformData(UniformNames.gcu_PMVMatrix, 4, 4, fboPMVMatrix.glGetPMvMatrixf());
-        mgl_ActiveTexture = new GLUniformData(UniformNames.gcu_TextureUnit, textureUnit);
 
-        indicesTxtBuffer = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialElementCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
-        verticeTxtAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL2ES2.GL_FLOAT,
+        // Pass 1:
+        indicesBuffer = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialElementCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
+
+        gca_VerticesAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL2ES2.GL_FLOAT,
                                                       false, initialElementCount, GL.GL_STATIC_DRAW);
-        texCoordTxtAttr = GLArrayDataServer.createGLSL(AttributeNames.TEXCOORD_ATTR_NAME, 3, GL2ES2.GL_FLOAT,
+
+        gca_CurveParamsAttr = GLArrayDataServer.createGLSL(AttributeNames.CURVEPARAMS_ATTR_NAME, 3, GL2ES2.GL_FLOAT,
                                                        false, initialElementCount, GL.GL_STATIC_DRAW);
+        if( hasColorChannel() ) {
+            gca_ColorsAttr = GLArrayDataServer.createGLSL(AttributeNames.COLOR_ATTR_NAME, 4, GL2ES2.GL_FLOAT,
+                                                          false, initialElementCount, GL.GL_STATIC_DRAW);
+        } else {
+            gca_ColorsAttr = null;
+        }
+
+        // Pass 2:
+        fboPMVMatrix = new PMVMatrix();
+        gcu_PMVMatrix02 = new GLUniformData(UniformNames.gcu_PMVMatrix02, 4, 4, fboPMVMatrix.glGetPMvMatrixf());
+        gcu_FboTexUnit = new GLUniformData(UniformNames.gcu_FboTexUnit, textureUnit);
+        gcu_FboTexSize = new GLUniformData(UniformNames.gcu_FboTexSize, 2, Buffers.newDirectFloatBuffer(2));
+
+        indicesFbo = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, 2, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
+        indicesFbo.puts((short) 0); indicesFbo.puts((short) 1); indicesFbo.puts((short) 3);
+        indicesFbo.puts((short) 1); indicesFbo.puts((short) 2); indicesFbo.puts((short) 3);
+        indicesFbo.seal(true);
+
+        gca_FboTexCoordsAttr = GLArrayDataServer.createGLSL(AttributeNames.FBO_TEXCOORDS_ATTR_NAME, 2, GL2ES2.GL_FLOAT,
+                                                           false, 4, GL.GL_STATIC_DRAW);
+        gca_FboTexCoordsAttr.putf(0); gca_FboTexCoordsAttr.putf(0);
+        gca_FboTexCoordsAttr.putf(0); gca_FboTexCoordsAttr.putf(1);
+        gca_FboTexCoordsAttr.putf(1); gca_FboTexCoordsAttr.putf(1);
+        gca_FboTexCoordsAttr.putf(1); gca_FboTexCoordsAttr.putf(0);
+        gca_FboTexCoordsAttr.seal(true);
+
+        gca_FboVerticesAttr = GLArrayDataServer.createGLSL(AttributeNames.FBO_VERTEX_ATTR_NAME, 3, GL2ES2.GL_FLOAT,
+                                                           false, 4, GL.GL_STATIC_DRAW);
     }
 
     @Override
@@ -125,88 +188,86 @@ public class VBORegion2PVBAAES2  extends GLRegion {
             System.err.println("VBORegion2PES2 Clear: " + this);
             // Thread.dumpStack();
         }
-        if( null != indicesTxtBuffer ) {
-            indicesTxtBuffer.seal(gl, false);
-            indicesTxtBuffer.rewind();
+        if( null != indicesBuffer ) {
+            indicesBuffer.seal(gl, false);
+            indicesBuffer.rewind();
         }
-        if( null != verticeTxtAttr ) {
-            verticeTxtAttr.seal(gl, false);
-            verticeTxtAttr.rewind();
+        if( null != gca_VerticesAttr ) {
+            gca_VerticesAttr.seal(gl, false);
+            gca_VerticesAttr.rewind();
         }
-        if( null != texCoordTxtAttr ) {
-            texCoordTxtAttr.seal(gl, false);
-            texCoordTxtAttr.rewind();
+        if( null != gca_CurveParamsAttr ) {
+            gca_CurveParamsAttr.seal(gl, false);
+            gca_CurveParamsAttr.rewind();
+        }
+        if( null != gca_ColorsAttr ) {
+            gca_ColorsAttr.seal(gl, false);
+            gca_ColorsAttr.rewind();
         }
         fboDirty = true;
     }
 
     @Override
-    protected final void pushVertex(float[] coords, float[] texParams) {
-        verticeTxtAttr.putf(coords[0]);
-        verticeTxtAttr.putf(coords[1]);
-        verticeTxtAttr.putf(coords[2]);
+    protected final void pushVertex(final float[] coords, final float[] texParams, float[] rgba) {
+        gca_VerticesAttr.putf(coords[0]);
+        gca_VerticesAttr.putf(coords[1]);
+        gca_VerticesAttr.putf(coords[2]);
 
-        texCoordTxtAttr.putf(texParams[0]);
-        texCoordTxtAttr.putf(texParams[1]);
-        texCoordTxtAttr.putf(texParams[2]);
+        gca_CurveParamsAttr.putf(texParams[0]);
+        gca_CurveParamsAttr.putf(texParams[1]);
+        gca_CurveParamsAttr.putf(texParams[2]);
+
+        if( null != gca_ColorsAttr ) {
+            if( null != rgba ) {
+                gca_ColorsAttr.putf(rgba[0]);
+                gca_ColorsAttr.putf(rgba[1]);
+                gca_ColorsAttr.putf(rgba[2]);
+                gca_ColorsAttr.putf(rgba[3]);
+            } else {
+                throw new IllegalArgumentException("Null color given for COLOR_CHANNEL rendering mode");
+            }
+        }
     }
 
     @Override
     protected final void pushIndex(int idx) {
-        indicesTxtBuffer.puts((short)idx);
+        indicesBuffer.puts((short)idx);
     }
 
     @Override
     protected void updateImpl(final GL2ES2 gl, final RegionRenderer renderer) {
         if(null == indicesFbo) {
-            final ShaderState st = renderer.getShaderState();
-
-            indicesFbo = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, 2, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
-            indicesFbo.puts((short) 0); indicesFbo.puts((short) 1); indicesFbo.puts((short) 3);
-            indicesFbo.puts((short) 1); indicesFbo.puts((short) 2); indicesFbo.puts((short) 3);
-            indicesFbo.seal(true);
-
-            texCoordFboAttr = GLArrayDataServer.createGLSL(AttributeNames.TEXCOORD_ATTR_NAME, 2, GL2ES2.GL_FLOAT,
-                                                           false, 4, GL.GL_STATIC_DRAW);
-            st.ownAttribute(texCoordFboAttr, true);
-            texCoordFboAttr.putf(0); texCoordFboAttr.putf(0);
-            texCoordFboAttr.putf(0); texCoordFboAttr.putf(1);
-            texCoordFboAttr.putf(1); texCoordFboAttr.putf(1);
-            texCoordFboAttr.putf(1); texCoordFboAttr.putf(0);
-            texCoordFboAttr.seal(true);
-
-            verticeFboAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL2ES2.GL_FLOAT,
-                                                          false, 4, GL.GL_STATIC_DRAW);
-            st.ownAttribute(verticeFboAttr, true);
-
-            st.ownAttribute(verticeTxtAttr, true);
-            st.ownAttribute(texCoordTxtAttr, true);
-
             if(Region.DEBUG_INSTANCE) {
                 System.err.println("VBORegion2PVBAAES2 Create: " + this);
             }
         }
         // seal buffers
-        indicesTxtBuffer.seal(gl, true);
-        indicesTxtBuffer.enableBuffer(gl, false);
-        texCoordTxtAttr.seal(gl, true);
-        texCoordTxtAttr.enableBuffer(gl, false);
-        verticeTxtAttr.seal(gl, true);
-        verticeTxtAttr.enableBuffer(gl, false);
+        indicesBuffer.seal(gl, true);
+        indicesBuffer.enableBuffer(gl, false);
+        gca_CurveParamsAttr.seal(gl, true);
+        gca_CurveParamsAttr.enableBuffer(gl, false);
+        gca_VerticesAttr.seal(gl, true);
+        gca_VerticesAttr.enableBuffer(gl, false);
+        if( null != gca_ColorsAttr ) {
+            gca_ColorsAttr.seal(gl, true);
+            gca_ColorsAttr.enableBuffer(gl, false);
+        }
 
         // update all bbox related data
-        verticeFboAttr.seal(gl, false);
-        verticeFboAttr.rewind();
-        verticeFboAttr.putf(box.getMinX()); verticeFboAttr.putf(box.getMinY()); verticeFboAttr.putf(box.getMinZ());
-        verticeFboAttr.putf(box.getMinX()); verticeFboAttr.putf(box.getMaxY()); verticeFboAttr.putf(box.getMinZ());
-        verticeFboAttr.putf(box.getMaxX()); verticeFboAttr.putf(box.getMaxY()); verticeFboAttr.putf(box.getMinZ());
-        verticeFboAttr.putf(box.getMaxX()); verticeFboAttr.putf(box.getMinY()); verticeFboAttr.putf(box.getMinZ());
-        verticeFboAttr.seal(gl, true);
-        verticeFboAttr.enableBuffer(gl, false);
-
-        fboPMVMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-        fboPMVMatrix.glLoadIdentity();
-        fboPMVMatrix.glOrthof(box.getMinX(), box.getMaxX(), box.getMinY(), box.getMaxY(), -1, 1);
+        gca_FboVerticesAttr.seal(gl, false);
+        {
+            final FloatBuffer fb = (FloatBuffer)gca_FboVerticesAttr.getBuffer();
+            fb.put( 2, box.getMinZ());
+            fb.put( 5, box.getMinZ());
+            fb.put( 8, box.getMinZ());
+            fb.put(11, box.getMinZ());
+        }
+        // Pending .. (follow fboDirty)
+        // gca_FboVerticesAttr.seal(gl, true);
+        // gca_FboVerticesAttr.enableBuffer(gl, false);
+        // fboPMVMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
+        // fboPMVMatrix.glLoadIdentity();
+        // fboPMVMatrix.glOrthof(box.getMinX(), box.getMaxX(), box.getMinY(), box.getMaxY(), -1, 1);
 
         // push data 2 GPU ..
         indicesFbo.seal(gl, true);
@@ -223,7 +284,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
 
     @Override
     protected void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int[/*1*/] sampleCount) {
-        if( 0 >= indicesTxtBuffer.getElementCount() ) {
+        if( 0 >= indicesBuffer.getElementCount() ) {
             if(DEBUG_INSTANCE) {
                 System.err.printf("VBORegion2PVBAAES2.drawImpl: Empty%n");
             }
@@ -387,56 +448,47 @@ public class VBORegion2PVBAAES2  extends GLRegion {
                 final float minY = box.getMinY()-diffObjBorderHeight;
                 final float maxX = box.getMaxX()+diffObjBorderWidth+diffObjWidth+diffObjResizeWidth;
                 final float maxY = box.getMaxY()+diffObjBorderHeight+diffObjHeight+diffObjResizeHeight;
-                verticeFboAttr.seal(false);
+                gca_FboVerticesAttr.seal(false);
                 {
-                    final FloatBuffer fb = (FloatBuffer)verticeFboAttr.getBuffer();
+                    final FloatBuffer fb = (FloatBuffer)gca_FboVerticesAttr.getBuffer();
                     fb.put(0, minX); fb.put( 1, minY);
                     fb.put(3, minX); fb.put( 4, maxY);
                     fb.put(6, maxX); fb.put( 7, maxY);
                     fb.put(9, maxX); fb.put(10, minY);
                 }
-                verticeFboAttr.seal(true);
+                gca_FboVerticesAttr.seal(true);
                 fboPMVMatrix.glLoadIdentity();
                 fboPMVMatrix.glOrthof(minX, maxX, minY, maxY, -1, 1);
+                gcu_PMVMatrix02_dirty = true;
+                useShaderProgram(gl, renderer, getRenderModes(), true, getQuality(), sampleCount[0]);
                 renderRegion2FBO(gl, rs, targetFboWidth, targetFboHeight, newFboWidth, newFboHeight, vpWidth, vpHeight, sampleCount[0]);
             }
+            useShaderProgram(gl, renderer, getRenderModes(), false, getQuality(), sampleCount[0]);
             renderFBO(gl, rs, targetFboWidth, targetFboHeight, vpWidth, vpHeight, sampleCount[0]);
         }
-    }
-    private void setTexSize(final GL2ES2 gl, final ShaderState st, final boolean firstPass, final int width, final int height, final int sampleCount) {
-        if(null == mgl_TextureSize) {
-            mgl_TextureSize = new GLUniformData(UniformNames.gcu_TextureSize, 3, Buffers.newDirectFloatBuffer(3));
-        }
-        final FloatBuffer texSize = (FloatBuffer) mgl_TextureSize.getBuffer();
-        texSize.put(0, width);
-        texSize.put(1, height);
-        if( firstPass ) {
-            texSize.put(2, 0f);
-        } else {
-            texSize.put(2, sampleCount);
-        }
-        st.uniform(gl, mgl_TextureSize);
     }
 
     private void renderFBO(final GL2ES2 gl, final RenderState rs, final int targetFboWidth, final int targetFboHeight,
                            final int vpWidth, final int vpHeight, final int sampleCount) {
-        final ShaderState st = rs.getShaderState();
-
         gl.glViewport(0, 0, vpWidth, vpHeight);
-        st.uniform(gl, mgl_ActiveTexture);
-        gl.glActiveTexture(GL.GL_TEXTURE0 + mgl_ActiveTexture.intValue());
-        setTexSize(gl, st, false, fboWidth, fboHeight, sampleCount);
+
+        if( gcu_FboTexSize_dirty ) {
+            gl.glUniform(gcu_FboTexSize);
+            gcu_FboTexSize_dirty = false;
+        }
+
+        gl.glActiveTexture(GL.GL_TEXTURE0 + gcu_FboTexUnit.intValue());
 
         fbo.use(gl, texA);
-        verticeFboAttr.enableBuffer(gl, true);
-        texCoordFboAttr.enableBuffer(gl, true);
+        gca_FboVerticesAttr.enableBuffer(gl, true);
+        gca_FboTexCoordsAttr.enableBuffer(gl, true);
         indicesFbo.bindBuffer(gl, true); // keeps VBO binding
 
         gl.glDrawElements(GL2ES2.GL_TRIANGLES, indicesFbo.getElementCount() * indicesFbo.getComponentCount(), GL2ES2.GL_UNSIGNED_SHORT, 0);
 
         indicesFbo.bindBuffer(gl, false);
-        texCoordFboAttr.enableBuffer(gl, false);
-        verticeFboAttr.enableBuffer(gl, false);
+        gca_FboTexCoordsAttr.enableBuffer(gl, false);
+        gca_FboVerticesAttr.enableBuffer(gl, false);
         fbo.unuse(gl);
 
         // setback: gl.glActiveTexture(currentActiveTextureEngine[0]);
@@ -445,8 +497,6 @@ public class VBORegion2PVBAAES2  extends GLRegion {
     private void renderRegion2FBO(final GL2ES2 gl, final RenderState rs,
                                   final int targetFboWidth, final int targetFboHeight, final int newFboWidth, final int newFboHeight,
                                   final int vpWidth, final int vpHeight, final int sampleCount) {
-        final ShaderState st = rs.getShaderState();
-
         if( 0 >= targetFboWidth || 0 >= targetFboHeight ) {
             throw new IllegalArgumentException("fboSize must be greater than 0: "+targetFboWidth+"x"+targetFboHeight);
         }
@@ -454,6 +504,12 @@ public class VBORegion2PVBAAES2  extends GLRegion {
         if(null == fbo) {
             fboWidth  = newFboWidth;
             fboHeight  = newFboHeight;
+            final FloatBuffer fboTexSize = (FloatBuffer) gcu_FboTexSize.getBuffer();
+            {
+                fboTexSize.put(0, fboWidth);
+                fboTexSize.put(1, fboHeight);
+                gcu_FboTexSize_dirty=true;
+            }
             fbo = new FBObject();
             fbo.reset(gl, fboWidth, fboHeight);
             // Shall not use bilinear (GL_LINEAR), due to own VBAA. Result is smooth w/o it now!
@@ -472,33 +528,46 @@ public class VBORegion2PVBAAES2  extends GLRegion {
             }
             fboWidth  = newFboWidth;
             fboHeight  = newFboHeight;
+            final FloatBuffer fboTexSize = (FloatBuffer) gcu_FboTexSize.getBuffer();
+            {
+                fboTexSize.put(0, fboWidth);
+                fboTexSize.put(1, fboHeight);
+                gcu_FboTexSize_dirty=true;
+            }
         } else {
             fbo.bind(gl);
         }
-        setTexSize(gl, st, true, vpWidth, vpHeight, sampleCount);
 
         //render texture
         gl.glViewport(0, 0, fboWidth, fboHeight);
-        st.uniform(gl, mgl_fboPMVMatrix); // use orthogonal matrix
+
+        if( gcu_PMVMatrix02_dirty ) {
+            gl.glUniform(gcu_PMVMatrix02);
+            gcu_PMVMatrix02_dirty = false;
+        }
 
         gl.glClear(GL2ES2.GL_COLOR_BUFFER_BIT | GL2ES2.GL_DEPTH_BUFFER_BIT);
         renderRegion(gl);
         fbo.unbind(gl);
         fboDirty = false;
-
-        st.uniform(gl, rs.getPMVMatrix()); // switch back to real PMV matrix
     }
 
     private void renderRegion(final GL2ES2 gl) {
-        verticeTxtAttr.enableBuffer(gl, true);
-        texCoordTxtAttr.enableBuffer(gl, true);
-        indicesTxtBuffer.bindBuffer(gl, true); // keeps VBO binding
+        gca_VerticesAttr.enableBuffer(gl, true);
+        gca_CurveParamsAttr.enableBuffer(gl, true);
+        if( null != gca_ColorsAttr ) {
+            gca_ColorsAttr.enableBuffer(gl, true);
+        }
+        indicesBuffer.bindBuffer(gl, true); // keeps VBO binding
 
-        gl.glDrawElements(GL2ES2.GL_TRIANGLES, indicesTxtBuffer.getElementCount() * indicesTxtBuffer.getComponentCount(), GL2ES2.GL_UNSIGNED_SHORT, 0);
+        gl.glDrawElements(GL2ES2.GL_TRIANGLES, indicesBuffer.getElementCount() * indicesBuffer.getComponentCount(), GL2ES2.GL_UNSIGNED_SHORT, 0);
 
-        indicesTxtBuffer.bindBuffer(gl, false);
-        texCoordTxtAttr.enableBuffer(gl, false);
-        verticeTxtAttr.enableBuffer(gl, false);
+        indicesBuffer.bindBuffer(gl, false);
+        if( null != gca_ColorsAttr ) {
+            gca_ColorsAttr.enableBuffer(gl, false);
+        }
+        gca_CurveParamsAttr.enableBuffer(gl, false);
+        gca_VerticesAttr.enableBuffer(gl, false);
     }
 
     @Override
@@ -507,35 +576,35 @@ public class VBORegion2PVBAAES2  extends GLRegion {
             System.err.println("VBORegion2PES2 Destroy: " + this);
             // Thread.dumpStack();
         }
-        final ShaderState st = renderer.getShaderState();
         if(null != fbo) {
             fbo.destroy(gl);
             fbo = null;
             texA = null;
         }
-        if(null != verticeTxtAttr) {
-            st.ownAttribute(verticeTxtAttr, false);
-            verticeTxtAttr.destroy(gl);
-            verticeTxtAttr = null;
+        if(null != gca_VerticesAttr) {
+            gca_VerticesAttr.destroy(gl);
+            gca_VerticesAttr = null;
         }
-        if(null != texCoordTxtAttr) {
-            st.ownAttribute(texCoordTxtAttr, false);
-            texCoordTxtAttr.destroy(gl);
-            texCoordTxtAttr = null;
+        if(null != gca_CurveParamsAttr) {
+            gca_CurveParamsAttr.destroy(gl);
+            gca_CurveParamsAttr = null;
         }
-        if(null != indicesTxtBuffer) {
-            indicesTxtBuffer.destroy(gl);
-            indicesTxtBuffer = null;
+        if(null != gca_ColorsAttr) {
+            gca_ColorsAttr.destroy(gl);
+            gca_ColorsAttr = null;
         }
-        if(null != verticeFboAttr) {
-            st.ownAttribute(verticeFboAttr, false);
-            verticeFboAttr.destroy(gl);
-            verticeFboAttr = null;
+        if(null != indicesBuffer) {
+            indicesBuffer.destroy(gl);
+            indicesBuffer = null;
         }
-        if(null != texCoordFboAttr) {
-            st.ownAttribute(texCoordFboAttr, false);
-            texCoordFboAttr.destroy(gl);
-            texCoordFboAttr = null;
+
+        if(null != gca_FboVerticesAttr) {
+            gca_FboVerticesAttr.destroy(gl);
+            gca_FboVerticesAttr = null;
+        }
+        if(null != gca_FboTexCoordsAttr) {
+            gca_FboTexCoordsAttr.destroy(gl);
+            gca_FboTexCoordsAttr = null;
         }
         if(null != indicesFbo) {
             indicesFbo.destroy(gl);

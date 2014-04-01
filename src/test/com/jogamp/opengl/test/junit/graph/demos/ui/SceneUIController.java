@@ -82,6 +82,16 @@ public class SceneUIController implements GLEventListener{
     public int getSampleCount() { return sampleCount[0]; }
     public void setSampleCount(int v) { sampleCount[0]=v; markAllShapesDirty(); }
 
+    public void setAllShapesQuality(final int q) {
+        for(int i=0; i<shapes.size(); i++) {
+            shapes.get(i).setQuality(q);
+        }
+    }
+    public void setAllShapesSharpness(final float sharpness) {
+        for(int i=0; i<shapes.size(); i++) {
+            shapes.get(i).setSharpness(sharpness);
+        }
+    }
     public void markAllShapesDirty() {
         for(int i=0; i<shapes.size(); i++) {
             shapes.get(i).markDirty();
@@ -168,7 +178,7 @@ public class SceneUIController implements GLEventListener{
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
-        final PMVMatrix pmv = renderer.getMatrix();
+        final PMVMatrix pmv = renderer.getMatrixMutable();
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
 
         final int shapeCount = shapes.size();
@@ -178,8 +188,8 @@ public class SceneUIController implements GLEventListener{
                 uiShape.validate(gl, renderer);
                 pmv.glPushMatrix();
                 transformShape(pmv, uiShape);
-                renderer.updateMatrix(gl);
                 uiShape.drawShape(gl, renderer, sampleCount);
+                renderer.setMatrixDirty();
                 pmv.glPopMatrix();
             }
         }
@@ -206,9 +216,8 @@ public class SceneUIController implements GLEventListener{
         viewport[2] = width;
         viewport[3] = height;
 
-        final GL2ES2 gl = drawable.getGL().getGL2ES2();
-        final PMVMatrix pmv = renderer.getMatrix();
-        renderer.reshapePerspective(gl, 45.0f, width, height, zNear, zFar);
+        final PMVMatrix pmv = renderer.getMatrixMutable();
+        renderer.reshapePerspective(45.0f, width, height, zNear, zFar);
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
 
@@ -249,7 +258,6 @@ public class SceneUIController implements GLEventListener{
 
         pmv.glTranslatef(scenePlaneOrigin[0], scenePlaneOrigin[1], scenePlaneOrigin[2]);
         pmv.glScalef(sceneScale[0], sceneScale[1], sceneScale[2]);
-        renderer.updateMatrix(gl);
     }
 
     public UIShape getActiveUI() {

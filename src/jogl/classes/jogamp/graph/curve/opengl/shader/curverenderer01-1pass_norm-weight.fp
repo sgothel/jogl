@@ -14,15 +14,10 @@
 #include uniforms.glsl
 #include varyings.glsl
 
-const vec3 zero3 = vec3(0);
-
 void main (void)
 {
-    vec3 color;
-    float alpha;
 
 // #include curverenderer01-pass1-curve-lineAA.glsl
 #include curverenderer01-pass1-curve-weight.glsl
 
-    mgl_FragColor = vec4(color, gcu_Alpha * alpha);
 }

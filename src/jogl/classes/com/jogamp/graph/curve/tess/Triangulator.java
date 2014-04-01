@@ -64,8 +64,14 @@ public interface Triangulator {
      */
     public void generate(List<Triangle> sink);
 
-    /** Reset the triangulation to initial state
-     *  Clearing cached data
+    /**
+     * Reset the triangulation to initial state
+     * Clearing cached data
      */
     public void reset();
+
+    /**
+     * Return the number of newly added vertices during {@link #addCurve(List, Outline, float)}.
+     */
+    public int getAddedVerticeCount();
 }

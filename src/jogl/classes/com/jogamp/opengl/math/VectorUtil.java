@@ -517,16 +517,16 @@ public class VectorUtil {
         subVec3(ap, p, a); //v2
 
         // Compute dot products
-        final float dot00 = vec3Dot(ac, ac);
-        final float dot01 = vec3Dot(ac, ab);
-        final float dot02 = vec3Dot(ac, ap);
-        final float dot11 = vec3Dot(ab, ab);
-        final float dot12 = vec3Dot(ab, ap);
+        final float dotAC_AC = vec3Dot(ac, ac);
+        final float dotAC_AB = vec3Dot(ac, ab);
+        final float dotAB_AB = vec3Dot(ab, ab);
+        final float dotAC_AP = vec3Dot(ac, ap);
+        final float dotAB_AP = vec3Dot(ab, ap);
 
         // Compute barycentric coordinates
-        final float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
-        final float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-        final float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+        final float invDenom = 1 / (dotAC_AC * dotAB_AB - dotAC_AB * dotAC_AB);
+        final float u = (dotAB_AB * dotAC_AP - dotAC_AB * dotAB_AP) * invDenom;
+        final float v = (dotAC_AC * dotAB_AP - dotAC_AB * dotAC_AP) * invDenom;
 
         // Check if point is in triangle
         return (u >= 0) && (v >= 0) && (u + v < 1);
@@ -564,11 +564,11 @@ public class VectorUtil {
             subVec3(tmpAP, p1, a); //v2
             final float dotAC_AP1 = vec3Dot(tmpAC, tmpAP);
             final float dotAB_AP1 = vec3Dot(tmpAB, tmpAP);
-            final float u1 = (dotAB_AB * dotAC_AP1 - dotAC_AB * dotAB_AP1) * invDenom;
-            final float v1 = (dotAC_AC * dotAB_AP1 - dotAC_AB * dotAC_AP1) * invDenom;
+            final float u = (dotAB_AB * dotAC_AP1 - dotAC_AB * dotAB_AP1) * invDenom;
+            final float v = (dotAC_AC * dotAB_AP1 - dotAC_AB * dotAC_AP1) * invDenom;
 
             // Check if point is in triangle
-            if ( (u1 >= 0) && (v1 >= 0) && (u1 + v1 < 1) ) {
+            if ( (u >= 0) && (v >= 0) && (u + v < 1) ) {
                 return true;
             }
         }
@@ -595,6 +595,81 @@ public class VectorUtil {
 
             // Check if point is in triangle
             if ( (u >= 0) && (v >= 0) && (u + v < 1) ) {
+                return true;
+            }
+        }
+        return false;
+    }
+    /**
+     * Check if one of three vertices are in triangle using
+     * barycentric coordinates computation, using given epsilon for comparison.
+     * @param a first triangle vertex
+     * @param b second triangle vertex
+     * @param c third triangle vertex
+     * @param p1 the vertex in question
+     * @param p2 the vertex in question
+     * @param p3 the vertex in question
+     * @param tmpAC
+     * @param tmpAB
+     * @param tmpAP
+     * @return true if p1 or p2 or p3 is in triangle (a, b, c), false otherwise.
+     */
+    public static boolean isVec3InTriangle3(final float[] a, final float[]  b, final float[]  c,
+                                            final float[] p1, final float[] p2, final float[] p3,
+                                            final float[] tmpAC, final float[] tmpAB, final float[] tmpAP,
+                                            final float epsilon){
+        // Compute vectors
+        subVec3(tmpAC, c, a); //v0
+        subVec3(tmpAB, b, a); //v1
+
+        // Compute dot products
+        final float dotAC_AC = vec3Dot(tmpAC, tmpAC);
+        final float dotAC_AB = vec3Dot(tmpAC, tmpAB);
+        final float dotAB_AB = vec3Dot(tmpAB, tmpAB);
+
+        // Compute barycentric coordinates
+        final float invDenom = 1 / (dotAC_AC * dotAB_AB - dotAC_AB * dotAC_AB);
+        {
+            subVec3(tmpAP, p1, a); //v2
+            final float dotAC_AP1 = vec3Dot(tmpAC, tmpAP);
+            final float dotAB_AP1 = vec3Dot(tmpAB, tmpAP);
+            final float u = (dotAB_AB * dotAC_AP1 - dotAC_AB * dotAB_AP1) * invDenom;
+            final float v = (dotAC_AC * dotAB_AP1 - dotAC_AB * dotAC_AP1) * invDenom;
+
+            // Check if point is in triangle
+            if( FloatUtil.compare(u, 0.0f, epsilon) >= 0 &&
+                FloatUtil.compare(v, 0.0f, epsilon) >= 0 &&
+                FloatUtil.compare(u+v, 1.0f, epsilon) < 0 ) {
+                return true;
+            }
+        }
+
+        {
+            subVec3(tmpAP, p1, a); //v2
+            final float dotAC_AP2 = vec3Dot(tmpAC, tmpAP);
+            final float dotAB_AP2 = vec3Dot(tmpAB, tmpAP);
+            final float u = (dotAB_AB * dotAC_AP2 - dotAC_AB * dotAB_AP2) * invDenom;
+            final float v = (dotAC_AC * dotAB_AP2 - dotAC_AB * dotAC_AP2) * invDenom;
+
+            // Check if point is in triangle
+            if( FloatUtil.compare(u, 0.0f, epsilon) >= 0 &&
+                FloatUtil.compare(v, 0.0f, epsilon) >= 0 &&
+                FloatUtil.compare(u+v, 1.0f, epsilon) < 0 ) {
+                return true;
+            }
+        }
+
+        {
+            subVec3(tmpAP, p2, a); //v2
+            final float dotAC_AP3 = vec3Dot(tmpAC, tmpAP);
+            final float dotAB_AP3 = vec3Dot(tmpAB, tmpAP);
+            final float u = (dotAB_AB * dotAC_AP3 - dotAC_AB * dotAB_AP3) * invDenom;
+            final float v = (dotAC_AC * dotAB_AP3 - dotAC_AB * dotAC_AP3) * invDenom;
+
+            // Check if point is in triangle
+            if( FloatUtil.compare(u, 0.0f, epsilon) >= 0 &&
+                FloatUtil.compare(v, 0.0f, epsilon) >= 0 &&
+                FloatUtil.compare(u+v, 1.0f, epsilon) < 0 ) {
                 return true;
             }
         }
@@ -701,16 +776,58 @@ public class VectorUtil {
         final float beta = (C[0]*D[1]-C[1]*D[1]);
         final float xi = ((C[0]-D[0])*alpha-(A[0]-B[0])*beta)/determinant;
 
-        final float gamma = (xi - A[0])/(B[0] - A[0]);
+        final float gamma0 = (xi - A[0])/(B[0] - A[0]);
         final float gamma1 = (xi - C[0])/(D[0] - C[0]);
-        if(gamma <= 0 || gamma >= 1 || gamma1 <= 0 || gamma1 >= 1) {
+        if(gamma0 <= 0 || gamma0 >= 1 || gamma1 <= 0 || gamma1 >= 1) {
+            return false;
+        }
+
+        return true;
+    }
+    /**
+     * Compute intersection between two segments, using given epsilon for comparison.
+     * @param a vertex 1 of first segment
+     * @param b vertex 2 of first segment
+     * @param c vertex 1 of second segment
+     * @param d vertex 2 of second segment
+     * @return true if the segments intersect, otherwise returns false
+     */
+    public static boolean testSeg2SegIntersection(final Vert2fImmutable a, final Vert2fImmutable b,
+                                                  final Vert2fImmutable c, final Vert2fImmutable d,
+                                                  final float epsilon) {
+        final float[] A = a.getCoord();
+        final float[] B = b.getCoord();
+        final float[] C = c.getCoord();
+        final float[] D = d.getCoord();
+
+        final float determinant = (A[0]-B[0])*(C[1]-D[1]) - (A[1]-B[1])*(C[0]-D[0]);
+
+        if ( FloatUtil.isZero(determinant, epsilon) ) {
+            return false;
+        }
+
+        final float alpha = (A[0]*B[1]-A[1]*B[0]);
+        final float beta = (C[0]*D[1]-C[1]*D[1]);
+        final float xi = ((C[0]-D[0])*alpha-(A[0]-B[0])*beta)/determinant;
+
+        final float gamma0 = (xi - A[0])/(B[0] - A[0]);
+        final float gamma1 = (xi - C[0])/(D[0] - C[0]);
+        if( FloatUtil.compare(gamma0, 0.0f, epsilon) <= 0 ||
+            FloatUtil.compare(gamma0, 1.0f, epsilon) >= 0 ||
+            FloatUtil.compare(gamma1, 0.0f, epsilon) <= 0 ||
+            FloatUtil.compare(gamma1, 1.0f, epsilon) >= 0 ) {
+            return false;
+        }
+
+        if(gamma0 <= 0 || gamma0 >= 1 || gamma1 <= 0 || gamma1 >= 1) {
             return false;
         }
 
         return true;
     }
 
-    /** Compute intersection between two lines
+    /**
+     * Compute intersection between two lines
      * @param a vertex 1 of first line
      * @param b vertex 2 of first line
      * @param c vertex 1 of second line
@@ -737,7 +854,8 @@ public class VectorUtil {
         return result;
     }
 
-    /** Check if a segment intersects with a triangle
+    /**
+     * Check if a segment intersects with a triangle
      * @param a vertex 1 of the triangle
      * @param b vertex 2 of the triangle
      * @param c vertex 3 of the triangle
@@ -750,5 +868,21 @@ public class VectorUtil {
         return testSeg2SegIntersection(a, b, d, e) ||
                testSeg2SegIntersection(b, c, d, e) ||
                testSeg2SegIntersection(a, c, d, e) ;
+    }
+    /**
+     * Check if a segment intersects with a triangle, using given epsilon for comparison.
+     * @param a vertex 1 of the triangle
+     * @param b vertex 2 of the triangle
+     * @param c vertex 3 of the triangle
+     * @param d vertex 1 of first segment
+     * @param e vertex 2 of first segment
+     * @return true if the segment intersects at least one segment of the triangle, false otherwise
+     */
+    public static boolean testTri2SegIntersection(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c,
+                                                  final Vert2fImmutable d, final Vert2fImmutable e,
+                                                  final float epsilon){
+        return testSeg2SegIntersection(a, b, d, e, epsilon) ||
+               testSeg2SegIntersection(b, c, d, e, epsilon) ||
+               testSeg2SegIntersection(a, c, d, e, epsilon) ;
     }
 }

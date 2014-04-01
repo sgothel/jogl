@@ -319,24 +319,24 @@ public class AffineTransform implements Cloneable {
         return t;
     }
 
-    public final void translate(float mx, float my) {
-        concatenate(AffineTransform.getTranslateInstance(mx, my));
+    public final AffineTransform translate(float mx, float my) {
+        return concatenate(AffineTransform.getTranslateInstance(mx, my));
     }
 
-    public final void scale(float scx, float scy) {
-        concatenate(AffineTransform.getScaleInstance(scx, scy));
+    public final AffineTransform scale(float scx, float scy) {
+        return concatenate(AffineTransform.getScaleInstance(scx, scy));
     }
 
-    public final void shear(float shx, float shy) {
-        concatenate(AffineTransform.getShearInstance(shx, shy));
+    public final AffineTransform shear(float shx, float shy) {
+        return concatenate(AffineTransform.getShearInstance(shx, shy));
     }
 
-    public final void rotate(float angle) {
-        concatenate(AffineTransform.getRotateInstance(angle));
+    public final AffineTransform rotate(float angle) {
+        return concatenate(AffineTransform.getRotateInstance(angle));
     }
 
-    public final void rotate(float angle, float px, float py) {
-        concatenate(AffineTransform.getRotateInstance(angle, px, py));
+    public final AffineTransform rotate(float angle, float px, float py) {
+        return concatenate(AffineTransform.getRotateInstance(angle, px, py));
     }
 
     /**

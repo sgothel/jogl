@@ -36,12 +36,11 @@ import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class GPUTextGLListener0A extends GPUTextRendererListenerBase01 {
 
     public GPUTextGLListener0A() {
-        super(RenderState.createRenderState(new ShaderState(), SVertex.factory()), Region.VBAA_RENDERING_BIT, 4, true, false, false);
+        super(RenderState.createRenderState(SVertex.factory()), Region.VBAA_RENDERING_BIT, 4, true, false, false);
     }
 
     public GPUTextGLListener0A(RenderState rs, int renderModes, int sampleCount, boolean blending, boolean debug, boolean trace) {
@@ -57,13 +56,12 @@ public class GPUTextGLListener0A extends GPUTextRendererListenerBase01 {
 
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-        final RegionRenderer renderer = getRenderer();
+        final RenderState rs = getRenderer().getRenderState();
 
         gl.setSwapInterval(1);
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
         gl.glEnable(GL2ES2.GL_BLEND);
-        renderer.setAlpha(gl, 1.0f);
-        renderer.setColorStatic(gl, 0.1f, 0.1f, 0.1f);
+        rs.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
     }
 
     public void dispose(GLAutoDrawable drawable) {

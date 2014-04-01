@@ -84,7 +84,7 @@ public class TypecastRenderer {
 
         final OutlineShape shape = new OutlineShape(vertexFactory);
         buildShapeImpl(shape, symbol, glyph, vertexFactory);
-        shape.closeLastOutline(false);
+        shape.setIsQuadraticNurbs();
         return shape;
     }
 

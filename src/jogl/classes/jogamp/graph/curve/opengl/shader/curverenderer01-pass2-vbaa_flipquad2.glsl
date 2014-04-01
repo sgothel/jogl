@@ -1,17 +1,17 @@
 
         // Pass-2: AA on Texture
-        // Note: gcv_TexCoord is in center of sample pixels, origin is bottom left!
+        // Note: gcv_FboTexCoord is in center of sample pixels, origin is bottom left!
         // 
         // Same as flipquad - but w/ rgss coordinates
 
-        float sampleCount = gcu_TextureSize.z;
-        vec2 psize = 1.0 / gcu_TextureSize.xy; // pixel size
+        float sampleCount = gcu_FboTexSize.z;
+        vec2 psize = 1.0 / gcu_FboTexSize.xy; // pixel size
 
         vec2 normFragCoord = gl_FragCoord.xy - vec2(0.5, 0.5); // normalize center 0.5/0.5 -> 0/0
         vec2 modPos = mod(normFragCoord, 2.0);
         float orient = mod(modPos.x + modPos.y, 2.0); // mirrored on all odd columns, alternating each row (checker-board pattern)
 
-        vec2 texCoord = gcv_TexCoord.st;
+        vec2 texCoord = gcv_FboTexCoord.st;
         float edge1Q = ( sampleCount / 2.0 ) - 1.0;
 
         vec4 t;
@@ -20,15 +20,15 @@
 
         if( 0.0 == orient ) {
                                                                                                // SWIPE LEFT -> RIGHT
-            t  = GetSample(gcu_TextureUnit, texCoord, psize, -edge1Q,     0.0, -0.5,  0.5)*0.25; // upper-left  [p1]
-            t += GetSample(gcu_TextureUnit, texCoord, psize,     0.0, -edge1Q, -0.5, -0.5)*0.25; // lower-left  [p3]
-            t += GetSample(gcu_TextureUnit, texCoord, psize,     0.0,  edge1Q,  0.5,  0.5)*0.25; // upper-right [p2]
-            t += GetSample(gcu_TextureUnit, texCoord, psize,  edge1Q,     0.0,  0.5, -0.5)*0.25; // lower-right [p4]
+            t  = GetSample(gcu_FboTexUnit, texCoord, psize, -edge1Q,     0.0, -0.5,  0.5)*0.25; // upper-left  [p1]
+            t += GetSample(gcu_FboTexUnit, texCoord, psize,     0.0, -edge1Q, -0.5, -0.5)*0.25; // lower-left  [p3]
+            t += GetSample(gcu_FboTexUnit, texCoord, psize,     0.0,  edge1Q,  0.5,  0.5)*0.25; // upper-right [p2]
+            t += GetSample(gcu_FboTexUnit, texCoord, psize,  edge1Q,     0.0,  0.5, -0.5)*0.25; // lower-right [p4]
         } else {
-            t  = GetSample(gcu_TextureUnit, texCoord, psize, -edge1Q,     0.0, -0.5, -0.5)*0.25; // lower-left  [p4]
-            t += GetSample(gcu_TextureUnit, texCoord, psize,     0.0,  edge1Q, -0.5,  0.5)*0.25; // upper-left  [p3]
-            t += GetSample(gcu_TextureUnit, texCoord, psize,     0.0, -edge1Q,  0.5, -0.5)*0.25; // lower-right [p2]
-            t += GetSample(gcu_TextureUnit, texCoord, psize,  edge1Q,     0.0,  0.5,  0.5)*0.25; // upper-right [p1]
+            t  = GetSample(gcu_FboTexUnit, texCoord, psize, -edge1Q,     0.0, -0.5, -0.5)*0.25; // lower-left  [p4]
+            t += GetSample(gcu_FboTexUnit, texCoord, psize,     0.0,  edge1Q, -0.5,  0.5)*0.25; // upper-left  [p3]
+            t += GetSample(gcu_FboTexUnit, texCoord, psize,     0.0, -edge1Q,  0.5, -0.5)*0.25; // lower-right [p2]
+            t += GetSample(gcu_FboTexUnit, texCoord, psize,  edge1Q,     0.0,  0.5,  0.5)*0.25; // upper-right [p1]
         }
 
         #if 0
@@ -37,6 +37,5 @@
         }
         #endif
         
-        color = t.rgb;
-        alpha = gcu_Alpha * t.a;
+        mgl_FragColor = t;
 

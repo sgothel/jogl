@@ -50,7 +50,6 @@ import com.jogamp.opengl.test.junit.graph.demos.GPURegionGLListener01;
 import com.jogamp.opengl.test.junit.graph.demos.GPURegionGLListener02;
 import com.jogamp.opengl.test.junit.graph.demos.GPURendererListenerBase01;
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import com.jogamp.opengl.util.glsl.ShaderState;
 
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -88,7 +87,7 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         caps.setAlphaBits(4);
 
         GLWindow window = createWindow("shape-vbaa0-msaa0", caps, 800, 400);
-        RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
+        RenderState rs = RenderState.createRenderState(SVertex.factory());
 
         GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (rs, 0, 0, false, false);
         demo01Listener.attachInputListenerTo(window);
@@ -122,9 +121,9 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         caps.setAlphaBits(4);
 
         GLWindow window = createWindow("shape-vbaa0-msaa0", caps, 800, 400);
-        RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
+        RenderState rs = RenderState.createRenderState(SVertex.factory());
 
-        GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (rs, Region.VARIABLE_CURVE_WEIGHT_BIT, 0, false, false);
+        GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (rs, Region.VARWEIGHT_RENDERING_BIT, 0, false, false);
         demo01Listener.attachInputListenerTo(window);
         window.addGLEventListener(demo01Listener);
 
@@ -153,7 +152,7 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         caps.setNumSamples(4);
 
         GLWindow window = createWindow("shape-vbaa0-msaa1", caps, 800, 400);
-        RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
+        RenderState rs = RenderState.createRenderState(SVertex.factory());
 
         GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (rs, 0, 0, false, false);
         demo01Listener.attachInputListenerTo(window);
@@ -189,9 +188,9 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         caps.setNumSamples(4);
 
         GLWindow window = createWindow("shape-vbaa0-msaa1", caps, 800, 400);
-        RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
+        RenderState rs = RenderState.createRenderState(SVertex.factory());
 
-        GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (rs, Region.VARIABLE_CURVE_WEIGHT_BIT, 0, false, false);
+        GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (rs, Region.VARWEIGHT_RENDERING_BIT, 0, false, false);
         demo01Listener.attachInputListenerTo(window);
         window.addGLEventListener(demo01Listener);
 
@@ -224,7 +223,7 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         caps.setAlphaBits(4);
 
         GLWindow window = createWindow("shape-vbaa1-msaa0", caps, 800,400);
-        RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
+        RenderState rs = RenderState.createRenderState(SVertex.factory());
         GPURegionGLListener02  demo02Listener = new GPURegionGLListener02 (rs, Region.VBAA_RENDERING_BIT, 4, false, false);
         demo02Listener.attachInputListenerTo(window);
         window.addGLEventListener(demo02Listener);

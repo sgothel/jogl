@@ -33,7 +33,6 @@ import com.jogamp.opengl.test.junit.graph.demos.ui.RIButton;
 import com.jogamp.opengl.test.junit.graph.demos.ui.SceneUIController;
 import com.jogamp.opengl.test.junit.graph.demos.ui.UIShape;
 import com.jogamp.opengl.util.GLReadBufferUtil;
-import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class GPUUISceneGLListener0A implements GLEventListener {
 
@@ -87,12 +86,12 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     }
 
     public GPUUISceneGLListener0A(int renderModes) {
-      this(RenderState.createRenderState(new ShaderState(), SVertex.factory()), renderModes, false, false);
+      this(RenderState.createRenderState(SVertex.factory()), renderModes, false, false);
     }
 
     public GPUUISceneGLListener0A(RenderState rs, int renderModes, boolean debug, boolean trace) {
         this.rs = rs;
-        this.renderModes = renderModes;
+        this.renderModes = renderModes | Region.COLORCHANNEL_RENDERING_BIT;
 
         this.debug = debug;
         this.trace = trace;
@@ -261,14 +260,41 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                 } } );
             button.addMouseListener(dragZoomRotateListener);
             buttons.add(button);
+
+            button = new RIButton(SVertex.factory(), font, "< quality >", buttonXSize, buttonYSize);
+            button.translate(xstart,ystart - diffY*buttons.size(), 0f);
+            button.setLabelColor(1.0f, 1.0f, 1.0f);
+            button.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    final Object attachment = e.getAttachment();
+                    if( attachment instanceof UIShape.EventDetails ) {
+                        final UIShape.EventDetails shapeEvent = (UIShape.EventDetails)attachment;
+                        int quality = shapeEvent.shape.getQuality();
+
+                        if( shapeEvent.rotPosition[0] < shapeEvent.rotBounds.getCenter()[0] ) {
+                            // left-half pressed
+                            if( quality > 0 ) {
+                                quality=0;
+                            }
+                        } else {
+                            // right-half pressed
+                            if( quality < 1 ) {
+                                quality=1;
+                            }
+                        }
+                        sceneUIController.setAllShapesQuality(quality);
+                    }
+                } } );
+            button.addMouseListener(dragZoomRotateListener);
+            buttons.add(button);
         }
 
         button = new RIButton(SVertex.factory(), font, "Quit", buttonXSize, buttonYSize);
         button.translate(xstart,ystart - diffY*buttons.size(), 0f);
-        button.setColor(0.8f, 0.0f, 0.0f);
+        button.setColor(0.8f, 0.0f, 0.0f, 1.0f);
         button.setLabelColor(1.0f, 1.0f, 1.0f);
-        button.setSelectedColor(0.8f, 0.8f, 0.8f);
-        button.setLabelSelectedColor(0.8f, 0.0f, 0.0f);
+        button.setSelectedColorMod(0.8f, 0.8f, 0.8f, 1.0f);
         button.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -511,7 +537,6 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         gl.glEnable(GL2ES2.GL_BLEND);
 
         renderer.init(gl);
-        renderer.setAlpha(gl, 1.0f);
 
         initTexts();
 
@@ -529,7 +554,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         sceneUIController.addShape(truePtSizeLabel);
         truePtSizeLabel.setEnabled(enableOthers);
         truePtSizeLabel.translate(0, - 1.5f * jogampLabel.getLineHeight(), 0f);
-        truePtSizeLabel.setColor(0.1f, 0.1f, 0.1f);
+        truePtSizeLabel.setColor(0.1f, 0.1f, 0.1f, 1.0f);
 
         /**
          *
@@ -541,7 +566,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         fpsLabel.addMouseListener(dragZoomRotateListener);
         sceneUIController.addShape(fpsLabel);
         fpsLabel.setEnabled(enableOthers);
-        fpsLabel.setColor(0.3f, 0.3f, 0.3f);
+        fpsLabel.setColor(0.3f, 0.3f, 0.3f, 1.0f);
 
         crossHairCtr = new CrossHair(renderer.getRenderState().getVertexFactory(), 100f, 100f, 2f);
         crossHairCtr.addMouseListener(dragZoomRotateListener);
@@ -603,7 +628,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             final float dyTop = drawable.getHeight() * relTop;
             final float dxRight = drawable.getWidth() * relRight;
             labels[currentText] = new Label(SVertex.factory(), font, pixelSizeFixed, strings[currentText]);
-            labels[currentText].setColor(0.1f, 0.1f, 0.1f);
+            labels[currentText].setColor(0.1f, 0.1f, 0.1f, 1.0f);
             labels[currentText].setEnabled(enableOthers);
             labels[currentText].translate(dxRight,
                                           dyTop - 1.5f * jogampLabel.getLineHeight()
@@ -627,8 +652,8 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             final String text;
             if( null == actionText ) {
                 final String timePrec = gl.isGLES() ? "4.0" : "4.1";
-                text = String.format("%03.1f/%03.1f fps, v-sync %d, fontSize %.1f, %s-samples %d, td %"+timePrec+"f, blend %b, alpha-bits %d, msaa-bits %d",
-                    lfps, tfps, gl.getSwapInterval(), fontSizeFixedPVP, modeS, sceneUIController.getSampleCount(), td,
+                text = String.format("%03.1f/%03.1f fps, v-sync %d, fontSize %.1f, %s-samples %d, q %d, td %"+timePrec+"f, blend %b, alpha-bits %d, msaa-bits %d",
+                    lfps, tfps, gl.getSwapInterval(), fontSizeFixedPVP, modeS, sceneUIController.getSampleCount(), fpsLabel.getQuality(), td,
                     renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED),
                     drawable.getChosenGLCapabilities().getAlphaBits(),
                     drawable.getChosenGLCapabilities().getNumSamples());

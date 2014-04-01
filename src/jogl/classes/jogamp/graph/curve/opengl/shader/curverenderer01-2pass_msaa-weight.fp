@@ -15,28 +15,21 @@
 #include uniforms.glsl
 #include varyings.glsl
 
-const vec3 zero3 = vec3(0);
-
 void main (void)
 {
-    vec3 color;
-    float alpha;
-    
-    if( 0.0 < gcu_TextureSize.z ) {
+    if( 0.0 < gcu_FboTexSize.z ) {
         // Pass-2: Dump Texture
-        vec4 t = texture2D(gcu_TextureUnit, gcv_TexCoord.st);
+        vec4 t = texture2D(gcu_FboTexUnit, gcv_FboTexCoord.st);
         #if 0
         if( 0.0 == t.a ) {
           discard; // discard freezes NV tegra2 compiler
         }
         #endif
 
-        color = t.rgb;   
-        alpha = gcu_Alpha * t.a;
+        mgl_FragColor = t;
     } else {
 
 #include curverenderer01-pass1-curve-weight.glsl
 
     }
-    mgl_FragColor = vec4(color, alpha);
 }

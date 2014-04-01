@@ -32,10 +32,7 @@ import java.util.ArrayList;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.opengl.GL2ES2;
 
-import jogamp.graph.geom.plane.AffineTransform;
-
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.curve.OutlineShapeXForm;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
@@ -54,11 +51,9 @@ public abstract class UIShape {
 
     private final Factory<? extends Vertex> vertexFactory;
 
-    protected final ArrayList<OutlineShapeXForm> shapes;
-
     protected static final int DIRTY_SHAPE     = 1 << 0 ;
-    protected static final int DIRTY_REGION    = 1 << 2 ;
-    protected int dirty = DIRTY_SHAPE | DIRTY_REGION;
+    protected int dirty = DIRTY_SHAPE;
+    protected float shapesSharpness = OutlineShape.DEFAULT_SHARPNESS;
 
     protected final AABBox box;
     protected final float[] translate = new float[] { 0f, 0f, 0f };
@@ -66,12 +61,11 @@ public abstract class UIShape {
     protected final float[] rotOrigin = new float[] { 0f, 0f, 0f };
     protected final float[] scale = new float[] { 1f, 1f, 1f };
 
-    protected final float[] shapeTranslate2D = new float[] { 0f, 0f };
-    protected final float[] shapeScale2D = new float[] { 1f, 1f };
-    private GLRegion region = null;
+    protected GLRegion region = null;
+    protected int regionQuality = 99;
 
-    protected final float[] color         = {0.6f, 0.6f, 0.6f};
-    protected final float[] selectedColor = {0.8f, 0.8f, 0.8f};
+    protected final float[] rgbaColor         = {0.6f, 0.6f, 0.6f, 1.0f};
+    protected final float[] selectedRGBAModulate = {1.4f, 1.4f, 1.4f, 1.0f};
 
     private boolean down = false;
     private boolean toggle =false;
@@ -81,7 +75,6 @@ public abstract class UIShape {
 
     public UIShape(Factory<? extends Vertex> factory) {
         this.vertexFactory = factory;
-        this.shapes = new ArrayList<OutlineShapeXForm>();
         this.box = new AABBox();
     }
 
@@ -97,7 +90,6 @@ public abstract class UIShape {
      */
     public void clear(GL2ES2 gl, RegionRenderer renderer) {
         clearImpl(gl, renderer);
-        shapes.clear();
         translate[0] = 0f;
         translate[1] = 0f;
         translate[2] = 0f;
@@ -108,12 +100,8 @@ public abstract class UIShape {
         scale[0] = 1f;
         scale[1] = 1f;
         scale[2] = 1f;
-        shapeTranslate2D[0] = 0f;
-        shapeTranslate2D[1] = 0f;
-        shapeScale2D[0] = 1f;
-        shapeScale2D[1] = 1f;
         box.reset();
-        dirty = DIRTY_SHAPE | DIRTY_REGION;
+        dirty = DIRTY_SHAPE;
     }
 
     /**
@@ -123,7 +111,6 @@ public abstract class UIShape {
      */
     public void destroy(GL2ES2 gl, RegionRenderer renderer) {
         destroyImpl(gl, renderer);
-        shapes.clear();
         translate[0] = 0f;
         translate[1] = 0f;
         translate[2] = 0f;
@@ -134,12 +121,8 @@ public abstract class UIShape {
         scale[0] = 1f;
         scale[1] = 1f;
         scale[2] = 1f;
-        shapeTranslate2D[0] = 0f;
-        shapeTranslate2D[1] = 0f;
-        shapeScale2D[0] = 1f;
-        shapeScale2D[1] = 1f;
         box.reset();
-        dirty = DIRTY_SHAPE | DIRTY_REGION;
+        dirty = DIRTY_SHAPE;
     }
 
     public void setTranslate(float tx, float ty, float tz) {
@@ -174,42 +157,17 @@ public abstract class UIShape {
     }
     public final float[] getScale() { return scale; }
 
-    public final void translateShape(float tx, float ty) {
-        shapeTranslate2D[0] += tx;
-        shapeTranslate2D[1] += ty;
-    }
-    public final void scaleShape(float sx, float sy) {
-        shapeScale2D[0] *= sx;
-        shapeScale2D[1] *= sy;
-    }
-
     public final void markDirty() {
-        dirty = DIRTY_SHAPE | DIRTY_REGION;
+        dirty = DIRTY_SHAPE;
     }
     public final boolean isShapeDirty() {
         return 0 != ( dirty & DIRTY_SHAPE ) ;
     }
 
-    public final boolean isRegionDirty() {
-        return 0 != ( dirty & DIRTY_REGION ) ;
-    }
-
-    public ArrayList<OutlineShapeXForm> getShapes() { return shapes; }
-
     public final AABBox getBounds() { return box; }
 
     public GLRegion getRegion(GL2ES2 gl, RegionRenderer renderer) {
         validate(gl, renderer);
-        if( isRegionDirty() ) {
-            if( null == region ) {
-                region = GLRegion.create(renderer.getRenderModes());
-            } else {
-                region.clear(gl, renderer);
-            }
-            addToRegion(region);
-            dirty &= ~DIRTY_REGION;
-            // System.err.println("XXX.UIShape: updated: "+region);
-        }
         return region;
     }
 
@@ -223,85 +181,93 @@ public abstract class UIShape {
      * @param sampleCount
      */
     public void drawShape(GL2ES2 gl, RegionRenderer renderer, int[] sampleCount) {
-        final float[] _color;
+        final float r, g, b, a;
+        final boolean isSelect;
         if( isPressed() || toggle ) {
-            _color = selectedColor;
+            isSelect = true;
+            r = rgbaColor[0]*selectedRGBAModulate[0];
+            g = rgbaColor[1]*selectedRGBAModulate[1];
+            b = rgbaColor[2]*selectedRGBAModulate[2];
+            a = rgbaColor[3]*selectedRGBAModulate[3];
         } else {
-            _color = color;
-
+            isSelect = false;
+            r = rgbaColor[0];
+            g = rgbaColor[1];
+            b = rgbaColor[2];
+            a = rgbaColor[3];
         }
+
         if( renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
-            gl.glClearColor(_color[0], _color[1], _color[2], 0.0f);
+            gl.glClearColor(r, g, b, 0.0f);
         }
-        renderer.setColorStatic(gl, _color[0], _color[1], _color[2]);
+        final RenderState rs = renderer.getRenderState();
 
+        if( Region.hasColorChannel( renderer.getRenderModes() ) ) {
+            if( isSelect ) {
+                rs.setColorStatic(selectedRGBAModulate[0], selectedRGBAModulate[1], selectedRGBAModulate[2], selectedRGBAModulate[3]);
+            } else {
+                rs.setColorStatic(1.0f, 1.0f, 1.0f, 1.0f);
+            }
+        } else {
+            rs.setColorStatic(r, g, b, a);
+        }
         getRegion(gl, renderer).draw(gl, renderer, sampleCount);
     }
 
     public final boolean validate(GL2ES2 gl, RegionRenderer renderer) {
         if( isShapeDirty() ) {
-            shapes.clear();
             box.reset();
-            createShape(gl, renderer);
-            if( DRAW_DEBUG_BOX ) {
-                shapes.clear();
-                final OutlineShape shape = new OutlineShape(renderer.getRenderState().getVertexFactory());
-                shapes.add(new OutlineShapeXForm(createDebugOutline(shape, box), null));
-            }
-            dirty &= ~DIRTY_SHAPE;
-            dirty |= DIRTY_REGION;
-            return false;
-        }
-        return true;
-    }
-
-    private final void addToRegion(Region region) {
-        final boolean hasLocTrans = 0f != shapeTranslate2D[0] || 0f != shapeTranslate2D[1];
-        final boolean hasLocScale = 1f != shapeScale2D[0] || 1f != shapeScale2D[1];
-        final AffineTransform t;
-        if( hasLocScale || hasLocTrans ) {
-            // System.err.printf("UIShape.addToRegion: locTranslate %f x %f, locScale %f x %f%n",
-            //                                        shapeTranslate[0], shapeTranslate[1], shapeScale[0], shapeScale[1]);
-            t = new AffineTransform();
-            if( hasLocTrans ) {
-                t.translate(shapeTranslate2D[0], shapeTranslate2D[1]);
-            }
-            if( hasLocScale ) {
-                t.scale(shapeScale2D[0], shapeScale2D[1]);
-            }
-        } else {
-            t = null;
-        }
-        final int shapeCount = shapes.size();
-        for(int i=0; i<shapeCount; i++) {
-            final OutlineShapeXForm tshape = shapes.get(i);
-            final AffineTransform t2;
-            if( null != tshape.t ) {
-                if( null != t ) {
-                    t2 = new AffineTransform(t).concatenate(tshape.t);
-                } else {
-                    t2 = tshape.t;
-                }
+            if( null == region ) {
+                region = GLRegion.create(renderer.getRenderModes());
             } else {
-                t2 = t;
+                region.clear(gl, renderer);
             }
-            region.addOutlineShape(tshape.shape, t2);
+            addShapeToRegion(gl, renderer);
+            if( DRAW_DEBUG_BOX ) {
+                region.clear(gl, renderer);
+                final OutlineShape shape = new OutlineShape(renderer.getRenderState().getVertexFactory());
+                shape.setSharpness(shapesSharpness);
+                shape.setIsQuadraticNurbs();
+                region.addOutlineShape(shape, null, rgbaColor);
+            }
+            region.setQuality(regionQuality);
+            dirty &= ~DIRTY_SHAPE;
+            return true;
+        } else {
+            return false;
         }
     }
 
     public float[] getColor() {
-        return color;
+        return rgbaColor;
     }
 
-    public void setColor(float r, float g, float b) {
-        this.color[0] = r;
-        this.color[1] = g;
-        this.color[2] = b;
+    public final int getQuality() { return regionQuality; }
+    public final void setQuality(final int q) {
+        this.regionQuality = q;
+        if( null != region ) {
+            region.setQuality(q);
+        }
     }
-    public void setSelectedColor(float r, float g, float b){
-        this.selectedColor[0] = r;
-        this.selectedColor[1] = g;
-        this.selectedColor[2] = b;
+    public final void setSharpness(float sharpness) {
+        this.shapesSharpness = sharpness;
+        dirty = DIRTY_SHAPE;
+    }
+    public final float getSharpness() {
+        return shapesSharpness;
+    }
+
+    public final void setColor(float r, float g, float b, float a) {
+        this.rgbaColor[0] = r;
+        this.rgbaColor[1] = g;
+        this.rgbaColor[2] = b;
+        this.rgbaColor[3] = a;
+    }
+    public final void setSelectedColorMod(float r, float g, float b, float a){
+        this.selectedRGBAModulate[0] = r;
+        this.selectedRGBAModulate[1] = g;
+        this.selectedRGBAModulate[2] = b;
+        this.selectedRGBAModulate[3] = a;
     }
 
     public String toString() {
@@ -443,7 +409,7 @@ public abstract class UIShape {
 
     protected abstract void clearImpl(GL2ES2 gl, RegionRenderer renderer);
     protected abstract void destroyImpl(GL2ES2 gl, RegionRenderer renderer);
-    protected abstract void createShape(GL2ES2 gl, RegionRenderer renderer);
+    protected abstract void addShapeToRegion(GL2ES2 gl, RegionRenderer renderer);
 
     //
     //

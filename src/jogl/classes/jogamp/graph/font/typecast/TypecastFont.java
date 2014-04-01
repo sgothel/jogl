@@ -34,11 +34,14 @@ import jogamp.graph.font.typecast.ot.table.CmapIndexEntry;
 import jogamp.graph.font.typecast.ot.table.CmapTable;
 import jogamp.graph.font.typecast.ot.table.HdmxTable;
 import jogamp.graph.font.typecast.ot.table.ID;
+import jogamp.graph.geom.plane.AffineTransform;
 
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.curve.OutlineShape;
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
+import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.opengl.math.geom.AABBox;
@@ -203,6 +206,8 @@ class TypecastFont implements Font {
             if(DEBUG) {
                 System.err.println("New glyph: " + (int)symbol + " ( " + symbol +" ) -> " + code + ", contours " + glyph.getPointCount() + ": " + shape);
             }
+            glyph.clearPointData();
+
             final HdmxTable hdmx = font.getHdmxTable();
             if (null!= result && null != hdmx) {
                 /*if(DEBUG) {
@@ -238,7 +243,7 @@ class TypecastFont implements Font {
     }
 
     @Override
-    public float getStringWidth(CharSequence string, float pixelSize) {
+    public float getMetricWidth(CharSequence string, float pixelSize) {
         float width = 0;
         final int len = string.length();
         for (int i=0; i< len; i++) {
@@ -254,7 +259,7 @@ class TypecastFont implements Font {
     }
 
     @Override
-    public float getStringHeight(CharSequence string, float pixelSize) {
+    public float getMetricHeight(CharSequence string, float pixelSize) {
         int height = 0;
 
         for (int i=0; i<string.length(); i++) {
@@ -269,16 +274,16 @@ class TypecastFont implements Font {
     }
 
     @Override
-    public AABBox getStringBounds(CharSequence string, float pixelSize) {
+    public AABBox getMetricBounds(CharSequence string, float pixelSize) {
         if (string == null) {
             return new AABBox();
         }
+        final int charCount = string.length();
         final float lineHeight = getLineHeight(pixelSize);
-
         float totalHeight = 0;
         float totalWidth = 0;
         float curLineWidth = 0;
-        for (int i=0; i<string.length(); i++) {
+        for (int i=0; i<charCount; i++) {
             char character = string.charAt(i);
             if (character == '\n') {
                 totalWidth = Math.max(curLineWidth, totalWidth);
@@ -294,6 +299,51 @@ class TypecastFont implements Font {
             totalWidth = Math.max(curLineWidth, totalWidth);
         }
         return new AABBox(0, 0, 0, totalWidth, totalHeight,0);
+    }
+    @Override
+    public AABBox getPointsBounds(final AffineTransform transform, CharSequence string, float pixelSize) {
+        if (string == null) {
+            return new AABBox();
+        }
+        final int charCount = string.length();
+        final float lineHeight = getLineHeight(pixelSize);
+        final float scale = getMetrics().getScale(pixelSize);
+        final AffineTransform t = null != transform ? new AffineTransform(transform) : new AffineTransform();
+        final AABBox tbox = new AABBox();
+        final AABBox res = new AABBox();
+
+        float y = 0;
+        float advanceTotal = 0;
+
+        for(int i=0; i< charCount; i++) {
+            final char character = string.charAt(i);
+            if( '\n' == character ) {
+                y -= lineHeight;
+                advanceTotal = 0;
+            } else if (character == ' ') {
+                advanceTotal += getAdvanceWidth(Glyph.ID_SPACE, pixelSize);
+            } else {
+                // reset transform
+                if( null != transform ) {
+                    t.setTransform(transform);
+                } else {
+                    t.setToIdentity();
+                }
+                t.translate(advanceTotal, y);
+                t.scale(scale, scale);
+                tbox.reset();
+
+                final Font.Glyph glyph = getGlyph(character);
+                res.resize(t.transform(glyph.getBBox(), tbox));
+
+                final OutlineShape glyphShape = glyph.getShape();
+                if( null == glyphShape ) {
+                    continue;
+                }
+                advanceTotal += glyph.getAdvance(pixelSize, true);
+            }
+        }
+        return res;
     }
 
     @Override

@@ -44,7 +44,6 @@ import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.Window;
 import com.jogamp.opengl.util.PMVMatrix;
-import com.jogamp.opengl.util.glsl.ShaderState;
 
 public abstract class TextRendererGLELBase implements GLEventListener {
     public final int usrRenderModes;
@@ -134,16 +133,14 @@ public abstract class TextRendererGLELBase implements GLEventListener {
     public void init(GLAutoDrawable drawable) {
         if( null == this.rs ) {
             exclusivePMVMatrix = null == sharedPMVMatrix;
-            this.rs = RenderState.createRenderState(new ShaderState(), SVertex.factory(), sharedPMVMatrix);
+            this.rs = RenderState.createRenderState(SVertex.factory(), sharedPMVMatrix);
         }
         this.renderer = RegionRenderer.create(rs, usrRenderModes, enableCallback, disableCallback);
         this.textRenderUtil = new TextRegionUtil(renderer);
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         renderer.init(gl);
-        renderer.setAlpha(gl, staticRGBAColor[3]);
-        renderer.setColorStatic(gl, staticRGBAColor[0], staticRGBAColor[1], staticRGBAColor[2]);
-        final ShaderState st = rs.getShaderState();
-        st.useProgram(gl, false);
+        rs.setColorStatic(staticRGBAColor[0], staticRGBAColor[1], staticRGBAColor[2], staticRGBAColor[3]);
+        renderer.enable(gl, false);
 
         final Object upObj = drawable.getUpstreamWidget();
         if( upObj instanceof Window ) {
@@ -157,16 +154,15 @@ public abstract class TextRendererGLELBase implements GLEventListener {
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
         if( null != renderer ) {
             final GL2ES2 gl = drawable.getGL().getGL2ES2();
-            final ShaderState st = rs.getShaderState();
-            st.useProgram(gl, true);
+            renderer.enable(gl, true);
             if( exclusivePMVMatrix ) {
                 // renderer.reshapePerspective(gl, 45.0f, width, height, 0.1f, 1000.0f);
-                renderer.reshapeOrtho(gl, width, height, 0.1f, 1000.0f);
+                renderer.reshapeOrtho(width, height, 0.1f, 1000.0f);
                 pixelScale = 1.0f;
             } else {
-                renderer.reshapeNotify(gl, width, height);
+                renderer.reshapeNotify(width, height);
             }
-            st.useProgram(gl, false);
+            renderer.enable(gl, false);
         }
     }
 
@@ -257,7 +253,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             dx += pixelScale * font.getAdvanceWidth('X', pixelSize) * column;
             dy -= pixelScale * lineHeight * ( row + 1 );
 
-            final PMVMatrix pmvMatrix = rs.pmvMatrix();
+            final PMVMatrix pmvMatrix = rs.getMatrixMutable();
             pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
             if( !exclusivePMVMatrix )  {
                 pmvMatrix.glPushMatrix();
@@ -271,17 +267,17 @@ public abstract class TextRendererGLELBase implements GLEventListener {
                 pmvMatrix.glScalef(pixelScale, pixelScale, 1f);
             }
             renderer.enable(gl, true);
-            renderer.updateMatrix(gl);
             if( cacheRegion ) {
-                textRenderUtil.drawString3D(gl, font, pixelSize, text, vbaaSampleCount);
+                textRenderUtil.drawString3D(gl, font, pixelSize, text, null, vbaaSampleCount);
             } else if( null != region ) {
-                TextRegionUtil.drawString3D(region, renderer, gl, font, pixelSize, text, vbaaSampleCount);
+                TextRegionUtil.drawString3D(region, renderer, gl, font, pixelSize, text, null, vbaaSampleCount);
             } else {
-                TextRegionUtil.drawString3D(renderer, gl, font, pixelSize, text, vbaaSampleCount);
+                TextRegionUtil.drawString3D(renderer, gl, font, pixelSize, text, null, vbaaSampleCount);
             }
             renderer.enable(gl, false);
 
             if( !exclusivePMVMatrix )  {
+                rs.setMatrixDirty();
                 pmvMatrix.glPopMatrix();
             }
             lastRow = row + newLineCount;

@@ -2,8 +2,13 @@
 #ifndef varyings_glsl
 #define varyings_glsl
 
-//varying vec4    gcv_FrontColor;
-varying vec3     gcv_TexCoord;
+varying vec3    gcv_CurveParam;
+
+varying vec2    gcv_FboTexCoord;
+
+#ifdef USE_COLOR_CHANNEL
+    varying vec4    gcv_Color;
+#endif
 
 #endif // varyings_glsl
 

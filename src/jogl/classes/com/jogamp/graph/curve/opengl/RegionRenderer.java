@@ -27,16 +27,21 @@
  */
 package com.jogamp.graph.curve.opengl;
 
-import java.nio.FloatBuffer;
+import java.io.IOException;
+import java.util.Iterator;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLException;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
+import jogamp.graph.curve.opengl.shader.AttributeNames;
+
+import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.util.glsl.ShaderCode;
-import com.jogamp.opengl.util.glsl.ShaderState;
+import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.PMVMatrix;
+import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.curve.Region;
 
 /**
@@ -46,7 +51,7 @@ import com.jogamp.graph.curve.Region;
  * are passed through an instance of this class.
  * </p>
  */
-public abstract class RegionRenderer {
+public class RegionRenderer {
     protected static final boolean DEBUG = Region.DEBUG;
     protected static final boolean DEBUG_INSTANCE = Region.DEBUG_INSTANCE;
 
@@ -95,10 +100,6 @@ public abstract class RegionRenderer {
         }
     };
 
-    public static boolean isWeightValid(float v) {
-        return 0.0f <= v && v <= 1.9f ;
-    }
-
     /**
      * Create a Hardware accelerated Region Renderer.
      * <p>
@@ -108,7 +109,7 @@ public abstract class RegionRenderer {
      * can be utilized to enable and disable {@link GL#GL_BLEND}.
      * </p>
      * @param rs the used {@link RenderState}
-     * @param renderModes bit-field of modes, e.g. {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, {@link Region#VBAA_RENDERING_BIT}
+     * @param renderModes bit-field of modes, e.g. {@link Region#VARWEIGHT_RENDERING_BIT}, {@link Region#VBAA_RENDERING_BIT}
      * @param enableCallback optional {@link GLCallback}, if not <code>null</code> will be issued at
      *                       {@link #init(GL2ES2) init(gl)} and {@link #enable(GL2ES2, boolean) enable(gl, true)}.
      * @param disableCallback optional {@link GLCallback}, if not <code>null</code> will be issued at
@@ -118,7 +119,7 @@ public abstract class RegionRenderer {
      */
     public static RegionRenderer create(final RenderState rs, final int renderModes,
                                         final GLCallback enableCallback, final GLCallback disableCallback) {
-        return new jogamp.graph.curve.opengl.RegionRendererImpl01(rs, renderModes, enableCallback, disableCallback);
+        return new RegionRenderer(rs, renderModes, enableCallback, disableCallback);
     }
 
     private final int renderModes;
@@ -139,19 +140,10 @@ public abstract class RegionRenderer {
     /** Return height of current viewport */
     public final int getHeight() { return vp_height; }
 
-    public final float getWeight() { return rs.getWeight().floatValue(); }
-    public final float getAlpha() { return rs.getAlpha().floatValue(); }
-    public final PMVMatrix getMatrix() { return rs.pmvMatrix(); }
-
-    /**
-     * Implementation shall load, compile and link the shader program and leave it active.
-     * @param gl referencing the current GLContext to which the ShaderState is bound to
-     * @return
-     */
-    protected abstract boolean initImpl(GL2ES2 gl);
-
-    /** Delete and clean the associated OGL objects */
-    protected abstract void destroyImpl(GL2ES2 gl);
+    public final PMVMatrix getMatrix() { return rs.getMatrix(); }
+    public final PMVMatrix getMatrixMutable() { return rs.getMatrixMutable(); }
+    public final void setMatrixDirty() { rs.setMatrixDirty(); }
+    public final boolean isMatrixDirty() { return rs.isMatrixDirty(); }
 
     //////////////////////////////////////
 
@@ -170,14 +162,14 @@ public abstract class RegionRenderer {
         return renderModes;
     }
 
-    public final boolean usesVariableCurveWeight() { return Region.isNonUniformWeight(renderModes); }
+    public final boolean usesVariableCurveWeight() { return Region.hasVariableWeight(renderModes); }
 
     /**
      * @return true if Region's renderModes contains all bits as this Renderer's renderModes
-     *         except {@link Region#VARIABLE_CURVE_WEIGHT_BIT}, otherwise false.
+     *         except {@link Region#VARWEIGHT_RENDERING_BIT}, otherwise false.
      */
     public final boolean areRenderModesCompatible(final Region region) {
-        final int cleanRenderModes = getRenderModes() & ( Region.VARIABLE_CURVE_WEIGHT_BIT );
+        final int cleanRenderModes = getRenderModes() & ( Region.VARWEIGHT_RENDERING_BIT );
         return cleanRenderModes == ( region.getRenderModes() & cleanRenderModes );
     }
 
@@ -217,27 +209,10 @@ public abstract class RegionRenderer {
             enableCallback.run(gl, this);
         }
 
-        initialized = initImpl(gl);
+        useShaderProgram(gl, renderModes, true, 0, 0);
+        initialized = rs.update(gl, true, renderModes, true);
         if(!initialized) {
             throw new GLException("Shader initialization failed");
-        }
-
-        if(!rs.getShaderState().uniform(gl, rs.getPMVMatrix())) {
-            throw new GLException("Error setting PMVMatrix in shader: "+rs.getShaderState());
-        }
-
-        if( Region.isNonUniformWeight( getRenderModes() ) ) {
-            if(!rs.getShaderState().uniform(gl, rs.getWeight())) {
-                throw new GLException("Error setting weight in shader: "+rs.getShaderState());
-            }
-        }
-
-        if(!rs.getShaderState().uniform(gl, rs.getAlpha())) {
-            throw new GLException("Error setting global alpha in shader: "+rs.getShaderState());
-        }
-
-        if(!rs.getShaderState().uniform(gl, rs.getColorStatic())) {
-            throw new GLException("Error setting global color in shader: "+rs.getShaderState());
         }
     }
 
@@ -248,18 +223,19 @@ public abstract class RegionRenderer {
             }
             return;
         }
-        rs.getShaderState().useProgram(gl, false);
-        destroyImpl(gl);
+        for(final Iterator<IntObjectHashMap.Entry> i = shaderPrograms.iterator(); i.hasNext(); ) {
+            final ShaderProgram sp = (ShaderProgram) i.next().getValue();
+            sp.destroy(gl);
+        }
         rs.destroy(gl);
         initialized = false;
     }
 
     public final RenderState getRenderState() { return rs; }
-    public final ShaderState getShaderState() { return rs.getShaderState(); }
 
     /**
-     * Enabling or disabling the {@link RenderState#getShaderState() RenderState}'s
-     * {@link ShaderState#useProgram(GL2ES2, boolean) ShaderState program}.
+     * Enabling or disabling the {@link #getRenderState() RenderState}'s
+     * {@link RenderState#getShaderProgram() shader program}.
      * <p>
      * In case enable and disable {@link GLCallback}s are setup via {@link #create(RenderState, int, GLCallback, GLCallback)},
      * they will be called before toggling the shader program.
@@ -276,103 +252,59 @@ public abstract class RegionRenderer {
                 disableCallback.run(gl, this);
             }
         }
-        rs.getShaderState().useProgram(gl, enable);
-    }
-
-    public final void setWeight(GL2ES2 gl, float v) {
-        if( !isWeightValid(v) ) {
-        	 throw new IllegalArgumentException("Weight out of range");
-        }
-        rs.getWeight().setData(v);
-        if(null != gl && rs.getShaderState().inUse() && Region.isNonUniformWeight( getRenderModes() ) ) {
-            rs.getShaderState().uniform(gl, rs.getWeight());
+        if( !enable ) {
+            final ShaderProgram sp = rs.getShaderProgram();
+            if( null != sp ) {
+                sp.useProgram(gl, false);
+            }
         }
     }
 
-    public final void setAlpha(GL2ES2 gl, float alpha_t) {
-        rs.getAlpha().setData(alpha_t);
-        if(null != gl && rs.getShaderState().inUse()) {
-            rs.getShaderState().uniform(gl, rs.getAlpha());
-        }
-
-    }
-
-    public final void getColorStatic(float[] rgb) {
-        FloatBuffer fb = (FloatBuffer) rs.getColorStatic().getBuffer();
-        rgb[0] = fb.get(0);
-        rgb[1] = fb.get(1);
-        rgb[2] = fb.get(2);
-    }
-
-    public final void setColorStatic(GL2ES2 gl, float r, float g, float b){
-        FloatBuffer fb = (FloatBuffer) rs.getColorStatic().getBuffer();
-        fb.put(0, r);
-        fb.put(1, g);
-        fb.put(2, b);
-        if(null != gl && rs.getShaderState().inUse()) {
-            rs.getShaderState().uniform(gl, rs.getColorStatic());
-        }
-    }
-
-    public final void updateMatrix(GL2ES2 gl) {
-        if(initialized && null != gl && rs.getShaderState().inUse()) {
-            rs.getShaderState().uniform(gl, rs.getPMVMatrix());
-        }
-    }
-
-    /** No PMVMatrix operation is performed here. PMVMatrix will be updated if gl is not null. */
-    public final boolean reshapeNotify(GL2ES2 gl, int width, int height) {
+    /** No PMVMatrix operation is performed here. PMVMatrix is marked dirty. */
+    public final void reshapeNotify(int width, int height) {
         this.vp_width = width;
         this.vp_height = height;
-        updateMatrix(gl);
-        return true;
+        rs.setMatrixDirty();
     }
 
-    public final boolean reshapePerspective(GL2ES2 gl, float angle, int width, int height, float near, float far) {
+    public final void reshapePerspective(float angle, int width, int height, float near, float far) {
         this.vp_width = width;
         this.vp_height = height;
         final float ratio = (float)width/(float)height;
-        final PMVMatrix p = rs.pmvMatrix();
+        final PMVMatrix p = rs.getMatrixMutable();
         p.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         p.glLoadIdentity();
         p.gluPerspective(angle, ratio, near, far);
-        updateMatrix(gl);
-        return true;
     }
 
-    public final boolean reshapeOrtho(GL2ES2 gl, int width, int height, float near, float far) {
+    public final void reshapeOrtho(int width, int height, float near, float far) {
         this.vp_width = width;
         this.vp_height = height;
-        final PMVMatrix p = rs.pmvMatrix();
+        final PMVMatrix p = rs.getMatrixMutable();
         p.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         p.glLoadIdentity();
         p.glOrthof(0, width, 0, height, near, far);
-        updateMatrix(gl);
-        return true;
     }
 
-    protected String getVertexShaderName() {
-        return "curverenderer" + getImplVersion();
-    }
+    //
+    // Shader Management
+    //
 
-    protected String getFragmentShaderName() {
-        final String version = getImplVersion();
-        final String pass;
-        if( Region.isVBAA(renderModes) ) {
-            pass = "-2pass_vbaa";
-        } else if( Region.isMSAA(renderModes) ) {
-            pass = "-2pass_msaa";
-        } else {
-            pass = "-1pass_norm" ;
-        }
-        final String weight = Region.isNonUniformWeight(renderModes) ? "-weight" : "" ;
-        return "curverenderer" + version + pass + weight;
+    private static final String SHADER_SRC_SUB = "";
+    private static final String SHADER_BIN_SUB = "bin";
+
+    private static String USE_COLOR_CHANNEL = "#define USE_COLOR_CHANNEL 1\n";
+    private static String USE_COLOR_TEXTURE = "#define USE_COLOR_TEXTURE 1\n";
+    private static String DEF_SAMPLE_COUNT = "#define SAMPLE_COUNT ";
+
+    private String getVersionedShaderName() {
+        return "curverenderer01";
     }
 
     // FIXME: Really required to have sampler2D def. precision ? If not, we can drop getFragmentShaderPrecision(..) and use default ShaderCode ..
-    public static final String es2_precision_fp = "\nprecision mediump float;\nprecision mediump int;\nprecision mediump sampler2D;\n";
+    private static final String es2_precision_fp = "\nprecision mediump float;\nprecision mediump int;\nprecision mediump sampler2D;\n";
 
-    protected String getFragmentShaderPrecision(GL2ES2 gl) {
+    private final String getFragmentShaderPrecision(GL2ES2 gl) {
         if( gl.isGLES() ) {
             return es2_precision_fp;
         }
@@ -382,7 +314,173 @@ public abstract class RegionRenderer {
         return null;
     }
 
-    protected String getImplVersion() {
-        return "01";
+    private static enum ShaderModeSelector1 {
+        /** Pass-1: Curve Simple */
+        PASS1_SIMPLE("curve", "_simple", 0),
+        /** Pass-1: Curve Varying Weight */
+        PASS1_WEIGHT("curve", "_weight", 0),
+        /** Pass-2: MSAA */
+        PASS2_MSAA("msaa", "", 0),
+        /** Pass-2: VBAA Flipquad3, 1 sample */
+        PASS2_VBAA_QUAL0_SAMPLES1("vbaa", "_flipquad3", 1),
+        /** Pass-2: VBAA Flipquad3, 2 samples */
+        PASS2_VBAA_QUAL0_SAMPLES2("vbaa", "_flipquad3", 2),
+        /** Pass-2: VBAA Flipquad3, 4 samples */
+        PASS2_VBAA_QUAL0_SAMPLES4("vbaa", "_flipquad3", 4),
+        /** Pass-2: VBAA Flipquad3, 8 samples */
+        PASS2_VBAA_QUAL0_SAMPLES8("vbaa", "_flipquad3", 8),
+        /** Pass-2: VBAA All-Equal, 2 samples */
+        PASS2_VBAA_QUAL1_SAMPLES2("vbaa", "_allequal", 2),
+        /** Pass-2: VBAA All-Equal, 4 samples */
+        PASS2_VBAA_QUAL1_SAMPLES4("vbaa", "_allequal", 4),
+        /** Pass-2: VBAA All-Equal, 6 samples */
+        PASS2_VBAA_QUAL1_SAMPLES6("vbaa", "_allequal", 6),
+        /** Pass-2: VBAA All-Equal, 8 samples */
+        PASS2_VBAA_QUAL1_SAMPLES8("vbaa", "_allequal", 8);
+
+        public final String tech;
+        public final String sub;
+        public final int sampleCount;
+
+        ShaderModeSelector1(final String tech, final String sub, final int sampleCount) {
+            this.tech = tech;
+            this.sub= sub;
+            this.sampleCount = sampleCount;
+        }
+
+        public static ShaderModeSelector1 selectPass1(final int renderModes) {
+            return Region.hasVariableWeight(renderModes) ? PASS1_WEIGHT : PASS1_SIMPLE;
+        }
+
+        public static ShaderModeSelector1 selectPass2(final int renderModes, final int quality, final int sampleCount) {
+            if( Region.isMSAA(renderModes) ) {
+                return PASS2_MSAA;
+            } else if( Region.isVBAA(renderModes) ) {
+                if( 0 == quality ) {
+                    if( sampleCount < 2 ) {
+                        return PASS2_VBAA_QUAL0_SAMPLES1;
+                    } else if( sampleCount < 4 ) {
+                        return PASS2_VBAA_QUAL0_SAMPLES2;
+                    } else if( sampleCount < 8 ) {
+                        return PASS2_VBAA_QUAL0_SAMPLES4;
+                    } else {
+                        return PASS2_VBAA_QUAL0_SAMPLES8;
+                    }
+                } else {
+                    if( sampleCount < 4 ) {
+                        return PASS2_VBAA_QUAL1_SAMPLES2;
+                    } else if( sampleCount < 6 ) {
+                        return PASS2_VBAA_QUAL1_SAMPLES4;
+                    } else if( sampleCount < 8 ) {
+                        return PASS2_VBAA_QUAL1_SAMPLES6;
+                    } else {
+                        return PASS2_VBAA_QUAL1_SAMPLES8;
+                    }
+                }
+            } else {
+                return null;
+            }
+        }
     }
+    private final IntObjectHashMap shaderPrograms = new IntObjectHashMap();
+
+    private static final int HIGH_MASK = Region.COLORCHANNEL_RENDERING_BIT | Region.COLORTEXTURE_RENDERING_BIT;
+
+    /**
+     * @param gl
+     * @param renderModes
+     * @param pass1
+     * @param quality
+     * @param sampleCount
+     * @return true if a new shader program is being used and hence external uniform-data and -location,
+     *         as well as the attribute-location must be updated, otherwise false.
+     */
+    public final boolean useShaderProgram(final GL2ES2 gl, final int renderModes,
+                                          final boolean pass1, final int quality, final int sampleCount) {
+        final ShaderModeSelector1 sel1 = pass1 ? ShaderModeSelector1.selectPass1(renderModes) :
+                                                 ShaderModeSelector1.selectPass2(renderModes, quality, sampleCount);
+        final int shaderKey = sel1.ordinal() | ( HIGH_MASK & renderModes );
+
+        /**
+        if(DEBUG) {
+            System.err.printf("RegionRendererImpl01.useShaderProgram.0: renderModes %s, sel1 %s, key 0x%X (pass1 %b, q %d, samples %d) - Thread %s%n",
+                    Region.getRenderModeString(renderModes), sel1, shaderKey, pass1, quality, sampleCount, Thread.currentThread());
+        } */
+
+        ShaderProgram sp = (ShaderProgram) shaderPrograms.get( shaderKey );
+        if( null != sp ) {
+            final boolean spChanged = getRenderState().setShaderProgram(gl, sp);
+            if(DEBUG) {
+                if( spChanged ) {
+                    System.err.printf("RegionRendererImpl01.useShaderProgram.X1: GOT renderModes %s, sel1 %s, key 0x%X (changed)%n", Region.getRenderModeString(renderModes), sel1, shaderKey);
+                }
+            }
+            return spChanged;
+        }
+        final String versionedBaseName = getVersionedShaderName();
+        final String vertexShaderName;
+        if( Region.isTwoPass( renderModes ) ) {
+            vertexShaderName = versionedBaseName+"-pass"+(pass1?1:2);
+        } else {
+            vertexShaderName = versionedBaseName+"-single";
+        }
+        final ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, AttributeNames.class, SHADER_SRC_SUB, SHADER_BIN_SUB, vertexShaderName, true);
+        final ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, AttributeNames.class, SHADER_SRC_SUB, SHADER_BIN_SUB, versionedBaseName+"-segment-head", true);
+        int posVp = rsVp.defaultShaderCustomization(gl, true, true);
+        // rsFp.defaultShaderCustomization(gl, true, true);
+        int posFp = rsFp.addGLSLVersion(gl);
+        if( gl.isGLES2() && ! gl.isGLES3() ) {
+            posFp = rsFp.insertShaderSource(0, posFp, ShaderCode.createExtensionDirective(GLExtensions.OES_standard_derivatives, ShaderCode.ENABLE));
+        }
+        final String rsFpDefPrecision =  getFragmentShaderPrecision(gl);
+        if( null != rsFpDefPrecision ) {
+            rsFp.insertShaderSource(0, posFp, rsFpDefPrecision);
+        }
+        if( Region.hasColorChannel( renderModes ) ) {
+            posVp = rsVp.insertShaderSource(0, posVp, USE_COLOR_CHANNEL);
+            posFp = rsFp.insertShaderSource(0, posFp, USE_COLOR_CHANNEL);
+        }
+        if( Region.hasColorTexture( renderModes ) ) {
+            posVp = rsVp.insertShaderSource(0, posVp, USE_COLOR_TEXTURE);
+            posFp = rsFp.insertShaderSource(0, posFp, USE_COLOR_TEXTURE);
+        }
+        if( !pass1 ) {
+            posFp = rsFp.insertShaderSource(0, posFp, DEF_SAMPLE_COUNT+sel1.sampleCount+"\n");
+        }
+
+        final String passS = pass1 ? "-pass1-" : "-pass2-";
+        final String shaderSegment = versionedBaseName+passS+sel1.tech+sel1.sub+".glsl";
+        if(DEBUG) {
+            System.err.printf("RegionRendererImpl01.useShaderProgram.1: segment %s%n", shaderSegment);
+        }
+        try {
+            posFp = rsFp.insertShaderSource(0, -1, AttributeNames.class, shaderSegment);
+        } catch (IOException ioe) {
+            throw new RuntimeException("Failed to read: "+shaderSegment, ioe);
+        }
+        if( 0 > posFp ) {
+            throw new RuntimeException("Failed to read: "+shaderSegment);
+        }
+        posFp = rsFp.insertShaderSource(0, -1, "}\n");
+
+        sp = new ShaderProgram();
+        sp.add(rsVp);
+        sp.add(rsFp);
+
+        if( !sp.init(gl) ) {
+            throw new GLException("RegionRenderer: Couldn't init program: "+sp);
+        }
+        if( !sp.link(gl, System.err) ) {
+            throw new GLException("could not link program: "+sp);
+        }
+        getRenderState().setShaderProgram(gl, sp);
+
+        shaderPrograms.put(shaderKey, sp);
+        if(DEBUG) {
+            System.err.printf("RegionRendererImpl01.useShaderProgram.X1: PUT renderModes %s, sel1 %s, key 0x%X -> SP %s (changed)%n",
+                    Region.getRenderModeString(renderModes), sel1, shaderKey, sp);
+        }
+        return true;
+    }
+
 }

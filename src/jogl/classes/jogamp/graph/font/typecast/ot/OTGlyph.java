@@ -102,6 +102,10 @@ public class OTGlyph {
         }
     }
 
+    public void clearPointData() {
+        _points = null;
+    }
+
     public AABBox getBBox() {
         return _bbox;
     }
@@ -119,13 +123,7 @@ public class OTGlyph {
     }
 
     public int getPointCount() {
-        return _points.length;
-    }
-
-    /**
-     * Resets the glyph to the TrueType table settings
-     */
-    public void reset() {
+        return null != _points ? _points.length : 0;
     }
 
     /**

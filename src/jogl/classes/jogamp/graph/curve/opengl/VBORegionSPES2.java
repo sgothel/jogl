@@ -34,25 +34,33 @@ import jogamp.graph.curve.opengl.shader.AttributeNames;
 
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.opengl.util.GLArrayDataServer;
-import com.jogamp.opengl.util.glsl.ShaderState;
+import com.jogamp.opengl.util.glsl.ShaderProgram;
 
 public class VBORegionSPES2 extends GLRegion {
-    private GLArrayDataServer verticeAttr = null;
-    private GLArrayDataServer texCoordAttr = null;
+    private GLArrayDataServer gca_VerticesAttr = null;
+    private GLArrayDataServer gca_CurveParamsAttr = null;
+    private GLArrayDataServer gca_ColorsAttr;
     private GLArrayDataServer indicesBuffer = null;
-    private boolean buffersAttached = false;
 
     public VBORegionSPES2(final int renderModes) {
         super(renderModes);
         final int initialElementCount = 256;
         indicesBuffer = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialElementCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
 
-        verticeAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL2ES2.GL_FLOAT,
-                                                   false, initialElementCount, GL.GL_STATIC_DRAW);
+        gca_VerticesAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL2ES2.GL_FLOAT,
+                                                        false, initialElementCount, GL.GL_STATIC_DRAW);
 
-        texCoordAttr = GLArrayDataServer.createGLSL(AttributeNames.TEXCOORD_ATTR_NAME, 3, GL2ES2.GL_FLOAT,
-                                                    false, initialElementCount, GL.GL_STATIC_DRAW);
+        gca_CurveParamsAttr = GLArrayDataServer.createGLSL(AttributeNames.CURVEPARAMS_ATTR_NAME, 3, GL2ES2.GL_FLOAT,
+                                                           false, initialElementCount, GL.GL_STATIC_DRAW);
+
+        if( hasColorChannel() ) {
+            gca_ColorsAttr = GLArrayDataServer.createGLSL(AttributeNames.COLOR_ATTR_NAME, 4, GL2ES2.GL_FLOAT,
+                                                          false, initialElementCount, GL.GL_STATIC_DRAW);
+        } else {
+            gca_ColorsAttr = null;
+        }
     }
 
     @Override
@@ -64,25 +72,40 @@ public class VBORegionSPES2 extends GLRegion {
             indicesBuffer.seal(gl, false);
             indicesBuffer.rewind();
         }
-        if( null != verticeAttr ) {
-            verticeAttr.seal(gl, false);
-            verticeAttr.rewind();
+        if( null != gca_VerticesAttr ) {
+            gca_VerticesAttr.seal(gl, false);
+            gca_VerticesAttr.rewind();
         }
-        if( null != texCoordAttr ) {
-            texCoordAttr.seal(gl, false);
-            texCoordAttr.rewind();
+        if( null != gca_CurveParamsAttr ) {
+            gca_CurveParamsAttr.seal(gl, false);
+            gca_CurveParamsAttr.rewind();
+        }
+        if( null != gca_ColorsAttr ) {
+            gca_ColorsAttr.seal(gl, false);
+            gca_ColorsAttr.rewind();
         }
     }
 
     @Override
-    protected final void pushVertex(float[] coords, float[] texParams) {
-        verticeAttr.putf(coords[0]);
-        verticeAttr.putf(coords[1]);
-        verticeAttr.putf(coords[2]);
+    protected final void pushVertex(float[] coords, float[] texParams, float[] rgba) {
+        gca_VerticesAttr.putf(coords[0]);
+        gca_VerticesAttr.putf(coords[1]);
+        gca_VerticesAttr.putf(coords[2]);
 
-        texCoordAttr.putf(texParams[0]);
-        texCoordAttr.putf(texParams[1]);
-        texCoordAttr.putf(texParams[2]);
+        gca_CurveParamsAttr.putf(texParams[0]);
+        gca_CurveParamsAttr.putf(texParams[1]);
+        gca_CurveParamsAttr.putf(texParams[2]);
+
+        if( null != gca_ColorsAttr ) {
+            if( null != rgba ) {
+                gca_ColorsAttr.putf(rgba[0]);
+                gca_ColorsAttr.putf(rgba[1]);
+                gca_ColorsAttr.putf(rgba[2]);
+                gca_ColorsAttr.putf(rgba[3]);
+            } else {
+                throw new IllegalArgumentException("Null color given for COLOR_CHANNEL rendering mode");
+            }
+        }
     }
 
     @Override
@@ -92,43 +115,67 @@ public class VBORegionSPES2 extends GLRegion {
 
     @Override
     protected void updateImpl(final GL2ES2 gl, final RegionRenderer renderer) {
-        if( !buffersAttached ) {
-            final ShaderState st = renderer.getShaderState();
-            st.ownAttribute(verticeAttr, true);
-            st.ownAttribute(texCoordAttr, true);
-            buffersAttached = true;
-        }
         // seal buffers
         indicesBuffer.seal(gl, true);
         indicesBuffer.enableBuffer(gl, false);
-        verticeAttr.seal(gl, true);
-        verticeAttr.enableBuffer(gl, false);
-        texCoordAttr.seal(gl, true);
-        texCoordAttr.enableBuffer(gl, false);
+        gca_VerticesAttr.seal(gl, true);
+        gca_VerticesAttr.enableBuffer(gl, false);
+        gca_CurveParamsAttr.seal(gl, true);
+        gca_CurveParamsAttr.enableBuffer(gl, false);
+        if( null != gca_ColorsAttr ) {
+            gca_ColorsAttr.seal(gl, true);
+            gca_ColorsAttr.enableBuffer(gl, false);
+        }
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegionSPES2 idx "+indicesBuffer);
-            System.err.println("VBORegionSPES2 ver "+verticeAttr);
-            System.err.println("VBORegionSPES2 tex "+texCoordAttr);
+            System.err.println("VBORegionSPES2 ver "+gca_VerticesAttr);
+            System.err.println("VBORegionSPES2 tex "+gca_CurveParamsAttr);
         }
     }
 
+    private ShaderProgram spPass1 = null;
+
+    public void useShaderProgram(final GL2ES2 gl, final RegionRenderer renderer, final int renderModes, final int quality) {
+        final RenderState rs = renderer.getRenderState();
+        final boolean updateLocation0 = renderer.useShaderProgram(gl, renderModes, true, quality, 0);
+        final ShaderProgram sp = renderer.getRenderState().getShaderProgram();
+        final boolean updateLocation = !sp.equals(spPass1);
+        spPass1 = sp;
+
+        // update attribute-location and uniform data and location
+        rs.update(gl, updateLocation, renderModes, true);
+        rs.updateAttributeLoc(gl, updateLocation, gca_VerticesAttr);
+        rs.updateAttributeLoc(gl, updateLocation, gca_CurveParamsAttr);
+        if( null != gca_ColorsAttr ) {
+            rs.updateAttributeLoc(gl, updateLocation, gca_ColorsAttr);
+        }
+        System.err.println("XXX changedSP "+updateLocation+", "+rs);
+        System.err.println("XXX gca_VerticesAttr "+gca_VerticesAttr);
+        System.err.println("XXX gca_CurveParamsAttr "+gca_CurveParamsAttr);
+        System.err.println("XXX gca_ColorsAttr "+gca_ColorsAttr);
+    }
+
+
     @Override
     protected void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int[/*1*/] sampleCount) {
+        final int renderModes = getRenderModes();
+        useShaderProgram(gl, renderer, renderModes, getQuality());
+
         if( 0 >= indicesBuffer.getElementCount() ) {
             if(DEBUG_INSTANCE) {
                 System.err.printf("VBORegionSPES2.drawImpl: Empty%n");
             }
             return; // empty!
         }
-        verticeAttr.enableBuffer(gl, true);
-        texCoordAttr.enableBuffer(gl, true);
+        gca_VerticesAttr.enableBuffer(gl, true);
+        gca_CurveParamsAttr.enableBuffer(gl, true);
         indicesBuffer.bindBuffer(gl, true); // keeps VBO binding
 
         gl.glDrawElements(GL2ES2.GL_TRIANGLES, indicesBuffer.getElementCount() * indicesBuffer.getComponentCount(), GL2ES2.GL_UNSIGNED_SHORT, 0);
 
         indicesBuffer.bindBuffer(gl, false);
-        texCoordAttr.enableBuffer(gl, false);
-        verticeAttr.enableBuffer(gl, false);
+        gca_CurveParamsAttr.enableBuffer(gl, false);
+        gca_VerticesAttr.enableBuffer(gl, false);
     }
 
     @Override
@@ -136,16 +183,17 @@ public class VBORegionSPES2 extends GLRegion {
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegionSPES2 Destroy: " + this);
         }
-        final ShaderState st = renderer.getShaderState();
-        if(null != verticeAttr) {
-            st.ownAttribute(verticeAttr, false);
-            verticeAttr.destroy(gl);
-            verticeAttr = null;
+        if(null != gca_VerticesAttr) {
+            gca_VerticesAttr.destroy(gl);
+            gca_VerticesAttr = null;
         }
-        if(null != texCoordAttr) {
-            st.ownAttribute(texCoordAttr, false);
-            texCoordAttr.destroy(gl);
-            texCoordAttr = null;
+        if(null != gca_CurveParamsAttr) {
+            gca_CurveParamsAttr.destroy(gl);
+            gca_CurveParamsAttr = null;
+        }
+        if(null != gca_ColorsAttr) {
+            gca_ColorsAttr.destroy(gl);
+            gca_ColorsAttr = null;
         }
         if(null != indicesBuffer) {
             indicesBuffer.destroy(gl);

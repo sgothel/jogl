@@ -51,7 +51,6 @@ import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.graph.demos.GPUTextRendererListenerBase01;
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import com.jogamp.opengl.util.glsl.ShaderState;
 
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -120,7 +119,7 @@ public class TestTextRendererNEWT01 extends UITestCase {
         window.display();
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
 
-        RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
+        RenderState rs = RenderState.createRenderState(SVertex.factory());
         TextGLListener textGLListener = new TextGLListener(rs, Region.VBAA_RENDERING_BIT, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
@@ -169,7 +168,7 @@ public class TestTextRendererNEWT01 extends UITestCase {
         window.display();
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
 
-        RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
+        RenderState rs = RenderState.createRenderState(SVertex.factory());
         TextGLListener textGLListener = new TextGLListener(rs, 0, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
@@ -227,10 +226,8 @@ public class TestTextRendererNEWT01 extends UITestCase {
             gl.setSwapInterval(1);
             gl.glEnable(GL.GL_DEPTH_TEST);
 
-            final RegionRenderer renderer = getRenderer();
-
-            renderer.setAlpha(gl, 1.0f);
-            renderer.setColorStatic(gl, 0.1f, 0.1f, 0.1f);
+            final RenderState rs = getRenderer().getRenderState();
+            rs.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
         }
 
         public void display(GLAutoDrawable drawable) {

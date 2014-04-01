@@ -11,7 +11,6 @@ import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class GPUUISceneNewtDemo {
     static final boolean DEBUG = false;
@@ -68,14 +67,14 @@ public class GPUUISceneNewtDemo {
         window.setSize(800, 400);
         window.setTitle("GraphUI Newt Demo: graph["+Region.getRenderModeString(rmode)+"], msaa "+SceneMSAASamples);
 
-        final RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
+        final RenderState rs = RenderState.createRenderState(SVertex.factory());
         GPUUISceneGLListener0A sceneGLListener = new GPUUISceneGLListener0A(rs, rmode, DEBUG, TRACE);
 
         window.addGLEventListener(sceneGLListener);
         sceneGLListener.attachInputListenerTo(window);
 
         final Animator animator = new Animator();
-        animator.setUpdateFPSFrames(60, null); // System.err);
+        animator.setUpdateFPSFrames(60, System.err);
         animator.add(window);
 
         window.addWindowListener(new WindowAdapter() {

@@ -68,7 +68,7 @@ public class TextRegionUtil {
      * additionally passing the progressed {@link AffineTransform}.
      * The latter reflects the given font metric, pixelSize and hence character position.
      * @param visitor
-     * @param transform
+     * @param transform optional given transform
      * @param font the target {@link Font}
      * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
      * @param str string text
@@ -82,7 +82,7 @@ public class TextRegionUtil {
         final float lineHeight = font.getLineHeight(pixelSize);
 
         final float scale = metrics.getScale(pixelSize);
-        final AffineTransform t = new AffineTransform(transform);
+        final AffineTransform t = null != transform ? new AffineTransform(transform) : new AffineTransform();
 
         float y = 0;
         float advanceTotal = 0;
@@ -98,7 +98,12 @@ public class TextRegionUtil {
                 if(Region.DEBUG_INSTANCE) {
                     System.err.println("XXXXXXXXXXXXXXx char: "+character+", scale: "+scale+"; translate: "+advanceTotal+", "+y);
                 }
-                t.setTransform(transform); // reset transform
+                // reset transform
+                if( null != transform ) {
+                    t.setTransform(transform);
+                } else {
+                    t.setToIdentity();
+                }
                 t.translate(advanceTotal, y);
                 t.scale(scale, scale);
 
@@ -121,14 +126,15 @@ public class TextRegionUtil {
      * @param font the target {@link Font}
      * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
      * @param str string text
+     * @param rgbaColor if {@link Region#hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
      */
     public static void addStringToRegion(final GLRegion region, final Factory<? extends Vertex> vertexFactory,
-                                         final Font font, final float pixelSize, final CharSequence str) {
+                                         final Font font, final float pixelSize, final CharSequence str, final float[] rgbaColor) {
         final ShapeVisitor visitor = new ShapeVisitor() {
             public final void visit(final OutlineShape shape, final AffineTransform t) {
-                region.addOutlineShape(shape, t);
+                region.addOutlineShape(shape, t, region.hasColorChannel() ? rgbaColor : null);
             } };
-        processString(visitor, new AffineTransform(), font, pixelSize, str);
+        processString(visitor, null, font, pixelSize, str);
     }
 
     /**
@@ -141,13 +147,14 @@ public class TextRegionUtil {
      * @param font {@link Font} to be used
      * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
      * @param str text to be rendered
+     * @param rgbaColor if {@link Region#hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
      * @param sampleCount desired multisampling sample count for msaa-rendering.
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
      * @throws Exception if TextRenderer not initialized
      */
     public void drawString3D(final GL2ES2 gl,
                              final Font font, final float pixelSize, final CharSequence str,
-                             final int[/*1*/] sampleCount) {
+                             final float[] rgbaColor, final int[/*1*/] sampleCount) {
         if( !renderer.isInitialized() ) {
             throw new GLException("TextRendererImpl01: not initialized!");
         }
@@ -155,7 +162,7 @@ public class TextRegionUtil {
         GLRegion region = getCachedRegion(font, str, pixelSize, special);
         if(null == region) {
             region = GLRegion.create(renderer.getRenderModes());
-            addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, pixelSize, str);
+            addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, pixelSize, str, rgbaColor);
             addCachedRegion(gl, font, str, pixelSize, special, region);
         }
         region.draw(gl, renderer, sampleCount);
@@ -167,25 +174,26 @@ public class TextRegionUtil {
      * <p>
      * In case of a multisampling region renderer, i.e. {@link Region#VBAA_RENDERING_BIT}, recreating the {@link GLRegion}
      * is a huge performance impact.
-     * In such case better use {@link #drawString3D(GLRegion, RegionRenderer, GL2ES2, Font, float, CharSequence, int[])}
+     * In such case better use {@link #drawString3D(GLRegion, RegionRenderer, GL2ES2, Font, float, CharSequence, float[], int[])}
      * instead.
      * </p>
      * @param gl the current GL state
      * @param font {@link Font} to be used
      * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
      * @param str text to be rendered
+     * @param rgbaColor if {@link Region#hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
      * @param sampleCount desired multisampling sample count for msaa-rendering.
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
      * @throws Exception if TextRenderer not initialized
      */
     public static void drawString3D(final RegionRenderer renderer, final GL2ES2 gl,
                                     final Font font, final float pixelSize, final CharSequence str,
-                                    final int[/*1*/] sampleCount) {
+                                    final float[] rgbaColor, final int[/*1*/] sampleCount) {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
         final GLRegion region = GLRegion.create(renderer.getRenderModes());
-        addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, pixelSize, str);
+        addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, pixelSize, str, rgbaColor);
         region.draw(gl, renderer, sampleCount);
         region.destroy(gl, renderer);
     }
@@ -197,18 +205,19 @@ public class TextRegionUtil {
      * @param font {@link Font} to be used
      * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
      * @param str text to be rendered
+     * @param rgbaColor if {@link Region#hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
      * @param sampleCount desired multisampling sample count for msaa-rendering.
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
      * @throws Exception if TextRenderer not initialized
      */
     public static void drawString3D(final GLRegion region, final RegionRenderer renderer, final GL2ES2 gl,
                                     final Font font, final float pixelSize, final CharSequence str,
-                                    final int[/*1*/] sampleCount) {
+                                    final float[] rgbaColor, final int[/*1*/] sampleCount) {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
         region.clear(gl, renderer);
-        addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, pixelSize, str);
+        addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, pixelSize, str, rgbaColor);
         region.draw(gl, renderer, sampleCount);
     }
 

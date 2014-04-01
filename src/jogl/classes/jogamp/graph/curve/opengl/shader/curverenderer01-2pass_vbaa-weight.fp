@@ -15,18 +15,11 @@
 #include uniforms.glsl
 #include varyings.glsl
 
-const vec3 zero3 = vec3(0);
-
 #define GetSample(texUnit, texCoord, psize, cx, cy, offX, offY) texture2D(texUnit, texCoord + psize *  vec2(cx+offX, cy+offY))
 
 void main (void)
 {
-    vec3 color;
-    float alpha;
-    
-    // Note: gcu_Alpha is multiplied in pass2!
-    
-    if( 0.0 < gcu_TextureSize.z ) {
+    if( 0.0 < gcu_FboTexSize.z ) {
 
 // Quality: allsamples > [flipquad,rgss, quincunx] > poles
 #include curverenderer01-pass2-vbaa_allsamples_equal.glsl
@@ -48,5 +41,4 @@ void main (void)
 #include curverenderer01-pass1-curve-weight.glsl
 
     }
-    mgl_FragColor = vec4(color, alpha);
 }

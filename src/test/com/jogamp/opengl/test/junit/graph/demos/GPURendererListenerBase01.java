@@ -46,6 +46,7 @@ import javax.media.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.opengl.GLWindow;
@@ -145,13 +146,10 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
 
     @Override
     public void reshape(GLAutoDrawable drawable, int xstart, int ystart, int width, int height) {
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
-
-        final PMVMatrix pmv = renderer.getMatrix();
-        renderer.reshapePerspective(null, 45.0f, width, height, zNear, zFar);
+        final PMVMatrix pmv = renderer.getMatrixMutable();
+        renderer.reshapePerspective(45.0f, width, height, zNear, zFar);
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
-        renderer.updateMatrix(gl);
         System.err.printf("Reshape: zNear %f,  zFar %f%n", zNear, zFar);
         System.err.printf("Reshape: Frustum: %s%n", pmv.glGetFrustum());
         {
@@ -207,7 +205,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         dumpMatrix();
     }
     public void editGlobalWeight(float delta) {
-        if( !RegionRenderer.isWeightValid(weight+delta) ) {
+        if( !RenderState.isWeightValid(weight+delta) ) {
             return;
         }
         weight += delta;
@@ -328,7 +326,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
                             public boolean run(GLAutoDrawable drawable) {
                                 try {
                                     final String modeS = Region.getRenderModeString(renderer.getRenderModes());
-                                    final String type = modeS + ( Region.isNonUniformWeight(renderModes) ? "-vc" : "-uc" ) ;
+                                    final String type = modeS + ( Region.hasVariableWeight(renderModes) ? "-vc" : "-uc" ) ;
                                     printScreen(drawable, "./", "demo-"+type, "snap"+screenshot_num, false);
                                     screenshot_num++;
                                 } catch (GLException e) {

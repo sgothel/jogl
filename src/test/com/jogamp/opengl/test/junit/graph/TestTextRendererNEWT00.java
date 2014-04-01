@@ -60,7 +60,6 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
-import com.jogamp.opengl.util.glsl.ShaderState;
 
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -210,7 +209,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
             UITestCase.waitForKey("Start");
         }
 
-        final RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
+        final RenderState rs = RenderState.createRenderState(SVertex.factory());
         final int rendererMode, sampleCount;
         if( graphVBAASamples > 0 ) {
             rendererMode = Region.VBAA_RENDERING_BIT;
@@ -381,9 +380,11 @@ public class TestTextRendererNEWT00 extends UITestCase {
                     lfps, tfps, gl.getSwapInterval(), (t1-t0)/1000.0, fontSizeAnim,
                     drawable.getChosenGLCapabilities().getNumSamples(), modeS, vbaaSampleCount[0]);
 
-            if( false ) {
+            if( true ) {
                 // renderString(drawable, font, pixelSize, "I - / H P 7 0", 0, 0, 0, 0, -1000f, true);
-                renderString(drawable, font, pixelSize, "A M > } ] ", 0, 0, 0, 0, -1000f, true);
+                // renderString(drawable, font, pixelSize, "A M > } ] ", 0, 0, 0, 0, -1000f, true);
+                renderString(drawable, font, pixelSize, "M", 0, 0, 0, 0, -1000f, true);
+                // renderString(drawable, font, pixelSize, "0 6 9 a b O Q A M > } ] ", 0, 0, 0, 0, -1000f, true);
                 // renderString(drawable, font, pixelSize, "012345678901234567890123456789", 0, 0, 0, -1000, true);
                 // renderString(drawable, font, pixelSize, textX2,        0, 0,   0, 0, -1000f, true);
                 // renderString(drawable, font, pixelSize, text1,         0,    0, 0, -1000f, regionFPS); // no-cache

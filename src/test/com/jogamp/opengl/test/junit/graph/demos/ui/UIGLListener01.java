@@ -89,13 +89,12 @@ public class UIGLListener01 extends UIListenerBase01 {
         final float[] translate = button.getTranslate();
 
         final RegionRenderer regionRenderer = getRegionRenderer();
-        final PMVMatrix pmv = regionRenderer.getMatrix();
+        final PMVMatrix pmv = regionRenderer.getMatrixMutable();
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         pmv.glTranslatef(getXTran(), getYTran(), getZoom());
         pmv.glRotatef(getAngle(), 0, 1, 0);
         pmv.glTranslatef(translate[0], translate[1], 0);
-        regionRenderer.updateMatrix(gl);
         button.drawShape(gl, regionRenderer, sampleCount);
     }
 

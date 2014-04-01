@@ -52,7 +52,6 @@ import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.test.junit.util.NEWTGLContext;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.PMVMatrix;
-import com.jogamp.opengl.util.glsl.ShaderState;
 
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -140,21 +139,20 @@ public class TestTextRendererNEWT10 extends UITestCase {
 
         System.err.println("Chosen: "+winctx.window.getChosenCapabilities());
 
-        final RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
+        final RenderState rs = RenderState.createRenderState(SVertex.factory());
         final RegionRenderer renderer = RegionRenderer.create(rs, 0, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
         final TextRegionUtil textRenderUtil = new TextRegionUtil(renderer);
 
         // init
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         renderer.init(gl);
-        renderer.setAlpha(gl, 1.0f);
-        renderer.setColorStatic(gl, 0.1f, 0.1f, 0.1f);
+        rs.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
 
         // reshape
         gl.glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
 
         // renderer.reshapePerspective(gl, 45.0f, drawable.getWidth(), drawable.getHeight(), 0.1f, 1000.0f);
-        renderer.reshapeOrtho(gl, drawable.getWidth(), drawable.getHeight(), 0.1f, 1000.0f);
+        renderer.reshapeOrtho(drawable.getWidth(), drawable.getHeight(), 0.1f, 1000.0f);
 
         // display
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
@@ -189,16 +187,15 @@ public class TestTextRendererNEWT10 extends UITestCase {
         if(0>row) {
             row = lastRow + 1;
         }
-        AABBox textBox = font.getStringBounds(text, fontSize);
+        AABBox textBox = font.getMetricBounds(text, fontSize);
         dx += font.getAdvanceWidth('X', fontSize) * column;
         dy -= (int)textBox.getHeight() * ( row + 1 );
 
-        final PMVMatrix pmv = textRenderUtil.renderer.getMatrix();
+        final PMVMatrix pmv = textRenderUtil.renderer.getMatrixMutable();
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         pmv.glTranslatef(dx, dy, z0);
-        textRenderUtil.renderer.updateMatrix(gl);
-        textRenderUtil.drawString3D(gl, font, fontSize, text, texSize);
+        textRenderUtil.drawString3D(gl, font, fontSize, text, null, texSize);
 
         lastRow = row;
     }

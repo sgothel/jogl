@@ -30,7 +30,6 @@ package com.jogamp.opengl.test.junit.graph.demos.ui;
 import javax.media.opengl.GL2ES2;
 
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.curve.OutlineShapeXForm;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
@@ -56,7 +55,7 @@ public class CrossHair extends UIShape {
         this.width = width;
         this.height = height;
         this.lineWidth = lineWidth;
-        dirty |= DIRTY_SHAPE | DIRTY_REGION;
+        dirty |= DIRTY_SHAPE;
     }
 
     @Override
@@ -68,7 +67,7 @@ public class CrossHair extends UIShape {
     }
 
     @Override
-    protected void createShape(GL2ES2 gl, RegionRenderer renderer) {
+    protected void addShapeToRegion(GL2ES2 gl, RegionRenderer renderer) {
         final OutlineShape shape = new OutlineShape(renderer.getRenderState().getVertexFactory());
 
         final float tw = getWidth();
@@ -97,7 +96,9 @@ public class CrossHair extends UIShape {
         shape.addVertex(ctrX-twh, ctrY+lwh, ctrZ,  true);
         shape.closeLastOutline(true);
 
-        shapes.add(new OutlineShapeXForm(shape, null));
+        shape.setIsQuadraticNurbs();
+        shape.setSharpness(shapesSharpness);
+        region.addOutlineShape(shape, null, rgbaColor);
 
         box.resize(shape.getBounds());
     }

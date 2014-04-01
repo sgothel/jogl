@@ -40,7 +40,6 @@ import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class GPUTextNewtDemo {
     /**
@@ -110,7 +109,7 @@ public class GPUTextNewtDemo {
         window.setSize(800, 400);
         window.setTitle("GPU Text Newt Demo - graph[vbaa"+GraphVBAASamples+" msaa"+GraphMSAASamples+"], msaa "+SceneMSAASamples);
 
-        RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
+        RenderState rs = RenderState.createRenderState(SVertex.factory());
         GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(rs, rmode, sampleCount, true, DEBUG, TRACE);
         // ((TextRenderer)textGLListener.getRenderer()).setCacheLimit(32);
         window.addGLEventListener(textGLListener);

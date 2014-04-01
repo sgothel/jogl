@@ -1,11 +1,11 @@
         // Pass-2: AA on Texture
-        // Note: gcv_TexCoord is in center of sample pixels.
+        // Note: gcv_FboTexCoord is in center of sample pixels.
 
-        vec2 texCoord = gcv_TexCoord.st;
+        vec2 texCoord = gcv_FboTexCoord.st;
 
-        float sampleCount = gcu_TextureSize.z;
-        vec2 tsize = gcu_TextureSize.xy; // tex size
-        vec2 psize = 1.0 / gcu_TextureSize.xy; // pixel size
+        float sampleCount = gcu_FboTexSize.z;
+        vec2 tsize = gcu_FboTexSize.xy; // tex size
+        vec2 psize = 1.0 / gcu_FboTexSize.xy; // pixel size
 
         // mix(x,y,a): x*(1-a) + y*a
         //
@@ -31,10 +31,10 @@
         vec4 t, p1, p2, p3, p4;
 
         // Layer-1: SampleCount 2 -> 4x
-        p1 = texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-0.5, -0.5))); // NW
-        p2 = texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-0.5,  0.5))); // SW
-        p3 = texture2D(gcu_TextureUnit, texCoord + psize*(vec2( 0.5,  0.5))); // SE
-        p4 = texture2D(gcu_TextureUnit, texCoord + psize*(vec2( 0.5, -0.5))); // NE
+        p1 = texture2D(gcu_FboTexUnit, texCoord + psize*(vec2(-0.5, -0.5))); // NW
+        p2 = texture2D(gcu_FboTexUnit, texCoord + psize*(vec2(-0.5,  0.5))); // SW
+        p3 = texture2D(gcu_FboTexUnit, texCoord + psize*(vec2( 0.5,  0.5))); // SE
+        p4 = texture2D(gcu_FboTexUnit, texCoord + psize*(vec2( 0.5, -0.5))); // NE
 
         p1  = mix( p1, p4, uv_ratio.x);
         p2  = mix( p2, p3, uv_ratio.x);
@@ -44,10 +44,10 @@
 
         if( sampleCount > 2.0 ) {
             // Layer-2: SampleCount 4 -> +4x = 8p
-            p1 = texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-1.5, -1.5))); // NW
-            p2 = texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-1.5,  1.5))); // SW
-            p3 = texture2D(gcu_TextureUnit, texCoord + psize*(vec2( 1.5,  1.5))); // SE
-            p4 = texture2D(gcu_TextureUnit, texCoord + psize*(vec2( 1.5, -1.5))); // NE
+            p1 = texture2D(gcu_FboTexUnit, texCoord + psize*(vec2(-1.5, -1.5))); // NW
+            p2 = texture2D(gcu_FboTexUnit, texCoord + psize*(vec2(-1.5,  1.5))); // SW
+            p3 = texture2D(gcu_FboTexUnit, texCoord + psize*(vec2( 1.5,  1.5))); // SE
+            p4 = texture2D(gcu_FboTexUnit, texCoord + psize*(vec2( 1.5, -1.5))); // NE
 
             p1  = mix( p1, p4, uv_ratio.x);
             p2  = mix( p2, p3, uv_ratio.x);
@@ -56,10 +56,10 @@
 
             if( sampleCount > 4.0 ) {
                 // Layer-3: SampleCount 6 -> +4 = 12p
-                p1 = texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-2.5, -2.5))); // NW
-                p2 = texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-2.5,  2.5))); // SW
-                p3 = texture2D(gcu_TextureUnit, texCoord + psize*(vec2( 2.5,  2.5))); // SE
-                p4 = texture2D(gcu_TextureUnit, texCoord + psize*(vec2( 2.5, -2.5))); // NE
+                p1 = texture2D(gcu_FboTexUnit, texCoord + psize*(vec2(-2.5, -2.5))); // NW
+                p2 = texture2D(gcu_FboTexUnit, texCoord + psize*(vec2(-2.5,  2.5))); // SW
+                p3 = texture2D(gcu_FboTexUnit, texCoord + psize*(vec2( 2.5,  2.5))); // SE
+                p4 = texture2D(gcu_FboTexUnit, texCoord + psize*(vec2( 2.5, -2.5))); // NE
 
                 p1  = mix( p1, p4, uv_ratio.x);
                 p2  = mix( p2, p3, uv_ratio.x);
@@ -68,10 +68,10 @@
 
                 if( sampleCount > 6.0 ) {
                     // Layer-4: SampleCount 8 -> +4 = 16p
-                    p1 = texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-3.5, -3.5))); // NW
-                    p2 = texture2D(gcu_TextureUnit, texCoord + psize*(vec2(-3.5,  3.5))); // SW
-                    p3 = texture2D(gcu_TextureUnit, texCoord + psize*(vec2( 3.5,  3.5))); // SE
-                    p4 = texture2D(gcu_TextureUnit, texCoord + psize*(vec2( 3.5, -3.5))); // NE
+                    p1 = texture2D(gcu_FboTexUnit, texCoord + psize*(vec2(-3.5, -3.5))); // NW
+                    p2 = texture2D(gcu_FboTexUnit, texCoord + psize*(vec2(-3.5,  3.5))); // SW
+                    p3 = texture2D(gcu_FboTexUnit, texCoord + psize*(vec2( 3.5,  3.5))); // SE
+                    p4 = texture2D(gcu_FboTexUnit, texCoord + psize*(vec2( 3.5, -3.5))); // NE
 
                     p1  = mix( p1, p4, uv_ratio.x);
                     p2  = mix( p2, p3, uv_ratio.x);
@@ -88,5 +88,4 @@
         }
         #endif
         
-        color = t.rgb;
-        alpha = gcu_Alpha * t.a;
+        mgl_FragColor = t;
