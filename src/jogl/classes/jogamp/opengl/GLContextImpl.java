@@ -1351,7 +1351,7 @@ public abstract class GLContextImpl extends GLContext {
    *                      <li>match ES major versions</li>
    *                    </ul>, otherwise method aborts and returns <code>false</code>.<br>
    *                    if <code>false</code> no version check is performed.
-   * @param withinGLVersionsMapping if <code>true</code> GL version mapping is in process, i.e. quering avail versions.
+   * @param withinGLVersionsMapping if <code>true</code> GL version mapping is in process, i.e. querying avail versions.
    *                                Otherwise normal user context creation.
    * @return returns <code>true</code> if successful, otherwise <code>false</code>.<br>
    *                 If <code>strictMatch</code> is <code>false</code> method shall always return <code>true</code> or throw an exception.

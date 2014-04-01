@@ -31,7 +31,6 @@ import java.util.IdentityHashMap;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLDrawableFactory;
 
 import com.jogamp.common.os.Platform;
 

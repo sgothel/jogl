@@ -49,7 +49,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
      * gathered via {@link NativeWindowFactory#getDefaultToolkitLock(String)}.
      * @param type
      */
-    public DefaultGraphicsDevice(String type, String connection, int unitID) {
+    public DefaultGraphicsDevice(final String type, final String connection, final int unitID) {
         this(type, connection, unitID, 0, NativeWindowFactory.getDefaultToolkitLock(type));
     }
 
@@ -59,7 +59,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
      * @param type
      * @param handle
      */
-    public DefaultGraphicsDevice(String type, String connection, int unitID, long handle) {
+    public DefaultGraphicsDevice(final String type, final String connection, final int unitID, final long handle) {
         this(type, connection, unitID, handle, NativeWindowFactory.getDefaultToolkitLock(type, handle));
     }
 
@@ -69,7 +69,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
      * @param handle
      * @param locker if null, a non blocking <i>null</i> lock is used.
      */
-    public DefaultGraphicsDevice(String type, String connection, int unitID, long handle, ToolkitLock locker) {
+    public DefaultGraphicsDevice(final String type, final String connection, final int unitID, final long handle, final ToolkitLock locker) {
         this.type = type;
         this.connection = connection;
         this.unitID = unitID;
@@ -247,8 +247,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
     * Returns a unique String object using {@link String#intern()} for the given arguments,
     * which object reference itself can be used as a key.
     */
-    private static String getUniqueID(String type, String connection, int unitID) {
-      final String r = (type + separator + connection + separator + unitID).intern();
-      return r.intern();
+    private static String getUniqueID(final String type, final String connection, final int unitID) {
+      return (type + separator + connection + separator + unitID).intern();
     }
 }
