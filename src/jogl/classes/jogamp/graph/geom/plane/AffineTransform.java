@@ -208,7 +208,7 @@ public class AffineTransform implements Cloneable {
         return m00 * m11 - m01 * m10;
     }
 
-    public final void setTransform(float m00, float m10, float m01, float m11, float m02, float m12) {
+    public final AffineTransform setTransform(float m00, float m10, float m01, float m11, float m02, float m12) {
         this.type = TYPE_UNKNOWN;
         this.m00 = m00;
         this.m10 = m10;
@@ -216,20 +216,23 @@ public class AffineTransform implements Cloneable {
         this.m11 = m11;
         this.m02 = m02;
         this.m12 = m12;
+        return this;
     }
 
-    public final void setTransform(AffineTransform t) {
+    public final AffineTransform setTransform(AffineTransform t) {
         type = t.type;
         setTransform(t.m00, t.m10, t.m01, t.m11, t.m02, t.m12);
+        return this;
     }
 
-    public final void setToIdentity() {
+    public final AffineTransform setToIdentity() {
         type = TYPE_IDENTITY;
         m00 = m11 = 1.0f;
         m10 = m01 = m02 = m12 = 0.0f;
+        return this;
     }
 
-    public final void setToTranslation(float mx, float my) {
+    public final AffineTransform setToTranslation(float mx, float my) {
         m00 = m11 = 1.0f;
         m01 = m10 = 0.0f;
         m02 = mx;
@@ -239,9 +242,10 @@ public class AffineTransform implements Cloneable {
         } else {
             type = TYPE_TRANSLATION;
         }
+        return this;
     }
 
-    public final void setToScale(float scx, float scy) {
+    public final AffineTransform setToScale(float scx, float scy) {
         m00 = scx;
         m11 = scy;
         m10 = m01 = m02 = m12 = 0.0f;
@@ -250,9 +254,10 @@ public class AffineTransform implements Cloneable {
         } else {
             type = TYPE_IDENTITY;
         }
+        return this;
     }
 
-    public final void setToShear(float shx, float shy) {
+    public final AffineTransform setToShear(float shx, float shy) {
         m00 = m11 = 1.0f;
         m02 = m12 = 0.0f;
         m01 = shx;
@@ -262,9 +267,10 @@ public class AffineTransform implements Cloneable {
         } else {
             type = TYPE_IDENTITY;
         }
+        return this;
     }
 
-    public final void setToRotation(float angle) {
+    public final AffineTransform setToRotation(float angle) {
         float sin = FloatUtil.sin(angle);
         float cos = FloatUtil.cos(angle);
         if (FloatUtil.abs(cos) < ZERO) {
@@ -280,63 +286,35 @@ public class AffineTransform implements Cloneable {
         m10 = sin;
         m02 = m12 = 0.0f;
         type = TYPE_UNKNOWN;
+        return this;
     }
 
-    public final void setToRotation(float angle, float px, float py) {
+    public final AffineTransform setToRotation(float angle, float px, float py) {
         setToRotation(angle);
         m02 = px * (1.0f - m00) + py * m10;
         m12 = py * (1.0f - m00) - px * m10;
         type = TYPE_UNKNOWN;
+        return this;
     }
 
-    public static AffineTransform getTranslateInstance(float mx, float my) {
-        AffineTransform t = new AffineTransform();
-        t.setToTranslation(mx, my);
-        return t;
+    public final AffineTransform translate(float mx, float my, AffineTransform tmp) {
+        return concatenate(tmp.setToTranslation(mx, my));
     }
 
-    public static AffineTransform getScaleInstance(float scx, float scY) {
-        AffineTransform t = new AffineTransform();
-        t.setToScale(scx, scY);
-        return t;
+    public final AffineTransform scale(float scx, float scy, AffineTransform tmp) {
+        return concatenate(tmp.setToScale(scx, scy));
     }
 
-    public static AffineTransform getShearInstance(float shx, float shy) {
-        AffineTransform t = new AffineTransform();
-        t.setToShear(shx, shy);
-        return t;
+    public final AffineTransform shear(float shx, float shy, AffineTransform tmp) {
+        return concatenate(tmp.setToShear(shx, shy));
     }
 
-    public static AffineTransform getRotateInstance(float angle) {
-        AffineTransform t = new AffineTransform();
-        t.setToRotation(angle);
-        return t;
+    public final AffineTransform rotate(float angle, AffineTransform tmp) {
+        return concatenate(tmp.setToRotation(angle));
     }
 
-    public static AffineTransform getRotateInstance(float angle, float x, float y) {
-        AffineTransform t = new AffineTransform();
-        t.setToRotation(angle, x, y);
-        return t;
-    }
-
-    public final AffineTransform translate(float mx, float my) {
-        return concatenate(AffineTransform.getTranslateInstance(mx, my));
-    }
-
-    public final AffineTransform scale(float scx, float scy) {
-        return concatenate(AffineTransform.getScaleInstance(scx, scy));
-    }
-
-    public final AffineTransform shear(float shx, float shy) {
-        return concatenate(AffineTransform.getShearInstance(shx, shy));
-    }
-
-    public final AffineTransform rotate(float angle) {
-        return concatenate(AffineTransform.getRotateInstance(angle));
-    }
-
-    public final AffineTransform rotate(float angle, float px, float py) {
-        return concatenate(AffineTransform.getRotateInstance(angle, px, py));
+    public final AffineTransform rotate(float angle, float px, float py, AffineTransform tmp) {
+        return concatenate(tmp.setToRotation(angle, px, py));
     }
 
     /**

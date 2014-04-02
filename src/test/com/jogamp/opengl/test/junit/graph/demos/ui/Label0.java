@@ -72,11 +72,13 @@ public class Label0 {
     public final AABBox getBounds() { return box; }
 
     private final float[] tmpV3 = new float[3];
+    private final AffineTransform tempT1 = new AffineTransform();
+    private final AffineTransform tempT2 = new AffineTransform();
 
     private final TextRegionUtil.ShapeVisitor shapeVisitor = new TextRegionUtil.ShapeVisitor() {
         @Override
         public void visit(OutlineShape shape, AffineTransform t) {
-            final AffineTransform t1 = new AffineTransform(tLeft).concatenate( t );
+            final AffineTransform t1 = t.preConcatenate(tLeft);
             region.addOutlineShape(shape, t1, rgbaColor);
             box.resize(shape.getBounds(), t1, tmpV3);
         }
@@ -89,7 +91,7 @@ public class Label0 {
         box.reset();
         this.region = region;
         this.tLeft = tLeft;
-        TextRegionUtil.processString(shapeVisitor, null, font, pixelSize, text);
+        TextRegionUtil.processString(shapeVisitor, null, font, pixelSize, text, tempT1, tempT2);
         this.region = null;
         this.tLeft = null;
         return box;

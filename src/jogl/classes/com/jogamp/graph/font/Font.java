@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+// * Copyright 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -30,7 +30,6 @@ package com.jogamp.graph.font;
 import jogamp.graph.geom.plane.AffineTransform;
 
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.curve.opengl.TextRegionUtil.ShapeVisitor;
 import com.jogamp.opengl.math.geom.AABBox;
 
 /**
@@ -82,17 +81,18 @@ public interface Font {
      * Horizontal http://developer.apple.com/fonts/TTRefMan/RM06/Chap6hhea.html
      */
     public interface Metrics {
-        float getAscent(float pixelSize);
-        float getDescent(float pixelSize);
-        float getLineGap(float pixelSize);
-        float getMaxExtend(float pixelSize);
-        float getScale(float pixelSize);
+        float getAscent(final float pixelSize);
+        float getDescent(final float pixelSize);
+        float getLineGap(final float pixelSize);
+        float getMaxExtend(final float pixelSize);
+        float getScale(final float pixelSize);
         /**
+         * @param dest AABBox instance set to this metrics boundary w/ given pixelSize
          * @param pixelSize
          * @param tmpV3 caller provided temporary 3-component vector
-         * @return
+         * @return the given and set AABBox 'dest'
          */
-        AABBox getBBox(float pixelSize, float[] tmpV3);
+        AABBox getBBox(final AABBox dest, final float pixelSize, final float[] tmpV3);
     }
 
     /**
@@ -113,28 +113,29 @@ public interface Font {
         public char getSymbol();
         public short getID();
         public AABBox getBBox();
-        public float getScale(float pixelSize);
+        public float getScale(final float pixelSize);
         /**
+         * @param dest AABBox instance set to this metrics boundary w/ given pixelSize
          * @param pixelSize
          * @param tmpV3 caller provided temporary 3-component vector
-         * @return
+         * @return the given and set AABBox 'dest'
          */
-        public AABBox getBBox(float pixelSize, float[] tmpV3);
-        public float getAdvance(float pixelSize, boolean useFrationalMetrics);
+        public AABBox getBBox(final AABBox dest, final float pixelSize, float[] tmpV3);
+        public float getAdvance(final float pixelSize, boolean useFrationalMetrics);
         public OutlineShape getShape();
         public int hashCode();
     }
 
 
-    public String getName(int nameIndex);
-    public StringBuilder getName(StringBuilder string, int nameIndex);
+    public String getName(final int nameIndex);
+    public StringBuilder getName(final StringBuilder string, final int nameIndex);
 
     /** Shall return the family and subfamily name, separated a dash.
      * <p>{@link #getName(StringBuilder, int)} w/ {@link #NAME_FAMILY} and {@link #NAME_SUBFAMILY}</p>
      * <p>Example: "{@code Ubuntu-Regular}"</p>  */
-    public StringBuilder getFullFamilyName(StringBuilder buffer);
+    public StringBuilder getFullFamilyName(final StringBuilder buffer);
 
-    public StringBuilder getAllNames(StringBuilder string, String separator);
+    public StringBuilder getAllNames(final StringBuilder string, final String separator);
 
     /**
      * <pre>
@@ -150,36 +151,39 @@ public interface Font {
      * @param resolution display resolution in dots-per-inch
      * @return pixel-per-inch, pixelSize scale factor for font operations.
      */
-    public float getPixelSize(float fontSize /* points per inch */, float resolution);
+    public float getPixelSize(final float fontSize /* points per inch */, final float resolution);
 
-    public float getAdvanceWidth(int glyphID, float pixelSize);
+    public float getAdvanceWidth(final int glyphID, final float pixelSize);
     public Metrics getMetrics();
-    public Glyph getGlyph(char symbol);
+    public Glyph getGlyph(final char symbol);
     public int getNumGlyphs();
 
-    public float getLineHeight(float pixelSize);
-    public float getMetricWidth(CharSequence string, float pixelSize);
-    public float getMetricHeight(CharSequence string, float pixelSize);
+    public float getLineHeight(final float pixelSize);
+    public float getMetricWidth(final CharSequence string, final float pixelSize);
+    public float getMetricHeight(final CharSequence string, final float pixelSize, final AABBox tmp);
     /**
      * Return the <i>layout</i> bounding box as computed by each glyph's metrics.
      * The result is not pixel correct, bit reflects layout specific metrics.
      * <p>
-     * See {@link #getPointsBounds(AffineTransform, CharSequence, float)} for pixel correct results.
+     * See {@link #getPointsBounds(AffineTransform, CharSequence, float, AffineTransform, AffineTransform)} for pixel correct results.
      * </p>
      * @param string string text
      * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
      */
-    public AABBox getMetricBounds(CharSequence string, float pixelSize);
+    public AABBox getMetricBounds(final CharSequence string, final float pixelSize);
 
     /**
      * Return the bounding box by taking each glyph's point-based bounding box into account.
      * @param transform optional given transform
      * @param string string text
      * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
+     * @param temp1 temporary AffineTransform storage, mandatory
+     * @param temp2 temporary AffineTransform storage, mandatory
      */
-    public AABBox getPointsBounds(final AffineTransform transform, CharSequence string, float pixelSize);
+    public AABBox getPointsBounds(final AffineTransform transform, final CharSequence string, final float pixelSize,
+                                  final AffineTransform temp1, final AffineTransform temp2);
 
-    public boolean isPrintableChar( char c );
+    public boolean isPrintableChar(final char c);
 
     /** Shall return {@link #getFullFamilyName()} */
     @Override

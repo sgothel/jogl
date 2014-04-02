@@ -63,6 +63,17 @@ public class TextRegionUtil {
         public void visit(final OutlineShape shape, final AffineTransform t);
     }
 
+    public static int getCharCount(final String s, final char c) {
+        final int sz = s.length();
+        int count = 0;
+        for(int i=0; i<sz; i++) {
+            if( s.charAt(i) == c ) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     /**
      * Visit each {@link Font.Glyph}'s {@link OutlineShape} with the given {@link ShapeVisitor}
      * additionally passing the progressed {@link AffineTransform}.
@@ -72,9 +83,12 @@ public class TextRegionUtil {
      * @param font the target {@link Font}
      * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
      * @param str string text
+     * @param temp1 temporary AffineTransform storage, mandatory, will be passed to {@link ShapeVisitor#visit(OutlineShape, AffineTransform)} and can be modified.
+     * @param temp2 temporary AffineTransform storage, mandatory, can be re-used in {@link ShapeVisitor#visit(OutlineShape, AffineTransform)} by user code.
      */
     public static void processString(final ShapeVisitor visitor, final AffineTransform transform,
-                                     final Font font, final float pixelSize, final CharSequence str) {
+                                     final Font font, final float pixelSize, final CharSequence str,
+                                     final AffineTransform temp1, AffineTransform temp2) {
         final int charCount = str.length();
 
         // region.setFlipped(true);
@@ -82,7 +96,6 @@ public class TextRegionUtil {
         final float lineHeight = font.getLineHeight(pixelSize);
 
         final float scale = metrics.getScale(pixelSize);
-        final AffineTransform t = null != transform ? new AffineTransform(transform) : new AffineTransform();
 
         float y = 0;
         float advanceTotal = 0;
@@ -100,19 +113,19 @@ public class TextRegionUtil {
                 }
                 // reset transform
                 if( null != transform ) {
-                    t.setTransform(transform);
+                    temp1.setTransform(transform);
                 } else {
-                    t.setToIdentity();
+                    temp1.setToIdentity();
                 }
-                t.translate(advanceTotal, y);
-                t.scale(scale, scale);
+                temp1.translate(advanceTotal, y, temp2);
+                temp1.scale(scale, scale, temp2);
 
                 final Font.Glyph glyph = font.getGlyph(character);
                 final OutlineShape glyphShape = glyph.getShape();
                 if( null == glyphShape ) {
                     continue;
                 }
-                visitor.visit(glyphShape, t);
+                visitor.visit(glyphShape, temp1);
 
                 advanceTotal += glyph.getAdvance(pixelSize, true);
             }
@@ -127,14 +140,17 @@ public class TextRegionUtil {
      * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
      * @param str string text
      * @param rgbaColor if {@link Region#hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
+     * @param temp1 temporary AffineTransform storage, mandatory
+     * @param temp2 temporary AffineTransform storage, mandatory
      */
     public static void addStringToRegion(final GLRegion region, final Factory<? extends Vertex> vertexFactory,
-                                         final Font font, final float pixelSize, final CharSequence str, final float[] rgbaColor) {
+                                         final Font font, final float pixelSize, final CharSequence str, final float[] rgbaColor,
+                                         final AffineTransform temp1, final AffineTransform temp2) {
         final ShapeVisitor visitor = new ShapeVisitor() {
             public final void visit(final OutlineShape shape, final AffineTransform t) {
                 region.addOutlineShape(shape, t, region.hasColorChannel() ? rgbaColor : null);
             } };
-        processString(visitor, null, font, pixelSize, str);
+        processString(visitor, null, font, pixelSize, str, temp1, temp2);
     }
 
     /**
@@ -163,7 +179,7 @@ public class TextRegionUtil {
         GLRegion region = getCachedRegion(font, str, pixelSize, special);
         if(null == region) {
             region = GLRegion.create(renderModes);
-            addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, pixelSize, str, rgbaColor);
+            addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, pixelSize, str, rgbaColor, tempT1, tempT2);
             addCachedRegion(gl, font, str, pixelSize, special, region);
         }
         region.draw(gl, renderer, sampleCount);
@@ -175,7 +191,7 @@ public class TextRegionUtil {
      * <p>
      * In case of a multisampling region renderer, i.e. {@link Region#VBAA_RENDERING_BIT}, recreating the {@link GLRegion}
      * is a huge performance impact.
-     * In such case better use {@link #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, float, CharSequence, float[], int[])}
+     * In such case better use {@link #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, float, CharSequence, float[], int[], AffineTransform, AffineTransform)}
      * instead.
      * </p>
      * @param gl the current GL state
@@ -186,16 +202,19 @@ public class TextRegionUtil {
      * @param rgbaColor if {@link Region#hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
      * @param sampleCount desired multisampling sample count for msaa-rendering.
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
+     * @param temp1 temporary AffineTransform storage, mandatory
+     * @param temp2 temporary AffineTransform storage, mandatory
      * @throws Exception if TextRenderer not initialized
      */
     public static void drawString3D(final GL2ES2 gl, final int renderModes,
                                     final RegionRenderer renderer, final Font font, final float pixelSize,
-                                    final CharSequence str, final float[] rgbaColor, final int[/*1*/] sampleCount) {
+                                    final CharSequence str, final float[] rgbaColor, final int[/*1*/] sampleCount,
+                                    final AffineTransform temp1, final AffineTransform temp2) {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
         final GLRegion region = GLRegion.create(renderModes);
-        addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, pixelSize, str, rgbaColor);
+        addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, pixelSize, str, rgbaColor, temp1, temp2);
         region.draw(gl, renderer, sampleCount);
         region.destroy(gl);
     }
@@ -210,16 +229,19 @@ public class TextRegionUtil {
      * @param rgbaColor if {@link Region#hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
      * @param sampleCount desired multisampling sample count for msaa-rendering.
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
+     * @param temp1 temporary AffineTransform storage, mandatory
+     * @param temp2 temporary AffineTransform storage, mandatory
      * @throws Exception if TextRenderer not initialized
      */
     public static void drawString3D(final GL2ES2 gl, final GLRegion region, final RegionRenderer renderer,
                                     final Font font, final float pixelSize, final CharSequence str,
-                                    final float[] rgbaColor, final int[/*1*/] sampleCount) {
+                                    final float[] rgbaColor, final int[/*1*/] sampleCount,
+                                    final AffineTransform temp1, final AffineTransform temp2) {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
         region.clear(gl);
-        addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, pixelSize, str, rgbaColor);
+        addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, pixelSize, str, rgbaColor, temp1, temp2);
         region.draw(gl, renderer, sampleCount);
     }
 
@@ -321,6 +343,8 @@ public class TextRegionUtil {
    /** Default cache limit, see {@link #setCacheLimit(int)} */
    public static final int DEFAULT_CACHE_LIMIT = 256;
 
+   public final AffineTransform tempT1 = new AffineTransform();
+   public final AffineTransform tempT2 = new AffineTransform();
    private final HashMap<String, GLRegion> stringCacheMap = new HashMap<String, GLRegion>(DEFAULT_CACHE_LIMIT);
    private final ArrayList<String> stringCacheArray = new ArrayList<String>(DEFAULT_CACHE_LIMIT);
    private int stringCacheLimit = DEFAULT_CACHE_LIMIT;

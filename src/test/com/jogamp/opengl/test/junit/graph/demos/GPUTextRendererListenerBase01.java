@@ -247,7 +247,8 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             pmv.glTranslatef(nearPlaneX0, nearPlaneY0+(nearPlaneS * pixelSizeFPS / 2f), nearPlaneZ0);
 
             // No cache, keep region alive!
-            TextRegionUtil.drawString3D(gl, regionFPS, renderer, font, nearPlaneS * pixelSizeFPS, text, null, sampleCountFPS);
+            TextRegionUtil.drawString3D(gl, regionFPS, renderer, font, nearPlaneS * pixelSizeFPS, text, null, sampleCountFPS,
+                                        textRegionUtil.tempT1, textRegionUtil.tempT2);
         }
 
         float dx = width-fontNameBox.getWidth()-2f;
@@ -292,13 +293,13 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         }
         if(!userInput) {
             if( bottomTextUseFrustum ) {
-                TextRegionUtil.drawString3D(gl, regionBottom, renderer, font, nearPlaneS * pixelSizeBottom, text2, null, getSampleCount());
+                TextRegionUtil.drawString3D(gl, regionBottom, renderer, font, nearPlaneS * pixelSizeBottom, text2, null, getSampleCount(), null, null);
             } else {
                 textRegionUtil.drawString3D(gl, renderer, font, nearPlaneS * pixelSizeBottom, text2, null, getSampleCount());
             }
         } else {
             if( bottomTextUseFrustum ) {
-                TextRegionUtil.drawString3D(gl, regionBottom, renderer, font, nearPlaneS * pixelSizeBottom, userString.toString(), null, getSampleCount());
+                TextRegionUtil.drawString3D(gl, regionBottom, renderer, font, nearPlaneS * pixelSizeBottom, userString.toString(), null, getSampleCount(), null, null);
             } else {
                 textRegionUtil.drawString3D(gl, renderer, font, nearPlaneS * pixelSizeBottom, userString.toString(), null, getSampleCount());
             }

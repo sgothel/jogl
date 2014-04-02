@@ -47,18 +47,35 @@ import com.jogamp.opengl.math.geom.AABBox;
  *
  *  @see OutlineShape, Region
  */
-public class Outline implements Cloneable, Comparable<Outline> {
+public class Outline implements Comparable<Outline> {
 
-    private ArrayList<Vertex> vertices = new ArrayList<Vertex>(3);
-    private boolean closed = false;
-    private AABBox bbox = new AABBox();
-    private boolean dirtyBBox = false;
+    private ArrayList<Vertex> vertices;
+    private boolean closed;
+    private final AABBox bbox;
+    private boolean dirtyBBox;
 
     /**Create an outline defined by control vertices.
      * An outline can contain off Curve vertices which define curved
      * regions in the outline.
      */
     public Outline() {
+        vertices = new ArrayList<Vertex>(3);
+        closed = false;
+        bbox = new AABBox();
+        dirtyBBox = false;
+    }
+
+    /**
+     * Copy ctor
+     */
+    public Outline(final Outline src) {
+        vertices = new ArrayList<Vertex>(src.vertices.size());
+        for(int i=0; i<vertices.size(); i++) {
+            vertices.add( src.vertices.get(i).clone() );
+        }
+        closed = src.closed;
+        bbox = new AABBox(src.bbox);
+        dirtyBBox = src.dirtyBBox;
     }
 
     public final int getVertexCount() {
@@ -256,22 +273,5 @@ public class Outline implements Cloneable, Comparable<Outline> {
             }
         }
         return true;
-    }
-
-    /**
-     * @return deep clone of this Outline
-     */
-    @Override
-    public Outline clone() {
-        Outline o;
-        try {
-            o = (Outline) super.clone();
-        } catch (CloneNotSupportedException e) { throw new InternalError(); }
-        o.bbox = bbox.clone();
-        o.vertices = new ArrayList<Vertex>(vertices.size());
-        for(int i=0; i<vertices.size(); i++) {
-            o.vertices.add(vertices.get(i).clone());
-        }
-        return o;
     }
 }

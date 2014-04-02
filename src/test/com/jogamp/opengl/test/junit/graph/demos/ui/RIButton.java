@@ -37,7 +37,6 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
-import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.geom.AABBox;
 
 /**
@@ -58,6 +57,8 @@ public class RIButton extends UIShape {
     private float spacingX = DEFAULT_SPACING_X;
     private float spacingY = DEFAULT_SPACING_Y;
     private float corner = DEFAULT_CORNER;
+    private final AffineTransform tempT1 = new AffineTransform();
+    private final AffineTransform tempT2 = new AffineTransform();
 
     public RIButton(Factory<? extends Vertex> factory, int renderModes, Font labelFont, String labelText, float width, float height, float labelZOffset) {
         super(factory, renderModes | Region.COLORCHANNEL_RENDERING_BIT);
@@ -129,13 +130,13 @@ public class RIButton extends UIShape {
         }
 
         // Setting pixelSize based on actual text-box size
-        final AABBox lbox1 = label.font.getPointsBounds(null, label.text, lPixelSize1);
+        final AABBox lbox1 = label.font.getPointsBounds(null, label.text, lPixelSize1, tempT1, tempT2);
         // Center text .. (share same center w/ button)
         final float[] lctr = lbox1.getCenter();
         final float[] ctr = box.getCenter();
         final float[] ltx = new float[] { ctr[0] - lctr[0], ctr[1] - lctr[1], 0f };
 
-        final AABBox lbox2 = label.addShapeToRegion(lPixelSize1, region, AffineTransform.getTranslateInstance(ltx[0], ltx[1]));
+        final AABBox lbox2 = label.addShapeToRegion(lPixelSize1, region, tempT1.setToTranslation(ltx[0], ltx[1]));
         if( DRAW_DEBUG_BOX ) {
             System.err.printf("RIButton.0: lbox1 %s%n", lbox1);
             System.err.printf("RIButton.0: lbox2 %s%n", lbox2);

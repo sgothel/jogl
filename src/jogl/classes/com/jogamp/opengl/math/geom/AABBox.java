@@ -51,7 +51,7 @@ import com.jogamp.opengl.util.PMVMatrix;
  * </p>
  *
  */
-public class AABBox implements Cloneable {
+public class AABBox {
     private static final boolean DEBUG = FloatUtil.DEBUG;
     private final float[] low = new float[3];
     private final float[] high = new float[3];
@@ -70,9 +70,7 @@ public class AABBox implements Cloneable {
      * @param src the box value to be used for the new instance
      */
     public AABBox(AABBox src) {
-        System.arraycopy(src.low, 0, low, 0, 3);
-        System.arraycopy(src.high, 0, high, 0, 3);
-        System.arraycopy(src.center, 0, center, 0, 3);
+        copy(src);
     }
 
     /**
@@ -90,12 +88,13 @@ public class AABBox implements Cloneable {
         setSize(lx, ly, lz, hx, hy, hz);
     }
 
-    /** Create a AABBox defining the low and high
+    /**
+     * Create a AABBox defining the low and high
      * @param low min xyz-coordinates
      * @param high max xyz-coordinates
      */
     public AABBox(final float[] low, final float[] high) {
-        setSize(low[0],low[1],low[2], high[0],high[1],high[2]);
+        setSize(low, high);
     }
 
     /**
@@ -141,6 +140,31 @@ public class AABBox implements Cloneable {
         center[0] = (high[0] + low[0])/2f;
         center[1] = (high[1] + low[1])/2f;
         center[2] = (high[2] + low[2])/2f;
+    }
+
+    /**
+     * Copy given AABBox 'src' values to this AABBox.
+     *
+     * @param src source AABBox
+     * @return this AABBox for chaining
+     */
+    public final AABBox copy(AABBox src) {
+        System.arraycopy(src.low, 0, low, 0, 3);
+        System.arraycopy(src.high, 0, high, 0, 3);
+        System.arraycopy(src.center, 0, center, 0, 3);
+        return this;
+    }
+
+    /**
+     * Set size of the AABBox specifying the coordinates
+     * of the low and high.
+     *
+     * @param low min xyz-coordinates
+     * @param high max xyz-coordinates
+     * @return this AABBox for chaining
+     */
+    public final AABBox setSize(final float[] low, final float[] high) {
+        return setSize(low[0],low[1],low[2], high[0],high[1],high[2]);
     }
 
     /**
@@ -507,11 +531,6 @@ public class AABBox implements Cloneable {
 
     public final float getDepth() {
         return high[2] - low[2];
-    }
-
-    @Override
-    public final AABBox clone() {
-        return new AABBox(this);
     }
 
     @Override

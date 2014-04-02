@@ -27,8 +27,7 @@
  */
 package jogamp.graph.font.typecast;
 
-import java.util.HashMap;
-
+import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
 import com.jogamp.opengl.math.geom.AABBox;
@@ -38,42 +37,45 @@ public class TypecastGlyph implements Font.Glyph {
     {
         private final Font      font;
         private final float     advance;
-        HashMap<Float, Float> size2advance = new HashMap<Float, Float>();
+        private final IntIntHashMap size2advanceI = new IntIntHashMap();
 
-        public Advance(Font font, float advance)
+        public Advance(final Font font, final float advance)
         {
             this.font = font;
             this.advance = advance;
+            size2advanceI.setKeyNotFoundValue(0);
         }
 
         public void reset() {
-            size2advance.clear();
+            size2advanceI.clear();
         }
 
-        public float getScale(float pixelSize)
+        public float getScale(final float pixelSize)
         {
             return this.font.getMetrics().getScale(pixelSize);
         }
 
-        public void add(float advance, float size)
+        public void add(final float advance, final float size)
         {
-            size2advance.put(size, advance);
+            size2advanceI.put(Float.floatToIntBits(size), Float.floatToIntBits(advance));
         }
 
-        public float get(float size, boolean useFrationalMetrics)
+        public float get(final float size, final boolean useFrationalMetrics)
         {
-            final Float fo = size2advance.get(size);
-            if(null == fo) {
-                float value = (this.advance * getScale(size));
-                if (useFrationalMetrics == false) {
-                    //value = (float)Math.ceil(value);
-                    // value = (int)value;
-                    value = (int) ( value + 0.5f ) ; // TODO: check
-                }
-                size2advance.put(size, value);
-                return value;
+            final int sI = Float.floatToIntBits(size);
+            final int aI = size2advanceI.get(sI);
+            if( 0 != aI ) {
+                return Float.intBitsToFloat(aI);
             }
-            return fo.floatValue();
+            final float a;
+            if ( useFrationalMetrics ) {
+                a = this.advance * getScale(size);
+            } else {
+                // a = Math.ceil(this.advance * getScale(size));
+                a = Math.round(this.advance * getScale(size)); // TODO: check whether ceil should be used instead?
+            }
+            size2advanceI.put(sI, Float.floatToIntBits(a));
+            return a;
         }
 
         @Override
@@ -81,7 +83,7 @@ public class TypecastGlyph implements Font.Glyph {
         {
             return "\nAdvance:"+
                 "\n  advance: "+this.advance+
-                "\n advances: \n"+size2advance;
+                "\n advances: \n"+size2advanceI;
         }
     }
 
@@ -90,7 +92,7 @@ public class TypecastGlyph implements Font.Glyph {
         private final AABBox    bbox;
         private final Advance advance;
 
-        public Metrics(Font font, AABBox bbox, float advance)
+        public Metrics(final Font font, final AABBox bbox, final float advance)
         {
             this.bbox = bbox;
             this.advance = new Advance(font, advance);
@@ -100,7 +102,7 @@ public class TypecastGlyph implements Font.Glyph {
             advance.reset();
         }
 
-        public float getScale(float pixelSize)
+        public float getScale(final float pixelSize)
         {
             return this.advance.getScale(pixelSize);
         }
@@ -110,12 +112,12 @@ public class TypecastGlyph implements Font.Glyph {
             return this.bbox;
         }
 
-        public void addAdvance(float advance, float size)
+        public void addAdvance(final float advance, final float size)
         {
             this.advance.add(advance, size);
         }
 
-        public float getAdvance(float size, boolean useFrationalMetrics)
+        public float getAdvance(final float size, final boolean useFrationalMetrics)
         {
             return this.advance.get(size, useFrationalMetrics);
         }
@@ -139,7 +141,7 @@ public class TypecastGlyph implements Font.Glyph {
     private final int advance;
     private final Metrics metrics;
 
-    protected TypecastGlyph(Font font, char symbol, short id, AABBox bbox, int advance, OutlineShape shape) {
+    protected TypecastGlyph(final Font font, final char symbol, final short id, final AABBox bbox, final int advance, final OutlineShape shape) {
         this.font = font;
         this.symbol = symbol;
         this.shape = shape;
@@ -183,24 +185,21 @@ public class TypecastGlyph implements Font.Glyph {
     }
 
     @Override
-    public final float getScale(float pixelSize) {
+    public final float getScale(final float pixelSize) {
         return this.metrics.getScale(pixelSize);
     }
 
     @Override
-    public final AABBox getBBox(float pixelSize, float[] tmpV3) {
-        final float size = getScale(pixelSize);
-        AABBox newBox = getBBox().clone();
-        newBox.scale(size, tmpV3);
-        return newBox;
+    public final AABBox getBBox(final AABBox dest, final float pixelSize, final float[] tmpV3) {
+        return dest.copy(getBBox()).scale(getScale(pixelSize), tmpV3);
     }
 
-    protected final void addAdvance(float advance, float size) {
+    protected final void addAdvance(final float advance, final float size) {
         this.metrics.addAdvance(advance, size);
     }
 
     @Override
-    public final float getAdvance(float pixelSize, boolean useFrationalMetrics) {
+    public final float getAdvance(final float pixelSize, final boolean useFrationalMetrics) {
         return this.metrics.getAdvance(pixelSize, useFrationalMetrics);
     }
 

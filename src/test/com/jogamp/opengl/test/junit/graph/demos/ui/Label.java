@@ -90,6 +90,8 @@ public class Label extends UIShape {
     }
 
     private final float[] tmpV3 = new float[3];
+    private final AffineTransform tempT1 = new AffineTransform();
+    private final AffineTransform tempT2 = new AffineTransform();
 
     private final TextRegionUtil.ShapeVisitor shapeVisitor = new TextRegionUtil.ShapeVisitor() {
         @Override
@@ -102,7 +104,7 @@ public class Label extends UIShape {
 
     @Override
     protected void addShapeToRegion(GL2ES2 gl, RegionRenderer renderer) {
-        TextRegionUtil.processString(shapeVisitor, null, font, pixelSize, text);
+        TextRegionUtil.processString(shapeVisitor, null, font, pixelSize, text, tempT1, tempT2);
         final float[] ctr = box.getCenter();
         setRotationOrigin( ctr[0], ctr[1], ctr[2]);
     }

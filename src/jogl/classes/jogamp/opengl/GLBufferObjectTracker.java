@@ -109,11 +109,11 @@ public class GLBufferObjectTracker {
         GLBufferStorageImpl(final int name, final long size, final int mutableUsage, final int immutableFlags) {
             super(name, size, mutableUsage, immutableFlags);
         }
-        final void setMappedBuffer(final ByteBuffer bb) {
-            if (DEBUG) {
-                System.err.printf("%s.GLBufferStorage.setMappedBuffer: %s: %s -> %s%n", msgClazzName, toString(true), mappedBuffer, bb);
-            }
-            mappedBuffer = bb;
+        protected final void reset(final long size, final int mutableUsage, final int immutableFlags) {
+            super.reset(size, mutableUsage, immutableFlags);
+        }
+        protected final void setMappedBuffer(final ByteBuffer buffer) {
+            super.setMappedBuffer(buffer);
         }
     }
 
@@ -169,13 +169,18 @@ public class GLBufferObjectTracker {
             throw new GLException(String.format("GL-Error 0x%X while creating %s storage for target 0x%X -> buffer %d of size %d with data %s",
                     glerrPost, mutableBuffer ? "mutable" : "immutable", target, bufferName, size, data));
         }
-        final GLBufferStorageImpl objNew = new GLBufferStorageImpl(bufferName, size, mutableUsage, immutableFlags);
-        final GLBufferStorageImpl objOld = (GLBufferStorageImpl) bufferName2StorageMap.put(bufferName, objNew);
-        if (DEBUG) {
-            System.err.printf("%s.%s target: 0x%X -> %d: %s -> %s%n", msgClazzName, msgCreateBound, target, bufferName, objOld, objNew);
-        }
+        final GLBufferStorageImpl objOld = (GLBufferStorageImpl) bufferName2StorageMap.get(bufferName);
         if( null != objOld ) {
-            objOld.setMappedBuffer(null);
+            objOld.reset(size, mutableUsage, immutableFlags);
+            if (DEBUG) {
+                System.err.printf("%s.%s target: 0x%X -> reset %d: %s%n", msgClazzName, msgCreateBound, target, bufferName, objOld);
+            }
+        } else {
+            final GLBufferStorageImpl objNew = new GLBufferStorageImpl(bufferName, size, mutableUsage, immutableFlags);
+            bufferName2StorageMap.put(bufferName, objNew);
+            if (DEBUG) {
+                System.err.printf("%s.%s target: 0x%X -> new %d: %s%n", msgClazzName, msgCreateBound, target, bufferName, objNew);
+            }
         }
     }
 
@@ -209,13 +214,18 @@ public class GLBufferObjectTracker {
             throw new GLException(String.format("GL-Error 0x%X while creating %s storage for buffer %d of size %d with data %s",
                                                 glerrPost, "mutable", bufferName, size, data));
         }
-        final GLBufferStorageImpl objNew = new GLBufferStorageImpl(bufferName, size, mutableUsage, 0 /* immutableFlags */);
-        final GLBufferStorageImpl objOld = (GLBufferStorageImpl) bufferName2StorageMap.put(bufferName, objNew);
-        if (DEBUG) {
-            System.err.printf("%s.%s direct: %d: %s -> %s%n", msgClazzName, msgCreateNamed, bufferName, objOld, objNew);
-        }
+        final GLBufferStorageImpl objOld = (GLBufferStorageImpl) bufferName2StorageMap.get(bufferName);
         if( null != objOld ) {
-            objOld.setMappedBuffer(null);
+            objOld.reset(size, mutableUsage, immutableFlags);
+            if (DEBUG) {
+                System.err.printf("%s.%s direct: reset %d: %s%n", msgClazzName, msgCreateNamed, bufferName, objOld);
+            }
+        } else {
+            final GLBufferStorageImpl objNew = new GLBufferStorageImpl(bufferName, size, mutableUsage, immutableFlags);
+            bufferName2StorageMap.put(bufferName, objNew);
+            if (DEBUG) {
+                System.err.printf("%s.%s direct: new %d: %s%n", msgClazzName, msgCreateNamed, bufferName, objNew);
+            }
         }
     }
 

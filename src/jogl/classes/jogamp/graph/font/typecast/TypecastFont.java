@@ -38,10 +38,8 @@ import jogamp.graph.geom.plane.AffineTransform;
 
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
-import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.opengl.math.geom.AABBox;
@@ -251,7 +249,7 @@ class TypecastFont implements Font {
             if (character == '\n') {
                 width = 0;
             } else {
-                Glyph glyph = getGlyph(character);
+                final Glyph glyph = getGlyph(character);
                 width += glyph.getAdvance(pixelSize, false);
             }
         }
@@ -259,14 +257,14 @@ class TypecastFont implements Font {
     }
 
     @Override
-    public float getMetricHeight(CharSequence string, float pixelSize) {
+    public float getMetricHeight(CharSequence string, float pixelSize, final AABBox tmp) {
         int height = 0;
 
         for (int i=0; i<string.length(); i++) {
             final char character = string.charAt(i);
             if (character != ' ') {
                 final Glyph glyph = getGlyph(character);
-                AABBox bbox = glyph.getBBox(pixelSize, tmpV3);
+                final AABBox bbox = glyph.getBBox(tmp, pixelSize, tmpV3);
                 height = (int)Math.ceil(Math.max(bbox.getHeight(), height));
             }
         }
@@ -301,14 +299,14 @@ class TypecastFont implements Font {
         return new AABBox(0, 0, 0, totalWidth, totalHeight,0);
     }
     @Override
-    public AABBox getPointsBounds(final AffineTransform transform, CharSequence string, float pixelSize) {
+    public AABBox getPointsBounds(final AffineTransform transform, final CharSequence string, final float pixelSize,
+                                  final AffineTransform temp1, final AffineTransform temp2) {
         if (string == null) {
             return new AABBox();
         }
         final int charCount = string.length();
         final float lineHeight = getLineHeight(pixelSize);
         final float scale = getMetrics().getScale(pixelSize);
-        final AffineTransform t = null != transform ? new AffineTransform(transform) : new AffineTransform();
         final AABBox tbox = new AABBox();
         final AABBox res = new AABBox();
 
@@ -325,16 +323,16 @@ class TypecastFont implements Font {
             } else {
                 // reset transform
                 if( null != transform ) {
-                    t.setTransform(transform);
+                    temp1.setTransform(transform);
                 } else {
-                    t.setToIdentity();
+                    temp1.setToIdentity();
                 }
-                t.translate(advanceTotal, y);
-                t.scale(scale, scale);
+                temp1.translate(advanceTotal, y, temp2);
+                temp1.scale(scale, scale, temp2);
                 tbox.reset();
 
                 final Font.Glyph glyph = getGlyph(character);
-                res.resize(t.transform(glyph.getBBox(), tbox));
+                res.resize(temp1.transform(glyph.getBBox(), tbox));
 
                 final OutlineShape glyphShape = glyph.getShape();
                 if( null == glyphShape ) {

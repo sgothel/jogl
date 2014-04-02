@@ -75,10 +75,10 @@ public class SVertex implements Vertex {
     }
 
     public SVertex(final Vertex src) {
-        this.id = src.getId();
+        this.id = Integer.MAX_VALUE;
         System.arraycopy(src.getCoord(), 0, coord, 0, 3);
-        setOnCurve(src.isOnCurve());
         System.arraycopy(src.getTexCoord(), 0, texCoord, 0, 3);
+        setOnCurve(src.isOnCurve());
     }
 
     public SVertex(final int id, final boolean onCurve, final float[] texCoordsBuffer) {
@@ -96,13 +96,6 @@ public class SVertex implements Vertex {
     public SVertex(final float[] coordsBuffer, final int offset, final int length, final boolean onCurve) {
         this.id = Integer.MAX_VALUE;
         setCoord(coordsBuffer, offset, length);
-        setOnCurve(onCurve);
-    }
-
-    public SVertex(float[] coordsBuffer, float[] texCoordsBuffer, boolean onCurve) {
-        this.id = Integer.MAX_VALUE;
-        System.arraycopy(coordsBuffer, 0, coord, 0, 3);
-        System.arraycopy(texCoordsBuffer, 0, texCoord, 0, 3);
         setOnCurve(onCurve);
     }
 
@@ -215,7 +208,7 @@ public class SVertex implements Vertex {
      */
     @Override
     public SVertex clone(){
-        return new SVertex(this.coord, this.texCoord, this.onCurve);
+        return new SVertex(this);
     }
 
     @Override

@@ -248,7 +248,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
                 final int height = drawable.getHeight();
                 dy = height-ty;
             }
-            final int newLineCount = text.length() - text.replace("\n", "").length();
+            final int newLineCount = TextRegionUtil.getCharCount(text, '\n');
             final float lineHeight = font.getLineHeight(pixelSize);
             dx += pixelScale * font.getAdvanceWidth('X', pixelSize) * column;
             dy -= pixelScale * lineHeight * ( row + 1 );
@@ -270,9 +270,11 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             if( cacheRegion ) {
                 textRenderUtil.drawString3D(gl, renderer, font, pixelSize, text, null, vbaaSampleCount);
             } else if( null != region ) {
-                TextRegionUtil.drawString3D(gl, region, renderer, font, pixelSize, text, null, vbaaSampleCount);
+                TextRegionUtil.drawString3D(gl, region, renderer, font, pixelSize, text, null, vbaaSampleCount,
+                                            textRenderUtil.tempT1, textRenderUtil.tempT2);
             } else {
-                TextRegionUtil.drawString3D(gl, renderModes, renderer, font, pixelSize, text, null, vbaaSampleCount);
+                TextRegionUtil.drawString3D(gl, renderModes, renderer, font, pixelSize, text, null, vbaaSampleCount,
+                                            textRenderUtil.tempT1, textRenderUtil.tempT2);
             }
             renderer.enable(gl, false);
 

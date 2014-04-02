@@ -136,9 +136,12 @@ public class TestTextRendererNEWT00 extends UITestCase {
     }
 
     static void sleep() {
+        sleep(Duration);
+    }
+    static void sleep(final long d) {
         try {
-            System.err.println("** new frame ** (sleep: "+Duration+"ms)");
-            Thread.sleep(Duration);
+            System.err.println("** new frame ** (sleep: "+d+"ms)");
+            Thread.sleep(d);
         } catch (InterruptedException ie) {}
     }
 
@@ -373,22 +376,23 @@ public class TestTextRendererNEWT00 extends UITestCase {
             final float pixelSizeAnim = font.getPixelSize(fontSizeAnim, dpiH);
 
             final String modeS = Region.getRenderModeString(renderModes);
-            final String text1 = String.format("%03.1f/%03.1f fps, vsync %d, elapsed %4.1f s, fontSize %2.2f, msaa %d, %s-samples %d",
-                    lfps, tfps, gl.getSwapInterval(), (t1-t0)/1000.0, fontSizeFixed,
-                    drawable.getChosenGLCapabilities().getNumSamples(), modeS, vbaaSampleCount[0]);
-            final String text1A = String.format("%03.1f/%03.1f fps, vsync %d, elapsed %4.1f s, fontSize %2.2f, msaa %d, %s-samples %d",
-                    lfps, tfps, gl.getSwapInterval(), (t1-t0)/1000.0, fontSizeAnim,
-                    drawable.getChosenGLCapabilities().getNumSamples(), modeS, vbaaSampleCount[0]);
 
             if( true ) {
                 // renderString(drawable, font, pixelSize, "I - / H P 7 0", 0, 0, 0, 0, -1000f, true);
                 // renderString(drawable, font, pixelSize, "A M > } ] ", 0, 0, 0, 0, -1000f, true);
-                renderString(drawable, font, pixelSize, "M", 0, 0, 0, 0, -1000f, true);
+                // renderString(drawable, font, pixelSize, "M", 0, 0, 0, 0, -1000f, true);
                 // renderString(drawable, font, pixelSize, "0 6 9 a b O Q A M > } ] ", 0, 0, 0, 0, -1000f, true);
                 // renderString(drawable, font, pixelSize, "012345678901234567890123456789", 0, 0, 0, -1000, true);
                 // renderString(drawable, font, pixelSize, textX2,        0, 0,   0, 0, -1000f, true);
                 // renderString(drawable, font, pixelSize, text1,         0,    0, 0, -1000f, regionFPS); // no-cache
+                final String text1 = lfps+" / "+tfps+" fps, vsync "+gl.getSwapInterval()+", elapsed "+(t1-t0)/1000.0+
+                                     " s, fontSize "+fontSizeFixed+", msaa "+drawable.getChosenGLCapabilities().getNumSamples()+
+                                     ", "+modeS+"-samples "+vbaaSampleCount[0];
+                renderString(drawable, font, pixelSize, text1,              0, 0, 0, 0, -1000, regionFPS); // no-cache
             } else {
+                final String text1 = String.format("%03.1f/%03.1f fps, vsync %d, elapsed %4.1f s, fontSize %2.2f, msaa %d, %s-samples %d",
+                        lfps, tfps, gl.getSwapInterval(), (t1-t0)/1000.0, fontSizeFixed,
+                        drawable.getChosenGLCapabilities().getNumSamples(), modeS, vbaaSampleCount[0]);
                 renderString(drawable, font, pixelSize, getFontInfo(),                    0, 0, 0, 0, -1000, true);
                 renderString(drawable, font, pixelSize, "012345678901234567890123456789", 0, 0, 0, -1000, true);
                 renderString(drawable, font, pixelSize, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 0, 0, 0, -1000, true);
@@ -399,7 +403,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
                 renderString(drawable, font, pixelSize, textX2,                           0, 0, 0, -1000, true);
                 renderString(drawable, font, pixelSize, text1,                            0, 0, 0, -1000, regionFPS); // no-cache
                 if( TextAnim ) {
-                    renderString(drawable, font, pixelSizeAnim, text1A,                   0, 0, 0, -1000, regionFPSAnim); // no-cache
+                    renderString(drawable, font, pixelSizeAnim, text1,                   0, 0, 0, -1000, regionFPSAnim); // no-cache
                 }
             }
         } };
