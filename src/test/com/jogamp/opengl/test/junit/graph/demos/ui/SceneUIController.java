@@ -23,13 +23,12 @@ import com.jogamp.opengl.util.PMVMatrix;
 public class SceneUIController implements GLEventListener{
     private final ArrayList<UIShape> shapes = new ArrayList<UIShape>();
 
-    private final float sceneDist = 1000f;
+    private final float sceneDist, zNear, zFar;
 
     private RegionRenderer renderer;
 
     private final int[] sampleCount = new int[1];
 
-    private final float zNear = 0.1f, zFar = 7000f;
     /** Describing the bounding box in model-coordinates of the near-plane parallel at distance one. */
     private final AABBox nearPlane1Box = new AABBox();
     private final int[] viewport = new int[] { 0, 0, 0, 0 };
@@ -42,12 +41,15 @@ public class SceneUIController implements GLEventListener{
 
     private GLAutoDrawable cDrawable = null;
 
-    public SceneUIController() {
-        this(null);
+    public SceneUIController(final float sceneDist, final float zNear, final float zFar) {
+        this(null, sceneDist, zNear, zFar);
     }
 
-    public SceneUIController(RegionRenderer renderer) {
+    public SceneUIController(RegionRenderer renderer, float sceneDist, float zNear, float zFar) {
         this.renderer = renderer;
+        this.sceneDist = sceneDist;
+        this.zFar = zFar;
+        this.zNear = zNear;
         this.sampleCount[0] = 4;
     }
 
@@ -205,7 +207,7 @@ public class SceneUIController implements GLEventListener{
                                            final float zNear, final float zFar,
                                            float orthoX, float orthoY, float orthoDist,
                                            final float[] winZ, final float[] objPos) {
-        winZ[0] = (1f/zNear-1f/orthoDist)/(1f/zNear-1f/zFar);
+        winZ[0] = FloatUtil.getOrthoWinZ(orthoDist, zNear, zFar);
         pmv.gluUnProject(orthoX, orthoY, winZ[0], view, 0, objPos, 0);
     }
 

@@ -312,17 +312,20 @@ public class ShaderProgram {
         gl.glUseProgram( on ? shaderProgram : 0 );
         programInUse = on;
     }
+    public synchronized void notifyNotInUse() {
+        programInUse = false;
+    }
 
-    protected boolean programLinked = false;
-    protected boolean programInUse = false;
-    protected int shaderProgram = 0; // non zero is valid!
-    protected HashSet<ShaderCode> allShaderCode = new HashSet<ShaderCode>();
-    protected HashSet<ShaderCode> attachedShaderCode = new HashSet<ShaderCode>();
-    protected int id = -1;
+    private boolean programLinked = false;
+    private boolean programInUse = false;
+    private int shaderProgram = 0; // non zero is valid!
+    private final HashSet<ShaderCode> allShaderCode = new HashSet<ShaderCode>();
+    private final HashSet<ShaderCode> attachedShaderCode = new HashSet<ShaderCode>();
+    private int id = -1;
 
     private static synchronized int getNextID() {
         return nextID++;
     }
-    protected static int nextID = 1;
+    private static int nextID = 1;
 }
 

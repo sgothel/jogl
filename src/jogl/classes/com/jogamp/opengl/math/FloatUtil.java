@@ -29,6 +29,8 @@ package com.jogamp.opengl.math;
 
 import java.nio.FloatBuffer;
 
+import javax.media.opengl.GLException;
+
 import jogamp.opengl.Debug;
 
 import com.jogamp.common.os.Platform;
@@ -196,6 +198,123 @@ public class FloatUtil {
       mat[1+3*4+mat_offset] =  0;
       mat[2+3*4+mat_offset] =  0;
       mat[3+3*4+mat_offset] =  1;
+  }
+
+  /**
+   * Make given matrix the orthogonal matrix based on given parameters.
+   *
+   * @param a 4x4 matrix in column-major order (also result)
+   * @param a_off
+   * @param initA if true, given matrix will be initialized w/ identity matrix.
+   * @param left
+   * @param right
+   * @param bottom
+   * @param top
+   * @param zNear
+   * @param zFar
+   * @return given matrix for chaining
+   */
+  public static final float[] makeOrthof(final float[] a, final int a_off, final boolean initA,
+                                         final float left, final float right,
+                                         final float bottom, final float top,
+                                         final float zNear, final float zFar) {
+      if( initA ) {
+          FloatUtil.makeIdentityf(a, a_off);
+      }
+      // Ortho matrix (Column Order):
+      //  2/dx  0     0    0
+      //  0     2/dy  0    0
+      //  0     0     2/dz 0
+      //  tx    ty    tz   1
+      final float dx=right-left;
+      final float dy=top-bottom;
+      final float dz=zFar-zNear;
+      final float tx=-1.0f*(right+left)/dx;
+      final float ty=-1.0f*(top+bottom)/dy;
+      final float tz=-1.0f*(zFar+zNear)/dz;
+
+      a[a_off+0+4*0] =  2.0f/dx;
+      a[a_off+1+4*1] =  2.0f/dy;
+      a[a_off+2+4*2] = -2.0f/dz;
+      a[a_off+0+4*3] = tx;
+      a[a_off+1+4*3] = ty;
+      a[a_off+2+4*3] = tz;
+
+      return a;
+  }
+
+  /**
+   * Make given matrix the frustum matrix based on given parameters.
+   *
+   * @param a 4x4 matrix in column-major order (also result)
+   * @param a_off
+   * @param initA if true, given matrix will be initialized w/ identity matrix.
+   * @param left
+   * @param right
+   * @param bottom
+   * @param top
+   * @param zNear
+   * @param zFar
+   * @return given matrix for chaining
+   */
+  public static final float[] makeFrustumf(final float[] a, final int a_off, final boolean initA,
+                                           final float left, final float right,
+                                           final float bottom, final float top,
+                                           final float zNear, final float zFar) {
+      if(zNear<=0.0f||zFar<0.0f) {
+          throw new GLException("GL_INVALID_VALUE: zNear and zFar must be positive, and zNear>0");
+      }
+      if(left==right || top==bottom) {
+          throw new GLException("GL_INVALID_VALUE: top,bottom and left,right must not be equal");
+      }
+      if( initA ) {
+          FloatUtil.makeIdentityf(a, a_off);
+      }
+      // Frustum matrix (Column Order):
+      //  2*zNear/dx   0          0   0
+      //  0            2*zNear/dy 0   0
+      //  A            B          C  -1
+      //  0            0          D   0
+      final float zNear2 = 2.0f*zNear;
+      final float dx=right-left;
+      final float dy=top-bottom;
+      final float dz=zFar-zNear;
+      final float A=(right+left)/dx;
+      final float B=(top+bottom)/dy;
+      final float C=-1.0f*(zFar+zNear)/dz;
+      final float D=-2.0f*(zFar*zNear)/dz;
+
+      a[a_off+0+4*0] = zNear2/dx;
+      a[a_off+1+4*1] = zNear2/dy;
+      a[a_off+2+4*2] = C;
+
+      a[a_off+0+4*2] = A;
+      a[a_off+1+4*2] = B;
+
+      a[a_off+2+4*3] = D;
+      a[a_off+3+4*2] = -1.0f;
+      return a;
+  }
+
+  /**
+   * Make given matrix the perspective matrix based on given parameters.
+   *
+   * @param a 4x4 matrix in column-major order (also result)
+   * @param a_off
+   * @param initA if true, given matrix will be initialized w/ identity matrix.
+   * @param fovy angle in radians
+   * @param aspect
+   * @param zNear
+   * @param zFar
+   * @return given matrix for chaining
+   */
+  public static final float[] makePerspective(final float[] a, final int a_off, final boolean initA,
+                                              final float fovy, final float aspect, final float zNear, final float zFar) {
+      float top=(float)Math.tan(fovy)*zNear;
+      float bottom=-1.0f*top;
+      float left=aspect*bottom;
+      float right=aspect*top;
+      return makeFrustumf(a, a_off, initA, left, right, bottom, top, zNear, zFar);
   }
 
   /**
@@ -839,5 +958,48 @@ public class FloatUtil {
   public static float atan2(final float y, final float x) { return (float) java.lang.Math.atan2(y, x); }
 
   public static float sqrt(final float a) { return (float) java.lang.Math.sqrt(a);  }
+
+  /**
+   * Returns resolution of Z buffer of given parameter,
+   * see <a href="http://www.sjbaker.org/steve/omniv/love_your_z_buffer.html">Love Your Z-Buffer</a>.
+   * <pre>
+   *  return z * z / ( zNear * (1&lt;&lt;zBits) - z )
+   * </pre>
+   * @param zBits number of bits of Z precision, i.e. z-buffer depth
+   * @param z distance from the eye to the object
+   * @param zNear distance from eye to near clip plane
+   * @return smallest resolvable Z separation at this range.
+   */
+  public static float getZBufferEpsilon(final int zBits, final float z, final float zNear) {
+      return z * z / ( zNear * ( 1 << zBits ) - z );
+  }
+  
+  /**
+   * Returns Z buffer value of given parameter,
+   * see <a href="http://www.sjbaker.org/steve/omniv/love_your_z_buffer.html">Love Your Z-Buffer</a>.
+   * <pre>
+   *  float a = zFar / ( zFar - zNear )
+   *  float b = zFar * zNear / ( zNear - zFar )
+   *  return (int) ( (1&lt;&lt;zBits) * ( a + b / z ) )
+   * </pre>
+   * @param zBits number of bits of Z precision, i.e. z-buffer depth
+   * @param z distance from the eye to the object
+   * @param zNear distance from eye to near clip plane
+   * @param zFar distance from eye to far clip plane
+   * @return z buffer value
+   */
+  public static int getZBufferValue(final int zBits, final float z, final float zNear, final float zFar) {
+      final float a = zFar / ( zFar - zNear );
+      final float b = zFar * zNear / ( zNear - zFar );
+      return (int) ( (1<<zBits) * ( a + b / z ) );
+  }
+
+  /**
+   * Returns orthogonal distance
+   * (1f/zNear-1f/orthoDist)/(1f/zNear-1f/zFar);
+   */
+  public static float getOrthoWinZ(final float orthoZ, final float zNear, final float zFar) {
+      return (1f/zNear-1f/orthoZ)/(1f/zNear-1f/zFar);
+  }
 
 }

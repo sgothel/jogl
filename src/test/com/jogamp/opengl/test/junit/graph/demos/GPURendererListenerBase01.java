@@ -133,7 +133,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         System.err.println("*** GLDebugMessage "+gl.getContext().isGLDebugMessageEnabled());
         MSAATool.dump(drawable);
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-        getRenderer().init(gl);
+        getRenderer().init(gl, renderModes);
     }
 
     public static void mapWin2ObjectCoords(final PMVMatrix pmv, final int[] view,
@@ -183,7 +183,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         autoDrawable = null;
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         if(null != region) {
-            region.destroy(gl, renderer);
+            region.destroy(gl);
         }
         screenshot.dispose(gl);
         renderer.destroy(gl);
@@ -325,7 +325,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
                             @Override
                             public boolean run(GLAutoDrawable drawable) {
                                 try {
-                                    final String modeS = Region.getRenderModeString(renderer.getRenderModes());
+                                    final String modeS = Region.getRenderModeString(renderModes);
                                     final String type = modeS + ( Region.hasVariableWeight(renderModes) ? "-vc" : "-uc" ) ;
                                     printScreen(drawable, "./", "demo-"+type, "snap"+screenshot_num, false);
                                     screenshot_num++;

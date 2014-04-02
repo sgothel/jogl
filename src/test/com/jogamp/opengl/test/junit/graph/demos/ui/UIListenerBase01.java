@@ -41,6 +41,7 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLPipelineFactory;
 import javax.media.opengl.GLRunnable;
 
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
@@ -61,6 +62,7 @@ import com.jogamp.opengl.util.GLReadBufferUtil;
  */
 public abstract class UIListenerBase01 implements GLEventListener {
     private final GLReadBufferUtil screenshot;
+    private final int renderModes;
     private final RegionRenderer rRenderer;
     private final boolean debug;
     private final boolean trace;
@@ -81,7 +83,8 @@ public abstract class UIListenerBase01 implements GLEventListener {
 
     boolean ignoreInput = false;
 
-    public UIListenerBase01(RegionRenderer rRenderer, boolean debug, boolean trace) {
+    public UIListenerBase01(int renderModes, RegionRenderer rRenderer, boolean debug, boolean trace) {
+        this.renderModes = renderModes;
         this.rRenderer = rRenderer;
         this.debug = debug;
         this.trace = trace;
@@ -112,7 +115,7 @@ public abstract class UIListenerBase01 implements GLEventListener {
             gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", null, gl, new Object[] { System.err } ) ).getGL2ES2();
         }
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-        getRegionRenderer().init(gl);
+        getRegionRenderer().init(gl, renderModes);
     }
 
     public void reshape(GLAutoDrawable drawable, int xstart, int ystart, int width, int height) {
@@ -303,7 +306,7 @@ public abstract class UIListenerBase01 implements GLEventListener {
                         autoDrawable.invoke(false, new GLRunnable() {
                             public boolean run(GLAutoDrawable drawable) {
                                 try {
-                                    final String type = ( 1 == rRenderer.getRenderModes() ) ? "r2t0-msaa1" : "r2t1-msaa0" ;
+                                    final String type = Region.getRenderModeString(renderModes);
                                     printScreen(drawable, "./", "demo-"+type, "snap"+screenshot_num, false);
                                     screenshot_num++;
                                 } catch (GLException e) {

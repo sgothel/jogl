@@ -140,12 +140,12 @@ public class TestTextRendererNEWT10 extends UITestCase {
         System.err.println("Chosen: "+winctx.window.getChosenCapabilities());
 
         final RenderState rs = RenderState.createRenderState(SVertex.factory());
-        final RegionRenderer renderer = RegionRenderer.create(rs, 0, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
-        final TextRegionUtil textRenderUtil = new TextRegionUtil(renderer);
+        final RegionRenderer renderer = RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
+        final TextRegionUtil textRenderUtil = new TextRegionUtil(0);
 
         // init
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-        renderer.init(gl);
+        renderer.init(gl, 0);
         rs.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
 
         // reshape
@@ -156,17 +156,17 @@ public class TestTextRendererNEWT10 extends UITestCase {
 
         // display
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-        renderString(drawable, gl, textRenderUtil, "012345678901234567890123456789", 0,  0, -1000);
-        renderString(drawable, gl, textRenderUtil, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 0, -1, -1000);
-        renderString(drawable, gl, textRenderUtil, "Hello World", 0, -1, -1000);
-        renderString(drawable, gl, textRenderUtil, "4567890123456", 4, -1, -1000);
-        renderString(drawable, gl, textRenderUtil, "I like JogAmp", 4, -1, -1000);
+        renderString(drawable, gl, renderer, textRenderUtil, "012345678901234567890123456789", 0,  0, -1000);
+        renderString(drawable, gl, renderer, textRenderUtil, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 0, -1, -1000);
+        renderString(drawable, gl, renderer, textRenderUtil, "Hello World", 0, -1, -1000);
+        renderString(drawable, gl, renderer, textRenderUtil, "4567890123456", 4, -1, -1000);
+        renderString(drawable, gl, renderer, textRenderUtil, "I like JogAmp", 4, -1, -1000);
 
         int c = 0;
-        renderString(drawable, gl, textRenderUtil, "GlueGen", c++, -1, -1000);
-        renderString(drawable, gl, textRenderUtil, "JOAL", c++, -1, -1000);
-        renderString(drawable, gl, textRenderUtil, "JOGL", c++, -1, -1000);
-        renderString(drawable, gl, textRenderUtil, "JOCL", c++, -1, -1000);
+        renderString(drawable, gl, renderer, textRenderUtil, "GlueGen", c++, -1, -1000);
+        renderString(drawable, gl, renderer, textRenderUtil, "JOAL", c++, -1, -1000);
+        renderString(drawable, gl, renderer, textRenderUtil, "JOGL", c++, -1, -1000);
+        renderString(drawable, gl, renderer, textRenderUtil, "JOCL", c++, -1, -1000);
 
         drawable.swapBuffers();
         sleep();
@@ -179,7 +179,7 @@ public class TestTextRendererNEWT10 extends UITestCase {
 
     int lastRow = -1;
 
-    void renderString(GLDrawable drawable, GL2ES2 gl, TextRegionUtil textRenderUtil, String text, int column, int row, int z0) {
+    void renderString(GLDrawable drawable, GL2ES2 gl, RegionRenderer renderer, TextRegionUtil textRenderUtil, String text, int column, int row, int z0) {
         final int height = drawable.getHeight();
 
         int dx = 0;
@@ -191,11 +191,11 @@ public class TestTextRendererNEWT10 extends UITestCase {
         dx += font.getAdvanceWidth('X', fontSize) * column;
         dy -= (int)textBox.getHeight() * ( row + 1 );
 
-        final PMVMatrix pmv = textRenderUtil.renderer.getMatrixMutable();
+        final PMVMatrix pmv = renderer.getMatrixMutable();
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         pmv.glTranslatef(dx, dy, z0);
-        textRenderUtil.drawString3D(gl, font, fontSize, text, null, texSize);
+        textRenderUtil.drawString3D(gl, renderer, font, fontSize, text, null, texSize);
 
         lastRow = row;
     }

@@ -50,7 +50,7 @@ public class GPURegionGLListener01 extends GPURendererListenerBase01 {
     OutlineShape outlineShape = null;
 
     public GPURegionGLListener01 (RenderState rs, int renderModes, int sampleCount, boolean debug, boolean trace) {
-        super(RegionRenderer.create(rs, renderModes, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable), renderModes, debug, trace);
+        super(RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable), renderModes, debug, trace);
         setMatrix(-20, 00, -50, 0f, sampleCount);
     }
 

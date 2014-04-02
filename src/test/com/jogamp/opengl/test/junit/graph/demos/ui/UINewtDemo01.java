@@ -64,7 +64,7 @@ public class UINewtDemo01 {
         window.setSize(800, 400);
         window.setTitle("GPU UI Newt Demo 01");
         RenderState rs = RenderState.createRenderState(SVertex.factory());
-        UIGLListener01 uiGLListener = new UIGLListener01 (rs, DEBUG, TRACE);
+        UIGLListener01 uiGLListener = new UIGLListener01 (0, rs, DEBUG, TRACE);
         uiGLListener.attachInputListenerTo(window);
         window.addGLEventListener(uiGLListener);
         window.setVisible(true);

@@ -45,9 +45,9 @@ import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.FBObject.Attachment;
 import com.jogamp.opengl.FBObject.TextureAttachment;
+import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.GLArrayDataServer;
-import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 
 public class VBORegion2PVBAAES2  extends GLRegion {
@@ -97,10 +97,8 @@ public class VBORegion2PVBAAES2  extends GLRegion {
     private GLArrayDataServer indicesFbo;
     private final GLUniformData gcu_FboTexUnit;
     private final GLUniformData gcu_FboTexSize;
-    private final PMVMatrix fboPMVMatrix;
+    private final float[] pmvMatrix02 = new float[2*16]; // P + Mv
     private final GLUniformData gcu_PMVMatrix02;
-    private boolean gcu_FboTexSize_dirty = true;
-    private boolean gcu_PMVMatrix02_dirty = true;
     private ShaderProgram spPass2 = null;
 
     private FBObject fbo;
@@ -114,7 +112,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
 
     public void useShaderProgram(final GL2ES2 gl, final RegionRenderer renderer, final int renderModes, final boolean pass1, final int quality, final int sampleCount) {
         final RenderState rs = renderer.getRenderState();
-        final boolean updateLocation0 = renderer.useShaderProgram(gl, renderModes, pass1, quality, sampleCount);
+        renderer.useShaderProgram(gl, renderModes, pass1, quality, sampleCount);
         final ShaderProgram sp = renderer.getRenderState().getShaderProgram();
         final boolean updateLocation;
         if( pass1 ) {
@@ -127,7 +125,6 @@ public class VBORegion2PVBAAES2  extends GLRegion {
             if( null != gca_ColorsAttr ) {
                 rs.updateAttributeLoc(gl, updateLocation, gca_ColorsAttr);
             }
-            System.err.println("XXX changedSP.p1 "+updateLocation+" / "+updateLocation0+", "+rs);
         } else {
             updateLocation = !sp.equals(spPass2);
             spPass2 = sp;
@@ -136,7 +133,6 @@ public class VBORegion2PVBAAES2  extends GLRegion {
             rs.updateAttributeLoc(gl, updateLocation, gca_FboTexCoordsAttr);
             rs.updateUniformDataLoc(gl, updateLocation, true, gcu_FboTexUnit);
             rs.updateUniformLoc(gl, updateLocation, gcu_FboTexSize);
-            System.err.println("XXX changedSP.p2 "+updateLocation+" / "+updateLocation0+", "+rs);
         }
     }
 
@@ -159,9 +155,11 @@ public class VBORegion2PVBAAES2  extends GLRegion {
             gca_ColorsAttr = null;
         }
 
+        FloatUtil.makeIdentityf(pmvMatrix02, 0);
+        FloatUtil.makeIdentityf(pmvMatrix02, 16);
+        gcu_PMVMatrix02 = new GLUniformData(UniformNames.gcu_PMVMatrix02, 4, 4, FloatBuffer.wrap(pmvMatrix02));
+
         // Pass 2:
-        fboPMVMatrix = new PMVMatrix();
-        gcu_PMVMatrix02 = new GLUniformData(UniformNames.gcu_PMVMatrix02, 4, 4, fboPMVMatrix.glGetPMvMatrixf());
         gcu_FboTexUnit = new GLUniformData(UniformNames.gcu_FboTexUnit, textureUnit);
         gcu_FboTexSize = new GLUniformData(UniformNames.gcu_FboTexSize, 2, Buffers.newDirectFloatBuffer(2));
 
@@ -183,7 +181,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
     }
 
     @Override
-    protected final void clearImpl(final GL2ES2 gl, final RegionRenderer renderer) {
+    protected final void clearImpl(final GL2ES2 gl) {
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegion2PES2 Clear: " + this);
             // Thread.dumpStack();
@@ -208,7 +206,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
     }
 
     @Override
-    protected final void pushVertex(final float[] coords, final float[] texParams, float[] rgba) {
+    protected final void pushVertex(final float[] coords, final float[] texParams, final float[] rgba) {
         gca_VerticesAttr.putf(coords[0]);
         gca_VerticesAttr.putf(coords[1]);
         gca_VerticesAttr.putf(coords[2]);
@@ -235,7 +233,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
     }
 
     @Override
-    protected void updateImpl(final GL2ES2 gl, final RegionRenderer renderer) {
+    protected void updateImpl(final GL2ES2 gl) {
         if(null == indicesFbo) {
             if(Region.DEBUG_INSTANCE) {
                 System.err.println("VBORegion2PVBAAES2 Create: " + this);
@@ -262,12 +260,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
             fb.put( 8, box.getMinZ());
             fb.put(11, box.getMinZ());
         }
-        // Pending .. (follow fboDirty)
-        // gca_FboVerticesAttr.seal(gl, true);
-        // gca_FboVerticesAttr.enableBuffer(gl, false);
-        // fboPMVMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-        // fboPMVMatrix.glLoadIdentity();
-        // fboPMVMatrix.glOrthof(box.getMinX(), box.getMaxX(), box.getMinY(), box.getMaxY(), -1, 1);
+        // Pending gca_FboVerticesAttr-seal and fboPMVMatrix-setup, follow fboDirty
 
         // push data 2 GPU ..
         indicesFbo.seal(gl, true);
@@ -455,11 +448,10 @@ public class VBORegion2PVBAAES2  extends GLRegion {
                     fb.put(3, minX); fb.put( 4, maxY);
                     fb.put(6, maxX); fb.put( 7, maxY);
                     fb.put(9, maxX); fb.put(10, minY);
+                    fb.position(12);
                 }
                 gca_FboVerticesAttr.seal(true);
-                fboPMVMatrix.glLoadIdentity();
-                fboPMVMatrix.glOrthof(minX, maxX, minY, maxY, -1, 1);
-                gcu_PMVMatrix02_dirty = true;
+                FloatUtil.makeOrthof(pmvMatrix02, 0, true, minX, maxX, minY, maxY, -1, 1);
                 useShaderProgram(gl, renderer, getRenderModes(), true, getQuality(), sampleCount[0]);
                 renderRegion2FBO(gl, rs, targetFboWidth, targetFboHeight, newFboWidth, newFboHeight, vpWidth, vpHeight, sampleCount[0]);
             }
@@ -472,10 +464,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
                            final int vpWidth, final int vpHeight, final int sampleCount) {
         gl.glViewport(0, 0, vpWidth, vpHeight);
 
-        if( gcu_FboTexSize_dirty ) {
-            gl.glUniform(gcu_FboTexSize);
-            gcu_FboTexSize_dirty = false;
-        }
+        gl.glUniform(gcu_FboTexSize);
 
         gl.glActiveTexture(GL.GL_TEXTURE0 + gcu_FboTexUnit.intValue());
 
@@ -508,7 +497,6 @@ public class VBORegion2PVBAAES2  extends GLRegion {
             {
                 fboTexSize.put(0, fboWidth);
                 fboTexSize.put(1, fboHeight);
-                gcu_FboTexSize_dirty=true;
             }
             fbo = new FBObject();
             fbo.reset(gl, fboWidth, fboHeight);
@@ -532,7 +520,6 @@ public class VBORegion2PVBAAES2  extends GLRegion {
             {
                 fboTexSize.put(0, fboWidth);
                 fboTexSize.put(1, fboHeight);
-                gcu_FboTexSize_dirty=true;
             }
         } else {
             fbo.bind(gl);
@@ -540,19 +527,16 @@ public class VBORegion2PVBAAES2  extends GLRegion {
 
         //render texture
         gl.glViewport(0, 0, fboWidth, fboHeight);
-
-        if( gcu_PMVMatrix02_dirty ) {
-            gl.glUniform(gcu_PMVMatrix02);
-            gcu_PMVMatrix02_dirty = false;
-        }
-
         gl.glClear(GL2ES2.GL_COLOR_BUFFER_BIT | GL2ES2.GL_DEPTH_BUFFER_BIT);
+
         renderRegion(gl);
+
         fbo.unbind(gl);
         fboDirty = false;
     }
 
     private void renderRegion(final GL2ES2 gl) {
+        gl.glUniform(gcu_PMVMatrix02);
         gca_VerticesAttr.enableBuffer(gl, true);
         gca_CurveParamsAttr.enableBuffer(gl, true);
         if( null != gca_ColorsAttr ) {
@@ -571,7 +555,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
     }
 
     @Override
-    protected void destroyImpl(final GL2ES2 gl, final RegionRenderer renderer) {
+    protected void destroyImpl(final GL2ES2 gl) {
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegion2PES2 Destroy: " + this);
             // Thread.dumpStack();
@@ -610,5 +594,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
             indicesFbo.destroy(gl);
             indicesFbo = null;
         }
+        spPass1 = null;
+        spPass2 = null;
     }
 }

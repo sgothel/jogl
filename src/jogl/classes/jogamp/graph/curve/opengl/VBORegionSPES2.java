@@ -43,6 +43,7 @@ public class VBORegionSPES2 extends GLRegion {
     private GLArrayDataServer gca_CurveParamsAttr = null;
     private GLArrayDataServer gca_ColorsAttr;
     private GLArrayDataServer indicesBuffer = null;
+    private ShaderProgram spPass1 = null;
 
     public VBORegionSPES2(final int renderModes) {
         super(renderModes);
@@ -64,7 +65,7 @@ public class VBORegionSPES2 extends GLRegion {
     }
 
     @Override
-    protected final void clearImpl(final GL2ES2 gl, final RegionRenderer renderer) {
+    protected final void clearImpl(final GL2ES2 gl) {
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegionSPES2 Clear: " + this);
         }
@@ -87,7 +88,7 @@ public class VBORegionSPES2 extends GLRegion {
     }
 
     @Override
-    protected final void pushVertex(float[] coords, float[] texParams, float[] rgba) {
+    protected final void pushVertex(final float[] coords, final float[] texParams, final float[] rgba) {
         gca_VerticesAttr.putf(coords[0]);
         gca_VerticesAttr.putf(coords[1]);
         gca_VerticesAttr.putf(coords[2]);
@@ -114,7 +115,7 @@ public class VBORegionSPES2 extends GLRegion {
     }
 
     @Override
-    protected void updateImpl(final GL2ES2 gl, final RegionRenderer renderer) {
+    protected void updateImpl(final GL2ES2 gl) {
         // seal buffers
         indicesBuffer.seal(gl, true);
         indicesBuffer.enableBuffer(gl, false);
@@ -133,8 +134,6 @@ public class VBORegionSPES2 extends GLRegion {
         }
     }
 
-    private ShaderProgram spPass1 = null;
-
     public void useShaderProgram(final GL2ES2 gl, final RegionRenderer renderer, final int renderModes, final int quality) {
         final RenderState rs = renderer.getRenderState();
         final boolean updateLocation0 = renderer.useShaderProgram(gl, renderModes, true, quality, 0);
@@ -149,10 +148,9 @@ public class VBORegionSPES2 extends GLRegion {
         if( null != gca_ColorsAttr ) {
             rs.updateAttributeLoc(gl, updateLocation, gca_ColorsAttr);
         }
-        System.err.println("XXX changedSP "+updateLocation+", "+rs);
-        System.err.println("XXX gca_VerticesAttr "+gca_VerticesAttr);
-        System.err.println("XXX gca_CurveParamsAttr "+gca_CurveParamsAttr);
-        System.err.println("XXX gca_ColorsAttr "+gca_ColorsAttr);
+        if( DEBUG ) {
+            System.err.println("XXX changedSP.p1 "+updateLocation+" / "+updateLocation0);
+        }
     }
 
 
@@ -169,17 +167,23 @@ public class VBORegionSPES2 extends GLRegion {
         }
         gca_VerticesAttr.enableBuffer(gl, true);
         gca_CurveParamsAttr.enableBuffer(gl, true);
+        if( null != gca_ColorsAttr ) {
+            gca_ColorsAttr.enableBuffer(gl, true);
+        }
         indicesBuffer.bindBuffer(gl, true); // keeps VBO binding
 
         gl.glDrawElements(GL2ES2.GL_TRIANGLES, indicesBuffer.getElementCount() * indicesBuffer.getComponentCount(), GL2ES2.GL_UNSIGNED_SHORT, 0);
 
         indicesBuffer.bindBuffer(gl, false);
+        if( null != gca_ColorsAttr ) {
+            gca_ColorsAttr.enableBuffer(gl, false);
+        }
         gca_CurveParamsAttr.enableBuffer(gl, false);
         gca_VerticesAttr.enableBuffer(gl, false);
     }
 
     @Override
-    protected void destroyImpl(final GL2ES2 gl, final RegionRenderer renderer) {
+    protected void destroyImpl(final GL2ES2 gl) {
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegionSPES2 Destroy: " + this);
         }
@@ -199,5 +203,6 @@ public class VBORegionSPES2 extends GLRegion {
             indicesBuffer.destroy(gl);
             indicesBuffer = null;
         }
+        spPass1 = null;
     }
 }

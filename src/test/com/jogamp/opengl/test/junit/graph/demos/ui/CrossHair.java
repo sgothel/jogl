@@ -40,8 +40,8 @@ import com.jogamp.graph.geom.Vertex.Factory;
 public class CrossHair extends UIShape {
     private float width, height, lineWidth;
 
-    public CrossHair(Factory<? extends Vertex> factory, float width, float height, float linewidth) {
-        super(factory);
+    public CrossHair(Factory<? extends Vertex> factory, int renderModes, float width, float height, float linewidth) {
+        super(factory, renderModes);
         this.width = width;
         this.height = height;
         this.lineWidth = linewidth;

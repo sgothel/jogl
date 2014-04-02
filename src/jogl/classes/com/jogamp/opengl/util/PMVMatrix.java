@@ -686,61 +686,12 @@ public class PMVMatrix implements GLMatrixFunc {
 
     @Override
     public final void glOrthof(final float left, final float right, final float bottom, final float top, final float zNear, final float zFar) {
-        // Ortho matrix (Column Order):
-        //  2/dx  0     0    0
-        //  0     2/dy  0    0
-        //  0     0     2/dz 0
-        //  tx    ty    tz   1
-        final float dx=right-left;
-        final float dy=top-bottom;
-        final float dz=zFar-zNear;
-        final float tx=-1.0f*(right+left)/dx;
-        final float ty=-1.0f*(top+bottom)/dy;
-        final float tz=-1.0f*(zFar+zNear)/dz;
-
-        matrixOrtho[0+4*0] =  2.0f/dx;
-        matrixOrtho[1+4*1] =  2.0f/dy;
-        matrixOrtho[2+4*2] = -2.0f/dz;
-        matrixOrtho[0+4*3] = tx;
-        matrixOrtho[1+4*3] = ty;
-        matrixOrtho[2+4*3] = tz;
-
-        glMultMatrixf(matrixOrtho, 0);
+        glMultMatrixf( FloatUtil.makeOrthof(matrixOrtho, 0, false, left, right, bottom, top, zNear, zFar), 0 );
     }
 
     @Override
     public final void glFrustumf(final float left, final float right, final float bottom, final float top, final float zNear, final float zFar) {
-        if(zNear<=0.0f||zFar<0.0f) {
-            throw new GLException("GL_INVALID_VALUE: zNear and zFar must be positive, and zNear>0");
-        }
-        if(left==right || top==bottom) {
-            throw new GLException("GL_INVALID_VALUE: top,bottom and left,right must not be equal");
-        }
-        // Frustum matrix (Column Order):
-        //  2*zNear/dx   0          0   0
-        //  0            2*zNear/dy 0   0
-        //  A            B          C  -1
-        //  0            0          D   0
-        final float zNear2 = 2.0f*zNear;
-        final float dx=right-left;
-        final float dy=top-bottom;
-        final float dz=zFar-zNear;
-        final float A=(right+left)/dx;
-        final float B=(top+bottom)/dy;
-        final float C=-1.0f*(zFar+zNear)/dz;
-        final float D=-2.0f*(zFar*zNear)/dz;
-
-        matrixFrustum[0+4*0] = zNear2/dx;
-        matrixFrustum[1+4*1] = zNear2/dy;
-        matrixFrustum[2+4*2] = C;
-
-        matrixFrustum[0+4*2] = A;
-        matrixFrustum[1+4*2] = B;
-
-        matrixFrustum[2+4*3] = D;
-        matrixFrustum[3+4*2] = -1.0f;
-
-        glMultMatrixf(matrixFrustum, 0);
+        glMultMatrixf( FloatUtil.makeFrustumf(matrixFrustum, 0, false, left, right, bottom, top, zNear, zFar), 0 );
     }
 
     //
@@ -751,11 +702,7 @@ public class PMVMatrix implements GLMatrixFunc {
      * {@link #glMultMatrixf(FloatBuffer) Multiply} the {@link #glGetMatrixMode() current matrix} with the perspective/frustum matrix.
      */
     public final void gluPerspective(final float fovy, final float aspect, final float zNear, final float zFar) {
-      float top=(float)Math.tan(fovy*((float)Math.PI)/360.0f)*zNear;
-      float bottom=-1.0f*top;
-      float left=aspect*bottom;
-      float right=aspect*top;
-      glFrustumf(left, right, bottom, top, zNear, zFar);
+      glMultMatrixf( FloatUtil.makePerspective(matrixFrustum, 0, false, fovy*((float)Math.PI)/360.0f, aspect, zNear, zFar), 0 );
     }
 
     /**
@@ -840,24 +787,12 @@ public class PMVMatrix implements GLMatrixFunc {
      * using a {@link AABBox#intersectsRay(Ray, float[]) bounding box}.
      * <p>
      * Notes for picking <i>winz0</i> and <i>winz1</i>:
+     * <ul>
+     *   <li>see {@link FloatUtil#getZBufferEpsilon(int, float, float)}</li>
+     *   <li>see {@link FloatUtil#getZBufferValue(int, float, float, float)}</li>
+     *   <li>see {@link FloatUtil#getOrthoWinZ(float, float, float)}</li>
+     * </ul>
      * </p>
-     * <p>
-     * <a href="http://www.sjbaker.org/steve/omniv/love_your_z_buffer.html">Love Your Z-Buffer</a>
-     * <pre>
-     *  delta = z * z / ( zNear * (1&lt;&lt;N) - z )
-     *
-     *  Where:
-     *    N     = number of bits of Z precision
-     *    zNear = distance from eye to near clip plane
-     *    z     = distance from the eye to the object
-     *    delta = the smallest resolvable Z separation at this range.
-     * </pre>
-     * Another equation to determine winZ for 'orthoDist' > 0
-     * <pre>
-     *  winZ = (1f/zNear-1f/orthoDist)/(1f/zNear-1f/zFar);
-     * </pre>
-     * </p>
-     *
      * @param winx
      * @param winy
      * @param winz0

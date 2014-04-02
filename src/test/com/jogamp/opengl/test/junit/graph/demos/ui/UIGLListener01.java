@@ -45,12 +45,12 @@ import com.jogamp.opengl.util.PMVMatrix;
 
 public class UIGLListener01 extends UIListenerBase01 {
 
-    public UIGLListener01 (RenderState rs, boolean debug, boolean trace) {
-        super(RegionRenderer.create(rs, 0, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable), debug, trace);
+    public UIGLListener01 (int renderModes, RenderState rs, boolean debug, boolean trace) {
+        super(renderModes, RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable), debug, trace);
         setMatrix(-20, 00, 0f, -50);
         try {
             final Font font = FontFactory.get(FontFactory.UBUNTU).getDefault();
-            button = new RIButton(SVertex.factory(), font, "Click me!", 4f, 3f);
+            button = new RIButton(SVertex.factory(), 0, font, "Click me!", 4f, 3f, -0.05f);
             button.translate(2,1,0);
             /** Button defaults !
                 button.setLabelColor(1.0f,1.0f,1.0f);

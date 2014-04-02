@@ -32,10 +32,12 @@ import javax.media.opengl.GL2ES2;
 import jogamp.graph.geom.plane.AffineTransform;
 
 import com.jogamp.graph.curve.OutlineShape;
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
+import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.geom.AABBox;
 
 /**
@@ -49,19 +51,21 @@ public class RIButton extends UIShape {
     /** {@value} */
     public static final float DEFAULT_CORNER = 1f;
 
-    private float width, height;
+    public static final float DEFAULT_2PASS_LABEL_ZOFFSET = -0.05f;
+
+    private float width, height, labelZOffset;
     private final Label0 label;
     private float spacingX = DEFAULT_SPACING_X;
     private float spacingY = DEFAULT_SPACING_Y;
     private float corner = DEFAULT_CORNER;
-    private float labelZOffset = -0.05f;
 
-    public RIButton(Factory<? extends Vertex> factory, Font labelFont, String labelText, float width, float height) {
-        super(factory);
+    public RIButton(Factory<? extends Vertex> factory, int renderModes, Font labelFont, String labelText, float width, float height, float labelZOffset) {
+        super(factory, renderModes | Region.COLORCHANNEL_RENDERING_BIT);
 
         this.label = new Label0(labelFont, labelText, new float[] { 0.9f, 0.9f, 0.9f, 1.0f });
         this.width = width;
         this.height = height;
+        this.labelZOffset = labelZOffset;
     }
 
     public final float getWidth() { return width; }
@@ -84,11 +88,15 @@ public class RIButton extends UIShape {
 
     @Override
     public void drawShape(GL2ES2 gl, RegionRenderer renderer, int[] sampleCount) {
-        // No need to setup an poly offset for z-fighting, using one region now
-        // gl.glEnable(GL2ES2.GL_POLYGON_OFFSET_FILL);
-        // gl.glPolygonOffset(0.0f, 1f);
-        super.drawShape(gl, renderer, sampleCount);
-        // gl.glDisable(GL2ES2.GL_POLYGON_OFFSET_FILL);
+        if( false ) {
+            // Setup poly offset for z-fighting
+            gl.glEnable(GL2ES2.GL_POLYGON_OFFSET_FILL);
+            gl.glPolygonOffset(0f, 1f);
+            super.drawShape(gl, renderer, sampleCount);
+            gl.glDisable(GL2ES2.GL_POLYGON_OFFSET_FILL);
+        } else {
+            super.drawShape(gl, renderer, sampleCount);
+        }
     }
 
     @Override
@@ -198,8 +206,8 @@ public class RIButton extends UIShape {
         return labelZOffset;
     }
 
-    public void setLabelZOffset(float labelZOffset) {
-        this.labelZOffset = -labelZOffset;
+    public void setLabelZOffset(final float labelZOffset) {
+        this.labelZOffset = labelZOffset;
         dirty |= DIRTY_SHAPE;
     }
     public final float getSpacingX() { return spacingX; }

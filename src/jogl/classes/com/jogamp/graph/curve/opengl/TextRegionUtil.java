@@ -48,10 +48,10 @@ import com.jogamp.graph.geom.Vertex.Factory;
  */
 public class TextRegionUtil {
 
-    public final RegionRenderer renderer;
+    public final int renderModes;
 
-    public TextRegionUtil(final RegionRenderer renderer) {
-        this.renderer = renderer;
+    public TextRegionUtil(final int renderModes) {
+        this.renderModes = renderModes;
     }
 
     public static interface ShapeVisitor {
@@ -144,6 +144,7 @@ public class TextRegionUtil {
      * Cached {@link GLRegion}s will be destroyed w/ {@link #clear(GL2ES2)} or to free memory.
      * </p>
      * @param gl the current GL state
+     * @param renderer TODO
      * @param font {@link Font} to be used
      * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
      * @param str text to be rendered
@@ -153,15 +154,15 @@ public class TextRegionUtil {
      * @throws Exception if TextRenderer not initialized
      */
     public void drawString3D(final GL2ES2 gl,
-                             final Font font, final float pixelSize, final CharSequence str,
-                             final float[] rgbaColor, final int[/*1*/] sampleCount) {
+                             final RegionRenderer renderer, final Font font, final float pixelSize,
+                             final CharSequence str, final float[] rgbaColor, final int[/*1*/] sampleCount) {
         if( !renderer.isInitialized() ) {
             throw new GLException("TextRendererImpl01: not initialized!");
         }
         final int special = 0;
         GLRegion region = getCachedRegion(font, str, pixelSize, special);
         if(null == region) {
-            region = GLRegion.create(renderer.getRenderModes());
+            region = GLRegion.create(renderModes);
             addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, pixelSize, str, rgbaColor);
             addCachedRegion(gl, font, str, pixelSize, special, region);
         }
@@ -174,10 +175,11 @@ public class TextRegionUtil {
      * <p>
      * In case of a multisampling region renderer, i.e. {@link Region#VBAA_RENDERING_BIT}, recreating the {@link GLRegion}
      * is a huge performance impact.
-     * In such case better use {@link #drawString3D(GLRegion, RegionRenderer, GL2ES2, Font, float, CharSequence, float[], int[])}
+     * In such case better use {@link #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, float, CharSequence, float[], int[])}
      * instead.
      * </p>
      * @param gl the current GL state
+     * @param renderModes TODO
      * @param font {@link Font} to be used
      * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
      * @param str text to be rendered
@@ -186,21 +188,21 @@ public class TextRegionUtil {
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
      * @throws Exception if TextRenderer not initialized
      */
-    public static void drawString3D(final RegionRenderer renderer, final GL2ES2 gl,
-                                    final Font font, final float pixelSize, final CharSequence str,
-                                    final float[] rgbaColor, final int[/*1*/] sampleCount) {
+    public static void drawString3D(final GL2ES2 gl, final int renderModes,
+                                    final RegionRenderer renderer, final Font font, final float pixelSize,
+                                    final CharSequence str, final float[] rgbaColor, final int[/*1*/] sampleCount) {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
-        final GLRegion region = GLRegion.create(renderer.getRenderModes());
+        final GLRegion region = GLRegion.create(renderModes);
         addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, pixelSize, str, rgbaColor);
         region.draw(gl, renderer, sampleCount);
-        region.destroy(gl, renderer);
+        region.destroy(gl);
     }
 
     /**
      * Render the string in 3D space w.r.t. the font and pixelSize
-     * using the given {@link GLRegion}, which will {@link GLRegion#clear(GL2ES2, RegionRenderer) cleared} beforehand.
+     * using the given {@link GLRegion}, which will {@link GLRegion#clear(GL2ES2) cleared} beforehand.
      * @param gl the current GL state
      * @param font {@link Font} to be used
      * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
@@ -210,13 +212,13 @@ public class TextRegionUtil {
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
      * @throws Exception if TextRenderer not initialized
      */
-    public static void drawString3D(final GLRegion region, final RegionRenderer renderer, final GL2ES2 gl,
+    public static void drawString3D(final GL2ES2 gl, final GLRegion region, final RegionRenderer renderer,
                                     final Font font, final float pixelSize, final CharSequence str,
                                     final float[] rgbaColor, final int[/*1*/] sampleCount) {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
-        region.clear(gl, renderer);
+        region.clear(gl);
         addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, pixelSize, str, rgbaColor);
         region.draw(gl, renderer, sampleCount);
     }
@@ -229,7 +231,7 @@ public class TextRegionUtil {
        final Iterator<GLRegion> iterator = stringCacheMap.values().iterator();
        while(iterator.hasNext()){
            final GLRegion region = iterator.next();
-           region.destroy(gl, renderer);
+           region.destroy(gl);
        }
        stringCacheMap.clear();
        stringCacheArray.clear();
@@ -295,7 +297,7 @@ public class TextRegionUtil {
        final String key = getKey(font, str, pixelSize, special);
        final GLRegion region = stringCacheMap.remove(key);
        if(null != region) {
-           region.destroy(gl, renderer);
+           region.destroy(gl);
        }
        stringCacheArray.remove(key);
    }
@@ -305,7 +307,7 @@ public class TextRegionUtil {
        if( null != key ) {
            final GLRegion region = stringCacheMap.remove(key);
            if(null != region) {
-               region.destroy(gl, renderer);
+               region.destroy(gl);
            }
        }
    }

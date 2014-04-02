@@ -45,22 +45,25 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
     private RegionRenderer renderer;
 
-    int fontSet = FontFactory.UBUNTU;
-    Font font;
+    private final int fontSet = FontFactory.UBUNTU;
+    private Font font;
 
-    final float relTop = 5f/6f;
-    final float relRight = 2f/6f;
-    final float relLeft = 1f/6f;
+    private final float sceneDist = 3000f;
+    private final float zNear = 0.1f, zFar = 7000f;
+
+    private final float relTop = 5f/6f;
+    private final float relRight = 2f/6f;
+    private final float relLeft = 1f/6f;
 
     /** Proportional Button Size to Window Height, per-vertical-pixels [PVP] */
-    final float buttonYSizePVP = 0.084f;
-    final float buttonXSizePVP = 0.105f;
-    final float fontSizePt = 10f;
+    private final float buttonYSizePVP = 0.084f;
+    private final float buttonXSizePVP = 0.105f;
+    private final float fontSizePt = 10f;
     /** Proportional Font Size to Window Height  for Main Text, per-vertical-pixels [PVP] */
-    final float fontSizeFixedPVP = 0.046f;
+    private final float fontSizeFixedPVP = 0.046f;
     /** Proportional Font Size to Window Height for FPS Status Line, per-vertical-pixels [PVP] */
-    final float fontSizeFpsPVP = 0.038f;
-    float dpiH = 96;
+    private final float fontSizeFpsPVP = 0.038f;
+    private float dpiH = 96;
 
     private int currentText = 0;
 
@@ -91,7 +94,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
     public GPUUISceneGLListener0A(RenderState rs, int renderModes, boolean debug, boolean trace) {
         this.rs = rs;
-        this.renderModes = renderModes | Region.COLORCHANNEL_RENDERING_BIT;
+        this.renderModes = renderModes;
 
         this.debug = debug;
         this.trace = trace;
@@ -101,7 +104,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             System.err.println("Catched: "+ioe.getMessage());
             ioe.printStackTrace();
         }
-        sceneUIController = new SceneUIController();
+        sceneUIController = new SceneUIController(sceneDist, zNear, zFar);
         screenshot = new GLReadBufferUtil(false, false);
     }
 
@@ -141,8 +144,8 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         }
     }
 
-    private void initButtons(final GL gl, final int width, final int height, final RegionRenderer renderer) {
-        final boolean pass2Mode = 0 != ( renderer.getRenderModes() & ( Region.VBAA_RENDERING_BIT | Region.MSAA_RENDERING_BIT ) ) ;
+    private void initButtons(final GL gl, final int width, final int height, final float labelZOffset, final RegionRenderer renderer) {
+        final boolean pass2Mode = Region.isTwoPass( renderModes ) ;
         buttons.clear();
 
         final float buttonXSize = buttonXSizePVP * width;
@@ -153,7 +156,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         final float diffX = 1.2f * buttonXSize;
         final float diffY = 1.5f * buttonYSize;
 
-        RIButton button = new RIButton(SVertex.factory(), font, "Next Text", buttonXSize, buttonYSize);
+        RIButton button = new RIButton(SVertex.factory(), renderModes, font, "Next Text", buttonXSize, buttonYSize, labelZOffset);
         button.translate(xstart,ystart-diffY*buttons.size(), 0f);
         button.setLabelColor(1.0f, 1.0f, 1.0f);
         button.addMouseListener(new MouseAdapter() {
@@ -170,7 +173,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         button.addMouseListener(dragZoomRotateListener);
         buttons.add(button);
 
-        button = new RIButton(SVertex.factory(), font, "Show FPS", buttonXSize, buttonYSize);
+        button = new RIButton(SVertex.factory(), renderModes, font, "Show FPS", buttonXSize, buttonYSize, labelZOffset);
         button.translate(xstart,ystart - diffY*buttons.size(), 0f);
         button.setToggleable(true);
         button.setPressed(fpsLabel.isEnabled());
@@ -187,7 +190,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         button.addMouseListener(dragZoomRotateListener);
         buttons.add(button);
 
-        button = new RIButton(SVertex.factory(), font, "v-sync", buttonXSize, buttonYSize);
+        button = new RIButton(SVertex.factory(), renderModes, font, "v-sync", buttonXSize, buttonYSize, labelZOffset);
         button.translate(xstart,ystart - diffY*buttons.size(), 0f);
         button.setToggleable(true);
         button.setPressed(gl.getSwapInterval()>0);
@@ -211,7 +214,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         button.addMouseListener(dragZoomRotateListener);
         buttons.add(button);
 
-        button = new RIButton(SVertex.factory(), font, "< tilt >", buttonXSize, buttonYSize);
+        button = new RIButton(SVertex.factory(), renderModes, font, "< tilt >", buttonXSize, buttonYSize, labelZOffset);
         button.translate(xstart,ystart - diffY*buttons.size(), 0f);
         button.setLabelColor(1.0f, 1.0f, 1.0f);
         button.addMouseListener(new MouseAdapter() {
@@ -234,7 +237,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         buttons.add(button);
 
         if( pass2Mode ) { // second column to the left
-            button = new RIButton(SVertex.factory(), font, "< samples >", buttonXSize, buttonYSize);
+            button = new RIButton(SVertex.factory(), renderModes, font, "< samples >", buttonXSize, buttonYSize, labelZOffset);
             button.translate(xstart,ystart - diffY*buttons.size(), 0f);
             button.setLabelColor(1.0f, 1.0f, 1.0f);
             button.addMouseListener(new MouseAdapter() {
@@ -261,7 +264,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             button.addMouseListener(dragZoomRotateListener);
             buttons.add(button);
 
-            button = new RIButton(SVertex.factory(), font, "< quality >", buttonXSize, buttonYSize);
+            button = new RIButton(SVertex.factory(), renderModes, font, "< quality >", buttonXSize, buttonYSize, labelZOffset);
             button.translate(xstart,ystart - diffY*buttons.size(), 0f);
             button.setLabelColor(1.0f, 1.0f, 1.0f);
             button.addMouseListener(new MouseAdapter() {
@@ -275,12 +278,12 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                         if( shapeEvent.rotPosition[0] < shapeEvent.rotBounds.getCenter()[0] ) {
                             // left-half pressed
                             if( quality > 0 ) {
-                                quality=0;
+                                quality--;
                             }
                         } else {
                             // right-half pressed
-                            if( quality < 1 ) {
-                                quality=1;
+                            if( quality < Region.MAX_QUALITY ) {
+                                quality++;
                             }
                         }
                         sceneUIController.setAllShapesQuality(quality);
@@ -290,7 +293,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             buttons.add(button);
         }
 
-        button = new RIButton(SVertex.factory(), font, "Quit", buttonXSize, buttonYSize);
+        button = new RIButton(SVertex.factory(), renderModes, font, "Quit", buttonXSize, buttonYSize, labelZOffset);
         button.translate(xstart,ystart - diffY*buttons.size(), 0f);
         button.setColor(0.8f, 0.0f, 0.0f, 1.0f);
         button.setLabelColor(1.0f, 1.0f, 1.0f);
@@ -316,7 +319,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         {
             int j = 1; // column
             int k = 0; // row
-            button = new RIButton(SVertex.factory(), font, "y flip", buttonXSize, buttonYSize);
+            button = new RIButton(SVertex.factory(), renderModes, font, "y flip", buttonXSize, buttonYSize, labelZOffset);
             button.translate(xstart - diffX*j,ystart - diffY*k, 0f);
             button.setLabelColor(1.0f, 1.0f, 1.0f);
             button.addMouseListener(new MouseAdapter() {
@@ -328,7 +331,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             buttons.add(button);
 
             k++;
-            button = new RIButton(SVertex.factory(), font, "x flip", buttonXSize, buttonYSize);
+            button = new RIButton(SVertex.factory(), renderModes, font, "x flip", buttonXSize, buttonYSize, labelZOffset);
             button.translate(xstart - diffX*j,ystart - diffY*k, 0f);
             button.setLabelColor(1.0f, 1.0f, 1.0f);
             button.addMouseListener(new MouseAdapter() {
@@ -340,7 +343,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             buttons.add(button);
             k++;
 
-            button = new RIButton(SVertex.factory(), font, "+", buttonXSize, buttonYSize);
+            button = new RIButton(SVertex.factory(), renderModes, font, "+", buttonXSize, buttonYSize, labelZOffset);
             button.translate(xstart - diffX*j,ystart - diffY*k, 0f);
             button.setLabelColor(1.0f, 1.0f, 1.0f);
             button.addMouseListener(new MouseAdapter() {
@@ -368,7 +371,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             buttons.add(button);
             k++;
 
-            button = new RIButton(SVertex.factory(), font, "< space >", buttonXSize, buttonYSize);
+            button = new RIButton(SVertex.factory(), renderModes, font, "< space >", buttonXSize, buttonYSize, labelZOffset);
             button.translate(xstart - diffX*j,ystart - diffY*k, 0f);
             button.setLabelColor(1.0f, 1.0f, 1.0f);
             button.addMouseListener(new MouseAdapter() {
@@ -393,7 +396,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             buttons.add(button);
             k++;
 
-            button = new RIButton(SVertex.factory(), font, "< corner >", buttonXSize, buttonYSize);
+            button = new RIButton(SVertex.factory(), renderModes, font, "< corner >", buttonXSize, buttonYSize, labelZOffset);
             button.translate(xstart - diffX*j,ystart - diffY*k, 0f);
             button.setLabelColor(1.0f, 1.0f, 1.0f);
             button.addMouseListener(new MouseAdapter() {
@@ -419,7 +422,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             buttons.add(button);
             k++;
 
-            button = new RIButton(SVertex.factory(), font, "reset", buttonXSize, buttonYSize);
+            button = new RIButton(SVertex.factory(), renderModes, font, "reset", buttonXSize, buttonYSize, labelZOffset);
             button.translate(xstart - diffX*j,ystart - diffY*k, 0f);
             button.setLabelColor(1.0f, 1.0f, 1.0f);
             button.addMouseListener(new MouseAdapter() {
@@ -431,7 +434,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             buttons.add(button);
             k++;
 
-            button = new RIButton(SVertex.factory(), font, "screenshot", buttonXSize, buttonYSize);
+            button = new RIButton(SVertex.factory(), renderModes, font, "screenshot", buttonXSize, buttonYSize, labelZOffset);
             button.translate(xstart - diffX*j,ystart - diffY*k, 0f);
             button.setLabelColor(1.0f, 1.0f, 1.0f);
             button.addMouseListener(new MouseAdapter() {
@@ -529,28 +532,33 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             ioe.printStackTrace();
         }
 
-        renderer = RegionRenderer.create(rs, renderModes, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
-        // renderer = RegionRenderer.create(rs, renderModes, null, null);
+        renderer = RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
+        // renderer = RegionRenderer.create(rs, null, null);
 
         gl.setSwapInterval(1);
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
         gl.glEnable(GL2ES2.GL_BLEND);
 
-        renderer.init(gl);
+        final int zBits = drawable.getChosenGLCapabilities().getDepthBits();
+        final float zEpsilon = FloatUtil.getZBufferEpsilon(zBits, sceneDist, zNear);
+        final float labelZOffset = Region.isTwoPass(renderModes) ? RIButton.DEFAULT_2PASS_LABEL_ZOFFSET : -2f*zEpsilon;
+        System.err.println("zEpsilon "+zEpsilon+" ( zBits "+zBits+") -> labelZOffset "+labelZOffset);
+
+        renderer.init(gl, renderModes);
 
         initTexts();
 
         sceneUIController.setRenderer(renderer);
 
         final float pixelSizeFixed = fontSizeFixedPVP * drawable.getHeight();
-        jogampLabel = new Label(SVertex.factory(), font, pixelSizeFixed, jogamp);
+        jogampLabel = new Label(renderer.getRenderState().getVertexFactory(), renderModes, font, pixelSizeFixed, jogamp);
         jogampLabel.addMouseListener(dragZoomRotateListener);
         sceneUIController.addShape(jogampLabel);
         jogampLabel.setEnabled(enableOthers);
 
         final float pixelSize10Pt = font.getPixelSize(fontSizePt, dpiH);
         System.err.println("10Pt PixelSize: Display "+dpiH+" dpi, fontSize "+fontSizePt+" ppi -> "+pixelSize10Pt+" pixel-size");
-        truePtSizeLabel = new Label(SVertex.factory(), font, pixelSize10Pt, truePtSize);
+        truePtSizeLabel = new Label(renderer.getRenderState().getVertexFactory(), renderModes, font, pixelSize10Pt, truePtSize);
         sceneUIController.addShape(truePtSizeLabel);
         truePtSizeLabel.setEnabled(enableOthers);
         truePtSizeLabel.translate(0, - 1.5f * jogampLabel.getLineHeight(), 0f);
@@ -562,19 +570,19 @@ public class GPUUISceneGLListener0A implements GLEventListener {
          * [FPS] Display 112.88889 dpi, fontSize 12.0 ppi -> pixelSize 15.679012
          */
         final float pixelSizeFPS = fontSizeFpsPVP * drawable.getHeight();
-        fpsLabel = new Label(renderer.getRenderState().getVertexFactory(), font, pixelSizeFPS, "Nothing there yet");
+        fpsLabel = new Label(renderer.getRenderState().getVertexFactory(), renderModes, font, pixelSizeFPS, "Nothing there yet");
         fpsLabel.addMouseListener(dragZoomRotateListener);
         sceneUIController.addShape(fpsLabel);
         fpsLabel.setEnabled(enableOthers);
         fpsLabel.setColor(0.3f, 0.3f, 0.3f, 1.0f);
 
-        crossHairCtr = new CrossHair(renderer.getRenderState().getVertexFactory(), 100f, 100f, 2f);
+        crossHairCtr = new CrossHair(renderer.getRenderState().getVertexFactory(), 0, 100f, 100f, 2f);
         crossHairCtr.addMouseListener(dragZoomRotateListener);
         sceneUIController.addShape(crossHairCtr);
         crossHairCtr.setEnabled(true);
         crossHairCtr.translate(0f, 0f, -1f);
 
-        initButtons(gl, drawable.getWidth(), drawable.getHeight(), renderer);
+        initButtons(gl, drawable.getWidth(), drawable.getHeight(), labelZOffset, renderer);
         for(int i=0; i<buttons.size(); i++) {
             sceneUIController.addShape(buttons.get(i));
         }
@@ -607,7 +615,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     private int shotCount = 0;
 
     public void printScreen(final GL gl)  {
-        final String modeS = Region.getRenderModeString(renderer.getRenderModes());
+        final String modeS = Region.getRenderModeString(jogampLabel.getRenderModes());
         final String filename = String.format("GraphUIDemo-shot%03d-%03dx%03d-S_%s_%02d.png",
                 shotCount++, renderer.getWidth(), renderer.getHeight(),
                 modeS, sceneUIController.getSampleCount());
@@ -627,7 +635,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             final float pixelSizeFixed = fontSizeFixedPVP * drawable.getHeight();
             final float dyTop = drawable.getHeight() * relTop;
             final float dxRight = drawable.getWidth() * relRight;
-            labels[currentText] = new Label(SVertex.factory(), font, pixelSizeFixed, strings[currentText]);
+            labels[currentText] = new Label(renderer.getRenderState().getVertexFactory(), renderModes, font, pixelSizeFixed, strings[currentText]);
             labels[currentText].setColor(0.1f, 0.1f, 0.1f, 1.0f);
             labels[currentText].setEnabled(enableOthers);
             labels[currentText].translate(dxRight,
@@ -648,7 +656,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                 tfps = 0f;
                 td = 0f;
             }
-            final String modeS = Region.getRenderModeString(renderer.getRenderModes());
+            final String modeS = Region.getRenderModeString(jogampLabel.getRenderModes());
             final String text;
             if( null == actionText ) {
                 final String timePrec = gl.isGLES() ? "4.0" : "4.1";

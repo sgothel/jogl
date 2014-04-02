@@ -46,7 +46,7 @@ import com.jogamp.newt.Window;
 import com.jogamp.opengl.util.PMVMatrix;
 
 public abstract class TextRendererGLELBase implements GLEventListener {
-    public final int usrRenderModes;
+    public final int renderModes;
 
     protected final int[] vbaaSampleCount;
     protected final float[] staticRGBAColor = new float[] { 1f, 1f, 1f, 1f };
@@ -87,7 +87,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
      * @see #setRendererCallbacks(com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback)
      */
     public TextRendererGLELBase(final int renderModes, int[] sampleCount) {
-        this.usrRenderModes = renderModes;
+        this.renderModes = renderModes;
         this.vbaaSampleCount = sampleCount;
     }
 
@@ -115,7 +115,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
     }
 
     /**
-     * See {@link RegionRenderer#create(RenderState, int, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback)}.
+     * See {@link RegionRenderer#create(RenderState, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback)}.
      * <p>
      * Must be called before {@link #init(GLAutoDrawable)}.
      * </p>
@@ -135,10 +135,10 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             exclusivePMVMatrix = null == sharedPMVMatrix;
             this.rs = RenderState.createRenderState(SVertex.factory(), sharedPMVMatrix);
         }
-        this.renderer = RegionRenderer.create(rs, usrRenderModes, enableCallback, disableCallback);
-        this.textRenderUtil = new TextRegionUtil(renderer);
+        this.renderer = RegionRenderer.create(rs, enableCallback, disableCallback);
+        this.textRenderUtil = new TextRegionUtil(renderModes);
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
-        renderer.init(gl);
+        renderer.init(gl, renderModes);
         rs.setColorStatic(staticRGBAColor[0], staticRGBAColor[1], staticRGBAColor[2], staticRGBAColor[3]);
         renderer.enable(gl, false);
 
@@ -268,11 +268,11 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             }
             renderer.enable(gl, true);
             if( cacheRegion ) {
-                textRenderUtil.drawString3D(gl, font, pixelSize, text, null, vbaaSampleCount);
+                textRenderUtil.drawString3D(gl, renderer, font, pixelSize, text, null, vbaaSampleCount);
             } else if( null != region ) {
-                TextRegionUtil.drawString3D(region, renderer, gl, font, pixelSize, text, null, vbaaSampleCount);
+                TextRegionUtil.drawString3D(gl, region, renderer, font, pixelSize, text, null, vbaaSampleCount);
             } else {
-                TextRegionUtil.drawString3D(renderer, gl, font, pixelSize, text, null, vbaaSampleCount);
+                TextRegionUtil.drawString3D(gl, renderModes, renderer, font, pixelSize, text, null, vbaaSampleCount);
             }
             renderer.enable(gl, false);
 

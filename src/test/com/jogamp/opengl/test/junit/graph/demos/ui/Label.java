@@ -43,8 +43,8 @@ public class Label extends UIShape {
     protected float pixelSize;
     protected String text;
 
-    public Label(Factory<? extends Vertex> factory, Font font, float pixelSize, String text) {
-        super(factory);
+    public Label(Factory<? extends Vertex> factory, int renderModes, Font font, float pixelSize, String text) {
+        super(factory, renderModes);
         this.font = font;
         this.pixelSize = pixelSize;
         this.text = text;

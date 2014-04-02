@@ -78,26 +78,26 @@ public abstract class GLRegion extends Region {
      * <p>Allocates the ogl related data and initializes it the 1st time.<p>
      * <p>Called by {@link #draw(GL2ES2, RenderState, int, int, int)}.</p>
      */
-    protected abstract void updateImpl(GL2ES2 gl, RegionRenderer renderer);
+    protected abstract void updateImpl(final GL2ES2 gl);
 
-    protected abstract void destroyImpl(GL2ES2 gl, RegionRenderer renderer);
+    protected abstract void destroyImpl(final GL2ES2 gl);
 
-    protected abstract void clearImpl(final GL2ES2 gl, final RegionRenderer renderer);
+    protected abstract void clearImpl(final GL2ES2 gl);
 
     /**
      * Clears all data, i.e. triangles, vertices etc.
      */
-    public void clear(final GL2ES2 gl, final RegionRenderer renderer) {
-        clearImpl(gl, renderer);
+    public void clear(final GL2ES2 gl) {
+        clearImpl(gl);
         clearImpl();
     }
 
     /**
      * Delete and clear the associated OGL objects.
      */
-    public final void destroy(GL2ES2 gl, RegionRenderer renderer) {
-        clear(gl, renderer);
-        destroyImpl(gl, renderer);
+    public final void destroy(GL2ES2 gl) {
+        clear(gl);
+        destroyImpl(gl);
     }
 
     /**
@@ -120,7 +120,7 @@ public abstract class GLRegion extends Region {
      * The <i>alpha</i> component shall be set to zero.
      * Note: If {@link GL#GL_BLEND blending} is enabled, the
      * {@link RegionRenderer} might need to be
-     * {@link RegionRenderer#create(RenderState, int, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback) created}
+     * {@link RegionRenderer#create(RenderState, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback) created}
      * with the appropriate {@link {@link RegionRenderer.GLCallback callbacks}.
      * </p>
      * @param matrix current {@link PMVMatrix}.
@@ -129,13 +129,13 @@ public abstract class GLRegion extends Region {
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
      * @see RegionRenderer#enable(GL2ES2, boolean)
      */
-    public final void draw(GL2ES2 gl, RegionRenderer renderer, int[/*1*/] sampleCount) {
+    public final void draw(final GL2ES2 gl, final RegionRenderer renderer, final int[/*1*/] sampleCount) {
         if(isDirty()) {
-            updateImpl(gl, renderer);
+            updateImpl(gl);
             setDirty(false);
         }
         drawImpl(gl, renderer, sampleCount);
     }
 
-    protected abstract void drawImpl(GL2ES2 gl, RegionRenderer renderer, int[/*1*/] sampleCount);
+    protected abstract void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int[/*1*/] sampleCount);
 }

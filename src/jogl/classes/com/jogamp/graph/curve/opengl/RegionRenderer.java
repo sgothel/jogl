@@ -70,7 +70,7 @@ public class RegionRenderer {
      * <p>
      * Implementation also sets {@link RegionRenderer#getRenderState() RenderState}'s {@link RenderState#BITHINT_BLENDING_ENABLED blending bit-hint}.
      * </p>
-     * @see #create(RenderState, int, GLCallback, GLCallback)
+     * @see #create(RenderState, GLCallback, GLCallback)
      * @see #enable(GL2ES2, boolean)
      */
     public static final GLCallback defaultBlendEnable = new GLCallback() {
@@ -89,7 +89,7 @@ public class RegionRenderer {
      * <p>
      * Implementation also clears {@link RegionRenderer#getRenderState() RenderState}'s {@link RenderState#BITHINT_BLENDING_ENABLED blending bit-hint}.
      * </p>
-     * @see #create(RenderState, int, GLCallback, GLCallback)
+     * @see #create(RenderState, GLCallback, GLCallback)
      * @see #enable(GL2ES2, boolean)
      */
     public static final GLCallback defaultBlendDisable = new GLCallback() {
@@ -109,20 +109,18 @@ public class RegionRenderer {
      * can be utilized to enable and disable {@link GL#GL_BLEND}.
      * </p>
      * @param rs the used {@link RenderState}
-     * @param renderModes bit-field of modes, e.g. {@link Region#VARWEIGHT_RENDERING_BIT}, {@link Region#VBAA_RENDERING_BIT}
      * @param enableCallback optional {@link GLCallback}, if not <code>null</code> will be issued at
-     *                       {@link #init(GL2ES2) init(gl)} and {@link #enable(GL2ES2, boolean) enable(gl, true)}.
+     *                       {@link #init(GL2ES2, int) init(gl)} and {@link #enable(GL2ES2, boolean) enable(gl, true)}.
      * @param disableCallback optional {@link GLCallback}, if not <code>null</code> will be issued at
      *                        {@link #enable(GL2ES2, boolean) enable(gl, false)}.
      * @return an instance of Region Renderer
      * @see #enable(GL2ES2, boolean)
      */
-    public static RegionRenderer create(final RenderState rs, final int renderModes,
-                                        final GLCallback enableCallback, final GLCallback disableCallback) {
-        return new RegionRenderer(rs, renderModes, enableCallback, disableCallback);
+    public static RegionRenderer create(final RenderState rs, final GLCallback enableCallback,
+                                        final GLCallback disableCallback) {
+        return new RegionRenderer(rs, enableCallback, disableCallback);
     }
 
-    private final int renderModes;
     private final RenderState rs;
 
     private final GLCallback enableCallback;
@@ -149,28 +147,11 @@ public class RegionRenderer {
 
     /**
      * @param rs the used {@link RenderState}
-     * @param renderModes bit-field of modes
      */
-    protected RegionRenderer(final RenderState rs, final int renderModes, final GLCallback enableCallback, final GLCallback disableCallback) {
+    protected RegionRenderer(final RenderState rs, final GLCallback enableCallback, final GLCallback disableCallback) {
         this.rs = rs;
-        this.renderModes = renderModes;
         this.enableCallback = enableCallback;
         this.disableCallback = disableCallback;
-    }
-
-    public final int getRenderModes() {
-        return renderModes;
-    }
-
-    public final boolean usesVariableCurveWeight() { return Region.hasVariableWeight(renderModes); }
-
-    /**
-     * @return true if Region's renderModes contains all bits as this Renderer's renderModes
-     *         except {@link Region#VARWEIGHT_RENDERING_BIT}, otherwise false.
-     */
-    public final boolean areRenderModesCompatible(final Region region) {
-        final int cleanRenderModes = getRenderModes() & ( Region.VARWEIGHT_RENDERING_BIT );
-        return cleanRenderModes == ( region.getRenderModes() & cleanRenderModes );
     }
 
     public final boolean isVBOSupported() { return vboSupported; }
@@ -182,9 +163,10 @@ public class RegionRenderer {
      * <p>Shall be called by a {@code draw()} method, e.g. {@link RegionRenderer#draw(GL2ES2, Region, int)}</p>
      *
      * @param gl referencing the current GLContext to which the ShaderState is bound to
+     * @param renderModes TODO
      * @throws GLException if initialization failed
      */
-    public final void init(GL2ES2 gl) throws GLException {
+    public final void init(final GL2ES2 gl, final int renderModes) throws GLException {
         if(initialized){
             return;
         }
@@ -227,6 +209,7 @@ public class RegionRenderer {
             final ShaderProgram sp = (ShaderProgram) i.next().getValue();
             sp.destroy(gl);
         }
+        shaderPrograms.clear();
         rs.destroy(gl);
         initialized = false;
     }
@@ -237,10 +220,10 @@ public class RegionRenderer {
      * Enabling or disabling the {@link #getRenderState() RenderState}'s
      * {@link RenderState#getShaderProgram() shader program}.
      * <p>
-     * In case enable and disable {@link GLCallback}s are setup via {@link #create(RenderState, int, GLCallback, GLCallback)},
+     * In case enable and disable {@link GLCallback}s are setup via {@link #create(RenderState, GLCallback, GLCallback)},
      * they will be called before toggling the shader program.
      * </p>
-     * @see #create(RenderState, int, GLCallback, GLCallback)
+     * @see #create(RenderState, GLCallback, GLCallback)
      */
     public final void enable(GL2ES2 gl, boolean enable) {
         if( enable ) {

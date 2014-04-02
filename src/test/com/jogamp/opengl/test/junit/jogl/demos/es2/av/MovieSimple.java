@@ -149,8 +149,8 @@ public class MovieSimple implements GLEventListener {
             if( lowPerfDevice ) {
                 regionFPS = null;
             } else {
-                regionFPS = GLRegion.create(usrRenderModes);
-                System.err.println("RegionFPS "+Region.getRenderModeString(usrRenderModes)+", sampleCount "+textSampleCount[0]+", class "+regionFPS.getClass().getName());
+                regionFPS = GLRegion.create(renderModes);
+                System.err.println("RegionFPS "+Region.getRenderModeString(renderModes)+", sampleCount "+textSampleCount[0]+", class "+regionFPS.getClass().getName());
             }
             staticRGBAColor[0] = 0.9f;
             staticRGBAColor[1] = 0.9f;
@@ -166,7 +166,7 @@ public class MovieSimple implements GLEventListener {
         @Override
         public void dispose(GLAutoDrawable drawable) {
             if( null != regionFPS ) {
-                regionFPS.destroy(drawable.getGL().getGL2ES2(), renderer);
+                regionFPS.destroy(drawable.getGL().getGL2ES2());
             }
             super.dispose(drawable);
         }

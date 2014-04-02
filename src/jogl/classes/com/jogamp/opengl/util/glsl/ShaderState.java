@@ -176,8 +176,7 @@ public class ShaderState {
             }
             if(shaderProgram.inUse()) {
                 if(null != prog && enable) {
-                    // new program will issue glUseProgram(..)
-                    shaderProgram.programInUse = false;
+                    shaderProgram.notifyNotInUse();
                 } else {
                     // no new 'enabled' program - disable
                     useProgram(gl, false);

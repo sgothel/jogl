@@ -49,20 +49,22 @@ import com.jogamp.opengl.math.geom.AABBox;
 public abstract class UIShape {
     public static final boolean DRAW_DEBUG_BOX = false;
 
-    private final Factory<? extends Vertex> vertexFactory;
-
     protected static final int DIRTY_SHAPE     = 1 << 0 ;
-    protected int dirty = DIRTY_SHAPE;
-    protected float shapesSharpness = OutlineShape.DEFAULT_SHARPNESS;
 
+    private final Factory<? extends Vertex> vertexFactory;
+    private final int renderModes;
     protected final AABBox box;
+
     protected final float[] translate = new float[] { 0f, 0f, 0f };
     protected final Quaternion rotation = new Quaternion();
     protected final float[] rotOrigin = new float[] { 0f, 0f, 0f };
     protected final float[] scale = new float[] { 1f, 1f, 1f };
 
     protected GLRegion region = null;
-    protected int regionQuality = 99;
+    protected int regionQuality = Region.MAX_QUALITY;
+
+    protected int dirty = DIRTY_SHAPE;
+    protected float shapesSharpness = OutlineShape.DEFAULT_SHARPNESS;
 
     protected final float[] rgbaColor         = {0.6f, 0.6f, 0.6f, 1.0f};
     protected final float[] selectedRGBAModulate = {1.4f, 1.4f, 1.4f, 1.0f};
@@ -73,8 +75,9 @@ public abstract class UIShape {
     private boolean enabled = true;
     private ArrayList<MouseListener> mouseListeners = new ArrayList<MouseListener>();
 
-    public UIShape(Factory<? extends Vertex> factory) {
+    public UIShape(final Factory<? extends Vertex> factory, final int renderModes) {
         this.vertexFactory = factory;
+        this.renderModes = renderModes;
         this.box = new AABBox();
     }
 
@@ -166,6 +169,8 @@ public abstract class UIShape {
 
     public final AABBox getBounds() { return box; }
 
+    public final int getRenderModes() { return renderModes; }
+
     public GLRegion getRegion(GL2ES2 gl, RegionRenderer renderer) {
         validate(gl, renderer);
         return region;
@@ -202,7 +207,7 @@ public abstract class UIShape {
         }
         final RenderState rs = renderer.getRenderState();
 
-        if( Region.hasColorChannel( renderer.getRenderModes() ) ) {
+        if( Region.hasColorChannel( renderModes ) ) {
             if( isSelect ) {
                 rs.setColorStatic(selectedRGBAModulate[0], selectedRGBAModulate[1], selectedRGBAModulate[2], selectedRGBAModulate[3]);
             } else {
@@ -218,13 +223,13 @@ public abstract class UIShape {
         if( isShapeDirty() ) {
             box.reset();
             if( null == region ) {
-                region = GLRegion.create(renderer.getRenderModes());
+                region = GLRegion.create(renderModes);
             } else {
-                region.clear(gl, renderer);
+                region.clear(gl);
             }
             addShapeToRegion(gl, renderer);
             if( DRAW_DEBUG_BOX ) {
-                region.clear(gl, renderer);
+                region.clear(gl);
                 final OutlineShape shape = new OutlineShape(renderer.getRenderState().getVertexFactory());
                 shape.setSharpness(shapesSharpness);
                 shape.setIsQuadraticNurbs();

@@ -51,7 +51,7 @@ public abstract class Region {
     public static final boolean DEBUG_INSTANCE = Debug.debug("graph.curve.Instance");
 
     /**
-     * Rendering-Mode bit for {@link Region#getRenderModes() Region} and {@link com.jogamp.graph.curve.opengl.RegionRenderer#getRenderModes() RegionRenderer}.
+     * Rendering-Mode bit for {@link #getRenderModes() Region}
      * <p>
      * MSAA based Anti-Aliasing, a two pass region rendering, slower and more
      * resource hungry (FBO), but providing fast MSAA in case
@@ -61,7 +61,7 @@ public abstract class Region {
     public static final int MSAA_RENDERING_BIT        = 1 <<  0;
 
     /**
-     * Rendering-Mode bit for {@link Region#getRenderModes() Region} and {@link com.jogamp.graph.curve.opengl.RegionRenderer#getRenderModes() RegionRenderer}.
+     * Rendering-Mode bit for {@link #getRenderModes() Region}
      * <p>
      * View based Anti-Aliasing, a two pass region rendering, slower and more
      * resource hungry (FBO), but AA is perfect. Otherwise the default fast one
@@ -71,7 +71,7 @@ public abstract class Region {
     public static final int VBAA_RENDERING_BIT        = 1 <<  1;
 
     /**
-     * Rendering-Mode bit for {@link Region#getRenderModes() Region} and {@link com.jogamp.graph.curve.opengl.RegionRenderer#getRenderModes() RegionRenderer}.
+     * Rendering-Mode bit for {@link #getRenderModes() Region}
      * <p>
      * Use non uniform weights [0.0 .. 1.9] for curve region rendering.
      * Otherwise the default weight 1.0 for uniform curve region rendering is
@@ -81,7 +81,7 @@ public abstract class Region {
     public static final int VARWEIGHT_RENDERING_BIT    = 1 <<  8;
 
     /**
-     * Rendering-Mode bit for {@link Region#getRenderModes() Region} and {@link com.jogamp.graph.curve.opengl.RegionRenderer#getRenderModes() RegionRenderer}.
+     * Rendering-Mode bit for {@link #getRenderModes() Region}
      * <p>
      * If set, a color channel attribute per vertex is added to the stream,
      * otherwise only the
@@ -92,12 +92,15 @@ public abstract class Region {
     public static final int COLORCHANNEL_RENDERING_BIT = 1 <<  9;
 
     /**
-     * Rendering-Mode bit for {@link Region#getRenderModes() Region} and {@link com.jogamp.graph.curve.opengl.RegionRenderer#getRenderModes() RegionRenderer}.
+     * Rendering-Mode bit for {@link #getRenderModes() Region}
      * <p>
      * If set, a color texture is used to determine the color.
      * </p>
      */
     public static final int COLORTEXTURE_RENDERING_BIT = 1 <<  10;
+
+    /** Default maximum {@link #getQuality() quality}, {@value}. */
+    public static final int MAX_QUALITY  = 1;
 
     public static final int TWO_PASS_DEFAULT_TEXTURE_UNIT = 0;
 
@@ -162,7 +165,7 @@ public abstract class Region {
 
     protected Region(int regionRenderModes) {
         this.renderModes = regionRenderModes;
-        this.quality = 99;
+        this.quality = MAX_QUALITY;
     }
 
     // FIXME: Better handling of impl. buffer growth .. !
@@ -176,7 +179,10 @@ public abstract class Region {
      */
     public final int getRenderModes() { return renderModes; }
 
+    /** See {@link #MAX_QUALITY} */
     public final int getQuality() { return quality; }
+
+    /** See {@link #MAX_QUALITY} */
     public final void setQuality(int q) { quality=q; }
 
     protected void clearImpl() {

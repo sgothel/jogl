@@ -63,7 +63,7 @@ public abstract class GLReadBuffer00Base extends UITestCase {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
             super(Region.VBAA_RENDERING_BIT, new int[] { 4 });
             this.setRendererCallbacks(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
-            regionFPS = GLRegion.create(usrRenderModes);
+            regionFPS = GLRegion.create(renderModes);
 
             staticRGBAColor[0] = 0.9f;
             staticRGBAColor[1] = 0.9f;
@@ -73,7 +73,7 @@ public abstract class GLReadBuffer00Base extends UITestCase {
 
         @Override
         public void dispose(GLAutoDrawable drawable) {
-            regionFPS.destroy(drawable.getGL().getGL2ES2(), renderer);
+            regionFPS.destroy(drawable.getGL().getGL2ES2());
             super.dispose(drawable);
         }
 

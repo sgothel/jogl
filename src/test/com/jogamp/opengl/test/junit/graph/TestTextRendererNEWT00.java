@@ -210,18 +210,18 @@ public class TestTextRendererNEWT00 extends UITestCase {
         }
 
         final RenderState rs = RenderState.createRenderState(SVertex.factory());
-        final int rendererMode, sampleCount;
+        final int renderModes, sampleCount;
         if( graphVBAASamples > 0 ) {
-            rendererMode = Region.VBAA_RENDERING_BIT;
+            renderModes = Region.VBAA_RENDERING_BIT;
             sampleCount = graphVBAASamples;
         } else if ( graphMSAASamples > 0 ) {
-            rendererMode = Region.MSAA_RENDERING_BIT;
+            renderModes = Region.MSAA_RENDERING_BIT;
             sampleCount = graphMSAASamples;
         } else {
-            rendererMode = 0;
+            renderModes = 0;
             sampleCount = 0;
         }
-        final TextRendererGLEL textGLListener = new TextRendererGLEL(rs, rendererMode, sampleCount);
+        final TextRendererGLEL textGLListener = new TextRendererGLEL(rs, renderModes, sampleCount);
         System.err.println(textGLListener.getFontInfo());
 
         window.addGLEventListener(textGLListener);
@@ -235,7 +235,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
             @Override
             public boolean run(GLAutoDrawable drawable) {
                 try {
-                    textGLListener.printScreen(drawable, "./", "TestTextRendererNEWT00-snap"+screenshot_num, false);
+                    textGLListener.printScreen(renderModes, drawable, "./", "TestTextRendererNEWT00-snap"+screenshot_num, false);
                     screenshot_num++;
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -322,13 +322,13 @@ public class TestTextRendererNEWT00 extends UITestCase {
         public void dispose(GLAutoDrawable drawable) {
             final GL2ES2 gl = drawable.getGL().getGL2ES2();
             screenshot.dispose(gl);
-            regionFPS.destroy(gl, renderer);
-            regionFPSAnim.destroy(gl, renderer);
+            regionFPS.destroy(gl);
+            regionFPSAnim.destroy(gl);
             super.dispose(drawable);
         }
 
-        public void printScreen(GLAutoDrawable drawable, String dir, String objName, boolean exportAlpha) throws GLException, IOException {
-            final String modeS = Region.getRenderModeString(renderer.getRenderModes());
+        public void printScreen(int renderModes, GLAutoDrawable drawable, String dir, String objName, boolean exportAlpha) throws GLException, IOException {
+            final String modeS = Region.getRenderModeString(renderModes);
             final String bname = String.format("%s-msaa%02d-fontsz%02.1f-%03dx%03d-%s%04d", objName,
                     drawable.getChosenGLCapabilities().getNumSamples(),
                     TestTextRendererNEWT00.fontSizeFixed, drawable.getWidth(), drawable.getHeight(), modeS, vbaaSampleCount[0]);
@@ -372,7 +372,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
             final float pixelSize = font.getPixelSize(fontSizeFixed, dpiH);
             final float pixelSizeAnim = font.getPixelSize(fontSizeAnim, dpiH);
 
-            final String modeS = Region.getRenderModeString(renderer.getRenderModes());
+            final String modeS = Region.getRenderModeString(renderModes);
             final String text1 = String.format("%03.1f/%03.1f fps, vsync %d, elapsed %4.1f s, fontSize %2.2f, msaa %d, %s-samples %d",
                     lfps, tfps, gl.getSwapInterval(), (t1-t0)/1000.0, fontSizeFixed,
                     drawable.getChosenGLCapabilities().getNumSamples(), modeS, vbaaSampleCount[0]);

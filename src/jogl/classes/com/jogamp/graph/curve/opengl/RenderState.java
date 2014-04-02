@@ -104,17 +104,20 @@ public class RenderState {
      * Set a {@link ShaderProgram} and enable it. If the given {@link ShaderProgram} is new,
      * method returns true, otherwise false.
      * @param gl
-     * @param sp
+     * @param spNext
      * @return true if a new shader program is being used and hence external uniform-data and -location,
      *         as well as the attribute-location must be updated, otherwise false.
      */
-    public final boolean setShaderProgram(final GL2ES2 gl, final ShaderProgram sp) {
-        if( sp.equals(this.sp) ) {
-            sp.useProgram(gl, true);
+    public final boolean setShaderProgram(final GL2ES2 gl, final ShaderProgram spNext) {
+        if( spNext.equals(this.sp) ) {
+            spNext.useProgram(gl, true);
             return false;
         }
-        this.sp = sp;
-        sp.useProgram(gl, true);
+        if( null != this.sp ) {
+            this.sp.notifyNotInUse();
+        }
+        this.sp = spNext;
+        spNext.useProgram(gl, true);
         return true;
     }
 
@@ -128,13 +131,6 @@ public class RenderState {
     public final GLUniformData getMatrixUniform() { return gcu_PMVMatrix01; }
     public final void setMatrixDirty() { gcu_PMVMatrix01_dirty = true; }
     public final boolean isMatrixDirty() { return gcu_PMVMatrix01_dirty;}
-
-    public final void updateMatrix(GL2ES2 gl) {
-        if( gcu_PMVMatrix01_dirty && sp.inUse() ) {
-            gl.glUniform( gcu_PMVMatrix01 );
-            gcu_PMVMatrix01_dirty = false;
-        }
-    }
 
     public static boolean isWeightValid(float v) {
         return 0.0f <= v && v <= 1.9f ;
@@ -179,20 +175,17 @@ public class RenderState {
         if( null != sp && sp.inUse() ) {
             if( ( !Region.isTwoPass(renderModes) || !pass1 ) && ( gcu_PMVMatrix01_dirty || updateLocation ) ) {
                 final boolean r0 = updateUniformDataLoc(gl, updateLocation, gcu_PMVMatrix01_dirty, gcu_PMVMatrix01);
-                System.err.println("XXX gcu_PMVMatrix01.update: "+r0);
                 res = res && r0;
                 gcu_PMVMatrix01_dirty = !r0;
             }
             if( pass1 ) {
                 if( Region.hasVariableWeight( renderModes ) && ( gcu_Weight_dirty || updateLocation ) ) {
                     final boolean r0 = updateUniformDataLoc(gl, updateLocation, gcu_Weight_dirty, gcu_Weight);
-                    System.err.println("XXX gcu_Weight.update: "+r0);
                     res = res && r0;
                     gcu_Weight_dirty = !r0;
                 }
                 if( gcu_ColorStatic_dirty || updateLocation )  {
                     final boolean r0 = updateUniformDataLoc(gl, updateLocation, gcu_ColorStatic_dirty, gcu_ColorStatic);
-                    System.err.println("XXX gcu_ColorStatic.update: "+r0);
                     res = res && r0;
                     gcu_ColorStatic_dirty = false;
                 }
