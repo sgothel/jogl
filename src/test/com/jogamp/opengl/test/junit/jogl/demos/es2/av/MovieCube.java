@@ -168,9 +168,10 @@ public class MovieCube implements GLEventListener {
     private final class InfoTextRendererGLELBase extends TextRendererGLELBase {
         private static final float z_diff = 0.001f;
         private final Font font = getFont(0, 0, 0);
-        private final float fontSize = 12;
+        private final float fontSize1 = 12;
+        private final float fontSize2 = 10;
         private final GLRegion regionFPS;
-        private float pixelSize, underlineSize;
+        private float pixelSize1, pixelSize2, underlineSize;
 
         InfoTextRendererGLELBase(final int rmode, final boolean lowPerfDevice) {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
@@ -195,14 +196,15 @@ public class MovieCube implements GLEventListener {
             this.setSharedPMVMatrix(cube.pmvMatrix);
             super.init(drawable);
 
-            pixelSize = font.getPixelSize(fontSize, dpiH);
-            pixelScale = 1.0f / ( pixelSize * 20f );
+            pixelSize1 = font.getPixelSize(fontSize1, dpiH);
+            pixelSize2 = font.getPixelSize(fontSize2, dpiH);
+            pixelScale = 1.0f / ( pixelSize1 * 20f );
             // underlineSize: 'underline' amount of pixel below 0/0 (Note: lineGap is negative)
             final Font.Metrics metrics = font.getMetrics();
-            final float lineGap = metrics.getLineGap(pixelSize);
-            final float descent = metrics.getDescent(pixelSize);
+            final float lineGap = metrics.getLineGap(pixelSize1);
+            final float descent = metrics.getDescent(pixelSize1);
             underlineSize = descent - lineGap;
-            System.err.println("XXX: dpiH "+dpiH+", fontSize "+fontSize+", pixelSize "+pixelSize+", pixelScale "+pixelScale+", fLG "+lineGap+", fDesc "+descent+", underlineSize "+underlineSize);
+            System.err.println("XXX: dpiH "+dpiH+", fontSize "+fontSize1+", pixelSize "+pixelSize1+", pixelScale "+pixelScale+", fLG "+lineGap+", fDesc "+descent+", underlineSize "+underlineSize);
         }
 
         @Override
@@ -254,13 +256,13 @@ public class MovieCube implements GLEventListener {
             if( displayOSD && null != renderer ) {
                 gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
                 if( null != regionFPS ) {
-                    renderString(drawable, font, pixelSize, text1, 1 /* col */, -1 /* row */, -1+z_diff, yoff1, 1f+z_diff, regionFPS); // no-cache
+                    renderString(drawable, font, pixelSize1, text1, 1 /* col */, -1 /* row */, -1+z_diff, yoff1, 1f+z_diff, regionFPS); // no-cache
                 } else {
-                    renderString(drawable, font, pixelSize, text1, 1 /* col */, -1 /* row */, -1+z_diff, yoff1, 1f+z_diff, true);
+                    renderString(drawable, font, pixelSize1, text1, 1 /* col */, -1 /* row */, -1+z_diff, yoff1, 1f+z_diff, true);
                 }
-                renderString(drawable, font, pixelSize, text2, 1 /* col */,  0 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
-                renderString(drawable, font, pixelSize, text3, 1 /* col */,  1 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
-                renderString(drawable, font, pixelSize, text4, 1 /* col */,  2 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
+                renderString(drawable, font, pixelSize2, text2, 1 /* col */,  0 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
+                renderString(drawable, font, pixelSize2, text3, 1 /* col */,  1 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
+                renderString(drawable, font, pixelSize2, text4, 1 /* col */,  2 /* row */, -1+z_diff, yoff2, 1f+z_diff, true);
             }
         } };
     private InfoTextRendererGLELBase textRendererGLEL = null;
@@ -459,8 +461,8 @@ public class MovieCube implements GLEventListener {
 
     public static void main(String[] args) throws IOException, InterruptedException, URISyntaxException {
         int swapInterval = 1;
-        int width = 510;
-        int height = 300;
+        int width = 800;
+        int height = 600;
         int textureCount = GLMediaPlayer.TEXTURE_COUNT_DEFAULT; // default - threaded
 
         boolean forceES2 = false;

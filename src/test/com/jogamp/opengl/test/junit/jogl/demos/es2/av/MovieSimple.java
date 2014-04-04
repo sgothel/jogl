@@ -910,7 +910,7 @@ public class MovieSimple implements GLEventListener {
 
     public static void main(String[] args) throws IOException, URISyntaxException {
         int swapInterval = 1;
-        int width = 640;
+        int width = 800;
         int height = 600;
         int textureCount = 3; // default - threaded
         boolean ortho = true;

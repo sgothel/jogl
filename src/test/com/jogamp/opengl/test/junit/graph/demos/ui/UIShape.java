@@ -215,8 +215,7 @@ public abstract class UIShape {
         }
 
         if( renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
-            // gl.glClearColor(r, g, b, 0.0f);
-            gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+            gl.glClearColor(r, g, b, 0.0f);
         }
         final RenderState rs = renderer.getRenderState();
 

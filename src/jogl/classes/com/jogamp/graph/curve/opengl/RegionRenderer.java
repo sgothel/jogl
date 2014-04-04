@@ -187,6 +187,7 @@ public class RegionRenderer {
         if( null != enableCallback ) {
             enableCallback.run(gl, this);
         }
+        initialized = true;
     }
 
     public final void destroy(GL2ES2 gl) {
