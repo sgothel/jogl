@@ -146,7 +146,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
 
     @Override
     public void reshape(GLAutoDrawable drawable, int xstart, int ystart, int width, int height) {
-        final PMVMatrix pmv = renderer.getMatrixMutable();
+        final PMVMatrix pmv = renderer.getMatrix();
         renderer.reshapePerspective(45.0f, width, height, zNear, zFar);
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();

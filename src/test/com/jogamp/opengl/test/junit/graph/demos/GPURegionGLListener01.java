@@ -90,7 +90,7 @@ public class GPURegionGLListener01 extends GPURendererListenerBase01 {
         outlineShape.addVertex(offset+10.0f,0.0f, true);
         outlineShape.closeLastOutline(true);
 
-        region = GLRegion.create(getRenderModes());
+        region = GLRegion.create(getRenderModes(), null);
         region.addOutlineShape(outlineShape, null, region.hasColorChannel() ? getRenderer().getRenderState().getColorStatic(new float[4]) : null);
     }
 
@@ -116,7 +116,7 @@ public class GPURegionGLListener01 extends GPURendererListenerBase01 {
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
         final RegionRenderer regionRenderer = getRenderer();
-        final PMVMatrix pmv = regionRenderer.getMatrixMutable();
+        final PMVMatrix pmv = regionRenderer.getMatrix();
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         pmv.glTranslatef(getXTran(), getYTran(), getZTran());

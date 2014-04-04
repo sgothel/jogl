@@ -35,6 +35,7 @@ import jogamp.graph.curve.opengl.VBORegion2PVBAAES2;
 import jogamp.graph.curve.opengl.VBORegionSPES2;
 
 import com.jogamp.opengl.util.PMVMatrix;
+import com.jogamp.opengl.util.texture.TextureSequence;
 import com.jogamp.graph.curve.Region;
 
 /** A GLRegion is the OGL binding of one or more OutlineShapes
@@ -53,23 +54,31 @@ public abstract class GLRegion extends Region {
      * Create a GLRegion using the passed render mode
      *
      * <p> In case {@link Region#VBAA_RENDERING_BIT} is being requested the default texture unit
-     * {@link Region#TWO_PASS_DEFAULT_TEXTURE_UNIT} is being used.</p>
-     *
-     * @param rs the RenderState to be used
+     * {@link Region#DEFAULT_TWO_PASS_TEXTURE_UNIT} is being used.</p>
      * @param renderModes bit-field of modes, e.g. {@link Region#VARWEIGHT_RENDERING_BIT}, {@link Region#VBAA_RENDERING_BIT}
+     * @param colorTexSeq TODO
+     * @param rs the RenderState to be used
      */
-    public static GLRegion create(int renderModes) {
+    public static GLRegion create(int renderModes, final TextureSequence colorTexSeq) {
+        if( null != colorTexSeq ) {
+            renderModes |= Region.COLORTEXTURE_RENDERING_BIT;
+        } else if( Region.hasColorTexture(renderModes) ) {
+            throw new IllegalArgumentException("COLORTEXTURE_RENDERING_BIT set but null TextureSequence");
+        }
         if( isVBAA(renderModes) ) {
-            return new VBORegion2PVBAAES2(renderModes, Region.TWO_PASS_DEFAULT_TEXTURE_UNIT);
+            return new VBORegion2PVBAAES2(renderModes, colorTexSeq, Region.DEFAULT_TWO_PASS_TEXTURE_UNIT);
         } else if( isMSAA(renderModes) ) {
-            return new VBORegion2PMSAAES2(renderModes, Region.TWO_PASS_DEFAULT_TEXTURE_UNIT);
+            return new VBORegion2PMSAAES2(renderModes, colorTexSeq, Region.DEFAULT_TWO_PASS_TEXTURE_UNIT);
         } else {
-            return new VBORegionSPES2(renderModes);
+            return new VBORegionSPES2(renderModes, colorTexSeq);
         }
     }
 
-    protected GLRegion(int renderModes) {
+    protected final TextureSequence colorTexSeq;
+
+    protected GLRegion(int renderModes, TextureSequence colorTexSeq) {
         super(renderModes);
+        this.colorTexSeq = colorTexSeq;
     }
 
     /**

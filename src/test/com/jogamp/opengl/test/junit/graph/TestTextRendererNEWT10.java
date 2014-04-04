@@ -191,7 +191,7 @@ public class TestTextRendererNEWT10 extends UITestCase {
         dx += font.getAdvanceWidth('X', fontSize) * column;
         dy -= (int)textBox.getHeight() * ( row + 1 );
 
-        final PMVMatrix pmv = renderer.getMatrixMutable();
+        final PMVMatrix pmv = renderer.getMatrix();
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         pmv.glTranslatef(dx, dy, z0);

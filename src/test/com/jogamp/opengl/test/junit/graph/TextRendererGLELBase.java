@@ -253,7 +253,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             dx += pixelScale * font.getAdvanceWidth('X', pixelSize) * column;
             dy -= pixelScale * lineHeight * ( row + 1 );
 
-            final PMVMatrix pmvMatrix = rs.getMatrixMutable();
+            final PMVMatrix pmvMatrix = rs.getMatrix();
             pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
             if( !exclusivePMVMatrix )  {
                 pmvMatrix.glPushMatrix();
@@ -279,7 +279,6 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             renderer.enable(gl, false);
 
             if( !exclusivePMVMatrix )  {
-                rs.setMatrixDirty();
                 pmvMatrix.glPopMatrix();
             }
             lastRow = row + newLineCount;

@@ -50,7 +50,7 @@ public class UIGLListener01 extends UIListenerBase01 {
         setMatrix(-20, 00, 0f, -50);
         try {
             final Font font = FontFactory.get(FontFactory.UBUNTU).getDefault();
-            button = new RIButton(SVertex.factory(), 0, font, "Click me!", 4f, 3f, -0.05f);
+            button = new LabelButton(SVertex.factory(), 0, font, "Click me!", 4f, 3f, -0.05f);
             button.translate(2,1,0);
             /** Button defaults !
                 button.setLabelColor(1.0f,1.0f,1.0f);
@@ -89,7 +89,7 @@ public class UIGLListener01 extends UIListenerBase01 {
         final float[] translate = button.getTranslate();
 
         final RegionRenderer regionRenderer = getRegionRenderer();
-        final PMVMatrix pmv = regionRenderer.getMatrixMutable();
+        final PMVMatrix pmv = regionRenderer.getMatrix();
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         pmv.glTranslatef(getXTran(), getYTran(), getZoom());

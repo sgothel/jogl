@@ -178,7 +178,7 @@ public class TextRegionUtil {
         final int special = 0;
         GLRegion region = getCachedRegion(font, str, pixelSize, special);
         if(null == region) {
-            region = GLRegion.create(renderModes);
+            region = GLRegion.create(renderModes, null);
             addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, pixelSize, str, rgbaColor, tempT1, tempT2);
             addCachedRegion(gl, font, str, pixelSize, special, region);
         }
@@ -213,7 +213,7 @@ public class TextRegionUtil {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
-        final GLRegion region = GLRegion.create(renderModes);
+        final GLRegion region = GLRegion.create(renderModes, null);
         addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, pixelSize, str, rgbaColor, temp1, temp2);
         region.draw(gl, renderer, sampleCount);
         region.destroy(gl);

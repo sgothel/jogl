@@ -31,6 +31,7 @@ import java.nio.FloatBuffer;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GLException;
 import javax.media.opengl.GLUniformData;
 
 import jogamp.graph.curve.opengl.shader.UniformNames;
@@ -78,25 +79,109 @@ public class RenderState {
 
     private final Vertex.Factory<? extends Vertex> vertexFactory;
     private final PMVMatrix pmvMatrix;
-    private final GLUniformData gcu_PMVMatrix01;
-    private final GLUniformData gcu_Weight;
-    private final GLUniformData gcu_ColorStatic;
-    private boolean gcu_PMVMatrix01_dirty = true;
-    private boolean gcu_Weight_dirty = true;
-    private boolean gcu_ColorStatic_dirty = true;
+    private final float[] weight;
+    private final FloatBuffer weightBuffer;
+    private final float[] colorStatic;
+    private final FloatBuffer colorStaticBuffer;
     private ShaderProgram sp;
     private int hintBitfield;
 
+    private final int id;
+    private static synchronized int getNextID() {
+        return nextID++;
+    }
+    private static int nextID = 1;
+
+    /**
+     * Representation of {@link RenderState} data for one {@link ShaderProgram}
+     * as {@link GLUniformData}.
+     * <p>
+     * FIXME: Utilize 'ARB_Uniform_Buffer_Object' where available!
+     * </p>
+     */
+    public static class ProgramLocal {
+        public final GLUniformData gcu_PMVMatrix01;
+        public final GLUniformData gcu_Weight;
+        public final GLUniformData gcu_ColorStatic;
+        private int rsId = -1;
+
+        public ProgramLocal() {
+            gcu_PMVMatrix01 = GLUniformData.creatEmptyMatrix(UniformNames.gcu_PMVMatrix01, 4, 4);
+            gcu_Weight = GLUniformData.creatEmptyVector(UniformNames.gcu_Weight, 1);
+            gcu_ColorStatic = GLUniformData.creatEmptyVector(UniformNames.gcu_ColorStatic, 4);
+        }
+
+        public final int getRenderStateId() { return rsId; }
+
+        /**
+         * <p>
+         * Since {@link RenderState} data is being used in multiple
+         * {@link ShaderProgram}s the data must always be written.
+         * </p>
+         * @param gl
+         * @param updateLocation
+         * @param renderModes
+         * @param throwOnError TODO
+         * @return true if no error occurred, i.e. all locations found, otherwise false.
+         */
+        public final boolean update(final GL2ES2 gl, final RenderState rs, final boolean updateLocation, final int renderModes, final boolean pass1, final boolean throwOnError) {
+            if( rs.id() != rsId ) {
+                gcu_PMVMatrix01.setData(rs.pmvMatrix.glGetPMvMatrixf());
+                gcu_Weight.setData(rs.weightBuffer);
+                gcu_ColorStatic.setData(rs.colorStaticBuffer);
+                rsId = rs.id();
+            }
+            boolean res = true;
+            if( null != rs.sp && rs.sp.inUse() ) {
+                if( !Region.isTwoPass(renderModes) || !pass1 ) {
+                    final boolean r0 = rs.updateUniformDataLoc(gl, updateLocation, true, gcu_PMVMatrix01, throwOnError);
+                    res = res && r0;
+                }
+                if( pass1 ) {
+                    if( Region.hasVariableWeight( renderModes ) ) {
+                        final boolean r0 = rs.updateUniformDataLoc(gl, updateLocation, true, gcu_Weight, throwOnError);
+                        res = res && r0;
+                    }
+                    {
+                        final boolean r0 = rs.updateUniformDataLoc(gl, updateLocation, true, gcu_ColorStatic, throwOnError);
+                        res = res && r0;
+                    }
+                }
+            }
+            return res;
+        }
+
+        public StringBuilder toString(StringBuilder sb, boolean alsoUnlocated) {
+            if(null==sb) {
+                sb = new StringBuilder();
+            }
+            sb.append("ProgramLocal[rsID ").append(rsId).append(Platform.NEWLINE);
+            // pmvMatrix.toString(sb, "%.2f");
+            sb.append(gcu_PMVMatrix01).append(", ").append(Platform.NEWLINE);
+            sb.append(gcu_ColorStatic).append(", ");
+            sb.append(gcu_Weight).append("]");
+            return sb;
+        }
+
+        @Override
+        public String toString() {
+            return toString(null, false).toString();
+        }
+    }
+
     protected RenderState(Vertex.Factory<? extends Vertex> vertexFactory, PMVMatrix pmvMatrix) {
+        this.id = getNextID();
         this.sp = null;
         this.vertexFactory = vertexFactory;
         this.pmvMatrix = null != pmvMatrix ? pmvMatrix : new PMVMatrix();
-        this.gcu_PMVMatrix01 = new GLUniformData(UniformNames.gcu_PMVMatrix01, 4, 4, this.pmvMatrix.glGetPMvMatrixf());
-        this.gcu_Weight = new GLUniformData(UniformNames.gcu_Weight, 1.0f);
-        this.gcu_ColorStatic = new GLUniformData(UniformNames.gcu_ColorStatic, 4, FloatBuffer.allocate(4));
+        this.weight = new float[1];
+        this.weightBuffer = FloatBuffer.wrap(weight);
+        this.colorStatic = new float[4];
+        this.colorStaticBuffer = FloatBuffer.wrap(colorStatic);
         this.hintBitfield = 0;
     }
 
+    public final int id() { return id; }
     public final ShaderProgram getShaderProgram() { return sp; }
     public final boolean isShaderProgramInUse() { return null != sp ? sp.inUse() : false; }
 
@@ -124,86 +209,46 @@ public class RenderState {
     public final Vertex.Factory<? extends Vertex> getVertexFactory() { return vertexFactory; }
 
     public final PMVMatrix getMatrix() { return pmvMatrix; }
-    public final PMVMatrix getMatrixMutable() {
-        gcu_PMVMatrix01_dirty = true;
-        return pmvMatrix;
-    }
-    public final GLUniformData getMatrixUniform() { return gcu_PMVMatrix01; }
-    public final void setMatrixDirty() { gcu_PMVMatrix01_dirty = true; }
-    public final boolean isMatrixDirty() { return gcu_PMVMatrix01_dirty;}
 
     public static boolean isWeightValid(float v) {
         return 0.0f <= v && v <= 1.9f ;
     }
-    public final float getWeight() { return gcu_Weight.floatValue(); }
+    public final float getWeight() { return weight[0]; }
     public final void setWeight(float v) {
         if( !isWeightValid(v) ) {
              throw new IllegalArgumentException("Weight out of range");
         }
-        gcu_Weight_dirty = true;
-        gcu_Weight.setData(v);
+        weight[0] = v;
     }
 
 
     public final float[] getColorStatic(float[] rgbaColor) {
-        FloatBuffer fb = (FloatBuffer) gcu_ColorStatic.getBuffer();
-        rgbaColor[0] = fb.get(0);
-        rgbaColor[1] = fb.get(1);
-        rgbaColor[2] = fb.get(2);
-        rgbaColor[3] = fb.get(3);
+        System.arraycopy(colorStatic, 0, rgbaColor, 0, 4);
         return rgbaColor;
     }
     public final void setColorStatic(float r, float g, float b, float a){
-        final FloatBuffer fb = (FloatBuffer) gcu_ColorStatic.getBuffer();
-        fb.put(0, r);
-        fb.put(1, g);
-        fb.put(2, b);
-        fb.put(3, a);
-        gcu_ColorStatic_dirty = true;
+        colorStatic[0] = r;
+        colorStatic[1] = g;
+        colorStatic[2] = b;
+        colorStatic[3] = a;
     }
 
-
-    /**
-     *
-     * @param gl
-     * @param updateLocation
-     * @param renderModes
-     * @return true if no error occurred, i.e. all locations found, otherwise false.
-     */
-    public final boolean update(GL2ES2 gl, final boolean updateLocation, final int renderModes, final boolean pass1) {
-        boolean res = true;
-        if( null != sp && sp.inUse() ) {
-            if( ( !Region.isTwoPass(renderModes) || !pass1 ) && ( gcu_PMVMatrix01_dirty || updateLocation ) ) {
-                final boolean r0 = updateUniformDataLoc(gl, updateLocation, gcu_PMVMatrix01_dirty, gcu_PMVMatrix01);
-                res = res && r0;
-                gcu_PMVMatrix01_dirty = !r0;
-            }
-            if( pass1 ) {
-                if( Region.hasVariableWeight( renderModes ) && ( gcu_Weight_dirty || updateLocation ) ) {
-                    final boolean r0 = updateUniformDataLoc(gl, updateLocation, gcu_Weight_dirty, gcu_Weight);
-                    res = res && r0;
-                    gcu_Weight_dirty = !r0;
-                }
-                if( gcu_ColorStatic_dirty || updateLocation )  {
-                    final boolean r0 = updateUniformDataLoc(gl, updateLocation, gcu_ColorStatic_dirty, gcu_ColorStatic);
-                    res = res && r0;
-                    gcu_ColorStatic_dirty = false;
-                }
-            }
-        }
-        return res;
-    }
 
     /**
      *
      * @param gl
      * @param updateLocation
      * @param data
+     * @param throwOnError TODO
      * @return true if no error occured, i.e. all locations found, otherwise false.
      */
-    public final boolean updateUniformLoc(final GL2ES2 gl, final boolean updateLocation, final GLUniformData data) {
+    public final boolean updateUniformLoc(final GL2ES2 gl, final boolean updateLocation, final GLUniformData data, final boolean throwOnError) {
         if( updateLocation || 0 > data.getLocation() ) {
-            return 0 <= data.setLocation(gl, sp.program());
+            final boolean ok = 0 <= data.setLocation(gl, sp.program());
+            if( throwOnError && !ok ) {
+                throw new GLException("Could not locate "+data);
+            }
+            return ok;
         } else {
             return true;
         }
@@ -215,12 +260,16 @@ public class RenderState {
      * @param updateLocation
      * @param updateData TODO
      * @param data
+     * @param throwOnError TODO
      * @return true if no error occured, i.e. all locations found, otherwise false.
      */
-    public final boolean updateUniformDataLoc(final GL2ES2 gl, boolean updateLocation, boolean updateData, final GLUniformData data) {
+    public final boolean updateUniformDataLoc(final GL2ES2 gl, boolean updateLocation, boolean updateData, final GLUniformData data, final boolean throwOnError) {
         updateLocation = updateLocation || 0 > data.getLocation();
         if( updateLocation ) {
             updateData = 0 <= data.setLocation(gl, sp.program());
+            if( throwOnError && !updateData ) {
+                throw new GLException("Could not locate "+data);
+            }
         }
         if( updateData ){
             gl.glUniform(data);
@@ -233,11 +282,16 @@ public class RenderState {
     /**
      * @param gl
      * @param data
+     * @param throwOnError TODO
      * @return true if no error occured, i.e. all locations found, otherwise false.
      */
-    public final boolean updateAttributeLoc(final GL2ES2 gl, final boolean updateLocation, final GLArrayDataServer data) {
+    public final boolean updateAttributeLoc(final GL2ES2 gl, final boolean updateLocation, final GLArrayDataServer data, boolean throwOnError) {
         if( updateLocation || 0 > data.getLocation() ) {
-            return 0 <= data.setLocation(gl, sp.program());
+            final boolean ok = 0 <= data.setLocation(gl, sp.program());
+            if( throwOnError && !ok ) {
+                throw new GLException("Could not locate "+data);
+            }
+            return ok;
         } else {
             return true;
         }
@@ -274,21 +328,8 @@ public class RenderState {
         return false;
     }
 
-    public StringBuilder toString(StringBuilder sb, boolean alsoUnlocated) {
-        if(null==sb) {
-            sb = new StringBuilder();
-        }
-        sb.append("RenderState[").append(sp).append(Platform.NEWLINE);
-        // pmvMatrix.toString(sb, "%.2f");
-        sb.append(", dirty[pmv "+gcu_PMVMatrix01_dirty+", color "+gcu_ColorStatic_dirty+", weight "+gcu_Weight_dirty+"], ").append(Platform.NEWLINE);
-        sb.append(gcu_PMVMatrix01).append(", ").append(Platform.NEWLINE);
-        sb.append(gcu_ColorStatic).append(", ");
-        sb.append(gcu_Weight).append("]");
-        return sb;
-    }
-
     @Override
     public String toString() {
-        return toString(null, false).toString();
+        return "RenderState["+sp+"]";
     }
 }

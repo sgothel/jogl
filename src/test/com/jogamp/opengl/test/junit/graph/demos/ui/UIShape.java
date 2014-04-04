@@ -50,6 +50,7 @@ public abstract class UIShape {
     public static final boolean DRAW_DEBUG_BOX = false;
 
     protected static final int DIRTY_SHAPE     = 1 << 0 ;
+    protected static final int DIRTY_STATE    = 1 << 1 ;
 
     private final Factory<? extends Vertex> vertexFactory;
     private final int renderModes;
@@ -63,11 +64,13 @@ public abstract class UIShape {
     protected GLRegion region = null;
     protected int regionQuality = Region.MAX_QUALITY;
 
-    protected int dirty = DIRTY_SHAPE;
+    protected int dirty = DIRTY_SHAPE | DIRTY_STATE;
     protected float shapesSharpness = OutlineShape.DEFAULT_SHARPNESS;
 
     protected final float[] rgbaColor         = {0.6f, 0.6f, 0.6f, 1.0f};
     protected final float[] selectedRGBAModulate = {1.4f, 1.4f, 1.4f, 1.0f};
+
+    private int name = -1;
 
     private boolean down = false;
     private boolean toggle =false;
@@ -80,6 +83,9 @@ public abstract class UIShape {
         this.renderModes = renderModes;
         this.box = new AABBox();
     }
+
+    public void setName(final int name) { this.name = name; }
+    public int getName() { return this.name; }
 
     public final Vertex.Factory<? extends Vertex> getVertexFactory() { return vertexFactory; }
 
@@ -104,7 +110,7 @@ public abstract class UIShape {
         scale[1] = 1f;
         scale[2] = 1f;
         box.reset();
-        dirty = DIRTY_SHAPE;
+        markShapeDirty();
     }
 
     /**
@@ -125,7 +131,7 @@ public abstract class UIShape {
         scale[1] = 1f;
         scale[2] = 1f;
         box.reset();
-        dirty = DIRTY_SHAPE;
+        markShapeDirty();
     }
 
     public void setTranslate(float tx, float ty, float tz) {
@@ -160,11 +166,17 @@ public abstract class UIShape {
     }
     public final float[] getScale() { return scale; }
 
-    public final void markDirty() {
-        dirty = DIRTY_SHAPE;
+    public final void markShapeDirty() {
+        dirty |= DIRTY_SHAPE;
     }
     public final boolean isShapeDirty() {
         return 0 != ( dirty & DIRTY_SHAPE ) ;
+    }
+    public final void markStateDirty() {
+        dirty |= DIRTY_STATE;
+    }
+    public final boolean isStateDirty() {
+        return 0 != ( dirty & DIRTY_STATE ) ;
     }
 
     public final AABBox getBounds() { return box; }
@@ -188,7 +200,7 @@ public abstract class UIShape {
     public void drawShape(GL2ES2 gl, RegionRenderer renderer, int[] sampleCount) {
         final float r, g, b, a;
         final boolean isSelect;
-        if( isPressed() || toggle ) {
+        if( isPressed() || getToggleState() ) {
             isSelect = true;
             r = rgbaColor[0]*selectedRGBAModulate[0];
             g = rgbaColor[1]*selectedRGBAModulate[1];
@@ -203,11 +215,12 @@ public abstract class UIShape {
         }
 
         if( renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
-            gl.glClearColor(r, g, b, 0.0f);
+            // gl.glClearColor(r, g, b, 0.0f);
+            gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
         }
         final RenderState rs = renderer.getRenderState();
 
-        if( Region.hasColorChannel( renderModes ) ) {
+        if( Region.hasColorChannel( renderModes ) || Region.hasColorTexture( renderModes ) ) {
             if( isSelect ) {
                 rs.setColorStatic(selectedRGBAModulate[0], selectedRGBAModulate[1], selectedRGBAModulate[2], selectedRGBAModulate[3]);
             } else {
@@ -219,11 +232,15 @@ public abstract class UIShape {
         getRegion(gl, renderer).draw(gl, renderer, sampleCount);
     }
 
-    public final boolean validate(GL2ES2 gl, RegionRenderer renderer) {
-        if( isShapeDirty() ) {
+    protected GLRegion createGLRegion() {
+        return GLRegion.create(renderModes, null);
+    }
+
+    public final void validate(GL2ES2 gl, RegionRenderer renderer) {
+        if( isShapeDirty() || null == region ) {
             box.reset();
             if( null == region ) {
-                region = GLRegion.create(renderModes);
+                region = createGLRegion();
             } else {
                 region.clear(gl);
             }
@@ -236,10 +253,12 @@ public abstract class UIShape {
                 region.addOutlineShape(shape, null, rgbaColor);
             }
             region.setQuality(regionQuality);
-            dirty &= ~DIRTY_SHAPE;
-            return true;
-        } else {
-            return false;
+            // dirty &= ~(DIRTY_SHAPE | DIRTY_STATE);
+            dirty = 0;
+        } else if( isStateDirty() ) {
+            region.markDirty();
+            // dirty &= ~DIRTY_STATE;
+            dirty = 0;
         }
     }
 
@@ -256,7 +275,7 @@ public abstract class UIShape {
     }
     public final void setSharpness(float sharpness) {
         this.shapesSharpness = sharpness;
-        dirty = DIRTY_SHAPE;
+        markShapeDirty();
     }
     public final float getSharpness() {
         return shapesSharpness;
@@ -276,33 +295,44 @@ public abstract class UIShape {
     }
 
     public String toString() {
-        return getClass().getSimpleName()+"[enabled "+enabled+", "+translate[0]+" / "+translate[1]+", box "+box+"]";
+        return getClass().getSimpleName()+"["+getSubString()+"]";
+    }
+
+    public String getSubString() {
+        return "enabled "+enabled+", toggle[able "+toggleable+", state "+toggle+"], "+translate[0]+" / "+translate[1]+", box "+box;
     }
 
     //
     // Input
     //
 
-    public void setPressed(boolean b) {
+    public void setPressed(final boolean b) {
         this.down  = b;
-        if(isToggleable() && b) {
+        if( isToggleable() && b ) {
             toggle = !toggle;
         }
+        markStateDirty();
     }
 
     public boolean isPressed() {
         return this.down;
     }
 
+    public void setToggleable(final boolean toggleable) {
+        this.toggleable = toggleable;
+    }
+
     public boolean isToggleable() {
         return toggleable;
     }
 
-    public void setToggleable(boolean toggleable) {
-        this.toggleable = toggleable;
+    public void setToggleState(final boolean v) {
+        toggle = v;
+        markStateDirty();
     }
+    public boolean getToggleState() { return toggle; }
 
-    public final void addMouseListener(MouseListener l) {
+    public final void addMouseListener(final MouseListener l) {
         if(l == null) {
             return;
         }
@@ -373,9 +403,16 @@ public abstract class UIShape {
         // set as attachment
         e.setAttachment(new EventDetails(this, rbox, relPos));
 
+        final short eventType = e.getEventType();
+        if( MouseEvent.EVENT_MOUSE_PRESSED == eventType ) {
+            setPressed(true);
+        } else if ( MouseEvent.EVENT_MOUSE_RELEASED == eventType ) {
+            setPressed(false);
+        }
+
         for(int i = 0; !e.isConsumed() && i < mouseListeners.size(); i++ ) {
             final MouseListener l = mouseListeners.get(i);
-            switch(e.getEventType()) {
+            switch( eventType ) {
                 case MouseEvent.EVENT_MOUSE_CLICKED:
                     l.mouseClicked(e);
                     break;
@@ -386,11 +423,9 @@ public abstract class UIShape {
                     l.mouseExited(e);
                     break;
                 case MouseEvent.EVENT_MOUSE_PRESSED:
-                    markDirty();
                     l.mousePressed(e);
                     break;
                 case MouseEvent.EVENT_MOUSE_RELEASED:
-                    markDirty();
                     l.mouseReleased(e);
                     break;
                 case MouseEvent.EVENT_MOUSE_MOVED:

@@ -56,7 +56,7 @@ public class ShaderProgram {
     /**
      * returns the uniq shader id as an integer
      */
-    public int        id() { return id; }
+    public int id() { return id; }
 
     /**
      * Detaches all shader codes and deletes the program.
@@ -321,7 +321,7 @@ public class ShaderProgram {
     private int shaderProgram = 0; // non zero is valid!
     private final HashSet<ShaderCode> allShaderCode = new HashSet<ShaderCode>();
     private final HashSet<ShaderCode> attachedShaderCode = new HashSet<ShaderCode>();
-    private int id = -1;
+    private final int id;
 
     private static synchronized int getNextID() {
         return nextID++;

@@ -139,9 +139,6 @@ public class RegionRenderer {
     public final int getHeight() { return vp_height; }
 
     public final PMVMatrix getMatrix() { return rs.getMatrix(); }
-    public final PMVMatrix getMatrixMutable() { return rs.getMatrixMutable(); }
-    public final void setMatrixDirty() { rs.setMatrixDirty(); }
-    public final boolean isMatrixDirty() { return rs.isMatrixDirty(); }
 
     //////////////////////////////////////
 
@@ -189,12 +186,6 @@ public class RegionRenderer {
 
         if( null != enableCallback ) {
             enableCallback.run(gl, this);
-        }
-
-        useShaderProgram(gl, renderModes, true, 0, 0);
-        initialized = rs.update(gl, true, renderModes, true);
-        if(!initialized) {
-            throw new GLException("Shader initialization failed");
         }
     }
 
@@ -247,14 +238,13 @@ public class RegionRenderer {
     public final void reshapeNotify(int width, int height) {
         this.vp_width = width;
         this.vp_height = height;
-        rs.setMatrixDirty();
     }
 
     public final void reshapePerspective(float angle, int width, int height, float near, float far) {
         this.vp_width = width;
         this.vp_height = height;
         final float ratio = (float)width/(float)height;
-        final PMVMatrix p = rs.getMatrixMutable();
+        final PMVMatrix p = rs.getMatrix();
         p.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         p.glLoadIdentity();
         p.gluPerspective(angle, ratio, near, far);
@@ -263,7 +253,7 @@ public class RegionRenderer {
     public final void reshapeOrtho(int width, int height, float near, float far) {
         this.vp_width = width;
         this.vp_height = height;
-        final PMVMatrix p = rs.getMatrixMutable();
+        final PMVMatrix p = rs.getMatrix();
         p.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         p.glLoadIdentity();
         p.glOrthof(0, width, 0, height, near, far);
@@ -368,6 +358,7 @@ public class RegionRenderer {
     private final IntObjectHashMap shaderPrograms = new IntObjectHashMap();
 
     private static final int HIGH_MASK = Region.COLORCHANNEL_RENDERING_BIT | Region.COLORTEXTURE_RENDERING_BIT;
+    private static final int TWO_PASS_BIT = 1 <<  31;
 
     /**
      * @param gl
@@ -382,7 +373,8 @@ public class RegionRenderer {
                                           final boolean pass1, final int quality, final int sampleCount) {
         final ShaderModeSelector1 sel1 = pass1 ? ShaderModeSelector1.selectPass1(renderModes) :
                                                  ShaderModeSelector1.selectPass2(renderModes, quality, sampleCount);
-        final int shaderKey = sel1.ordinal() | ( HIGH_MASK & renderModes );
+        final boolean isTwoPass = Region.isTwoPass( renderModes );
+        final int shaderKey = sel1.ordinal() | ( HIGH_MASK & renderModes ) | ( isTwoPass ? TWO_PASS_BIT : 0 );
 
         /**
         if(DEBUG) {
@@ -395,14 +387,16 @@ public class RegionRenderer {
             final boolean spChanged = getRenderState().setShaderProgram(gl, sp);
             if(DEBUG) {
                 if( spChanged ) {
-                    System.err.printf("RegionRendererImpl01.useShaderProgram.X1: GOT renderModes %s, sel1 %s, key 0x%X (changed)%n", Region.getRenderModeString(renderModes), sel1, shaderKey);
+                    System.err.printf("RegionRendererImpl01.useShaderProgram.X1: GOT renderModes %s, sel1 %s, key 0x%X -> sp %d / %d (changed)%n", Region.getRenderModeString(renderModes), sel1, shaderKey, sp.program(), sp.id());
+                } else {
+                    System.err.printf("RegionRendererImpl01.useShaderProgram.X1: GOT renderModes %s, sel1 %s, key 0x%X -> sp %d / %d (keep)%n", Region.getRenderModeString(renderModes), sel1, shaderKey, sp.program(), sp.id());
                 }
             }
             return spChanged;
         }
         final String versionedBaseName = getVersionedShaderName();
         final String vertexShaderName;
-        if( Region.isTwoPass( renderModes ) ) {
+        if( isTwoPass ) {
             vertexShaderName = versionedBaseName+"-pass"+(pass1?1:2);
         } else {
             vertexShaderName = versionedBaseName+"-single";
@@ -453,6 +447,7 @@ public class RegionRenderer {
         if( !sp.init(gl) ) {
             throw new GLException("RegionRenderer: Couldn't init program: "+sp);
         }
+
         if( !sp.link(gl, System.err) ) {
             throw new GLException("could not link program: "+sp);
         }
@@ -460,8 +455,8 @@ public class RegionRenderer {
 
         shaderPrograms.put(shaderKey, sp);
         if(DEBUG) {
-            System.err.printf("RegionRendererImpl01.useShaderProgram.X1: PUT renderModes %s, sel1 %s, key 0x%X -> SP %s (changed)%n",
-                    Region.getRenderModeString(renderModes), sel1, shaderKey, sp);
+            System.err.printf("RegionRendererImpl01.useShaderProgram.X1: PUT renderModes %s, sel1 %s, key 0x%X -> sp %d / %d (changed)%n",
+                    Region.getRenderModeString(renderModes), sel1, shaderKey, sp.program(), sp.id());
         }
         return true;
     }

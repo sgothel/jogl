@@ -229,6 +229,8 @@ function jrun() {
     #D_ARGS="-Dnativewindow.osx.calayer.bugfree"
     #D_ARGS="-Dnativewindow.debug.ToolkitLock"
     #D_ARGS="-Djogl.debug.graph.curve"
+    #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLCode -Djogl.debug.DebugGL -Djogl.debug.TraceGL"
+    #D_ARGS="-Djogl.debug.graph.curve"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.graph.curve.Instance -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.graph.curve.triangulation.LINE_AA -Djogl.debug.graph.curve.Triangulation -Djogl.debug.graph.font.Renderer"

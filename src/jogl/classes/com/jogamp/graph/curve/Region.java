@@ -37,6 +37,7 @@ import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.math.geom.Frustum;
+import com.jogamp.opengl.util.texture.TextureSequence;
 
 /**
  * Abstract Outline shape representation define the method an OutlineShape(s)
@@ -102,7 +103,7 @@ public abstract class Region {
     /** Default maximum {@link #getQuality() quality}, {@value}. */
     public static final int MAX_QUALITY  = 1;
 
-    public static final int TWO_PASS_DEFAULT_TEXTURE_UNIT = 0;
+    public static final int DEFAULT_TWO_PASS_TEXTURE_UNIT = 0;
 
     private final int renderModes;
     private int quality;
@@ -175,7 +176,7 @@ public abstract class Region {
     protected abstract void pushIndex(int idx);
 
     /**
-     * Return bit-field of render modes, see {@link #create(int)}.
+     * Return bit-field of render modes, see {@link #create(int, TextureSequence)}.
      */
     public final int getRenderModes() { return renderModes; }
 
@@ -369,18 +370,32 @@ public abstract class Region {
         return box;
     }
 
-    /** Check if this region is dirty. A region is marked dirty when new
-     * Vertices, Triangles, and or Lines are added after a call to update()
+    /**
+     * Check if this region is dirty. A region is marked dirty when new
+     * Vertices, Triangles, and or Lines are added after a call to update().
+     * <p>
+     * A region is also dirty if other render attributes or parameters are changed!
+     * </p>
      *
      * @return true if region is Dirty, false otherwise
      *
-     * @see update(GL2ES2) */
+     * @see update(GL2ES2)
+     */
     public final boolean isDirty() {
         return dirty;
     }
 
+    /**
+     * See {@link #isDirty()}.
+     */
     protected final void setDirty(boolean v) {
         dirty = v;
+    }
+    /**
+     * See {@link #isDirty()}.
+     */
+    public final void markDirty() {
+        dirty = true;
     }
 
     public String toString() {

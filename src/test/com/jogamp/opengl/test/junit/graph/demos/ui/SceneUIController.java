@@ -96,7 +96,7 @@ public class SceneUIController implements GLEventListener{
     }
     public void markAllShapesDirty() {
         for(int i=0; i<shapes.size(); i++) {
-            shapes.get(i).markDirty();
+            shapes.get(i).markShapeDirty();
         }
     }
 
@@ -180,7 +180,7 @@ public class SceneUIController implements GLEventListener{
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
-        final PMVMatrix pmv = renderer.getMatrixMutable();
+        final PMVMatrix pmv = renderer.getMatrix();
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
 
         final int shapeCount = shapes.size();
@@ -191,7 +191,6 @@ public class SceneUIController implements GLEventListener{
                 pmv.glPushMatrix();
                 transformShape(pmv, uiShape);
                 uiShape.drawShape(gl, renderer, sampleCount);
-                renderer.setMatrixDirty();
                 pmv.glPopMatrix();
             }
         }
@@ -218,7 +217,7 @@ public class SceneUIController implements GLEventListener{
         viewport[2] = width;
         viewport[3] = height;
 
-        final PMVMatrix pmv = renderer.getMatrixMutable();
+        final PMVMatrix pmv = renderer.getMatrix();
         renderer.reshapePerspective(45.0f, width, height, zNear, zFar);
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
@@ -308,7 +307,6 @@ public class SceneUIController implements GLEventListener{
                     activeId = pickShape(glWinX, glWinY);
                     final UIShape uiShape = getActiveUI();
                     if(uiShape != null) {
-                        uiShape.setPressed(true);
                         uiShape.dispatchMouseEvent(e, glWinX, glWinY);
                     }
                     return true;
@@ -319,7 +317,6 @@ public class SceneUIController implements GLEventListener{
         public void mouseReleased(MouseEvent e) {
             final UIShape uiShape = getActiveUI();
             if(uiShape != null){
-                uiShape.setPressed(false);
                 uiShape.dispatchMouseEvent(e, e.getX(), viewport[3]-e.getY());
             }
         }

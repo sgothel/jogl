@@ -149,7 +149,7 @@ public class MovieSimple implements GLEventListener {
             if( lowPerfDevice ) {
                 regionFPS = null;
             } else {
-                regionFPS = GLRegion.create(renderModes);
+                regionFPS = GLRegion.create(renderModes, null);
                 System.err.println("RegionFPS "+Region.getRenderModeString(renderModes)+", sampleCount "+textSampleCount[0]+", class "+regionFPS.getClass().getName());
             }
             staticRGBAColor[0] = 0.9f;

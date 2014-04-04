@@ -44,6 +44,7 @@ public class AttributeNames {
     public static final String COLOR_ATTR_NAME = "gca_Colors";
 
     public static final String FBO_VERTEX_ATTR_NAME = "gca_FboVertices";
+
     public static final String FBO_TEXCOORDS_ATTR_NAME = "gca_FboTexCoords";
 
 }

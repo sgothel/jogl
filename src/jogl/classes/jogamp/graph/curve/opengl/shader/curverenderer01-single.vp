@@ -11,7 +11,6 @@
 
 void main(void)
 {
-    // gl_Position = gcu_PMVMatrix01[0] * gcu_PMVMatrix01[1] * vec4(gca_Vertices, 1);
     gl_Position = gcu_PMVMatrix01[0] * gcu_PMVMatrix01[1] * gca_Vertices;
 #if 1
     gcv_CurveParam = gca_CurveParams;
@@ -23,6 +22,10 @@ void main(void)
     } else {
         gcv_CurveParam = gca_CurveParams;
     }
+#endif
+#ifdef USE_COLOR_TEXTURE
+    vec2 dim = vec2(gcu_ColorTexBBox.z - gcu_ColorTexBBox.x, gcu_ColorTexBBox.w - gcu_ColorTexBBox.y);
+    gcv_ColorTexCoord = vec2(gca_Vertices.x - gcu_ColorTexBBox.x, gca_Vertices.y - gcu_ColorTexBBox.y) / dim;
 #endif
 #ifdef USE_COLOR_CHANNEL
     gcv_Color = gca_Colors;

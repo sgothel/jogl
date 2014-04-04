@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2014 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -30,81 +30,53 @@ package com.jogamp.opengl.test.junit.graph.demos.ui;
 import javax.media.opengl.GL2ES2;
 
 import com.jogamp.graph.curve.OutlineShape;
+import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
+import com.jogamp.opengl.util.texture.TextureSequence;
 
 /**
  * GPU based resolution independent Button impl
  */
-public class CrossHair extends UIShape {
-    private float width, height, lineWidth;
+public class TextureButton extends RoundButton {
+    private TextureSequence texSeq;
 
-    public CrossHair(Factory<? extends Vertex> factory, int renderModes, float width, float height, float linewidth) {
-        super(factory, renderModes);
-        this.width = width;
-        this.height = height;
-        this.lineWidth = linewidth;
-    }
-
-    public final float getWidth() { return width; }
-    public final float getHeight() { return height; }
-    public final float getLineWidth() { return lineWidth; }
-
-    public void setDimension(float width, float height, float lineWidth) {
-        this.width = width;
-        this.height = height;
-        this.lineWidth = lineWidth;
-        markShapeDirty();
+    public TextureButton(final Factory<? extends Vertex> factory, final int renderModes,
+                         final float width, final float height, final TextureSequence texSeq) {
+        super(factory, renderModes | Region.COLORTEXTURE_RENDERING_BIT, width, height);
+        this.texSeq = texSeq;
+        setColor(1.0f, 1.0f, 1.0f, 1.0f);
+        setSelectedColorMod(0.9f, 0.9f, 0.9f, 0.9f);
     }
 
     @Override
-    protected void clearImpl(GL2ES2 gl, RegionRenderer renderer) {
+    protected GLRegion createGLRegion() {
+        return GLRegion.create(getRenderModes(), texSeq);
     }
 
-    @Override
-    protected void destroyImpl(GL2ES2 gl, RegionRenderer renderer) {
-    }
+    public void setTextureSequence(final TextureSequence texSeq) { this.texSeq = texSeq; }
+    public TextureSequence getTextureSequence() { return this.texSeq; }
 
     @Override
     protected void addShapeToRegion(GL2ES2 gl, RegionRenderer renderer) {
         final OutlineShape shape = new OutlineShape(renderer.getRenderState().getVertexFactory());
-
-        final float tw = getWidth();
-        final float th = getHeight();
-        final float twh = tw/2f;
-        final float thh = th/2f;
-        final float lwh = lineWidth/2f;
-
-        final float ctrX = 0f, ctrY = 0f;
-        float ctrZ = 0f;
-
-        // vertical (CCW!)
-        shape.addVertex(ctrX-lwh, ctrY-thh, ctrZ,  true);
-        shape.addVertex(ctrX+lwh, ctrY-thh, ctrZ,  true);
-        shape.addVertex(ctrX+lwh, ctrY+thh, ctrZ,  true);
-        shape.addVertex(ctrX-lwh, ctrY+thh, ctrZ,  true);
-        shape.closeLastOutline(true);
-
-        ctrZ -= 0.05f;
-
-        // horizontal (CCW!)
-        shape.addEmptyOutline();
-        shape.addVertex(ctrX-twh, ctrY-lwh, ctrZ,  true);
-        shape.addVertex(ctrX+twh, ctrY-lwh, ctrZ,  true);
-        shape.addVertex(ctrX+twh, ctrY+lwh, ctrZ,  true);
-        shape.addVertex(ctrX-twh, ctrY+lwh, ctrZ,  true);
-        shape.closeLastOutline(true);
-
+        if(corner == 0.0f) {
+            createSharpOutline(shape, 0f);
+        } else {
+            createCurvedOutline(shape, 0f);
+        }
         shape.setIsQuadraticNurbs();
         shape.setSharpness(shapesSharpness);
         region.addOutlineShape(shape, null, rgbaColor);
-
         box.resize(shape.getBounds());
-    }
 
-    @Override
-    public String toString() {
-        return "CrossHair [" + translate[0]+getWidth()/2f+" / "+translate[1]+getHeight()/2f+" "+getWidth() + "x" + getHeight() + ", "+box+"]";
+        final float[] ctr = box.getCenter();
+        setRotationOrigin( ctr[0], ctr[1], ctr[2]);
+
+        if( DRAW_DEBUG_BOX ) {
+            System.err.println("XXX.UIShape.TextureButton: Added Shape: "+shape+", "+box);
+        }
     }
 }

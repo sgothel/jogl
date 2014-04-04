@@ -278,8 +278,8 @@ public class TestTextRendererNEWT00 extends UITestCase {
             setRendererCallbacks(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
             setRenderState(rs);
 
-            regionFPS = GLRegion.create(renderModes);
-            regionFPSAnim = GLRegion.create(renderModes);
+            regionFPS = GLRegion.create(renderModes, null);
+            regionFPSAnim = GLRegion.create(renderModes, null);
             if( null != fontFileName ) {
                 Font _font = null;
                 try {
@@ -377,7 +377,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
 
             final String modeS = Region.getRenderModeString(renderModes);
 
-            if( true ) {
+            if( false ) {
                 // renderString(drawable, font, pixelSize, "I - / H P 7 0", 0, 0, 0, 0, -1000f, true);
                 // renderString(drawable, font, pixelSize, "A M > } ] ", 0, 0, 0, 0, -1000f, true);
                 // renderString(drawable, font, pixelSize, "M", 0, 0, 0, 0, -1000f, true);

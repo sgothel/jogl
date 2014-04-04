@@ -117,8 +117,8 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                                     blending ? RegionRenderer.defaultBlendDisable : null),
                                     renderModes, debug, trace);
         this.textRegionUtil = new TextRegionUtil(renderModes);
-        this.regionFPS = GLRegion.create(renderModes);
-        this.regionBottom = GLRegion.create(renderModes);
+        this.regionFPS = GLRegion.create(renderModes, null);
+        this.regionBottom = GLRegion.create(renderModes, null);
         try {
             this.font = FontFactory.get(fontSet).getDefault();
             dumpFontNames();
@@ -213,7 +213,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
 
         final RegionRenderer renderer = getRenderer();
         final RenderState rs = renderer.getRenderState();
-        final PMVMatrix pmv = renderer.getMatrixMutable();
+        final PMVMatrix pmv = renderer.getMatrix();
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         rs.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
@@ -254,7 +254,6 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         float dx = width-fontNameBox.getWidth()-2f;
         float dy = height - 10f;
 
-        renderer.setMatrixDirty();
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         pmv.glTranslatef(nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy), nearPlaneZ0);
@@ -265,7 +264,6 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         dy += -fontNameBox.getHeight() - 10f;
 
         if(null != headtext) {
-            renderer.setMatrixDirty();
             pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
             pmv.glLoadIdentity();
             // System.err.printf("Head: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
@@ -276,7 +274,6 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
 
         dy += -headbox.getHeight() - font.getLineHeight(pixelSizeBottom);
 
-        renderer.setMatrixDirty();
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         pmv.glTranslatef(nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy), nearPlaneZ0);

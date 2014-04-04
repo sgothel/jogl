@@ -67,7 +67,7 @@ public abstract class UIListenerBase01 implements GLEventListener {
     private final boolean debug;
     private final boolean trace;
 
-    protected RIButton button;
+    protected LabelButton button;
 
     private KeyAction keyAction;
     private MouseAction mouseAction;

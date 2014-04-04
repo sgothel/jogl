@@ -56,7 +56,7 @@ public class Label extends UIShape {
 
     public void setText(String text) {
         this.text = text;
-        dirty |= DIRTY_SHAPE;
+        markShapeDirty();
     }
 
     public Font getFont() {
@@ -65,7 +65,7 @@ public class Label extends UIShape {
 
     public void setFont(Font font) {
         this.font = font;
-        dirty |= DIRTY_SHAPE;
+        markShapeDirty();
     }
 
     public float getPixelSize() {
@@ -78,7 +78,7 @@ public class Label extends UIShape {
 
     public void setPixelSize(float pixelSize) {
         this.pixelSize = pixelSize;
-        dirty |= DIRTY_SHAPE;
+        markShapeDirty();
     }
 
     @Override

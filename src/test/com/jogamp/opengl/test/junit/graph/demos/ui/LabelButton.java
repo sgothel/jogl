@@ -29,8 +29,6 @@ package com.jogamp.opengl.test.junit.graph.demos.ui;
 
 import javax.media.opengl.GL2ES2;
 
-import jogamp.graph.geom.plane.AffineTransform;
-
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
@@ -42,49 +40,25 @@ import com.jogamp.opengl.math.geom.AABBox;
 /**
  * GPU based resolution independent Button impl
  */
-public class RIButton extends UIShape {
+public class LabelButton extends RoundButton {
     /** {@value} */
     public static final float DEFAULT_SPACING_X = 0.08f;
     /** {@value} */
     public static final float DEFAULT_SPACING_Y = 0.40f;
-    /** {@value} */
-    public static final float DEFAULT_CORNER = 1f;
-
     public static final float DEFAULT_2PASS_LABEL_ZOFFSET = -0.05f;
 
-    private float width, height, labelZOffset;
+    private float labelZOffset;
     private final Label0 label;
     private float spacingX = DEFAULT_SPACING_X;
     private float spacingY = DEFAULT_SPACING_Y;
-    private float corner = DEFAULT_CORNER;
-    private final AffineTransform tempT1 = new AffineTransform();
-    private final AffineTransform tempT2 = new AffineTransform();
 
-    public RIButton(Factory<? extends Vertex> factory, int renderModes, Font labelFont, String labelText, float width, float height, float labelZOffset) {
-        super(factory, renderModes | Region.COLORCHANNEL_RENDERING_BIT);
-
+    public LabelButton(final Factory<? extends Vertex> factory, final int renderModes,
+                       final Font labelFont, final String labelText,
+                       final float width, final float height, final float labelZOffset) {
+        super(factory, renderModes | Region.COLORCHANNEL_RENDERING_BIT, width, height);
         this.label = new Label0(labelFont, labelText, new float[] { 0.9f, 0.9f, 0.9f, 1.0f });
-        this.width = width;
-        this.height = height;
         this.labelZOffset = labelZOffset;
-    }
-
-    public final float getWidth() { return width; }
-    public final float getHeight() { return height; }
-    public final float getCorner() { return corner; }
-
-    public void setDimension(float width, float height) {
-        this.width = width;
-        this.height = height;
-        dirty |= DIRTY_SHAPE;
-    }
-
-    @Override
-    protected void clearImpl(GL2ES2 gl, RegionRenderer renderer) {
-    }
-
-    @Override
-    protected void destroyImpl(GL2ES2 gl, RegionRenderer renderer) {
+        setLabelColor(1.0f, 1.0f, 1.0f);
     }
 
     @Override
@@ -104,9 +78,9 @@ public class RIButton extends UIShape {
     protected void addShapeToRegion(GL2ES2 gl, RegionRenderer renderer) {
         final OutlineShape shape = new OutlineShape(renderer.getRenderState().getVertexFactory());
         if(corner == 0.0f) {
-            createSharpOutline(shape);
+            createSharpOutline(shape, labelZOffset);
         } else {
-            createCurvedOutline(shape);
+            createCurvedOutline(shape, labelZOffset);
         }
         shape.setIsQuadraticNurbs();
         shape.setSharpness(shapesSharpness);
@@ -148,68 +122,14 @@ public class RIButton extends UIShape {
             System.err.println("XXX.UIShape.RIButton: Added Shape: "+shape+", "+box);
         }
     }
-    private void createSharpOutline(OutlineShape shape) {
-        final float tw = getWidth();
-        final float th = getHeight();
 
-        final float minX = 0;
-        final float minY = 0;
-        final float minZ = labelZOffset;
-
-        shape.addVertex(minX, minY, minZ,  true);
-        shape.addVertex(minX+tw, minY,  minZ, true);
-        shape.addVertex(minX+tw, minY + th, minZ,  true);
-        shape.addVertex(minX, minY + th, minZ,  true);
-        shape.closeLastOutline(true);
-    }
-    private void createCurvedOutline(OutlineShape shape) {
-        final float tw = getWidth();
-        final float th = getHeight();
-        final float dC = 0.5f*corner*Math.min(tw, th);
-
-        final float minX = 0;
-        final float minY = 0;
-        final float minZ = labelZOffset;
-
-        shape.addVertex(minX, minY + dC, minZ, true);
-        shape.addVertex(minX, minY,  minZ, false);
-
-        shape.addVertex(minX + dC, minY, minZ,  true);
-
-        shape.addVertex(minX + tw - dC, minY,           minZ, true);
-        shape.addVertex(minX + tw,      minY,           minZ, false);
-        shape.addVertex(minX + tw,      minY + dC,      minZ, true);
-        shape.addVertex(minX + tw,      minY + th- dC,  minZ, true);
-        shape.addVertex(minX + tw,      minY + th,      minZ, false);
-        shape.addVertex(minX + tw - dC, minY + th,      minZ, true);
-        shape.addVertex(minX + dC,      minY + th,      minZ, true);
-        shape.addVertex(minX,           minY + th,      minZ, false);
-        shape.addVertex(minX,           minY + th - dC, minZ, true);
-
-        shape.closeLastOutline(true);
-    }
-
-    /** Set corner size, default is {@link #DEFAULT_CORNER} */
-    public void setCorner(float corner) {
-        if(corner > 1.0f){
-            this.corner = 1.0f;
-        }
-        else if(corner < 0.01f){
-            this.corner = 0.0f;
-        }
-        else{
-            this.corner = corner;
-        }
-        dirty |= DIRTY_SHAPE;
-    }
-
-    public float getLabelZOffset() {
+    public final float getLabelZOffset() {
         return labelZOffset;
     }
 
-    public void setLabelZOffset(final float labelZOffset) {
+    public final void setLabelZOffset(final float labelZOffset) {
         this.labelZOffset = labelZOffset;
-        dirty |= DIRTY_SHAPE;
+        markShapeDirty();
     }
     public final float getSpacingX() { return spacingX; }
     public final float getSpacingY() { return spacingY; }
@@ -219,7 +139,7 @@ public class RIButton extends UIShape {
      * @param spacingX spacing in percent on X, default is {@link #DEFAULT_SPACING_X}
      * @param spacingY spacing in percent on Y, default is {@link #DEFAULT_SPACING_Y}
      */
-    public void setSpacing(float spacingX, float spacingY) {
+    public final void setSpacing(float spacingX, float spacingY) {
         if ( spacingX < 0.0f ) {
             this.spacingX = 0.0f;
         } else if ( spacingX > 1.0f ) {
@@ -234,21 +154,27 @@ public class RIButton extends UIShape {
         } else {
             this.spacingY = spacingY;
         }
-        dirty |= DIRTY_SHAPE;
+        markShapeDirty();
     }
 
-    public float[] getLabelColor() {
+    public final float[] getLabelColor() {
         return label.getColor();
     }
 
-    public void setLabelColor(float r, float g, float b) {
+    public final void setLabelColor(float r, float g, float b) {
         label.setColor(r, g, b, 1.0f);
+        markShapeDirty();
+    }
+
+    public final void setLabelText(final Font labelFont, final String labelText) {
+        label.setFont(labelFont);
+        label.setText(labelText);
+        markShapeDirty();
     }
 
     @Override
-    public String toString() {
-        return "RIButton [" + translate[0]+getWidth()/2f+" / "+translate[1]+getHeight()/2f+" "+getWidth() + "x" + getHeight() + ", "
-                + label + ", " + "spacing: " + spacingX+"/"+spacingY
-                + ", " + "corner: " + corner + ", " + "shapeOffset: " + labelZOffset + ", "+box+" ]";
+    public String getSubString() {
+        return super.getSubString()+", "+ label + ", " + "spacing: " + spacingX+"/"+spacingY+
+                              ", labelZOffset " + labelZOffset;
     }
 }

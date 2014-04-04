@@ -27,26 +27,41 @@
  */
 package jogamp.graph.curve.opengl;
 
+import java.nio.FloatBuffer;
+
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GLUniformData;
 
 import jogamp.graph.curve.opengl.shader.AttributeNames;
+import jogamp.graph.curve.opengl.shader.UniformNames;
 
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
+import com.jogamp.opengl.util.texture.Texture;
+import com.jogamp.opengl.util.texture.TextureSequence;
 
 public class VBORegionSPES2 extends GLRegion {
+    private final RenderState.ProgramLocal rsLocal;
+
     private GLArrayDataServer gca_VerticesAttr = null;
     private GLArrayDataServer gca_CurveParamsAttr = null;
     private GLArrayDataServer gca_ColorsAttr;
     private GLArrayDataServer indicesBuffer = null;
+    private final GLUniformData gcu_ColorTexUnit;
+    private final float[] colorTexBBox; // x0, y0, x1, y1
+    private final GLUniformData gcu_ColorTexBBox;
     private ShaderProgram spPass1 = null;
 
-    public VBORegionSPES2(final int renderModes) {
-        super(renderModes);
+    public VBORegionSPES2(final int renderModes, final TextureSequence colorTexSeq) {
+        super(renderModes, colorTexSeq);
+
+        rsLocal = new RenderState.ProgramLocal();
+
         final int initialElementCount = 256;
         indicesBuffer = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialElementCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
 
@@ -61,6 +76,15 @@ public class VBORegionSPES2 extends GLRegion {
                                                           false, initialElementCount, GL.GL_STATIC_DRAW);
         } else {
             gca_ColorsAttr = null;
+        }
+        if( hasColorTexture() ) {
+            gcu_ColorTexUnit = new GLUniformData(UniformNames.gcu_ColorTexUnit, colorTexSeq.getTextureUnit());
+            colorTexBBox = new float[4];
+            gcu_ColorTexBBox = new GLUniformData(UniformNames.gcu_ColorTexBBox, 4, FloatBuffer.wrap(colorTexBBox));
+        } else {
+            gcu_ColorTexUnit = null;
+            colorTexBBox = null;
+            gcu_ColorTexBBox = null;
         }
     }
 
@@ -117,8 +141,6 @@ public class VBORegionSPES2 extends GLRegion {
     @Override
     protected void updateImpl(final GL2ES2 gl) {
         // seal buffers
-        indicesBuffer.seal(gl, true);
-        indicesBuffer.enableBuffer(gl, false);
         gca_VerticesAttr.seal(gl, true);
         gca_VerticesAttr.enableBuffer(gl, false);
         gca_CurveParamsAttr.seal(gl, true);
@@ -127,6 +149,14 @@ public class VBORegionSPES2 extends GLRegion {
             gca_ColorsAttr.seal(gl, true);
             gca_ColorsAttr.enableBuffer(gl, false);
         }
+        if( null != gcu_ColorTexUnit ) {
+            colorTexBBox[0] = box.getMinX();
+            colorTexBBox[1] = box.getMinY();
+            colorTexBBox[2] = box.getMaxX();
+            colorTexBBox[3] = box.getMaxY();
+        }
+        indicesBuffer.seal(gl, true);
+        indicesBuffer.enableBuffer(gl, false);
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegionSPES2 idx "+indicesBuffer);
             System.err.println("VBORegionSPES2 ver "+gca_VerticesAttr);
@@ -134,22 +164,37 @@ public class VBORegionSPES2 extends GLRegion {
         }
     }
 
+    /**
+     * <p>
+     * Since multiple {@link Region}s may share one
+     * {@link ShaderProgram}, the uniform data must always be updated.
+     * </p>
+     *
+     * @param gl
+     * @param renderer
+     * @param renderModes
+     * @param quality
+     */
     public void useShaderProgram(final GL2ES2 gl, final RegionRenderer renderer, final int renderModes, final int quality) {
         final RenderState rs = renderer.getRenderState();
-        final boolean updateLocation0 = renderer.useShaderProgram(gl, renderModes, true, quality, 0);
+        final boolean updateLocGlobal = renderer.useShaderProgram(gl, renderModes, true, quality, 0);
         final ShaderProgram sp = renderer.getRenderState().getShaderProgram();
-        final boolean updateLocation = !sp.equals(spPass1);
+        final boolean updateLocLocal = !sp.equals(spPass1);
         spPass1 = sp;
-
-        // update attribute-location and uniform data and location
-        rs.update(gl, updateLocation, renderModes, true);
-        rs.updateAttributeLoc(gl, updateLocation, gca_VerticesAttr);
-        rs.updateAttributeLoc(gl, updateLocation, gca_CurveParamsAttr);
-        if( null != gca_ColorsAttr ) {
-            rs.updateAttributeLoc(gl, updateLocation, gca_ColorsAttr);
-        }
         if( DEBUG ) {
-            System.err.println("XXX changedSP.p1 "+updateLocation+" / "+updateLocation0);
+            System.err.println("XXX changedSP.p1 updateLocation loc "+updateLocLocal+" / glob "+updateLocGlobal);
+        }
+        if( updateLocLocal ) {
+            rs.updateAttributeLoc(gl, true, gca_VerticesAttr, true);
+            rs.updateAttributeLoc(gl, true, gca_CurveParamsAttr, true);
+            if( null != gca_ColorsAttr ) {
+                rs.updateAttributeLoc(gl, true, gca_ColorsAttr, true);
+            }
+        }
+        rsLocal.update(gl, rs, updateLocLocal, renderModes, true, true);
+        if( null != gcu_ColorTexUnit ) {
+            rs.updateUniformLoc(gl, updateLocLocal, gcu_ColorTexUnit, true);
+            rs.updateUniformLoc(gl, updateLocLocal, gcu_ColorTexBBox, true);
         }
     }
 
@@ -171,8 +216,23 @@ public class VBORegionSPES2 extends GLRegion {
             gca_ColorsAttr.enableBuffer(gl, true);
         }
         indicesBuffer.bindBuffer(gl, true); // keeps VBO binding
-
-        gl.glDrawElements(GL2ES2.GL_TRIANGLES, indicesBuffer.getElementCount() * indicesBuffer.getComponentCount(), GL2ES2.GL_UNSIGNED_SHORT, 0);
+        if( null != gcu_ColorTexUnit ) {
+            final TextureSequence.TextureFrame frame = colorTexSeq.getNextTexture(gl);
+            gl.glActiveTexture(GL.GL_TEXTURE0 + colorTexSeq.getTextureUnit());
+            final Texture tex = frame.getTexture();
+            tex.bind(gl);
+            tex.enable(gl); // nop on core
+            final int colorTexUnit = colorTexSeq.getTextureUnit();
+            if( colorTexUnit != gcu_ColorTexUnit.intValue() ) {
+                gcu_ColorTexUnit.setData(colorTexUnit);
+                gl.glUniform(gcu_ColorTexUnit);
+            }
+            gl.glUniform(gcu_ColorTexBBox); // FIXME: Only if changed!
+            gl.glDrawElements(GL2ES2.GL_TRIANGLES, indicesBuffer.getElementCount() * indicesBuffer.getComponentCount(), GL2ES2.GL_UNSIGNED_SHORT, 0);
+            tex.disable(gl); // nop on core
+        } else {
+            gl.glDrawElements(GL2ES2.GL_TRIANGLES, indicesBuffer.getElementCount() * indicesBuffer.getComponentCount(), GL2ES2.GL_UNSIGNED_SHORT, 0);
+        }
 
         indicesBuffer.bindBuffer(gl, false);
         if( null != gca_ColorsAttr ) {

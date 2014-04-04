@@ -92,7 +92,7 @@ public class GPURegionGLListener02 extends GPURendererListenerBase01 {
         shape.addVertex(offset+10.0f,0.0f, true);
         shape.closeLastOutline(true);
 
-        region = GLRegion.create(getRenderModes());
+        region = GLRegion.create(getRenderModes(), null);
         region.addOutlineShapes(outlineShapes, null, null);
     }
 
@@ -119,7 +119,7 @@ public class GPURegionGLListener02 extends GPURendererListenerBase01 {
 
         final RegionRenderer regionRenderer = getRenderer();
 
-        final PMVMatrix pmv = regionRenderer.getMatrixMutable();
+        final PMVMatrix pmv = regionRenderer.getMatrix();
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         pmv.glTranslatef(getXTran(), getYTran(), getZTran());
