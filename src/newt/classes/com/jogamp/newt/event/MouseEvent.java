@@ -101,7 +101,7 @@ public class MouseEvent extends InputEvent
          * </pre>
          * @throws IllegalArgumentException if the given ordinal is out of range, i.e. not within [ 0 .. PointerType.values().length-1 ]
          */
-        public static PointerType valueOf(int ordinal) throws IllegalArgumentException {
+        public static PointerType valueOf(final int ordinal) throws IllegalArgumentException {
             final PointerType[] all = PointerType.values();
             if( 0 <= ordinal && ordinal < all.length ) {
                 return all[ordinal];
@@ -116,7 +116,7 @@ public class MouseEvent extends InputEvent
          * </p>
          * @throws IllegalArgumentException if one of the given ordinal values is out of range, i.e. not within [ 0 .. PointerType.values().length-1 ]
          */
-        public static PointerType[] valuesOf(int[] ordinals) throws IllegalArgumentException {
+        public static PointerType[] valuesOf(final int[] ordinals) throws IllegalArgumentException {
             final int count = ordinals.length;
             final PointerType[] types = new PointerType[count];
             for(int i=count-1; i>=0; i--) {
@@ -189,9 +189,9 @@ public class MouseEvent extends InputEvent
      * @param rotationXYZ Rotation of all axis
      * @param rotationScale Rotation scale
      */
-    public MouseEvent(short eventType, Object source, long when,
-            int modifiers, int x, int y, short clickCount, short button,
-            float[] rotationXYZ, float rotationScale)
+    public MouseEvent(final short eventType, final Object source, final long when,
+            final int modifiers, final int x, final int y, final short clickCount, final short button,
+            final float[] rotationXYZ, final float rotationScale)
     {
         super(eventType, source, when, modifiers);
         this.x = new int[]{x};
@@ -239,10 +239,10 @@ public class MouseEvent extends InputEvent
      * @param rotationXYZ Rotation of all axis
      * @param rotationScale Rotation scale
      */
-    public MouseEvent(short eventType, Object source, long when, int modifiers,
-                      PointerType pointerType[], short[] pointerID,
-                      int[] x, int[] y, float[] pressure, float maxPressure,
-                      short button, short clickCount, float[] rotationXYZ, float rotationScale)
+    public MouseEvent(final short eventType, final Object source, final long when, final int modifiers,
+                      final PointerType pointerType[], final short[] pointerID,
+                      final int[] x, final int[] y, final float[] pressure, final float maxPressure,
+                      final short button, final short clickCount, final float[] rotationXYZ, final float rotationScale)
     {
         super(eventType, source, when, modifiers);
         this.x = x;
@@ -267,7 +267,7 @@ public class MouseEvent extends InputEvent
         this.pointerType = pointerType;
     }
 
-    public MouseEvent createVariant(short newEventType) {
+    public final MouseEvent createVariant(final short newEventType) {
         return new MouseEvent(newEventType, source, getWhen(), getModifiers(), pointerType, pointerID,
                               x, y, pressure, maxPressure, button, clickCount, rotationXYZ, rotationScale);
     }
@@ -284,7 +284,7 @@ public class MouseEvent extends InputEvent
      * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * @return the {@link PointerType} for the data at index or null if index not available.
      */
-    public final PointerType getPointerType(int index) {
+    public final PointerType getPointerType(final int index) {
         if(0 > index || index >= pointerType.length) {
             return null;
         }
@@ -311,7 +311,7 @@ public class MouseEvent extends InputEvent
      * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * </p>
      */
-    public final short getPointerId(int index) {
+    public final short getPointerId(final int index) {
         if(0 > index || index >= pointerID.length) {
             return -1;
         }
@@ -322,7 +322,7 @@ public class MouseEvent extends InputEvent
      * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * @return the pointer index for the given pointer id or -1 if id not available.
      */
-    public final int getPointerIdx(short id) {
+    public final int getPointerIdx(final short id) {
         if( id >= 0 ) {
             for(int i=pointerID.length-1; i>=0; i--) {
                 if( pointerID[i] == id ) {
@@ -372,7 +372,7 @@ public class MouseEvent extends InputEvent
      * @return X-Coord associated with the pointer-index.
      * @see getPointerId(index)
      */
-    public final int getX(int index) {
+    public final int getX(final int index) {
         return x[index];
     }
 
@@ -382,7 +382,7 @@ public class MouseEvent extends InputEvent
      * @return Y-Coord associated with the pointer-index.
      * @see getPointerId(index)
      */
-    public final int getY(int index) {
+    public final int getY(final int index) {
         return y[index];
     }
 
@@ -408,7 +408,7 @@ public class MouseEvent extends InputEvent
      *         The value of zero is return if not available.
      * @see #getMaxPressure()
      */
-    public final float getPressure(boolean normalized){
+    public final float getPressure(final boolean normalized){
         return normalized ? pressure[0] / maxPressure : pressure[0];
     }
 
@@ -420,7 +420,7 @@ public class MouseEvent extends InputEvent
      *         The value of zero is return if not available.
      * @see #getMaxPressure()
      */
-    public final float getPressure(int index, boolean normalized){
+    public final float getPressure(final int index, final boolean normalized){
         return normalized ? pressure[index] / maxPressure : pressure[index];
     }
 
@@ -540,7 +540,7 @@ public class MouseEvent extends InputEvent
         return super.toString(sb).append("]");
     }
 
-    public static String getEventTypeString(short type) {
+    public static String getEventTypeString(final short type) {
         switch(type) {
             case EVENT_MOUSE_CLICKED: return "EVENT_MOUSE_CLICKED";
             case EVENT_MOUSE_ENTERED: return "EVENT_MOUSE_ENTERED";

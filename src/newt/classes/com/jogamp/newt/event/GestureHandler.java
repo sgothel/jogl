@@ -61,7 +61,7 @@ public interface GestureHandler {
          * @param modifiers
          * @param handler
          */
-        public GestureEvent(Object source, long when, int modifiers, GestureHandler handler) {
+        public GestureEvent(final Object source, final long when, final int modifiers, final GestureHandler handler) {
             super(EVENT_GESTURE_DETECTED, source, when, modifiers);
             this.handler = handler;
         }
@@ -74,13 +74,17 @@ public interface GestureHandler {
          * @param modifiers
          * @param handler
          */
-        public GestureEvent(short event_type, Object source, long when, int modifiers, GestureHandler handler) {
+        public GestureEvent(final short event_type, final Object source, final long when, final int modifiers, final GestureHandler handler) {
             super(event_type, source, when, modifiers);
             this.handler = handler;
         }
 
         /** Return the {@link GestureHandler}, which produced the event. */
         public final GestureHandler getHandler() { return handler; }
+
+        public String toString() {
+            return "GestureEvent[handler "+handler+"]";
+        }
     }
 
     /**

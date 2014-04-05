@@ -31,7 +31,7 @@ package com.jogamp.newt.event;
 @SuppressWarnings("serial")
 public abstract class OutputEvent extends NEWTEvent
 {
- protected OutputEvent(short eventType, Object source, long when) {
+ protected OutputEvent(final short eventType, final Object source, final long when) {
     super(eventType, source, when);
  }
 

@@ -118,7 +118,7 @@ import com.jogamp.common.util.IntBitfield;
 @SuppressWarnings("serial")
 public class KeyEvent extends InputEvent
 {
-    private KeyEvent(short eventType, Object source, long when, int modifiers, short keyCode, short keySym, int keySymModMask, char keyChar) {
+    private KeyEvent(final short eventType, final Object source, final long when, final int modifiers, final short keyCode, final short keySym, final int keySymModMask, final char keyChar) {
         super(eventType, source, when, modifiers | keySymModMask);
         this.keyCode=keyCode;
         this.keySym=keySym;
@@ -148,7 +148,7 @@ public class KeyEvent extends InputEvent
         }
     }
 
-    public static KeyEvent create(short eventType, Object source, long when, int modifiers, short keyCode, short keySym, char keyChar) {
+    public static KeyEvent create(final short eventType, final Object source, final long when, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
         return new KeyEvent(eventType, source, when, modifiers, keyCode, keySym, getModifierMask(keySym), keyChar);
     }
 
@@ -211,7 +211,7 @@ public class KeyEvent extends InputEvent
         return super.toString(sb).append("]");
     }
 
-    public static String getEventTypeString(short type) {
+    public static String getEventTypeString(final short type) {
         switch(type) {
         case EVENT_KEY_PRESSED: return "EVENT_KEY_PRESSED";
         case EVENT_KEY_RELEASED: return "EVENT_KEY_RELEASED";
@@ -224,7 +224,7 @@ public class KeyEvent extends InputEvent
      *        however, lower case a-z is mapped to {@link KeyEvent#VK_A} - {@link KeyEvent#VK_Z}.
      * @return {@link KeyEvent} virtual key (VK) value.
      */
-    public static short utf16ToVKey(char keyChar) {
+    public static short utf16ToVKey(final char keyChar) {
         if( 'a' <= keyChar && keyChar <= 'z' ) {
             return (short) ( ( keyChar - 'a' ) + KeyEvent.VK_A );
         }
@@ -237,7 +237,7 @@ public class KeyEvent extends InputEvent
      * A modifier key is one of {@link #VK_SHIFT}, {@link #VK_CONTROL}, {@link #VK_ALT}, {@link #VK_ALT_GRAPH}, {@link #VK_META}.
      * </p>
      */
-    public static boolean isModifierKey(short vKey) {
+    public static boolean isModifierKey(final short vKey) {
         switch (vKey) {
             case VK_SHIFT:
             case VK_CONTROL:
@@ -254,7 +254,7 @@ public class KeyEvent extends InputEvent
      * If <code>vKey</code> is a {@link #isModifierKey() modifier key}, method returns the corresponding modifier mask,
      * otherwise 0.
      */
-    public static int getModifierMask(short vKey) {
+    public static int getModifierMask(final short vKey) {
         switch (vKey) {
             case VK_SHIFT:
                 return InputEvent.SHIFT_MASK;
