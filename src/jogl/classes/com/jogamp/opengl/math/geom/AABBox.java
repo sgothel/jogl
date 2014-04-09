@@ -568,7 +568,7 @@ public class AABBox {
      * @return a float representing the size of the AABBox
      */
     public final float getSize() {
-        return VectorUtil.vec3Distance(low, high);
+        return VectorUtil.distVec3(low, high);
     }
 
     /**

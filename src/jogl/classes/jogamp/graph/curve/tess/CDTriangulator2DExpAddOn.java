@@ -266,8 +266,8 @@ public class CDTriangulator2DExpAddOn {
 
             final float texZTag = 2f;
             final float[] vOACoords = vOA.getCoord();
-            final float dOC0A = VectorUtil.vec3Distance(vOACoords, vC0A.getCoord());
-            final float dOC1A = VectorUtil.vec3Distance(vOACoords, vC1A.getCoord());
+            final float dOC0A = VectorUtil.distVec3(vOACoords, vC0A.getCoord());
+            final float dOC1A = VectorUtil.distVec3(vOACoords, vC1A.getCoord());
             if( false ) {
                 final float[] vec3Z = { 0f, 0f, -1f };
                 final float[] vecLongSide, vecLineHeight;

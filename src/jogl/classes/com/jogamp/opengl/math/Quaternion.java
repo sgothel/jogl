@@ -649,16 +649,16 @@ public class Quaternion {
      * @return this quaternion for chaining.
      */
     public final Quaternion setFromVectors(final float[] v1, final float[] v2, final float[] tmpPivotVec, final float[] tmpNormalVec) {
-        final float factor = VectorUtil.vec3Norm(v1) * VectorUtil.vec3Norm(v2);
+        final float factor = VectorUtil.normVec3(v1) * VectorUtil.normVec3(v2);
         if ( FloatUtil.isZero(factor, FloatUtil.EPSILON ) ) {
             return setIdentity();
         } else {
-            final float dot = VectorUtil.vec3Dot(v1, v2) / factor; // normalize
+            final float dot = VectorUtil.dotVec3(v1, v2) / factor; // normalize
             final float theta = FloatUtil.acos(Math.max(-1.0f, Math.min(dot, 1.0f))); // clipping [-1..1]
 
             VectorUtil.crossVec3(tmpPivotVec, v1, v2);
 
-            if ( dot < 0.0f && FloatUtil.isZero( VectorUtil.vec3Norm(tmpPivotVec), FloatUtil.EPSILON ) ) {
+            if ( dot < 0.0f && FloatUtil.isZero( VectorUtil.normVec3(tmpPivotVec), FloatUtil.EPSILON ) ) {
                 // Vectors parallel and opposite direction, therefore a rotation of 180 degrees about any vector
                 // perpendicular to this vector will rotate vector a onto vector b.
                 //
@@ -704,16 +704,16 @@ public class Quaternion {
      * @return this quaternion for chaining.
      */
     public final Quaternion setFromNormalVectors(final float[] v1, final float[] v2, final float[] tmpPivotVec) {
-        final float factor = VectorUtil.vec3Norm(v1) * VectorUtil.vec3Norm(v2);
+        final float factor = VectorUtil.normVec3(v1) * VectorUtil.normVec3(v2);
         if ( FloatUtil.isZero(factor, FloatUtil.EPSILON ) ) {
             return setIdentity();
         } else {
-            final float dot = VectorUtil.vec3Dot(v1, v2) / factor; // normalize
+            final float dot = VectorUtil.dotVec3(v1, v2) / factor; // normalize
             final float theta = FloatUtil.acos(Math.max(-1.0f, Math.min(dot, 1.0f))); // clipping [-1..1]
 
             VectorUtil.crossVec3(tmpPivotVec, v1, v2);
 
-            if ( dot < 0.0f && FloatUtil.isZero( VectorUtil.vec3Norm(tmpPivotVec), FloatUtil.EPSILON ) ) {
+            if ( dot < 0.0f && FloatUtil.isZero( VectorUtil.normVec3(tmpPivotVec), FloatUtil.EPSILON ) ) {
                 // Vectors parallel and opposite direction, therefore a rotation of 180 degrees about any vector
                 // perpendicular to this vector will rotate vector a onto vector b.
                 //

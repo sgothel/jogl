@@ -123,10 +123,10 @@ public class TestQuaternion01NOUI {
         quat1.rotateVector(vecOut1, 0, ONE, 0);
         quat2.rotateVector(vecOut2, 0, ONE, 0);
         Assert.assertArrayEquals(vecOut1, vecOut2, FloatUtil.EPSILON);
-        Assert.assertEquals(0f, Math.abs( VectorUtil.vec3Distance(vecOut1, vecOut2) ), FloatUtil.EPSILON );
+        Assert.assertEquals(0f, Math.abs( VectorUtil.distVec3(vecOut1, vecOut2) ), FloatUtil.EPSILON );
 
         quat1.rotateVector(vecOut1, 0, UNIT_Z, 0);
-        Assert.assertEquals(0f, Math.abs( VectorUtil.vec3Distance(NEG_UNIT_Y, vecOut1) ), FloatUtil.EPSILON );
+        Assert.assertEquals(0f, Math.abs( VectorUtil.distVec3(NEG_UNIT_Y, vecOut1) ), FloatUtil.EPSILON );
 
         quat2.setFromAngleAxis(FloatUtil.HALF_PI, ZERO, tmpV3f);
         Assert.assertEquals(QUAT_IDENT, quat2);
@@ -159,19 +159,19 @@ public class TestQuaternion01NOUI {
         quat.setFromVectors(UNIT_Z, NEG_UNIT_Z, tmp0V3f, tmp1V3f);
         quat.rotateVector(vecOut, 0, UNIT_Z, 0);
         // System.err.println("vecOut: "+Arrays.toString(vecOut));
-        Assert.assertEquals( 0f, Math.abs( VectorUtil.vec3Distance(NEG_UNIT_Z, vecOut) ), Quaternion.ALLOWED_DEVIANCE );
+        Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(NEG_UNIT_Z, vecOut) ), Quaternion.ALLOWED_DEVIANCE );
 
         quat.setFromVectors(UNIT_X, NEG_UNIT_X, tmp0V3f, tmp1V3f);
         quat.rotateVector(vecOut, 0, UNIT_X, 0);
-        Assert.assertEquals( 0f, Math.abs( VectorUtil.vec3Distance(NEG_UNIT_X, vecOut) ), Quaternion.ALLOWED_DEVIANCE );
+        Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(NEG_UNIT_X, vecOut) ), Quaternion.ALLOWED_DEVIANCE );
 
         quat.setFromVectors(UNIT_Y, NEG_UNIT_Y, tmp0V3f, tmp1V3f);
         quat.rotateVector(vecOut, 0, UNIT_Y, 0);
-        Assert.assertEquals( 0f, Math.abs( VectorUtil.vec3Distance(NEG_UNIT_Y, vecOut) ), Quaternion.ALLOWED_DEVIANCE );
+        Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(NEG_UNIT_Y, vecOut) ), Quaternion.ALLOWED_DEVIANCE );
 
         quat.setFromVectors(ONE, NEG_ONE, tmp0V3f, tmp1V3f);
         quat.rotateVector(vecOut, 0, ONE, 0);
-        Assert.assertEquals( 0f, Math.abs( VectorUtil.vec3Distance(NEG_ONE, vecOut) ), Quaternion.ALLOWED_DEVIANCE );
+        Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(NEG_ONE, vecOut) ), Quaternion.ALLOWED_DEVIANCE );
 
         quat.setFromVectors(ZERO, ZERO, tmp0V3f, tmp1V3f);
         Assert.assertEquals(QUAT_IDENT, quat);
@@ -230,17 +230,17 @@ public class TestQuaternion01NOUI {
         Assert.assertEquals(1.0f, quat.magnitude(), FloatUtil.EPSILON);
 
         final float[] v2 = quat.rotateVector(new float[3], 0, UNIT_X, 0);
-        Assert.assertEquals(0f, Math.abs(VectorUtil.vec3Distance(NEG_UNIT_Z, v2)), FloatUtil.EPSILON);
+        Assert.assertEquals(0f, Math.abs(VectorUtil.distVec3(NEG_UNIT_Z, v2)), FloatUtil.EPSILON);
 
         quat.setFromEuler(0, 0, -FloatUtil.HALF_PI);
         Assert.assertEquals(1.0f, quat.magnitude(), FloatUtil.EPSILON);
         quat.rotateVector(v2, 0, UNIT_X, 0);
-        Assert.assertEquals(0f, Math.abs(VectorUtil.vec3Distance(NEG_UNIT_Y, v2)), FloatUtil.EPSILON);
+        Assert.assertEquals(0f, Math.abs(VectorUtil.distVec3(NEG_UNIT_Y, v2)), FloatUtil.EPSILON);
 
         quat.setFromEuler(FloatUtil.HALF_PI, 0, 0);
         Assert.assertEquals(1.0f, quat.magnitude(), FloatUtil.EPSILON);
         quat.rotateVector(v2, 0, UNIT_Y, 0);
-        Assert.assertEquals(0f, Math.abs(VectorUtil.vec3Distance(UNIT_Z, v2)), FloatUtil.EPSILON);
+        Assert.assertEquals(0f, Math.abs(VectorUtil.distVec3(UNIT_Z, v2)), FloatUtil.EPSILON);
     }
 
     @Test
@@ -278,13 +278,13 @@ public class TestQuaternion01NOUI {
             quat.rotateVector(vecHas, 0, UNIT_Y, 0);
             // System.err.println("exp0 "+Arrays.toString(NEG_UNIT_X));
             // System.err.println("has0 "+Arrays.toString(vecHas));
-            Assert.assertEquals( 0f, Math.abs( VectorUtil.vec3Distance(UNIT_Z, vecHas) ), Quaternion.ALLOWED_DEVIANCE );
+            Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(UNIT_Z, vecHas) ), Quaternion.ALLOWED_DEVIANCE );
         }
         quat.setFromMatrix(mat1, 0);
         quat.rotateVector(vecHas, 0, UNIT_Y, 0);
         // System.err.println("exp0 "+Arrays.toString(UNIT_Z));
         // System.err.println("has0 "+Arrays.toString(vecHas));
-        Assert.assertEquals( 0f, Math.abs( VectorUtil.vec3Distance(UNIT_Z, vecHas) ), Quaternion.ALLOWED_DEVIANCE );
+        Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(UNIT_Z, vecHas) ), Quaternion.ALLOWED_DEVIANCE );
 
         quat.toMatrix(mat2, 0);
         // System.err.println(FloatUtil.matrixToString(null, null, "%10.5f", mat1, 0, mat2, 0, 4, 4, false).toString());
@@ -292,7 +292,7 @@ public class TestQuaternion01NOUI {
 
         quat.rotateVector(vecHas, 0, NEG_ONE, 0);
         FloatUtil.multMatrixVecf(mat2, NEG_ONE_v4, vecOut2);
-        Assert.assertEquals( 0f, Math.abs( VectorUtil.vec3Distance(vecHas, vecOut2) ), Quaternion.ALLOWED_DEVIANCE );
+        Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(vecHas, vecOut2) ), Quaternion.ALLOWED_DEVIANCE );
 
         //
         // 180 degrees rotation on X
@@ -312,13 +312,13 @@ public class TestQuaternion01NOUI {
             quat.rotateVector(vecHas, 0, UNIT_Y, 0);
             // System.err.println("exp0 "+Arrays.toString(NEG_UNIT_X));
             // System.err.println("has0 "+Arrays.toString(vecHas));
-            Assert.assertEquals( 0f, Math.abs( VectorUtil.vec3Distance(NEG_UNIT_Y, vecHas) ), Quaternion.ALLOWED_DEVIANCE );
+            Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(NEG_UNIT_Y, vecHas) ), Quaternion.ALLOWED_DEVIANCE );
         }
         quat.setFromMatrix(mat1, 0);
         quat.rotateVector(vecHas, 0, UNIT_Y, 0);
         // System.err.println("exp0 "+Arrays.toString(NEG_UNIT_Y));
         // System.err.println("has0 "+Arrays.toString(vecHas));
-        Assert.assertEquals( 0f, Math.abs( VectorUtil.vec3Distance(NEG_UNIT_Y, vecHas) ), Quaternion.ALLOWED_DEVIANCE );
+        Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(NEG_UNIT_Y, vecHas) ), Quaternion.ALLOWED_DEVIANCE );
 
         quat.toMatrix(mat2, 0);
         // System.err.println(FloatUtil.matrixToString(null, null, "%10.5f", mat1, 0, mat2, 0, 4, 4, false).toString());
@@ -326,7 +326,7 @@ public class TestQuaternion01NOUI {
 
         quat.rotateVector(vecHas, 0, ONE, 0);
         FloatUtil.multMatrixVecf(mat2, ONE_v4, vecOut2);
-        Assert.assertEquals( 0f, Math.abs( VectorUtil.vec3Distance(vecHas, vecOut2) ), Quaternion.ALLOWED_DEVIANCE );
+        Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(vecHas, vecOut2) ), Quaternion.ALLOWED_DEVIANCE );
 
         //
         // 180 degrees rotation on Y
@@ -346,13 +346,13 @@ public class TestQuaternion01NOUI {
             quat.rotateVector(vecHas, 0, UNIT_X, 0);
             // System.err.println("exp0 "+Arrays.toString(NEG_UNIT_X));
             // System.err.println("has0 "+Arrays.toString(vecHas));
-            Assert.assertEquals( 0f, Math.abs( VectorUtil.vec3Distance(NEG_UNIT_X, vecHas) ), Quaternion.ALLOWED_DEVIANCE );
+            Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(NEG_UNIT_X, vecHas) ), Quaternion.ALLOWED_DEVIANCE );
         }
         quat.setFromMatrix(mat1, 0);
         quat.rotateVector(vecHas, 0, UNIT_X, 0);
         // System.err.println("exp0 "+Arrays.toString(NEG_UNIT_X));
         // System.err.println("has0 "+Arrays.toString(vecHas));
-        Assert.assertEquals( 0f, Math.abs( VectorUtil.vec3Distance(NEG_UNIT_X, vecHas) ), Quaternion.ALLOWED_DEVIANCE );
+        Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(NEG_UNIT_X, vecHas) ), Quaternion.ALLOWED_DEVIANCE );
 
         quat.toMatrix(mat2, 0);
         // System.err.println(FloatUtil.matrixToString(null, "matr-rot", "%10.5f", mat1, 0, mat2, 0, 4, 4, false).toString());
@@ -360,7 +360,7 @@ public class TestQuaternion01NOUI {
 
         quat.rotateVector(vecHas, 0, NEG_ONE, 0);
         FloatUtil.multMatrixVecf(mat2, NEG_ONE_v4, vecOut2);
-        Assert.assertEquals( 0f, Math.abs( VectorUtil.vec3Distance(vecHas, vecOut2) ), Quaternion.ALLOWED_DEVIANCE );
+        Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(vecHas, vecOut2) ), Quaternion.ALLOWED_DEVIANCE );
 
         //
         // 180 degrees rotation on Z
@@ -380,13 +380,13 @@ public class TestQuaternion01NOUI {
             quat.rotateVector(vecHas, 0, UNIT_X, 0);
             // System.err.println("exp0 "+Arrays.toString(NEG_UNIT_X));
             // System.err.println("has0 "+Arrays.toString(vecHas));
-            Assert.assertEquals( 0f, Math.abs( VectorUtil.vec3Distance(NEG_UNIT_X, vecHas) ), Quaternion.ALLOWED_DEVIANCE );
+            Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(NEG_UNIT_X, vecHas) ), Quaternion.ALLOWED_DEVIANCE );
         }
         quat.setFromMatrix(mat1, 0);
         quat.rotateVector(vecHas, 0, UNIT_X, 0);
         // System.err.println("exp0 "+Arrays.toString(NEG_UNIT_X));
         // System.err.println("has0 "+Arrays.toString(vecHas));
-        Assert.assertEquals( 0f, Math.abs( VectorUtil.vec3Distance(NEG_UNIT_X, vecHas) ), Quaternion.ALLOWED_DEVIANCE );
+        Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(NEG_UNIT_X, vecHas) ), Quaternion.ALLOWED_DEVIANCE );
 
         quat.toMatrix(mat2, 0);
         // System.err.println(FloatUtil.matrixToString(null, "matr-rot", "%10.5f", mat1, 0, mat2, 0, 4, 4, false).toString());
@@ -394,7 +394,7 @@ public class TestQuaternion01NOUI {
 
         quat.rotateVector(vecHas, 0, ONE, 0);
         FloatUtil.multMatrixVecf(mat2, ONE_v4, vecOut2);
-        Assert.assertEquals( 0f, Math.abs( VectorUtil.vec3Distance(vecHas, vecOut2) ), Quaternion.ALLOWED_DEVIANCE );
+        Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(vecHas, vecOut2) ), Quaternion.ALLOWED_DEVIANCE );
 
         //
         // Test Matrix-Columns
@@ -413,19 +413,19 @@ public class TestQuaternion01NOUI {
         quat.copyMatrixColumn(0, vecCol, 0);
         // System.err.println("exp0 "+Arrays.toString(vecExp));
         // System.err.println("has0 "+Arrays.toString(vecCol));
-        Assert.assertEquals(0f, Math.abs( VectorUtil.vec3Distance(vecExp, vecCol)), FloatUtil.EPSILON);
+        Assert.assertEquals(0f, Math.abs( VectorUtil.distVec3(vecExp, vecCol)), FloatUtil.EPSILON);
 
         FloatUtil.copyMatrixColumn(mat1, 0, 1, vecExp, 0);
         quat.copyMatrixColumn(1, vecCol, 0);
         // System.err.println("exp1 "+Arrays.toString(vecExp));
         // System.err.println("has1 "+Arrays.toString(vecCol));
-        Assert.assertEquals(0f, Math.abs( VectorUtil.vec3Distance(vecExp, vecCol)), FloatUtil.EPSILON);
+        Assert.assertEquals(0f, Math.abs( VectorUtil.distVec3(vecExp, vecCol)), FloatUtil.EPSILON);
 
         FloatUtil.copyMatrixColumn(mat1, 0, 2, vecExp, 0);
         quat.copyMatrixColumn(2, vecCol, 0);
         // System.err.println("exp2 "+Arrays.toString(vecExp));
         // System.err.println("has2 "+Arrays.toString(vecCol));
-        Assert.assertEquals(0f, Math.abs( VectorUtil.vec3Distance(vecExp, vecCol)), FloatUtil.EPSILON);
+        Assert.assertEquals(0f, Math.abs( VectorUtil.distVec3(vecExp, vecCol)), FloatUtil.EPSILON);
 
         quat.set(0f, 0f, 0f, 0f);
         Assert.assertArrayEquals(UNIT_X, quat.copyMatrixColumn(0, vecCol, 0), FloatUtil.EPSILON);
@@ -563,18 +563,18 @@ public class TestQuaternion01NOUI {
 
         final float[] vecOut = new float[3];
         quat2.rotateVector(vecOut, 0, UNIT_Z, 0);
-        Assert.assertTrue( Math.abs( VectorUtil.vec3Distance(UNIT_X, vecOut)) <= Quaternion.ALLOWED_DEVIANCE);
+        Assert.assertTrue( Math.abs( VectorUtil.distVec3(UNIT_X, vecOut)) <= Quaternion.ALLOWED_DEVIANCE);
 
         quat2.setFromAngleNormalAxis(FloatUtil.HALF_PI, UNIT_Y); // 90 degr on Y
         quat1.mult(quat1); // q1 = q1 * q1 -> 2 * 45 degr ->  90 degr on Y
         quat1.mult(quat2); // q1 = q1 * q2 -> 2 * 90 degr -> 180 degr on Y
         quat1.rotateVector(vecOut, 0, UNIT_Z, 0);
-        Assert.assertTrue( Math.abs( VectorUtil.vec3Distance(NEG_UNIT_Z, vecOut)) <= Quaternion.ALLOWED_DEVIANCE);
+        Assert.assertTrue( Math.abs( VectorUtil.distVec3(NEG_UNIT_Z, vecOut)) <= Quaternion.ALLOWED_DEVIANCE);
 
         quat2.setFromEuler(0f, FloatUtil.HALF_PI, 0f);
         quat1.mult(quat2); // q1 = q1 * q2 = q1 * rotMat(0, 90degr, 0)
         quat1.rotateVector(vecOut, 0, UNIT_Z, 0);
-        Assert.assertTrue( Math.abs( VectorUtil.vec3Distance(NEG_UNIT_X, vecOut)) <= Quaternion.ALLOWED_DEVIANCE);
+        Assert.assertTrue( Math.abs( VectorUtil.distVec3(NEG_UNIT_X, vecOut)) <= Quaternion.ALLOWED_DEVIANCE);
     }
 
     @Test
@@ -645,7 +645,7 @@ public class TestQuaternion01NOUI {
         // put together matrix, then apply to vector, so YZX
         worker.rotateByAngleY(FloatUtil.QUARTER_PI).rotateByAngleZ(FloatUtil.PI).rotateByAngleX(FloatUtil.HALF_PI);
         quat.rotateVector(vecExp, 0, vecExp, 0);
-        Assert.assertEquals(0f, VectorUtil.vec3Distance(vecExp, vecRot), FloatUtil.EPSILON);
+        Assert.assertEquals(0f, VectorUtil.distVec3(vecExp, vecRot), FloatUtil.EPSILON);
 
         // test axis rotation methods against general purpose
         // X AXIS
@@ -655,7 +655,7 @@ public class TestQuaternion01NOUI {
         worker.setIdentity().rotateByAngleNormalAxis(FloatUtil.QUARTER_PI, 1f, 0f, 0f).rotateVector(vecRot, 0, vecRot, 0);
         // System.err.println("exp0 "+Arrays.toString(vecExp)+", len "+VectorUtil.length(vecExp));
         // System.err.println("has0 "+Arrays.toString(vecRot)+", len "+VectorUtil.length(vecRot));
-        Assert.assertEquals(0f, VectorUtil.vec3Distance(vecExp, vecRot), FloatUtil.EPSILON);
+        Assert.assertEquals(0f, VectorUtil.distVec3(vecExp, vecRot), FloatUtil.EPSILON);
 
         // Y AXIS
         vecExp = new float[] { 1f, 1f, 1f };
@@ -664,7 +664,7 @@ public class TestQuaternion01NOUI {
         worker.setIdentity().rotateByAngleNormalAxis(FloatUtil.QUARTER_PI, 0f, 1f, 0f).rotateVector(vecRot, 0, vecRot, 0);
         // System.err.println("exp0 "+Arrays.toString(vecExp));
         // System.err.println("has0 "+Arrays.toString(vecRot));
-        Assert.assertEquals(0f, VectorUtil.vec3Distance(vecExp, vecRot), FloatUtil.EPSILON);
+        Assert.assertEquals(0f, VectorUtil.distVec3(vecExp, vecRot), FloatUtil.EPSILON);
 
         // Z AXIS
         vecExp = new float[] { 1f, 1f, 1f };
@@ -673,7 +673,7 @@ public class TestQuaternion01NOUI {
         worker.setIdentity().rotateByAngleNormalAxis(FloatUtil.QUARTER_PI, 0f, 0f, 1f).rotateVector(vecRot, 0, vecRot, 0);
         // System.err.println("exp0 "+Arrays.toString(vecExp));
         // System.err.println("has0 "+Arrays.toString(vecRot));
-        Assert.assertEquals(0f, VectorUtil.vec3Distance(vecExp, vecRot), FloatUtil.EPSILON);
+        Assert.assertEquals(0f, VectorUtil.distVec3(vecExp, vecRot), FloatUtil.EPSILON);
 
         quat.set(worker);
         worker.rotateByAngleNormalAxis(0f, 0f, 0f, 0f);
@@ -716,7 +716,7 @@ public class TestQuaternion01NOUI {
         quatS.rotateVector(vecHas, 0, UNIT_Z, 0);
         // System.err.println("exp0 "+Arrays.toString(vecExp));
         // System.err.println("has0 "+Arrays.toString(vecHas));
-        Assert.assertEquals( 0f, Math.abs( VectorUtil.vec3Distance(vecExp, vecHas)), Quaternion.ALLOWED_DEVIANCE);
+        Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(vecExp, vecHas)), Quaternion.ALLOWED_DEVIANCE);
 
         // delta == 100%
         quat2.setIdentity().rotateByAngleZ(FloatUtil.PI); // angle: 180 degrees, axis Z
@@ -725,7 +725,7 @@ public class TestQuaternion01NOUI {
         quatS.rotateVector(vecHas, 0, UNIT_X, 0);
         // System.err.println("exp0 "+Arrays.toString(NEG_UNIT_X));
         // System.err.println("has0 "+Arrays.toString(vecHas));
-        Assert.assertEquals( 0f, Math.abs( VectorUtil.vec3Distance(NEG_UNIT_X, vecHas)), Quaternion.ALLOWED_DEVIANCE);
+        Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(NEG_UNIT_X, vecHas)), Quaternion.ALLOWED_DEVIANCE);
 
         quat2.setIdentity().rotateByAngleZ(FloatUtil.PI); // angle: 180 degrees, axis Z
         // System.err.println("Slerp #03: 1/2 * 180 degrees Z");
@@ -733,7 +733,7 @@ public class TestQuaternion01NOUI {
         quatS.rotateVector(vecHas, 0, UNIT_X, 0);
         // System.err.println("exp0 "+Arrays.toString(UNIT_Y));
         // System.err.println("has0 "+Arrays.toString(vecHas));
-        Assert.assertEquals( 0f, Math.abs( VectorUtil.vec3Distance(UNIT_Y, vecHas)), Quaternion.ALLOWED_DEVIANCE);
+        Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(UNIT_Y, vecHas)), Quaternion.ALLOWED_DEVIANCE);
 
         // delta == 0%
         quat2.setIdentity().rotateByAngleZ(FloatUtil.PI); // angle: 180 degrees, axis Z
@@ -742,7 +742,7 @@ public class TestQuaternion01NOUI {
         quatS.rotateVector(vecHas, 0, UNIT_X, 0);
         // System.err.println("exp0 "+Arrays.toString(UNIT_X));
         // System.err.println("has0 "+Arrays.toString(vecHas));
-        Assert.assertEquals( 0f, Math.abs( VectorUtil.vec3Distance(UNIT_X, vecHas)), Quaternion.ALLOWED_DEVIANCE);
+        Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(UNIT_X, vecHas)), Quaternion.ALLOWED_DEVIANCE);
 
         // a==b
         quat2.setIdentity();
@@ -751,7 +751,7 @@ public class TestQuaternion01NOUI {
         quatS.rotateVector(vecHas, 0, UNIT_X, 0);
         // System.err.println("exp0 "+Arrays.toString(UNIT_X));
         // System.err.println("has0 "+Arrays.toString(vecHas));
-        Assert.assertEquals( 0f, Math.abs( VectorUtil.vec3Distance(UNIT_X, vecHas)), Quaternion.ALLOWED_DEVIANCE);
+        Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(UNIT_X, vecHas)), Quaternion.ALLOWED_DEVIANCE);
 
         // negative dot product
         vecExp = new float[] { 0f, -FloatUtil.sin(FloatUtil.QUARTER_PI), FloatUtil.sin(FloatUtil.QUARTER_PI) };
@@ -762,7 +762,7 @@ public class TestQuaternion01NOUI {
         quatS.rotateVector(vecHas, 0, UNIT_Y, 0);
         // System.err.println("exp0 "+Arrays.toString(vecExp));
         // System.err.println("has0 "+Arrays.toString(vecHas));
-        Assert.assertEquals( 0f, Math.abs( VectorUtil.vec3Distance(vecExp, vecHas)), Quaternion.ALLOWED_DEVIANCE);
+        Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(vecExp, vecHas)), Quaternion.ALLOWED_DEVIANCE);
 
 
     }
@@ -778,7 +778,7 @@ public class TestQuaternion01NOUI {
         if( DEBUG ) System.err.println("LookAt #01");
         VectorUtil.copyVec3(direction, 0, NEG_UNIT_X, 0);
         final Quaternion quat = new Quaternion().setLookAt(direction, UNIT_Y, xAxis, yAxis, zAxis);
-        Assert.assertEquals(0f, VectorUtil.vec3Distance(direction, quat.rotateVector(vecHas, 0, UNIT_Z, 0)), Quaternion.ALLOWED_DEVIANCE);
+        Assert.assertEquals(0f, VectorUtil.distVec3(direction, quat.rotateVector(vecHas, 0, UNIT_Z, 0)), Quaternion.ALLOWED_DEVIANCE);
 
         if( DEBUG ) System.err.println("LookAt #02");
         VectorUtil.normalizeVec3(VectorUtil.copyVec3(direction, 0, ONE, 0));
@@ -786,14 +786,14 @@ public class TestQuaternion01NOUI {
         if( DEBUG )System.err.println("quat0 "+quat);
         quat.rotateVector(vecHas, 0, UNIT_Z, 0);
         if( DEBUG ) {
-            System.err.println("xAxis "+Arrays.toString(xAxis)+", len "+VectorUtil.vec3Norm(xAxis));
-            System.err.println("yAxis "+Arrays.toString(yAxis)+", len "+VectorUtil.vec3Norm(yAxis));
-            System.err.println("zAxis "+Arrays.toString(zAxis)+", len "+VectorUtil.vec3Norm(zAxis));
-            System.err.println("exp0 "+Arrays.toString(direction)+", len "+VectorUtil.vec3Norm(direction));
-            System.err.println("has0 "+Arrays.toString(vecHas)+", len "+VectorUtil.vec3Norm(vecHas));
+            System.err.println("xAxis "+Arrays.toString(xAxis)+", len "+VectorUtil.normVec3(xAxis));
+            System.err.println("yAxis "+Arrays.toString(yAxis)+", len "+VectorUtil.normVec3(yAxis));
+            System.err.println("zAxis "+Arrays.toString(zAxis)+", len "+VectorUtil.normVec3(zAxis));
+            System.err.println("exp0 "+Arrays.toString(direction)+", len "+VectorUtil.normVec3(direction));
+            System.err.println("has0 "+Arrays.toString(vecHas)+", len "+VectorUtil.normVec3(vecHas));
         }
         // Assert.assertEquals(0f, VectorUtil.distance(direction, quat.rotateVector(vecHas, 0, UNIT_Z, 0)), Quaternion.ALLOWED_DEVIANCE);
-        Assert.assertEquals(0f, VectorUtil.vec3Distance(direction, vecHas), Quaternion.ALLOWED_DEVIANCE);
+        Assert.assertEquals(0f, VectorUtil.distVec3(direction, vecHas), Quaternion.ALLOWED_DEVIANCE);
 
         if( DEBUG )System.err.println("LookAt #03");
         VectorUtil.normalizeVec3(VectorUtil.copyVec3(direction, 0, new float[] { -1f, 2f, -1f }, 0));
@@ -801,14 +801,14 @@ public class TestQuaternion01NOUI {
         if( DEBUG )System.err.println("quat0 "+quat);
         quat.rotateVector(vecHas, 0, UNIT_Z, 0);
         if( DEBUG ) {
-            System.err.println("xAxis "+Arrays.toString(xAxis)+", len "+VectorUtil.vec3Norm(xAxis));
-            System.err.println("yAxis "+Arrays.toString(yAxis)+", len "+VectorUtil.vec3Norm(yAxis));
-            System.err.println("zAxis "+Arrays.toString(zAxis)+", len "+VectorUtil.vec3Norm(zAxis));
-            System.err.println("exp0 "+Arrays.toString(direction)+", len "+VectorUtil.vec3Norm(direction));
-            System.err.println("has0 "+Arrays.toString(vecHas)+", len "+VectorUtil.vec3Norm(vecHas));
+            System.err.println("xAxis "+Arrays.toString(xAxis)+", len "+VectorUtil.normVec3(xAxis));
+            System.err.println("yAxis "+Arrays.toString(yAxis)+", len "+VectorUtil.normVec3(yAxis));
+            System.err.println("zAxis "+Arrays.toString(zAxis)+", len "+VectorUtil.normVec3(zAxis));
+            System.err.println("exp0 "+Arrays.toString(direction)+", len "+VectorUtil.normVec3(direction));
+            System.err.println("has0 "+Arrays.toString(vecHas)+", len "+VectorUtil.normVec3(vecHas));
         }
         // Assert.assertEquals(0f, VectorUtil.distance(direction, quat.rotateVector(vecHas, 0, UNIT_Z, 0)), Quaternion.ALLOWED_DEVIANCE);
-        Assert.assertEquals(0f, VectorUtil.vec3Distance(direction, vecHas), Quaternion.ALLOWED_DEVIANCE);
+        Assert.assertEquals(0f, VectorUtil.distVec3(direction, vecHas), Quaternion.ALLOWED_DEVIANCE);
     }
 
     public static void main(String args[]) {

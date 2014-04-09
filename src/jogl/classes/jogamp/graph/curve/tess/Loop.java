@@ -198,12 +198,12 @@ public class Loop {
             final GraphVertex nextV = initVertices.get(i+1);
             for(int pos=0; pos<vertices.size(); pos++) {
                 final GraphVertex cand = vertices.get(pos);
-                final float distance = VectorUtil.vec3Distance(v.getCoord(), cand.getCoord());
+                final float distance = VectorUtil.distVec3(v.getCoord(), cand.getCoord());
                 if(distance < minDistance){
                     for (GraphVertex vert:vertices){
                         if(vert == v || vert == nextV || vert == cand)
                             continue;
-                        inValid = VectorUtil.isInCircle(v.getPoint(), nextV.getPoint(),
+                        inValid = VectorUtil.isInCircleVec2(v.getPoint(), nextV.getPoint(),
                                 cand.getPoint(), vert.getPoint());
                         if(inValid){
                             break;
@@ -247,7 +247,7 @@ public class Loop {
                     e = e.getNext();
                     continue;
                 }
-                inValid = VectorUtil.isInCircle(root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
+                inValid = VectorUtil.isInCircleVec2(root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
                                               cand, e.getGraphPoint().getPoint());
                 if(inValid){
                     break;
