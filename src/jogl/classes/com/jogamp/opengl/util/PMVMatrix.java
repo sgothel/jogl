@@ -784,7 +784,7 @@ public class PMVMatrix implements GLMatrixFunc {
     /**
      * Map two window coordinates w/ shared X/Y and distinctive Z
      * to a {@link Ray}. The resulting {@link Ray} maybe used for <i>picking</i>
-     * using a {@link AABBox#intersectsRay(Ray, float[]) bounding box}.
+     * using a {@link AABBox#getRayIntersection(Ray, float[]) bounding box}.
      * <p>
      * Notes for picking <i>winz0</i> and <i>winz1</i>:
      * <ul>

@@ -432,6 +432,135 @@ public class AABBox {
         return true;
     }
 
+    /**
+     * Return intersection of a {@link Ray} with this bounding box,
+     * or null if none exist.
+     * <p>
+     * <ul>
+     *  <li>Original code by Andrew Woo, from "Graphics Gems", Academic Press, 1990 [2]</li>
+     *  <li>Optimized code by Pierre Terdiman, 2000 (~20-30% faster on my Celeron 500)</li>
+     *  <li>Epsilon value added by Klaus Hartmann.</li>
+     * </ul>
+     * Method is based on the requirements:
+     * <ul>
+     *  <li>the integer representation of 0.0f is 0x00000000</li>
+     *  <li>the sign bit of the float is the most significant one</li>
+     * </ul>
+     * Report bugs: p.terdiman@codercorner.com
+     * </p>
+     * <pre>
+     * [1] http://www.codercorner.com/RayAABB.cpp
+     * [2] http://tog.acm.org/resources/GraphicsGems/gems/RayBox.c
+     * </pre>
+     * @param result vec3
+     * @param ray
+     * @param epsilon
+     * @param assumeIntersection if true, method assumes an intersection, i.e. by pre-checking via {@link #intersectsRay(Ray)}.
+     *                           In this case method will not validate a possible non-intersection and just computes
+     *                           coordinates.
+     * @param tmp1V3 temp vec3
+     * @param tmp2V3 temp vec3
+     * @param tmp3V3 temp vec3
+     * @return float[3] result of intersection coordinates, or null if none exists
+     */
+    public final float[] getRayIntersection(final float[] result, final Ray ray, final float epsilon,
+                                            final boolean assumeIntersection,
+                                            final float[] tmp1V3, final float[] tmp2V3, final float[] tmp3V3) {
+        final float[] maxT = { -1f, -1f, -1f };
+
+        final float[] origin = ray.orig;
+        final float[] dir = ray.dir;
+
+        boolean inside = true;
+
+        // Find candidate planes.
+        for(int i=0; i<3; i++) {
+            if(origin[i] < low[i]) {
+                result[i] = low[i];
+                inside    = false;
+
+                // Calculate T distances to candidate planes
+                if( 0 != Float.floatToIntBits(dir[i]) ) {
+                    maxT[i] = (low[i] - origin[i]) / dir[i];
+                }
+            } else if(origin[i] > high[i]) {
+                result[i] = high[i];
+                inside    = false;
+
+                // Calculate T distances to candidate planes
+                if( 0 != Float.floatToIntBits(dir[i]) ) {
+                    maxT[i] = (high[i] - origin[i]) / dir[i];
+                }
+            }
+        }
+
+        // Ray origin inside bounding box
+        if(inside) {
+            System.arraycopy(origin, 0, result, 0, 3);
+            return result;
+        }
+
+        // Get largest of the maxT's for final choice of intersection
+        int whichPlane = 0;
+        if(maxT[1] > maxT[whichPlane]) { whichPlane = 1; }
+        if(maxT[2] > maxT[whichPlane]) { whichPlane = 2; }
+
+        if( !assumeIntersection ) {
+            // Check final candidate actually inside box
+            if( 0 != ( Float.floatToIntBits(maxT[whichPlane]) & 0x80000000 ) ) {
+                return null;
+            }
+
+            /** Use unrolled version below ..
+            for(int i=0; i<3; i++) {
+                if( i!=whichPlane ) {
+                    result[i] = origin[i] + maxT[whichPlane] * dir[i];
+                    if(result[i] < minB[i] - epsilon || result[i] > maxB[i] + epsilon) { return null; }
+                    // if(result[i] < minB[i] || result[i] > maxB[i] ) { return null; }
+                }
+            } */
+            switch( whichPlane ) {
+                case 0:
+                    result[1] = origin[1] + maxT[whichPlane] * dir[1];
+                    if(result[1] < low[1] - epsilon || result[1] > high[1] + epsilon) { return null; }
+                    result[2] = origin[2] + maxT[whichPlane] * dir[2];
+                    if(result[2] < low[2] - epsilon || result[2] > high[2] + epsilon) { return null; }
+                    break;
+                case 1:
+                    result[0] = origin[0] + maxT[whichPlane] * dir[0];
+                    if(result[0] < low[0] - epsilon || result[0] > high[0] + epsilon) { return null; }
+                    result[2] = origin[2] + maxT[whichPlane] * dir[2];
+                    if(result[2] < low[2] - epsilon || result[2] > high[2] + epsilon) { return null; }
+                    break;
+                case 2:
+                    result[0] = origin[0] + maxT[whichPlane] * dir[0];
+                    if(result[0] < low[0] - epsilon || result[0] > high[0] + epsilon) { return null; }
+                    result[1] = origin[1] + maxT[whichPlane] * dir[1];
+                    if(result[1] < low[1] - epsilon || result[1] > high[1] + epsilon) { return null; }
+                    break;
+                default:
+                    throw new InternalError("XXX");
+            }
+        } else {
+            switch( whichPlane ) {
+                case 0:
+                    result[1] = origin[1] + maxT[whichPlane] * dir[1];
+                    result[2] = origin[2] + maxT[whichPlane] * dir[2];
+                    break;
+                case 1:
+                    result[0] = origin[0] + maxT[whichPlane] * dir[0];
+                    result[2] = origin[2] + maxT[whichPlane] * dir[2];
+                    break;
+                case 2:
+                    result[0] = origin[0] + maxT[whichPlane] * dir[0];
+                    result[1] = origin[1] + maxT[whichPlane] * dir[1];
+                    break;
+                default:
+                    throw new InternalError("XXX");
+            }
+        }
+        return result; // ray hits box
+    }
 
     /**
      * Get the size of this AABBox where the size is represented by the

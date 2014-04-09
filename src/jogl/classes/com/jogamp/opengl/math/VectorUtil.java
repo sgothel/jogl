@@ -241,14 +241,67 @@ public class VectorUtil {
     /**
      * Compute the squared length of a vector, a.k.a the squared <i>norm</i> or squared <i>magnitude</i>
      */
+    public static float vec2NormSquare(final float[] vec) {
+        return vec[0]*vec[0] + vec[1]*vec[1];
+    }
+
+    /**
+     * Compute the squared length of a vector, a.k.a the squared <i>norm</i> or squared <i>magnitude</i>
+     */
     public static float vec3NormSquare(final float[] vec) {
         return vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2];
     }
+
+    /**
+     * Compute the length of a vector, a.k.a the <i>norm</i> or <i>magnitude</i>
+     */
+    public static float vec2Norm(final float[] vec) {
+        return FloatUtil.sqrt(vec2NormSquare(vec));
+    }
+
     /**
      * Compute the length of a vector, a.k.a the <i>norm</i> or <i>magnitude</i>
      */
     public static float vec3Norm(final float[] vec) {
         return FloatUtil.sqrt(vec3NormSquare(vec));
+    }
+
+    /**
+     * Normalize a vector
+     * @param result output vector, may be vector (in-place)
+     * @param vector input vector
+     * @return normalized output vector
+     * @return result vector for chaining
+     */
+    public static float[] normalizeVec2(final float[] result, final float[] vector) {
+        final float lengthSq = vec2NormSquare(vector);
+        if ( FloatUtil.isZero(lengthSq, FloatUtil.EPSILON) ) {
+            result[0] = 0f;
+            result[1] = 0f;
+        } else {
+            final float invSqr = 1f / FloatUtil.sqrt(lengthSq);
+            result[0] = vector[0] * invSqr;
+            result[1] = vector[1] * invSqr;
+        }
+        return result;
+    }
+
+    /**
+     * Normalize a vector in place
+     * @param vector input vector
+     * @return normalized output vector
+     */
+    public static float[] normalizeVec2(final float[] vector) {
+        final float lengthSq = vec2NormSquare(vector);
+        if ( FloatUtil.isZero(lengthSq, FloatUtil.EPSILON) ) {
+            vector[0] = 0f;
+            vector[1] = 0f;
+        } else {
+            final float invSqr = 1f / FloatUtil.sqrt(lengthSq);
+            vector[0] *= invSqr;
+            vector[1] *= invSqr;
+        }
+        return vector;
     }
 
     /**
@@ -300,6 +353,19 @@ public class VectorUtil {
      * @param scale single scale constant for all vector components
      * @return result vector for chaining
      */
+    public static float[] scaleVec2(final float[] result, final float[] vector, final float scale) {
+        result[0] = vector[0] * scale;
+        result[1] = vector[1] * scale;
+        return result;
+    }
+
+    /**
+     * Scales a vector by param using given result float[]
+     * @param result vector for the result, may be vector (in-place)
+     * @param vector input vector
+     * @param scale single scale constant for all vector components
+     * @return result vector for chaining
+     */
     public static float[] scaleVec3(final float[] result, final float[] vector, final float scale) {
         result[0] = vector[0] * scale;
         result[1] = vector[1] * scale;
@@ -319,6 +385,33 @@ public class VectorUtil {
         result[0] = vector[0] * scale[0];
         result[1] = vector[1] * scale[1];
         result[2] = vector[2] * scale[2];
+        return result;
+    }
+
+    /**
+     * Scales a vector by param using given result float[]
+     * @param result vector for the result, may be vector (in-place)
+     * @param vector input vector
+     * @param scale 2 component scale constant for each vector component
+     * @return result vector for chaining
+     */
+    public static float[] scaleVec2(final float[] result, final float[] vector, final float[] scale)
+    {
+        result[0] = vector[0] * scale[0];
+        result[1] = vector[1] * scale[1];
+        return result;
+    }
+
+    /**
+     * Adds two vectors, result = v1 + v2
+     * @param result float[2] result vector, may be either v1 or v2 (in-place)
+     * @param v1 vector 1
+     * @param v2 vector 2
+     * @return result vector for chaining
+     */
+    public static float[] addVec2(final float[] result, final float[] v1, final float[] v2) {
+        result[0] = v1[0] + v2[0];
+        result[1] = v1[1] + v2[1];
         return result;
     }
 
@@ -721,6 +814,101 @@ public class VectorUtil {
         return area(vertices) >= 0 ? Winding.CCW : Winding.CW ;
     }
 
+    /**
+     * @param result vec2 result for normal
+     * @param v1 vec2
+     * @param v2 vec2
+     * @return result for chaining
+     */
+    public static float[] getNormalVec2(final float[] result, final float[] v1, final float[] v2 ) {
+        subVec2(result, v2, v1);
+        final float tmp = result [ 0 ] ; result [ 0 ] = -result [ 1 ] ; result [ 1 ] = tmp ;
+        return normalizeVec2 ( result ) ;
+    }
+
+    /**
+     * Returns the 3d surface normal of a triangle given three vertices.
+     *
+     * @param result vec3 result for normal
+     * @param v1 vec3
+     * @param v2 vec3
+     * @param v3 vec3
+     * @param tmp1Vec3 temp vec3
+     * @param tmp2Vec3 temp vec3
+     * @return result for chaining
+     */
+    public static float[] getNormalVec3(final float[] result, final float[] v1, final float[] v2, final float[] v3,
+                                        final float[] tmp1Vec3, final float[] tmp2Vec3) {
+        subVec3 ( tmp1Vec3, v2, v1 );
+        subVec3 ( tmp2Vec3, v3, v1 ) ;
+        return normalizeVec3 ( crossVec3(result, tmp1Vec3, tmp2Vec3) ) ;
+    }
+
+    /**
+     * Finds the plane equation of a plane given its normal and a point on the plane.
+     *
+     * @param resultV4 vec4 plane equation
+     * @param normalVec3
+     * @param pVec3
+     * @return result for chaining
+     */
+    public static float[] getPlaneVec3(final float[/*4*/] resultV4, final float[] normalVec3, final float[] pVec3) {
+        /**
+            Ax + By + Cz + D == 0 ;
+            D = - ( Ax + By + Cz )
+              = - ( A*a[0] + B*a[1] + C*a[2] )
+              = - vec3Dot ( normal, a ) ;
+         */
+        System.arraycopy(normalVec3, 0, resultV4, 0, 3);
+        resultV4 [ 3 ] = -vec3Dot(normalVec3, pVec3) ;
+        return resultV4;
+    }
+
+    /**
+     * This finds the plane equation of a triangle given three vertices.
+     *
+     * @param resultVec4 vec4 plane equation
+     * @param v1 vec3
+     * @param v2 vec3
+     * @param v3 vec3
+     * @param temp1V3
+     * @param temp2V3
+     * @return result for chaining
+     */
+    public static float[] getPlaneVec3(final float[/*4*/] resultVec4, final float[] v1, final float[] v2, final float[] v3,
+                                       final float[] temp1V3, final float[] temp2V3) {
+        /**
+            Ax + By + Cz + D == 0 ;
+            D = - ( Ax + By + Cz )
+              = - ( A*a[0] + B*a[1] + C*a[2] )
+              = - vec3Dot ( normal, a ) ;
+         */
+      getNormalVec3( resultVec4, v1, v2, v3, temp1V3, temp2V3 ) ;
+      resultVec4 [ 3 ] = -vec3Dot (resultVec4, v1) ;
+      return resultVec4;
+    }
+
+    /**
+     * Return intersection of an infinite line with a plane if exists, otherwise null.
+     * <p>
+     * Thanks to <i>Norman Vine -- nhv@yahoo.com  (with hacks by Steve)</i>
+     * </p>
+     *
+     * @param result vec3 result buffer for intersecting coords
+     * @param ray here representing an infinite line, origin and direction.
+     * @param plane vec4 plane equation
+     * @param epsilon
+     * @return resulting intersecting if exists, otherwise null
+     */
+    public static float[] line2PlaneIntersection(final float[] result, final Ray ray, float[/*4*/] plane, final float epsilon) {
+        final float tmp = vec3Dot(ray.dir, plane) ;
+
+        if ( Math.abs(tmp) < epsilon ) {
+            return null; // ray is parallel to plane
+        }
+        scaleVec3 ( result, ray.dir, -( vec3Dot(ray.orig, plane) + plane[3] ) / tmp ) ;
+        return addVec3(result, result, ray.orig);
+    }
 
     /** Compute intersection between two segments
      * @param a vertex 1 of first segment
