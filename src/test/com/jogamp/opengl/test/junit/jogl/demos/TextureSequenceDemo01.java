@@ -77,6 +77,9 @@ public class TextureSequenceDemo01 implements TextureSequence {
     }
 
     @Override
+    public boolean isTextureAvailable() { return true; }
+
+    @Override
     public TextureSequence.TextureFrame getLastTexture() throws IllegalStateException {
         return frame; // may return null
     }

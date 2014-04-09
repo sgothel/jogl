@@ -174,6 +174,12 @@ public interface TextureSequence {
     public int[] getTextureWrapST();
 
     /**
+     * Returns true if texture source is ready <i>and</i> a texture is available
+     * via {@link #getNextTexture(GL)} and {@link #getLastTexture()}.
+     */
+    public boolean isTextureAvailable();
+
+    /**
      * Returns the last updated texture.
      * <p>
      * In case the instance is just initialized, it shall return a <code>TextureFrame</code>

@@ -737,6 +737,11 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
 
     @Override
+    public final boolean isTextureAvailable() {
+        return State.Paused == state || State.Playing == state;
+    }
+
+    @Override
     public final TextureFrame getLastTexture() throws IllegalStateException {
         if( State.Paused != state && State.Playing != state ) {
             throw new IllegalStateException("Instance not paused or playing: "+this);
