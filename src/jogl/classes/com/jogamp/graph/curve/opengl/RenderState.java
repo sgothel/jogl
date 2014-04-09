@@ -58,12 +58,28 @@ public class RenderState {
      * and the clear-color to <i>transparent-black</i> in case of {@link Region#isTwoPass(int) multipass} FBO rendering.
      * </p>
      * <p>
-     * Shall be called by custom code, e.g. via {@link RegionRenderer}'s
+     * Shall be set by custom code, e.g. via {@link RegionRenderer}'s
      * enable and disable {@link RegionRenderer.GLCallback} as done in
      * {@link RegionRenderer#defaultBlendEnable} and {@link RegionRenderer#defaultBlendDisable}.
      * </p>
      */
     public static final int BITHINT_BLENDING_ENABLED = 1 << 0 ;
+    
+    /**
+     * Bitfield hint, {@link #isHintMaskSet(int) if set}
+     * stating globally <i>enabled</i> {@link GL#GL_DEPTH_TEST}, otherwise <i>disabled</i>.
+     * <p>
+     * Shall be set via {@link #setHintMask(int)} and cleared via {@link #clearHintMask(int)}.
+     * </p>
+     * <p>
+     * {@link GLRegion#draw(GL2ES2, RegionRenderer, int[]) GLRegion's draw-method}
+     * may toggle depth test, and reset it's state according to this hint.
+     * </p>
+     * <p>
+     * Shall be set by custom code, e.g. after {@link RenderState} or {@link RegionRenderer} construction.
+     * </p>
+     */
+    public static final int BITHINT_GLOBAL_DEPTH_TEST_ENABLED = 1 << 1 ;
 
     public static RenderState createRenderState(Vertex.Factory<? extends Vertex> pointFactory) {
         return new RenderState(pointFactory, null);

@@ -136,6 +136,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             this.rs = RenderState.createRenderState(SVertex.factory(), sharedPMVMatrix);
         }
         this.renderer = RegionRenderer.create(rs, enableCallback, disableCallback);
+        rs.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         this.textRenderUtil = new TextRegionUtil(renderModes);
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         renderer.init(gl, renderModes);

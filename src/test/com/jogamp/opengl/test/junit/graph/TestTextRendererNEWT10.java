@@ -141,6 +141,7 @@ public class TestTextRendererNEWT10 extends UITestCase {
 
         final RenderState rs = RenderState.createRenderState(SVertex.factory());
         final RegionRenderer renderer = RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
+        rs.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         final TextRegionUtil textRenderUtil = new TextRegionUtil(0);
 
         // init

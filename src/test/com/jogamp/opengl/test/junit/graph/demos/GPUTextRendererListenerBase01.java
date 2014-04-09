@@ -116,6 +116,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         super(RegionRenderer.create(rs, blending ? RegionRenderer.defaultBlendEnable : null,
                                     blending ? RegionRenderer.defaultBlendDisable : null),
                                     renderModes, debug, trace);
+        rs.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         this.textRegionUtil = new TextRegionUtil(renderModes);
         this.regionFPS = GLRegion.create(renderModes, null);
         this.regionBottom = GLRegion.create(renderModes, null);

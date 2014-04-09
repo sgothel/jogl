@@ -51,6 +51,7 @@ public class GPURegionGLListener01 extends GPURendererListenerBase01 {
 
     public GPURegionGLListener01 (RenderState rs, int renderModes, int sampleCount, boolean debug, boolean trace) {
         super(RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable), renderModes, debug, trace);
+        rs.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         setMatrix(-20, 00, -50, 0f, sampleCount);
     }
 

@@ -69,7 +69,8 @@ public class RegionRenderer {
 
     /**
      * Default {@link GL#GL_BLEND} <i>enable</i> {@link GLCallback},
-     * turning-off depth writing via {@link GL#glDepthMask(boolean)} and turning-on the {@link GL#GL_BLEND} state.
+     * turning-off depth writing via {@link GL#glDepthMask(boolean)} if {@link RenderState#BITHINT_GLOBAL_DEPTH_TEST_ENABLED} is set
+     * and turning-on the {@link GL#GL_BLEND} state.
      * <p>
      * Implementation also sets {@link RegionRenderer#getRenderState() RenderState}'s {@link RenderState#BITHINT_BLENDING_ENABLED blending bit-hint},
      * which will cause {@link GLRegion#draw(GL2ES2, RegionRenderer, int[]) GLRegion's draw-method}
@@ -82,7 +83,11 @@ public class RegionRenderer {
     public static final GLCallback defaultBlendEnable = new GLCallback() {
         @Override
         public void run(final GL gl, final RegionRenderer renderer) {
-            gl.glDepthMask(false);
+            if( renderer.rs.isHintMaskSet(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED) ) {
+                gl.glDepthMask(false);
+                // gl.glDisable(GL.GL_DEPTH_TEST);
+                // gl.glDepthFunc(GL.GL_ALWAYS);
+            }
             gl.glEnable(GL.GL_BLEND);
             gl.glBlendEquation(GL.GL_FUNC_ADD); // default
             renderer.rs.setHintMask(RenderState.BITHINT_BLENDING_ENABLED);
@@ -92,7 +97,7 @@ public class RegionRenderer {
     /**
      * Default {@link GL#GL_BLEND} <i>disable</i> {@link GLCallback},
      * simply turning-off the {@link GL#GL_BLEND} state
-     * and turning-on depth writing via {@link GL#glDepthMask(boolean)}.
+     * and turning-on depth writing via {@link GL#glDepthMask(boolean)} if {@link RenderState#BITHINT_GLOBAL_DEPTH_TEST_ENABLED} is set.
      * <p>
      * Implementation also clears {@link RegionRenderer#getRenderState() RenderState}'s {@link RenderState#BITHINT_BLENDING_ENABLED blending bit-hint}.
      * </p>
@@ -104,7 +109,11 @@ public class RegionRenderer {
         public void run(final GL gl, final RegionRenderer renderer) {
             renderer.rs.clearHintMask(RenderState.BITHINT_BLENDING_ENABLED);
             gl.glDisable(GL.GL_BLEND);
-            gl.glDepthMask(true);
+            if( renderer.rs.isHintMaskSet(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED) ) {
+                // gl.glEnable(GL.GL_DEPTH_TEST);
+                // gl.glDepthFunc(GL.GL_LESS);
+                gl.glDepthMask(true);
+            }
         }
     };
 

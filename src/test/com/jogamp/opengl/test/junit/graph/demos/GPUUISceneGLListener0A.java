@@ -615,6 +615,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         }
 
         renderer = RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
+        rs.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         // renderer = RegionRenderer.create(rs, null, null);
 
         gl.setSwapInterval(1);

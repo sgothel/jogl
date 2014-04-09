@@ -407,7 +407,12 @@ public class VBORegion2PMSAAES2  extends GLRegion {
     private void renderFBO(final GL2ES2 gl, final RenderState rs, final int width, final int height, final int sampleCount) {
         gl.glViewport(0, 0, width, height);
 
-        if( rs.isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
+        if( rs.isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED | RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED) ) {
+            // RGB is already multiplied w/ alpha via renderRegion2FBO(..)
+            gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
+            gl.glEnable(GL.GL_DEPTH_TEST);
+
+        } else if( rs.isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
             // RGB is already multiplied w/ alpha via renderRegion2FBO(..)
             gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
         }
@@ -459,7 +464,7 @@ public class VBORegion2PMSAAES2  extends GLRegion {
             fbo.setSamplingSink(ssink);
             fbo.resetSamplingSink(gl); // validate
             if( DEBUG_FBO_1 ) {
-                System.err.printf("XXX.createFBO: %dx%d%n%s%n", fboWidth, fboHeight, fbo.toString());
+                System.err.printf("XXX.createFBO: blending %b, %dx%d%n%s%n", blendingEnabled, fboWidth, fboHeight, fbo.toString());
             }
         } else if( targetFboWidth != fboWidth || targetFboHeight != fboHeight || fbo.getNumSamples() != sampleCount[0] ) {
             fbo.reset(gl, targetFboWidth, targetFboHeight, sampleCount[0], true /* resetSamplingSink */);
@@ -482,6 +487,10 @@ public class VBORegion2PMSAAES2  extends GLRegion {
 
             // Multiply RGB w/ Alpha, preserve alpha for renderFBO(..)
             gl.glBlendFuncSeparate(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA, GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
+
+            if( rs.isHintMaskSet(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED) ) {
+                gl.glDisable(GL.GL_DEPTH_TEST);
+            }
         } else {
             gl.glClear(GL2ES2.GL_COLOR_BUFFER_BIT | GL2ES2.GL_DEPTH_BUFFER_BIT);
         }
