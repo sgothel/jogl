@@ -726,7 +726,7 @@ public class ShaderCode {
                 return position+data.length();
             }
         }
-        return -1;
+        return position;
     }
 
     /**
@@ -931,22 +931,22 @@ public class ShaderCode {
      */
     public final int addDefaultShaderPrecision(GL2ES2 gl, int pos) {
         final String defaultPrecision;
-        if( gl.isGLES2() ) {
-            switch ( shaderType ) {
-                case GL2ES2.GL_VERTEX_SHADER:
-                    defaultPrecision = es2_default_precision_vp; break;
-                case GL2ES2.GL_FRAGMENT_SHADER:
-                    defaultPrecision = es2_default_precision_fp; break;
-                default:
-                    defaultPrecision = null;
-                    break;
-            }
-        } else if( gl.isGLES3() ) {
+        if( gl.isGLES3() ) {
             switch ( shaderType ) {
                 case GL2ES2.GL_VERTEX_SHADER:
                     defaultPrecision = es3_default_precision_vp; break;
                 case GL2ES2.GL_FRAGMENT_SHADER:
                     defaultPrecision = es3_default_precision_fp; break;
+                default:
+                    defaultPrecision = null;
+                    break;
+            }
+        } else if( gl.isGLES2() ) {
+            switch ( shaderType ) {
+                case GL2ES2.GL_VERTEX_SHADER:
+                    defaultPrecision = es2_default_precision_vp; break;
+                case GL2ES2.GL_FRAGMENT_SHADER:
+                    defaultPrecision = es2_default_precision_fp; break;
                 default:
                     defaultPrecision = null;
                     break;
