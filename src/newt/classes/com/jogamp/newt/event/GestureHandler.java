@@ -52,6 +52,7 @@ public interface GestureHandler {
         public static final short EVENT_GESTURE_DETECTED = 400;
 
         private final GestureHandler handler;
+        private final InputEvent ie;
 
         /**
          * Creates a gesture event with default type {@link #EVENT_GESTURE_DETECTED}.
@@ -60,10 +61,12 @@ public interface GestureHandler {
          * @param when
          * @param modifiers
          * @param handler
+         * @param trigger TODO
          */
-        public GestureEvent(final Object source, final long when, final int modifiers, final GestureHandler handler) {
+        public GestureEvent(final Object source, final long when, final int modifiers, final GestureHandler handler, final InputEvent trigger) {
             super(EVENT_GESTURE_DETECTED, source, when, modifiers);
             this.handler = handler;
+            this.ie = trigger;
         }
 
         /**
@@ -73,14 +76,19 @@ public interface GestureHandler {
          * @param when
          * @param modifiers
          * @param handler
+         * @param trigger TODO
          */
-        public GestureEvent(final short event_type, final Object source, final long when, final int modifiers, final GestureHandler handler) {
+        public GestureEvent(final short event_type, final Object source, final long when, final int modifiers, final GestureHandler handler, final InputEvent trigger) {
             super(event_type, source, when, modifiers);
             this.handler = handler;
+            this.ie = trigger;
         }
 
         /** Return the {@link GestureHandler}, which produced the event. */
         public final GestureHandler getHandler() { return handler; }
+
+        /** Triggering {@link InputEvent} */
+        public final InputEvent getTrigger() { return ie; }
 
         public String toString() {
             return "GestureEvent[handler "+handler+"]";
