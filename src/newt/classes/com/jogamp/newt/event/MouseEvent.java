@@ -49,23 +49,17 @@ package com.jogamp.newt.event;
  * For example {@link #getX(int) e.getX(0)} at {@link #EVENT_MOUSE_PRESSED} returns the data of the pressed pointer, etc.
  * </p>
  * <p>
- * A {@link #getButton() button value} of <code>0</code> denotes no button activity, i.e. {@link PointerType#Mouse} move.
- * </p>
- * <p>
- * A {@link #getPointerId(int) pointer-ID} of -1 denotes no pointer/button activity, i.e. {@link PointerType#Mouse} move.
- * </p>
- * <p>
- * {@link #getButton() Button values} are mapped from and to {@link #getPointerId(int) pointer-IDs} as follows:
- *    <code>
- *       getPointerId(0) == getButton() - 1
- *    </code>.
- * </p>
- * <p>
- * If representing a multiple-pointer event, the {@link #getButton() button number} is mapped to the <i>first {@link #getPointerId(int) pointer ID}</i>
+ * Multiple-pointer event's {@link #getButton() button number} is mapped to the <i>first {@link #getPointerId(int) pointer ID}</i>
  * triggering the event and the {@link InputEvent#BUTTON1_MASK button mask bits} in the {@link #getModifiers() modifiers}
- * field  represent the pressed pointer IDs.<br>
- * Hence users can query the pressed button count as well as the pressed pointer count via {@link InputEvent#getButtonDownCount()}
+ * field  represent the pressed pointer IDs.
+ * </p>
+ * <p>
+ * Users can query the pressed button and pointer count via {@link InputEvent#getButtonDownCount()}
  * or use the simple query {@link InputEvent#isAnyButtonDown()}.
+ * </p>
+ * <p>
+ * If representing a single-pointer {@link PointerType#Mouse} event, {@link #getPointerId(int) pointer-ID} is <code>0</code>
+ * and a {@link #getButton() button value} of <code>0</code> denotes no button activity, i.e. {@link PointerType#Mouse} move.
  * </p>
  */
 @SuppressWarnings("serial")
@@ -206,7 +200,7 @@ public class MouseEvent extends InputEvent
                 this.pressure = constMousePressure0;
         }
         this.maxPressure= 1.0f;
-        this.pointerID = new short[] { (short)(button - 1) };
+        this.pointerID = new short[] { (short)0 };
         this.clickCount=clickCount;
         this.button=button;
         this.rotationXYZ = rotationXYZ;
@@ -303,9 +297,6 @@ public class MouseEvent extends InputEvent
      * Return the pointer id for the given index or -1 if index not available.
      * <p>
      * IDs start w/ 0 and are consecutive numbers.
-     * </p>
-     * <p>
-     * A pointer-ID of -1 may also denote no pointer/button activity, i.e. {@link PointerType#Mouse} move.
      * </p>
      * <p>
      * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
@@ -556,12 +547,7 @@ public class MouseEvent extends InputEvent
 
     /** PointerType for each pointer (multiple pointer) */
     private final PointerType pointerType[];
-    /**
-     * Pointer-ID for each pointer (multiple pointer). IDs start w/ 0 and are consecutive numbers.
-     * <p>
-     * A pointer-ID of -1 may also denote no pointer/button activity, i.e. {@link PointerType#Mouse} move.
-     * </p>
-     */
+    /** Pointer-ID for each pointer (multiple pointer). IDs start w/ 0 and are consecutive numbers. */
     private final short pointerID[];
     /** X-axis for each pointer (multiple pointer) */
     private final int x[];

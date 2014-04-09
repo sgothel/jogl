@@ -2570,7 +2570,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             throw new NativeWindowException("Invalid mouse button number" + button);
         }
         doPointerEvent(enqueue, wait, constMousePointerTypes, eventType, modifiers,
-                       0 /*actionIdx*/, new short[] { (short)(button-1) },
+                       0 /*actionIdx*/, new short[] { (short)0 }, button,
                        new int[]{x}, new int[]{y}, new float[]{0f} /*pressure*/,
                        1f /*maxPressure*/, rotationXYZ, rotationScale);
     }
@@ -2587,7 +2587,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * Otherwise a simple <code>int</code> to <code>short</code> type cast is performed.
      * </p>
      * <p>
-     * See {@link #doPointerEvent(boolean, boolean, PointerType[], short, int, int, short[], int[], int[], float[], float, float[], float)}
+     * See {@link #doPointerEvent(boolean, boolean, PointerType[], short, int, int, short[], short, int[], int[], float[], float, float[], float)}
      * for details!
      * </p>
      *
@@ -2638,7 +2638,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 pIDs[i] = (short)pNames[i];
             }
         }
-        doPointerEvent(enqueue, wait, pTypes, eventType, modifiers, actionIdx, pIDs,
+        final short button = 0 < pCount ? (short) ( pIDs[0] + 1 ) : (short)0;
+        doPointerEvent(enqueue, wait, pTypes, eventType, modifiers, actionIdx, pIDs, button,
                        pX, pY, pPressure, maxPressure, rotationXYZ, rotationScale);
     }
 
@@ -2675,7 +2676,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @param modifiers
      * @param pActionIdx index of multiple-pointer arrays representing the pointer which triggered the event
      * @param pID Pointer ID for each pointer (multiple pointer). We assume consecutive pointerIDs starting w/ 0.
-     *            A pointer-ID of -1 may also denote no pointer/button activity, i.e. {@link PointerType#Mouse} move.
+     * @param button Corresponding mouse-button, a button of 0 denotes no activity, i.e. {@link PointerType#Mouse} move.
      * @param pX X-axis for each pointer (multiple pointer)
      * @param pY Y-axis for each pointer (multiple pointer)
      * @param pPressure Pressure for each pointer (multiple pointer)
@@ -2683,8 +2684,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      */
     public final void doPointerEvent(final boolean enqueue, final boolean wait,
                                      final PointerType[] pTypes, final short eventType, int modifiers,
-                                     final int pActionIdx, final short[] pID, final int[] pX, final int[] pY, final float[] pPressure,
-                                     final float maxPressure, final float[] rotationXYZ, final float rotationScale) {
+                                     final int pActionIdx, final short[] pID, final short buttonIn, final int[] pX, final int[] pY,
+                                     final float[] pPressure, final float maxPressure, final float[] rotationXYZ, final float rotationScale) {
         final long when = System.currentTimeMillis();
         final int pCount = pTypes.length;
 
@@ -2717,12 +2718,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 pPressure[0] = aPress;
             }
         }
-        final short id = pID[0];
         final short button;
         {
-            final int b = id + 1;
-            if( 0 <= b && b <= com.jogamp.newt.event.MouseEvent.BUTTON_COUNT ) { // we allow id==-1 -> button==0 for no button, i.e. mouse move
-                button = (short)b;
+            // validate button
+            if( 0 <= buttonIn && buttonIn <= com.jogamp.newt.event.MouseEvent.BUTTON_COUNT ) { // we allow button==0 for no button, i.e. mouse-ptr move
+                button = buttonIn;
             } else {
                 button = com.jogamp.newt.event.MouseEvent.BUTTON1;
             }
@@ -2736,7 +2736,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         int x = pX[0];
         int y = pY[0];
         final boolean insideWindow = x >= 0 && y >= 0 && x < getWidth() && y < getHeight();
-        final Point movePositionP0 = pState1.getMovePosition(id);
+        final Point movePositionP0 = pState1.getMovePosition(pID[0]);
         switch( eventType ) {
             case MouseEvent.EVENT_MOUSE_EXITED:
                 if( pState1.dragging ) {
@@ -2918,7 +2918,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     /**
      * Consume the {@link MouseEvent}.
      * <p>
-     * Pointer/Mouse Processing Pass 2 (Pass 1 is performed in {@link #doPointerEvent(boolean, boolean, PointerType[], short, int, int, short[], int[], int[], float[], float, float[], float)}).
+     * Pointer/Mouse Processing Pass 2 (Pass 1 is performed in {@link #doPointerEvent(boolean, boolean, PointerType[], short, int, int, short[], short, int[], int[], float[], float, float[], float)}).
      * </p>
      * <p>
      * Invoked before dispatching the dequeued event.
