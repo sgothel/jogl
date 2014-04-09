@@ -162,7 +162,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         }
     }
 
-    private void initButtons(final GL2ES2 gl, final int width, final int height, final float labelZOffset, final RegionRenderer renderer) {
+    private void initButtons(final GL2ES2 gl, final int width, final int height, final RegionRenderer renderer) {
         final boolean pass2Mode = Region.isTwoPass( renderModes ) ;
         buttons.clear();
 
@@ -174,7 +174,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         final float diffX = 1.2f * buttonXSize;
         final float diffY = 1.5f * buttonYSize;
 
-        LabelButton button = new LabelButton(SVertex.factory(), renderModes, font, "Next Text", buttonXSize, buttonYSize, labelZOffset);
+        LabelButton button = new LabelButton(SVertex.factory(), renderModes, font, "Next Text", buttonXSize, buttonYSize);
         button.translate(xstart,ystart-diffY*buttons.size(), 0f);
         button.addMouseListener(new UIShape.MouseGestureAdapter() {
             @Override
@@ -190,7 +190,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         button.addMouseListener(dragZoomRotateListener);
         buttons.add(button);
 
-        button = new LabelButton(SVertex.factory(), renderModes, font, "Show FPS", buttonXSize, buttonYSize, labelZOffset);
+        button = new LabelButton(SVertex.factory(), renderModes, font, "Show FPS", buttonXSize, buttonYSize);
         button.setName(100); // FIXME: DEBUG tag
         button.translate(xstart,ystart - diffY*buttons.size(), 0f);
         button.setToggleable(true);
@@ -207,7 +207,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         button.addMouseListener(dragZoomRotateListener);
         buttons.add(button);
 
-        button = new LabelButton(SVertex.factory(), renderModes, font, "v-sync", buttonXSize, buttonYSize, labelZOffset);
+        button = new LabelButton(SVertex.factory(), renderModes, font, "v-sync", buttonXSize, buttonYSize);
         button.translate(xstart,ystart - diffY*buttons.size(), 0f);
         button.setToggleable(true);
         button.setToggle(gl.getSwapInterval()>0);
@@ -230,7 +230,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         button.addMouseListener(dragZoomRotateListener);
         buttons.add(button);
 
-        button = new LabelButton(SVertex.factory(), renderModes, font, "< tilt >", buttonXSize, buttonYSize, labelZOffset);
+        button = new LabelButton(SVertex.factory(), renderModes, font, "< tilt >", buttonXSize, buttonYSize);
         button.translate(xstart,ystart - diffY*buttons.size(), 0f);
         button.addMouseListener(new UIShape.MouseGestureAdapter() {
             @Override
@@ -252,7 +252,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         buttons.add(button);
 
         if( pass2Mode ) { // second column to the left
-            button = new LabelButton(SVertex.factory(), renderModes, font, "< samples >", buttonXSize, buttonYSize, labelZOffset);
+            button = new LabelButton(SVertex.factory(), renderModes, font, "< samples >", buttonXSize, buttonYSize);
             button.translate(xstart,ystart - diffY*buttons.size(), 0f);
             button.addMouseListener(new UIShape.MouseGestureAdapter() {
                 @Override
@@ -278,7 +278,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             button.addMouseListener(dragZoomRotateListener);
             buttons.add(button);
 
-            button = new LabelButton(SVertex.factory(), renderModes, font, "< quality >", buttonXSize, buttonYSize, labelZOffset);
+            button = new LabelButton(SVertex.factory(), renderModes, font, "< quality >", buttonXSize, buttonYSize);
             button.translate(xstart,ystart - diffY*buttons.size(), 0f);
             button.addMouseListener(new UIShape.MouseGestureAdapter() {
                 @Override
@@ -306,7 +306,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             buttons.add(button);
         }
 
-        button = new LabelButton(SVertex.factory(), renderModes, font, "Quit", buttonXSize, buttonYSize, labelZOffset);
+        button = new LabelButton(SVertex.factory(), renderModes, font, "Quit", buttonXSize, buttonYSize);
         button.translate(xstart,ystart - diffY*buttons.size(), 0f);
         button.setColor(0.7f, 0.0f, 0.0f, 1.0f);
         button.setLabelColor(1.2f, 1.2f, 1.2f);
@@ -332,7 +332,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         {
             int j = 1; // column
             int k = 0; // row
-            button = new LabelButton(SVertex.factory(), renderModes, font, "y flip", buttonXSize, buttonYSize, labelZOffset);
+            button = new LabelButton(SVertex.factory(), renderModes, font, "y flip", buttonXSize, buttonYSize);
             button.translate(xstart - diffX*j,ystart - diffY*k, 0f);
             button.addMouseListener(new UIShape.MouseGestureAdapter() {
                 @Override
@@ -343,7 +343,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             buttons.add(button);
 
             k++;
-            button = new LabelButton(SVertex.factory(), renderModes, font, "x flip", buttonXSize, buttonYSize, labelZOffset);
+            button = new LabelButton(SVertex.factory(), renderModes, font, "x flip", buttonXSize, buttonYSize);
             button.translate(xstart - diffX*j,ystart - diffY*k, 0f);
             button.addMouseListener(new UIShape.MouseGestureAdapter() {
                 @Override
@@ -354,7 +354,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             buttons.add(button);
             k++;
 
-            button = new LabelButton(SVertex.factory(), renderModes, font, "+", buttonXSize, buttonYSize, labelZOffset);
+            button = new LabelButton(SVertex.factory(), renderModes, font, "+", buttonXSize, buttonYSize);
             button.translate(xstart - diffX*j,ystart - diffY*k, 0f);
             button.addMouseListener(new UIShape.MouseGestureAdapter() {
                 @Override
@@ -381,7 +381,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             buttons.add(button);
             k++;
 
-            button = new LabelButton(SVertex.factory(), renderModes, font, "< space >", buttonXSize, buttonYSize, labelZOffset);
+            button = new LabelButton(SVertex.factory(), renderModes, font, "< space >", buttonXSize, buttonYSize);
             button.translate(xstart - diffX*j,ystart - diffY*k, 0f);
             button.addMouseListener(new UIShape.MouseGestureAdapter() {
                 @Override
@@ -405,7 +405,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             buttons.add(button);
             k++;
 
-            button = new LabelButton(SVertex.factory(), renderModes, font, "< corner >", buttonXSize, buttonYSize, labelZOffset);
+            button = new LabelButton(SVertex.factory(), renderModes, font, "< corner >", buttonXSize, buttonYSize);
             button.translate(xstart - diffX*j,ystart - diffY*k, 0f);
             button.addMouseListener(new UIShape.MouseGestureAdapter() {
                 @Override
@@ -430,7 +430,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             buttons.add(button);
             k++;
 
-            button = new LabelButton(SVertex.factory(), renderModes, font, "reset", buttonXSize, buttonYSize, labelZOffset);
+            button = new LabelButton(SVertex.factory(), renderModes, font, "reset", buttonXSize, buttonYSize);
             button.translate(xstart - diffX*j,ystart - diffY*k, 0f);
             button.addMouseListener(new UIShape.MouseGestureAdapter() {
                 @Override
@@ -441,7 +441,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             buttons.add(button);
             k++;
 
-            button = new LabelButton(SVertex.factory(), renderModes, font, "screenshot", buttonXSize, buttonYSize, labelZOffset);
+            button = new LabelButton(SVertex.factory(), renderModes, font, "screenshot", buttonXSize, buttonYSize);
             button.translate(xstart - diffX*j,ystart - diffY*k, 0f);
             button.addMouseListener(new UIShape.MouseGestureAdapter() {
                 @Override
@@ -621,11 +621,6 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
         gl.glEnable(GL2ES2.GL_BLEND);
 
-        final int zBits = drawable.getChosenGLCapabilities().getDepthBits();
-        final float zEpsilon = FloatUtil.getZBufferEpsilon(zBits, sceneDist, zNear);
-        final float labelZOffset = Region.isTwoPass(renderModes) ? LabelButton.DEFAULT_2PASS_LABEL_ZOFFSET : -2f*zEpsilon;
-        System.err.println("zEpsilon "+zEpsilon+" ( zBits "+zBits+") -> labelZOffset "+labelZOffset);
-
         renderer.init(gl, renderModes);
 
         initTexts();
@@ -664,7 +659,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         crossHairCtr.setEnabled(true);
         crossHairCtr.translate(0f, 0f, -1f);
 
-        initButtons(gl, drawable.getWidth(), drawable.getHeight(), labelZOffset, renderer);
+        initButtons(gl, drawable.getWidth(), drawable.getHeight(), renderer);
         for(int i=0; i<buttons.size(); i++) {
             sceneUIController.addShape(buttons.get(i));
         }

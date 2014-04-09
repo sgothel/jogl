@@ -45,19 +45,18 @@ public class LabelButton extends RoundButton {
     public static final float DEFAULT_SPACING_X = 0.08f;
     /** {@value} */
     public static final float DEFAULT_SPACING_Y = 0.40f;
-    public static final float DEFAULT_2PASS_LABEL_ZOFFSET = -0.05f;
 
-    private float labelZOffset;
+    private static final float DEFAULT_2PASS_LABEL_ZOFFSET = -0.05f;
+
     private final Label0 label;
     private float spacingX = DEFAULT_SPACING_X;
     private float spacingY = DEFAULT_SPACING_Y;
 
     public LabelButton(final Factory<? extends Vertex> factory, final int renderModes,
                        final Font labelFont, final String labelText,
-                       final float width, final float height, final float labelZOffset) {
+                       final float width, final float height) {
         super(factory, renderModes | Region.COLORCHANNEL_RENDERING_BIT, width, height);
         this.label = new Label0(labelFont, labelText, new float[] { 1.33f, 1.33f, 1.33f, 1.0f }); // 0.75 * 1.33 = 1.0
-        this.labelZOffset = labelZOffset;
         setColor(0.75f, 0.75f, 0.75f, 1.0f);
         setPressedColorMod(0.9f, 0.9f, 0.9f, 0.7f);
         setToggleOffColorMod(0.65f, 0.65f, 0.65f, 1.0f);
@@ -81,9 +80,9 @@ public class LabelButton extends RoundButton {
     protected void addShapeToRegion(GL2ES2 gl, RegionRenderer renderer) {
         final OutlineShape shape = new OutlineShape(renderer.getRenderState().getVertexFactory());
         if(corner == 0.0f) {
-            createSharpOutline(shape, labelZOffset);
+            createSharpOutline(shape, DEFAULT_2PASS_LABEL_ZOFFSET);
         } else {
-            createCurvedOutline(shape, labelZOffset);
+            createCurvedOutline(shape, DEFAULT_2PASS_LABEL_ZOFFSET);
         }
         shape.setIsQuadraticNurbs();
         shape.setSharpness(shapesSharpness);
@@ -126,14 +125,6 @@ public class LabelButton extends RoundButton {
         }
     }
 
-    public final float getLabelZOffset() {
-        return labelZOffset;
-    }
-
-    public final void setLabelZOffset(final float labelZOffset) {
-        this.labelZOffset = labelZOffset;
-        markShapeDirty();
-    }
     public final float getSpacingX() { return spacingX; }
     public final float getSpacingY() { return spacingY; }
 
@@ -177,7 +168,6 @@ public class LabelButton extends RoundButton {
 
     @Override
     public String getSubString() {
-        return super.getSubString()+", "+ label + ", " + "spacing: " + spacingX+"/"+spacingY+
-                              ", labelZOffset " + labelZOffset;
+        return super.getSubString()+", "+ label + ", " + "spacing: " + spacingX+"/"+spacingY;
     }
 }
