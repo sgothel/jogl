@@ -53,6 +53,7 @@
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
+            <fileset dir="." includes="hs_err_pid*.log" />
             <fileset file="${jogl-test.jar}" />
         </delete>
     </target>
@@ -744,6 +745,7 @@
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
+            <fileset dir="." includes="hs_err_pid*.log" />
         </move>
         <move todir="${build}/test/results-x32">
             <fileset dir="${results.test}" includes="**" />
@@ -770,6 +772,7 @@
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
+            <fileset dir="." includes="hs_err_pid*.log" />
         </move>
         <move todir="${build}/test/results-java7">
             <fileset dir="${results.test}" includes="**" />
@@ -1105,6 +1108,7 @@ ${line.separator}
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
+            <fileset dir="." includes="hs_err_pid*.log" />
         </delete>
         <mkdir dir="${results.test}" />
     </target>
@@ -1124,6 +1128,7 @@ ${line.separator}
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
+            <fileset dir="." includes="hs_err_pid*.log" />
         </move>
         <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
     </target>
@@ -1136,6 +1141,7 @@ ${line.separator}
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
+            <fileset dir="." includes="hs_err_pid*.log" />
         </move>
         <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
     </target>
@@ -1148,6 +1154,7 @@ ${line.separator}
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
+            <fileset dir="." includes="hs_err_pid*.log" />
         </move>
         <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
     </target>
@@ -1160,6 +1167,7 @@ ${line.separator}
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
+            <fileset dir="." includes="hs_err_pid*.log" />
         </move>
         <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
     </target>
