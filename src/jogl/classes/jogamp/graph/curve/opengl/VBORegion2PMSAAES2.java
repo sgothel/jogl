@@ -46,6 +46,7 @@ import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.texture.Texture;
+import com.jogamp.opengl.util.texture.TextureCoords;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 public class VBORegion2PMSAAES2  extends GLRegion {
@@ -96,7 +97,7 @@ public class VBORegion2PMSAAES2  extends GLRegion {
      */
     public void useShaderProgram(final GL2ES2 gl, final RegionRenderer renderer, final int renderModes, final boolean pass1, final int quality, final int sampleCount) {
         final RenderState rs = renderer.getRenderState();
-        final boolean updateLocGlobal = renderer.useShaderProgram(gl, renderModes, pass1, quality, sampleCount);
+        final boolean updateLocGlobal = renderer.useShaderProgram(gl, renderModes, pass1, quality, sampleCount, colorTexSeq);
         final ShaderProgram sp = renderer.getRenderState().getShaderProgram();
         final boolean updateLocLocal;
         if( pass1 ) {
@@ -250,11 +251,22 @@ public class VBORegion2PMSAAES2  extends GLRegion {
             gca_ColorsAttr.seal(gl, true);
             gca_ColorsAttr.enableBuffer(gl, false);
         }
-        if( null != gcu_ColorTexUnit ) {
-            colorTexBBox[0] = box.getMinX();
-            colorTexBBox[1] = box.getMinY();
-            colorTexBBox[2] = box.getMaxX();
-            colorTexBBox[3] = box.getMaxY();
+        if( null != gcu_ColorTexUnit && colorTexSeq.isTextureAvailable() ) {
+            final TextureSequence.TextureFrame frame = colorTexSeq.getLastTexture();
+            final Texture tex = frame.getTexture();
+            final TextureCoords tc = tex.getImageTexCoords();
+            final float tcSx = 1f / ( tc.right() - tc.left() );
+            colorTexBBox[0] = box.getMinX() * tcSx;
+            colorTexBBox[2] = box.getMaxX() * tcSx;
+            if( tex.getMustFlipVertically() ) {
+                final float tcSy = 1f / ( tc.bottom() - tc.top() );
+                colorTexBBox[1] = box.getMaxY() * tcSy;
+                colorTexBBox[3] = box.getMinY() * tcSy;
+            } else {
+                final float tcSy = 1f / ( tc.top() - tc.bottom() );
+                colorTexBBox[1] = box.getMinY() * tcSy;
+                colorTexBBox[3] = box.getMaxY() * tcSy;
+            }
         }
         gca_FboVerticesAttr.seal(gl, false);
         {
@@ -364,9 +376,8 @@ public class VBORegion2PMSAAES2  extends GLRegion {
                 System.err.printf("XXX.Scale %d * [%f x %f]: %d x %d%n",
                         sampleCount[0], winWidth, winHeight, targetFboWidth, targetFboHeight);
             }
-            if( hasDelta || fboDirty || null == fbo || ( fbo != null && fbo.getNumSamples() != sampleCount[0] ) ) {
+            if( hasDelta || fboDirty || isShapeDirty() || null == fbo || ( fbo != null && fbo.getNumSamples() != sampleCount[0] ) ) {
                 // FIXME: rescale
-
                 final float minX = box.getMinX()-diffObjBorderWidth;
                 final float minY = box.getMinY()-diffObjBorderHeight;
                 final float maxX = box.getMaxX()+diffObjBorderWidth+diffObjWidth;
@@ -384,10 +395,10 @@ public class VBORegion2PMSAAES2  extends GLRegion {
                 FloatUtil.makeOrthof(pmvMatrix02, 0, true, minX, maxX, minY, maxY, -1, 1);
                 useShaderProgram(gl, renderer, getRenderModes(), true, getQuality(), sampleCount[0]);
                 renderRegion2FBO(gl, rs, targetFboWidth, targetFboHeight, vpWidth, vpHeight, sampleCount);
-            } else {
-                gca_FboTexCoordsAttr.setVBOWritten(false);
+            } else if( isStateDirty() ) {
+                useShaderProgram(gl, renderer, getRenderModes(), true, getQuality(), sampleCount[0]);
+                renderRegion2FBO(gl, rs, targetFboWidth, targetFboHeight, vpWidth, vpHeight, sampleCount);
             }
-            // System.out.println("Scale: " + matrix.glGetMatrixf().get(1+4*3) +" " + matrix.glGetMatrixf().get(2+4*3));
             useShaderProgram(gl, renderer, getRenderModes(), false, getQuality(), sampleCount[0]);
             renderFBO(gl, rs, vpWidth, vpHeight, sampleCount[0]);
         }
@@ -395,6 +406,11 @@ public class VBORegion2PMSAAES2  extends GLRegion {
 
     private void renderFBO(final GL2ES2 gl, final RenderState rs, final int width, final int height, final int sampleCount) {
         gl.glViewport(0, 0, width, height);
+
+        if( rs.isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
+            // RGB is already multiplied w/ alpha via renderRegion2FBO(..)
+            gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
+        }
 
         gl.glActiveTexture(GL.GL_TEXTURE0 + gcu_FboTexUnit.intValue());
 
@@ -419,6 +435,8 @@ public class VBORegion2PMSAAES2  extends GLRegion {
             throw new IllegalArgumentException("fboSize must be greater than 0: "+targetFboWidth+"x"+targetFboHeight);
         }
 
+        final boolean blendingEnabled = rs.isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED);
+
         if(null == fbo) {
             fboWidth  = targetFboWidth;
             fboHeight  = targetFboHeight;
@@ -433,7 +451,10 @@ public class VBORegion2PMSAAES2  extends GLRegion {
                 // FIXME: shall not use bilinear (GL_LINEAR), due to MSAA ???
                 // ssink.attachTexture2D(gl, 0, true, GL2ES2.GL_LINEAR, GL2ES2.GL_LINEAR, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
                 ssink.attachTexture2D(gl, 0, true, GL2ES2.GL_NEAREST, GL2ES2.GL_NEAREST, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
-                ssink.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
+                if( !blendingEnabled ) {
+                    // no depth-buffer w/ blending
+                    ssink.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
+                }
             }
             fbo.setSamplingSink(ssink);
             fbo.resetSamplingSink(gl); // validate
@@ -453,9 +474,20 @@ public class VBORegion2PMSAAES2  extends GLRegion {
 
         //render texture
         gl.glViewport(0, 0, fboWidth, fboHeight);
+        if( blendingEnabled ) {
+            gl.glClearColor(0f, 0f, 0f, 0.0f);
+            gl.glClear(GL2ES2.GL_COLOR_BUFFER_BIT); // no depth-buffer w/ blending
+            // For already pre-multiplied alpha values, use:
+            // gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
 
-        gl.glClear(GL2ES2.GL_COLOR_BUFFER_BIT | GL2ES2.GL_DEPTH_BUFFER_BIT);
+            // Multiply RGB w/ Alpha, preserve alpha for renderFBO(..)
+            gl.glBlendFuncSeparate(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA, GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
+        } else {
+            gl.glClear(GL2ES2.GL_COLOR_BUFFER_BIT | GL2ES2.GL_DEPTH_BUFFER_BIT);
+        }
+
         renderRegion(gl);
+
         fbo.unbind(gl);
         fboDirty = false;
     }
@@ -468,7 +500,7 @@ public class VBORegion2PMSAAES2  extends GLRegion {
             gca_ColorsAttr.enableBuffer(gl, true);
         }
         indicesBuffer.bindBuffer(gl, true); // keeps VBO binding
-        if( null != gcu_ColorTexUnit ) {
+        if( null != gcu_ColorTexUnit && colorTexSeq.isTextureAvailable() ) {
             final TextureSequence.TextureFrame frame = colorTexSeq.getNextTexture(gl);
             gl.glActiveTexture(GL.GL_TEXTURE0 + colorTexSeq.getTextureUnit());
             final Texture tex = frame.getTexture();
@@ -479,7 +511,7 @@ public class VBORegion2PMSAAES2  extends GLRegion {
                 gcu_ColorTexUnit.setData(colorTexUnit);
                 gl.glUniform(gcu_ColorTexUnit);
             }
-            gl.glUniform(gcu_ColorTexBBox); // FIXME: Only if changed!
+            gl.glUniform(gcu_ColorTexBBox); // Always update, since program maybe used by multiple regions
             gl.glDrawElements(GL2ES2.GL_TRIANGLES, indicesBuffer.getElementCount() * indicesBuffer.getComponentCount(), GL2ES2.GL_UNSIGNED_SHORT, 0);
             tex.disable(gl); // nop on core
         } else {

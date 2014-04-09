@@ -47,8 +47,10 @@ public class TextureButton extends RoundButton {
                          final float width, final float height, final TextureSequence texSeq) {
         super(factory, renderModes | Region.COLORTEXTURE_RENDERING_BIT, width, height);
         this.texSeq = texSeq;
-        setColor(1.0f, 1.0f, 1.0f, 1.0f);
-        setSelectedColorMod(0.9f, 0.9f, 0.9f, 0.9f);
+        setColor(0.8f, 0.8f, 0.8f, 1.0f);
+        setPressedColorMod(1.1f, 1.1f, 1.1f, 0.7f);
+        setToggleOffColorMod(0.8f, 0.8f, 0.8f, 1.0f);
+        setToggleOnColorMod(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
     @Override

@@ -53,9 +53,9 @@ public class RenderState {
      * Shall be set via {@link #setHintMask(int)} and cleared via {@link #clearHintMask(int)}.
      * </p>
      * <p>
-     * Due to alpha blending and multipass rendering, e.g. {@link Region#VBAA_RENDERING_BIT},
-     * the clear-color shall be set to the {@link #getColorStaticUniform() foreground color} and <i>zero alpha</i>,
-     * otherwise blending will amplify the scene's clear-color.
+     * If set, {@link GLRegion#draw(GL2ES2, RegionRenderer, int[]) GLRegion's draw-method}
+     * will set the proper {@link GL#glBlendFuncSeparate(int, int, int, int) blend-function}
+     * and the clear-color to <i>transparent-black</i> in case of {@link Region#isTwoPass(int) multipass} FBO rendering.
      * </p>
      * <p>
      * Shall be called by custom code, e.g. via {@link RegionRenderer}'s

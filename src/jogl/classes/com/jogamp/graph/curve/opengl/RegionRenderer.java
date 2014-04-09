@@ -32,15 +32,19 @@ import java.util.Iterator;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GLES2;
 import javax.media.opengl.GLException;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import jogamp.graph.curve.opengl.shader.AttributeNames;
+import jogamp.graph.curve.opengl.shader.UniformNames;
 
 import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
+import com.jogamp.opengl.util.texture.TextureSequence;
 import com.jogamp.opengl.util.PMVMatrix;
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.curve.Region;
 
@@ -65,10 +69,12 @@ public class RegionRenderer {
 
     /**
      * Default {@link GL#GL_BLEND} <i>enable</i> {@link GLCallback},
-     * turning on the {@link GL#GL_BLEND} state and setting up
-     * {@link GL#glBlendFunc(int, int) glBlendFunc}({@link GL#GL_SRC_ALPHA}, {@link GL#GL_ONE_MINUS_SRC_ALPHA}).
+     * turning-off depth writing via {@link GL#glDepthMask(boolean)} and turning-on the {@link GL#GL_BLEND} state.
      * <p>
-     * Implementation also sets {@link RegionRenderer#getRenderState() RenderState}'s {@link RenderState#BITHINT_BLENDING_ENABLED blending bit-hint}.
+     * Implementation also sets {@link RegionRenderer#getRenderState() RenderState}'s {@link RenderState#BITHINT_BLENDING_ENABLED blending bit-hint},
+     * which will cause {@link GLRegion#draw(GL2ES2, RegionRenderer, int[]) GLRegion's draw-method}
+     * to set the proper {@link GL#glBlendFuncSeparate(int, int, int, int) blend-function}
+     * and the clear-color to <i>transparent-black</i> in case of {@link Region#isTwoPass(int) multipass} FBO rendering.
      * </p>
      * @see #create(RenderState, GLCallback, GLCallback)
      * @see #enable(GL2ES2, boolean)
@@ -76,16 +82,17 @@ public class RegionRenderer {
     public static final GLCallback defaultBlendEnable = new GLCallback() {
         @Override
         public void run(final GL gl, final RegionRenderer renderer) {
+            gl.glDepthMask(false);
             gl.glEnable(GL.GL_BLEND);
             gl.glBlendEquation(GL.GL_FUNC_ADD); // default
-            gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
             renderer.rs.setHintMask(RenderState.BITHINT_BLENDING_ENABLED);
         }
     };
 
     /**
      * Default {@link GL#GL_BLEND} <i>disable</i> {@link GLCallback},
-     * simply turning off the {@link GL#GL_BLEND} state.
+     * simply turning-off the {@link GL#GL_BLEND} state
+     * and turning-on depth writing via {@link GL#glDepthMask(boolean)}.
      * <p>
      * Implementation also clears {@link RegionRenderer#getRenderState() RenderState}'s {@link RenderState#BITHINT_BLENDING_ENABLED blending bit-hint}.
      * </p>
@@ -97,6 +104,7 @@ public class RegionRenderer {
         public void run(final GL gl, final RegionRenderer renderer) {
             renderer.rs.clearHintMask(RenderState.BITHINT_BLENDING_ENABLED);
             gl.glDisable(GL.GL_BLEND);
+            gl.glDepthMask(true);
         }
     };
 
@@ -160,7 +168,7 @@ public class RegionRenderer {
      * <p>Shall be called by a {@code draw()} method, e.g. {@link RegionRenderer#draw(GL2ES2, Region, int)}</p>
      *
      * @param gl referencing the current GLContext to which the ShaderState is bound to
-     * @param renderModes TODO
+     * @param renderModes
      * @throws GLException if initialization failed
      */
     public final void init(final GL2ES2 gl, final int renderModes) throws GLException {
@@ -270,6 +278,8 @@ public class RegionRenderer {
     private static String USE_COLOR_CHANNEL = "#define USE_COLOR_CHANNEL 1\n";
     private static String USE_COLOR_TEXTURE = "#define USE_COLOR_TEXTURE 1\n";
     private static String DEF_SAMPLE_COUNT = "#define SAMPLE_COUNT ";
+    private static String MAIN_BEGIN = "void main (void)\n{\n";
+    private static final String gcuTexture2D = "gcuTexture2D";
 
     private String getVersionedShaderName() {
         return "curverenderer01";
@@ -367,14 +377,16 @@ public class RegionRenderer {
      * @param pass1
      * @param quality
      * @param sampleCount
+     * @param colorTexSeq
      * @return true if a new shader program is being used and hence external uniform-data and -location,
      *         as well as the attribute-location must be updated, otherwise false.
      */
     public final boolean useShaderProgram(final GL2ES2 gl, final int renderModes,
-                                          final boolean pass1, final int quality, final int sampleCount) {
+                                          final boolean pass1, final int quality, final int sampleCount, final TextureSequence colorTexSeq) {
         final ShaderModeSelector1 sel1 = pass1 ? ShaderModeSelector1.selectPass1(renderModes) :
                                                  ShaderModeSelector1.selectPass2(renderModes, quality, sampleCount);
         final boolean isTwoPass = Region.isTwoPass( renderModes );
+        final boolean isPass1ColorTexSeq = pass1 && null != colorTexSeq;
         final int shaderKey = sel1.ordinal() | ( HIGH_MASK & renderModes ) | ( isTwoPass ? TWO_PASS_BIT : 0 );
 
         /**
@@ -404,15 +416,40 @@ public class RegionRenderer {
         }
         final ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, AttributeNames.class, SHADER_SRC_SUB, SHADER_BIN_SUB, vertexShaderName, true);
         final ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, AttributeNames.class, SHADER_SRC_SUB, SHADER_BIN_SUB, versionedBaseName+"-segment-head", true);
-        int posVp = rsVp.defaultShaderCustomization(gl, true, true);
+
+        int posVp = 0;
+        int posFp = 0;
+
+        if( isPass1ColorTexSeq && GLES2.GL_TEXTURE_EXTERNAL_OES == colorTexSeq.getTextureTarget() ) {
+            if( !gl.isExtensionAvailable(GLExtensions.OES_EGL_image_external) ) {
+                throw new GLException(GLExtensions.OES_EGL_image_external+" requested but not available");
+            }
+        }
+        boolean supressGLSLVersionES30 = false;
+        if( isPass1ColorTexSeq && GLES2.GL_TEXTURE_EXTERNAL_OES == colorTexSeq.getTextureTarget() ) {
+            if( Platform.OSType.ANDROID == Platform.getOSType() && gl.isGLES3() ) {
+                // Bug on Nexus 10, ES3 - Android 4.3, where
+                // GL_OES_EGL_image_external extension directive leads to a failure _with_ '#version 300 es' !
+                //   P0003: Extension 'GL_OES_EGL_image_external' not supported
+                supressGLSLVersionES30 = true;
+            }
+        }
+        posVp = rsVp.defaultShaderCustomization(gl, !supressGLSLVersionES30, true);
         // rsFp.defaultShaderCustomization(gl, true, true);
-        int posFp = rsFp.addGLSLVersion(gl);
-        if( gl.isGLES2() && ! gl.isGLES3() ) {
+        posFp = supressGLSLVersionES30 ? 0 : rsFp.addGLSLVersion(gl);
+        if( isPass1ColorTexSeq ) {
+            posFp = rsFp.insertShaderSource(0, posFp, colorTexSeq.getRequiredExtensionsShaderStub());
+        }
+        if( pass1 && supressGLSLVersionES30 || ( gl.isGLES2() && !gl.isGLES3() ) ) {
             posFp = rsFp.insertShaderSource(0, posFp, ShaderCode.createExtensionDirective(GLExtensions.OES_standard_derivatives, ShaderCode.ENABLE));
         }
-        final String rsFpDefPrecision =  getFragmentShaderPrecision(gl);
-        if( null != rsFpDefPrecision ) {
-            rsFp.insertShaderSource(0, posFp, rsFpDefPrecision);
+        if( false ) {
+            final String rsFpDefPrecision =  getFragmentShaderPrecision(gl);
+            if( null != rsFpDefPrecision ) {
+                posFp = rsFp.insertShaderSource(0, posFp, rsFpDefPrecision);
+            }
+        } else {
+            posFp = rsFp.addDefaultShaderPrecision(gl, posFp);
         }
         if( Region.hasColorChannel( renderModes ) ) {
             posVp = rsVp.insertShaderSource(0, posVp, USE_COLOR_CHANNEL);
@@ -426,20 +463,35 @@ public class RegionRenderer {
             posFp = rsFp.insertShaderSource(0, posFp, DEF_SAMPLE_COUNT+sel1.sampleCount+"\n");
         }
 
+        final String texLookupFuncName;
+        if( isPass1ColorTexSeq ) {
+            posFp = rsFp.insertShaderSource(0, posFp, "uniform "+colorTexSeq.getTextureSampler2DType()+" "+UniformNames.gcu_ColorTexUnit+";\n");
+            texLookupFuncName = colorTexSeq.getTextureLookupFunctionName(gcuTexture2D);
+            posFp = rsFp.insertShaderSource(0, posFp, colorTexSeq.getTextureLookupFragmentShaderImpl());
+        } else {
+            texLookupFuncName = null;
+        }
+
+        posFp = rsFp.insertShaderSource(0, -1, MAIN_BEGIN);
+
         final String passS = pass1 ? "-pass1-" : "-pass2-";
         final String shaderSegment = versionedBaseName+passS+sel1.tech+sel1.sub+".glsl";
         if(DEBUG) {
             System.err.printf("RegionRendererImpl01.useShaderProgram.1: segment %s%n", shaderSegment);
         }
         try {
-            posFp = rsFp.insertShaderSource(0, -1, AttributeNames.class, shaderSegment);
+            posFp = rsFp.insertShaderSource(0, posFp, AttributeNames.class, shaderSegment);
         } catch (IOException ioe) {
             throw new RuntimeException("Failed to read: "+shaderSegment, ioe);
         }
         if( 0 > posFp ) {
             throw new RuntimeException("Failed to read: "+shaderSegment);
         }
-        posFp = rsFp.insertShaderSource(0, -1, "}\n");
+        posFp = rsFp.insertShaderSource(0, posFp, "}\n");
+
+        if( isPass1ColorTexSeq ) {
+            rsFp.replaceInShaderSource(gcuTexture2D, texLookupFuncName);
+        }
 
         sp = new ShaderProgram();
         sp.add(rsVp);
@@ -461,5 +513,4 @@ public class RegionRenderer {
         }
         return true;
     }
-
 }

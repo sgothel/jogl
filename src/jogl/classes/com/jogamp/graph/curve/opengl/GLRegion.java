@@ -83,7 +83,7 @@ public abstract class GLRegion extends Region {
 
     /**
      * Updates a graph region by updating the ogl related
-     * objects for use in rendering if {@link #isDirty()}.
+     * objects for use in rendering if {@link #isShapeDirty()}.
      * <p>Allocates the ogl related data and initializes it the 1st time.<p>
      * <p>Called by {@link #draw(GL2ES2, RenderState, int, int, int)}.</p>
      */
@@ -139,11 +139,11 @@ public abstract class GLRegion extends Region {
      * @see RegionRenderer#enable(GL2ES2, boolean)
      */
     public final void draw(final GL2ES2 gl, final RegionRenderer renderer, final int[/*1*/] sampleCount) {
-        if(isDirty()) {
+        if( isShapeDirty() ) {
             updateImpl(gl);
-            setDirty(false);
         }
         drawImpl(gl, renderer, sampleCount);
+        clearDirtyBits(DIRTY_SHAPE|DIRTY_STATE);
     }
 
     protected abstract void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int[/*1*/] sampleCount);

@@ -104,7 +104,7 @@ public class CrossHair extends UIShape {
     }
 
     @Override
-    public String toString() {
-        return "CrossHair [" + translate[0]+getWidth()/2f+" / "+translate[1]+getHeight()/2f+" "+getWidth() + "x" + getHeight() + ", "+box+"]";
+    public String getSubString() {
+        return super.getSubString()+", dim "+getWidth() + "x" + getHeight();
     }
 }

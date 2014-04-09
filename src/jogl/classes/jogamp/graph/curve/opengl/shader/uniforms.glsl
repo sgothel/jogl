@@ -7,7 +7,6 @@ uniform vec4    gcu_ColorStatic;
 uniform float   gcu_Weight;
 
 #ifdef USE_COLOR_TEXTURE
-    uniform sampler2D  gcu_ColorTexUnit;
     uniform vec4  gcu_ColorTexBBox;
 #endif
 

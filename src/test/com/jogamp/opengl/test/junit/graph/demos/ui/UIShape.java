@@ -36,20 +36,21 @@ import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
+import com.jogamp.newt.event.GestureHandler.GestureEvent;
+import com.jogamp.newt.event.GestureHandler.GestureListener;
+import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.NEWTEvent;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.opengl.math.Quaternion;
-import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.math.geom.AABBox;
 
 public abstract class UIShape {
     public static final boolean DRAW_DEBUG_BOX = false;
 
-    protected static final int DIRTY_SHAPE     = 1 << 0 ;
+    protected static final int DIRTY_SHAPE    = 1 << 0 ;
     protected static final int DIRTY_STATE    = 1 << 1 ;
 
     private final Factory<? extends Vertex> vertexFactory;
@@ -67,16 +68,22 @@ public abstract class UIShape {
     protected int dirty = DIRTY_SHAPE | DIRTY_STATE;
     protected float shapesSharpness = OutlineShape.DEFAULT_SHARPNESS;
 
-    protected final float[] rgbaColor         = {0.6f, 0.6f, 0.6f, 1.0f};
-    protected final float[] selectedRGBAModulate = {1.4f, 1.4f, 1.4f, 1.0f};
+    /** Default base-color w/o color channel, will be modulated w/ pressed- and toggle color */
+    protected final float[] rgbaColor         = {0.75f, 0.75f, 0.75f, 1.0f};
+    /** Default pressed color-factor w/o color channel, modulated base-color. 0.75 * 1.2 = 0.9 */
+    protected final float[] pressedRGBAModulate = {1.2f, 1.2f, 1.2f, 0.7f};
+    /** Default toggle color-factor w/o color channel, modulated base-color.  0.75 * 1.13 ~ 0.85 */
+    protected final float[] toggleOnRGBAModulate = {1.13f, 1.13f, 1.13f, 1.0f};
+    /** Default toggle color-factor w/o color channel, modulated base-color.  0.75 * 0.86 ~ 0.65 */
+    protected final float[] toggleOffRGBAModulate = {0.86f, 0.86f, 0.86f, 1.0f};
 
     private int name = -1;
 
     private boolean down = false;
-    private boolean toggle =false;
+    private boolean toggle = false;
     private boolean toggleable = false;
     private boolean enabled = true;
-    private ArrayList<MouseListener> mouseListeners = new ArrayList<MouseListener>();
+    private ArrayList<MouseGestureListener> mouseListeners = new ArrayList<MouseGestureListener>();
 
     public UIShape(final Factory<? extends Vertex> factory, final int renderModes) {
         this.vertexFactory = factory;
@@ -199,35 +206,58 @@ public abstract class UIShape {
      */
     public void drawShape(GL2ES2 gl, RegionRenderer renderer, int[] sampleCount) {
         final float r, g, b, a;
-        final boolean isSelect;
-        if( isPressed() || getToggleState() ) {
-            isSelect = true;
-            r = rgbaColor[0]*selectedRGBAModulate[0];
-            g = rgbaColor[1]*selectedRGBAModulate[1];
-            b = rgbaColor[2]*selectedRGBAModulate[2];
-            a = rgbaColor[3]*selectedRGBAModulate[3];
-        } else {
-            isSelect = false;
-            r = rgbaColor[0];
-            g = rgbaColor[1];
-            b = rgbaColor[2];
-            a = rgbaColor[3];
-        }
-
-        if( renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
-            gl.glClearColor(r, g, b, 0.0f);
-        }
-        final RenderState rs = renderer.getRenderState();
-
-        if( Region.hasColorChannel( renderModes ) || Region.hasColorTexture( renderModes ) ) {
-            if( isSelect ) {
-                rs.setColorStatic(selectedRGBAModulate[0], selectedRGBAModulate[1], selectedRGBAModulate[2], selectedRGBAModulate[3]);
+        final boolean isPressed = isPressed(), isToggleOn = isToggleOn();
+        final boolean modBaseColor = !Region.hasColorChannel( renderModes ) && !Region.hasColorTexture( renderModes );
+        if( modBaseColor ) {
+            if( isPressed ) {
+                r = rgbaColor[0]*pressedRGBAModulate[0];
+                g = rgbaColor[1]*pressedRGBAModulate[1];
+                b = rgbaColor[2]*pressedRGBAModulate[2];
+                a = rgbaColor[3]*pressedRGBAModulate[3];
+            } else if( isToggleable() ) {
+                if( isToggleOn ) {
+                    r = rgbaColor[0]*toggleOnRGBAModulate[0];
+                    g = rgbaColor[1]*toggleOnRGBAModulate[1];
+                    b = rgbaColor[2]*toggleOnRGBAModulate[2];
+                    a = rgbaColor[3]*toggleOnRGBAModulate[3];
+                } else {
+                    r = rgbaColor[0]*toggleOffRGBAModulate[0];
+                    g = rgbaColor[1]*toggleOffRGBAModulate[1];
+                    b = rgbaColor[2]*toggleOffRGBAModulate[2];
+                    a = rgbaColor[3]*toggleOffRGBAModulate[3];
+                }
             } else {
-                rs.setColorStatic(1.0f, 1.0f, 1.0f, 1.0f);
+                r = rgbaColor[0];
+                g = rgbaColor[1];
+                b = rgbaColor[2];
+                a = rgbaColor[3];
             }
         } else {
-            rs.setColorStatic(r, g, b, a);
+            if( isPressed ) {
+                r = pressedRGBAModulate[0];
+                g = pressedRGBAModulate[1];
+                b = pressedRGBAModulate[2];
+                a = pressedRGBAModulate[3];
+            } else if( isToggleable() ) {
+                if( isToggleOn ) {
+                    r = toggleOnRGBAModulate[0];
+                    g = toggleOnRGBAModulate[1];
+                    b = toggleOnRGBAModulate[2];
+                    a = toggleOnRGBAModulate[3];
+                } else {
+                    r = toggleOffRGBAModulate[0];
+                    g = toggleOffRGBAModulate[1];
+                    b = toggleOffRGBAModulate[2];
+                    a = toggleOffRGBAModulate[3];
+                }
+            } else {
+                r = rgbaColor[0];
+                g = rgbaColor[1];
+                b = rgbaColor[2];
+                a = rgbaColor[3];
+            }
         }
+        renderer.getRenderState().setColorStatic(r, g, b, a);
         getRegion(gl, renderer).draw(gl, renderer, sampleCount);
     }
 
@@ -252,12 +282,10 @@ public abstract class UIShape {
                 region.addOutlineShape(shape, null, rgbaColor);
             }
             region.setQuality(regionQuality);
-            // dirty &= ~(DIRTY_SHAPE | DIRTY_STATE);
-            dirty = 0;
+            dirty &= ~(DIRTY_SHAPE|DIRTY_STATE);
         } else if( isStateDirty() ) {
-            region.markDirty();
-            // dirty &= ~DIRTY_STATE;
-            dirty = 0;
+            region.markStateDirty();
+            dirty &= ~DIRTY_STATE;
         }
     }
 
@@ -286,14 +314,27 @@ public abstract class UIShape {
         this.rgbaColor[2] = b;
         this.rgbaColor[3] = a;
     }
-    public final void setSelectedColorMod(float r, float g, float b, float a){
-        this.selectedRGBAModulate[0] = r;
-        this.selectedRGBAModulate[1] = g;
-        this.selectedRGBAModulate[2] = b;
-        this.selectedRGBAModulate[3] = a;
+    public final void setPressedColorMod(float r, float g, float b, float a) {
+        this.pressedRGBAModulate[0] = r;
+        this.pressedRGBAModulate[1] = g;
+        this.pressedRGBAModulate[2] = b;
+        this.pressedRGBAModulate[3] = a;
+    }
+    public final void setToggleOnColorMod(float r, float g, float b, float a) {
+        this.toggleOnRGBAModulate[0] = r;
+        this.toggleOnRGBAModulate[1] = g;
+        this.toggleOnRGBAModulate[2] = b;
+        this.toggleOnRGBAModulate[3] = a;
+    }
+    public final void setToggleOffColorMod(float r, float g, float b, float a) {
+        this.toggleOffRGBAModulate[0] = r;
+        this.toggleOffRGBAModulate[1] = g;
+        this.toggleOffRGBAModulate[2] = b;
+        this.toggleOffRGBAModulate[3] = a;
     }
 
-    public String toString() {
+    @Override
+    public final String toString() {
         return getClass().getSimpleName()+"["+getSubString()+"]";
     }
 
@@ -307,12 +348,8 @@ public abstract class UIShape {
 
     public void setPressed(final boolean b) {
         this.down  = b;
-        if( isToggleable() && b ) {
-            toggle = !toggle;
-        }
         markStateDirty();
     }
-
     public boolean isPressed() {
         return this.down;
     }
@@ -320,60 +357,93 @@ public abstract class UIShape {
     public void setToggleable(final boolean toggleable) {
         this.toggleable = toggleable;
     }
-
     public boolean isToggleable() {
         return toggleable;
     }
-
-    public void setToggleState(final boolean v) {
+    public void setToggle(final boolean v) {
         toggle = v;
         markStateDirty();
     }
-    public boolean getToggleState() { return toggle; }
+    public void toggle() {
+        if( isToggleable() ) {
+            toggle = !toggle;
+        }
+        markStateDirty();
+    }
+    public boolean isToggleOn() { return toggle; }
 
-    public final void addMouseListener(final MouseListener l) {
+    public final void addMouseListener(final MouseGestureListener l) {
         if(l == null) {
             return;
         }
         @SuppressWarnings("unchecked")
-        ArrayList<MouseListener> clonedListeners = (ArrayList<MouseListener>) mouseListeners.clone();
+        final ArrayList<MouseGestureListener> clonedListeners = (ArrayList<MouseGestureListener>) mouseListeners.clone();
         clonedListeners.add(l);
         mouseListeners = clonedListeners;
     }
 
-    public final void removeMouseListener(MouseListener l) {
+    public final void removeMouseListener(final MouseGestureListener l) {
         if (l == null) {
             return;
         }
         @SuppressWarnings("unchecked")
-        ArrayList<MouseListener> clonedListeners = (ArrayList<MouseListener>) mouseListeners.clone();
+        final ArrayList<MouseGestureListener> clonedListeners = (ArrayList<MouseGestureListener>) mouseListeners.clone();
         clonedListeners.remove(l);
         mouseListeners = clonedListeners;
     }
 
     /**
+     * Combining {@link MouseListener} and {@link GestureListener}
+     */
+    public static interface MouseGestureListener extends MouseListener, GestureListener {
+    }
+
+    /**
+     * Convenient adapter combining dummy implementation for {@link MouseListener} and {@link GestureListener}
+     */
+    public static abstract class MouseGestureAdapter extends MouseAdapter implements MouseGestureListener {
+        @Override
+        public void gestureDetected(GestureEvent gh) {
+        }
+    }
+
+    /**
      * {@link UIShape} event details for propagated {@link NEWTEvent}s
      * containing reference of {@link #shape the intended shape} as well as
-     * the {@link #rotPosition rotated relative position} and {@link #rotBounds bounding box}.
+     * the {@link #objPos rotated relative position} and {@link #rotBounds bounding box}.
      * The latter fields are also normalized to lower-left zero origin, allowing easier usage.
      */
-    public static class EventDetails {
+    public static class PointerEventInfo {
         /** The intended {@link UIShape} instance for this event */
         public final UIShape shape;
-        /** The {@link AABBox} of the intended {@link UIShape}, rotated about {@link UIShape#getRotation()} and normalized to lower-left zero origin.*/
-        public final AABBox rotBounds;
-        /** The relative mouse pointer position inside the intended {@link UIShape}, rotated about {@link UIShape#getRotation()} and normalized to lower-left zero origin. */
-        public final float[] rotPosition;
+        /** The relative pointer position inside the intended {@link UIShape}. */
+        public final float[] objPos;
+        /** window x-position in OpenGL model space */
+        public final int glWinX;
+        /** window y-position in OpenGL model space */
+        public final int glWinY;
 
-        EventDetails(final UIShape shape, final AABBox rotatedBounds, final float[] rotatedRelPos) {
+        PointerEventInfo(final int glWinX, final int glWinY, final UIShape shape, final float[] objPos) {
+            this.glWinX = glWinX;
+            this.glWinY = glWinY;
             this.shape = shape;
-            this.rotBounds = rotatedBounds;
-            this.rotPosition = rotatedRelPos;
+            this.objPos = objPos;
         }
 
         public String toString() {
-            return "EventDetails[pos "+rotPosition[0]+", "+rotPosition[1]+", "+rotPosition[2]+
-                                 ", "+rotBounds+", "+shape+"]";
+            return "EventDetails[winPos ["+glWinX+", "+glWinY+"], objPos ["+objPos[0]+", "+objPos[1]+", "+objPos[2]+"], "+shape+"]";
+        }
+    }
+
+    /**
+     * @param e original Newt {@link GestureEvent}
+     * @param glWinX x-position in OpenGL model space
+     * @param glWinY y-position in OpenGL model space
+     */
+    public final void dispatchGestureEvent(final GestureEvent e, final int glWinX, final int glWinY, final float[] objPos) {
+        e.setAttachment(new PointerEventInfo(glWinX, glWinY, this, objPos));
+        for(int i = 0; !e.isConsumed() && i < mouseListeners.size(); i++ ) {
+            mouseListeners.get(i).gestureDetected(e);
         }
     }
 
@@ -381,36 +451,28 @@ public abstract class UIShape {
      *
      * @param e original Newt {@link MouseEvent}
      * @param glX x-position in OpenGL model space
-     * @param glY x-position in OpenGL model space
+     * @param glY y-position in OpenGL model space
      */
-    public final void dispatchMouseEvent(final MouseEvent e, final int glX, final int glY) {
-        // rotate bounding box and normalize to 0/0
-        final Quaternion rot = getRotation();
-        final float[] bLow = new float[3];
-        VectorUtil.copyVec3(bLow, 0, getBounds().getLow(), 0);
-        VectorUtil.scaleVec3(bLow, bLow, -1f);
-        final AABBox rbox = new AABBox(getBounds());
-        rbox.translate(bLow);
-        rbox.rotate(rot);
-
-        // get unrotated relative position within shape, rotate and normalize to 0/0
-        final float[] relPos = new float[] { glX, glY, 0f };
-        VectorUtil.subVec3(relPos, relPos, getTranslate());
-        VectorUtil.addVec3(relPos, relPos, bLow);
-        rot.rotateVector(relPos, 0, relPos, 0);
-
-        // set as attachment
-        e.setAttachment(new EventDetails(this, rbox, relPos));
+    public final void dispatchMouseEvent(final MouseEvent e, final int glWinX, final int glWinY, final float[] objPos) {
+        e.setAttachment(new PointerEventInfo(glWinX, glWinY, this, objPos));
 
         final short eventType = e.getEventType();
-        if( MouseEvent.EVENT_MOUSE_PRESSED == eventType ) {
-            setPressed(true);
-        } else if ( MouseEvent.EVENT_MOUSE_RELEASED == eventType ) {
-            setPressed(false);
+        if( 1 == e.getPointerCount() ) {
+            switch( eventType ) {
+                case MouseEvent.EVENT_MOUSE_CLICKED:
+                    toggle();
+                    break;
+                case MouseEvent.EVENT_MOUSE_PRESSED:
+                    setPressed(true);
+                    break;
+                case MouseEvent.EVENT_MOUSE_RELEASED:
+                    setPressed(false);
+                    break;
+            }
         }
 
         for(int i = 0; !e.isConsumed() && i < mouseListeners.size(); i++ ) {
-            final MouseListener l = mouseListeners.get(i);
+            final MouseGestureListener l = mouseListeners.get(i);
             switch( eventType ) {
                 case MouseEvent.EVENT_MOUSE_CLICKED:
                     l.mouseClicked(e);

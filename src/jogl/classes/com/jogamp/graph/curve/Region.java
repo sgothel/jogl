@@ -105,9 +105,12 @@ public abstract class Region {
 
     public static final int DEFAULT_TWO_PASS_TEXTURE_UNIT = 0;
 
+    protected static final int DIRTY_SHAPE    = 1 << 0 ;
+    protected static final int DIRTY_STATE    = 1 << 1 ;
+
     private final int renderModes;
     private int quality;
-    private boolean dirty = true;
+    private int dirty = DIRTY_SHAPE | DIRTY_STATE;
     private int numVertices = 0;
     protected final AABBox box = new AABBox();
     protected Frustum frustum = null;
@@ -187,7 +190,7 @@ public abstract class Region {
     public final void setQuality(int q) { quality=q; }
 
     protected void clearImpl() {
-        dirty = true;
+        dirty = DIRTY_SHAPE | DIRTY_STATE;
         numVertices = 0;
         box.reset();
     }
@@ -356,7 +359,7 @@ public abstract class Region {
             // int vertsDupCountV = 0, vertsDupCountT = 0;
             System.err.println("Region.addOutlineShape().X: box "+box);
         }
-        setDirty(true);
+        markShapeDirty();
     }
 
     public final void addOutlineShapes(final List<OutlineShape> shapes, final AffineTransform transform, final float[] rgbaColor) {
@@ -371,32 +374,35 @@ public abstract class Region {
     }
 
     /**
-     * Check if this region is dirty. A region is marked dirty when new
-     * Vertices, Triangles, and or Lines are added after a call to update().
-     * <p>
-     * A region is also dirty if other render attributes or parameters are changed!
-     * </p>
-     *
-     * @return true if region is Dirty, false otherwise
-     *
-     * @see update(GL2ES2)
+     * Mark this region's shape dirty, i.e. it's
+     * Vertices, Triangles, and or Lines changed.
      */
-    public final boolean isDirty() {
-        return dirty;
+    public final void markShapeDirty() {
+        dirty |= DIRTY_SHAPE;
+    }
+    /** Returns true if this region's shape are dirty, see {@link #markShapeDirty()}. */
+    public final boolean isShapeDirty() {
+        return 0 != ( dirty & DIRTY_SHAPE ) ;
+    }
+    /**
+     * Mark this region's state dirty, i.e.
+     * it's render attributes or parameters changed.
+     */
+    public final void markStateDirty() {
+        dirty |= DIRTY_STATE;
+    }
+    /** Returns true if this region's state is dirty, see {@link #markStateDirty()}. */
+    public final boolean isStateDirty() {
+        return 0 != ( dirty & DIRTY_STATE ) ;
     }
 
     /**
-     * See {@link #isDirty()}.
+     * See {@link #markShapeDirty()} and {@link #markStateDirty()}.
      */
-    protected final void setDirty(boolean v) {
-        dirty = v;
+    protected final void clearDirtyBits(int v) {
+        dirty &= ~v;
     }
-    /**
-     * See {@link #isDirty()}.
-     */
-    public final void markDirty() {
-        dirty = true;
-    }
+    protected final int getDirtyBits() { return dirty; }
 
     public String toString() {
         return "Region["+getRenderModeString(this.renderModes)+", q "+quality+", dirty "+dirty+", vertices "+numVertices+", box "+box+"]";

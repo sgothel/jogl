@@ -100,7 +100,7 @@ public class UIGLListener01 extends UIListenerBase01 {
 
     @Override
     public void dispose(GLAutoDrawable drawable) {
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
         button.destroy(gl, getRegionRenderer());
         super.dispose(drawable);
     }

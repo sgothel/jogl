@@ -99,6 +99,7 @@ public class Label0 {
 
     @Override
     public final String toString(){
-        return "Label0 [" + font.toString() + ", " + getText() + "]";
+        final int m = Math.min(text.length(), 8);
+        return "Label0 ['" + text.substring(0, m) + "']";
     }
 }

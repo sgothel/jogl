@@ -110,7 +110,8 @@ public class Label extends UIShape {
     }
 
     @Override
-    public String toString(){
-        return "Label [" + font.toString() + ", size " + pixelSize + ", " + getText() + "]";
+    public String getSubString() {
+        final int m = Math.min(text.length(), 8);
+        return super.getSubString()+", psize " + pixelSize + ", '" + text.substring(0, m)+"'";
     }
 }

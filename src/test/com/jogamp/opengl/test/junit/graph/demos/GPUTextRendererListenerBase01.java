@@ -202,7 +202,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         final int height = drawable.getHeight();
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-        gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+        gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
         // final float zDistance0 =   500f;
@@ -217,9 +217,6 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         rs.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
-        if( renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
-            gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        }
         final float pixelSizeFName = font.getPixelSize(fontSizeFName, dpiH);
         final float pixelSizeHead = font.getPixelSize(fontSizeHead, dpiH);
         final float pixelSizeBottom = font.getPixelSize(fontSizeBottom, dpiH);
@@ -281,22 +278,21 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         pmv.glTranslatef(getXTran(), getYTran(), getZTran());
         pmv.glRotatef(getAngle(), 0, 1, 0);
         rs.setColorStatic(0.9f, 0.0f, 0.0f, 1.0f);
-        if( renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
-            gl.glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
-        }
 
         if( bottomTextUseFrustum ) {
             regionBottom.setFrustum(pmv.glGetFrustum());
         }
         if(!userInput) {
             if( bottomTextUseFrustum ) {
-                TextRegionUtil.drawString3D(gl, regionBottom, renderer, font, nearPlaneS * pixelSizeBottom, text2, null, getSampleCount(), null, null);
+                TextRegionUtil.drawString3D(gl, regionBottom, renderer, font, nearPlaneS * pixelSizeBottom, text2, null, getSampleCount(),
+                                            textRegionUtil.tempT1, textRegionUtil.tempT2);
             } else {
                 textRegionUtil.drawString3D(gl, renderer, font, nearPlaneS * pixelSizeBottom, text2, null, getSampleCount());
             }
         } else {
             if( bottomTextUseFrustum ) {
-                TextRegionUtil.drawString3D(gl, regionBottom, renderer, font, nearPlaneS * pixelSizeBottom, userString.toString(), null, getSampleCount(), null, null);
+                TextRegionUtil.drawString3D(gl, regionBottom, renderer, font, nearPlaneS * pixelSizeBottom, userString.toString(), null, getSampleCount(),
+                                            textRegionUtil.tempT1, textRegionUtil.tempT2);
             } else {
                 textRegionUtil.drawString3D(gl, renderer, font, nearPlaneS * pixelSizeBottom, userString.toString(), null, getSampleCount());
             }

@@ -56,9 +56,12 @@ public class LabelButton extends RoundButton {
                        final Font labelFont, final String labelText,
                        final float width, final float height, final float labelZOffset) {
         super(factory, renderModes | Region.COLORCHANNEL_RENDERING_BIT, width, height);
-        this.label = new Label0(labelFont, labelText, new float[] { 0.9f, 0.9f, 0.9f, 1.0f });
+        this.label = new Label0(labelFont, labelText, new float[] { 1.33f, 1.33f, 1.33f, 1.0f }); // 0.75 * 1.33 = 1.0
         this.labelZOffset = labelZOffset;
-        setLabelColor(1.0f, 1.0f, 1.0f);
+        setColor(0.75f, 0.75f, 0.75f, 1.0f);
+        setPressedColorMod(0.9f, 0.9f, 0.9f, 0.7f);
+        setToggleOffColorMod(0.65f, 0.65f, 0.65f, 1.0f);
+        setToggleOnColorMod(0.85f, 0.85f, 0.85f, 1.0f);
     }
 
     @Override

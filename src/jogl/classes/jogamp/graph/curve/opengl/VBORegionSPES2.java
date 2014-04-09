@@ -43,6 +43,7 @@ import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.texture.Texture;
+import com.jogamp.opengl.util.texture.TextureCoords;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 public class VBORegionSPES2 extends GLRegion {
@@ -149,11 +150,23 @@ public class VBORegionSPES2 extends GLRegion {
             gca_ColorsAttr.seal(gl, true);
             gca_ColorsAttr.enableBuffer(gl, false);
         }
-        if( null != gcu_ColorTexUnit ) {
-            colorTexBBox[0] = box.getMinX();
-            colorTexBBox[1] = box.getMinY();
-            colorTexBBox[2] = box.getMaxX();
-            colorTexBBox[3] = box.getMaxY();
+        if( null != gcu_ColorTexUnit && colorTexSeq.isTextureAvailable() ) {
+            final TextureSequence.TextureFrame frame = colorTexSeq.getLastTexture();
+            final Texture tex = frame.getTexture();
+            final TextureCoords tc = tex.getImageTexCoords();
+            final float tcSx = 1f / ( tc.right() - tc.left() );
+            colorTexBBox[0] = box.getMinX() * tcSx;
+            colorTexBBox[2] = box.getMaxX() * tcSx;
+            final float tcSy;
+            if( tex.getMustFlipVertically() ) {
+                tcSy = 1f / ( tc.bottom() - tc.top() );
+                colorTexBBox[1] = box.getMaxY() * tcSy;
+                colorTexBBox[3] = box.getMinY() * tcSy;
+            } else {
+                tcSy = 1f / ( tc.top() - tc.bottom() );
+                colorTexBBox[1] = box.getMinY() * tcSy;
+                colorTexBBox[3] = box.getMaxY() * tcSy;
+            }
         }
         indicesBuffer.seal(gl, true);
         indicesBuffer.enableBuffer(gl, false);
@@ -164,6 +177,7 @@ public class VBORegionSPES2 extends GLRegion {
         }
     }
 
+    private static final boolean throwOnError = false; // FIXME
     /**
      * <p>
      * Since multiple {@link Region}s may share one
@@ -177,7 +191,7 @@ public class VBORegionSPES2 extends GLRegion {
      */
     public void useShaderProgram(final GL2ES2 gl, final RegionRenderer renderer, final int renderModes, final int quality) {
         final RenderState rs = renderer.getRenderState();
-        final boolean updateLocGlobal = renderer.useShaderProgram(gl, renderModes, true, quality, 0);
+        final boolean updateLocGlobal = renderer.useShaderProgram(gl, renderModes, true, quality, 0, colorTexSeq);
         final ShaderProgram sp = renderer.getRenderState().getShaderProgram();
         final boolean updateLocLocal = !sp.equals(spPass1);
         spPass1 = sp;
@@ -185,16 +199,16 @@ public class VBORegionSPES2 extends GLRegion {
             System.err.println("XXX changedSP.p1 updateLocation loc "+updateLocLocal+" / glob "+updateLocGlobal);
         }
         if( updateLocLocal ) {
-            rs.updateAttributeLoc(gl, true, gca_VerticesAttr, true);
-            rs.updateAttributeLoc(gl, true, gca_CurveParamsAttr, true);
+            rs.updateAttributeLoc(gl, true, gca_VerticesAttr, throwOnError);
+            rs.updateAttributeLoc(gl, true, gca_CurveParamsAttr, throwOnError);
             if( null != gca_ColorsAttr ) {
-                rs.updateAttributeLoc(gl, true, gca_ColorsAttr, true);
+                rs.updateAttributeLoc(gl, true, gca_ColorsAttr, throwOnError);
             }
         }
-        rsLocal.update(gl, rs, updateLocLocal, renderModes, true, true);
+        rsLocal.update(gl, rs, updateLocLocal, renderModes, true, throwOnError);
         if( null != gcu_ColorTexUnit ) {
-            rs.updateUniformLoc(gl, updateLocLocal, gcu_ColorTexUnit, true);
-            rs.updateUniformLoc(gl, updateLocLocal, gcu_ColorTexBBox, true);
+            rs.updateUniformLoc(gl, updateLocLocal, gcu_ColorTexUnit, throwOnError);
+            rs.updateUniformLoc(gl, updateLocLocal, gcu_ColorTexBBox, throwOnError);
         }
     }
 
@@ -216,7 +230,12 @@ public class VBORegionSPES2 extends GLRegion {
             gca_ColorsAttr.enableBuffer(gl, true);
         }
         indicesBuffer.bindBuffer(gl, true); // keeps VBO binding
-        if( null != gcu_ColorTexUnit ) {
+
+        if( renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
+            gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+        }
+
+        if( null != gcu_ColorTexUnit && colorTexSeq.isTextureAvailable() ) {
             final TextureSequence.TextureFrame frame = colorTexSeq.getNextTexture(gl);
             gl.glActiveTexture(GL.GL_TEXTURE0 + colorTexSeq.getTextureUnit());
             final Texture tex = frame.getTexture();
