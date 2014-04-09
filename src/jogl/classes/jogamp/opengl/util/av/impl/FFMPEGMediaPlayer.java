@@ -677,8 +677,8 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         case YUV420P: // < planar YUV 4:2:0, 12bpp, (1 Cr & Cb sample per 2x2 Y samples)
           return
               "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
-              "  vec2 u_off = vec2("+tc_w_1+", 0.0);\n"+
-              "  vec2 v_off = vec2("+tc_w_1+", 0.5);\n"+
+              "  const vec2 u_off = vec2("+tc_w_1+", 0.0);\n"+
+              "  const vec2 v_off = vec2("+tc_w_1+", 0.5);\n"+
               "  vec2 tc_half = texCoord*0.5;\n"+
               "  float y,u,v,r,g,b;\n"+
               "  y = texture2D(image, texCoord)."+singleTexComp+";\n"+
@@ -698,8 +698,8 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         case YUV422P: ///< planar YUV 4:2:2, 16bpp, (1 Cr & Cb sample per 2x1 Y samples)
           return
               "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
-              "  vec2 u_off = vec2("+tc_w_1+"      , 0.0);\n"+
-              "  vec2 v_off = vec2("+tc_w_1+" * 1.5, 0.0);\n"+
+              "  const vec2 u_off = vec2("+tc_w_1+"      , 0.0);\n"+
+              "  const vec2 v_off = vec2("+tc_w_1+" * 1.5, 0.0);\n"+
               "  vec2 tc_halfw = vec2(texCoord.x*0.5, texCoord.y);\n"+
               "  float y,u,v,r,g,b;\n"+
               "  y = texture2D(image, texCoord)."+singleTexComp+";\n"+
