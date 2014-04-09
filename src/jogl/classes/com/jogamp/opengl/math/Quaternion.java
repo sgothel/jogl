@@ -427,7 +427,7 @@ public class Quaternion {
      * <p>
      * Implementation Details:
      * <ul>
-     *   <li> {@link #setIdentity()} if all angles are {@link FloatUtil#isZero(float, float) is zero} using {@link FloatUtil#EPSILON epsilon}</li>
+     *   <li> NOP if all angles are {@link FloatUtil#isZero(float, float) is zero} using {@link FloatUtil#EPSILON epsilon}</li>
      *   <li> result is {@link #normalize()}ed</li>
      * </ul>
      * </p>
@@ -442,7 +442,7 @@ public class Quaternion {
      */
     public final Quaternion rotateByEuler(final float bankX, final float headingY, float attitudeZ) {
         if ( VectorUtil.isZero(bankX, headingY, attitudeZ, FloatUtil.EPSILON) ) {
-            return setIdentity();
+            return this;
         } else {
             // setFromEuler muls: ( 8 + 4 ) , + quat muls 24 = 36
             // this:  8  + 8 + 8 + 4 = 28 muls
