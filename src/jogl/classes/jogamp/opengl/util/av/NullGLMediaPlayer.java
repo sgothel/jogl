@@ -108,7 +108,7 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     public final static TextureData createTestTextureData() {
         TextureData res = null;
         try {
-            URLConnection urlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-57x32.png", NullGLMediaPlayer.class.getClassLoader());
+            URLConnection urlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-28x16.png", NullGLMediaPlayer.class.getClassLoader());
             if(null != urlConn) {
                 res = TextureIO.newTextureData(GLProfile.getGL2ES2(), urlConn.getInputStream(), false, TextureIO.PNG);
             }

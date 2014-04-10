@@ -8,6 +8,7 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.opengl.test.junit.jogl.util.texture.PNGTstFiles;
 import com.jogamp.opengl.util.gl2.GLUT;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureIO;
@@ -21,8 +22,8 @@ public class Teapot implements GLEventListener {
     private GLUT glut;
 
     /* glTexGen stuff: */
-    private float sgenparams[] = { 1.0f, 1.0f, 1.0f, 0.0f };
-    
+    private final float sgenparams[] = { 1.0f, 1.0f, 1.0f, 0.0f };
+
     private Texture tex = null;
 
     @Override
@@ -33,7 +34,7 @@ public class Teapot implements GLEventListener {
         gl.glClearColor(0.5f, 0.5f, 0.5f, 0.0f);
 
         try {
-            URLConnection urlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-57x32.png", this.getClass().getClassLoader());
+            URLConnection urlConn = IOUtil.getResource(PNGTstFiles.class, "test-ntscP_3-01-160x90.png");
             tex = TextureIO.newTexture(gl, TextureIO.newTextureData(gl.getGLProfile(), urlConn.getInputStream(), false, TextureIO.PNG));
         } catch (Exception e) {
             e.printStackTrace();
@@ -55,7 +56,7 @@ public class Teapot implements GLEventListener {
         // GL.GL_RGB, GL.GL_UNSIGNED_BYTE, stripeImageBuf);
 
         gl.glTexParameterf(GL2.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT);
-        
+
         // gl.glTexGeni(GL2.GL_S, GL2.GL_TEXTURE_GEN_MODE, GL2.GL_OBJECT_LINEAR);
         // gl.glTexGenfv(GL2.GL_S, GL2.GL_OBJECT_PLANE, sgenparams, 0);
 
@@ -77,14 +78,14 @@ public class Teapot implements GLEventListener {
     float angleZ = 0.0f;
     float rotDir = 1.0f;
     public float rotIncr = 0.4f;
-    
+
     @Override
     public void display(GLAutoDrawable gLDrawable) {
         final GL2 gl = gLDrawable.getGL().getGL2();
 
         tex.bind(gl);
         gl.glEnable(GL2.GL_TEXTURE_2D);
-        
+
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         gl.glPushMatrix();
         gl.glRotatef(angleZ, 0.0f, 1.0f, 0.0f);
@@ -97,7 +98,7 @@ public class Teapot implements GLEventListener {
         } else if (angleZ <= 0.0f ) {
             rotDir = +1.0f;
         }
-        angleZ += rotIncr * rotDir;    
+        angleZ += rotIncr * rotDir;
     }
 
     @Override
@@ -108,11 +109,11 @@ public class Teapot implements GLEventListener {
         gl.glMatrixMode(GL2.GL_PROJECTION);
         gl.glLoadIdentity();
         if (w <= h) {
-            gl.glOrtho(-3.5, 3.5, -3.5 * (float) h / (float) w, 
-                        3.5 * (float) h / (float) w, -3.5, 3.5);
+            gl.glOrtho(-3.5, 3.5, -3.5 * h / w,
+                        3.5 * h / w, -3.5, 3.5);
         } else {
-            gl.glOrtho(-3.5 * (float) w / (float) h,
-                        3.5 * (float) w / (float) h, -3.5, 3.5, -3.5, 3.5);
+            gl.glOrtho(-3.5 * w / h,
+                        3.5 * w / h, -3.5, 3.5, -3.5, 3.5);
         }
         gl.glMatrixMode(GL2.GL_MODELVIEW);
         gl.glLoadIdentity();

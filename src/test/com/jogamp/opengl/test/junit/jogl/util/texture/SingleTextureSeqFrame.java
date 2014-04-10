@@ -1,4 +1,4 @@
-package com.jogamp.opengl.test.junit.jogl.demos;
+package com.jogamp.opengl.test.junit.jogl.util.texture;
 
 import java.net.URLConnection;
 
@@ -12,24 +12,24 @@ import com.jogamp.opengl.util.texture.TextureData;
 import com.jogamp.opengl.util.texture.TextureIO;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
-public class TextureSequenceDemo01 implements TextureSequence {
+public class SingleTextureSeqFrame implements TextureSequence {
     TextureSequence.TextureFrame frame = null;
     int textureUnit = 0;
     protected int[] texMinMagFilter = { GL.GL_NEAREST, GL.GL_NEAREST };
     protected int[] texWrapST = { GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE };
     final boolean useBuildInTexLookup;
 
-    public TextureSequenceDemo01(boolean useBuildInTexLookup) {
+    public SingleTextureSeqFrame(boolean useBuildInTexLookup) {
         this.useBuildInTexLookup = useBuildInTexLookup;
     }
 
-    public void initGLResources(GL gl) throws GLException {
+    public void initGLResources(GL gl, Class<?> context, String imageResourcePath, String imageSuffix) throws GLException {
         if(null == frame) {
             TextureData texData = null;
             try {
-                URLConnection urlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-57x32.png", this.getClass().getClassLoader());
+                URLConnection urlConn = IOUtil.getResource(context, imageResourcePath);
                 if(null != urlConn) {
-                    texData = TextureIO.newTextureData(GLProfile.getGL2ES2(), urlConn.getInputStream(), false, TextureIO.PNG);
+                    texData = TextureIO.newTextureData(GLProfile.getGL2ES2(), urlConn.getInputStream(), false, imageSuffix);
                 }
             } catch (Exception e) {
                 e.printStackTrace();

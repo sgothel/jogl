@@ -15,12 +15,12 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
-import com.jogamp.opengl.test.junit.jogl.demos.TextureSequenceDemo01;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.TextureSequenceCubeES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.texture.TextureIO;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestTextureSequence01AWT extends UITestCase {
@@ -31,7 +31,7 @@ public class TestTextureSequence01AWT extends UITestCase {
     static long duration = 500; // ms
     static GLProfile glp;
     static GLCapabilities caps;
-    
+
     @BeforeClass
     public static void initClass() {
         glp = GLProfile.getGL2ES2();
@@ -45,19 +45,19 @@ public class TestTextureSequence01AWT extends UITestCase {
         final Frame frame = new Frame("TestTextureSequence01AWT");
         Assert.assertNotNull(frame);
         frame.add(glc);
-        
-        final TextureSequenceDemo01 texSource = new TextureSequenceDemo01(useBuildInTexLookup);
+
+        final SingleTextureSeqFrame texSource = new SingleTextureSeqFrame(useBuildInTexLookup);
         glc.addGLEventListener(new GLEventListener() {
             @Override
             public void init(GLAutoDrawable drawable) {
-                texSource.initGLResources(drawable.getGL());
+                texSource.initGLResources(drawable.getGL(), TestTextureSequence01AWT.class, "test-ntscP_3-01-160x90.png", TextureIO.PNG);
             }
             @Override
             public void dispose(GLAutoDrawable drawable) { }
             @Override
             public void display(GLAutoDrawable drawable) { }
             @Override
-            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }            
+            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
         });
         glc.addGLEventListener(new TextureSequenceCubeES2(texSource, false, -2.3f, 0f, 0f));
         final Animator animator = new Animator(glc);
@@ -74,13 +74,13 @@ public class TestTextureSequence01AWT extends UITestCase {
         } catch( Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
-        }                
+        }
         animator.start();
-        
+
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
         }
-        
+
         animator.stop();
         Assert.assertFalse(animator.isAnimating());
         Assert.assertFalse(animator.isStarted());
@@ -94,14 +94,14 @@ public class TestTextureSequence01AWT extends UITestCase {
         } catch( Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
-        }                
+        }
     }
-    
+
     @Test
     public void test1() throws InterruptedException {
-        testImpl();        
+        testImpl();
     }
-    
+
     public static void main(String[] args) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
@@ -117,7 +117,7 @@ public class TestTextureSequence01AWT extends UITestCase {
                 useBuildInTexLookup = true;
             }
         }
-        org.junit.runner.JUnitCore.main(TestTextureSequence01AWT.class.getName());        
+        org.junit.runner.JUnitCore.main(TestTextureSequence01AWT.class.getName());
     }
 
 }
