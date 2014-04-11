@@ -63,6 +63,7 @@ public class Patchlist {
 
     for (Quilt q = quilts; q != null; q = q.next)
       patch = new Patch(q, pta, ptb, patch);
+    pspec = new Pspec[2];
     pspec[0] = new Pspec();
     pspec[0].range[0] = pta[0];
     pspec[0].range[1] = ptb[0];
