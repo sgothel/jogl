@@ -117,8 +117,8 @@ public class JPEGDecoder {
         private JFIF(final byte data[]) {
             version = new VersionNumber(data[5], data[6], 0);
             densityUnits = data[7];
-            xDensity = (data[8] << 8) | data[9];
-            yDensity = (data[10] << 8) | data[11];
+            xDensity = ((data[ 8] << 8) & 0xff00) | (data[ 9] & 0xff);
+            yDensity = ((data[10] << 8) & 0xff00) | (data[11] & 0xff);
             thumbWidth = data[12];
             thumbHeight = data[13];
             if( 0 < thumbWidth && 0 < thumbHeight ) {
@@ -155,8 +155,8 @@ public class JPEGDecoder {
 
         private Adobe(final byte[] data) {
             version = data[6];
-            flags0 = (short) ( (data[7] << 8) | data[8]  ) ;
-            flags1 = (short) ( (data[9] << 8) | data[10] ) ;
+            flags0 = (short)(((data[7] << 8) & 0xff00) | (data[ 8] & 0xff));
+            flags1 = (short)(((data[9] << 8) & 0xff00) | (data[10] & 0xff));
             colorCode = data[11];
             switch( colorCode ) {
                 case 2: colorSpace = ColorSpace.YCCK; break;
