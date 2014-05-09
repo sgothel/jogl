@@ -277,6 +277,8 @@ function jrun() {
         #export USE_CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
         export USE_CLASSPATH=$JOGAMP_ALL_NOAWT_CLASSPATH
         #export USE_CLASSPATH=$JOGAMP_MOBILE_CLASSPATH
+        #export USE_CLASSPATH=$JOGAMP_ALL_NOAWT_ALT_CLASSPATH
+        #export USE_CLASSPATH=$JOGAMP_MOBILE_ALT_CLASSPATH
         #export USE_CLASSPATH=.:$GLUEGEN_JAR:$JOGL_BUILD_DIR/jar/atomic/jogl-core.jar:$JOGL_BUILD_DIR/jar/atomic/jogl-gldesktop.jar:$JOGL_BUILD_DIR/jar/atomic/jogl-os-x11.jar:$JOGL_BUILD_DIR/jar/atomic/jogl-util.jar:$JOGL_BUILD_DIR/jar/atomic/nativewindow-core.jar:$JOGL_BUILD_DIR/jar/atomic/nativewindow-os-x11.jar:$JOGL_BUILD_DIR/jar/atomic/newt-core.jar:$JOGL_BUILD_DIR/jar/atomic/newt-driver-x11.jar:$JOGL_BUILD_DIR/jar/atomic/newt-ogl.jar:$JOGL_BUILD_DIR/jar/jogl-test.jar:$SWT_CLASSPATH:$JUNIT_JAR:$ANT_JARS
         X_ARGS="-Djava.awt.headless=true $X_ARGS"
     fi
