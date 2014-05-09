@@ -265,7 +265,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.AudioSink"
     #D_ARGS="-Djogl.debug.AudioSink.trace"
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLMediaPlayer.Native"
-    #D_ARGS="-Djogl.debug.GLMediaPlayer"
+    D_ARGS="-Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25 -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.Native"
 
@@ -380,7 +380,7 @@ function testawtswt() {
 # av demos
 #
 #testnoawt jogamp.opengl.openal.av.ALDummyUsage $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.CrossFadePlayer $*
 
@@ -750,7 +750,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.ui.UINewtDemo01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo $*
-testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
+#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*

@@ -214,14 +214,17 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
             natives = null;
             ready = false;
         } else {
-            if( avCodecVersion.getMajor() == 53 && avFormatVersion.getMajor() == 53 && avUtilVersion.getMajor() == 51 ) {
+            final int avCodecMajor = avCodecVersion.getMajor();
+            final int avFormatMajor = avFormatVersion.getMajor();
+            final int avUtilMajor = avUtilVersion.getMajor();
+            if(        avCodecMajor == 53 && avFormatMajor == 53 && avUtilMajor == 51 ) {
                 // lavc53.lavf53.lavu51
                 natives = new FFMPEGv08Natives();
-            } else if( avCodecVersion.getMajor() == 54 && avFormatVersion.getMajor() == 54 && avUtilVersion.getMajor() == 52 ) {
+            } else if( avCodecMajor == 54 && avFormatMajor == 54 && avUtilMajor == 52 ) {
                 // lavc54.lavf54.lavu52.lavr01
                 natives = new FFMPEGv09Natives();
-            } else if( avCodecVersion.getMajor() == 55 && avFormatVersion.getMajor() == 55 && avUtilVersion.getMajor() == 52 ) {
-                // lavc55.lavf55.lavu52.lavr01
+            } else if( avCodecMajor == 55 && avFormatMajor == 55 && ( avUtilMajor == 52 || avUtilMajor == 53 ) ) {
+                // lavc55.lavf55.lavu52.lavr01 (ffmpeg) or lavc55.lavf55.lavu53.lavr01 (libav)
                 natives = new FFMPEGv10Natives();
             } else {
                 System.err.println("LIB_AV No Version/Native-Impl Match");

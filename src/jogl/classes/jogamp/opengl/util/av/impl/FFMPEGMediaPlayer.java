@@ -107,9 +107,9 @@ import jogamp.opengl.util.av.impl.FFMPEGNatives.SampleFormat;
  * Currently we are binary compatible w/:
  * <table border="1">
  * <tr><th>libav / ffmpeg</th><th>lavc</th><th>lavf</th><th>lavu</th><th>lavr</th>    <th>FFMPEG* class</th></tr>
- * <tr><td>0.8</td>           <td>53</td>  <td>53</td>  <td>51</td>  <td></td>        <td>FFMPEGv08</td></tr>
- * <tr><td>9.0 / 1.2</td>     <td>54</td>  <td>54</td>  <td>52</td>  <td>01/00</td>   <td>FFMPEGv09</td></tr>
- * <tr><td>10 / 2</td>        <td>55</td>  <td>55</td>  <td>52</td>  <td>01/00</td>   <td>FFMPEGv10</td></tr>
+ * <tr><td>0.8</td>           <td>53</td>  <td>53</td>  <td>51</td>     <td></td>        <td>FFMPEGv08</td></tr>
+ * <tr><td>9.0 / 1.2</td>     <td>54</td>  <td>54</td>  <td>52</td>     <td>01/00</td>   <td>FFMPEGv09</td></tr>
+ * <tr><td>10 / 2</td>        <td>55</td>  <td>55</td>  <td>53/52</td>  <td>01/00</td>   <td>FFMPEGv10</td></tr>
  * </table>
  * </p>
  * <p>
@@ -194,9 +194,14 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                 System.err.println("LIB_AV Device  : [loaded "+FFMPEGDynamicLibraryBundleInfo.avDeviceLoaded()+"]");
                 System.err.println("LIB_AV Class   : "+(null!= natives ? natives.getClass().getSimpleName() : "n/a"));
             }
-            libAVVersionGood = avCodecMajorVersionCC  == avCodecVersion.getMajor() &&
-                               avFormatMajorVersionCC == avFormatVersion.getMajor() &&
-                               avUtilMajorVersionCC   == avUtilVersion.getMajor() &&
+            final int avCodecMajor = avCodecVersion.getMajor();
+            final int avFormatMajor = avFormatVersion.getMajor();
+            final int avUtilMajor = avUtilVersion.getMajor();
+            libAVVersionGood = avCodecMajorVersionCC  == avCodecMajor &&
+                               avFormatMajorVersionCC == avFormatMajor &&
+                               ( avUtilMajorVersionCC == avUtilMajor ||
+                                 55 == avCodecMajorVersionCC && 53 == avUtilMajorVersionCC && 52 == avUtilMajor /* ffmpeg 2.x */
+                               ) &&
                                ( !avResampleLoaded || avResampleMajorVersionCC < 0 || avResampleMajorVersionCC  == avResampleVersion.getMajor() ) &&
                                ( !swResampleLoaded || swResampleMajorVersionCC < 0 || swResampleMajorVersionCC  == swResampleVersion.getMajor() ) ;
             if( !libAVVersionGood ) {

@@ -1510,7 +1510,7 @@
         <patternset id="c.obj.files.ffmpeg.inject">
           <include name="${rootrel.obj.joglsub}/ffmpeg_lavc53_lavf53_lavu51.*"/>
           <include name="${rootrel.obj.joglsub}/ffmpeg_lavc54_lavf54_lavu52_lavr01.*"/>
-          <include name="${rootrel.obj.joglsub}/ffmpeg_lavc55_lavf55_lavu52_lavr01.*"/>
+          <include name="${rootrel.obj.joglsub}/ffmpeg_lavc55_lavf55_lavu53_lavr01.*"/>
         </patternset>
 
         <patternset id="c.src.files.jogl.desktop">
@@ -1665,7 +1665,7 @@
                compiler.cfg.id="${compiler.cfg.id}"
                linker.cfg.id="${linker.cfg.id.os}"/>
 
-      <c.build.ffmpeg version.lav="lavc55_lavf55_lavu52_lavr01"
+      <c.build.ffmpeg version.lav="lavc55_lavf55_lavu53_lavr01"
                output.lib.name="jogl_ffmpegv10"
                compiler.cfg.id="${compiler.cfg.id}"
                linker.cfg.id="${linker.cfg.id.os}"/>
