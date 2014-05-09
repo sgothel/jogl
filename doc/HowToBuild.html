@@ -56,7 +56,7 @@
                                     (not yet tested)</li>
                             </ul>
                         </li>
-                        <li> <b><a href="http://ant.apache.org/">Ant</a></b> 1.8.0 or later</li>
+                        <li> <b><a href="http://ant.apache.org/">Ant</a></b> 1.8.2 or later</li>
                         <li> <b><a href="http://www.kernel.org/pub/software/scm/git/docs/">Git</a></b> 1.6.0 or later<br/>
                             <ul>
                                 <li> Use your Unix distribution's version, if available, or</li>
@@ -78,7 +78,11 @@
                             <ul>
                                 <li> <b>Debian</b> 5.00 or later
                                     <ul>
+                                        <li>openjdk-7-jre</li>
+                                        <li>openjdk-7-jdk</li>
+                                        <li>ant</li>
                                         <li>git</li>
+                                        <li>p7zip-full</li>
                                         <li>gcc</li>
                                         <li>libgl1-mesa-dev</li>
                                         <li>libglu1-mesa-dev</li>
@@ -96,22 +100,36 @@
                                     </ul>
                                     One liner install command:
                                     <pre>
-apt-get install git-all gcc libgl1-mesa-dev libglu1-mesa-dev xorg-dev libice-dev libsm-dev libx11-dev libxext-dev libxxf86vm-dev libxinerama-dev libxrandr-dev libxrender-dev libxcursor-dev libc6-dev g++ libstdc++6 libstdc++6-4.7-dev
+apt-get install openjdk-7-jre openjdk-7-jdk ant git-all p7zip-full gcc libgl1-mesa-dev libglu1-mesa-dev xorg-dev libice-dev libsm-dev libx11-dev libxext-dev libxxf86vm-dev libxinerama-dev libxrandr-dev libxrender-dev libxcursor-dev libc6-dev g++ libstdc++6 libstdc++6-4.7-dev
                                     </pre>
                                     Optional: Add <i>kernel</i> build utilities:
                                     <pre>
 apt-get install kernel-package build-essential 
                                     </pre>
-                                    Optional: Add <i>multiarch</i> i386 next to amd64, requires Debian 7.00 or later:
-                                    <pre>
+                                    Optional: Add <i>multiarch</i> i386 next to amd64 
+                                    <ul>
+                                      <li><b>Debian</b> 7.00
+                                        <pre>
 dpkg --add-architecture i386
 apt-get update
 apt-get install ia32-libs ia32-libs-gtk gcc-multilib lib32gcc1 lib32gomp1 lib32itm1 lib32quadmath0 libc6-i386 libc6-dev-i386 g++-multilib lib32stdc++6
-                                    </pre>
+                                        </pre></li>
+
+                                      <li><b>Debian</b> 8.00
+                                        <pre>
+dpkg --add-architecture i386
+apt-get update
+apt-get install lib32z1 lib32ncurses5 lib32bz2-1.0 gcc-multilib lib32gcc1 lib32gomp1 lib32itm1 lib32quadmath0 libc6-i386 libc6-dev-i386 g++-multilib lib32stdc++6
+                                        </pre></li>
+                                    </ul>
                                 </li>
                                 <li> <b>OpenSuSE</b> 10.2 or later
                                     <ul>
+                                        <li>openjdk-7-jre</li>
+                                        <li>openjdk-7-jdk</li>
+                                        <li>ant</li>
                                         <li>git</li>
+                                        <li>p7zip-full</li>
                                         <li>gcc</li>
                                         <li>x11-devel</li>
                                         <li>mesa-devel</li>
@@ -119,7 +137,11 @@ apt-get install ia32-libs ia32-libs-gtk gcc-multilib lib32gcc1 lib32gomp1 lib32i
                                 </li>
                                 <li> <b>CentOS / Red Hat Enterprise Linux</b> 5.4 or later<br/>
                                     <ul>
+                                        <li>openjdk-7-jre</li>
+                                        <li>openjdk-7-jdk</li>
+                                        <li>ant</li>
                                         <li>git</li>
+                                        <li>p7zip-full</li>
                                         <li>gcc</li>
                                         <li>mesa-libGL-devel</li>
                                         <li>xorg-x11-proto-devel</li>
