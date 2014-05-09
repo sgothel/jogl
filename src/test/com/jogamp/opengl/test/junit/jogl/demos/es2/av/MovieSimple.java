@@ -50,6 +50,7 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
@@ -144,8 +145,7 @@ public class MovieSimple implements GLEventListener {
         InfoTextRendererGLELBase(final int rmode, final boolean lowPerfDevice) {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
             super(rmode, textSampleCount);
-            // NOTE_ALPHA_BLENDING: We go w/o alpha and blending!
-            // this.setRendererCallbacks(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
+            this.setRendererCallbacks(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
             if( lowPerfDevice ) {
                 regionFPS = null;
             } else {
