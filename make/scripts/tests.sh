@@ -42,20 +42,20 @@ if [ $MOSX -eq 1 ] ; then
     MOSX_MT=1
 fi
 
-#export LD_LIBRARY_PATH=$spath/../lib/external/PVRVFrame/OGLES-2.0/Linux_x86_64:$LD_LIBRARY_PATH
-#export LD_LIBRARY_PATH=$spath/../lib/external/PVRVFrame/OGLES-2.0/Linux_x86_32:$LD_LIBRARY_PATH
+#export LD_LIBRARY_PATH=$spath/../../EXTERNAL/PVRVFrame/OGLES-2.0/Linux_x86_64:$LD_LIBRARY_PATH
+#export LD_LIBRARY_PATH=$spath/../../EXTERNAL/PVRVFrame/OGLES-2.0/Linux_x86_32:$LD_LIBRARY_PATH
 #export LD_LIBRARY_PATH=/usr/local/projects/Xorg.modular/build-x86_64/lib:$LD_LIBRARY_PATH
 #export LD_LIBRARY_PATH=/opt-linux-x86_64/x11lib-1.3:$LD_LIBRARY_PATH
 #export LD_LIBRARY_PATH=/opt-linux-x86_64/mesa-7.8.1/lib64:$LD_LIBRARY_PATH
 #export LD_LIBRARY_PATH=/usr/lib/mesa:/usr/lib32/mesa:$LD_LIBRARY_PATH
 #export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/mesa:/usr/lib/i386-linux-gnu/mesa:$LD_LIBRARY_PATH
 #export LIBGL_DRIVERS_PATH=/usr/lib/x86_64-linux-gnu/dri:/usr/lib/i386-linux-gnu/dri
-#export LD_LIBRARY_PATH=`pwd`/lib/external/mesa_git/x86_64-linux-gnu:$LD_LIBRARY_PATH
-#export LIBGL_DRIVERS_PATH=`pwd`/lib/external/mesa_git/x86_64-linux-gnu/dri
-#export LD_LIBRARY_PATH=`pwd`/lib/external/mesa_901/x86_64-linux-gnu:$LD_LIBRARY_PATH
-#export LIBGL_DRIVERS_PATH=`pwd`/lib/external/mesa_901/x86_64-linux-gnu/dri
-#export LD_LIBRARY_PATH=`pwd`/lib/external/mesa_900/x86_64-linux-gnu:$LD_LIBRARY_PATH
-#export LIBGL_DRIVERS_PATH=`pwd`/lib/external/mesa_900/x86_64-linux-gnu/dri
+#export LD_LIBRARY_PATH=`pwd`/../../EXTERNAL/mesa_git/x86_64-linux-gnu:$LD_LIBRARY_PATH
+#export LIBGL_DRIVERS_PATH=`pwd`/../../EXTERNAL/mesa_git/x86_64-linux-gnu/dri
+#export LD_LIBRARY_PATH=`pwd`/../../EXTERNAL/mesa_901/x86_64-linux-gnu:$LD_LIBRARY_PATH
+#export LIBGL_DRIVERS_PATH=`pwd`/../../EXTERNAL/mesa_901/x86_64-linux-gnu/dri
+#export LD_LIBRARY_PATH=`pwd`/../../EXTERNAL/mesa_900/x86_64-linux-gnu:$LD_LIBRARY_PATH
+#export LIBGL_DRIVERS_PATH=`pwd`/../../EXTERNAL/mesa_900/x86_64-linux-gnu/dri
 
 #export LIBGL_DEBUG=verbose 
 #export MESA_DEBUG=true 
@@ -80,7 +80,6 @@ echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a java-run.log
 echo LIBGL_ALWAYS_INDIRECT: $LIBGL_ALWAYS_INDIRECT 2>&1 | tee -a java-run.log
 echo LIBGL_ALWAYS_SOFTWARE: $LIBGL_ALWAYS_SOFTWARE 2>&1 | tee -a java-run.log
 echo SWT_CLASSPATH: $SWT_CLASSPATH 2>&1 | tee -a java-run.log
-echo "$javaexe" $javaxargs $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
 echo MacOsX $MOSX
 
 function jrun() {
@@ -100,6 +99,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all"
     #D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
+    #D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all -Djogamp.debug.NativeLibrary=true -Djogamp.debug.JNILibLoader=true -Djogl.disable.opengles=true"
     #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnativewindow.debug=all -Dnewt.debug.Window"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all -Djogamp.debug.Lock"
@@ -236,7 +236,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.graph.curve.triangulation.LINE_AA -Djogl.debug.graph.curve.Triangulation -Djogl.debug.graph.font.Renderer"
     #D_ARGS="-Djogl.debug.graph.font.Renderer"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.graph.curve.vbaa.resizeLowerBoundary=100"
-    D_ARGS="-Djogl.debug.GLSLCode"
+    #D_ARGS="-Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.graph.curve.instance"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLCode -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLState"
@@ -270,26 +270,26 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLMediaPlayer.Native"
 
     if [ $awton -eq 1 ] ; then
-        export CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
-        echo CLASSPATH $CLASSPATH
+        export USE_CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
+        echo USE_CLASSPATH $USE_CLASSPATH
         X_ARGS="-Djava.awt.headless=false $X_ARGS"
     else
-        export CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
-        #export CLASSPATH=$JOGAMP_ALL_NOAWT_CLASSPATH
-        #export CLASSPATH=$JOGAMP_MOBILE_CLASSPATH
-        #export CLASSPATH=.:$GLUEGEN_JAR:$JOGL_BUILD_DIR/jar/atomic/jogl-core.jar:$JOGL_BUILD_DIR/jar/atomic/jogl-gldesktop.jar:$JOGL_BUILD_DIR/jar/atomic/jogl-os-x11.jar:$JOGL_BUILD_DIR/jar/atomic/jogl-util.jar:$JOGL_BUILD_DIR/jar/atomic/nativewindow-core.jar:$JOGL_BUILD_DIR/jar/atomic/nativewindow-os-x11.jar:$JOGL_BUILD_DIR/jar/atomic/newt-core.jar:$JOGL_BUILD_DIR/jar/atomic/newt-driver-x11.jar:$JOGL_BUILD_DIR/jar/atomic/newt-ogl.jar:$JOGL_BUILD_DIR/jar/jogl-test.jar:$SWT_CLASSPATH:$JUNIT_JAR:$ANT_JARS
+        #export USE_CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
+        export USE_CLASSPATH=$JOGAMP_ALL_NOAWT_CLASSPATH
+        #export USE_CLASSPATH=$JOGAMP_MOBILE_CLASSPATH
+        #export USE_CLASSPATH=.:$GLUEGEN_JAR:$JOGL_BUILD_DIR/jar/atomic/jogl-core.jar:$JOGL_BUILD_DIR/jar/atomic/jogl-gldesktop.jar:$JOGL_BUILD_DIR/jar/atomic/jogl-os-x11.jar:$JOGL_BUILD_DIR/jar/atomic/jogl-util.jar:$JOGL_BUILD_DIR/jar/atomic/nativewindow-core.jar:$JOGL_BUILD_DIR/jar/atomic/nativewindow-os-x11.jar:$JOGL_BUILD_DIR/jar/atomic/newt-core.jar:$JOGL_BUILD_DIR/jar/atomic/newt-driver-x11.jar:$JOGL_BUILD_DIR/jar/atomic/newt-ogl.jar:$JOGL_BUILD_DIR/jar/jogl-test.jar:$SWT_CLASSPATH:$JUNIT_JAR:$ANT_JARS
         X_ARGS="-Djava.awt.headless=true $X_ARGS"
     fi
     if [ $swton -eq 1 ] ; then
-        export CLASSPATH=$CLASSPATH:$JOGL_SWT_CLASSPATH
+        export USE_CLASSPATH=$USE_CLASSPATH:$JOGL_SWT_CLASSPATH
     fi
     if [ ! -z "$CUSTOM_CLASSPATH" ] ; then
-        export CLASSPATH=$CUSTOM_CLASSPATH:$CLASSPATH
+        export USE_CLASSPATH=$CUSTOM_CLASSPATH:$USE_CLASSPATH
     fi
     #Test NEWT Broadcom ..
-    #export CLASSPATH=$JOGL_BUILD_DIR/jar/atomic/newt.driver.broadcomegl.jar::$CLASSPATH
+    #export USE_CLASSPATH=$JOGL_BUILD_DIR/jar/atomic/newt.driver.broadcomegl.jar::$USE_CLASSPATH
     #X_ARGS="-Dnativewindow.ws.name=jogamp.newt.driver.broadcom.egl $X_ARGS"
-    echo CLASSPATH $CLASSPATH
+    echo USE_CLASSPATH $USE_CLASSPATH
     if [ $MOSX_MT -eq 1 ] ; then
         if [ $awton -eq 0 -a $swton -eq 0 ] ; then
             # No AWT, No SWT -> Preserve Main-Thread
@@ -305,9 +305,10 @@ function jrun() {
     echo
     echo "Test Start: $*"
     echo
-    echo "$javaexe" $javaxargs $X_ARGS $D_ARGS $C_ARG $*
-    #gdb --args "$javaexe" $javaxargs $X_ARGS $D_ARGS $C_ARG $*
-    "$javaexe" $javaxargs $X_ARGS $D_ARGS $C_ARG $*
+    echo "$javaexe" $javaxargs $X_ARGS -cp $USE_CLASSPATH $D_ARGS $C_ARG $*
+    #gdb --args "$javaexe" $javaxargs $X_ARGS -cp $USE_CLASSPATH $D_ARGS $C_ARG $*
+    "$javaexe" $javaxargs $X_ARGS -cp $USE_CLASSPATH $D_ARGS $C_ARG $*
+    #strace $javaexe $javaxargs $X_ARGS -cp $USE_CLASSPATH $D_ARGS $C_ARG $*
     echo
     echo "Test End: $*"
     echo
