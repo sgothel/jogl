@@ -84,6 +84,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
 
   // lifetime: forever
   protected final Component component;
+  private final AppContextInfo appContextInfo;
   private final AWTGraphicsConfiguration config; // control access due to delegation
   private final SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
   private final RecursiveLock surfaceLock = LockFactory.createRecursiveLock();
@@ -114,6 +115,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     if(! ( config instanceof AWTGraphicsConfiguration ) ) {
         throw new NativeWindowException("Error: AbstractGraphicsConfiguration is not an AWTGraphicsConfiguration: "+config);
     }
+    appContextInfo = new AppContextInfo("<init>");
     this.component = (Component)comp;
     this.config = (AWTGraphicsConfiguration) config;
     this.jawtComponentListener = new JAWTComponentListener();
@@ -121,7 +123,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     this.isApplet = false;
     this.offscreenSurfaceLayer = 0;
   }
-  private static String id(Object obj) { return "0x" + ( null!=obj ? Integer.toHexString(obj.hashCode()) : "nil" ); }
+  private static String id(Object obj) { return ( null!=obj ? toHexString(obj.hashCode()) : "nil" ); }
   private String jawtStr() { return "JAWTWindow["+id(JAWTWindow.this)+"]"; }
 
   private class JAWTComponentListener implements ComponentListener, HierarchyListener {
@@ -332,8 +334,20 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       }
       attachSurfaceLayerImpl(layerHandle);
       offscreenSurfaceLayer = layerHandle;
-      component.repaint();
+      appContextInfo.invokeOnAppContextThread(false /* waitUntilDone */, repaintTask, "Repaint");
   }
+  private final Runnable repaintTask = new Runnable() {
+          @Override
+          public void run() {
+              final Component c = component;
+              if( DEBUG ) {
+                  System.err.println("Bug 1004: RepaintTask on "+Thread.currentThread()+": Has Comp "+(null != c));
+              }
+              if( null != c ) {
+                  c.repaint();
+              }
+          } };
+
   protected void attachSurfaceLayerImpl(final long layerHandle) {
       throw new UnsupportedOperationException("offscreen layer not supported");
   }
@@ -744,7 +758,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       append(Platform.JAVA_VERSION_NUMBER).
       append(" update ").append(Platform.JAVA_VERSION_UPDATE).append(")").append(Platform.getNewline());
       if(null != jawt) {
-          sb.append("JAWT version: 0x").append(Integer.toHexString(jawt.getCachedVersion())).
+          sb.append("JAWT version: ").append(toHexString(jawt.getCachedVersion())).
           append(", CA_LAYER: ").append(JAWTUtil.isJAWTUsingOffscreenLayer(jawt)).
           append(", isLayeredSurface ").append(isOffscreenLayerSurfaceEnabled()).append(", bounds ").append(bounds).append(", insets ").append(insets);
       } else {
@@ -775,7 +789,11 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     return sb.toString();
   }
 
-  protected final String toHexString(long l) {
+  protected static final String toHexString(final long l) {
       return "0x"+Long.toHexString(l);
   }
+  protected static final String toHexString(final int i) {
+      return "0x"+Integer.toHexString(i);
+  }
+
 }
