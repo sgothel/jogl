@@ -37,17 +37,17 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.osjava.jardiff.DiffCriteria;
-import org.osjava.jardiff.PublicDiffCriteria;
 import org.osjava.jardiff.SimpleDiffCriteria;
 import org.semver.Delta;
 
 import com.jogamp.common.util.JogampVersion;
 import com.jogamp.common.util.VersionNumberString;
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.junit.util.VersionSemanticsUtil;
 import com.jogamp.opengl.JoglVersion;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestVersionSemanticsNOUI {
+public class TestVersionSemanticsNOUI extends JunitTracer {
     static final String jarFile = "jogl-all.jar";
     static final VersionNumberString preVersionNumber = new VersionNumberString("2.1.5");
     static final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
