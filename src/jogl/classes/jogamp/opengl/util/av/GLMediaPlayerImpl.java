@@ -74,25 +74,26 @@ import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     private static final int STREAM_WORKER_DELAY = Debug.getIntProperty("jogl.debug.GLMediaPlayer.StreamWorker.delay", false, 0);
 
-    protected static final String unknown = "unknown";
+    private static final String unknown = "unknown";
 
-    protected volatile State state;
+    private volatile State state;
     private final Object stateLock = new Object();
 
-    protected int textureCount;
-    protected int textureTarget;
-    protected int textureFormat;
-    protected int textureInternalFormat;
-    protected int textureType;
-    protected int texUnit;
+    private int textureCount;
+    private int textureTarget;
+    private int textureFormat;
+    private int textureInternalFormat;
+    private int textureType;
+    private int texUnit;
 
     private int textureFragmentShaderHashCode;
 
-    protected int[] texMinMagFilter = { GL.GL_NEAREST, GL.GL_NEAREST };
-    protected int[] texWrapST = { GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE };
+    private final int[] texMinMagFilter = { GL.GL_NEAREST, GL.GL_NEAREST };
+    private final int[] texWrapST = { GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE };
 
     /** User requested URI stream location. */
-    protected URI streamLoc = null;
+    private URI streamLoc = null;
+
     /**
      * In case {@link #streamLoc} is a {@link GLMediaPlayer#CameraInputScheme},
      * {@link #cameraPath} holds the URI's path portion
@@ -103,42 +104,42 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     /** Optional camera properties, see {@link #cameraPath}. */
     protected Map<String, String> cameraProps = null;
 
-    protected volatile float playSpeed = 1.0f;
-    protected float audioVolume = 1.0f;
+    private volatile float playSpeed = 1.0f;
+    private float audioVolume = 1.0f;
 
     /** Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
-    protected int vid = GLMediaPlayer.STREAM_ID_AUTO;
+    private int vid = GLMediaPlayer.STREAM_ID_AUTO;
     /** Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
-    protected int aid = GLMediaPlayer.STREAM_ID_AUTO;
+    private int aid = GLMediaPlayer.STREAM_ID_AUTO;
     /** Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
-    protected int width = 0;
+    private int width = 0;
     /** Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
-    protected int height = 0;
+    private int height = 0;
     /** Video avg. fps. Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
-    protected float fps = 0;
+    private float fps = 0;
     /** Video avg. frame duration in ms. Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
-    protected float frame_duration = 0f;
+    private float frame_duration = 0f;
     /** Stream bps. Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
-    protected int bps_stream = 0;
+    private int bps_stream = 0;
     /** Video bps. Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
-    protected int bps_video = 0;
+    private int bps_video = 0;
     /** Audio bps. Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
-    protected int bps_audio = 0;
+    private int bps_audio = 0;
     /** In frames. Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
-    protected int videoFrames = 0;
+    private int videoFrames = 0;
     /** In frames. Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
-    protected int audioFrames = 0;
+    private int audioFrames = 0;
     /** In ms. Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
-    protected int duration = 0;
+    private int duration = 0;
     /** Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
-    protected String acodec = unknown;
+    private String acodec = unknown;
     /** Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
-    protected String vcodec = unknown;
+    private String vcodec = unknown;
 
-    protected volatile int decodedFrameCount = 0;
-    protected int presentedFrameCount = 0;
-    protected int displayedFrameCount = 0;
-    protected volatile int video_pts_last = 0;
+    private volatile int decodedFrameCount = 0;
+    private int presentedFrameCount = 0;
+    private int displayedFrameCount = 0;
+    private volatile int video_pts_last = 0;
 
     /**
      * Help detect EOS, limit is {@link #MAX_FRAMELESS_MS_UNTIL_EOS}.
@@ -177,14 +178,14 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     /** Trigger video PTS reset with given cause as bitfield. */
     private boolean videoSCR_reset = false;
 
-    protected TextureFrame[] videoFramesOrig = null;
-    protected Ringbuffer<TextureFrame> videoFramesFree =  null;
-    protected Ringbuffer<TextureFrame> videoFramesDecoded =  null;
-    protected volatile TextureFrame lastFrame = null;
+    private TextureFrame[] videoFramesOrig = null;
+    private Ringbuffer<TextureFrame> videoFramesFree =  null;
+    private Ringbuffer<TextureFrame> videoFramesDecoded =  null;
+    private volatile TextureFrame lastFrame = null;
     /**
      * @see #isGLOriented()
      */
-    protected boolean isInGLOrientation = false;
+    private boolean isInGLOrientation = false;
 
     private final ArrayList<GLMediaEventListener> eventListeners = new ArrayList<GLMediaEventListener>();
 
@@ -195,6 +196,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         this.textureInternalFormat = GL.GL_RGBA;
         this.textureType = GL.GL_UNSIGNED_BYTE;
         this.texUnit = 0;
+        this.textureFragmentShaderHashCode = 0;
         this.state = State.Uninitialized;
     }
 
@@ -206,6 +208,10 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
     @Override
     public final int getTextureTarget() { return textureTarget; }
+
+    protected final int getTextureFormat() { return textureFormat; }
+
+    protected final int getTextureType() { return textureType; }
 
     @Override
     public final int getTextureCount() { return textureCount; }
@@ -322,6 +328,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     @Override
     public final State getState() { return state; }
 
+    protected final void setState(final State s) { state=s; }
+
     @Override
     public final State play() {
         synchronized( stateLock ) {
@@ -355,7 +363,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             final State preState = state;
             if( State.Playing == state ) {
                 event_mask = addStateEventMask(event_mask, GLMediaPlayer.State.Paused);
-                state = State.Paused;
+                setState( State.Paused );
                 if( null != streamWorker ) {
                     streamWorker.doPause();
                 }
@@ -404,7 +412,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 case Playing:
                 case Paused:
                     final State _state = state;
-                    state = State.Paused;
+                    setState( State.Paused );
                     if( null != streamWorker ) {
                         streamWorker.doPause();
                     }
@@ -425,7 +433,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     if( null != streamWorker ) {
                         streamWorker.doResume();
                     }
-                    state = _state;
+                    setState( _state );
                     break;
                 default:
                     pts1 = 0;
@@ -437,9 +445,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected abstract int seekImpl(int msec);
 
     @Override
-    public final float getPlaySpeed() {
-        return playSpeed;
-    }
+    public final float getPlaySpeed() { return playSpeed; }
 
     @Override
     public final boolean setPlaySpeed(float rate) {
@@ -782,8 +788,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         }
     }
 
-    protected TextureFrame cachedFrame = null;
-    protected long lastTimeMillis = 0;
+    private TextureFrame cachedFrame = null;
+    private long lastTimeMillis = 0;
 
     private final boolean[] stGotVFrame = { false };
 
@@ -1367,7 +1373,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected final void changeState(int event_mask, State newState) {
         event_mask = addStateEventMask(event_mask, newState);
         if( 0 != event_mask ) {
-            state = newState;
+            setState( newState );
             if( !isTextureAvailable() ) {
                 textureFragmentShaderHashCode = 0;
             }
@@ -1383,7 +1389,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
         if( wasUninitialized ) {
             event_mask |= GLMediaEventListener.EVENT_CHANGE_INIT;
-            state = State.Initialized;
+            setState( State.Initialized );
         }
         if( STREAM_ID_AUTO == vid ) {
             vid = STREAM_ID_NONE;
@@ -1458,17 +1464,17 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 System.err.println("XXX gl-orient "+isInGLOrientation+" -> "+isGLOriented);
             }
             isInGLOrientation = isGLOriented;
-            for(int i=0; i<videoFramesOrig.length; i++) {
-                videoFramesOrig[i].getTexture().setMustFlipVertically(!isGLOriented);
+            if( null != videoFramesOrig ) {
+                for(int i=0; i<videoFramesOrig.length; i++) {
+                    videoFramesOrig[i].getTexture().setMustFlipVertically(!isGLOriented);
+                }
+                attributesUpdated(GLMediaEventListener.EVENT_CHANGE_SIZE);
             }
-            attributesUpdated(GLMediaEventListener.EVENT_CHANGE_SIZE);
         }
     }
 
     @Override
-    public final URI getURI() {
-        return streamLoc;
-    }
+    public final URI getURI() { return streamLoc; }
 
     @Override
     public final int getVID() { return vid; }
@@ -1477,64 +1483,40 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     public final int getAID() { return aid; }
 
     @Override
-    public final String getVideoCodec() {
-        return vcodec;
-    }
+    public final String getVideoCodec() { return vcodec; }
 
     @Override
-    public final String getAudioCodec() {
-        return acodec;
-    }
+    public final String getAudioCodec() { return acodec; }
 
     @Override
-    public final int getVideoFrames() {
-        return videoFrames;
-    }
+    public final int getVideoFrames() { return videoFrames; }
 
     @Override
-    public final int getAudioFrames() {
-        return audioFrames;
-    }
+    public final int getAudioFrames() { return audioFrames; }
 
     @Override
-    public final int getDuration() {
-        return duration;
-    }
+    public final int getDuration() { return duration; }
 
     @Override
-    public final long getStreamBitrate() {
-        return bps_stream;
-    }
+    public final long getStreamBitrate() { return bps_stream; }
 
     @Override
-    public final int getVideoBitrate() {
-        return bps_video;
-    }
+    public final int getVideoBitrate() { return bps_video; }
 
     @Override
-    public final int getAudioBitrate() {
-        return bps_audio;
-    }
+    public final int getAudioBitrate() { return bps_audio; }
 
     @Override
-    public final float getFramerate() {
-        return fps;
-    }
+    public final float getFramerate() { return fps; }
 
     @Override
-    public final boolean isGLOriented() {
-        return isInGLOrientation;
-    }
+    public final boolean isGLOriented() { return isInGLOrientation; }
 
     @Override
-    public final int getWidth() {
-        return width;
-    }
+    public final int getWidth() { return width; }
 
     @Override
-    public final int getHeight() {
-        return height;
-    }
+    public final int getHeight() { return height; }
 
     @Override
     public final String toString() {

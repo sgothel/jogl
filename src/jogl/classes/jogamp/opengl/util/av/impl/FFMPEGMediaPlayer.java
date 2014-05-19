@@ -287,7 +287,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             System.err.println("initStream: p1 "+this);
         }
 
-        final String streamLocS = IOUtil.decodeURIIfFilePath(streamLoc);
+        final String streamLocS = IOUtil.decodeURIIfFilePath(getURI());
         destroyAudioSink();
         if( GLMediaPlayer.STREAM_ID_NONE == aid ) {
             audioSink = AudioSinkFactory.createNull();
@@ -340,7 +340,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
          // setStream(..) issues updateAttributes*(..), and defines avChosenAudioFormat, vid, aid, .. etc
         if(DEBUG) {
             System.err.println("initStream: p3 cameraPath "+cameraPath+", isCameraInput "+isCameraInput);
-            System.err.println("initStream: p3 stream "+streamLoc+" -> "+streamLocS+" -> "+resStreamLocS);
+            System.err.println("initStream: p3 stream "+getURI()+" -> "+streamLocS+" -> "+resStreamLocS);
             System.err.println("initStream: p3 vid "+vid+", sizes "+sizes+", reqVideo "+rw+"x"+rh+"@"+rr+", aid "+aid+", aMaxChannelCount "+aMaxChannelCount+", aPrefSampleRate "+aPrefSampleRate);
         }
         natives.setStream0(moviePtr, resStreamLocS, isCameraInput, vid, sizes, rw, rh, rr, aid, aMaxChannelCount, aPrefSampleRate);
@@ -355,7 +355,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             throw new GLException("AudioSink null");
         }
         final int audioQueueLimit;
-        if( null != gl && STREAM_ID_NONE != vid ) {
+        if( null != gl && STREAM_ID_NONE != getVID() ) {
             final GLContextImpl ctx = (GLContextImpl)gl.getContext();
             AccessController.doPrivileged(new PrivilegedAction<Object>() {
                 @Override
@@ -376,7 +376,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             System.err.println("initGL: p3 avChosen "+avChosenAudioFormat);
         }
 
-        if( STREAM_ID_NONE == aid ) {
+        if( STREAM_ID_NONE == getAID() ) {
             audioSink.destroy();
             audioSink = AudioSinkFactory.createNull();
             audioSink.init(AudioSink.DefaultFormat, 0, AudioSink.DefaultInitialQueueSize, AudioSink.DefaultQueueGrowAmount, audioQueueLimit);
@@ -400,7 +400,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             System.err.println("initGL: p4 chosen "+audioSink);
         }
 
-        if( null != gl && STREAM_ID_NONE != vid ) {
+        if( null != gl && STREAM_ID_NONE != getVID() ) {
             int tf, tif=GL.GL_RGBA; // texture format and internal format
             int tt = GL.GL_UNSIGNED_BYTE;
             switch(vBytesPerPixelPerPlane) {
@@ -650,7 +650,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      */
     @Override
     public final String getTextureLookupFunctionName(String desiredFuncName) throws IllegalStateException {
-        if(State.Uninitialized == state) {
+        if( State.Uninitialized == getState() ) {
             throw new IllegalStateException("Instance not initialized: "+this);
         }
         if( usesTexLookupShader ) {
@@ -670,7 +670,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      */
     @Override
     public final String getTextureLookupFragmentShaderImpl() throws IllegalStateException {
-      if(State.Uninitialized == state) {
+      if( State.Uninitialized == getState() ) {
           throw new IllegalStateException("Instance not initialized: "+this);
       }
       if( !usesTexLookupShader ) {
@@ -813,7 +813,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
 
         /** Try decode up to 10 packets to find one containing video. */
         for(int i=0; TimeFrameI.INVALID_PTS == vPTS && 10 > i; i++) {
-           vPTS = natives.readNextPacket0(moviePtr, textureTarget, textureFormat, textureType);
+           vPTS = natives.readNextPacket0(moviePtr, getTextureTarget(), getTextureFormat(), getTextureType());
         }
         if( null != nextFrame ) {
             nextFrame.setPTS(vPTS);
@@ -823,7 +823,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
 
     final void pushSound(ByteBuffer sampleData, int data_size, int audio_pts) {
         setFirstAudioPTS2SCR( audio_pts );
-        if( 1.0f == playSpeed || audioSinkPlaySpeedSet ) {
+        if( 1.0f == getPlaySpeed() || audioSinkPlaySpeedSet ) {
             audioSink.enqueueData( audio_pts, sampleData, data_size);
         }
     }

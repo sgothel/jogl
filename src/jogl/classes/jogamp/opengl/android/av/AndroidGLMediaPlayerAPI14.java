@@ -254,7 +254,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
 
     @Override
     protected final void initStreamImpl(final int vid, final int aid) throws IOException {
-        if( null == streamLoc ) {
+        if( null == getURI() ) {
             return;
         }
         if( null == mp && null == cam ) {
@@ -280,7 +280,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             } // else FIXME: Select aid !
             // Note: Both FIXMEs seem to be n/a via Android's MediaPlayer -> Switch to API level 16 MediaCodec/MediaExtractor ..
             try {
-                final Uri _uri = Uri.parse(streamLoc.toString());
+                final Uri _uri = Uri.parse(getURI().toString());
                 mp.setDataSource(StaticContext.getContext(), _uri);
             } catch (IllegalArgumentException e) {
                 throw new RuntimeException(e);
@@ -293,7 +293,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             try {
                 mp.prepare();
             } catch (IOException ioe) {
-                throw new IOException("MediaPlayer failed to process stream <"+streamLoc.toString()+">: "+ioe.getMessage(), ioe);
+                throw new IOException("MediaPlayer failed to process stream <"+getURI().toString()+">: "+ioe.getMessage(), ioe);
             }
             final int r_aid = GLMediaPlayer.STREAM_ID_NONE == aid ? GLMediaPlayer.STREAM_ID_NONE : 1 /* fake */;
             final String icodec = "android";
@@ -381,7 +381,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                         cam.setPreviewTexture(sTexFrame.surfaceTex);
                         cam.startPreview();
                     } catch (IOException ioe) {
-                        throw new RuntimeException("MediaPlayer failed to process stream <"+streamLoc.toString()+">: "+ioe.getMessage(), ioe);
+                        throw new RuntimeException("MediaPlayer failed to process stream <"+getURI().toString()+">: "+ioe.getMessage(), ioe);
                     }
                 }
                 if( null != surface ) {
@@ -455,7 +455,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     protected final TextureSequence.TextureFrame createTexImage(GL gl, int texName) {
         sTexFrameCount++;
         if( 1 == sTexFrameCount ) {
-            singleSTexFrame = new SurfaceTextureFrame( createTexImageImpl(gl, texName, width, height), new SurfaceTexture(texName) );
+            singleSTexFrame = new SurfaceTextureFrame( createTexImageImpl(gl, texName, getWidth(), getHeight()), new SurfaceTexture(texName) );
         }
         return singleSTexFrame;
     }

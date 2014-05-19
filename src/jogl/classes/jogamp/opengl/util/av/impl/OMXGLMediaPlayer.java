@@ -100,10 +100,10 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }
-        if(!streamLoc.getScheme().equals("file")) {
-            throw new IOException("Only file schemes are allowed: "+streamLoc);
+        if(!getURI().getScheme().equals("file")) {
+            throw new IOException("Only file schemes are allowed: "+getURI());
         }
-        final String path=streamLoc.getPath();
+        final String path=getURI().getPath();
         if(DEBUG) {
             System.out.println("initGLStream: clean path "+path);
         }
@@ -111,7 +111,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
         if(DEBUG) {
             System.out.println("initGLStream: p1 "+this);
         }
-        _setStream(moviePtr, textureCount, path);
+        _setStream(moviePtr, getTextureCount(), path);
         if(DEBUG) {
             System.out.println("initGLStream: p2 "+this);
         }
@@ -119,7 +119,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     @Override
     protected final void initGLImpl(GL gl) throws IOException, GLException {
         // NOP
-        isInGLOrientation = true;
+        setIsGLOriented(true);
     }
 
     @Override

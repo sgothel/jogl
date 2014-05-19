@@ -144,7 +144,7 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     }
     @Override
     protected final void initGLImpl(GL gl) throws IOException, GLException {
-        isInGLOrientation = true;
+        setIsGLOriented(true);
     }
 
     /**
@@ -160,7 +160,7 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
 
     @Override
     protected final TextureSequence.TextureFrame createTexImage(GL gl, int texName) {
-        final Texture texture = super.createTexImageImpl(gl, texName, width, height);
+        final Texture texture = super.createTexImageImpl(gl, texName, getWidth(), getHeight());
         if(null != texData) {
             texture.updateImage(gl, texData);
         }
@@ -181,8 +181,8 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
             pos_ms = getDuration();
             considerPausing = true;
         }
-        if(considerPausing && state == State.Playing) {
-            state = State.Paused;
+        if( considerPausing && State.Playing == getState() ) {
+            setState(State.Paused);
         }
     }
 }

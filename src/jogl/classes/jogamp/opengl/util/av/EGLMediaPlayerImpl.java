@@ -86,7 +86,7 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
 
     @Override
     protected TextureSequence.TextureFrame createTexImage(GL gl, int texName) {
-        final Texture texture = super.createTexImageImpl(gl, texName, width, height);
+        final Texture texture = super.createTexImageImpl(gl, texName, getWidth(), getHeight());
         final Buffer clientBuffer;
         final long image;
         final long sync;
