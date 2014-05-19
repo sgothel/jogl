@@ -1,6 +1,7 @@
 package com.jogamp.opengl.test.junit.jogl.util.texture;
 
 import java.awt.Frame;
+import java.io.IOException;
 
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
@@ -20,6 +21,7 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.texture.ImageSequence;
 import com.jogamp.opengl.util.texture.TextureIO;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -46,11 +48,15 @@ public class TestTextureSequence01AWT extends UITestCase {
         Assert.assertNotNull(frame);
         frame.add(glc);
 
-        final SingleTextureSeqFrame texSource = new SingleTextureSeqFrame(useBuildInTexLookup);
+        final ImageSequence texSource = new ImageSequence(0, useBuildInTexLookup);
         glc.addGLEventListener(new GLEventListener() {
             @Override
             public void init(GLAutoDrawable drawable) {
-                texSource.initGLResources(drawable.getGL(), TestTextureSequence01AWT.class, "test-ntscP_3-01-160x90.png", TextureIO.PNG);
+                try {
+                    texSource.addFrame(drawable.getGL(), TestTextureSequence01AWT.class, "test-ntscP_3-01-160x90.png", TextureIO.PNG);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
             @Override
             public void dispose(GLAutoDrawable drawable) { }

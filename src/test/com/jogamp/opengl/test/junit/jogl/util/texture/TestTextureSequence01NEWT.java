@@ -1,5 +1,7 @@
 package com.jogamp.opengl.test.junit.jogl.util.texture;
 
+import java.io.IOException;
+
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLEventListener;
@@ -17,6 +19,7 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.texture.ImageSequence;
 import com.jogamp.opengl.util.texture.TextureIO;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -42,11 +45,15 @@ public class TestTextureSequence01NEWT extends UITestCase {
         window.setTitle("TestTextureSequence01NEWT");
         // Size OpenGL to Video Surface
         window.setSize(width, height);
-        final SingleTextureSeqFrame texSource = new SingleTextureSeqFrame(useBuildInTexLookup);
+        final ImageSequence texSource = new ImageSequence(0, useBuildInTexLookup);
         window.addGLEventListener(new GLEventListener() {
             @Override
             public void init(GLAutoDrawable drawable) {
-                texSource.initGLResources(drawable.getGL(), TestTextureSequence01NEWT.class, "test-ntscP_3-01-160x90.png", TextureIO.PNG);
+                try {
+                    texSource.addFrame(drawable.getGL(), TestTextureSequence01NEWT.class, "test-ntscP_3-01-160x90.png", TextureIO.PNG);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
             @Override
             public void dispose(GLAutoDrawable drawable) { }

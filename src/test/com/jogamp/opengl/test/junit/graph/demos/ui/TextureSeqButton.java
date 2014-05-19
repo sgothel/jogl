@@ -38,19 +38,15 @@ import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 /**
- * GPU based resolution independent Button impl
+ * GPU based resolution independent {@link TextureSequence} Button impl
  */
-public class TextureButton extends RoundButton {
-    private TextureSequence texSeq;
+public class TextureSeqButton extends RoundButton {
+    protected final TextureSequence texSeq;
 
-    public TextureButton(final Factory<? extends Vertex> factory, final int renderModes,
+    public TextureSeqButton(final Factory<? extends Vertex> factory, final int renderModes,
                          final float width, final float height, final TextureSequence texSeq) {
         super(factory, renderModes | Region.COLORTEXTURE_RENDERING_BIT, width, height);
         this.texSeq = texSeq;
-        setColor(0.8f, 0.8f, 0.8f, 1.0f);
-        setPressedColorMod(1.1f, 1.1f, 1.1f, 0.7f);
-        setToggleOffColorMod(0.8f, 0.8f, 0.8f, 1.0f);
-        setToggleOnColorMod(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
     @Override
@@ -58,8 +54,7 @@ public class TextureButton extends RoundButton {
         return GLRegion.create(getRenderModes(), texSeq);
     }
 
-    public void setTextureSequence(final TextureSequence texSeq) { this.texSeq = texSeq; }
-    public TextureSequence getTextureSequence() { return this.texSeq; }
+    public final TextureSequence getTextureSequence() { return this.texSeq; }
 
     @Override
     protected void addShapeToRegion(GL2ES2 gl, RegionRenderer renderer) {
@@ -78,7 +73,7 @@ public class TextureButton extends RoundButton {
         setRotationOrigin( ctr[0], ctr[1], ctr[2]);
 
         if( DRAW_DEBUG_BOX ) {
-            System.err.println("XXX.UIShape.TextureButton: Added Shape: "+shape+", "+box);
+            System.err.println("XXX.UIShape.TextureSeqButton: Added Shape: "+shape+", "+box);
         }
     }
 }
