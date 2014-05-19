@@ -392,11 +392,20 @@ public class RegionRenderer {
      */
     public final boolean useShaderProgram(final GL2ES2 gl, final int renderModes,
                                           final boolean pass1, final int quality, final int sampleCount, final TextureSequence colorTexSeq) {
+        final int colorTexSeqHash;
+        if( null != colorTexSeq ) {
+            int hash = 31 + colorTexSeq.getTextureLookupFragmentShaderImpl().hashCode();
+            hash = ((hash << 5) - hash) + colorTexSeq.getTextureSampler2DType().hashCode();
+            colorTexSeqHash = hash;
+        } else {
+            colorTexSeqHash = 0;
+        }
         final ShaderModeSelector1 sel1 = pass1 ? ShaderModeSelector1.selectPass1(renderModes) :
                                                  ShaderModeSelector1.selectPass2(renderModes, quality, sampleCount);
         final boolean isTwoPass = Region.isTwoPass( renderModes );
         final boolean isPass1ColorTexSeq = pass1 && null != colorTexSeq;
-        final int shaderKey = sel1.ordinal() | ( HIGH_MASK & renderModes ) | ( isTwoPass ? TWO_PASS_BIT : 0 );
+        final int shaderKey = ( (colorTexSeqHash << 5) - colorTexSeqHash ) +
+                              ( sel1.ordinal() | ( HIGH_MASK & renderModes ) | ( isTwoPass ? TWO_PASS_BIT : 0 ) );
 
         /**
         if(DEBUG) {
