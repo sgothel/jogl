@@ -50,9 +50,9 @@ import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.texture.Texture;
 
 import jogamp.opengl.GLContextImpl;
+import jogamp.opengl.util.av.AudioSampleFormat;
 import jogamp.opengl.util.av.GLMediaPlayerImpl;
-import jogamp.opengl.util.av.impl.FFMPEGNatives.PixelFormat;
-import jogamp.opengl.util.av.impl.FFMPEGNatives.SampleFormat;
+import jogamp.opengl.util.av.VideoPixelFormat;
 
 /***
  * Implementation utilizes <a href="http://libav.org/">Libav</a>
@@ -79,12 +79,12 @@ import jogamp.opengl.util.av.impl.FFMPEGNatives.SampleFormat;
  * Implements pixel format conversion to <i>RGB</i> via
  * fragment shader texture-lookup functions:
  * <ul>
- *   <li>{@link PixelFormat#YUV420P}</li>
- *   <li>{@link PixelFormat#YUVJ420P}</li>
- *   <li>{@link PixelFormat#YUV422P}</li>
- *   <li>{@link PixelFormat#YUVJ422P}</li>
- *   <li>{@link PixelFormat#YUYV422}</li>
- *   <li>{@link PixelFormat#BGR24}</li>
+ *   <li>{@link VideoPixelFormat#YUV420P}</li>
+ *   <li>{@link VideoPixelFormat#YUVJ420P}</li>
+ *   <li>{@link VideoPixelFormat#YUV422P}</li>
+ *   <li>{@link VideoPixelFormat#YUVJ422P}</li>
+ *   <li>{@link VideoPixelFormat#YUYV422}</li>
+ *   <li>{@link VideoPixelFormat#BGR24}</li>
  * </ul>
  * </p>
  * <p>
@@ -233,7 +233,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
 
     private String texLookupFuncName = "ffmpegTexture2D";
     private boolean usesTexLookupShader = false;
-    private PixelFormat vPixelFmt = null;
+    private VideoPixelFormat vPixelFmt = null;
     private int vPlanes = 0;
     private int vBitsPerPixel = 0;
     private int vBytesPerPixelPerPlane = 0;
@@ -414,7 +414,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                     }
                     break;
 
-                case 2: if( vPixelFmt == PixelFormat.YUYV422 ) {
+                case 2: if( vPixelFmt == VideoPixelFormat.YUYV422 ) {
                             // YUYV422: // < packed YUV 4:2:2, 2x 16bpp, Y0 Cb Y1 Cr
                             // Stuffed into RGBA half width texture
                             tf = GL2ES2.GL_RGBA; tif=GL2ES2.GL_RGBA; break;
@@ -422,7 +422,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                             tf = GL2ES2.GL_RG;   tif=GL2ES2.GL_RG; break;
                         }
                 case 3: tf = GL2ES2.GL_RGB;   tif=GL.GL_RGB;   break;
-                case 4: if( vPixelFmt == PixelFormat.BGRA ) {
+                case 4: if( vPixelFmt == VideoPixelFormat.BGRA ) {
                             tf = GL2ES2.GL_BGRA;  tif=GL.GL_RGBA;  break;
                         } else {
                             tf = GL2ES2.GL_RGBA;  tif=GL.GL_RGBA;  break;
@@ -456,12 +456,12 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     /**
      * Native callback
      * Converts the given libav/ffmpeg values to {@link AudioFormat} and returns {@link AudioSink#isSupported(AudioFormat)}.
-     * @param audioSampleFmt ffmpeg/libav audio-sample-format, see {@link SampleFormat}.
+     * @param audioSampleFmt ffmpeg/libav audio-sample-format, see {@link AudioSampleFormat}.
      * @param audioSampleRate sample rate in Hz (1/s)
      * @param audioChannels number of channels
      */
     final boolean isAudioFormatSupported(int audioSampleFmt, int audioSampleRate, int audioChannels) {
-        final SampleFormat avFmt = SampleFormat.valueOf(audioSampleFmt);
+        final AudioSampleFormat avFmt = AudioSampleFormat.valueOf(audioSampleFmt);
         final AudioFormat audioFormat = avAudioFormat2Local(avFmt, audioSampleRate, audioChannels);
         final boolean res = audioSink.isSupported(audioFormat);
         if( DEBUG ) {
@@ -472,11 +472,11 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
 
     /**
      * Returns {@link AudioFormat} as converted from the given libav/ffmpeg values.
-     * @param audioSampleFmt ffmpeg/libav audio-sample-format, see {@link SampleFormat}.
+     * @param audioSampleFmt ffmpeg/libav audio-sample-format, see {@link AudioSampleFormat}.
      * @param audioSampleRate sample rate in Hz (1/s)
      * @param audioChannels number of channels
      */
-    private final AudioFormat avAudioFormat2Local(SampleFormat audioSampleFmt, int audioSampleRate, int audioChannels) {
+    private final AudioFormat avAudioFormat2Local(AudioSampleFormat audioSampleFmt, int audioSampleRate, int audioChannels) {
         final int sampleSize;
         boolean planar = true;
         boolean fixedP = true;
@@ -551,7 +551,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         final int[] vTexWidth = { 0, 0, 0 }; // per plane
 
         if( STREAM_ID_NONE != vid ) {
-            vPixelFmt = PixelFormat.valueOf(pixFmt);
+            vPixelFmt = VideoPixelFormat.valueOf(pixFmt);
             vPlanes = planes;
             vBitsPerPixel = bitsPerPixel;
             vBytesPerPixelPerPlane = bytesPerPixelPerPlane;
@@ -603,12 +603,12 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         }
 
         // defaults ..
-        final SampleFormat aSampleFmt;
+        final AudioSampleFormat aSampleFmt;
         avChosenAudioFormat = null;;
         this.audioSamplesPerFrameAndChannel = 0;
 
         if( STREAM_ID_NONE != aid ) {
-            aSampleFmt = SampleFormat.valueOf(audioSampleFmt);
+            aSampleFmt = AudioSampleFormat.valueOf(audioSampleFmt);
             avChosenAudioFormat = avAudioFormat2Local(aSampleFmt, audioSampleRate, audioChannels);
             this.audioSamplesPerFrameAndChannel = audioSamplesPerFrameAndChannel;
         } else {
