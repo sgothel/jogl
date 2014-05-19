@@ -179,7 +179,7 @@ public abstract class Region {
     protected abstract void pushIndex(int idx);
 
     /**
-     * Return bit-field of render modes, see {@link #create(int, TextureSequence)}.
+     * Return bit-field of render modes, see {@link com.jogamp.graph.curve.opengl.GLRegion#create(int, TextureSequence)}.
      */
     public final int getRenderModes() { return renderModes; }
 

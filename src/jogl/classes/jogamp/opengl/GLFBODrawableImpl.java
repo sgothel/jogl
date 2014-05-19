@@ -335,8 +335,8 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         if(realized) {
             parent.setRealized(true);
             origParentChosenCaps = (GLCapabilitiesImmutable) msConfig.getChosenCapabilities();
-            final GLCapabilities chosenFBOCaps = (GLCapabilities) origParentChosenCaps.cloneMutable();
-            chosenFBOCaps.copyFrom(getRequestedGLCapabilities());
+            final GLCapabilities chosenFBOCaps = (GLCapabilities) origParentChosenCaps.cloneMutable(); // incl. <Type>GLCapabilities, e.g. X11GLCapabilities
+            chosenFBOCaps.copyFrom(getRequestedGLCapabilities()); // copy user values
             msConfig.setChosenCapabilities(chosenFBOCaps);
         } else {
             msConfig.setChosenCapabilities(origParentChosenCaps);

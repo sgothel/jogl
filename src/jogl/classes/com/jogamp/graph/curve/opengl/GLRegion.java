@@ -56,8 +56,7 @@ public abstract class GLRegion extends Region {
      * <p> In case {@link Region#VBAA_RENDERING_BIT} is being requested the default texture unit
      * {@link Region#DEFAULT_TWO_PASS_TEXTURE_UNIT} is being used.</p>
      * @param renderModes bit-field of modes, e.g. {@link Region#VARWEIGHT_RENDERING_BIT}, {@link Region#VBAA_RENDERING_BIT}
-     * @param colorTexSeq TODO
-     * @param rs the RenderState to be used
+     * @param colorTexSeq optional {@link TextureSequence} for {@link Region#COLORTEXTURE_RENDERING_BIT} rendering mode.
      */
     public static GLRegion create(int renderModes, final TextureSequence colorTexSeq) {
         if( null != colorTexSeq ) {

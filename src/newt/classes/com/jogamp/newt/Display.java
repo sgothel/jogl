@@ -164,7 +164,7 @@ public abstract class Display {
     }
 
     /**
-     * Returns the native platform's {@link PointerIcon.PixelFormat} for pointer-icon pixel data.
+     * Returns the native platform's {@link PixelFormat} for pointer-icon pixel data.
      * <p>
      * Using this value will avoid conversion within {@link #createPointerIcon(PixelRectangle, int, int)}.
      * </p>
