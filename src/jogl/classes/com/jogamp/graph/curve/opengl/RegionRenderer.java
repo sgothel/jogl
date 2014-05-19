@@ -394,9 +394,7 @@ public class RegionRenderer {
                                           final boolean pass1, final int quality, final int sampleCount, final TextureSequence colorTexSeq) {
         final int colorTexSeqHash;
         if( null != colorTexSeq ) {
-            int hash = 31 + colorTexSeq.getTextureLookupFragmentShaderImpl().hashCode();
-            hash = ((hash << 5) - hash) + colorTexSeq.getTextureSampler2DType().hashCode();
-            colorTexSeqHash = hash;
+            colorTexSeqHash = colorTexSeq.getTextureFragmentShaderHashCode();
         } else {
             colorTexSeqHash = 0;
         }

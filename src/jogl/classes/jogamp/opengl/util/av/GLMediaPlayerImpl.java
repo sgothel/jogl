@@ -86,6 +86,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected int textureType;
     protected int texUnit;
 
+    private int textureFragmentShaderHashCode;
 
     protected int[] texMinMagFilter = { GL.GL_NEAREST, GL.GL_NEAREST };
     protected int[] texWrapST = { GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE };
@@ -278,6 +279,19 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     public String getTextureLookupFragmentShaderImpl() throws IllegalStateException {
         checkGLInit();
         return "";
+    }
+
+    @Override
+    public final int getTextureFragmentShaderHashCode() {
+        if( !isTextureAvailable() ) {
+            textureFragmentShaderHashCode = 0;
+            return 0;
+        } else if( 0 == textureFragmentShaderHashCode ) {
+            int hash = 31 + getTextureLookupFragmentShaderImpl().hashCode();
+            hash = ((hash << 5) - hash) + getTextureSampler2DType().hashCode();
+            textureFragmentShaderHashCode = hash;
+        }
+        return textureFragmentShaderHashCode;
     }
 
     @Override
@@ -1354,6 +1368,9 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         event_mask = addStateEventMask(event_mask, newState);
         if( 0 != event_mask ) {
             state = newState;
+            if( !isTextureAvailable() ) {
+                textureFragmentShaderHashCode = 0;
+            }
             attributesUpdated( event_mask );
         }
     }

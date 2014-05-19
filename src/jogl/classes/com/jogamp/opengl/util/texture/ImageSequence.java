@@ -52,6 +52,7 @@ public class ImageSequence implements TextureSequence {
     private final int[] texWrapST = { GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE };
     private volatile int frameIdx = 0;
     private volatile boolean manualStepping = false;
+    private int textureFragmentShaderHashCode = 0;
 
     public ImageSequence(final int textureUnit, final boolean useBuildInTexLookup) {
         this.textureUnit = textureUnit;
@@ -172,5 +173,18 @@ public class ImageSequence implements TextureSequence {
           "vec4 "+textureLookupFunctionName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
           "  return texture2D(image, texCoord);\n"+
           "}\n\n";
+    }
+
+    @Override
+    public int getTextureFragmentShaderHashCode() {
+        if( !isTextureAvailable() ) {
+            textureFragmentShaderHashCode = 0;
+            return 0;
+        } else if( 0 == textureFragmentShaderHashCode ) {
+            int hash = 31 + getTextureLookupFragmentShaderImpl().hashCode();
+            hash = ((hash << 5) - hash) + getTextureSampler2DType().hashCode();
+            textureFragmentShaderHashCode = hash;
+        }
+        return textureFragmentShaderHashCode;
     }
 }

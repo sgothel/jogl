@@ -257,5 +257,24 @@ public interface TextureSequence {
      *
      * @throws IllegalStateException if instance is not initialized
      */
-    public String getTextureLookupFragmentShaderImpl() throws IllegalStateException ;
+    public String getTextureLookupFragmentShaderImpl() throws IllegalStateException;
+
+    /**
+     * Returns the hash code of the strings:
+     * <ul>
+     *   <li>{@link #getTextureLookupFragmentShaderImpl()}</li>
+     *   <li>{@link #getTextureSampler2DType()}</li>
+     * </ul>
+     * <p>
+     * Returns zero if {@link #isTextureAvailable() texture is not available}.
+     * </p>
+     * The returned hash code allows selection of a matching shader program for this {@link TextureSequence} instance.
+     * <p>
+     * </p>
+     * <p>
+     * Implementation shall cache the resulting hash code,
+     * which must be reset to zero if {@link #isTextureAvailable() texture is not available}.
+     * </p>
+     */
+    public int getTextureFragmentShaderHashCode();
 }
