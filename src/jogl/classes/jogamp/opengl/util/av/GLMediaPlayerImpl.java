@@ -725,11 +725,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_WRAP_S, texWrapST[0]);
         gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_WRAP_T, texWrapST[1]);
 
-        return com.jogamp.opengl.util.texture.TextureIO.newTexture(
-                     texName, textureTarget,
-                     tWidth, tHeight,
-                     width,  height,
-                     !isInGLOrientation);
+        return new Texture(texName, textureTarget,
+                           tWidth, tHeight, width,  height, !isInGLOrientation);
     }
 
     protected void destroyTexFrame(GL gl, TextureFrame frame) {

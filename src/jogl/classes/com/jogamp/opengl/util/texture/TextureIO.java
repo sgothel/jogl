@@ -554,45 +554,6 @@ public class TextureIO {
     }
 
     /**
-     * Wraps an OpenGL texture ID from an external library and allows
-     * some of the base methods from the Texture class, such as
-     * binding and querying of texture coordinates, to be used with
-     * it. Attempts to update such textures' contents will yield
-     * undefined results.
-     *
-     * @param textureID the OpenGL texture object to wrap
-     * @param target the OpenGL texture target, eg GL.GL_TEXTURE_2D,
-     *               GL2.GL_TEXTURE_RECTANGLE
-     * @param texWidth the width of the texture in pixels
-     * @param texHeight the height of the texture in pixels
-     * @param imgWidth the width of the image within the texture in
-     *          pixels (if the content is a sub-rectangle in the upper
-     *          left corner); otherwise, pass in texWidth
-     * @param imgHeight the height of the image within the texture in
-     *          pixels (if the content is a sub-rectangle in the upper
-     *          left corner); otherwise, pass in texHeight
-     * @param mustFlipVertically indicates whether the texture
-     *                           coordinates must be flipped vertically
-     *                           in order to properly display the
-     *                           texture
-     */
-    public static Texture newTexture(int textureID,
-                     int target,
-                     int texWidth,
-                     int texHeight,
-                     int imgWidth,
-                     int imgHeight,
-                     boolean mustFlipVertically) {
-    return new Texture(textureID,
-               target,
-               texWidth,
-               texHeight,
-               imgWidth,
-               imgHeight,
-               mustFlipVertically);
-    }
-
-    /**
      * Writes the given texture to a file. The type of the file is
      * inferred from its suffix. An OpenGL context must be current in
      * order to fetch the texture data back from the OpenGL pipeline.

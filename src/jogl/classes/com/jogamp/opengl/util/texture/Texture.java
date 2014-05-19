@@ -210,17 +210,44 @@ public class Texture {
         updateImage(gl, data);
     }
 
-    // Constructor for use when creating e.g. cube maps, where there is
-    // no initial texture data
+    /**
+     * Constructor for use when creating e.g. cube maps, where there is
+     * no initial texture data
+     * @param target the OpenGL texture target, eg GL.GL_TEXTURE_2D,
+     *               GL2.GL_TEXTURE_RECTANGLE
+     */
     public Texture(int target) {
         texID = 0;
         this.target = target;
     }
 
-    // Package-private constructor for creating a texture object which wraps
-    // an existing texture ID from another package
-    Texture(int textureID, int target, int texWidth, int texHeight, int imgWidth, int imgHeight,
-            boolean mustFlipVertically) {
+    /**
+     * Constructor to wrap an OpenGL texture ID from an external library and allows
+     * some of the base methods from the Texture class, such as
+     * binding and querying of texture coordinates, to be used with
+     * it. Attempts to update such textures' contents will yield
+     * undefined results.
+     *
+     * @param textureID the OpenGL texture object to wrap
+     * @param target the OpenGL texture target, eg GL.GL_TEXTURE_2D,
+     *               GL2.GL_TEXTURE_RECTANGLE
+     * @param texWidth the width of the texture in pixels
+     * @param texHeight the height of the texture in pixels
+     * @param imgWidth the width of the image within the texture in
+     *          pixels (if the content is a sub-rectangle in the upper
+     *          left corner); otherwise, pass in texWidth
+     * @param imgHeight the height of the image within the texture in
+     *          pixels (if the content is a sub-rectangle in the upper
+     *          left corner); otherwise, pass in texHeight
+     * @param mustFlipVertically indicates whether the texture
+     *                           coordinates must be flipped vertically
+     *                           in order to properly display the
+     *                           texture
+     */
+    public Texture(final int textureID, final int target,
+                   final int texWidth, final int texHeight,
+                   final int imgWidth, final int imgHeight,
+                   final boolean mustFlipVertically) {
         this.texID = textureID;
         this.target = target;
         this.mustFlipVertically = mustFlipVertically;
