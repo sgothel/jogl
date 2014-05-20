@@ -37,7 +37,10 @@
 
 package jogamp.nativewindow.jawt;
 
+import java.awt.Component;
 import java.awt.EventQueue;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Toolkit;
 import java.lang.reflect.InvocationTargetException;
@@ -85,12 +88,15 @@ public class JAWTUtil {
   private static final RecursiveLock jawtLock;
   private static final ToolkitLock jawtToolkitLock;
 
+  private static final Method getScaleFactorMethod;
+
   private static class PrivilegedDataBlob1 {
     PrivilegedDataBlob1() {
         ok = false;
     }
-    Method  sunToolkitAWTLockMethod;
-    Method  sunToolkitAWTUnlockMethod;
+    Method sunToolkitAWTLockMethod;
+    Method sunToolkitAWTUnlockMethod;
+    Method getScaleFactorMethod;
     boolean ok;
   }
 
@@ -308,6 +314,7 @@ public class JAWTUtil {
         sunToolkitAWTUnlockMethod = null;
         hasSunToolkitAWTLock = false;
         // hasSunToolkitAWTLock = false;
+        getScaleFactorMethod = null;
     } else {
         // Non-headless case
         JAWTJNILibLoader.initSingleton(); // load libjawt.so
@@ -342,11 +349,17 @@ public class JAWTUtil {
                 } catch (Exception e) {
                     // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
                 }
+                try {
+                    GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+                    d.getScaleFactorMethod = gd.getClass().getDeclaredMethod("getScaleFactor");
+                    d.getScaleFactorMethod.setAccessible(true);
+                } catch (Throwable t) {}
                 return d;
             }
         });
         sunToolkitAWTLockMethod = pdb1.sunToolkitAWTLockMethod;
         sunToolkitAWTUnlockMethod = pdb1.sunToolkitAWTUnlockMethod;
+        getScaleFactorMethod = pdb1.getScaleFactorMethod;
 
         boolean _hasSunToolkitAWTLock = false;
         if ( pdb1.ok ) {
@@ -516,5 +529,54 @@ public class JAWTUtil {
     return jawtToolkitLock;
   }
 
+  /**
+   * Returns the pixel scale factor of the given {@link GraphicsDevice}, if supported.
+   * <p>
+   * If the component does not support pixel scaling the default
+   * <code>one</code> is returned.
+   * </p>
+   * <p>
+   * Note: Currently only supported on OSX since 1.7.0_40 for HiDPI retina displays
+   * </p>
+   * @param device the {@link GraphicsDevice} instance used to query the pixel scale
+   * @return the pixel scale factor
+   */
+  public static final int getPixelScale(final GraphicsDevice device) {
+      if( null != getScaleFactorMethod ) {
+          try {
+              final Object res = getScaleFactorMethod.invoke(device);
+              if (res instanceof Integer) {
+                  return ((Integer)res).intValue();
+              }
+          } catch (Throwable t) {}
+      }
+      return 1;
+  }
+
+  /**
+   * Returns the pixel scale factor of the given {@link Component}'s {@link GraphicsDevice}, if supported.
+   * <p>
+   * If the component is not yet {@link Component#isDisplayable() displayable},
+   * <code>zero</code> is returned.
+   * </p>
+   * <p>
+   * If the component does not support pixel scaling the default
+   * <code>one</code> is returned.
+   * </p>
+   * <p>
+   * Note: Currently only supported on OSX since 1.7.0_40 for HiDPI retina displays
+   * </p>
+   * @param component the {@link Component} instance used to query the pixel scale
+   * @return the pixel scale factor
+   */
+  public static final int getPixelScale(final Component component) {
+      final GraphicsConfiguration gc = component.getGraphicsConfiguration();
+      final GraphicsDevice device = null != gc ? gc.getDevice() : null;
+      if( null == device ) {
+          return 0;
+      } else {
+          return JAWTUtil.getPixelScale(device);
+      }
+  }
 }
 

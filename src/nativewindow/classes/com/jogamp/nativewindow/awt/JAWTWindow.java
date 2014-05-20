@@ -46,6 +46,7 @@ import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
+import java.awt.GraphicsDevice;
 import java.awt.Window;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -750,6 +751,25 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       return component.hasFocus();
   }
 
+  /**
+   * Returns the pixel scale factor of this {@link Component}'s {@link GraphicsDevice}, if supported.
+   * <p>
+   * If the component is not yet {@link Component#isDisplayable() displayable},
+   * <code>zero</code> is returned.
+   * </p>
+   * <p>
+   * If the component does not support pixel scaling the default
+   * <code>one</code> is returned.
+   * </p>
+   * <p>
+   * Note: Currently only supported on OSX since 1.7.0_40 for HiDPI retina displays
+   * </p>
+   * @return the pixel scale factor
+   */
+  protected final int getPixelScale() {
+      return JAWTUtil.getPixelScale(component);
+  }
+
   protected StringBuilder jawt2String(StringBuilder sb) {
       if( null == sb ) {
           sb = new StringBuilder();
@@ -760,7 +780,9 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       if(null != jawt) {
           sb.append("JAWT version: ").append(toHexString(jawt.getCachedVersion())).
           append(", CA_LAYER: ").append(JAWTUtil.isJAWTUsingOffscreenLayer(jawt)).
-          append(", isLayeredSurface ").append(isOffscreenLayerSurfaceEnabled()).append(", bounds ").append(bounds).append(", insets ").append(insets);
+          append(", isLayeredSurface ").append(isOffscreenLayerSurfaceEnabled()).
+          append(", bounds ").append(bounds).append(", insets ").append(insets).
+          append(", pixelScale ").append(getPixelScale());
       } else {
           sb.append("JAWT n/a, bounds ").append(bounds).append(", insets ").append(insets);
       }
