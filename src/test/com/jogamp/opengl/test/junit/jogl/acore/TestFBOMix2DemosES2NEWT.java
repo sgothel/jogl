@@ -102,8 +102,8 @@ public class TestFBOMix2DemosES2NEWT extends UITestCase {
             public void display(GLAutoDrawable drawable) {
                 if(mainRun) return;
                 
-                final int dw = drawable.getWidth();
-                final int dh = drawable.getHeight();
+                final int dw = drawable.getSurfaceWidth();
+                final int dh = drawable.getSurfaceHeight();
                 c++;
                 
                 if(dw<800) {
@@ -147,10 +147,10 @@ public class TestFBOMix2DemosES2NEWT extends UITestCase {
 
         glWindow.addWindowListener(new WindowAdapter() {
             public void windowResized(WindowEvent e) {
-                System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight());
+                System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }
             public void windowMoved(WindowEvent e) {
-                System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight());
+                System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }            
         });
         
@@ -163,9 +163,9 @@ public class TestFBOMix2DemosES2NEWT extends UITestCase {
                 if(e.getKeyChar()=='f') {
                     new Thread() {
                         public void run() {
-                            System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
+                            System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                             glWindow.setFullscreen(!glWindow.isFullscreen());
-                            System.err.println("[set fullscreen post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
+                            System.err.println("[set fullscreen post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                     } }.start();
                 } else if(e.getKeyChar()=='d') {
                     demo.setDemo0Only(!demo.getDemo0Only());
@@ -187,7 +187,7 @@ public class TestFBOMix2DemosES2NEWT extends UITestCase {
         
         System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
-        System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
+        System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
         
         animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
         

@@ -449,7 +449,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
         if(null != sharedGears && !sharedGears.isInit() ) { return; }
         GLAnimatorControl anim = drawable.getAnimator();
         if( verbose && ( null == anim || !anim.isAnimating() ) ) {
-            System.err.println(Thread.currentThread()+" GearsES2.display "+sid()+" "+drawable.getWidth()+"x"+drawable.getHeight()+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(drawable.getHandle()));
+            System.err.println(Thread.currentThread()+" GearsES2.display "+sid()+" "+drawable.getSurfaceWidth()+"x"+drawable.getSurfaceHeight()+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(drawable.getHandle()));
         }
         // Turn the gears' teeth
         if(doRotate) {
@@ -611,12 +611,12 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
             Window window = null;
             if(source instanceof Window) {
                 window = (Window) source;
-                width=window.getWidth();
-                height=window.getHeight();
+                width=window.getSurfaceWidth();
+                height=window.getSurfaceHeight();
             } else if (source instanceof GLAutoDrawable) {
                 GLAutoDrawable glad = (GLAutoDrawable) source;
-                width = glad.getWidth();
-                height = glad.getHeight();
+                width = glad.getSurfaceWidth();
+                height = glad.getSurfaceHeight();
             } else if (GLProfile.isAWTAvailable() && source instanceof java.awt.Component) {
                 java.awt.Component comp = (java.awt.Component) source;
                 width=comp.getWidth();
@@ -629,8 +629,8 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
             view_rotx += thetaX;
             view_roty += thetaY;
             if(e.isConfined() && confinedFixedCenter && null!=window) {
-                x=window.getWidth()/2;
-                y=window.getHeight()/2;
+                x=window.getSurfaceWidth()/2;
+                y=window.getSurfaceHeight()/2;
                 window.warpPointer(x, y);
             }
             prevMouseX = x;

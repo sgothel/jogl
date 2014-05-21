@@ -87,13 +87,13 @@ public class AWTGLReadBufferUtil extends GLReadBufferUtil {
     public BufferedImage readPixelsToBufferedImage(GL gl, int inX, int inY, int inWidth, int inHeight, boolean awtOrientation) {
         final GLDrawable drawable = gl.getContext().getGLReadDrawable();
         final int width, height;
-        if( 0 >= inWidth || drawable.getWidth() < inWidth ) {
-            width = drawable.getWidth();
+        if( 0 >= inWidth || drawable.getSurfaceWidth() < inWidth ) {
+            width = drawable.getSurfaceWidth();
         } else {
             width = inWidth;
         }
-        if( 0 >= inHeight || drawable.getHeight() < inHeight ) {
-            height = drawable.getHeight();
+        if( 0 >= inHeight || drawable.getSurfaceHeight() < inHeight ) {
+            height = drawable.getSurfaceHeight();
         } else {
             height= inHeight;
         }

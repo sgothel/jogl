@@ -136,7 +136,7 @@ public class TestGLWindowWarpPointer01NEWT  extends UITestCase {
     
                 @Override
                 public void display(GLAutoDrawable drawable) {
-                    warpRandom(drawable.getWidth(), drawable.getHeight());
+                    warpRandom(drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
                 }
     
                 @Override

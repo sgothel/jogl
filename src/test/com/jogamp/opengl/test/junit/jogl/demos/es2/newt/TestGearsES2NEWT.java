@@ -173,10 +173,10 @@ public class TestGearsES2NEWT extends UITestCase {
 
         glWindow.addWindowListener(new WindowAdapter() {
             public void windowResized(WindowEvent e) {
-                System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight());
+                System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }
             public void windowMoved(WindowEvent e) {
-                System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight());
+                System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }
         });
 
@@ -238,7 +238,7 @@ public class TestGearsES2NEWT extends UITestCase {
                     new Thread() {
                         public void run() {
                             final Thread t = glWindow.setExclusiveContextThread(null);
-                            System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
+                            System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                             if( glWindow.isFullscreen() ) {
                                 glWindow.setFullscreen( false );
                             } else {
@@ -248,16 +248,16 @@ public class TestGearsES2NEWT extends UITestCase {
                                     glWindow.setFullscreen( true );
                                 }
                             }
-                            System.err.println("[set fullscreen post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
+                            System.err.println("[set fullscreen post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                             glWindow.setExclusiveContextThread(t);
                     } }.start();
                 } else if(e.getKeyChar()=='a') {
                     new Thread() {
                         public void run() {
                             final Thread t = glWindow.setExclusiveContextThread(null);
-                            System.err.println("[set alwaysontop pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
+                            System.err.println("[set alwaysontop pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                             glWindow.setAlwaysOnTop(!glWindow.isAlwaysOnTop());
-                            System.err.println("[set alwaysontop post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
+                            System.err.println("[set alwaysontop post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                             glWindow.setExclusiveContextThread(t);
                     } }.start();
                 } else if(e.getKeyChar()=='d') {
@@ -265,18 +265,18 @@ public class TestGearsES2NEWT extends UITestCase {
                         public void run() {
                             final Thread t = glWindow.setExclusiveContextThread(null);
                             // while( null != glWindow.getExclusiveContextThread() ) ;
-                            System.err.println("[set undecorated  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", d "+glWindow.isUndecorated()+", "+glWindow.getInsets());
+                            System.err.println("[set undecorated  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", d "+glWindow.isUndecorated()+", "+glWindow.getInsets());
                             glWindow.setUndecorated(!glWindow.isUndecorated());
-                            System.err.println("[set undecorated post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", d "+glWindow.isUndecorated()+", "+glWindow.getInsets());
+                            System.err.println("[set undecorated post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", d "+glWindow.isUndecorated()+", "+glWindow.getInsets());
                             glWindow.setExclusiveContextThread(t);
                     } }.start();
                 } else if(e.getKeyChar()=='s') {
                     new Thread() {
                         public void run() {
                             final Thread t = glWindow.setExclusiveContextThread(null);
-                            System.err.println("[set position  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
+                            System.err.println("[set position  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
                             glWindow.setPosition(100, 100);
-                            System.err.println("[set position post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
+                            System.err.println("[set position post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
                             glWindow.setExclusiveContextThread(t);
                     } }.start();
                 } else if(e.getKeyChar()=='c') {
@@ -332,7 +332,7 @@ public class TestGearsES2NEWT extends UITestCase {
                         public void run() {
                             final Thread t = glWindow.setExclusiveContextThread(null);
                             System.err.println("[set mouse pos pre]");
-                            glWindow.warpPointer(glWindow.getWidth()/2, glWindow.getHeight()/2);
+                            glWindow.warpPointer(glWindow.getSurfaceWidth()/2, glWindow.getSurfaceHeight()/2);
                             System.err.println("[set mouse pos post]");
                             glWindow.setExclusiveContextThread(t);
                     } }.start();
@@ -406,14 +406,14 @@ public class TestGearsES2NEWT extends UITestCase {
 
         System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
-        System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
+        System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
 
         snap.setMakeSnapshot();
 
         if( null != rwsize ) {
             Thread.sleep(500); // 500ms delay
             glWindow.setSize(rwsize.getWidth(), rwsize.getHeight());
-            System.err.println("window resize pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
+            System.err.println("window resize pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
         }
 
         snap.setMakeSnapshot();

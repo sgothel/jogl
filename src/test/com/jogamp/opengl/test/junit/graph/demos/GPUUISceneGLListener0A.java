@@ -631,7 +631,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
         sceneUIController.setRenderer(renderer);
 
-        final float pixelSizeFixed = fontSizeFixedPVP * drawable.getHeight();
+        final float pixelSizeFixed = fontSizeFixedPVP * drawable.getSurfaceHeight();
         jogampLabel = new Label(renderer.getRenderState().getVertexFactory(), renderModes, font, pixelSizeFixed, jogamp);
         jogampLabel.addMouseListener(dragZoomRotateListener);
         sceneUIController.addShape(jogampLabel);
@@ -650,7 +650,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
          * [Label] Display 112.88889 dpi, fontSize 12.0 ppi -> pixelSize 18.814816
          * [FPS] Display 112.88889 dpi, fontSize 12.0 ppi -> pixelSize 15.679012
          */
-        final float pixelSizeFPS = fontSizeFpsPVP * drawable.getHeight();
+        final float pixelSizeFPS = fontSizeFpsPVP * drawable.getSurfaceHeight();
         fpsLabel = new Label(renderer.getRenderState().getVertexFactory(), renderModes, font, pixelSizeFPS, "Nothing there yet");
         fpsLabel.addMouseListener(dragZoomRotateListener);
         sceneUIController.addShape(fpsLabel);
@@ -663,7 +663,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         crossHairCtr.setEnabled(true);
         crossHairCtr.translate(0f, 0f, -1f);
 
-        initButtons(gl, drawable.getWidth(), drawable.getHeight(), renderer);
+        initButtons(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), renderer);
         for(int i=0; i<buttons.size(); i++) {
             sceneUIController.addShape(buttons.get(i));
         }
@@ -713,9 +713,9 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         if(null == labels[currentText]) {
-            final float pixelSizeFixed = fontSizeFixedPVP * drawable.getHeight();
-            final float dyTop = drawable.getHeight() - 2f*jogampLabel.getLineHeight();
-            final float dxRight = drawable.getWidth() * relMiddle;
+            final float pixelSizeFixed = fontSizeFixedPVP * drawable.getSurfaceHeight();
+            final float dyTop = drawable.getSurfaceHeight() - 2f*jogampLabel.getLineHeight();
+            final float dxRight = drawable.getSurfaceWidth() * relMiddle;
             labels[currentText] = new Label(renderer.getRenderState().getVertexFactory(), renderModes, font, pixelSizeFixed, strings[currentText]);
             labels[currentText].setColor(0.1f, 0.1f, 0.1f, 1.0f);
             labels[currentText].setEnabled(enableOthers);
@@ -780,7 +780,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         for(int i=buttonsLeftCount; i<buttons.size(); i++) {
             buttons.get(i).translate(dxRight, dyTop, dz);
         }
-        final float dyTopLabel = drawable.getHeight() - 2f*jogampLabel.getLineHeight();
+        final float dyTopLabel = drawable.getSurfaceHeight() - 2f*jogampLabel.getLineHeight();
         jogampLabel.translate(dxMiddle, dyTopLabel, dz);
         truePtSizeLabel.translate(dxMiddle, dyTopLabel, dz);
         fpsLabel.translate(0f, 0f, 0f);

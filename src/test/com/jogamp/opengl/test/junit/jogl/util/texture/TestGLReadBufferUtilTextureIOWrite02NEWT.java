@@ -83,8 +83,8 @@ public class TestGLReadBufferUtilTextureIOWrite02NEWT extends UITestCase {
                 System.err.println("XXX: dispose");
             }
             public void display(GLAutoDrawable drawable) {
-                final int dw = drawable.getWidth();
-                final int dh = drawable.getHeight();
+                final int dw = drawable.getSurfaceWidth();
+                final int dh = drawable.getSurfaceHeight();
                 final boolean sz_changed = dw_old != dw && dw <= 512;
                 final boolean snap;
                 if(sz_changed) {

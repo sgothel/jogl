@@ -83,7 +83,7 @@ public class X11PixmapGLXDrawable extends X11GLXDrawable {
     int screen = aScreen.getIndex();
 
     pixmap = X11Lib.XCreatePixmap(dpy, X11Lib.RootWindow(dpy, screen),
-                                  surface.getWidth(), surface.getHeight(), bitsPerPixel);
+                                  surface.getSurfaceWidth(), surface.getSurfaceHeight(), bitsPerPixel);
     if (pixmap == 0) {
         throw new GLException("XCreatePixmap failed");
     }

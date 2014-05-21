@@ -149,13 +149,13 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
     public abstract void setSurfaceHandle(long surfaceHandle);
 
     @Override
-    public final int getWidth() {
-        return upstream.getWidth(this);
+    public final int getSurfaceWidth() {
+        return upstream.getPixelWidth(this);
     }
 
     @Override
-    public final int getHeight() {
-        return upstream.getHeight(this);
+    public final int getSurfaceHeight() {
+        return upstream.getPixelHeight(this);
     }
 
     @Override
@@ -303,7 +303,7 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
         }
         sink.append("displayHandle 0x" + Long.toHexString(getDisplayHandle())).
         append("\n, surfaceHandle 0x" + Long.toHexString(getSurfaceHandle())).
-        append("\n, size " + getWidth() + "x" + getHeight()).append("\n, ");
+        append("\n, size " + getSurfaceWidth() + "x" + getSurfaceHeight()).append("\n, ");
         getUpstreamOptionBits(sink);
         sink.append("\n, "+config).
         append("\n, surfaceLock "+surfaceLock+"\n, ").

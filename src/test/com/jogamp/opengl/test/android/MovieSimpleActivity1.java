@@ -123,7 +123,7 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
            glWindowMain.setSize(scrn.getWidth()-padding, scrn.getHeight()-padding);
            glWindowMain.setUndecorated(true);
            // setContentView(getWindow(), glWindowMain);
-           viewGroup.addView(androidView, new android.widget.FrameLayout.LayoutParams(glWindowMain.getWidth(), glWindowMain.getHeight(), Gravity.BOTTOM|Gravity.RIGHT));
+           viewGroup.addView(androidView, new android.widget.FrameLayout.LayoutParams(glWindowMain.getSurfaceWidth(), glWindowMain.getSurfaceHeight(), Gravity.BOTTOM|Gravity.RIGHT));
            registerNEWTWindow(glWindowMain);
        }
        anim.add(glWindowMain);
@@ -219,7 +219,7 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
                         public void run() {
                             final android.view.View androidView = ((jogamp.newt.driver.android.WindowDriver)glWindowHUD.getDelegatedWindow()).getAndroidView();
                             // addContentView(getWindow(), glWindowHUD, new android.view.ViewGroup.LayoutParams(glWindowHUD.getWidth(), glWindowHUD.getHeight()));
-                            viewGroup.addView(androidView, new android.widget.FrameLayout.LayoutParams(glWindowHUD.getWidth(), glWindowHUD.getHeight(), Gravity.TOP|Gravity.LEFT));
+                            viewGroup.addView(androidView, new android.widget.FrameLayout.LayoutParams(glWindowHUD.getSurfaceWidth(), glWindowHUD.getSurfaceHeight(), Gravity.TOP|Gravity.LEFT));
                             registerNEWTWindow(glWindowHUD);
                             anim.add(glWindowHUD);
                             glWindowHUD.setVisible(true);

@@ -70,7 +70,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
         setGraphicsConfiguration(cfg);
-        reconfigureWindowImpl(getX(), getY(), getWidth(), getHeight(), getReconfigureFlags(FLAG_CHANGE_VISIBILITY, true));
+        reconfigureWindowImpl(getX(), getY(), getSurfaceWidth(), getSurfaceHeight(), getReconfigureFlags(FLAG_CHANGE_VISIBILITY, true));
         if (0 == getWindowHandle()) {
             throw new NativeWindowException("Error creating window");
         }
@@ -236,7 +236,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         if( 0 != handle && !isOffscreenInstance ) {
             final NativeWindow parent = getParent();
             final boolean useParent = useParent(parent);
-            if( useParent && ( getWidth() != newWidth || getHeight() != newHeight ) ) {
+            if( useParent && ( getSurfaceWidth() != newWidth || getSurfaceHeight() != newHeight ) ) {
                 final int x=getX(), y=getY();
                 final Point p0S = getLocationOnScreenImpl(x, y, parent, useParent);
                 if(DEBUG_IMPLEMENTATION) {

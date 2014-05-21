@@ -152,7 +152,7 @@ public class TestGLAutoDrawableGLWindowOnOffscrnCapsNEWT extends UITestCase {
         glad.display(); // initial resize/display
         
         // 1 - szStep = 2
-        Assert.assertTrue("Size not reached: Expected "+(widthStep*szStep)+"x"+(heightStep*szStep)+", Is "+glad.getWidth()+"x"+glad.getHeight(), 
+        Assert.assertTrue("Size not reached: Expected "+(widthStep*szStep)+"x"+(heightStep*szStep)+", Is "+glad.getSurfaceWidth()+"x"+glad.getSurfaceHeight(), 
                           AWTRobotUtil.waitForSize(glad, widthStep*szStep, heightStep*szStep));
         snapshotGLEventListener.setMakeSnapshot();
         glad.display();
@@ -160,7 +160,7 @@ public class TestGLAutoDrawableGLWindowOnOffscrnCapsNEWT extends UITestCase {
         // 2, 3 (resize + display)
         szStep = 1;
         glad.setSize(widthStep*szStep, heightStep*szStep);
-        Assert.assertTrue("Size not reached: Expected "+(widthStep*szStep)+"x"+(heightStep*szStep)+", Is "+glad.getWidth()+"x"+glad.getHeight(), 
+        Assert.assertTrue("Size not reached: Expected "+(widthStep*szStep)+"x"+(heightStep*szStep)+", Is "+glad.getSurfaceWidth()+"x"+glad.getSurfaceHeight(), 
                           AWTRobotUtil.waitForSize(glad, widthStep*szStep, heightStep*szStep));
         snapshotGLEventListener.setMakeSnapshot();
         glad.display();
@@ -168,7 +168,7 @@ public class TestGLAutoDrawableGLWindowOnOffscrnCapsNEWT extends UITestCase {
         // 4, 5 (resize + display)
         szStep = 4;
         glad.setSize(widthStep*szStep, heightStep*szStep);
-        Assert.assertTrue("Size not reached: Expected "+(widthStep*szStep)+"x"+(heightStep*szStep)+", Is "+glad.getWidth()+"x"+glad.getHeight(), 
+        Assert.assertTrue("Size not reached: Expected "+(widthStep*szStep)+"x"+(heightStep*szStep)+", Is "+glad.getSurfaceWidth()+"x"+glad.getSurfaceHeight(), 
                           AWTRobotUtil.waitForSize(glad, widthStep*szStep, heightStep*szStep));
         snapshotGLEventListener.setMakeSnapshot();
         glad.display();

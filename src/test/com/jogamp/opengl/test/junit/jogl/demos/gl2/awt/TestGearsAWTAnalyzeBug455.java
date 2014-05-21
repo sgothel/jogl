@@ -91,7 +91,7 @@ public class TestGearsAWTAnalyzeBug455 extends UITestCase {
                 // gl.glPushAttrib(GL.GL_COLOR_BUFFER_BIT);
                 gl.glReadBuffer(GL.GL_BACK);  // def. in dbl buff mode: GL_BACK
                 gl.glDrawBuffer(GL.GL_FRONT); // def. in dbl buff mode: GL_BACK
-                gl.glCopyPixels(0, 0, drawable.getWidth(), drawable.getHeight(), GL2.GL_COLOR);
+                gl.glCopyPixels(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), GL2.GL_COLOR);
                 // gl.glPopAttrib();
                 gl.glDrawBuffer(GL.GL_BACK); // def. in dbl buff mode: GL_BACK
             }            

@@ -145,7 +145,7 @@ public class WindowDriver extends WindowImpl {
                           ( FLAG_IS_ALWAYSONTOP | FLAG_IS_UNDECORATED ) ;
         final long _windowHandle = CreateWindow0(DisplayDriver.getHInstance(), display.getWindowClassName(), display.getWindowClassName(),
                                                  winVer.getMajor(), winVer.getMinor(),
-                                                 getParentWindowHandle(), getX(), getY(), getWidth(), getHeight(), autoPosition(), flags);
+                                                 getParentWindowHandle(), getX(), getY(), getSurfaceWidth(), getSurfaceHeight(), autoPosition(), flags);
         if ( 0 == _windowHandle ) {
             throw new NativeWindowException("Error creating window");
         }
@@ -252,7 +252,7 @@ public class WindowDriver extends WindowImpl {
             public void run() {
                 final Point p0 = getLocationOnScreenImpl(0, 0);
                 res[0] = Boolean.valueOf(confinePointer0(getWindowHandle(), confine,
-                        p0.getX(), p0.getY(), p0.getX()+getWidth(), p0.getY()+getHeight()));
+                        p0.getX(), p0.getY(), p0.getX()+getSurfaceWidth(), p0.getY()+getSurfaceHeight()));
             }
         });
         return res[0].booleanValue();

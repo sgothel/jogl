@@ -166,7 +166,7 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         
         // FBO w/ 2 texture2D color buffers
         final FBObject fbo_mrt = new FBObject();
-        fbo_mrt.reset(gl, drawable.getWidth(), drawable.getHeight());
+        fbo_mrt.reset(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
         final TextureAttachment texA0 = fbo_mrt.attachTexture2D(gl, texA0Point, true, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
         final TextureAttachment texA1;
         if(fbo_mrt.getMaxColorAttachments() > 1) {
@@ -224,7 +224,7 @@ public class TestFBOMRTNEWT01 extends UITestCase {
             texCoords0.enableBuffer(gl, true);
             gl.glDrawBuffers(1, bck_buffers, 0);
             
-            gl.glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
+            gl.glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
             
             gl.glActiveTexture(GL.GL_TEXTURE0 + texUnit0.intValue());            
             fbo_mrt.use(gl, texA0);
@@ -241,11 +241,11 @@ public class TestFBOMRTNEWT01 extends UITestCase {
             
             {
                 final NativeSurface ns = gl.getContext().getGLReadDrawable().getNativeSurface();
-                if(last_snap_size[0] != ns.getWidth() && last_snap_size[1] != ns.getHeight()) {
+                if(last_snap_size[0] != ns.getSurfaceWidth() && last_snap_size[1] != ns.getSurfaceHeight()) {
                     gl.glFinish(); // sync .. no swap buffers yet!
                     snapshot(step_i, null, gl, screenshot, TextureIO.PNG, null); // overwrite ok
-                    last_snap_size[0] = ns.getWidth();
-                    last_snap_size[1] = ns.getHeight();
+                    last_snap_size[0] = ns.getSurfaceWidth();
+                    last_snap_size[1] = ns.getSurfaceHeight();
                 }
             }
             

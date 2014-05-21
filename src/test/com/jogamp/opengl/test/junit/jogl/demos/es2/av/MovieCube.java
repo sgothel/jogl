@@ -448,7 +448,7 @@ public class MovieCube implements GLEventListener {
             System.err.println("XXX resetGLState");
             disposeImpl(drawable, false);
             init(drawable);
-            reshape(drawable, 0, 0, drawable.getWidth(), drawable.getHeight());
+            reshape(drawable, 0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
         }
 
         final long currentPos = System.currentTimeMillis();

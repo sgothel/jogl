@@ -164,20 +164,20 @@ public class TestScreenMode01dNEWT extends UITestCase {
         final MonitorDevice monitor = window.getMainMonitor();
         
         Assert.assertEquals(false, window.isFullscreen());
-        Assert.assertEquals(width, window.getWidth());
-        Assert.assertEquals(height, window.getHeight());
+        Assert.assertEquals(width, window.getSurfaceWidth());
+        Assert.assertEquals(height, window.getSurfaceHeight());
         
         window.setFullscreen(true);
         Assert.assertEquals(true, window.isFullscreen());        
-        Assert.assertEquals(monitor.getViewport().getWidth(), window.getWidth());
-        Assert.assertEquals(monitor.getViewport().getHeight(), window.getHeight());
+        Assert.assertEquals(monitor.getViewport().getWidth(), window.getSurfaceWidth());
+        Assert.assertEquals(monitor.getViewport().getHeight(), window.getSurfaceHeight());
         
         Thread.sleep(waitTimeShort);
 
         window.setFullscreen(false);
         Assert.assertEquals(false, window.isFullscreen());
-        Assert.assertEquals(width, window.getWidth());
-        Assert.assertEquals(height, window.getHeight());
+        Assert.assertEquals(width, window.getSurfaceWidth());
+        Assert.assertEquals(height, window.getSurfaceHeight());
         
         Thread.sleep(waitTimeShort);
 
@@ -210,7 +210,7 @@ public class TestScreenMode01dNEWT extends UITestCase {
         GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
         Assert.assertNotNull(window);
 
-        final RectangleImmutable winRect = new Rectangle(window.getX(), window.getY(), window.getWidth(), window.getHeight());
+        final RectangleImmutable winRect = new Rectangle(window.getX(), window.getY(), window.getSurfaceWidth(), window.getSurfaceHeight());
         final MonitorDevice monitor = screen.getMainMonitor(winRect);
         
         List<MonitorMode> monitorModes = monitor.getSupportedModes();
@@ -308,7 +308,7 @@ public class TestScreenMode01dNEWT extends UITestCase {
         Animator animator = new Animator(window);
         animator.start();
 
-        final RectangleImmutable winRect = new Rectangle(window.getX(), window.getY(), window.getWidth(), window.getHeight());
+        final RectangleImmutable winRect = new Rectangle(window.getX(), window.getY(), window.getSurfaceWidth(), window.getSurfaceHeight());
         final MonitorDevice monitor = screen.getMainMonitor(winRect);
         MonitorMode mmCurrent = monitor.queryCurrentMode();
         Assert.assertNotNull(mmCurrent);

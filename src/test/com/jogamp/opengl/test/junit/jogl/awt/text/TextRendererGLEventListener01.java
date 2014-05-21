@@ -96,7 +96,7 @@ public class TextRendererGLEventListener01 implements GLEventListener {
     public void display(GLAutoDrawable drawable) {
         if (disallowedMethodCalls.equals("")) {
             if (testNumber == 1) {
-                renderer.beginRendering(drawable.getWidth(), drawable.getHeight());
+                renderer.beginRendering(drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
                 renderer.setColor(1.0f, 1.0f, 1.0f, 1.0f);
                 renderer.draw(text, 0, 0);
                 renderer.endRendering();

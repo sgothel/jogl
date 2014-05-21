@@ -148,7 +148,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         if( null != rwsize ) {
             Thread.sleep(500); // 500ms delay
             setFrameSize(frame, true, rwsize);
-            System.err.println("window resize pos/siz: "+glJPanel.getX()+"/"+glJPanel.getY()+" "+glJPanel.getWidth()+"x"+glJPanel.getHeight());
+            System.err.println("window resize pos/siz: "+glJPanel.getX()+"/"+glJPanel.getY()+" "+glJPanel.getSurfaceWidth()+"x"+glJPanel.getSurfaceHeight());
         }
 
         snap.setMakeSnapshot();

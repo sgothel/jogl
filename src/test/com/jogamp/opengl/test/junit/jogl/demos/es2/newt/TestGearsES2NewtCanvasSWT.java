@@ -175,10 +175,10 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
 
         glWindow.addWindowListener(new WindowAdapter() {
             public void windowResized(WindowEvent e) {
-                System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight());
+                System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }
             public void windowMoved(WindowEvent e) {
-                System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight());
+                System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }            
         });
         
@@ -191,9 +191,9 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
                     new Thread() {
                         public void run() {
                             final Thread t = glWindow.setExclusiveContextThread(null);
-                            System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
+                            System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                             glWindow.setFullscreen(!glWindow.isFullscreen());
-                            System.err.println("[set fullscreen post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
+                            System.err.println("[set fullscreen post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                             glWindow.setExclusiveContextThread(t);
                     } }.start();
                 }
@@ -224,7 +224,7 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
         
         System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
-        System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
+        System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
                 
         if( null != rwsize ) {
             for(int i=0; i<50; i++) { // 500 ms dispatched delay
@@ -238,7 +238,7 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
                   shell.setSize( rwsize.getWidth(), rwsize.getHeight() );
                }
             });
-            System.err.println("window resize pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
+            System.err.println("window resize pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
         }
         
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {

@@ -64,6 +64,8 @@ import com.jogamp.common.util.locks.RecursiveLock;
 public class JAWTUtil {
   public static final boolean DEBUG = Debug.debug("JAWT");
 
+  private static final boolean SKIP_AWT_HIDPI;
+
   /** OSX JAWT version option to use CALayer */
   public static final int JAWT_MACOSX_USE_CALAYER = 0x80000000;
 
@@ -298,8 +300,10 @@ public class JAWTUtil {
   }
 
   static {
+    SKIP_AWT_HIDPI = Debug.isPropertyDefined("nativewindow.awt.nohidpi", true);
+
     if(DEBUG) {
-        System.err.println("JAWTUtil initialization (JAWT/JNI/...");
+        System.err.println("JAWTUtil initialization (JAWT/JNI/...); SKIP_AWT_HIDPI "+SKIP_AWT_HIDPI);
         // Thread.dumpStack();
     }
 
@@ -542,13 +546,15 @@ public class JAWTUtil {
    * @return the pixel scale factor
    */
   public static final int getPixelScale(final GraphicsDevice device) {
-      if( null != getScaleFactorMethod ) {
-          try {
-              final Object res = getScaleFactorMethod.invoke(device);
-              if (res instanceof Integer) {
-                  return ((Integer)res).intValue();
-              }
-          } catch (Throwable t) {}
+      if( !SKIP_AWT_HIDPI ) {
+          if( null != getScaleFactorMethod ) {
+              try {
+                  final Object res = getScaleFactorMethod.invoke(device);
+                  if (res instanceof Integer) {
+                      return ((Integer)res).intValue();
+                  }
+              } catch (Throwable t) {}
+          }
       }
       return 1;
   }

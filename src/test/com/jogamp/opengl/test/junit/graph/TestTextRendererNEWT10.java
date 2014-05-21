@@ -150,10 +150,10 @@ public class TestTextRendererNEWT10 extends UITestCase {
         rs.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
 
         // reshape
-        gl.glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
+        gl.glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
 
         // renderer.reshapePerspective(gl, 45.0f, drawable.getWidth(), drawable.getHeight(), 0.1f, 1000.0f);
-        renderer.reshapeOrtho(drawable.getWidth(), drawable.getHeight(), 0.1f, 1000.0f);
+        renderer.reshapeOrtho(drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), 0.1f, 1000.0f);
 
         // display
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
@@ -181,7 +181,7 @@ public class TestTextRendererNEWT10 extends UITestCase {
     int lastRow = -1;
 
     void renderString(GLDrawable drawable, GL2ES2 gl, RegionRenderer renderer, TextRegionUtil textRenderUtil, String text, int column, int row, int z0) {
-        final int height = drawable.getHeight();
+        final int height = drawable.getSurfaceHeight();
 
         int dx = 0;
         int dy = height;

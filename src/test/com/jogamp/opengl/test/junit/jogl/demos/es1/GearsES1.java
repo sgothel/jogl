@@ -325,8 +325,8 @@ public class GearsES1 implements GLEventListener {
         Object source = e.getSource();
         if(source instanceof Window) {
             Window window = (Window) source;
-            width=window.getWidth();
-            height=window.getHeight();
+            width=window.getSurfaceWidth();
+            height=window.getSurfaceHeight();
         } else if (GLProfile.isAWTAvailable() && source instanceof java.awt.Component) {
             java.awt.Component comp = (java.awt.Component) source;
             width=comp.getWidth();

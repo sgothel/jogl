@@ -108,7 +108,7 @@ public class TestGLContextSurfaceLockNEWT extends UITestCase {
                 win.runOnEDTIfAvail(true, new Runnable() {
                     public void run() {
                         // Normal resize, may trigger immediate display within lock
-                        win.setSize(win.getWidth()+1, win.getHeight()+1);
+                        win.setSize(win.getSurfaceWidth()+1, win.getSurfaceHeight()+1);
 
                         // Force display within surface lock.
                         // This procedure emulates the sensitive behavior 

@@ -191,10 +191,10 @@ public class TestBug672NewtCanvasSWTSashFormComposite extends UITestCase {
 
         glWindow.addWindowListener(new WindowAdapter() {
             public void windowResized(WindowEvent e) {
-                System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight());
+                System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }
             public void windowMoved(WindowEvent e) {
-                System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight());
+                System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }
         });
 
@@ -207,9 +207,9 @@ public class TestBug672NewtCanvasSWTSashFormComposite extends UITestCase {
                     new Thread() {
                         public void run() {
                             final Thread t = glWindow.setExclusiveContextThread(null);
-                            System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
+                            System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                             glWindow.setFullscreen(!glWindow.isFullscreen());
-                            System.err.println("[set fullscreen post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
+                            System.err.println("[set fullscreen post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                             glWindow.setExclusiveContextThread(t);
                     } }.start();
                 }
@@ -239,7 +239,7 @@ public class TestBug672NewtCanvasSWTSashFormComposite extends UITestCase {
 
         System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
-        System.err.println("window pos/siz.0: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
+        System.err.println("window pos/siz.0: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
         System.err.println("GLWindow LOS.0: "+glWindow.getLocationOnScreen(null));
         System.err.println("NewtCanvasSWT LOS.0: "+canvas1.getNativeWindow().getLocationOnScreen(null));
 
@@ -252,7 +252,7 @@ public class TestBug672NewtCanvasSWTSashFormComposite extends UITestCase {
                   shell.setSize( rwsize.getWidth(), rwsize.getHeight() );
                }
             });
-            System.err.println("window resize pos/siz.1: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
+            System.err.println("window resize pos/siz.1: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
             System.err.println("GLWindow LOS.1: "+glWindow.getLocationOnScreen(null));
             System.err.println("NewtCanvasSWT LOS.1: "+canvas1.getNativeWindow().getLocationOnScreen(null));
         }

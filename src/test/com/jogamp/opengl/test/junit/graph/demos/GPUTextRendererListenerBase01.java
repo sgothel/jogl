@@ -199,8 +199,8 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
 
     @Override
     public void display(GLAutoDrawable drawable) {
-        final int width = drawable.getWidth();
-        final int height = drawable.getHeight();
+        final int width = drawable.getSurfaceWidth();
+        final int height = drawable.getSurfaceHeight();
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);

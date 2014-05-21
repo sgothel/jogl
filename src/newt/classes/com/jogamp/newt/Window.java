@@ -232,7 +232,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     //
 
     /**
-     * Sets the size of the window's client area, excluding decorations.
+     * Sets the size of the window's client area in window units, excluding decorations.
      *
      * <p>
      * Zero size semantics are respected, see {@link #setVisible(boolean)}:<br>
@@ -248,22 +248,22 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * <p>
      * This call is ignored if in fullscreen mode.<br></p>
      *
-     * @param width of the window's client area
-     * @param height of the window's client area
+     * @param width of the window's client area in window units
+     * @param height of the window's client area in window units
      *
      * @see #getInsets()
      */
     void setSize(int width, int height);
 
     /**
-     * Sets the size of the top-level window including insets (window decorations).
+     * Sets the size of the top-level window including insets (window decorations) in window units.
      *
      * <p>
      * Note: Insets (if supported) are available only after the window is set visible and hence has been created.
      * </p>
      *
-     * @param width of the top-level window area
-     * @param height of the top-level window area
+     * @param width of the top-level window area in window units
+     * @param height of the top-level window area in window units
      *
      * @see #setSize(int, int)
      * @see #getInsets()
@@ -271,19 +271,19 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     void setTopLevelSize(int width, int height);
 
     /**
-     * Sets the location of the window's client area, excluding insets (window decorations).<br>
+     * Sets the location of the window's client area excluding insets (window decorations) in window units.<br>
      *
      * This call is ignored if in fullscreen mode.<br>
      *
-     * @param x coord of the client-area's top left corner
-     * @param y coord of the client-area's top left corner
+     * @param x coord of the client-area's top left corner in window units
+     * @param y coord of the client-area's top left corner in window units
      *
      * @see #getInsets()
      */
     void setPosition(int x, int y);
 
     /**
-     * Sets the location of the top-level window inclusive insets (window decorations).<br>
+     * Sets the location of the top-level window inclusive insets (window decorations) in window units.<br>
      *
      * <p>
      * Note: Insets (if supported) are available only after the window is set visible and hence has been created.
@@ -291,8 +291,8 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      *
      * This call is ignored if in fullscreen mode.<br>
      *
-     * @param x coord of the top-level left corner
-     * @param y coord of the top-level left corner
+     * @param x coord of the top-level left corner in window units
+     * @param y coord of the top-level left corner in window units
      *
      * @see #setPosition(int, int)
      * @see #getInsets()
@@ -356,10 +356,10 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     void confinePointer(boolean confine);
 
     /**
-     * Moves the pointer to x/y relative to this window's origin.
+     * Moves the pointer to x/y relative to this window's origin in pixel units.
      *
-     * @param x relative pointer x position within this window
-     * @param y relative pointer y position within this window
+     * @param x relative pointer x position within this window in pixel units
+     * @param y relative pointer y position within this window in pixel units
      *
      * @see #confinePointer(boolean)
      */
@@ -431,8 +431,8 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * this window is added to it's list of children.<br></P>
      *
      * @param newParent The new parent NativeWindow. If null, this Window becomes a top level window.
-     * @param x new top-level position, use -1 for default position.
-     * @param y new top-level position, use -1 for default position.
+     * @param x new top-level position in window units, use -1 for default position.
+     * @param y new top-level position in window units, use -1 for default position.
      * @param hints May contain hints (bitfield values) like {@link #REPARENT_HINT_FORCE_RECREATION} or {@link #REPARENT_HINT_BECOMES_VISIBLE}.
      *
      * @return The issued reparent action type (strategy) as defined in Window.ReparentAction
@@ -520,6 +520,13 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      */
     void requestFocus(boolean wait);
 
+    /**
+     * Trigger window repaint while passing the dirty region in pixel units.
+     * @param x dirty-region y-pos in pixel units
+     * @param y dirty-region x-pos in pixel units
+     * @param width dirty-region width in pixel units
+     * @param height dirty-region height in pixel units
+     */
     void windowRepaint(int x, int y, int width, int height);
 
     void enqueueEvent(boolean wait, com.jogamp.newt.event.NEWTEvent event);

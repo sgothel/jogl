@@ -237,14 +237,14 @@ public class TestGearsES2AWT extends UITestCase {
             animator.setUpdateFPSFrames(60, System.err);
         }
         
-        System.err.println("canvas pos/siz: "+glCanvas.getX()+"/"+glCanvas.getY()+" "+glCanvas.getWidth()+"x"+glCanvas.getHeight());
+        System.err.println("canvas pos/siz: "+glCanvas.getX()+"/"+glCanvas.getY()+" "+glCanvas.getSurfaceWidth()+"x"+glCanvas.getSurfaceHeight());
 
         snap.setMakeSnapshot();
         
         if( null != rwsize ) {
             Thread.sleep(500); // 500ms delay 
             setSize(resizeBy, frame, true, glCanvas, rwsize);
-            System.err.println("window resize pos/siz: "+glCanvas.getX()+"/"+glCanvas.getY()+" "+glCanvas.getWidth()+"x"+glCanvas.getHeight());
+            System.err.println("window resize pos/siz: "+glCanvas.getX()+"/"+glCanvas.getY()+" "+glCanvas.getSurfaceWidth()+"x"+glCanvas.getSurfaceHeight());
         }
         
         snap.setMakeSnapshot();

@@ -153,8 +153,8 @@ public class TestRandomTiledRendering2GL2NEWT extends UITestCase {
         glad.invoke(true, new GLRunnable() {
             @Override
             public boolean run(GLAutoDrawable drawable) {
-                drawable.getGL().glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
-                gears.reshape(drawable, 0, 0, drawable.getWidth(), drawable.getHeight());
+                drawable.getGL().glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
+                gears.reshape(drawable, 0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
                 return false;
             }
         });

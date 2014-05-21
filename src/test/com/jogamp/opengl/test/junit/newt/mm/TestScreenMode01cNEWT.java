@@ -197,7 +197,7 @@ public class TestScreenMode01cNEWT extends UITestCase {
         
         GLWindow window0 = createWindow(screen, caps, "win0", xpos, ypos, width, height);
         Assert.assertNotNull(window0);        
-        System.err.println("Test.0: Window bounds: "+window0.getX()+"/"+window0.getY()+" "+window0.getWidth()+"x"+window0.getHeight()+" within "+screen.getViewport());
+        System.err.println("Test.0: Window bounds: "+window0.getX()+"/"+window0.getY()+" "+window0.getSurfaceWidth()+"x"+window0.getSurfaceHeight()+" within "+screen.getViewport());
 
         final Animator anim = new Animator(window0);
         anim.start();
@@ -214,9 +214,9 @@ public class TestScreenMode01cNEWT extends UITestCase {
         }
 
         monitor = window0.getMainMonitor();
-        System.err.println("Test.1: Window bounds: "+window0.getX()+"/"+window0.getY()+" "+window0.getWidth()+"x"+window0.getHeight()+" within "+screen.getViewport());
+        System.err.println("Test.1: Window bounds: "+window0.getX()+"/"+window0.getY()+" "+window0.getSurfaceWidth()+"x"+window0.getSurfaceHeight()+" within "+screen.getViewport());
         System.err.println("Test.1: Window monitor: "+monitor.getViewport());
-        Rectangle window0Rect = new Rectangle(window0.getX(), window0.getY(), window0.getWidth(), window0.getHeight());
+        Rectangle window0Rect = new Rectangle(window0.getX(), window0.getY(), window0.getSurfaceWidth(), window0.getSurfaceHeight());
         if( !spanAcrossMonitors ) {
             Assert.assertEquals(monitor.getViewport(),  window0Rect);
         } else {
@@ -232,9 +232,9 @@ public class TestScreenMode01cNEWT extends UITestCase {
 
         window0.setFullscreen(false);
         
-        window0Rect = new Rectangle(window0.getX(), window0.getY(), window0.getWidth(), window0.getHeight());
+        window0Rect = new Rectangle(window0.getX(), window0.getY(), window0.getSurfaceWidth(), window0.getSurfaceHeight());
         monitor = window0.getMainMonitor();
-        System.err.println("Test.2: Window bounds: "+window0.getX()+"/"+window0.getY()+" "+window0.getWidth()+"x"+window0.getHeight()+" within "+screen.getViewport());
+        System.err.println("Test.2: Window bounds: "+window0.getX()+"/"+window0.getY()+" "+window0.getSurfaceWidth()+"x"+window0.getSurfaceHeight()+" within "+screen.getViewport());
         System.err.println("Test.2: Window monitor: "+monitor.getViewport());        
                 
         Thread.sleep(duration);

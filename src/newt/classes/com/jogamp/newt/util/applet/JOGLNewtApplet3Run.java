@@ -44,7 +44,7 @@ import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
-import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSizePos;
+import com.jogamp.nativewindow.UpstreamWindowHookMutableSizePos;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.opengl.GLWindow;
@@ -103,7 +103,7 @@ public class JOGLNewtApplet3Run implements Applet3 {
     int glXd=Integer.MAX_VALUE, glYd=Integer.MAX_VALUE, glWidth=Integer.MAX_VALUE, glHeight=Integer.MAX_VALUE;
     Applet3Context ctx;
     boolean glStandalone = false;
-    UpstreamSurfaceHookMutableSizePos upstreamSizePosHook;
+    UpstreamWindowHookMutableSizePos upstreamSizePosHook;
     PointImmutable upstreamLocOnScreen;
     NativeWindow browserWin;
 
@@ -147,8 +147,9 @@ public class JOGLNewtApplet3Run implements Applet3 {
         final AbstractGraphicsDevice aDevice = NativeWindowFactory.createDevice(upstreamWin.getDisplayConnection(),
                                                                                 true /* own */); // open and own! (for upstreamLocOnScreen)
         final AbstractGraphicsScreen aScreen = NativeWindowFactory.createScreen(aDevice, upstreamWin.getScreenIndex());
-        upstreamSizePosHook = new UpstreamSurfaceHookMutableSizePos(upstreamWin.getX(), upstreamWin.getY(),
-                                                                    upstreamWin.getWidth(), upstreamWin.getHeight());
+        upstreamSizePosHook = new UpstreamWindowHookMutableSizePos(upstreamWin.getX(), upstreamWin.getY(),
+                                                                   upstreamWin.getWidth(), upstreamWin.getHeight(),
+                                                                   upstreamWin.getWidth(), upstreamWin.getHeight()); // FIXME: pixel-dim == window-dim 'for now' ?
         browserWin = NativeWindowFactory.createWrappedWindow(aScreen, 0 /* surfaceHandle */, upstreamWin.getWindowHandle(),
                                                             upstreamSizePosHook);
         upstreamLocOnScreen = NativeWindowFactory.getLocationOnScreen(browserWin);
@@ -171,7 +172,7 @@ public class JOGLNewtApplet3Run implements Applet3 {
         glWindow = GLWindow.create(w);
         glWindow.setUndecorated(glUndecorated);
         glWindow.setAlwaysOnTop(glAlwaysOnTop);
-        glWindow.setSize(browserWin.getWidth(), browserWin.getHeight());
+        glWindow.setSize(browserWin.getSurfaceWidth(), browserWin.getSurfaceHeight());
 
         return new NativeWindowDownstream() {
             @Override
@@ -183,7 +184,7 @@ public class JOGLNewtApplet3Run implements Applet3 {
 
             @Override
             public void setSize(int width, int height) {
-                upstreamSizePosHook.setSize(width, height);
+                upstreamSizePosHook.setPixelSize(width, height);
                 if( null != glWindow ) {
                     glWindow.setSize(width, height);
                 }
@@ -226,7 +227,7 @@ public class JOGLNewtApplet3Run implements Applet3 {
 
             @Override
             public void notifyPositionChanged(NativeWindowUpstream nw) {
-                upstreamSizePosHook.setPos(nw.getX(), nw.getY());
+                upstreamSizePosHook.setWinPos(nw.getX(), nw.getY());
                 if( null != glWindow ) {
                     glWindow.setPosition(nw.getX(), nw.getY());
                 }

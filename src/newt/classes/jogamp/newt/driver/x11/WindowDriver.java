@@ -129,7 +129,7 @@ public class WindowDriver extends WindowImpl {
             setWindowHandle(CreateWindow(getParentWindowHandle(),
                                    edtDevice.getHandle(), screen.getIndex(), visualID,
                                    display.getJavaObjectAtom(), display.getWindowDeleteAtom(),
-                                   getX(), getY(), getWidth(), getHeight(), autoPosition(), flags,
+                                   getX(), getY(), getSurfaceWidth(), getSurfaceHeight(), autoPosition(), flags,
                                    defaultIconDataSize, defaultIconData));
         } finally {
             edtDevice.unlock();
@@ -238,7 +238,7 @@ public class WindowDriver extends WindowImpl {
                 public Object run(long dpy) {
                     reconfigureWindow0( dpy, getScreenIndex(),
                                         getParentWindowHandle(), getWindowHandle(), display.getWindowDeleteAtom(),
-                                        getX(), getY(), getWidth(), getHeight(), flags);
+                                        getX(), getY(), getSurfaceWidth(), getSurfaceHeight(), flags);
                     return null;
                 }
             });

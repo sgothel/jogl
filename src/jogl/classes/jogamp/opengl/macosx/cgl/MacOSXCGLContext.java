@@ -364,8 +364,8 @@ public class MacOSXCGLContext extends GLContextImpl
   protected void drawableUpdatedNotify() throws GLException {
     if( drawable.getChosenGLCapabilities().isOnscreen() ) {
         final long _updateHandle = getUpdateHandle();
-        final int w = drawable.getWidth();
-        final int h = drawable.getHeight();
+        final int w = drawable.getSurfaceWidth();
+        final int h = drawable.getSurfaceHeight();
         final boolean updateContext = ( 0!=_updateHandle && CGL.updateContextNeedsUpdate(_updateHandle) ) ||
                                       w != lastWidth || h != lastHeight;
         if(updateContext) {
@@ -681,14 +681,17 @@ public class MacOSXCGLContext extends GLContextImpl
           final long pbuffer;
           final int texID;
           final boolean isOpaque;
-          final int width;
-          final int height;
+          final int texWidth;
+          final int texHeight;
+          final int winWidth;
+          final int winHeight;
           /** Synchronized by instance's monitor */
           long nsOpenGLLayer;
           /** Synchronized by instance's monitor */
           boolean valid;
 
-          AttachGLLayerCmd(OffscreenLayerSurface ols, long ctx, int shaderProgram, long pfmt, long pbuffer, int texID, boolean isOpaque, int width, int height) {
+          AttachGLLayerCmd(OffscreenLayerSurface ols, long ctx, int shaderProgram, long pfmt, long pbuffer, int texID,
+                           boolean isOpaque, int texWidth, int texHeight, int winWidth, int winHeight) {
               this.ols = ols;
               this.ctx = ctx;
               this.shaderProgram = shaderProgram;
@@ -696,14 +699,16 @@ public class MacOSXCGLContext extends GLContextImpl
               this.pbuffer = pbuffer;
               this.texID = texID;
               this.isOpaque = isOpaque;
-              this.width = width;
-              this.height = height;
+              this.texWidth = texWidth;
+              this.texHeight = texHeight;
+              this.winWidth = winWidth;
+              this.winHeight = winHeight;
               this.valid = false;
               this.nsOpenGLLayer = 0;
           }
 
           public final String contentToString() {
-              return "valid "+valid+", size "+width+"x"+height+", ctx "+toHexString(ctx)+", opaque "+isOpaque+", texID "+texID+", pbuffer "+toHexString(pbuffer)+", nsOpenGLLayer "+toHexString(nsOpenGLLayer);
+              return "valid "+valid+", size tex["+texWidth+"x"+texHeight+"], win["+winWidth+"x"+winHeight+"], ctx "+toHexString(ctx)+", opaque "+isOpaque+", texID "+texID+", pbuffer "+toHexString(pbuffer)+", nsOpenGLLayer "+toHexString(nsOpenGLLayer);
           }
 
           @Override
@@ -722,7 +727,8 @@ public class MacOSXCGLContext extends GLContextImpl
                               try {
                                   if( MacOSXCGLContext.this.lock.tryLock( maxwait ) ) {
                                       try {
-                                          nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, shaderProgram, pfmt, pbuffer, texID, isOpaque, width, height);
+                                          nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, shaderProgram, pfmt, pbuffer, texID, isOpaque,
+                                                                                  texWidth, texHeight, winWidth, winHeight);
                                           ols.attachSurfaceLayer(nsOpenGLLayer);
                                           final int currentInterval = MacOSXCGLContext.this.getSwapInterval();
                                           final int interval = 0 <= currentInterval ? currentInterval : 1;
@@ -838,8 +844,8 @@ public class MacOSXCGLContext extends GLContextImpl
                   } else {
                       throw new GLException("BackingLayerHost w/ unknown handle (!FBO, !PBuffer): "+drawable);
                   }
-                  lastWidth = drawable.getWidth();
-                  lastHeight = drawable.getHeight();
+                  lastWidth = drawable.getSurfaceWidth();
+                  lastHeight = drawable.getSurfaceHeight();
                   if(0>=lastWidth || 0>=lastHeight || !drawable.isRealized()) {
                       throw new GLException("Drawable not realized yet or invalid texture size, texSize "+lastWidth+"x"+lastHeight+", "+drawable);
                   }
@@ -853,16 +859,21 @@ public class MacOSXCGLContext extends GLContextImpl
                   }
 
                   // All CALayer lifecycle ops are deferred on main-thread
+                  final int[] winSize;
+                  {
+                      final int[] pixelSize = { lastWidth, lastHeight };
+                      winSize = drawable.getNativeSurface().getWindowUnitXY(pixelSize, pixelSize);
+                  }
                   attachGLLayerCmd = new AttachGLLayerCmd(
                           backingLayerHost, ctx, gl3ShaderProgramName, pixelFormat, pbufferHandle, texID,
-                          chosenCaps.isBackgroundOpaque(), lastWidth, lastHeight );
+                          chosenCaps.isBackgroundOpaque(), lastWidth, lastHeight, winSize[0], winSize[1] );
                   if(DEBUG) {
                       System.err.println("MaxOSXCGLContext.NSOpenGLImpl.associateDrawable(true): "+attachGLLayerCmd);
                   }
                   OSXUtil.RunOnMainThread(false, attachGLLayerCmd);
               } else { // -> null == backingLayerHost
-                  lastWidth = drawable.getWidth();
-                  lastHeight = drawable.getHeight();
+                  lastWidth = drawable.getSurfaceWidth();
+                  lastHeight = drawable.getSurfaceHeight();
                   boolean[] isPBuffer = { false };
                   boolean[] isFBO = { false };
                   CGL.setContextView(contextHandle, getNSViewHandle(isPBuffer, isFBO));
@@ -913,11 +924,11 @@ public class MacOSXCGLContext extends GLContextImpl
 
       /** Returns true if size has been updated, otherwise false (same size). */
       private final boolean validateDrawableSizeConfig(long ctx) {
-          final int width = drawable.getWidth();
-          final int height = drawable.getHeight();
+          final int width = drawable.getSurfaceWidth();
+          final int height = drawable.getSurfaceHeight();
           if( lastWidth != width || lastHeight != height ) {
-              lastWidth = drawable.getWidth();
-              lastHeight = drawable.getHeight();
+              lastWidth = drawable.getSurfaceWidth();
+              lastHeight = drawable.getSurfaceHeight();
               if(DEBUG) {
                   System.err.println("NS.validateDrawableConfig size changed");
               }

@@ -105,9 +105,9 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       IntBuffer iattributes = Buffers.newDirectIntBuffer(7);
 
       iattributes.put(niattribs++, GLX.GLX_PBUFFER_WIDTH);
-      iattributes.put(niattribs++, ms.getWidth());
+      iattributes.put(niattribs++, ms.getSurfaceWidth());
       iattributes.put(niattribs++, GLX.GLX_PBUFFER_HEIGHT);
-      iattributes.put(niattribs++, ms.getHeight());
+      iattributes.put(niattribs++, ms.getSurfaceHeight());
       iattributes.put(niattribs++, GLX.GLX_LARGEST_PBUFFER); // exact
       iattributes.put(niattribs++, 0);
       iattributes.put(niattribs++, 0);

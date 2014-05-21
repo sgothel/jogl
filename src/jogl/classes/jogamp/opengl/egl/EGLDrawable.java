@@ -66,7 +66,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
         final EGLGraphicsConfiguration eglConfig = (EGLGraphicsConfiguration) eglws.getGraphicsConfiguration();
         final NativeSurface upstreamSurface = eglws.getUpstreamSurface();
 
-        long eglSurface = createSurface(eglConfig, eglws.getWidth(), eglws.getHeight(), upstreamSurface.getSurfaceHandle());
+        long eglSurface = createSurface(eglConfig, eglws.getSurfaceWidth(), eglws.getSurfaceHeight(), upstreamSurface.getSurfaceHandle());
 
         int eglError0;
         if (EGL.EGL_NO_SURFACE == eglSurface) {
@@ -80,7 +80,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                         if(DEBUG) {
                             System.err.println(getThreadName() + ": Info: Creation of window surface w/ surface handle failed: "+eglConfig+", error "+toHexString(eglError0)+", retry w/ windowHandle");
                         }
-                        eglSurface = createSurface(eglConfig, eglws.getWidth(), eglws.getHeight(), nw.getWindowHandle());
+                        eglSurface = createSurface(eglConfig, eglws.getSurfaceWidth(), eglws.getSurfaceHeight(), nw.getWindowHandle());
                         if (EGL.EGL_NO_SURFACE == eglSurface) {
                             eglError0 = EGL.eglGetError();
                         }

@@ -41,7 +41,7 @@
 
 #include <jawt_md.h>
 
-// #define VERBOSE 1
+#define VERBOSE 1
 //
 #ifdef VERBOSE
     // #define DBG_PRINT(...) NSLog(@ ## __VA_ARGS__)
@@ -544,18 +544,26 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetNSWindow0
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    CreateCALayer0
- * Signature: (II)J
+ * Signature: (IIF)J
  */
 JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateCALayer0
-  (JNIEnv *env, jclass unused, jint width, jint height)
+  (JNIEnv *env, jclass unused, jint width, jint height, jfloat contentsScale)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
     MyCALayer* layer = [[MyCALayer alloc] init];
-    DBG_PRINT("CALayer::CreateCALayer.0: root %p 0/0 %dx%d (refcnt %d)\n", layer, (int)width, (int)height, (int)[layer retainCount]);
+    DBG_PRINT("CALayer::CreateCALayer.0: root %p 0/0 %dx%d @ scale %lf (refcnt %d)\n", layer, (int)width, (int)height, (double)contentsScale, (int)[layer retainCount]);
     // avoid zero size
     if(0 == width) { width = 32; }
     if(0 == height) { height = 32; }
+
+    if( 1.0 != contentsScale ) {
+NS_DURING
+        // Available >= 10.7
+        [layer setContentsScale: (CGFloat)contentsScale];
+NS_HANDLER
+NS_ENDHANDLER
+    }
 
     // initial dummy size !
     CGRect lFrame = [layer frame];
@@ -580,10 +588,10 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateCALayer0
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    AddCASublayer0
- * Signature: (JJIIIII)V
+ * Signature: (JJIIIIIF)V
  */
 JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
-  (JNIEnv *env, jclass unused, jlong rootCALayer, jlong subCALayer, jint x, jint y, jint width, jint height, jint caLayerQuirks)
+  (JNIEnv *env, jclass unused, jlong rootCALayer, jlong subCALayer, jint x, jint y, jint width, jint height, jfloat contentsScale, jint caLayerQuirks)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     MyCALayer* rootLayer = (MyCALayer*) ((intptr_t) rootCALayer);
@@ -596,9 +604,18 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
     [subLayer retain]; // Pairs w/ RemoveCASublayer
 
     CGRect lRectRoot = [rootLayer frame];
-    DBG_PRINT("CALayer::AddCASublayer0.0: Quirks %d, Root %p (refcnt %d), Sub %p (refcnt %d), frame0: %lf/%lf %lfx%lf\n",
+
+    // Available >= 10.7
+    DBG_PRINT("CALayer::AddCASublayer0.0: Quirks %d, Root %p (refcnt %d), Sub %p (refcnt %d), frame0: %lf/%lf %lfx%lf scale %lf\n",
         caLayerQuirks, rootLayer, (int)[rootLayer retainCount], subLayer, (int)[subLayer retainCount],
-        lRectRoot.origin.x, lRectRoot.origin.y, lRectRoot.size.width, lRectRoot.size.height);
+        lRectRoot.origin.x, lRectRoot.origin.y, lRectRoot.size.width, lRectRoot.size.height, (float)contentsScale);
+
+    if( 1.0 != contentsScale ) {
+NS_DURING
+        [subLayer setContentsScale: (CGFloat)contentsScale];
+NS_HANDLER
+NS_ENDHANDLER
+    }
 
     [subLayer setFrame:lRectRoot];
     [rootLayer addSublayer:subLayer];

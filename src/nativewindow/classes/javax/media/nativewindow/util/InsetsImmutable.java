@@ -30,25 +30,28 @@ package javax.media.nativewindow.util;
 
 import com.jogamp.common.type.WriteCloneable;
 
-/** Immutable Rectangle interface */
+/**
+ * Immutable insets representing rectangular window decoration insets on all four edges
+ * in window units.
+ */
 public interface InsetsImmutable extends WriteCloneable {
 
-    /** @return left inset width */
+    /** @return left inset width in window units. */
     int getLeftWidth();
 
-    /** @return right inset width */
+    /** @return right inset width in window units. */
     int getRightWidth();
 
-    /** @return total width, ie. <code>left_width + right_width</code> */
+    /** @return total width in window units, ie. <code>left_width + right_width</code> */
     int getTotalWidth();
 
-    /** @return top inset height */
+    /** @return top inset height in window units. */
     int getTopHeight();
 
-    /** @return bottom inset height */
+    /** @return bottom inset height in window units. */
     int getBottomHeight();
 
-    /** @return total height, ie. <code>top_height + bottom_height</code> */
+    /** @return total height in window units, ie. <code>top_height + bottom_height</code> */
     int getTotalHeight();
 
     /**

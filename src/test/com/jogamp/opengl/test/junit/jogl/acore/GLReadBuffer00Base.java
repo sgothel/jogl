@@ -79,7 +79,7 @@ public abstract class GLReadBuffer00Base extends UITestCase {
 
         @Override
         public void display(GLAutoDrawable drawable) {
-            final String text = String.format("Frame %04d (%03d): %04dx%04d", frameNo, userCounter, drawable.getWidth(), drawable.getHeight());
+            final String text = String.format("Frame %04d (%03d): %04dx%04d", frameNo, userCounter, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
             System.err.println("TextRendererGLEL.display: "+text);
             if( null != renderer ) {
                 final float pixelSize = font.getPixelSize(14f, dpiH);

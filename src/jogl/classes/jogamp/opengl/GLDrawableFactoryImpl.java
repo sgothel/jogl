@@ -417,9 +417,9 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * @param deviceReq which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
    * @param requestedCaps
    * @param chooser the custom chooser, may be null for default
-   * @param width the initial width as returned by {@link NativeSurface#getWidth()}, not the actual dummy surface width.
+   * @param width the initial width as returned by {@link NativeSurface#getSurfaceWidth()}, not the actual dummy surface width.
    *        The latter is platform specific and small
-   * @param height the initial height as returned by {@link NativeSurface#getHeight()}, not the actual dummy surface height,
+   * @param height the initial height as returned by {@link NativeSurface#getSurfaceHeight()}, not the actual dummy surface height,
    *        The latter is platform specific and small
    *
    * @return the created {@link ProxySurface} instance w/o defined surface handle but platform specific {@link UpstreamSurfaceHook}.
@@ -446,9 +446,9 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * @param chosenCaps
    * @param requestedCaps
    * @param chooser the custom chooser, may be null for default
-   * @param width the initial width as returned by {@link NativeSurface#getWidth()}, not the actual dummy surface width.
+   * @param width the initial width as returned by {@link NativeSurface#getSurfaceWidth()}, not the actual dummy surface width.
    *        The latter is platform specific and small
-   * @param height the initial height as returned by {@link NativeSurface#getHeight()}, not the actual dummy surface height,
+   * @param height the initial height as returned by {@link NativeSurface#getSurfaceHeight()}, not the actual dummy surface height,
    *        The latter is platform specific and small
    * @return the created {@link ProxySurface} instance w/o defined surface handle but platform specific {@link UpstreamSurfaceHook}.
    */

@@ -98,7 +98,7 @@ public class WindowsJAWTWindow extends JAWTWindow {
       unlockSurfaceImpl();
       return LOCK_SURFACE_NOT_READY;
     }
-    updateBounds(dsi.getBounds());
+    updateLockedData(dsi.getBounds());
     win32dsi = (JAWT_Win32DrawingSurfaceInfo) dsi.platformInfo(getJAWT());
     if (win32dsi == null) {
       unlockSurfaceImpl();

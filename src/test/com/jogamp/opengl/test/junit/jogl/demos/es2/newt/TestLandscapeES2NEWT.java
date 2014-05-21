@@ -112,7 +112,7 @@ public class TestLandscapeES2NEWT extends UITestCase {
 
         System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
-        System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
+        System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
         
         snap.setMakeSnapshot();
         

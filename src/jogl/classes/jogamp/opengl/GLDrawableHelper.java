@@ -362,7 +362,7 @@ public class GLDrawableHelper {
               final ProxySurface ps = (ProxySurface) ns;
               final UpstreamSurfaceHook ush = ps.getUpstreamSurfaceHook();
               if(ush instanceof UpstreamSurfaceHook.MutableSize) {
-                  ((UpstreamSurfaceHook.MutableSize)ush).setSize(newWidth, newHeight);
+                  ((UpstreamSurfaceHook.MutableSize)ush).setPixelSize(newWidth, newHeight);
               } else if(DEBUG) { // we have to assume UpstreamSurfaceHook contains the new size already, hence size check @ bottom
                   System.err.println("GLDrawableHelper.resizeOffscreenDrawable: Drawable's offscreen ProxySurface n.a. UpstreamSurfaceHook.MutableSize, but "+ush.getClass().getName()+": "+ush);
               }
@@ -379,7 +379,7 @@ public class GLDrawableHelper {
       } finally {
           ns.unlockSurface();
       }
-      if( validateSize && ( drawable.getWidth() != newWidth || drawable.getHeight() != newHeight ) ) {
+      if( validateSize && ( drawable.getSurfaceWidth() != newWidth || drawable.getSurfaceHeight() != newHeight ) ) {
           throw new InternalError("Incomplete resize operation: expected "+newWidth+"x"+newHeight+", has: "+drawable);
       }
       return drawable;
@@ -616,7 +616,7 @@ public class GLDrawableHelper {
   private final void init(GLEventListener l, GLAutoDrawable drawable, boolean sendReshape, boolean setViewport) {
       l.init(drawable);
       if(sendReshape) {
-          reshape(l, drawable, 0, 0, drawable.getWidth(), drawable.getHeight(), setViewport, false /* checkInit */);
+          reshape(l, drawable, 0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), setViewport, false /* checkInit */);
       }
   }
 
@@ -640,7 +640,7 @@ public class GLDrawableHelper {
             }
         } else {
             // Expose same GL initialization if not using GLEventListener
-            drawable.getGL().glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
+            drawable.getGL().glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
         }
     }
   }

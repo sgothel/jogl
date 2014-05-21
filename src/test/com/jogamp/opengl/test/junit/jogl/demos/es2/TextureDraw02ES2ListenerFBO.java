@@ -183,7 +183,7 @@ public class TextureDraw02ES2ListenerFBO implements GLEventListener {
 
         if( fbo0.getNumSamples() != numSamples ) {
             System.err.println("**** NumSamples: "+fbo0.getNumSamples()+" -> "+numSamples);
-            resetFBOs(gl, drawable.getWidth(), drawable.getHeight());
+            resetFBOs(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
         }
         
         if(0 < numSamples) {

@@ -173,7 +173,7 @@ public class PinchToZoomGesture implements GestureHandler {
         }
 
         final int eventType = pe.getEventType();
-        final boolean useY = surface.getWidth() >= surface.getHeight(); // use smallest dimension
+        final boolean useY = surface.getSurfaceWidth() >= surface.getSurfaceHeight(); // use smallest dimension
         switch ( eventType ) {
             case MouseEvent.EVENT_MOUSE_PRESSED: {
                 if( 1 == pointerDownCount ) {
@@ -221,7 +221,7 @@ public class PinchToZoomGesture implements GestureHandler {
                             } else if( zoomMode ) {
                                 final int d = Math.abs(edge0-edge1);
                                 final int dd = d - zoomLastEdgeDist;
-                                final float screenEdge = useY ? surface.getHeight() : surface.getWidth();
+                                final float screenEdge = useY ? surface.getSurfaceHeight() : surface.getSurfaceWidth();
                                 final float delta = dd / screenEdge; // [-1..1]
                                 if(DEBUG) {
                                     System.err.println("XXX2: id0 "+pIds[0]+" -> idx0 "+p0Idx+", id1 "+pIds[1]+" -> idx1 "+p1Idx);

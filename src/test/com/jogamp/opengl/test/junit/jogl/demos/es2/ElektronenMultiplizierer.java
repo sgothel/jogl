@@ -244,8 +244,8 @@ public class ElektronenMultiplizierer implements GLEventListener {
         sp0.add(gl, fp0, System.err);       
         st.attachShaderProgram(gl, sp0, true);
                 
-        final float XRESf = (float) drawable.getWidth();
-        final float YRESf = (float) drawable.getHeight();
+        final float XRESf = (float) drawable.getSurfaceWidth();
+        final float YRESf = (float) drawable.getSurfaceHeight();
 
         mScreenDimensionUniform = new GLUniformData("resolution", 2, Buffers.newDirectFloatBuffer(2));
         final FloatBuffer mScreenDimensionV = (FloatBuffer) mScreenDimensionUniform.getBuffer();
@@ -334,8 +334,8 @@ public class ElektronenMultiplizierer implements GLEventListener {
        
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         
-        final int XRES = drawable.getWidth();
-        final int YRES = drawable.getHeight();
+        final int XRES = drawable.getSurfaceWidth();
+        final int YRES = drawable.getSurfaceHeight();
 
 //        if (!getBaseMusic().isOffline()) {
 //            //if music IS used sync to first second of music ...

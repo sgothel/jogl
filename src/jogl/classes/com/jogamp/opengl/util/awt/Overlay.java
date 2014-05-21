@@ -119,7 +119,7 @@ public class Overlay {
   */
   public void drawAll() throws GLException {
     beginRendering();
-    draw(0, 0, drawable.getWidth(), drawable.getHeight());
+    draw(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
     endRendering();
   }
 
@@ -130,7 +130,7 @@ public class Overlay {
       @throws GLException If an OpenGL context is not current when this method is called
   */
   public void beginRendering() throws GLException {
-    renderer.beginOrthoRendering(drawable.getWidth(), drawable.getHeight());
+    renderer.beginOrthoRendering(drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
   }
 
   /** Ends the OpenGL rendering process for the overlay. This is
@@ -198,13 +198,13 @@ public class Overlay {
 
   private void validateRenderer() {
     if (renderer == null) {
-      renderer = new TextureRenderer(drawable.getWidth(),
-                                     drawable.getHeight(),
+      renderer = new TextureRenderer(drawable.getSurfaceWidth(),
+                                     drawable.getSurfaceHeight(),
                                      true);
       contentsLost = true;
-    } else if (renderer.getWidth() != drawable.getWidth() ||
-               renderer.getHeight() != drawable.getHeight()) {
-      renderer.setSize(drawable.getWidth(), drawable.getHeight());
+    } else if (renderer.getWidth() != drawable.getSurfaceWidth() ||
+               renderer.getHeight() != drawable.getSurfaceHeight()) {
+      renderer.setSize(drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
       contentsLost = true;
     } else {
       contentsLost = false;

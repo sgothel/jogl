@@ -139,7 +139,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
 
             for(int i=0; i<fbosN; i++) {
                 fbos[i] = new FBObject();
-                fbos[i].reset(gl, getWidth(), getHeight(), samples, false);
+                fbos[i].reset(gl, getSurfaceWidth(), getSurfaceHeight(), samples, false);
                 if(fbos[i].getNumSamples() != samples) {
                     throw new InternalError("Sample number mismatch: "+samples+", fbos["+i+"] "+fbos[i]);
                 }
@@ -211,7 +211,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         // resetQuirk fallback
         fbos[idx].destroy(gl);
         fbos[idx] = new FBObject();
-        fbos[idx].reset(gl, getWidth(), getHeight(), samples, false);
+        fbos[idx].reset(gl, getSurfaceWidth(), getSurfaceHeight(), samples, false);
         if(fbos[idx].getNumSamples() != samples) {
             throw new InternalError("Sample number mismatch: "+samples+", fbos["+idx+"] "+fbos[idx]);
         }
@@ -262,8 +262,8 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                 if(DEBUG) {
                     System.err.println("GLFBODrawableImpl.reset(): simple reconfig: "+samples+" -> "+newSamples+"/"+maxSamples);
                 }
-                final int nWidth = getWidth();
-                final int nHeight = getHeight();
+                final int nWidth = getSurfaceWidth();
+                final int nHeight = getSurfaceHeight();
                 samples = newSamples;
                 pendingFBOReset = ( 1 < fbos.length ) ? fboIFront : -1; // pending-front reset only w/ double buffering (or zero samples)
                 final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) surface.getGraphicsConfiguration().getChosenCapabilities();
@@ -396,7 +396,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         // Safely reset the previous front FBO - after completing propagating swap
         if(0 <= pendingFBOReset) {
             final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) surface.getGraphicsConfiguration().getChosenCapabilities();
-            reset(glc.getGL(), pendingFBOReset, getWidth(), getHeight(), samples, caps.getAlphaBits(), caps.getStencilBits());
+            reset(glc.getGL(), pendingFBOReset, getSurfaceWidth(), getSurfaceHeight(), samples, caps.getAlphaBits(), caps.getStencilBits());
             pendingFBOReset = -1;
         }
     }
@@ -578,7 +578,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                 final ProxySurface ps = (ProxySurface) getNativeSurface();
                 final UpstreamSurfaceHook ush = ps.getUpstreamSurfaceHook();
                 if(ush instanceof UpstreamSurfaceHook.MutableSize) {
-                    ((UpstreamSurfaceHook.MutableSize)ush).setSize(newWidth, newHeight);
+                    ((UpstreamSurfaceHook.MutableSize)ush).setPixelSize(newWidth, newHeight);
                 } else {
                     throw new InternalError("GLFBODrawableImpl.ResizableImpl's ProxySurface doesn't hold a UpstreamSurfaceHookMutableSize but "+ush.getClass().getName()+", "+ps+", ush");
                 }

@@ -82,8 +82,8 @@ public class TestBug605FlippedImageAWT extends UITestCase {
             }
             gl.glFinish();
 
-            final int width = drawable.getWidth();
-            final int height = drawable.getHeight();
+            final int width = drawable.getSurfaceWidth();
+            final int height = drawable.getSurfaceHeight();
 
             final String fname = getSnapshotFilename(0, null, caps, width, height, false, TextureIO.PNG, null);
             try {

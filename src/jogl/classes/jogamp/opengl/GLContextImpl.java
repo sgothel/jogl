@@ -634,7 +634,7 @@ public abstract class GLContextImpl extends GLContext {
 
   private final int makeCurrentWithinLock(int surfaceLockRes) throws GLException {
       if (!isCreated()) {
-        if( 0 >= drawable.getWidth() || 0 >= drawable.getHeight() ) {
+        if( 0 >= drawable.getSurfaceWidth() || 0 >= drawable.getSurfaceHeight() ) {
             if ( DEBUG_TRACE_SWITCH ) {
                 System.err.println(getThreadName() + ": Create GL context REJECTED (zero surface size) obj " + toHexString(hashCode()) + ", surf "+toHexString(drawable.getHandle())+" for " + getClass().getName());
                 System.err.println(drawable.toString());

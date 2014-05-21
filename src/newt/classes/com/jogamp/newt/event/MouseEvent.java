@@ -42,6 +42,11 @@ package com.jogamp.newt.event;
  * <p>
  * http://www.w3.org/Submission/pointer-events/#pointerevent-interface
  * </p>
+ * <a name="coordUnit"><h5>Unit of Coordinates</h5></a>
+ * <p>
+ * All pointer coordinates of this interface are represented in pixel units,
+ * see {@link NativeSurface} and {@link NativeWindow}.
+ * </p>
  * <a name="multiPtrEvent"><h5>Multiple-Pointer Events</h5></a>
  * <p>
  * In case an instance represents a multiple-pointer event, i.e. {@link #getPointerCount()} is &gt; 1,
@@ -349,10 +354,18 @@ public class MouseEvent extends InputEvent
         return clickCount;
     }
 
+    /**
+     * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
+     * @return X-Coord of the triggering pointer-index zero in pixel units.
+     */
     public final int getX() {
         return x[0];
     }
 
+    /**
+     * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
+     * @return Y-Coord of the triggering pointer-index zero in pixel units.
+     */
     public final int getY() {
         return y[0];
     }
@@ -360,7 +373,7 @@ public class MouseEvent extends InputEvent
     /**
      * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * @param index pointer-index within [0 .. {@link #getPointerCount()}-1]
-     * @return X-Coord associated with the pointer-index.
+     * @return X-Coord associated with the pointer-index in pixel units.
      * @see getPointerId(index)
      */
     public final int getX(final int index) {
@@ -370,7 +383,7 @@ public class MouseEvent extends InputEvent
     /**
      * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
      * @param index pointer-index within [0 .. {@link #getPointerCount()}-1]
-     * @return Y-Coord associated with the pointer-index.
+     * @return Y-Coord associated with the pointer-index in pixel units.
      * @see getPointerId(index)
      */
     public final int getY(final int index) {
@@ -379,7 +392,7 @@ public class MouseEvent extends InputEvent
 
     /**
      * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
-     * @return array of all X-Coords for all pointers
+     * @return array of all X-Coords for all pointers in pixel units.
      */
     public final int[] getAllX() {
         return x;
@@ -387,7 +400,7 @@ public class MouseEvent extends InputEvent
 
     /**
      * See details for <a href="#multiPtrEvent">multiple-pointer events</a>.
-     * @return array of all Y-Coords for all pointers
+     * @return array of all Y-Coords for all pointers in pixel units.
      */
     public final int[] getAllY() {
         return y;

@@ -275,13 +275,13 @@ public abstract class GLDrawableImpl implements GLDrawable {
   }
 
   @Override
-  public int getWidth() {
-    return surface.getWidth();
+  public int getSurfaceWidth() {
+    return surface.getSurfaceWidth();
   }
 
   @Override
-  public int getHeight() {
-    return surface.getHeight();
+  public int getSurfaceHeight() {
+    return surface.getSurfaceHeight();
   }
 
   @Override

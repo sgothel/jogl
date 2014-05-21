@@ -334,7 +334,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
             final String modeS = Region.getRenderModeString(renderModes);
             final String bname = String.format("%s-msaa%02d-fontsz%02.1f-%03dx%03d-%s%04d", objName,
                     drawable.getChosenGLCapabilities().getNumSamples(),
-                    TestTextRendererNEWT00.fontSizeFixed, drawable.getWidth(), drawable.getHeight(), modeS, vbaaSampleCount[0]);
+                    TestTextRendererNEWT00.fontSizeFixed, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), modeS, vbaaSampleCount[0]);
             final String filename = dir + bname +".png";
             if(screenshot.readPixels(drawable.getGL(), false)) {
                 screenshot.write(new File(filename));

@@ -10,7 +10,7 @@ public class DelegatedUpstreamSurfaceHookWithSurfaceSize implements UpstreamSurf
 
     /**
      * @param upstream optional upstream UpstreamSurfaceHook used for {@link #create(ProxySurface)} and {@link #destroy(ProxySurface)}.
-     * @param surface mandatory {@link NativeSurface} used for {@link #getWidth(ProxySurface)} and {@link #getHeight(ProxySurface)}
+     * @param surface mandatory {@link NativeSurface} used for {@link #getPixelWidth(ProxySurface)} and {@link #getPixelHeight(ProxySurface)}
      */
     public DelegatedUpstreamSurfaceHookWithSurfaceSize(UpstreamSurfaceHook upstream, NativeSurface surface) {
         this.upstream = upstream;
@@ -35,18 +35,18 @@ public class DelegatedUpstreamSurfaceHookWithSurfaceSize implements UpstreamSurf
     }
 
     @Override
-    public final int getWidth(ProxySurface s) {
-        return surface.getWidth();
+    public final int getPixelWidth(ProxySurface s) {
+        return surface.getSurfaceWidth();
     }
 
     @Override
-    public final int getHeight(ProxySurface s) {
-        return surface.getHeight();
+    public final int getPixelHeight(ProxySurface s) {
+        return surface.getSurfaceHeight();
     }
 
     @Override
     public String toString() {
-        final String us_s = null != surface ? ( surface.getClass().getName() + ": 0x" + Long.toHexString(surface.getSurfaceHandle()) + " " +surface.getWidth() + "x" + surface.getHeight() ) : "nil";
+        final String us_s = null != surface ? ( surface.getClass().getName() + ": 0x" + Long.toHexString(surface.getSurfaceHandle()) + " " +surface.getSurfaceWidth() + "x" + surface.getSurfaceHeight() ) : "nil";
         return getClass().getSimpleName()+"["+upstream+", "+us_s+"]";
     }
 

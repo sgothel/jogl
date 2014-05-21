@@ -47,7 +47,7 @@ public class Issue326Test2 extends Frame implements GLEventListener {
         gl.glClearColor(0, 0, 0, 0);
         gl.glClear(GL2.GL_COLOR_BUFFER_BIT|GL2.GL_DEPTH_BUFFER_BIT);
         
-        tr.beginRendering(drawable.getWidth(), drawable.getHeight());
+        tr.beginRendering(drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
         tr.draw("LA CLAPI\u00c8RE \nAlt: 1100-1700m \nGlissement de terrain majeur", 16, 80);
         tr.draw("dans la haute Tin\u00e9e, sur un flanc du Parc du Mercantour.", 16, 16);
         tr.endRendering();

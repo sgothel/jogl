@@ -181,7 +181,7 @@ public class MovieSimple implements GLEventListener {
 
             // Note: MODELVIEW is from [ 0 .. height ]
 
-            final int height = drawable.getHeight();
+            final int height = drawable.getSurfaceHeight();
 
             final float aspect = (float)mPlayer.getWidth() / (float)mPlayer.getHeight();
 
@@ -526,7 +526,7 @@ public class MovieSimple implements GLEventListener {
             // Push the 1st uniform down the path
             st.useProgram(gl, true);
 
-            int[] viewPort = new int[] { 0, 0, drawable.getWidth(), drawable.getHeight()};
+            int[] viewPort = new int[] { 0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight()};
             pmvMatrix = new PMVMatrix();
             reshapePMV(viewPort[2], viewPort[3]);
             pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
@@ -537,8 +537,8 @@ public class MovieSimple implements GLEventListener {
                 throw new GLException("Error setting mgl_ActiveTexture in shader: "+st);
             }
 
-            float dWidth = drawable.getWidth();
-            float dHeight = drawable.getHeight();
+            float dWidth = drawable.getSurfaceWidth();
+            float dHeight = drawable.getSurfaceHeight();
             float mWidth = mPlayer.getWidth();
             float mHeight = mPlayer.getHeight();
             float mAspect = mWidth/mHeight;
@@ -602,8 +602,8 @@ public class MovieSimple implements GLEventListener {
             final Window window = (Window) upstreamWidget;
             window.addMouseListener(mouseAction);
             window.addKeyListener(keyAction);
-            winWidth = window.getWidth();
-            winHeight = window.getHeight();
+            winWidth = window.getSurfaceWidth();
+            winHeight = window.getSurfaceHeight();
         }
         final int rmode = drawable.getChosenGLCapabilities().getSampleBuffers() ? 0 : Region.VBAA_RENDERING_BIT;
         final boolean lowPerfDevice = gl.isGLES();
@@ -755,7 +755,7 @@ public class MovieSimple implements GLEventListener {
             System.err.println("XXX resetGLState");
             disposeImpl(drawable, false);
             init(drawable);
-            reshape(drawable, 0, 0, drawable.getWidth(), drawable.getHeight());
+            reshape(drawable, 0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
         }
 
         final long currentPos = System.currentTimeMillis();

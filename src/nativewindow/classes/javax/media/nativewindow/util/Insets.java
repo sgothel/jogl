@@ -28,11 +28,15 @@
 
 package javax.media.nativewindow.util;
 
+/**
+ * Mutable insets representing rectangular window decoration insets on all four edges
+ * in window units.
+ */
 public class Insets implements Cloneable, InsetsImmutable {
     static final InsetsImmutable zeroInsets = new Insets();
     public static final InsetsImmutable getZero() { return zeroInsets; }
 
-    int l, r, t, b;
+    private int l, r, t, b;
 
     public Insets() {
         this(0, 0, 0, 0);
@@ -72,12 +76,35 @@ public class Insets implements Cloneable, InsetsImmutable {
     @Override
     public final int getTotalHeight() { return t + b; }
 
+    /**
+     * Set the inset values of this instance in window units.
+     * @param left left inset width in window units.
+     * @param right right inset width in window units.
+     * @param top top inset width in window units.
+     * @param bottom bottom inset width in window units.
+     */
     public final void set(int left, int right, int top, int bottom) {
         l = left; r = right; t = top; b = bottom;
     }
+    /**
+     * Set the left inset value of this instance in window units.
+     * @param left left inset width in window units.
+     */
     public final void setLeftWidth(int left) { l = left; }
+    /**
+     * Set the right inset value of this instance in window units.
+     * @param right right inset width in window units.
+     */
     public final void setRightWidth(int right) { r = right; }
+    /**
+     * Set the top inset value of this instance in window units.
+     * @param top top inset width in window units.
+     */
     public final void setTopHeight(int top) { t = top; }
+    /**
+     * Set the bottom inset value of this instance in window units.
+     * @param bottom bottom inset width in window units.
+     */
     public final void setBottomHeight(int bottom) { b = bottom; }
 
     @Override

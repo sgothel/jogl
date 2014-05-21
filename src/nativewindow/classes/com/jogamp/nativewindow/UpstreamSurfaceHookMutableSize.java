@@ -4,31 +4,31 @@ import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.UpstreamSurfaceHook;
 
 public class UpstreamSurfaceHookMutableSize implements UpstreamSurfaceHook.MutableSize {
-    int width, height;
+    int pixWidth, pixHeight;
 
     /**
      * @param width initial width
      * @param height initial height
      */
     public UpstreamSurfaceHookMutableSize(int width, int height) {
-        this.width = width;
-        this.height = height;
+        this.pixWidth = width;
+        this.pixHeight = height;
     }
 
     @Override
-    public final void setSize(int width, int height) {
-        this.width = width;
-        this.height = height;
+    public final void setPixelSize(int width, int height) {
+        this.pixWidth = width;
+        this.pixHeight = height;
     }
 
     @Override
-    public final int getWidth(ProxySurface s) {
-        return width;
+    public final int getPixelWidth(ProxySurface s) {
+        return pixWidth;
     }
 
     @Override
-    public final int getHeight(ProxySurface s) {
-        return height;
+    public final int getPixelHeight(ProxySurface s) {
+        return pixHeight;
     }
     @Override
     public void create(ProxySurface s) { /* nop */ }
@@ -38,7 +38,7 @@ public class UpstreamSurfaceHookMutableSize implements UpstreamSurfaceHook.Mutab
 
     @Override
     public String toString() {
-        return getClass().getSimpleName()+"[ "+ width + "x" + height + "]";
+        return getClass().getSimpleName()+"[pixel "+ pixWidth + "x" + pixHeight + "]";
     }
 
 }

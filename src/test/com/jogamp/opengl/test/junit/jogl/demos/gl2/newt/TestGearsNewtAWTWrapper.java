@@ -95,21 +95,21 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
         glWindow.setVisible(true);
         if( doResizeTest ) {
             glWindow.display();
-            Assert.assertTrue("Size not reached: Expected "+(width/div)+"x"+(height/div)+", Is "+glWindow.getWidth()+"x"+glWindow.getHeight(), 
+            Assert.assertTrue("Size not reached: Expected "+(width/div)+"x"+(height/div)+", Is "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight(), 
                               AWTRobotUtil.waitForSize(glWindow, width/div, height/div));
             Thread.sleep(600);
     
             div = 2;
             glWindow.setSize(width/div, height/div);
             glWindow.display();
-            Assert.assertTrue("Size not reached: Expected "+(width/div)+"x"+(height/div)+", Is "+glWindow.getWidth()+"x"+glWindow.getHeight(), 
+            Assert.assertTrue("Size not reached: Expected "+(width/div)+"x"+(height/div)+", Is "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight(), 
                               AWTRobotUtil.waitForSize(glWindow, width/div, height/div));
             Thread.sleep(600);
                
             div = 1;
             glWindow.setSize(width/div, height/div);
             glWindow.display();
-            Assert.assertTrue("Size not reached: Expected "+(width/div)+"x"+(height/div)+", Is "+glWindow.getWidth()+"x"+glWindow.getHeight(), 
+            Assert.assertTrue("Size not reached: Expected "+(width/div)+"x"+(height/div)+", Is "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight(), 
                               AWTRobotUtil.waitForSize(glWindow, width/div, height/div));
             Thread.sleep(600);
         }

@@ -81,7 +81,7 @@ public class TestJPEGJoglAWTCompareNewtAWT extends UITestCase {
         final Animator animator = new Animator();
         
         final GLWindow w1 = testJOGLJpeg(fname);
-        final GLWindow w2 = testAWTJpeg(fname, w1.getWidth() + 50);
+        final GLWindow w2 = testAWTJpeg(fname, w1.getSurfaceWidth() + 50);
         
         animator.add(w1);
         animator.add(w2);

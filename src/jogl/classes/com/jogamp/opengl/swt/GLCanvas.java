@@ -455,12 +455,12 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
        public final void destroy(ProxySurface s) { /* nop */ }
 
        @Override
-       public final int getWidth(ProxySurface s) {
+       public final int getPixelWidth(ProxySurface s) {
            return clientArea.width;
        }
 
        @Override
-       public final int getHeight(ProxySurface s) {
+       public final int getPixelHeight(ProxySurface s) {
            return clientArea.height;
        }
 
@@ -689,12 +689,12 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
    }
 
    @Override
-   public int getWidth() {
+   public int getSurfaceWidth() {
       return clientArea.width;
    }
 
    @Override
-   public int getHeight() {
+   public int getSurfaceHeight() {
       return clientArea.height;
    }
 
@@ -984,15 +984,15 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
    @Override
    public String toString() {
        final GLDrawable _drawable = drawable;
-       final int dw = (null!=_drawable) ? _drawable.getWidth() : -1;
-       final int dh = (null!=_drawable) ? _drawable.getHeight() : -1;
+       final int dw = (null!=_drawable) ? _drawable.getSurfaceWidth() : -1;
+       final int dh = (null!=_drawable) ? _drawable.getSurfaceHeight() : -1;
 
        return "SWT-GLCanvas[Realized "+isRealized()+
                ",\n\t"+((null!=_drawable)?_drawable.getClass().getName():"null-drawable")+
                ",\n\tFactory   "+getFactory()+
                ",\n\thandle    "+toHexString(getHandle())+
                ",\n\tDrawable size "+dw+"x"+dh+
-               ",\n\tSWT size "+getWidth()+"x"+getHeight()+"]";
+               ",\n\tSWT size "+getSurfaceWidth()+"x"+getSurfaceHeight()+"]";
    }
 
    public static void main(final String[] args) {

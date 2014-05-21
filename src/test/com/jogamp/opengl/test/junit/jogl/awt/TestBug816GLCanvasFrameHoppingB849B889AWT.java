@@ -245,7 +245,7 @@ public class TestBug816GLCanvasFrameHoppingB849B889AWT extends UITestCase {
 
     static void dumpGLCanvasStats(GLCanvas glCanvas) {
         System.err.println("XXXX GLCanvas: comp "+glCanvas+", visible "+glCanvas.isVisible()+", showing "+glCanvas.isShowing()+
-                ", displayable "+glCanvas.isDisplayable()+", "+glCanvas.getWidth()+"x"+glCanvas.getHeight());
+                ", displayable "+glCanvas.isDisplayable()+", "+glCanvas.getSurfaceWidth()+"x"+glCanvas.getSurfaceHeight());
     }
 
     public static void main(String args[]) {

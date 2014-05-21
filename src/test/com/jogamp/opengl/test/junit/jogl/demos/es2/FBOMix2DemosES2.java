@@ -154,8 +154,8 @@ public class FBOMix2DemosES2 implements GLEventListener {
         fbo0.detachAllColorbuffer(gl);
         fbo1.detachAllColorbuffer(gl);
             
-        fbo0.reset(gl, drawable.getWidth(), drawable.getHeight(), numSamples, false);
-        fbo1.reset(gl, drawable.getWidth(), drawable.getHeight(), numSamples, false);
+        fbo0.reset(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), numSamples, false);
+        fbo1.reset(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), numSamples, false);
         if(fbo0.getNumSamples() != fbo1.getNumSamples()) {
             throw new InternalError("sample size mismatch: \n\t0: "+fbo0+"\n\t1: "+fbo1);
         }        
@@ -180,8 +180,8 @@ public class FBOMix2DemosES2 implements GLEventListener {
     }
 
     private void resetFBOs(GL gl, GLAutoDrawable drawable) {
-        fbo0.reset(gl, drawable.getWidth(), drawable.getHeight(), numSamples, true);
-        fbo1.reset(gl, drawable.getWidth(), drawable.getHeight(), numSamples, true);
+        fbo0.reset(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), numSamples, true);
+        fbo1.reset(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), numSamples, true);
         if(fbo0.getNumSamples() != fbo1.getNumSamples()) {
             throw new InternalError("sample size mismatch: \n\t0: "+fbo0+"\n\t1: "+fbo1);
         }        

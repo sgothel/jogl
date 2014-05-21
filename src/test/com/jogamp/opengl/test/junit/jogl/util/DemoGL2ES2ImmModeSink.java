@@ -158,9 +158,9 @@ public class DemoGL2ES2ImmModeSink implements GLEventListener {
         ims.glColor3f( 1, 0, 0 );
         ims.glVertex2f( 0, 0 );
         ims.glColor3f( 0, 1, 0 );
-        ims.glVertex2f( drawable.getWidth(), 0 );
+        ims.glVertex2f( drawable.getSurfaceWidth(), 0 );
         ims.glColor3f( 0, 0, 1 );
-        ims.glVertex2f( drawable.getWidth() / 2, drawable.getHeight() );
+        ims.glVertex2f( drawable.getSurfaceWidth() / 2, drawable.getSurfaceHeight() );
         ims.glEnd(gl, true);        
     }
 

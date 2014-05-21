@@ -123,7 +123,7 @@ public class TestGLContextDrawableSwitch01NEWT extends UITestCase {
             }
             @Override
             public void windowResized(WindowEvent e) {
-                glad.windowResizedOp(window.getWidth(), window.getHeight());
+                glad.windowResizedOp(window.getSurfaceWidth(), window.getSurfaceHeight());
             }
         });
         window.addWindowListener(wl);

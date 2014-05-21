@@ -137,9 +137,9 @@ public class AWTRobotUtil {
         javax.media.nativewindow.util.Point p0 = win.getLocationOnScreen(null);
         if( onTitleBarIfWindow ) {
             javax.media.nativewindow.util.InsetsImmutable insets = win.getInsets();
-            p0.translate(win.getWidth()/2, insets.getTopHeight()/2);
+            p0.translate(win.getSurfaceWidth()/2, insets.getTopHeight()/2);
         } else {
-            p0.translate(win.getWidth()/2, win.getHeight()/2);
+            p0.translate(win.getSurfaceWidth()/2, win.getSurfaceHeight()/2);
         }
         return new int[] { p0.getX(), p0.getY() };
     }
@@ -671,7 +671,7 @@ public class AWTRobotUtil {
      */
     public static boolean waitForSize(GLDrawable drawable, int width, int height) throws InterruptedException {
         int wait;
-        for (wait=0; wait<POLL_DIVIDER && ( width != drawable.getWidth() || height != drawable.getHeight() ) ; wait++) {
+        for (wait=0; wait<POLL_DIVIDER && ( width != drawable.getSurfaceWidth() || height != drawable.getSurfaceHeight() ) ; wait++) {
             Thread.sleep(TIME_SLICE);
         }
         return wait<POLL_DIVIDER;

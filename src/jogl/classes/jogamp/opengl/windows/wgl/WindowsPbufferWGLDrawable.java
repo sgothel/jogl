@@ -181,7 +181,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
 
               iattributes.put(niattribs++, 0);
 
-              tmpBuffer = wglExt.wglCreatePbufferARB(sharedHdc, format, getWidth(), getHeight(), iattributes);
+              tmpBuffer = wglExt.wglCreatePbufferARB(sharedHdc, format, getSurfaceWidth(), getSurfaceHeight(), iattributes);
               if (tmpBuffer != 0) {
                 // Done
                 break;

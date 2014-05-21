@@ -132,7 +132,7 @@ public class WindowDriver extends WindowImpl {
             new AWTWindowAdapter(new LocalWindowListener(), this).addTo(awtCanvas); // fwd all AWT Window events to here
         }
 
-        reconfigureWindowImpl(getX(), getY(), getWidth(), getHeight(), getReconfigureFlags(FLAG_CHANGE_VISIBILITY | FLAG_CHANGE_DECORATION, true));
+        reconfigureWindowImpl(getX(), getY(), getSurfaceWidth(), getSurfaceHeight(), getReconfigureFlags(FLAG_CHANGE_VISIBILITY | FLAG_CHANGE_DECORATION, true));
         // throws exception if failed ..
 
         final NativeWindow nw = awtCanvas.getNativeWindow();
@@ -297,7 +297,7 @@ public class WindowDriver extends WindowImpl {
                     System.err.println("Window Resized: "+awtCanvas);
                 }
                 WindowDriver.this.sizeChanged(false, awtCanvas.getWidth(), awtCanvas.getHeight(), true);
-                WindowDriver.this.windowRepaint(false, 0, 0, getWidth(), getHeight());
+                WindowDriver.this.windowRepaint(false, 0, 0, getSurfaceWidth(), getSurfaceHeight());
             }
         }
         @Override
@@ -322,7 +322,7 @@ public class WindowDriver extends WindowImpl {
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("Window Repaint: "+awtCanvas);
                 }
-                WindowDriver.this.windowRepaint(false, 0, 0, getWidth(), getHeight());
+                WindowDriver.this.windowRepaint(false, 0, 0, getSurfaceWidth(), getSurfaceHeight());
             }
         }
     }

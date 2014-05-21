@@ -335,7 +335,7 @@ public abstract class UITestCase {
     public void snapshot(int sn, String postSNDetail, GL gl, GLReadBufferUtil readBufferUtil, String fileSuffix, String destPath) {
         final GLDrawable drawable = gl.getContext().getGLReadDrawable();
         final String filename = getSnapshotFilename(sn, postSNDetail,
-                                                    drawable.getChosenGLCapabilities(), drawable.getWidth(), drawable.getHeight(),
+                                                    drawable.getChosenGLCapabilities(), drawable.getSurfaceWidth(), drawable.getSurfaceHeight(),
                                                     readBufferUtil.hasAlpha(), fileSuffix, destPath);
         System.err.println(Thread.currentThread().getName()+": ** screenshot: "+filename);
         gl.glFinish(); // just make sure rendering finished ..
@@ -367,7 +367,7 @@ public abstract class UITestCase {
             final GL gl = drawable.getGL();
             final boolean _makeShot = makeShot || makeShotAlways;
             if(verbose) {
-                System.err.println(Thread.currentThread().getName()+": ** display: "+displayCount+": "+drawable.getWidth()+"x"+drawable.getHeight()+", makeShot "+_makeShot);
+                System.err.println(Thread.currentThread().getName()+": ** display: "+displayCount+": "+drawable.getSurfaceWidth()+"x"+drawable.getSurfaceHeight()+", makeShot "+_makeShot);
             }
             if(_makeShot) {
                 makeShot=false;
@@ -377,7 +377,7 @@ public abstract class UITestCase {
         }
         public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
             if(verbose) {
-                System.err.println(Thread.currentThread().getName()+": ** reshape: "+reshapeCount+": "+width+"x"+height+" - "+drawable.getWidth()+"x"+drawable.getHeight());
+                System.err.println(Thread.currentThread().getName()+": ** reshape: "+reshapeCount+": "+width+"x"+height+" - "+drawable.getSurfaceWidth()+"x"+drawable.getSurfaceHeight());
             }
             reshapeCount++;
         }

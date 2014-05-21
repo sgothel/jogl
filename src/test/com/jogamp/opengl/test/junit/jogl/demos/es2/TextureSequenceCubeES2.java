@@ -96,8 +96,8 @@ public class TextureSequenceCubeES2 implements GLEventListener {
             Window window = null;
             if(source instanceof Window) {
                 window = (Window) source;
-                width=window.getWidth();
-                height=window.getHeight();
+                width=window.getSurfaceWidth();
+                height=window.getSurfaceHeight();
             } else if (GLProfile.isAWTAvailable() && source instanceof java.awt.Component) {
                 java.awt.Component comp = (java.awt.Component) source;
                 width=comp.getWidth();
@@ -217,7 +217,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
         st.useProgram(gl, true);
 
         pmvMatrix = new PMVMatrix();
-        reshapePMV(drawable.getWidth(), drawable.getHeight());
+        reshapePMV(drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
         pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf()); // P, Mv
         if(!st.uniform(gl, pmvMatrixUniform)) {
             throw new GLException("Error setting PMVMatrix in shader: "+st);

@@ -51,7 +51,6 @@ import javax.media.opengl.GLProfile;
 
 import jogamp.nativewindow.WrappedSurface;
 import jogamp.nativewindow.windows.GDI;
-import jogamp.nativewindow.windows.GDIUtil;
 
 
 public class WindowsExternalWGLDrawable extends WindowsWGLDrawable {
@@ -86,12 +85,12 @@ public class WindowsExternalWGLDrawable extends WindowsWGLDrawable {
   }
 
   @Override
-  public int getWidth() {
+  public int getSurfaceWidth() {
     throw new GLException("Should not call this");
   }
 
   @Override
-  public int getHeight() {
+  public int getSurfaceHeight() {
     throw new GLException("Should not call this");
   }
 }

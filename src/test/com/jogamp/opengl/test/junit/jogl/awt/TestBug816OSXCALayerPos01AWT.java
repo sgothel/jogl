@@ -259,9 +259,9 @@ public class TestBug816OSXCALayerPos01AWT extends UITestCase {
         Assert.assertTrue(animator.isStarted());
         Assert.assertTrue(animator.isAnimating());
 
-        System.err.println("canvas1 pos/siz: "+glCanvas1.getX()+"/"+glCanvas1.getY()+" "+glCanvas1.getWidth()+"x"+glCanvas1.getHeight());
+        System.err.println("canvas1 pos/siz: "+glCanvas1.getX()+"/"+glCanvas1.getY()+" "+glCanvas1.getSurfaceWidth()+"x"+glCanvas1.getSurfaceHeight());
         if( twoCanvas ) {
-            System.err.println("canvas2 pos/siz: "+glCanvas2.getX()+"/"+glCanvas2.getY()+" "+glCanvas2.getWidth()+"x"+glCanvas2.getHeight());
+            System.err.println("canvas2 pos/siz: "+glCanvas2.getX()+"/"+glCanvas2.getY()+" "+glCanvas2.getSurfaceWidth()+"x"+glCanvas2.getSurfaceHeight());
         }
 
         Thread.sleep(Math.max(1000, duration/2));
@@ -273,9 +273,9 @@ public class TestBug816OSXCALayerPos01AWT extends UITestCase {
             } else {
                setFrameSize(frame, true, frameRSizeHalf);
             }
-            System.err.println("resize canvas1 pos/siz: "+glCanvas1.getX()+"/"+glCanvas1.getY()+" "+glCanvas1.getWidth()+"x"+glCanvas1.getHeight());
+            System.err.println("resize canvas1 pos/siz: "+glCanvas1.getX()+"/"+glCanvas1.getY()+" "+glCanvas1.getSurfaceWidth()+"x"+glCanvas1.getSurfaceHeight());
             if( twoCanvas ) {
-                System.err.println("resize canvas2 pos/siz: "+glCanvas2.getX()+"/"+glCanvas2.getY()+" "+glCanvas2.getWidth()+"x"+glCanvas2.getHeight());
+                System.err.println("resize canvas2 pos/siz: "+glCanvas2.getX()+"/"+glCanvas2.getY()+" "+glCanvas2.getSurfaceWidth()+"x"+glCanvas2.getSurfaceHeight());
             }
         }
 

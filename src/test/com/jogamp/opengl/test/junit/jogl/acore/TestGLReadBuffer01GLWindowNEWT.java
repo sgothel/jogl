@@ -86,7 +86,7 @@ public class TestGLReadBuffer01GLWindowNEWT extends GLReadBuffer00Base {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
-        final DimensionImmutable size0 = new Dimension(glad.getWidth(), glad.getHeight());
+        final DimensionImmutable size0 = new Dimension(glad.getSurfaceWidth(), glad.getSurfaceHeight());
         final DimensionImmutable size1 = new Dimension(size0.getWidth()+100, size0.getHeight()+100);
         final DimensionImmutable size2 = new Dimension(size0.getWidth()-100, size0.getHeight()-100);
         try {
@@ -155,7 +155,7 @@ public class TestGLReadBuffer01GLWindowNEWT extends GLReadBuffer00Base {
             final GL gl = drawable.getGL();
             final String postSNDetail = String.format("jgl-usr%03d", textRendererGLEL.userCounter);
             final String filenameJGL = getSnapshotFilename(sn, postSNDetail,
-                                                           drawable.getChosenGLCapabilities(), drawable.getWidth(), drawable.getHeight(),
+                                                           drawable.getChosenGLCapabilities(), drawable.getSurfaceWidth(), drawable.getSurfaceHeight(),
                                                            glReadBufferUtil.hasAlpha(), fileSuffix, destPath);
             if( swapBuffersBeforeRead ) {
                 drawable.swapBuffers();

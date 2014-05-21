@@ -45,9 +45,9 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
     static String getThreadName() { return Thread.currentThread().getName(); }
 
     @Override
-    public final void setSize(int width, int height) {
+    public final void setPixelSize(int width, int height) {
         if(null != upstreamSurfaceHookMutableSize) {
-            upstreamSurfaceHookMutableSize.setSize(width, height);
+            upstreamSurfaceHookMutableSize.setPixelSize(width, height);
         }
     }
 
@@ -199,19 +199,19 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
     }
 
     @Override
-    public final int getWidth(ProxySurface s) {
-        return upstreamSurface.getWidth();
+    public final int getPixelWidth(ProxySurface s) {
+        return upstreamSurface.getSurfaceWidth();
     }
 
     @Override
-    public final int getHeight(ProxySurface s) {
-        return upstreamSurface.getHeight();
+    public final int getPixelHeight(ProxySurface s) {
+        return upstreamSurface.getSurfaceHeight();
     }
 
     @Override
     public String toString() {
         final String us_s = null != upstreamSurface ? ( upstreamSurface.getClass().getName() + ": 0x" + Long.toHexString(upstreamSurface.getSurfaceHandle()) ) : "nil";
-        return "EGLUpstreamSurfaceHook[ "+ upstreamSurface.getWidth() + "x" + upstreamSurface.getHeight() + ", " + us_s+ "]";
+        return "EGLUpstreamSurfaceHook[ "+ upstreamSurface.getSurfaceWidth() + "x" + upstreamSurface.getSurfaceHeight() + ", " + us_s+ "]";
     }
 
 }

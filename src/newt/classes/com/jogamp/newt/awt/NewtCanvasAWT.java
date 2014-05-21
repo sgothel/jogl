@@ -400,7 +400,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         final Window w = newtChild;
         if( null != w ) {
             // use NEWT child's size for min/pref size!
-            java.awt.Dimension minSize = new java.awt.Dimension(w.getWidth(), w.getHeight());
+            java.awt.Dimension minSize = new java.awt.Dimension(w.getSurfaceWidth(), w.getSurfaceHeight());
             setMinimumSize(minSize);
             setPreferredSize(minSize);
         }
@@ -645,8 +645,8 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 final int printNumSamples = printAWTTiles.getNumSamples(caps);
                 GLDrawable printDrawable = printGLAD.getDelegatedDrawable();
                 final boolean reqNewGLADSamples = printNumSamples != caps.getNumSamples();
-                final boolean reqNewGLADSize = printAWTTiles.customTileWidth != -1 && printAWTTiles.customTileWidth != printDrawable.getWidth() ||
-                                               printAWTTiles.customTileHeight != -1 && printAWTTiles.customTileHeight != printDrawable.getHeight();
+                final boolean reqNewGLADSize = printAWTTiles.customTileWidth != -1 && printAWTTiles.customTileWidth != printDrawable.getSurfaceWidth() ||
+                                               printAWTTiles.customTileHeight != -1 && printAWTTiles.customTileHeight != printDrawable.getSurfaceHeight();
                 final boolean reqNewGLADOnscrn = caps.isOnscreen();
 
                 // It is desired to use a new offscreen GLAD, however Bug 830 forbids this for AA onscreen context.
@@ -654,7 +654,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 final boolean reqNewGLAD = !caps.getSampleBuffers() && ( reqNewGLADOnscrn || reqNewGLADSamples || reqNewGLADSize );
                 if( DEBUG ) {
                     System.err.println("AWT print.setup: reqNewGLAD "+reqNewGLAD+"[ onscreen "+reqNewGLADOnscrn+", samples "+reqNewGLADSamples+", size "+reqNewGLADSize+"], "+
-                            ", drawableSize "+printDrawable.getWidth()+"x"+printDrawable.getHeight()+
+                            ", drawableSize "+printDrawable.getSurfaceWidth()+"x"+printDrawable.getSurfaceHeight()+
                             ", customTileSize "+printAWTTiles.customTileWidth+"x"+printAWTTiles.customTileHeight+
                             ", scaleMat "+printAWTTiles.scaleMatX+" x "+printAWTTiles.scaleMatY+
                             ", numSamples "+printAWTTiles.customNumSamples+" -> "+printNumSamples+", printAnimator "+printAnimator);
@@ -674,13 +674,13 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                     printDrawable = printGLAD.getDelegatedDrawable();
                 }
                 printAWTTiles.setGLOrientation(printGLAD.isGLOriented(), printGLAD.isGLOriented());
-                printAWTTiles.renderer.setTileSize(printDrawable.getWidth(), printDrawable.getHeight(), 0);
+                printAWTTiles.renderer.setTileSize(printDrawable.getSurfaceWidth(), printDrawable.getSurfaceHeight(), 0);
                 printAWTTiles.renderer.attachAutoDrawable(printGLAD);
                 if( DEBUG ) {
                     System.err.println("AWT print.setup "+printAWTTiles);
                     System.err.println("AWT print.setup AA "+printNumSamples+", "+caps);
-                    System.err.println("AWT print.setup printGLAD: "+printGLAD.getWidth()+"x"+printGLAD.getHeight()+", "+printGLAD);
-                    System.err.println("AWT print.setup printDraw: "+printDrawable.getWidth()+"x"+printDrawable.getHeight()+", "+printDrawable);
+                    System.err.println("AWT print.setup printGLAD: "+printGLAD.getSurfaceWidth()+"x"+printGLAD.getSurfaceHeight()+", "+printGLAD);
+                    System.err.println("AWT print.setup printDraw: "+printDrawable.getSurfaceWidth()+"x"+printDrawable.getSurfaceHeight()+", "+printDrawable);
                 }
             }
         }

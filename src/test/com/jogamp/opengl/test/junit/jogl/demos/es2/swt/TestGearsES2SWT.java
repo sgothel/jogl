@@ -183,7 +183,7 @@ public class TestGearsES2SWT extends UITestCase {
         }
         System.err.println("NW chosen: "+canvas.getDelegatedDrawable().getChosenGLCapabilities());
         System.err.println("GL chosen: "+canvas.getChosenGLCapabilities());
-        System.err.println("window pos/siz: "+canvas.getLocation()+" "+canvas.getWidth()+"x"+canvas.getHeight());
+        System.err.println("window pos/siz: "+canvas.getLocation()+" "+canvas.getSurfaceWidth()+"x"+canvas.getSurfaceHeight());
 
         if( null != rwsize ) {
             for(int i=0; i<50; i++) { // 500 ms dispatched delay
@@ -197,7 +197,7 @@ public class TestGearsES2SWT extends UITestCase {
                   shell.setSize( rwsize.getWidth(), rwsize.getHeight() );
                }
             });
-            System.err.println("window resize pos/siz: "+canvas.getLocation()+" "+canvas.getWidth()+"x"+canvas.getHeight());
+            System.err.println("window resize pos/siz: "+canvas.getLocation()+" "+canvas.getSurfaceWidth()+"x"+canvas.getSurfaceHeight());
         }
 
         while(animator.isAnimating() && animator.getTotalFPSDuration()<duration) {

@@ -201,7 +201,7 @@ public class TestGLReadBuffer01GLCanvasAWT extends GLReadBuffer00Base {
             final GLDrawable drawable = gl.getContext().getGLReadDrawable();
             final String postSNDetail = String.format("awt-usr%03d", textRendererGLEL.userCounter);
             final String filenameAWT = getSnapshotFilename(sn, postSNDetail,
-                                                           drawable.getChosenGLCapabilities(), drawable.getWidth(), drawable.getHeight(),
+                                                           drawable.getChosenGLCapabilities(), drawable.getSurfaceWidth(), drawable.getSurfaceHeight(),
                                                            glReadBufferUtil.hasAlpha(), fileSuffix, destPath);
             if( swapBuffersBeforeRead ) {
                 drawable.swapBuffers();

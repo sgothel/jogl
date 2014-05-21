@@ -178,8 +178,8 @@ public class TestTiledRendering2NEWT extends UITestCase {
         glad.addGLEventListener( demo );
 
         // Fix the image size for now
-        final int imageWidth = glad.getWidth() * 6;
-        final int imageHeight = glad.getHeight() * 4;
+        final int imageWidth = glad.getSurfaceWidth() * 6;
+        final int imageHeight = glad.getSurfaceHeight() * 4;
 
         final String filename = this.getSnapshotFilename(0, "-tile", glad.getChosenGLCapabilities(), imageWidth, imageHeight, false, TextureIO.PNG, null);
         final File file = new File(filename);
@@ -187,7 +187,7 @@ public class TestTiledRendering2NEWT extends UITestCase {
         // Initialize the tile rendering library
         final TileRenderer renderer = new TileRenderer();
         renderer.setImageSize(imageWidth, imageHeight);
-        renderer.setTileSize(glad.getWidth(), glad.getHeight(), 0);
+        renderer.setTileSize(glad.getSurfaceWidth(), glad.getSurfaceHeight(), 0);
         renderer.attachAutoDrawable(glad);
 
         final GLPixelBuffer.GLPixelBufferProvider pixelBufferProvider = GLPixelBuffer.defaultProviderWithRowStride;
@@ -226,8 +226,8 @@ public class TestTiledRendering2NEWT extends UITestCase {
         glad.invoke(true, new GLRunnable() {
             @Override
             public boolean run(GLAutoDrawable drawable) {
-                drawable.getGL().glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
-                demo.reshape(drawable, 0, 0, drawable.getWidth(), drawable.getHeight());
+                drawable.getGL().glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
+                demo.reshape(drawable, 0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
                 return false;
             }
         });

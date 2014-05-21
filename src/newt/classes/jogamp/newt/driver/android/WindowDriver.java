@@ -304,7 +304,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
                         if(null == androidView) {
                             setupAndroidView( StaticContext.getContext() );
                         }
-                        viewGroup.addView(androidView, new android.widget.FrameLayout.LayoutParams(getWidth(), getHeight(), Gravity.BOTTOM|Gravity.RIGHT));
+                        viewGroup.addView(androidView, new android.widget.FrameLayout.LayoutParams(getSurfaceWidth(), getSurfaceHeight(), Gravity.BOTTOM|Gravity.RIGHT));
                         Log.d(MD.TAG, "canCreateNativeImpl: added to static ViewGroup - on thread "+Thread.currentThread().getName());
                     } });
                 for(long sleep = TIMEOUT_NATIVEWINDOW; 0<sleep && 0 == surfaceHandle; sleep-=10 ) {
@@ -334,7 +334,9 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         final DefaultGraphicsScreen eglScreen = new DefaultGraphicsScreen(eglDevice, aScreen.getIndex());
 
         Log.d(MD.TAG, "createNativeImpl 0 - eglDevice 0x"+Integer.toHexString(eglDevice.hashCode())+", "+eglDevice+", surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
-                    ", format [a "+androidFormat+", n "+nativeFormat+"], "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+" - on thread "+Thread.currentThread().getName());
+                    ", format [a "+androidFormat+", n "+nativeFormat+"], win["+getX()+"/"+getY()+" "+getWindowWidth()+"x"+getWindowHeight()+
+                    "], pixel["+getSurfaceWidth()+"x"+getSurfaceHeight()+
+                    "] - on thread "+Thread.currentThread().getName());
 
         if(0!=getParentWindowHandle()) {
             throw new NativeWindowException("Window parenting not supported (yet)");
@@ -379,7 +381,9 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
 
         Log.d(MD.TAG, "closeNativeImpl 0 - eglDevice 0x"+Integer.toHexString(eglDevice.hashCode())+", "+eglDevice+", surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
                     ", eglSurfaceHandle 0x"+Long.toHexString(eglSurface)+
-                    ", format [a "+androidFormat+", n "+nativeFormat+"], "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+" - on thread "+Thread.currentThread().getName());
+                    ", format [a "+androidFormat+", n "+nativeFormat+"], win["+getX()+"/"+getY()+" "+getWindowWidth()+"x"+getWindowHeight()+
+                    "], pixel["+getSurfaceWidth()+"x"+getSurfaceHeight()+"],"+
+                    " - on thread "+Thread.currentThread().getName());
         if(WindowImpl.DEBUG_IMPLEMENTATION) {
             Thread.dumpStack();
         }
@@ -458,7 +462,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
             Log.d(MD.TAG, "reconfigureWindowImpl.setFullscreen post creation (setContentView()) n/a");
             return false;
         }
-        if(getWidth() != width || getHeight() != height) {
+        if(getSurfaceWidth() != width || getSurfaceHeight() != height) {
             if(0!=getWindowHandle()) {
                 Log.d(MD.TAG, "reconfigureWindowImpl.setSize n/a");
                 res = false;
@@ -544,7 +548,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
 
     @Override
     public final void surfaceCreated(SurfaceHolder holder) {
-        Log.d(MD.TAG, "surfaceCreated: "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+" - on thread "+Thread.currentThread().getName());
+        Log.d(MD.TAG, "surfaceCreated: "+getX()+"/"+getY()+" "+getSurfaceWidth()+"x"+getSurfaceHeight()+" - on thread "+Thread.currentThread().getName());
     }
 
     @Override
@@ -611,7 +615,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
     @Override
     public final void surfaceRedrawNeeded(SurfaceHolder holder) {
         Log.d(MD.TAG, "surfaceRedrawNeeded  - on thread "+Thread.currentThread().getName());
-        windowRepaint(0, 0, getWidth(), getHeight());
+        windowRepaint(0, 0, getSurfaceWidth(), getSurfaceHeight());
     }
 
     protected boolean handleKeyCodeBack(KeyEvent.DispatcherState state, android.view.KeyEvent event) {

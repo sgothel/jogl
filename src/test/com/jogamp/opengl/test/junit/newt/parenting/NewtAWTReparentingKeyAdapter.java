@@ -82,9 +82,9 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
             new Thread() {
                 public void run() {
                     final Thread t = glWindow.setExclusiveContextThread(null);
-                    System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
+                    System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                     glWindow.setFullscreen(!glWindow.isFullscreen());
-                    System.err.println("[set fullscreen post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
+                    System.err.println("[set fullscreen post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                     glWindow.setExclusiveContextThread(t);
                     if( null != quitAdapter ) {
                         quitAdapter.clear();
@@ -226,7 +226,7 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
             new Thread() {
                public void run() {
                    System.err.println("[set mouse pos pre]");
-                   glWindow.warpPointer(glWindow.getWidth()/2, glWindow.getHeight()/2);
+                   glWindow.warpPointer(glWindow.getSurfaceWidth()/2, glWindow.getSurfaceHeight()/2);
                    System.err.println("[set mouse pos post]");
                } }.start();
         }

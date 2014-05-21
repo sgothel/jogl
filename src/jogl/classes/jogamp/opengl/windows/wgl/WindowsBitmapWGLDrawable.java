@@ -111,8 +111,8 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
     }
     final WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration();
     final GLCapabilitiesImmutable capsChosen = (GLCapabilitiesImmutable)config.getChosenCapabilities();
-    final int width = getWidth();
-    final int height = getHeight();
+    final int width = getSurfaceWidth();
+    final int height = getSurfaceHeight();
 
     //
     // 1. Create DIB Section

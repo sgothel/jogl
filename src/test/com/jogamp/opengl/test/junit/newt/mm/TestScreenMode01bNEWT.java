@@ -152,7 +152,7 @@ public class TestScreenMode01bNEWT extends UITestCase {
         
         GLWindow window0 = createWindow(screen, caps, "win0", xpos, ypos, width, height);
         Assert.assertNotNull(window0);        
-        System.err.println("Test.0: Window bounds: "+window0.getX()+"/"+window0.getY()+" "+window0.getWidth()+"x"+window0.getHeight()+" within "+screen.getViewport());
+        System.err.println("Test.0: Window bounds: "+window0.getX()+"/"+window0.getY()+" "+window0.getSurfaceWidth()+"x"+window0.getSurfaceHeight()+" within "+screen.getViewport());
 
         final Animator anim = new Animator(window0);
         anim.start();
@@ -219,7 +219,7 @@ public class TestScreenMode01bNEWT extends UITestCase {
         }
 
         System.err.println("Test.1: Window screen: "+screen);
-        System.err.println("Test.1: Window bounds: "+window0.getX()+"/"+window0.getY()+" "+window0.getWidth()+"x"+window0.getHeight()+" within "+screen.getViewport());
+        System.err.println("Test.1: Window bounds: "+window0.getX()+"/"+window0.getY()+" "+window0.getSurfaceWidth()+"x"+window0.getSurfaceHeight()+" within "+screen.getViewport());
         System.err.println("Test.1: Window monitor: "+window0.getMainMonitor());
         
         Thread.sleep(duration);
@@ -241,7 +241,7 @@ public class TestScreenMode01bNEWT extends UITestCase {
         }        
         
         System.err.println("Test.2: Window screen: "+screen);
-        System.err.println("Test.2: Window bounds: "+window0.getX()+"/"+window0.getY()+" "+window0.getWidth()+"x"+window0.getHeight()+" within "+screen.getViewport());
+        System.err.println("Test.2: Window bounds: "+window0.getX()+"/"+window0.getY()+" "+window0.getSurfaceWidth()+"x"+window0.getSurfaceHeight()+" within "+screen.getViewport());
         System.err.println("Test.2: Window monitor: "+window0.getMainMonitor());
         
         Thread.sleep(duration);

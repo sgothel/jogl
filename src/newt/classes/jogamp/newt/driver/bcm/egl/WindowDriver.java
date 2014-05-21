@@ -67,7 +67,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
         setGraphicsConfiguration(cfg);
         setSizeImpl(getScreen().getWidth(), getScreen().getHeight());
 
-        setWindowHandle(realizeWindow(true, getWidth(), getHeight()));
+        setWindowHandle(realizeWindow(true, getSurfaceWidth(), getSurfaceHeight()));
         if (0 == getWindowHandle()) {
             throw new NativeWindowException("Error native Window Handle is null");
         }
@@ -108,7 +108,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
                 // n/a in BroadcomEGL
                 System.err.println("BCEGL Window.setSizeImpl n/a in BroadcomEGL with realized window");
             } else {
-                defineSize((width>0)?width:getWidth(), (height>0)?height:getHeight());
+                defineSize((width>0)?width:getSurfaceWidth(), (height>0)?height:getSurfaceHeight());
             }
         }
         if(x>=0 || y>=0) {

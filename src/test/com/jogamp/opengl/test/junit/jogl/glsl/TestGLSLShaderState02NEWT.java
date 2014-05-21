@@ -181,12 +181,12 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
         // reshape
         pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
-        pmvMatrix.gluPerspective(45.0F, (float) drawable.getWidth() / (float) drawable.getHeight(), 1.0F, 100.0F);
+        pmvMatrix.gluPerspective(45.0F, (float) drawable.getSurfaceWidth() / (float) drawable.getSurfaceHeight(), 1.0F, 100.0F);
         pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0, 0, -10);
         st.uniform(gl, pmvMatrixUniform);
-        gl.glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
+        gl.glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
         // display #1 vertices0 / colors0 (post-disable)
@@ -307,12 +307,12 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
         // reshape
         pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
-        pmvMatrix.gluPerspective(45.0F, (float) drawable.getWidth() / (float) drawable.getHeight(), 1.0F, 100.0F);
+        pmvMatrix.gluPerspective(45.0F, (float) drawable.getSurfaceWidth() / (float) drawable.getSurfaceHeight(), 1.0F, 100.0F);
         pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0, 0, -10);
         st.uniform(gl, pmvMatrixUniform);
-        gl.glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
+        gl.glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
 
         gl.setSwapInterval(0);
         

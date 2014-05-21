@@ -135,18 +135,18 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
 
     pBufferTexTarget = GL.GL_TEXTURE_2D;
     if ( null!=sr && sr.isNPOTTextureAvailable() ) {
-      pBufferTexWidth = getWidth();
-      pBufferTexHeight = getHeight();
+      pBufferTexWidth = getSurfaceWidth();
+      pBufferTexHeight = getSurfaceHeight();
     } else {
-      pBufferTexWidth = GLBuffers.getNextPowerOf2(getWidth());
-      pBufferTexHeight = GLBuffers.getNextPowerOf2(getHeight());
+      pBufferTexWidth = GLBuffers.getNextPowerOf2(getSurfaceWidth());
+      pBufferTexHeight = GLBuffers.getNextPowerOf2(getSurfaceHeight());
     }
 
     final int internalFormat = GL.GL_RGBA;
-    final long pBuffer = impl.create(pBufferTexTarget, internalFormat, getWidth(), getHeight());
+    final long pBuffer = impl.create(pBufferTexTarget, internalFormat, getSurfaceWidth(), getSurfaceHeight());
     if(DEBUG) {
         System.err.println("MacOSXPbufferCGLDrawable tex: target "+toHexString(pBufferTexTarget)+
-                            ", pbufferSize "+getWidth()+"x"+getHeight()+
+                            ", pbufferSize "+getSurfaceWidth()+"x"+getSurfaceHeight()+
                             ", texSize "+pBufferTexWidth+"x"+pBufferTexHeight+
                             ", internal-fmt "+toHexString(internalFormat));
         System.err.println("MacOSXPbufferCGLDrawable pBuffer: "+toHexString(pBuffer));

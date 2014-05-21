@@ -128,4 +128,21 @@ public class GDISurface extends ProxySurfaceImpl {
   final public long getSurfaceHandle() {
     return surfaceHandle;
   }
+
+  @Override
+  public final int[] getWindowUnitXY(int[] result, final int[] pixelUnitXY) {
+      if( pixelUnitXY != result ) { // no scale factor, window units == pixel units
+          System.arraycopy(pixelUnitXY, 0, result, 0, 2);
+      }
+      return result;
+  }
+
+  @Override
+  public final int[] getPixelUnitXY(int[] result, final int[] windowUnitXY) {
+      if( windowUnitXY != result ) { // no scale factor, window units == pixel units
+          System.arraycopy(windowUnitXY, 0, result, 0, 2);
+      }
+      return result;
+  }
+
 }

@@ -149,7 +149,7 @@ public class TestRulerNEWT01 extends UITestCase {
         // pmvMatrix.glTranslatef(0, 0, -6);
         // pmvMatrix.glRotatef(45f, 1f, 0f, 0f);
         st.uniform(gl, pmvMatrixUniform);
-        gl.glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
+        gl.glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
 
         for(int i=0; i<10; i++) {

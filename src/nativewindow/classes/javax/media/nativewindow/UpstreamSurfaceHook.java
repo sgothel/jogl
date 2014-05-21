@@ -38,15 +38,15 @@ public interface UpstreamSurfaceHook {
     /** called within {@link ProxySurface#destroyNotify()} within lock, before clearing fields. */
     public void destroy(ProxySurface s);
 
-    /** Returns the width of the upstream surface, used if {@link ProxySurface#UPSTREAM_PROVIDES_SIZE} is set. */
-    public int getWidth(ProxySurface s);
-    /** Returns the height of the upstream surface, used if {@link ProxySurface#UPSTREAM_PROVIDES_SIZE} is set. */
-    public int getHeight(ProxySurface s);
+    /** Returns the width of the upstream surface in pixels, used if {@link ProxySurface#UPSTREAM_PROVIDES_SIZE} is set. */
+    public int getPixelWidth(ProxySurface s);
+    /** Returns the height of the upstream surface in pixels, used if {@link ProxySurface#UPSTREAM_PROVIDES_SIZE} is set. */
+    public int getPixelHeight(ProxySurface s);
 
     /**
      * {@link UpstreamSurfaceHook} w/ mutable size, allowing it's {@link ProxySurface} user to resize.
      */
     public interface MutableSize extends UpstreamSurfaceHook {
-        public void setSize(int width, int height);
+        public void setPixelSize(int width, int height);
     }
 }

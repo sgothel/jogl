@@ -198,8 +198,8 @@ public class TestRandomTiledRendering3GL2AWT extends UITestCase {
                     }
                     renderer.detachAutoDrawable();
                     System.err.println("XXX post-display detached: "+renderer);
-                    drawable.getGL().glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
-                    glad.getGLEventListener(0).reshape(drawable, 0, 0, drawable.getWidth(), drawable.getHeight());
+                    drawable.getGL().glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
+                    glad.getGLEventListener(0).reshape(drawable, 0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
                 }
             }
             @Override

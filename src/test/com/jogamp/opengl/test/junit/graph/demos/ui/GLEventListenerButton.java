@@ -110,7 +110,7 @@ public class GLEventListenerButton extends TextureSeqButton {
 
             final FBObject.TextureAttachment texA01 = fboGLAD.getTextureBuffer(GL.GL_FRONT);
             final Texture tex = new Texture(texA01.getName(), imgSeq.getTextureTarget(),
-                                    fboGLAD.getWidth(), fboGLAD.getHeight(), fboGLAD.getWidth(), fboGLAD.getHeight(),
+                                    fboGLAD.getSurfaceWidth(), fboGLAD.getSurfaceHeight(), fboGLAD.getSurfaceWidth(), fboGLAD.getSurfaceHeight(),
                                     false /* mustFlipVertically */);
             imgSeq.addFrame(gl, tex);
             markStateDirty();

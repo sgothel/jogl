@@ -94,7 +94,7 @@ public class LandscapeES2 implements GLEventListener {
         shaderState = new ShaderState();
         shaderState.attachShaderProgram(gl, shaderProg, true);
         
-        resolution = new float[] { drawable.getWidth(), drawable.getHeight(), 0};
+        resolution = new float[] { drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), 0};
         resolutionUni = new GLUniformData("iResolution", 3, FloatBuffer.wrap(resolution));
         shaderState.ownUniform(resolutionUni);
         shaderState.uniform(gl, resolutionUni);
@@ -127,8 +127,8 @@ public class LandscapeES2 implements GLEventListener {
         
         shaderState.useProgram(gl, true);
         
-        resolution[0] = drawable.getWidth();
-        resolution[1] = drawable.getHeight();
+        resolution[0] = drawable.getSurfaceWidth();
+        resolution[1] = drawable.getSurfaceHeight();
         shaderState.uniform(gl, resolutionUni);
                 
         shaderState.useProgram(gl, false);

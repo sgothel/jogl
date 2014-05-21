@@ -141,12 +141,12 @@ public class X11ExternalGLXContext extends X11GLXContext {
     }
 
     @Override
-    public int getWidth() {
+    public int getSurfaceWidth() {
       throw new GLException("Should not call this");
     }
 
     @Override
-    public int getHeight() {
+    public int getSurfaceHeight() {
       throw new GLException("Should not call this");
     }
 

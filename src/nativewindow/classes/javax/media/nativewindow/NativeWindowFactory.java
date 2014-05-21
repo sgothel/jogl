@@ -56,7 +56,7 @@ import jogamp.nativewindow.x11.X11Lib;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.ReflectionUtil;
-import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSizePos;
+import com.jogamp.nativewindow.UpstreamWindowHookMutableSizePos;
 import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
 import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
 import com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice;
@@ -669,7 +669,7 @@ public abstract class NativeWindowFactory {
     /**
      * Creates a wrapped {@link NativeWindow} with given native handles and {@link AbstractGraphicsScreen}.
      * <p>
-     * The given {@link UpstreamSurfaceHookMutableSizePos} maybe used to reflect resizes and repositioning of the native window.
+     * The given {@link UpstreamWindowHookMutableSizePos} maybe used to reflect resizes and repositioning of the native window.
      * </p>
      * <p>
      * The {@link AbstractGraphicsScreen} may be created via {@link #createScreen(AbstractGraphicsDevice, int)}.
@@ -680,7 +680,7 @@ public abstract class NativeWindowFactory {
      * </p>
      */
     public static NativeWindow createWrappedWindow(AbstractGraphicsScreen aScreen, long surfaceHandle, long windowHandle,
-                                                   UpstreamSurfaceHookMutableSizePos hook) {
+                                                   UpstreamWindowHookMutableSizePos hook) {
         final CapabilitiesImmutable caps = new Capabilities();
         final AbstractGraphicsConfiguration config = new DefaultGraphicsConfiguration(aScreen, caps, caps);
         return new WrappedWindow(config, surfaceHandle, hook, true, windowHandle);

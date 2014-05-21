@@ -377,7 +377,7 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
            new Thread() {
                public void run() {
                    System.err.println("[set mouse pos pre]");
-                   glWindow.warpPointer(glWindow.getWidth()/2, glWindow.getHeight()/2);
+                   glWindow.warpPointer(glWindow.getSurfaceWidth()/2, glWindow.getSurfaceHeight()/2);
                    System.err.println("[set mouse pos post]");
                } }.start();
        }

@@ -145,12 +145,12 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
     }
 
     @Override
-    public int getWidth() {
+    public int getSurfaceWidth() {
       throw new GLException("Should not call this");
     }
 
     @Override
-    public int getHeight() {
+    public int getSurfaceHeight() {
       throw new GLException("Should not call this");
     }
 

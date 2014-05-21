@@ -101,6 +101,7 @@ import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.util.GLDrawableUtil;
 import com.jogamp.opengl.util.TileRenderer;
 
+import jogamp.nativewindow.jawt.JAWTUtil;
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableHelper;
@@ -167,6 +168,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   private volatile JAWTWindow jawtWindow; // the JAWTWindow presentation of this AWT Canvas, bound to the 'drawable' lifecycle
   private volatile GLContextImpl context; // volatile: avoid locking for read-only access
   private volatile boolean sendReshape = false; // volatile: maybe written by EDT w/o locking
+  private volatile int pixelScale;
 
   // copy of the cstr args, mainly for recreation
   private final GLCapabilitiesImmutable capsReqUser;
@@ -307,6 +309,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
     this.addHierarchyListener(hierarchyListener);
     this.isShowing = isShowing();
+    this.pixelScale = 1;
   }
 
   @Override
@@ -378,7 +381,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
      * otherwise it is from an ancestor component that this Canvas is being
      * added to, and we go into this block.
      */
-    GraphicsConfiguration chosen =  awtConfig.getAWTGraphicsConfiguration();
+    GraphicsConfiguration chosen =  null != awtConfig ? awtConfig.getAWTGraphicsConfiguration() : null;
 
     if (gc != null && chosen != null && !chosen.equals(gc)) {
       /*
@@ -487,7 +490,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       try {
           final GLDrawable _drawable = drawable;
           if( null == _drawable || realized == _drawable.isRealized() ||
-              realized && ( 0 >= _drawable.getWidth() || 0 >= _drawable.getHeight() ) ) {
+              realized && ( 0 >= _drawable.getSurfaceWidth() || 0 >= _drawable.getSurfaceHeight() ) ) {
               return;
           }
          _drawable.setRealized(realized);
@@ -665,6 +668,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         try {
             drawable = (GLDrawableImpl) GLDrawableFactory.getFactory(capsReqUser.getGLProfile()).createGLDrawable(jawtWindow);
             createContextImpl(drawable);
+            pixelScale = jawtWindow.getPixelScale();
         } finally {
             jawtWindow.unlockSurface();
         }
@@ -696,7 +700,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
           boolean res = _drawable.isRealized();
           if( !res ) {
               // re-try drawable creation
-              if( 0 >= _drawable.getWidth() || 0 >= _drawable.getHeight() ) {
+              if( 0 >= _drawable.getSurfaceWidth() || 0 >= _drawable.getSurfaceHeight() ) {
                   return false; // early out!
               }
               setRealized(true);
@@ -760,10 +764,17 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     synchronized (getTreeLock()) { // super.reshape(..) claims tree lock, so we do extend it's lock over reshape
         super.reshape(x, y, width, height);
 
+        final int scale = getPixelScale();
+        final int scaledWidth = scale * width;
+        final int scaledHeight = scale * height;
+
         if(DEBUG) {
             final NativeSurface ns = getNativeSurface();
             final long nsH = null != ns ? ns.getSurfaceHandle() : 0;
-            System.err.println("GLCanvas.sizeChanged: ("+getThreadName()+"): "+width+"x"+height+" - surfaceHandle 0x"+Long.toHexString(nsH));
+            System.err.println(getThreadName()+": GLCanvas.reshape.0 "+this.getName()+" resize"+(printActive?"WithinPrint":"")+
+                    " [ this "+getWidth()+"x"+getHeight()+", pixelScale "+scale+
+                    "] -> "+(printActive?"[skipped] ":"") + width+"x"+height+" * "+scale+" -> "+scaledWidth+"x"+scaledHeight+
+                    " - surfaceHandle 0x"+Long.toHexString(nsH));
             // Thread.dumpStack();
         }
         if( validateGLDrawable() && !printActive ) {
@@ -772,7 +783,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                 final RecursiveLock _lock = lock;
                 _lock.lock();
                 try {
-                    final GLDrawableImpl _drawableNew = GLDrawableHelper.resizeOffscreenDrawable(_drawable, context, width, height);
+                    final GLDrawableImpl _drawableNew = GLDrawableHelper.resizeOffscreenDrawable(_drawable, context, scaledWidth, scaledHeight);
                     if(_drawable != _drawableNew) {
                         // write back
                         drawable = _drawableNew;
@@ -835,15 +846,15 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
           final int printNumSamples = printAWTTiles.getNumSamples(caps);
           GLDrawable printDrawable = printGLAD.getDelegatedDrawable();
           final boolean reqNewGLADSamples = printNumSamples != caps.getNumSamples();
-          final boolean reqNewGLADSize = printAWTTiles.customTileWidth != -1 && printAWTTiles.customTileWidth != printDrawable.getWidth() ||
-                                         printAWTTiles.customTileHeight != -1 && printAWTTiles.customTileHeight != printDrawable.getHeight();
+          final boolean reqNewGLADSize = printAWTTiles.customTileWidth != -1 && printAWTTiles.customTileWidth != printDrawable.getSurfaceWidth() ||
+                                         printAWTTiles.customTileHeight != -1 && printAWTTiles.customTileHeight != printDrawable.getSurfaceHeight();
           final boolean reqNewGLADOnscrn = caps.isOnscreen();
           // It is desired to use a new offscreen GLAD, however Bug 830 forbids this for AA onscreen context.
           // Bug 830: swapGLContextAndAllGLEventListener and onscreen MSAA w/ NV/GLX
           final boolean reqNewGLAD = !caps.getSampleBuffers() && ( reqNewGLADOnscrn || reqNewGLADSamples || reqNewGLADSize );
           if( DEBUG ) {
               System.err.println("AWT print.setup: reqNewGLAD "+reqNewGLAD+"[ onscreen "+reqNewGLADOnscrn+", samples "+reqNewGLADSamples+", size "+reqNewGLADSize+"], "+
-                                 ", drawableSize "+printDrawable.getWidth()+"x"+printDrawable.getHeight()+
+                                 ", drawableSize "+printDrawable.getSurfaceWidth()+"x"+printDrawable.getSurfaceHeight()+
                                  ", customTileSize "+printAWTTiles.customTileWidth+"x"+printAWTTiles.customTileHeight+
                                  ", scaleMat "+printAWTTiles.scaleMatX+" x "+printAWTTiles.scaleMatY+
                                  ", numSamples "+printAWTTiles.customNumSamples+" -> "+printNumSamples+", printAnimator "+printAnimator);
@@ -863,13 +874,13 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
               printDrawable = printGLAD.getDelegatedDrawable();
           }
           printAWTTiles.setGLOrientation(printGLAD.isGLOriented(), printGLAD.isGLOriented());
-          printAWTTiles.renderer.setTileSize(printDrawable.getWidth(), printDrawable.getHeight(), 0);
+          printAWTTiles.renderer.setTileSize(printDrawable.getSurfaceWidth(), printDrawable.getSurfaceHeight(), 0);
           printAWTTiles.renderer.attachAutoDrawable(printGLAD);
           if( DEBUG ) {
               System.err.println("AWT print.setup "+printAWTTiles);
               System.err.println("AWT print.setup AA "+printNumSamples+", "+caps);
-              System.err.println("AWT print.setup printGLAD: "+printGLAD.getWidth()+"x"+printGLAD.getHeight()+", "+printGLAD);
-              System.err.println("AWT print.setup printDraw: "+printDrawable.getWidth()+"x"+printDrawable.getHeight()+", "+printDrawable);
+              System.err.println("AWT print.setup printGLAD: "+printGLAD.getSurfaceWidth()+"x"+printGLAD.getSurfaceHeight()+", "+printGLAD);
+              System.err.println("AWT print.setup printDraw: "+printDrawable.getSurfaceWidth()+"x"+printDrawable.getSurfaceHeight()+", "+printDrawable);
           }
       }
   };
@@ -1122,6 +1133,16 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
+  public int getSurfaceWidth() {
+      return getWidth() * getPixelScale();
+  }
+
+  @Override
+  public int getSurfaceHeight() {
+      return getHeight() * getPixelScale();
+  }
+
+  @Override
   public boolean isGLOriented() {
     final GLDrawable _drawable = drawable;
     return null != _drawable ? _drawable.isGLOriented() : true;
@@ -1148,22 +1169,24 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   @Override
   public String toString() {
     final GLDrawable _drawable = drawable;
-    final int dw = (null!=_drawable) ? _drawable.getWidth() : -1;
-    final int dh = (null!=_drawable) ? _drawable.getHeight() : -1;
+    final int dw = (null!=_drawable) ? _drawable.getSurfaceWidth() : -1;
+    final int dh = (null!=_drawable) ? _drawable.getSurfaceHeight() : -1;
 
     return "AWT-GLCanvas[Realized "+isRealized()+
                           ",\n\t"+((null!=_drawable)?_drawable.getClass().getName():"null-drawable")+
                           ",\n\tFactory   "+getFactory()+
                           ",\n\thandle    0x"+Long.toHexString(getHandle())+
-                          ",\n\tDrawable size "+dw+"x"+dh+
-                          ",\n\tAWT pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
+                          ",\n\tDrawable size "+dw+"x"+dh+" surface["+getSurfaceWidth()+"x"+getSurfaceHeight()+"]"+
+                          ",\n\tAWT[pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
                           ",\n\tvisible "+isVisible()+", displayable "+isDisplayable()+", showing "+isShowing+
-                          ",\n\t"+awtConfig+"]";
+                          ",\n\t"+awtConfig+"]]";
   }
 
   //----------------------------------------------------------------------
   // Internals only below this point
   //
+
+  private final int getPixelScale() { return pixelScale; }
 
   private final Runnable destroyOnEDTAction = new Runnable() {
     @Override
@@ -1247,6 +1270,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
             }
             jawtWindow=null;
         }
+        pixelScale = 1;
 
         if(null != awtConfig) {
             final AbstractGraphicsConfiguration aconfig = awtConfig.getNativeGraphicsConfiguration();
@@ -1278,11 +1302,11 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     public void run() {
       if (sendReshape) {
         if(DEBUG) {
-            System.err.println(getThreadName()+": Reshape: "+getWidth()+"x"+getHeight());
+            System.err.println(getThreadName()+": Reshape: "+getSurfaceWidth()+"x"+getSurfaceHeight());
         }
         // Note: we ignore the given x and y within the parent component
         // since we are drawing directly into this heavyweight component.
-        helper.reshape(GLCanvas.this, 0, 0, getWidth(), getHeight());
+        helper.reshape(GLCanvas.this, 0, 0, getSurfaceWidth(), getSurfaceHeight());
         sendReshape = false;
       }
 

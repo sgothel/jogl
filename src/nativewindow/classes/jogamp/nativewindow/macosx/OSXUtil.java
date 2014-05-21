@@ -137,11 +137,15 @@ public class OSXUtil implements ToolkitProperties {
 
     /**
      * Create a CALayer suitable to act as a root CALayer.
+     * @param width width of the CALayer in window units (points)
+     * @param height height of the CALayer in window units (points)
+     * @param contentsScale scale for HiDPI support: pixel-dim = window-dim x scale
+     * @return the new CALayer object
      * @see #DestroyCALayer(long)
      * @see #AddCASublayer(long, long)
      */
-    public static long CreateCALayer(final int width, final int height) {
-      final long l = CreateCALayer0(width, height);
+    public static long CreateCALayer(final int width, final int height, final float contentsScale) {
+      final long l = CreateCALayer0(width, height, contentsScale);
       if(DEBUG) {
           System.err.println("OSXUtil.CreateCALayer: 0x"+Long.toHexString(l)+" - "+Thread.currentThread().getName());
       }
@@ -158,18 +162,27 @@ public class OSXUtil implements ToolkitProperties {
      * Hence it is important that related resources are not locked <i>if</i>
      * they will be used for creation.
      * </p>
-     * @param caLayerQuirks TODO
-     * @see #CreateCALayer(int, int)
+     * @param rootCALayer
+     * @param subCALayer
+     * @param x x-coord of the sub-CALayer in window units (points)
+     * @param y y-coord of the sub-CALayer in window units (points)
+     * @param width width of the sub-CALayer in window units (points)
+     * @param height height of the sub-CALayer in window units (points)
+     * @param contentsScale scale for HiDPI support: pixel-dim = window-dim x scale
+     * @param caLayerQuirks
+     * @see #CreateCALayer(int, int, float)
      * @see #RemoveCASublayer(long, long, boolean)
      */
-    public static void AddCASublayer(final long rootCALayer, final long subCALayer, final int x, final int y, final int width, final int height, final int caLayerQuirks) {
+    public static void AddCASublayer(final long rootCALayer, final long subCALayer,
+                                     final int x, final int y, final int width, final int height,
+                                     final float contentsScale, final int caLayerQuirks) {
         if(0==rootCALayer || 0==subCALayer) {
             throw new IllegalArgumentException("rootCALayer 0x"+Long.toHexString(rootCALayer)+", subCALayer 0x"+Long.toHexString(subCALayer));
         }
         if(DEBUG) {
             System.err.println("OSXUtil.AttachCALayer: caLayerQuirks "+caLayerQuirks+", 0x"+Long.toHexString(subCALayer)+" - "+Thread.currentThread().getName());
         }
-        AddCASublayer0(rootCALayer, subCALayer, x, y, width, height, caLayerQuirks);
+        AddCASublayer0(rootCALayer, subCALayer, x, y, width, height, contentsScale, caLayerQuirks);
     }
 
     /**
@@ -186,8 +199,8 @@ public class OSXUtil implements ToolkitProperties {
      * @param rootCALayer the root surface layer, maybe null.
      * @param subCALayer the client surface layer, maybe null.
      * @param visible TODO
-     * @param width the expected width
-     * @param height the expected height
+     * @param width the expected width in window units (points)
+     * @param height the expected height in window units (points)
      * @param caLayerQuirks TODO
      */
     public static void FixCALayerLayout(final long rootCALayer, final long subCALayer, final boolean visible, final int x, final int y, final int width, final int height, final int caLayerQuirks) {
@@ -212,7 +225,7 @@ public class OSXUtil implements ToolkitProperties {
 
     /**
      * Destroy a CALayer.
-     * @see #CreateCALayer(int, int)
+     * @see #CreateCALayer(int, int, float)
      */
     public static void DestroyCALayer(final long caLayer) {
         if(0==caLayer) {
@@ -356,8 +369,8 @@ public class OSXUtil implements ToolkitProperties {
     private static native void DestroyNSWindow0(long nsWindow);
     private static native long GetNSView0(long nsWindow);
     private static native long GetNSWindow0(long nsView);
-    private static native long CreateCALayer0(int width, int height);
-    private static native void AddCASublayer0(long rootCALayer, long subCALayer, int x, int y, int width, int height, int caLayerQuirks);
+    private static native long CreateCALayer0(int width, int height, float contentsScale);
+    private static native void AddCASublayer0(long rootCALayer, long subCALayer, int x, int y, int width, int height, float contentsScale, int caLayerQuirks);
     private static native void FixCALayerLayout0(long rootCALayer, long subCALayer, boolean visible, int x, int y, int width, int height, int caLayerQuirks);
     private static native void RemoveCASublayer0(long rootCALayer, long subCALayer);
     private static native void DestroyCALayer0(long caLayer);

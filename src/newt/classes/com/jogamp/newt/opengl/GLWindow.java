@@ -130,7 +130,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
 
                 @Override
                 public void windowResized(WindowEvent e) {
-                    defaultWindowResizedOp(getWidth(), getHeight());
+                    defaultWindowResizedOp(getSurfaceWidth(), getSurfaceHeight());
                 }
 
             });
@@ -353,13 +353,33 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
-    public final int getWidth() {
-        return window.getWidth();
+    public final int getWindowWidth() {
+        return window.getWindowWidth();
     }
 
     @Override
-    public final int getHeight() {
-        return window.getHeight();
+    public final int getWindowHeight() {
+        return window.getWindowHeight();
+    }
+
+    @Override
+    public final int[] getWindowUnitXY(int[] result, final int[] pixelUnitXY) {
+        return window.getWindowUnitXY(result, pixelUnitXY);
+    }
+
+    @Override
+    public final int[] getPixelUnitXY(int[] result, final int[] windowUnitXY) {
+        return window.getPixelUnitXY(result, windowUnitXY);
+    }
+
+    @Override
+    public final int getSurfaceWidth() {
+        return window.getSurfaceWidth();
+    }
+
+    @Override
+    public final int getSurfaceHeight() {
+        return window.getSurfaceHeight();
     }
 
     @Override
@@ -516,7 +536,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                 t0 = 0;
             }
 
-            if (null == drawable && visible && 0 != window.getWindowHandle() && 0<getWidth()*getHeight()) {
+            if (null == drawable && visible && 0 != window.getWindowHandle() && 0<getSurfaceWidth()*getSurfaceHeight()) {
                 if( ( null != context ) ) {
                     throw new InternalError("GLWindow.LifecycleHook.setVisiblePost: "+WindowImpl.getThreadName()+" - Null drawable, but valid context - "+GLWindow.this);
                 }
@@ -626,7 +646,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         } finally {
             lock.unlock();
         }
-        if( !done && ( 0 < getWidth() && 0 < getHeight() ) ) {
+        if( !done && ( 0 < getSurfaceWidth() && 0 < getSurfaceHeight() ) ) {
             // retry drawable and context creation, will itself issue resize -> display
             setVisible(true);
         }

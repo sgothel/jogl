@@ -14,10 +14,10 @@ import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 
 public class X11DummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize {
     /**
-     * @param width the initial width as returned by {@link NativeSurface#getWidth()} via {@link UpstreamSurfaceHook#getWidth(ProxySurface)},
+     * @param width the initial width as returned by {@link NativeSurface#getSurfaceWidth()} via {@link UpstreamSurfaceHook#getPixelWidth(ProxySurface)},
      *        not the actual dummy surface width.
      *        The latter is platform specific and small
-     * @param height the initial height as returned by {@link NativeSurface#getHeight()} via {@link UpstreamSurfaceHook#getHeight(ProxySurface)},
+     * @param height the initial height as returned by {@link NativeSurface#getSurfaceHeight()} via {@link UpstreamSurfaceHook#getPixelHeight(ProxySurface)},
      *        not the actual dummy surface height,
      *        The latter is platform specific and small
      */

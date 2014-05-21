@@ -167,14 +167,14 @@ public class TestSWTAccessor03AWTGLn extends UITestCase {
     
                 /* @Override */
                 public void display( GLAutoDrawable glautodrawable ) {
-                    Rectangle rectangle = new Rectangle( 0, 0, glautodrawable.getWidth(), glautodrawable.getHeight() );
+                    Rectangle rectangle = new Rectangle( 0, 0, glautodrawable.getSurfaceWidth(), glautodrawable.getSurfaceHeight() );
                     GL2ES1 gl = glautodrawable.getGL().getGL2ES1();
                     OneTriangle.render( gl, rectangle.width, rectangle.height );
                 }
     
                 /* @Override */
                 public void reshape( GLAutoDrawable glautodrawable, int x, int y, int width, int height ) {
-                    Rectangle rectangle = new Rectangle( 0, 0, glautodrawable.getWidth(), glautodrawable.getHeight() );
+                    Rectangle rectangle = new Rectangle( 0, 0, glautodrawable.getSurfaceWidth(), glautodrawable.getSurfaceHeight() );
                     GL2ES1 gl = glautodrawable.getGL().getGL2ES1();
                     OneTriangle.setup( gl, rectangle.width, rectangle.height );
                 }

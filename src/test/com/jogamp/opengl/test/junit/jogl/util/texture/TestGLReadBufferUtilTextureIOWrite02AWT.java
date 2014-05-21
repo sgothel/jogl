@@ -100,8 +100,8 @@ public class TestGLReadBufferUtilTextureIOWrite02AWT extends UITestCase {
             public void display(GLAutoDrawable drawable) {
                 final int fw = frame.getWidth();
                 final int fh = frame.getHeight();
-                final int dw = drawable.getWidth();
-                final int dh = drawable.getHeight();
+                final int dw = drawable.getSurfaceWidth();
+                final int dh = drawable.getSurfaceHeight();
                 final boolean sz_changed = fw_old != fw && dw_old != dw && dw <= 512; // need to check both sizes [frame + drawable], due to async resize of AWT!
                 final boolean snap;
                 if(sz_changed) {

@@ -180,7 +180,7 @@ public abstract class UIListenerBase01 implements GLEventListener {
     public void printScreen(GLAutoDrawable drawable, String dir, String tech, String objName, boolean exportAlpha) throws GLException, IOException {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
-        pw.printf("-%03dx%03d-Z%04d-T%04d-%s", drawable.getWidth(), drawable.getHeight(), (int)Math.abs(zoom), 0, objName);
+        pw.printf("-%03dx%03d-Z%04d-T%04d-%s", drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), (int)Math.abs(zoom), 0, objName);
 
         final String filename = dir + tech + sw +".png";
         if(screenshot.readPixels(drawable.getGL(), false)) {

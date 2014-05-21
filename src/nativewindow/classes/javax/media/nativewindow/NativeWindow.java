@@ -43,14 +43,21 @@ package javax.media.nativewindow;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 
-/** Extend the {@link NativeSurface} interface with windowing
-    information such as window handle and position.<P>
-
-    A window toolkit such as the AWT may either implement this interface
-    directly with one of its components, or provide and register an
-    implementation of {@link NativeWindowFactory NativeWindowFactory}
-    which can create NativeWindow objects for its components. <P>
-*/
+/**
+ * Extend the {@link NativeSurface} interface with windowing
+ * information such as {@link #getWindowHandle() window-handle},
+ * {@link #getWindowWidth() window-size} and {@link #getX() window-position}.
+ * <p>
+ * All values of this interface are represented in window units.
+ * see {@link NativeSurface}.
+ * </p>
+ * <p>
+ * A window toolkit such as the AWT may either implement this interface
+ * directly with one of its components, or provide and register an
+ * implementation of {@link NativeWindowFactory NativeWindowFactory}
+ * which can create NativeWindow objects for its components.
+ * </p>
+ */
 public interface NativeWindow extends NativeSurface {
 
   /**
@@ -76,8 +83,10 @@ public interface NativeWindow extends NativeSurface {
 
   /**
    * Returns the insets defined as the width and height of the window decoration
-   * on the left, right, top and bottom.<br>
+   * on the left, right, top and bottom in window units.
+   * <p>
    * Insets are zero if the window is undecorated, including child windows.
+   * </p>
    *
    * <p>
    * Insets are available only after the native window has been created,
@@ -85,14 +94,14 @@ public interface NativeWindow extends NativeSurface {
    *
    * The top-level window area's top-left corner is located at
    * <pre>
-   *   getX() - getInsets().{@link InsetsImmutable#getLeftWidth() getLeftWidth()}
-   *   getY() - getInsets().{@link InsetsImmutable#getTopHeight() getTopHeight()}
+   *   {@link #getX()} - getInsets().{@link InsetsImmutable#getLeftWidth() getLeftWidth()}
+   *   {@link #getY()} - getInsets().{@link InsetsImmutable#getTopHeight() getTopHeight()}
    * </pre>
    *
    * The top-level window size is
    * <pre>
-   *   getWidth()  + getInsets().{@link InsetsImmutable#getTotalWidth() getTotalWidth()}
-   *   getHeight() + getInsets().{@link InsetsImmutable#getTotalHeight() getTotalHeight()}
+   *   {@link #getWindowWidth()}  + getInsets().{@link InsetsImmutable#getTotalWidth() getTotalWidth()}
+   *   {@link #getWindowHeight()} + getInsets().{@link InsetsImmutable#getTotalHeight() getTotalHeight()}
    * </pre>
    *
    * @return insets
@@ -103,7 +112,7 @@ public interface NativeWindow extends NativeSurface {
 
   /**
    * @return the current x position of the top-left corner
-   *         of the client area relative to it's parent.
+   *         of the client area relative to it's parent in window units.
    *         Since the position reflects the client area, it does not include the insets.
    * @see #getInsets()
    */
@@ -111,15 +120,29 @@ public interface NativeWindow extends NativeSurface {
 
   /**
    * @return the current y position of the top-left corner
-   *         of the client area relative to it's parent.
+   *         of the client area relative to it's parent in window units.
    *         Since the position reflects the client area, it does not include the insets.
    * @see #getInsets()
    */
   public int getY();
 
   /**
+   * Returns the width of the client area excluding insets (window decorations) in window units.
+   * @return width of the client area in window units
+   * @see NativeSurface#getSurfaceWidth()
+   */
+  public int getWindowWidth();
+
+  /**
+   * Returns the height of the client area excluding insets (window decorations) in window units.
+   * @return height of the client area in window units
+   * @see NativeSurface#getSurfaceHeight()
+   */
+  public int getWindowHeight();
+
+  /**
    * Returns the current position of the top-left corner
-   * of the client area in screen coordinates.
+   * of the client area in window units.
    * <p>
    * Since the position reflects the client area, it does not include the insets.
    * </p>

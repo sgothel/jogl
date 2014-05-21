@@ -107,15 +107,15 @@ public class TestTiledRendering1GL2NEWT extends UITestCase {
         final GL2 gl = dc.glc.getGL().getGL2();
         
         // Fix the image size for now
-        final int imageWidth = dc.d.getWidth() * 6;
-        final int imageHeight = dc.d.getHeight() * 4;
+        final int imageWidth = dc.d.getSurfaceWidth() * 6;
+        final int imageHeight = dc.d.getSurfaceHeight() * 4;
         
         final String filename = this.getSnapshotFilename(0, "-tile", dc.d.getChosenGLCapabilities(), imageWidth, imageHeight, false, TextureIO.PNG, null);
         final File file = new File(filename);
     
         // Initialize the tile rendering library
         final TileRenderer renderer = new com.jogamp.opengl.util.TileRenderer();        
-        renderer.setTileSize(dc.d.getWidth(), dc.d.getHeight(), 0);
+        renderer.setTileSize(dc.d.getSurfaceWidth(), dc.d.getSurfaceHeight(), 0);
         renderer.setImageSize(imageWidth, imageHeight);
         
         final GLPixelBuffer.GLPixelBufferProvider pixelBufferProvider = GLPixelBuffer.defaultProviderWithRowStride;
@@ -170,12 +170,12 @@ public class TestTiledRendering1GL2NEWT extends UITestCase {
         final GL2 gl = dc.glc.getGL().getGL2();
         
         // Fix the image size for now
-        final int imageWidth = dc.d.getWidth() * 6;
-        final int imageHeight = dc.d.getHeight() * 4;
+        final int imageWidth = dc.d.getSurfaceWidth() * 6;
+        final int imageHeight = dc.d.getSurfaceHeight() * 4;
         
         // Initialize the tile rendering library
         final TileRenderer renderer = new com.jogamp.opengl.util.TileRenderer();
-        renderer.setTileSize(dc.d.getWidth(), dc.d.getHeight(), 0);
+        renderer.setTileSize(dc.d.getSurfaceWidth(), dc.d.getSurfaceHeight(), 0);
         
         IllegalStateException ise = null;
         try {

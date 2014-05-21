@@ -408,7 +408,7 @@ public class GLEventListenerState {
     public static GLRunnable setViewport = new GLRunnable() {
         @Override
         public boolean run(GLAutoDrawable drawable) {
-            drawable.getGL().glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
+            drawable.getGL().glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
             return true;
         }
     };
@@ -428,7 +428,7 @@ public class GLEventListenerState {
         }
         @Override
         public boolean run(GLAutoDrawable drawable) {
-            listener.reshape(drawable, 0, 0, drawable.getWidth(), drawable.getHeight());
+            listener.reshape(drawable, 0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
             return true;
         }
     }

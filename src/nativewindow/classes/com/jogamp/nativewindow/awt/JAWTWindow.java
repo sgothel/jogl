@@ -46,7 +46,6 @@ import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
-import java.awt.GraphicsDevice;
 import java.awt.Window;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -99,7 +98,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   protected Rectangle bounds;
   protected Insets insets;
   private volatile long offscreenSurfaceLayer;
-
+  private volatile int pixelScale;
   private long drawable_old;
 
   /**
@@ -123,6 +122,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     invalidate();
     this.isApplet = false;
     this.offscreenSurfaceLayer = 0;
+    this.pixelScale = 1;
   }
   private static String id(Object obj) { return ( null!=obj ? toHexString(obj.hashCode()) : "nil" ); }
   private String jawtStr() { return "JAWTWindow["+id(JAWTWindow.this)+"]"; }
@@ -260,17 +260,26 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     drawable_old = 0;
     bounds = new Rectangle();
     insets = new Insets();
+    pixelScale = 1;
   }
   protected abstract void invalidateNative();
 
-  protected final boolean updateBounds(JAWT_Rectangle jawtBounds) {
+  /**
+   * Updates bounds and pixelScale
+   */
+  protected final boolean updateLockedData(JAWT_Rectangle jawtBounds) {
     final Rectangle jb = new Rectangle(jawtBounds.getX(), jawtBounds.getY(), jawtBounds.getWidth(), jawtBounds.getHeight());
-    final boolean changed = !bounds.equals(jb);
+    final int newPixelScale;
+    {
+        final int s = JAWTUtil.getPixelScale(component);
+        newPixelScale = 0 < s ? s : 1;
+    }
+    final boolean changedBounds = !bounds.equals(jb);
+    final boolean changedPixelScale = newPixelScale != pixelScale;
 
-    if(changed) {
-        if(DEBUG) {
+    if( changedBounds ) {
+        if( DEBUG ) {
             System.err.println("JAWTWindow.updateBounds: "+bounds+" -> "+jb);
-            // Thread.dumpStack();
         }
         bounds.set(jawtBounds.getX(), jawtBounds.getY(), jawtBounds.getWidth(), jawtBounds.getHeight());
 
@@ -279,11 +288,20 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
             insets.set(contInsets.left, contInsets.right, contInsets.top, contInsets.bottom);
         }
     }
-    return changed;
+    if( changedPixelScale ) {
+        if( DEBUG ) {
+            System.err.println("JAWTWindow.updatePixelScale: "+pixelScale+" -> "+newPixelScale);
+        }
+        pixelScale = newPixelScale;
+    }
+    return changedBounds || changedPixelScale;
   }
 
   /** @return the JAWT_DrawingSurfaceInfo's (JAWT_Rectangle) bounds, updated with lock */
   public final RectangleImmutable getBounds() { return bounds; }
+
+  /** @return the safe pixelScale value, i.e. never negative or zero. Updated with lock. */
+  public final int getPixelScale() { return pixelScale; }
 
   @Override
   public final InsetsImmutable getInsets() { return insets; }
@@ -606,18 +624,44 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   }
 
   @Override
-  public final int getWidth() {
-    return component.getWidth();
+  public final int getSurfaceWidth() {
+    return getWindowWidth() * getPixelScale();
   }
 
   @Override
-  public final int getHeight() {
-    return component.getHeight();
+  public final int getSurfaceHeight() {
+    return getWindowHeight() * getPixelScale();
   }
 
   //
   // NativeWindow
   //
+
+  @Override
+  public final int getWindowWidth() {
+      return component.getWidth();
+  }
+
+  @Override
+  public final int getWindowHeight() {
+      return component.getHeight();
+  }
+
+  @Override
+  public final int[] getWindowUnitXY(int[] result, final int[] pixelUnitXY) {
+      final int scale = getPixelScale();
+      result[0] = pixelUnitXY[0] / scale;
+      result[1] = pixelUnitXY[1] / scale;
+      return result;
+  }
+
+  @Override
+  public final int[] getPixelUnitXY(int[] result, final int[] windowUnitXY) {
+      final int scale = getPixelScale();
+      result[0] = windowUnitXY[0] * scale;
+      result[1] = windowUnitXY[1] * scale;
+      return result;
+  }
 
   @Override
   public void destroy() {
@@ -751,25 +795,6 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       return component.hasFocus();
   }
 
-  /**
-   * Returns the pixel scale factor of this {@link Component}'s {@link GraphicsDevice}, if supported.
-   * <p>
-   * If the component is not yet {@link Component#isDisplayable() displayable},
-   * <code>zero</code> is returned.
-   * </p>
-   * <p>
-   * If the component does not support pixel scaling the default
-   * <code>one</code> is returned.
-   * </p>
-   * <p>
-   * Note: Currently only supported on OSX since 1.7.0_40 for HiDPI retina displays
-   * </p>
-   * @return the pixel scale factor
-   */
-  protected final int getPixelScale() {
-      return JAWTUtil.getPixelScale(component);
-  }
-
   protected StringBuilder jawt2String(StringBuilder sb) {
       if( null == sb ) {
           sb = new StringBuilder();
@@ -801,7 +826,8 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
                 ", surfaceHandle "+toHexString(getSurfaceHandle())+
                 ", bounds "+bounds+", insets "+insets
                 );
-    sb.append(", pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
+    sb.append(", window ["+getX()+"/"+getY()+" "+getWindowWidth()+"x"+getWindowHeight()+
+             "], pixels[x"+getPixelScale()+" -> "+getSurfaceWidth()+"x"+getSurfaceHeight()+"]"+
               ", visible "+component.isVisible());
     sb.append(", lockedExt "+isSurfaceLockedByOtherThread()+
               ",\n\tconfig "+config+

@@ -140,11 +140,17 @@ public interface GLDrawable {
    */
   public boolean isRealized();
 
-  /** Returns the current width of this GLDrawable. */
-  public int getWidth();
+  /**
+   * Returns the width of this {@link GLDrawable}'s {@link #getNativeSurface() surface} client area in pixel units.
+   * @see NativeSurface#getSurfaceWidth()
+   */
+  public int getSurfaceWidth();
 
-  /** Returns the current height of this GLDrawable. */
-  public int getHeight();
+  /**
+   * Returns the height of this {@link GLDrawable}'s {@link #getNativeSurface() surface} client area in pixel units.
+   * @see NativeSurface#getSurfaceHeight()
+   */
+  public int getSurfaceHeight();
 
   /**
    * Returns <code>true</code> if the drawable is rendered in

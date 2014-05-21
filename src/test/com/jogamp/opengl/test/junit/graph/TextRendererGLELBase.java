@@ -246,7 +246,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             if( !exclusivePMVMatrix )  {
                 dy = 1f-ty;
             } else {
-                final int height = drawable.getHeight();
+                final int height = drawable.getSurfaceHeight();
                 dy = height-ty;
             }
             final int newLineCount = TextRegionUtil.getCharCount(text, '\n');

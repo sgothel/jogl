@@ -32,7 +32,7 @@ public class DelegatedUpstreamSurfaceHookMutableSize extends UpstreamSurfaceHook
 
     @Override
     public String toString() {
-        return getClass().getSimpleName()+"[ "+ width + "x" + height + ", " + upstream + "]";
+        return getClass().getSimpleName()+"[ "+ pixWidth + "x" + pixHeight + ", " + upstream + "]";
     }
 
 }

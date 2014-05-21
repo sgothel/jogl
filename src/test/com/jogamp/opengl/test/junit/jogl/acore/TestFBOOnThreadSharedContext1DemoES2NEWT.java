@@ -131,7 +131,7 @@ public class TestFBOOnThreadSharedContext1DemoES2NEWT extends UITestCase {
 
         // FBOD1
         final GLOffscreenAutoDrawable.FBO fbod1 = (GLOffscreenAutoDrawable.FBO)
-                factory.createOffscreenAutoDrawable(null, fbodCaps, null, glWindow.getWidth(), glWindow.getHeight());
+                factory.createOffscreenAutoDrawable(null, fbodCaps, null, glWindow.getSurfaceWidth(), glWindow.getSurfaceHeight());
         fbod1.setSharedAutoDrawable(glWindow);
         fbod1.setUpstreamWidget(glWindow); // connect the real GLWindow (mouse/key) to offscreen!
         fbod1.setTextureUnit(fbod1_texUnit);
@@ -156,7 +156,7 @@ public class TestFBOOnThreadSharedContext1DemoES2NEWT extends UITestCase {
         glWindow.addWindowListener(new WindowAdapter() {
             @Override
             public void windowResized(WindowEvent e) {
-                fbod1.setSize(glWindow.getWidth(), glWindow.getHeight());
+                fbod1.setSize(glWindow.getSurfaceWidth(), glWindow.getSurfaceHeight());
             }
         });
         glWindow.addGLEventListener(mixerDemo);
@@ -167,8 +167,8 @@ public class TestFBOOnThreadSharedContext1DemoES2NEWT extends UITestCase {
             public void display(GLAutoDrawable drawable) {
                 if(mainRun) return;
 
-                final int dw = drawable.getWidth();
-                final int dh = drawable.getHeight();
+                final int dw = drawable.getSurfaceWidth();
+                final int dh = drawable.getSurfaceHeight();
                 c++;
 
                 if(dw<800) {
@@ -202,10 +202,10 @@ public class TestFBOOnThreadSharedContext1DemoES2NEWT extends UITestCase {
 
         glWindow.addWindowListener(new WindowAdapter() {
             public void windowResized(WindowEvent e) {
-                System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight());
+                System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }
             public void windowMoved(WindowEvent e) {
-                System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight());
+                System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }
         });
 
@@ -216,7 +216,7 @@ public class TestFBOOnThreadSharedContext1DemoES2NEWT extends UITestCase {
 
         System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
-        System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
+        System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
 
         animator1.setUpdateFPSFrames(60, showFPS ? System.err : null);
 

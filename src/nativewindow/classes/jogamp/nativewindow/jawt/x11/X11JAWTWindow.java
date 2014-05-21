@@ -93,7 +93,7 @@ public class X11JAWTWindow extends JAWTWindow {
       unlockSurfaceImpl();
       return LOCK_SURFACE_NOT_READY;
     }
-    updateBounds(dsi.getBounds());
+    updateLockedData(dsi.getBounds());
     x11dsi = (JAWT_X11DrawingSurfaceInfo) dsi.platformInfo(getJAWT());
     if (x11dsi == null) {
       unlockSurfaceImpl();

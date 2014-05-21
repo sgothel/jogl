@@ -393,7 +393,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
         public final void run() {
             // Lock: Locked Surface/Window by display _and_ MakeCurrent/Release
             if (sendReshape) {
-                helper.reshape(GLAutoDrawableBase.this, 0, 0, getWidth(), getHeight());
+                helper.reshape(GLAutoDrawableBase.this, 0, 0, getSurfaceWidth(), getSurfaceHeight());
                 sendReshape = false;
             }
             helper.display(GLAutoDrawableBase.this);
@@ -412,7 +412,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
             if( null == context ) {
                 boolean contextCreated = false;
                 final GLDrawableImpl _drawable = drawable;
-                if ( null != _drawable && _drawable.isRealized() && 0<_drawable.getWidth()*_drawable.getHeight() ) {
+                if ( null != _drawable && _drawable.isRealized() && 0<_drawable.getSurfaceWidth()*_drawable.getSurfaceHeight() ) {
                     final GLContext[] shareWith = { null };
                     if( !helper.isSharedGLContextPending(shareWith) ) {
                         if( !restoreGLEventListenerState() ) {
@@ -669,7 +669,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
         _lock.lock();
         try {
             final GLDrawable _drawable = drawable;
-            if( null == _drawable || realized && ( 0 >= _drawable.getWidth() || 0 >= _drawable.getHeight() ) ) {
+            if( null == _drawable || realized && ( 0 >= _drawable.getSurfaceWidth() || 0 >= _drawable.getSurfaceHeight() ) ) {
                 return;
             }
             _drawable.setRealized(realized);
@@ -688,15 +688,15 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     }
 
     @Override
-    public int getWidth() {
+    public int getSurfaceWidth() {
         final GLDrawable _drawable = drawable;
-        return null != _drawable ? _drawable.getWidth() : 0;
+        return null != _drawable ? _drawable.getSurfaceWidth() : 0;
     }
 
     @Override
-    public int getHeight() {
+    public int getSurfaceHeight() {
         final GLDrawable _drawable = drawable;
-        return null != _drawable ? _drawable.getHeight() : 0;
+        return null != _drawable ? _drawable.getSurfaceHeight() : 0;
     }
 
     @Override
