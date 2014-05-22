@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.newt.mm;
 
 import java.io.IOException;
@@ -66,13 +66,13 @@ import javax.media.nativewindow.util.RectangleImmutable;
  * i.e. the original MonitorMode should get reinstated!
  * </p>
  * <p>
- * Also documents NV RANDR/GL bug, see {@link TestScreenMode01dNEWT#cleanupGL()}.</p> 
+ * Also documents NV RANDR/GL bug, see {@link TestScreenMode01dNEWT#cleanupGL()}.</p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestScreenMode01dNEWT extends UITestCase {
     static GLProfile glp;
     static int width, height;
-    
+
     static int waitTimeShort = 2000; // 2 sec
     static int waitTimeLong = 8000; // 8 sec
 
@@ -88,13 +88,13 @@ public class TestScreenMode01dNEWT extends UITestCase {
     public static void releaseClass() throws InterruptedException {
         Thread.sleep(waitTimeShort);
     }
-    
+
     /**
      * Following configurations results in a SIGSEGV:
      * <pre>
      *   Ubuntu 11.04 (natty), NV GTX 460, driver [280.10* - 285.03]
      * </pre>
-     * 
+     *
      * Situation:
      * <pre>
      *   1 - Create Screen, GLWindow (w/ context)
@@ -102,19 +102,19 @@ public class TestScreenMode01dNEWT extends UITestCase {
      *   3 - Destroy GLWindow (w/ context), Screen
      *   4 - Create  Screen, GLWindow (w/ context) (*)
      * </pre>
-     *   
+     *
      * Step 4 causes the exception within 1st 'glXMakeContextCurrent(..)' call
      * on the the created GL context.
-     * 
+     *
      * Remedy:
      * <pre>
      *   A) Releasing all resources before step 4 .. works.
      *   B) Holding the native Display/Screen in NEWT also works (ie screen.addReference()).
      * </pre>
-     * 
+     *
      * Hence there must be some correlations with the screen randr mode
      * and some of the glcontext/gldrawables.
-     * 
+     *
      * <pre>
      * Remedy A) is demonstrated here
      * Remedy B) is shown in {@link TestScreenMode01bNEWT}
@@ -127,7 +127,7 @@ public class TestScreenMode01dNEWT extends UITestCase {
         GLProfile.initSingleton();
         System.err.println("*** cleanupGL.DONE");
     }
-    
+
     static GLWindow createWindow(Screen screen, GLCapabilities caps, int width, int height, boolean onscreen, boolean undecorated) {
         Assert.assertNotNull(caps);
         caps.setOnscreen(onscreen);
@@ -143,10 +143,10 @@ public class TestScreenMode01dNEWT extends UITestCase {
     static void destroyWindow(Window window) throws InterruptedException {
         if(null!=window) {
             window.destroy();
-            Assert.assertTrue(AWTRobotUtil.waitForRealized(window, false));            
+            Assert.assertTrue(AWTRobotUtil.waitForRealized(window, false));
         }
     }
-    
+
     @Test
     public void test01FullscreenChange01() throws InterruptedException {
         Thread.sleep(waitTimeShort);
@@ -160,40 +160,40 @@ public class TestScreenMode01dNEWT extends UITestCase {
         GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
         Animator animator = new Animator(window);
         animator.start();
-        
+
         final MonitorDevice monitor = window.getMainMonitor();
-        
+
         Assert.assertEquals(false, window.isFullscreen());
         Assert.assertEquals(width, window.getSurfaceWidth());
         Assert.assertEquals(height, window.getSurfaceHeight());
-        
+
         window.setFullscreen(true);
-        Assert.assertEquals(true, window.isFullscreen());        
+        Assert.assertEquals(true, window.isFullscreen());
         Assert.assertEquals(monitor.getViewport().getWidth(), window.getSurfaceWidth());
         Assert.assertEquals(monitor.getViewport().getHeight(), window.getSurfaceHeight());
-        
+
         Thread.sleep(waitTimeShort);
 
         window.setFullscreen(false);
         Assert.assertEquals(false, window.isFullscreen());
         Assert.assertEquals(width, window.getSurfaceWidth());
         Assert.assertEquals(height, window.getSurfaceHeight());
-        
+
         Thread.sleep(waitTimeShort);
 
         animator.stop();
         Assert.assertEquals(false, animator.isAnimating());
         Assert.assertEquals(false, animator.isStarted());
-        
+
         destroyWindow(window);
-        
+
         Assert.assertEquals(false,window.isVisible());
         Assert.assertEquals(false,window.isRealized());
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false));
         Assert.assertEquals(false,screen.isNativeValid());
         Assert.assertEquals(false,display.isNativeValid());
-        
+
         cleanupGL();
     }
 
@@ -210,9 +210,9 @@ public class TestScreenMode01dNEWT extends UITestCase {
         GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
         Assert.assertNotNull(window);
 
-        final RectangleImmutable winRect = new Rectangle(window.getX(), window.getY(), window.getSurfaceWidth(), window.getSurfaceHeight());
-        final MonitorDevice monitor = screen.getMainMonitor(winRect);
-        
+        final RectangleImmutable screenRect = window.getSurfaceBounds();
+        final MonitorDevice monitor = screen.getMainMonitor( screenRect );
+
         List<MonitorMode> monitorModes = monitor.getSupportedModes();
         Assert.assertTrue(monitorModes.size()>0);
         if(monitorModes.size()==1) {
@@ -245,14 +245,14 @@ public class TestScreenMode01dNEWT extends UITestCase {
         monitorModes = MonitorModeUtil.filterByRate(monitorModes, mmOrig.getRefreshRate());
         Assert.assertNotNull(monitorModes);
         Assert.assertTrue(monitorModes.size()>0);
-        
+
         monitorModes = MonitorModeUtil.getHighestAvailableBpp(monitorModes);
         Assert.assertNotNull(monitorModes);
         Assert.assertTrue(monitorModes.size()>0);
 
         // set mode
         {
-            MonitorMode sm = (MonitorMode) monitorModes.get(0);
+            MonitorMode sm = monitorModes.get(0);
             System.err.println("[0] set current: "+sm);
             final boolean smOk = monitor.setCurrentMode(sm);
             mmCurrent = monitor.getCurrentMode();
@@ -263,7 +263,7 @@ public class TestScreenMode01dNEWT extends UITestCase {
             Assert.assertEquals(mmCurrent, monitor.queryCurrentMode());
             Assert.assertTrue(smOk);
         }
-        
+
         Thread.sleep(waitTimeLong);
 
         Assert.assertEquals(true,display.isNativeValid());
@@ -271,10 +271,10 @@ public class TestScreenMode01dNEWT extends UITestCase {
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
 
-        animator.stop();        
+        animator.stop();
         Assert.assertEquals(false, animator.isAnimating());
         Assert.assertEquals(false, animator.isStarted());
-        
+
         destroyWindow(window);
 
         Assert.assertEquals(false,window.isVisible());
@@ -284,7 +284,7 @@ public class TestScreenMode01dNEWT extends UITestCase {
         Assert.assertEquals(false,screen.isNativeValid());
         Assert.assertEquals(false,display.isNativeValid());
 
-        validateScreenModeReset(mmOrig, winRect);
+        validateScreenModeReset(mmOrig, screenRect);
         cleanupGL();
     }
 
@@ -308,8 +308,8 @@ public class TestScreenMode01dNEWT extends UITestCase {
         Animator animator = new Animator(window);
         animator.start();
 
-        final RectangleImmutable winRect = new Rectangle(window.getX(), window.getY(), window.getSurfaceWidth(), window.getSurfaceHeight());
-        final MonitorDevice monitor = screen.getMainMonitor(winRect);
+        final RectangleImmutable screenRect = window.getSurfaceBounds();
+        final MonitorDevice monitor = screen.getMainMonitor(screenRect);
         MonitorMode mmCurrent = monitor.queryCurrentMode();
         Assert.assertNotNull(mmCurrent);
         MonitorMode mmOrig = monitor.getOriginalMode();
@@ -317,7 +317,7 @@ public class TestScreenMode01dNEWT extends UITestCase {
         System.err.println("[0] orig   : "+mmOrig);
         System.err.println("[0] current: "+mmCurrent);
         Assert.assertEquals(mmCurrent, mmOrig);
-        
+
         List<MonitorMode> monitorModes = monitor.getSupportedModes();
         if(monitorModes.size()==1) {
             // no support ..
@@ -331,9 +331,9 @@ public class TestScreenMode01dNEWT extends UITestCase {
         monitorModes = MonitorModeUtil.filterByRate(monitorModes, mmOrig.getRefreshRate());
         monitorModes = MonitorModeUtil.getHighestAvailableBpp(monitorModes);
 
-        MonitorMode monitorMode = (MonitorMode) monitorModes.get(0);
+        MonitorMode monitorMode = monitorModes.get(0);
         Assert.assertNotNull(monitorMode);
-        
+
         if(preFS) {
             System.err.println("[0] set FS pre 0: "+window.isFullscreen());
             window.setFullscreen(true);
@@ -342,7 +342,7 @@ public class TestScreenMode01dNEWT extends UITestCase {
             System.err.println("[0] set FS pre X: "+window.isFullscreen());
         }
         Thread.sleep(waitTimeShort);
-        
+
         // set mode
         {
             System.err.println("[0] set current: "+monitorMode);
@@ -355,7 +355,7 @@ public class TestScreenMode01dNEWT extends UITestCase {
             Assert.assertEquals(mmCurrent, monitor.queryCurrentMode());
             Assert.assertTrue(smOk);
         }
-        
+
         if(!preFS) {
             System.err.println("[0] set FS post 0: "+window.isFullscreen());
             window.setFullscreen(true);
@@ -364,7 +364,7 @@ public class TestScreenMode01dNEWT extends UITestCase {
         }
 
         Thread.sleep(waitTimeLong);
-        
+
         if(!preFS) {
             System.err.println("[0] set !FS post 0: "+window.isFullscreen());
             window.setFullscreen(false);
@@ -372,7 +372,7 @@ public class TestScreenMode01dNEWT extends UITestCase {
             System.err.println("[0] set !FS post X: "+window.isFullscreen());
             Thread.sleep(waitTimeShort);
         }
-                
+
         Assert.assertEquals(true,display.isNativeValid());
         Assert.assertEquals(true,screen.isNativeValid());
         Assert.assertEquals(true,window.isNativeValid());
@@ -381,7 +381,7 @@ public class TestScreenMode01dNEWT extends UITestCase {
         animator.stop();
         Assert.assertEquals(false, animator.isAnimating());
         Assert.assertEquals(false, animator.isStarted());
-        
+
         destroyWindow(window);
 
         Assert.assertEquals(false,window.isVisible());
@@ -391,7 +391,7 @@ public class TestScreenMode01dNEWT extends UITestCase {
         Assert.assertEquals(false,screen.isNativeValid());
         Assert.assertEquals(false,display.isNativeValid());
 
-        validateScreenModeReset(mmOrig, winRect);
+        validateScreenModeReset(mmOrig, screenRect);
         cleanupGL();
     }
 
@@ -405,15 +405,15 @@ public class TestScreenMode01dNEWT extends UITestCase {
         screen.addReference();
         Assert.assertEquals(true,display.isNativeValid());
         Assert.assertEquals(true,screen.isNativeValid());
-        
+
         final MonitorDevice monitor = screen.getMainMonitor(rect);
         Assert.assertEquals(mmOrig, monitor.getCurrentMode());
-        
+
         screen.removeReference();
         Assert.assertEquals(false,display.isNativeValid());
         Assert.assertEquals(false,screen.isNativeValid());
     }
-    
+
     public static void main(String args[]) throws IOException {
         String tstname = TestScreenMode01dNEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);

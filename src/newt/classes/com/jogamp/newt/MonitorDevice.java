@@ -170,7 +170,7 @@ public abstract class MonitorDevice {
 
     /**
      * Returns the {@link RectangleImmutable rectangular} portion
-     * of the rotated virtual {@link Screen} size in screen/window units
+     * of the rotated virtual {@link Screen} size in pixel units
      * represented by this monitor.
      */
     public final RectangleImmutable getViewport() {
@@ -178,10 +178,12 @@ public abstract class MonitorDevice {
     }
 
     /**
-     * Returns <code>true</code> if given screen coordinates in screen/window units
+     * Returns <code>true</code> if given screen coordinates in pixel units
      * are contained by this {@link #getViewport() viewport}, otherwise <code>false</code>.
+     * @param x x-coord in pixel units
+     * @param y y-coord in pixel units
      */
-    public final boolean contains(int x, int y) {
+    public final boolean contains(final int x, final int y) {
         return x >= viewport.getX() &&
                x <  viewport.getX() + viewport.getWidth() &&
                y >= viewport.getY() &&
@@ -189,7 +191,8 @@ public abstract class MonitorDevice {
     }
 
     /**
-     * Returns the coverage of given rectangle w/ this this {@link #getViewport() viewport}, i.e. between <code>0.0</code> and <code>1.0</code>.
+     * Returns the coverage of given rectangle in pixel units
+     * w/ this {@link #getViewport() viewport}, i.e. between <code>0.0</code> and <code>1.0</code>.
      * <p>
      * Coverage is computed by:
      * <pre>
@@ -197,16 +200,17 @@ public abstract class MonitorDevice {
      *    coverage = area( isect ) / area( viewport ) ;
      * </pre>
      * </p>
+     * @param r {@link RectangleImmutable rectangle} in pixel units
      */
-    public final float coverage(RectangleImmutable r) {
+    public final float coverage(final RectangleImmutable r) {
         return viewport.coverage(r);
     }
 
     /**
-     * Returns the union of the given monitor's {@link #getViewport() viewport}.
+     * Returns the union of the given monitor's {@link #getViewport() viewport} in pixel units.
      * @param result storage for result, will be returned
      * @param monitors given list of monitors
-     * @return viewport representing the union of given monitor's viewport.
+     * @return viewport representing the union of given monitor's viewport in pixel units, i.e. result storage for chaining
      */
     public static Rectangle unionOfViewports(final Rectangle result, final List<MonitorDevice> monitors) {
         int x1=Integer.MAX_VALUE, y1=Integer.MAX_VALUE;

@@ -65,7 +65,8 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
         setGraphicsConfiguration(cfg);
-        setSizeImpl(getScreen().getWidth(), getScreen().getHeight());
+        final int[] winSize = convertToWindowUnits(new int[] {getScreen().getWidth(), getScreen().getHeight()});
+        setSizeImpl(winSize[0], winSize[1]);
 
         setWindowHandle(realizeWindow(true, getWindowWidth(), getWindowHeight()));
         if (0 == getWindowHandle()) {

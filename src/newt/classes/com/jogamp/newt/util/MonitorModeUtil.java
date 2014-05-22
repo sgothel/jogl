@@ -157,7 +157,7 @@ public class MonitorModeUtil {
 
     /**
      * @param monitorModes
-     * @param resolution
+     * @param resolution in pixel units
      * @return modes with nearest resolution, or matching ones. May return zero sized list for non.
      */
     public static List<MonitorMode> filterByResolution(List<MonitorMode> monitorModes, DimensionImmutable resolution) {

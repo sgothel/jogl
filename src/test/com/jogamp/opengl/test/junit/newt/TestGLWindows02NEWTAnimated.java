@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.newt;
 
 
@@ -35,12 +35,14 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+import javax.media.nativewindow.util.Rectangle;
 import javax.media.opengl.*;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
 import com.jogamp.newt.opengl.*;
+
 import java.io.IOException;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -67,7 +69,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
 
         //
         // Create native windowing resources .. X11/Win/OSX
-        // 
+        //
         GLWindow glWindow;
         if(null!=screen) {
             Window window = NewtFactory.createWindow(screen, caps);
@@ -76,7 +78,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         } else {
             glWindow = GLWindow.create(caps);
         }
-        glWindow.setUpdateFPSFrames(1, null);        
+        glWindow.setUpdateFPSFrames(1, null);
         Assert.assertNotNull(glWindow);
         glWindow.setUndecorated(onscreen && undecorated);
 
@@ -96,9 +98,9 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         // System.out.println("Created: "+glWindow);
 
         //
-        // Create native OpenGL resources .. XGL/WGL/CGL .. 
+        // Create native OpenGL resources .. XGL/WGL/CGL ..
         // equivalent to GLAutoDrawable methods: setVisible(true)
-        // 
+        //
         GLCapabilitiesImmutable caps2 = glWindow.getChosenGLCapabilities();
         Assert.assertNotNull(caps2);
         Assert.assertTrue(caps2.getGreenBits()>=5);
@@ -121,18 +123,18 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         Assert.assertNotNull(caps);
         GLWindow window = createWindow(null, caps, width, height, true /* onscreen */, false /* undecorated */, true /* vsync */);
         Animator animator = new Animator(window);
-        animator.setUpdateFPSFrames(1, null);        
+        animator.setUpdateFPSFrames(1, null);
         Assert.assertTrue(animator.start());
         while(animator.isAnimating() && animator.getTotalFPSDuration()<durationPerTest) {
             Thread.sleep(100);
         }
-        destroyWindow(window); // destroy - but still in animator        
+        destroyWindow(window); // destroy - but still in animator
         Assert.assertEquals(false, window.isNativeValid());
-        Assert.assertEquals(false, window.isVisible());                
+        Assert.assertEquals(false, window.isVisible());
         Assert.assertEquals(true, animator.isAnimating());
         Assert.assertEquals(false, animator.isPaused());
         Assert.assertEquals(true, animator.isStarted());
-        
+
         animator.remove(window);
         Thread.sleep(250); // give animator a chance to become paused
         Assert.assertEquals(false, animator.isAnimating());
@@ -147,7 +149,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         Assert.assertNotNull(caps);
         GLWindow window = createWindow(null, caps, width, height, true /* onscreen */, false /* undecorated */, true /* vsync */);
         Animator animator = new Animator();
-        animator.setUpdateFPSFrames(1, null);        
+        animator.setUpdateFPSFrames(1, null);
         Assert.assertTrue(animator.start());
         Thread.sleep(250); // give animator a chance to become paused
         Assert.assertEquals(false, animator.isAnimating()); // zero drawables
@@ -185,10 +187,11 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
 
         GLWindow window2 = createWindow(screen, caps, width-10, height-10, true /* onscreen */, false /* undecorated */, true /* vsync */);
         Assert.assertNotNull(window2);
-        window2.setPosition(screen.getWidth()-width, 0);
+        final Rectangle screenBoundsInWinU = screen.getViewportInWindowUnits(window2);
+        window2.setPosition(screenBoundsInWinU.getWidth()-width, 0);
 
         Animator animator = new Animator();
-        animator.setUpdateFPSFrames(1, null);        
+        animator.setUpdateFPSFrames(1, null);
         Assert.assertEquals(false, animator.isStarted());
         Assert.assertEquals(false, animator.isAnimating()); // zero drawables
         Assert.assertEquals(false, animator.isPaused()); // zero drawables, but not started
@@ -251,10 +254,11 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         Assert.assertNotNull(screen2);
         GLWindow window2 = createWindow(screen2, caps, width-10, height-10, true /* onscreen */, false /* undecorated */, true /* vsync */);
         Assert.assertNotNull(window2);
-        window2.setPosition(screen2.getWidth()-width, 0);
+        final Rectangle screen2BoundsInWinU = screen2.getViewportInWindowUnits(window2);
+        window2.setPosition(screen2BoundsInWinU.getWidth()-width, 0);
 
         Animator animator = new Animator();
-        animator.setUpdateFPSFrames(1, null);        
+        animator.setUpdateFPSFrames(1, null);
         Assert.assertEquals(false, animator.isStarted());
         Assert.assertEquals(false, animator.isAnimating());
         Assert.assertEquals(false, animator.isPaused());
@@ -287,23 +291,23 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         while(animator.isAnimating() && animator.getTotalFPSDuration()<durationPerTest+durationPerTest/10) {
             Thread.sleep(100);
         }
-        
-        Assert.assertEquals(true, animator.isStarted());                
+
+        Assert.assertEquals(true, animator.isStarted());
         Assert.assertEquals(true, animator.isAnimating());
         Assert.assertEquals(false, animator.isPaused());
-        
+
         Assert.assertEquals(true, animator.pause());
-        
-        Assert.assertEquals(true, animator.isStarted());                
+
+        Assert.assertEquals(true, animator.isStarted());
         Assert.assertEquals(false, animator.isAnimating());
         Assert.assertEquals(true, animator.isPaused());
 
         Assert.assertEquals(true, animator.resume());
-        
+
         Assert.assertEquals(true, animator.isStarted());
         Assert.assertEquals(true, animator.isAnimating());
         Assert.assertEquals(false, animator.isPaused());
-        
+
         destroyWindow(window2);
         animator.remove(window2);
         Assert.assertEquals(true, animator.isStarted());

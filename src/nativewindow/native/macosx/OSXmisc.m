@@ -41,7 +41,7 @@
 
 #include <jawt_md.h>
 
-#define VERBOSE 1
+// #define VERBOSE 1
 //
 #ifdef VERBOSE
     // #define DBG_PRINT(...) NSLog(@ ## __VA_ARGS__)

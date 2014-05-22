@@ -253,7 +253,8 @@ public class WindowDriver extends WindowImpl {
             public void run() {
                 final Point p0 = convertToPixelUnits( getLocationOnScreenImpl(0, 0) );
                 res[0] = Boolean.valueOf(confinePointer0(getWindowHandle(), confine,
-                        p0.getX(), p0.getY(), p0.getX()+getSurfaceWidth(), p0.getY()+getSurfaceHeight()));
+                                                         p0.getX(), p0.getY(),
+                                                         p0.getX()+getSurfaceWidth(), p0.getY()+getSurfaceHeight()));
             }
         });
         return res[0].booleanValue();
@@ -264,7 +265,7 @@ public class WindowDriver extends WindowImpl {
         this.runOnEDTIfAvail(true, new Runnable() {
             @Override
             public void run() {
-                final Point sPos = getLocationOnScreenImpl(x, y);
+                final Point sPos = convertToPixelUnits( getLocationOnScreenImpl(x, y) );
                 warpPointer0(getWindowHandle(), sPos.getX(), sPos.getY());
             }
         });

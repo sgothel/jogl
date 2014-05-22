@@ -41,6 +41,7 @@ import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.VisualIDHolder;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
+import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
@@ -54,7 +55,6 @@ import jogamp.opengl.egl.EGL;
 import jogamp.opengl.egl.EGLDisplayUtil;
 import jogamp.opengl.egl.EGLGraphicsConfiguration;
 import jogamp.opengl.egl.EGLGraphicsConfigurationFactory;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -286,9 +286,10 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
 
         if( isFullscreen() ) {
             final MonitorDevice mainMonitor = getMainMonitor();
-            final RectangleImmutable viewport = mainMonitor.getViewport();
-            definePosition(viewport.getX(), viewport.getY());
-            defineSize(viewport.getWidth(), viewport.getHeight());
+            final RectangleImmutable screenRect = mainMonitor.getViewport();
+            final RectangleImmutable winRect = this.convertToWindowUnits((Rectangle)screenRect.cloneMutable());
+            definePosition(winRect.getX(), winRect.getY());
+            defineSize(winRect.getWidth(), winRect.getHeight());
         }
 
         final boolean b;

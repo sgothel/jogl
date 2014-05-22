@@ -47,6 +47,7 @@ import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.SurfaceUpdatedListener;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
+import javax.media.nativewindow.util.Rectangle;
 import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL3;
@@ -363,23 +364,8 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
-    public final int[] convertToWindowUnits(final int[] pixelUnitsAndResult) {
-        return window.convertToWindowUnits(pixelUnitsAndResult);
-    }
-
-    @Override
-    public final int[] convertToPixelUnits(final int[] windowUnitsAndResult) {
-        return window.convertToPixelUnits(windowUnitsAndResult);
-    }
-
-    @Override
-    public final Point convertToWindowUnits(final Point pixelUnitsAndResult) {
-        return window.convertToWindowUnits(pixelUnitsAndResult);
-    }
-
-    @Override
-    public final Point convertToPixelUnits(final Point windowUnitsAndResult) {
-        return window.convertToPixelUnits(windowUnitsAndResult);
+    public final Rectangle getBounds() {
+        return window.getBounds();
     }
 
     @Override
@@ -390,6 +376,31 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     @Override
     public final int getSurfaceHeight() {
         return window.getSurfaceHeight();
+    }
+
+    @Override
+    public final Rectangle getSurfaceBounds() {
+        return window.getSurfaceBounds();
+    }
+
+    @Override
+    public final int[] convertToWindowUnits(final int[] pixelUnitsAndResult) {
+        return window.convertToWindowUnits(pixelUnitsAndResult);
+    }
+
+    @Override
+    public final int[] convertToPixelUnits(final int[] windowUnitsAndResult) {
+        return window.convertToPixelUnits(windowUnitsAndResult);
+    }
+
+    @Override
+    public final Rectangle convertToWindowUnits(final Rectangle pixelUnitsAndResult) {
+        return window.convertToWindowUnits(pixelUnitsAndResult);
+    }
+
+    @Override
+    public final Rectangle convertToPixelUnits(final Rectangle windowUnitsAndResult) {
+        return window.convertToPixelUnits(windowUnitsAndResult);
     }
 
     @Override

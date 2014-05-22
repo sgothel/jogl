@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.acore;
 
 import javax.media.nativewindow.Capabilities;
@@ -55,44 +55,45 @@ import com.jogamp.opengl.util.Animator;
  */
 public abstract class InitConcurrentBaseNEWT extends UITestCase {
 
-    static final int demoSize = 128;
-    
+    static final int demoWinSize = 128;
+
     static long duration = 300; // ms
-    
+
     static InsetsImmutable insets = null;
-    static int scrnHeight, scrnWidth;
     static int num_x, num_y;
-    
+
     @BeforeClass
     public static void initClass() {
         Window dummyWindow = NewtFactory.createWindow(new Capabilities());
-        dummyWindow.setSize(demoSize, demoSize);
+        dummyWindow.setSize(demoWinSize, demoWinSize);
         dummyWindow.setVisible(true);
         Assert.assertEquals(true, dummyWindow.isVisible());
         Assert.assertEquals(true, dummyWindow.isNativeValid());
-        insets = dummyWindow.getInsets();        
-        scrnHeight = dummyWindow.getScreen().getHeight();
-        scrnWidth = dummyWindow.getScreen().getWidth();        
-        num_x = scrnWidth  / ( demoSize + insets.getTotalWidth() )  - 2;
-        num_y = scrnHeight / ( demoSize + insets.getTotalHeight() ) - 2;
+        insets = dummyWindow.getInsets();
+        final int scrnHeight = dummyWindow.getScreen().getHeight();
+        final int scrnWidth = dummyWindow.getScreen().getWidth();
+        final int[] demoScreenSize = dummyWindow.convertToPixelUnits(new int[] { demoWinSize, demoWinSize });
+        final int[] insetsScreenSize = dummyWindow.convertToPixelUnits(new int[] { insets.getTotalWidth(), insets.getTotalHeight() });
+        num_x = scrnWidth  / ( demoScreenSize[0] + insetsScreenSize[0] ) - 2;
+        num_y = scrnHeight / ( demoScreenSize[1] + insetsScreenSize[1] ) - 2;
         dummyWindow.destroy();
     }
-    
+
     public class JOGLTask implements Runnable {
         private final int id;
         private final Object postSync;
         private final boolean reuse;
         private boolean done = false;
-        
+
         public JOGLTask(Object postSync, int id, boolean reuse) {
             this.postSync = postSync;
             this.id = id;
             this.reuse = reuse;
         }
         public void run() {
-            int x = (  id          % num_x ) * ( demoSize + insets.getTotalHeight() );
-            int y = ( (id / num_x) % num_y ) * ( demoSize + insets.getTotalHeight() );
-            
+            int x = (  id          % num_x ) * ( demoWinSize + insets.getTotalHeight() );
+            int y = ( (id / num_x) % num_y ) * ( demoWinSize + insets.getTotalHeight() );
+
             System.err.println("JOGLTask "+id+": START: "+x+"/"+y+", reuse "+reuse+" - "+Thread.currentThread().getName());
             final Display display = NewtFactory.createDisplay(null, reuse);
             final Screen screen = NewtFactory.createScreen(display, 0);
@@ -100,25 +101,25 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
             Assert.assertNotNull(glWindow);
             glWindow.setTitle("Task "+id);
             glWindow.setPosition(x + insets.getLeftWidth(), y + insets.getTopHeight() );
-    
+
             glWindow.addGLEventListener(new ValidateLockListener());
             glWindow.addGLEventListener(new GearsES2(0));
-    
+
             Animator animator = new Animator(glWindow);
-    
-            glWindow.setSize(demoSize, demoSize);
+
+            glWindow.setSize(demoWinSize, demoWinSize);
             glWindow.setVisible(true);
             animator.setUpdateFPSFrames(60, null);
-            
+
             System.err.println("JOGLTask "+id+": INITIALIZED: "+", "+display+" - "+Thread.currentThread().getName());
-            
+
             animator.start();
             Assert.assertEquals(true, animator.isAnimating());
             Assert.assertEquals(true, glWindow.isVisible());
             Assert.assertEquals(true, glWindow.isNativeValid());
             Assert.assertEquals(true, glWindow.isRealized());
             System.err.println("JOGLTask "+id+": RUNNING: "+Thread.currentThread().getName());
-    
+
             while(animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
                 try {
                     Thread.sleep(100);
@@ -126,10 +127,10 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
                     e.printStackTrace();
                 }
             }
-    
+
             animator.stop();
             glWindow.destroy();
-            
+
             System.err.println("JOGLTask "+id+": DONE/SYNC: "+Thread.currentThread().getName());
             synchronized (postSync) {
                 done = true;
@@ -137,7 +138,7 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
                 postSync.notifyAll();
             }
         }
-        
+
         public boolean done() { return done; }
     }
 
@@ -161,7 +162,7 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
         sb.append("]");
         return sb.toString();
     }
-    
+
     protected static boolean isDead(Thread[] threads) {
         for(int i=threads.length-1; i>=0; i--) {
             if(threads[i].isAlive()) {
@@ -182,7 +183,7 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
         sb.append("]");
         return sb.toString();
     }
-    
+
     protected void runJOGLTasks(int num, boolean reuse) throws InterruptedException {
         System.err.println("InitConcurrentBaseNEWT "+num+" threads, reuse display: "+reuse);
         final String currentThreadName = Thread.currentThread().getName();
@@ -194,8 +195,8 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
             tasks[i] = new JOGLTask(syncDone, i, reuse);
             threads[i] = new Thread(tasks[i], currentThreadName+"-jt"+i);
         }
-        final long t0 = System.currentTimeMillis(); 
-        
+        final long t0 = System.currentTimeMillis();
+
         for(i=0; i<num; i++) {
             threads[i].start();
         }
@@ -213,13 +214,13 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
         }
         final long t1 = System.currentTimeMillis();
         System.err.println("total: "+(t1-t0)/1000.0+"s");
-        
+
         Assert.assertTrue("Tasks are incomplete. Complete: "+doneDump(tasks), done(tasks));
         i=0;
         while(i<30 && !isDead(threads)) {
             Thread.sleep(100);
             i++;
         }
-        Assert.assertTrue("Threads are still alive after 3s. Alive: "+isAliveDump(threads), isDead(threads));        
-    }    
+        Assert.assertTrue("Threads are still alive after 3s. Alive: "+isAliveDump(threads), isDead(threads));
+    }
 }

@@ -912,7 +912,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public final MonitorDevice getMainMonitor() {
-        return screen.getMainMonitor(new Rectangle(getX(), getY(), getWindowWidth(), getWindowHeight()));
+        return screen.getMainMonitor( getSurfaceBounds() );
     }
 
     /**
@@ -1071,8 +1071,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
     @Override
     public final void setSurfaceSize(final int pixelWidth, final int pixelHeight) {
-        final int[] winSize = convertToWindowUnits(new int[]{pixelWidth, pixelHeight});
-        setSize(winSize[0], winSize[1]);
+        // FIXME HiDPI: Shortcut, may need to adjust if we change scaling methodology
+        setSize(pixelWidth * getPixelScaleX(), pixelHeight * getPixelScaleY());
     }
     @Override
     public final void setTopLevelSize(final int width, final int height) {
@@ -1877,13 +1877,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public final int getSurfaceWidth() {
-        return pixWidth;
+    public final int getX() {
+        return x;
     }
 
     @Override
-    public final int getSurfaceHeight() {
-        return pixHeight;
+    public final int getY() {
+        return y;
     }
 
     @Override
@@ -1894,6 +1894,27 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     @Override
     public final int getWindowHeight() {
         return winHeight;
+    }
+
+    @Override
+    public final Rectangle getBounds() {
+        return new Rectangle(x, y, winWidth, winHeight);
+    }
+
+    @Override
+    public final int getSurfaceWidth() {
+        return pixWidth;
+    }
+
+    @Override
+    public final int getSurfaceHeight() {
+        return pixHeight;
+    }
+
+    @Override
+    public final Rectangle getSurfaceBounds() {
+        // FIXME HiDPI: Shortcut, may need to adjust if we change scaling methodology
+        return new Rectangle(x * getPixelScaleX(), y * getPixelScaleY(), pixWidth, pixHeight);
     }
 
     @Override
@@ -1910,28 +1931,28 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return windowUnitsAndResult;
     }
 
+    protected final Point convertToWindowUnits(final Point pixelUnitsAndResult) {
+        return pixelUnitsAndResult.scaleInv(getPixelScaleX(), getPixelScaleY());
+    }
+
+    protected final Point convertToPixelUnits(final Point windowUnitsAndResult) {
+        return windowUnitsAndResult.scale(getPixelScaleX(), getPixelScaleY());
+    }
+
     @Override
-    public final Point convertToWindowUnits(final Point pixelUnitsAndResult) {
+    public final Rectangle convertToWindowUnits(final Rectangle pixelUnitsAndResult) {
         return pixelUnitsAndResult.scaleInv(getPixelScaleX(), getPixelScaleY());
     }
 
     @Override
-    public final Point convertToPixelUnits(final Point windowUnitsAndResult) {
+    public final Rectangle convertToPixelUnits(final Rectangle windowUnitsAndResult) {
         return windowUnitsAndResult.scale(getPixelScaleX(), getPixelScaleY());
     }
 
+    /** HiDPI: We currently base scaling of window units to pixel units on an integer scale factor per component. */
     protected int getPixelScaleX() { return 1; }
+    /** HiDPI: We currently base scaling of window units to pixel units on an integer scale factor per component. */
     protected int getPixelScaleY() { return 1; }
-
-    @Override
-    public final int getX() {
-        return x;
-    }
-
-    @Override
-    public final int getY() {
-        return y;
-    }
 
     protected final boolean autoPosition() { return autoPosition; }
 
@@ -1950,14 +1971,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * and {@link #pixWidth} and {@link #pixHeight} in pixel units according to {@link #convertToPixelUnits(int[])}.
      */
     protected final void defineSize(int winWidth, int winHeight) {
-        final int[] pixelSize = convertToPixelUnits(new int[] { winWidth, winHeight });
+        final int pixWidth = winWidth * getPixelScaleX();   // FIXME HiDPI: Shortcut, may need to adjust if we change scaling methodology
+        final int pixHeight = winHeight * getPixelScaleY();
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("defineSize: win["+this.winWidth+"x"+this.winHeight+" -> "+winWidth+"x"+winHeight+
-                               "], pixel["+this.pixWidth+"x"+this.pixHeight+" -> "+pixelSize[0]+"x"+pixelSize[1]+"]");
+                               "], pixel["+this.pixWidth+"x"+this.pixHeight+" -> "+pixWidth+"x"+pixHeight+"]");
             // Thread.dumpStack();
         }
         this.winWidth = winWidth; this.winHeight = winHeight;
-        this.pixWidth = pixelSize[0]; this.pixHeight = pixelSize[0];
+        this.pixWidth = pixWidth; this.pixHeight = pixHeight;
     }
 
     @Override
@@ -2227,7 +2249,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
                 int x,y,w,h;
 
-                final RectangleImmutable sviewport = screen.getViewport();
+                final RectangleImmutable sviewport = screen.getViewportInWindowUnits(WindowImpl.this);
                 final RectangleImmutable viewport;
                 final int fs_span_flag;
                 final boolean alwaysOnTopChange;
@@ -2240,7 +2262,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                             fullscreenMonitors = getScreen().getMonitorDevices();
                         }
                     }
-                    viewport = MonitorDevice.unionOfViewports(new Rectangle(), fullscreenMonitors);
+                    viewport = convertToWindowUnits(MonitorDevice.unionOfViewports(new Rectangle(), fullscreenMonitors));
                     if( isReconfigureFlagSupported(FLAG_IS_FULLSCREEN_SPAN) &&
                         ( fullscreenMonitors.size() > 1 || sviewport.compareTo(viewport) > 0 ) ) {
                         fs_span_flag = FLAG_IS_FULLSCREEN_SPAN;
@@ -2292,7 +2314,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("Window fs: "+_fullscreen+" "+x+"/"+y+" "+w+"x"+h+", "+isUndecorated()+
-                                       ", virtl-screenSize: "+sviewport+", monitorsViewport "+viewport+
+                                       ", virtl-screenSize: "+sviewport+" [wu], monitorsViewport "+viewport+" [wu]"+
                                        ", spanning "+(0!=fs_span_flag)+
                                        ", alwaysOnTop "+alwaysOnTop+(alwaysOnTopChange?"*":"")+
                                        ", wasVisible "+wasVisible+", tempInvisible "+tempInvisible+
@@ -2449,7 +2471,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
                 if( !fullscreen && !fullscreenPaused ) {
                     // Simply move/resize window to fit in virtual screen if required
-                    final RectangleImmutable viewport = screen.getViewport();
+                    final RectangleImmutable viewport = screen.getViewportInWindowUnits(WindowImpl.this);
                     if( viewport.getWidth() > 0 && viewport.getHeight() > 0 ) { // failsafe
                         final RectangleImmutable rect = new Rectangle(getX(), getY(), getWindowWidth(), getWindowHeight());
                         final RectangleImmutable isect = viewport.intersection(rect);
@@ -2475,7 +2497,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     // If changed monitor is part of this fullscreen mode, reset size! (Bug 771)
                     final MonitorDevice md = me.getMonitor();
                     if( fullscreenMonitors.contains(md) ) {
-                        final RectangleImmutable viewport = MonitorDevice.unionOfViewports(new Rectangle(), fullscreenMonitors);
+                        final RectangleImmutable viewport = convertToWindowUnits(MonitorDevice.unionOfViewports(new Rectangle(), fullscreenMonitors));
                         if(DEBUG_IMPLEMENTATION) {
                             final RectangleImmutable rect = new Rectangle(getX(), getY(), getWindowWidth(), getWindowHeight());
                             System.err.println("Window.monitorModeChanged: FS Monitor Match: Fit window "+rect+" into new viewport union "+viewport+", provoked by "+md);

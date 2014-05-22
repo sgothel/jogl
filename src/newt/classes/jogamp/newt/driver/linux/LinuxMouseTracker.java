@@ -36,6 +36,7 @@ import java.io.InputStream;
 
 import jogamp.newt.WindowImpl;
 
+import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.WindowEvent;
@@ -178,13 +179,20 @@ public class LinuxMouseTracker implements WindowListener {
                 }
 
                 if(null != focusedWindow) {
-                    if( x >= focusedWindow.getScreen().getWidth() ) {
-                        x = focusedWindow.getScreen().getWidth() - 1;
+                    // Clip to Screen Size
+                    {
+                        final Screen focusedScreen = focusedWindow.getScreen();
+                        final int sw = focusedScreen.getWidth();
+                        final int sh = focusedScreen.getHeight();
+                        if( x >= sw ) {
+                            x = sw - 1;
+                        }
+                        if( y >= sh ) {
+                            y = sh - 1;
+                        }
                     }
-                    if( y >= focusedWindow.getScreen().getHeight() ) {
-                        y = focusedWindow.getScreen().getHeight() - 1;
-                    }
-                    final int wx = x - focusedWindow.getX(), wy = y - focusedWindow.getY();
+                    final int[] winScreenPos = focusedWindow.convertToPixelUnits(new int[] { focusedWindow.getX(), focusedWindow.getY() });
+                    final int wx = x - winScreenPos[0], wy = y - winScreenPos[1];
                     if(old_x != x || old_y != y) {
                         // mouse moved
                         lastFocusedX = wx;

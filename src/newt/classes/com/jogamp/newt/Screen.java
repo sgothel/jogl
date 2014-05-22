@@ -131,29 +131,40 @@ public abstract class Screen {
     public abstract int getIndex();
 
     /**
-     * @return the x position of the virtual viewport's top-left origin in screen/window units.
+     * @return the x position of the virtual viewport's top-left origin in pixel units.
      */
     public abstract int getX();
 
     /**
-     * @return the y position of the virtual viewport's top-left origin in screen/window units.
+     * @return the y position of the virtual viewport's top-left origin in pixel units.
      */
     public abstract int getY();
 
     /**
-     * @return the <b>rotated</b> virtual viewport's width in screen/window units.
+     * @return the <b>rotated</b> virtual viewport's width in pixel units.
      */
     public abstract int getWidth();
 
     /**
-     * @return the <b>rotated</b> virtual viewport's height in screen/window units.
+     * @return the <b>rotated</b> virtual viewport's height in pixel units.
      */
     public abstract int getHeight();
 
     /**
-     * @return the <b>rotated</b> virtual viewport, i.e. origin and size in screen/window units.
+     * @return the <b>rotated</b> virtual viewport, i.e. origin and size in pixel units.
+     * @see #getViewportInWindowUnits(Window)
      */
     public abstract RectangleImmutable getViewport();
+
+    /**
+     * Returns a newly created {@link Rectangle} containing the <b>rotated</b> virtual viewport
+     * in window units of the given {@link Window} instance.
+     * @return rotated viewport values, i.e. origin and size, in pixel units.
+     * @see #getViewport()
+     */
+    public final Rectangle getViewportInWindowUnits(final Window win) {
+        return win.convertToWindowUnits( (Rectangle) getViewport().cloneMutable() );
+    }
 
     /**
      * @return the associated Display
@@ -181,14 +192,14 @@ public abstract class Screen {
     public abstract List<MonitorDevice> getMonitorDevices();
 
     /**
-     * Returns the {@link MonitorDevice} which {@link MonitorDevice#getViewport() viewport}
-     * {@link MonitorDevice#coverage(RectangleImmutable) covers} the given rectangle the most.
+     * Returns the {@link MonitorDevice} with the highest {@link MonitorDevice#getViewport() viewport}
+     * {@link MonitorDevice#coverage(RectangleImmutable) coverage} of the given rectangle in pixel units.
      * <p>
      * If no coverage is detected the first {@link MonitorDevice} is returned.
      * </p>
-     * @param r arbitrary rectangle in screen/window units
+     * @param r arbitrary rectangle in pixel units
      */
-    public final MonitorDevice getMainMonitor(RectangleImmutable r) {
+    public final MonitorDevice getMainMonitor(final RectangleImmutable r) {
         MonitorDevice res = null;
         float maxCoverage = Float.MIN_VALUE;
         final List<MonitorDevice> monitors = getMonitorDevices();
@@ -207,7 +218,7 @@ public abstract class Screen {
     }
 
     /**
-     * Returns the union of all monitor's {@link MonitorDevice#getViewport() viewport} in screen/window units.
+     * Returns the union of all monitor's {@link MonitorDevice#getViewport() viewport} in pixel units.
      * <p>
      * Should be equal to {@link #getX()}, {@link #getY()}, {@link #getWidth()} and {@link #getHeight()},
      * however, some native toolkits may choose a different virtual screen area.

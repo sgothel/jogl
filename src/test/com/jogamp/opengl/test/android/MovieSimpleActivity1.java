@@ -33,6 +33,7 @@ import java.net.URISyntaxException;
 import java.net.URLConnection;
 import java.util.Arrays;
 
+import javax.media.nativewindow.util.Rectangle;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
@@ -46,7 +47,6 @@ import com.jogamp.newt.Window;
 import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.opengl.GLWindow;
-
 import com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
@@ -120,7 +120,7 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
        {
            final int padding = mPlayerHUD ? 32 : 0;
            final android.view.View androidView = ((jogamp.newt.driver.android.WindowDriver)glWindowMain.getDelegatedWindow()).getAndroidView();
-           glWindowMain.setSize(scrn.getWidth()-padding, scrn.getHeight()-padding);
+           glWindowMain.setSurfaceSize(scrn.getWidth()-padding, scrn.getHeight()-padding);
            glWindowMain.setUndecorated(true);
            // setContentView(getWindow(), glWindowMain);
            viewGroup.addView(androidView, new android.widget.FrameLayout.LayoutParams(glWindowMain.getSurfaceWidth(), glWindowMain.getSurfaceHeight(), Gravity.BOTTOM|Gravity.RIGHT));
@@ -172,15 +172,13 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
                 public boolean run(GLAutoDrawable drawable) {
                     final GLMediaPlayer mPlayerSub;
                     final MovieSimple demoHUD;
-                    int x2 = scrn.getX();
-                    int y2 = scrn.getY();
-                    int w2 = scrn.getWidth()/3;
-                    int h2 = scrn.getHeight()/3;
+                    final Rectangle windowBounds = scrn.getViewportInWindowUnits(glWindowHUD);
                     if(null != mPlayerShared) {
                        if(0 < mPlayerShared.getWidth() && mPlayerShared.getWidth()<scrn.getWidth()/2 &&
                           0 < mPlayerShared.getHeight() && mPlayerShared.getHeight()<scrn.getHeight()/2) {
-                           w2 = mPlayerShared.getWidth();
-                           h2 = mPlayerShared.getHeight();
+                           final int[] wh = glWindowHUD.convertToWindowUnits(new int[]{mPlayerShared.getWidth(), mPlayerShared.getHeight()});
+                           windowBounds.setWidth( wh[0] );
+                           windowBounds.setHeight( wh[1] );
                        }
                        glWindowHUD.setSharedContext(glWindowMain.getContext());
                        demoHUD = new MovieSimple(mPlayerShared);
@@ -209,10 +207,10 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
                     });
                     demoHUD.initStream(streamLoc1, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, 0);
 
-                    glWindowHUD.setPosition(x2, y2);
-                    glWindowHUD.setSize(w2, h2);
+                    glWindowHUD.setPosition(windowBounds.getX(), windowBounds.getY());
+                    glWindowHUD.setSize(windowBounds.getWidth(), windowBounds.getHeight());
                     System.err.println("HUD: "+mPlayerHUD);
-                    System.err.println("HUD: "+w2+"x"+h2);
+                    System.err.println("HUD: "+windowBounds);
                     glWindowHUD.addMouseListener(toFrontMouseListener);
 
                     viewGroup.post(new Runnable() {

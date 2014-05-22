@@ -47,6 +47,7 @@ import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.nativewindow.util.Point;
+import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
 
 /**
@@ -233,6 +234,18 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     //
 
     /**
+     * Returns a newly created {@link Rectangle} containing window origin, {@link #getX()} & {@link #getY()},
+     * and size, {@link #getWidth()} & {@link #getHeight()}, in window units.
+     */
+    Rectangle getBounds();
+
+    /**
+     * Returns a newly created {@link Rectangle} containing the scaled window origin, {@link #getX()} & {@link #getY()},
+     * and size, {@link #getSurfaceWidth()} & {@link #getSurfaceHeight()}, in pixel units.
+     */
+    Rectangle getSurfaceBounds();
+
+    /**
      * Sets the size of the window's client area in window units, excluding decorations.
      *
      * <p>
@@ -329,19 +342,19 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
 
     /**
      * Converts the given pixel units into window units <i>in place</i>.
-     * @param pixelUnitsAndResult point storage holding the pixel units to convert
+     * @param pixelUnitsAndResult rectangle storage holding the pixel units to convert
      *                            and the resulting conversion.
-     * @return resulting point storage pixelUnitsAndResult for chaining holding the converted values
+     * @return resulting rectangle storage pixelUnitsAndResult for chaining holding the converted values
      */
-    Point convertToWindowUnits(final Point pixelUnitsAndResult);
+    Rectangle convertToWindowUnits(final Rectangle pixelUnitsAndResult);
 
     /**
      * Converts the given window units into pixel units <i>in place</i>.
-     * @param windowUnitsAndResult point storage holding the window units to convert
+     * @param windowUnitsAndResult rectangle storage holding the window units to convert
      *                            and the resulting conversion.
-     * @return resulting point storage windowUnitsAndResult for chaining holding the converted values
+     * @return resulting rectangle storage windowUnitsAndResult for chaining holding the converted values
      */
-    Point convertToPixelUnits(final Point windowUnitsAndResult);
+    Rectangle convertToPixelUnits(final Rectangle windowUnitsAndResult);
 
     void setUndecorated(boolean value);
 

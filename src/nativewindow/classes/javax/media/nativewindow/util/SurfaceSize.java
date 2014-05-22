@@ -32,7 +32,7 @@ package javax.media.nativewindow.util;
 /**
  * Immutable SurfaceSize Class, consisting of it's read only components:<br>
  * <ul>
- *  <li>{@link javax.media.nativewindow.util.DimensionImmutable} size in pixels</li>
+ *  <li>{@link javax.media.nativewindow.util.DimensionImmutable size in pixels}</li>
  *  <li><code>bits per pixel</code></li>
  * </ul>
  */
@@ -48,6 +48,7 @@ public class SurfaceSize implements Comparable<SurfaceSize> {
         this.bitsPerPixel=bitsPerPixel;
     }
 
+    /** Returns the resolution in pixel units */
     public final DimensionImmutable getResolution() {
         return resolution;
     }
@@ -58,7 +59,7 @@ public class SurfaceSize implements Comparable<SurfaceSize> {
 
     @Override
     public final String toString() {
-        return "[ "+resolution+" x "+bitsPerPixel+" bpp ]";
+        return "[ "+resolution+" pixels x "+bitsPerPixel+" bpp ]";
     }
 
     /**

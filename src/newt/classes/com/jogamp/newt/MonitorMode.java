@@ -51,7 +51,7 @@ import com.jogamp.newt.util.MonitorModeUtil;
  *  <ul>
  *    <li>A List of all {@link MonitorDevice}s is accessible via {@link Screen#getMonitorDevices()}.</li>
  *    <li>The main monitor used by a windows is accessible via {@link Window#getMainMonitor()}.</li>
- *    <li>The main monitor covering an arbitrary rectnagle is accessible via {@link Screen#getMainMonitor(RectangleImmutable)}.</li>
+ *    <li>The main monitor covering an arbitrary rectangle is accessible via {@link Screen#getMainMonitor(RectangleImmutable)}.</li>
  *  </ul></li>
  *  <li>The current MonitorMode can be obtained via {@link MonitorDevice#getCurrentMode()}.</li>
  *  <li>The original MonitorMode can be obtained via {@link MonitorDevice#getOriginalMode()}.</li>
@@ -88,8 +88,8 @@ import com.jogamp.newt.util.MonitorModeUtil;
         MonitorMode mmCurrent = monitor.queryCurrentMode();
         MonitorMode mmOrig = monitor.getOriginalMode();
 
-        // Target resolution
-        Dimension res = new Dimension(800, 600);
+        // Target resolution in pixel units
+        DimensionImmutable res = new Dimension(800, 600);
 
         // Target refresh rate shall be similar to current one ..
         float freq = mmCurrent.getRefreshRate();
@@ -136,7 +136,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
      * </ul>
      */
     public static class SizeAndRRate implements Comparable<SizeAndRRate> {
-        /** Non rotated surface size */
+        /** Non rotated surface size in pixel units */
         public final SurfaceSize surfaceSize;
         /** Mode bitfield flags, i.e. {@link #FLAG_DOUBLESCAN}, {@link #FLAG_INTERLACE}, .. */
         public final int flags;
@@ -349,7 +349,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
         return rotation;
     }
 
-    /** Returns the rotated screen width,
+    /** Returns the rotated screen width in pixel units,
      *  derived from <code>getMonitorMode().getSurfaceSize().getResolution()</code>
      *  and <code>getRotation()</code>
      */
@@ -357,7 +357,7 @@ public class MonitorMode implements Comparable<MonitorMode> {
         return getRotatedWH(true);
     }
 
-    /** Returns the rotated screen height,
+    /** Returns the rotated screen height in pixel units,
      *  derived from <code>getMonitorMode().getSurfaceSize().getResolution()</code>
      *  and <code>getRotation()</code>
      */

@@ -67,7 +67,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
             setWindowHandle(nextWindowHandle++); // just a marker
 
             surfaceHandle = CreateSurface(aDevice.getHandle(), getScreen().getWidth(), getScreen().getHeight(),
-                                          getX(), getY(), getWindowWidth(), getWindowHeight());
+                                          getX(), getY(), getSurfaceWidth(), getSurfaceHeight());
             if (surfaceHandle == 0) {
                 throw new NativeWindowException("Error creating window");
             }
@@ -89,6 +89,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
         ScreenDriver  screen = (ScreenDriver) getScreen();
 
+        // Note for GDL: window units == pixel units
         if(width>screen.getWidth()) {
             width=screen.getWidth();
         }

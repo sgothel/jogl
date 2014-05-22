@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,15 +20,16 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.newt.mm;
 
 import java.io.IOException;
+
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
@@ -54,7 +55,9 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
 import java.util.List;
+
 import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
 
 /**
@@ -64,7 +67,7 @@ import javax.media.nativewindow.util.RectangleImmutable;
 public class TestScreenMode01bNEWT extends UITestCase {
     static GLProfile glp;
     static int width, height;
-    
+
     static long waitTimeShort = 2000;
     static long duration = 6000;
 
@@ -80,14 +83,15 @@ public class TestScreenMode01bNEWT extends UITestCase {
     public static void releaseClass() throws InterruptedException {
         Thread.sleep(waitTimeShort);
     }
-    
-    static GLWindow createWindow(Screen screen, GLCapabilities caps, String name, int x, int y, int width, int height) throws InterruptedException {
+
+    static GLWindow createWindow(Screen screen, GLCapabilities caps, String name, int screenXPos, int screenYPos, int width, int height) throws InterruptedException {
         Assert.assertNotNull(caps);
 
         GLWindow window = GLWindow.create(screen, caps);
         // Window window = NewtFactory.createWindow(screen, caps);
+        final int[] winPos = window.convertToWindowUnits(new int[] { screenXPos, screenYPos });
         window.setTitle(name);
-        window.setPosition(x, y);
+        window.setPosition(winPos[0], winPos[1]);
         window.setSize(width, height);
         window.addGLEventListener(new GearsES2());
         Assert.assertNotNull(window);
@@ -100,10 +104,10 @@ public class TestScreenMode01bNEWT extends UITestCase {
     static void destroyWindow(Window window) throws InterruptedException {
         if(null!=window) {
             window.destroy();
-            Assert.assertTrue(AWTRobotUtil.waitForRealized(window, false));            
+            Assert.assertTrue(AWTRobotUtil.waitForRealized(window, false));
         }
     }
-    
+
     @Test
     public void testScreenModeChangeSingleQ1() throws InterruptedException {
         final Display display = NewtFactory.createDisplay(null); // local display
@@ -119,7 +123,7 @@ public class TestScreenMode01bNEWT extends UITestCase {
             Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false));
         }
     }
-    
+
     @Test
     public void testScreenModeChangeSingleQ2() throws InterruptedException {
         final Display display = NewtFactory.createDisplay(null); // local display
@@ -139,24 +143,26 @@ public class TestScreenMode01bNEWT extends UITestCase {
             Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false));
         }
     }
-        
-    void testScreenModeChangeImpl(final Screen screen, int xpos, int ypos) throws InterruptedException {
+
+    void testScreenModeChangeImpl(final Screen screen, int screenXPos, int screenYPos) throws InterruptedException {
         Thread.sleep(waitTimeShort);
 
         final GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
         final Display display = screen.getDisplay();
         System.err.println("Test.0: Window screen: "+screen);
-        
-        System.err.println("Test.0: Window bounds (pre): "+xpos+"/"+ypos+" "+width+"x"+height+" within "+screen.getViewport());
-        
-        GLWindow window0 = createWindow(screen, caps, "win0", xpos, ypos, width, height);
-        Assert.assertNotNull(window0);        
-        System.err.println("Test.0: Window bounds: "+window0.getX()+"/"+window0.getY()+" "+window0.getSurfaceWidth()+"x"+window0.getSurfaceHeight()+" within "+screen.getViewport());
+
+        System.err.println("Test.0: Window bounds (pre): screenPos "+screenXPos+"/"+screenYPos+" [pixels], windowSize "+width+"x"+height+" [wu] within "+screen.getViewport()+" [pixels]");
+
+        GLWindow window0 = createWindow(screen, caps, "win0", screenXPos, screenYPos, width, height);
+        Assert.assertNotNull(window0);
+        Rectangle window0ScreenRect = window0.getSurfaceBounds();
+        System.err.println("Test.0: Window bounds: "+window0.getX()+"/"+window0.getY()+" "+window0.getWindowWidth()+"x"+window0.getWindowHeight()+" [wu] within "+screen.getViewportInWindowUnits(window0)+" [wu]");
+        System.err.println("Test.0: Window screenRect: "+window0ScreenRect+" [pixels]");
 
         final Animator anim = new Animator(window0);
         anim.start();
-        
+
         List<MonitorMode> allMonitorModes = screen.getMonitorModes();
         Assert.assertTrue(allMonitorModes.size()>0);
         if(allMonitorModes.size()==1) {
@@ -168,7 +174,7 @@ public class TestScreenMode01bNEWT extends UITestCase {
 
         MonitorDevice monitor = window0.getMainMonitor();
         System.err.println("Test.0: Window monitor: "+monitor);
-        
+
         List<MonitorMode> monitorModes = monitor.getSupportedModes();
         Assert.assertTrue(monitorModes.size()>0);
         if(monitorModes.size()==1) {
@@ -178,7 +184,7 @@ public class TestScreenMode01bNEWT extends UITestCase {
             return;
         }
         Assert.assertTrue(allMonitorModes.containsAll(monitorModes));
-                
+
         MonitorMode mmCurrent = monitor.getCurrentMode();
         Assert.assertNotNull(mmCurrent);
         MonitorMode mmOrig = monitor.getOriginalMode();
@@ -199,7 +205,7 @@ public class TestScreenMode01bNEWT extends UITestCase {
         monitorModes = MonitorModeUtil.filterByRate(monitorModes, mmOrig.getRefreshRate());
         Assert.assertNotNull(monitorModes);
         Assert.assertTrue(monitorModes.size()>0);
-        
+
         monitorModes = MonitorModeUtil.getHighestAvailableBpp(monitorModes);
         Assert.assertNotNull(monitorModes);
         Assert.assertTrue(monitorModes.size()>0);
@@ -218,10 +224,14 @@ public class TestScreenMode01bNEWT extends UITestCase {
             Assert.assertTrue(smOk);
         }
 
-        System.err.println("Test.1: Window screen: "+screen);
-        System.err.println("Test.1: Window bounds: "+window0.getX()+"/"+window0.getY()+" "+window0.getSurfaceWidth()+"x"+window0.getSurfaceHeight()+" within "+screen.getViewport());
-        System.err.println("Test.1: Window monitor: "+window0.getMainMonitor());
-        
+        window0ScreenRect = window0.getSurfaceBounds();
+        System.err.println("Test.1: Screen           : "+screen);
+        System.err.println("Test.1: Window bounds    : "+window0.getX()+"/"+window0.getY()+" "+window0.getWindowWidth()+"x"+window0.getWindowHeight()+" [wu] within "+screen.getViewportInWindowUnits(window0)+" [wu]");
+        System.err.println("Test.1: Window screenRect: "+window0ScreenRect+" [pixels]");
+        System.err.println("Test.1: Screen viewport  : "+screen.getViewport()+" [pixels]");
+        System.err.println("Test.1: Window monitor   : "+monitor.getViewport()+" [pixels]");
+        System.err.println("Test.1: Window main-mon  : "+window0.getMainMonitor());
+
         Thread.sleep(duration);
 
         Assert.assertEquals(true,display.isNativeValid());
@@ -238,12 +248,15 @@ public class TestScreenMode01bNEWT extends UITestCase {
             Assert.assertFalse(monitor.isModeChangedByUs());
             Assert.assertEquals(mmOrig, mmCurrent);
             Assert.assertTrue(smOk);
-        }        
-        
-        System.err.println("Test.2: Window screen: "+screen);
-        System.err.println("Test.2: Window bounds: "+window0.getX()+"/"+window0.getY()+" "+window0.getSurfaceWidth()+"x"+window0.getSurfaceHeight()+" within "+screen.getViewport());
-        System.err.println("Test.2: Window monitor: "+window0.getMainMonitor());
-        
+        }
+
+        System.err.println("Test.2: Screen           : "+screen);
+        System.err.println("Test.2: Window bounds    : "+window0.getX()+"/"+window0.getY()+" "+window0.getWindowWidth()+"x"+window0.getWindowHeight()+" [wu] within "+screen.getViewportInWindowUnits(window0)+" [wu]");
+        System.err.println("Test.2: Window screenRect: "+window0ScreenRect+" [pixels]");
+        System.err.println("Test.2: Screen viewport  : "+screen.getViewport()+" [pixels]");
+        System.err.println("Test.2: Window monitor   : "+monitor.getViewport()+" [pixels]");
+        System.err.println("Test.2: Window main-mon  : "+window0.getMainMonitor());
+
         Thread.sleep(duration);
         anim.stop();
         destroyWindow(window0);

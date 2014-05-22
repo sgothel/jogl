@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,27 +20,27 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.newt;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
-
 import com.jogamp.opengl.test.junit.util.*;
 
 import java.lang.reflect.InvocationTargetException;
 
 import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.util.Rectangle;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.awt.GLCanvas;
-import com.jogamp.opengl.util.Animator;
 
+import com.jogamp.opengl.util.Animator;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.awt.NewtCanvasAWT;
@@ -57,6 +57,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+
 import javax.media.opengl.GLEventListener;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -158,7 +159,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
                 colorPanel.setBackground(Color.white);
                 colorPanel.repaint();
             }});
-        
+
         robot = new Robot();
         robot.setAutoWaitForIdle(true);
 
@@ -167,12 +168,12 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
             Thread.sleep(AWTRobotUtil.TIME_SLICE);
         }
         Assert.assertEquals(true,  frame.isVisible());
-        
+
         System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.setup(): Before NativeWindow init");
-        
+
         NativeWindowFactory.initSingleton();
-        
-        AWTRobotUtil.clearAWTFocus(robot);        
+
+        AWTRobotUtil.clearAWTFocus(robot);
         AWTRobotUtil.toFrontAndRequestFocus(robot, frame);
         AWTRobotUtil.requestFocus(robot, button);
 
@@ -198,7 +199,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.release(): End");
     }
 
-    protected void runTestGL(final Canvas canvas, GLAutoDrawable drawable) 
+    protected void runTestGL(final Canvas canvas, GLAutoDrawable drawable)
         throws AWTException, InterruptedException, InvocationTargetException {
 
         Dimension size = new Dimension(400,400);
@@ -268,9 +269,10 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         win0.setSize(100,100);
         win0.setVisible(true);
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(win0, true));
-        
+
         Screen screen = win0.getScreen();
-        win0.setPosition(screen.getWidth()-150, 0);
+        final Rectangle screenBoundsInWinU = screen.getViewportInWindowUnits(win0);
+        win0.setPosition(screenBoundsInWinU.getX()-150, 0);
         win0.addGLEventListener(new GearsES2());
         Animator anim = new Animator(win0);
         anim.start();
@@ -282,14 +284,14 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
 
         win0.destroy();
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(win0, false));
-        Assert.assertEquals(false, win0.isNativeValid());        
+        Assert.assertEquals(false, win0.isNativeValid());
         Assert.assertEquals(true, anim.isAnimating()); // due to newtCanvasAWT/win1
 
         newtCanvasAWT.destroy(); // destroys both newtCanvasAWT/win1
         Assert.assertEquals(false, win1.isNativeValid());
         Assert.assertEquals(false, win0.isNativeValid());
         Assert.assertEquals(true, anim.isAnimating());
-        
+
         Assert.assertEquals(true, anim.stop());
         Assert.assertEquals(false, anim.isAnimating());
 
@@ -321,10 +323,10 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         GLCanvas glCanvas = new GLCanvas(caps);
         anim.add(glCanvas);
         runTestGL(glCanvas, glCanvas);
-        
+
         anim.remove(glCanvas);
         Assert.assertEquals(false, anim.isAnimating());
-        
+
         /**
         win0.destroy();
         Assert.assertEquals(true, anim.isAnimating());
