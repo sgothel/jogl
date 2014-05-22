@@ -156,7 +156,7 @@ public class TestFBOOnThreadSharedContext1DemoES2NEWT extends UITestCase {
         glWindow.addWindowListener(new WindowAdapter() {
             @Override
             public void windowResized(WindowEvent e) {
-                fbod1.setSize(glWindow.getSurfaceWidth(), glWindow.getSurfaceHeight());
+                fbod1.setSurfaceSize(glWindow.getSurfaceWidth(), glWindow.getSurfaceHeight());
             }
         });
         glWindow.addGLEventListener(mixerDemo);

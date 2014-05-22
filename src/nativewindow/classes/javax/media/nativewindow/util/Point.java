@@ -106,22 +106,54 @@ public class Point implements Cloneable, PointImmutable {
     public final void setX(int x) { this.x = x; }
     public final void setY(int y) { this.y = y; }
 
+    /**
+     * Translate this instance's x- and y-components,
+     * i.e. add the values of the given delta point to them.
+     * @param pd delta point
+     * @return this instance for scaling
+     */
     public final Point translate(Point pd) {
         x += pd.x ;
         y += pd.y ;
         return this;
     }
 
+    /**
+     * Translate this instance's x- and y-components,
+     * i.e. add the given deltas to them.
+     * @param dx delta for x
+     * @param dy delta for y
+     * @return this instance for scaling
+     */
     public final Point translate(int dx, int dy) {
         x += dx ;
         y += dy ;
         return this;
     }
 
+    /**
+     * Scale this instance's x- and y-components,
+     * i.e. multiply them by the given scale factors.
+     * @param sx scale factor for x
+     * @param sy scale factor for y
+     * @return this instance for scaling
+     */
     public final Point scale(int sx, int sy) {
         x *= sx ;
         y *= sy ;
         return this;
     }
 
+    /**
+     * Inverse scale this instance's x- and y-components,
+     * i.e. divide them by the given scale factors.
+     * @param sx inverse scale factor for x
+     * @param sy inverse scale factor for y
+     * @return this instance for scaling
+     */
+    public final Point scaleInv(int sx, int sy) {
+        x /= sx ;
+        y /= sy ;
+        return this;
+    }
 }

@@ -57,7 +57,7 @@ public class GLOffscreenAutoDrawableImpl extends GLAutoDrawableDelegate implemen
     }
 
     @Override
-    public void setSize(int newWidth, int newHeight) throws NativeWindowException, GLException {
+    public void setSurfaceSize(int newWidth, int newHeight) throws NativeWindowException, GLException {
         this.defaultWindowResizedOp(newWidth, newHeight);
     }
 

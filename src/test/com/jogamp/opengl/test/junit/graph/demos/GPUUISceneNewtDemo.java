@@ -21,7 +21,7 @@ public class GPUUISceneNewtDemo {
     static boolean GraphMSAAMode = false;
 
     public static void main(String[] args) {
-        int wwidth = 800, wheight = 400;
+        int swidth = 800, sheight = 400;
         if( 0 != args.length ) {
             for(int i=0; i<args.length; i++) {
                 if(args[i].equals("-smsaa")) {
@@ -37,10 +37,10 @@ public class GPUUISceneNewtDemo {
                     GraphVBAAMode = true;
                 } else if(args[i].equals("-width")) {
                     i++;
-                    wwidth = MiscUtils.atoi(args[i], wwidth);
+                    swidth = MiscUtils.atoi(args[i], swidth);
                 } else if(args[i].equals("-height")) {
                     i++;
-                    wheight = MiscUtils.atoi(args[i], wheight);
+                    sheight = MiscUtils.atoi(args[i], sheight);
                 }
             }
         }
@@ -68,7 +68,7 @@ public class GPUUISceneNewtDemo {
 
         final GLWindow window = GLWindow.create(caps);
         window.setPosition(10, 10);
-        window.setSize(wwidth, wheight);
+        window.setSurfaceSize(swidth, sheight);
         window.setTitle("GraphUI Newt Demo: graph["+Region.getRenderModeString(rmode)+"], msaa "+SceneMSAASamples);
 
         final RenderState rs = RenderState.createRenderState(SVertex.factory());

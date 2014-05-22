@@ -501,9 +501,13 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
             Window window = (Window) source;
             width=window.getSurfaceWidth();
             height=window.getSurfaceHeight();
+        } else if (source instanceof GLAutoDrawable) {
+            GLAutoDrawable glad = (GLAutoDrawable) source;
+            width = glad.getSurfaceWidth();
+            height = glad.getSurfaceHeight();
         } else if (GLProfile.isAWTAvailable() && source instanceof java.awt.Component) {
             java.awt.Component comp = (java.awt.Component) source;
-            width=comp.getWidth();
+            width=comp.getWidth(); // FIXME HiDPI: May need to convert window units -> pixel units!
             height=comp.getHeight();
         } else {
             throw new RuntimeException("Event source neither Window nor Component: "+source);

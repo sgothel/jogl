@@ -112,8 +112,8 @@ public class WindowDriver extends WindowImpl {
             }
             // int _x=(x>=0)?x:this.x;
             // int _y=(x>=0)?y:this.y;
-            width=(width>0)?width:getSurfaceWidth();
-            height=(height>0)?height:getSurfaceHeight();
+            width=(width>0)?width:getWindowWidth();
+            height=(height>0)?height:getWindowHeight();
             if(width>0 || height>0) {
                 setSize0(eglWindowHandle, width, height);
             }
@@ -158,7 +158,7 @@ public class WindowDriver extends WindowImpl {
     @Override
     protected void sizeChanged(boolean defer, int newWidth, int newHeight, boolean force) {
         if(isFullscreen()) {
-            ((ScreenDriver)getScreen()).sizeChanged(getSurfaceWidth(), getSurfaceHeight());
+            ((ScreenDriver)getScreen()).sizeChanged(getWindowWidth(), getWindowHeight());
         }
         super.sizeChanged(defer, newWidth, newHeight, force);
     }

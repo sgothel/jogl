@@ -181,7 +181,7 @@ public interface NativeSurface extends SurfaceUpdatedListener {
    * Returns the width of the client area excluding insets (window decorations) in pixel units.
    * @return width of the client area in pixel units
    * @see NativeWindow#getWindowWidth()
-   * @see #getWindowUnitXY(int[], int[])
+   * @see #convertToWindowUnits(int[])
    */
   public int getSurfaceWidth();
 
@@ -189,25 +189,25 @@ public interface NativeSurface extends SurfaceUpdatedListener {
    * Returns the height of the client area excluding insets (window decorations) in pixel units.
    * @return height of the client area in pixel units
    * @see NativeWindow#getWindowHeight()
-   * @see #getWindowUnitXY(int[], int[])
+   * @see #convertToWindowUnits(int[])
    */
   public int getSurfaceHeight();
 
   /**
-   * Converts the given pixel units into window units.
-   * @param result int[2] storage for the result, may be equal to pixelUnitXY (in-place)
-   * @param pixelUnitXY int[2] x- and y-coord values in pixel units
-   * @return result int[2] storage for chaining holding the converted values
+   * Converts the given pixel units into window units <i>in place</i>.
+   * @param pixelUnitsAndResult int[2] storage holding the pixel units for the x- and y-coord to convert
+   *                             and the resulting values.
+   * @return result int[2] storage pixelUnitsAndResult for chaining holding the converted values
    */
-  public int[] getWindowUnitXY(int[] result, final int[] pixelUnitXY);
+  public int[] convertToWindowUnits(final int[] pixelUnitsAndResult);
 
   /**
-   * Converts the given window units into pixel units.
-   * @param result int[2] storage for the result, may be equal to windowUnitXY (in-place)
-   * @param windowUnitXY int[2] x- and y-coord values in window units
-   * @return result int[2] storage for chaining holding the converted values
+   * Converts the given window units into pixel units <i>in place</i>.
+   * @param windowUnitsAndResult int[2] storage holding the window units for the x- and y-coord to convert
+   *                             and the resulting values.
+   * @return result int[2] storage windowUnitsAndResult for chaining holding the converted values
    */
-  public int[] getPixelUnitXY(int[] result, final int[] windowUnitXY);
+  public int[] convertToPixelUnits(final int[] windowUnitsAndResult);
 
   /**
    * Returns the graphics configuration corresponding to this window.

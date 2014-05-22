@@ -16,18 +16,18 @@ public class UpstreamSurfaceHookMutableSize implements UpstreamSurfaceHook.Mutab
     }
 
     @Override
-    public final void setPixelSize(int width, int height) {
+    public final void setSurfaceSize(int width, int height) {
         this.pixWidth = width;
         this.pixHeight = height;
     }
 
     @Override
-    public final int getPixelWidth(ProxySurface s) {
+    public final int getSurfaceWidth(ProxySurface s) {
         return pixWidth;
     }
 
     @Override
-    public final int getPixelHeight(ProxySurface s) {
+    public final int getSurfaceHeight(ProxySurface s) {
         return pixHeight;
     }
     @Override

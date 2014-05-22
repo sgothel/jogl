@@ -363,13 +363,23 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
-    public final int[] getWindowUnitXY(int[] result, final int[] pixelUnitXY) {
-        return window.getWindowUnitXY(result, pixelUnitXY);
+    public final int[] convertToWindowUnits(final int[] pixelUnitsAndResult) {
+        return window.convertToWindowUnits(pixelUnitsAndResult);
     }
 
     @Override
-    public final int[] getPixelUnitXY(int[] result, final int[] windowUnitXY) {
-        return window.getPixelUnitXY(result, windowUnitXY);
+    public final int[] convertToPixelUnits(final int[] windowUnitsAndResult) {
+        return window.convertToPixelUnits(windowUnitsAndResult);
+    }
+
+    @Override
+    public final Point convertToWindowUnits(final Point pixelUnitsAndResult) {
+        return window.convertToWindowUnits(pixelUnitsAndResult);
+    }
+
+    @Override
+    public final Point convertToPixelUnits(final Point windowUnitsAndResult) {
+        return window.convertToPixelUnits(windowUnitsAndResult);
     }
 
     @Override
@@ -469,6 +479,10 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     @Override
     public final void setSize(int width, int height) {
         window.setSize(width, height);
+    }
+    @Override
+    public final void setSurfaceSize(int pixelWidth, int pixelHeight) {
+        window.setSurfaceSize(pixelWidth, pixelHeight);
     }
     @Override
     public void setTopLevelSize(int width, int height) {

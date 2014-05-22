@@ -132,7 +132,7 @@ public class WindowDriver extends WindowImpl {
             new AWTWindowAdapter(new LocalWindowListener(), this).addTo(awtCanvas); // fwd all AWT Window events to here
         }
 
-        reconfigureWindowImpl(getX(), getY(), getSurfaceWidth(), getSurfaceHeight(), getReconfigureFlags(FLAG_CHANGE_VISIBILITY | FLAG_CHANGE_DECORATION, true));
+        reconfigureWindowImpl(getX(), getY(), getWindowWidth(), getWindowHeight(), getReconfigureFlags(FLAG_CHANGE_VISIBILITY | FLAG_CHANGE_DECORATION, true));
         // throws exception if failed ..
 
         final NativeWindow nw = awtCanvas.getNativeWindow();

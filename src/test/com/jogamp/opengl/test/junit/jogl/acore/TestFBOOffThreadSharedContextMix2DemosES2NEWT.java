@@ -201,8 +201,8 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
                 }
             }
             public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-                fbod1.setSize(width, height);
-                fbod2.setSize(width, height);
+                fbod1.setSurfaceSize(width, height);
+                fbod2.setSurfaceSize(width, height);
             }
         });
 

@@ -110,7 +110,7 @@ public class WindowDriver extends WindowImpl {
             chosenCaps.setBackgroundOpaque(capsRequested.isBackgroundOpaque());
         }
         setGraphicsConfiguration(cfg);
-        nativeWindowHandle = CreateWindow0(display.getBCMHandle(), layer, getX(), getY(), getSurfaceWidth(), getSurfaceHeight(),
+        nativeWindowHandle = CreateWindow0(display.getBCMHandle(), layer, getX(), getY(), getWindowWidth(), getWindowHeight(),
                                            chosenCaps.isBackgroundOpaque(), chosenCaps.getAlphaBits());
         if (nativeWindowHandle == 0) {
             throw new NativeWindowException("Error creating egl window: "+cfg);

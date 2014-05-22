@@ -46,6 +46,7 @@ import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.WindowClosingProtocol;
+import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.RectangleImmutable;
 
 /**
@@ -251,9 +252,36 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * @param width of the window's client area in window units
      * @param height of the window's client area in window units
      *
+     * @see #setSurfaceSize(int, int)
+     * @see #setTopLevelSize(int, int)
      * @see #getInsets()
      */
     void setSize(int width, int height);
+
+    /**
+     * Sets the size of the window's surface in pixel units which claims the window's client area excluding decorations.
+     *
+     * <p>
+     * Zero size semantics are respected, see {@link #setVisible(boolean)}:<br>
+     * <pre>
+     * if ( visible && 0 != windowHandle && ( 0 &ge; width || 0 &ge; height ) ) {
+     *   setVisible(false);
+     * } else if ( visible && 0 == windowHandle && 0 &lt; width && 0 &lt; height ) {
+     *   setVisible(true);
+     * } else {
+     *   // as expected ..
+     * }
+     * </pre></p>
+     * <p>
+     * This call is ignored if in fullscreen mode.<br></p>
+     *
+     * @param pixelWidth of the window's client area in pixel units
+     * @param pixelHeight of the window's client area in pixel units
+     *
+     * @see #setSize(int, int)
+     * @see #getInsets()
+     */
+    void setSurfaceSize(int pixelWidth, int pixelHeight);
 
     /**
      * Sets the size of the top-level window including insets (window decorations) in window units.
@@ -298,6 +326,22 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * @see #getInsets()
      */
     void setTopLevelPosition(int x, int y);
+
+    /**
+     * Converts the given pixel units into window units <i>in place</i>.
+     * @param pixelUnitsAndResult point storage holding the pixel units to convert
+     *                            and the resulting conversion.
+     * @return resulting point storage pixelUnitsAndResult for chaining holding the converted values
+     */
+    Point convertToWindowUnits(final Point pixelUnitsAndResult);
+
+    /**
+     * Converts the given window units into pixel units <i>in place</i>.
+     * @param windowUnitsAndResult point storage holding the window units to convert
+     *                            and the resulting conversion.
+     * @return resulting point storage windowUnitsAndResult for chaining holding the converted values
+     */
+    Point convertToPixelUnits(final Point windowUnitsAndResult);
 
     void setUndecorated(boolean value);
 

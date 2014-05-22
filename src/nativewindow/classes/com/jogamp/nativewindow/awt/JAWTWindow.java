@@ -648,19 +648,19 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   }
 
   @Override
-  public final int[] getWindowUnitXY(int[] result, final int[] pixelUnitXY) {
+  public final int[] convertToWindowUnits(final int[] pixelUnitsAndResult) {
       final int scale = getPixelScale();
-      result[0] = pixelUnitXY[0] / scale;
-      result[1] = pixelUnitXY[1] / scale;
-      return result;
+      pixelUnitsAndResult[0] /= scale;
+      pixelUnitsAndResult[1] /= scale;
+      return pixelUnitsAndResult;
   }
 
   @Override
-  public final int[] getPixelUnitXY(int[] result, final int[] windowUnitXY) {
+  public final int[] convertToPixelUnits(final int[] windowUnitsAndResult) {
       final int scale = getPixelScale();
-      result[0] = windowUnitXY[0] * scale;
-      result[1] = windowUnitXY[1] * scale;
-      return result;
+      windowUnitsAndResult[0] *= scale;
+      windowUnitsAndResult[1] *= scale;
+      return windowUnitsAndResult;
   }
 
   @Override

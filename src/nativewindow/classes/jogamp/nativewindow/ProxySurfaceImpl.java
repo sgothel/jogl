@@ -150,12 +150,12 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
 
     @Override
     public final int getSurfaceWidth() {
-        return upstream.getPixelWidth(this);
+        return upstream.getSurfaceWidth(this);
     }
 
     @Override
     public final int getSurfaceHeight() {
-        return upstream.getPixelHeight(this);
+        return upstream.getSurfaceHeight(this);
     }
 
     @Override

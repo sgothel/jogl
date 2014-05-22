@@ -561,7 +561,7 @@ public class MovieCube implements GLEventListener {
                 anim.stop();
             }
         });
-        window.setSize(width, height);
+        window.setSurfaceSize(width, height);
         window.setVisible(true);
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
         anim.start();
@@ -577,7 +577,7 @@ public class MovieCube implements GLEventListener {
                 System.err.println("MovieCube State: "+mp);
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_SIZE & event_mask ) ) {
                     if( origSize ) {
-                        window.setSize(mp.getWidth(), mp.getHeight());
+                        window.setSurfaceSize(mp.getWidth(), mp.getHeight());
                     }
                     // window.disposeGLEventListener(ms, false /* remove */ );
                     mc.resetGLState();

@@ -304,7 +304,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
                         if(null == androidView) {
                             setupAndroidView( StaticContext.getContext() );
                         }
-                        viewGroup.addView(androidView, new android.widget.FrameLayout.LayoutParams(getSurfaceWidth(), getSurfaceHeight(), Gravity.BOTTOM|Gravity.RIGHT));
+                        viewGroup.addView(androidView, new android.widget.FrameLayout.LayoutParams(getWindowWidth(), getWindowHeight(), Gravity.BOTTOM|Gravity.RIGHT));
                         Log.d(MD.TAG, "canCreateNativeImpl: added to static ViewGroup - on thread "+Thread.currentThread().getName());
                     } });
                 for(long sleep = TIMEOUT_NATIVEWINDOW; 0<sleep && 0 == surfaceHandle; sleep-=10 ) {
@@ -462,7 +462,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
             Log.d(MD.TAG, "reconfigureWindowImpl.setFullscreen post creation (setContentView()) n/a");
             return false;
         }
-        if(getSurfaceWidth() != width || getSurfaceHeight() != height) {
+        if(getWindowWidth() != width || getWindowHeight() != height) {
             if(0!=getWindowHandle()) {
                 Log.d(MD.TAG, "reconfigureWindowImpl.setSize n/a");
                 res = false;
@@ -548,7 +548,8 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
 
     @Override
     public final void surfaceCreated(SurfaceHolder holder) {
-        Log.d(MD.TAG, "surfaceCreated: "+getX()+"/"+getY()+" "+getSurfaceWidth()+"x"+getSurfaceHeight()+" - on thread "+Thread.currentThread().getName());
+        Log.d(MD.TAG, "surfaceCreated: win["+getX()+"/"+getY()+" "+getWindowWidth()+"x"+getWindowHeight()+
+                      "], pixels["+" "+getSurfaceWidth()+"x"+getSurfaceHeight()+"] - on thread "+Thread.currentThread().getName());
     }
 
     @Override
@@ -586,15 +587,15 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
             nativeFormat = getSurfaceVisualID0(surfaceHandle);
             Log.d(MD.TAG, "surfaceChanged: androidFormat "+androidFormat+" -- (set-native "+aNativeWindowFormat+") --> nativeFormat "+nativeFormat);
 
-            final int nWidth = getWidth0(surfaceHandle);
-            final int nHeight = getHeight0(surfaceHandle);
+            final int[] newSurfSize = { getWidth0(surfaceHandle), getHeight0(surfaceHandle) };
+            final int[] newWinSize = convertToWindowUnits(new int[]{ newSurfSize[0], newSurfSize[1] }); // HiDPI: Not necessary yet ..
             capsByFormat = (GLCapabilitiesImmutable) fixCaps(true /* matchFormatPrecise */, nativeFormat, getRequestedCapabilities());
-            sizeChanged(false, nWidth, nHeight, false);
+            sizeChanged(false, newWinSize[0], newWinSize[1], false);
 
             Log.d(MD.TAG, "surfaceRealized: isValid: "+surface.isValid()+
                           ", new surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
-                          ", format [a "+androidFormat+"/n "+nativeFormat+"], "+
-                          getX()+"/"+getY()+" "+nWidth+"x"+nHeight+", visible: "+isVisible());
+                          ", format [a "+androidFormat+"/n "+nativeFormat+"], win["+
+                          getX()+"/"+getY()+" "+newWinSize[0]+"x"+newWinSize[1]+"], pixel["+newSurfSize[0]+"x"+newSurfSize[1]+"], visible: "+isVisible());
 
             if(isVisible()) {
                setVisible(false, true);

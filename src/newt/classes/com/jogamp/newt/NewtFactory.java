@@ -296,7 +296,7 @@ public class NewtFactory {
         }
         final Window win = WindowImpl.create(parentWindow, 0, screen, caps);
 
-        win.setSize(parentWindow.getSurfaceWidth(), parentWindow.getSurfaceHeight());
+        win.setSize(parentWindow.getWindowWidth(), parentWindow.getWindowHeight());
         if ( null != newtParentWindow ) {
             newtParentWindow.addChild(win);
             win.setVisible(newtParentWindow.isVisible());

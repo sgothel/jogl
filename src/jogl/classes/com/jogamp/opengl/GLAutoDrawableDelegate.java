@@ -36,6 +36,7 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 
 import com.jogamp.common.util.locks.LockFactory;
@@ -101,7 +102,22 @@ public class GLAutoDrawableDelegate extends GLAutoDrawableBase implements GLAuto
         super.defaultWindowRepaintOp();
     }
 
-    /** Implementation to handle resize events from the windowing system. All required locks are being claimed. */
+    /**
+     * Handling resize events from the windowing system.
+     * <p>
+     * Implementation:
+     * <ul>
+     *   <li>resizes {@link #getDelegatedDrawable() the GLDrawable}, if offscreen,</li>
+     *   <li>triggers a pending {@link GLEventListener#reshape(GLAutoDrawable, int, int, int, int) reshape events}, and</li>
+     *   <li>issues a {@link #display()} call, if no animator is present.</li>
+     * </ul>
+     * </p>
+     * <p>
+     * All required locks are being claimed.
+     * </p>
+     * @param newWidth new width in pixel units
+     * @param newWidth new height in pixel units
+     */
     public final void windowResizedOp(int newWidth, int newHeight) {
         super.defaultWindowResizedOp(newWidth, newHeight);
     }

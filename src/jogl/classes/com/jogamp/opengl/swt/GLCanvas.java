@@ -455,12 +455,12 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
        public final void destroy(ProxySurface s) { /* nop */ }
 
        @Override
-       public final int getPixelWidth(ProxySurface s) {
+       public final int getSurfaceWidth(ProxySurface s) {
            return clientArea.width;
        }
 
        @Override
-       public final int getPixelHeight(ProxySurface s) {
+       public final int getSurfaceHeight(ProxySurface s) {
            return clientArea.height;
        }
 

@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -50,21 +50,21 @@ import android.view.WindowManager;
 public class NewtBaseActivity extends Activity {
    List<Window> newtWindows = new ArrayList<Window>();
    List<GLAutoDrawable> glAutoDrawables = new ArrayList<GLAutoDrawable>();
-   
+
    GLAnimatorControl animator = null;
-    
+
    boolean isDelegatedActivity;
    Activity rootActivity;
    boolean setThemeCalled = false;
-      
+
    protected void startAnimation(boolean start) {
      if(null != animator) {
          final boolean res;
          if( start ) {
-             if( animator.isPaused() ) { 
-                 res = animator.resume(); 
-             } else { 
-                 res = animator.start(); 
+             if( animator.isPaused() ) {
+                 res = animator.resume();
+             } else {
+                 res = animator.start();
              }
          } else {
              res = animator.stop();
@@ -76,10 +76,10 @@ public class NewtBaseActivity extends Activity {
          if(null != anim) {
              final boolean res;
              if( start ) {
-                 if( anim.isPaused() ) { 
-                     res = anim.resume(); 
-                 } else { 
-                     res = anim.start(); 
+                 if( anim.isPaused() ) {
+                     res = anim.resume();
+                 } else {
+                     res = anim.start();
                  }
              } else {
                  res = anim.stop();
@@ -88,32 +88,32 @@ public class NewtBaseActivity extends Activity {
          }
      }
    }
-       
+
    public NewtBaseActivity() {
        super();
        isDelegatedActivity = false;
        rootActivity = this;
    }
-   
+
    public void setRootActivity(Activity rootActivity) {
        this.rootActivity = rootActivity;
        this.isDelegatedActivity = this != rootActivity;
    }
-   
+
    public final boolean isDelegatedActivity() {
        return isDelegatedActivity;
    }
-   
+
    public final Activity getActivity() {
        return rootActivity;
-   }     
-   
+   }
+
    /**
     * This is one of the three registration methods (see below).
     * <p>
     * This methods issues {@link android.view.Window#setContentView(android.view.View, android.view.ViewGroup.LayoutParams) androidWindow.setContenView(newtWindow.getAndroidView())}
     * and finally calls {@link #registerNEWTWindow(Window)}.
-    * </p>  
+    * </p>
     * @param androidWindow
     * @param newtWindow
     * @throws IllegalArgumentException if the <code>newtWindow</code>'s {@link Window#getDelegatedWindow() delegate} is not an AndroidDriver.
@@ -128,7 +128,7 @@ public class NewtBaseActivity extends Activity {
            final WindowDriver newtAWindow = (WindowDriver)delegateWindow;
            androidWindow.setContentView(newtAWindow.getAndroidView());
        } else {
-           throw new IllegalArgumentException("Given NEWT Window is not an Android Window: "+newtWindow.getClass().getName()); 
+           throw new IllegalArgumentException("Given NEWT Window is not an Android Window: "+newtWindow.getClass().getName());
        }
        registerNEWTWindow(newtWindow);
    }
@@ -137,7 +137,7 @@ public class NewtBaseActivity extends Activity {
     * <p>
     * This methods issues {@link android.view.Window#addContentView(android.view.View, android.view.ViewGroup.LayoutParams) androidWindow.addContenView(newtWindow.getAndroidView(), params)}
     * and finally calls {@link #registerNEWTWindow(Window)}.
-    * </p>  
+    * </p>
     * @param androidWindow
     * @param newtWindow
     * @param params
@@ -151,8 +151,8 @@ public class NewtBaseActivity extends Activity {
            final WindowDriver newtAWindow = (WindowDriver)delegateWindow;
            androidWindow.addContentView(newtAWindow.getAndroidView(), params);
        } else {
-           throw new IllegalArgumentException("Given NEWT Window's Delegate is not an Android Window: "+delegateWindow.getClass().getName()); 
-       }       
+           throw new IllegalArgumentException("Given NEWT Window's Delegate is not an Android Window: "+delegateWindow.getClass().getName());
+       }
        registerNEWTWindow(newtWindow);
    }
    /**
@@ -161,15 +161,15 @@ public class NewtBaseActivity extends Activity {
     * This methods registers the given NEWT window to ensure it's destruction at {@link #onDestroy()}.
     * </p>
     * <p>
-    * If adding a {@link GLAutoDrawable} implementation, the {@link GLAnimatorControl} retrieved by {@link GLAutoDrawable#getAnimator()} 
+    * If adding a {@link GLAutoDrawable} implementation, the {@link GLAnimatorControl} retrieved by {@link GLAutoDrawable#getAnimator()}
     * will be used for {@link #onPause()} and {@link #onResume()}.
     * </p>
     * <p>
-    * If adding a {@link GLAutoDrawable} implementation, the {@link GLEventListenerState} will preserve it's state 
-    * when {@link #onPause()} is being called while not {@link #isFinishing()}. A later {@link #onResume()} will 
+    * If adding a {@link GLAutoDrawable} implementation, the {@link GLEventListenerState} will preserve it's state
+    * when {@link #onPause()} is being called while not {@link #isFinishing()}. A later {@link #onResume()} will
     * reinstate the {@link GLEventListenerState}.
     * </p>
-    * 
+    *
     * @param newtWindow
     * @throws IllegalArgumentException if the <code>newtWindow</code>'s {@link Window#getDelegatedWindow() delegate} is not an AndroidDriver.
     * @see #setContentView(android.view.Window, Window)
@@ -182,8 +182,8 @@ public class NewtBaseActivity extends Activity {
            final WindowDriver newtAWindow = (WindowDriver)delegateWindow;
            newtAWindow.registerActivity(getActivity());
        } else {
-           throw new IllegalArgumentException("Given NEWT Window's Delegate is not an Android Window: "+delegateWindow.getClass().getName()); 
-       }       
+           throw new IllegalArgumentException("Given NEWT Window's Delegate is not an Android Window: "+delegateWindow.getClass().getName());
+       }
        newtWindows.add(newtWindow);
        if(newtWindow instanceof GLAutoDrawable) {
            glAutoDrawables.add((GLAutoDrawable)newtWindow);
@@ -203,9 +203,9 @@ public class NewtBaseActivity extends Activity {
            startAnimation(true);
        }
    };
-   
+
    /**
-    * Convenient method to set the Android window's flags to fullscreen or size-layout depending on the given NEWT window. 
+    * Convenient method to set the Android window's flags to fullscreen or size-layout depending on the given NEWT window.
     * <p>
     * Must be called before creating the view and adding any content, i.e. setContentView() !
     * </p>
@@ -216,7 +216,7 @@ public class NewtBaseActivity extends Activity {
         if(null == androidWindow || null == newtWindow) {
             throw new IllegalArgumentException("Android or NEWT Window null");
         }
-        
+
         if( newtWindow.isFullscreen() || newtWindow.isUndecorated() ) {
             androidWindow.requestFeature(android.view.Window.FEATURE_NO_TITLE);
         }
@@ -225,16 +225,16 @@ public class NewtBaseActivity extends Activity {
             androidWindow.clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
         } else {
             androidWindow.addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-            androidWindow.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);                
+            androidWindow.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         }
-        
-        if(newtWindow.getSurfaceWidth()>0 && newtWindow.getSurfaceHeight()>0 && !newtWindow.isFullscreen()) {            
-            androidWindow.setLayout(newtWindow.getSurfaceWidth(), newtWindow.getSurfaceHeight());
-        }       
+
+        if(newtWindow.getWindowWidth()>0 && newtWindow.getWindowHeight()>0 && !newtWindow.isFullscreen()) {
+            androidWindow.setLayout(newtWindow.getWindowWidth(), newtWindow.getWindowHeight());
+        }
    }
 
    /**
-    * Convenient method to set the Android window's flags to fullscreen or size-layout depending on the given NEWT window. 
+    * Convenient method to set the Android window's flags to fullscreen or size-layout depending on the given NEWT window.
     * <p>
     * Must be called before creating the view and adding any content, i.e. setContentView() !
     * </p>
@@ -245,7 +245,7 @@ public class NewtBaseActivity extends Activity {
         if(null == androidWindow) {
             throw new IllegalArgumentException("Android or Window null");
         }
-        
+
         if( fullscreen ) {
             androidWindow.requestFeature(android.view.Window.FEATURE_NO_TITLE);
             androidWindow.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -255,9 +255,9 @@ public class NewtBaseActivity extends Activity {
             androidWindow.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         }
    }
-   
+
    /**
-    * Convenient method to set this context's theme to transparency depending on {@link CapabilitiesImmutable#isBackgroundOpaque()}. 
+    * Convenient method to set this context's theme to transparency depending on {@link CapabilitiesImmutable#isBackgroundOpaque()}.
     * <p>
     * Must be called before creating the view and adding any content, i.e. setContentView() !
     * </p>
@@ -267,7 +267,7 @@ public class NewtBaseActivity extends Activity {
             setTransparencyTheme();
         }
    }
-   
+
    /**
     * Convenient method to set this context's theme to transparency.
     * <p>
@@ -279,12 +279,12 @@ public class NewtBaseActivity extends Activity {
     * </p>
     * <p>
     * Can be called only once.
-    * </p>  
+    * </p>
     */
    public void setTransparencyTheme() {
        if(!setThemeCalled) {
            setThemeCalled = true;
-           final Context ctx = getActivity().getApplicationContext();            
+           final Context ctx = getActivity().getApplicationContext();
            final String frn = ctx.getPackageName()+":style/Theme.Transparent";
            final int resID = ctx.getResources().getIdentifier("Theme.Transparent", "style", ctx.getPackageName());
            if(0 == resID) {
@@ -295,14 +295,14 @@ public class NewtBaseActivity extends Activity {
            }
        }
    }
-   
+
    /**
     * Setting up a global {@Link GLAnimatorControl} for {@link #onPause()} and {@link #onResume()}.
     * <p>
     * Note that if adding a {@link GLAutoDrawable} implementation via {@link #registerNEWTWindow(Window)},
     * {@link #setContentView(android.view.Window, Window)} or {@link #addContentView(android.view.Window, Window, android.view.ViewGroup.LayoutParams)}
     * their {@link GLAnimatorControl} retrieved by {@link GLAutoDrawable#getAnimator()} will be used as well.
-    * In this case, using this global {@Link GLAnimatorControl} is redundant. 
+    * In this case, using this global {@Link GLAnimatorControl} is redundant.
     * </p>
     * @see #registerNEWTWindow(Window)
     * @see #setContentView(android.view.Window, Window)
@@ -315,7 +315,7 @@ public class NewtBaseActivity extends Activity {
        }
        animator.pause();
    }
-      
+
    @Override
    public android.view.Window getWindow() {
        if( isDelegatedActivity() ) {
@@ -324,22 +324,22 @@ public class NewtBaseActivity extends Activity {
            return super.getWindow();
        }
    }
-   
+
    @Override
    public void onCreate(Bundle savedInstanceState) {
        Log.d(MD.TAG, "onCreate.0");
        if(!isDelegatedActivity()) {
            super.onCreate(savedInstanceState);
        }
-       // Extraordinary cleanup, for cases of 'onCreate()' calls w/ valid states, 
+       // Extraordinary cleanup, for cases of 'onCreate()' calls w/ valid states,
        // i.e. w/o having onDestroy() being called.
        // Could happened due to spec when App process is killed for memory exhaustion or other reasons.
        cleanup();
-       
+
        jogamp.common.os.android.StaticContext.init(rootActivity.getApplicationContext());
        Log.d(MD.TAG, "onCreate.X");
    }
-   
+
    @Override
    public void onStart() {
      Log.d(MD.TAG, "onStart.0");
@@ -348,7 +348,7 @@ public class NewtBaseActivity extends Activity {
      }
      Log.d(MD.TAG, "onStart.X");
    }
-     
+
    @Override
    public void onRestart() {
      Log.d(MD.TAG, "onRestart.0");
@@ -407,11 +407,11 @@ public class NewtBaseActivity extends Activity {
          win.setVisible(false);
      }
      if( !isDelegatedActivity() ) {
-         super.onStop();  
+         super.onStop();
      }
      Log.d(MD.TAG, "onStop.X");
    }
-   
+
    /**
     * Performs cleaning up all references,
     * <p>
@@ -450,14 +450,14 @@ public class NewtBaseActivity extends Activity {
      jogamp.common.os.android.StaticContext.clear();
      Log.d(MD.TAG, "cleanup.X");
    }
-   
+
    @Override
    public void onDestroy() {
      Log.d(MD.TAG, "onDestroy.0");
      cleanup(); // normal cleanup
      if(!isDelegatedActivity()) {
-         super.onDestroy(); 
+         super.onDestroy();
      }
      Log.d(MD.TAG, "onDestroy.X");
-   }   
+   }
 }

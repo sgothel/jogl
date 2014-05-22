@@ -94,7 +94,7 @@ public class MovieSimple implements GLEventListener {
     private static final String PLAYER = "player";
 
     private static boolean waitForKey = false;
-    private int winWidth, winHeight;
+    private int surfWidth, surfHeight;
     private int prevMouseX; // , prevMouseY;
     private int rotate = 0;
     private boolean  orthoProjection = true;
@@ -213,7 +213,7 @@ public class MovieSimple implements GLEventListener {
 
     private final MouseListener mouseAction = new MouseAdapter() {
         public void mousePressed(MouseEvent e) {
-            if(e.getY()<=winHeight/2 && null!=mPlayer && 1 == e.getClickCount()) {
+            if(e.getY()<=surfHeight/2 && null!=mPlayer && 1 == e.getClickCount()) {
                 if(GLMediaPlayer.State.Playing == mPlayer.getState()) {
                     mPlayer.pause(false);
                 } else {
@@ -222,7 +222,7 @@ public class MovieSimple implements GLEventListener {
             }
         }
         public void mouseReleased(MouseEvent e) {
-            if(e.getY()<=winHeight/2) {
+            if(e.getY()<=surfHeight/2) {
                 rotate = -1;
                 zoom = zoom0;
                 System.err.println("zoom: "+zoom);
@@ -236,8 +236,8 @@ public class MovieSimple implements GLEventListener {
             int x = e.getX();
             int y = e.getY();
 
-            if(y>winHeight/2) {
-                final float dp  = (float)(x-prevMouseX)/(float)winWidth;
+            if(y>surfHeight/2) {
+                final float dp  = (float)(x-prevMouseX)/(float)surfWidth;
                 final int pts0 = GLMediaPlayer.STREAM_ID_NONE != mPlayer.getVID() ? mPlayer.getVideoPTS() : mPlayer.getAudioPTS();
                 mPlayer.seek(pts0 + (int) (mPlayer.getDuration() * dp));
             } else {
@@ -602,8 +602,8 @@ public class MovieSimple implements GLEventListener {
             final Window window = (Window) upstreamWidget;
             window.addMouseListener(mouseAction);
             window.addKeyListener(keyAction);
-            winWidth = window.getSurfaceWidth();
-            winHeight = window.getSurfaceHeight();
+            surfWidth = window.getSurfaceWidth();
+            surfHeight = window.getSurfaceHeight();
         }
         final int rmode = drawable.getChosenGLCapabilities().getSampleBuffers() ? 0 : Region.VBAA_RENDERING_BIT;
         final boolean lowPerfDevice = gl.isGLES();
@@ -669,8 +669,8 @@ public class MovieSimple implements GLEventListener {
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         if(null == mPlayer) { return; }
-        winWidth = width;
-        winHeight = height;
+        surfWidth = width;
+        surfHeight = height;
 
         if(null != st) {
             reshapePMV(width, height);
@@ -827,7 +827,7 @@ public class MovieSimple implements GLEventListener {
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_SIZE & event_mask ) ) {
                     System.err.println("MovieSimple State: CHANGE_SIZE");
                     if( origSize ) {
-                        window.setSize(mp.getWidth(), mp.getHeight());
+                        window.setSurfaceSize(mp.getWidth(), mp.getHeight());
                     }
                     // window.disposeGLEventListener(ms, false /* remove */ );
                     ms.resetGLState();
@@ -1050,7 +1050,7 @@ public class MovieSimple implements GLEventListener {
             mss[i].mPlayer.addEventListener(myGLMediaEventListener);
 
             windows[i].setTitle("Player "+i);
-            windows[i].setSize(width, height);
+            windows[i].setSurfaceSize(width, height);
             windows[i].setVisible(true);
             anim.add(windows[i]);
 

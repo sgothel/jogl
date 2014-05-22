@@ -859,11 +859,7 @@ public class MacOSXCGLContext extends GLContextImpl
                   }
 
                   // All CALayer lifecycle ops are deferred on main-thread
-                  final int[] winSize;
-                  {
-                      final int[] pixelSize = { lastWidth, lastHeight };
-                      winSize = drawable.getNativeSurface().getWindowUnitXY(pixelSize, pixelSize);
-                  }
+                  final int[] winSize = drawable.getNativeSurface().convertToWindowUnits(new int[]{ lastWidth, lastHeight });
                   attachGLLayerCmd = new AttachGLLayerCmd(
                           backingLayerHost, ctx, gl3ShaderProgramName, pixelFormat, pbufferHandle, texID,
                           chosenCaps.isBackgroundOpaque(), lastWidth, lastHeight, winSize[0], winSize[1] );

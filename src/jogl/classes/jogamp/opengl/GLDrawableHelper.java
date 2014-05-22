@@ -362,7 +362,7 @@ public class GLDrawableHelper {
               final ProxySurface ps = (ProxySurface) ns;
               final UpstreamSurfaceHook ush = ps.getUpstreamSurfaceHook();
               if(ush instanceof UpstreamSurfaceHook.MutableSize) {
-                  ((UpstreamSurfaceHook.MutableSize)ush).setPixelSize(newWidth, newHeight);
+                  ((UpstreamSurfaceHook.MutableSize)ush).setSurfaceSize(newWidth, newHeight);
               } else if(DEBUG) { // we have to assume UpstreamSurfaceHook contains the new size already, hence size check @ bottom
                   System.err.println("GLDrawableHelper.resizeOffscreenDrawable: Drawable's offscreen ProxySurface n.a. UpstreamSurfaceHook.MutableSize, but "+ush.getClass().getName()+": "+ush);
               }

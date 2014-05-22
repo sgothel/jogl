@@ -195,7 +195,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     /** from event passing: {@link WindowImpl#consumePointerEvent(MouseEvent)}. */
     private static class PointerState0 {
         /** Pointer entered window - is inside the window (may be synthetic) */
-        boolean insideWindow = false;
+        boolean insideSurface = false;
         /** Mouse EXIT has been sent (only for MOUSE type enter/exit)*/
         boolean exitSent = false;
 
@@ -208,7 +208,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         void clearButton() {
             lastButtonPressTime = 0;
         }
-        public String toString() { return "PState0[inside "+insideWindow+", exitSent "+exitSent+", lastPress "+lastButtonPressTime+", dragging "+dragging+"]"; }
+        public String toString() { return "PState0[inside "+insideSurface+", exitSent "+exitSent+", lastPress "+lastButtonPressTime+", dragging "+dragging+"]"; }
     }
     private final PointerState0 pState0 = new PointerState0();
 
@@ -242,7 +242,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             }
             return null;
         }
-        public final String toString() { return "PState1[inside "+insideWindow+", exitSent "+exitSent+", lastPress "+lastButtonPressTime+
+        public final String toString() { return "PState1[inside "+insideSurface+", exitSent "+exitSent+", lastPress "+lastButtonPressTime+
                             ", pressed [button "+buttonPressed+", mask "+buttonPressedMask+", dragging "+dragging+", clickCount "+lastButtonClickCount+"]"; }
     }
     private final PointerState1 pState1 = new PointerState1();
@@ -633,10 +633,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * to insets and positioning a decorated window to 0/0, which would place the frame
      * outside of the screen.</p>
      *
-     * @param x client-area position, or <0 if unchanged
-     * @param y client-area position, or <0 if unchanged
-     * @param width client-area size, or <=0 if unchanged
-     * @param height client-area size, or <=0 if unchanged
+     * @param x client-area position in window units, or <0 if unchanged
+     * @param y client-area position in window units, or <0 if unchanged
+     * @param width client-area size in window units, or <=0 if unchanged
+     * @param height client-area size in window units, or <=0 if unchanged
      * @param flags bitfield of change and status flags
      *
      * @see #sizeChanged(int,int)
@@ -709,7 +709,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     /**
      * Translates the given window client-area coordinates with top-left origin
-     * to screen coordinates.
+     * to screen coordinates in window units.
      * <p>
      * Since the position reflects the client area, it does not include the insets.
      * </p>
@@ -722,7 +722,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      */
     protected abstract Point getLocationOnScreenImpl(int x, int y);
 
-    /** Triggered by user via {@link #getInsets()}.<br>
+    /**
+     * Triggered by user via {@link #getInsets()}.<br>
      * Implementations may implement this hook to update the insets.<br>
      * However, they may prefer the event driven path via {@link #insetsChanged(boolean, int, int, int, int)}.
      *
@@ -911,9 +912,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public final MonitorDevice getMainMonitor() {
-        return screen.getMainMonitor(new Rectangle(getX(), getY(), getSurfaceWidth(), getSurfaceHeight()));
+        return screen.getMainMonitor(new Rectangle(getX(), getY(), getWindowWidth(), getWindowHeight()));
     }
 
+    /**
+     * @param visible
+     * @param x client-area position in window units, or <0 if unchanged
+     * @param y client-area position in window units, or <0 if unchanged
+     * @param width client-area size in window units, or <=0 if unchanged
+     * @param height client-area size in window units, or <=0 if unchanged
+     */
     protected final void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
         reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_VISIBILITY, visible));
     }
@@ -935,7 +943,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
               }
             }
             if(!isNativeValid() && visible) {
-                if( 0<getSurfaceWidth()*getSurfaceHeight() ) {
+                if( 0<getWindowWidth()*getWindowHeight() ) {
                     nativeWindowCreated = createNative();
                     madeVisible = nativeWindowCreated;
                 }
@@ -943,7 +951,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 WindowImpl.this.visible = true;
             } else if(WindowImpl.this.visible != visible) {
                 if(isNativeValid()) {
-                    setVisibleImpl(visible, getX(), getY(), getSurfaceWidth(), getSurfaceHeight());
+                    setVisibleImpl(visible, getX(), getY(), getWindowWidth(), getWindowHeight());
                     WindowImpl.this.waitForVisible(visible, false);
                     madeVisible = visible;
                 } else {
@@ -966,7 +974,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
               }
             }
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window setVisible: END ("+getThreadName()+") "+getX()+"/"+getY()+" "+getSurfaceWidth()+"x"+getSurfaceHeight()+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+WindowImpl.this.visible+", nativeWindowCreated: "+nativeWindowCreated+", madeVisible: "+madeVisible);
+                System.err.println("Window setVisible: END ("+getThreadName()+") "+getX()+"/"+getY()+" "+getWindowWidth()+"x"+getWindowHeight()+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+WindowImpl.this.visible+", nativeWindowCreated: "+nativeWindowCreated+", madeVisible: "+madeVisible);
             }
         } finally {
             if(null!=lifecycleHook) {
@@ -994,7 +1002,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     @Override
     public final void setVisible(boolean wait, boolean visible) {
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window setVisible: START ("+getThreadName()+") "+getX()+"/"+getY()+" "+getSurfaceWidth()+"x"+getSurfaceHeight()+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+this.visible+" -> "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+(null!=parentWindow));
+            System.err.println("Window setVisible: START ("+getThreadName()+") "+getX()+"/"+getY()+" "+getWindowWidth()+"x"+getWindowHeight()+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+this.visible+" -> "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+(null!=parentWindow));
         }
         runOnEDTIfAvail(wait, new VisibleAction(visible));
     }
@@ -1019,9 +1027,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             final RecursiveLock _lock = windowLock;
             _lock.lock();
             try {
-                if ( ( disregardFS || !isFullscreen() ) && ( getSurfaceWidth() != width || getSurfaceHeight() != height ) ) {
+                if ( ( disregardFS || !isFullscreen() ) && ( getWindowWidth() != width || getWindowHeight() != height ) ) {
                     if(DEBUG_IMPLEMENTATION) {
-                        System.err.println("Window setSize: START "+getSurfaceWidth()+"x"+getSurfaceHeight()+" -> "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible "+visible);
+                        System.err.println("Window setSize: START "+getWindowWidth()+"x"+getWindowHeight()+" -> "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible "+visible);
                     }
                     int visibleAction; // 0 nop, 1 invisible, 2 visible (create)
                     if ( visible && isNativeValid() && ( 0 >= width || 0 >= height ) ) {
@@ -1041,7 +1049,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         defineSize(width, height);
                     }
                     if(DEBUG_IMPLEMENTATION) {
-                        System.err.println("Window setSize: END "+getSurfaceWidth()+"x"+getSurfaceHeight()+", visibleAction "+visibleAction);
+                        System.err.println("Window setSize: END "+getWindowWidth()+"x"+getWindowHeight()+", visibleAction "+visibleAction);
                     }
                     switch(visibleAction) {
                         case 1: setVisibleActionImpl(false); break;
@@ -1054,15 +1062,20 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
-    private void setFullscreenSize(int width, int height) {
+    private void setFullscreenSize(final int width, final int height) {
         runOnEDTIfAvail(true, new SetSizeAction(width, height, true));
     }
     @Override
-    public final void setSize(int width, int height) {
+    public final void setSize(final int width, final int height) {
         runOnEDTIfAvail(true, new SetSizeAction(width, height, false));
     }
     @Override
-    public final void setTopLevelSize(int width, int height) {
+    public final void setSurfaceSize(final int pixelWidth, final int pixelHeight) {
+        final int[] winSize = convertToWindowUnits(new int[]{pixelWidth, pixelHeight});
+        setSize(winSize[0], winSize[1]);
+    }
+    @Override
+    public final void setTopLevelSize(final int width, final int height) {
         setSize(width - getInsets().getTotalWidth(), height - getInsets().getTotalHeight());
     }
 
@@ -1248,8 +1261,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             // mirror pos/size so native change notification can get overwritten
             final int oldX = getX();
             final int oldY = getY();
-            final int oldWidth = getSurfaceWidth();
-            final int oldHeight = getSurfaceHeight();
+            final int oldWidth = getWindowWidth();
+            final int oldHeight = getWindowHeight();
             final int x, y;
             int width = oldWidth;
             int height = oldHeight;
@@ -1300,11 +1313,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     y = 0;
 
                     // refit if size is bigger than parent
-                    if( width > newParentWindow.getSurfaceWidth() ) {
-                        width = newParentWindow.getSurfaceWidth();
+                    if( width > newParentWindow.getWindowWidth() ) {
+                        width = newParentWindow.getWindowWidth();
                     }
-                    if( height > newParentWindow.getSurfaceHeight() ) {
-                        height = newParentWindow.getSurfaceHeight();
+                    if( height > newParentWindow.getWindowHeight() ) {
+                        height = newParentWindow.getWindowHeight();
                     }
 
                     // Case: Child Window
@@ -1511,7 +1524,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
 
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.reparent: END-1 ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+ Display.hashCodeNullSafe(parentWindow)+" "+getX()+"/"+getY()+" "+getSurfaceWidth()+"x"+getSurfaceHeight());
+                    System.err.println("Window.reparent: END-1 ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+
+                                       ", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+
+                                       ", parentWindow "+ Display.hashCodeNullSafe(parentWindow)+" "+
+                                       getX()+"/"+getY()+" "+getWindowWidth()+"x"+getWindowHeight());
                 }
             } finally {
                 if(null!=lifecycleHook) {
@@ -1535,7 +1551,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
             }
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.reparent: END-X ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+ Display.hashCodeNullSafe(parentWindow)+" "+getX()+"/"+getY()+" "+getSurfaceWidth()+"x"+getSurfaceHeight());
+                System.err.println("Window.reparent: END-X ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+
+                                   ", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+
+                                   ", parentWindow "+ Display.hashCodeNullSafe(parentWindow)+" "+
+                                   getX()+"/"+getY()+" "+getWindowWidth()+"x"+getWindowHeight());
             }
         }
     }
@@ -1612,8 +1631,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         // Mirror pos/size so native change notification can get overwritten
                         final int x = getX();
                         final int y = getY();
-                        final int width = getSurfaceWidth();
-                        final int height = getSurfaceHeight();
+                        final int width = getWindowWidth();
+                        final int height = getWindowHeight();
 
                         DisplayImpl display = (DisplayImpl) screen.getDisplay();
                         display.dispatchMessagesNative(); // status up2date
@@ -1658,8 +1677,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         // Mirror pos/size so native change notification can get overwritten
                         final int x = getX();
                         final int y = getY();
-                        final int width = getSurfaceWidth();
-                        final int height = getSurfaceHeight();
+                        final int width = getWindowWidth();
+                        final int height = getWindowHeight();
 
                         DisplayImpl display = (DisplayImpl) screen.getDisplay();
                         display.dispatchMessagesNative(); // status up2date
@@ -1869,29 +1888,40 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public final int getWindowWidth() {
-        return getSurfaceWidth(); // FIXME: Use 'scale' or an actual pixel-width
+        return winWidth;
     }
 
     @Override
     public final int getWindowHeight() {
-        return getSurfaceHeight(); // FIXME: Use 'scale' or an actual pixel-width
+        return winHeight;
     }
 
     @Override
-    public final int[] getWindowUnitXY(int[] result, final int[] pixelUnitXY) {
-        final int scale = 1; // FIXME: Use 'scale' ..
-        result[0] = pixelUnitXY[0] / scale;
-        result[1] = pixelUnitXY[1] / scale;
-        return result;
+    public final int[] convertToWindowUnits(final int[] pixelUnitsAndResult) {
+        pixelUnitsAndResult[0] /= getPixelScaleX();
+        pixelUnitsAndResult[1] /= getPixelScaleY();
+        return pixelUnitsAndResult;
     }
 
     @Override
-    public final int[] getPixelUnitXY(int[] result, final int[] windowUnitXY) {
-        final int scale = 1; // FIXME: Use 'scale' ..
-        result[0] = windowUnitXY[0] * scale;
-        result[1] = windowUnitXY[1] * scale;
-        return result;
+    public final int[] convertToPixelUnits(final int[] windowUnitsAndResult) {
+        windowUnitsAndResult[0] *= getPixelScaleX();
+        windowUnitsAndResult[1] *= getPixelScaleY();
+        return windowUnitsAndResult;
     }
+
+    @Override
+    public final Point convertToWindowUnits(final Point pixelUnitsAndResult) {
+        return pixelUnitsAndResult.scaleInv(getPixelScaleX(), getPixelScaleY());
+    }
+
+    @Override
+    public final Point convertToPixelUnits(final Point windowUnitsAndResult) {
+        return windowUnitsAndResult.scale(getPixelScaleX(), getPixelScaleY());
+    }
+
+    protected int getPixelScaleX() { return 1; }
+    protected int getPixelScaleY() { return 1; }
 
     @Override
     public final int getX() {
@@ -1905,7 +1935,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     protected final boolean autoPosition() { return autoPosition; }
 
-    /** Sets the position fields {@link #x} and {@link #y} to the given values and {@link #autoPosition} to false. */
+    /** Sets the position fields {@link #x} and {@link #y} in window units to the given values and {@link #autoPosition} to false. */
     protected final void definePosition(int x, int y) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("definePosition: "+this.x+"/"+this.y+" -> "+x+"/"+y);
@@ -1915,13 +1945,19 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         this.x = x; this.y = y;
     }
 
-    /** Sets the size fields {@link #pixWidth} and {@link #pixHeight} to the given values. */
-    protected final void defineSize(int width, int height) {
+    /**
+     * Sets the size fields {@link #winWidth} and {@link #winHeight} in window units to the given values
+     * and {@link #pixWidth} and {@link #pixHeight} in pixel units according to {@link #convertToPixelUnits(int[])}.
+     */
+    protected final void defineSize(int winWidth, int winHeight) {
+        final int[] pixelSize = convertToPixelUnits(new int[] { winWidth, winHeight });
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("defineSize: "+this.pixWidth+"x"+this.pixHeight+" -> "+width+"x"+height);
+            System.err.println("defineSize: win["+this.winWidth+"x"+this.winHeight+" -> "+winWidth+"x"+winHeight+
+                               "], pixel["+this.pixWidth+"x"+this.pixHeight+" -> "+pixelSize[0]+"x"+pixelSize[1]+"]");
             // Thread.dumpStack();
         }
-        this.pixWidth = width; this.pixHeight = height;
+        this.winWidth = winWidth; this.winHeight = winHeight;
+        this.pixWidth = pixelSize[0]; this.pixHeight = pixelSize[0];
     }
 
     @Override
@@ -1987,17 +2023,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         StringBuilder sb = new StringBuilder();
 
         sb.append(getClass().getName()+"[Config "+config+
-                    "\n, "+screen+
-                    "\n, ParentWindow "+parentWindow+
-                    "\n, ParentWindowHandle "+toHexString(parentWindowHandle)+" ("+(0!=getParentWindowHandle())+")"+
-                    "\n, WindowHandle "+toHexString(getWindowHandle())+
-                    "\n, SurfaceHandle "+toHexString(getSurfaceHandle())+ " (lockedExt window "+windowLock.isLockedByOtherThread()+", surface "+isSurfaceLockedByOtherThread()+")"+
-                    "\n, Pos "+getX()+"/"+getY()+" (auto "+autoPosition()+"), size "+getSurfaceWidth()+"x"+getSurfaceHeight()+
-                    "\n, Visible "+isVisible()+", focus "+hasFocus()+
-                    "\n, Undecorated "+undecorated+" ("+isUndecorated()+")"+
-                    "\n, AlwaysOnTop "+alwaysOnTop+", Fullscreen "+fullscreen+
-                    "\n, WrappedSurface "+getWrappedSurface()+
-                    "\n, ChildWindows "+childWindows.size());
+                    ",\n "+screen+
+                    ",\n ParentWindow "+parentWindow+
+                    ",\n ParentWindowHandle "+toHexString(parentWindowHandle)+" ("+(0!=getParentWindowHandle())+")"+
+                    ",\n WindowHandle "+toHexString(getWindowHandle())+
+                    ",\n SurfaceHandle "+toHexString(getSurfaceHandle())+ " (lockedExt window "+windowLock.isLockedByOtherThread()+", surface "+isSurfaceLockedByOtherThread()+")"+
+                    ",\n window["+getX()+"/"+getY()+" (auto "+autoPosition()+") "+getWindowWidth()+"x"+getWindowHeight()+"], pixel["+getSurfaceWidth()+"x"+getSurfaceHeight()+
+                    "],\n Visible "+isVisible()+", focus "+hasFocus()+
+                    ",\n Undecorated "+undecorated+" ("+isUndecorated()+")"+
+                    ",\n AlwaysOnTop "+alwaysOnTop+", Fullscreen "+fullscreen+
+                    ",\n WrappedSurface "+getWrappedSurface()+
+                    ",\n ChildWindows "+childWindows.size());
 
         sb.append(", SurfaceUpdatedListeners num "+surfaceUpdatedHelper.size()+" [");
         for (int i = 0; i < surfaceUpdatedHelper.size(); i++ ) {
@@ -2138,7 +2174,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 if ( !isFullscreen() && ( getX() != x || getY() != y || null != getParent()) ) {
                     if(isNativeValid()) {
                         // this.x/this.y will be set by sizeChanged, triggered by windowing event system
-                        reconfigureWindowImpl(x, y, getSurfaceWidth(), getSurfaceHeight(), getReconfigureFlags(0, isVisible()));
+                        reconfigureWindowImpl(x, y, getWindowWidth(), getWindowHeight(), getReconfigureFlags(0, isVisible()));
                         if( null == parentWindow ) {
                             // Wait until custom position is reached within tolerances
                             waitForPosition(true, x, y, Window.TIMEOUT_NATIVEWINDOW);
@@ -2186,8 +2222,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             try {
                 final int oldX = getX();
                 final int oldY = getY();
-                final int oldWidth = getSurfaceWidth();
-                final int oldHeight = getSurfaceHeight();
+                final int oldWidth = getWindowWidth();
+                final int oldHeight = getWindowHeight();
 
                 int x,y,w,h;
 
@@ -2240,11 +2276,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         y = 0;
 
                         // refit if size is bigger than parent
-                        if( w > parentWindow.getSurfaceWidth() ) {
-                            w = parentWindow.getSurfaceWidth();
+                        if( w > parentWindow.getWindowWidth() ) {
+                            w = parentWindow.getWindowWidth();
                         }
-                        if( h > parentWindow.getSurfaceHeight() ) {
-                            h = parentWindow.getSurfaceHeight();
+                        if( h > parentWindow.getWindowHeight() ) {
+                            h = parentWindow.getWindowHeight();
                         }
                     }
                 }
@@ -2415,10 +2451,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     // Simply move/resize window to fit in virtual screen if required
                     final RectangleImmutable viewport = screen.getViewport();
                     if( viewport.getWidth() > 0 && viewport.getHeight() > 0 ) { // failsafe
-                        final RectangleImmutable rect = new Rectangle(getX(), getY(), getSurfaceWidth(), getSurfaceHeight());
+                        final RectangleImmutable rect = new Rectangle(getX(), getY(), getWindowWidth(), getWindowHeight());
                         final RectangleImmutable isect = viewport.intersection(rect);
-                        if ( getSurfaceHeight() > isect.getHeight()  ||
-                             getSurfaceWidth() > isect.getWidth() ) {
+                        if ( getWindowHeight() > isect.getHeight()  ||
+                             getWindowWidth() > isect.getWidth() ) {
                             if(DEBUG_IMPLEMENTATION) {
                                 System.err.println("Window.monitorModeChanged: fit window "+rect+" into screen viewport "+viewport+
                                                    ", due to minimal intersection "+isect);
@@ -2441,7 +2477,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     if( fullscreenMonitors.contains(md) ) {
                         final RectangleImmutable viewport = MonitorDevice.unionOfViewports(new Rectangle(), fullscreenMonitors);
                         if(DEBUG_IMPLEMENTATION) {
-                            final RectangleImmutable rect = new Rectangle(getX(), getY(), getSurfaceWidth(), getSurfaceHeight());
+                            final RectangleImmutable rect = new Rectangle(getX(), getY(), getWindowWidth(), getWindowHeight());
                             System.err.println("Window.monitorModeChanged: FS Monitor Match: Fit window "+rect+" into new viewport union "+viewport+", provoked by "+md);
                         }
                         definePosition(viewport.getX(), viewport.getY()); // set pos for setVisible(..) or createNative(..) - reduce EDT roundtrip
@@ -2762,7 +2798,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         //
         int x = pX[0];
         int y = pY[0];
-        final boolean insideWindow = x >= 0 && y >= 0 && x < getSurfaceWidth() && y < getSurfaceHeight();
+        final boolean insideSurface = x >= 0 && y >= 0 && x < getSurfaceWidth() && y < getSurfaceHeight();
         final Point movePositionP0 = pState1.getMovePosition(pID[0]);
         switch( eventType ) {
             case MouseEvent.EVENT_MOUSE_EXITED:
@@ -2786,10 +2822,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
             case MouseEvent.EVENT_MOUSE_ENTERED:
                 if( eventType == MouseEvent.EVENT_MOUSE_ENTERED ) {
-                    pState1.insideWindow = true;
+                    pState1.insideSurface = true;
                     pState1.exitSent = false;
                 } else {
-                    pState1.insideWindow = false;
+                    pState1.insideSurface = false;
                     pState1.exitSent = true;
                 }
                 pState1.clearButton();
@@ -2821,10 +2857,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 // Fall through intended !
 
             default:
-                if( pState1.insideWindow != insideWindow ) {
+                if( pState1.insideSurface != insideSurface ) {
                     // ENTER/EXIT!
-                    pState1.insideWindow = insideWindow;
-                    if( insideWindow ) {
+                    pState1.insideSurface = insideSurface;
+                    if( insideSurface ) {
                         pState1.exitSent = false;
                     }
                     pState1.clearButton();
@@ -2835,10 +2871,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         // Drop exterior events if not dragging pointer and not EXIT event
         // Safeguard for non compliant implementations!
         //
-        if( !pState1.dragging && !insideWindow && MouseEvent.EVENT_MOUSE_EXITED != eventType ) {
+        if( !pState1.dragging && !insideSurface && MouseEvent.EVENT_MOUSE_EXITED != eventType ) {
             if(DEBUG_MOUSE_EVENT) {
                 System.err.println("doPointerEvent: drop: "+MouseEvent.getEventTypeString(eventType)+
-                                   ", mod "+modifiers+", pos "+x+"/"+y+", button "+button+", lastMousePosition: "+movePositionP0+", insideWindow "+insideWindow+", "+pState1);
+                                   ", mod "+modifiers+", pos "+x+"/"+y+", button "+button+", lastMousePosition: "+movePositionP0+", insideWindow "+insideSurface+", "+pState1);
             }
             return; // .. invalid ..
         }
@@ -2976,7 +3012,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         //
         final long when = pe.getWhen();
         final int eventType = pe.getEventType();
-        final boolean insideWindow;
+        final boolean insideSurface;
         boolean eExitAllowed = false;
         MouseEvent eEntered = null, eExited = null;
         switch( eventType ) {
@@ -2994,13 +3030,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 y = Math.min(Math.max(y,  0), getSurfaceHeight()-1);
                 pState0.clearButton();
                 if( eventType == MouseEvent.EVENT_MOUSE_ENTERED ) {
-                    insideWindow = true;
-                    pState0.insideWindow = true;
+                    insideSurface = true;
+                    pState0.insideSurface = true;
                     pState0.exitSent = false;
                     pState0.dragging = false;
                 } else {
-                    insideWindow = false;
-                    pState0.insideWindow = false;
+                    insideSurface = false;
+                    pState0.insideSurface = false;
                     pState0.exitSent = true;
                 }
                 break;
@@ -3014,16 +3050,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 // Fall through intended !
 
             default:
-                insideWindow = x >= 0 && y >= 0 && x < getSurfaceWidth() && y < getWindowHeight();
+                insideSurface = x >= 0 && y >= 0 && x < getSurfaceWidth() && y < getSurfaceHeight();
                 if( pe.getPointerType(0) == PointerType.Mouse ) {
-                    if( !pState0.insideWindow && insideWindow ) {
+                    if( !pState0.insideSurface && insideSurface ) {
                         // ENTER .. use clipped coordinates
                         eEntered = new MouseEvent(MouseEvent.EVENT_MOUSE_ENTERED, pe.getSource(), pe.getWhen(), pe.getModifiers(),
                                                  Math.min(Math.max(x,  0), getSurfaceWidth()-1),
                                                  Math.min(Math.max(y,  0), getSurfaceHeight()-1),
                                                  (short)0, (short)0, pe.getRotation(), pe.getRotationScale());
                         pState0.exitSent = false;
-                    } else if( !insideWindow && eExitAllowed ) {
+                    } else if( !insideSurface && eExitAllowed ) {
                         // EXIT .. use clipped coordinates
                         eExited = new MouseEvent(MouseEvent.EVENT_MOUSE_EXITED, pe.getSource(), pe.getWhen(), pe.getModifiers(),
                                                  Math.min(Math.max(x,  0), getSurfaceWidth()-1),
@@ -3032,17 +3068,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         pState0.exitSent = true;
                     }
                 }
-                if( pState0.insideWindow != insideWindow || null != eEntered || null != eExited) {
+                if( pState0.insideSurface != insideSurface || null != eEntered || null != eExited) {
                     pState0.clearButton();
                 }
-                pState0.insideWindow = insideWindow;
+                pState0.insideSurface = insideSurface;
         }
         if( null != eEntered ) {
             if(DEBUG_MOUSE_EVENT) {
                 System.err.println("consumePointerEvent.send.0: "+eEntered+", "+pState0);
             }
             dispatchMouseEvent(eEntered);
-        } else if( DEBUG_MOUSE_EVENT && !insideWindow ) {
+        } else if( DEBUG_MOUSE_EVENT && !insideSurface ) {
             System.err.println("INFO consumePointerEvent.exterior: "+pState0+", "+pe);
         }
 
@@ -3624,11 +3660,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
-    /** Triggered by implementation's WM events to update the client-area size w/o insets/decorations. */
+    /** Triggered by implementation's WM events to update the client-area size in window units w/o insets/decorations. */
     protected void sizeChanged(boolean defer, int newWidth, int newHeight, boolean force) {
-        if(force || getSurfaceWidth() != newWidth || getSurfaceHeight() != newHeight) {
+        if(force || getWindowWidth() != newWidth || getWindowHeight() != newHeight) {
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.sizeChanged: ("+getThreadName()+"): (defer: "+defer+") force "+force+", "+getSurfaceWidth()+"x"+getSurfaceHeight()+" -> "+newWidth+"x"+newHeight+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+                System.err.println("Window.sizeChanged: ("+getThreadName()+"): (defer: "+defer+") force "+force+", "+
+                                   getWindowWidth()+"x"+getWindowHeight()+" -> "+newWidth+"x"+newHeight+
+                                   " - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
             }
             if(0>newWidth || 0>newHeight) {
                 throw new NativeWindowException("Illegal width or height "+newWidth+"x"+newHeight+" (must be >= 0)");
@@ -3648,12 +3686,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         final DisplayImpl display = (DisplayImpl) screen.getDisplay();
         display.dispatchMessagesNative(); // status up2date
         long sleep;
-        for(sleep = timeOut; 0<sleep && w!=getSurfaceWidth() && h!=getSurfaceHeight(); sleep-=10 ) {
+        for(sleep = timeOut; 0<sleep && w!=getWindowWidth() && h!=getWindowHeight(); sleep-=10 ) {
             try { Thread.sleep(10); } catch (InterruptedException ie) {}
             display.dispatchMessagesNative(); // status up2date
         }
         if(0 >= sleep) {
-            final String msg = "Size/Pos not reached as requested within "+timeOut+"ms : requested "+w+"x"+h+", is "+getSurfaceWidth()+"x"+getSurfaceHeight();
+            final String msg = "Size/Pos not reached as requested within "+timeOut+"ms : requested "+w+"x"+h+", is "+getWindowWidth()+"x"+getWindowHeight();
             if(failFast) {
                 throw new NativeWindowException(msg);
             } else if (DEBUG_IMPLEMENTATION) {
@@ -3805,10 +3843,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     /**
      * Triggered by implementation's WM events to update the content
      * @param defer if true sent event later, otherwise wait until processed.
-     * @param x dirty-region y-pos in pixels
-     * @param y dirty-region x-pos in pixels
-     * @param width dirty-region width in pixels
-     * @param height dirty-region height in pixels
+     * @param x dirty-region y-pos in pixel units
+     * @param y dirty-region x-pos in pixel units
+     * @param width dirty-region width in pixel units
+     * @param height dirty-region height in pixel units
      */
     protected final void windowRepaint(boolean defer, int x, int y, int width, int height) {
         width = ( 0 >= width ) ? getSurfaceWidth() : width;

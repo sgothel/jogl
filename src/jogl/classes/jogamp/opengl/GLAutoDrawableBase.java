@@ -216,8 +216,23 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
         }
     }
 
-    /** Default implementation to handle resize events from the windowing system. All required locks are being claimed. */
-    protected final void defaultWindowResizedOp(int newWidth, int newHeight) throws NativeWindowException, GLException {
+    /**
+     * Handling resize events from the windowing system.
+     * <p>
+     * Implementation:
+     * <ul>
+     *   <li>resizes {@link #getDelegatedDrawable() the GLDrawable}, if offscreen,</li>
+     *   <li>triggers a pending {@link GLEventListener#reshape(GLAutoDrawable, int, int, int, int) reshape events}, and</li>
+     *   <li>issues a {@link #display()} call, if no animator is present.</li>
+     * </ul>
+     * </p>
+     * <p>
+     * All required locks are being claimed.
+     * </p>
+     * @param newWidth new width in pixel units
+     * @param newWidth new height in pixel units
+     */
+    protected final void defaultWindowResizedOp(final int newWidth, final int newHeight) throws NativeWindowException, GLException {
         GLDrawableImpl _drawable = drawable;
         if( null!=_drawable ) {
             if(DEBUG) {

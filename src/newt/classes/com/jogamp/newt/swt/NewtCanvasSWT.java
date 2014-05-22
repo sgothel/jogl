@@ -470,19 +470,13 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
         }
 
         @Override
-        public final int[] getWindowUnitXY(int[] result, final int[] pixelUnitXY) {
-            final int scale = 1; // FIXME: Use 'scale' ..
-            result[0] = pixelUnitXY[0] / scale;
-            result[1] = pixelUnitXY[1] / scale;
-            return result;
+        public final int[] convertToWindowUnits(final int[] pixelUnitsAndResult) {
+            return pixelUnitsAndResult; // FIXME HiDPI: use 'pixelScale'
         }
 
         @Override
-        public final int[] getPixelUnitXY(int[] result, final int[] windowUnitXY) {
-            final int scale = 1; // FIXME: Use 'scale' ..
-            result[0] = windowUnitXY[0] * scale;
-            result[1] = windowUnitXY[1] * scale;
-            return result;
+        public final int[] convertToPixelUnits(final int[] windowUnitsAndResult) {
+            return windowUnitsAndResult; // FIXME HiDPI: use 'pixelScale'
         }
 
         @Override

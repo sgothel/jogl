@@ -10,7 +10,7 @@ public class DelegatedUpstreamSurfaceHookWithSurfaceSize implements UpstreamSurf
 
     /**
      * @param upstream optional upstream UpstreamSurfaceHook used for {@link #create(ProxySurface)} and {@link #destroy(ProxySurface)}.
-     * @param surface mandatory {@link NativeSurface} used for {@link #getPixelWidth(ProxySurface)} and {@link #getPixelHeight(ProxySurface)}
+     * @param surface mandatory {@link NativeSurface} used for {@link #getSurfaceWidth(ProxySurface)} and {@link #getSurfaceHeight(ProxySurface)}
      */
     public DelegatedUpstreamSurfaceHookWithSurfaceSize(UpstreamSurfaceHook upstream, NativeSurface surface) {
         this.upstream = upstream;
@@ -35,12 +35,12 @@ public class DelegatedUpstreamSurfaceHookWithSurfaceSize implements UpstreamSurf
     }
 
     @Override
-    public final int getPixelWidth(ProxySurface s) {
+    public final int getSurfaceWidth(ProxySurface s) {
         return surface.getSurfaceWidth();
     }
 
     @Override
-    public final int getPixelHeight(ProxySurface s) {
+    public final int getSurfaceHeight(ProxySurface s) {
         return surface.getSurfaceHeight();
     }
 

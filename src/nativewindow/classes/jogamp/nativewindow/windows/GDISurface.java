@@ -130,19 +130,13 @@ public class GDISurface extends ProxySurfaceImpl {
   }
 
   @Override
-  public final int[] getWindowUnitXY(int[] result, final int[] pixelUnitXY) {
-      if( pixelUnitXY != result ) { // no scale factor, window units == pixel units
-          System.arraycopy(pixelUnitXY, 0, result, 0, 2);
-      }
-      return result;
+  public final int[] convertToWindowUnits(final int[] pixelUnitsAndResult) {
+      return pixelUnitsAndResult; // no pixelScale factor
   }
 
   @Override
-  public final int[] getPixelUnitXY(int[] result, final int[] windowUnitXY) {
-      if( windowUnitXY != result ) { // no scale factor, window units == pixel units
-          System.arraycopy(windowUnitXY, 0, result, 0, 2);
-      }
-      return result;
+  public final int[] convertToPixelUnits(final int[] windowUnitsAndResult) {
+      return windowUnitsAndResult; // no pixelScale factor
   }
 
 }

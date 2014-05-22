@@ -39,14 +39,19 @@ public interface UpstreamSurfaceHook {
     public void destroy(ProxySurface s);
 
     /** Returns the width of the upstream surface in pixels, used if {@link ProxySurface#UPSTREAM_PROVIDES_SIZE} is set. */
-    public int getPixelWidth(ProxySurface s);
+    public int getSurfaceWidth(ProxySurface s);
     /** Returns the height of the upstream surface in pixels, used if {@link ProxySurface#UPSTREAM_PROVIDES_SIZE} is set. */
-    public int getPixelHeight(ProxySurface s);
+    public int getSurfaceHeight(ProxySurface s);
 
     /**
      * {@link UpstreamSurfaceHook} w/ mutable size, allowing it's {@link ProxySurface} user to resize.
      */
     public interface MutableSize extends UpstreamSurfaceHook {
-        public void setPixelSize(int width, int height);
+        /**
+         * Resizes the upstream surface.
+         * @param width new width in pixel units
+         * @param height new height in pixel units
+         */
+        public void setSurfaceSize(int width, int height);
     }
 }

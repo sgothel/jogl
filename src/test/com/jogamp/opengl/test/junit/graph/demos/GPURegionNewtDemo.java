@@ -108,7 +108,7 @@ public class GPURegionNewtDemo {
 
         final GLWindow window = GLWindow.create(caps);
         window.setPosition(10, 10);
-        window.setSize(800, 400);
+        window.setSurfaceSize(800, 400);
         window.setTitle("GPU Curve Region Newt Demo - graph[vbaa"+GraphVBAASamples+" msaa"+GraphMSAASamples+"], msaa "+SceneMSAASamples);
 
         RenderState rs = RenderState.createRenderState(SVertex.factory());

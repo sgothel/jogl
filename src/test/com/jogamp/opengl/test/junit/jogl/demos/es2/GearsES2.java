@@ -619,7 +619,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
                 height = glad.getSurfaceHeight();
             } else if (GLProfile.isAWTAvailable() && source instanceof java.awt.Component) {
                 java.awt.Component comp = (java.awt.Component) source;
-                width=comp.getWidth();
+                width=comp.getWidth(); // FIXME HiDPI: May need to convert window units -> pixel units!
                 height=comp.getHeight();
             } else {
                 throw new RuntimeException("Event source neither Window nor Component: "+source);

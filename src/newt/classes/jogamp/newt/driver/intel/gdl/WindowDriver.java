@@ -66,7 +66,8 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
         synchronized(WindowDriver.class) {
             setWindowHandle(nextWindowHandle++); // just a marker
 
-            surfaceHandle = CreateSurface(aDevice.getHandle(), getScreen().getWidth(), getScreen().getHeight(), getX(), getY(), getSurfaceWidth(), getSurfaceHeight());
+            surfaceHandle = CreateSurface(aDevice.getHandle(), getScreen().getWidth(), getScreen().getHeight(),
+                                          getX(), getY(), getWindowWidth(), getWindowHeight());
             if (surfaceHandle == 0) {
                 throw new NativeWindowException("Error creating window");
             }

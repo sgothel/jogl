@@ -179,17 +179,17 @@ public interface GLFBODrawable extends GLDrawable {
     /** Resizeable {@link GLFBODrawable} specialization */
     public interface Resizeable extends GLFBODrawable {
         /**
-         * Resize this drawable.
+         * Resize this {@link GLFBODrawable}'s surface.
          * <p>
          * This drawable is being locked during operation.
          * </p>
          * @param context the {@link GLContext} bound to this drawable, will be made current during operation
          *                A prev. current context will be make current after operation.
-         * @param newWidth
-         * @param newHeight
+         * @param newWidth new width in pixel units
+         * @param newHeight new width in pixel units
          * @throws NativeWindowException in case the surface could no be locked
          * @throws GLException in case an error during the resize operation occurred
          */
-        void setSize(GLContext context, int newWidth, int newHeight) throws NativeWindowException, GLException;
+        void setSurfaceSize(GLContext context, int newWidth, int newHeight) throws NativeWindowException, GLException;
     }
 }

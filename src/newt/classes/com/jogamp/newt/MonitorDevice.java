@@ -168,12 +168,19 @@ public abstract class MonitorDevice {
         return supportedModes.getData();
     }
 
-    /** Returns the {@link RectangleImmutable rectangular} portion of the rotated virtual {@link Screen} size represented by this monitor. */
+    /**
+     * Returns the {@link RectangleImmutable rectangular} portion
+     * of the rotated virtual {@link Screen} size in screen/window units
+     * represented by this monitor.
+     */
     public final RectangleImmutable getViewport() {
         return viewport;
     }
 
-    /** Returns <code>true</code> if given coordinates are contained by this {@link #getViewport() viewport}, otherwise <code>false</code>. */
+    /**
+     * Returns <code>true</code> if given screen coordinates in screen/window units
+     * are contained by this {@link #getViewport() viewport}, otherwise <code>false</code>.
+     */
     public final boolean contains(int x, int y) {
         return x >= viewport.getX() &&
                x <  viewport.getX() + viewport.getWidth() &&

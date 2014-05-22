@@ -565,7 +565,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         }
 
         @Override
-        public final void setSize(GLContext context, int newWidth, int newHeight) throws NativeWindowException, GLException {
+        public final void setSurfaceSize(GLContext context, int newWidth, int newHeight) throws NativeWindowException, GLException {
             if(DEBUG) {
                 System.err.println("GLFBODrawableImpl.ResizeableImpl setSize: ("+getThreadName()+"): "+newWidth+"x"+newHeight+" - surfaceHandle 0x"+Long.toHexString(getNativeSurface().getSurfaceHandle()));
             }
@@ -578,7 +578,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                 final ProxySurface ps = (ProxySurface) getNativeSurface();
                 final UpstreamSurfaceHook ush = ps.getUpstreamSurfaceHook();
                 if(ush instanceof UpstreamSurfaceHook.MutableSize) {
-                    ((UpstreamSurfaceHook.MutableSize)ush).setPixelSize(newWidth, newHeight);
+                    ((UpstreamSurfaceHook.MutableSize)ush).setSurfaceSize(newWidth, newHeight);
                 } else {
                     throw new InternalError("GLFBODrawableImpl.ResizableImpl's ProxySurface doesn't hold a UpstreamSurfaceHookMutableSize but "+ush.getClass().getName()+", "+ps+", ush");
                 }

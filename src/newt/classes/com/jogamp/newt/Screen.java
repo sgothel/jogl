@@ -131,27 +131,27 @@ public abstract class Screen {
     public abstract int getIndex();
 
     /**
-     * @return the x position of the virtual viewport's top-left origin.
+     * @return the x position of the virtual viewport's top-left origin in screen/window units.
      */
     public abstract int getX();
 
     /**
-     * @return the y position of the virtual viewport's top-left origin.
+     * @return the y position of the virtual viewport's top-left origin in screen/window units.
      */
     public abstract int getY();
 
     /**
-     * @return the <b>rotated</b> virtual viewport's width.
+     * @return the <b>rotated</b> virtual viewport's width in screen/window units.
      */
     public abstract int getWidth();
 
     /**
-     * @return the <b>rotated</b> virtual viewport's height.
+     * @return the <b>rotated</b> virtual viewport's height in screen/window units.
      */
     public abstract int getHeight();
 
     /**
-     * @return the <b>rotated</b> virtual viewport, i.e. origin and size.
+     * @return the <b>rotated</b> virtual viewport, i.e. origin and size in screen/window units.
      */
     public abstract RectangleImmutable getViewport();
 
@@ -186,6 +186,7 @@ public abstract class Screen {
      * <p>
      * If no coverage is detected the first {@link MonitorDevice} is returned.
      * </p>
+     * @param r arbitrary rectangle in screen/window units
      */
     public final MonitorDevice getMainMonitor(RectangleImmutable r) {
         MonitorDevice res = null;
@@ -206,7 +207,7 @@ public abstract class Screen {
     }
 
     /**
-     * Returns the union of all monitor's {@link MonitorDevice#getViewport() viewport}.
+     * Returns the union of all monitor's {@link MonitorDevice#getViewport() viewport} in screen/window units.
      * <p>
      * Should be equal to {@link #getX()}, {@link #getY()}, {@link #getWidth()} and {@link #getHeight()},
      * however, some native toolkits may choose a different virtual screen area.
@@ -257,7 +258,7 @@ public abstract class Screen {
         synchronized(screenList) {
             int i = fromIndex >= 0 ? fromIndex : screenList.size() - 1 ;
             while( ( incr > 0 ) ? i < screenList.size() : i >= 0 ) {
-                final Screen screen = (Screen) screenList.get(i).get();
+                final Screen screen = screenList.get(i).get();
                 if( null == screen ) {
                     // Clear GC'ed dead reference entry!
                     screenList.remove(i);

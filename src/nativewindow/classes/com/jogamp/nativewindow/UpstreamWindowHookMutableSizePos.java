@@ -28,6 +28,9 @@ public class UpstreamWindowHookMutableSizePos extends UpstreamSurfaceHookMutable
     public final void setWinSize(int winWidth, int winHeight) {
         this.winWidth= winWidth;
         this.winHeight= winHeight;
+        // FIXME HiDPI: Use pixelScale ?!
+        // FIXME HiDPI: Consider setting winWidth/winHeight by setSurfaceSize(..) (back-propagation)
+        this.setSurfaceSize(winWidth, winHeight);
     }
 
     public final int getX() {

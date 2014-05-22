@@ -101,7 +101,6 @@ import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.util.GLDrawableUtil;
 import com.jogamp.opengl.util.TileRenderer;
 
-import jogamp.nativewindow.jawt.JAWTUtil;
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableHelper;
