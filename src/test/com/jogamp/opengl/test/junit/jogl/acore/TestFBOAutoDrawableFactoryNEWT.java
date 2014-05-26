@@ -28,8 +28,6 @@
 
 package com.jogamp.opengl.test.junit.jogl.acore;
 
-import java.io.IOException;
-
 import javax.media.opengl.GL;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
@@ -73,7 +71,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
     }
 
     @Test
-    public void testGL2ES2_Demo1_SingleBuffer_Normal() throws InterruptedException {
+    public void test01_GL2ES2_Demo1_SingleBuffer_Normal() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setDoubleBuffered(false);
@@ -81,7 +79,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
     }
 
     @Test
-    public void testGL2ES2_Demo1_DoubleBuffer_Normal() throws InterruptedException {
+    public void test02_GL2ES2_Demo1_DoubleBuffer_Normal() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setDoubleBuffered(true); // default
@@ -89,7 +87,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
     }
 
     @Test
-    public void testGL2ES2_Demo2MSAA4() throws InterruptedException {
+    public void test03_GL2ES2_Demo2MSAA4() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setSampleBuffers(true);
@@ -98,7 +96,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
     }
 
     @Test
-    public void testGL2ES2_FBODemoMSAA4() throws InterruptedException {
+    public void test04_GL2ES2_FBODemoMSAA4() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final FBOMix2DemosES2 demo = new FBOMix2DemosES2(0);
         demo.setDoRotation(false);
@@ -109,7 +107,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
     }
 
     @Test
-    public void testEGLES2_Demo0Normal() throws InterruptedException {
+    public void test05_EGLES2_Demo0Normal() throws InterruptedException {
         if( GLProfile.isAvailable(GLProfile.GLES2) )  {
             final GLProfile glp = GLProfile.get(GLProfile.GLES2);
             final GLCapabilities caps = new GLCapabilities(glp);
@@ -120,7 +118,18 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
     }
 
     @Test
-    public void testEGLES2_Demo0MSAA4() throws InterruptedException {
+    public void test06_GL3_Demo0Normal() throws InterruptedException {
+        if( GLProfile.isAvailable(GLProfile.GL3) )  {
+            final GLProfile glp = GLProfile.get(GLProfile.GL3);
+            final GLCapabilities caps = new GLCapabilities(glp);
+            testGLFBODrawableImpl(caps, new GearsES2(0));
+        } else {
+            System.err.println("GL3 n/a");
+        }
+    }
+
+    @Test
+    public void test07_EGLES2_Demo0MSAA4() throws InterruptedException {
         if( GLProfile.isAvailable(GLProfile.GLES2) )  {
             final GLProfile glp = GLProfile.get(GLProfile.GLES2);
             final GLCapabilities caps = new GLCapabilities(glp);
@@ -371,7 +380,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
         System.out.println("Fin: "+glad);
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(String args[]) throws Exception {
         org.junit.runner.JUnitCore.main(TestFBOAutoDrawableFactoryNEWT.class.getName());
     }
 
