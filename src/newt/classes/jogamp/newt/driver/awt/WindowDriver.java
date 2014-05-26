@@ -99,6 +99,17 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
+    protected final int getPixelScaleX() {
+        final AWTCanvas _awtCanvas = awtCanvas;
+        return null != _awtCanvas ? _awtCanvas.getPixelScale() : 1;
+    }
+
+    @Override
+    protected final int getPixelScaleY() {
+        return getPixelScaleX();
+    }
+
+    @Override
     protected void createNativeImpl() {
         if(0!=getParentWindowHandle()) {
             throw new RuntimeException("Window parenting not supported in AWT, use AWTWindow(Frame) cstr for wrapping instead");

@@ -54,12 +54,12 @@ public class TestGPUMemSec01NEWT extends UITestCase {
         return "0x"+Integer.toHexString(i);
     }
     static String exceptionMsg(String pre, int format, int type, int components, int width, int height, int rl1, int rl4, int rl8) {
-        return pre + 
+        return pre +
              ": fmt "+hexString(format)+", type "+hexString(type)+", comps "+components+
              ", "+width+"x"+height+
-             ", rowlenA1 "+rl1+", rowlenA4 "+rl4+", rowlenA8 "+rl8;        
+             ", rowlenA1 "+rl1+", rowlenA4 "+rl4+", rowlenA8 "+rl8;
     }
-    
+
     static NEWTGLContext.WindowContext createCurrentGLOffscreenWindow(GLProfile glp, int width, int height) throws GLException, InterruptedException {
         final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOffscreenWindow(
                 new GLCapabilities(glp), width, height, true);
@@ -68,34 +68,34 @@ public class TestGPUMemSec01NEWT extends UITestCase {
         // System.err.println("Pre GL Error: 0x"+Integer.toHexString(gl.glGetError()));
         // System.err.println(winctx.drawable);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        
+
         // misc GL setup
         gl.glClearColor(1, 1, 1, 1);
         gl.glEnable(GL.GL_DEPTH_TEST);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        gl.glViewport(0, 0, width, height);        
+        gl.glViewport(0, 0, width, height);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        
+
         return winctx;
     }
-    
+
     static int readPixelsCheck(GL gl, int format, int type, int components, int width, int height) throws InterruptedException {
         int expectedExceptions = 0;
-        
-        final int rowlenA1 = width * components;    
-        
-        final int rowlenA4 = ( ( width * components + 3 ) / 4 ) * 4 ;        
+
+        final int rowlenA1 = width * components;
+
+        final int rowlenA4 = ( ( width * components + 3 ) / 4 ) * 4 ;
         Assert.assertTrue(rowlenA4 % 4 == 0);
 
         final int rowlenA8 = ( ( width * components + 7 ) / 8 ) * 8 ;
         Assert.assertTrue(rowlenA8 % 8 == 0);
-        
+
         GLPixelStorageModes psm = new GLPixelStorageModes();
         psm.setPackAlignment(gl, 1);
-        
+
         Exception ee = null;
-        
+
         // ok size !
         try {
             ByteBuffer bb = Buffers.newDirectByteBuffer(height*rowlenA1);
@@ -105,11 +105,11 @@ public class TestGPUMemSec01NEWT extends UITestCase {
             ee = e;
         }
         Assert.assertNull(
-            exceptionMsg("Unexpected IndexOutOfBoundsException (size ok, alignment 1)", 
+            exceptionMsg("Unexpected IndexOutOfBoundsException (size ok, alignment 1)",
                          format, type, components, width, height, rowlenA1, rowlenA4, rowlenA8), ee);
         ee = null;
-        
-        
+
+
         // too small -10 !
         try {
             ByteBuffer bb = Buffers.newDirectByteBuffer(height*rowlenA1-10);
@@ -118,16 +118,16 @@ public class TestGPUMemSec01NEWT extends UITestCase {
         } catch(IndexOutOfBoundsException e) {
             ee = e;
             System.err.println(
-                exceptionMsg("OK Expected IndexOutOfBoundsException (size-10 bytes)", 
+                exceptionMsg("OK Expected IndexOutOfBoundsException (size-10 bytes)",
                              format, type, components, width, height, rowlenA1, rowlenA4, rowlenA8)+
                              ": "+ee.getMessage());
-            expectedExceptions++;            
+            expectedExceptions++;
         }
         Assert.assertNotNull(
-            exceptionMsg("Expected IndexOutOfBoundsException (size-10 bytes)", 
+            exceptionMsg("Expected IndexOutOfBoundsException (size-10 bytes)",
                          format, type, components, width, height, rowlenA1, rowlenA4, rowlenA8), ee);
         ee = null;
-        
+
         // too small size/4 !
         try {
             ByteBuffer bb = Buffers.newDirectByteBuffer(height*rowlenA1/4);
@@ -136,21 +136,21 @@ public class TestGPUMemSec01NEWT extends UITestCase {
         } catch(IndexOutOfBoundsException e) {
             ee = e;
             System.err.println(
-                exceptionMsg("OK Expected IndexOutOfBoundsException (size/4 bytes)", 
+                exceptionMsg("OK Expected IndexOutOfBoundsException (size/4 bytes)",
                              format, type, components, width, height, rowlenA1, rowlenA4, rowlenA8)+
                              ": "+ee.getMessage());
-            expectedExceptions++;            
+            expectedExceptions++;
         }
         Assert.assertNotNull(
-            exceptionMsg("Expected IndexOutOfBoundsException (size/4 bytes)", 
+            exceptionMsg("Expected IndexOutOfBoundsException (size/4 bytes)",
                          format, type, components, width, height, rowlenA1, rowlenA4, rowlenA8), ee);
         ee = null;
 
         //
         // Alignment test
-        //         
+        //
         psm.setPackAlignment(gl, 4);
-        
+
         // ok size !
         try {
             ByteBuffer bb = Buffers.newDirectByteBuffer(height*rowlenA4);
@@ -160,10 +160,10 @@ public class TestGPUMemSec01NEWT extends UITestCase {
             ee = e;
         }
         Assert.assertNull(
-            exceptionMsg("Unexpected IndexOutOfBoundsException (size ok, alignment 4)", 
+            exceptionMsg("Unexpected IndexOutOfBoundsException (size ok, alignment 4)",
                          format, type, components, width, height, rowlenA1, rowlenA4, rowlenA8), ee);
         ee = null;
-        
+
         // too small if rowlenA1%4 > 0
         try {
             ByteBuffer bb = Buffers.newDirectByteBuffer(height*rowlenA1);
@@ -173,7 +173,7 @@ public class TestGPUMemSec01NEWT extends UITestCase {
             ee = e;
             if(rowlenA1%4>0) {
                 System.err.println(
-                    exceptionMsg("OK Expected IndexOutOfBoundsException (alignment 4)", 
+                    exceptionMsg("OK Expected IndexOutOfBoundsException (alignment 4)",
                                  format, type, components, width, height, rowlenA1, rowlenA4, rowlenA8)+
                                  ": "+ee.getMessage());
                 expectedExceptions++;
@@ -181,17 +181,17 @@ public class TestGPUMemSec01NEWT extends UITestCase {
         }
         if(rowlenA1%4>0) {
             Assert.assertNotNull(
-                exceptionMsg("Expected IndexOutOfBoundsException (alignment 4)", 
+                exceptionMsg("Expected IndexOutOfBoundsException (alignment 4)",
                              format, type, components, width, height, rowlenA1, rowlenA4, rowlenA8), ee);
         } else {
             Assert.assertNull(
-                exceptionMsg("Unexpected IndexOutOfBoundsException (alignment 4)", 
-                             format, type, components, width, height, rowlenA1, rowlenA4, rowlenA8), ee);            
+                exceptionMsg("Unexpected IndexOutOfBoundsException (alignment 4)",
+                             format, type, components, width, height, rowlenA1, rowlenA4, rowlenA8), ee);
         }
         ee = null;
-        
+
         psm.setPackAlignment(gl, 8);
-        
+
         // ok size !
         try {
             ByteBuffer bb = Buffers.newDirectByteBuffer(height*rowlenA8);
@@ -201,10 +201,10 @@ public class TestGPUMemSec01NEWT extends UITestCase {
             ee = e;
         }
         Assert.assertNull(
-            exceptionMsg("Unexpected IndexOutOfBoundsException (size ok, alignment 8)", 
+            exceptionMsg("Unexpected IndexOutOfBoundsException (size ok, alignment 8)",
                          format, type, components, width, height, rowlenA1, rowlenA4, rowlenA8), ee);
         ee = null;
-        
+
         // too small if rowlenA1%8 > 0
         try {
             ByteBuffer bb = Buffers.newDirectByteBuffer(height*rowlenA1);
@@ -214,7 +214,7 @@ public class TestGPUMemSec01NEWT extends UITestCase {
             ee = e;
             if(rowlenA1%8>0) {
                 System.err.println(
-                    exceptionMsg("OK Expected IndexOutOfBoundsException (alignment 8)", 
+                    exceptionMsg("OK Expected IndexOutOfBoundsException (alignment 8)",
                                  format, type, components, width, height, rowlenA1, rowlenA4, rowlenA8)+
                                  ": "+ee.getMessage());
                 expectedExceptions++;
@@ -222,37 +222,37 @@ public class TestGPUMemSec01NEWT extends UITestCase {
         }
         if(rowlenA1%8>0) {
             Assert.assertNotNull(
-                exceptionMsg("Expected IndexOutOfBoundsException (alignment 8)", 
+                exceptionMsg("Expected IndexOutOfBoundsException (alignment 8)",
                              format, type, components, width, height, rowlenA1, rowlenA4, rowlenA8), ee);
         } else {
             Assert.assertNull(
-                exceptionMsg("Unexpected IndexOutOfBoundsException (alignment 8)", 
-                             format, type, components, width, height, rowlenA1, rowlenA4, rowlenA8), ee);            
+                exceptionMsg("Unexpected IndexOutOfBoundsException (alignment 8)",
+                             format, type, components, width, height, rowlenA1, rowlenA4, rowlenA8), ee);
         }
         ee = null;
-        
-        psm.restore(gl);        
-        
-        return expectedExceptions;            
+
+        psm.restore(gl);
+
+        return expectedExceptions;
     }
-    
+
     @Test
     public void testReadPixelsGL_640x480xRGBAxUB() throws InterruptedException {
         GLProfile glp = GLProfile.getDefault();
         final int width = 640;
         final int height= 480;
-        
+
         // preset ..
         final NEWTGLContext.WindowContext winctx = createCurrentGLOffscreenWindow(glp, width, height);
         final GLDrawable drawable = winctx.context.getGLDrawable();
         final GL gl = winctx.context.getGL();
-        
+
         // 2 x too small - 0 x alignment
         Assert.assertEquals(2, readPixelsCheck(gl, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, 4, width, height));
-                        
+
         drawable.swapBuffers();
         Thread.sleep(50);
-        
+
         NEWTGLContext.destroyWindow(winctx);
     }
 
@@ -263,21 +263,21 @@ public class TestGPUMemSec01NEWT extends UITestCase {
         final int wheight= 480;
         final int rwidth =  99;
         final int rheight= 100;
-        
+
         // preset ..
         final NEWTGLContext.WindowContext winctx = createCurrentGLOffscreenWindow(glp, wwidth, wheight);
         final GLDrawable drawable = winctx.context.getGLDrawable();
         final GL gl = winctx.context.getGL();
-        
+
         // 2 x too small - 1 x alignment
         Assert.assertEquals(3, readPixelsCheck(gl, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, 4, rwidth, rheight));
-                        
+
         drawable.swapBuffers();
         Thread.sleep(50);
-        
+
         NEWTGLContext.destroyWindow(winctx);
     }
-    
+
     @Test
     public void testReadPixelsGL2GL3_640x480xRGBxUB() throws InterruptedException {
         GLProfile glp = GLProfile.getGL2ES2();
@@ -287,21 +287,21 @@ public class TestGPUMemSec01NEWT extends UITestCase {
         }
         final int width = 640;
         final int height= 480;
-        
+
         // preset ..
         final NEWTGLContext.WindowContext winctx = createCurrentGLOffscreenWindow(glp, width, height);
         final GLDrawable drawable = winctx.context.getGLDrawable();
         final GL gl = winctx.context.getGL();
-        
+
         // 2 x too small - 0 x alignment
         Assert.assertEquals(2, readPixelsCheck(gl, GL.GL_RGB, GL.GL_UNSIGNED_BYTE, 3, width, height));
-                        
+
         drawable.swapBuffers();
         Thread.sleep(50);
-        
+
         NEWTGLContext.destroyWindow(winctx);
     }
-    
+
     @Test
     public void testReadPixelsGL2GL3_99x100xRGBxUB() throws InterruptedException {
         GLProfile glp = GLProfile.getGL2ES2();
@@ -313,21 +313,21 @@ public class TestGPUMemSec01NEWT extends UITestCase {
         final int wheight= 480;
         final int rwidth =  99;
         final int rheight= 100;
-        
+
         // preset ..
         final NEWTGLContext.WindowContext winctx = createCurrentGLOffscreenWindow(glp, wwidth, wheight);
         final GLDrawable drawable = winctx.context.getGLDrawable();
         final GL gl = winctx.context.getGL();
-        
+
         // 2 x too small - 2 x alignment
         Assert.assertEquals(4, readPixelsCheck(gl, GL.GL_RGB, GL.GL_UNSIGNED_BYTE, 3, rwidth, rheight));
-                        
+
         drawable.swapBuffers();
         Thread.sleep(50);
-        
+
         NEWTGLContext.destroyWindow(winctx);
     }
-    
+
     @Test
     public void testReadPixelsGL2GL3_640x480xREDxUB() throws InterruptedException {
         GLProfile glp = GLProfile.getGL2ES2();
@@ -342,13 +342,13 @@ public class TestGPUMemSec01NEWT extends UITestCase {
         final NEWTGLContext.WindowContext winctx = createCurrentGLOffscreenWindow(glp, width, height);
         final GLDrawable drawable = winctx.context.getGLDrawable();
         final GL2GL3 gl = winctx.context.getGL().getGL2GL3();
-        
+
         // 2 x too small - 0 x alignment
         Assert.assertEquals(2, readPixelsCheck(gl, GL2ES2.GL_RED, GL.GL_UNSIGNED_BYTE, 1, width, height));
-                        
+
         drawable.swapBuffers();
         Thread.sleep(50);
-        
+
         NEWTGLContext.destroyWindow(winctx);
     }
 
@@ -368,19 +368,19 @@ public class TestGPUMemSec01NEWT extends UITestCase {
         final NEWTGLContext.WindowContext winctx = createCurrentGLOffscreenWindow(glp, wwidth, wheight);
         final GLDrawable drawable = winctx.context.getGLDrawable();
         final GL2GL3 gl = winctx.context.getGL().getGL2GL3();
-        
+
         // 2 x too small - 2 x alignment
         Assert.assertEquals(4, readPixelsCheck(gl, GL2ES2.GL_RED, GL.GL_UNSIGNED_BYTE, 1, rwidth, rheight));
-                        
+
         drawable.swapBuffers();
         Thread.sleep(50);
-        
+
         NEWTGLContext.destroyWindow(winctx);
     }
-    
+
     public static void main(String args[]) throws IOException {
         String tstname = TestGPUMemSec01NEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
-    }    
+    }
 }
 

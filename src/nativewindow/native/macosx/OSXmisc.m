@@ -215,7 +215,7 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetInsets0
         view = (NSView*) nsObj;
         win = [view window];
     } else {
-        NativewindowCommon_throwNewRuntimeException(env, "neither win not view %p\n", nsObj);
+        NativewindowCommon_throwNewRuntimeException(env, "neither win nor view %p\n", nsObj);
     }
 
     NSRect frameRect = [win frame];
@@ -234,6 +234,75 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetInsets0
     [pool release];
 
     return res;
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    GetPixelScale0
+ * Signature: (I)D
+ */
+JNIEXPORT jdouble JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetPixelScale0
+  (JNIEnv *env, jclass unused, jint screen_idx)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+    CGFloat pixelScale;
+    NSScreen *screen;
+    NSArray *screens = [NSScreen screens];
+    if( screen_idx<0 || screen_idx>=[screens count] ) {
+        screen = NULL;
+        pixelScale = 0.0;
+    } else {
+        screen = (NSScreen *) [screens objectAtIndex: screen_idx];
+        pixelScale = 1.0; // default
+NS_DURING
+        // Available >= 10.7
+        pixelScale = [screen backingScaleFactor]; // HiDPI scaling
+NS_HANDLER
+NS_ENDHANDLER
+    }
+    [pool release];
+
+    return (jdouble)pixelScale;
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    GetPixelScale1
+ * Signature: (J)D
+ */
+JNIEXPORT jdouble JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetPixelScale1
+  (JNIEnv *env, jclass unused, jlong winOrView)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+    NSObject *nsObj = (NSObject*) (intptr_t) winOrView;
+    NSWindow* win = NULL;
+    NSView* view = NULL;
+    NSScreen *screen = NULL;
+
+    if( [nsObj isKindOfClass:[NSWindow class]] ) {
+        win = (NSWindow*) nsObj;
+        view = [win contentView];
+        screen = [win screen];
+    } else if( nsObj != NULL && [nsObj isKindOfClass:[NSView class]] ) {
+        view = (NSView*) nsObj;
+        win = [view window];
+        screen = [win screen];
+    } else {
+        NativewindowCommon_throwNewRuntimeException(env, "neither win nor view %p\n", nsObj);
+    }
+
+    CGFloat pixelScale = 1.0; // default
+NS_DURING
+    // Available >= 10.7
+    pixelScale = [screen backingScaleFactor]; // HiDPI scaling
+NS_HANDLER
+NS_ENDHANDLER
+
+    [pool release];
+
+    return (jdouble)pixelScale;
 }
 
 /*

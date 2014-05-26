@@ -38,8 +38,8 @@ import com.jogamp.newt.Screen;
 
 public class MonitorDeviceImpl extends MonitorDevice {
 
-    public MonitorDeviceImpl(ScreenImpl screen, int nativeId, DimensionImmutable sizeMM, Rectangle viewport, MonitorMode currentMode, ArrayHashSet<MonitorMode> supportedModes) {
-        super(screen, nativeId, sizeMM, viewport, currentMode, supportedModes);
+    public MonitorDeviceImpl(ScreenImpl screen, int nativeId, DimensionImmutable sizeMM, Rectangle viewportPU, Rectangle viewportWU, MonitorMode currentMode, ArrayHashSet<MonitorMode> supportedModes) {
+        super(screen, nativeId, sizeMM, viewportPU, viewportWU, currentMode, supportedModes);
     }
 
     @Override
@@ -136,11 +136,10 @@ public class MonitorDeviceImpl extends MonitorDevice {
         this.currentMode = currentMode;
     }
 
-    /* pp */ final void setViewportValue(Rectangle viewport) {
-        this.viewport = viewport;
-    }
+    /* pp */ final Rectangle getMutuableViewportPU() { return viewportPU; }
+    /* pp */ final Rectangle getMutuableViewportWU() { return viewportWU; }
 
-    /* pp */ ArrayHashSet<MonitorMode> getSupportedModesImpl() {
+    /* pp */ final ArrayHashSet<MonitorMode> getSupportedModesImpl() {
         return supportedModes;
     }
 

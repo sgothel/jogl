@@ -156,9 +156,10 @@ public class TestScreenMode01bNEWT extends UITestCase {
 
         GLWindow window0 = createWindow(screen, caps, "win0", screenXPos, screenYPos, width, height);
         Assert.assertNotNull(window0);
-        Rectangle window0ScreenRect = window0.getSurfaceBounds();
-        System.err.println("Test.0: Window bounds: "+window0.getX()+"/"+window0.getY()+" "+window0.getWindowWidth()+"x"+window0.getWindowHeight()+" [wu] within "+screen.getViewportInWindowUnits(window0)+" [wu]");
-        System.err.println("Test.0: Window screenRect: "+window0ScreenRect+" [pixels]");
+        Rectangle window0WindowBounds = window0.getBounds();
+        Rectangle window0SurfaceBounds = window0.getSurfaceBounds();
+        System.err.println("Test.0: Window bounds    : "+window0WindowBounds+" [wu] within "+screen.getViewportInWindowUnits()+" [wu]");
+        System.err.println("Test.0: Window bounds    : "+window0SurfaceBounds+" [pixels]");
 
         final Animator anim = new Animator(window0);
         anim.start();
@@ -224,12 +225,13 @@ public class TestScreenMode01bNEWT extends UITestCase {
             Assert.assertTrue(smOk);
         }
 
-        window0ScreenRect = window0.getSurfaceBounds();
+        window0WindowBounds = window0.getBounds();
+        window0SurfaceBounds = window0.getSurfaceBounds();
         System.err.println("Test.1: Screen           : "+screen);
-        System.err.println("Test.1: Window bounds    : "+window0.getX()+"/"+window0.getY()+" "+window0.getWindowWidth()+"x"+window0.getWindowHeight()+" [wu] within "+screen.getViewportInWindowUnits(window0)+" [wu]");
-        System.err.println("Test.1: Window screenRect: "+window0ScreenRect+" [pixels]");
+        System.err.println("Test.1: Window bounds    : "+window0WindowBounds+" [wu] within "+screen.getViewportInWindowUnits()+" [wu]");
+        System.err.println("Test.1: Window bounds    : "+window0SurfaceBounds+" [pixels]");
         System.err.println("Test.1: Screen viewport  : "+screen.getViewport()+" [pixels]");
-        System.err.println("Test.1: Window monitor   : "+monitor.getViewport()+" [pixels]");
+        System.err.println("Test.1: Monitor viewport : "+monitor.getViewport()+" [pixels], "+monitor.getViewportInWindowUnits()+" [wu]");
         System.err.println("Test.1: Window main-mon  : "+window0.getMainMonitor());
 
         Thread.sleep(duration);
@@ -250,11 +252,13 @@ public class TestScreenMode01bNEWT extends UITestCase {
             Assert.assertTrue(smOk);
         }
 
+        window0WindowBounds = window0.getBounds();
+        window0SurfaceBounds = window0.getSurfaceBounds();
         System.err.println("Test.2: Screen           : "+screen);
-        System.err.println("Test.2: Window bounds    : "+window0.getX()+"/"+window0.getY()+" "+window0.getWindowWidth()+"x"+window0.getWindowHeight()+" [wu] within "+screen.getViewportInWindowUnits(window0)+" [wu]");
-        System.err.println("Test.2: Window screenRect: "+window0ScreenRect+" [pixels]");
+        System.err.println("Test.2: Window bounds    : "+window0WindowBounds+" [wu] within "+screen.getViewportInWindowUnits()+" [wu]");
+        System.err.println("Test.2: Window bounds    : "+window0SurfaceBounds+" [pixels]");
         System.err.println("Test.2: Screen viewport  : "+screen.getViewport()+" [pixels]");
-        System.err.println("Test.2: Window monitor   : "+monitor.getViewport()+" [pixels]");
+        System.err.println("Test.2: Monitor viewport : "+monitor.getViewport()+" [pixels], "+monitor.getViewportInWindowUnits()+" [wu]");
         System.err.println("Test.2: Window main-mon  : "+window0.getMainMonitor());
 
         Thread.sleep(duration);

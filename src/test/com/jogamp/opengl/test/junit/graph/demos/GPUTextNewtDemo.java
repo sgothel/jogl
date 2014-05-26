@@ -60,6 +60,8 @@ public class GPUTextNewtDemo {
     static int GraphMSAASamples = 0;
 
     public static void main(String[] args) {
+        int width = 800, height = 400;
+        int x = 10, y = 10;
         if( 0 != args.length ) {
             SceneMSAASamples = 0;
             GraphMSAASamples = 0;
@@ -77,9 +79,23 @@ public class GPUTextNewtDemo {
                     i++;
                     GraphMSAASamples = 0;
                     GraphVBAASamples = MiscUtils.atoi(args[i], GraphVBAASamples);
+                } else if(args[i].equals("-width")) {
+                    i++;
+                    width = MiscUtils.atoi(args[i], width);
+                } else if(args[i].equals("-height")) {
+                    i++;
+                    height = MiscUtils.atoi(args[i], height);
+                } else if(args[i].equals("-x")) {
+                    i++;
+                    x = MiscUtils.atoi(args[i], x);
+                } else if(args[i].equals("-y")) {
+                    i++;
+                    y = MiscUtils.atoi(args[i], y);
                 }
             }
         }
+        System.err.println("Desired win size "+width+"x"+height);
+        System.err.println("Desired win pos  "+x+"/"+y);
         System.err.println("Scene MSAA Samples "+SceneMSAASamples);
         System.err.println("Graph MSAA Samples "+GraphMSAASamples);
         System.err.println("Graph VBAA Samples "+GraphVBAASamples);
@@ -105,8 +121,8 @@ public class GPUTextNewtDemo {
         }
 
         final GLWindow window = GLWindow.create(caps);
-        window.setPosition(10, 10);
-        window.setSurfaceSize(800, 400);
+        window.setPosition(x, y);
+        window.setSize(width, height);
         window.setTitle("GPU Text Newt Demo - graph[vbaa"+GraphVBAASamples+" msaa"+GraphMSAASamples+"], msaa "+SceneMSAASamples);
 
         RenderState rs = RenderState.createRenderState(SVertex.factory());

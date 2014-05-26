@@ -52,6 +52,9 @@ import com.jogamp.common.util.ArrayHashSet;
  *     <li>{@link RectangleImmutable} viewport (rotated)</li>
  *   </ul></li>
  * </ul>
+ * <p>
+ * All values of this interface are represented in pixel units, if not stated otherwise.
+ * </p>
  */
 public abstract class MonitorDevice {
     protected final Screen screen; // backref
@@ -61,16 +64,18 @@ public abstract class MonitorDevice {
     protected final ArrayHashSet<MonitorMode> supportedModes; // FIXME: May need to support mutable mode, i.e. adding modes on the fly!
     protected MonitorMode currentMode;
     protected boolean modeChanged;
-    protected Rectangle viewport;
+    protected Rectangle viewportPU; // in pixel units
+    protected Rectangle viewportWU; // in window units
 
-    protected MonitorDevice(Screen screen, int nativeId, DimensionImmutable sizeMM, Rectangle viewport, MonitorMode currentMode, ArrayHashSet<MonitorMode> supportedModes) {
+    protected MonitorDevice(Screen screen, int nativeId, DimensionImmutable sizeMM, Rectangle viewportPU, Rectangle viewportWU, MonitorMode currentMode, ArrayHashSet<MonitorMode> supportedModes) {
         this.screen = screen;
         this.nativeId = nativeId;
         this.sizeMM = sizeMM;
         this.originalMode = currentMode;
         this.supportedModes = supportedModes;
         this.currentMode = currentMode;
-        this.viewport = viewport;
+        this.viewportPU = viewportPU;
+        this.viewportWU = viewportWU;
         this.modeChanged = false;
     }
 
@@ -170,11 +175,22 @@ public abstract class MonitorDevice {
 
     /**
      * Returns the {@link RectangleImmutable rectangular} portion
-     * of the rotated virtual {@link Screen} size in pixel units
-     * represented by this monitor.
+     * of the <b>rotated</b> virtual {@link Screen} size in pixel units
+     * represented by this monitor, i.e. top-left origin and size.
+     * @see Screen
      */
     public final RectangleImmutable getViewport() {
-        return viewport;
+        return viewportPU;
+    }
+
+    /**
+     * Returns the {@link RectangleImmutable rectangular} portion
+     * of the <b>rotated</b> virtual {@link Screen} size in window units
+     * represented by this monitor, i.e. top-left origin and size.
+     * @see Screen
+     */
+    public final RectangleImmutable getViewportInWindowUnits() {
+        return viewportWU;
     }
 
     /**
@@ -184,46 +200,45 @@ public abstract class MonitorDevice {
      * @param y y-coord in pixel units
      */
     public final boolean contains(final int x, final int y) {
-        return x >= viewport.getX() &&
-               x <  viewport.getX() + viewport.getWidth() &&
-               y >= viewport.getY() &&
-               y <  viewport.getY() + viewport.getHeight() ;
+        return x >= viewportPU.getX() &&
+               x <  viewportPU.getX() + viewportPU.getWidth() &&
+               y >= viewportPU.getY() &&
+               y <  viewportPU.getY() + viewportPU.getHeight() ;
     }
 
     /**
-     * Returns the coverage of given rectangle in pixel units
-     * w/ this {@link #getViewport() viewport}, i.e. between <code>0.0</code> and <code>1.0</code>.
-     * <p>
-     * Coverage is computed by:
-     * <pre>
-     *    isect = viewport.intersection(r);
-     *    coverage = area( isect ) / area( viewport ) ;
-     * </pre>
-     * </p>
-     * @param r {@link RectangleImmutable rectangle} in pixel units
-     */
-    public final float coverage(final RectangleImmutable r) {
-        return viewport.coverage(r);
-    }
-
-    /**
-     * Returns the union of the given monitor's {@link #getViewport() viewport} in pixel units.
-     * @param result storage for result, will be returned
+     * Calculates the union of the given monitor's {@link #getViewport() viewport} in pixel- and window units.
+     * @param viewport storage for result in pixel units, maybe null
+     * @param viewportInWindowUnits storage for result in window units, maybe null
      * @param monitors given list of monitors
-     * @return viewport representing the union of given monitor's viewport in pixel units, i.e. result storage for chaining
      */
-    public static Rectangle unionOfViewports(final Rectangle result, final List<MonitorDevice> monitors) {
-        int x1=Integer.MAX_VALUE, y1=Integer.MAX_VALUE;
-        int x2=Integer.MIN_VALUE, y2=Integer.MIN_VALUE;
+    public static void unionOfViewports(final Rectangle viewport, final Rectangle viewportInWindowUnits, final List<MonitorDevice> monitors) {
+        int x1PU=Integer.MAX_VALUE, y1PU=Integer.MAX_VALUE;
+        int x2PU=Integer.MIN_VALUE, y2PU=Integer.MIN_VALUE;
+        int x1WU=Integer.MAX_VALUE, y1WU=Integer.MAX_VALUE;
+        int x2WU=Integer.MIN_VALUE, y2WU=Integer.MIN_VALUE;
         for(int i=monitors.size()-1; i>=0; i--) {
-            final RectangleImmutable vp = monitors.get(i).getViewport();
-            x1 = Math.min(x1, vp.getX());
-            x2 = Math.max(x2, vp.getX() + vp.getWidth());
-            y1 = Math.min(y1, vp.getY());
-            y2 = Math.max(y2, vp.getY() + vp.getHeight());
+            if( null != viewport ) {
+                final RectangleImmutable viewPU = monitors.get(i).getViewport();
+                x1PU = Math.min(x1PU, viewPU.getX());
+                x2PU = Math.max(x2PU, viewPU.getX() + viewPU.getWidth());
+                y1PU = Math.min(y1PU, viewPU.getY());
+                y2PU = Math.max(y2PU, viewPU.getY() + viewPU.getHeight());
+            }
+            if( null != viewportInWindowUnits ) {
+                final RectangleImmutable viewWU = monitors.get(i).getViewportInWindowUnits();
+                x1WU = Math.min(x1WU, viewWU.getX());
+                x2WU = Math.max(x2WU, viewWU.getX() + viewWU.getWidth());
+                y1WU = Math.min(y1WU, viewWU.getY());
+                y2WU = Math.max(y2WU, viewWU.getY() + viewWU.getHeight());
+            }
         }
-        result.set(x1, y1, x2 - x1, y2 - y1);
-        return result;
+        if( null != viewport ) {
+            viewport.set(x1PU, y1PU, x2PU - x1PU, y2PU - y1PU);
+        }
+        if( null != viewportInWindowUnits ) {
+            viewportInWindowUnits.set(x1WU, y1WU, x2WU - x1WU, y2WU - y1WU);
+        }
     }
 
     public final boolean isOriginalMode() {
@@ -247,6 +262,7 @@ public abstract class MonitorDevice {
      * <p>
      * The returned {@link MonitorMode} is element of the lists {@link #getSupportedModes()} and {@link Screen#getMonitorModes()}.
      * </p>
+     * @see #queryCurrentMode()
      */
     public final MonitorMode getCurrentMode() {
         return currentMode;
@@ -257,6 +273,7 @@ public abstract class MonitorDevice {
      * <p>
      * The returned {@link MonitorMode} is element of the lists {@link #getSupportedModes()} and {@link Screen#getMonitorModes()}.
      * </p>
+     * @see #getCurrentMode()
      */
     public abstract MonitorMode queryCurrentMode();
 
@@ -269,7 +286,7 @@ public abstract class MonitorDevice {
 
     @Override
     public String toString() {
-        return "Monitor[Id "+Display.toHexString(nativeId)+", "+sizeMM+" mm, viewport "+viewport+ ", orig "+originalMode+", curr "+currentMode+
+        return "Monitor[Id "+Display.toHexString(nativeId)+", "+sizeMM+" mm, viewport "+viewportPU+ " [pixels], "+viewportWU+" [window], orig "+originalMode+", curr "+currentMode+
                ", modeChanged "+modeChanged+", modeCount "+supportedModes.size()+"]";
     }
 }

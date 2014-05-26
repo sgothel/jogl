@@ -1859,10 +1859,14 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getMoni
     prop[propIndex++] = monitor_idx;
     prop[propIndex++] = widthmm;
     prop[propIndex++] = heightmm;
-    prop[propIndex++] = dm.dmPosition.x; // rotated viewport
-    prop[propIndex++] = dm.dmPosition.y; // rotated viewport
-    prop[propIndex++] = dm.dmPelsWidth;  // rotated viewport
-    prop[propIndex++] = dm.dmPelsHeight; // rotated viewport
+    prop[propIndex++] = dm.dmPosition.x; // rotated viewport pixel units
+    prop[propIndex++] = dm.dmPosition.y; // rotated viewport pixel units
+    prop[propIndex++] = dm.dmPelsWidth;  // rotated viewport pixel units
+    prop[propIndex++] = dm.dmPelsHeight; // rotated viewport pixel units
+    prop[propIndex++] = dm.dmPosition.x; // rotated viewport window units (same)
+    prop[propIndex++] = dm.dmPosition.y; // rotated viewport window units (same)
+    prop[propIndex++] = dm.dmPelsWidth;  // rotated viewport window units (same)
+    prop[propIndex++] = dm.dmPelsHeight; // rotated viewport window units (same)
 
     jintArray properties = (*env)->NewIntArray(env, propCount);
     if (properties == NULL) {

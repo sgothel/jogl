@@ -111,7 +111,7 @@ public class ScreenDriver extends ScreenImpl {
     private RandR rAndR;
 
     @Override
-    protected final void collectNativeMonitorModesAndDevicesImpl(MonitorModeProps.Cache cache) {
+    protected final void collectNativeMonitorModesAndDevicesImpl(final MonitorModeProps.Cache cache) {
         if( null == rAndR ) { return; }
         final AbstractGraphicsDevice device = getDisplay().getGraphicsDevice();
         device.lock();
@@ -165,12 +165,14 @@ public class ScreenDriver extends ScreenImpl {
     }
 
     @Override
-    protected Rectangle getNativeMonitorDeviceViewportImpl(MonitorDevice monitor) {
+    protected boolean updateNativeMonitorDeviceViewportImpl(final MonitorDevice monitor, final Rectangle viewportPU, final Rectangle viewportWU) {
         final AbstractGraphicsDevice device = getDisplay().getGraphicsDevice();
         device.lock();
         try {
             int[] viewportProps = rAndR.getMonitorDeviceViewport(device.getHandle(), this, monitor.getId());
-            return new Rectangle(viewportProps[0], viewportProps[1], viewportProps[2], viewportProps[3]);
+            viewportPU.set(viewportProps[0], viewportProps[1], viewportProps[2], viewportProps[3]);
+            viewportWU.set(viewportProps[0], viewportProps[1], viewportProps[2], viewportProps[3]); // equal window-units and pixel-units
+            return true;
         } finally {
             device.unlock();
         }
@@ -207,7 +209,7 @@ public class ScreenDriver extends ScreenImpl {
         return done;
     }
 
-    private DisplayImpl.DisplayRunnable<Boolean> xineramaEnabledQueryWithTemp = new DisplayImpl.DisplayRunnable<Boolean>() {
+    private final DisplayImpl.DisplayRunnable<Boolean> xineramaEnabledQueryWithTemp = new DisplayImpl.DisplayRunnable<Boolean>() {
         @Override
         public Boolean run(long dpy) {
             return new Boolean(X11Util.XineramaIsEnabled(dpy));
@@ -225,8 +227,8 @@ public class ScreenDriver extends ScreenImpl {
     }
 
     @Override
-    protected void calcVirtualScreenOriginAndSize(final Rectangle vOriginSize) {
-        final RectangleImmutable ov = (RectangleImmutable) getViewport().cloneMutable();
+    protected void calcVirtualScreenOriginAndSize(final Rectangle viewport, Rectangle viewportInWindowUnits) {
+        final RectangleImmutable ov = DEBUG ? (RectangleImmutable) getViewport().cloneMutable() : null;
         /**
         if( null != rAndR && rAndR.getVersion().compareTo(RandR.version130) >= 0 && getMonitorDevices().size()>0 ) {
             super.calcVirtualScreenOriginAndSize(vOriginSize);
@@ -242,11 +244,11 @@ public class ScreenDriver extends ScreenImpl {
             runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
                 @Override
                 public Object run(long dpy) {
-                    vOriginSize.set(0, 0, getWidth0(dpy, screen_idx), getHeight0(dpy, screen_idx));
+                    viewport.set(0, 0, getWidth0(dpy, screen_idx), getHeight0(dpy, screen_idx));
                     return null;
                 } } );
             if( DEBUG ) {
-                System.err.println("X11Screen.calcVirtualScreenOriginAndSize: Querying X11: "+ov+" -> "+vOriginSize);
+                System.err.println("X11Screen.calcVirtualScreenOriginAndSize: Querying X11: "+ov+" -> "+viewport);
             }
         }
     }
@@ -254,11 +256,11 @@ public class ScreenDriver extends ScreenImpl {
     //----------------------------------------------------------------------
     // Internals only
     //
-    private final <T> T runWithLockedDisplayDevice(DisplayRunnable<T> action) {
+    private final <T> T runWithLockedDisplayDevice(final DisplayRunnable<T> action) {
         return display.runWithLockedDisplayDevice(action);
     }
 
-    private final <T> T runWithTempDisplayHandle(DisplayRunnable<T> action) {
+    private final <T> T runWithTempDisplayHandle(final DisplayRunnable<T> action) {
         final long displayHandle = X11Util.openDisplay(display.getName());
         if(0 == displayHandle) {
             throw new RuntimeException("null device");
@@ -272,7 +274,7 @@ public class ScreenDriver extends ScreenImpl {
         return res;
     }
 
-    private final <T> T runWithOptTempDisplayHandle(DisplayRunnable<T> action) {
+    private final <T> T runWithOptTempDisplayHandle(final DisplayRunnable<T> action) {
         if( null != rAndR && rAndR.getVersion().compareTo(RandR.version130) >= 0 ) {
             return display.runWithLockedDisplayDevice(action);
         } else {

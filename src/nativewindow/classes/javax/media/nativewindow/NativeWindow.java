@@ -48,8 +48,18 @@ import javax.media.nativewindow.util.Point;
  * information such as {@link #getWindowHandle() window-handle},
  * {@link #getWindowWidth() window-size} and {@link #getX() window-position}.
  * <p>
- * All values of this interface are represented in window units.
- * see {@link NativeSurface}.
+ * All values of this interface are represented in window units, if not stated otherwise.
+ * See {@link NativeSurface}.
+ * </p>
+ *
+ * <a name="coordinateSystem"><h5>Coordinate System</h5></a>
+ * <p>
+ *  <ul>
+ *      <li>Abstract screen space has it's origin in the top-left corner, and may not be at 0/0.</li>
+ *      <li>Window origin is in it's top-left corner, see {@link #getX()} and {@link #getY()}. </li>
+ *      <li>Window client-area excludes {@link #getInsets() insets}, i.e. window decoration.</li>
+ *      <li>Window origin is relative to it's parent window if exist, or the screen position (top-level).</li>
+ *  </ul>
  * </p>
  * <p>
  * A window toolkit such as the AWT may either implement this interface
@@ -111,18 +121,36 @@ public interface NativeWindow extends NativeSurface {
   /** Returns the current x position of this window, relative to it's parent. */
 
   /**
-   * @return the current x position of the top-left corner
-   *         of the client area relative to it's parent in window units.
-   *         Since the position reflects the client area, it does not include the insets.
+   * Returns the x position of the top-left corner
+   * of the client area relative to it's parent in window units.
+   * <p>
+   * If no parent exist (top-level window), this coordinate equals the screen coordinate.
+   * </p>
+   * <p>
+   * Since the position reflects the client area, it does not include the insets.
+   * </p>
+   * <p>
+   * See <a href="#coordinateSystem"> Coordinate System</a>.
+   * </p>
    * @see #getInsets()
+   * @see #getLocationOnScreen(Point)
    */
   public int getX();
 
   /**
-   * @return the current y position of the top-left corner
-   *         of the client area relative to it's parent in window units.
-   *         Since the position reflects the client area, it does not include the insets.
+   * Returns the current y position of the top-left corner
+   * of the client area relative to it's parent in window units.
+   * <p>
+   * If no parent exist (top-level window), this coordinate equals the screen coordinate.
+   * </p>
+   * <p>
+   * Since the position reflects the client area, it does not include the insets.
+   * </p>
+   * <p>
+   * See <a href="#coordinateSystem"> Coordinate System</a>.
+   * </p>
    * @see #getInsets()
+   * @see #getLocationOnScreen(Point)
    */
   public int getY();
 
@@ -141,16 +169,23 @@ public interface NativeWindow extends NativeSurface {
   public int getWindowHeight();
 
   /**
-   * Returns the current position of the top-left corner
-   * of the client area in window units.
+   * Returns the window's top-left client-area position in the screen.
+   * <p>
+   * If {@link Point} is not <code>null</code>, it is translated about the resulting screen position
+   * and returned.
+   * </p>
+   * <p>
+   * See <a href="#coordinateSystem"> Coordinate System</a>.
+   * </p>
    * <p>
    * Since the position reflects the client area, it does not include the insets.
    * </p>
-   * @param point if not null,
-   *        {@link javax.media.nativewindow.util.Point#translate(javax.media.nativewindow.util.Point)}
-   *        the passed {@link javax.media.nativewindow.util.Point} by this location on the screen and return it.
-   * @return either the passed non null translated point by the screen location of this NativeWindow,
-   *         or a new instance with the screen location of this NativeWindow.
+   * @param point Optional {@link Point} storage.
+   *              If not null, <code>null</code>, it is translated about the resulting screen position
+   *              and returned.
+   * @see #getX()
+   * @see #getY()
+   * @see #getInsets()
    */
   public Point getLocationOnScreen(Point point);
 

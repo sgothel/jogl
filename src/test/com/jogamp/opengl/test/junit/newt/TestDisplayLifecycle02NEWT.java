@@ -34,7 +34,7 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
-import javax.media.nativewindow.util.Rectangle;
+import javax.media.nativewindow.util.RectangleImmutable;
 import javax.media.opengl.*;
 
 import com.jogamp.newt.*;
@@ -241,7 +241,7 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         GLWindow window2 = createWindow(caps, width, height);
         Assert.assertSame(screen, window2.getScreen());
         Assert.assertSame(display, window2.getScreen().getDisplay());
-        final Rectangle screenBoundsInWinU = screen.getViewportInWindowUnits(window2);
+        final RectangleImmutable screenBoundsInWinU = screen.getViewportInWindowUnits();
         window2.setPosition(screenBoundsInWinU.getWidth()-width, 0);
 
         Assert.assertEquals(0,Display.getActiveDisplayNumber());

@@ -36,6 +36,7 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 import javax.media.nativewindow.util.Rectangle;
+import javax.media.nativewindow.util.RectangleImmutable;
 import javax.media.opengl.*;
 
 import com.jogamp.opengl.util.Animator;
@@ -187,7 +188,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
 
         GLWindow window2 = createWindow(screen, caps, width-10, height-10, true /* onscreen */, false /* undecorated */, true /* vsync */);
         Assert.assertNotNull(window2);
-        final Rectangle screenBoundsInWinU = screen.getViewportInWindowUnits(window2);
+        final RectangleImmutable screenBoundsInWinU = screen.getViewportInWindowUnits();
         window2.setPosition(screenBoundsInWinU.getWidth()-width, 0);
 
         Animator animator = new Animator();
@@ -254,7 +255,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         Assert.assertNotNull(screen2);
         GLWindow window2 = createWindow(screen2, caps, width-10, height-10, true /* onscreen */, false /* undecorated */, true /* vsync */);
         Assert.assertNotNull(window2);
-        final Rectangle screen2BoundsInWinU = screen2.getViewportInWindowUnits(window2);
+        final RectangleImmutable screen2BoundsInWinU = screen2.getViewportInWindowUnits();
         window2.setPosition(screen2BoundsInWinU.getWidth()-width, 0);
 
         Animator animator = new Animator();

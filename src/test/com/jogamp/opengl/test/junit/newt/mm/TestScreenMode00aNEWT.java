@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.newt.mm;
 
 import java.io.IOException;
@@ -68,11 +68,11 @@ import jogamp.newt.MonitorModeProps;
 public class TestScreenMode00aNEWT extends UITestCase {
     static int screenIdx = 0;
     static int width, height;
-    
+
     static int waitTimeShort = 4; //1 sec
     static int waitTimeLong = 6; //6 sec
-    
-    
+
+
 
     @BeforeClass
     public static void initClass() {
@@ -88,38 +88,39 @@ public class TestScreenMode00aNEWT extends UITestCase {
         final DimensionImmutable res = new Dimension(640, 480);
         final SurfaceSize surfsz = new SurfaceSize(res, 32);
         final MonitorMode modeOut = new MonitorMode(surfsz, 60.0f, 0, 0);
-        System.err.println("00 out: "+modeOut);        
-        final MonitorModeProps.Cache cache = new MonitorModeProps.Cache(); 
+        System.err.println("00 out: "+modeOut);
+        final MonitorModeProps.Cache cache = new MonitorModeProps.Cache();
         cache.monitorModes.add(modeOut);
         {
             final int[] props = MonitorModeProps.streamOutMonitorMode(modeOut);
             final MonitorMode modeIn = MonitorModeProps.streamInMonitorMode(null, cache, props, 0);
             System.err.println("00 in : "+modeIn);
-    
+
             Assert.assertEquals(modeOut.getSurfaceSize().getResolution(), modeIn.getSurfaceSize().getResolution());
-    
+
             Assert.assertEquals(modeOut.getSurfaceSize(), modeIn.getSurfaceSize());
-    
+
             Assert.assertEquals(modeOut.hashCode(), modeIn.hashCode());
-            
-            Assert.assertEquals(modeOut, modeIn);    
+
+            Assert.assertEquals(modeOut, modeIn);
         }
-        
+
         final DimensionImmutable sizeMM = new Dimension(50, 50);
         final Rectangle viewport = new Rectangle(0, 0, 1920, 1080);
         final ArrayHashSet<MonitorMode> supportedModes = new ArrayHashSet<MonitorMode>();
         supportedModes.add(modeOut);
-        final MonitorDevice monOut = new MonitorDeviceImpl(null, -1, sizeMM, viewport, modeOut, supportedModes);
+        final MonitorDevice monOut = new MonitorDeviceImpl(null, -1, sizeMM, viewport, viewport, modeOut, supportedModes);
         System.err.println("01 out : "+monOut);
         cache.monitorDevices.add(monOut);
         {
             final int[] props = MonitorModeProps.streamOutMonitorDevice(monOut);
             final MonitorDevice monIn = MonitorModeProps.streamInMonitorDevice(null, cache, null, props, 0);
             System.err.println("01 in : "+monIn);
-            
-            Assert.assertEquals(monOut.getCurrentMode(), monOut.getOriginalMode());            
+
+            Assert.assertEquals(monOut.getCurrentMode(), monOut.getOriginalMode());
             Assert.assertEquals(monOut.getSupportedModes(), monIn.getSupportedModes());
             Assert.assertEquals(monOut.getViewport(), monIn.getViewport());
+            Assert.assertEquals(monOut.getViewportInWindowUnits(), monIn.getViewportInWindowUnits());
             Assert.assertEquals(monOut.getOriginalMode(), monIn.getOriginalMode());
             Assert.assertEquals(monOut.getCurrentMode(), monIn.getCurrentMode());
             Assert.assertEquals(monOut.hashCode(), monIn.hashCode());
@@ -162,7 +163,7 @@ public class TestScreenMode00aNEWT extends UITestCase {
                 mmPre = mm;
             }
         }
-        
+
         List<MonitorDevice> monitors = screen.getMonitorDevices();
         Assert.assertTrue(monitors.size()>0);
         int j=0;
@@ -184,7 +185,7 @@ public class TestScreenMode00aNEWT extends UITestCase {
             Assert.assertTrue(allMonitorModes.containsAll(modes));
 
             MonitorMode sm_o = monitor.getOriginalMode();
-            Assert.assertNotNull(sm_o);            
+            Assert.assertNotNull(sm_o);
             MonitorMode sm_c = monitor.queryCurrentMode();
             System.err.println("[0] orig   : "+sm_o);
             System.err.println("[0] current: "+sm_c);
@@ -203,7 +204,7 @@ public class TestScreenMode00aNEWT extends UITestCase {
             return Integer.parseInt(a);
         } catch (Exception ex) { throw new RuntimeException(ex); }
     }
-    
+
     public static void main(String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-screen")) {

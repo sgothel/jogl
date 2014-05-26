@@ -31,9 +31,12 @@ package com.jogamp.opengl.test.junit.jogl.demos.es2.awt;
 import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.lang.reflect.InvocationTargetException;
 
 import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLJPanel;
 import javax.swing.JFrame;
@@ -71,6 +74,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
     static boolean useAnimator = true;
     static boolean manualTest = false;
     static boolean skipGLOrientationVerticalFlip = false;
+    static int xpos = 10, ypos = 10;
 
     @BeforeClass
     public static void initClass() {
@@ -98,7 +102,13 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         }
     }
 
-    protected void runTestGL(GLCapabilities caps)
+    private void setTitle(final JFrame frame, final GLJPanel glc, final GLCapabilitiesImmutable caps) {
+        final String capsA = caps.isBackgroundOpaque() ? "opaque" : "transl";
+        final java.awt.Rectangle b = glc.getBounds();
+        frame.setTitle("GLJPanel["+capsA+"], swapI "+swapInterval+", win: ["+b.x+"/"+b.y+" "+b.width+"x"+b.height+"], pix: "+glc.getSurfaceWidth()+"x"+glc.getSurfaceHeight());
+    }
+
+    protected void runTestGL(final GLCapabilities caps)
             throws AWTException, InterruptedException, InvocationTargetException
     {
         final JFrame frame = new JFrame("Swing GLJPanel");
@@ -121,6 +131,26 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         }
         final SnapshotGLEventListener snap = new SnapshotGLEventListener();
         glJPanel.addGLEventListener(snap);
+        setTitle(frame, glJPanel, caps);
+        frame.setLocation(xpos, ypos);
+
+        frame.addComponentListener(new ComponentListener() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                setTitle(frame, glJPanel, caps);
+            }
+
+            @Override
+            public void componentMoved(ComponentEvent e) {
+                setTitle(frame, glJPanel, caps);
+            }
+
+            @Override
+            public void componentShown(ComponentEvent e) { }
+
+            @Override
+            public void componentHidden(ComponentEvent e) { }
+        });
 
         final FPSAnimator animator = useAnimator ? new FPSAnimator(glJPanel, 60) : null;
 
@@ -333,6 +363,12 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
             } else if(args[i].equals("-height")) {
                 i++;
                 h = MiscUtils.atoi(args[i], h);
+            } else if(args[i].equals("-x")) {
+                i++;
+                xpos = MiscUtils.atoi(args[i], xpos);
+            } else if(args[i].equals("-y")) {
+                i++;
+                ypos = MiscUtils.atoi(args[i], ypos);
             } else if(args[i].equals("-rwidth")) {
                 i++;
                 rw = MiscUtils.atoi(args[i], rw);

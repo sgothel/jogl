@@ -561,7 +561,7 @@ public class MovieCube implements GLEventListener {
                 anim.stop();
             }
         });
-        window.setSurfaceSize(width, height);
+        window.setSize(width, height);
         window.setVisible(true);
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
         anim.start();

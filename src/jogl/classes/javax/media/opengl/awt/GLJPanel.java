@@ -563,7 +563,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     super.addNotify();
     awtWindowClosingProtocol.addClosingListener();
     {
-        final int s = JAWTUtil.getPixelScale(this);
+        final int s = JAWTUtil.getPixelScale(getGraphicsConfiguration());
         pixelScale = 0 < s ? s : 1;
     }
     if (DEBUG) {

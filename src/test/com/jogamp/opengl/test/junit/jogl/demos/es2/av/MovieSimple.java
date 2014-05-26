@@ -1050,7 +1050,7 @@ public class MovieSimple implements GLEventListener {
             mss[i].mPlayer.addEventListener(myGLMediaEventListener);
 
             windows[i].setTitle("Player "+i);
-            windows[i].setSurfaceSize(width, height);
+            windows[i].setSize(width, height);
             windows[i].setVisible(true);
             anim.add(windows[i]);
 

@@ -55,7 +55,6 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 
 import java.util.List;
 import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
 
 /**
@@ -164,8 +163,8 @@ public class TestScreenMode01dNEWT extends UITestCase {
         final MonitorDevice monitor = window.getMainMonitor();
 
         Assert.assertEquals(false, window.isFullscreen());
-        Assert.assertEquals(width, window.getSurfaceWidth());
-        Assert.assertEquals(height, window.getSurfaceHeight());
+        Assert.assertEquals(width, window.getWindowWidth());
+        Assert.assertEquals(height, window.getWindowHeight());
 
         window.setFullscreen(true);
         Assert.assertEquals(true, window.isFullscreen());
@@ -176,8 +175,8 @@ public class TestScreenMode01dNEWT extends UITestCase {
 
         window.setFullscreen(false);
         Assert.assertEquals(false, window.isFullscreen());
-        Assert.assertEquals(width, window.getSurfaceWidth());
-        Assert.assertEquals(height, window.getSurfaceHeight());
+        Assert.assertEquals(width, window.getWindowWidth());
+        Assert.assertEquals(height, window.getWindowHeight());
 
         Thread.sleep(waitTimeShort);
 
@@ -210,8 +209,8 @@ public class TestScreenMode01dNEWT extends UITestCase {
         GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
         Assert.assertNotNull(window);
 
-        final RectangleImmutable screenRect = window.getSurfaceBounds();
-        final MonitorDevice monitor = screen.getMainMonitor( screenRect );
+        final RectangleImmutable winRect = window.getBounds();
+        final MonitorDevice monitor = screen.getMainMonitor( winRect );
 
         List<MonitorMode> monitorModes = monitor.getSupportedModes();
         Assert.assertTrue(monitorModes.size()>0);
@@ -284,7 +283,7 @@ public class TestScreenMode01dNEWT extends UITestCase {
         Assert.assertEquals(false,screen.isNativeValid());
         Assert.assertEquals(false,display.isNativeValid());
 
-        validateScreenModeReset(mmOrig, screenRect);
+        validateScreenModeReset(mmOrig, winRect);
         cleanupGL();
     }
 
@@ -308,8 +307,8 @@ public class TestScreenMode01dNEWT extends UITestCase {
         Animator animator = new Animator(window);
         animator.start();
 
-        final RectangleImmutable screenRect = window.getSurfaceBounds();
-        final MonitorDevice monitor = screen.getMainMonitor(screenRect);
+        final RectangleImmutable winRect = window.getBounds();
+        final MonitorDevice monitor = screen.getMainMonitor(winRect);
         MonitorMode mmCurrent = monitor.queryCurrentMode();
         Assert.assertNotNull(mmCurrent);
         MonitorMode mmOrig = monitor.getOriginalMode();
@@ -335,20 +334,20 @@ public class TestScreenMode01dNEWT extends UITestCase {
         Assert.assertNotNull(monitorMode);
 
         if(preFS) {
-            System.err.println("[0] set FS pre 0: "+window.isFullscreen());
+            System.err.println("[1] set FS pre 0: "+window.isFullscreen());
             window.setFullscreen(true);
-            System.err.println("[0] set FS pre 1: "+window.isFullscreen());
+            System.err.println("[1] set FS pre 1: "+window.isFullscreen());
             Assert.assertEquals(true, window.isFullscreen());
-            System.err.println("[0] set FS pre X: "+window.isFullscreen());
+            System.err.println("[1] set FS pre X: "+window.isFullscreen());
         }
         Thread.sleep(waitTimeShort);
 
         // set mode
         {
-            System.err.println("[0] set current: "+monitorMode);
+            System.err.println("[2] set current: "+monitorMode);
             final boolean smOk = monitor.setCurrentMode(monitorMode);
             mmCurrent = monitor.getCurrentMode();
-            System.err.println("[0] has current: "+mmCurrent+", changeOK "+smOk);
+            System.err.println("[2] has current: "+mmCurrent+", changeOK "+smOk);
             Assert.assertTrue(monitor.isModeChangedByUs());
             Assert.assertEquals(monitorMode, mmCurrent);
             Assert.assertNotSame(mmOrig, mmCurrent);
@@ -357,19 +356,19 @@ public class TestScreenMode01dNEWT extends UITestCase {
         }
 
         if(!preFS) {
-            System.err.println("[0] set FS post 0: "+window.isFullscreen());
+            System.err.println("[3] set FS post 0: "+window.isFullscreen());
             window.setFullscreen(true);
             Assert.assertEquals(true, window.isFullscreen());
-            System.err.println("[0] set FS post X: "+window.isFullscreen());
+            System.err.println("[3] set FS post X: "+window.isFullscreen());
         }
 
         Thread.sleep(waitTimeLong);
 
         if(!preFS) {
-            System.err.println("[0] set !FS post 0: "+window.isFullscreen());
+            System.err.println("[4] set !FS post 0: "+window.isFullscreen());
             window.setFullscreen(false);
             Assert.assertEquals(false, window.isFullscreen());
-            System.err.println("[0] set !FS post X: "+window.isFullscreen());
+            System.err.println("[4] set !FS post X: "+window.isFullscreen());
             Thread.sleep(waitTimeShort);
         }
 
@@ -391,10 +390,15 @@ public class TestScreenMode01dNEWT extends UITestCase {
         Assert.assertEquals(false,screen.isNativeValid());
         Assert.assertEquals(false,display.isNativeValid());
 
-        validateScreenModeReset(mmOrig, screenRect);
+        validateScreenModeReset(mmOrig, winRect);
         cleanupGL();
     }
 
+    /**
+     *
+     * @param mmOrig
+     * @param rect in window units
+     */
     void validateScreenModeReset(final MonitorMode mmOrig, final RectangleImmutable rect) {
         final Display display = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display);

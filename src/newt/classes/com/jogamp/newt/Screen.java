@@ -28,12 +28,14 @@
 package com.jogamp.newt;
 
 import com.jogamp.newt.event.MonitorModeListener;
+
 import jogamp.newt.Debug;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.util.Rectangle;
@@ -41,7 +43,18 @@ import javax.media.nativewindow.util.RectangleImmutable;
 
 /**
  * A screen may span multiple {@link MonitorDevice}s representing their combined virtual size.
- */
+ * <p>
+ * All values of this interface are represented in pixel units, if not stated otherwise.
+ * </p>
+ *
+ * <a name="coordinateSystem"><h5>Coordinate System</h5></a>
+ * <p>
+ *  <ul>
+ *      <li>Screen space has it's origin in the top-left corner, and may not be at 0/0.</li>
+ *      <li>{@link #getViewport() Virtual viewport} covers all {@link MonitorDevice}s {@link MonitorDevice#getViewport() viewports} and has it's origin in the top-left corner, and may not be at 0/0.</li>
+ *  </ul>
+ * </p>
+*/
 public abstract class Screen {
 
     /**
@@ -131,11 +144,15 @@ public abstract class Screen {
     public abstract int getIndex();
 
     /**
+     * See <a href="#coordinateSystem"> Coordinate System</a>.
+     *
      * @return the x position of the virtual viewport's top-left origin in pixel units.
      */
     public abstract int getX();
 
     /**
+     * See <a href="#coordinateSystem"> Coordinate System</a>.
+     *
      * @return the y position of the virtual viewport's top-left origin in pixel units.
      */
     public abstract int getY();
@@ -151,20 +168,20 @@ public abstract class Screen {
     public abstract int getHeight();
 
     /**
-     * @return the <b>rotated</b> virtual viewport, i.e. origin and size in pixel units.
-     * @see #getViewportInWindowUnits(Window)
+     * See <a href="#coordinateSystem"> Coordinate System</a>.
+     *
+     * @return the <b>rotated</b> virtual viewport, i.e. top-left origin and size, in pixel units.
+     * @see #getViewportInWindowUnits()
      */
     public abstract RectangleImmutable getViewport();
 
     /**
-     * Returns a newly created {@link Rectangle} containing the <b>rotated</b> virtual viewport
-     * in window units of the given {@link Window} instance.
-     * @return rotated viewport values, i.e. origin and size, in pixel units.
+     * See <a href="#coordinateSystem"> Coordinate System</a>.
+     *
+     * @return the <b>rotated</b> virtual viewport, i.e. top-left origin and size, in window units.
      * @see #getViewport()
      */
-    public final Rectangle getViewportInWindowUnits(final Window win) {
-        return win.convertToWindowUnits( (Rectangle) getViewport().cloneMutable() );
-    }
+    public abstract RectangleImmutable getViewportInWindowUnits();
 
     /**
      * @return the associated Display
@@ -192,12 +209,12 @@ public abstract class Screen {
     public abstract List<MonitorDevice> getMonitorDevices();
 
     /**
-     * Returns the {@link MonitorDevice} with the highest {@link MonitorDevice#getViewport() viewport}
-     * {@link MonitorDevice#coverage(RectangleImmutable) coverage} of the given rectangle in pixel units.
+     * Returns the {@link MonitorDevice} with the highest {@link MonitorDevice#getViewportInWindowUnits() viewport}
+     * {@link RectangleImmutable#coverage(RectangleImmutable) coverage} of the given rectangle in window units.
      * <p>
      * If no coverage is detected the first {@link MonitorDevice} is returned.
      * </p>
-     * @param r arbitrary rectangle in pixel units
+     * @param r arbitrary rectangle in window units
      */
     public final MonitorDevice getMainMonitor(final RectangleImmutable r) {
         MonitorDevice res = null;
@@ -205,7 +222,7 @@ public abstract class Screen {
         final List<MonitorDevice> monitors = getMonitorDevices();
         for(int i=monitors.size()-1; i>=0; i--) {
             final MonitorDevice monitor = monitors.get(i);
-            final float coverage = monitor.coverage(r);
+            final float coverage = monitor.getViewportInWindowUnits().coverage(r);
             if( coverage > maxCoverage ) {
                 maxCoverage = coverage;
                 res = monitor;
@@ -218,15 +235,16 @@ public abstract class Screen {
     }
 
     /**
-     * Returns the union of all monitor's {@link MonitorDevice#getViewport() viewport} in pixel units.
+     * Calculates the union of all monitor's {@link MonitorDevice#getViewport() viewport} in pixel- and window units.
      * <p>
      * Should be equal to {@link #getX()}, {@link #getY()}, {@link #getWidth()} and {@link #getHeight()},
      * however, some native toolkits may choose a different virtual screen area.
      * </p>
-     * @param result storage for result, will be returned
+     * @param viewport storage for result in pixel units, maybe null
+     * @param viewportInWindowUnits storage for result in window units, maybe null
      */
-    public final Rectangle unionOfMonitorViewportSize(final Rectangle result) {
-        return MonitorDevice.unionOfViewports(result, getMonitorDevices());
+    public final void unionOfMonitorViewports(final Rectangle viewport, final Rectangle viewportInWindowUnits) {
+        MonitorDevice.unionOfViewports(viewport, viewportInWindowUnits, getMonitorDevices());
     }
 
     /**

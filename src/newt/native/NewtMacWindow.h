@@ -49,6 +49,10 @@
 
 // #define DBG_LIFECYCLE 1
 
+NSScreen * NewtScreen_getNSScreenByIndex(int screen_idx, BOOL cap);
+NSScreen * NewtScreen_getNSScreenByCoord(int x, int y);
+CGDirectDisplayID NewtScreen_getCGDirectDisplayIDByNSScreen(NSScreen *screen);
+
 @interface NewtView : NSView
 {
     jobject javaWindowObject;
@@ -129,6 +133,7 @@
 - (void) handleFlagsChanged:(int) keyMask keyIndex: (int) keyIdx keyCode: (int) keyCode modifiers: (NSUInteger) mods;
 - (void) sendKeyEvent: (NSEvent*) event eventType: (jshort) evType;
 - (void) sendKeyEvent: (jshort) keyCode characters: (NSString*) chars modifiers: (NSUInteger)mods eventType: (jshort) evType;
+- (void) viewDidChangeBackingProperties;
 
 @end
 

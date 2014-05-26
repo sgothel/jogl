@@ -46,7 +46,6 @@ import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.WindowClosingProtocol;
-import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
 
@@ -64,6 +63,20 @@ import javax.media.nativewindow.util.RectangleImmutable;
  * One use case is {@link com.jogamp.newt.opengl.GLWindow}, which delegates
  * window operation to an instance of this interface while providing OpenGL
  * functionality.
+ * </p>
+ * <p>
+ * All values of this interface are represented in window units, if not stated otherwise.
+ * </p>
+ *
+ * <a name="coordinateSystem"><h5>Coordinate System</h5></a>
+ * <p>
+ *  <ul>
+ *      <li>Screen space has it's origin in the top-left corner, and may not be at 0/0.</li>
+ *      <li>Window origin is in it's top-left corner, see {@link #getX()} and {@link #getY()}. </li>
+ *      <li>Window client-area excludes {@link #getInsets() insets}, i.e. window decoration.</li>
+ *      <li>Window origin is relative to it's parent window if exist, or the screen position (top-level).</li>
+ *  </ul>
+ *  See {@link NativeWindow} and {@link Screen}.
  * </p>
  * <a name="customwindowicons"><h5>Custom Window Icons</h5></a>
  * <p>
@@ -108,8 +121,8 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     Screen getScreen();
 
     /**
-     * Returns the {@link MonitorDevice} which {@link MonitorDevice#getViewport() viewport}
-     * {@link MonitorDevice#coverage(RectangleImmutable) covers} this window the most.
+     * Returns the {@link MonitorDevice} with the highest {@link MonitorDevice#getViewportInWindowUnits() viewport}
+     * {@link RectangleImmutable#coverage(RectangleImmutable) coverage} of this window.
      * <p>
      * If no coverage is detected the first {@link MonitorDevice} is returned.
      * </p>
@@ -242,6 +255,10 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     /**
      * Returns a newly created {@link Rectangle} containing the scaled window origin, {@link #getX()} & {@link #getY()},
      * and size, {@link #getSurfaceWidth()} & {@link #getSurfaceHeight()}, in pixel units.
+     *
+     * @deprecated The returned position in pixel units might be erroneous in case of multiple monitor setup where a mixed pixel-scale exist,
+     * since this method currently does not take the monitor viewport and each of it's pixel-scale into account (expensive).
+     * Either we fix this issue or remove this method at a later time.
      */
     Rectangle getSurfaceBounds();
 

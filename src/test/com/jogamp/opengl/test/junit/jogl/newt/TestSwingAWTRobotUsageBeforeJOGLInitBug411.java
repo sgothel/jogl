@@ -34,7 +34,7 @@ import com.jogamp.opengl.test.junit.util.*;
 import java.lang.reflect.InvocationTargetException;
 
 import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.util.Rectangle;
+import javax.media.nativewindow.util.RectangleImmutable;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLCapabilities;
@@ -271,7 +271,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(win0, true));
 
         Screen screen = win0.getScreen();
-        final Rectangle screenBoundsInWinU = screen.getViewportInWindowUnits(win0);
+        final RectangleImmutable screenBoundsInWinU = screen.getViewportInWindowUnits();
         win0.setPosition(screenBoundsInWinU.getX()-150, 0);
         win0.addGLEventListener(new GearsES2());
         Animator anim = new Animator(win0);

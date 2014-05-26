@@ -271,7 +271,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     final Rectangle jb = new Rectangle(jawtBounds.getX(), jawtBounds.getY(), jawtBounds.getWidth(), jawtBounds.getHeight());
     final int newPixelScale;
     {
-        final int s = JAWTUtil.getPixelScale(component);
+        final int s = JAWTUtil.getPixelScale(config.getAWTGraphicsConfiguration());
         newPixelScale = 0 < s ? s : 1;
     }
     final boolean changedBounds = !bounds.equals(jb);

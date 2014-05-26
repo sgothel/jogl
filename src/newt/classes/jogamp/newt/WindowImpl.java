@@ -910,9 +910,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return screen;
     }
 
+    protected void setScreen(ScreenImpl newScreen) { // never null !
+        removeScreenReference();
+        screen = newScreen;
+    }
+
     @Override
     public final MonitorDevice getMainMonitor() {
-        return screen.getMainMonitor( getSurfaceBounds() );
+        return screen.getMainMonitor( getBounds() );
     }
 
     /**
@@ -1072,7 +1077,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     @Override
     public final void setSurfaceSize(final int pixelWidth, final int pixelHeight) {
         // FIXME HiDPI: Shortcut, may need to adjust if we change scaling methodology
-        setSize(pixelWidth * getPixelScaleX(), pixelHeight * getPixelScaleY());
+        setSize(pixelWidth / getPixelScaleX(), pixelHeight / getPixelScaleY());
     }
     @Override
     public final void setTopLevelSize(final int width, final int height) {
@@ -1230,11 +1235,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
         private ReparentOperation getOp() {
             return operation;
-        }
-
-        private void setScreen(ScreenImpl newScreen) { // never null !
-            removeScreenReference();
-            screen = newScreen;
         }
 
         @Override
@@ -2249,8 +2249,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
                 int x,y,w,h;
 
-                final RectangleImmutable sviewport = screen.getViewportInWindowUnits(WindowImpl.this);
-                final RectangleImmutable viewport;
+                final RectangleImmutable sviewport = screen.getViewportInWindowUnits(); // window units
+                final RectangleImmutable viewport; // window units
                 final int fs_span_flag;
                 final boolean alwaysOnTopChange;
                 if(_fullscreen) {
@@ -2262,7 +2262,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                             fullscreenMonitors = getScreen().getMonitorDevices();
                         }
                     }
-                    viewport = convertToWindowUnits(MonitorDevice.unionOfViewports(new Rectangle(), fullscreenMonitors));
+                    {
+                        final Rectangle viewportInWindowUnits = new Rectangle();
+                        MonitorDevice.unionOfViewports(null, viewportInWindowUnits, fullscreenMonitors);
+                        viewport = viewportInWindowUnits;
+                    }
                     if( isReconfigureFlagSupported(FLAG_IS_FULLSCREEN_SPAN) &&
                         ( fullscreenMonitors.size() > 1 || sviewport.compareTo(viewport) > 0 ) ) {
                         fs_span_flag = FLAG_IS_FULLSCREEN_SPAN;
@@ -2620,7 +2624,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // Native MouseEvents pre-processed to be enqueued or consumed directly
     //
 
-    public void sendMouseEvent(final short eventType, final int modifiers,
+    public final void sendMouseEvent(final short eventType, final int modifiers,
                                final int x, final int y, final short button, final float rotation) {
         doMouseEvent(false, false, eventType, modifiers, x, y, button, MouseEvent.getRotationXYZ(rotation, modifiers), 1f);
     }

@@ -174,6 +174,7 @@ static jmethodID requestFocusID = NULL;
 
 static jmethodID insetsChangedID   = NULL;
 static jmethodID sizeChangedID     = NULL;
+static jmethodID updatePixelScaleID = NULL;
 static jmethodID visibleChangedID = NULL;
 static jmethodID positionChangedID = NULL;
 static jmethodID focusChangedID    = NULL;
@@ -330,8 +331,8 @@ static jmethodID windowRepaintID = NULL;
     NSRect viewFrame = [self frame];
 
     (*env)->CallVoidMethod(env, javaWindowObject, windowRepaintID, JNI_TRUE, // defer ..
-        dirtyRect.origin.x, viewFrame.size.height - dirtyRect.origin.y, 
-        dirtyRect.size.width, dirtyRect.size.height);
+        (int)dirtyRect.origin.x, (int)viewFrame.size.height - (int)dirtyRect.origin.y, 
+        (int)dirtyRect.size.width, (int)dirtyRect.size.height);
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
@@ -761,6 +762,31 @@ static jmethodID windowRepaintID = NULL;
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
 }
 
+- (void)viewDidChangeBackingProperties
+{
+    [super viewDidChangeBackingProperties];
+
+    CGFloat pixelScale = [[self window] backingScaleFactor];
+    [[self layer] setContentsScale: pixelScale];
+
+    if (javaWindowObject == NULL) {
+        DBG_PRINT("viewDidChangeBackingProperties: null javaWindowObject\n");
+        return;
+    }
+    int shallBeDetached = 0;
+    JNIEnv* env = NewtCommon_GetJNIEnv(1 /* asDaemon */, &shallBeDetached);
+    if(NULL==env) {
+        DBG_PRINT("viewDidChangeBackingProperties: null JNIEnv\n");
+        return;
+    }
+
+    (*env)->CallVoidMethod(env, javaWindowObject, updatePixelScaleID, JNI_TRUE, (jfloat)pixelScale); // defer 
+
+    // detaching thread not required - daemon
+    // NewtCommon_ReleaseJNIEnv(shallBeDetached);
+}
+
+
 @end
 
 @implementation NewtMacWindow
@@ -769,7 +795,8 @@ static jmethodID windowRepaintID = NULL;
 {
     enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(ZSIIISF)V");
     enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(ZSISCC)V");
-    sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged",     "(ZIIZ)V");
+    sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(ZIIZ)V");
+    updatePixelScaleID = (*env)->GetMethodID(env, clazz, "updatePixelScale", "(ZF)V");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
     insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)V");
     positionChangedID = (*env)->GetMethodID(env, clazz, "screenPositionChanged", "(ZII)V");
@@ -777,7 +804,7 @@ static jmethodID windowRepaintID = NULL;
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
     windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)V");
     requestFocusID = (*env)->GetMethodID(env, clazz, "requestFocus", "(Z)V");
-    if (enqueueMouseEventID && enqueueKeyEventID && sizeChangedID && visibleChangedID && insetsChangedID &&
+    if (enqueueMouseEventID && enqueueKeyEventID && sizeChangedID && updatePixelScaleID && visibleChangedID && insetsChangedID &&
         positionChangedID && focusChangedID && windowDestroyNotifyID && requestFocusID && windowRepaintID)
     {
         CKCH_CreateDictionaries();
@@ -824,10 +851,12 @@ static jmethodID windowRepaintID = NULL;
     // Why is this necessary? Without it we don't get any of the
     // delegate methods like resizing and window movement.
     [self setDelegate: self];
+
     cachedInsets[0] = 0; // l
     cachedInsets[1] = 0; // r
     cachedInsets[2] = 0; // t
     cachedInsets[3] = 0; // b
+
     realized = YES;
     DBG_PRINT("NewtWindow::create: %p, realized %d, hasPresentationSwitch %d[defaultOptions 0x%X, fullscreenOptions 0x%X], (refcnt %d)\n", 
         res, realized, (int)hasPresentationSwitch, (int)defaultPresentationOptions, (int)fullscreenPresentationOptions, (int)[res retainCount]);
@@ -1123,7 +1152,7 @@ static jmethodID windowRepaintID = NULL;
         NSRect frameRect = [self frame];
         NSRect contentRect = [self contentRectForFrameRect: frameRect];
 
-        (*env)->CallVoidMethod(env, javaWindowObject, sizeChangedID, JNI_FALSE,
+        (*env)->CallVoidMethod(env, javaWindowObject, sizeChangedID, JNI_TRUE, // defer 
                                (jint) contentRect.size.width,
                                (jint) contentRect.size.height, JNI_FALSE);
     }

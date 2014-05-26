@@ -172,7 +172,7 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
                 public boolean run(GLAutoDrawable drawable) {
                     final GLMediaPlayer mPlayerSub;
                     final MovieSimple demoHUD;
-                    final Rectangle windowBounds = scrn.getViewportInWindowUnits(glWindowHUD);
+                    final Rectangle windowBounds = (Rectangle) scrn.getViewportInWindowUnits().cloneMutable();
                     if(null != mPlayerShared) {
                        if(0 < mPlayerShared.getWidth() && mPlayerShared.getWidth()<scrn.getWidth()/2 &&
                           0 < mPlayerShared.getHeight() && mPlayerShared.getHeight()<scrn.getHeight()/2) {

@@ -81,10 +81,11 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
     protected int hashCode;
     protected AbstractGraphicsScreen aScreen;
     protected int refCount; // number of Screen references by Window
-    protected Rectangle vOriginSize = new Rectangle(0, 0, 0, 0); // virtual rotated screen origin and size
+    protected Rectangle virtViewportPU = new Rectangle(0, 0, 0, 0); // virtual rotated viewport in pixel units
+    protected Rectangle virtViewportWU = new Rectangle(0, 0, 0, 0); // virtual rotated viewport in window units
     protected static Dimension usrSize = null; // property values: newt.ws.swidth and newt.ws.sheight
     protected static volatile boolean usrSizeQueried = false;
-    private ArrayList<MonitorModeListener> refMonitorModeListener = new ArrayList<MonitorModeListener>();
+    private final ArrayList<MonitorModeListener> refMonitorModeListener = new ArrayList<MonitorModeListener>();
 
     private long tCreated; // creationTime
 
@@ -130,6 +131,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
                 screen.screen_idx = idx;
                 screen.fqname = display.getFQName()+"-s"+idx;
                 screen.hashCode = screen.fqname.hashCode();
+                screen.instantiationFinished();
                 Screen.addScreen2List(screen);
                 if(DEBUG) {
                     System.err.println("Screen.create() NEW: "+screen+" "+Display.getThreadName());
@@ -139,6 +141,14 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Notifies the driver impl. that the instantiation is finished,
+     * ie. instance created and all fields set.
+     */
+    protected void instantiationFinished() {
+        // nop
     }
 
     @Override
@@ -260,19 +270,20 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
     protected abstract int validateScreenIndex(int idx);
 
     /**
-     * Stores the virtual origin and virtual <b>rotated</b> screen size.
+     * Calculates the virtual rotated viewport in pixel- and window units.
      * <p>
      * This method is called after the MonitorMode has been set or changed,
      * hence you may utilize it.
      * </p>
      * <p>
      * Default implementation uses the union of all monitor's viewport,
-     * calculated via {@link #unionOfMonitorViewportSize()}.
+     * calculated via {@link #unionOfMonitorViewportSize()}, however driver impl. may chose a different methodology.
      * </p>
-     * @param vOriginSize storage for result
+     * @param viewport storage for result in pixel units
+     * @param viewportInWindowUnits storage for result in window units
      */
-    protected void calcVirtualScreenOriginAndSize(final Rectangle vOriginSize) {
-        unionOfMonitorViewportSize(vOriginSize);
+    protected void calcVirtualScreenOriginAndSize(final Rectangle viewport, final Rectangle viewportInWindowUnits) {
+        unionOfMonitorViewports(viewport, viewportInWindowUnits);
     }
 
     @Override
@@ -281,18 +292,19 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
     }
 
     /**
-     * Updates the <b>rotated</b> virtual ScreenSize using the native impl.
+     * Updates the <b>rotated</b> virtual viewport, may use native impl.
      */
     protected void updateVirtualScreenOriginAndSize() {
         if(null != usrSize ) {
-            vOriginSize.set(0, 0, usrSize.getWidth(), usrSize.getHeight());
+            virtViewportPU.set(0, 0, usrSize.getWidth(), usrSize.getHeight());
+            virtViewportWU.set(0, 0, usrSize.getWidth(), usrSize.getHeight());
             if(DEBUG) {
-                System.err.println("Update user virtual screen viewport @ "+Thread.currentThread().getName()+": "+vOriginSize);
+                System.err.println("Update user virtual screen viewport @ "+Thread.currentThread().getName()+": "+virtViewportPU);
             }
         } else {
-            calcVirtualScreenOriginAndSize(vOriginSize);
+            calcVirtualScreenOriginAndSize(virtViewportPU, virtViewportWU);
             if(DEBUG) {
-                System.err.println("Updated virtual screen viewport @ "+Thread.currentThread().getName()+": "+vOriginSize);
+                System.err.println("Updated virtual screen viewport @ "+Thread.currentThread().getName()+": "+virtViewportPU+" [pixel], "+virtViewportWU+" [window]");
             }
         }
     }
@@ -318,19 +330,21 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
     }
 
     @Override
-    public final int getX() { return vOriginSize.getX(); }
+    public final int getX() { return virtViewportPU.getX(); }
     @Override
-    public final int getY() { return vOriginSize.getY(); }
+    public final int getY() { return virtViewportPU.getY(); }
     @Override
-    public final int getWidth() { return vOriginSize.getWidth(); }
+    public final int getWidth() { return virtViewportPU.getWidth(); }
     @Override
-    public final int getHeight() { return vOriginSize.getHeight(); }
+    public final int getHeight() { return virtViewportPU.getHeight(); }
     @Override
-    public final RectangleImmutable getViewport() { return vOriginSize; }
+    public final RectangleImmutable getViewport() { return virtViewportPU; }
+    @Override
+    public final RectangleImmutable getViewportInWindowUnits() { return virtViewportWU; }
 
     @Override
     public String toString() {
-        return "NEWT-Screen["+getFQName()+", idx "+screen_idx+", refCount "+refCount+", vsize "+vOriginSize+", "+aScreen+", "+display+
+        return "NEWT-Screen["+getFQName()+", idx "+screen_idx+", refCount "+refCount+", vsize "+virtViewportPU+" [pixels], "+virtViewportWU+" [window], "+aScreen+", "+display+
                             ", monitors: "+getMonitorDevices()+"]";
     }
 
@@ -357,7 +371,10 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
      */
     protected abstract void collectNativeMonitorModesAndDevicesImpl(MonitorModeProps.Cache cache);
 
-    protected Rectangle getNativeMonitorDeviceViewportImpl(MonitorDevice monitor) { return null; }
+    protected boolean updateNativeMonitorDeviceViewportImpl(final MonitorDevice monitor,
+                                                            final Rectangle viewportPU, final Rectangle viewportWU) {
+        return false;
+    }
 
     /**
      * To be implemented by the native specification.<br>
@@ -402,7 +419,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
             System.err.println("monitorModeChangeNotify @ "+Thread.currentThread().getName()+": "+me);
         }
         for(int i=0; i<refMonitorModeListener.size(); i++) {
-            ((MonitorModeListener)refMonitorModeListener.get(i)).monitorModeChangeNotify(me);
+            refMonitorModeListener.get(i).monitorModeChangeNotify(me);
         }
     }
 
@@ -410,12 +427,9 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
         final List<MonitorDevice> monitors = getMonitorDevices();
         for(int i=monitors.size()-1; i>=0; i--) {
             final MonitorDeviceImpl monitor = (MonitorDeviceImpl) monitors.get(i);
-            final Rectangle newViewport = getNativeMonitorDeviceViewportImpl(monitor);
+            final boolean viewportUpdated = updateNativeMonitorDeviceViewportImpl(monitor, monitor.getMutuableViewportPU(), monitor.getMutuableViewportWU());
             if( DEBUG ) {
-                System.err.println("Screen.updateMonitorViewport["+i+"] @  "+Thread.currentThread().getName()+": "+monitor.getViewport()+" -> "+newViewport);
-            }
-            if( null != newViewport ) {
-                monitor.setViewportValue(newViewport);
+                System.err.println("Screen.updateMonitorViewport["+i+"] @  "+Thread.currentThread().getName()+": updated: "+viewportUpdated+", PU "+monitor.getViewport()+", WU "+monitor.getViewportInWindowUnits());
             }
         }
     }
@@ -430,7 +444,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
             System.err.println("monitorModeChangeNotify @ "+Thread.currentThread().getName()+": success "+success+", "+me);
         }
         for(int i=0; i<refMonitorModeListener.size(); i++) {
-            ((MonitorModeListener)refMonitorModeListener.get(i)).monitorModeChanged(me, success);
+            refMonitorModeListener.get(i).monitorModeChanged(me, success);
         }
     }
 

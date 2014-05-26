@@ -170,13 +170,13 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
-    public final void sendMouseEvent(final short eventType, final int modifiers,
-                                     final int x, final int y, final short button, final float rotation) {
+    protected final void doMouseEvent(final boolean enqueue, final boolean wait, final short eventType, final int modifiers,
+                                      final int x, final int y, final short button, final float[] rotationXYZ, final float rotationScale) {
         if( MouseEvent.EVENT_MOUSE_MOVED == eventType ) {
             final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
             display.moveActivePointerIcon(x, y);
         }
-        super.sendMouseEvent(eventType, modifiers, x, y, button, rotation);
+        super.doMouseEvent(enqueue, wait, eventType, modifiers, x, y, button, rotationXYZ, rotationScale);
     }
 
     @Override

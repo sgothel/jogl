@@ -37,7 +37,6 @@
 
 package jogamp.nativewindow.jawt;
 
-import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
@@ -560,10 +559,9 @@ public class JAWTUtil {
   }
 
   /**
-   * Returns the pixel scale factor of the given {@link Component}'s {@link GraphicsDevice}, if supported.
+   * Returns the pixel scale factor of the given {@link GraphicsConfiguration}'s {@link GraphicsDevice}, if supported.
    * <p>
-   * If the component is not yet {@link Component#isDisplayable() displayable},
-   * <code>zero</code> is returned.
+   * If the {@link GraphicsDevice} is <code>null</code>, <code>zero</code> is returned.
    * </p>
    * <p>
    * If the component does not support pixel scaling the default
@@ -572,17 +570,21 @@ public class JAWTUtil {
    * <p>
    * Note: Currently only supported on OSX since 1.7.0_40 for HiDPI retina displays
    * </p>
-   * @param component the {@link Component} instance used to query the pixel scale
+   * @param gc the {@link GraphicsConfiguration} instance used to query the pixel scale
    * @return the pixel scale factor
    */
-  public static final int getPixelScale(final Component component) {
-      final GraphicsConfiguration gc = component.getGraphicsConfiguration();
+  public static final int getPixelScale(final GraphicsConfiguration gc) {
       final GraphicsDevice device = null != gc ? gc.getDevice() : null;
+      final int ps;
       if( null == device ) {
-          return 0;
+          ps = 0;
       } else {
-          return JAWTUtil.getPixelScale(device);
+          ps = JAWTUtil.getPixelScale(device);
       }
+      if( DEBUG ) {
+          System.err.println("JAWTWindow.updatePixelScale: Fetched "+ps);
+      }
+      return ps;
   }
 }
 

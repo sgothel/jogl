@@ -65,7 +65,7 @@ public class AWTCanvas extends Canvas {
   private AWTGraphicsConfiguration awtConfig;
   private volatile JAWTWindow jawtWindow=null; // the JAWTWindow presentation of this AWT Canvas, bound to the 'drawable' lifecycle
   private CapabilitiesChooser chooser=null;
-  private CapabilitiesImmutable capabilities;
+  private final CapabilitiesImmutable capabilities;
 
   private boolean displayConfigChanged=false;
 
@@ -152,6 +152,10 @@ public class AWTCanvas extends Canvas {
     }
   }
 
+  public int getPixelScale() {
+    final JAWTWindow _jawtWindow = jawtWindow;
+    return (null != _jawtWindow) ? _jawtWindow.getPixelScale() : 1;
+  }
   public NativeWindow getNativeWindow() {
     final JAWTWindow _jawtWindow = jawtWindow;
     return (null != _jawtWindow) ? _jawtWindow : null;

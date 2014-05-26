@@ -117,13 +117,16 @@ public class TestGearsES2NEWT extends UITestCase {
     public static void releaseClass() {
     }
 
-    protected void runTestGL(GLCapabilitiesImmutable caps, boolean undecorated) throws InterruptedException {
+    private void setTitle(final Window win, final GLCapabilitiesImmutable caps) {
+        final String capsA = caps.isBackgroundOpaque() ? "opaque" : "transl";
+        win.setTitle("GLWindow["+capsA+"], swapI "+swapInterval+", win: "+win.getBounds()+", pix: "+win.getSurfaceBounds());
+    }
+    protected void runTestGL(final GLCapabilitiesImmutable caps, boolean undecorated) throws InterruptedException {
         System.err.println("requested: vsync "+swapInterval+", "+caps);
         Display dpy = NewtFactory.createDisplay(null);
         Screen screen = NewtFactory.createScreen(dpy, screenIdx);
         final GLWindow glWindow = GLWindow.create(screen, caps);
         Assert.assertNotNull(glWindow);
-        glWindow.setTitle("Gears NEWT Test (translucent "+!caps.isBackgroundOpaque()+"), swapInterval "+swapInterval+", size "+wsize+", pos "+wpos);
         glWindow.setSize(wsize.getWidth(), wsize.getHeight());
         if(null != wpos) {
             glWindow.setPosition(wpos.getX(), wpos.getY());
@@ -133,6 +136,7 @@ public class TestGearsES2NEWT extends UITestCase {
         glWindow.setFullscreen(fullscreen);
         glWindow.setPointerVisible(mouseVisible);
         glWindow.confinePointer(mouseConfined);
+        setTitle(glWindow, caps);
 
         final GearsES2 demo = new GearsES2(swapInterval);
         demo.setPMVUseBackingArray(pmvUseBackingArray);
@@ -174,9 +178,11 @@ public class TestGearsES2NEWT extends UITestCase {
         glWindow.addWindowListener(new WindowAdapter() {
             public void windowResized(WindowEvent e) {
                 System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
+                setTitle(glWindow, caps);
             }
             public void windowMoved(WindowEvent e) {
                 System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
+                setTitle(glWindow, caps);
             }
         });
 

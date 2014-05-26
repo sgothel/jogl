@@ -286,8 +286,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
 
         if( isFullscreen() ) {
             final MonitorDevice mainMonitor = getMainMonitor();
-            final RectangleImmutable screenRect = mainMonitor.getViewport();
-            final RectangleImmutable winRect = this.convertToWindowUnits((Rectangle)screenRect.cloneMutable());
+            final RectangleImmutable winRect = mainMonitor.getViewportInWindowUnits();
             definePosition(winRect.getX(), winRect.getY());
             defineSize(winRect.getWidth(), winRect.getHeight());
         }

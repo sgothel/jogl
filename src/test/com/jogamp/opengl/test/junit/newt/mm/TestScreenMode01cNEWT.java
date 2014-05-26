@@ -103,7 +103,7 @@ public class TestScreenMode01cNEWT extends UITestCase {
     static void destroyWindow(Window window) throws InterruptedException {
         if(null!=window) {
             window.destroy();
-            Assert.assertTrue(AWTRobotUtil.waitForRealized(window, false));
+            AWTRobotUtil.waitForRealized(window, false); // don't override a previous assertion failure
         }
     }
 
@@ -119,7 +119,7 @@ public class TestScreenMode01cNEWT extends UITestCase {
             testScreenFullscreenImpl(screen, monitorVp.getX(), monitorVp.getY(), false, null);
         } finally {
             screen.removeReference();
-            Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false));
+            AWTRobotUtil.waitForRealized(screen, false); // don't override a previous assertion failure
         }
     }
 
@@ -139,7 +139,7 @@ public class TestScreenMode01cNEWT extends UITestCase {
             testScreenFullscreenImpl(screen, monitorVp.getX(), monitorVp.getY(), false, null);
         } finally {
             screen.removeReference();
-            Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false));
+            AWTRobotUtil.waitForRealized(screen, false); // don't override a previous assertion failure
         }
     }
 
@@ -151,9 +151,8 @@ public class TestScreenMode01cNEWT extends UITestCase {
         Assert.assertNotNull(screen);
         screen.addReference(); // trigger creation
         try {
-            final int crtCount = screen.getMonitorDevices().size();
-            if( 2 >= crtCount ) {
-                System.err.println("Test Disabled (2): Spanning monitor count "+2+" >= screen monitor count: "+screen);
+            if( 2 > screen.getMonitorDevices().size() ) {
+                System.err.println("Test Disabled (2): Spanning monitor count < 2: "+screen);
                 return;
             }
             final ArrayList<MonitorDevice> monitors = new ArrayList<MonitorDevice>();
@@ -163,7 +162,7 @@ public class TestScreenMode01cNEWT extends UITestCase {
             testScreenFullscreenImpl(screen, monitorVp.getX()+50, monitorVp.getY()+50, true, monitors);
         } finally {
             screen.removeReference();
-            Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false));
+            AWTRobotUtil.waitForRealized(screen, false); // don't override a previous assertion failure
         }
     }
 
@@ -183,7 +182,7 @@ public class TestScreenMode01cNEWT extends UITestCase {
             testScreenFullscreenImpl(screen, monitorVp.getX()-50, monitorVp.getY()+50, true, null);
         } finally {
             screen.removeReference();
-            Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false));
+            AWTRobotUtil.waitForRealized(screen, false); // don't override a previous assertion failure
         }
     }
 
@@ -201,9 +200,10 @@ public class TestScreenMode01cNEWT extends UITestCase {
 
         GLWindow window0 = createWindow(screen, caps, "win0", screenXPos, screenYPos, width, height);
         Assert.assertNotNull(window0);
-        Rectangle window0ScreenRect = window0.getSurfaceBounds();
-        System.err.println("Test.0: Window bounds    : "+window0.getX()+"/"+window0.getY()+" "+window0.getWindowWidth()+"x"+window0.getWindowHeight()+" [wu] within "+screen.getViewportInWindowUnits(window0)+" [wu]");
-        System.err.println("Test.0: Window screenRect: "+window0ScreenRect+" [pixels]");
+        Rectangle window0WindowBounds = window0.getBounds();
+        Rectangle window0SurfaceBounds = window0.getSurfaceBounds();
+        System.err.println("Test.0: Window bounds    : "+window0WindowBounds+" [wu] within "+screen.getViewportInWindowUnits()+" [wu]");
+        System.err.println("Test.0: Window bounds    : "+window0SurfaceBounds+" [pixels]");
         System.err.println("Test.0: Screen viewport  : "+screen.getViewport()+" [pixels]");
 
         final Animator anim = new Animator(window0);
@@ -221,32 +221,35 @@ public class TestScreenMode01cNEWT extends UITestCase {
         }
 
         monitor = window0.getMainMonitor();
-        window0ScreenRect = window0.getSurfaceBounds();
-        System.err.println("Test.1: Window bounds    : "+window0.getX()+"/"+window0.getY()+" "+window0.getWindowWidth()+"x"+window0.getWindowHeight()+" [wu] within "+screen.getViewportInWindowUnits(window0)+" [wu]");
-        System.err.println("Test.1: Window screenRect: "+window0ScreenRect+" [pixels]");
+        window0WindowBounds = window0.getBounds();
+        window0SurfaceBounds = window0.getSurfaceBounds();
+        System.err.println("Test.1: Window bounds    : "+window0WindowBounds+" [wu] within "+screen.getViewportInWindowUnits()+" [wu]");
+        System.err.println("Test.1: Window bounds    : "+window0SurfaceBounds+" [pixels]");
         System.err.println("Test.1: Screen viewport  : "+screen.getViewport()+" [pixels]");
-        System.err.println("Test.1: Window monitor   : "+monitor.getViewport()+" [pixels]");
+        System.err.println("Test.1: Monitor viewport : "+monitor.getViewport()+" [pixels], "+monitor.getViewportInWindowUnits()+" [wu]");
         if( !spanAcrossMonitors ) {
-            Assert.assertEquals(monitor.getViewport(),  window0ScreenRect);
+            Assert.assertEquals(monitor.getViewportInWindowUnits(), window0WindowBounds);
         } else {
             List<MonitorDevice> monitorsUsed = monitors;
             if( null == monitorsUsed ) {
                 monitorsUsed = window0.getScreen().getMonitorDevices();
             }
-            Rectangle monitorsUsedViewport = MonitorDevice.unionOfViewports(new Rectangle(), monitorsUsed);
-            Assert.assertEquals(monitorsUsedViewport,  window0ScreenRect);
+            Rectangle monitorsUsedViewport = new Rectangle();
+            MonitorDevice.unionOfViewports(null, monitorsUsedViewport, monitorsUsed);
+            Assert.assertEquals(monitorsUsedViewport,  window0WindowBounds);
         }
 
         Thread.sleep(duration);
 
         window0.setFullscreen(false);
 
-        window0ScreenRect = window0.getSurfaceBounds();
+        window0WindowBounds = window0.getBounds();
+        window0SurfaceBounds = window0.getSurfaceBounds();
         monitor = window0.getMainMonitor();
-        System.err.println("Test.2: Window bounds    : "+window0.getX()+"/"+window0.getY()+" "+window0.getWindowWidth()+"x"+window0.getWindowHeight()+" [wu] within "+screen.getViewportInWindowUnits(window0)+" [wu]");
-        System.err.println("Test.2: Window screenRect: "+window0ScreenRect+" [pixels]");
+        System.err.println("Test.2: Window bounds    : "+window0WindowBounds+" [wu] within "+screen.getViewportInWindowUnits()+" [wu]");
+        System.err.println("Test.2: Window bounds    : "+window0SurfaceBounds+" [pixels]");
         System.err.println("Test.2: Screen viewport  : "+screen.getViewport()+" [pixels]");
-        System.err.println("Test.2: Window monitor   : "+monitor.getViewport()+" [pixels]");
+        System.err.println("Test.2: Monitor viewport : "+monitor.getViewport()+" [pixels], "+monitor.getViewportInWindowUnits()+" [wu]");
 
         Thread.sleep(duration);
         anim.stop();

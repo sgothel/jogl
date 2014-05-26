@@ -32,8 +32,8 @@ package javax.media.nativewindow;
  * Provides low-level information required for
  * hardware-accelerated rendering using a surface in a platform-independent manner.
  * <p>
- * All values of this interface are represented in pixel units,
- * see {@link NativeWindow}.
+ * All values of this interface are represented in pixel units, if not stated otherwise.
+ * See {@link NativeWindow}.
  * </p>
  * <p>
  * A NativeSurface created for a particular on- or offscreen component is

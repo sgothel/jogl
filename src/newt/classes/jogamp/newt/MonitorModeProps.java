@@ -81,9 +81,10 @@ public class MonitorModeProps {
                                                    ;
 
     /** WARNING: must be synchronized with ScreenMode.h, native implementation
-     * 10: count + id, ScreenSizeMM[width, height], rotated Viewport[x, y, width, height], currentMonitorModeId, rotation, supportedModeId+
+     * 15: count + id, ScreenSizeMM[width, height], rotated Viewport pixel-units, rotated viewport window-units, currentMonitorModeId, rotation, supportedModeId+
+     *     Viewport := [x, y, width, height] (4 elements)
      */
-    public static final int MIN_MONITOR_DEVICE_PROPERTIES = 11;
+    public static final int MIN_MONITOR_DEVICE_PROPERTIES = 15;
 
     public static final int IDX_MONITOR_DEVICE_VIEWPORT =   1 // count
                                                           + 1 // native mode
@@ -223,7 +224,8 @@ public class MonitorModeProps {
         final List<MonitorMode> allMonitorModes = cache.monitorModes.getData();
         final int id = monitorProperties[offset++];
         final DimensionImmutable sizeMM = streamInResolution(monitorProperties, offset); offset+=NUM_RESOLUTION_PROPERTIES;
-        final Rectangle viewport = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
+        final Rectangle viewportPU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
+        final Rectangle viewportWU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
         final MonitorMode currentMode;
         {
             final int modeId = monitorProperties[offset++];
@@ -240,7 +242,7 @@ public class MonitorModeProps {
                 }
             }
         }
-        MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, id, sizeMM, viewport, currentMode, supportedModes);
+        MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, id, sizeMM, viewportPU, viewportWU, currentMode, supportedModes);
         if(null!=cache) {
             monitorDevice = cache.monitorDevices.getOrAdd(monitorDevice);
         }
@@ -296,8 +298,9 @@ public class MonitorModeProps {
         offset++;
         final int id = monitorProperties[offset++];
         final DimensionImmutable sizeMM = streamInResolution(monitorProperties, offset); offset+=NUM_RESOLUTION_PROPERTIES;
-        final Rectangle viewport = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
-        MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, id, sizeMM, viewport, currentMode, supportedModes);
+        final Rectangle viewportPU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
+        final Rectangle viewportWU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
+        MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, id, sizeMM, viewportPU, viewportWU, currentMode, supportedModes);
         if(null!=cache) {
             monitorDevice = cache.monitorDevices.getOrAdd(monitorDevice);
         }
@@ -328,6 +331,10 @@ public class MonitorModeProps {
         data[idx++] = monitorDevice.getViewport().getY();
         data[idx++] = monitorDevice.getViewport().getWidth();
         data[idx++] = monitorDevice.getViewport().getHeight();
+        data[idx++] = monitorDevice.getViewportInWindowUnits().getX();
+        data[idx++] = monitorDevice.getViewportInWindowUnits().getY();
+        data[idx++] = monitorDevice.getViewportInWindowUnits().getWidth();
+        data[idx++] = monitorDevice.getViewportInWindowUnits().getHeight();
         data[idx++] = monitorDevice.getCurrentMode().getId();
         data[idx++] = monitorDevice.getCurrentMode().getRotation();
         final List<MonitorMode> supportedModes = monitorDevice.getSupportedModes();

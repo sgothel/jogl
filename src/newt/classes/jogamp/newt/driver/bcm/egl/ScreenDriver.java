@@ -104,8 +104,8 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
     }
 
     @Override
-    protected void calcVirtualScreenOriginAndSize(Rectangle vOriginSize) {
-        vOriginSize.set(0, 0, fixedWidth, fixedHeight); // FIXME
+    protected void calcVirtualScreenOriginAndSize(Rectangle viewport, Rectangle viewportInWindowUnits) {
+        viewport.set(0, 0, fixedWidth, fixedHeight); // FIXME
     }
 
     //----------------------------------------------------------------------
