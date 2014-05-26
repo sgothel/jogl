@@ -128,6 +128,10 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         updatePixelScaleByScreenIdx(false /* sendEvent*/);  // caller (reparent, ..) will send reshape event
     }
 
+    @Override
+    protected void monitorModeChanged(MonitorEvent me, boolean success) {
+        updatePixelScaleByWindowHandle(false /* sendEvent*/); // send reshape event itself
+    }
 
     @Override
     protected final int getPixelScaleX() {
