@@ -455,8 +455,7 @@ public class TileRenderer extends TileRendererBase {
         // be sure OpenGL rendering is finished
         gl.glFlush();
 
-        // save current glPixelStore values
-        psm.save(gl);
+        // implicitly save current glPixelStore values
         psm.setPackAlignment(gl, 1);
         final GL2ES3 gl2es3;
         final int readBuffer;

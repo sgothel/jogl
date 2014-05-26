@@ -33,7 +33,6 @@ import java.io.IOException;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES3;
-import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLException;
@@ -221,7 +220,7 @@ public class GLReadBufferUtil {
         }
         boolean res = null!=readPixelBuffer && readPixelBuffer.isValid();
         if(res) {
-            psm.setAlignment(gl, alignment, alignment);
+            psm.setPackAlignment(gl, alignment);
             if(gl.isGL2ES3()) {
                 final GL2ES3 gl2es3 = gl.getGL2ES3();
                 gl2es3.glPixelStorei(GL2ES3.GL_PACK_ROW_LENGTH, width);

@@ -1724,8 +1724,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.readPixels: - frameCount "+frameCount);
         }
 
-        // Save current modes
-        psm.setAlignment(gl, alignment, alignment);
+        // Save PACK modes, reset them to defaults and set alignment
+        psm.setPackAlignment(gl, alignment);
         if(gl.isGL2ES3()) {
             final GL2ES3 gl2es3 = gl.getGL2ES3();
             gl2es3.glPixelStorei(GL2ES3.GL_PACK_ROW_LENGTH, panelWidth);
