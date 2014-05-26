@@ -550,21 +550,52 @@ public class FBObject {
      *
      * <p>Using default min/mag filter {@link GL#GL_NEAREST} and default wrapS/wrapT {@link GL#GL_CLAMP_TO_EDGE}.</p>
      *
-     * @param glp the chosen {@link GLProfile}
+     * @param gl the used {@link GLContext}'s {@link GL} object
      * @param alpha set to <code>true</code> if you request alpha channel, otherwise <code>false</code>;
      * @param width texture width
      * @param height texture height
      * @return the created and uninitialized color {@link TextureAttachment}
      */
-    public static final TextureAttachment createColorTextureAttachment(GLProfile glp, boolean alpha, int width, int height) {
-        return createColorTextureAttachment(glp, alpha, width, height, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
+    public static final TextureAttachment createColorTextureAttachment(GL gl, boolean alpha, int width, int height) {
+        return createColorTextureAttachment(gl, alpha, width, height, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
     }
 
     /**
      * Creates a color {@link TextureAttachment}, i.e. type {@link Type#COLOR_TEXTURE},
      * selecting the texture data type and format automatically.
+     * <p>
+     * For GLES3, sampling-sink format <b>must be equal</b> w/ the sampling-source {@link Colorbuffer},
+     * see details below. Implementation aligns w/ {@link #createColorAttachment(boolean)}
+     * and is enforced via {@link #sampleSinkFormatMismatch(GL)}.
+     * </p>
+     * <p>
+     * ES3 BlitFramebuffer Requirements: OpenGL ES 3.0.2 p194: 4.3.2  Copying Pixels
+     * <pre>
+     * If SAMPLE_BUFFERS for the read framebuffer is greater than zero, no copy
+     * is performed and an INVALID_OPERATION error is generated if the formats of
+     * the read and draw framebuffers are not identical or if the source and destination
+     * rectangles are not defined with the same (X0, Y 0) and (X1, Y 1) bounds.
+     * </pre>
+     * Texture and Renderbuffer format details:
+     * <pre>
+     * ES2 Base iFormat: OpenGL ES 2.0.24 p66: 3.7.1 Texture Image Specification, Table 3.8
+     *   ALPHA, LUMINANCE, LUMINANCE_ALPHA, RGB, RGBA
      *
-     * @param glp the chosen {@link GLProfile}
+     * ES3 Base iFormat: OpenGL ES 3.0.2 p125: 3.8.3 Texture Image Specification, Table 3.11
+     *   ALPHA, LUMINANCE, LUMINANCE_ALPHA, RGB, RGBA
+     *   DEPTH_COMPONENT, STENCIL_COMPONENT, RED, RG
+     *
+     * ES3 Required Texture and Renderbuffer iFormat: OpenGL ES 3.0.2 p126: 3.8.3 Texture Image Specification
+     *   - RGBA32I, RGBA32UI, RGBA16I, RGBA16UI, RGBA8, RGBA8I,
+     *     RGBA8UI, SRGB8_ALPHA8, RGB10_A2, RGB10_A2UI, RGBA4, and
+     *     RGB5_A1.
+     *   - RGB8 and RGB565.
+     *   - RG32I, RG32UI, RG16I, RG16UI, RG8, RG8I, and RG8UI.
+     *   - R32I, R32UI, R16I, R16UI, R8, R8I, and R8UI.
+     * </pre>
+     * </p>
+     *
+     * @param gl the used {@link GLContext}'s {@link GL} object
      * @param alpha set to <code>true</code> if you request alpha channel, otherwise <code>false</code>;
      * @param width texture width
      * @param height texture height
@@ -574,10 +605,14 @@ public class FBObject {
      * @param wrapT if > 0 value for {@link GL#GL_TEXTURE_WRAP_T}
      * @return the created and uninitialized color {@link TextureAttachment}
      */
-    public static final TextureAttachment createColorTextureAttachment(GLProfile glp, boolean alpha, int width, int height,
+    public static final TextureAttachment createColorTextureAttachment(GL gl, boolean alpha, int width, int height,
                                                                        int magFilter, int minFilter, int wrapS, int wrapT) {
         final int textureInternalFormat, textureDataFormat, textureDataType;
-        if(glp.isGLES()) {
+        if(gl.isGLES3()) {
+            textureInternalFormat = alpha ? GL.GL_RGBA8 : GL.GL_RGB8;
+            textureDataFormat = alpha ? GL.GL_RGBA : GL.GL_RGB;
+            textureDataType = GL.GL_UNSIGNED_BYTE;
+        } else if(gl.isGLES()) {
             textureInternalFormat = alpha ? GL.GL_RGBA : GL.GL_RGB;
             textureDataFormat = alpha ? GL.GL_RGBA : GL.GL_RGB;
             textureDataType = GL.GL_UNSIGNED_BYTE;
@@ -741,6 +776,26 @@ public class FBObject {
     public final Colorbuffer getColorbuffer(Colorbuffer ca) {
         final int p = getColorbufferAttachmentPoint(ca);
         return p>=0 ? getColorbuffer(p) : null;
+    }
+
+    /**
+     * Returns true if any attached {@link Colorbuffer} uses alpha,
+     * otherwise false.
+     */
+    public final boolean hasAttachmentUsingAlpha() {
+        final int caCount = getColorAttachmentCount();
+        boolean hasAlpha = false;
+        for(int i=0; i<caCount; i++) {
+            final Attachment ca = (Attachment)getColorbuffer(i);
+            if( null == ca ) {
+                break;
+            }
+            if( hasAlpha(ca.format) ) {
+                hasAlpha = true;
+                break;
+            }
+        }
+        return hasAlpha;
     }
 
     /**
@@ -1142,7 +1197,7 @@ public class FBObject {
      */
     public final TextureAttachment attachTexture2D(GL gl, int attachmentPoint, boolean alpha) throws GLException {
         return (TextureAttachment)attachColorbuffer(gl, attachmentPoint,
-                     createColorTextureAttachment(gl.getGLProfile(), alpha, width, height));
+                     createColorTextureAttachment(gl, alpha, width, height));
     }
 
     /**
@@ -1164,7 +1219,7 @@ public class FBObject {
      */
     public final TextureAttachment attachTexture2D(GL gl, int attachmentPoint, boolean alpha, int magFilter, int minFilter, int wrapS, int wrapT) throws GLException {
         return (TextureAttachment)attachColorbuffer(gl, attachmentPoint,
-                     createColorTextureAttachment(gl.getGLProfile(), alpha, width, height, magFilter, minFilter, wrapS, wrapT));
+                     createColorTextureAttachment(gl, alpha, width, height, magFilter, minFilter, wrapS, wrapT));
     }
 
     /**
@@ -1194,12 +1249,18 @@ public class FBObject {
 
     /**
      * Creates a {@link ColorAttachment}, selecting the format automatically.
+     * <p>
+     * For GLES3, sampling-sink {@link Colorbuffer} format <b>must be equal</b> w/ the sampling-source {@link Colorbuffer}.
+     * Implementation aligns w/ {@link #createColorTextureAttachment(GLProfile, boolean, int, int, int, int, int, int)}
+     * and is enforced via {@link #sampleSinkFormatMismatch(GL)}.
+     * </p>
      *
      * @param alpha set to <code>true</code> if you request alpha channel, otherwise <code>false</code>;
      * @return uninitialized ColorAttachment instance describing the new attached colorbuffer
      */
     public final ColorAttachment createColorAttachment(boolean alpha) {
         final int internalFormat;
+
         if( rgba8Avail ) {
             internalFormat = alpha ? GL.GL_RGBA8 : GL.GL_RGB8 ;
         } else {
@@ -1591,7 +1652,7 @@ public class FBObject {
                                                               samplingSinkTexture.magFilter, samplingSinkTexture.minFilter,
                                                               samplingSinkTexture.wrapS, samplingSinkTexture.wrapT);
                     } else {
-                        colbuf = createColorTextureAttachment(gl.getGLProfile(), true, width, height);
+                        colbuf = createColorTextureAttachment(gl, true, width, height);
                     }
                 }
                 attachColorbuffer(gl, attachmentPoint, colbuf);
@@ -1944,6 +2005,19 @@ public class FBObject {
 
         return depthMismatch || stencilMismatch;
     }
+    /**
+     * For GLES3, sampling-sink {@link Colorbuffer} format <b>must be equal</b> w/ the sampling-source {@link Colorbuffer}.
+     * Implementation aligns w/ {@link #createColorTextureAttachment(GLProfile, boolean, int, int, int, int, int, int)}
+     * and {@link #createColorAttachment(boolean)}.
+     */
+    private final boolean sampleSinkFormatMismatch(final GL gl) {
+        if( null != samplingSinkTexture && getColorAttachmentCount() > 0 && gl.isGL2ES3() ) {
+            final Attachment ca = (Attachment)getColorbuffer(0); // should be at attachment-point 0
+            return ( null != ca && ca.format != samplingSinkTexture.format ) ||
+                   hasAlpha(samplingSinkTexture.format) != hasAttachmentUsingAlpha();
+        }
+        return false;
+    }
 
     /**
      * Manually reset the MSAA sampling sink, if used.
@@ -1980,16 +2054,17 @@ public class FBObject {
             samplingSink.init(gl, width, height, 0);
         }
 
+        boolean sampleSinkFormatMismatch = sampleSinkFormatMismatch(gl);
         boolean sampleSinkSizeMismatch = sampleSinkSizeMismatch();
         boolean sampleSinkTexMismatch = sampleSinkTexMismatch();
         boolean sampleSinkDepthStencilMismatch = sampleSinkDepthStencilMismatch();
 
         /** if(DEBUG) {
             System.err.println("FBObject.resetSamplingSink.0: \n\tTHIS "+this+",\n\tSINK "+samplesSink+
-                               "\n\t size "+sampleSinkSizeMismatch +", tex "+sampleSinkTexMismatch +", depthStencil "+sampleSinkDepthStencilMismatch);
+                               "\n\t format "+sampleSinkFormatMismatch+", size "+sampleSinkSizeMismatch +", tex "+sampleSinkTexMismatch +", depthStencil "+sampleSinkDepthStencilMismatch);
         } */
 
-        if(!sampleSinkSizeMismatch && !sampleSinkTexMismatch && !sampleSinkDepthStencilMismatch) {
+        if(!sampleSinkFormatMismatch && !sampleSinkSizeMismatch && !sampleSinkTexMismatch && !sampleSinkDepthStencilMismatch) {
             // all properties match ..
             return;
         }
@@ -1998,19 +2073,23 @@ public class FBObject {
 
         if(DEBUG) {
             System.err.println("FBObject.resetSamplingSink: BEGIN\n\tTHIS "+this+",\n\tSINK "+samplingSink+
-                               "\n\t size "+sampleSinkSizeMismatch +", tex "+sampleSinkTexMismatch +", depthStencil "+sampleSinkDepthStencilMismatch);
+                               "\n\t format "+sampleSinkFormatMismatch+", size "+sampleSinkSizeMismatch +", tex "+sampleSinkTexMismatch +", depthStencil "+sampleSinkDepthStencilMismatch);
         }
 
         if( sampleSinkDepthStencilMismatch ) {
             samplingSink.detachAllRenderbuffer(gl);
         }
 
-        if( sampleSinkSizeMismatch ) {
+        if( sampleSinkFormatMismatch ) {
+            samplingSink.detachAllColorbuffer(gl);
+            samplingSinkTexture = null;
+        } else if( sampleSinkSizeMismatch ) {
             samplingSink.reset(gl, width, height);
         }
 
         if(null == samplingSinkTexture) {
-            samplingSinkTexture = samplingSink.attachTexture2D(gl, 0, true);
+            boolean hasAlpha = hasAttachmentUsingAlpha();
+            samplingSinkTexture = samplingSink.attachTexture2D(gl, 0, hasAlpha);
         } else if( 0 == samplingSinkTexture.getName() ) {
             samplingSinkTexture.setSize(width, height);
             samplingSink.attachColorbuffer(gl, 0, samplingSinkTexture);
@@ -2023,17 +2102,18 @@ public class FBObject {
             }
         }
 
+        sampleSinkFormatMismatch = sampleSinkFormatMismatch(gl);
         sampleSinkSizeMismatch = sampleSinkSizeMismatch();
         sampleSinkTexMismatch = sampleSinkTexMismatch();
         sampleSinkDepthStencilMismatch = sampleSinkDepthStencilMismatch();
-        if(sampleSinkSizeMismatch || sampleSinkTexMismatch || sampleSinkDepthStencilMismatch) {
+        if(sampleSinkFormatMismatch || sampleSinkSizeMismatch || sampleSinkTexMismatch || sampleSinkDepthStencilMismatch) {
             throw new InternalError("Samples sink mismatch after reset: \n\tTHIS "+this+",\n\t SINK "+samplingSink+
-                                    "\n\t size "+sampleSinkSizeMismatch +", tex "+sampleSinkTexMismatch +", depthStencil "+sampleSinkDepthStencilMismatch);
+                                    "\n\t format "+sampleSinkFormatMismatch+", size "+sampleSinkSizeMismatch +", tex "+sampleSinkTexMismatch +", depthStencil "+sampleSinkDepthStencilMismatch);
         }
 
         if(DEBUG) {
             System.err.println("FBObject.resetSamplingSink: END\n\tTHIS "+this+",\n\tSINK "+samplingSink+
-                               "\n\t size "+sampleSinkSizeMismatch +", tex "+sampleSinkTexMismatch +", depthStencil "+sampleSinkDepthStencilMismatch);
+                               "\n\t format "+sampleSinkFormatMismatch+", size "+sampleSinkSizeMismatch +", tex "+sampleSinkTexMismatch +", depthStencil "+sampleSinkDepthStencilMismatch);
         }
     }
 
