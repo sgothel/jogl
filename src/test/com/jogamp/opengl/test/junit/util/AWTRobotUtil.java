@@ -137,9 +137,9 @@ public class AWTRobotUtil {
         javax.media.nativewindow.util.Point p0 = win.getLocationOnScreen(null);
         if( onTitleBarIfWindow ) {
             javax.media.nativewindow.util.InsetsImmutable insets = win.getInsets();
-            p0.translate(win.getWindowWidth()/2, insets.getTopHeight()/2);
+            p0.translate(win.getWidth()/2, insets.getTopHeight()/2);
         } else {
-            p0.translate(win.getWindowWidth()/2, win.getWindowHeight()/2);
+            p0.translate(win.getWidth()/2, win.getHeight()/2);
         }
         return new int[] { p0.getX(), p0.getY() };
     }

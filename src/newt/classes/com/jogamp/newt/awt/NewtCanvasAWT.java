@@ -400,7 +400,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         final Window w = newtChild;
         if( null != w ) {
             // use NEWT child's size for min/pref size!
-            java.awt.Dimension minSize = new java.awt.Dimension(w.getWindowWidth(), w.getWindowHeight());
+            java.awt.Dimension minSize = new java.awt.Dimension(w.getWidth(), w.getHeight());
             setMinimumSize(minSize);
             setPreferredSize(minSize);
         }

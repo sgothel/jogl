@@ -91,13 +91,13 @@ public class WrappedWindow extends WrappedSurface implements NativeWindow {
     }
 
     @Override
-    public int getWindowWidth() {
-        return ((UpstreamWindowHookMutableSizePos)getUpstreamSurfaceHook()).getWindowWidth();
+    public int getWidth() {
+        return ((UpstreamWindowHookMutableSizePos)getUpstreamSurfaceHook()).getWidth();
     }
 
     @Override
-    public int getWindowHeight() {
-        return ((UpstreamWindowHookMutableSizePos)getUpstreamSurfaceHook()).getWindowHeight();
+    public int getHeight() {
+        return ((UpstreamWindowHookMutableSizePos)getUpstreamSurfaceHook()).getHeight();
     }
 
     @Override

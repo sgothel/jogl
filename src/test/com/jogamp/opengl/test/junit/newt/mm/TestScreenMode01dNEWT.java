@@ -163,8 +163,8 @@ public class TestScreenMode01dNEWT extends UITestCase {
         final MonitorDevice monitor = window.getMainMonitor();
 
         Assert.assertEquals(false, window.isFullscreen());
-        Assert.assertEquals(width, window.getWindowWidth());
-        Assert.assertEquals(height, window.getWindowHeight());
+        Assert.assertEquals(width, window.getWidth());
+        Assert.assertEquals(height, window.getHeight());
 
         window.setFullscreen(true);
         Assert.assertEquals(true, window.isFullscreen());
@@ -175,8 +175,8 @@ public class TestScreenMode01dNEWT extends UITestCase {
 
         window.setFullscreen(false);
         Assert.assertEquals(false, window.isFullscreen());
-        Assert.assertEquals(width, window.getWindowWidth());
-        Assert.assertEquals(height, window.getWindowHeight());
+        Assert.assertEquals(width, window.getWidth());
+        Assert.assertEquals(height, window.getHeight());
 
         Thread.sleep(waitTimeShort);
 

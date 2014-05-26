@@ -124,7 +124,7 @@ public class AWTParentWindowAdapter extends AWTWindowAdapter implements java.awt
                     final int cw = comp.getWidth();
                     final int ch = comp.getHeight();
                     if( 0 < cw && 0 < ch ) {
-                        if( newtChild.getWindowWidth() != cw || newtChild.getWindowHeight() != ch ) {
+                        if( newtChild.getWidth() != cw || newtChild.getHeight() != ch ) {
                             newtChild.setSize(cw, ch);
                             final boolean v = comp.isShowing(); // compute showing-state throughout hierarchy
                             if(v != newtChild.isVisible()) {

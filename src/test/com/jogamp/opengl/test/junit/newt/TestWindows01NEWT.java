@@ -80,8 +80,8 @@ public class TestWindows01NEWT extends UITestCase {
         Assert.assertEquals(true,screen.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
         Assert.assertEquals(true,window.isNativeValid());
-        Assert.assertEquals(width, window.getWindowWidth());
-        Assert.assertEquals(height, window.getWindowHeight());
+        Assert.assertEquals(width, window.getWidth());
+        Assert.assertEquals(height, window.getHeight());
 
         /** we don't sync on position - unreliable test
         Point p0  = window.getLocationOnScreen(null);
@@ -152,8 +152,8 @@ public class TestWindows01NEWT extends UITestCase {
         window.setVisible(true);
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
-        Assert.assertEquals(width, window.getWindowWidth());
-        Assert.assertEquals(height, window.getWindowHeight());
+        Assert.assertEquals(width, window.getWidth());
+        Assert.assertEquals(height, window.getHeight());
 
         destroyWindow(window, true);
     }

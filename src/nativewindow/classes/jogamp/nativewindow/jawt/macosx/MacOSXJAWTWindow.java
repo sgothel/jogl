@@ -143,7 +143,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
               } else if( DEBUG ) {
                   System.err.println("JAWTWindow.attachSurfaceLayerImpl: "+toHexString(layerHandle) + ", [ins "+outterInsets+"], p0 "+p0+" -> "+p1+", bounds "+bounds);
               }
-              OSXUtil.AddCASublayer(rootSurfaceLayer, layerHandle, p1.getX(), p1.getY(), getWindowWidth(), getWindowHeight(), getPixelScale(), JAWTUtil.getOSXCALayerQuirks());
+              OSXUtil.AddCASublayer(rootSurfaceLayer, layerHandle, p1.getX(), p1.getY(), getWidth(), getHeight(), getPixelScale(), JAWTUtil.getOSXCALayerQuirks());
           } } );
   }
 
@@ -177,7 +177,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
           System.err.println("JAWTWindow.layoutSurfaceLayerImpl: "+toHexString(layerHandle) + ", quirks "+caLayerQuirks+", visible "+visible+
                   ", [ins "+outterInsets+"], p0 "+p0+" -> "+p1+", bounds "+bounds);
       }
-      OSXUtil.FixCALayerLayout(rootSurfaceLayer, layerHandle, visible, p1.getX(), p1.getY(), getWindowWidth(), getWindowHeight(), caLayerQuirks);
+      OSXUtil.FixCALayerLayout(rootSurfaceLayer, layerHandle, visible, p1.getX(), p1.getY(), getWidth(), getHeight(), caLayerQuirks);
   }
 
   @Override

@@ -46,7 +46,7 @@ import javax.media.nativewindow.util.Point;
 /**
  * Extend the {@link NativeSurface} interface with windowing
  * information such as {@link #getWindowHandle() window-handle},
- * {@link #getWindowWidth() window-size} and {@link #getX() window-position}.
+ * {@link #getWidth() window-size} and {@link #getX() window-position}.
  * <p>
  * All values of this interface are represented in window units, if not stated otherwise.
  * See {@link NativeSurface}.
@@ -110,8 +110,8 @@ public interface NativeWindow extends NativeSurface {
    *
    * The top-level window size is
    * <pre>
-   *   {@link #getWindowWidth()}  + getInsets().{@link InsetsImmutable#getTotalWidth() getTotalWidth()}
-   *   {@link #getWindowHeight()} + getInsets().{@link InsetsImmutable#getTotalHeight() getTotalHeight()}
+   *   {@link #getWidth()}  + getInsets().{@link InsetsImmutable#getTotalWidth() getTotalWidth()}
+   *   {@link #getHeight()} + getInsets().{@link InsetsImmutable#getTotalHeight() getTotalHeight()}
    * </pre>
    *
    * @return insets
@@ -159,14 +159,14 @@ public interface NativeWindow extends NativeSurface {
    * @return width of the client area in window units
    * @see NativeSurface#getSurfaceWidth()
    */
-  public int getWindowWidth();
+  public int getWidth();
 
   /**
    * Returns the height of the client area excluding insets (window decorations) in window units.
    * @return height of the client area in window units
    * @see NativeSurface#getSurfaceHeight()
    */
-  public int getWindowHeight();
+  public int getHeight();
 
   /**
    * Returns the window's top-left client-area position in the screen.

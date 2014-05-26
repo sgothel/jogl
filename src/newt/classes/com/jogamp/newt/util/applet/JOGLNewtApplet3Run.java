@@ -172,7 +172,7 @@ public class JOGLNewtApplet3Run implements Applet3 {
         glWindow = GLWindow.create(w);
         glWindow.setUndecorated(glUndecorated);
         glWindow.setAlwaysOnTop(glAlwaysOnTop);
-        glWindow.setSize(browserWin.getWindowWidth(), browserWin.getWindowHeight());
+        glWindow.setSize(browserWin.getWidth(), browserWin.getHeight());
 
         return new NativeWindowDownstream() {
             @Override

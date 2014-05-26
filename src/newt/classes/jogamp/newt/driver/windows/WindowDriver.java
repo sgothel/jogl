@@ -146,7 +146,7 @@ public class WindowDriver extends WindowImpl {
         final long _windowHandle = CreateWindow0(DisplayDriver.getHInstance(), display.getWindowClassName(), display.getWindowClassName(),
                                                  winVer.getMajor(), winVer.getMinor(),
                                                  getParentWindowHandle(),
-                                                 getX(), getY(), getWindowWidth(), getWindowHeight(), autoPosition(), flags);
+                                                 getX(), getY(), getWidth(), getHeight(), autoPosition(), flags);
         if ( 0 == _windowHandle ) {
             throw new NativeWindowException("Error creating window");
         }

@@ -228,8 +228,8 @@ public class NewtBaseActivity extends Activity {
             androidWindow.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         }
 
-        if(newtWindow.getWindowWidth()>0 && newtWindow.getWindowHeight()>0 && !newtWindow.isFullscreen()) {
-            androidWindow.setLayout(newtWindow.getWindowWidth(), newtWindow.getWindowHeight());
+        if(newtWindow.getWidth()>0 && newtWindow.getHeight()>0 && !newtWindow.isFullscreen()) {
+            androidWindow.setLayout(newtWindow.getWidth(), newtWindow.getHeight());
         }
    }
 

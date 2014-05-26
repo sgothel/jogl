@@ -625,12 +625,12 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
 
   @Override
   public final int getSurfaceWidth() {
-    return getWindowWidth() * getPixelScale();
+    return getWidth() * getPixelScale();
   }
 
   @Override
   public final int getSurfaceHeight() {
-    return getWindowHeight() * getPixelScale();
+    return getHeight() * getPixelScale();
   }
 
   //
@@ -638,12 +638,12 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   //
 
   @Override
-  public final int getWindowWidth() {
+  public final int getWidth() {
       return component.getWidth();
   }
 
   @Override
-  public final int getWindowHeight() {
+  public final int getHeight() {
       return component.getHeight();
   }
 
@@ -826,7 +826,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
                 ", surfaceHandle "+toHexString(getSurfaceHandle())+
                 ", bounds "+bounds+", insets "+insets
                 );
-    sb.append(", window ["+getX()+"/"+getY()+" "+getWindowWidth()+"x"+getWindowHeight()+
+    sb.append(", window ["+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+
              "], pixels[x"+getPixelScale()+" -> "+getSurfaceWidth()+"x"+getSurfaceHeight()+"]"+
               ", visible "+component.isVisible());
     sb.append(", lockedExt "+isSurfaceLockedByOtherThread()+

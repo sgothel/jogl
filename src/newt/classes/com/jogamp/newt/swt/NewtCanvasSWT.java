@@ -518,12 +518,12 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
         }
 
         @Override
-        public int getWindowWidth() {
+        public int getWidth() {
             return getSurfaceWidth(); // FIXME: Use 'scale' or an actual window-width
         }
 
         @Override
-        public int getWindowHeight() {
+        public int getHeight() {
             return getSurfaceHeight(); // FIXME: Use 'scale' or an actual window-width
         }
 

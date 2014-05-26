@@ -354,13 +354,13 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
-    public final int getWindowWidth() {
-        return window.getWindowWidth();
+    public final int getWidth() {
+        return window.getWidth();
     }
 
     @Override
-    public final int getWindowHeight() {
-        return window.getWindowHeight();
+    public final int getHeight() {
+        return window.getHeight();
     }
 
     @Override

@@ -948,7 +948,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
               }
             }
             if(!isNativeValid() && visible) {
-                if( 0<getWindowWidth()*getWindowHeight() ) {
+                if( 0<getWidth()*getHeight() ) {
                     nativeWindowCreated = createNative();
                     madeVisible = nativeWindowCreated;
                 }
@@ -956,7 +956,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 WindowImpl.this.visible = true;
             } else if(WindowImpl.this.visible != visible) {
                 if(isNativeValid()) {
-                    setVisibleImpl(visible, getX(), getY(), getWindowWidth(), getWindowHeight());
+                    setVisibleImpl(visible, getX(), getY(), getWidth(), getHeight());
                     WindowImpl.this.waitForVisible(visible, false);
                     madeVisible = visible;
                 } else {
@@ -979,7 +979,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
               }
             }
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window setVisible: END ("+getThreadName()+") "+getX()+"/"+getY()+" "+getWindowWidth()+"x"+getWindowHeight()+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+WindowImpl.this.visible+", nativeWindowCreated: "+nativeWindowCreated+", madeVisible: "+madeVisible);
+                System.err.println("Window setVisible: END ("+getThreadName()+") "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+WindowImpl.this.visible+", nativeWindowCreated: "+nativeWindowCreated+", madeVisible: "+madeVisible);
             }
         } finally {
             if(null!=lifecycleHook) {
@@ -1007,7 +1007,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     @Override
     public final void setVisible(boolean wait, boolean visible) {
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window setVisible: START ("+getThreadName()+") "+getX()+"/"+getY()+" "+getWindowWidth()+"x"+getWindowHeight()+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+this.visible+" -> "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+(null!=parentWindow));
+            System.err.println("Window setVisible: START ("+getThreadName()+") "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+this.visible+" -> "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+(null!=parentWindow));
         }
         runOnEDTIfAvail(wait, new VisibleAction(visible));
     }
@@ -1032,9 +1032,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             final RecursiveLock _lock = windowLock;
             _lock.lock();
             try {
-                if ( force || ( !isFullscreen() && ( getWindowWidth() != width || getWindowHeight() != height ) ) ) {
+                if ( force || ( !isFullscreen() && ( getWidth() != width || getHeight() != height ) ) ) {
                     if(DEBUG_IMPLEMENTATION) {
-                        System.err.println("Window setSize: START force "+force+", "+getWindowWidth()+"x"+getWindowHeight()+" -> "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible "+visible);
+                        System.err.println("Window setSize: START force "+force+", "+getWidth()+"x"+getHeight()+" -> "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible "+visible);
                     }
                     int visibleAction; // 0 nop, 1 invisible, 2 visible (create)
                     if ( visible && isNativeValid() && ( 0 >= width || 0 >= height ) ) {
@@ -1054,7 +1054,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         defineSize(width, height);
                     }
                     if(DEBUG_IMPLEMENTATION) {
-                        System.err.println("Window setSize: END "+getWindowWidth()+"x"+getWindowHeight()+", visibleAction "+visibleAction);
+                        System.err.println("Window setSize: END "+getWidth()+"x"+getHeight()+", visibleAction "+visibleAction);
                     }
                     switch(visibleAction) {
                         case 1: setVisibleActionImpl(false); break;
@@ -1261,8 +1261,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             // mirror pos/size so native change notification can get overwritten
             final int oldX = getX();
             final int oldY = getY();
-            final int oldWidth = getWindowWidth();
-            final int oldHeight = getWindowHeight();
+            final int oldWidth = getWidth();
+            final int oldHeight = getHeight();
             final int x, y;
             int width = oldWidth;
             int height = oldHeight;
@@ -1313,11 +1313,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     y = 0;
 
                     // refit if size is bigger than parent
-                    if( width > newParentWindow.getWindowWidth() ) {
-                        width = newParentWindow.getWindowWidth();
+                    if( width > newParentWindow.getWidth() ) {
+                        width = newParentWindow.getWidth();
                     }
-                    if( height > newParentWindow.getWindowHeight() ) {
-                        height = newParentWindow.getWindowHeight();
+                    if( height > newParentWindow.getHeight() ) {
+                        height = newParentWindow.getHeight();
                     }
 
                     // Case: Child Window
@@ -1527,7 +1527,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     System.err.println("Window.reparent: END-1 ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+
                                        ", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+
                                        ", parentWindow "+ Display.hashCodeNullSafe(parentWindow)+" "+
-                                       getX()+"/"+getY()+" "+getWindowWidth()+"x"+getWindowHeight());
+                                       getX()+"/"+getY()+" "+getWidth()+"x"+getHeight());
                 }
             } finally {
                 if(null!=lifecycleHook) {
@@ -1554,7 +1554,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 System.err.println("Window.reparent: END-X ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+
                                    ", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+
                                    ", parentWindow "+ Display.hashCodeNullSafe(parentWindow)+" "+
-                                   getX()+"/"+getY()+" "+getWindowWidth()+"x"+getWindowHeight());
+                                   getX()+"/"+getY()+" "+getWidth()+"x"+getHeight());
             }
         }
     }
@@ -1631,8 +1631,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         // Mirror pos/size so native change notification can get overwritten
                         final int x = getX();
                         final int y = getY();
-                        final int width = getWindowWidth();
-                        final int height = getWindowHeight();
+                        final int width = getWidth();
+                        final int height = getHeight();
 
                         DisplayImpl display = (DisplayImpl) screen.getDisplay();
                         display.dispatchMessagesNative(); // status up2date
@@ -1677,8 +1677,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         // Mirror pos/size so native change notification can get overwritten
                         final int x = getX();
                         final int y = getY();
-                        final int width = getWindowWidth();
-                        final int height = getWindowHeight();
+                        final int width = getWidth();
+                        final int height = getHeight();
 
                         DisplayImpl display = (DisplayImpl) screen.getDisplay();
                         display.dispatchMessagesNative(); // status up2date
@@ -1887,12 +1887,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public final int getWindowWidth() {
+    public final int getWidth() {
         return winWidth;
     }
 
     @Override
-    public final int getWindowHeight() {
+    public final int getHeight() {
         return winHeight;
     }
 
@@ -2050,7 +2050,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     ",\n ParentWindowHandle "+toHexString(parentWindowHandle)+" ("+(0!=getParentWindowHandle())+")"+
                     ",\n WindowHandle "+toHexString(getWindowHandle())+
                     ",\n SurfaceHandle "+toHexString(getSurfaceHandle())+ " (lockedExt window "+windowLock.isLockedByOtherThread()+", surface "+isSurfaceLockedByOtherThread()+")"+
-                    ",\n window["+getX()+"/"+getY()+" (auto "+autoPosition()+") "+getWindowWidth()+"x"+getWindowHeight()+"], pixel["+getSurfaceWidth()+"x"+getSurfaceHeight()+
+                    ",\n window["+getX()+"/"+getY()+" (auto "+autoPosition()+") "+getWidth()+"x"+getHeight()+"], pixel["+getSurfaceWidth()+"x"+getSurfaceHeight()+
                     "],\n Visible "+isVisible()+", focus "+hasFocus()+
                     ",\n Undecorated "+undecorated+" ("+isUndecorated()+")"+
                     ",\n AlwaysOnTop "+alwaysOnTop+", Fullscreen "+fullscreen+
@@ -2196,7 +2196,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 if ( !isFullscreen() && ( getX() != x || getY() != y || null != getParent()) ) {
                     if(isNativeValid()) {
                         // this.x/this.y will be set by sizeChanged, triggered by windowing event system
-                        reconfigureWindowImpl(x, y, getWindowWidth(), getWindowHeight(), getReconfigureFlags(0, isVisible()));
+                        reconfigureWindowImpl(x, y, getWidth(), getHeight(), getReconfigureFlags(0, isVisible()));
                         if( null == parentWindow ) {
                             // Wait until custom position is reached within tolerances
                             waitForPosition(true, x, y, Window.TIMEOUT_NATIVEWINDOW);
@@ -2244,8 +2244,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             try {
                 final int oldX = getX();
                 final int oldY = getY();
-                final int oldWidth = getWindowWidth();
-                final int oldHeight = getWindowHeight();
+                final int oldWidth = getWidth();
+                final int oldHeight = getHeight();
 
                 int x,y,w,h;
 
@@ -2302,11 +2302,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         y = 0;
 
                         // refit if size is bigger than parent
-                        if( w > parentWindow.getWindowWidth() ) {
-                            w = parentWindow.getWindowWidth();
+                        if( w > parentWindow.getWidth() ) {
+                            w = parentWindow.getWidth();
                         }
-                        if( h > parentWindow.getWindowHeight() ) {
-                            h = parentWindow.getWindowHeight();
+                        if( h > parentWindow.getHeight() ) {
+                            h = parentWindow.getHeight();
                         }
                     }
                 }
@@ -2495,10 +2495,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 // Simply move/resize window to fit in virtual screen if required
                 final RectangleImmutable viewport = screen.getViewportInWindowUnits();
                 if( viewport.getWidth() > 0 && viewport.getHeight() > 0 ) { // failsafe
-                    final RectangleImmutable rect = new Rectangle(getX(), getY(), getWindowWidth(), getWindowHeight());
+                    final RectangleImmutable rect = new Rectangle(getX(), getY(), getWidth(), getHeight());
                     final RectangleImmutable isect = viewport.intersection(rect);
-                    if ( getWindowHeight() > isect.getHeight()  ||
-                         getWindowWidth() > isect.getWidth() ) {
+                    if ( getHeight() > isect.getHeight()  ||
+                         getWidth() > isect.getWidth() ) {
                         if(DEBUG_IMPLEMENTATION) {
                             System.err.println("Window.monitorModeChanged.1: Non-FS - Fit window "+rect+" into screen viewport "+viewport+
                                                ", due to minimal intersection "+isect);
@@ -3052,7 +3052,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         int y = pe.getY();
 
         if(DEBUG_MOUSE_EVENT) {
-            System.err.println("consumePointerEvent.in: "+pe+", "+pState0+", pos "+x+"/"+y+", win["+getX()+"/"+getY()+" "+getWindowWidth()+"x"+getWindowHeight()+
+            System.err.println("consumePointerEvent.in: "+pe+", "+pState0+", pos "+x+"/"+y+", win["+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+
                                "], pixel["+getSurfaceWidth()+"x"+getSurfaceHeight()+"]");
         }
 
@@ -3620,7 +3620,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     protected void consumeWindowEvent(WindowEvent e) {
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("consumeWindowEvent: "+e+", visible "+isVisible()+" "+getX()+"/"+getY()+", win["+getX()+"/"+getY()+" "+getWindowWidth()+"x"+getWindowHeight()+
+            System.err.println("consumeWindowEvent: "+e+", visible "+isVisible()+" "+getX()+"/"+getY()+", win["+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+
                                "], pixel["+getSurfaceWidth()+"x"+getSurfaceHeight()+"]");
         }
         for(int i = 0; !e.isConsumed() && i < windowListeners.size(); i++ ) {
@@ -3713,10 +3713,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     /** Triggered by implementation's WM events to update the client-area size in window units w/o insets/decorations. */
     protected void sizeChanged(boolean defer, int newWidth, int newHeight, boolean force) {
-        if(force || getWindowWidth() != newWidth || getWindowHeight() != newHeight) {
+        if(force || getWidth() != newWidth || getHeight() != newHeight) {
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("Window.sizeChanged: ("+getThreadName()+"): (defer: "+defer+") force "+force+", "+
-                                   getWindowWidth()+"x"+getWindowHeight()+" -> "+newWidth+"x"+newHeight+
+                                   getWidth()+"x"+getHeight()+" -> "+newWidth+"x"+newHeight+
                                    " - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
             }
             if(0>newWidth || 0>newHeight) {
@@ -3737,12 +3737,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         final DisplayImpl display = (DisplayImpl) screen.getDisplay();
         display.dispatchMessagesNative(); // status up2date
         long sleep;
-        for(sleep = timeOut; 0<sleep && w!=getWindowWidth() && h!=getWindowHeight(); sleep-=10 ) {
+        for(sleep = timeOut; 0<sleep && w!=getWidth() && h!=getHeight(); sleep-=10 ) {
             try { Thread.sleep(10); } catch (InterruptedException ie) {}
             display.dispatchMessagesNative(); // status up2date
         }
         if(0 >= sleep) {
-            final String msg = "Size/Pos not reached as requested within "+timeOut+"ms : requested "+w+"x"+h+", is "+getWindowWidth()+"x"+getWindowHeight();
+            final String msg = "Size/Pos not reached as requested within "+timeOut+"ms : requested "+w+"x"+h+", is "+getWidth()+"x"+getHeight();
             if(failFast) {
                 throw new NativeWindowException(msg);
             } else if (DEBUG_IMPLEMENTATION) {

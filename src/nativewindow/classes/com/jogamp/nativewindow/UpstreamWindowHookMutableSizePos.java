@@ -40,10 +40,10 @@ public class UpstreamWindowHookMutableSizePos extends UpstreamSurfaceHookMutable
     public final int getY() {
         return winY;
     }
-    public final int getWindowWidth() {
+    public final int getWidth() {
         return winWidth;
     }
-    public final int getWindowHeight() {
+    public final int getHeight() {
         return winHeight;
     }
 

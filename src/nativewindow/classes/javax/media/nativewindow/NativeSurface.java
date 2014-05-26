@@ -180,7 +180,7 @@ public interface NativeSurface extends SurfaceUpdatedListener {
   /**
    * Returns the width of the client area excluding insets (window decorations) in pixel units.
    * @return width of the client area in pixel units
-   * @see NativeWindow#getWindowWidth()
+   * @see NativeWindow#getWidth()
    * @see #convertToWindowUnits(int[])
    */
   public int getSurfaceWidth();
@@ -188,7 +188,7 @@ public interface NativeSurface extends SurfaceUpdatedListener {
   /**
    * Returns the height of the client area excluding insets (window decorations) in pixel units.
    * @return height of the client area in pixel units
-   * @see NativeWindow#getWindowHeight()
+   * @see NativeWindow#getHeight()
    * @see #convertToWindowUnits(int[])
    */
   public int getSurfaceHeight();
