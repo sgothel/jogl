@@ -477,14 +477,26 @@ static jmethodID windowRepaintID = NULL;
     }
 }
 
+/**
+ * p abs screen position w/ bottom-left origin
+ */
 - (void) setMousePosition:(NSPoint)p
 {
     NSWindow* nsWin = [self window];
     if( NULL != nsWin ) {
         NSScreen* screen = [nsWin screen];
-        NSRect screenRect = [screen frame];
 
-        CGPoint pt = { p.x, screenRect.size.height - p.y }; // y-flip (CG is top-left origin)
+        CGDirectDisplayID display = NewtScreen_getCGDirectDisplayIDByNSScreen(screen);
+        CGRect frameTL = CGDisplayBounds (display); // origin top-left
+        NSRect frameBL = [screen frame]; // origin bottom-left
+        CGPoint pt = { p.x, frameTL.origin.y + frameTL.size.height - ( p.y - frameBL.origin.y ) }; // y-flip from BL-screen -> TL-screen
+
+        DBG_PRINT( "setMousePosition: point-in[%d/%d], screen tl[%d/%d %dx%d] bl[%d/%d %dx%d] -> %d/%d\n",
+            (int)p.x, (int)p.y,
+            (int)frameTL.origin.x, (int)frameTL.origin.y, (int)frameTL.size.width, (int)frameTL.size.height,
+            (int)frameBL.origin.x, (int)frameBL.origin.y, (int)frameBL.size.width, (int)frameBL.size.height,
+            (int)pt.x, (int)pt.y);
+
         CGEventRef ev = CGEventCreateMouseEvent (NULL, kCGEventMouseMoved, pt, kCGMouseButtonLeft);
         CGEventPost (kCGHIDEventTap, ev);
     }
@@ -956,19 +968,20 @@ static jmethodID windowRepaintID = NULL;
 {
     int totalHeight = nsz.height + cachedInsets[3]; // height + insets.bottom
 
-    DBG_PRINT( "newtAbsClientTLWinPos2AbsBLScreenPos: given %d/%d %dx%d, insets bottom %d -> totalHeight %d\n", 
+    DBG_PRINT( "newtAbsClientTLWinPos2AbsBLScreenPos: point-in[%d/%d], size-in[%dx%d], insets bottom %d -> totalHeight %d\n", 
         (int)p.x, (int)p.y, (int)nsz.width, (int)nsz.height, cachedInsets[3], totalHeight);
 
     NSScreen* screen = [self screen];
-    NSRect screenFrame = [screen frame];
 
-    DBG_PRINT( "newtAbsClientTLWinPos2AbsBLScreenPos: screen %d/%d %dx%d\n", 
-        (int)screenFrame.origin.x, (int)screenFrame.origin.y, (int)screenFrame.size.width, (int)screenFrame.size.height);
+    CGDirectDisplayID display = NewtScreen_getCGDirectDisplayIDByNSScreen(screen);
+    CGRect frameTL = CGDisplayBounds (display); // origin top-left
+    NSRect frameBL = [screen frame]; // origin bottom-left
+    NSPoint r = NSMakePoint(p.x, frameBL.origin.y + frameBL.size.height - ( p.y - frameTL.origin.y ) - totalHeight); // y-flip from TL-screen -> BL-screen
 
-    NSPoint r = NSMakePoint(screenFrame.origin.x + p.x,
-                            screenFrame.origin.y + screenFrame.size.height - p.y - totalHeight);
-
-    DBG_PRINT( "newtAbsClientTLWinPos2AbsBLScreenPos: result %d/%d\n", (int)r.x, (int)r.y); 
+    DBG_PRINT( "newtAbsClientTLWinPos2AbsBLScreenPos: screen tl[%d/%d %dx%d] bl[%d/%d %dx%d ->  %d/%d\n",
+        (int)frameTL.origin.x, (int)frameTL.origin.y, (int)frameTL.size.width, (int)frameTL.size.height,
+        (int)frameBL.origin.x, (int)frameBL.origin.y, (int)frameBL.size.width, (int)frameBL.size.height,
+        (int)r.x, (int)r.y);
 
     return r;
 }
@@ -983,9 +996,16 @@ static jmethodID windowRepaintID = NULL;
 
     NSView* mView = [self contentView];
     NSRect mViewFrame = [mView frame]; 
+    NSPoint r = NSMakePoint(winFrame.origin.x + p.x,
+                            winFrame.origin.y + ( mViewFrame.size.height - p.y ) ); // y-flip in view
 
-    return NSMakePoint(winFrame.origin.x + p.x,
-                       winFrame.origin.y + ( mViewFrame.size.height - p.y ) ); // y-flip in view
+    DBG_PRINT( "newtRelClientTLWinPos2AbsBLScreenPos: point-in[%d/%d], winFrame[%d/%d %dx%d], viewFrame[%d/%d %dx%d] -> %d/%d\n",
+        (int)p.x, (int)p.y,
+        (int)winFrame.origin.x, (int)winFrame.origin.y, (int)winFrame.size.width, (int)winFrame.size.height,
+        (int)mViewFrame.origin.x, (int)mViewFrame.origin.y, (int)mViewFrame.size.width, (int)mViewFrame.size.height,
+        (int)r.x, (int)r.y);
+
+    return r;
 }
 
 - (NSSize) newtClientSize2TLSize: (NSSize) nsz
@@ -1001,20 +1021,33 @@ static jmethodID windowRepaintID = NULL;
  */
 - (NSPoint) getLocationOnScreen: (NSPoint) p
 {
-    NSScreen* screen = [self screen];
-    NSRect screenRect = [screen frame];
-
     NSView* view = [self contentView];
     NSRect viewFrame = [view frame];
-
     NSRect r;
     r.origin.x = p.x;
     r.origin.y = viewFrame.size.height - p.y; // y-flip
     r.size.width = 0;
     r.size.height = 0;
-    // NSRect rS = [win convertRectToScreen: r]; // 10.7
-    NSPoint oS = [self convertBaseToScreen: r.origin];
-    oS.y = screenRect.origin.y + screenRect.size.height - oS.y;
+    // NSRect rS = [self convertRectToScreen: r]; // 10.7
+    NSPoint oS = [self convertBaseToScreen: r.origin]; // BL-screen
+
+    NSScreen* screen = [self screen];
+    CGDirectDisplayID display = NewtScreen_getCGDirectDisplayIDByNSScreen(screen);
+    CGRect frameTL = CGDisplayBounds (display); // origin top-left
+    NSRect frameBL = [screen frame]; // origin bottom-left
+    oS.y = frameTL.origin.y + frameTL.size.height - ( oS.y - frameBL.origin.y ); // y-flip from BL-screen -> TL-screen
+
+#ifdef VERBOSE_ON
+    NSRect winFrame = [self frame];
+    DBG_PRINT( "getLocationOnScreen: point-in[%d/%d], winFrame[%d/%d %dx%d], viewFrame[%d/%d %dx%d], screen tl[%d/%d %dx%d] bl[%d/%d %dx%d] -> %d/%d\n",
+        (int)p.x, (int)p.y,
+        (int)winFrame.origin.x, (int)winFrame.origin.y, (int)winFrame.size.width, (int)winFrame.size.height,
+        (int)viewFrame.origin.x, (int)viewFrame.origin.y, (int)viewFrame.size.width, (int)viewFrame.size.height,
+        (int)frameTL.origin.x, (int)frameTL.origin.y, (int)frameTL.size.width, (int)frameTL.size.height,
+        (int)frameBL.origin.x, (int)frameBL.origin.y, (int)frameBL.size.width, (int)frameBL.size.height,
+        (int)oS.x, (int)oS.y);
+#endif
+
     return oS;
 }
 

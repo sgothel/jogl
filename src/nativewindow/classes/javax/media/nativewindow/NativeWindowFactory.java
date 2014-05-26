@@ -686,6 +686,10 @@ public abstract class NativeWindowFactory {
         return new WrappedWindow(config, surfaceHandle, hook, true, windowHandle);
     }
 
+    /**
+     * @param nw
+     * @return top-left client-area position in window units
+     */
     public static PointImmutable getLocationOnScreen(NativeWindow nw) {
         final String nwt = NativeWindowFactory.getNativeWindowType(true);
         if( NativeWindowFactory.TYPE_X11 == nwt ) {
@@ -693,7 +697,7 @@ public abstract class NativeWindowFactory {
         } else if( NativeWindowFactory.TYPE_WINDOWS == nwt ) {
             return GDIUtil.GetRelativeLocation(nw.getWindowHandle(), 0, 0, 0);
         } else if( NativeWindowFactory.TYPE_MACOSX == nwt ) {
-            return OSXUtil.GetLocationOnScreen(nw.getWindowHandle(), null == nw.getParent(), 0, 0);
+            return OSXUtil.GetLocationOnScreen(nw.getWindowHandle(), 0, 0);
         /**
          * FIXME: Needs service provider interface (SPI) for TK dependent implementation
         } else if( NativeWindowFactory.TYPE_BCM_VC_IV == nwt ) {

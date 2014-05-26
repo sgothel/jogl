@@ -430,7 +430,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
 
     private Point getLocationOnScreenImpl(final int x, final int y, final NativeWindow parent, final boolean useParent) {
         if( !useParent && !isOffscreenInstance && 0 != surfaceHandle) {
-            return OSXUtil.GetLocationOnScreen(surfaceHandle, true, x, y);
+            return OSXUtil.GetLocationOnScreen(surfaceHandle, x, y);
         }
 
         final Point p = new Point(x, y);

@@ -137,6 +137,14 @@ Java_jogamp_nativewindow_macosx_OSXUtil_isNSWindow0(JNIEnv *env, jclass _unused,
     return u;
 }
 
+static CGDirectDisplayID OSXUtil_getCGDirectDisplayIDByNSScreen(NSScreen *screen) {
+    // Mind: typedef uint32_t CGDirectDisplayID; - however, we assume it's 64bit on 64bit ?!
+    NSDictionary * dict = [screen deviceDescription];
+    NSNumber * val = (NSNumber *) [dict objectForKey: @"NSScreenNumber"];
+    // [NSNumber integerValue] returns NSInteger which is 32 or 64 bit native size
+    return (CGDirectDisplayID) [val integerValue];
+}
+
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    getLocationOnScreen0
@@ -151,10 +159,6 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetLocationOnS
      * return location in 0/0 top-left space,
      * OSX is 0/0 bottom-left space naturally
      */
-    NSRect r;
-    int dest_x=-1;
-    int dest_y=-1;
-
     NSObject *nsObj = (NSObject*) (intptr_t) winOrView;
     NSWindow* win = NULL;
     NSView* view = NULL;
@@ -166,27 +170,36 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetLocationOnS
         view = (NSView*) nsObj;
         win = [view window];
     } else {
-        NativewindowCommon_throwNewRuntimeException(env, "neither win not view %p\n", nsObj);
+        NativewindowCommon_throwNewRuntimeException(env, "neither win nor view %p\n", nsObj);
     }
-    NSScreen* screen = [win screen];
-    NSRect screenRect = [screen frame];
-    NSRect winFrame = [win frame];
+    NSRect viewFrame = [view frame];
 
+    NSRect r;
     r.origin.x = src_x;
-    r.origin.y = winFrame.size.height - src_y; // y-flip for 0/0 top-left
+    r.origin.y = viewFrame.size.height - src_y; // y-flip for 0/0 top-left
     r.size.width = 0;
     r.size.height = 0;
     // NSRect rS = [win convertRectToScreen: r]; // 10.7
-    NSPoint oS = [win convertBaseToScreen: r.origin];
-    /**
-    NSLog(@"LOS.1: (bottom-left) %d/%d, screen-y[0: %d, h: %d], (top-left) %d/%d\n", 
-        (int)oS.x, (int)oS.y, (int)screenRect.origin.y, (int) screenRect.size.height,
-        (int)oS.x, (int)(screenRect.origin.y + screenRect.size.height - oS.y)); */
+    NSPoint oS = [win convertBaseToScreen: r.origin]; // BL-screen
 
-    dest_x = (int) oS.x;
-    dest_y = (int) screenRect.origin.y + screenRect.size.height - oS.y;
+    NSScreen* screen = [win screen];
+    CGDirectDisplayID display = OSXUtil_getCGDirectDisplayIDByNSScreen(screen);
+    CGRect frameTL = CGDisplayBounds (display); // origin top-left
+    NSRect frameBL = [screen frame]; // origin bottom-left
+    oS.y = frameTL.origin.y + frameTL.size.height - ( oS.y - frameBL.origin.y ); // y-flip from BL-screen -> TL-screen
 
-    jobject res = (*env)->NewObject(env, pointClz, pointCstr, (jint)dest_x, (jint)dest_y);
+#ifdef VERBOSE
+    NSRect winFrame = [win frame];
+    DBG_PRINT( "GetLocationOnScreen0(window: %p):: point-in[%d/%d], winFrame[%d/%d %dx%d], viewFrame[%d/%d %dx%d], screen tl[%d/%d %dx%d] bl[%d/%d %dx%d] -> %d/%d\n",
+        win, (int)src_x, (int)src_y,
+        (int)winFrame.origin.x, (int)winFrame.origin.y, (int)winFrame.size.width, (int)winFrame.size.height,
+        (int)viewFrame.origin.x, (int)viewFrame.origin.y, (int)viewFrame.size.width, (int)viewFrame.size.height,
+        (int)frameTL.origin.x, (int)frameTL.origin.y, (int)frameTL.size.width, (int)frameTL.size.height,
+        (int)frameBL.origin.x, (int)frameBL.origin.y, (int)frameBL.size.width, (int)frameBL.size.height,
+        (int)oS.x, (int)oS.y);
+#endif
+
+    jobject res = (*env)->NewObject(env, pointClz, pointCstr, (jint)oS.x, (jint)oS.y);
 
     [pool release];
 

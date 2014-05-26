@@ -91,31 +91,13 @@ public class OSXUtil implements ToolkitProperties {
     }
 
     /**
-     * In case the <code>windowOrView</code> is top-level,
-     * you shall set <code>topLevel</code> to true where
-     * insets gets into account to compute the client position as follows:
-     * <pre>
-      if(topLevel) {
-          // top-level position -> client window position
-          final Insets insets = GetInsets(windowOrView);
-          los.setX(los.getX() + insets.getLeftWidth());
-          los.setY(los.getY() + insets.getTopHeight());
-      }
-     * </pre>
      * @param windowOrView
-     * @param topLevel
      * @param src_x
      * @param src_y
-     * @return the client position
+     * @return top-left client-area position in window units
      */
-    public static Point GetLocationOnScreen(long windowOrView, boolean topLevel, int src_x, int src_y) {
-      final Point los = (Point) GetLocationOnScreen0(windowOrView, src_x, src_y);
-      if(topLevel) {
-          // top-level position -> client window position
-          final Insets insets = GetInsets(windowOrView);
-          los.set(los.getX() + insets.getLeftWidth(), los.getY() + insets.getTopHeight());
-      }
-      return los;
+    public static Point GetLocationOnScreen(long windowOrView, int src_x, int src_y) {
+      return (Point) GetLocationOnScreen0(windowOrView, src_x, src_y);
     }
 
     public static Insets GetInsets(long windowOrView) {
