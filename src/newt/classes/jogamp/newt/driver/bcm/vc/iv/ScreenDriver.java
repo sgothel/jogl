@@ -79,10 +79,14 @@ public class ScreenDriver extends ScreenImpl {
         props[i++] = 0; // crt_idx
         props[i++] = ScreenImpl.default_sm_widthmm; // FIXME
         props[i++] = ScreenImpl.default_sm_heightmm; // FIXME
-        props[i++] = 0; // rotated viewport x
-        props[i++] = 0; // rotated viewport y
-        props[i++] = cachedWidth; // rotated viewport width
-        props[i++] = cachedWidth; // rotated viewport height
+        props[i++] = 0; // rotated viewport x pixel-units
+        props[i++] = 0; // rotated viewport y pixel-units
+        props[i++] = cachedWidth; // rotated viewport width pixel-units
+        props[i++] = cachedWidth; // rotated viewport height pixel-units
+        props[i++] = 0; // rotated viewport x window-units
+        props[i++] = 0; // rotated viewport y window-units
+        props[i++] = cachedWidth; // rotated viewport width window-units
+        props[i++] = cachedWidth; // rotated viewport height window-units
         MonitorModeProps.streamInMonitorDevice(null, cache, this, cache.monitorModes, currentMode, props, 0);
     }
 

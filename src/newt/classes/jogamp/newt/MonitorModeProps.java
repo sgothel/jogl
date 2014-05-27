@@ -45,34 +45,76 @@ import jogamp.newt.ScreenImpl;
  * Encodes and decodes {@link MonitorMode} and {@link MonitorDevice} properties.
  */
 public class MonitorModeProps {
-    /** WARNING: must be synchronized with ScreenMode.h, native implementation
-     * 2: width, height
+    /**
+     * {@value} Elements: width, height
+     * <p>
+     * WARNING: must be synchronized with ScreenMode.h, native implementation
+     * </p>
      */
     public static final int NUM_RESOLUTION_PROPERTIES   = 2;
 
-    /** WARNING: must be synchronized with ScreenMode.h, native implementation
-     * 1: bpp
+    /**
+     * {@value} Element: bpp
+     * <p>
+     * WARNING: must be synchronized with ScreenMode.h, native implementation
+     * </p>
      */
     public static final int NUM_SURFACE_SIZE_PROPERTIES = 1;
 
-    /** WARNING: must be synchronized with ScreenMode.h, native implementation
-     * 2: refresh-rate (Hz*100), flags
+    /**
+     * {@value} Elements: refresh-rate (Hz*100), flags
+     * <p>
+     * WARNING: must be synchronized with ScreenMode.h, native implementation
+     * </p>
      */
     public static final int NUM_SIZEANDRATE_PROPERTIES = 2;
 
-    /** WARNING: must be synchronized with ScreenMode.h, native implementation
-     * 2: id, rotation
+    /**
+     * {@value} Elements: id, rotation
+     * <p>
+     * WARNING: must be synchronized with ScreenMode.h, native implementation
+     * </p>
      */
     public static final int NUM_MONITOR_MODE_PROPERTIES  = 2;
 
-    /** WARNING: must be synchronized with ScreenMode.h, native implementation
-     * count + all the above
+    /**
+     * {@value} Elements:
+     * <ul>
+     *  <li>count</li>
+     *  <li>{@link #NUM_RESOLUTION_PROPERTIES}</li>
+     *  <li>{@link #NUM_SURFACE_SIZE_PROPERTIES}</li>
+     *  <li>{@link #NUM_SIZEANDRATE_PROPERTIES}</li>
+     *  <li>{@link #NUM_MONITOR_MODE_PROPERTIES}</li>
+     *  <li>mode-id</li>
+     * </ul>
+     * <p>
+     * WARNING: must be synchronized with ScreenMode.h, native implementation
+     * </p>
      */
     public static final int NUM_MONITOR_MODE_PROPERTIES_ALL = 8;
 
+    /**
+     * {@value} Elements: count + {@link #NUM_RESOLUTION_PROPERTIES}
+     * <p>
+     * WARNING: must be synchronized with ScreenMode.h, native implementation
+     * </p>
+     */
     public static final int IDX_MONITOR_MODE_BPP =   1 // count
                                                    + MonitorModeProps.NUM_RESOLUTION_PROPERTIES
                                                    ;
+    /**
+     * {@value} Elements:
+     * <ul>
+     *  <li>count</li>
+     *  <li>{@link #NUM_RESOLUTION_PROPERTIES}</li>
+     *  <li>{@link #NUM_SURFACE_SIZE_PROPERTIES}</li>
+     *  <li>{@link #NUM_SIZEANDRATE_PROPERTIES}</li>
+     *  <li>mode-id</li>
+     * </ul>
+     * <p>
+     * WARNING: must be synchronized with ScreenMode.h, native implementation
+     * </p>
+     */
     public static final int IDX_MONITOR_MODE_ROT =   1 // count
                                                    + MonitorModeProps.NUM_RESOLUTION_PROPERTIES
                                                    + MonitorModeProps.NUM_SURFACE_SIZE_PROPERTIES
@@ -80,9 +122,24 @@ public class MonitorModeProps {
                                                    + 1 // id of MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES
                                                    ;
 
-    /** WARNING: must be synchronized with ScreenMode.h, native implementation
-     * 15: count + id, ScreenSizeMM[width, height], rotated Viewport pixel-units, rotated viewport window-units, currentMonitorModeId, rotation, supportedModeId+
-     *     Viewport := [x, y, width, height] (4 elements)
+    /**
+     * {@value} Elements:
+     * <ul>
+     *   <li>count</li>
+     *   <li>id</li>
+     *   <li>ScreenSizeMM[width, height] (2 elements)</li>
+     *   <li>Rotated Viewport pixel-units (4 elements)</li>
+     *   <li>Rotated Viewport window-units  (4 elements)</li>
+     *   <li>CurrentMonitorModeId</li>
+     *   <li>Rotation</li>
+     *   <li>SupportedModeId+</li>
+     * </ul>
+     * <p>
+     * Viewport := [x, y, width, height] (4 elements)
+     * </p>
+     * <p>
+     * WARNING: must be synchronized with ScreenMode.h, native implementation
+     * </p>
      */
     public static final int MIN_MONITOR_DEVICE_PROPERTIES = 15;
 

@@ -489,16 +489,20 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
      * @return
      */
     private final MonitorDevice getVirtualMonitorDevice(MonitorModeProps.Cache cache, int monitorId, MonitorMode currentMode) {
-        int[] props = new int[MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES];
+        final int[] props = new int[MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES];
         int i = 0;
         props[i++] = MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES;
         props[i++] = monitorId;
         props[i++] = default_sm_widthmm;
         props[i++] = default_sm_heightmm;
-        props[i++] = 0; // rotated viewport x
-        props[i++] = 0; // rotated viewport y
-        props[i++] = currentMode.getRotatedWidth();  // rotated viewport width
-        props[i++] = currentMode.getRotatedHeight(); // rotated viewport height
+        props[i++] = 0; // rotated viewport x pixel-units
+        props[i++] = 0; // rotated viewport y pixel-units
+        props[i++] = currentMode.getRotatedWidth();  // rotated viewport width pixel-units
+        props[i++] = currentMode.getRotatedHeight(); // rotated viewport height pixel-units
+        props[i++] = 0; // rotated viewport x window-units
+        props[i++] = 0; // rotated viewport y window-units
+        props[i++] = currentMode.getRotatedWidth();  // rotated viewport width window-units
+        props[i++] = currentMode.getRotatedHeight(); // rotated viewport height window-units
         props[i++] = currentMode.getId(); // current mode id
         props[i++] = currentMode.getRotation();
         props[i++] = currentMode.getId(); // supported mode id #1

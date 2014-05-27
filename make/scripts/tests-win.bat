@@ -97,7 +97,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.anim.TestAnimat
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.anim.TestAWTCardLayoutAnimatorStartStopBug532 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.anim.Bug898AnimatorFromEDTAWT %*
 
-scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLJPanelAWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLJPanelAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLWindowNEWT %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestSwingAWT01GLn
@@ -167,7 +167,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode00cN
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01aNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01bNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01cNEWT %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01dNEWT %*
+scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01dNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02aNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02bNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.ManualScreenMode03sNEWT %*
