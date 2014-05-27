@@ -414,7 +414,7 @@ public class AWTNewtEventFactory {
     }
 
     public static int newtKeyCode2AWTKeyCode(final short newtKeyCode) {
-        final int defAwtKeyCode = 0xFFFF & (int)newtKeyCode;
+        final int defAwtKeyCode = 0xFFFF & newtKeyCode;
         switch (newtKeyCode) {
             case com.jogamp.newt.event.KeyEvent.VK_HOME          : return java.awt.event.KeyEvent.VK_HOME;
             case com.jogamp.newt.event.KeyEvent.VK_END           : return java.awt.event.KeyEvent.VK_END;
@@ -634,9 +634,10 @@ public class AWTNewtEventFactory {
                     mods |= com.jogamp.newt.event.InputEvent.INVISIBLE_MASK;
                 }
             }
+            final int[] pixelPos = newtSource.convertToPixelUnits(new int[] { event.getX(), event.getY() });
             return new com.jogamp.newt.event.MouseEvent(
                            newtType, (null==newtSource)?(Object)event.getComponent():(Object)newtSource, event.getWhen(),
-                           mods, event.getX(), event.getY(), (short)event.getClickCount(),
+                           mods, pixelPos[0], pixelPos[1], (short)event.getClickCount(),
                            newtButton, MouseEvent.getRotationXYZ(rotation, mods), 1f);
         }
         return null; // no mapping ..
