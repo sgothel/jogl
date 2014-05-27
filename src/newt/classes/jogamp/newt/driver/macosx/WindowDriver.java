@@ -385,11 +385,16 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             0 != ( FLAG_CHANGE_PARENTING & flags) ||
             0 != ( FLAG_CHANGE_FULLSCREEN & flags) ) {
             if(isOffscreenInstance) {
-                createWindow(true, 0 != getWindowHandle(), pClientLevelOnSreen, x, y, 64, 64, false, setVisible, false);
+                createWindow(true, 0 != getWindowHandle(), pClientLevelOnSreen, 64, 64, false, setVisible, false);
             } else {
-                createWindow(false, 0 != getWindowHandle(), pClientLevelOnSreen, x, y, width, height,
+                createWindow(false, 0 != getWindowHandle(), pClientLevelOnSreen, width, height,
                                     0 != ( FLAG_IS_FULLSCREEN & flags), setVisible, 0 != ( FLAG_IS_ALWAYSONTOP & flags));
             }
+            // no native event (fullscreen, some reparenting)
+            positionChanged(false,  x, y);
+            updatePixelScaleByWindowHandle(false /* sendEvent */);
+            super.sizeChanged(false, width, height, true);
+            visibleChanged(false, setVisible);
         } else {
             if( width>0 && height>0 ) {
                 if( !isOffscreenInstance ) {
@@ -577,8 +582,8 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     //
 
     private void createWindow(final boolean offscreenInstance, final boolean recreate,
-                              final PointImmutable pS, final int x, final int y,
-                              final int width, final int height, final boolean fullscreen, final boolean visible, final boolean alwaysOnTop) {
+                              final PointImmutable pS, final int width, final int height,
+                              final boolean fullscreen, final boolean visible, final boolean alwaysOnTop) {
 
         final long parentWinHandle = getParentWindowHandle();
         final long preWinHandle = getWindowHandle();
@@ -637,11 +642,6 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                         setAlwaysOnTop0(getWindowHandle(), alwaysOnTop);
                     }
                 } } );
-            // no native event (fullscreen, some reparenting)
-            positionChanged(false,  x, y);
-            updatePixelScaleByWindowHandle(false /* sendEvent */);
-            super.sizeChanged(false, width, height, true);
-            visibleChanged(false, visible);
         } catch (Exception ie) {
             ie.printStackTrace();
         }
