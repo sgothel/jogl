@@ -626,6 +626,7 @@ public class AWTNewtEventFactory {
             final short newtButton = awtButton2Newt(event.getButton());
             int mods = awtModifiers2Newt(event.getModifiers(), event.getModifiersEx());
             mods |= com.jogamp.newt.event.InputEvent.getButtonMask(newtButton); // always include NEWT BUTTON_MASK
+            final int[] pixelPos;
             if(null!=newtSource) {
                 if(newtSource.isPointerConfined()) {
                     mods |= com.jogamp.newt.event.InputEvent.CONFINED_MASK;
@@ -633,8 +634,10 @@ public class AWTNewtEventFactory {
                 if(!newtSource.isPointerVisible()) {
                     mods |= com.jogamp.newt.event.InputEvent.INVISIBLE_MASK;
                 }
+                pixelPos = newtSource.convertToPixelUnits(new int[] { event.getX(), event.getY() });
+            } else {
+                pixelPos = new int[] { event.getX(), event.getY() };
             }
-            final int[] pixelPos = newtSource.convertToPixelUnits(new int[] { event.getX(), event.getY() });
             return new com.jogamp.newt.event.MouseEvent(
                            newtType, (null==newtSource)?(Object)event.getComponent():(Object)newtSource, event.getWhen(),
                            mods, pixelPos[0], pixelPos[1], (short)event.getClickCount(),
