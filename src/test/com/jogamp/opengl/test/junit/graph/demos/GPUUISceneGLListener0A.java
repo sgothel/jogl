@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.media.opengl.GL;
@@ -52,10 +53,12 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     private boolean debug = false;
     private boolean trace = false;
 
-    private final int renderModes;
+    private final float noAADPIThreshold;
     private final RenderState rs;
     private final SceneUIController sceneUIController;
 
+    /** -1 == AUTO, TBD @ init(..) */
+    private int renderModes;
     private RegionRenderer renderer;
 
     private final int fontSet = FontFactory.UBUNTU;
@@ -77,6 +80,13 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     /** Proportional Font Size to Window Height for FPS Status Line, per-vertical-pixels [PVP] */
     private final float fontSizeFpsPVP = 0.038f;
     private float dpiH = 96;
+
+    /**
+     * Default DPI threshold value to disable {@link Region#VBAA_RENDERING_BIT VBAA}: {@value} dpi
+     * @see #GPUUISceneGLListener0A(float)
+     * @see #GPUUISceneGLListener0A(float, boolean, boolean)
+     */
+    public static final float DefaultNoAADPIThreshold = 180f;
 
     private int currentText = 0;
 
@@ -102,16 +112,46 @@ public class GPUUISceneGLListener0A implements GLEventListener {
       this(0);
     }
 
-    public GPUUISceneGLListener0A(int renderModes) {
-      this(RenderState.createRenderState(SVertex.factory()), renderModes, false, false);
+    /**
+     * @param noAADPIThreshold see {@link #DefaultNoAADPIThreshold}
+     */
+    public GPUUISceneGLListener0A(final float noAADPIThreshold) {
+        this(noAADPIThreshold, false, false);
     }
 
-    public GPUUISceneGLListener0A(RenderState rs, int renderModes, boolean debug, boolean trace) {
-        this.rs = rs;
-        this.renderModes = renderModes;
+    /**
+     * @param renderModes
+     */
+    public GPUUISceneGLListener0A(int renderModes) {
+      this(renderModes, false, false);
+    }
 
+    /**
+     * @param renderModes
+     * @param debug
+     * @param trace
+     */
+    public GPUUISceneGLListener0A(int renderModes, boolean debug, boolean trace) {
+        this(0f, renderModes, debug, trace);
+    }
+
+    /**
+     * @param noAADPIThreshold see {@link #DefaultNoAADPIThreshold}
+     * @param debug
+     * @param trace
+     */
+    public GPUUISceneGLListener0A(final float noAADPIThreshold, boolean debug, boolean trace) {
+        this(noAADPIThreshold, -1, debug, trace);
+    }
+
+    private GPUUISceneGLListener0A(final float noAADPIThreshold, int renderModes, boolean debug, boolean trace) {
+        this.noAADPIThreshold = noAADPIThreshold;
+        this.rs = RenderState.createRenderState(SVertex.factory());
         this.debug = debug;
         this.trace = trace;
+
+        this.renderModes = renderModes;
+
         try {
             font = FontFactory.get(FontFactory.UBUNTU).getDefault();
         } catch (IOException ioe) {
@@ -593,6 +633,12 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         } else {
             System.err.println("Using default DPI of "+dpiH);
         }
+        if( 0 > renderModes ) {
+            final boolean noAA = dpiH >= noAADPIThreshold;
+            final String noAAs = noAA ? " >= " : " < ";
+            System.err.println("AUTO RenderMode: dpi "+dpiH+noAAs+noAADPIThreshold+" -> noAA "+noAA);
+            renderModes = noAA ? 0 : Region.VBAA_RENDERING_BIT;
+        }
         if(drawable instanceof GLWindow) {
             System.err.println("GPUUISceneGLListener0A: init (1)");
             final GLWindow glw = (GLWindow) drawable;
@@ -715,15 +761,17 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         if(null == labels[currentText]) {
             final float pixelSizeFixed = fontSizeFixedPVP * drawable.getSurfaceHeight();
             final float dyTop = drawable.getSurfaceHeight() - 2f*jogampLabel.getLineHeight();
-            final float dxRight = drawable.getSurfaceWidth() * relMiddle;
+            final float dxMiddle = drawable.getSurfaceWidth() * relMiddle;
             labels[currentText] = new Label(renderer.getRenderState().getVertexFactory(), renderModes, font, pixelSizeFixed, strings[currentText]);
             labels[currentText].setColor(0.1f, 0.1f, 0.1f, 1.0f);
             labels[currentText].setEnabled(enableOthers);
-            labels[currentText].translate(dxRight,
+            labels[currentText].translate(dxMiddle,
                                           dyTop - 1.5f * jogampLabel.getLineHeight()
                                                 - 1.5f * truePtSizeLabel.getLineHeight(), 0f);
             labels[currentText].addMouseListener(dragZoomRotateListener);
             sceneUIController.addShape(labels[currentText]);
+            System.err.println("Label["+currentText+"] CTOR: "+labels[currentText]);
+            System.err.println("Label["+currentText+"] CTOR: "+Arrays.toString(labels[currentText].getTranslate()));
         }
         if( fpsLabel.isEnabled() ) {
             final float lfps, tfps, td;
@@ -741,8 +789,8 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             final String text;
             if( null == actionText ) {
                 final String timePrec = gl.isGLES() ? "4.0" : "4.1";
-                text = String.format("%03.1f/%03.1f fps, v-sync %d, fontSize %.1f, %s-samples %d, q %d, td %"+timePrec+"f, blend %b, alpha-bits %d, msaa-bits %d",
-                    lfps, tfps, gl.getSwapInterval(), fontSizeFixedPVP, modeS, sceneUIController.getSampleCount(), fpsLabel.getQuality(), td,
+                text = String.format("%03.1f/%03.1f fps, v-sync %d, dpi %.1f, fontSize %.1f, %s-samples %d, q %d, td %"+timePrec+"f, blend %b, alpha %d, msaa %d",
+                    lfps, tfps, gl.getSwapInterval(), dpiH, fontSizeFixedPVP, modeS, sceneUIController.getSampleCount(), fpsLabel.getQuality(), td,
                     renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED),
                     drawable.getChosenGLCapabilities().getAlphaBits(),
                     drawable.getChosenGLCapabilities().getNumSamples());
@@ -780,12 +828,18 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         for(int i=buttonsLeftCount; i<buttons.size(); i++) {
             buttons.get(i).translate(dxRight, dyTop, dz);
         }
-        final float dyTopLabel = drawable.getSurfaceHeight() - 2f*jogampLabel.getLineHeight();
-        jogampLabel.translate(dxMiddle, dyTopLabel, dz);
-        truePtSizeLabel.translate(dxMiddle, dyTopLabel, dz);
+        final float dxMiddleAbs = width * relMiddle;
+        final float dyTopLabelAbs = drawable.getSurfaceHeight() - 2f*jogampLabel.getLineHeight();
+        jogampLabel.setTranslate(dxMiddleAbs, dyTopLabelAbs, dz);
+        truePtSizeLabel.setTranslate(dxMiddleAbs, dyTopLabelAbs, dz);
+        truePtSizeLabel.setTranslate(dxMiddleAbs, dyTopLabelAbs - 1.5f * jogampLabel.getLineHeight(), 0f);
         fpsLabel.translate(0f, 0f, 0f);
         if( null != labels[currentText] ) {
-            labels[currentText].translate(dxMiddle, dyTopLabel, 0f);
+            labels[currentText].setTranslate(dxMiddleAbs,
+                                             dyTopLabelAbs - 1.5f * jogampLabel.getLineHeight()
+                                             - 1.5f * truePtSizeLabel.getLineHeight(), 0f);
+            System.err.println("Label["+currentText+"] MOVE: "+labels[currentText]);
+            System.err.println("Label["+currentText+"] MOVE: "+Arrays.toString(labels[currentText].getTranslate()));
         }
         crossHairCtr.translate(dw/2f, dh/2f, 0f);
 

@@ -1,16 +1,26 @@
 package com.jogamp.opengl.test.junit.graph.demos;
 
+import java.awt.Component;
+import java.awt.Frame;
+import java.lang.reflect.InvocationTargetException;
+
+import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
+import javax.swing.SwingUtilities;
+
+import org.junit.Assume;
 
 import com.jogamp.graph.curve.Region;
+import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
 
-public class GPUUISceneNewtDemo {
+public class GPUUISceneNewtCanvasAWTDemo {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
 
@@ -19,7 +29,22 @@ public class GPUUISceneNewtDemo {
     static boolean GraphMSAAMode = false;
     static float GraphAutoMode = GPUUISceneGLListener0A.DefaultNoAADPIThreshold;
 
-    public static void main(String[] args) {
+    static void setComponentSize(final Component comp, final DimensionImmutable new_sz) {
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    java.awt.Dimension d = new java.awt.Dimension(new_sz.getWidth(), new_sz.getHeight());
+                    comp.setMinimumSize(d);
+                    comp.setPreferredSize(d);
+                    comp.setSize(d);
+                } } );
+        } catch( Throwable throwable ) {
+            throwable.printStackTrace();
+            Assume.assumeNoException( throwable );
+        }
+    }
+
+    public static void main(String[] args) throws InterruptedException, InvocationTargetException {
         int width = 800, height = 400;
         int x = 10, y = 10;
         if( 0 != args.length ) {
@@ -106,7 +131,17 @@ public class GPUUISceneNewtDemo {
             }
         });
 
-        window.setVisible(true);
+        final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(window);
+        final Frame frame = new Frame("GraphUI Newt Demo: graph["+Region.getRenderModeString(rmode)+"], msaa "+SceneMSAASamples);
+
+        setComponentSize(newtCanvasAWT, new Dimension(width, height));
+        frame.add(newtCanvasAWT);
+        SwingUtilities.invokeAndWait(new Runnable() {
+           public void run() {
+               frame.pack();
+               frame.setVisible(true);
+           }
+        });
         animator.start();
     }
 }

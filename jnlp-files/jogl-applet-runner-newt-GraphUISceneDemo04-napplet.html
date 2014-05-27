@@ -1,12 +1,12 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
 <head>
-<title>JOGL Graph UI-Scene Demo 01 MSAA-4 (NApplet)</title>
+<title>JOGL Graph UI-Scene Demo 01 Auto-AA (NApplet)</title>
 </head>
 <body  BGCOLOR="#ffffff">
 
 <P>
-JOGL Graph UI-Scene Demo 01 MSAA-4
+JOGL Graph UI-Scene Demo 01 Auto-AA (VBAA for < 200 dpi)
 </P>
 
 <P>
@@ -17,11 +17,11 @@ JOGL Graph UI-Scene Demo 01 MSAA-4
                                 jar/joal.jar,
                                 jar/jogl-all.jar,
                                 jar/jogl-test.jar">
-   <param name="gl_event_listener_class" value="com.jogamp.opengl.test.junit.graph.demos.GPUUISceneGLListener0A>
+   <param name="gl_event_listener_class" value="com.jogamp.opengl.test.junit.graph.demos.GPUUISceneGLListener04>
    <param name="gl_profile" value="GL2ES2">
    <param name="gl_swap_interval" value="1">
    <param name="gl_alpha" value="4">
-   <param name="gl_multisamplebuffer" value="4">
+   <param name="gl_multisamplebuffer" value="0">
    <param name="gl_debug" value="false">
    <param name="gl_trace" value="false">
    <comment>
@@ -33,11 +33,11 @@ JOGL Graph UI-Scene Demo 01 MSAA-4
                    jar/joal.jar,
                    jar/jogl-all.jar,
                    jar/jogl-test.jar"
-          gl_event_listener_class="com.jogamp.opengl.test.junit.graph.demos.GPUUISceneGLListener02"
+          gl_event_listener_class="com.jogamp.opengl.test.junit.graph.demos.GPUUISceneGLListener04"
           gl_profile="GL2ES2"
           gl_swap_interval="1"
           gl_alpha="4"
-          gl_multisamplebuffer="4"
+          gl_multisamplebuffer="0"
           gl_debug="false"
           gl_trace="false">
         <noembed>Sorry, no Java support detected.</noembed>
