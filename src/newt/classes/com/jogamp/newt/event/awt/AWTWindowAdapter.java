@@ -104,10 +104,8 @@ public class AWTWindowAdapter
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("AWT: focusGained: "+e+" -> "+event);
         }
-        if(null!=newtListener) {
+        if( EventProcRes.DISPATCH == processEvent(false, event) ) {
             ((com.jogamp.newt.event.WindowListener)newtListener).windowGainedFocus(event);
-        } else {
-            enqueueEvent(false, event);
         }
     }
 
@@ -118,10 +116,8 @@ public class AWTWindowAdapter
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("AWT: focusLost: "+e+" -> "+event);
         }
-        if(null!=newtListener) {
+        if( EventProcRes.DISPATCH == processEvent(false, event) ) {
             ((com.jogamp.newt.event.WindowListener)newtListener).windowLostFocus(event);
-        } else {
-            enqueueEvent(false, event);
         }
     }
 
@@ -144,10 +140,8 @@ public class AWTWindowAdapter
             }
             System.err.println("AWT: componentResized: "+sz+" ( "+insets+", "+sz2+" ), "+e+" -> "+event);
         }
-        if(null!=newtListener) {
+        if( EventProcRes.DISPATCH == processEvent(false, event) ) {
             ((com.jogamp.newt.event.WindowListener)newtListener).windowResized(event);
-        } else {
-            enqueueEvent(false, event);
         }
     }
 
@@ -158,10 +152,8 @@ public class AWTWindowAdapter
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("AWT: componentMoved: "+e+" -> "+event);
         }
-        if(null!=newtListener) {
+        if( EventProcRes.DISPATCH == processEvent(false, event) ) {
             ((com.jogamp.newt.event.WindowListener)newtListener).windowMoved(event);
-        } else {
-            enqueueEvent(false, event);
         }
     }
 
@@ -207,10 +199,8 @@ public class AWTWindowAdapter
     public synchronized void windowActivated(java.awt.event.WindowEvent e) {
         if( !isSetup ) { return; }
         com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
-        if(null!=newtListener) {
+        if( EventProcRes.DISPATCH == processEvent(false, event) ) {
             ((com.jogamp.newt.event.WindowListener)newtListener).windowGainedFocus(event);
-        } else {
-            enqueueEvent(false, event);
         }
     }
 
@@ -224,10 +214,8 @@ public class AWTWindowAdapter
     public synchronized void windowDeactivated(java.awt.event.WindowEvent e) {
         if( !isSetup ) { return; }
         com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
-        if(null!=newtListener) {
+        if( EventProcRes.DISPATCH == processEvent(false, event) ) {
             ((com.jogamp.newt.event.WindowListener)newtListener).windowLostFocus(event);
-        } else {
-            enqueueEvent(false, event);
         }
     }
 
@@ -246,10 +234,8 @@ public class AWTWindowAdapter
             synchronized( AWTWindowAdapter.this ) {
                 if( !isSetup ) { return; }
                 com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
-                if(null!=newtListener) {
+                if( EventProcRes.DISPATCH == processEvent(true, event) ) {
                     ((com.jogamp.newt.event.WindowListener)newtListener).windowDestroyNotify(event);
-                } else {
-                    enqueueEvent(true, event);
                 }
             }
         }
@@ -258,10 +244,8 @@ public class AWTWindowAdapter
             synchronized( AWTWindowAdapter.this ) {
                 if( !isSetup ) { return; }
                 com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
-                if(null!=newtListener) {
+                if( EventProcRes.DISPATCH == processEvent(true, event) ) {
                     ((com.jogamp.newt.event.WindowListener)newtListener).windowDestroyed(event);
-                } else {
-                    enqueueEvent(true, event);
                 }
             }
         }

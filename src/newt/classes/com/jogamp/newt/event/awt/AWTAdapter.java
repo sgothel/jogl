@@ -218,12 +218,45 @@ public abstract class AWTAdapter implements java.util.EventListener
     public abstract AWTAdapter removeFrom(java.awt.Component awtComponent);
 
     /**
-     * Enqueues the event to the {@link #getNewtWindow()} is not null.
+     * Return value for {@link AWTAdapter#processEvent(boolean, com.jogamp.newt.event.NEWTEvent) event processing}.
      */
-    void enqueueEvent(boolean wait, com.jogamp.newt.event.NEWTEvent event) {
+    static enum EventProcRes {
+        /** Event shall be dispatched appropriately */
+        DISPATCH,
+        /** Event has been enqueued */
+        ENQUEUED,
+        /** No known processing method applies */
+        NOP
+    }
+
+    /**
+     * Process the event.
+     * <p>
+     * If {@link #getNewtEventListener()} is not <code>null</code>,
+     * {@link EventProcRes#DISPATCH DISPATCH} is returned and caller shall dispatch the event appropriately.
+     * </p>
+     * <p>
+     * If {@link #getNewtWindow()} is not <code>null</code>,
+     * {@link EventProcRes#ENQUEUED ENQUEUED} is returned and the event has been {@link com.jogamp.newt.Window#enqueueEvent(boolean, com.jogamp.newt.event.NEWTEvent) enqueued already}.
+     * </p>
+     * <p>
+     * If none of the above matches, {@link EventProcRes#NOP NOP} is returned and none of the above processing method applies.
+     * </p>
+     *
+     * @param wait In case the event will be {@link EventProcRes#ENQUEUED ENQUEUED},
+     *             passing <code>true</code> will block until the event has been processed, otherwise method returns immediately.
+     * @param event The {@link com.jogamp.newt.event.NEWTEvent event} to enqueue.
+     * @return One of the {@link EventProcRes} values, see above.
+     */
+    EventProcRes processEvent(final boolean wait, final com.jogamp.newt.event.NEWTEvent event) {
+        if(null != newtListener) {
+            return EventProcRes.DISPATCH;
+        }
         if( null != newtWindow ) {
             newtWindow.enqueueEvent(wait, event);
+            return EventProcRes.ENQUEUED;
         }
+        return EventProcRes.NOP;
     }
 }
 

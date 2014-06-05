@@ -603,6 +603,11 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      */
     void windowRepaint(int x, int y, int width, int height);
 
+    /**
+     * Enqueues a {@link com.jogamp.newt.event.NEWTEvent NEWT event}.
+     * @param wait Passing <code>true</code> will block until the event has been processed, otherwise method returns immediately.
+     * @param event The {@link com.jogamp.newt.event.NEWTEvent event} to enqueue.
+     */
     void enqueueEvent(boolean wait, com.jogamp.newt.event.NEWTEvent event);
 
     void runOnEDTIfAvail(boolean wait, final Runnable task);
