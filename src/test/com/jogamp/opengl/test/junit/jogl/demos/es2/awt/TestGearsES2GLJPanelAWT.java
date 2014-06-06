@@ -168,10 +168,9 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
             Assert.assertEquals(true, animator.isAnimating());
         }
 
-        QuitAdapter quitAdapter = new QuitAdapter();
-
-        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glJPanel);
-        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
+        final QuitAdapter quitAdapter = new QuitAdapter();
+        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter), glJPanel).addTo(glJPanel);
+        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter), glJPanel).addTo(frame);
 
         snap.setMakeSnapshot();
 

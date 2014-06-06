@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,23 +20,24 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.demos.gl2.awt;
 
 import javax.media.opengl.*;
 
 import com.jogamp.opengl.util.Animator;
+
 import javax.media.opengl.awt.GLCanvas;
+
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;
 import com.jogamp.newt.event.TraceKeyAdapter;
 import com.jogamp.newt.event.TraceWindowAdapter;
-
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
@@ -94,18 +95,18 @@ public class TestGearsAWT extends UITestCase {
 
         glCanvas.addGLEventListener(new Gears(1));
 
-        Animator animator = new Animator(glCanvas);
-        QuitAdapter quitAdapter = new QuitAdapter();
-
-        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glCanvas);
-        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
+        final QuitAdapter quitAdapter = new QuitAdapter();
+        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter), glCanvas).addTo(glCanvas);
+        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter), glCanvas).addTo(frame);
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 frame.pack();
                 frame.setVisible(true);
             }});
-        animator.setUpdateFPSFrames(60, System.err);        
+
+        final Animator animator = new Animator(glCanvas);
+        animator.setUpdateFPSFrames(60, System.err);
         animator.start();
 
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
@@ -156,7 +157,7 @@ public class TestGearsAWT extends UITestCase {
                 } catch (Exception ex) { ex.printStackTrace(); }
             } else if(args[i].equals("-wait")) {
                 waitForKey = true;
-            }            
+            }
         }
         if(waitForKey) {
             BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));

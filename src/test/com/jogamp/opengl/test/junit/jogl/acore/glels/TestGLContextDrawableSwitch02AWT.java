@@ -45,7 +45,6 @@ import javax.media.opengl.awt.GLCanvas;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLDrawableUtil;
-
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -116,13 +115,13 @@ public class TestGLContextDrawableSwitch02AWT extends UITestCase {
         final GLCapabilities capsOffscreen = (GLCapabilities) capsOnscreen.clone();
         capsOffscreen.setOnscreen(false);
 
-        final QuitAdapter quitAdapter = new QuitAdapter();
-
         final Frame frame = new Frame("Gears AWT Test");
         Assert.assertNotNull(frame);
-        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
 
         GLAutoDrawable glCanvas = createGLAutoDrawable(frame, capsOnscreen, width, height);
+
+        final QuitAdapter quitAdapter = new QuitAdapter();
+        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter), glCanvas).addTo(frame);
 
         final SnapshotGLEventListener snapshotGLEventListener = new SnapshotGLEventListener();
         GearsES2 gears = new GearsES2(1);

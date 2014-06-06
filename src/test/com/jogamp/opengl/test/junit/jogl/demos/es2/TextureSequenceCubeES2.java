@@ -296,7 +296,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
             window.addMouseListener(mouseAction);
         } else if (GLProfile.isAWTAvailable() && upstreamWidget instanceof java.awt.Component) {
             final java.awt.Component comp = (java.awt.Component) upstreamWidget;
-            new com.jogamp.newt.event.awt.AWTMouseAdapter(mouseAction).addTo(comp);
+            new com.jogamp.newt.event.awt.AWTMouseAdapter(mouseAction, drawable).addTo(comp);
         }
 
         // Let's show the completed shader state ..

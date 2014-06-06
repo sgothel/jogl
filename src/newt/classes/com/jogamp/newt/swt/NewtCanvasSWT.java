@@ -548,6 +548,9 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
         }
 
         @Override
+        public final NativeSurface getNativeSurface() { return this; }
+
+        @Override
         public AbstractGraphicsConfiguration getGraphicsConfiguration() {
             return config;
         }

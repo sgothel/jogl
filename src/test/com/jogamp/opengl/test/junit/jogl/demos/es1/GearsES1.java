@@ -198,8 +198,8 @@ public class GearsES1 implements GLEventListener {
         window.addKeyListener(gearsKeys);
     } else if (GLProfile.isAWTAvailable() && upstreamWidget instanceof java.awt.Component) {
         final java.awt.Component comp = (java.awt.Component) upstreamWidget;
-        new com.jogamp.newt.event.awt.AWTMouseAdapter(gearsMouse).addTo(comp);
-        new com.jogamp.newt.event.awt.AWTKeyAdapter(gearsKeys).addTo(comp);
+        new com.jogamp.newt.event.awt.AWTMouseAdapter(gearsMouse, drawable).addTo(comp);
+        new com.jogamp.newt.event.awt.AWTKeyAdapter(gearsKeys, drawable).addTo(comp);
     }
     System.err.println(Thread.currentThread()+" GearsES1.init FIN");
   }

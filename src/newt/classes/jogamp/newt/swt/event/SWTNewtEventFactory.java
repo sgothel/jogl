@@ -28,6 +28,9 @@
 
 package jogamp.newt.swt.event;
 
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeSurfaceHolder;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -134,7 +137,7 @@ public class SWTNewtEventFactory {
     }
 
     public static int newtKeyCode2SWTKeyCode(final short newtKeyCode) {
-        final int defSWTKeyCode = 0xFFFF & (int)newtKeyCode;
+        final int defSWTKeyCode = 0xFFFF & newtKeyCode;
         switch (newtKeyCode) {
             case com.jogamp.newt.event.KeyEvent.VK_HOME          : return SWT.HOME;
             case com.jogamp.newt.event.KeyEvent.VK_END           : return SWT.END;
@@ -199,15 +202,15 @@ public class SWTNewtEventFactory {
     }
 
 
-    public static final com.jogamp.newt.event.InputEvent createInputEvent(org.eclipse.swt.widgets.Event event, Object source) {
-        com.jogamp.newt.event.InputEvent res = createMouseEvent(event, source);
+    public static final com.jogamp.newt.event.InputEvent createInputEvent(org.eclipse.swt.widgets.Event event, NativeSurfaceHolder sourceHolder) {
+        com.jogamp.newt.event.InputEvent res = createMouseEvent(event, sourceHolder);
         if(null == res) {
-            res = createKeyEvent(event, source);
+            res = createKeyEvent(event, sourceHolder);
         }
         return res;
     }
 
-    public static final com.jogamp.newt.event.MouseEvent createMouseEvent(org.eclipse.swt.widgets.Event event, Object source) {
+    public static final com.jogamp.newt.event.MouseEvent createMouseEvent(org.eclipse.swt.widgets.Event event, NativeSurfaceHolder sourceHolder) {
         switch(event.type) {
             case SWT.MouseDown:
             case SWT.MouseUp:
@@ -230,24 +233,31 @@ public class SWTNewtEventFactory {
 
             int mods = swtModifiers2Newt(event.stateMask, true);
 
-            if( source instanceof com.jogamp.newt.Window) {
-                final com.jogamp.newt.Window newtSource = (com.jogamp.newt.Window)source;
-                if(newtSource.isPointerConfined()) {
-                    mods |= InputEvent.CONFINED_MASK;
+            final NativeSurface source = sourceHolder.getNativeSurface();
+            final int[] pixelPos;
+            if( null != source ) {
+                if( source instanceof com.jogamp.newt.Window) {
+                    final com.jogamp.newt.Window newtSource = (com.jogamp.newt.Window)source;
+                    if(newtSource.isPointerConfined()) {
+                        mods |= InputEvent.CONFINED_MASK;
+                    }
+                    if(!newtSource.isPointerVisible()) {
+                        mods |= InputEvent.INVISIBLE_MASK;
+                    }
                 }
-                if(!newtSource.isPointerVisible()) {
-                    mods |= InputEvent.INVISIBLE_MASK;
-                }
+                pixelPos = source.convertToPixelUnits(new int[] { event.x, event.y });
+            } else {
+                pixelPos = new int[] { event.x, event.y };
             }
 
             return new com.jogamp.newt.event.MouseEvent(
-                           type, (null==source)?(Object)event.data:source, (0xFFFFFFFFL & (long)event.time),
-                           mods, event.x, event.y, (short)event.count, (short)event.button, MouseEvent.getRotationXYZ(rotation, mods), 1f);
+                           type, sourceHolder, (0xFFFFFFFFL & event.time),
+                           mods, pixelPos[0], pixelPos[1], (short)event.count, (short)event.button, MouseEvent.getRotationXYZ(rotation, mods), 1f);
         }
         return null; // no mapping ..
     }
 
-    public static final com.jogamp.newt.event.KeyEvent createKeyEvent(org.eclipse.swt.widgets.Event event, Object source) {
+    public static final com.jogamp.newt.event.KeyEvent createKeyEvent(org.eclipse.swt.widgets.Event event, NativeSurfaceHolder sourceHolder) {
         switch(event.type) {
             case SWT.KeyDown:
             case SWT.KeyUp:
@@ -259,7 +269,7 @@ public class SWTNewtEventFactory {
         if( (short)0 != type ) {
             final short newtKeyCode = swtKeyCode2NewtKeyCode( event.keyCode );
             return com.jogamp.newt.event.KeyEvent.create(
-                           type, (null==source)?(Object)event.data:source, (0xFFFFFFFFL & (long)event.time),
+                           type, sourceHolder, (0xFFFFFFFFL & event.time),
                            swtModifiers2Newt(event.stateMask, false),
                            newtKeyCode, newtKeyCode, event.character);
         }
@@ -280,8 +290,8 @@ public class SWTNewtEventFactory {
         dragButtonDown = 0;
     }
 
-    public final boolean dispatchMouseEvent(org.eclipse.swt.widgets.Event event, Object source, com.jogamp.newt.event.MouseListener l) {
-        com.jogamp.newt.event.MouseEvent res = createMouseEvent(event, source);
+    public final boolean dispatchMouseEvent(org.eclipse.swt.widgets.Event event, NativeSurfaceHolder sourceHolder, com.jogamp.newt.event.MouseListener l) {
+        com.jogamp.newt.event.MouseEvent res = createMouseEvent(event, sourceHolder);
         if(null != res) {
             if(null != l) {
                 switch(event.type) {
@@ -331,8 +341,8 @@ public class SWTNewtEventFactory {
         return false;
     }
 
-    public final boolean dispatchKeyEvent(org.eclipse.swt.widgets.Event event, Object source, com.jogamp.newt.event.KeyListener l) {
-        com.jogamp.newt.event.KeyEvent res = createKeyEvent(event, source);
+    public final boolean dispatchKeyEvent(org.eclipse.swt.widgets.Event event, NativeSurfaceHolder sourceHolder, com.jogamp.newt.event.KeyListener l) {
+        com.jogamp.newt.event.KeyEvent res = createKeyEvent(event, sourceHolder);
         if(null != res) {
             if(null != l) {
                 switch(event.type) {
@@ -349,27 +359,38 @@ public class SWTNewtEventFactory {
         return false;
     }
 
-    public final void attachDispatchListener(final org.eclipse.swt.widgets.Control ctrl, final Object source,
+    public final void attachDispatchListener(final org.eclipse.swt.widgets.Control ctrl, final NativeSurfaceHolder sourceHolder,
                                              final com.jogamp.newt.event.MouseListener ml,
                                              final com.jogamp.newt.event.KeyListener kl) {
-      final Listener listener = new Listener () {
-          @Override
-          public void handleEvent (Event event) {
-              if( dispatchMouseEvent( event, source, ml ) ) {
-                  return;
-              }
-              if( dispatchKeyEvent( event, source, kl ) ) {
-                  return;
-              }
-          } };
-      ctrl.addListener(SWT.MouseDown, listener);
-      ctrl.addListener(SWT.MouseUp, listener);
-      ctrl.addListener(SWT.MouseMove, listener);
-      ctrl.addListener(SWT.MouseEnter, listener);
-      ctrl.addListener(SWT.MouseExit, listener);
-      ctrl.addListener(SWT.MouseVerticalWheel, listener);
-      ctrl.addListener(SWT.KeyDown, listener);
-      ctrl.addListener(SWT.KeyUp, listener);
+      if(null==ctrl) {
+          throw new IllegalArgumentException("Argument ctrl is null");
+      }
+      if(null==sourceHolder) {
+          throw new IllegalArgumentException("Argument source is null");
+      }
+
+      if( null != ml ) {
+          final Listener listener = new Listener () {
+              @Override
+              public void handleEvent (Event event) {
+                  dispatchMouseEvent( event, sourceHolder, ml );
+              } };
+          ctrl.addListener(SWT.MouseDown, listener);
+          ctrl.addListener(SWT.MouseUp, listener);
+          ctrl.addListener(SWT.MouseMove, listener);
+          ctrl.addListener(SWT.MouseEnter, listener);
+          ctrl.addListener(SWT.MouseExit, listener);
+          ctrl.addListener(SWT.MouseVerticalWheel, listener);
+      }
+      if( null != kl ) {
+          final Listener listener = new Listener () {
+              @Override
+              public void handleEvent (Event event) {
+                  dispatchKeyEvent( event, sourceHolder, kl );
+              } };
+          ctrl.addListener(SWT.KeyDown, listener);
+          ctrl.addListener(SWT.KeyUp, listener);
+      }
     }
 }
 

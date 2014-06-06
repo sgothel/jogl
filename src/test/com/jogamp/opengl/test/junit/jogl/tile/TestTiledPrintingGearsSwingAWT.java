@@ -192,11 +192,10 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
         Animator animator = new Animator();
         animator.add(glJPanel1);
         animator.add(glJPanel2);
-        QuitAdapter quitAdapter = new QuitAdapter();
-
-        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glJPanel1);
-        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glJPanel2);
-        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
+        final QuitAdapter quitAdapter = new QuitAdapter();
+        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter), glJPanel1).addTo(glJPanel1);
+        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter), glJPanel2).addTo(glJPanel2);
+        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter), glJPanel2).addTo(frame);
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {

@@ -854,6 +854,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // public final void destroy() - see below
 
     @Override
+    public final NativeSurface getNativeSurface() { return this; }
+
+    @Override
     public final NativeWindow getParent() {
         return parentWindow;
     }

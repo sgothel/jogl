@@ -238,10 +238,9 @@ public class TestGearsES2AWT extends UITestCase {
         if( useAnimator && exclusiveContext ) {
             animator.setExclusiveContext(awtEDT);
         }
-        QuitAdapter quitAdapter = new QuitAdapter();
-
-        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glCanvas);
-        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
+        final QuitAdapter quitAdapter = new QuitAdapter();
+        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter), glCanvas).addTo(glCanvas);
+        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter), glCanvas).addTo(frame);
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {

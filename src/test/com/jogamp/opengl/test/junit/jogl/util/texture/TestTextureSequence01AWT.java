@@ -66,11 +66,11 @@ public class TestTextureSequence01AWT extends UITestCase {
             public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
         });
         glc.addGLEventListener(new TextureSequenceCubeES2(texSource, false, -2.3f, 0f, 0f));
-        final Animator animator = new Animator(glc);
-        animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
-        QuitAdapter quitAdapter = new QuitAdapter();
-        new com.jogamp.newt.event.awt.AWTKeyAdapter(quitAdapter).addTo(glc);
-        new com.jogamp.newt.event.awt.AWTWindowAdapter(quitAdapter).addTo(glc);
+
+        final QuitAdapter quitAdapter = new QuitAdapter();
+        new com.jogamp.newt.event.awt.AWTKeyAdapter(quitAdapter, glc).addTo(glc);
+        new com.jogamp.newt.event.awt.AWTWindowAdapter(quitAdapter, glc).addTo(glc);
+
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
@@ -81,6 +81,9 @@ public class TestTextureSequence01AWT extends UITestCase {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
+
+        final Animator animator = new Animator(glc);
+        animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
         animator.start();
 
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {

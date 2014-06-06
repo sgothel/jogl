@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -60,21 +60,21 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 /**
- * Demos an onscreen AWT {@link GLCanvas} being used for 
+ * Demos an onscreen AWT {@link GLCanvas} being used for
  * {@link RandomTileRenderer} rendering to produce a PNG file.
  * <p>
  * {@link RandomTileRenderer} is being kicked off from the main thread.
  * </p>
  * <p>
  * {@link RandomTileRenderer} setup and finishing is performed
- * within the pre- and post {@link GLEventListener} 
+ * within the pre- and post {@link GLEventListener}
  * set via {@link TileRendererBase#setGLEventListener(GLEventListener, GLEventListener)}
- * on the animation thread. 
+ * on the animation thread.
  * </p>
  * <p>
  * At tile rendering finish, the viewport and
  * and the original {@link GLEventListener}'s PMV matrix as well.
- * The latter is done by calling it's {@link GLEventListener#reshape(GLAutoDrawable, int, int, int, int) reshape} method. 
+ * The latter is done by calling it's {@link GLEventListener#reshape(GLAutoDrawable, int, int, int, int) reshape} method.
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -82,7 +82,7 @@ public class TestRandomTiledRendering3GL2AWT extends UITestCase {
     static long duration = 3500; // ms
     static int width  = 512;
     static int height = 512;
-    
+
     @Test
     public void test01_aa0() throws IOException, InterruptedException, InvocationTargetException {
         doTest(0);
@@ -92,7 +92,7 @@ public class TestRandomTiledRendering3GL2AWT extends UITestCase {
         doTest(8);
     }
 
-    void doTest(int msaaCount) throws IOException, InterruptedException, InvocationTargetException {      
+    void doTest(int msaaCount) throws IOException, InterruptedException, InvocationTargetException {
         final GLCapabilities caps = new GLCapabilities(null);
         if( msaaCount > 0 ) {
             caps.setSampleBuffers(true);
@@ -113,11 +113,9 @@ public class TestRandomTiledRendering3GL2AWT extends UITestCase {
         final Gears gears = new Gears();
         glad.addGLEventListener( gears );
 
-        final Animator animator = new Animator(glad);
         final QuitAdapter quitAdapter = new QuitAdapter();
-
-        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glad);
-        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
+        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter), glad).addTo(glad);
+        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter), glad).addTo(frame);
 
         // Fix the image size for now
         final int maxTileSize = 64;
@@ -134,7 +132,7 @@ public class TestRandomTiledRendering3GL2AWT extends UITestCase {
         final GLEventListener preTileGLEL = new GLEventListener() {
             final int w = maxTileSize, h = maxTileSize;
             int dx = 0, dy = 0;
-            
+
             @Override
             public void init(GLAutoDrawable drawable) {
                 final GL gl = drawable.getGL();
@@ -183,15 +181,15 @@ public class TestRandomTiledRendering3GL2AWT extends UITestCase {
                             caps.getGLProfile(),
                             0 /* internalFormat */,
                             imageWidth, imageHeight,
-                            0, 
+                            0,
                             imageBuffer.pixelAttributes,
-                            false, false, 
+                            false, false,
                             flipVertically[0],
                             imageBuffer.buffer,
                             null /* Flusher */);
                     try {
                         final String filename = getSnapshotFilename(0, "-tile", glad.getChosenGLCapabilities(), imageWidth, imageHeight, false, TextureIO.PNG, null);
-                        final File file = new File(filename);                
+                        final File file = new File(filename);
                         TextureIO.write(textureData, file);
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -206,19 +204,21 @@ public class TestRandomTiledRendering3GL2AWT extends UITestCase {
             public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
         };
         renderer.setGLEventListener(preTileGLEL, postTileGLEL);
-        
+
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 frame.pack();
                 frame.setVisible(true);
             }});
-        animator.setUpdateFPSFrames(60, System.err);        
+
+        final Animator animator = new Animator(glad);
+        animator.setUpdateFPSFrames(60, System.err);
         animator.start();
 
         boolean signalTileRenderer = true;
-        
-        while(!quitAdapter.shouldQuit() && animator.isAnimating() && 
-              ( rendererActive[0] || animator.getTotalFPSDuration()<duration ) ) 
+
+        while(!quitAdapter.shouldQuit() && animator.isAnimating() &&
+              ( rendererActive[0] || animator.getTotalFPSDuration()<duration ) )
         {
             if( signalTileRenderer && animator.getTotalFPSDuration() > 90 ) {
                 signalTileRenderer = false;
@@ -244,9 +244,9 @@ public class TestRandomTiledRendering3GL2AWT extends UITestCase {
             public void run() {
                 frame.remove(glad);
                 frame.dispose();
-            }});        
+            }});
     }
-    
+
     public static void main(String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
@@ -257,5 +257,5 @@ public class TestRandomTiledRendering3GL2AWT extends UITestCase {
             }
         }
         org.junit.runner.JUnitCore.main(TestRandomTiledRendering3GL2AWT.class.getName());
-    }    
+    }
 }

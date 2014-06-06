@@ -68,7 +68,16 @@ import javax.media.nativewindow.util.Point;
  * which can create NativeWindow objects for its components.
  * </p>
  */
-public interface NativeWindow extends NativeSurface {
+public interface NativeWindow extends NativeSurface, NativeSurfaceHolder {
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Returns this instance, which <i>is-a</i> {@link NativeSurface}.
+   * </p>
+   */
+  @Override
+  public NativeSurface getNativeSurface();
 
   /**
    * Destroys this window incl. releasing all related resources.

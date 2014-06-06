@@ -633,6 +633,9 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     return getHeight() * getPixelScale();
   }
 
+  @Override
+  public final NativeSurface getNativeSurface() { return this; }
+
   //
   // NativeWindow
   //

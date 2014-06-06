@@ -302,8 +302,8 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
             window.addGestureHandler(pinchToZoomGesture);
         } else if (GLProfile.isAWTAvailable() && upstreamWidget instanceof java.awt.Component) {
             final java.awt.Component comp = (java.awt.Component) upstreamWidget;
-            new com.jogamp.newt.event.awt.AWTMouseAdapter(gearsMouse).addTo(comp);
-            new com.jogamp.newt.event.awt.AWTKeyAdapter(gearsKeys).addTo(comp);
+            new com.jogamp.newt.event.awt.AWTMouseAdapter(gearsMouse, drawable).addTo(comp);
+            new com.jogamp.newt.event.awt.AWTKeyAdapter(gearsKeys, drawable).addTo(comp);
         }
 
         st.useProgram(gl, false);

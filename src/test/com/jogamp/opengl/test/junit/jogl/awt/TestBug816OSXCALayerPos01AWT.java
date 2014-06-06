@@ -236,9 +236,8 @@ public class TestBug816OSXCALayerPos01AWT extends UITestCase {
         if( twoCanvas ) {
             animator.add(glCanvas2);
         }
-        QuitAdapter quitAdapter = new QuitAdapter();
-
-        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
+        final QuitAdapter quitAdapter = new QuitAdapter();
+        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter), glCanvas1).addTo(frame);
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {

@@ -2,6 +2,7 @@ package jogamp.nativewindow;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.UpstreamSurfaceHook;
@@ -64,6 +65,9 @@ public class WrappedWindow extends WrappedSurface implements NativeWindow {
     public void destroy() {
         destroyNotify();
     }
+
+    @Override
+    public final NativeSurface getNativeSurface() { return this; }
 
     @Override
     public NativeWindow getParent() {

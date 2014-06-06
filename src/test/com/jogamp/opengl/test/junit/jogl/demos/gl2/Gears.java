@@ -109,8 +109,8 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
         window.addKeyListener(gearsKeys);
     } else if (GLProfile.isAWTAvailable() && upstreamWidget instanceof java.awt.Component) {
         final java.awt.Component comp = (java.awt.Component) upstreamWidget;
-        new AWTMouseAdapter(gearsMouse).addTo(comp);
-        new AWTKeyAdapter(gearsKeys).addTo(comp);
+        new AWTMouseAdapter(gearsMouse, drawable).addTo(comp);
+        new AWTKeyAdapter(gearsKeys, drawable).addTo(comp);
     }
   }
 

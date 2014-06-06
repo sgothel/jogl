@@ -80,9 +80,9 @@ public class TestBug816OSXCALayerPos02AWT extends UITestCase {
 
         final Animator animator = new Animator();
         animator.add(glCanvas1);
-        QuitAdapter quitAdapter = new QuitAdapter();
 
-        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
+        final QuitAdapter quitAdapter = new QuitAdapter();
+        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter), glCanvas1).addTo(frame);
 
         // Build a GUI where the canvas 3D is located at top right of the frame
         // and can be resized with split panes dividers

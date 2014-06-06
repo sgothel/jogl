@@ -93,9 +93,9 @@ public class TestBug816OSXCALayerPos03bB849AWT extends UITestCase {
 
         final Animator animator = new Animator();
         animator.add(glCanvas1);
-        QuitAdapter quitAdapter = new QuitAdapter();
 
-        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
+        final QuitAdapter quitAdapter = new QuitAdapter();
+        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter), glCanvas1).addTo(frame);
 
         // Create a check box that hides / shows canvas
         final Checkbox checkbox = new Checkbox("Visible canvas", true);
