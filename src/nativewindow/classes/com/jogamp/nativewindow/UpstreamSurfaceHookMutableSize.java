@@ -1,5 +1,6 @@
 package com.jogamp.nativewindow;
 
+import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.UpstreamSurfaceHook;
 
@@ -39,6 +40,17 @@ public class UpstreamSurfaceHookMutableSize implements UpstreamSurfaceHook.Mutab
     @Override
     public String toString() {
         return getClass().getSimpleName()+"[pixel "+ pixWidth + "x" + pixHeight + "]";
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Returns <code>null</code>.
+     * </p>
+     */
+    @Override
+    public final NativeSurface getUpstreamSurface() {
+        return null;
     }
 
 }

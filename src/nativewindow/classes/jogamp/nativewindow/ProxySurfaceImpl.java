@@ -36,7 +36,6 @@ import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.SurfaceUpdatedListener;
 import javax.media.nativewindow.UpstreamSurfaceHook;
 
-
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 
@@ -74,7 +73,9 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
     }
 
     @Override
-    public NativeSurface getUpstreamSurface() { return null; }
+    public final NativeSurface getUpstreamSurface() {
+        return upstream.getUpstreamSurface();
+    }
 
     @Override
     public final UpstreamSurfaceHook getUpstreamSurfaceHook() { return upstream; }

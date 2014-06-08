@@ -17,7 +17,7 @@ import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
  * <pre>
  * EGLWrappedSurface [ is_a -> WrappedSurface -> ProxySurfaceImpl -> ProxySurface -> MutableSurface -> NativeSurface] has_a
  *     EGLUpstreamSurfaceHook [ is_a -> UpstreamSurfaceHook.MutableSize -> UpstreamSurfaceHook ] has_a
- *        NativeSurface (i.e. native X11 surface)
+ *        NativeSurface (e.g. native X11 surface)
  * </pre>
  */
 public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
@@ -40,9 +40,16 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
         }
     }
 
-    public final NativeSurface getUpstreamSurface() { return upstreamSurface; }
-
     static String getThreadName() { return Thread.currentThread().getName(); }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Returns the actual upstream {@link NativeSurface}, e.g. native X11 surface.
+     * </p>
+     */
+    @Override
+    public final NativeSurface getUpstreamSurface() { return upstreamSurface; }
 
     @Override
     public final void setSurfaceSize(int width, int height) {

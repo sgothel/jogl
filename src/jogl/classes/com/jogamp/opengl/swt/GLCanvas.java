@@ -468,6 +468,17 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
        public String toString() {
            return "SWTCanvasUpstreamSurfaceHook[upstream: "+GLCanvas.this.toString()+", "+clientArea.width+"x"+clientArea.height+"]";
        }
+
+       /**
+        * {@inheritDoc}
+        * <p>
+        * Returns <code>null</code>.
+        * </p>
+        */
+       @Override
+       public final NativeSurface getUpstreamSurface() {
+           return null;
+       }
    };
 
    protected final void updateSizeCheck() {

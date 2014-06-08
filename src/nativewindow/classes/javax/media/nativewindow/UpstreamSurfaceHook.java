@@ -38,6 +38,15 @@ public interface UpstreamSurfaceHook {
     /** called within {@link ProxySurface#destroyNotify()} within lock, before clearing fields. */
     public void destroy(ProxySurface s);
 
+    /**
+     * Returns the optional upstream {@link NativeSurface} if used by implementation, otherwise <code>null</code>.
+     * <p>
+     * One example is the JOGL EGLWrappedSurface, which might be backed up by a
+     * native platform NativeSurface (X11, WGL, CGL, ..).
+     * </p>
+     */
+    public NativeSurface getUpstreamSurface();
+
     /** Returns the width of the upstream surface in pixels, used if {@link ProxySurface#UPSTREAM_PROVIDES_SIZE} is set. */
     public int getSurfaceWidth(ProxySurface s);
     /** Returns the height of the upstream surface in pixels, used if {@link ProxySurface#UPSTREAM_PROVIDES_SIZE} is set. */

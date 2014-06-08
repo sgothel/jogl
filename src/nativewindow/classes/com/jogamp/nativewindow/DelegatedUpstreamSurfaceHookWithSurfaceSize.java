@@ -10,7 +10,7 @@ public class DelegatedUpstreamSurfaceHookWithSurfaceSize implements UpstreamSurf
 
     /**
      * @param upstream optional upstream UpstreamSurfaceHook used for {@link #create(ProxySurface)} and {@link #destroy(ProxySurface)}.
-     * @param surface mandatory {@link NativeSurface} used for {@link #getSurfaceWidth(ProxySurface)} and {@link #getSurfaceHeight(ProxySurface)}
+     * @param surface mandatory {@link NativeSurface} used for {@link #getSurfaceWidth(ProxySurface)} and {@link #getSurfaceHeight(ProxySurface)}, not used for {@link #getUpstreamSurface()}.
      */
     public DelegatedUpstreamSurfaceHookWithSurfaceSize(UpstreamSurfaceHook upstream, NativeSurface surface) {
         this.upstream = upstream;
@@ -18,6 +18,17 @@ public class DelegatedUpstreamSurfaceHookWithSurfaceSize implements UpstreamSurf
         if(null == surface) {
             throw new IllegalArgumentException("given surface is null");
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Returns <code>null</code>.
+     * </p>
+     */
+    @Override
+    public final NativeSurface getUpstreamSurface() {
+        return null;
     }
 
     @Override
