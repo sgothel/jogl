@@ -1586,16 +1586,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private final ReparentActionRecreate reparentActionRecreate = new ReparentActionRecreate();
 
     @Override
-    public final ReparentOperation reparentWindow(NativeWindow newParent) {
-        return reparentWindow(newParent, -1, -1, 0);
-    }
-
-    @Override
-    public final ReparentOperation reparentWindow(NativeWindow newParent, int x, int y, boolean forceDestroyCreate) {
-        return reparentWindow(newParent, x, y, forceDestroyCreate ? REPARENT_HINT_FORCE_RECREATION : 0);
-    }
-
-    @Override
     public final ReparentOperation reparentWindow(NativeWindow newParent, int x, int y, int hints) {
         final ReparentAction reparentAction = new ReparentAction(newParent, x, y, hints);
         runOnEDTIfAvail(true, reparentAction);
@@ -1920,12 +1910,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public final Rectangle getSurfaceBounds() {
-        // FIXME HiDPI: Shortcut, may need to adjust if we change scaling methodology
-        return new Rectangle(x * getPixelScaleX(), y * getPixelScaleY(), pixWidth, pixHeight);
-    }
-
-    @Override
     public final int[] convertToWindowUnits(final int[] pixelUnitsAndResult) {
         pixelUnitsAndResult[0] /= getPixelScaleX();
         pixelUnitsAndResult[1] /= getPixelScaleY();
@@ -1944,16 +1928,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     protected final Point convertToPixelUnits(final Point windowUnitsAndResult) {
-        return windowUnitsAndResult.scale(getPixelScaleX(), getPixelScaleY());
-    }
-
-    @Override
-    public final Rectangle convertToWindowUnits(final Rectangle pixelUnitsAndResult) {
-        return pixelUnitsAndResult.scaleInv(getPixelScaleX(), getPixelScaleY());
-    }
-
-    @Override
-    public final Rectangle convertToPixelUnits(final Rectangle windowUnitsAndResult) {
         return windowUnitsAndResult.scale(getPixelScaleX(), getPixelScaleY());
     }
 

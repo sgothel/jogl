@@ -379,27 +379,12 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
-    public final Rectangle getSurfaceBounds() {
-        return window.getSurfaceBounds();
-    }
-
-    @Override
     public final int[] convertToWindowUnits(final int[] pixelUnitsAndResult) {
         return window.convertToWindowUnits(pixelUnitsAndResult);
     }
 
     @Override
     public final int[] convertToPixelUnits(final int[] windowUnitsAndResult) {
-        return window.convertToPixelUnits(windowUnitsAndResult);
-    }
-
-    @Override
-    public final Rectangle convertToWindowUnits(final Rectangle pixelUnitsAndResult) {
-        return window.convertToWindowUnits(pixelUnitsAndResult);
-    }
-
-    @Override
-    public final Rectangle convertToPixelUnits(final Rectangle windowUnitsAndResult) {
         return window.convertToPixelUnits(windowUnitsAndResult);
     }
 
@@ -451,16 +436,6 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     public final String toString() {
         return "NEWT-GLWindow[ \n\tHelper: " + helper + ", \n\tDrawable: " + drawable +
                ", \n\tContext: " + context + ", \n\tWindow: "+window+ /** ", \n\tFactory: "+factory+ */ "]";
-    }
-
-    @Override
-    public final ReparentOperation reparentWindow(NativeWindow newParent) {
-        return window.reparentWindow(newParent);
-    }
-
-    @Override
-    public final ReparentOperation reparentWindow(NativeWindow newParent, int x, int y, boolean forceDestroyCreate) {
-        return window.reparentWindow(newParent, x, y, forceDestroyCreate);
     }
 
     @Override

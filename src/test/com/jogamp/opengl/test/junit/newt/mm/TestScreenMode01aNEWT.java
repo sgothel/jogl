@@ -56,6 +56,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import java.util.List;
 
 import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.Rectangle;
 
 /**
@@ -130,9 +131,9 @@ public class TestScreenMode01aNEWT extends UITestCase {
         final MonitorDevice monitor = screen.getMonitorDevices().get(0);
 
         Rectangle window0WindowBounds = window0.getBounds();
-        Rectangle window0SurfaceBounds = window0.getSurfaceBounds();
+        DimensionImmutable window0SurfaceSize = new Dimension(window0.getSurfaceWidth(), window0.getSurfaceHeight());
         System.err.println("Test.0: Window bounds    : "+window0WindowBounds+" [wu] within "+screen.getViewportInWindowUnits()+" [wu]");
-        System.err.println("Test.0: Window bounds    : "+window0SurfaceBounds+" [pixels]");
+        System.err.println("Test.0: Window size      : "+window0SurfaceSize+" [pixels]");
         System.err.println("Test.0: Screen viewport  : "+screen.getViewport()+" [pixels], "+screen.getViewportInWindowUnits()+" [wu]");
         System.err.println("Test.0: Monitor viewport : "+monitor.getViewport()+" [pixels], "+monitor.getViewportInWindowUnits()+" [wu]");
 
@@ -193,9 +194,9 @@ public class TestScreenMode01aNEWT extends UITestCase {
             System.err.println("[1] has current cached   : "+mmCachedCurrent);
             System.err.println("[1] has current queried  : "+mmQueriedCurrent+", equal "+mmCurrentEquals);
             window0WindowBounds = window0.getBounds();
-            window0SurfaceBounds = window0.getSurfaceBounds();
+            window0SurfaceSize = new Dimension(window0.getSurfaceWidth(), window0.getSurfaceHeight());
             System.err.println("Test.1: Window bounds    : "+window0WindowBounds+" [wu] within "+screen.getViewportInWindowUnits()+" [wu]");
-            System.err.println("Test.1: Window bounds    : "+window0SurfaceBounds+" [pixels]");
+            System.err.println("Test.1: Window size      : "+window0SurfaceSize+" [pixels]");
             System.err.println("Test.1: Screen viewport  : "+screen.getViewport()+" [pixels], "+screen.getViewportInWindowUnits()+" [wu]");
             System.err.println("Test.1: Monitor viewport : "+monitor.getViewport()+" [pixels], "+monitor.getViewportInWindowUnits()+" [wu]");
 

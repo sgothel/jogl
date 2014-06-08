@@ -57,6 +57,7 @@ import java.util.List;
 
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.Rectangle;
 
 /**
@@ -127,9 +128,9 @@ public class TestScreenMode00cNEWT extends UITestCase {
         Assert.assertNotNull(window0);
 
         Rectangle window0WindowBounds = window0.getBounds();
-        Rectangle window0SurfaceBounds = window0.getSurfaceBounds();
+        DimensionImmutable window0SurfaceSize = new Dimension(window0.getSurfaceWidth(), window0.getSurfaceHeight());
         System.err.println("Test.0: Window bounds    : "+window0WindowBounds+" [wu] within "+screen.getViewportInWindowUnits()+" [wu]");
-        System.err.println("Test.0: Window bounds    : "+window0SurfaceBounds+" [pixels]");
+        System.err.println("Test.0: Window size      : "+window0SurfaceSize+" [pixels]");
         System.err.println("Test.0: Screen viewport  : "+screen.getViewport()+" [pixels]");
 
         final List<MonitorMode> allMonitorModes = screen.getMonitorModes();
@@ -190,9 +191,9 @@ public class TestScreenMode00cNEWT extends UITestCase {
             System.err.println("[1] has current cached   : "+mmCachedCurrent);
             System.err.println("[1] has current queried  : "+mmQueriedCurrent+", equal "+mmCurrentEquals);
             window0WindowBounds = window0.getBounds();
-            window0SurfaceBounds = window0.getSurfaceBounds();
+            window0SurfaceSize = new Dimension(window0.getSurfaceWidth(), window0.getSurfaceHeight());
             System.err.println("Test.1: Window bounds    : "+window0WindowBounds+" [wu] within "+screen.getViewportInWindowUnits()+" [wu]");
-            System.err.println("Test.1: Window bounds    : "+window0SurfaceBounds+" [pixels]");
+            System.err.println("Test.1: Window size      : "+window0SurfaceSize+" [pixels]");
             System.err.println("Test.1: Screen viewport  : "+screen.getViewport()+" [pixels]");
 
             Assert.assertTrue(monitor.isModeChangedByUs());

@@ -254,16 +254,6 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
     Rectangle getBounds();
 
     /**
-     * Returns a newly created {@link Rectangle} containing the scaled window origin, {@link #getX()} & {@link #getY()},
-     * and size, {@link #getSurfaceWidth()} & {@link #getSurfaceHeight()}, in pixel units.
-     *
-     * @deprecated The returned position in pixel units might be erroneous in case of multiple monitor setup where a mixed pixel-scale exist,
-     * since this method currently does not take the monitor viewport and each of it's pixel-scale into account (expensive).
-     * Either we fix this issue or remove this method at a later time.
-     */
-    Rectangle getSurfaceBounds();
-
-    /**
      * Sets the size of the window's client area in window units, excluding decorations.
      *
      * <p>
@@ -358,22 +348,6 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      */
     void setTopLevelPosition(int x, int y);
 
-    /**
-     * Converts the given pixel units into window units <i>in place</i>.
-     * @param pixelUnitsAndResult rectangle storage holding the pixel units to convert
-     *                            and the resulting conversion.
-     * @return resulting rectangle storage pixelUnitsAndResult for chaining holding the converted values
-     */
-    Rectangle convertToWindowUnits(final Rectangle pixelUnitsAndResult);
-
-    /**
-     * Converts the given window units into pixel units <i>in place</i>.
-     * @param windowUnitsAndResult rectangle storage holding the window units to convert
-     *                            and the resulting conversion.
-     * @return resulting rectangle storage windowUnitsAndResult for chaining holding the converted values
-     */
-    Rectangle convertToPixelUnits(final Rectangle windowUnitsAndResult);
-
     void setUndecorated(boolean value);
 
     boolean isUndecorated();
@@ -462,40 +436,6 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
     public static final int REPARENT_HINT_FORCE_RECREATION = 1 << 0;
     /** Reparenting hint (bitfield value): Claim window becomes visible after reparenting, which is important for e.g. preserving the GL-states in case window is invisible while reparenting. */
     public static final int REPARENT_HINT_BECOMES_VISIBLE = 1 << 1;
-
-    /**
-     * Change this window's parent window.<br>
-     * <P>
-     * In case the old parent is not null and a Window,
-     * this window is removed from it's list of children.<br>
-     * In case the new parent is not null and a Window,
-     * this window is added to it's list of children.<br></P>
-     *
-     * @param newParent The new parent NativeWindow. If null, this Window becomes a top level window.
-     *
-     * @return The issued reparent action type (strategy) as defined in Window.ReparentAction
-     * @see #reparentWindow(NativeWindow, int, int, boolean)
-     * @deprecated Use {@link #reparentWindow(NativeWindow, int, int, int)}
-     */
-    ReparentOperation reparentWindow(NativeWindow newParent);
-
-    /**
-     * Change this window's parent window.<br>
-     * <P>
-     * In case the old parent is not null and a Window,
-     * this window is removed from it's list of children.<br>
-     * In case the new parent is not null and a Window,
-     * this window is added to it's list of children.<br></P>
-     *
-     * @param newParent The new parent NativeWindow. If null, this Window becomes a top level window.
-     * @param x new top-level position, use -1 for default position.
-     * @param y new top-level position, use -1 for default position.
-     * @param forceDestroyCreate if true, uses re-creation strategy for reparenting, default is <code>false</code>.
-     *
-     * @return The issued reparent action type (strategy) as defined in Window.ReparentAction
-     * @deprecated Use {@link #reparentWindow(NativeWindow, int, int, int)}
-     */
-    ReparentOperation reparentWindow(NativeWindow newParent, int x, int y, boolean forceDestroyCreate);
 
     /**
      * Change this window's parent window.<br>

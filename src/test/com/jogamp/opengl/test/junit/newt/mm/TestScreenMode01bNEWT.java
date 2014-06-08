@@ -57,6 +57,7 @@ import com.jogamp.opengl.util.Animator;
 import java.util.List;
 
 import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
 
@@ -157,9 +158,9 @@ public class TestScreenMode01bNEWT extends UITestCase {
         GLWindow window0 = createWindow(screen, caps, "win0", screenXPos, screenYPos, width, height);
         Assert.assertNotNull(window0);
         Rectangle window0WindowBounds = window0.getBounds();
-        Rectangle window0SurfaceBounds = window0.getSurfaceBounds();
+        DimensionImmutable window0SurfaceSize = new Dimension(window0.getSurfaceWidth(), window0.getSurfaceHeight());
         System.err.println("Test.0: Window bounds    : "+window0WindowBounds+" [wu] within "+screen.getViewportInWindowUnits()+" [wu]");
-        System.err.println("Test.0: Window bounds    : "+window0SurfaceBounds+" [pixels]");
+        System.err.println("Test.0: Window size      : "+window0SurfaceSize+" [pixels]");
 
         final Animator anim = new Animator(window0);
         anim.start();
@@ -226,10 +227,10 @@ public class TestScreenMode01bNEWT extends UITestCase {
         }
 
         window0WindowBounds = window0.getBounds();
-        window0SurfaceBounds = window0.getSurfaceBounds();
+        window0SurfaceSize = new Dimension(window0.getSurfaceWidth(), window0.getSurfaceHeight());
         System.err.println("Test.1: Screen           : "+screen);
         System.err.println("Test.1: Window bounds    : "+window0WindowBounds+" [wu] within "+screen.getViewportInWindowUnits()+" [wu]");
-        System.err.println("Test.1: Window bounds    : "+window0SurfaceBounds+" [pixels]");
+        System.err.println("Test.1: Window size      : "+window0SurfaceSize+" [pixels]");
         System.err.println("Test.1: Screen viewport  : "+screen.getViewport()+" [pixels]");
         System.err.println("Test.1: Monitor viewport : "+monitor.getViewport()+" [pixels], "+monitor.getViewportInWindowUnits()+" [wu]");
         System.err.println("Test.1: Window main-mon  : "+window0.getMainMonitor());
@@ -253,10 +254,10 @@ public class TestScreenMode01bNEWT extends UITestCase {
         }
 
         window0WindowBounds = window0.getBounds();
-        window0SurfaceBounds = window0.getSurfaceBounds();
+        window0SurfaceSize = new Dimension(window0.getSurfaceWidth(), window0.getSurfaceHeight());
         System.err.println("Test.2: Screen           : "+screen);
         System.err.println("Test.2: Window bounds    : "+window0WindowBounds+" [wu] within "+screen.getViewportInWindowUnits()+" [wu]");
-        System.err.println("Test.2: Window bounds    : "+window0SurfaceBounds+" [pixels]");
+        System.err.println("Test.2: Window size      : "+window0SurfaceSize+" [pixels]");
         System.err.println("Test.2: Screen viewport  : "+screen.getViewport()+" [pixels]");
         System.err.println("Test.2: Monitor viewport : "+monitor.getViewport()+" [pixels], "+monitor.getViewportInWindowUnits()+" [wu]");
         System.err.println("Test.2: Window main-mon  : "+window0.getMainMonitor());
