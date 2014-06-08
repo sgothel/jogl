@@ -45,6 +45,7 @@ import jogamp.newt.WindowImpl;
 import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeWindow;
+import javax.media.nativewindow.ScalableSurface;
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
@@ -94,7 +95,7 @@ import javax.media.nativewindow.util.RectangleImmutable;
  * </pre>
  * </p>
  */
-public interface Window extends NativeWindow, WindowClosingProtocol {
+public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSurface {
     public static final boolean DEBUG_MOUSE_EVENT = Debug.debug("Window.MouseEvent");
     public static final boolean DEBUG_KEY_EVENT = Debug.debug("Window.KeyEvent");
     public static final boolean DEBUG_IMPLEMENTATION = Debug.debug("Window");

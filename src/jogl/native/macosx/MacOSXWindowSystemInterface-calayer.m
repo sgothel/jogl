@@ -292,13 +292,17 @@ static const GLfloat gl_verts[] = {
             gl_texCoords[i] = 0.0f;
         }
     }
-    if( _texWidth != _winWidth ) {
+    /** 
+     * Set via 
+     *   - OSXUtil_SetCALayerPixelScale0
+     *   - OSXUtil_AddCASublayer0 
 NS_DURING
-        // Available >= 10.7
-        [self setContentsScale: (CGFloat)_texWidth/(CGFloat)_winWidth];
+    // Available >= 10.7
+    [self setContentsScale: (CGFloat)_texWidth/(CGFloat)_winWidth];
 NS_HANDLER
 NS_ENDHANDLER
-    }
+    */
+
     parentPixelFmt = [_parentPixelFmt retain]; // until destruction
     glContext = [[MyNSOpenGLContext alloc] initWithFormat:parentPixelFmt shareContext:parentCtx];
     gl3ShaderProgramName = _gl3ShaderProgramName;

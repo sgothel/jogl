@@ -404,6 +404,16 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
+    public final void setSurfaceScale(final int[] pixelScale) {
+        window.setSurfaceScale(pixelScale);
+    }
+
+    @Override
+    public final int[] getSurfaceScale(final int[] result) {
+        return window.getSurfaceScale(result);
+    }
+
+    @Override
     public final void setPosition(int x, int y) {
         window.setPosition(x, y);
     }

@@ -35,6 +35,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.lang.reflect.InvocationTargetException;
 
+import javax.media.nativewindow.ScalableSurface;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLProfile;
@@ -50,12 +51,14 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.TraceKeyAdapter;
 import com.jogamp.newt.event.TraceWindowAdapter;
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -75,6 +78,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
     static boolean manualTest = false;
     static boolean skipGLOrientationVerticalFlip = false;
     static int xpos = 10, ypos = 10;
+    static int[] reqSurfacePixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
 
     @BeforeClass
     public static void initClass() {
@@ -120,6 +124,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         glJPanel.setMinimumSize(wsize);
         glJPanel.setPreferredSize(wsize);
         glJPanel.setSize(wsize);
+        glJPanel.setSurfaceScale(reqSurfacePixelScale);
         if( caps.isBitmap() || caps.getGLProfile().isGL2() ) {
             final Gears gears = new Gears(swapInterval);
             gears.setFlipVerticalInGLOrientation(skipGLOrientationVerticalFlip);
@@ -161,6 +166,15 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
                     frame.pack();
                     frame.setVisible(true);
                 } } ) ;
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel, true));
+
+        final int[] hasSurfacePixelScale0 = glJPanel.getNativeSurface().convertToPixelUnits(new int[] { 1, 1 });
+        final int[] hasSurfacePixelScale1 = glJPanel.getSurfaceScale(new int[2]);
+        System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
+                           hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
+        setTitle(frame, glJPanel, caps);
+        Assert.assertArrayEquals(hasSurfacePixelScale0, hasSurfacePixelScale1);
 
         if( useAnimator ) {
             animator.setUpdateFPSFrames(60, System.err);
@@ -171,6 +185,33 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         final QuitAdapter quitAdapter = new QuitAdapter();
         new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter), glJPanel).addTo(glJPanel);
         new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter), glJPanel).addTo(frame);
+
+        final com.jogamp.newt.event.KeyListener kl = new com.jogamp.newt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(final KeyEvent e) {
+                if( e.isAutoRepeat() ) {
+                    return;
+                }
+                if(e.getKeyChar()=='x') {
+                    final int[] hadSurfacePixelScale = glJPanel.getSurfaceScale(new int[2]);
+                    final int[] reqSurfacePixelScale;
+                    if( hadSurfacePixelScale[0] == ScalableSurface.IDENTITY_PIXELSCALE ) {
+                        reqSurfacePixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+                    } else {
+                        reqSurfacePixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+                    }
+                    System.err.println("[set PixelScale pre]: had "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" -> req "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]);
+                    glJPanel.setSurfaceScale(reqSurfacePixelScale);
+                    final int[] hasSurfacePixelScale0 = glJPanel.getNativeSurface().convertToPixelUnits(new int[] { 1, 1 });
+                    final int[] hasSurfacePixelScale1 = glJPanel.getSurfaceScale(new int[2]);
+                    System.err.println("[set PixelScale post]: "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" (had) -> "+
+                                       reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
+                                       hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
+                    setTitle(frame, glJPanel, caps);
+                    Assert.assertArrayEquals(hasSurfacePixelScale0, hasSurfacePixelScale1);
+                }
+            } };
+        new AWTKeyAdapter(kl, glJPanel).addTo(glJPanel);
 
         snap.setMakeSnapshot();
 
@@ -198,11 +239,13 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
 
         Assert.assertNotNull(frame);
         Assert.assertNotNull(glJPanel);
-        Assert.assertNotNull(animator);
 
         if( useAnimator ) {
+            Assert.assertNotNull(animator);
             animator.stop();
             Assert.assertEquals(false, animator.isAnimating());
+        } else {
+            Assert.assertNull(animator);
         }
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
@@ -341,6 +384,20 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         runTestGL(caps);
     }
 
+    @Test
+    public void test99_PixelScale1_DefaultNorm()
+            throws AWTException, InterruptedException, InvocationTargetException
+    {
+        if( manualTest ) {
+            return;
+        }
+        reqSurfacePixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+        reqSurfacePixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
+
+        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        runTestGL(caps);
+    }
+
     static long duration = 500; // ms
 
     public static void main(String args[]) {
@@ -374,6 +431,11 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
             } else if(args[i].equals("-rheight")) {
                 i++;
                 rh = MiscUtils.atoi(args[i], rh);
+            } else if(args[i].equals("-pixelScale")) {
+                i++;
+                final int pS = MiscUtils.atoi(args[i], reqSurfacePixelScale[0]);
+                reqSurfacePixelScale[0] = pS;
+                reqSurfacePixelScale[1] = pS;
             } else if(args[i].equals("-userVFlip")) {
                 skipGLOrientationVerticalFlip = true;
             } else if(args[i].equals("-vsync")) {

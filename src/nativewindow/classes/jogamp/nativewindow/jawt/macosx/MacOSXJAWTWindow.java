@@ -114,6 +114,27 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
   }
 
   @Override
+  public void setSurfaceScale(final int[] pixelScale) {
+      super.setSurfaceScale(pixelScale);
+      if( 0 != drawable ) { // locked at least once !
+          final int hadPixelScaleX = getPixelScaleX();
+          updatePixelScale();
+
+          if( hadPixelScaleX != getPixelScaleX() && 0 != getAttachedSurfaceLayer() ) {
+              OSXUtil.RunOnMainThread(false, new Runnable() {
+                  @Override
+                  public void run() {
+                      final long osl = getAttachedSurfaceLayer();
+                      if( 0 != osl ) {
+                          OSXUtil.SetCALayerPixelScale(rootSurfaceLayer, osl, getPixelScaleX());
+                      }
+                  }
+              });
+          }
+      }
+  }
+
+  @Override
   protected void attachSurfaceLayerImpl(final long layerHandle) {
       OSXUtil.RunOnMainThread(false, new Runnable() {
           @Override
@@ -143,7 +164,8 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
               } else if( DEBUG ) {
                   System.err.println("JAWTWindow.attachSurfaceLayerImpl: "+toHexString(layerHandle) + ", [ins "+outterInsets+"], p0 "+p0+" -> "+p1+", bounds "+bounds);
               }
-              OSXUtil.AddCASublayer(rootSurfaceLayer, layerHandle, p1.getX(), p1.getY(), getWidth(), getHeight(), getPixelScale(), JAWTUtil.getOSXCALayerQuirks());
+              // HiDPI: uniform pixel scale
+              OSXUtil.AddCASublayer(rootSurfaceLayer, layerHandle, p1.getX(), p1.getY(), getWidth(), getHeight(), getPixelScaleX(), JAWTUtil.getOSXCALayerQuirks());
           } } );
   }
 
@@ -309,7 +331,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
                 public void run() {
                     String errMsg = null;
                     if(0 == rootSurfaceLayer && 0 != jawtSurfaceLayersHandle) {
-                        rootSurfaceLayer = OSXUtil.CreateCALayer(bounds.getWidth(), bounds.getHeight(), getPixelScale());
+                        rootSurfaceLayer = OSXUtil.CreateCALayer(bounds.getWidth(), bounds.getHeight(), getPixelScaleX()); // HiDPI: uniform pixel scale
                         if(0 == rootSurfaceLayer) {
                           errMsg = "Could not create root CALayer";
                         } else {

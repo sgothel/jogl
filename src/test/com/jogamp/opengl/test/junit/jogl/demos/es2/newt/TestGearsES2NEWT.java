@@ -29,6 +29,7 @@
 package com.jogamp.opengl.test.junit.jogl.demos.es2.newt;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URLConnection;
 
 import com.jogamp.common.util.IOUtil;
@@ -54,6 +55,7 @@ import com.jogamp.opengl.util.PNGPixelRect;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.ScalableSurface;
 import javax.media.nativewindow.util.Dimension;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.PointImmutable;
@@ -79,6 +81,7 @@ public class TestGearsES2NEWT extends UITestCase {
     static int screenIdx = 0;
     static PointImmutable wpos;
     static DimensionImmutable wsize, rwsize=null;
+    static int[] reqSurfacePixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
 
     static long duration = 500; // ms
     static boolean opaque = true;
@@ -119,7 +122,7 @@ public class TestGearsES2NEWT extends UITestCase {
 
     private void setTitle(final Window win, final GLCapabilitiesImmutable caps) {
         final String capsA = caps.isBackgroundOpaque() ? "opaque" : "transl";
-        win.setTitle("GLWindow["+capsA+"], swapI "+swapInterval+", win: "+win.getBounds()+", pix: "+win.getSurfaceBounds());
+        win.setTitle("GLWindow["+capsA+"], swapI "+swapInterval+", win: "+win.getBounds()+", pix: "+win.getSurfaceWidth()+"x"+win.getSurfaceHeight());
     }
     protected void runTestGL(final GLCapabilitiesImmutable caps, boolean undecorated) throws InterruptedException {
         System.err.println("requested: vsync "+swapInterval+", "+caps);
@@ -127,6 +130,7 @@ public class TestGearsES2NEWT extends UITestCase {
         Screen screen = NewtFactory.createScreen(dpy, screenIdx);
         final GLWindow glWindow = GLWindow.create(screen, caps);
         Assert.assertNotNull(glWindow);
+        glWindow.setSurfaceScale(reqSurfacePixelScale);
         glWindow.setSize(wsize.getWidth(), wsize.getHeight());
         if(null != wpos) {
             glWindow.setPosition(wpos.getX(), wpos.getY());
@@ -342,6 +346,23 @@ public class TestGearsES2NEWT extends UITestCase {
                             System.err.println("[set mouse pos post]");
                             glWindow.setExclusiveContextThread(t);
                     } }.start();
+                } else if(e.getKeyChar()=='x') {
+                    final int[] hadSurfacePixelScale = glWindow.getSurfaceScale(new int[2]);
+                    final int[] reqSurfacePixelScale;
+                    if( hadSurfacePixelScale[0] == ScalableSurface.IDENTITY_PIXELSCALE ) {
+                        reqSurfacePixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+                    } else {
+                        reqSurfacePixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+                    }
+                    System.err.println("[set PixelScale pre]: had "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" -> req "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]);
+                    glWindow.setSurfaceScale(reqSurfacePixelScale);
+                    final int[] hasSurfacePixelScale0 = glWindow.convertToPixelUnits(new int[] { 1, 1 });
+                    final int[] hasSurfacePixelScale1 = glWindow.getSurfaceScale(new int[2]);
+                    System.err.println("[set PixelScale post]: "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" (had) -> "+
+                                       reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
+                                       hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
+                    setTitle(glWindow, caps);
+                    Assert.assertArrayEquals(hasSurfacePixelScale0, hasSurfacePixelScale1);
                 }
             }
         });
@@ -413,6 +434,13 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
         System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
+
+        final int[] hasSurfacePixelScale0 = glWindow.convertToPixelUnits(new int[] { 1, 1 });
+        final int[] hasSurfacePixelScale1 = glWindow.getSurfaceScale(new int[2]);
+        System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
+                           hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
+        setTitle(glWindow, caps);
+        Assert.assertArrayEquals(hasSurfacePixelScale0, hasSurfacePixelScale1);
 
         snap.setMakeSnapshot();
 
@@ -520,6 +548,17 @@ public class TestGearsES2NEWT extends UITestCase {
         runTestGL(caps, undecorated);
     }
 
+    @Test
+    public void test99_PixelScale1_DefaultNorm() throws InterruptedException, InvocationTargetException {
+        if( mainRun ) return;
+
+        reqSurfacePixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+        reqSurfacePixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
+
+        GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
+        runTestGL(caps, undecorated);
+    }
+
     public static void main(String args[]) throws IOException {
         mainRun = true;
 
@@ -584,6 +623,11 @@ public class TestGearsES2NEWT extends UITestCase {
                 i++;
                 y = MiscUtils.atoi(args[i], y);
                 usePos = true;
+            } else if(args[i].equals("-pixelScale")) {
+                i++;
+                final int pS = MiscUtils.atoi(args[i], reqSurfacePixelScale[0]);
+                reqSurfacePixelScale[0] = pS;
+                reqSurfacePixelScale[1] = pS;
             } else if(args[i].equals("-rwidth")) {
                 i++;
                 rw = MiscUtils.atoi(args[i], rw);

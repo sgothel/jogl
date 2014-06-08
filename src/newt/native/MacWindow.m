@@ -747,24 +747,18 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_initIDs0
 /**
  * Class:     jogamp_newt_driver_macosx_WindowDriver
  * Method:    createView0
- * Signature: (IIIIZ)J
+ * Signature: (IIII)J
  */
 JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_createView0
-  (JNIEnv *env, jobject jthis, jint x, jint y, jint w, jint h, 
-   jboolean fullscreen)
+  (JNIEnv *env, jobject jthis, jint x, jint y, jint w, jint h)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
-    DBG_PRINT( "createView0 - %p (this), %d/%d %dx%d, fs %d (START)\n",
-        (void*)(intptr_t)jthis, (int)x, (int)y, (int)w, (int)h, (int)fullscreen);
+    DBG_PRINT( "createView0 - %p (this), %d/%d %dx%d (START)\n",
+        (void*)(intptr_t)jthis, (int)x, (int)y, (int)w, (int)h);
 
     NSRect rectView = NSMakeRect(0, 0, w, h);
     NewtView *myView = [[NewtView alloc] initWithFrame: rectView] ;
-NS_DURING
-    // Available >= 10.7
-    [myView setWantsBestResolutionOpenGLSurface: YES]; // HiDPI scaling: Always desired
-NS_HANDLER
-NS_ENDHANDLER
     DBG_PRINT( "createView0.X - new view: %p\n", myView);
 
     [pool release];
@@ -780,7 +774,7 @@ NS_ENDHANDLER
  * Signature: (IIIIZIIJ)J
  */
 JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_createWindow0
-  (JNIEnv *env, jobject jthis, jint x, jint y, jint w, jint h, 
+  (JNIEnv *env, jobject jthis, jint x, jint y, jint w, jint h,
    jboolean fullscreen, jint styleMask, jint bufferingType, jlong jview)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -816,10 +810,10 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_createWindow
  *
  * Class:     jogamp_newt_driver_macosx_WindowDriver
  * Method:    initWindow0
- * Signature: (JJIIIIZZZJ)V
+ * Signature: (JJIIIIFZZZJ)V
  */
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_initWindow0
-  (JNIEnv *env, jobject jthis, jlong parent, jlong window, jint x, jint y, jint w, jint h,
+  (JNIEnv *env, jobject jthis, jlong parent, jlong window, jint x, jint y, jint w, jint h, jfloat reqPixelScale,
    jboolean opaque, jboolean visible, jlong jview)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -827,9 +821,19 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_initWindow0
     NewtView* myView = (NewtView*) (intptr_t) jview ;
     BOOL fullscreen = myWindow->isFullscreenWindow;
 
-    DBG_PRINT( "initWindow0 - %p (this), %p (parent), %p (window), %d/%d %dx%d, opaque %d, fs %d, visible %d, view %p (START)\n",
-        (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, (int)x, (int)y, (int)w, (int)h, 
+    DBG_PRINT( "initWindow0 - %p (this), %p (parent), %p (window), %d/%d %dx%d, reqPixScale %f, opaque %d, fs %d, visible %d, view %p (START)\n",
+        (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, (int)x, (int)y, (int)w, (int)h, (float)reqPixelScale,
         (int) opaque, (int)fullscreen, (int)visible, myView);
+
+NS_DURING
+    // HiDPI scaling: Setup - Available >= 10.7
+    if( 1.0 == reqPixelScale ) {
+        [myView setWantsBestResolutionOpenGLSurface: NO];
+    } else {
+        [myView setWantsBestResolutionOpenGLSurface: YES];
+    }
+NS_HANDLER
+NS_ENDHANDLER
 
     [myWindow setReleasedWhenClosed: NO]; // We control NSWindow destruction!
     [myWindow setPreservesContentDuringLiveResize: NO];
@@ -981,6 +985,44 @@ NS_ENDHANDLER
     [pool release];
     DBG_PRINT( "initWindow0.X - %p (this), %p (parent): new window: %p, view %p\n",
         (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, myView);
+}
+
+/**
+ * Method is called on Main-Thread, hence no special invocation required inside method.
+ *
+ * Class:     jogamp_newt_driver_macosx_WindowDriver
+ * Method:    setPixelScale0
+ * Signature: (JJF)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setPixelScale0
+  (JNIEnv *env, jobject jthis, jlong window, jlong view, jfloat reqPixelScale)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    NewtMacWindow* myWindow = (NewtMacWindow*) ((intptr_t) window);
+    NewtView* myView = (NewtView*) (intptr_t) view ;
+#ifdef VERBOSE_ON
+    int dbgIdx = 1;
+#endif
+
+    DBG_PRINT( "setPixelScale0 - %p (this), %p (window), view %p, reqPixScale %f (START)\n",
+        (void*)(intptr_t)jthis, myWindow, myView, (float)reqPixelScale);
+
+NS_DURING
+    // HiDPI scaling: Setup - Available >= 10.7
+    if( 1.0 == reqPixelScale ) {
+        [myView setWantsBestResolutionOpenGLSurface: NO];
+    } else {
+        [myView setWantsBestResolutionOpenGLSurface: YES];
+    }
+NS_HANDLER
+NS_ENDHANDLER
+
+    DBG_PRINT( "setPixelScale0.%d - %p (this), window: %p, view %p\n",
+        dbgIdx++, (void*)(intptr_t)jthis, myWindow, myView);
+
+    [pool release];
+    DBG_PRINT( "setPixelScale0.X - %p (this), window: %p, view %p\n",
+        (void*)(intptr_t)jthis, myWindow, myView);
 }
 
 /**

@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.opengl.test.junit.jogl.demos.es2.newt;
 
 import java.awt.BorderLayout;
@@ -34,6 +34,8 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Frame;
 import java.awt.TextArea;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
@@ -41,7 +43,9 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
+import com.jogamp.newt.Window;
 import com.jogamp.newt.awt.NewtCanvasAWT;
+import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.opengl.GLWindow;
@@ -53,6 +57,7 @@ import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.newt.parenting.NewtAWTReparentingKeyAdapter;
 
+import javax.media.nativewindow.ScalableSurface;
 import javax.media.nativewindow.util.Dimension;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.PointImmutable;
@@ -71,16 +76,17 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestGearsES2NewtCanvasAWT extends UITestCase {    
+public class TestGearsES2NewtCanvasAWT extends UITestCase {
     public enum FrameLayout { None, TextOnBottom, BorderBottom, BorderBottom2, BorderCenter, BorderCenterSurrounded, DoubleBorderCenterSurrounded };
     public enum ResizeBy { GLWindow, Component, Frame };
-    
+
     static int screenIdx = 0;
     static PointImmutable wpos;
     static DimensionImmutable wsize, rwsize = null;
     static FrameLayout frameLayout = FrameLayout.None;
     static ResizeBy resizeBy = ResizeBy.Component;
-    
+    static int[] reqSurfacePixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+
     static long duration = 500; // ms
     static boolean opaque = true;
     static int forceAlpha = -1;
@@ -96,7 +102,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
     static boolean mainRun = false;
     static boolean exclusiveContext = false;
     static boolean useAnimator = true;
-    
+
     @BeforeClass
     public static void initClass() {
         if(null == wsize) {
@@ -120,7 +126,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         } catch( Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
-        }       
+        }
     }
     static void setComponentSize(final Frame frame, final Component comp, final DimensionImmutable new_sz) {
         try {
@@ -137,7 +143,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         } catch( Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
-        }       
+        }
     }
     static void setFrameSize(final Frame frame, final boolean frameLayout, final DimensionImmutable new_sz) {
         try {
@@ -152,9 +158,9 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         } catch( Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
-        }       
+        }
     }
-    
+
     static void setSize(final ResizeBy resizeBy, final Frame frame, final boolean frameLayout, final Component comp, final GLWindow glw, final DimensionImmutable new_sz) {
         switch( resizeBy ) {
             case GLWindow:
@@ -166,9 +172,18 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
             case Frame:
                 setFrameSize(frame, frameLayout, new_sz);
                 break;
-        }        
+        }
     }
-    
+
+    private void setTitle(final Frame frame, final NewtCanvasAWT glc, final Window win, final GLCapabilitiesImmutable caps) {
+        final String capsA = caps.isBackgroundOpaque() ? "opaque" : "transl";
+        {
+            final java.awt.Rectangle b = glc.getBounds();
+            frame.setTitle("NewtCanvasAWT["+capsA+"], swapI "+swapInterval+", win: ["+b.x+"/"+b.y+" "+b.width+"x"+b.height+"], pix: "+glc.getNativeWindow().getSurfaceWidth()+"x"+glc.getNativeWindow().getSurfaceHeight());
+        }
+        win.setTitle("GLWindow["+capsA+"], swapI "+swapInterval+", win: "+win.getBounds()+", pix: "+win.getSurfaceWidth()+"x"+win.getSurfaceHeight());
+    }
+
     // public enum ResizeBy { GLWindow, Component, Frame };
     protected void runTestGL(final GLCapabilitiesImmutable caps, final ResizeBy resizeBy, final FrameLayout frameLayout) throws InterruptedException, InvocationTargetException {
         System.err.println("requested: vsync "+swapInterval+", "+caps);
@@ -176,14 +191,15 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         Screen screen = NewtFactory.createScreen(dpy, screenIdx);
         final GLWindow glWindow = GLWindow.create(screen, caps);
         Assert.assertNotNull(glWindow);
-        
+        glWindow.setSurfaceScale(reqSurfacePixelScale);
+
         final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow);
         if ( shallUseOffscreenFBOLayer ) {
             newtCanvasAWT.setShallUseOffscreenLayer(true);
         }
-        
+
         final Frame frame = new Frame("AWT Parent Frame");
-        
+
         setSize(resizeBy, frame, false, newtCanvasAWT, glWindow, wsize);
 
         switch( frameLayout) {
@@ -199,7 +215,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
                 frame.setLayout(new BorderLayout());
                 frame.add(ta, BorderLayout.SOUTH);
                 frame.add(newtCanvasAWT, BorderLayout.CENTER);
-                break;                
+                break;
             case BorderBottom:
                 frame.setLayout(new BorderLayout());
                 frame.add(newtCanvasAWT, BorderLayout.SOUTH);
@@ -229,7 +245,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
                 c.add(new Button("east"), BorderLayout.EAST);
                 c.add(new Button("west"), BorderLayout.WEST);
                 c.add(newtCanvasAWT, BorderLayout.CENTER);
-                
+
                 frame.setLayout(new BorderLayout());
                 frame.add(new Button("NORTH"), BorderLayout.NORTH);
                 frame.add(new Button("SOUTH"), BorderLayout.SOUTH);
@@ -238,19 +254,35 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
                 frame.add(c, BorderLayout.CENTER);
                 break;
         }
-        
-        frame.setTitle("Gears NewtCanvasAWT Test (translucent "+!caps.isBackgroundOpaque()+"), swapInterval "+swapInterval+", size "+wsize+", pos "+wpos);
-        
+
         final GearsES2 demo = new GearsES2(swapInterval);
         demo.setPMVUseBackingArray(pmvUseBackingArray);
         glWindow.addGLEventListener(demo);
-        
+
+        frame.addComponentListener(new ComponentListener() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                setTitle(frame, newtCanvasAWT, glWindow, caps);
+            }
+
+            @Override
+            public void componentMoved(ComponentEvent e) {
+                setTitle(frame, newtCanvasAWT, glWindow, caps);
+            }
+
+            @Override
+            public void componentShown(ComponentEvent e) { }
+
+            @Override
+            public void componentHidden(ComponentEvent e) { }
+        });
+
         final Animator animator = useAnimator ? new Animator() : null;
         if( useAnimator ) {
             animator.setModeBits(false, Animator.MODE_EXPECT_AWT_RENDERING_THREAD);
             animator.setExclusiveContext(exclusiveContext);
         }
-        
+
         final QuitAdapter quitAdapter = new QuitAdapter();
         //glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
         //glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
@@ -263,11 +295,36 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
             }
             public void windowMoved(WindowEvent e) {
                 System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
-            }            
+            }
         });
-        
+
         glWindow.addKeyListener(new NewtAWTReparentingKeyAdapter(frame, newtCanvasAWT, glWindow, quitAdapter));
-        
+        glWindow.addKeyListener(new com.jogamp.newt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(final KeyEvent e) {
+                if( e.isAutoRepeat() ) {
+                    return;
+                }
+                if(e.getKeyChar()=='x') {
+                    final int[] hadSurfacePixelScale = glWindow.getSurfaceScale(new int[2]);
+                    final int[] reqSurfacePixelScale;
+                    if( hadSurfacePixelScale[0] == ScalableSurface.IDENTITY_PIXELSCALE ) {
+                        reqSurfacePixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+                    } else {
+                        reqSurfacePixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+                    }
+                    System.err.println("[set PixelScale pre]: had "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" -> req "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]);
+                    glWindow.setSurfaceScale(reqSurfacePixelScale);
+                    final int[] hasSurfacePixelScale0 = glWindow.convertToPixelUnits(new int[] { 1, 1 });
+                    final int[] hasSurfacePixelScale1 = glWindow.getSurfaceScale(new int[2]);
+                    System.err.println("[set PixelScale post]: "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" (had) -> "+
+                                       reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
+                                       hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
+                    setTitle(frame, newtCanvasAWT, glWindow, caps);
+                    Assert.assertArrayEquals(hasSurfacePixelScale0, hasSurfacePixelScale1);
+                }
+            } } );
+
         if( useAnimator ) {
             animator.add(glWindow);
             animator.start();
@@ -281,28 +338,35 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
                if( ResizeBy.Frame == resizeBy ) {
                    frame.validate();
                } else {
-                   frame.pack();                   
-               }                
-               frame.setVisible(true);               
+                   frame.pack();
+               }
+               frame.setVisible(true);
            }
-        });        
+        });
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, true)); 
-        
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, true));
+
         if( useAnimator ) {
             animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
         }
-        
+
         System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
         System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
-                
+
+        final int[] hasSurfacePixelScale0 = glWindow.convertToPixelUnits(new int[] { 1, 1 });
+        final int[] hasSurfacePixelScale1 = glWindow.getSurfaceScale(new int[2]);
+        System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
+                           hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
+        setTitle(frame, newtCanvasAWT, glWindow, caps);
+        Assert.assertArrayEquals(hasSurfacePixelScale0, hasSurfacePixelScale1);
+
         if( null != rwsize ) {
-            Thread.sleep(500); // 500ms delay 
+            Thread.sleep(500); // 500ms delay
             setSize(resizeBy, frame, true, newtCanvasAWT, glWindow, rwsize);
             System.err.println("window resize "+rwsize+" -> pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
         }
-        
+
         final long t0 = System.currentTimeMillis();
         long t1 = t0;
         while(!quitAdapter.shouldQuit() && t1-t0<duration) {
@@ -318,8 +382,8 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         }
         Assert.assertEquals(null, glWindow.getExclusiveContextThread());
         SwingUtilities.invokeAndWait(new Runnable() {
-           public void run() {               
-               frame.dispose();               
+           public void run() {
+               frame.dispose();
            }
         });
         glWindow.destroy();
@@ -341,7 +405,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
             final GLCapabilities caps = new GLCapabilities( glp );
             caps.setBackgroundOpaque(opaque);
             if(-1 < forceAlpha) {
-                caps.setAlphaBits(forceAlpha); 
+                caps.setAlphaBits(forceAlpha);
             }
             runTestGL(caps, resizeBy, frameLayout);
             if(loop_shutdown) {
@@ -353,7 +417,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
     @Test
     public void test02GL3() throws InterruptedException, InvocationTargetException {
         if(mainRun) return;
-        
+
         if( !GLProfile.isAvailable(GLProfile.GL3) ) {
             System.err.println("GL3 n/a");
             return;
@@ -362,14 +426,25 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         final GLCapabilities caps = new GLCapabilities( glp );
         runTestGL(caps, resizeBy, frameLayout);
     }
-    
+
+    @Test
+    public void test99_PixelScale1_DefaultNorm() throws InterruptedException, InvocationTargetException {
+        if( mainRun ) return;
+
+        reqSurfacePixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+        reqSurfacePixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
+
+        GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
+        runTestGL(caps, resizeBy, frameLayout);
+    }
+
     public static void main(String args[]) throws IOException {
         mainRun = true;
-        
+
         int x=0, y=0, w=640, h=480;
         int rw=-1, rh=-1;
         boolean usePos = false;
-        
+
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
@@ -424,6 +499,11 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
                 i++;
                 y = MiscUtils.atoi(args[i], y);
                 usePos = true;
+            } else if(args[i].equals("-pixelScale")) {
+                i++;
+                final int pS = MiscUtils.atoi(args[i], reqSurfacePixelScale[0]);
+                reqSurfacePixelScale[0] = pS;
+                reqSurfacePixelScale[1] = pS;
             } else if(args[i].equals("-screen")) {
                 i++;
                 screenIdx = MiscUtils.atoi(args[i], 0);
@@ -438,11 +518,11 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         if( 0 < rw && 0 < rh ) {
             rwsize = new Dimension(rw, rh);
         }
-        
+
         if(usePos) {
             wpos = new Point(x, y);
         }
-        
+
         System.err.println("frameLayout "+frameLayout);
         System.err.println("resizeBy "+resizeBy);
         System.err.println("position "+wpos);
@@ -450,9 +530,9 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         System.err.println("resize "+rwsize);
         System.err.println("screen "+screenIdx);
         System.err.println("translucent "+(!opaque));
-        System.err.println("forceAlpha "+forceAlpha);        
+        System.err.println("forceAlpha "+forceAlpha);
         System.err.println("fullscreen "+fullscreen);
-        System.err.println("pmvDirect "+(!pmvUseBackingArray));        
+        System.err.println("pmvDirect "+(!pmvUseBackingArray));
         System.err.println("loops "+loops);
         System.err.println("loop shutdown "+loop_shutdown);
         System.err.println("shallUseOffscreenFBOLayer     "+shallUseOffscreenFBOLayer);

@@ -98,16 +98,17 @@ public class WindowDriver extends WindowImpl {
         }
     }
 
-    @Override
-    protected final int getPixelScaleX() {
-        final AWTCanvas _awtCanvas = awtCanvas;
-        return null != _awtCanvas ? _awtCanvas.getPixelScale() : 1;
-    }
+    private final AWTCanvas.UpstreamScalable upstreamScalable = new AWTCanvas.UpstreamScalable() {
+        @Override
+        public int[] getReqPixelScale() {
+            return WindowDriver.this.reqPixelScale;
+        }
 
-    @Override
-    protected final int getPixelScaleY() {
-        return getPixelScaleX();
-    }
+        @Override
+        public void setHasPixelScale(final int[] pixelScale) {
+            System.arraycopy(pixelScale, 0, WindowDriver.this.hasPixelScale, 0, 2);
+        }
+    };
 
     @Override
     protected void createNativeImpl() {
@@ -130,7 +131,7 @@ public class WindowDriver extends WindowImpl {
         awtContainer.setLayout(new BorderLayout());
 
         if( null == awtCanvas ) {
-            awtCanvas = new AWTCanvas(capsRequested, WindowDriver.this.capabilitiesChooser);
+            awtCanvas = new AWTCanvas(capsRequested, WindowDriver.this.capabilitiesChooser, upstreamScalable);
 
             // canvas.addComponentListener(listener);
             awtContainer.add(awtCanvas, BorderLayout.CENTER);

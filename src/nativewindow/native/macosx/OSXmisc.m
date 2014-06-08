@@ -639,13 +639,11 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateCALayer0
     if(0 == width) { width = 32; }
     if(0 == height) { height = 32; }
 
-    if( 1.0 != contentsScale ) {
 NS_DURING
-        // Available >= 10.7
-        [layer setContentsScale: (CGFloat)contentsScale];
+    // Available >= 10.7
+    [layer setContentsScale: (CGFloat)contentsScale];
 NS_HANDLER
 NS_ENDHANDLER
-    }
 
     // initial dummy size !
     CGRect lFrame = [layer frame];
@@ -692,12 +690,10 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
         caLayerQuirks, rootLayer, (int)[rootLayer retainCount], subLayer, (int)[subLayer retainCount],
         lRectRoot.origin.x, lRectRoot.origin.y, lRectRoot.size.width, lRectRoot.size.height, (float)contentsScale);
 
-    if( 1.0 != contentsScale ) {
 NS_DURING
-        [subLayer setContentsScale: (CGFloat)contentsScale];
+    [subLayer setContentsScale: (CGFloat)contentsScale];
 NS_HANDLER
 NS_ENDHANDLER
-    }
 
     [subLayer setFrame:lRectRoot];
     [rootLayer addSublayer:subLayer];
@@ -749,6 +745,37 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_FixCALayerLayout0
 
         [pool release];
     }
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    SetCALayerPixelScale0
+ * Signature: (JJF)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_SetCALayerPixelScale0
+  (JNIEnv *env, jclass unused, jlong rootCALayer, jlong subCALayer, jfloat contentsScale)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    MyCALayer* rootLayer = (MyCALayer*) ((intptr_t) rootCALayer);
+    if( NULL == rootLayer ) {
+        NativewindowCommon_throwNewRuntimeException(env, "Argument \"rootLayer\" is null");
+    }
+    CALayer* subLayer = (CALayer*) ((intptr_t) subCALayer);
+
+    [CATransaction begin];
+    [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
+
+NS_DURING
+    [rootLayer setContentsScale: (CGFloat)contentsScale];
+    if( NULL != subLayer ) {
+        [subLayer setContentsScale: (CGFloat)contentsScale];
+    }
+NS_HANDLER
+NS_ENDHANDLER
+
+    [CATransaction commit];
+
+    [pool release];
 }
 
 /*

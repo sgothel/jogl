@@ -66,10 +66,16 @@ public class AWTCanvas extends Canvas {
   private volatile JAWTWindow jawtWindow=null; // the JAWTWindow presentation of this AWT Canvas, bound to the 'drawable' lifecycle
   private CapabilitiesChooser chooser=null;
   private final CapabilitiesImmutable capabilities;
+  private final UpstreamScalable upstreamScale;
+
+  public static interface UpstreamScalable {
+      int[] getReqPixelScale();
+      void setHasPixelScale(final int[] pixelScale);
+  }
 
   private boolean displayConfigChanged=false;
 
-  public AWTCanvas(CapabilitiesImmutable capabilities, CapabilitiesChooser chooser) {
+  public AWTCanvas(CapabilitiesImmutable capabilities, CapabilitiesChooser chooser, UpstreamScalable upstreamScale) {
     super();
 
     if(null==capabilities) {
@@ -77,6 +83,7 @@ public class AWTCanvas extends Canvas {
     }
     this.capabilities=capabilities;
     this.chooser=chooser;
+    this.upstreamScale = upstreamScale;
   }
 
   public AWTGraphicsConfiguration getAWTGraphicsConfiguration() {
@@ -139,7 +146,9 @@ public class AWTCanvas extends Canvas {
     {
         jawtWindow = (JAWTWindow) NativeWindowFactory.getNativeWindow(this, awtConfig);
         // trigger initialization cycle
+        jawtWindow.setSurfaceScale( upstreamScale.getReqPixelScale() );
         jawtWindow.lockSurface();
+        upstreamScale.setHasPixelScale(jawtWindow.getSurfaceScale(new int[2]));
         jawtWindow.unlockSurface();
     }
 
@@ -152,10 +161,6 @@ public class AWTCanvas extends Canvas {
     }
   }
 
-  public int getPixelScale() {
-    final JAWTWindow _jawtWindow = jawtWindow;
-    return (null != _jawtWindow) ? _jawtWindow.getPixelScale() : 1;
-  }
   public NativeWindow getNativeWindow() {
     final JAWTWindow _jawtWindow = jawtWindow;
     return (null != _jawtWindow) ? _jawtWindow : null;

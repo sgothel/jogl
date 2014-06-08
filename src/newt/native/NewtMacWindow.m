@@ -778,8 +778,12 @@ static jmethodID windowRepaintID = NULL;
 {
     [super viewDidChangeBackingProperties];
 
-    CGFloat pixelScale = [[self window] backingScaleFactor];
-    [[self layer] setContentsScale: pixelScale];
+    // HiDPI scaling
+    BOOL useHiDPI = [self wantsBestResolutionOpenGLSurface];
+    CGFloat pixelScaleRaw = [[self window] backingScaleFactor];
+    CGFloat pixelScaleUse = useHiDPI ? pixelScaleRaw : 1.0;
+    DBG_PRINT("viewDidChangeBackingProperties: PixelScale: HiDPI %d, raw %f -> use %f\n", useHiDPI, (float)pixelScaleRaw, (float)pixelScaleUse);
+    [[self layer] setContentsScale: pixelScaleUse];
 
     if (javaWindowObject == NULL) {
         DBG_PRINT("viewDidChangeBackingProperties: null javaWindowObject\n");
@@ -792,7 +796,7 @@ static jmethodID windowRepaintID = NULL;
         return;
     }
 
-    (*env)->CallVoidMethod(env, javaWindowObject, updatePixelScaleID, JNI_TRUE, (jfloat)pixelScale); // defer 
+    (*env)->CallVoidMethod(env, javaWindowObject, updatePixelScaleID, JNI_TRUE, (jfloat)pixelScaleUse); // defer 
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);

@@ -44,6 +44,9 @@ public class OSXUtil implements ToolkitProperties {
     private static boolean isInit = false;
     private static final boolean DEBUG = Debug.debug("OSXUtil");
 
+    /** FIXME HiDPI: OSX unique and maximum value {@value} */
+    public static final int MAX_PIXELSCALE = 2;
+
     /**
      * Called by {@link NativeWindowFactory#initSingleton()}
      * @see ToolkitProperties
@@ -198,6 +201,20 @@ public class OSXUtil implements ToolkitProperties {
             return;
         }
         FixCALayerLayout0(rootCALayer, subCALayer, visible, x, y, width, height, caLayerQuirks);
+    }
+
+    /**
+     * Set root and sub CALayer pixelScale / contentScale for HiDPI
+     *
+     * @param rootCALayer the root surface layer, maybe null.
+     * @param subCALayer the client surface layer, maybe null.
+     * @param contentsScale scale for HiDPI support: pixel-dim = window-dim x scale
+     */
+    public static void SetCALayerPixelScale(final long rootCALayer, final long subCALayer, final float contentsScale) {
+        if( 0==rootCALayer && 0==subCALayer ) {
+            return;
+        }
+        SetCALayerPixelScale0(rootCALayer, subCALayer, contentsScale);
     }
 
     /**
@@ -364,6 +381,7 @@ public class OSXUtil implements ToolkitProperties {
     private static native long CreateCALayer0(int width, int height, float contentsScale);
     private static native void AddCASublayer0(long rootCALayer, long subCALayer, int x, int y, int width, int height, float contentsScale, int caLayerQuirks);
     private static native void FixCALayerLayout0(long rootCALayer, long subCALayer, boolean visible, int x, int y, int width, int height, int caLayerQuirks);
+    private static native void SetCALayerPixelScale0(long rootCALayer, long subCALayer, float contentsScale);
     private static native void RemoveCASublayer0(long rootCALayer, long subCALayer);
     private static native void DestroyCALayer0(long caLayer);
     private static native void RunOnMainThread0(Runnable runnable);

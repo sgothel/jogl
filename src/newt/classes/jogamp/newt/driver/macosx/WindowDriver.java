@@ -39,11 +39,13 @@ import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.MutableSurface;
+import javax.media.nativewindow.ScalableSurface;
 import javax.media.nativewindow.VisualIDHolder;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.PointImmutable;
 
+import jogamp.nativewindow.SurfaceScaleUtils;
 import jogamp.nativewindow.macosx.OSXUtil;
 import jogamp.newt.PointerIconImpl;
 import jogamp.newt.ScreenImpl;
@@ -62,43 +64,42 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         DisplayDriver.initSingleton();
     }
 
-    private int pixelScale;
-
     public WindowDriver() {
-        pixelScale = 1;
     }
 
-    private boolean updatePixelScale(final boolean sendEvent, final boolean defer, final float newPixelScaleRaw) {
-        final int newPixelScaleSafe = FloatUtil.isZero(newPixelScaleRaw, FloatUtil.EPSILON) ? 1 : (int) newPixelScaleRaw;
-        final boolean changed = pixelScale != newPixelScaleSafe;
-        if( DEBUG_IMPLEMENTATION ) {
-            System.err.println("WindowDriver.updatePixelScale.X: "+pixelScale+" -> "+newPixelScaleSafe+" (raw "+newPixelScaleRaw+") - changed "+changed);
+    private boolean updatePixelScale(final boolean sendEvent, final boolean defer, final float pixelScaleRaw) {
+        final int[] pixelScaleInt;
+        {
+            final int ps = FloatUtil.isZero(pixelScaleRaw, FloatUtil.EPSILON) ? 1 : (int) pixelScaleRaw;
+            pixelScaleInt = new int[] { ps, ps };
         }
-        if( changed ) {
-            pixelScale = newPixelScaleSafe;
+
+        if( SurfaceScaleUtils.computePixelScale(hasPixelScale, hasPixelScale, reqPixelScale, pixelScaleInt, DEBUG_IMPLEMENTATION ? getClass().getName() : null) ) {
             if( sendEvent ) {
                 super.sizeChanged(defer, getWidth(), getHeight(), true);
             } else {
                 defineSize(getWidth(), getHeight());
             }
+            return true;
+        } else {
+            return false;
         }
-        return changed;
     }
 
     private boolean updatePixelScaleByScreenIdx(final boolean sendEvent) {
         final float newPixelScaleRaw = (float) OSXUtil.GetPixelScale(getScreen().getIndex());
         if( DEBUG_IMPLEMENTATION ) {
-            System.err.println("WindowDriver.updatePixelScale.1: "+pixelScale+" -> "+newPixelScaleRaw);
+            System.err.println("WindowDriver.updatePixelScale.1: "+hasPixelScale[0]+" -> "+newPixelScaleRaw);
         }
         return updatePixelScale(sendEvent, true /* defer */, newPixelScaleRaw);
     }
 
     private boolean updatePixelScaleByWindowHandle(final boolean sendEvent) {
-        final long wh = getWindowHandle();
-        if( 0 != wh ) {
-            final float newPixelScaleRaw = (float)OSXUtil.GetPixelScale(wh);
+        final long handle = getWindowHandle();
+        if( 0 != handle ) {
+            final float newPixelScaleRaw = (float)OSXUtil.GetPixelScale(handle);
             if( DEBUG_IMPLEMENTATION ) {
-                System.err.println("WindowDriver.updatePixelScale.2: "+pixelScale+" -> "+newPixelScaleRaw);
+                System.err.println("WindowDriver.updatePixelScale.2: "+hasPixelScale[0]+" -> "+newPixelScaleRaw);
             }
             return updatePixelScale(sendEvent, true /* defer */, newPixelScaleRaw);
         } else {
@@ -109,10 +110,10 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     /** Called from native code */
     protected void updatePixelScale(final boolean defer, final float newPixelScaleRaw) {
         final long handle = getWindowHandle();
+        if( DEBUG_IMPLEMENTATION ) {
+            System.err.println("WindowDriver.updatePixelScale.3: "+hasPixelScale[0]+" (has) -> "+newPixelScaleRaw+" (raw), drop "+(0==handle));
+        }
         if( 0 != handle ) {
-            if( DEBUG_IMPLEMENTATION ) {
-                System.err.println("WindowDriver.updatePixelScale.3: "+pixelScale+" -> "+newPixelScaleRaw);
-            }
             updatePixelScale(true /* sendEvent*/, defer, newPixelScaleRaw);
         }
     }
@@ -134,13 +135,43 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
 
     @Override
-    protected final int getPixelScaleX() {
-        return pixelScale;
-    }
+    public final void setSurfaceScale(final int[] pixelScale) {
+        SurfaceScaleUtils.validateReqPixelScale(reqPixelScale, pixelScale, DEBUG_IMPLEMENTATION ? getClass().getName() : null);
 
-    @Override
-    protected final int getPixelScaleY() {
-        return pixelScale;
+        final int[] resPixelScale;
+        if( isNativeValid() ) {
+            if( isOffscreenInstance ) {
+                final NativeWindow pWin = getParent();
+                if( pWin instanceof ScalableSurface ) {
+                    final ScalableSurface sSurf = (ScalableSurface)pWin;
+                    sSurf.setSurfaceScale(reqPixelScale);
+                    final int[] pPixelScale = sSurf.getSurfaceScale(new int[2]);
+                    updatePixelScale(true /* sendEvent */, true /* defer */, pPixelScale[0]); // HiDPI: uniformPixelScale
+                } else {
+                    // just notify updated pixelScale if offscreen
+                    SurfaceScaleUtils.replaceAutoMaxWithPlatformMax(reqPixelScale);
+                    updatePixelScale(true /* sendEvent */, true /* defer */, reqPixelScale[0]); // HiDPI: uniformPixelScale
+                }
+            } else {
+                // set pixelScale in native code, will issue an update PixelScale
+                OSXUtil.RunOnMainThread(true, new Runnable() {
+                    @Override
+                    public void run() {
+                        setPixelScale0(getWindowHandle(), surfaceHandle, reqPixelScale[0]); // HiDPI: uniformPixelScale
+                    }
+                } );
+            }
+            resPixelScale = hasPixelScale;
+        } else {
+            hasPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+            hasPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
+            resPixelScale = reqPixelScale;
+        }
+        if( DEBUG_IMPLEMENTATION ) {
+            System.err.println("WindowDriver.setPixelScale: "+pixelScale[0]+"x"+pixelScale[1]+" (req) -> "+
+                                reqPixelScale[0]+"x"+reqPixelScale[1]+" (validated) -> "+
+                                resPixelScale[0]+"x"+resPixelScale[1]+" (result) - realized "+isNativeValid());
+        }
     }
 
     @Override
@@ -351,6 +382,9 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             }
         }
 
+        final boolean setVisible = 0 != ( FLAG_IS_VISIBLE & flags);
+        final boolean hasFocus = hasFocus();
+
         if(DEBUG_IMPLEMENTATION) {
             final AbstractGraphicsConfiguration cWinCfg = this.getGraphicsConfiguration();
             final NativeWindow pWin = getParent();
@@ -362,11 +396,9 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                                ", isOffscreenInstance(sscSurfaceHandle "+toHexString(sscSurfaceHandle)+
                                ", ioi: "+_isOffscreenInstance+
                                ") -> "+isOffscreenInstance+
-                               "\n\t, "+getReconfigureFlagsAsString(null, flags));
+                               "\n\t, "+getReconfigureFlagsAsString(null, flags)+", setVisible "+setVisible+", hasFocus "+hasFocus);
             // Thread.dumpStack();
         }
-
-        final boolean setVisible = 0 != ( FLAG_IS_VISIBLE & flags);
 
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && !setVisible ) {
             if ( !isOffscreenInstance ) {
@@ -395,6 +427,9 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             updatePixelScaleByWindowHandle(false /* sendEvent */);
             super.sizeChanged(false, width, height, true);
             visibleChanged(false, setVisible);
+            if( hasFocus ) {
+                requestFocusImpl(true);
+            }
         } else {
             if( width>0 && height>0 ) {
                 if( !isOffscreenInstance ) {
@@ -613,7 +648,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 if( 0 != surfaceHandle ) {
                     throw new NativeWindowException("Internal Error - create w/o window, but has Newt NSView");
                 }
-                surfaceHandle = createView0(pS.getX(), pS.getY(), width, height, fullscreen);
+                surfaceHandle = createView0(pS.getX(), pS.getY(), width, height);
                 if( 0 == surfaceHandle ) {
                     throw new NativeWindowException("Could not create native view "+Thread.currentThread().getName()+" "+this);
                 }
@@ -633,7 +668,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             OSXUtil.RunOnMainThread(true, new Runnable() {
                 @Override
                 public void run() {
-                    initWindow0( parentWinHandle, newWin, pS.getX(), pS.getY(), width, height,
+                    initWindow0( parentWinHandle, newWin, pS.getX(), pS.getY(), width, height, reqPixelScale[0] /* HiDPI uniformPixelScale */,
                                  isOpaque, visible && !offscreenInstance, surfaceHandle);
                     if( offscreenInstance ) {
                         orderOut0(0!=parentWinHandle ? parentWinHandle : newWin);
@@ -648,11 +683,12 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
 
     protected static native boolean initIDs0();
-    private native long createView0(int x, int y, int w, int h, boolean fullscreen);
+    private native long createView0(int x, int y, int w, int h);
     private native long createWindow0(int x, int y, int w, int h, boolean fullscreen, int windowStyle, int backingStoreType, long view);
     /** Must be called on Main-Thread */
-    private native void initWindow0(long parentWindow, long window, int x, int y, int w, int h,
+    private native void initWindow0(long parentWindow, long window, int x, int y, int w, int h, float reqPixelScale,
                                     boolean opaque, boolean visible, long view);
+    private native void setPixelScale0(long window, long view, float reqPixelScale);
     private native boolean lockSurface0(long window, long view);
     private native boolean unlockSurface0(long window, long view);
     /** Must be called on Main-Thread */

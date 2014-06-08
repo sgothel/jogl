@@ -28,6 +28,7 @@
 
 package com.jogamp.opengl.test.junit.jogl.demos.es2.awt;
 
+import javax.media.nativewindow.ScalableSurface;
 import javax.media.opengl.*;
 
 import com.jogamp.opengl.util.Animator;
@@ -37,6 +38,7 @@ import javax.media.opengl.awt.GLCanvas;
 import com.jogamp.common.os.Platform;
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;
+import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.TraceKeyAdapter;
 import com.jogamp.newt.event.TraceWindowAdapter;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
@@ -78,6 +80,7 @@ public class TestGearsES2AWT extends UITestCase {
     static int xpos = 10, ypos = 10;
     static FrameLayout frameLayout = FrameLayout.None;
     static ResizeBy resizeBy = ResizeBy.Component;
+    static int[] reqSurfacePixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
 
     static boolean forceES2 = false;
     static boolean forceGL3 = false;
@@ -167,6 +170,7 @@ public class TestGearsES2AWT extends UITestCase {
         final GLCanvas glCanvas = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas);
         setSize(resizeBy, frame, false, glCanvas, new Dimension(width, height));
+        glCanvas.setSurfaceScale(reqSurfacePixelScale);
         frame.setLocation(xpos, ypos);
 
         switch( frameLayout) {
@@ -242,6 +246,33 @@ public class TestGearsES2AWT extends UITestCase {
         new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter), glCanvas).addTo(glCanvas);
         new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter), glCanvas).addTo(frame);
 
+        final com.jogamp.newt.event.KeyListener kl = new com.jogamp.newt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(final KeyEvent e) {
+                if( e.isAutoRepeat() ) {
+                    return;
+                }
+                if(e.getKeyChar()=='x') {
+                    final int[] hadSurfacePixelScale = glCanvas.getSurfaceScale(new int[2]);
+                    final int[] reqSurfacePixelScale;
+                    if( hadSurfacePixelScale[0] == ScalableSurface.IDENTITY_PIXELSCALE ) {
+                        reqSurfacePixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+                    } else {
+                        reqSurfacePixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+                    }
+                    System.err.println("[set PixelScale pre]: had "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" -> req "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]);
+                    glCanvas.setSurfaceScale(reqSurfacePixelScale);
+                    final int[] hasSurfacePixelScale0 = glCanvas.getNativeSurface().convertToPixelUnits(new int[] { 1, 1 });
+                    final int[] hasSurfacePixelScale1 = glCanvas.getSurfaceScale(new int[2]);
+                    System.err.println("[set PixelScale post]: "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" (had) -> "+
+                                       reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
+                                       hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
+                    setTitle(frame, glCanvas, caps);
+                    Assert.assertArrayEquals(hasSurfacePixelScale0, hasSurfacePixelScale1);
+                }
+            } };
+        new AWTKeyAdapter(kl, glCanvas).addTo(glCanvas);
+
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                if( ResizeBy.Frame == resizeBy ) {
@@ -253,6 +284,13 @@ public class TestGearsES2AWT extends UITestCase {
             }});
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, true));
+
+        final int[] hasSurfacePixelScale0 = glCanvas.getNativeSurface().convertToPixelUnits(new int[] { 1, 1 });
+        final int[] hasSurfacePixelScale1 = glCanvas.getSurfaceScale(new int[2]);
+        System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
+                           hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
+        setTitle(frame, glCanvas, caps);
+        Assert.assertArrayEquals(hasSurfacePixelScale0, hasSurfacePixelScale1);
 
         if( useAnimator ) {
             animator.start();
@@ -365,6 +403,17 @@ public class TestGearsES2AWT extends UITestCase {
         runTestGL(caps, resizeBy, frameLayout);
     }
 
+    @Test
+    public void test99_PixelScale1_DefaultNorm() throws InterruptedException, InvocationTargetException {
+        if( mainRun ) return;
+
+        reqSurfacePixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+        reqSurfacePixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
+
+        GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
+        runTestGL(caps, resizeBy, frameLayout);
+    }
+
     public static void main(String args[]) {
         boolean waitForKey = false;
         int rw=-1, rh=-1;
@@ -392,6 +441,11 @@ public class TestGearsES2AWT extends UITestCase {
             } else if(args[i].equals("-rheight")) {
                 i++;
                 rh = MiscUtils.atoi(args[i], rh);
+            } else if(args[i].equals("-pixelScale")) {
+                i++;
+                final int pS = MiscUtils.atoi(args[i], reqSurfacePixelScale[0]);
+                reqSurfacePixelScale[0] = pS;
+                reqSurfacePixelScale[1] = pS;
             } else if(args[i].equals("-layout")) {
                 i++;
                 frameLayout = FrameLayout.valueOf(args[i]);

@@ -48,6 +48,7 @@ import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.OffscreenLayerSurface;
+import javax.media.nativewindow.ScalableSurface;
 import javax.media.nativewindow.SurfaceUpdatedListener;
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.nativewindow.util.DimensionImmutable;
@@ -59,6 +60,7 @@ import javax.media.nativewindow.util.PointImmutable;
 import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
 
+import jogamp.nativewindow.SurfaceScaleUtils;
 import jogamp.nativewindow.SurfaceUpdatedHelper;
 
 import com.jogamp.common.util.ArrayHashSet;
@@ -150,6 +152,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private volatile boolean hasFocus = false;
     private volatile int pixWidth = 128, pixHeight = 128; // client-area size w/o insets in pixel units, default: may be overwritten by user
     private volatile int winWidth = 128, winHeight = 128; // client-area size w/o insets in window units, default: may be overwritten by user
+    protected int[] hasPixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+    protected int[] reqPixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+
     private volatile int x = 64, y = 64; // client-area pos w/o insets in window units
     private volatile Insets insets = new Insets(); // insets of decoration (if top-level && decorated)
     private boolean blockInsetsChange = false; // block insets change (from same thread)
@@ -1953,9 +1958,25 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     /** HiDPI: We currently base scaling of window units to pixel units on an integer scale factor per component. */
-    protected int getPixelScaleX() { return 1; }
+    protected final int getPixelScaleX() {
+        return hasPixelScale[0];
+    }
+
     /** HiDPI: We currently base scaling of window units to pixel units on an integer scale factor per component. */
-    protected int getPixelScaleY() { return 1; }
+    protected final int getPixelScaleY() {
+        return hasPixelScale[1];
+    }
+
+    @Override
+    public void setSurfaceScale(final int[] pixelScale) {
+        SurfaceScaleUtils.validateReqPixelScale(reqPixelScale, pixelScale, DEBUG_IMPLEMENTATION ? getClass().getSimpleName() : null);
+    }
+
+    @Override
+    public final int[] getSurfaceScale(final int[] result) {
+        System.arraycopy(isNativeValid() ? hasPixelScale : reqPixelScale, 0, result, 0, 2);
+        return result;
+    }
 
     protected final boolean autoPosition() { return autoPosition; }
 
