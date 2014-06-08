@@ -582,7 +582,7 @@ public class JAWTUtil {
           ps = JAWTUtil.getPixelScale(device);
       }
       if( DEBUG ) {
-          System.err.println("JAWTWindow.updatePixelScale: Fetched "+ps);
+          System.err.println("JAWTUtil.updatePixelScale: Fetched "+ps);
       }
       return ps;
   }

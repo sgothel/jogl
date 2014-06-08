@@ -47,8 +47,8 @@ import jogamp.nativewindow.windows.GDI;
  * @see ProxySurface
  */
 public class GDISurface extends ProxySurfaceImpl {
-  protected long windowHandle;
-  protected long surfaceHandle;
+  private long windowHandle;
+  private long surfaceHandle;
 
   /**
    * @param cfg the {@link AbstractGraphicsConfiguration} to be used

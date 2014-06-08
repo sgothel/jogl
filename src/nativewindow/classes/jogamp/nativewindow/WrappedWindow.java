@@ -17,7 +17,7 @@ public class WrappedWindow extends WrappedSurface implements NativeWindow {
     private long windowHandle;
 
     /**
-     * Utilizes a {@link UpstreamWindowHookMutableSizePos} to hold the size and postion information,
+     * Utilizes a {@link UpstreamWindowHookMutableSizePos} to hold the size and position information,
      * which is being passed to the {@link ProxySurface} instance.
      *
      * @param cfg the {@link AbstractGraphicsConfiguration} to be used
