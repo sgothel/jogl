@@ -114,8 +114,8 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
   }
 
   @Override
-  public int[] setSurfaceScale(final int[] result, final int[] pixelScale) {
-      super.setSurfaceScale(result, pixelScale);
+  public void setSurfaceScale(final int[] pixelScale) {
+      super.setSurfaceScale(pixelScale);
       if( 0 != getWindowHandle() ) { // locked at least once !
           final int hadPixelScaleX = getPixelScaleX();
           updatePixelScale();
@@ -132,7 +132,6 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
               });
           }
       }
-      return result;
   }
 
   @Override

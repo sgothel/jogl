@@ -663,29 +663,31 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public final int[] setSurfaceScale(final int[] result, final int[] pixelScale) {
+  public final void setSurfaceScale(final int[] pixelScale) {
       SurfaceScaleUtils.validateReqPixelScale(reqPixelScale, pixelScale, DEBUG ? getClass().getSimpleName() : null);
-      if( null != result ) {
-          System.arraycopy(reqPixelScale, 0, result, 0, 2);
-      }
       if( isRealized() ) {
           final ScalableSurface ns = jawtWindow;
           if( null != ns ) {
-              ns.setSurfaceScale(result, reqPixelScale);
+              ns.setSurfaceScale(reqPixelScale);
               final int hadPixelScaleX = hasPixelScale[0];
               final int hadPixelScaleY = hasPixelScale[1];
-              ns.getSurfaceScale(hasPixelScale);
+              ns.getCurrentSurfaceScale(hasPixelScale);
               if( hadPixelScaleX != hasPixelScale[0] || hadPixelScaleY != hasPixelScale[1] ) {
                   reshapeImpl(getWidth(), getHeight());
                   display();
               }
           }
       }
+  }
+
+  @Override
+  public final int[] getRequestedSurfaceScale(final int[] result) {
+      System.arraycopy(reqPixelScale, 0, result, 0, 2);
       return result;
   }
 
   @Override
-  public final int[] getSurfaceScale(final int[] result) {
+  public final int[] getCurrentSurfaceScale(final int[] result) {
       System.arraycopy(hasPixelScale, 0, result, 0, 2);
       return result;
   }
@@ -694,12 +696,12 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     if ( !Beans.isDesignTime() ) {
         jawtWindow = (JAWTWindow) NativeWindowFactory.getNativeWindow(this, awtConfig);
         jawtWindow.setShallUseOffscreenLayer(shallUseOffscreenLayer);
-        jawtWindow.setSurfaceScale(null, reqPixelScale);
+        jawtWindow.setSurfaceScale(reqPixelScale);
         jawtWindow.lockSurface();
         try {
             drawable = (GLDrawableImpl) GLDrawableFactory.getFactory(capsReqUser.getGLProfile()).createGLDrawable(jawtWindow);
             createContextImpl(drawable);
-            jawtWindow.getSurfaceScale(hasPixelScale);
+            jawtWindow.getCurrentSurfaceScale(hasPixelScale);
         } finally {
             jawtWindow.unlockSurface();
         }

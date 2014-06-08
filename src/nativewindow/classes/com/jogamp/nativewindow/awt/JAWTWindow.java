@@ -277,16 +277,18 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
    * </p>
    */
   @Override
-  public int[] setSurfaceScale(final int[] result, final int[] pixelScale) {
+  public void setSurfaceScale(final int[] pixelScale) {
       SurfaceScaleUtils.validateReqPixelScale(reqPixelScale, pixelScale, DEBUG ? getClass().getSimpleName() : null);
-      if( null != result ) {
-          System.arraycopy(reqPixelScale, 0, result, 0, 2);
-      }
+  }
+
+  @Override
+  public final int[] getRequestedSurfaceScale(final int[] result) {
+      System.arraycopy(reqPixelScale, 0, result, 0, 2);
       return result;
   }
 
   @Override
-  public final int[] getSurfaceScale(final int[] result) {
+  public final int[] getCurrentSurfaceScale(final int[] result) {
       System.arraycopy(hasPixelScale, 0, result, 0, 2);
       return result;
   }

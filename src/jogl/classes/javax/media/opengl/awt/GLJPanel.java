@@ -559,16 +559,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private final void updateWrappedSurfaceScale(final GLDrawable d) {
       final NativeSurface s = d.getNativeSurface();
       if( s instanceof WrappedSurface ) {
-          ((WrappedSurface)s).setSurfaceScale(null, hasPixelScale);
+          ((WrappedSurface)s).setSurfaceScale(hasPixelScale);
       }
   }
 
   @Override
-  public final int[] setSurfaceScale(final int[] result, final int[] pixelScale) { // HiDPI support
+  public final void setSurfaceScale(final int[] pixelScale) { // HiDPI support
       SurfaceScaleUtils.validateReqPixelScale(reqPixelScale, pixelScale, DEBUG ? getClass().getSimpleName() : null);
-      if( null != result ) {
-          System.arraycopy(reqPixelScale, 0, result, 0, 2);
-      }
       final Backend b = backend;
       if ( isInitialized && null != b ) {
           final int[] pixelScaleInt;
@@ -585,11 +582,16 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
               display();
           }
       }
+  }
+
+  @Override
+  public final int[] getRequestedSurfaceScale(final int[] result) {
+      System.arraycopy(reqPixelScale, 0, result, 0, 2);
       return result;
   }
 
   @Override
-  public final int[] getSurfaceScale(final int[] result) {
+  public final int[] getCurrentSurfaceScale(final int[] result) {
       System.arraycopy(hasPixelScale, 0, result, 0, 2);
       return result;
   }

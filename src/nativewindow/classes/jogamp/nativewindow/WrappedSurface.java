@@ -104,7 +104,7 @@ public class WrappedSurface extends ProxySurfaceImpl implements ScalableSurface 
   /**
    * {@inheritDoc}
    * <p>
-   * {@link WrappedSurface}'s implementation uses the {@link #setSurfaceScale(int[], int[]) given pixelScale} directly.
+   * {@link WrappedSurface}'s implementation uses the {@link #setSurfaceScale(int[]) given pixelScale} directly.
    * </p>
    */
   @Override
@@ -117,7 +117,7 @@ public class WrappedSurface extends ProxySurfaceImpl implements ScalableSurface 
   /**
    * {@inheritDoc}
    * <p>
-   * {@link WrappedSurface}'s implementation uses the {@link #setSurfaceScale(int[], int[]) given pixelScale} directly.
+   * {@link WrappedSurface}'s implementation uses the {@link #setSurfaceScale(int[]) given pixelScale} directly.
    * </p>
    */
   @Override
@@ -147,17 +147,19 @@ public class WrappedSurface extends ProxySurfaceImpl implements ScalableSurface 
    * </p>
    */
   @Override
-  public final int[] setSurfaceScale(final int[] result, final int[] pixelScale) {
+  public final void setSurfaceScale(final int[] pixelScale) {
       hasPixelScale[0] = pixelScale[0];
       hasPixelScale[1] = pixelScale[1];
-      if( null != result ) {
-          System.arraycopy(hasPixelScale, 0, result, 0, 2);
-      }
+  }
+
+  @Override
+  public final int[] getRequestedSurfaceScale(final int[] result) {
+      System.arraycopy(hasPixelScale, 0, result, 0, 2);
       return result;
   }
 
   @Override
-  public final int[] getSurfaceScale(final int[] result) {
+  public final int[] getCurrentSurfaceScale(final int[] result) {
       System.arraycopy(hasPixelScale, 0, result, 0, 2);
       return result;
   }

@@ -170,7 +170,8 @@ public class TestGearsES2AWT extends UITestCase {
         final GLCanvas glCanvas = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas);
         setSize(resizeBy, frame, false, glCanvas, new Dimension(width, height));
-        final int[] valReqSurfacePixelScale = glCanvas.setSurfaceScale(new int[2], reqSurfacePixelScale);
+        glCanvas.setSurfaceScale(reqSurfacePixelScale);
+        final int[] valReqSurfacePixelScale = glCanvas.getRequestedSurfaceScale(new int[2]);
         frame.setLocation(xpos, ypos);
 
         switch( frameLayout) {
@@ -253,7 +254,7 @@ public class TestGearsES2AWT extends UITestCase {
                     return;
                 }
                 if(e.getKeyChar()=='x') {
-                    final int[] hadSurfacePixelScale = glCanvas.getSurfaceScale(new int[2]);
+                    final int[] hadSurfacePixelScale = glCanvas.getCurrentSurfaceScale(new int[2]);
                     final int[] reqSurfacePixelScale;
                     if( hadSurfacePixelScale[0] == ScalableSurface.IDENTITY_PIXELSCALE ) {
                         reqSurfacePixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
@@ -261,9 +262,10 @@ public class TestGearsES2AWT extends UITestCase {
                         reqSurfacePixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
                     }
                     System.err.println("[set PixelScale pre]: had "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" -> req "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]);
-                    final int[] valReqSurfacePixelScale = glCanvas.setSurfaceScale(new int[2], reqSurfacePixelScale);
+                    glCanvas.setSurfaceScale(reqSurfacePixelScale);
+                    final int[] valReqSurfacePixelScale = glCanvas.getRequestedSurfaceScale(new int[2]);
                     final int[] hasSurfacePixelScale0 = glCanvas.getNativeSurface().convertToPixelUnits(new int[] { 1, 1 });
-                    final int[] hasSurfacePixelScale1 = glCanvas.getSurfaceScale(new int[2]);
+                    final int[] hasSurfacePixelScale1 = glCanvas.getCurrentSurfaceScale(new int[2]);
                     System.err.println("[set PixelScale post]: "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" (had) -> "+
                                        reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
                                        valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
@@ -287,7 +289,7 @@ public class TestGearsES2AWT extends UITestCase {
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, true));
 
         final int[] hasSurfacePixelScale0 = glCanvas.getNativeSurface().convertToPixelUnits(new int[] { 1, 1 });
-        final int[] hasSurfacePixelScale1 = glCanvas.getSurfaceScale(new int[2]);
+        final int[] hasSurfacePixelScale1 = glCanvas.getCurrentSurfaceScale(new int[2]);
         System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
                            valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
                            hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");

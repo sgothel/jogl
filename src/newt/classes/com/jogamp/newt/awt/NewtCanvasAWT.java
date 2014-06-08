@@ -860,12 +860,19 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
       }
       final int w = getWidth();
       final int h = getHeight();
+      final boolean isNValid = newtChild.isNativeValid();
       if(DEBUG) {
-          System.err.println("NewtCanvasAWT.attachNewtChild.2: size "+w+"x"+h);
+          System.err.println("NewtCanvasAWT.attachNewtChild.2: size "+w+"x"+h+", isNValid "+isNValid);
       }
       newtChild.setVisible(false);
       newtChild.setSize(w, h);
-      jawtWindow.setSurfaceScale(null, newtChild.getSurfaceScale(new int[2]));
+      final int[] reqSurfaceScale = new int[2];
+      if( isNValid ) {
+          newtChild.getCurrentSurfaceScale(reqSurfaceScale);
+      } else {
+          newtChild.getRequestedSurfaceScale(reqSurfaceScale);
+      }
+      jawtWindow.setSurfaceScale(reqSurfaceScale);
       newtChild.reparentWindow(jawtWindow, -1, -1, Window.REPARENT_HINT_BECOMES_VISIBLE);
       newtChild.addSurfaceUpdatedListener(jawtWindow);
       if( jawtWindow.isOffscreenLayerSurfaceEnabled() &&

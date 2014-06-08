@@ -30,7 +30,7 @@ package javax.media.nativewindow;
 
 /**
  * Adding mutable surface pixel scale property to implementing class, usually to a {@link NativeSurface} implementation,
- * see {@link #setSurfaceScale(int[], int[])}.
+ * see {@link #setSurfaceScale(int[])}.
  */
 public interface ScalableSurface {
   /** Setting surface-pixel-scale of {@value}, results in same pixel- and window-units. */
@@ -39,8 +39,7 @@ public interface ScalableSurface {
   public static final int AUTOMAX_PIXELSCALE = 0;
 
   /**
-   * Request a pixel scale in x- and y-direction for the associated {@link NativeSurface}
-   * and return the validated requested value, see below.
+   * Request a pixel scale in x- and y-direction for the associated {@link NativeSurface}.
    * <p>
    * Default pixel scale request for both directions is {@link #AUTOMAX_PIXELSCALE}.
    * </p>
@@ -51,17 +50,24 @@ public interface ScalableSurface {
    * <p>
    * The <i>requested</i> pixel scale will be validated against platform limits before native scale-setup,
    * i.e. clipped to {@link #IDENTITY_PIXELSCALE} if not supported or clipped to the platform maximum.
+   * It can be queried via {@link #getRequestedSurfaceScale(int[])}.
    * </p>
    * <p>
    * The actual <i>realized</i> pixel scale values of the {@link NativeSurface}
-   * can be queried via {@link #getSurfaceScale(int[])} or
+   * can be queried via {@link #getCurrentSurfaceScale(int[])} or
    * computed via <code>surface.{@link NativeSurface#convertToPixelUnits(int[]) convertToPixelUnits}(new int[] { 1, 1 })</code>
    * </p>
-   * @param result int[2] storage for the result, maybe null
-   * @param pixelScale <i>requested</i> surface pixel scale int[2] values for x- and y-direction.
-   * @return the passed storage containing the validated requested pixelSize for chaining, if storage is not null
+ * @param pixelScale <i>requested</i> surface pixel scale int[2] values for x- and y-direction.
    */
-  public int[] setSurfaceScale(final int[] result, final int[] pixelScale);
+  public void setSurfaceScale(final int[] pixelScale);
+
+  /**
+   * Returns the requested pixel scale of the associated {@link NativeSurface}.
+   *
+   * @param result int[2] storage for the result
+   * @return the passed storage containing the requested pixelSize for chaining
+   */
+  int[] getRequestedSurfaceScale(final int[] result);
 
   /**
    * Returns the current pixel scale of the associated {@link NativeSurface}.
@@ -69,6 +75,6 @@ public interface ScalableSurface {
    * @param result int[2] storage for the result
    * @return the passed storage containing the current pixelSize for chaining
    */
-  public int[] getSurfaceScale(final int[] result);
+  public int[] getCurrentSurfaceScale(final int[] result);
 }
 

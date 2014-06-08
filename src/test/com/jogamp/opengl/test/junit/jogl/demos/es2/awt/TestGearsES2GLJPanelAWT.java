@@ -124,7 +124,8 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         glJPanel.setMinimumSize(wsize);
         glJPanel.setPreferredSize(wsize);
         glJPanel.setSize(wsize);
-        final int[] valReqSurfacePixelScale = glJPanel.setSurfaceScale(new int[2], reqSurfacePixelScale);
+        glJPanel.setSurfaceScale(reqSurfacePixelScale);
+        final int[] valReqSurfacePixelScale = glJPanel.getRequestedSurfaceScale(new int[2]);
         if( caps.isBitmap() || caps.getGLProfile().isGL2() ) {
             final Gears gears = new Gears(swapInterval);
             gears.setFlipVerticalInGLOrientation(skipGLOrientationVerticalFlip);
@@ -170,7 +171,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel, true));
 
         final int[] hasSurfacePixelScale0 = glJPanel.getNativeSurface().convertToPixelUnits(new int[] { 1, 1 });
-        final int[] hasSurfacePixelScale1 = glJPanel.getSurfaceScale(new int[2]);
+        final int[] hasSurfacePixelScale1 = glJPanel.getCurrentSurfaceScale(new int[2]);
         System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
                            valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
                            hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
@@ -194,7 +195,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
                     return;
                 }
                 if(e.getKeyChar()=='x') {
-                    final int[] hadSurfacePixelScale = glJPanel.getSurfaceScale(new int[2]);
+                    final int[] hadSurfacePixelScale = glJPanel.getCurrentSurfaceScale(new int[2]);
                     final int[] reqSurfacePixelScale;
                     if( hadSurfacePixelScale[0] == ScalableSurface.IDENTITY_PIXELSCALE ) {
                         reqSurfacePixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
@@ -202,9 +203,10 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
                         reqSurfacePixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
                     }
                     System.err.println("[set PixelScale pre]: had "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" -> req "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]);
-                    final int[] valReqSurfacePixelScale = glJPanel.setSurfaceScale(new int[2], reqSurfacePixelScale);
+                    glJPanel.setSurfaceScale(reqSurfacePixelScale);
+                    final int[] valReqSurfacePixelScale = glJPanel.getRequestedSurfaceScale(new int[2]);
                     final int[] hasSurfacePixelScale0 = glJPanel.getNativeSurface().convertToPixelUnits(new int[] { 1, 1 });
-                    final int[] hasSurfacePixelScale1 = glJPanel.getSurfaceScale(new int[2]);
+                    final int[] hasSurfacePixelScale1 = glJPanel.getCurrentSurfaceScale(new int[2]);
                     System.err.println("[set PixelScale post]: "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" (had) -> "+
                                        reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
                                        valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+

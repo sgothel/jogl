@@ -130,7 +130,8 @@ public class TestGearsES2NEWT extends UITestCase {
         Screen screen = NewtFactory.createScreen(dpy, screenIdx);
         final GLWindow glWindow = GLWindow.create(screen, caps);
         Assert.assertNotNull(glWindow);
-        final int[] valReqSurfacePixelScale = glWindow.setSurfaceScale(new int[2], reqSurfacePixelScale);
+        glWindow.setSurfaceScale(reqSurfacePixelScale);
+        final int[] valReqSurfacePixelScale = glWindow.getRequestedSurfaceScale(new int[2]);
         glWindow.setSize(wsize.getWidth(), wsize.getHeight());
         if(null != wpos) {
             glWindow.setPosition(wpos.getX(), wpos.getY());
@@ -347,7 +348,7 @@ public class TestGearsES2NEWT extends UITestCase {
                             glWindow.setExclusiveContextThread(t);
                     } }.start();
                 } else if(e.getKeyChar()=='x') {
-                    final int[] hadSurfacePixelScale = glWindow.getSurfaceScale(new int[2]);
+                    final int[] hadSurfacePixelScale = glWindow.getCurrentSurfaceScale(new int[2]);
                     final int[] reqSurfacePixelScale;
                     if( hadSurfacePixelScale[0] == ScalableSurface.IDENTITY_PIXELSCALE ) {
                         reqSurfacePixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
@@ -355,9 +356,10 @@ public class TestGearsES2NEWT extends UITestCase {
                         reqSurfacePixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
                     }
                     System.err.println("[set PixelScale pre]: had "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" -> req "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]);
-                    final int[] valReqSurfacePixelScale = glWindow.setSurfaceScale(new int[2], reqSurfacePixelScale);
+                    glWindow.setSurfaceScale(reqSurfacePixelScale);
+                    final int[] valReqSurfacePixelScale = glWindow.getRequestedSurfaceScale(new int[2]);
                     final int[] hasSurfacePixelScale0 = glWindow.convertToPixelUnits(new int[] { 1, 1 });
-                    final int[] hasSurfacePixelScale1 = glWindow.getSurfaceScale(new int[2]);
+                    final int[] hasSurfacePixelScale1 = glWindow.getCurrentSurfaceScale(new int[2]);
                     System.err.println("[set PixelScale post]: "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" (had) -> "+
                                        reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
                                        valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
@@ -437,7 +439,7 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
 
         final int[] hasSurfacePixelScale0 = glWindow.convertToPixelUnits(new int[] { 1, 1 });
-        final int[] hasSurfacePixelScale1 = glWindow.getSurfaceScale(new int[2]);
+        final int[] hasSurfacePixelScale1 = glWindow.getCurrentSurfaceScale(new int[2]);
         System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
                            valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
                            hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");

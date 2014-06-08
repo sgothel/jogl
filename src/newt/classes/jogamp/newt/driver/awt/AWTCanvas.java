@@ -146,9 +146,9 @@ public class AWTCanvas extends Canvas {
     {
         jawtWindow = (JAWTWindow) NativeWindowFactory.getNativeWindow(this, awtConfig);
         // trigger initialization cycle
-        jawtWindow.setSurfaceScale(null, upstreamScale.getReqPixelScale() );
+        jawtWindow.setSurfaceScale(upstreamScale.getReqPixelScale() );
         jawtWindow.lockSurface();
-        upstreamScale.setHasPixelScale(jawtWindow.getSurfaceScale(new int[2]));
+        upstreamScale.setHasPixelScale(jawtWindow.getCurrentSurfaceScale(new int[2]));
         jawtWindow.unlockSurface();
     }
 

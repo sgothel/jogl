@@ -95,7 +95,7 @@ public class SurfaceScaleUtils {
      * Validate the given requested pixelScale value pair, i.e. clip it to the
      * limits of {@link ScalableSurface#AUTOMAX_PIXELSCALE} and {@link #getPlatformMaxPixelScale(int[])}
      * <p>
-     * To be used by {@link ScalableSurface#setSurfaceScale(int[], int[])} implementations.
+     * To be used by {@link ScalableSurface#setSurfaceScale(int[])} implementations.
      * </p>
      *
      * @param result int[2] storage for result
