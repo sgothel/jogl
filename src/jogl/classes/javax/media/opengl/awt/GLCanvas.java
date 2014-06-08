@@ -663,12 +663,15 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public final void setSurfaceScale(final int[] pixelScale) {
+  public final int[] setSurfaceScale(final int[] result, final int[] pixelScale) {
       SurfaceScaleUtils.validateReqPixelScale(reqPixelScale, pixelScale, DEBUG ? getClass().getSimpleName() : null);
+      if( null != result ) {
+          System.arraycopy(reqPixelScale, 0, result, 0, 2);
+      }
       if( isRealized() ) {
           final ScalableSurface ns = jawtWindow;
           if( null != ns ) {
-              ns.setSurfaceScale(reqPixelScale);
+              ns.setSurfaceScale(result, reqPixelScale);
               final int hadPixelScaleX = hasPixelScale[0];
               final int hadPixelScaleY = hasPixelScale[1];
               ns.getSurfaceScale(hasPixelScale);
@@ -678,24 +681,20 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
               }
           }
       }
+      return result;
   }
 
   @Override
   public final int[] getSurfaceScale(final int[] result) {
-      final ScalableSurface ns = jawtWindow;
-      if( null != ns ) {
-          return ns.getSurfaceScale(result);
-      } else {
-          System.arraycopy(reqPixelScale, 0, result, 0, 2);
-          return result;
-      }
+      System.arraycopy(hasPixelScale, 0, result, 0, 2);
+      return result;
   }
 
   private void createJAWTDrawableAndContext() {
     if ( !Beans.isDesignTime() ) {
         jawtWindow = (JAWTWindow) NativeWindowFactory.getNativeWindow(this, awtConfig);
         jawtWindow.setShallUseOffscreenLayer(shallUseOffscreenLayer);
-        jawtWindow.setSurfaceScale(reqPixelScale);
+        jawtWindow.setSurfaceScale(null, reqPixelScale);
         jawtWindow.lockSurface();
         try {
             drawable = (GLDrawableImpl) GLDrawableFactory.getFactory(capsReqUser.getGLProfile()).createGLDrawable(jawtWindow);

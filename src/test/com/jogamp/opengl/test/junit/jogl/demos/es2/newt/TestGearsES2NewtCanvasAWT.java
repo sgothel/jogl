@@ -99,7 +99,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
     static boolean shallUseOffscreenFBOLayer = false;
     static boolean forceES2 = false;
     static boolean forceGL3 = false;
-    static boolean mainRun = false;
+    static boolean manualTest = false;
     static boolean exclusiveContext = false;
     static boolean useAnimator = true;
 
@@ -191,7 +191,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         Screen screen = NewtFactory.createScreen(dpy, screenIdx);
         final GLWindow glWindow = GLWindow.create(screen, caps);
         Assert.assertNotNull(glWindow);
-        glWindow.setSurfaceScale(reqSurfacePixelScale);
+        final int[] valReqSurfacePixelScale = glWindow.setSurfaceScale(new int[2], reqSurfacePixelScale);
 
         final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow);
         if ( shallUseOffscreenFBOLayer ) {
@@ -314,11 +314,12 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
                         reqSurfacePixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
                     }
                     System.err.println("[set PixelScale pre]: had "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" -> req "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]);
-                    glWindow.setSurfaceScale(reqSurfacePixelScale);
+                    final int[] valReqSurfacePixelScale = glWindow.setSurfaceScale(new int[2], reqSurfacePixelScale);
                     final int[] hasSurfacePixelScale0 = glWindow.convertToPixelUnits(new int[] { 1, 1 });
                     final int[] hasSurfacePixelScale1 = glWindow.getSurfaceScale(new int[2]);
                     System.err.println("[set PixelScale post]: "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" (had) -> "+
                                        reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
+                                       valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
                                        hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
                     setTitle(frame, newtCanvasAWT, glWindow, caps);
                     Assert.assertArrayEquals(hasSurfacePixelScale0, hasSurfacePixelScale1);
@@ -357,6 +358,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         final int[] hasSurfacePixelScale0 = glWindow.convertToPixelUnits(new int[] { 1, 1 });
         final int[] hasSurfacePixelScale1 = glWindow.getSurfaceScale(new int[2]);
         System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
+                           valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
                            hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
         setTitle(frame, newtCanvasAWT, glWindow, caps);
         Assert.assertArrayEquals(hasSurfacePixelScale0, hasSurfacePixelScale1);
@@ -416,7 +418,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
 
     @Test
     public void test02GL3() throws InterruptedException, InvocationTargetException {
-        if(mainRun) return;
+        if(manualTest) return;
 
         if( !GLProfile.isAvailable(GLProfile.GL3) ) {
             System.err.println("GL3 n/a");
@@ -429,7 +431,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
 
     @Test
     public void test99_PixelScale1_DefaultNorm() throws InterruptedException, InvocationTargetException {
-        if( mainRun ) return;
+        if( manualTest ) return;
 
         reqSurfacePixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
         reqSurfacePixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
@@ -439,8 +441,6 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
     }
 
     public static void main(String args[]) throws IOException {
-        mainRun = true;
-
         int x=0, y=0, w=640, h=480;
         int rw=-1, rh=-1;
         boolean usePos = false;
@@ -512,6 +512,8 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
                 loops = MiscUtils.atoi(args[i], 1);
             } else if(args[i].equals("-loop-shutdown")) {
                 loop_shutdown = true;
+            } else if(args[i].equals("-manual")) {
+                manualTest = true;
             }
         }
         wsize = new Dimension(w, h);

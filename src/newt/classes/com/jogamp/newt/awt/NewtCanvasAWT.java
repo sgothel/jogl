@@ -865,7 +865,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
       }
       newtChild.setVisible(false);
       newtChild.setSize(w, h);
-      jawtWindow.setSurfaceScale(newtChild.getSurfaceScale(new int[2]));
+      jawtWindow.setSurfaceScale(null, newtChild.getSurfaceScale(new int[2]));
       newtChild.reparentWindow(jawtWindow, -1, -1, Window.REPARENT_HINT_BECOMES_VISIBLE);
       newtChild.addSurfaceUpdatedListener(jawtWindow);
       if( jawtWindow.isOffscreenLayerSurfaceEnabled() &&

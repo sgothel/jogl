@@ -1968,13 +1968,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public void setSurfaceScale(final int[] pixelScale) {
+    public int[] setSurfaceScale(final int[] result, final int[] pixelScale) {
         SurfaceScaleUtils.validateReqPixelScale(reqPixelScale, pixelScale, DEBUG_IMPLEMENTATION ? getClass().getSimpleName() : null);
+        if( null != result ) {
+            System.arraycopy(reqPixelScale, 0, result, 0, 2);
+        }
+        return result;
     }
 
     @Override
     public final int[] getSurfaceScale(final int[] result) {
-        System.arraycopy(isNativeValid() ? hasPixelScale : reqPixelScale, 0, result, 0, 2);
+        System.arraycopy(hasPixelScale, 0, result, 0, 2);
         return result;
     }
 

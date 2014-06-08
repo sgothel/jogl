@@ -124,7 +124,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         glJPanel.setMinimumSize(wsize);
         glJPanel.setPreferredSize(wsize);
         glJPanel.setSize(wsize);
-        glJPanel.setSurfaceScale(reqSurfacePixelScale);
+        final int[] valReqSurfacePixelScale = glJPanel.setSurfaceScale(new int[2], reqSurfacePixelScale);
         if( caps.isBitmap() || caps.getGLProfile().isGL2() ) {
             final Gears gears = new Gears(swapInterval);
             gears.setFlipVerticalInGLOrientation(skipGLOrientationVerticalFlip);
@@ -172,6 +172,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         final int[] hasSurfacePixelScale0 = glJPanel.getNativeSurface().convertToPixelUnits(new int[] { 1, 1 });
         final int[] hasSurfacePixelScale1 = glJPanel.getSurfaceScale(new int[2]);
         System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
+                           valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
                            hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
         setTitle(frame, glJPanel, caps);
         Assert.assertArrayEquals(hasSurfacePixelScale0, hasSurfacePixelScale1);
@@ -201,11 +202,12 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
                         reqSurfacePixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
                     }
                     System.err.println("[set PixelScale pre]: had "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" -> req "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]);
-                    glJPanel.setSurfaceScale(reqSurfacePixelScale);
+                    final int[] valReqSurfacePixelScale = glJPanel.setSurfaceScale(new int[2], reqSurfacePixelScale);
                     final int[] hasSurfacePixelScale0 = glJPanel.getNativeSurface().convertToPixelUnits(new int[] { 1, 1 });
                     final int[] hasSurfacePixelScale1 = glJPanel.getSurfaceScale(new int[2]);
                     System.err.println("[set PixelScale post]: "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" (had) -> "+
                                        reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
+                                       valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
                                        hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
                     setTitle(frame, glJPanel, caps);
                     Assert.assertArrayEquals(hasSurfacePixelScale0, hasSurfacePixelScale1);

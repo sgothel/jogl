@@ -102,7 +102,7 @@ public class TestGearsES2NEWT extends UITestCase {
     static boolean forceES3 = false;
     static boolean forceGL3 = false;
     static boolean forceGL2 = false;
-    static boolean mainRun = false;
+    static boolean manualTest = false;
     static boolean exclusiveContext = false;
     static boolean useAnimator = true;
     static boolean useMappedBuffers = false;
@@ -130,7 +130,7 @@ public class TestGearsES2NEWT extends UITestCase {
         Screen screen = NewtFactory.createScreen(dpy, screenIdx);
         final GLWindow glWindow = GLWindow.create(screen, caps);
         Assert.assertNotNull(glWindow);
-        glWindow.setSurfaceScale(reqSurfacePixelScale);
+        final int[] valReqSurfacePixelScale = glWindow.setSurfaceScale(new int[2], reqSurfacePixelScale);
         glWindow.setSize(wsize.getWidth(), wsize.getHeight());
         if(null != wpos) {
             glWindow.setPosition(wpos.getX(), wpos.getY());
@@ -355,11 +355,12 @@ public class TestGearsES2NEWT extends UITestCase {
                         reqSurfacePixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
                     }
                     System.err.println("[set PixelScale pre]: had "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" -> req "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]);
-                    glWindow.setSurfaceScale(reqSurfacePixelScale);
+                    final int[] valReqSurfacePixelScale = glWindow.setSurfaceScale(new int[2], reqSurfacePixelScale);
                     final int[] hasSurfacePixelScale0 = glWindow.convertToPixelUnits(new int[] { 1, 1 });
                     final int[] hasSurfacePixelScale1 = glWindow.getSurfaceScale(new int[2]);
                     System.err.println("[set PixelScale post]: "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" (had) -> "+
                                        reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
+                                       valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
                                        hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
                     setTitle(glWindow, caps);
                     Assert.assertArrayEquals(hasSurfacePixelScale0, hasSurfacePixelScale1);
@@ -438,6 +439,7 @@ public class TestGearsES2NEWT extends UITestCase {
         final int[] hasSurfacePixelScale0 = glWindow.convertToPixelUnits(new int[] { 1, 1 });
         final int[] hasSurfacePixelScale1 = glWindow.getSurfaceScale(new int[2]);
         System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
+                           valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
                            hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
         setTitle(glWindow, caps);
         Assert.assertArrayEquals(hasSurfacePixelScale0, hasSurfacePixelScale1);
@@ -524,7 +526,7 @@ public class TestGearsES2NEWT extends UITestCase {
 
     @Test
     public void test02_GLES2() throws InterruptedException {
-        if(mainRun) return;
+        if(manualTest) return;
 
         if( !GLProfile.isAvailable(GLProfile.GLES2) ) {
             System.err.println("GLES2 n/a");
@@ -537,7 +539,7 @@ public class TestGearsES2NEWT extends UITestCase {
 
     @Test
     public void test03_GL3() throws InterruptedException {
-        if(mainRun) return;
+        if(manualTest) return;
 
         if( !GLProfile.isAvailable(GLProfile.GL3) ) {
             System.err.println("GL3 n/a");
@@ -550,7 +552,7 @@ public class TestGearsES2NEWT extends UITestCase {
 
     @Test
     public void test99_PixelScale1_DefaultNorm() throws InterruptedException, InvocationTargetException {
-        if( mainRun ) return;
+        if( manualTest ) return;
 
         reqSurfacePixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
         reqSurfacePixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
@@ -560,8 +562,6 @@ public class TestGearsES2NEWT extends UITestCase {
     }
 
     public static void main(String args[]) throws IOException {
-        mainRun = true;
-
         int x=0, y=0, w=640, h=480, rw=-1, rh=-1;
         boolean usePos = false;
 
@@ -645,6 +645,8 @@ public class TestGearsES2NEWT extends UITestCase {
             } else if(args[i].equals("-sysExit")) {
                 i++;
                 sysExit = SysExit.valueOf(args[i]);
+            } else if(args[i].equals("-manual")) {
+                manualTest = true;
             }
         }
         wsize = new Dimension(w, h);

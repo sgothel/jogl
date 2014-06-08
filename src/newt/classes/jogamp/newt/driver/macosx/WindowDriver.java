@@ -135,8 +135,11 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
 
     @Override
-    public final void setSurfaceScale(final int[] pixelScale) {
+    public final int[] setSurfaceScale(final int[] result, final int[] pixelScale) {
         SurfaceScaleUtils.validateReqPixelScale(reqPixelScale, pixelScale, DEBUG_IMPLEMENTATION ? getClass().getName() : null);
+        if( null != result ) {
+            System.arraycopy(reqPixelScale, 0, result, 0, 2);
+        }
 
         final int[] resPixelScale;
         if( isNativeValid() ) {
@@ -144,7 +147,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 final NativeWindow pWin = getParent();
                 if( pWin instanceof ScalableSurface ) {
                     final ScalableSurface sSurf = (ScalableSurface)pWin;
-                    sSurf.setSurfaceScale(reqPixelScale);
+                    sSurf.setSurfaceScale(result, reqPixelScale);
                     final int[] pPixelScale = sSurf.getSurfaceScale(new int[2]);
                     updatePixelScale(true /* sendEvent */, true /* defer */, pPixelScale[0]); // HiDPI: uniformPixelScale
                 } else {
@@ -172,6 +175,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                                 reqPixelScale[0]+"x"+reqPixelScale[1]+" (validated) -> "+
                                 resPixelScale[0]+"x"+resPixelScale[1]+" (result) - realized "+isNativeValid());
         }
+        return result;
     }
 
     @Override

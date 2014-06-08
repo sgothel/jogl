@@ -21,7 +21,7 @@ set CP_ALL=.;%BLD_DIR%\jar\jogl-all.jar;%BLD_DIR%\jar\jogl-test.jar;..\..\joal\%
 echo CP_ALL %CP_ALL%
 
 REM set D_ARGS="-Djogamp.debug=all"
-REM set D_ARGS="-Djogl.debug=all" "-Dnativewindow.debug=all"
+set D_ARGS="-Djogl.debug=all" "-Dnativewindow.debug=all"
 REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all"
 REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all" "-Djogamp.debug=all" "-Djogl.debug.EGLDrawableFactory.DontQuery"
 REM set D_ARGS="-Dnativewindow.debug.GDIUtil" "-Dnativewindow.debug.RegisteredClass"

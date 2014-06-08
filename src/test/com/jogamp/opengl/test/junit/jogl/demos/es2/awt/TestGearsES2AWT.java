@@ -84,7 +84,7 @@ public class TestGearsES2AWT extends UITestCase {
 
     static boolean forceES2 = false;
     static boolean forceGL3 = false;
-    static boolean mainRun = false;
+    static boolean manualTest = false;
     static boolean shallUseOffscreenFBOLayer = false;
     static boolean shallUseOffscreenPBufferLayer = false;
     static boolean useMSAA = false;
@@ -170,7 +170,7 @@ public class TestGearsES2AWT extends UITestCase {
         final GLCanvas glCanvas = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas);
         setSize(resizeBy, frame, false, glCanvas, new Dimension(width, height));
-        glCanvas.setSurfaceScale(reqSurfacePixelScale);
+        final int[] valReqSurfacePixelScale = glCanvas.setSurfaceScale(new int[2], reqSurfacePixelScale);
         frame.setLocation(xpos, ypos);
 
         switch( frameLayout) {
@@ -261,11 +261,12 @@ public class TestGearsES2AWT extends UITestCase {
                         reqSurfacePixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
                     }
                     System.err.println("[set PixelScale pre]: had "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" -> req "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]);
-                    glCanvas.setSurfaceScale(reqSurfacePixelScale);
+                    final int[] valReqSurfacePixelScale = glCanvas.setSurfaceScale(new int[2], reqSurfacePixelScale);
                     final int[] hasSurfacePixelScale0 = glCanvas.getNativeSurface().convertToPixelUnits(new int[] { 1, 1 });
                     final int[] hasSurfacePixelScale1 = glCanvas.getSurfaceScale(new int[2]);
                     System.err.println("[set PixelScale post]: "+hadSurfacePixelScale[0]+"x"+hadSurfacePixelScale[1]+" (had) -> "+
                                        reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
+                                       valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
                                        hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
                     setTitle(frame, glCanvas, caps);
                     Assert.assertArrayEquals(hasSurfacePixelScale0, hasSurfacePixelScale1);
@@ -288,6 +289,7 @@ public class TestGearsES2AWT extends UITestCase {
         final int[] hasSurfacePixelScale0 = glCanvas.getNativeSurface().convertToPixelUnits(new int[] { 1, 1 });
         final int[] hasSurfacePixelScale1 = glCanvas.getSurfaceScale(new int[2]);
         System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
+                           valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
                            hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
         setTitle(frame, glCanvas, caps);
         Assert.assertArrayEquals(hasSurfacePixelScale0, hasSurfacePixelScale1);
@@ -379,7 +381,7 @@ public class TestGearsES2AWT extends UITestCase {
 
     @Test
     public void test02_GLES2() throws InterruptedException, InvocationTargetException {
-        if(mainRun) return;
+        if(manualTest) return;
 
         if( !GLProfile.isAvailable(GLProfile.GLES2) ) {
             System.err.println("GLES2 n/a");
@@ -392,7 +394,7 @@ public class TestGearsES2AWT extends UITestCase {
 
     @Test
     public void test03_GL3() throws InterruptedException, InvocationTargetException {
-        if(mainRun) return;
+        if(manualTest) return;
 
         if( !GLProfile.isAvailable(GLProfile.GL3) ) {
             System.err.println("GL3 n/a");
@@ -405,7 +407,7 @@ public class TestGearsES2AWT extends UITestCase {
 
     @Test
     public void test99_PixelScale1_DefaultNorm() throws InterruptedException, InvocationTargetException {
-        if( mainRun ) return;
+        if( manualTest ) return;
 
         reqSurfacePixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
         reqSurfacePixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
@@ -418,7 +420,6 @@ public class TestGearsES2AWT extends UITestCase {
         boolean waitForKey = false;
         int rw=-1, rh=-1;
 
-        mainRun = true;
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
@@ -482,6 +483,8 @@ public class TestGearsES2AWT extends UITestCase {
                 shutdownDisposeFrame = false;
             } else if(args[i].equals("-shutdownSystemExit")) {
                 shutdownSystemExit = true;
+            } else if(args[i].equals("-manual")) {
+                manualTest = true;
             }
         }
         if( 0 < rw && 0 < rh ) {
