@@ -396,6 +396,11 @@ public class ALAudioSink implements AudioSink {
         return true;
     }
 
+    @Override
+    public final AudioFormat getChosenFormat() {
+        return chosenFormat;
+    }
+
     private static int[] concat(int[] first, int[] second) {
         final int[] result = Arrays.copyOf(first, first.length + second.length);
         System.arraycopy(second, 0, result, first.length, second.length);

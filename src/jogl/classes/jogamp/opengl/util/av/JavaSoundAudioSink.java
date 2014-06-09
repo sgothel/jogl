@@ -31,7 +31,7 @@ public class JavaSoundAudioSink implements AudioSink {
     private DataLine.Info info;
     private SourceDataLine auline;
     private int bufferCount;
-    private byte [] sampleData = new byte[BUFFER_SIZE];
+    private final byte [] sampleData = new byte[BUFFER_SIZE];
     private boolean initialized = false;
     private AudioSink.AudioFormat chosenFormat = null;
 
@@ -116,6 +116,11 @@ public class JavaSoundAudioSink implements AudioSink {
             initialized=false;
         }
         return true;
+    }
+
+    @Override
+    public final AudioFormat getChosenFormat() {
+        return chosenFormat;
     }
 
     @Override

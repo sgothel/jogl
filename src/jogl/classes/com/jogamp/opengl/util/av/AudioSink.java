@@ -335,6 +335,12 @@ public interface AudioSink {
                         int initialQueueSize, int queueGrowAmount, int queueLimit);
 
     /**
+     * Returns the {@link AudioFormat} as chosen by {@link #init(AudioFormat, float, int, int, int)},
+     * i.e. it shall match the <i>requestedFormat</i>.
+     */
+    public AudioFormat getChosenFormat();
+
+    /**
      * Returns true, if {@link #play()} has been requested <i>and</i> the sink is still playing,
      * otherwise false.
      */
