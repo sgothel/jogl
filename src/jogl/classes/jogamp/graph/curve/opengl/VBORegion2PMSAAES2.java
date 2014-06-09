@@ -515,11 +515,8 @@ public class VBORegion2PMSAAES2  extends GLRegion {
             final Texture tex = frame.getTexture();
             tex.bind(gl);
             tex.enable(gl); // nop on core
-            final int colorTexUnit = colorTexSeq.getTextureUnit();
-            if( colorTexUnit != gcu_ColorTexUnit.intValue() ) {
-                gcu_ColorTexUnit.setData(colorTexUnit);
-                gl.glUniform(gcu_ColorTexUnit);
-            }
+            gcu_ColorTexUnit.setData(colorTexSeq.getTextureUnit());
+            gl.glUniform(gcu_ColorTexUnit); // Always update, since program maybe used by multiple regions
             gl.glUniform(gcu_ColorTexBBox); // Always update, since program maybe used by multiple regions
             gl.glDrawElements(GL2ES2.GL_TRIANGLES, indicesBuffer.getElementCount() * indicesBuffer.getComponentCount(), GL2ES2.GL_UNSIGNED_SHORT, 0);
             tex.disable(gl); // nop on core

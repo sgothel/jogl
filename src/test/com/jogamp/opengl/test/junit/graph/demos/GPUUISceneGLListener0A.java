@@ -509,9 +509,21 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         final float button2XSize = 2f*buttonXSize;
         final float button2YSize = 2f*buttonYSize;
         final float xStartRight = -button2XSize - 8f; // aligned to right edge via reshape
+        final int texUnitMediaPlayer, texUnitImageButton, texUnitGLELButton;
+        if( true ) {
+            texUnitMediaPlayer=0;
+            texUnitImageButton=0;
+            texUnitGLELButton=0;
+        } else {
+            // works - but not required ..
+            texUnitMediaPlayer=1;
+            texUnitImageButton=2;
+            texUnitGLELButton=3;
+        }
 
         if(true) {
             final GLMediaPlayer mPlayer = GLMediaPlayerFactory.createDefault();
+            mPlayer.setTextureUnit(texUnitMediaPlayer);
             final MediaPlayerButton mPlayerButton = new MediaPlayerButton(renderer.getRenderState().getVertexFactory(), renderModes,
                                                                           button2XSize, button2YSize, mPlayer);
             mPlayerButton.addDefaultEventListener();
@@ -534,7 +546,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             }
         }
         if( true ) {
-            final ImageSequence imgSeq = new ImageSequence(0, true);
+            final ImageSequence imgSeq = new ImageSequence(texUnitImageButton, true);
             final ImageSeqButton imgButton = new ImageSeqButton(renderer.getRenderState().getVertexFactory(), renderModes,
                                                                 button2XSize, button2YSize, imgSeq);
             try {
@@ -564,7 +576,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             glel.setClearColor(new float[] { 0.9f, 0.9f, 0.9f, 1f } );
             final GLEventListenerButton glelButton = new GLEventListenerButton(renderer.getRenderState().getVertexFactory(), renderModes,
                                                                        button2XSize, button2YSize,
-                                                                       0, glel, false /* useAlpha */,
+                                                                       texUnitGLELButton, glel, false /* useAlpha */,
                                                                        (int)(button2XSize), (int)(button2YSize));
             glelButton.setToggleable(true);
             glelButton.setToggle(true); // toggle == true -> animation
