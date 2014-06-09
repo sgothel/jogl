@@ -152,8 +152,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private volatile boolean hasFocus = false;
     private volatile int pixWidth = 128, pixHeight = 128; // client-area size w/o insets in pixel units, default: may be overwritten by user
     private volatile int winWidth = 128, winHeight = 128; // client-area size w/o insets in window units, default: may be overwritten by user
-    protected int[] hasPixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
-    protected int[] reqPixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+    protected final int[] nativePixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+    protected final int[] hasPixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+    protected final int[] reqPixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
 
     private volatile int x = 64, y = 64; // client-area pos w/o insets in window units
     private volatile Insets insets = new Insets(); // insets of decoration (if top-level && decorated)
@@ -1092,7 +1093,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         setSize(width - getInsets().getTotalWidth(), height - getInsets().getTotalHeight());
     }
 
-    private class DestroyAction implements Runnable {
+    private final Runnable destroyAction = new Runnable() {
         @Override
         public final void run() {
             boolean animatorPaused = false;
@@ -1164,6 +1165,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 fullscreenUseMainMonitor = true;
                 hasFocus = false;
                 parentWindowHandle = 0;
+                hasPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+                hasPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
+                nativePixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+                nativePixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
 
                 _lock.unlock();
             }
@@ -1187,9 +1192,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             windowListeners = null;
             parentWindow = null;
             */
-        }
-    }
-    private final DestroyAction destroyAction = new DestroyAction();
+        } };
 
     @Override
     public void destroy() {
@@ -1567,7 +1570,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
-    private class ReparentActionRecreate implements Runnable {
+    private final Runnable reparentActionRecreate = new Runnable() {
         @Override
         public final void run() {
             final RecursiveLock _lock = windowLock;
@@ -1581,9 +1584,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             } finally {
                 _lock.unlock();
             }
-        }
-    }
-    private final ReparentActionRecreate reparentActionRecreate = new ReparentActionRecreate();
+        } };
 
     @Override
     public final ReparentOperation reparentWindow(NativeWindow newParent, int x, int y, int hints) {
@@ -1956,6 +1957,20 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     public final int[] getCurrentSurfaceScale(final int[] result) {
         System.arraycopy(hasPixelScale, 0, result, 0, 2);
         return result;
+    }
+
+    @Override
+    public final int[] getNativeSurfaceScale(final int[] result) {
+        System.arraycopy(nativePixelScale, 0, result, 0, 2);
+        return result;
+    }
+
+    @Override
+    public final float[] getPixelsPerMM(final float[] ppmmStore) {
+        getMainMonitor().getPixelsPerMM(ppmmStore);
+        ppmmStore[0] *= (float)hasPixelScale[0] / (float)nativePixelScale[0];
+        ppmmStore[1] *= (float)hasPixelScale[1] / (float)nativePixelScale[1];
+        return ppmmStore;
     }
 
     protected final boolean autoPosition() { return autoPosition; }

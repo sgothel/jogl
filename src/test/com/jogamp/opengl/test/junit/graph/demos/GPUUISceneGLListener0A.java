@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.media.nativewindow.util.Dimension;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAnimatorControl;
@@ -86,7 +87,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
      * @see #GPUUISceneGLListener0A(float)
      * @see #GPUUISceneGLListener0A(float, boolean, boolean)
      */
-    public static final float DefaultNoAADPIThreshold = 180f;
+    public static final float DefaultNoAADPIThreshold = 200f;
 
     private int currentText = 0;
 
@@ -624,12 +625,16 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     public void init(GLAutoDrawable drawable) {
         final Object upObj = drawable.getUpstreamWidget();
         if( upObj instanceof Window ) {
-            final float[] pixelsPerMM = new float[2];
-            final MonitorDevice mm = ((Window)upObj).getMainMonitor();
-            mm.getPixelsPerMM(pixelsPerMM);
-            dpiH = pixelsPerMM[1]*25.4f;
+            final Window upWin = (Window)upObj;
+            final MonitorDevice mm = upWin.getMainMonitor();
+            final float[] monitorPixelsPerMM = mm.getPixelsPerMM(new float[2]);
+            final float monitorDpiH = monitorPixelsPerMM[1]*25.4f;
+            final float[] surfacePixelsPerMM = upWin.getPixelsPerMM(new float[2]);
+            dpiH = surfacePixelsPerMM[1]*25.4f;
             System.err.println("Monitor detected: "+mm);
-            System.err.println("Using monitor's DPI of "+(pixelsPerMM[0]*25.4f)+" x "+dpiH+" -> "+dpiH);
+            System.err.println("Monitor dpi: "+monitorDpiH);
+            System.err.println("Surface scale: native "+new Dimension(upWin.getNativeSurfaceScale(new int[2]))+", current "+new Dimension(upWin.getCurrentSurfaceScale(new int[2])));
+            System.err.println("Surface dpi: "+dpiH);
         } else {
             System.err.println("Using default DPI of "+dpiH);
         }
@@ -818,7 +823,6 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
         final float dz = 0f;
         final float dyTop = dh * relTop;
-        final float dxMiddle = dw * relMiddle;
         final float dxLeft = dw * relLeft;
         final float dxRight = dw;
 

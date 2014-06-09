@@ -170,7 +170,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   private volatile JAWTWindow jawtWindow; // the JAWTWindow presentation of this AWT Canvas, bound to the 'drawable' lifecycle
   private volatile GLContextImpl context; // volatile: avoid locking for read-only access
   private volatile boolean sendReshape = false; // volatile: maybe written by EDT w/o locking
-  private volatile int[] hasPixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+  private final int[] nativePixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+  private final int[] hasPixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
   final int[] reqPixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
 
   // copy of the cstr args, mainly for recreation
@@ -692,6 +693,12 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       return result;
   }
 
+  @Override
+  public int[] getNativeSurfaceScale(final int[] result) {
+      System.arraycopy(nativePixelScale, 0, result, 0, 2);
+      return result;
+  }
+
   private void createJAWTDrawableAndContext() {
     if ( !Beans.isDesignTime() ) {
         jawtWindow = (JAWTWindow) NativeWindowFactory.getNativeWindow(this, awtConfig);
@@ -702,6 +709,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
             drawable = (GLDrawableImpl) GLDrawableFactory.getFactory(capsReqUser.getGLProfile()).createGLDrawable(jawtWindow);
             createContextImpl(drawable);
             jawtWindow.getCurrentSurfaceScale(hasPixelScale);
+            jawtWindow.getNativeSurfaceScale(nativePixelScale);
         } finally {
             jawtWindow.unlockSurface();
         }
@@ -1307,6 +1315,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         }
         hasPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
         hasPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
+        nativePixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+        nativePixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
 
         if(null != awtConfig) {
             final AbstractGraphicsConfiguration aconfig = awtConfig.getNativeGraphicsConfiguration();

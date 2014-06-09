@@ -49,6 +49,7 @@ import javax.media.nativewindow.ScalableSurface;
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
+import javax.media.nativewindow.util.SurfaceSize;
 
 /**
  * Specifying NEWT's Window functionality:
@@ -252,6 +253,26 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * and size, {@link #getWidth()} & {@link #getHeight()}, in window units.
      */
     Rectangle getBounds();
+
+    /**
+     * Returns the <i>pixels per millimeter</i> of this window's {@link NativeSurface}
+     * according to the {@link #getMainMonitor() main monitor}'s <i>current</i> {@link MonitorMode mode}'s
+     * {@link SurfaceSize#getResolution() surface resolution}.
+     * <p>
+     * Method takes the {@link #getCurrentSurfaceScale(int[]) current surface-scale} and {@link #getNativeSurfaceScale(int[]) native surface-scale}
+     * into account, i.e.:
+     * <pre>
+     *    surfacePpMM = monitorPpMM * currentSurfaceScale / nativeSurfaceScale,
+     *    with PpMM == pixel per millimeter
+     * </pre>
+     * </p>
+     * <p>
+     * To convert the result to <i>dpi</i>, i.e. dots-per-inch, multiply both components with <code>25.4f</code>.
+     * </p>
+     * @param ppmmStore float[2] storage for the ppmm result
+     * @return the passed storage containing the ppmm for chaining
+     */
+    float[] getPixelsPerMM(final float[] ppmmStore);
 
     /**
      * Sets the size of the window's client area in window units, excluding decorations.

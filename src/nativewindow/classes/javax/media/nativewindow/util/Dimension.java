@@ -37,7 +37,11 @@ public class Dimension implements Cloneable, DimensionImmutable {
         this(0, 0);
     }
 
-    public Dimension(int width, int height) {
+    public Dimension(final int[] size) {
+        this(size[0], size[1]);
+    }
+
+    public Dimension(final int width, final int height) {
         if(width<0 || height<0) {
             throw new IllegalArgumentException("width and height must be within: ["+0+".."+Integer.MAX_VALUE+"]");
         }

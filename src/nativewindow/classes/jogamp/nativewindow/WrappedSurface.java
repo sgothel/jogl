@@ -164,4 +164,10 @@ public class WrappedSurface extends ProxySurfaceImpl implements ScalableSurface 
       return result;
   }
 
+  @Override
+  public final int[] getNativeSurfaceScale(final int[] result) {
+      System.arraycopy(hasPixelScale, 0, result, 0, 2);
+      return result;
+  }
+
 }

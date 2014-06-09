@@ -780,9 +780,9 @@ static jmethodID windowRepaintID = NULL;
 
     // HiDPI scaling
     BOOL useHiDPI = [self wantsBestResolutionOpenGLSurface];
-    CGFloat pixelScaleRaw = [[self window] backingScaleFactor];
-    CGFloat pixelScaleUse = useHiDPI ? pixelScaleRaw : 1.0;
-    DBG_PRINT("viewDidChangeBackingProperties: PixelScale: HiDPI %d, raw %f -> use %f\n", useHiDPI, (float)pixelScaleRaw, (float)pixelScaleUse);
+    CGFloat pixelScaleNative = [[self window] backingScaleFactor];
+    CGFloat pixelScaleUse = useHiDPI ? pixelScaleNative : 1.0;
+    DBG_PRINT("viewDidChangeBackingProperties: PixelScale: HiDPI %d, native %f -> use %f\n", useHiDPI, (float)pixelScaleNative, (float)pixelScaleUse);
     [[self layer] setContentsScale: pixelScaleUse];
 
     if (javaWindowObject == NULL) {
@@ -796,7 +796,7 @@ static jmethodID windowRepaintID = NULL;
         return;
     }
 
-    (*env)->CallVoidMethod(env, javaWindowObject, updatePixelScaleID, JNI_TRUE, (jfloat)pixelScaleUse); // defer 
+    (*env)->CallVoidMethod(env, javaWindowObject, updatePixelScaleID, JNI_TRUE, (jfloat)pixelScaleUse, (jfloat)pixelScaleNative); // defer 
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
@@ -812,7 +812,7 @@ static jmethodID windowRepaintID = NULL;
     enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(ZSIIISF)V");
     enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(ZSISCC)V");
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(ZIIZ)V");
-    updatePixelScaleID = (*env)->GetMethodID(env, clazz, "updatePixelScale", "(ZF)V");
+    updatePixelScaleID = (*env)->GetMethodID(env, clazz, "updatePixelScale", "(ZFF)V");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
     insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)V");
     positionChangedID = (*env)->GetMethodID(env, clazz, "screenPositionChanged", "(ZII)V");

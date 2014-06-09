@@ -247,8 +247,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private boolean handleReshape = false;
   private boolean sendReshape = true;
 
-  private volatile int[] hasPixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
-  private volatile int[] reqPixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+  private final int[] nativePixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+  private final int[] hasPixelScale = new int[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+  private final int[] reqPixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
 
   // For handling reshape events lazily: reshapeWidth -> panelWidth -> backend.width
   private int reshapeWidth;
@@ -488,6 +489,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
     hasPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
     hasPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
+    nativePixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+    nativePixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
 
     if(DEBUG) {
         System.err.println(getThreadName()+": GLJPanel.dispose() - stop");
@@ -568,14 +571,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       SurfaceScaleUtils.validateReqPixelScale(reqPixelScale, pixelScale, DEBUG ? getClass().getSimpleName() : null);
       final Backend b = backend;
       if ( isInitialized && null != b ) {
-          final int[] pixelScaleInt;
-          {
-              final int ps = JAWTUtil.getPixelScale(getGraphicsConfiguration());
-              pixelScaleInt = new int[] { ps, ps };
-          }
           final int hadPixelScaleX = hasPixelScale[0];
           final int hadPixelScaleY = hasPixelScale[1];
-          SurfaceScaleUtils.computePixelScale(hasPixelScale, hasPixelScale, reqPixelScale, pixelScaleInt, DEBUG ? getClass().getSimpleName() : null);
+          SurfaceScaleUtils.computePixelScale(hasPixelScale, hasPixelScale, reqPixelScale, nativePixelScale, DEBUG ? getClass().getSimpleName() : null);
           if( hadPixelScaleX != hasPixelScale[0] || hadPixelScaleY != hasPixelScale[1] ) {
               updateWrappedSurfaceScale(b.getDrawable());
               reshapeImpl(getWidth(), getHeight());
@@ -596,6 +594,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       return result;
   }
 
+  @Override
+  public int[] getNativeSurfaceScale(final int[] result) {
+      System.arraycopy(nativePixelScale, 0, result, 0, 2);
+      return result;
+  }
+
   /** Overridden to track when this component is added to a container.
       Subclasses which override this method must call
       super.addNotify() in their addNotify() method in order to
@@ -608,12 +612,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     awtWindowClosingProtocol.addClosingListener();
 
     // HiDPI support
-    final int[] pixelScaleInt;
     {
         final int ps = JAWTUtil.getPixelScale(getGraphicsConfiguration());
-        pixelScaleInt = new int[] { ps, ps };
+        nativePixelScale[0] = ps;
+        nativePixelScale[1] = ps;
     }
-    SurfaceScaleUtils.computePixelScale(hasPixelScale, hasPixelScale, reqPixelScale, pixelScaleInt, DEBUG ? getClass().getSimpleName() : null);
+    SurfaceScaleUtils.computePixelScale(hasPixelScale, hasPixelScale, reqPixelScale, nativePixelScale, DEBUG ? getClass().getSimpleName() : null);
 
     if (DEBUG) {
         System.err.println(getThreadName()+": GLJPanel.addNotify()");

@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.Frame;
 import java.lang.reflect.InvocationTargetException;
 
+import javax.media.nativewindow.ScalableSurface;
 import javax.media.nativewindow.util.Dimension;
 import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.opengl.GLCapabilities;
@@ -28,6 +29,8 @@ public class GPUUISceneNewtCanvasAWTDemo {
     static boolean GraphVBAAMode = false;
     static boolean GraphMSAAMode = false;
     static float GraphAutoMode = GPUUISceneGLListener0A.DefaultNoAADPIThreshold;
+
+    static int[] reqSurfacePixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
 
     static void setComponentSize(final Component comp, final DimensionImmutable new_sz) {
         try {
@@ -80,6 +83,11 @@ public class GPUUISceneNewtCanvasAWTDemo {
                 } else if(args[i].equals("-y")) {
                     i++;
                     y = MiscUtils.atoi(args[i], y);
+                } else if(args[i].equals("-pixelScale")) {
+                    i++;
+                    final int pS = MiscUtils.atoi(args[i], reqSurfacePixelScale[0]);
+                    reqSurfacePixelScale[0] = pS;
+                    reqSurfacePixelScale[1] = pS;
                 }
             }
         }
@@ -114,6 +122,8 @@ public class GPUUISceneNewtCanvasAWTDemo {
         window.setPosition(x, y);
         window.setSize(width, height);
         window.setTitle("GraphUI Newt Demo: graph["+Region.getRenderModeString(rmode)+"], msaa "+SceneMSAASamples);
+        window.setSurfaceScale(reqSurfacePixelScale);
+        final int[] valReqSurfacePixelScale = window.getRequestedSurfaceScale(new int[2]);
 
         GPUUISceneGLListener0A sceneGLListener = 0 < GraphAutoMode ? new GPUUISceneGLListener0A(GraphAutoMode, DEBUG, TRACE) :
                                                                      new GPUUISceneGLListener0A(rmode, DEBUG, TRACE);
@@ -142,6 +152,10 @@ public class GPUUISceneNewtCanvasAWTDemo {
                frame.setVisible(true);
            }
         });
+        final int[] hasSurfacePixelScale1 = window.getCurrentSurfaceScale(new int[2]);
+        System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
+                           valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
+                           hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
         animator.start();
     }
 }

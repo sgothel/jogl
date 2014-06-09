@@ -53,7 +53,6 @@ import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.SVertex;
-import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
@@ -312,9 +311,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
             t0 = Platform.currentTimeMillis();
 
             final Window win = (Window)drawable.getUpstreamWidget();
-            final MonitorDevice monitor = win.getMainMonitor();
-            final float[] pixelsPerMM = new float[2];
-            monitor.getPixelsPerMM(pixelsPerMM);
+            final float[] pixelsPerMM = win.getPixelsPerMM(new float[2]);
             final float[] dotsPerInch = new float[] { pixelsPerMM[0]*25.4f, pixelsPerMM[1]*25.4f };
             dpiH = dotsPerInch[1];
             System.err.println(getFontInfo());

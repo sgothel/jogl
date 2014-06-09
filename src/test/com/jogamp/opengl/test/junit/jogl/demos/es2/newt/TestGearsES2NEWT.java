@@ -122,7 +122,10 @@ public class TestGearsES2NEWT extends UITestCase {
 
     private void setTitle(final Window win, final GLCapabilitiesImmutable caps) {
         final String capsA = caps.isBackgroundOpaque() ? "opaque" : "transl";
-        win.setTitle("GLWindow["+capsA+"], swapI "+swapInterval+", win: "+win.getBounds()+", pix: "+win.getSurfaceWidth()+"x"+win.getSurfaceHeight());
+        final float[] sDPI = win.getPixelsPerMM(new float[2]);
+        sDPI[0] *= 25.4f;
+        sDPI[1] *= 25.4f;
+        win.setTitle("GLWindow["+capsA+"], swapI "+swapInterval+", win: "+win.getBounds()+", pix: "+win.getSurfaceWidth()+"x"+win.getSurfaceHeight()+", sDPI "+sDPI[0]+" x "+sDPI[1]);
     }
     protected void runTestGL(final GLCapabilitiesImmutable caps, boolean undecorated) throws InterruptedException {
         System.err.println("requested: vsync "+swapInterval+", "+caps);
@@ -141,7 +144,6 @@ public class TestGearsES2NEWT extends UITestCase {
         glWindow.setFullscreen(fullscreen);
         glWindow.setPointerVisible(mouseVisible);
         glWindow.confinePointer(mouseConfined);
-        setTitle(glWindow, caps);
 
         final GearsES2 demo = new GearsES2(swapInterval);
         demo.setPMVUseBackingArray(pmvUseBackingArray);

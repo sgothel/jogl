@@ -58,37 +58,34 @@ public class SurfaceScaleUtils {
      * @param result int[2] storage for result, maybe same as <code>prePixelScale</code> for in-place
      * @param prePixelScale previous pixelScale
      * @param reqPixelScale requested pixelScale, validated via {@link #validateReqPixelScale(int[], int, String)}.
-     * @param surfPixelScaleRaw raw surface pixelScale
+     * @param newPixelScaleRaw new raw surface pixelScale
      * @param DEBUG_PREFIX if set, dumps debug info on stderr using this prefix
      * @return true if pixelScale has changed, otherwise false
      */
-    public static boolean computePixelScale(int[] result, final int[] prePixelScale, final int[] reqPixelScale, final int[] surfPixelScaleRaw, final String DEBUG_PREFIX) {
-        final int surfPixelScaleSafeX = 0 < surfPixelScaleRaw[0] ? surfPixelScaleRaw[0] : ScalableSurface.IDENTITY_PIXELSCALE;
-        final int surfPixelScaleSafeY = 0 < surfPixelScaleRaw[1] ? surfPixelScaleRaw[1] : ScalableSurface.IDENTITY_PIXELSCALE;
+    public static boolean computePixelScale(int[] result, final int[] prePixelScale, final int[] reqPixelScale, final int[] newPixelScaleRaw, final String DEBUG_PREFIX) {
+        final int newPixelScaleSafeX = 0 < newPixelScaleRaw[0] ? newPixelScaleRaw[0] : ScalableSurface.IDENTITY_PIXELSCALE;
+        final int newPixelScaleSafeY = 0 < newPixelScaleRaw[1] ? newPixelScaleRaw[1] : ScalableSurface.IDENTITY_PIXELSCALE;
         final boolean useHiDPI = ScalableSurface.IDENTITY_PIXELSCALE != reqPixelScale[0] || ScalableSurface.IDENTITY_PIXELSCALE != reqPixelScale[1];
         final int prePixelScaleX = prePixelScale[0];
         final int prePixelScaleY = prePixelScale[1];
 
         if( useHiDPI ) {
-            result[0] = surfPixelScaleSafeX;
-            result[1] = surfPixelScaleSafeY;
+            result[0] = newPixelScaleSafeX;
+            result[1] = newPixelScaleSafeY;
         } else {
             result[0] = ScalableSurface.IDENTITY_PIXELSCALE;
             result[1] = ScalableSurface.IDENTITY_PIXELSCALE;
         }
 
-        if( result[0] != prePixelScaleX || result[1] != prePixelScaleY ) {
-            if( null != DEBUG_PREFIX ) {
-                System.err.println(DEBUG_PREFIX+".computePixelScale: useHiDPI "+useHiDPI+", ["+prePixelScaleX+"x"+prePixelScaleY+" (pre), "+
-                        reqPixelScale[0]+"x"+reqPixelScale[1]+" (req)] -> "+
-                        surfPixelScaleRaw[0]+"x"+surfPixelScaleRaw[1]+" (raw) -> "+
-                        surfPixelScaleSafeX+"x"+surfPixelScaleSafeY+" (safe) -> "+
-                        result[0]+"x"+result[1]+" (use)");
-            }
-            return true;
-        } else {
-            return false;
+        final boolean changed = result[0] != prePixelScaleX || result[1] != prePixelScaleY;
+        if( null != DEBUG_PREFIX ) {
+            System.err.println(DEBUG_PREFIX+".computePixelScale: useHiDPI "+useHiDPI+", ["+prePixelScaleX+"x"+prePixelScaleY+" (pre), "+
+                    reqPixelScale[0]+"x"+reqPixelScale[1]+" (req)] -> "+
+                    newPixelScaleRaw[0]+"x"+newPixelScaleRaw[1]+" (raw) -> "+
+                    newPixelScaleSafeX+"x"+newPixelScaleSafeY+" (safe) -> "+
+                    result[0]+"x"+result[1]+" (use), changed "+changed);
         }
+        return changed;
     }
 
     /**

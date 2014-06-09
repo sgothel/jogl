@@ -65,7 +65,7 @@ public interface ScalableSurface {
    * Returns the requested pixel scale of the associated {@link NativeSurface}.
    *
    * @param result int[2] storage for the result
-   * @return the passed storage containing the requested pixelSize for chaining
+   * @return the passed storage containing the requested pixelScale for chaining
    */
   int[] getRequestedSurfaceScale(final int[] result);
 
@@ -73,8 +73,25 @@ public interface ScalableSurface {
    * Returns the current pixel scale of the associated {@link NativeSurface}.
    *
    * @param result int[2] storage for the result
-   * @return the passed storage containing the current pixelSize for chaining
+   * @return the passed storage containing the current pixelScale for chaining
    */
   public int[] getCurrentSurfaceScale(final int[] result);
+
+  /**
+   * Returns the native pixel scale of the associated {@link NativeSurface}
+   * reflecting it's currently bound <i>monitor surface resolution in pixels</i>.
+   * <p>
+   * The native pixel scale maybe used to determine the proper <i>dpi</i>
+   * value of this {@link NativeSurface}:
+   * <pre>
+   *    surfacePpMM = monitorPpMM * currentSurfaceScale / nativeSurfaceScale,
+   *    with PpMM == pixel per millimeter
+   * </pre>
+   * </p>
+   *
+   * @param result int[2] storage for the result
+   * @return the passed storage containing the native pixelScale for chaining
+   */
+  public int[] getNativeSurfaceScale(final int[] result);
 }
 

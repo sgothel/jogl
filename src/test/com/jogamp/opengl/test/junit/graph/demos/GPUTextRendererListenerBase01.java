@@ -166,7 +166,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         final Object upObj = drawable.getUpstreamWidget();
         if( upObj instanceof Window ) {
             final float[] pixelsPerMM = new float[2];
-            ((Window)upObj).getMainMonitor().getPixelsPerMM(pixelsPerMM);
+            ((Window)upObj).getPixelsPerMM(pixelsPerMM);
             dpiH = pixelsPerMM[1]*25.4f;
         }
         fontNameBox = font.getMetricBounds(fontName, font.getPixelSize(fontSizeFName, dpiH));

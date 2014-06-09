@@ -181,7 +181,10 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
             final java.awt.Rectangle b = glc.getBounds();
             frame.setTitle("NewtCanvasAWT["+capsA+"], swapI "+swapInterval+", win: ["+b.x+"/"+b.y+" "+b.width+"x"+b.height+"], pix: "+glc.getNativeWindow().getSurfaceWidth()+"x"+glc.getNativeWindow().getSurfaceHeight());
         }
-        win.setTitle("GLWindow["+capsA+"], swapI "+swapInterval+", win: "+win.getBounds()+", pix: "+win.getSurfaceWidth()+"x"+win.getSurfaceHeight());
+        final float[] sDPI = win.getPixelsPerMM(new float[2]);
+        sDPI[0] *= 25.4f;
+        sDPI[1] *= 25.4f;
+        win.setTitle("GLWindow["+capsA+"], swapI "+swapInterval+", win: "+win.getBounds()+", pix: "+win.getSurfaceWidth()+"x"+win.getSurfaceHeight()+", sDPI "+sDPI[0]+" x "+sDPI[1]);
     }
 
     // public enum ResizeBy { GLWindow, Component, Frame };
