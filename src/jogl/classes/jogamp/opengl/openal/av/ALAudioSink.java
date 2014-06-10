@@ -133,6 +133,19 @@ public class ALAudioSink implements AudioSink {
         staticAvailable = null != alc && null != al && null != alExt;
     }
 
+    private void clearPreALError(final String prefix) {
+        checkALError(prefix);
+    }
+    private boolean checkALError(final String prefix) {
+        final int alcErr = alc.alcGetError(device);
+        final int alErr = al.alGetError();
+        final boolean ok = ALC.ALC_NO_ERROR == alcErr && AL.AL_NO_ERROR == alErr;
+        if( DEBUG ) {
+            System.err.println("ALAudioSink."+prefix+": ok "+ok+", err [alc "+toHexString(alcErr)+", al "+toHexString(alErr)+"]");
+        }
+        return ok;
+    }
+
     public ALAudioSink() {
         initialized = false;
         chosenFormat = null;
@@ -147,6 +160,9 @@ public class ALAudioSink implements AudioSink {
                 if (device == null) {
                     throw new RuntimeException(getThreadName()+": ALAudioSink: Error opening default OpenAL device");
                 }
+                int checkErrIter = 1;
+
+                clearPreALError("init."+checkErrIter++);
 
                 // Get the device specifier.
                 deviceSpecifier = alc.alcGetString(device, ALC.ALC_DEVICE_SPECIFIER);
@@ -155,6 +171,8 @@ public class ALAudioSink implements AudioSink {
                 }
 
                 // Create audio context.
+                // final int[] attrs = new int[] { ALC.ALC_FREQUENCY, DefaultFormat.sampleRate, 0 };
+                // context = alc.alcCreateContext(device, attrs, 0);
                 context = alc.alcCreateContext(device, null);
                 if (context == null) {
                     throw new RuntimeException(getThreadName()+": ALAudioSink: Error creating OpenAL context for "+deviceSpecifier);
@@ -170,14 +188,18 @@ public class ALAudioSink implements AudioSink {
                     hasSOFTBufferSamples = al.alIsExtensionPresent(AL_SOFT_buffer_samples);
                     hasALC_thread_local_context = alc.alcIsExtensionPresent(null, ALC_EXT_thread_local_context) ||
                                                   alc.alcIsExtensionPresent(device, ALC_EXT_thread_local_context) ;
-                    preferredAudioFormat = queryPreferredAudioFormat();
+                    clearPreALError("init."+checkErrIter++);
+                    preferredAudioFormat = new AudioFormat(querySampleRate(), DefaultFormat.sampleSize, DefaultFormat.channelCount, DefaultFormat.signed, DefaultFormat.fixedP, DefaultFormat.planar, DefaultFormat.littleEndian);
                     if( DEBUG ) {
                         System.out.println("ALAudioSink: OpenAL Extensions:"+al.alGetString(AL.AL_EXTENSIONS));
+                        clearPreALError("init."+checkErrIter++);
                         System.out.println("ALAudioSink: Null device OpenAL Extensions:"+alc.alcGetString(null, ALC.ALC_EXTENSIONS));
+                        clearPreALError("init."+checkErrIter++);
                         System.out.println("ALAudioSink: Device "+deviceSpecifier+" OpenAL Extensions:"+alc.alcGetString(device, ALC.ALC_EXTENSIONS));
                         System.out.println("ALAudioSink: hasSOFTBufferSamples "+hasSOFTBufferSamples);
                         System.out.println("ALAudioSink: hasALC_thread_local_context "+hasALC_thread_local_context);
                         System.out.println("ALAudioSink: preferredAudioFormat "+preferredAudioFormat);
+                        clearPreALError("init."+checkErrIter++);
                     }
 
                     // Create source
@@ -202,20 +224,28 @@ public class ALAudioSink implements AudioSink {
             } catch ( Exception e ) {
                 if( DEBUG ) {
                     System.err.println(e.getMessage());
+                    e.printStackTrace();
                 }
                 destroy();
             }
         }
     }
 
-    private final AudioFormat queryPreferredAudioFormat() {
-        int sampleRate = DefaultFormat.sampleRate;
+    private final int querySampleRate() {
+        final int sampleRate;
         final int[] value = new int[1];
         alc.alcGetIntegerv(device, ALC.ALC_FREQUENCY, 1, value, 0);
-        if ( alc.alcGetError(device) == ALC.ALC_NO_ERROR ) {
+        final int alcErr = alc.alcGetError(device);
+        final int alErr = al.alGetError();
+        if ( ALC.ALC_NO_ERROR == alcErr && AL.AL_NO_ERROR == alErr && 0 != value[0] ) {
             sampleRate = value[0];
+        } else {
+            sampleRate = DefaultFormat.sampleRate;
         }
-        return new AudioFormat(sampleRate, DefaultFormat.sampleSize, DefaultFormat.channelCount, DefaultFormat.signed, DefaultFormat.fixedP, DefaultFormat.planar, DefaultFormat.littleEndian);
+        if( DEBUG ) {
+            System.err.println("ALAudioSink.querySampleRate: err [alc "+toHexString(alcErr)+", al "+toHexString(alErr)+"], freq: "+value[0]+" -> "+sampleRate);
+        }
+        return sampleRate;
     }
 
     private final void lockContext() {

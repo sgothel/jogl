@@ -138,7 +138,11 @@ import jogamp.opengl.util.av.VideoPixelFormat;
  *     <li>http://ffmpeg.zeranoe.com/builds/ (ffmpeg) <i>recommended, works w/ dshow</i></li>
  *     <li>http://win32.libav.org/releases/  (libav)</li>
  *   </ul></li>
- *   <li>MacOSX: http://ffmpegmac.net/</li>
+ *   <li>MacOSX using Homebrew
+ *   <ul>
+ *   <li>https://github.com/Homebrew/homebrew/wiki/Installation</li>
+ *   <li>https://trac.ffmpeg.org/wiki/CompilationGuide/MacOSX</li>
+ *   </ul></li>
  *   <li>OpenIndiana/Solaris:<pre>
  *       pkg set-publisher -p http://pkg.openindiana.org/sfe-encumbered.
  *       pkt install pkg:/video/ffmpeg

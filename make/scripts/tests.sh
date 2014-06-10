@@ -99,7 +99,12 @@ function jrun() {
     #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all"
     #D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
-    #D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all -Djogamp.debug.NativeLibrary=true -Djogamp.debug.JNILibLoader=true -Djogl.disable.opengles=true"
+
+    #D_ARGS="-Djogamp.debug.NativeLibrary=true -Djogamp.debug.JNILibLoader=true"
+    #D_ARGS="-Djogamp.debug.ProcAddressHelper -Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.Lookup -Djogamp.debug.JNILibLoader -Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil"
+    #D_ARGS="-Djogl.debug.GLContext -Djogamp.debug.NativeLibrary -Djogamp.debug.JNILibLoader -Djogl.debug.DebugGL -Djogl.debug.GLDebugMessageHandler"
+    #D_ARGS="-Djogamp.debug.ProcAddressHelper -Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.Lookup -Djogamp.debug.JNILibLoader -Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil"
+
     #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnativewindow.debug=all -Dnewt.debug.Window"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all -Djogamp.debug.Lock"
@@ -149,11 +154,9 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.TraceGL -Djogl.debug.DebugGL -Djogl.debug.GLSLCode -Djogl.debug.GLSLState"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.DebugGL -Djogl.debug.TraceGL"
-    #D_ARGS="-Djogamp.debug.NativeLibrary"
     #D_ARGS="-Djogl.1thread=false -Djogl.debug.Threading"
     #D_ARGS="-Djogl.1thread=true -Djogl.debug.Threading"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.GLContext.TraceSwitch -Djogl.debug=all"
-    #D_ARGS="-Djogl.debug.AudioSink"
     #D_ARGS="-Djogl.debug.GLArrayData"
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Window"
@@ -161,16 +164,13 @@ function jrun() {
     #D_ARGS="-Dnewt.test.Screen.disableRandR13"
     #D_ARGS="-Dnewt.test.Screen.disableScreenMode -Dnewt.debug.Screen"
     #D_ARGS="-Dnewt.debug.Screen -Djogl.debug.Animator"
-    #D_ARGS="-Djogamp.debug.ProcAddressHelper -Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.Lookup -Djogamp.debug.JNILibLoader -Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLProfile"
     #D_ARGS="-Djogl.debug.GLProfile"
-    #D_ARGS="-Djogl.debug.GLContext -Djogamp.debug.NativeLibrary -Djogamp.debug.JNILibLoader -Djogl.debug.DebugGL -Djogl.debug.GLDebugMessageHandler"
     #D_ARGS="-Dnewt.debug.MainThread"
     #D_ARGS="-Dnativewindow.debug.GraphicsConfiguration -Dnativewindow.debug.NativeWindow"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.Animator -Djogl.debug.GLDrawable -Djogl.debug.GLContext -Djogl.debug.GLContext.TraceSwitch"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.ExtensionAvailabilityCache"
     #D_ARGS="-Djogl.debug.EGLDrawableFactory.QueryNativeTK -Djogl.debug.GLDrawable"
-    #D_ARGS="-Djogamp.debug.ProcAddressHelper -Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.Lookup -Djogamp.debug.JNILibLoader -Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLProfile -Djogl.debug.GLDrawable -Djogl.debug.EGLDisplayUtil -Dnativewindow.debug.GraphicsDevice"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLProfile -Djogl.debug.GLDrawable -Djogl.debug.EGLDisplayUtil -Djogl.debug.EGLDrawableFactory.QueryNativeTK"
     #D_ARGS="-Djogl.debug.EGLDisplayUtil -Dnativewindow.debug.GraphicsConfiguration -Djogl.debug.GLDrawable"
@@ -266,12 +266,19 @@ function jrun() {
     #X_ARGS="-Xrs"
     #X_ARGS="-Dsun.awt.disableMixing=true"
     #D_ARGS="-Djogamp.debug.IOUtil -Djogl.debug.GLSLCode -Djogl.debug.GLMediaPlayer"
+    #D_ARGS="-Djogl.debug.AudioSink -Djoal.openal.lib=soft"
+    #D_ARGS="-Djogl.debug.AudioSink -Djogl.debug.GLMediaPlayer"
+    #D_ARGS="-Djogl.debug.AudioSink -Djogl.debug.GLMediaPlayer.Native"
+    #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLMediaPlayer.Native"
+    #D_ARGS="-Djogl.debug.GLMediaPlayer.Native"
+    #D_ARGS="-Djogl.debug.AudioSink -Djoal.openal.lib=system"
     #D_ARGS="-Djogl.debug.AudioSink"
     #D_ARGS="-Djogl.debug.AudioSink.trace"
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLMediaPlayer.Native"
-    #D_ARGS="-Djogl.debug.GLMediaPlayer"
+    #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25 -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.Native"
+    D_ARGS="-Djogl.debug.GLSLCode"
 
     if [ $awton -eq 1 ] ; then
         export USE_CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
@@ -364,8 +371,10 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 $*
 #testawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtCanvasAWTDemo $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.ManualHiDPIBufferedImage01AWT $*
 

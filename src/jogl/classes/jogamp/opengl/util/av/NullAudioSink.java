@@ -88,6 +88,16 @@ public class NullAudioSink implements AudioSink {
 
     @Override
     public final boolean isSupported(AudioFormat format) {
+        /**
+         * If we like to emulate constraints ..
+         *
+        if( format.planar || !format.littleEndian ) {
+            return false;
+        }
+        if( format.sampleRate != DefaultFormat.sampleRate )  {
+            return false;
+        }
+        */
         return true;
     }
 
