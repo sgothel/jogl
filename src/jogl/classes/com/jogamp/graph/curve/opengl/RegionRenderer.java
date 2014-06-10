@@ -287,6 +287,7 @@ public class RegionRenderer {
     private static String USE_COLOR_CHANNEL = "#define USE_COLOR_CHANNEL 1\n";
     private static String USE_COLOR_TEXTURE = "#define USE_COLOR_TEXTURE 1\n";
     private static String DEF_SAMPLE_COUNT = "#define SAMPLE_COUNT ";
+    private static String CONST_SAMPLE_COUNT = "const float sample_count = ";
     private static String MAIN_BEGIN = "void main (void)\n{\n";
     private static final String gcuTexture2D = "gcuTexture2D";
 
@@ -477,6 +478,7 @@ public class RegionRenderer {
         }
         if( !pass1 ) {
             posFp = rsFp.insertShaderSource(0, posFp, DEF_SAMPLE_COUNT+sel1.sampleCount+"\n");
+            posFp = rsFp.insertShaderSource(0, posFp, CONST_SAMPLE_COUNT+sel1.sampleCount+".0;\n");
         }
 
         final String texLookupFuncName;

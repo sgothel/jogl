@@ -1,11 +1,11 @@
         // Pass-2: AA on Texture
         // Note: gcv_FboTexCoord is in center of sample pixels.
 
-        // float sampleCount = gcu_FboTexSize.z;
+        // float sample_count = gcu_FboTexSize.z;
         vec2 psize = 1.0 / gcu_FboTexSize.xy; // pixel size
 
         // Not only the poles (NW, SW, ..) but the whole edge!
-        const float sample_weight = 1.0 / ( SAMPLE_COUNT * SAMPLE_COUNT );
+        const float sample_weight = 1.0 / ( sample_count * sample_count );
 
         // const vec4 tex_weights = vec4(0.075, 0.06, 0.045, 0.025);
         vec2 texCoord = gcv_FboTexCoord.st;

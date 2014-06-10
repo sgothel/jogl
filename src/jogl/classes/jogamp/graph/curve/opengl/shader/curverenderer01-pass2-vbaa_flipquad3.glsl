@@ -4,7 +4,7 @@
         // 
         // Same as flipquad - but w/ rgss coordinates
 
-        // float sampleCount = gcu_FboTexSize.z;
+        // float sample_count = gcu_FboTexSize.z;
         vec2 psize = 1.0 / gcu_FboTexSize.xy; // pixel size
 
         vec2 normFragCoord = gl_FragCoord.xy - vec2(0.5, 0.5); // normalize center 0.5/0.5 -> 0/0
@@ -24,7 +24,7 @@
 
             // SampleCount 2 -> 2p 
             const float weight = 1.0 / 2.0;
-            const float edge = ( SAMPLE_COUNT / 2.0 ) - 1.0;
+            const float edge = ( sample_count / 2.0 ) - 1.0;
 
             t  = GetSample(gcu_FboTexUnit, texCoord, psize,      -edge,       edge, -0.5,  0.5)*weight;  // center
             t += GetSample(gcu_FboTexUnit, texCoord, psize,       edge,      -edge,  0.5, -0.5)*weight;  // center
@@ -33,7 +33,7 @@
 
             // SampleCount 4 -> 4p
             const float weight = 1.0 / 4.0;
-            const float edgeS4_1Q = ( SAMPLE_COUNT / 2.0 ) - 1.0;
+            const float edgeS4_1Q = ( sample_count / 2.0 ) - 1.0;
 
             if( 0.0 == orient ) {
                                                                                                            // SWIPE LEFT -> RIGHT
