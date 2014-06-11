@@ -284,11 +284,11 @@ public class RegionRenderer {
     private static final String SHADER_SRC_SUB = "";
     private static final String SHADER_BIN_SUB = "bin";
 
-    private static String USE_COLOR_CHANNEL = "#define USE_COLOR_CHANNEL 1\n";
-    private static String USE_COLOR_TEXTURE = "#define USE_COLOR_TEXTURE 1\n";
-    private static String DEF_SAMPLE_COUNT = "#define SAMPLE_COUNT ";
-    private static String CONST_SAMPLE_COUNT = "const float sample_count = ";
-    private static String MAIN_BEGIN = "void main (void)\n{\n";
+    private static String GLSL_USE_COLOR_CHANNEL = "#define USE_COLOR_CHANNEL 1\n";
+    private static String GLSL_USE_COLOR_TEXTURE = "#define USE_COLOR_TEXTURE 1\n";
+    private static String GLSL_DEF_SAMPLE_COUNT = "#define SAMPLE_COUNT ";
+    private static String GLSL_CONST_SAMPLE_COUNT = "const float sample_count = ";
+    private static String GLSL_MAIN_BEGIN = "void main (void)\n{\n";
     private static final String gcuTexture2D = "gcuTexture2D";
 
     private String getVersionedShaderName() {
@@ -434,9 +434,6 @@ public class RegionRenderer {
         final ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, AttributeNames.class, SHADER_SRC_SUB, SHADER_BIN_SUB, vertexShaderName, true);
         final ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, AttributeNames.class, SHADER_SRC_SUB, SHADER_BIN_SUB, versionedBaseName+"-segment-head", true);
 
-        int posVp = 0;
-        int posFp = 0;
-
         if( isPass1ColorTexSeq && GLES2.GL_TEXTURE_EXTERNAL_OES == colorTexSeq.getTextureTarget() ) {
             if( !gl.isExtensionAvailable(GLExtensions.OES_EGL_image_external) ) {
                 throw new GLException(GLExtensions.OES_EGL_image_external+" requested but not available");
@@ -451,9 +448,12 @@ public class RegionRenderer {
                 supressGLSLVersionES30 = true;
             }
         }
-        posVp = rsVp.defaultShaderCustomization(gl, !supressGLSLVersionES30, true);
+        //
+        // GLSL customization at top
+        //
+        int posVp = rsVp.defaultShaderCustomization(gl, !supressGLSLVersionES30, true);
         // rsFp.defaultShaderCustomization(gl, true, true);
-        posFp = supressGLSLVersionES30 ? 0 : rsFp.addGLSLVersion(gl);
+        int posFp = supressGLSLVersionES30 ? 0 : rsFp.addGLSLVersion(gl);
         if( isPass1ColorTexSeq ) {
             posFp = rsFp.insertShaderSource(0, posFp, colorTexSeq.getRequiredExtensionsShaderStub());
         }
@@ -468,17 +468,32 @@ public class RegionRenderer {
         } else {
             posFp = rsFp.addDefaultShaderPrecision(gl, posFp);
         }
+
+        //
+        // GLSL append from here on
+        posFp = -1;
+
         if( Region.hasColorChannel( renderModes ) ) {
-            posVp = rsVp.insertShaderSource(0, posVp, USE_COLOR_CHANNEL);
-            posFp = rsFp.insertShaderSource(0, posFp, USE_COLOR_CHANNEL);
+            posVp = rsVp.insertShaderSource(0, posVp, GLSL_USE_COLOR_CHANNEL);
+            posFp = rsFp.insertShaderSource(0, posFp, GLSL_USE_COLOR_CHANNEL);
         }
         if( Region.hasColorTexture( renderModes ) ) {
-            posVp = rsVp.insertShaderSource(0, posVp, USE_COLOR_TEXTURE);
-            posFp = rsFp.insertShaderSource(0, posFp, USE_COLOR_TEXTURE);
+            posVp = rsVp.insertShaderSource(0, posVp, GLSL_USE_COLOR_TEXTURE);
+            posFp = rsFp.insertShaderSource(0, posFp, GLSL_USE_COLOR_TEXTURE);
         }
         if( !pass1 ) {
-            posFp = rsFp.insertShaderSource(0, posFp, DEF_SAMPLE_COUNT+sel1.sampleCount+"\n");
-            posFp = rsFp.insertShaderSource(0, posFp, CONST_SAMPLE_COUNT+sel1.sampleCount+".0;\n");
+            posFp = rsFp.insertShaderSource(0, posFp, GLSL_DEF_SAMPLE_COUNT+sel1.sampleCount+"\n");
+            posFp = rsFp.insertShaderSource(0, posFp, GLSL_CONST_SAMPLE_COUNT+sel1.sampleCount+".0;\n");
+        }
+
+        try {
+            posFp = rsFp.insertShaderSource(0, posFp, AttributeNames.class, "uniforms.glsl");
+            posFp = rsFp.insertShaderSource(0, posFp, AttributeNames.class, "varyings.glsl");
+        } catch (IOException ioe) {
+            throw new RuntimeException("Failed to read: includes", ioe);
+        }
+        if( 0 > posFp ) {
+            throw new RuntimeException("Failed to read: includes");
         }
 
         final String texLookupFuncName;
@@ -490,7 +505,7 @@ public class RegionRenderer {
             texLookupFuncName = null;
         }
 
-        posFp = rsFp.insertShaderSource(0, -1, MAIN_BEGIN);
+        posFp = rsFp.insertShaderSource(0, posFp, GLSL_MAIN_BEGIN);
 
         final String passS = pass1 ? "-pass1-" : "-pass2-";
         final String shaderSegment = versionedBaseName+passS+sel1.tech+sel1.sub+".glsl";

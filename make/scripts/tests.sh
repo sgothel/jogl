@@ -266,19 +266,13 @@ function jrun() {
     #X_ARGS="-Xrs"
     #X_ARGS="-Dsun.awt.disableMixing=true"
     #D_ARGS="-Djogamp.debug.IOUtil -Djogl.debug.GLSLCode -Djogl.debug.GLMediaPlayer"
-    #D_ARGS="-Djogl.debug.AudioSink -Djoal.openal.lib=soft"
-    #D_ARGS="-Djogl.debug.AudioSink -Djogl.debug.GLMediaPlayer"
-    #D_ARGS="-Djogl.debug.AudioSink -Djogl.debug.GLMediaPlayer.Native"
-    #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLMediaPlayer.Native"
-    #D_ARGS="-Djogl.debug.GLMediaPlayer.Native"
     #D_ARGS="-Djogl.debug.AudioSink -Djoal.openal.lib=system"
-    #D_ARGS="-Djogl.debug.AudioSink"
-    #D_ARGS="-Djogl.debug.AudioSink.trace"
+    #D_ARGS="-Djogl.debug.AudioSink -Djogl.debug.AudioSink.trace"
+    #D_ARGS="-Djogl.debug.AudioSink -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLMediaPlayer.Native"
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25 -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.Native"
-    D_ARGS="-Djogl.debug.GLSLCode"
 
     if [ $awton -eq 1 ] ; then
         export USE_CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
@@ -373,9 +367,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 $*
 #testawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtCanvasAWTDemo $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
-#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
+testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.ManualHiDPIBufferedImage01AWT $*
 
 #

@@ -1,5 +1,6 @@
 package com.jogamp.opengl.test.junit.graph.demos;
 
+import javax.media.nativewindow.ScalableSurface;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
@@ -19,9 +20,17 @@ public class GPUUISceneNewtDemo {
     static boolean GraphMSAAMode = false;
     static float GraphAutoMode = GPUUISceneGLListener0A.DefaultNoAADPIThreshold;
 
+    static int[] reqSurfacePixelScale = new int[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+
     public static void main(String[] args) {
         int width = 800, height = 400;
         int x = 10, y = 10;
+
+        boolean forceES2 = false;
+        boolean forceES3 = false;
+        boolean forceGL3 = false;
+        boolean forceGLDef = false;
+
         if( 0 != args.length ) {
             for(int i=0; i<args.length; i++) {
                 if(args[i].equals("-smsaa")) {
@@ -55,9 +64,26 @@ public class GPUUISceneNewtDemo {
                 } else if(args[i].equals("-y")) {
                     i++;
                     y = MiscUtils.atoi(args[i], y);
+                } else if(args[i].equals("-pixelScale")) {
+                    i++;
+                    final int pS = MiscUtils.atoi(args[i], reqSurfacePixelScale[0]);
+                    reqSurfacePixelScale[0] = pS;
+                    reqSurfacePixelScale[1] = pS;
+                } else if(args[i].equals("-es2")) {
+                    forceES2 = true;
+                } else if(args[i].equals("-es3")) {
+                    forceES3 = true;
+                } else if(args[i].equals("-gl3")) {
+                    forceGL3 = true;
+                } else if(args[i].equals("-gldef")) {
+                    forceGLDef = true;
                 }
             }
         }
+        System.err.println("forceES2   "+forceES2);
+        System.err.println("forceES3   "+forceES3);
+        System.err.println("forceGL3   "+forceGL3);
+        System.err.println("forceGLDef "+forceGLDef);
         System.err.println("Desired win size "+width+"x"+height);
         System.err.println("Desired win pos  "+x+"/"+y);
         System.err.println("Scene MSAA Samples "+SceneMSAASamples);
@@ -65,7 +91,19 @@ public class GPUUISceneNewtDemo {
         System.err.println("Graph VBAA Mode "+GraphVBAAMode);
         System.err.println("Graph Auto Mode "+GraphAutoMode+" no-AA dpi threshold");
 
-        GLProfile glp = GLProfile.getGL2ES2();
+        final GLProfile glp;
+        if(forceGLDef) {
+            glp = GLProfile.getDefault();
+        } else if(forceGL3) {
+            glp = GLProfile.get(GLProfile.GL3);
+        } else if(forceES3) {
+            glp = GLProfile.get(GLProfile.GLES3);
+        } else if(forceES2) {
+            glp = GLProfile.get(GLProfile.GLES2);
+        } else {
+            glp = GLProfile.getGL2ES2();
+        }
+        System.err.println("GLProfile: "+glp);
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);
         if( SceneMSAASamples > 0 ) {
@@ -89,6 +127,8 @@ public class GPUUISceneNewtDemo {
         window.setPosition(x, y);
         window.setSize(width, height);
         window.setTitle("GraphUI Newt Demo: graph["+Region.getRenderModeString(rmode)+"], msaa "+SceneMSAASamples);
+        window.setSurfaceScale(reqSurfacePixelScale);
+        final int[] valReqSurfacePixelScale = window.getRequestedSurfaceScale(new int[2]);
 
         GPUUISceneGLListener0A sceneGLListener = 0 < GraphAutoMode ? new GPUUISceneGLListener0A(GraphAutoMode, DEBUG, TRACE) :
                                                                      new GPUUISceneGLListener0A(rmode, DEBUG, TRACE);
@@ -107,6 +147,10 @@ public class GPUUISceneNewtDemo {
         });
 
         window.setVisible(true);
+        final int[] hasSurfacePixelScale1 = window.getCurrentSurfaceScale(new int[2]);
+        System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
+                           valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
+                           hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
         animator.start();
     }
 }

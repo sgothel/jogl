@@ -50,6 +50,12 @@ public class GPUUISceneNewtCanvasAWTDemo {
     public static void main(String[] args) throws InterruptedException, InvocationTargetException {
         int width = 800, height = 400;
         int x = 10, y = 10;
+
+        boolean forceES2 = false;
+        boolean forceES3 = false;
+        boolean forceGL3 = false;
+        boolean forceGLDef = false;
+
         if( 0 != args.length ) {
             for(int i=0; i<args.length; i++) {
                 if(args[i].equals("-smsaa")) {
@@ -88,9 +94,21 @@ public class GPUUISceneNewtCanvasAWTDemo {
                     final int pS = MiscUtils.atoi(args[i], reqSurfacePixelScale[0]);
                     reqSurfacePixelScale[0] = pS;
                     reqSurfacePixelScale[1] = pS;
+                } else if(args[i].equals("-es2")) {
+                    forceES2 = true;
+                } else if(args[i].equals("-es3")) {
+                    forceES3 = true;
+                } else if(args[i].equals("-gl3")) {
+                    forceGL3 = true;
+                } else if(args[i].equals("-gldef")) {
+                    forceGLDef = true;
                 }
             }
         }
+        System.err.println("forceES2   "+forceES2);
+        System.err.println("forceES3   "+forceES3);
+        System.err.println("forceGL3   "+forceGL3);
+        System.err.println("forceGLDef "+forceGLDef);
         System.err.println("Desired win size "+width+"x"+height);
         System.err.println("Desired win pos  "+x+"/"+y);
         System.err.println("Scene MSAA Samples "+SceneMSAASamples);
@@ -98,7 +116,19 @@ public class GPUUISceneNewtCanvasAWTDemo {
         System.err.println("Graph VBAA Mode "+GraphVBAAMode);
         System.err.println("Graph Auto Mode "+GraphAutoMode+" no-AA dpi threshold");
 
-        GLProfile glp = GLProfile.getGL2ES2();
+        final GLProfile glp;
+        if(forceGLDef) {
+            glp = GLProfile.getDefault();
+        } else if(forceGL3) {
+            glp = GLProfile.get(GLProfile.GL3);
+        } else if(forceES3) {
+            glp = GLProfile.get(GLProfile.GLES3);
+        } else if(forceES2) {
+            glp = GLProfile.get(GLProfile.GLES2);
+        } else {
+            glp = GLProfile.getGL2ES2();
+        }
+        System.err.println("GLProfile: "+glp);
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);
         if( SceneMSAASamples > 0 ) {

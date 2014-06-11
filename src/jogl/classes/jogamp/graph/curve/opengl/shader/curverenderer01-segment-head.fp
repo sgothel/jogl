@@ -12,8 +12,5 @@
   #define mgl_FragColor gl_FragColor
 #endif
 
-#include uniforms.glsl
-#include varyings.glsl
-
 #define GetSample(texUnit, texCoord, psize, cx, cy, offX, offY) texture2D(texUnit, texCoord + psize *  vec2(cx+offX, cy+offY))
 
