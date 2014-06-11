@@ -43,6 +43,7 @@ import com.jogamp.opengl.test.junit.graph.demos.ui.SceneUIController;
 import com.jogamp.opengl.test.junit.graph.demos.ui.ImageSeqButton;
 import com.jogamp.opengl.test.junit.graph.demos.ui.UIShape;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
@@ -142,7 +143,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
      * @param trace
      */
     public GPUUISceneGLListener0A(final float noAADPIThreshold, boolean debug, boolean trace) {
-        this(noAADPIThreshold, -1, debug, trace);
+        this(noAADPIThreshold, 0, debug, trace);
     }
 
     private GPUUISceneGLListener0A(final float noAADPIThreshold, int renderModes, boolean debug, boolean trace) {
@@ -510,7 +511,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         final float button2YSize = 2f*buttonYSize;
         final float xStartRight = -button2XSize - 8f; // aligned to right edge via reshape
         final int texUnitMediaPlayer, texUnitImageButton, texUnitGLELButton;
-        if( true ) {
+        if( false ) {
             texUnitMediaPlayer=0;
             texUnitImageButton=0;
             texUnitGLELButton=0;
@@ -521,7 +522,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             texUnitGLELButton=3;
         }
 
-        if(true) {
+        if( true ) {
             final GLMediaPlayer mPlayer = GLMediaPlayerFactory.createDefault();
             mPlayer.setTextureUnit(texUnitMediaPlayer);
             final MediaPlayerButton mPlayerButton = new MediaPlayerButton(renderer.getRenderState().getVertexFactory(), renderModes,
@@ -571,16 +572,47 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             buttons.add(imgButton);
         }
         if( true ) {
-            final GearsES2 glel = new GearsES2(0);
-            glel.setVerbose(false);
-            glel.setClearColor(new float[] { 0.9f, 0.9f, 0.9f, 1f } );
+            // Issues w/ OSX and NewtCanvasAWT when rendering / animating
+            // Probably related to CALayer - FBO - FBO* (of this button)
+            final GLEventListener glel;
+            if( true ) {
+                final GearsES2 gears = new GearsES2(0);
+                gears.setVerbose(false);
+                gears.setClearColor(new float[] { 0.9f, 0.9f, 0.9f, 1f } );
+                glel = gears;
+            } else if( false ) {
+                glel = new RedSquareES2(0);
+            } else {
+                glel = new GLEventListener() {
+                    @Override
+                    public void init(GLAutoDrawable drawable) {
+                    }
+
+                    @Override
+                    public void dispose(GLAutoDrawable drawable) {
+                    }
+
+                    @Override
+                    public void display(GLAutoDrawable drawable) {
+                        final GL2ES2 gl = drawable.getGL().getGL2ES2();
+                        gl.glClearColor(0.0f, 0.0f, 1.0f, 0.0f);
+                        // gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+                        gl.glClear(GL.GL_COLOR_BUFFER_BIT);
+                    }
+
+                    @Override
+                    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+                    }
+
+                };
+            }
             final GLEventListenerButton glelButton = new GLEventListenerButton(renderer.getRenderState().getVertexFactory(), renderModes,
                                                                        button2XSize, button2YSize,
                                                                        texUnitGLELButton, glel, false /* useAlpha */,
                                                                        (int)(button2XSize), (int)(button2YSize));
             glelButton.setToggleable(true);
-            glelButton.setToggle(true); // toggle == true -> animation
-            glelButton.setAnimate(true);
+            glelButton.setToggle(false); // toggle == true -> animation
+            glelButton.setAnimate(false);
             glelButton.translate(xStartRight, yStartTop - diffY*4f, 0f);
             glelButton.addMouseListener(dragZoomRotateListener);
             glelButton.addMouseListener(new UIShape.MouseGestureAdapter() {
@@ -650,7 +682,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         } else {
             System.err.println("Using default DPI of "+dpiH);
         }
-        if( 0 > renderModes ) {
+        if( 0 == renderModes && !FloatUtil.isZero(noAADPIThreshold, FloatUtil.EPSILON)) {
             final boolean noAA = dpiH >= noAADPIThreshold;
             final String noAAs = noAA ? " >= " : " < ";
             System.err.println("AUTO RenderMode: dpi "+dpiH+noAAs+noAADPIThreshold+" -> noAA "+noAA);
@@ -802,7 +834,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                 tfps = 0f;
                 td = 0f;
             }
-            final String modeS = Region.getRenderModeString(jogampLabel.getRenderModes());
+            final String modeS = Region.getRenderModeString(renderModes);
             final String text;
             if( null == actionText ) {
                 final String timePrec = gl.isGLES() ? "4.0" : "4.1";

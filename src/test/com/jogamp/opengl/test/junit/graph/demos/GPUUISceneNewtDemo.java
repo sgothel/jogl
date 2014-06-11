@@ -113,9 +113,7 @@ public class GPUUISceneNewtDemo {
         System.out.println("Requested: " + caps);
 
         final int rmode;
-        if( 0 < GraphAutoMode ) {
-            rmode = -1;
-        } else if( GraphVBAAMode ) {
+        if( GraphVBAAMode ) {
             rmode = Region.VBAA_RENDERING_BIT;
         } else if( GraphMSAAMode ) {
             rmode = Region.MSAA_RENDERING_BIT;

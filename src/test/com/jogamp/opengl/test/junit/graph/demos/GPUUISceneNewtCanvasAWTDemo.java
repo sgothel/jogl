@@ -138,9 +138,7 @@ public class GPUUISceneNewtCanvasAWTDemo {
         System.out.println("Requested: " + caps);
 
         final int rmode;
-        if( 0 < GraphAutoMode ) {
-            rmode = -1;
-        } else if( GraphVBAAMode ) {
+        if( GraphVBAAMode ) {
             rmode = Region.VBAA_RENDERING_BIT;
         } else if( GraphMSAAMode ) {
             rmode = Region.MSAA_RENDERING_BIT;
@@ -151,7 +149,7 @@ public class GPUUISceneNewtCanvasAWTDemo {
         final GLWindow window = GLWindow.create(caps);
         window.setPosition(x, y);
         window.setSize(width, height);
-        window.setTitle("GraphUI Newt Demo: graph["+Region.getRenderModeString(rmode)+"], msaa "+SceneMSAASamples);
+        window.setTitle("GraphUI Newt/AWT Demo: graph["+Region.getRenderModeString(rmode)+"], msaa "+SceneMSAASamples);
         window.setSurfaceScale(reqSurfacePixelScale);
         final int[] valReqSurfacePixelScale = window.getRequestedSurfaceScale(new int[2]);
 
@@ -172,7 +170,7 @@ public class GPUUISceneNewtCanvasAWTDemo {
         });
 
         final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(window);
-        final Frame frame = new Frame("GraphUI Newt Demo: graph["+Region.getRenderModeString(rmode)+"], msaa "+SceneMSAASamples);
+        final Frame frame = new Frame("GraphUI Newt/AWT Demo: graph["+Region.getRenderModeString(rmode)+"], msaa "+SceneMSAASamples);
 
         setComponentSize(newtCanvasAWT, new Dimension(width, height));
         frame.add(newtCanvasAWT);

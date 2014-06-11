@@ -118,6 +118,7 @@ public class GLEventListenerButton extends TextureSeqButton {
             fboGLAD.setSurfaceSize(fboWidth, fboHeight);
             fboWidth = 0;
             fboHeight = 0;
+            markStateDirty();
         } else if( animateGLEL ) {
             fboGLAD.display();
         }

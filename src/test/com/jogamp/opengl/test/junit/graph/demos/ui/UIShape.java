@@ -265,6 +265,12 @@ public abstract class UIShape {
         return GLRegion.create(renderModes, null);
     }
 
+    /**
+     * Validates the shape's underlying {@link GLRegion}.
+     *
+     * @param gl
+     * @param renderer
+     */
     public final void validate(GL2ES2 gl, RegionRenderer renderer) {
         if( isShapeDirty() || null == region ) {
             box.reset();
