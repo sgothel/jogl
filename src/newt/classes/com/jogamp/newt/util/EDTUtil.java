@@ -71,13 +71,13 @@ public interface EDTUtil {
      * and the caller should wait {@link #waitUntilStopped() until it's stopped}.
      * </p>
      *
-     * @return true if EDT has been successfully restarted, otherwise false
      * @throws IllegalStateException if EDT is running and not subject to be stopped, i.e. {@link #isRunning()} returns true
+     * @throws RuntimeException if EDT could not be started
      *
      * @see #invokeStop(boolean, java.lang.Runnable)
      * @see #waitUntilStopped()
      */
-    public boolean start() throws IllegalStateException;
+    public void start() throws IllegalStateException;
 
     /**
      * Returns true if the current thread is the event dispatch thread (EDT).

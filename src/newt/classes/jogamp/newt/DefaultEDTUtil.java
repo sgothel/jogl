@@ -82,7 +82,7 @@ public class DefaultEDTUtil implements EDTUtil {
     }
 
     @Override
-    public final boolean start() throws IllegalStateException {
+    public final void start() throws IllegalStateException {
         synchronized(edtLock) {
             if( edt.isRunning() ) {
                 throw new IllegalStateException("EDT still running and not subject to stop. Curr "+Thread.currentThread().getName()+", EDT "+edt.getName()+", isRunning "+edt.isRunning+", shouldStop "+edt.shouldStop);
@@ -103,7 +103,9 @@ public class DefaultEDTUtil implements EDTUtil {
             }
             startImpl();
         }
-        return invoke(true, nullTask);
+        if( !edt.isRunning() ) {
+            throw new RuntimeException("EDT could not be started: "+edt);
+        }
     }
 
     private final void startImpl() {

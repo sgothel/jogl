@@ -68,7 +68,7 @@ public class AWTEDTUtil implements EDTUtil {
     }
 
     @Override
-    public final boolean start() throws IllegalStateException {
+    public final void start() throws IllegalStateException {
         synchronized(edtLock) {
             if( nedt.isRunning() ) {
                 throw new IllegalStateException("EDT still running and not subject to stop. Curr "+Thread.currentThread().getName()+", NEDT "+nedt.getName()+", isRunning "+nedt.isRunning+", shouldStop "+nedt.shouldStop+", on AWT-EDT "+EventQueue.isDispatchThread());
@@ -82,7 +82,9 @@ public class AWTEDTUtil implements EDTUtil {
             }
             startImpl();
         }
-        return invoke(true, nullTask);
+        if( !nedt.isRunning() ) {
+            throw new RuntimeException("EDT could not be started: "+nedt);
+        }
     }
 
     private final void startImpl() {
@@ -127,11 +129,6 @@ public class AWTEDTUtil implements EDTUtil {
     public final boolean invoke(boolean wait, Runnable task) {
         return invokeImpl(wait, task, false);
     }
-
-    private static Runnable nullTask = new Runnable() {
-        @Override
-        public void run() { }
-    };
 
     private final boolean invokeImpl(boolean wait, Runnable task, boolean stop) {
         Throwable throwable = null;

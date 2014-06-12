@@ -78,7 +78,7 @@ public class SWTEDTUtil implements EDTUtil {
     }
 
     @Override
-    public final boolean start() throws IllegalStateException {
+    public final void start() throws IllegalStateException {
         final boolean swtDisposed = swtDisplay.isDisposed();
         synchronized(edtLock) {
             if( nedt.isRunning() ) {
@@ -99,9 +99,11 @@ public class SWTEDTUtil implements EDTUtil {
             }
         }
         if( !swtDisposed ) {
-            return invoke(true, nullTask);
+            if( !nedt.isRunning() ) {
+                throw new RuntimeException("EDT could not be started: "+nedt);
+            }
         } else {
-            return false;
+            // FIXME: Throw exception ?
         }
     }
 
@@ -148,11 +150,6 @@ public class SWTEDTUtil implements EDTUtil {
     public final boolean invoke(boolean wait, Runnable task) {
         return invokeImpl(wait, task, false);
     }
-
-    private static Runnable nullTask = new Runnable() {
-        @Override
-        public void run() { }
-    };
 
     private final boolean invokeImpl(boolean wait, Runnable task, boolean stop) {
         Throwable throwable = null;
