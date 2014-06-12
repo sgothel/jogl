@@ -112,39 +112,14 @@ extern GLboolean glIsVertexArray (GLuint array);
 
 #endif
 
-#ifdef VERBOSE_ON
-    #define CGLRETAINCOUNT(c) (NULL!=c?(int)CGLGetContextRetainCount(c):-1)
-#else
-    #define CGLRETAINCOUNT(c)
-#endif
-
 - (void)dealloc
 {
-    /**
-     * The explicit CGLContext destruction below
-     * ensures that it is not left behind.
-     * Tests show that w/o these gymnastics, the CGLContext is not freed immediately after calling dealloc.
-     * The retain, release and dealloc ensures [super dealloc] won't message 'invalid context'.
-     */
-    CGLContextObj cglCtx = [self CGLContextObj];
-
-    DBG_PRINT("MyNSOpenGLContext::dealloc.0 %p (refcnt %d) - CGL-Ctx %p\n", self, (int)[self retainCount], cglCtx, CGLRETAINCOUNT(cglCtx));
+    DBG_PRINT("MyNSOpenGLContext::dealloc.0 %p (refcnt %d)\n", self, (int)[self retainCount]);
     // NSLog(@"MyNSOpenGLContext::dealloc: %@",[NSThread callStackSymbols]);
 
     [self clearDrawable];
-    DBG_PRINT("MyNSOpenGLContext::dealloc.1 %d\n", CGLRETAINCOUNT(cglCtx));
-    if( NULL != cglCtx ) {
-        CGLRetainContext( cglCtx );
-        DBG_PRINT("MyNSOpenGLContext::dealloc.2 %d\n", CGLRETAINCOUNT(cglCtx));
-    }
+
     [super dealloc];
-    DBG_PRINT("MyNSOpenGLContext::dealloc.3 %d\n", CGLRETAINCOUNT(cglCtx));
-    if( NULL != cglCtx ) {
-        CGLReleaseContext( cglCtx );
-        DBG_PRINT("MyNSOpenGLContext::dealloc.4 %d\n", CGLRETAINCOUNT(cglCtx));
-        CGLDestroyContext( cglCtx );
-        DBG_PRINT("MyNSOpenGLContext::dealloc.5 %d\n", CGLRETAINCOUNT(cglCtx));
-    }
     DBG_PRINT("MyNSOpenGLContext::dealloc.X\n");
 }
 

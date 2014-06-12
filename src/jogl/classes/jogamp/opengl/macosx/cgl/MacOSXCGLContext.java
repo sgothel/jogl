@@ -866,7 +866,7 @@ public class MacOSXCGLContext extends GLContextImpl
                   if(DEBUG) {
                       System.err.println("MaxOSXCGLContext.NSOpenGLImpl.associateDrawable(true): "+attachGLLayerCmd);
                   }
-                  OSXUtil.RunOnMainThread(false, attachGLLayerCmd);
+                  OSXUtil.RunOnMainThread(false, false /* kickNSApp */, attachGLLayerCmd);
               } else { // -> null == backingLayerHost
                   lastWidth = drawable.getSurfaceWidth();
                   lastHeight = drawable.getSurfaceHeight();
@@ -893,7 +893,7 @@ public class MacOSXCGLContext extends GLContextImpl
                           if(DEBUG) {
                               System.err.println("MaxOSXCGLContext.NSOpenGLImpl.associateDrawable(false): "+dCmd);
                           }
-                          OSXUtil.RunOnMainThread(false, dCmd);
+                          OSXUtil.RunOnMainThread(false, true /* kickNSApp */, dCmd);
                           if( null != gl3ShaderProgram ) {
                               gl3ShaderProgram.destroy(MacOSXCGLContext.this.gl.getGL3());
                               gl3ShaderProgram = null;

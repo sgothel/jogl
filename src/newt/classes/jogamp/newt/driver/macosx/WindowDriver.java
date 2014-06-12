@@ -159,7 +159,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 }
             } else {
                 // set pixelScale in native code, will issue an update PixelScale
-                OSXUtil.RunOnMainThread(true, new Runnable() {
+                OSXUtil.RunOnMainThread(true, false, new Runnable() {
                     @Override
                     public void run() {
                         setPixelScale0(getWindowHandle(), surfaceHandle, reqPixelScale[0]); // HiDPI: uniformPixelScale
@@ -204,11 +204,11 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             sscSurfaceHandle = 0;
             isOffscreenInstance = false;
             if (0 != handle) {
-                OSXUtil.RunOnMainThread(false, new Runnable() {
+                OSXUtil.RunOnMainThread(false, true /* kickNSApp */, new Runnable() {
                    @Override
                    public void run() {
                        close0( handle );
-                   } } );
+                   } });
             }
         } catch (Throwable t) {
             if(DEBUG_IMPLEMENTATION) {
@@ -262,11 +262,11 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         sscSurfaceHandle = surfaceHandle;
         if (isNativeValid()) {
             if (0 != sscSurfaceHandle) {
-                OSXUtil.RunOnMainThread(false, new Runnable() {
-                    @Override
-                    public void run() {
-                        orderOut0( 0 != getParentWindowHandle() ? getParentWindowHandle() : getWindowHandle() );
-                    } } );
+                OSXUtil.RunOnMainThread(false, false, new Runnable() {
+                        @Override
+                        public void run() {
+                            orderOut0( 0 != getParentWindowHandle() ? getParentWindowHandle() : getWindowHandle() );
+                        } } );
             } /** this is done by recreation!
               else if (isVisible()){
                 OSXUtil.RunOnMainThread(false, new Runnable() {
@@ -279,11 +279,11 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
 
     @Override
     protected void setTitleImpl(final String title) {
-        OSXUtil.RunOnMainThread(false, new Runnable() {
-            @Override
-            public void run() {
-                setTitle0(getWindowHandle(), title);
-            } } );
+        OSXUtil.RunOnMainThread(false, false, new Runnable() {
+                @Override
+                public void run() {
+                    setTitle0(getWindowHandle(), title);
+                } } );
     }
 
     @Override
@@ -294,15 +294,15 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             System.err.println("MacWindow: requestFocusImpl(), isOffscreenInstance "+_isOffscreenInstance+", isFullscreen "+_isFullscreen);
         }
         if(!_isOffscreenInstance) {
-            OSXUtil.RunOnMainThread(false, new Runnable() {
-                @Override
-                public void run() {
-                    requestFocus0(getWindowHandle(), force);
-                    if(_isFullscreen) {
-                        // 'NewtMacWindow::windowDidBecomeKey()' is not always called in fullscreen-mode!
-                        focusChanged(false, true);
-                    }
-                } } );
+            OSXUtil.RunOnMainThread(false, false, new Runnable() {
+                    @Override
+                    public void run() {
+                        requestFocus0(getWindowHandle(), force);
+                        if(_isFullscreen) {
+                            // 'NewtMacWindow::windowDidBecomeKey()' is not always called in fullscreen-mode!
+                            focusChanged(false, true);
+                        }
+                    } } );
         } else {
             focusChanged(false, true);
         }
@@ -314,11 +314,11 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             System.err.println("MacWindow: clearFocus(), isOffscreenInstance "+isOffscreenInstance);
         }
         if(!isOffscreenInstance) {
-            OSXUtil.RunOnMainThread(false, new Runnable() {
-                @Override
-                public void run() {
-                    resignFocus0(getWindowHandle());
-                } } );
+            OSXUtil.RunOnMainThread(false, false, new Runnable() {
+                    @Override
+                    public void run() {
+                        resignFocus0(getWindowHandle());
+                    } } );
         } else {
             focusChanged(false, false);
         }
@@ -337,11 +337,11 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("MacWindow: updatePosition() parent["+useParent+" "+pX+"/"+pY+"] "+x+"/"+y+" ->  "+x+"/"+y+" rel-client-pos, "+p0S+" screen-client-pos");
             }
-            OSXUtil.RunOnMainThread(false, new Runnable() {
-                @Override
-                public void run() {
-                    setWindowClientTopLeftPoint0(handle, p0S.getX(), p0S.getY(), isVisible());
-                } } );
+            OSXUtil.RunOnMainThread(false, false, new Runnable() {
+                    @Override
+                    public void run() {
+                        setWindowClientTopLeftPoint0(handle, p0S.getX(), p0S.getY(), isVisible());
+                    } } );
             // no native event (fullscreen, some reparenting)
             positionChanged(true, x, y);
         }
@@ -359,11 +359,11 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("MacWindow: sizeChanged() parent["+useParent+" "+x+"/"+y+"] "+getX()+"/"+getY()+" "+newWidth+"x"+newHeight+" ->  "+p0S+" screen-client-pos");
                 }
-                OSXUtil.RunOnMainThread(false, new Runnable() {
-                    @Override
-                    public void run() {
-                        setWindowClientTopLeftPoint0(getWindowHandle(), p0S.getX(), p0S.getY(), isVisible());
-                    } } );
+                OSXUtil.RunOnMainThread(false, false, new Runnable() {
+                        @Override
+                        public void run() {
+                            setWindowClientTopLeftPoint0(getWindowHandle(), p0S.getX(), p0S.getY(), isVisible());
+                        } } );
             }
         }
         super.sizeChanged(defer, newWidth, newHeight, force);
@@ -407,12 +407,12 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
 
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && !setVisible ) {
             if ( !isOffscreenInstance ) {
-                OSXUtil.RunOnMainThread(false, new Runnable() {
-                    @Override
-                    public void run() {
-                        orderOut0(getWindowHandle());
-                        visibleChanged(true, false);
-                    } } );
+                OSXUtil.RunOnMainThread(false, false, new Runnable() {
+                        @Override
+                        public void run() {
+                            orderOut0(getWindowHandle());
+                            visibleChanged(true, false);
+                        } } );
             } else {
                 visibleChanged(true, false);
             }
@@ -438,11 +438,11 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         } else {
             if( width>0 && height>0 ) {
                 if( !isOffscreenInstance ) {
-                    OSXUtil.RunOnMainThread(false, new Runnable() {
-                        @Override
-                        public void run() {
-                            setWindowClientTopLeftPointAndSize0(getWindowHandle(), pClientLevelOnSreen.getX(), pClientLevelOnSreen.getY(), width, height, setVisible);
-                        } } );
+                    OSXUtil.RunOnMainThread(false, false, new Runnable() {
+                            @Override
+                            public void run() {
+                                setWindowClientTopLeftPointAndSize0(getWindowHandle(), pClientLevelOnSreen.getX(), pClientLevelOnSreen.getY(), width, height, setVisible);
+                            } } );
                 } // else offscreen size is realized via recreation
                 // no native event (fullscreen, some reparenting)
                 positionChanged(true,  x, y);
@@ -450,12 +450,12 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             }
             if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && setVisible ) {
                 if( !isOffscreenInstance ) {
-                    OSXUtil.RunOnMainThread(false, new Runnable() {
-                        @Override
-                        public void run() {
-                            orderFront0(getWindowHandle());
-                            visibleChanged(true, true);
-                        } } );
+                    OSXUtil.RunOnMainThread(false, false, new Runnable() {
+                            @Override
+                            public void run() {
+                                orderFront0(getWindowHandle());
+                                visibleChanged(true, true);
+                            } } );
                 } else {
                     visibleChanged(true, true);
                 }
@@ -523,22 +523,22 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     protected void setPointerIconImpl(final PointerIconImpl pi) {
         if( !isOffscreenInstance ) {
             final long piHandle = null != pi ? pi.validatedHandle() : 0;
-            OSXUtil.RunOnMainThread(true, new Runnable() { // waitUntildone due to PointerIconImpl's Lifecycle !
-                @Override
-                public void run() {
-                    setPointerIcon0(getWindowHandle(), piHandle);
-                } } );
+            OSXUtil.RunOnMainThread(true, false, new Runnable() { // waitUntildone due to PointerIconImpl's Lifecycle !
+                    @Override
+                    public void run() {
+                        setPointerIcon0(getWindowHandle(), piHandle);
+                    } } );
         }
     }
 
     @Override
     protected boolean setPointerVisibleImpl(final boolean pointerVisible) {
         if( !isOffscreenInstance ) {
-            OSXUtil.RunOnMainThread(false, new Runnable() {
-                @Override
-                public void run() {
-                    setPointerVisible0(getWindowHandle(), hasFocus(), pointerVisible);
-                } } );
+            OSXUtil.RunOnMainThread(false, false, new Runnable() {
+                    @Override
+                    public void run() {
+                        setPointerVisible0(getWindowHandle(), hasFocus(), pointerVisible);
+                    } } );
             return true;
         }
         return false;
@@ -643,12 +643,12 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 if( 0 == surfaceHandle ) {
                     throw new NativeWindowException("Internal Error - create w/ window, but no Newt NSView");
                 }
-                OSXUtil.RunOnMainThread(false, new Runnable() {
-                    @Override
-                    public void run() {
-                        changeContentView0(parentWinHandle, preWinHandle, 0);
-                        close0( preWinHandle );
-                    } } );
+                OSXUtil.RunOnMainThread(false, false /* kickNSApp */, new Runnable() {
+                        @Override
+                        public void run() {
+                            changeContentView0(parentWinHandle, preWinHandle, 0);
+                            close0( preWinHandle );
+                        } });
             } else {
                 if( 0 != surfaceHandle ) {
                     throw new NativeWindowException("Internal Error - create w/o window, but has Newt NSView");
@@ -670,18 +670,18 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
 
             final boolean isOpaque = getGraphicsConfiguration().getChosenCapabilities().isBackgroundOpaque() && !offscreenInstance;
             // Blocking initialization on main-thread!
-            OSXUtil.RunOnMainThread(true, new Runnable() {
-                @Override
-                public void run() {
-                    initWindow0( parentWinHandle, newWin, pS.getX(), pS.getY(), width, height, reqPixelScale[0] /* HiDPI uniformPixelScale */,
-                                 isOpaque, visible && !offscreenInstance, surfaceHandle);
-                    if( offscreenInstance ) {
-                        orderOut0(0!=parentWinHandle ? parentWinHandle : newWin);
-                    } else {
-                        setTitle0(newWin, getTitle());
-                        setAlwaysOnTop0(getWindowHandle(), alwaysOnTop);
-                    }
-                } } );
+            OSXUtil.RunOnMainThread(true, false /* kickNSApp */, new Runnable() {
+                    @Override
+                    public void run() {
+                        initWindow0( parentWinHandle, newWin, pS.getX(), pS.getY(), width, height, reqPixelScale[0] /* HiDPI uniformPixelScale */,
+                                     isOpaque, visible && !offscreenInstance, surfaceHandle);
+                        if( offscreenInstance ) {
+                            orderOut0(0!=parentWinHandle ? parentWinHandle : newWin);
+                        } else {
+                            setTitle0(newWin, getTitle());
+                            setAlwaysOnTop0(getWindowHandle(), alwaysOnTop);
+                        }
+                    } });
         } catch (Exception ie) {
             ie.printStackTrace();
         }

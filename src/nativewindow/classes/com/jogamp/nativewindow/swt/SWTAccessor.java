@@ -480,7 +480,7 @@ public class SWTAccessor {
     public static void invoke(boolean wait, Runnable runnable) {
         if( isOSX ) {
             // Use SWT main thread! Only reliable config w/ -XStartOnMainThread !?
-            OSXUtil.RunOnMainThread(wait, runnable);
+            OSXUtil.RunOnMainThread(wait, false, runnable);
         } else {
             runnable.run();
         }

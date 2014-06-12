@@ -251,9 +251,10 @@ public class OSXUtil implements ToolkitProperties {
      * </p>
      *
      * @param waitUntilDone
+     * @param kickNSApp if <code>true</code> issues {@link #KickNSApp()}
      * @param runnable
      */
-    public static void RunOnMainThread(boolean waitUntilDone, Runnable runnable) {
+    public static void RunOnMainThread(final boolean waitUntilDone, final boolean kickNSApp, final Runnable runnable) {
         if( IsMainThread0() ) {
             runnable.run(); // don't leave the JVM
         } else {
@@ -263,7 +264,7 @@ public class OSXUtil implements ToolkitProperties {
             final Object sync = new Object();
             final RunnableTask rt = new RunnableTask( runnable, waitUntilDone ? sync : null, true, waitUntilDone ? null : System.err );
             synchronized(sync) {
-                RunOnMainThread0(rt);
+                RunOnMainThread0(kickNSApp, rt);
                 if( waitUntilDone ) {
                     try {
                         sync.wait();
@@ -288,14 +289,33 @@ public class OSXUtil implements ToolkitProperties {
      * @param delay delay to run the runnable in milliseconds
      */
     public static void RunLater(boolean onMain, Runnable runnable, int delay) {
-        RunLater0(onMain, new RunnableTask( runnable, null, true, System.err ), delay);
+        RunLater0(onMain, false /* kickNSApp */, new RunnableTask( runnable, null, true, System.err ), delay);
+    }
+
+    /**
+     * Wakes up NSApp thread by sending an empty NSEvent ..
+     * <p>
+     * This is deemed important <i>sometimes</i> where resources shall get freed ASAP, e.g. GL context etc.
+     * </p>
+     * <p>
+     * The following scenarios requiring this <i>wake-up</i> are currently known:
+     * <ul>
+     *   <li>Destruction of an OpenGL context</li>
+     *   <li>Destruction of Windows .. ?</li>
+     *   <li>Stopping the NSApp</li>
+     * </ul>
+     * </p>
+     * FIXME: Complete list of scenarios and reason it.
+     */
+    public static void KickNSApp() {
+        KickNSApp0();
     }
 
     private static Runnable _nop = new Runnable() { @Override public void run() {}; };
 
-    /** Issues a {@link #RunOnMainThread(boolean, Runnable)} w/ an <i>NOP</i> runnable, while waiting until done. */
+    /** Issues a {@link #RunOnMainThread(boolean, boolean, Runnable)} w/ an <i>NOP</i> runnable, while waiting until done and issuing {@link #KickNSApp()}. */
     public static void WaitUntilFinish() {
-        RunOnMainThread(true, _nop);
+        RunOnMainThread(true, true /* kickNSApp */, _nop);
     }
 
     /**
@@ -305,9 +325,10 @@ public class OSXUtil implements ToolkitProperties {
      * </p>
      *
      * @param waitUntilDone
+     * @param kickNSApp if <code>true</code> issues {@link #KickNSApp()}
      * @param func
      */
-    public static <R,A> R RunOnMainThread(boolean waitUntilDone, Function<R,A> func, A... args) {
+    public static <R,A> R RunOnMainThread(final boolean waitUntilDone, final boolean kickNSApp, final Function<R,A> func, final A... args) {
         if( IsMainThread0() ) {
             return func.eval(args); // don't leave the JVM
         } else {
@@ -318,7 +339,7 @@ public class OSXUtil implements ToolkitProperties {
             final FunctionTask<R,A> rt = new FunctionTask<R,A>( func, waitUntilDone ? sync : null, true, waitUntilDone ? null : System.err );
             synchronized(sync) {
                 rt.setArgs(args);
-                RunOnMainThread0(rt);
+                RunOnMainThread0(kickNSApp, rt);
                 if( waitUntilDone ) {
                     try {
                         sync.wait();
@@ -384,8 +405,9 @@ public class OSXUtil implements ToolkitProperties {
     private static native void SetCALayerPixelScale0(long rootCALayer, long subCALayer, float contentsScale);
     private static native void RemoveCASublayer0(long rootCALayer, long subCALayer);
     private static native void DestroyCALayer0(long caLayer);
-    private static native void RunOnMainThread0(Runnable runnable);
-    private static native void RunLater0(boolean onMain, Runnable runnable, int delay);
+    private static native void RunOnMainThread0(boolean kickNSApp, Runnable runnable);
+    private static native void RunLater0(boolean onMain, boolean kickNSApp, Runnable runnable, int delay);
+    private static native void KickNSApp0();
     private static native boolean IsMainThread0();
     private static native int GetScreenRefreshRate0(int scrn_idx);
 }

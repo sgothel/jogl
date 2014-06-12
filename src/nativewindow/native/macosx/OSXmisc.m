@@ -1006,29 +1006,61 @@ static void RunOnThread (JNIEnv *env, jobject runnable, BOOL onMain, jint delayI
     DBG_PRINT2( "RunOnThread.X\n");
 }
 
-/*
+static void OSXUtil_KickNSApp() {
+    NSEvent* event = [NSEvent otherEventWithType: NSApplicationDefined
+                                        location: NSMakePoint(0,0)
+                                   modifierFlags: 0
+                                       timestamp: 0.0
+                                    windowNumber: 0
+                                         context: nil
+                                         subtype: 0
+                                           data1: 0
+                                           data2: 0];
+    [NSApp postEvent: event atStart: true];
+}
+
+/**
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    RunOnMainThread0
  * Signature: (ZLjava/lang/Runnable;)V
  */
 JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RunOnMainThread0
-  (JNIEnv *env, jclass unused, jobject runnable)
+  (JNIEnv *env, jclass unused, jboolean kickNSApp, jobject runnable)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     RunOnThread (env, runnable, YES, 0);
+    if( kickNSApp ) {
+        OSXUtil_KickNSApp();
+    }
     [pool release];
 }
 
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    RunLater0
- * Signature: (ZLjava/lang/Runnable;I)V
+ * Signature: (ZZLjava/lang/Runnable;I)V
  */
 JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RunLater0
-  (JNIEnv *env, jclass unused, jboolean onMain, jobject runnable, jint delay)
+  (JNIEnv *env, jclass unused, jboolean onMain, jboolean kickNSApp, jobject runnable, jint delay)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     RunOnThread (env, runnable, onMain ? YES : NO, delay);
+    if( kickNSApp ) {
+        OSXUtil_KickNSApp();
+    }
+    [pool release];
+}
+
+/**
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    KickNSApp0
+ * Signature: (V)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_KickNSApp0
+  (JNIEnv *env, jclass unused)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    OSXUtil_KickNSApp();
     [pool release];
 }
 
