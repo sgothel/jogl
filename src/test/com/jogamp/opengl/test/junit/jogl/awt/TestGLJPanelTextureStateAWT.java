@@ -32,6 +32,7 @@ package com.jogamp.opengl.test.junit.jogl.awt;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.TextureDraw02ES2ListenerFBO;
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -47,7 +48,6 @@ import javax.swing.JFrame;
 
 import com.jogamp.opengl.util.texture.TextureIO;
 import com.jogamp.opengl.util.texture.TextureState;
-import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 
 import java.awt.Dimension;
@@ -66,10 +66,25 @@ import org.junit.runners.MethodSorters;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLJPanelTextureStateAWT extends UITestCase {
     static boolean showFPS = false;
-    static long duration = 100; // ms
+    static long duration = 250; // ms
 
     @BeforeClass
     public static void initClass() {
+    }
+
+    static void setFrameSize(final JFrame frame, final boolean frameLayout, final java.awt.Dimension new_sz) {
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.setSize(new_sz);
+                    if( frameLayout ) {
+                        frame.validate();
+                    }
+                } } );
+        } catch( Throwable throwable ) {
+            throwable.printStackTrace();
+            Assume.assumeNoException( throwable );
+        }
     }
 
     public void testImpl(final boolean keepTextureBound, final int texUnit)
@@ -86,24 +101,33 @@ public class TestGLJPanelTextureStateAWT extends UITestCase {
         final GLCapabilities caps = new GLCapabilities(glp);
 
         final GLJPanel glc = new GLJPanel(caps);
-        Dimension glc_sz = new Dimension(800, 400);
+        // final GLCanvas glc = new GLCanvas(caps);
+        final Dimension glc_sz = new Dimension(640, 480);
+        final Dimension glc_sz2 = new Dimension(800, 400);
         glc.setMinimumSize(glc_sz);
         glc.setPreferredSize(glc_sz);
         final JFrame frame = new JFrame("TestGLJPanelTextureStateAWT");
         Assert.assertNotNull(frame);
         frame.getContentPane().add(glc);
 
-        final TextureDraw02ES2ListenerFBO gle0;
+        final GLEventListener gle0;
         {
             final GearsES2 gle0sub = new GearsES2( 0 );
             // gle1sub.setClearBuffers(false);
-            gle0 = new TextureDraw02ES2ListenerFBO(gle0sub, 1, texUnit ) ;
+            final TextureDraw02ES2ListenerFBO demo = new TextureDraw02ES2ListenerFBO(gle0sub, 1, texUnit ) ;
+            demo.setKeepTextureBound(keepTextureBound);
+            demo.setClearBuffers(false);
+            gle0 = demo;
         }
-        gle0.setKeepTextureBound(keepTextureBound);
-        gle0.setClearBuffers(false);
 
-        final RedSquareES2 gle1 = new RedSquareES2( 1 ) ;
-        gle1.setClearBuffers(false);
+        final GLEventListener gle1;
+        {
+            final RedSquareES2 demo = new RedSquareES2( 1 ) ;
+            demo.setClearBuffers(false);
+            gle1 = demo;
+        }
+
+        final boolean[] glelError = { false };
 
         glc.addGLEventListener(new GLEventListener() {
             int gle0X, gle0Y, gle0W, gle0H;
@@ -155,16 +179,19 @@ public class TestGLJPanelTextureStateAWT extends UITestCase {
                 gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
                 gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
-                // restore viewport test
-                final int[] viewport = new int[] { 0, 0, 0, 0 };
-                gl.glGetIntegerv(GL.GL_VIEWPORT, viewport, 0);
-                if( gle0X != viewport[0] || gle0Y != viewport[1] || gle0W != viewport[2] || gle0H != viewport[3] ) {
-                    final String msg = "Expected "+viewport[0]+"/"+viewport[1]+" "+viewport[2]+"x"+viewport[3]+
-                                        ", actual "+gle0X+"/"+gle0Y+" "+gle0W+"x"+gle0H;
-                    Assert.assertTrue("Viewport not restored: "+msg, false);
+                // test viewport
+                {
+                    final int[] viewport = new int[] { 0, 0, 0, 0 };
+                    gl.glGetIntegerv(GL.GL_VIEWPORT, viewport, 0);
+                    if( gle1X != viewport[0] || gle1Y != viewport[1] || gle1W != viewport[2] || gle1H != viewport[3] ) {
+                        final String msg = "Expected "+gle1X+"/"+gle1Y+" "+gle1W+"x"+gle1H+
+                                            ", actual "+viewport[0]+"/"+viewport[1]+" "+viewport[2]+"x"+viewport[3];
+                        Assert.assertTrue("Viewport not restored: "+msg, false);
+                        glelError[0] = true;
+                    }
                 }
 
-                // gl.glViewport(gle0X, gle0Y, gle0W, gle0H); // restore viewport test
+                gl.glViewport(gle0X, gle0Y, gle0W, gle0H);
                 gle0.display(drawable);
 
                 gl.glViewport(gle1X, gle1Y, gle1W, gle1H);
@@ -174,18 +201,19 @@ public class TestGLJPanelTextureStateAWT extends UITestCase {
                 if( 4 == shot ) {
                     gl.glViewport(tX, tY, tW, tH);
                     snapshot(0, null, drawable.getGL(), screenshot, TextureIO.PNG, null);
+                    gl.glViewport(gle1X, gle1Y, gle1W, gle1H); // restore viewport test
                 }
 
-                gl.glViewport(gle0X, gle0Y, gle0W, gle0H); // restore viewport test
-
-                final TextureState ts = new TextureState(drawable.getGL(), GL.GL_TEXTURE_2D);
+                final TextureState ts = new TextureState(drawable.getGL(), GL.GL_TEXTURE_2D); // as set via gle0!
                 // System.err.println("XXX: "+ts);
                 Assert.assertEquals("Texture unit changed", GL.GL_TEXTURE0+texUnit, ts.getUnit());
                 if( keepTextureBound ) {
-                    Assert.assertEquals("Texture mag-filter changed", GL.GL_LINEAR, ts.getMagFilter());
-                    Assert.assertEquals("Texture mag-filter changed", GL.GL_LINEAR, ts.getMinFilter());
-                    Assert.assertEquals("Texture wrap-s changed", GL.GL_REPEAT, ts.getWrapS());
-                    Assert.assertEquals("Texture wrap-t changed", GL.GL_REPEAT, ts.getWrapT());
+                    Assert.assertEquals("Texture mag-filter changed: "+ts, GL.GL_LINEAR, ts.getMagFilter());
+                    Assert.assertEquals("Texture mag-filter changed: "+ts, GL.GL_LINEAR, ts.getMinFilter());
+                    Assert.assertEquals("Texture wrap-s changed: "+ts, GL.GL_REPEAT, ts.getWrapS());
+                    Assert.assertEquals("Texture wrap-t changed: "+ts, GL.GL_REPEAT, ts.getWrapT());
+                    glelError[0] = GL.GL_LINEAR != ts.getMagFilter() || GL.GL_LINEAR != ts.getMinFilter() ||
+                                   GL.GL_REPEAT != ts.getWrapS()     || GL.GL_REPEAT != ts.getWrapT();
                 }
             }
             final int border = 5;
@@ -195,25 +223,26 @@ public class TestGLJPanelTextureStateAWT extends UITestCase {
                 gle0Y = y;
                 gle0W = width/2 - 2*border;
                 gle0H = height;
+                // System.err.println("GLEL0 "+gle0X+"/"+gle0Y+" "+gle0W+"x"+gle0H);
 
                 gle1X = gle0X + gle0W + 2*border;
                 gle1Y = y;
                 gle1W = width/2 - 2*border;
                 gle1H = height;
+                // System.err.println("GLEL1 "+gle1X+"/"+gle1Y+" "+gle1W+"x"+gle1H);
 
                 tX = x;
                 tY = y;
                 tW = width;
                 tH = height;
+                // System.err.println("Total "+tX+"/"+tY+" "+tW+"x"+tH);
 
                 GL2ES2 gl = drawable.getGL().getGL2ES2();
                 gl.glViewport(gle0X, gle0Y, gle0W, gle0H);
-                gle0.reshape(drawable, gle0X, gle0Y, gle0W, gle0H);
+                gle0.reshape(drawable, 0, 0, gle0W, gle0H); // don't 'skip' about gle0X/gle0Y
 
                 gl.glViewport(gle1X, gle1Y, gle1W, gle1H);
-                gle1.reshape(drawable, gle1X, gle1Y, gle1W, gle1H);
-
-                gl.glViewport(gle0X, gle0Y, gle0W, gle0H); // restore viewport test
+                gle1.reshape(drawable, 0, 0, gle1W, gle1H); // don't 'skip' about gle0X/gle0Y
 
                 if( keepTextureBound ) {
                     setupTex(gl);
@@ -221,8 +250,6 @@ public class TestGLJPanelTextureStateAWT extends UITestCase {
             }
         });
 
-        Animator animator = new Animator(glc);
-        animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
         final QuitAdapter quitAdapter = new QuitAdapter();
         new com.jogamp.newt.event.awt.AWTKeyAdapter(quitAdapter, glc).addTo(glc);
         new com.jogamp.newt.event.awt.AWTWindowAdapter(quitAdapter, glc).addTo(glc);
@@ -236,14 +263,19 @@ public class TestGLJPanelTextureStateAWT extends UITestCase {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
+        Assert.assertTrue("Component didn't become visible", AWTRobotUtil.waitForVisible(glc, true));
+        Assert.assertTrue("Component didn't become realized", AWTRobotUtil.waitForRealized(glc, true));
+        Thread.sleep(100);
+        setFrameSize(frame, true, glc_sz2);
+        System.err.println("window resize pos/siz: "+glc.getX()+"/"+glc.getY()+" "+glc.getSurfaceWidth()+"x"+glc.getSurfaceHeight());
+        Thread.sleep(100);
 
-        animator.start();
-
-        while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
+        final long t0 = System.currentTimeMillis();
+        while(!quitAdapter.shouldQuit() && System.currentTimeMillis()-t0<duration) {
+            glc.display();
             Thread.sleep(100);
         }
 
-        animator.stop();
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
@@ -255,6 +287,7 @@ public class TestGLJPanelTextureStateAWT extends UITestCase {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
+        Assume.assumeFalse("Error occured in GLEL .. see log file above", glelError[0]);
     }
 
     @Test

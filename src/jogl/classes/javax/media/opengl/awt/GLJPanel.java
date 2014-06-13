@@ -1692,12 +1692,40 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         if(DEBUG) {
             System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: - frameCount "+frameCount);
         }
+
+        final GL gl = offscreenContext.getGL();
+
+        //
+        // Save TextureState ASAP, i.e. the user values for the used FBO texture-unit
+        // and the current active texture-unit (if not same)
+        //
+        final TextureState usrTexState, fboTexState;
+        final int fboTexUnit;
+
+        if( offscreenIsFBO ) {
+            fboTexUnit = GL.GL_TEXTURE0 + ((GLFBODrawable)offscreenDrawable).getTextureUnit();
+            usrTexState = new TextureState(gl, GL.GL_TEXTURE_2D);
+            if( fboTexUnit != usrTexState.getUnit() ) {
+                // glActiveTexture(..) + glBindTexture(..) are implicit performed in GLFBODrawableImpl's
+                // swapBuffers/contextMadeCurent -> swapFBOImpl.
+                // We need to cache the texture unit's bound texture-id before it's overwritten.
+                gl.glActiveTexture(fboTexUnit);
+                fboTexState = new TextureState(gl, fboTexUnit, GL.GL_TEXTURE_2D);
+            } else {
+                fboTexState = usrTexState;
+            }
+        } else {
+            fboTexUnit = 0;
+            usrTexState = null;
+            fboTexState = null;
+        }
+
+
         if( autoSwapBufferMode ) {
             // Since we only use a single-buffer non-MSAA or double-buffered MSAA offscreenDrawable,
             // we can always swap!
             offscreenDrawable.swapBuffers();
         }
-        final GL gl = offscreenContext.getGL();
 
         final int componentCount;
         final int alignment;
@@ -1755,25 +1783,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
            readBackInts = readBackIntsForCPUVFlip;
         }
 
-        final TextureState usrTexState, fboTexState;
-        final int fboTexUnit = GL.GL_TEXTURE0 + ( offscreenIsFBO ? ((GLFBODrawable)offscreenDrawable).getTextureUnit() : 0 );
-
-        if( offscreenIsFBO ) {
-            usrTexState = new TextureState(gl, GL.GL_TEXTURE_2D);
-            if( fboTexUnit != usrTexState.getUnit() ) {
-                // glActiveTexture(..) + glBindTexture(..) are implicit performed in GLFBODrawableImpl's
-                // swapBuffers/contextMadeCurent -> swapFBOImpl.
-                // We need to cache the texture unit's bound texture-id before it's overwritten.
-                gl.glActiveTexture(fboTexUnit);
-                fboTexState = new TextureState(gl, fboTexUnit, GL.GL_TEXTURE_2D);
-            } else {
-                fboTexState = usrTexState;
-            }
-        } else {
-            usrTexState = null;
-            fboTexState = null;
-        }
-
         // Must now copy pixels from offscreen context into surface
         if(DEBUG) {
             System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.readPixels: - frameCount "+frameCount);
@@ -1819,7 +1828,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             if( viewportChange ) {
                 gl.glViewport(usrViewport[0], usrViewport[1], usrViewport[2], usrViewport[3]);
             }
-            fboTexState.restore(gl);
         } else {
             gl.glReadPixels(0, 0, panelWidth, panelHeight, pixelAttribs.format, pixelAttribs.type, readBackInts);
 
@@ -1839,8 +1847,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                 }
             }
         }
-        if( offscreenIsFBO && fboTexUnit != usrTexState.getUnit() ) {
-            usrTexState.restore(gl);
+        if( 0 != fboTexUnit ) { // implies offscreenIsFBO
+            fboTexState.restore(gl);
+            if( fboTexUnit != usrTexState.getUnit() ) {
+                usrTexState.restore(gl);
+            }
         }
 
         // Restore saved modes.
