@@ -31,7 +31,7 @@ public class OlympicES1 implements GLEventListener
     // private static final double M_PI= 3.141592654;
     private static final double M_2PI= 2*3.141592654;
 
-    private static final int 
+    private static final int
     // XSIZE=   100,
     // YSIZE=   75,
     RINGS= 5,
@@ -60,18 +60,18 @@ public class OlympicES1 implements GLEventListener
     private int iters[];
     private ImmModeSink theTorus;
 
-    private float lmodel_ambient[] = {0.0f, 0.0f, 0.0f, 0.0f};
-    private float lmodel_twoside[] = {0.0f, 0.0f, 0.0f, 0.0f};
+    private final float lmodel_ambient[] = {0.0f, 0.0f, 0.0f, 0.0f};
+    private final float lmodel_twoside[] = {0.0f, 0.0f, 0.0f, 0.0f};
     // private float lmodel_local[] = {0.0f, 0.0f, 0.0f, 0.0f};
-    private float light0_ambient[] = {0.1f, 0.1f, 0.1f, 1.0f};
-    private float light0_diffuse[] = {1.0f, 1.0f, 1.0f, 0.0f};
-    private float light0_position[] = {0.8660254f, 0.5f, 1f, 0f};
-    private float light0_specular[] = {1.0f, 1.0f, 1.0f, 0.0f};
-    private float bevel_mat_ambient[] = {0.0f, 0.0f, 0.0f, 1.0f};
-    private float bevel_mat_shininess[] = {40.0f, 0f, 0f, 0f};
-    private float bevel_mat_specular[] = {1.0f, 1.0f, 1.0f, 0.0f};
-    private float bevel_mat_diffuse[] = {1.0f, 0.0f, 0.0f, 0.0f};
-    private int swapInterval;
+    private final float light0_ambient[] = {0.1f, 0.1f, 0.1f, 1.0f};
+    private final float light0_diffuse[] = {1.0f, 1.0f, 1.0f, 0.0f};
+    private final float light0_position[] = {0.8660254f, 0.5f, 1f, 0f};
+    private final float light0_specular[] = {1.0f, 1.0f, 1.0f, 0.0f};
+    private final float bevel_mat_ambient[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    private final float bevel_mat_shininess[] = {40.0f, 0f, 0f, 0f};
+    private final float bevel_mat_specular[] = {1.0f, 1.0f, 1.0f, 0.0f};
+    private final float bevel_mat_diffuse[] = {1.0f, 0.0f, 0.0f, 0.0f};
+    private final int swapInterval;
     private GLU glu;
 
     public OlympicES1() {
@@ -88,8 +88,8 @@ public class OlympicES1 implements GLEventListener
         this.debugFFPEmu = debugFFPEmu;
         this.traceFFPEmu = traceFFPEmu;
     }
-    
-    public void init(GLAutoDrawable drawable) 
+
+    public void init(GLAutoDrawable drawable)
     {
         GL _gl = drawable.getGL();
 
@@ -109,7 +109,7 @@ public class OlympicES1 implements GLEventListener
             try {
                 // Debug ..
                 gl = (GL2ES1) gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", GL2ES1.class, gl, null) );
-            } catch (Exception e) {e.printStackTrace();} 
+            } catch (Exception e) {e.printStackTrace();}
         }
         if(trace) {
             try {
@@ -130,6 +130,7 @@ public class OlympicES1 implements GLEventListener
         System.err.println("GL:" + gl + ", " + gl.getContext().getGLVersion());
 
         glu = GLUgl2es1.createGLU(gl);
+        System.err.println("GLU:" + glu.getClass().getName());
 
         rgb_colors=new byte[RINGS][3];
         mapped_colors=new int [RINGS];
@@ -180,11 +181,11 @@ public class OlympicES1 implements GLEventListener
         dests[GREENRING][1] = bottom_y;
         dests[GREENRING][2] = bottom_z;
 
-        theTorus = ImmModeSink.createFixed(40, 
+        theTorus = ImmModeSink.createFixed(40,
                 3, GL.GL_FLOAT, // vertex
                 0, GL.GL_FLOAT, // color
                 3, GL.GL_FLOAT, // normal
-                0, GL.GL_FLOAT, // texCoords 
+                0, GL.GL_FLOAT, // texCoords
                 GL.GL_STATIC_DRAW);
         FillTorus(gl, theTorus, 0.1f, 8, 1.0f, 25);
 
@@ -215,7 +216,7 @@ public class OlympicES1 implements GLEventListener
         gl.glEnable(GL2ES1.GL_COLOR_MATERIAL);
         gl.glShadeModel(GL2ES1.GL_SMOOTH);
 
-        ReInit();        
+        ReInit();
         t0 = System.currentTimeMillis();
         tL = t0;
     }
@@ -226,13 +227,13 @@ public class OlympicES1 implements GLEventListener
         glu.destroy();
         glu = null;
         theTorus.destroy(glad.getGL());
-        theTorus = null;        
+        theTorus = null;
     }
 
 
     @Override
     public void reshape(GLAutoDrawable glad, int x, int y, int width, int height) {
-        final GL2ES1 gl = glad.getGL().getGL2ES1();        
+        final GL2ES1 gl = glad.getGL().getGL2ES1();
         gl.setSwapInterval(swapInterval);
 
         gl.glMatrixMode(GL2ES1.GL_PROJECTION);
@@ -254,7 +255,7 @@ public class OlympicES1 implements GLEventListener
         for (i = 0; i < RINGS; i++) {
             gl.glColor4ub(rgb_colors[i][0], rgb_colors[i][1], rgb_colors[i][2], (byte)1);
             gl.glPushMatrix();
-            gl.glTranslatef(dests[i][0] + offsets[i][0], 
+            gl.glTranslatef(dests[i][0] + offsets[i][0],
                     dests[i][1] + offsets[i][1],
                     dests[i][2] + offsets[i][2]);
             gl.glRotatef(angs[i], rotAxis[i][0], rotAxis[i][1], rotAxis[i][2]);
@@ -267,7 +268,7 @@ public class OlympicES1 implements GLEventListener
 
     long t0, tL;
 
-    protected void animationCalc() 
+    protected void animationCalc()
     {
         int i, j;
 

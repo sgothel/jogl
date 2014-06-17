@@ -8,6 +8,10 @@ static {
         if (val != null && !val.toLowerCase().equals("false")) {
           useJavaMipmapCode = false;
         }
+        // No native code, not required nor possible
+        // if( !initializeImpl() ) {
+        //     throw new RuntimeException("Initialization failure");
+        // }
         return null;
       }
     });

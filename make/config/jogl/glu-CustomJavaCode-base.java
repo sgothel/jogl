@@ -83,11 +83,16 @@ static {
     Class _gl2Class=null;
     Class _gl2es1Class=null;
     try {
-        _gl2Class = Class.forName("javax.media.opengl.glu.gl2.GLUgl2");
-        _gl2es1Class = Class.forName("javax.media.opengl.glu.gl2es1.GLUgl2es1");
+        final ClassLoader cl = GLU.class.getClassLoader();
+        _gl2Class = Class.forName("javax.media.opengl.glu.gl2.GLUgl2", false, cl);
+        _gl2es1Class = Class.forName("javax.media.opengl.glu.gl2es1.GLUgl2es1", false, cl);
     } catch (Throwable t) {}
     gl2Class = _gl2Class;
     gl2es1Class = _gl2es1Class;
+    /** No native code, not required nor possible
+    if( !initializeImpl() ) {
+        throw new RuntimeException("Initialization failure");
+    } */
 }
 
 /**
