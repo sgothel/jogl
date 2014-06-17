@@ -1565,7 +1565,7 @@ public class GLProfile {
 
     private static final Constructor<?> getCtor(final String clazzName, final boolean glObject, final ClassLoader cl) {
         try {
-            return ReflectionUtil.getConstructor(clazzName, glObject ? ctorGLArgs : ctorProcArgs, cl);
+            return ReflectionUtil.getConstructor(clazzName, glObject ? ctorGLArgs : ctorProcArgs, false, cl);
         } catch (Throwable t) {
             if( DEBUG ) {
                 System.err.println("Catched: "+t.getMessage());

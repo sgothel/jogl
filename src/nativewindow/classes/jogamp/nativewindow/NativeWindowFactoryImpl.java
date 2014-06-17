@@ -95,7 +95,7 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
 
                 nativeWindowConstructor = ReflectionUtil.getConstructor(
                                             windowClassName, new Class[] { Object.class, AbstractGraphicsConfiguration.class },
-                                            getClass().getClassLoader());
+                                            true, getClass().getClassLoader());
             } catch (Exception e) {
                 throw new IllegalArgumentException(e);
             }
