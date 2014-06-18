@@ -89,7 +89,7 @@ static {
     } catch (Throwable t) {}
     gl2Class = _gl2Class;
     gl2es1Class = _gl2es1Class;
-    /** No native code, not required nor possible
+    /** Not required nor forced
     if( !initializeImpl() ) {
         throw new RuntimeException("Initialization failure");
     } */
