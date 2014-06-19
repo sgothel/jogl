@@ -234,6 +234,12 @@
         <property name="build.oculusvr"             value="${build}/oculusvr" />
         <property name="obj.oculusvr"               value="${build.oculusvr}/obj"/>
 
+        <property name="rootrel.oculusvr.sdk"       value="oculusvr-sdk"/>
+        <property name="rel.oculusvr.sdk"           value="${project.root}/${rootrel.oculusvr.sdk}"/>
+        <condition property="oculusvr.sdk.available">
+            <available file="${rel.oculusvr.sdk}/LibOVR/Src/OVR_CAPI.h"/>
+        </condition>
+
         <property name="results.test"               value="${build}/test/results" />
         <property name="build.test"                 value="${build}/test/build" />
         <property name="obj.test"                   value="${build.test}/obj"/>

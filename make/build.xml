@@ -79,7 +79,7 @@
         <ant antfile="${newt.build.xml}" dir="${newt.make}" target="all" inheritRefs="true" inheritAll="true"/>
     </target>
 
-    <target name="build.oculusvr" depends="init">
+    <target name="build.oculusvr" depends="init" if="oculusvr.sdk.available">
         <ant antfile="${oculusvr.build.xml}" dir="${oculusvr.make}" target="all" inheritRefs="true" inheritAll="true"/>
     </target>
 

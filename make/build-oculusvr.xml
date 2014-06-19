@@ -43,9 +43,6 @@
         <property name="rootrel.src.generated"    value="${rootrel.build}/oculusvr/gensrc" />
         <property name="rootrel.generated.c"      value="${rootrel.src.generated}/native/oculusvr" />
 
-        <property name="rootrel.oculusvr.sdk"     value="oculusvr-sdk"/>
-        <property name="rel.oculusvr.sdk"         value="${project.root}/${rootrel.oculusvr.sdk}"/>
-
         <!-- The source directories. -->
         <property name="src.java"                 value="${project.root}/${rootrel.src.java}" />
         <property name="src.c"                    value="${project.root}/${rootrel.src.c}" />
@@ -86,8 +83,13 @@
 
         <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},jogamp.opengl.*,com.jogamp.gluegen,com.jogamp.gluegen.runtime" />
 
+        <condition property="oculusvr.build.enabled">
+            <isset property="oculusvr.sdk.available"/>
+        </condition>
+
         <condition property="c.build.supported">
           <and>
+              <isset property="oculusvr.build.enabled"/>
               <or>
                   <isset property="isLinuxX86"/>
                   <isset property="isLinuxAMD64"/>
@@ -101,6 +103,8 @@
               </not>
           </and>
         </condition>
+        <echo message="oculusvr.sdk.available ${oculusvr.sdk.available}" />
+        <echo message="oculusvr.build.enabled ${oculusvr.build.enabled}" />
         <echo message="c.build.supported ${c.build.supported}" />
     </target>
     
@@ -661,7 +665,14 @@
     <!--
        - Build everything.
       -->
-    <target name="all" description="Build OculusVR JAR file(s) and native libraries." depends="init,java.compile,c.build,build-jars,generate.version.txt" />
+    <target name="all" 
+            description="Build OculusVR JAR file(s) and native libraries." 
+            depends="init" if="oculusvr.build.enabled">
+        <antcall target="all.impl" inheritRefs="true" />
+    </target>
+    <target name="all.impl" 
+            description="Build OculusVR JAR file(s) and native libraries." 
+            depends="java.compile,c.build,build-jars,generate.version.txt"/>
 
     <target name="generate.version.txt" depends="init">
         <!-- Create a version.txt file indicating which version we just built -->
