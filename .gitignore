@@ -6,5 +6,5 @@ temp/*
 .idea/workspace.xml
 .settings/*
 **~
-build*
+build*/
 make/lib/external/*
