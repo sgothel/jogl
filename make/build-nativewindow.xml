@@ -265,10 +265,6 @@
       -->
     <target name="java.generate" depends="init, common.gluegen.build, java.generate.check" unless="java.generate.skip">
 
-        <!-- Add the GlueGen task to ANT -->
-        <taskdef name="gluegen" classname="com.jogamp.gluegen.ant.GlueGenTask"
-                 classpathref="gluegen.classpath" />
-                 
         <!-- Use the GlueGen task to generate the Java files -->
 
         <antcall target="java.generate.cleantemp" inheritRefs="true" />

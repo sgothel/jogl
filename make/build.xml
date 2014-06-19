@@ -8,13 +8,13 @@
        - Main build target.
       -->
 
-    <target name="all" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,one.dir,tag.build,test.compile,developer-zip-archive" />
+    <target name="all" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,build.oculusvr,one.dir,tag.build,test.compile,developer-zip-archive" />
 
-    <target name="all.debug" description="Debug build nativewindow, jogl and newt projects, incl. all junit tests " depends="init.debug,build.nativewindow,build.jogl,build.newt,one.dir,tag.build,test.compile,developer-zip-archive" />
+    <target name="all.debug" description="Debug build nativewindow, jogl and newt projects, incl. all junit tests " depends="init.debug,build.nativewindow,build.jogl,build.newt,build.oculusvr,one.dir,tag.build,test.compile,developer-zip-archive" />
 
-    <target name="all.but-archives" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,one.dir,tag.build,test.compile" />
+    <target name="all.but-archives" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,build.oculusvr,one.dir,tag.build,test.compile" />
 
-    <target name="all.ide" description="Debug IDE build nativewindow, jogl and newt projects, including all junit tests, but don't tag the build or create archives" depends="init.debug,build.nativewindow,build.jogl,build.newt,one.dir,test.compile" />
+    <target name="all.ide" description="Debug IDE build nativewindow, jogl and newt projects, including all junit tests, but don't tag the build or create archives" depends="init.debug,build.nativewindow,build.jogl,build.newt,build.oculusvr,one.dir,test.compile" />
 
     <target name="test.compile">
       <ant antfile="build-test.xml" target="test.compile" inheritRefs="true" inheritAll="true"/>
@@ -47,10 +47,10 @@
 
     <target name="clean" depends="init">
         <ant antfile="${nativewindow.build.xml}" dir="${nativewindow.make}" target="clean" inheritRefs="true" inheritAll="true"/>
-        <ant antfile="${jogl.build.xml}" dir="${jogl.make}" target="clean" inheritRefs="true" inheritAll="true"/>
-        <ant antfile="${newt.build.xml}" dir="${newt.make}" target="clean" inheritRefs="true" inheritAll="true"/>
-        <ant antfile="${newt.build.xml}" dir="${newt.make}" target="clean" inheritRefs="true" inheritAll="true"/>
-        <ant antfile="build-test.xml"                       target="clean" inheritRefs="true" inheritAll="true"/>
+        <ant antfile="${jogl.build.xml}"     dir="${jogl.make}"     target="clean" inheritRefs="true" inheritAll="true"/>
+        <ant antfile="${newt.build.xml}"     dir="${newt.make}"     target="clean" inheritRefs="true" inheritAll="true"/>
+        <ant antfile="${oculusvr.build.xml}" dir="${oculusvr.make}" target="clean" inheritRefs="true" inheritAll="true"/>
+        <ant antfile="build-test.xml"                               target="clean" inheritRefs="true" inheritAll="true"/>
         <delete includeEmptyDirs="true" quiet="true" failonerror="false">
             <fileset dir="${build}" />
             <fileset dir="." includes="*.tga" />
@@ -79,12 +79,17 @@
         <ant antfile="${newt.build.xml}" dir="${newt.make}" target="all" inheritRefs="true" inheritAll="true"/>
     </target>
 
+    <target name="build.oculusvr" depends="init">
+        <ant antfile="${oculusvr.build.xml}" dir="${oculusvr.make}" target="all" inheritRefs="true" inheritAll="true"/>
+    </target>
+
     <target name="one.lib.dir" depends="init,gluegen.cpptasks.detect.os" unless="one.dir.skip">
         <mkdir dir="${lib}" />
         <copy todir="${lib}">
             <fileset dir="${build}/jogl/obj" includes="*.${native.library.suffix}" />
             <fileset dir="${build}/nativewindow/obj" includes="*.${native.library.suffix}" />
             <fileset dir="${build}/newt/obj" includes="*.${native.library.suffix}" />
+            <!-- fileset dir="${build}/oculusvr/obj" includes="*.${native.library.suffix}" /-->
         </copy>
     </target>
 
@@ -95,6 +100,7 @@
             <fileset dir="${build.jogl}" includes="*.jar" />
             <fileset dir="${build.nativewindow}" includes="*.jar" />
             <fileset dir="${build.newt}" includes="*.jar" />
+            <fileset dir="${build.oculusvr}" includes="*.jar" />
         </copy>
 
         <copy file="joglversion-all"
@@ -130,6 +136,7 @@
                     <path refid="nativewindow_all_atoms.classpath"/>
                     <path refid="jogl_all_atoms.classpath"/>
                     <path refid="newt_all_atoms.classpath"/>
+                    <!-- path refid="oculusvr_all_atoms.classpath"/-->
                 </zips>
             </archives>
         </jar>
@@ -139,6 +146,7 @@
                     <path refid="nativewindow_all-noawt_atoms.classpath"/>
                     <path refid="jogl_all-noawt_atoms.classpath"/>
                     <path refid="newt_all-noawt_atoms.classpath"/>
+                    <!-- path refid="oculusvr_all_atoms.classpath"/-->
                 </zips>
             </archives>
         </jar>
@@ -148,6 +156,7 @@
                     <path refid="nativewindow_all-noawt_atoms.classpath"/>
                     <path refid="jogl_all-mobile_atoms.classpath"/>
                     <path refid="newt_all-mobile_atoms.classpath"/>
+                    <!-- path refid="oculusvr_all_atoms.classpath"/-->
                 </zips>
             </archives>
         </jar>
@@ -196,11 +205,15 @@
         <srcfiles dir="${build.jogl}" includes="*.jar"/>
         <srcfiles dir="${build.newt}" includes="*.jar"/>
       </uptodate>
+      <uptodate property="one.dir.skip.oculusvr" targetfile="${oculusvr.jar}">
+        <srcfiles dir="${build.oculusvr}" includes="*.jar"/>
+      </uptodate>
       <condition property="one.dir.skip">
           <and>
               <isset property="one.dir.skip.native"/>
               <isset property="one.dir.skip.all"/>
               <isset property="one.dir.skip.android"/>
+              <isset property="one.dir.skip.oculusvr"/>
           </and>
       </condition>
     </target>

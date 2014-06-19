@@ -822,9 +822,7 @@
                      includes="${java.part.gluegen-gl-rt} ${java.part.gluegen-gl}"/>
         </jar>
 
-        <!-- Add the GlueGen and BuildStaticGLInfo tasks to ANT -->
-        <taskdef name="gluegen" classname="com.jogamp.gluegen.ant.GlueGenTask"
-                 classpathref="gluegen.classpath" />
+        <!-- Add the BuildStaticGLInfo tasks to ANT -->
         <taskdef name="staticglgen" classname="com.jogamp.gluegen.opengl.ant.StaticGLGenTask"
                  classpathref="gluegen-gl.classpath" />
     </target>

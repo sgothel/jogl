@@ -44,9 +44,11 @@ JOGL_JAR_ALL_NOAWT="jogl-all-noawt.jar"
 JOGL_JAR_ALL_MOBILE="jogl-all-mobile.jar"
 JOGL_JAR_SWT="atomic/jogl-swt.jar"
 
-JOGL_LIB_ALL="libnativewindow_x11.so libnativewindow_awt.so libjogl_desktop.so libjogl_mobile.so libjogl_cg.so libnewt.so"
-JOGL_LIB_ALL_NOAWT="libnativewindow_x11.so libjogl_desktop.so libjogl_mobile.so libjogl_cg.so libnewt.so"
-JOGL_LIB_ALL_MOBILE="libjogl_mobile.so libnewt.so"
+JOGL_JAR_OCULUSVR="atomic/oculusvr.jar"
+
+JOGL_LIB_ALL="libnativewindow_x11.so libnativewindow_awt.so libjogl_desktop.so libjogl_mobile.so libjogl_cg.so libnewt.so liboculusvr.so"
+JOGL_LIB_ALL_NOAWT="libnativewindow_x11.so libjogl_desktop.so libjogl_mobile.so libjogl_cg.so libnewt.so liboculusvr.so"
+JOGL_LIB_ALL_MOBILE="libjogl_mobile.so libnewt.so liboculusvr.so"
 
 export JOGL_JAR_ALL JOGL_JAR_ALL_NOAWT JOGL_JAR_ALL_MOBILE
 export JOGL_LIB_ALL JOGL_LIB_ALL_NOAWT JOGL_LIB_ALL_MOBILE
@@ -81,10 +83,10 @@ export JOGL_BUILD_DIR
 JOGL_LIB_DIR="$JOGL_BUILD_DIR"/lib
 export JOGL_LIB_DIR
 
-JOGL_ALL_AWT_CLASSPATH=$(concat_jogl_list "$JOGL_BUILD_DIR" $JOGL_JAR_ALL $JOGL_TEST)
-JOGL_ALL_NOAWT_CLASSPATH=$(concat_jogl_list "$JOGL_BUILD_DIR" $JOGL_JAR_ALL_NOAWT $JOGL_TEST)
-JOGL_MOBILE_CLASSPATH=$(concat_jogl_list "$JOGL_BUILD_DIR" $JOGL_JAR_ALL_MOBILE $JOGL_TEST)
-JOGL_SWT_CLASSPATH=$(concat_jogl_list "$JOGL_BUILD_DIR" $JOGL_JAR_SWT $JOGL_TEST)
+JOGL_ALL_AWT_CLASSPATH=$(concat_jogl_list "$JOGL_BUILD_DIR" $JOGL_JAR_ALL $JOGL_JAR_OCULUSVR $JOGL_TEST)
+JOGL_ALL_NOAWT_CLASSPATH=$(concat_jogl_list "$JOGL_BUILD_DIR" $JOGL_JAR_ALL_NOAWT $JOGL_JAR_OCULUSVR $JOGL_TEST)
+JOGL_MOBILE_CLASSPATH=$(concat_jogl_list "$JOGL_BUILD_DIR" $JOGL_JAR_ALL_MOBILE $JOGL_JAR_OCULUSVR $JOGL_TEST)
+JOGL_SWT_CLASSPATH=$(concat_jogl_list "$JOGL_BUILD_DIR" $JOGL_JAR_SWT $JOGL_JAR_OCULUSVR $JOGL_TEST)
 export JOGL_ALL_AWT_CLASSPATH JOGL_ALL_NOAWT_CLASSPATH JOGL_MOBILE_CLASSPATH JOGL_SWT_CLASSPATH
 
 if [ ! -z "$JOGL_PROFILE" ] ; then
