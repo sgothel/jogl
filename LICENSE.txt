@@ -363,3 +363,19 @@ A.6) The JOGL source tree contains code from Hernan J. Gonzalez and Shawn Hartso
     src/jogl/classes/jogamp/opengl/util/pngj/**
 
 
+A.7) The JOGL source tree _may_ contain code Oculus VR, Inc.
+     which is covered by it's own permissive Oculus VR Rift SDK Software License.
+
+    This code can be included to produce a binding 
+    and hence feature support to the Oculus VR Rift.
+
+    The code is included and it's build artifacts will be released,
+    if the git sub-module oculusvr-sdk is included in the jogl source repo.
+
+    Copyright © 2014 Oculus VR, Inc. All rights reserved.
+
+    Oculus VR Rift SDK Software License
+    http://www.oculusvr.com/licenses/LICENSE-3.1
+    http://jogamp.org/git/?p=oculusvr-sdk.git;a=blob;f=LICENSE.txt;hb=HEAD
+    Or within this repository: oculusvr-sdk/LICENSE.txt
+
