@@ -31,7 +31,6 @@
         <mkdir dir="${src.generated.c}" />
         <mkdir dir="${classes}" />
         <mkdir dir="${obj.oculusvr}" />
-        <mkdir dir="${obj.oculusvrsub}" />
     </target>
 
     <target name="declare.common" description="Declare properties" depends="partitioning.setup">
@@ -54,7 +53,6 @@
         
         <!-- The compiler output directories. -->
         <property name="classes"                  value="${build.oculusvr}/classes" />
-        <property name="obj.oculusvrsub"          value="${obj.oculusvr}" />
 
         <!-- The OculusVR headers from which Java files are generated -->
         <property name="stub.includes.ovr"        value="${rel.oculusvr.sdk}/LibOVR/Src" />
@@ -96,7 +94,7 @@
                   <!-- isset property="isAndroid"/-->
                   <isset property="isWindowsX86"/>
                   <isset property="isWindowsAMD64"/>
-                  <!-- isset property="isOSX"/-->
+                  <isset property="isOSX"/>
               </or>
               <not>
                   <isset property="c.build.oculusvr.skip"/>
@@ -205,9 +203,7 @@
         <linkerarg value="-weak_framework" />
         <linkerarg value="AppKit" />
         <linkerarg value="-weak_framework" />
-        <linkerarg value="QuartzCore" />
-        <linkerarg value="-weak_framework" />
-        <linkerarg value="Cocoa" />
+        <linkerarg value="IOKit" />
         <!--linkerarg value="-weak_framework" />
         <linkerarg value="OpenGL" /-->
       </linker>
@@ -362,7 +358,6 @@
     </target>
 
     <macrodef name="c.build">
-      <attribute name="c.compiler.src.files" />
       <attribute name="compiler.cfg.id" />
       <attribute name="linker.cfg.id" />
       <attribute name="output.lib.name" />
@@ -372,13 +367,10 @@
 
         <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
 
-        <patternset id="c.src.files.oculusvr">
-            <!--
-            $ g++ -print-file-name=libstdc++.a
-            /usr/lib/gcc/x86_64-linux-gnu/4.8/libstdc++.a
-            <include name="/usr/lib/gcc/x86_64-linux-gnu/4.8/libstdc++.a"/>
-             -->
+        <patternset id="c.src.files.oculusvr.c">
             <include name="${rootrel.generated.c}/OVR_JNI.c"/>
+        </patternset>
+        <patternset id="c.src.files.oculusvr.cpp">
             <include name="${rootrel.src.c}/OVRImplMisc.cpp"/>
             <include name="${rootrel.oculusvr.sdk}/LibOVR/Src/OVR_CAPI.cpp"/>
             <!-- include name="${rootrel.oculusvr.sdk}/LibOVR/Src/CAPI/CAPI_DistortionRenderer.cpp"/-->
@@ -452,7 +444,8 @@
       	     even when no files have been compiled -->
         <outofdate>
           <sourcefiles>
-            <fileset dir="${project.root}"><patternset refid="@{c.compiler.src.files}"/></fileset>
+            <fileset dir="${project.root}"><patternset refid="c.src.files.oculusvr.c"/></fileset>
+            <fileset dir="${project.root}"><patternset refid="c.src.files.oculusvr.cpp"/></fileset>
           </sourcefiles>
           <targetfiles>
             <fileset dir="${obj.oculusvr}" includes="lib@{output.lib.name}.so"/>
@@ -460,9 +453,9 @@
             <fileset dir="${obj.oculusvr}" includes="lib@{output.lib.name}.jnilib"/>
           </targetfiles>
           <sequential>
-            <cc outtype="shared" 
-                objdir="${obj.oculusvrsub}" 
-                outfile="${obj.oculusvr}/@{output.lib.name}"
+            <!-- C Compilation -->
+            <cc outtype="static" 
+                objdir="${obj.oculusvr}" 
                 optimize="${c.compiler.optimise}" 
                 debug="${c.compiler.debug}"
                 multithreaded="true" 
@@ -470,7 +463,32 @@
                 rtti="false">   
       
               <fileset dir="${project.root}">
-                <patternset refid="@{c.compiler.src.files}"/>
+                <patternset refid="c.src.files.oculusvr.c"/>
+              </fileset>
+      
+              <compiler extends="@{compiler.cfg.id}" >
+                <sysincludepath path="${java.includes.dir}"/>
+                <sysincludepath path="${java.includes.dir.platform}"/>
+                <sysincludepath path="${stub.includes.gluegen.cc}"/>
+                <includepath path="${stub.includes.ovr}"/>
+                <includepath path="${stub.includes.ovr}/CAPI"/>
+      
+                <!-- This is for the generated headers for handwritten C code -->
+                <includepath path="${src.c}"/>
+                <includepath path="${src.generated.c}" />
+              </compiler>
+            </cc>
+            <!-- C++ Compilation -->
+            <cc outtype="static" 
+                objdir="${obj.oculusvr}" 
+                optimize="${c.compiler.optimise}" 
+                debug="${c.compiler.debug}"
+                multithreaded="true" 
+                exceptions="false" 
+                rtti="false">   
+      
+              <fileset dir="${project.root}">
+                <patternset refid="c.src.files.oculusvr.cpp"/>
               </fileset>
       
               <compiler extends="@{compiler.cfg.id}" >
@@ -484,13 +502,29 @@
                 <includepath path="${src.c}"/>
                 <includepath path="${src.generated.c}" />
 
+                <compilerarg location="start" value="-x"                       if="isCLANG"/>
+                <compilerarg location="start" value="c++"                      if="isCLANG"/>
+
                 <compilerarg value="-fno-rtti"/>
 
                 <compilerarg value="-municode"                                 if="isMingW"/>
                 <compilerarg value="-DUNICODE"                                 if="isMingW"/>
                 <compilerarg value="-D_UNICODE"                                if="isMingW"/>
               </compiler>
-
+            </cc>
+            <!-- Linkage -->
+            <cc outtype="shared" 
+                objdir="${obj.oculusvr}" 
+                outfile="${obj.oculusvr}/@{output.lib.name}"
+                optimize="${c.compiler.optimise}" 
+                debug="${c.compiler.debug}"
+                multithreaded="true" 
+                exceptions="false" 
+                rtti="false">   
+      
+              <fileset dir="${project.root}"
+                includes="${rootrel.obj.oculusvr}/*.o"/>
+      
               <linker extends="@{linker.cfg.id}">
                 <syslibset libs="setupapi, winmm"                              if="isWindows"/>
                 <syslibset libs="gdi32, kernel32"                              if="isWindows"/>
@@ -542,8 +576,7 @@
     </macrodef>  
 
     <target name="c.build" depends="c.configure" if="c.build.supported">
-      <c.build c.compiler.src.files="c.src.files.oculusvr"
-               output.lib.name="oculusvr"
+      <c.build output.lib.name="oculusvr"
                compiler.cfg.id="${compiler.cfg.id}"
                linker.cfg.id="${linker.cfg.id.os}"/>
     </target>

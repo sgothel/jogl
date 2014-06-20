@@ -233,6 +233,7 @@
         <property name="oculusvr.build.xml"         value="${oculusvr.make}/build-oculusvr.xml" />
         <property name="build.oculusvr"             value="${build}/oculusvr" />
         <property name="obj.oculusvr"               value="${build.oculusvr}/obj"/>
+        <property name="rootrel.obj.oculusvr"       value="${rootrel.build}/oculusvr/obj"/>
 
         <property name="rootrel.oculusvr.sdk"       value="oculusvr-sdk"/>
         <property name="rel.oculusvr.sdk"           value="${project.root}/${rootrel.oculusvr.sdk}"/>
