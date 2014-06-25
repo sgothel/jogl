@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2014 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -64,25 +64,68 @@ public class OVRVersion extends JogampVersion {
         if( !OVR.ovr_Initialize() ) { // recursive ..
             sb.append("\tOVR not available").append(Platform.getNewline());
         } else {
-            final long ovrHmdHandle = OVR.ovrHmd_Create(ovrHmdIndex);
-            if( 0 != ovrHmdHandle ) {
-                ovrHmdDesc hmdDesc = ovrHmdDesc.create();
-                OVR.ovrHmd_GetDesc(ovrHmdHandle, hmdDesc);
-                sb.append("\thmd."+ovrHmdIndex+".type:\t"+hmdDesc.getType()).append(Platform.getNewline());
-                sb.append("\thmd."+ovrHmdIndex+".hmdCaps:\t"+hmdDesc.getHmdCaps()).append(Platform.getNewline());
-                sb.append("\thmd."+ovrHmdIndex+".distorCaps:\t"+hmdDesc.getDistortionCaps()).append(Platform.getNewline());
-                sb.append("\thmd."+ovrHmdIndex+".sensorCaps:\t"+hmdDesc.getSensorCaps()).append(Platform.getNewline());
-                final ovrSizei resolution = hmdDesc.getResolution();
-                sb.append("\thmd."+ovrHmdIndex+".resolution:\t"+resolution.getW()+"x"+resolution.getH()).append(Platform.getNewline());
-                ovrVector2i winPos = hmdDesc.getWindowsPos();
-                sb.append("\thmd."+ovrHmdIndex+".winPos:\t"+winPos.getX()+" / "+winPos.getY()).append(Platform.getNewline());
-                OVR.ovrHmd_Destroy(ovrHmdHandle);
+            final OvrHmdContext ovrHmdCtx = OVR.ovrHmd_Create(ovrHmdIndex);
+            if( null != ovrHmdCtx ) {
+                getAvailableCapabilitiesInfo(ovrHmdCtx, ovrHmdIndex, sb);
+                OVR.ovrHmd_Destroy(ovrHmdCtx);
             } else {
                 sb.append("\thmd."+ovrHmdIndex+" not available").append(Platform.getNewline());
             }
         }
         // Nope .. ovr.ovr_Shutdown();
         sb.append(Platform.getNewline());
+        return sb;
+    }
+    /**
+     *
+     * @param ovrHmdCtx
+     * @param ovrHmdIndex only for informal purposes, OVR HMD index of created <code>ovrHmdHandle</code>
+     * @param sb
+     * @return
+     */
+    public static StringBuilder getAvailableCapabilitiesInfo(final OvrHmdContext ovrHmdCtx, final int ovrHmdIndex, StringBuilder sb) {
+        if(null == ovrHmdCtx) {
+            throw new IllegalArgumentException("null ovrHmdHandle");
+        }
+        if(null==sb) {
+            sb = new StringBuilder();
+        }
+        ovrHmdDesc hmdDesc = ovrHmdDesc.create();
+        OVR.ovrHmd_GetDesc(ovrHmdCtx, hmdDesc);
+        getAvailableCapabilitiesInfo(hmdDesc, ovrHmdIndex, sb);
+
+        ovrSensorDesc sensorDesc = ovrSensorDesc.create();
+        if( OVR.ovrHmd_GetSensorDesc(ovrHmdCtx, sensorDesc) ) {
+            sb.append("\thmd."+ovrHmdIndex+".sensor.productId:\t0x"+Integer.toHexString(sensorDesc.getProductId())).append(Platform.getNewline());
+            sb.append("\thmd."+ovrHmdIndex+".sensor.vendorId:\t0x"+Integer.toHexString(sensorDesc.getVendorId())).append(Platform.getNewline());
+            sb.append("\thmd."+ovrHmdIndex+".sensor.serial:\t"+sensorDesc.getSerialNumberAsString()).append(Platform.getNewline());
+        } else {
+            sb.append("\thmd."+ovrHmdIndex+".sensor:\tn/a").append(Platform.getNewline());
+        }
+        return sb;
+    }
+    /**
+     *
+     * @param hmdDesc
+     * @param ovrHmdIndex only for informal purposes, OVR HMD index of <code>hmdDesc</code>
+     * @param sb
+     * @return
+     */
+    public static StringBuilder getAvailableCapabilitiesInfo(ovrHmdDesc hmdDesc, final int ovrHmdIndex, StringBuilder sb) {
+        if(null==sb) {
+            sb = new StringBuilder();
+        }
+        sb.append("\thmd."+ovrHmdIndex+".productName:\t"+hmdDesc.getProductNameAsString()).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".vendorName:\t"+hmdDesc.getManufacturerAsString()).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".deviceName:\t"+hmdDesc.getDisplayDeviceNameAsString()).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".type:\t"+hmdDesc.getType()).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".hmdCaps:\t"+hmdDesc.getHmdCaps()).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".distorCaps:\t"+hmdDesc.getDistortionCaps()).append(Platform.getNewline());
+        sb.append("\thmd."+ovrHmdIndex+".sensorCaps:\t"+hmdDesc.getSensorCaps()).append(Platform.getNewline());
+        final ovrSizei resolution = hmdDesc.getResolution();
+        sb.append("\thmd."+ovrHmdIndex+".resolution:\t"+resolution.getW()+"x"+resolution.getH()).append(Platform.getNewline());
+        ovrVector2i winPos = hmdDesc.getWindowsPos();
+        sb.append("\thmd."+ovrHmdIndex+".winPos:\t"+winPos.getX()+" / "+winPos.getY()).append(Platform.getNewline());
         return sb;
     }
 

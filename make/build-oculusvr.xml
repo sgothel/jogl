@@ -16,9 +16,9 @@
       -->
     <target name="partitioning.setup" depends="common.init">
         <property name="java.part.oculusvr" 
-                  value="com/jogamp/oculusvr/** jogamp/oculusvr/**"/>
+                  value="com/jogamp/oculusvr/* jogamp/oculusvr/*"/>
         <property name="java.part.oculusvr.exclude" 
-                  value="" />
+                  value="com/jogamp/oculusvr/renderer/*" />
     </target>
 
     <!-- ================================================================== -->
@@ -163,6 +163,7 @@
     <target name="java.compile" depends="java.generate">
         <!-- Perform the second pass Java compile; everything except portion of fixed function emulation depending on generated code. -->
         <javac destdir="${classes}"
+               excludes="${java.part.oculusvr.exclude}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
@@ -171,7 +172,8 @@
                target="${target.targetlevel}" 
                bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
-            <classpath refid="nativewindow_gluegen.classpath"/>
+            <!-- classpath refid="nativewindow_gluegen.classpath"/ -->
+            <classpath refid="jogl_nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />
             <src path="${src.generated.java}" />
         </javac>
