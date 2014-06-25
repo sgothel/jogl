@@ -100,7 +100,7 @@
             <fileset dir="${build.jogl}" includes="*.jar" />
             <fileset dir="${build.nativewindow}" includes="*.jar" />
             <fileset dir="${build.newt}" includes="*.jar" />
-            <fileset dir="${build.oculusvr}" includes="*.jar" />
+            <fileset dir="${build.oculusvr}" includes="*.jar" erroronmissingdir="false"/> <!-- optional -->
         </copy>
 
         <copy file="joglversion-all"
