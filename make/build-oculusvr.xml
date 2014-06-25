@@ -370,6 +370,8 @@
         <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
 
         <patternset id="c.src.files.oculusvr.c">
+            <include name="${rootrel.generated.c}/ovrDistortionMesh_JNI.c"/>
+            <include name="${rootrel.generated.c}/ovrHmdDesc_JNI.c"/>
             <include name="${rootrel.generated.c}/OVR_JNI.c"/>
         </patternset>
         <patternset id="c.src.files.oculusvr.cpp">
