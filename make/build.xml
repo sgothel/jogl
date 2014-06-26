@@ -166,6 +166,24 @@
               <exclude name="*jogl_cg.${native.library.suffix}" />
             </fileset>
         </jar>
+        <jar manifest="${build}/manifest-all.mf" destfile="${jar}/jogl-all-noawt-natives-${os.and.arch}.jar" filesonly="true">
+            <fileset dir="${lib}">
+              <include name="*.${native.library.suffix}" />
+              <exclude name="*jogl_cg.${native.library.suffix}" />
+            </fileset>
+        </jar>
+        <jar manifest="${build}/manifest-all.mf" destfile="${jar}/jogl-all-mobile-natives-${os.and.arch}.jar" filesonly="true">
+            <fileset dir="${lib}">
+              <include name="*.${native.library.suffix}" />
+              <exclude name="*jogl_cg.${native.library.suffix}" />
+            </fileset>
+        </jar>
+        <jar manifest="${build}/manifest-all.mf" destfile="${jar}/jogl-all-android-natives-${os.and.arch}.jar" filesonly="true">
+            <fileset dir="${lib}">
+              <include name="*.${native.library.suffix}" />
+              <exclude name="*jogl_cg.${native.library.suffix}" />
+            </fileset>
+        </jar>
     </target>
 
     <target name="android.package.jogl.skip.check" depends="init,gluegen.cpptasks.detect.os">
