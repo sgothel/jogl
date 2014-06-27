@@ -66,12 +66,11 @@ public class TestBug694ScaleImageUnpackBufferSizeAWT extends UITestCase implemen
             testDone = true;
 
             final GL gl = drawable.getGL();
-            GLU glu = GLU.createGLU(gl);
+            final GLU glu = GLU.createGLU(gl);
             testGLUScaleImage(gl, glu, 0); // default 4
             testGLUScaleImage(gl, glu, 1);
             testGLUScaleImage(gl, glu, 4);
             testGLUScaleImage(gl, glu, 8);
-            glu.destroy();
         }
     }
 

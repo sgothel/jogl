@@ -40,6 +40,8 @@ public GLUgl2es1()
   super();
 }
 
+/** @deprecated No more used, NOP */
+@Override
 public void destroy() {
   super.destroy();
 }

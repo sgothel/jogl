@@ -1948,7 +1948,6 @@ public class TextRenderer {
 
         @Override
         public void dispose(GLAutoDrawable drawable) {
-            glu.destroy();
             glu=null;
             frame=null;
         }

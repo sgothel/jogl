@@ -35,14 +35,12 @@ static {
 
 public GLUgl2()
 {
-  this.project = new ProjectDouble();
+  project = new ProjectDouble();
 }
 
+/** @deprecated No more used, NOP */
+@Override
 public void destroy() {
-  if(null!=this.project) {
-      this.project.destroy();
-      this.project=null;
-  }
   super.destroy();
 }
 
@@ -136,7 +134,7 @@ public final boolean isFunctionAvailable(String gluFunctionName)
 // Projection routines
 //
 
-private ProjectDouble project;
+private final ProjectDouble project;
 
 public final void gluOrtho2D(float left, float right, float bottom, float top) {
   project.gluOrtho2D(getCurrentGL2(), (double)left, (double)right, (double)bottom, (double)top);

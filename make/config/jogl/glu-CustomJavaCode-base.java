@@ -128,14 +128,11 @@ public static final GLU createGLU(GL gl) throws GLException {
 
 public GLU()
 {
-  this.project = new ProjectFloat();
+  project = new ProjectFloat();
 }
 
+/** @deprecated No more used, NOP */
 public void destroy() {
-  if(null!=this.project) {
-      this.project.destroy();
-      this.project=null;
-  }
 }
 
 public static final GL getCurrentGL() throws GLException {
@@ -1315,7 +1312,7 @@ public final void gluSphere(GLUquadric quad, double radius, int slices, int stac
 // Projection routines
 //
 
-private ProjectFloat project;
+private final ProjectFloat project;
 
 public void gluOrtho2D(float left, float right, float bottom, float top) {
   project.gluOrtho2D(getCurrentGL().getGL2ES1(), left, right, bottom, top);

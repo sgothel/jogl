@@ -224,7 +224,6 @@ public class OlympicES1 implements GLEventListener
 
     @Override
     public void dispose(GLAutoDrawable glad) {
-        glu.destroy();
         glu = null;
         theTorus.destroy(glad.getGL());
         theTorus = null;
