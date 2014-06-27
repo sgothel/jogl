@@ -1038,8 +1038,7 @@ public class Quaternion {
         final float norm = magnitudeSquared();
         if ( FloatUtil.isZero(norm, FloatUtil.EPSILON) ) {
             // identity matrix -> srecip = 0f
-            FloatUtil.makeIdentityf(matrix, mat_offset);
-            return matrix;
+            return FloatUtil.makeIdentity(matrix, mat_offset);
         }
         final float srecip;
         if ( FloatUtil.isEqual(1f, norm, FloatUtil.EPSILON) ) {
@@ -1106,8 +1105,7 @@ public class Quaternion {
         final float norm = magnitudeSquared();
         if ( FloatUtil.isZero(norm, FloatUtil.EPSILON) ) {
             // identity matrix -> srecip = 0f
-            FloatUtil.makeIdentityf(matrix);
-            return matrix;
+            return FloatUtil.makeIdentity(matrix);
         }
         final float srecip;
         if ( FloatUtil.isEqual(1f, norm, FloatUtil.EPSILON) ) {

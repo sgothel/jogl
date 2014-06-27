@@ -114,10 +114,11 @@
  */
 package jogamp.opengl.gl2;
 
-import java.nio.*;
+import java.nio.DoubleBuffer;
+import java.nio.IntBuffer;
 
-import javax.media.opengl.*;
-import jogamp.opengl.*;
+import javax.media.opengl.GL2;
+
 import com.jogamp.common.nio.Buffers;
 
 /**
@@ -152,12 +153,7 @@ public class ProjectDouble {
   private final double[] in = new double[4];
   private final double[] out = new double[4];
 
-  private final double[] forward = new double[3];
-  private final double[] side = new double[3];
-  private final double[] up = new double[3];
-
   // Buffer-based implementation
-  private DoubleBuffer locbuf;
   private final DoubleBuffer matrixBuf;
 
   private final DoubleBuffer tempMatrixBuf;
@@ -174,7 +170,7 @@ public class ProjectDouble {
     // Slice up one big buffer because some NIO implementations
     // allocate a huge amount of memory to back even the smallest of
     // buffers.
-    DoubleBuffer locbuf = Buffers.newDirectDoubleBuffer(128);
+    final DoubleBuffer locbuf = Buffers.newDirectDoubleBuffer(128);
     int pos = 0;
     int sz = 16;
     matrixBuf = slice(locbuf, pos, sz);
@@ -192,13 +188,6 @@ public class ProjectDouble {
     sideBuf = slice(locbuf, pos, sz);
     pos += sz;
     upBuf = slice(locbuf, pos, sz);
-  }
-
-  public void destroy() {
-    if(locbuf!=null) {
-        locbuf.clear();
-        locbuf=null;
-    }
   }
 
   private static DoubleBuffer slice(DoubleBuffer buf, int pos, int len) {
@@ -451,27 +440,6 @@ public class ProjectDouble {
    *
    * @param v
    */
-  private static void normalize(double[] v) {
-    double r;
-
-    r = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-    if ( r == 0.0 )
-      return;
-
-    r = 1.0 / r;
-
-    v[0] *= r;
-    v[1] *= r;
-    v[2] *= r;
-
-    return;
-  }
-
-  /**
-   * Normalize vector
-   *
-   * @param v
-   */
   private static void normalize(DoubleBuffer v) {
     double r;
 
@@ -492,19 +460,6 @@ public class ProjectDouble {
     return;
   }
 
-
-  /**
-   * Calculate cross-product
-   *
-   * @param v1
-   * @param v2
-   * @param result
-   */
-  private static void cross(double[] v1, double[] v2, double[] result) {
-    result[0] = v1[1] * v2[2] - v1[2] * v2[1];
-    result[1] = v1[2] * v2[0] - v1[0] * v2[2];
-    result[2] = v1[0] * v2[1] - v1[1] * v2[0];
-  }
 
   /**
    * Calculate cross-product

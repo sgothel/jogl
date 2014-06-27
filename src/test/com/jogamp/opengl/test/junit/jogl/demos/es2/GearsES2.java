@@ -73,7 +73,6 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
     private FloatBuffer gear1Color=GearsObject.red, gear2Color=GearsObject.green, gear3Color=GearsObject.blue;
     private float angle = 0.0f;
     private int swapInterval = 0;
-    private boolean pmvUseBackingArray = true; // the default for PMVMatrix now, since it's faster
     // private MouseListener gearsMouse = new TraceMouseAdapter(new GearsMouseAdapter());
     public MouseListener gearsMouse = new GearsMouseAdapter();
     public KeyListener gearsKeys = new GearsKeyAdapter();
@@ -123,10 +122,6 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
     public void setClearBuffers(boolean v) { clearBuffers = v; }
     public void setVerbose(boolean v) { verbose = v; }
     public void setFlipVerticalInGLOrientation(boolean v) { flipVerticalInGLOrientation=v; }
-
-    public void setPMVUseBackingArray(boolean pmvUseBackingArray) {
-        this.pmvUseBackingArray = pmvUseBackingArray;
-    }
 
     /** float[4] */
     public void setClearColor(float[] clearColor) {
@@ -224,7 +219,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
         // Use debug pipeline
         // drawable.setGL(new DebugGL(drawable.getGL()));
 
-        pmvMatrix = new PMVMatrix(pmvUseBackingArray);
+        pmvMatrix = new PMVMatrix();
         st.attachObject("pmvMatrix", pmvMatrix);
         pmvMatrixUniform = new GLUniformData("pmvMatrix", 4, 4, pmvMatrix.glGetPMvMvitMatrixf()); // P, Mv, Mvi and Mvit
         st.ownUniform(pmvMatrixUniform);

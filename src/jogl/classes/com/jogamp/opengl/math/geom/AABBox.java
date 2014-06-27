@@ -33,7 +33,6 @@ import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.math.Ray;
 import com.jogamp.opengl.math.VectorUtil;
-import com.jogamp.opengl.util.PMVMatrix;
 
 
 /**
@@ -680,9 +679,9 @@ public class AABBox {
      * compute the window bounding box.
      * <p>
      * If <code>useCenterZ</code> is <code>true</code>,
-     * only 4 {@link PMVMatrix#gluProject(float, float, float, int[], int, float[], int) gluProject}
+     * only 4 {@link FloatUtil#mapObjToWinCoords(float, float, float, float[], int[], int, float[], int, float[], float[]) mapObjToWinCoords}
      * operations are made on points [1..4] using {@link #getCenter()}'s z-value.
-     * Otherwise 8 {@link PMVMatrix#gluProject(float, float, float, int[], int, float[], int) gluProject}
+     * Otherwise 8 {@link FloatUtil#mapObjToWinCoords(float, float, float, float[], int[], int, float[], int, float[], float[]) mapObjToWinCoords}
      * operation on all 8 points are performed.
      * </p>
      * <pre>
@@ -691,39 +690,53 @@ public class AABBox {
      *   |          |
      *  [1] ------ [3]
      * </pre>
-     * @param pmv
+     * @param mat4PMv P x Mv matrix
      * @param view
      * @param useCenterZ
-     * @param tmpV3 TODO
+     * @param vec3Tmp0 3 component vector for temp storage
+     * @param vec4Tmp1 4 component vector for temp storage
+     * @param vec4Tmp2 4 component vector for temp storage
      * @return
      */
-    public AABBox mapToWindow(final AABBox result, final PMVMatrix pmv, final int[] view, final boolean useCenterZ, float[] tmpV3) {
-        // System.err.printf("AABBox.mapToWindow.0: view[%d, %d, %d, %d], this %s%n", view[0], view[1], view[2], view[3], toString());
-        float objZ = useCenterZ ? center[2] : getMinZ();
-        pmv.gluProject(getMinX(), getMinY(), objZ, view, 0, tmpV3, 0);
-        // System.err.printf("AABBox.mapToWindow.p1: %f, %f, %f -> %f, %f, %f%n", getMinX(), getMinY(), objZ, tmpV3[0], tmpV3[1], tmpV3[2]);
-        // System.err.printf("AABBox.mapToWindow.p1: %s%n", pmv.toString());
-        result.reset();
-        result.resize(tmpV3, 0);
-        pmv.gluProject(getMinX(), getMaxY(), objZ, view, 0, tmpV3, 0);
-        // System.err.printf("AABBox.mapToWindow.p2: %f, %f, %f -> %f, %f, %f%n", getMinX(), getMaxY(), objZ, tmpV3[0], tmpV3[1], tmpV3[2]);
-        result.resize(tmpV3, 0);
-        pmv.gluProject(getMaxX(), getMinY(), objZ, view, 0, tmpV3, 0);
-        // System.err.printf("AABBox.mapToWindow.p3: %f, %f, %f -> %f, %f, %f%n", getMaxX(), getMinY(), objZ, tmpV3[0], tmpV3[1], tmpV3[2]);
-        result.resize(tmpV3, 0);
-        pmv.gluProject(getMaxX(), getMaxY(), objZ, view, 0, tmpV3, 0);
-        // System.err.printf("AABBox.mapToWindow.p4: %f, %f, %f -> %f, %f, %f%n", getMaxX(), getMaxY(), objZ, tmpV3[0], tmpV3[1], tmpV3[2]);
-        result.resize(tmpV3, 0);
+    public AABBox mapToWindow(final AABBox result, final float[/*16*/] mat4PMv, final int[] view, final boolean useCenterZ,
+                              final float[] vec3Tmp0, final float[] vec4Tmp1, final float[] vec4Tmp2) {
+        {
+            // System.err.printf("AABBox.mapToWindow.0: view[%d, %d, %d, %d], this %s%n", view[0], view[1], view[2], view[3], toString());
+            final float objZ = useCenterZ ? center[2] : getMinZ();
+            FloatUtil.mapObjToWinCoords(getMinX(), getMinY(), objZ, mat4PMv, view, 0, vec3Tmp0, 0, vec4Tmp1, vec4Tmp2);
+            // System.err.printf("AABBox.mapToWindow.p1: %f, %f, %f -> %f, %f, %f%n", getMinX(), getMinY(), objZ, vec3Tmp0[0], vec3Tmp0[1], vec3Tmp0[2]);
+            // System.err.println("AABBox.mapToWindow.p1:");
+            // System.err.println(FloatUtil.matrixToString(null, "  mat4PMv", "%10.5f", mat4PMv, 0, 4, 4, false /* rowMajorOrder */));
+
+            result.reset();
+            result.resize(vec3Tmp0, 0);
+
+            FloatUtil.mapObjToWinCoords(getMinX(), getMaxY(), objZ, mat4PMv, view, 0, vec3Tmp0, 0, vec4Tmp1, vec4Tmp2);
+            // System.err.printf("AABBox.mapToWindow.p2: %f, %f, %f -> %f, %f, %f%n", getMinX(), getMaxY(), objZ, vec3Tmp0[0], vec3Tmp0[1], vec3Tmp0[2]);
+            result.resize(vec3Tmp0, 0);
+
+            FloatUtil.mapObjToWinCoords(getMaxX(), getMinY(), objZ, mat4PMv, view, 0, vec3Tmp0, 0, vec4Tmp1, vec4Tmp2);
+            // System.err.printf("AABBox.mapToWindow.p3: %f, %f, %f -> %f, %f, %f%n", getMaxX(), getMinY(), objZ, vec3Tmp0[0], vec3Tmp0[1], vec3Tmp0[2]);
+            result.resize(vec3Tmp0, 0);
+
+            FloatUtil.mapObjToWinCoords(getMaxX(), getMaxY(), objZ, mat4PMv, view, 0, vec3Tmp0, 0, vec4Tmp1, vec4Tmp2);
+            // System.err.printf("AABBox.mapToWindow.p4: %f, %f, %f -> %f, %f, %f%n", getMaxX(), getMaxY(), objZ, vec3Tmp0[0], vec3Tmp0[1], vec3Tmp0[2]);
+            result.resize(vec3Tmp0, 0);
+        }
+
         if( !useCenterZ ) {
-            objZ = getMaxZ();
-            pmv.gluProject(getMinX(), getMinY(), objZ, view, 0, tmpV3, 0);
-            result.resize(tmpV3, 0);
-            pmv.gluProject(getMinX(), getMaxY(), objZ, view, 0, tmpV3, 0);
-            result.resize(tmpV3, 0);
-            pmv.gluProject(getMaxX(), getMinY(), objZ, view, 0, tmpV3, 0);
-            result.resize(tmpV3, 0);
-            pmv.gluProject(getMaxX(), getMaxY(), objZ, view, 0, tmpV3, 0);
-            result.resize(tmpV3, 0);
+            final float objZ = getMaxZ();
+            FloatUtil.mapObjToWinCoords(getMinX(), getMinY(), objZ, mat4PMv, view, 0, vec3Tmp0, 0, vec4Tmp1, vec4Tmp2);
+            result.resize(vec3Tmp0, 0);
+
+            FloatUtil.mapObjToWinCoords(getMinX(), getMaxY(), objZ, mat4PMv, view, 0, vec3Tmp0, 0, vec4Tmp1, vec4Tmp2);
+            result.resize(vec3Tmp0, 0);
+
+            FloatUtil.mapObjToWinCoords(getMaxX(), getMinY(), objZ, mat4PMv, view, 0, vec3Tmp0, 0, vec4Tmp1, vec4Tmp2);
+            result.resize(vec3Tmp0, 0);
+
+            FloatUtil.mapObjToWinCoords(getMaxX(), getMaxY(), objZ, mat4PMv, view, 0, vec3Tmp0, 0, vec4Tmp1, vec4Tmp2);
+            result.resize(vec3Tmp0, 0);
         }
         if( DEBUG ) {
             System.err.printf("AABBox.mapToWindow: view[%d, %d], this %s -> %s%n", view[0], view[1], toString(), result.toString());

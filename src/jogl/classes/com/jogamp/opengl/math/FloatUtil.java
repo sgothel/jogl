@@ -34,6 +34,7 @@ import javax.media.opengl.GLException;
 import jogamp.opengl.Debug;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.opengl.math.geom.AABBox;
 
 /**
  * Basic Float math utility functions.
@@ -61,64 +62,263 @@ import com.jogamp.common.os.Platform;
  *
  * @author Erik Duijs, Kenneth Russell, et al.
  */
-public class FloatUtil {
+public final class FloatUtil {
   public static final boolean DEBUG = Debug.debug("Math");
 
-  private static final float[] IDENTITY_MATRIX =
-    new float[] {
-      1.0f, 0.0f, 0.0f, 0.0f,
-      0.0f, 1.0f, 0.0f, 0.0f,
-      0.0f, 0.0f, 1.0f, 0.0f,
-      0.0f, 0.0f, 0.0f, 1.0f };
-
-  private static final float[] ZERO_MATRIX =
-    new float[] {
-      0.0f, 0.0f, 0.0f, 0.0f,
-      0.0f, 0.0f, 0.0f, 0.0f,
-      0.0f, 0.0f, 0.0f, 0.0f,
-      0.0f, 0.0f, 0.0f, 0.0f };
+  //
+  // Matrix Ops
+  //
 
   /**
    * Make matrix an identity matrix
+   * @param m 4x4 matrix in column-major order (also result)
+   * @param m_offset offset in given array <i>m</i>, i.e. start of the 4x4 matrix
+   * @return given matrix for chaining
    */
-  public static final void makeIdentityf(float[] m, int offset) {
-    for (int i = 0; i < 16; i++) {
-      m[i+offset] = IDENTITY_MATRIX[i];
-    }
+  public static float[] makeIdentity(final float[] m, final int m_offset) {
+      m[m_offset+0+4*0] = 1f;
+      m[m_offset+1+4*0] = 0f;
+      m[m_offset+2+4*0] = 0f;
+      m[m_offset+3+4*0] = 0f;
+
+      m[m_offset+0+4*1] = 0f;
+      m[m_offset+1+4*1] = 1f;
+      m[m_offset+2+4*1] = 0f;
+      m[m_offset+3+4*1] = 0f;
+
+      m[m_offset+0+4*2] = 0f;
+      m[m_offset+1+4*2] = 0f;
+      m[m_offset+2+4*2] = 1f;
+      m[m_offset+3+4*2] = 0f;
+
+      m[m_offset+0+4*3] = 0f;
+      m[m_offset+1+4*3] = 0f;
+      m[m_offset+2+4*3] = 0f;
+      m[m_offset+3+4*3] = 1f;
+      return m;
   }
 
   /**
    * Make matrix an identity matrix
+   * @param m 4x4 matrix in column-major order (also result)
+   * @return given matrix for chaining
    */
-  public static final void makeIdentityf(FloatBuffer m) {
-    final int oldPos = m.position();
-    m.put(IDENTITY_MATRIX);
-    m.position(oldPos);
+  public static float[] makeIdentity(final float[] m) {
+      m[0+4*0] = 1f;
+      m[1+4*0] = 0f;
+      m[2+4*0] = 0f;
+      m[3+4*0] = 0f;
+
+      m[0+4*1] = 0f;
+      m[1+4*1] = 1f;
+      m[2+4*1] = 0f;
+      m[3+4*1] = 0f;
+
+      m[0+4*2] = 0f;
+      m[1+4*2] = 0f;
+      m[2+4*2] = 1f;
+      m[3+4*2] = 0f;
+
+      m[0+4*3] = 0f;
+      m[1+4*3] = 0f;
+      m[2+4*3] = 0f;
+      m[3+4*3] = 1f;
+      return m;
   }
 
   /**
-   * Make matrix an zero matrix
+   * Make matrix an identity matrix
+   * @param m 4x4 matrix in column-major order (also result)
+   * @return given matrix for chaining
    */
-  public static final void makeZero(float[] m, int offset) {
-    for (int i = 0; i < 16; i++) {
-      m[i+offset] = 0;
-    }
+  public static FloatBuffer makeIdentity(final FloatBuffer m) {
+      final int m_offset = m.position();
+      m.put(m_offset+0+4*0, 1f);
+      m.put(m_offset+1+4*0, 0f);
+      m.put(m_offset+2+4*0, 0f);
+      m.put(m_offset+3+4*0, 0f);
+
+      m.put(m_offset+0+4*1, 0f);
+      m.put(m_offset+1+4*1, 1f);
+      m.put(m_offset+2+4*1, 0f);
+      m.put(m_offset+3+4*1, 0f);
+
+      m.put(m_offset+0+4*2, 0f);
+      m.put(m_offset+1+4*2, 0f);
+      m.put(m_offset+2+4*2, 1f);
+      m.put(m_offset+3+4*2, 0f);
+
+      m.put(m_offset+0+4*3, 0f);
+      m.put(m_offset+1+4*3, 0f);
+      m.put(m_offset+2+4*3, 0f);
+      m.put(m_offset+3+4*3, 1f);
+      return m;
   }
 
   /**
-   * Make matrix an zero matrix
+   * Make a translation matrix in column-major order from the given axis deltas
+   * <pre>
+      Translation matrix (Column Order):
+      1 0 0 0
+      0 1 0 0
+      0 0 1 0
+      x y z 1
+   * </pre>
+   * <p>
+   * All matrix fields are only set if <code>initM</code> is <code>true</code>.
+   * </p>
+   * @param m 4x4 matrix in column-major order (also result)
+   * @param m_offset offset in given array <i>m</i>, i.e. start of the 4x4 matrix
+   * @param initM if true, given matrix will be initialized w/ identity matrix,
+   *              otherwise only the diagonal and last-row is set.
+   *              The latter can be utilized to share a once {@link #makeIdentity(float[], int) identity set} matrix
+   *              for {@link #makeScale(float[], int, boolean, float, float, float) scaling}
+   *              and {@link #makeTranslation(float[], int, boolean, float, float, float) translation},
+   *              while leaving the other fields untouched for performance reasons.
+   * @return given matrix for chaining
    */
-  public static final void makeZero(FloatBuffer m) {
-    final int oldPos = m.position();
-    m.put(ZERO_MATRIX);
-    m.position(oldPos);
+  public static float[] makeTranslation(final float[] m, final int m_offset, final boolean initM, final float tx, final float ty, final float tz) {
+      if( initM ) {
+          makeIdentity(m, m_offset);
+      } else {
+          m[m_offset+0+4*0] = 1;
+          m[m_offset+1+4*1] = 1;
+          m[m_offset+2+4*2] = 1;
+          m[m_offset+3+4*3] = 1;
+      }
+      m[m_offset+0+4*3] = tx;
+      m[m_offset+1+4*3] = ty;
+      m[m_offset+2+4*3] = tz;
+      return m;
+  }
+
+  /**
+   * Make a translation matrix in column-major order from the given axis deltas
+   * <pre>
+      Translation matrix (Column Order):
+      1 0 0 0
+      0 1 0 0
+      0 0 1 0
+      x y z 1
+   * </pre>
+   * <p>
+   * All matrix fields are only set if <code>initM</code> is <code>true</code>.
+   * </p>
+   * @param m 4x4 matrix in column-major order (also result)
+   * @param initM if true, given matrix will be initialized w/ identity matrix,
+   *              otherwise only the diagonal and last-row is set.
+   *              The latter can be utilized to share a once {@link #makeIdentity(float[], int) identity set} matrix
+   *              for {@link #makeScale(float[], int, boolean, float, float, float) scaling}
+   *              and {@link #makeTranslation(float[], int, boolean, float, float, float) translation},
+   *              while leaving the other fields untouched for performance reasons.
+   * @return given matrix for chaining
+   */
+  public static float[] makeTranslation(final float[] m, final boolean initM, final float tx, final float ty, final float tz) {
+      if( initM ) {
+          makeIdentity(m);
+      } else {
+          m[0+4*0] = 1;
+          m[1+4*1] = 1;
+          m[2+4*2] = 1;
+          m[3+4*3] = 1;
+      }
+      m[0+4*3] = tx;
+      m[1+4*3] = ty;
+      m[2+4*3] = tz;
+      return m;
+  }
+
+  /**
+   * Make a scale matrix in column-major order from the given axis factors
+   * <pre>
+      Scale matrix (Any Order):
+      x 0 0 0
+      0 y 0 0
+      0 0 z 0
+      0 0 0 1
+   * </pre>
+   * <p>
+   * All matrix fields are only set if <code>initM</code> is <code>true</code>.
+   * </p>
+   * @param m 4x4 matrix in column-major order (also result)
+   * @param m_offset offset in given array <i>m</i>, i.e. start of the 4x4 matrix
+   * @param initM if true, given matrix will be initialized w/ identity matrix,
+   *              otherwise only the diagonal and last-row is set.
+   *              The latter can be utilized to share a once {@link #makeIdentity(float[], int) identity set} matrix
+   *              for {@link #makeScale(float[], int, boolean, float, float, float) scaling}
+   *              and {@link #makeTranslation(float[], int, boolean, float, float, float) translation},
+   *              while leaving the other fields untouched for performance reasons.
+   * @return given matrix for chaining
+   */
+  public static float[] makeScale(final float[] m, final int m_offset, final boolean initM, final float sx, final float sy, final float sz) {
+      if( initM ) {
+          makeIdentity(m, m_offset);
+      } else {
+          m[m_offset+0+4*3] = 0;
+          m[m_offset+1+4*3] = 0;
+          m[m_offset+2+4*3] = 0;
+          m[m_offset+3+4*3] = 1;
+      }
+      m[m_offset+0+4*0] = sx;
+      m[m_offset+1+4*1] = sy;
+      m[m_offset+2+4*2] = sz;
+      return m;
+  }
+
+  /**
+   * Make a scale matrix in column-major order from the given axis factors
+   * <pre>
+      Scale matrix (Any Order):
+      x 0 0 0
+      0 y 0 0
+      0 0 z 0
+      0 0 0 1
+   * </pre>
+   * <p>
+   * All matrix fields are only set if <code>initM</code> is <code>true</code>.
+   * </p>
+   * @param m 4x4 matrix in column-major order (also result)
+   * @param initM if true, given matrix will be initialized w/ identity matrix,
+   *              otherwise only the diagonal and last-row is set.
+   *              The latter can be utilized to share a once {@link #makeIdentity(float[], int) identity set} matrix
+   *              for {@link #makeScale(float[], int, boolean, float, float, float) scaling}
+   *              and {@link #makeTranslation(float[], int, boolean, float, float, float) translation},
+   *              while leaving the other fields untouched for performance reasons.
+   * @return given matrix for chaining
+   */
+  public static float[] makeScale(final float[] m, final boolean initM, final float sx, final float sy, final float sz) {
+      if( initM ) {
+          makeIdentity(m);
+      } else {
+          m[0+4*3] = 0;
+          m[1+4*3] = 0;
+          m[2+4*3] = 0;
+          m[3+4*3] = 1;
+      }
+      m[0+4*0] = sx;
+      m[1+4*1] = sy;
+      m[2+4*2] = sz;
+      return m;
   }
 
   /**
    * Make a rotation matrix from the given axis and angle in radians.
+   * <pre>
+        Rotation matrix (Column Order):
+        xx(1-c)+c  xy(1-c)+zs xz(1-c)-ys 0
+        xy(1-c)-zs yy(1-c)+c  yz(1-c)+xs 0
+        xz(1-c)+ys yz(1-c)-xs zz(1-c)+c  0
+        0          0          0          1
+   * </pre>
+   * <p>
+   * All matrix fields are set.
+   * </p>
    * @see <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q38">Matrix-FAQ Q38</a>
+   * @param m 4x4 matrix in column-major order (also result)
+   * @param m_offset offset in given array <i>m</i>, i.e. start of the 4x4 matrix
+   * @return given matrix for chaining
    */
-  public static final void makeRotationAxis(final float angrad, float x, float y, float z, final float[] mat, final int mat_offset, final float[] tmpVec3f) {
+  public static float[] makeRotationAxis(final float[] m, final int m_offset, final float angrad, float x, float y, float z, final float[] tmpVec3f) {
         final float c = cos(angrad);
         final float ic= 1.0f - c;
         final float s = sin(angrad);
@@ -127,28 +327,33 @@ public class FloatUtil {
         VectorUtil.normalizeVec3(tmpVec3f);
         x = tmpVec3f[0]; y = tmpVec3f[1]; z = tmpVec3f[2];
 
-        // Rotation matrix (Row Order):
-        //      xx(1-c)+c  xy(1-c)+zs xz(1-c)-ys 0
-        //      xy(1-c)-zs yy(1-c)+c  yz(1-c)+xs 0
-        //      xz(1-c)+ys yz(1-c)-xs zz(1-c)+c  0
-        //      0          0          0          1
         final float xy = x*y;
         final float xz = x*z;
         final float xs = x*s;
         final float ys = y*s;
         final float yz = y*z;
         final float zs = z*s;
-        mat[0+0*4+mat_offset] = x*x*ic+c;
-        mat[1+0*4+mat_offset] = xy*ic+zs;
-        mat[2+0*4+mat_offset] = xz*ic-ys;
+        m[0+0*4+m_offset] = x*x*ic+c;
+        m[1+0*4+m_offset] = xy*ic+zs;
+        m[2+0*4+m_offset] = xz*ic-ys;
+        m[3+0*4+m_offset] = 0;
 
-        mat[0+1*4+mat_offset] = xy*ic-zs;
-        mat[1+1*4+mat_offset] = y*y*ic+c;
-        mat[2+1*4+mat_offset] = yz*ic+xs;
+        m[0+1*4+m_offset] = xy*ic-zs;
+        m[1+1*4+m_offset] = y*y*ic+c;
+        m[2+1*4+m_offset] = yz*ic+xs;
+        m[3+1*4+m_offset] = 0;
 
-        mat[0+2*4+mat_offset] = xz*ic+ys;
-        mat[1+2*4+mat_offset] = yz*ic-xs;
-        mat[2+2*4+mat_offset] = z*z*ic+c;
+        m[0+2*4+m_offset] = xz*ic+ys;
+        m[1+2*4+m_offset] = yz*ic-xs;
+        m[2+2*4+m_offset] = z*z*ic+c;
+        m[3+2*4+m_offset] = 0;
+
+        m[0+3*4+m_offset]  = 0f;
+        m[1+3*4+m_offset]  = 0f;
+        m[2+3*4+m_offset]  = 0f;
+        m[3+3*4+m_offset]  = 1f;
+
+        return m;
   }
 
   /**
@@ -161,9 +366,15 @@ public class FloatUtil {
    *  <li>x - bank</li>
    * </ul>
    * </p>
+   * <p>
+   * All matrix fields are set.
+   * </p>
+   * @param m 4x4 matrix in column-major order (also result)
+   * @param m_offset offset in given array <i>m</i>, i.e. start of the 4x4 matrix
    * @param bankX the Euler pitch angle in radians. (rotation about the X axis)
    * @param headingY the Euler yaw angle in radians. (rotation about the Y axis)
    * @param attitudeZ the Euler roll angle in radians. (rotation about the Z axis)
+   * @return given matrix for chaining
    * <p>
    * Implementation does not use Quaternion and hence is exposed to
    * <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q34">Gimbal-Lock</a>
@@ -171,7 +382,7 @@ public class FloatUtil {
    * @see <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q36">Matrix-FAQ Q36</a>
    * @see <a href="http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToMatrix/index.htm">euclideanspace.com-eulerToMatrix</a>
    */
-  public static final void makeRotationEuler(final float bankX, final float headingY, final float attitudeZ, final float[] mat, final int mat_offset) {
+  public static float[] makeRotationEuler(final float[] m, final int m_offset, final float bankX, final float headingY, final float attitudeZ) {
       // Assuming the angles are in radians.
       final float ch = cos(headingY);
       final float sh = sin(headingY);
@@ -180,32 +391,45 @@ public class FloatUtil {
       final float cb = cos(bankX);
       final float sb = sin(bankX);
 
-      mat[0+0*4+mat_offset] =  ch*ca;
-      mat[0+1*4+mat_offset] =  sh*sb    - ch*sa*cb;
-      mat[0+2*4+mat_offset] =  ch*sa*sb + sh*cb;
-      mat[1+0*4+mat_offset] =  sa;
-      mat[1+1*4+mat_offset] =  ca*cb;
-      mat[1+2*4+mat_offset] = -ca*sb;
-      mat[2+0*4+mat_offset] = -sh*ca;
-      mat[2+1*4+mat_offset] =  sh*sa*cb + ch*sb;
-      mat[2+2*4+mat_offset] = -sh*sa*sb + ch*cb;
+      m[0+0*4+m_offset] =  ch*ca;
+      m[0+1*4+m_offset] =  sh*sb    - ch*sa*cb;
+      m[0+2*4+m_offset] =  ch*sa*sb + sh*cb;
+      m[0+3*4+m_offset] =  0;
 
-      mat[3+0*4+mat_offset] =  0;
-      mat[3+1*4+mat_offset] =  0;
-      mat[3+2*4+mat_offset] =  0;
+      m[1+0*4+m_offset] =  sa;
+      m[1+1*4+m_offset] =  ca*cb;
+      m[1+2*4+m_offset] = -ca*sb;
+      m[1+3*4+m_offset] =  0;
 
-      mat[0+3*4+mat_offset] =  0;
-      mat[1+3*4+mat_offset] =  0;
-      mat[2+3*4+mat_offset] =  0;
-      mat[3+3*4+mat_offset] =  1;
+      m[2+0*4+m_offset] = -sh*ca;
+      m[2+1*4+m_offset] =  sh*sa*cb + ch*sb;
+      m[2+2*4+m_offset] = -sh*sa*sb + ch*cb;
+      m[2+3*4+m_offset] =  0;
+
+      m[3+0*4+m_offset] =  0;
+      m[3+1*4+m_offset] =  0;
+      m[3+2*4+m_offset] =  0;
+      m[3+3*4+m_offset] =  1;
+
+      return m;
   }
 
   /**
    * Make given matrix the orthogonal matrix based on given parameters.
-   *
-   * @param a 4x4 matrix in column-major order (also result)
-   * @param a_off
-   * @param initA if true, given matrix will be initialized w/ identity matrix.
+   * <pre>
+      Ortho matrix (Column Order):
+      2/dx  0     0    0
+      0     2/dy  0    0
+      0     0     2/dz 0
+      tx    ty    tz   1
+   * </pre>
+   * <p>
+   * All matrix fields are only set if <code>initM</code> is <code>true</code>.
+   * </p>
+   * @param m 4x4 matrix in column-major order (also result)
+   * @param m_offset offset in given array <i>m</i>, i.e. start of the 4x4 matrix
+   * @param initM if true, given matrix will be initialized w/ identity matrix,
+   *              otherwise only the orthogonal fields are set.
    * @param left
    * @param right
    * @param bottom
@@ -214,18 +438,31 @@ public class FloatUtil {
    * @param zFar
    * @return given matrix for chaining
    */
-  public static final float[] makeOrthof(final float[] a, final int a_off, final boolean initA,
-                                         final float left, final float right,
-                                         final float bottom, final float top,
-                                         final float zNear, final float zFar) {
-      if( initA ) {
-          FloatUtil.makeIdentityf(a, a_off);
+  public static float[] makeOrtho(final float[] m, final int m_offset, final boolean initM,
+                                  final float left, final float right,
+                                  final float bottom, final float top,
+                                  final float zNear, final float zFar) {
+      if( initM ) {
+          // m[m_offset+0+4*0] = 1f;
+          m[m_offset+1+4*0] = 0f;
+          m[m_offset+2+4*0] = 0f;
+          m[m_offset+3+4*0] = 0f;
+
+          m[m_offset+0+4*1] = 0f;
+          // m[m_offset+1+4*1] = 1f;
+          m[m_offset+2+4*1] = 0f;
+          m[m_offset+3+4*1] = 0f;
+
+          m[m_offset+0+4*2] = 0f;
+          m[m_offset+1+4*2] = 0f;
+          // m[m_offset+2+4*2] = 1f;
+          m[m_offset+3+4*2] = 0f;
+
+          // m[m_offset+0+4*3] = 0f;
+          // m[m_offset+1+4*3] = 0f;
+          // m[m_offset+2+4*3] = 0f;
+          // m[m_offset+3+4*3] = 1f;
       }
-      // Ortho matrix (Column Order):
-      //  2/dx  0     0    0
-      //  0     2/dy  0    0
-      //  0     0     2/dz 0
-      //  tx    ty    tz   1
       final float dx=right-left;
       final float dy=top-bottom;
       final float dz=zFar-zNear;
@@ -233,22 +470,37 @@ public class FloatUtil {
       final float ty=-1.0f*(top+bottom)/dy;
       final float tz=-1.0f*(zFar+zNear)/dz;
 
-      a[a_off+0+4*0] =  2.0f/dx;
-      a[a_off+1+4*1] =  2.0f/dy;
-      a[a_off+2+4*2] = -2.0f/dz;
-      a[a_off+0+4*3] = tx;
-      a[a_off+1+4*3] = ty;
-      a[a_off+2+4*3] = tz;
+      m[m_offset+0+4*0] =  2.0f/dx;
 
-      return a;
+      m[m_offset+1+4*1] =  2.0f/dy;
+
+      m[m_offset+2+4*2] = -2.0f/dz;
+
+      m[m_offset+0+4*3] = tx;
+      m[m_offset+1+4*3] = ty;
+      m[m_offset+2+4*3] = tz;
+      m[m_offset+3+4*3] = 1f;
+
+      return m;
   }
 
   /**
    * Make given matrix the frustum matrix based on given parameters.
+   * <pre>
+      Frustum matrix (Column Order):
+      2*zNear/dx   0          0   0
+      0            2*zNear/dy 0   0
+      A            B          C  -1
+      0            0          D   0
+   * </pre>
+   * <p>
+   * All matrix fields are only set if <code>initM</code> is <code>true</code>.
+   * </p>
    *
-   * @param a 4x4 matrix in column-major order (also result)
-   * @param a_off
-   * @param initA if true, given matrix will be initialized w/ identity matrix.
+   * @param m 4x4 matrix in column-major order (also result)
+   * @param m_offset offset in given array <i>m</i>, i.e. start of the 4x4 matrix
+   * @param initM if true, given matrix will be initialized w/ identity matrix,
+   *              otherwise only the frustum fields are set.
    * @param left
    * @param right
    * @param bottom
@@ -257,24 +509,37 @@ public class FloatUtil {
    * @param zFar
    * @return given matrix for chaining
    */
-  public static final float[] makeFrustumf(final float[] a, final int a_off, final boolean initA,
-                                           final float left, final float right,
-                                           final float bottom, final float top,
-                                           final float zNear, final float zFar) {
+  public static float[] makeFrustum(final float[] m, final int m_offset, final boolean initM,
+                                    final float left, final float right,
+                                    final float bottom, final float top,
+                                    final float zNear, final float zFar) {
       if(zNear<=0.0f||zFar<0.0f) {
           throw new GLException("GL_INVALID_VALUE: zNear and zFar must be positive, and zNear>0");
       }
       if(left==right || top==bottom) {
           throw new GLException("GL_INVALID_VALUE: top,bottom and left,right must not be equal");
       }
-      if( initA ) {
-          FloatUtil.makeIdentityf(a, a_off);
+      if( initM ) {
+          // m[m_offset+0+4*0] = 1f;
+          m[m_offset+1+4*0] = 0f;
+          m[m_offset+2+4*0] = 0f;
+          m[m_offset+3+4*0] = 0f;
+
+          m[m_offset+0+4*1] = 0f;
+          // m[m_offset+1+4*1] = 1f;
+          m[m_offset+2+4*1] = 0f;
+          m[m_offset+3+4*1] = 0f;
+
+          // m[m_offset+0+4*2] = 0f;
+          // m[m_offset+1+4*2] = 0f;
+          // m[m_offset+2+4*2] = 1f;
+          // m[m_offset+3+4*2] = 0f;
+
+          m[m_offset+0+4*3] = 0f;
+          m[m_offset+1+4*3] = 0f;
+          // m[m_offset+2+4*3] = 0f;
+          // m[m_offset+3+4*3] = 1f;
       }
-      // Frustum matrix (Column Order):
-      //  2*zNear/dx   0          0   0
-      //  0            2*zNear/dy 0   0
-      //  A            B          C  -1
-      //  0            0          D   0
       final float zNear2 = 2.0f*zNear;
       final float dx=right-left;
       final float dy=top-bottom;
@@ -284,37 +549,856 @@ public class FloatUtil {
       final float C=-1.0f*(zFar+zNear)/dz;
       final float D=-2.0f*(zFar*zNear)/dz;
 
-      a[a_off+0+4*0] = zNear2/dx;
-      a[a_off+1+4*1] = zNear2/dy;
-      a[a_off+2+4*2] = C;
+      m[m_offset+0+4*0] = zNear2/dx;
 
-      a[a_off+0+4*2] = A;
-      a[a_off+1+4*2] = B;
+      m[m_offset+1+4*1] = zNear2/dy;
 
-      a[a_off+2+4*3] = D;
-      a[a_off+3+4*2] = -1.0f;
-      return a;
+      m[m_offset+0+4*2] = A;
+      m[m_offset+1+4*2] = B;
+      m[m_offset+2+4*2] = C;
+      m[m_offset+3+4*2] = -1.0f;
+
+      m[m_offset+2+4*3] = D;
+      m[m_offset+3+4*3] = 0f;
+
+      return m;
   }
 
   /**
    * Make given matrix the perspective matrix based on given parameters.
+   * <p>
+   * All matrix fields are only set if <code>initM</code> is <code>true</code>.
+   * </p>
    *
-   * @param a 4x4 matrix in column-major order (also result)
-   * @param a_off
-   * @param initA if true, given matrix will be initialized w/ identity matrix.
+   * @param m 4x4 matrix in column-major order (also result)
+   * @param m_offset offset in given array <i>m</i>, i.e. start of the 4x4 matrix
+   * @param initM if true, given matrix will be initialized w/ identity matrix,
+   *              otherwise only the non-zero fields are set.
    * @param fovy angle in radians
    * @param aspect
    * @param zNear
    * @param zFar
    * @return given matrix for chaining
    */
-  public static final float[] makePerspective(final float[] a, final int a_off, final boolean initA,
-                                              final float fovy, final float aspect, final float zNear, final float zFar) {
+  public static float[] makePerspective(final float[] m, final int m_off, final boolean initM,
+                                        final float fovy, final float aspect, final float zNear, final float zFar) {
       float top=(float)Math.tan(fovy)*zNear;
       float bottom=-1.0f*top;
       float left=aspect*bottom;
       float right=aspect*top;
-      return makeFrustumf(a, a_off, initA, left, right, bottom, top, zNear, zFar);
+      return makeFrustum(m, m_off, initM, left, right, bottom, top, zNear, zFar);
+  }
+
+  /**
+   * Make given matrix the <i>look-at</i> matrix based on given parameters.
+   * <p>
+   * Consist out of two matrix multiplications:
+   * <pre>
+   *   <b>R</b> = <b>L</b> x <b>T</b>,
+   *   with <b>L</b> for <i>look-at</i> matrix and
+   *        <b>T</b> for eye translation.
+   *
+   *   Result <b>R</b> can be utilized for <i>modelview</i> multiplication, i.e.
+   *          <b>M</b> = <b>M</b> x <b>R</b>,
+   *          with <b>M</b> being the <i>modelview</i> matrix.
+   * </pre>
+   * </p>
+   * <p>
+   * All matrix fields are set.
+   * </p>
+   * @param m 4x4 matrix in column-major order, result only
+   * @param m_offset offset in given array <i>m</i>, i.e. start of the 4x4 matrix
+   * @param eye 3 component eye vector
+   * @param eye_offset
+   * @param center 3 component center vector
+   * @param center_offset
+   * @param up 3 component up vector
+   * @param up_offset
+   * @param mat4Tmp temp float[16] storage
+   * @return given matrix <code>m</code> for chaining
+   */
+  public static float[] makeLookAt(final float[] m, final int m_offset,
+                                   final float[] eye, final int eye_offset,
+                                   final float[] center, final int center_offset,
+                                   final float[] up, final int up_offset,
+                                   final float[] mat4Tmp) {
+      final int forward_off = 0;
+      final int side_off = 3;
+      final int up2_off = 6;
+
+      // forward!
+      mat4Tmp[0] = center[0+center_offset] - eye[0+eye_offset];
+      mat4Tmp[1] = center[1+center_offset] - eye[1+eye_offset];
+      mat4Tmp[2] = center[2+center_offset] - eye[2+eye_offset];
+
+      VectorUtil.normalizeVec3(mat4Tmp); // normalize forward
+
+      /* Side = forward x up */
+      VectorUtil.crossVec3(mat4Tmp, side_off, mat4Tmp, forward_off, up, up_offset);
+      VectorUtil.normalizeVec3(mat4Tmp, side_off); // normalize side
+
+      /* Recompute up as: up = side x forward */
+      VectorUtil.crossVec3(mat4Tmp, up2_off, mat4Tmp, side_off, mat4Tmp, forward_off);
+
+      m[m_offset + 0 * 4 + 0] = mat4Tmp[0+side_off]; // side
+      m[m_offset + 1 * 4 + 0] = mat4Tmp[1+side_off]; // side
+      m[m_offset + 2 * 4 + 0] = mat4Tmp[2+side_off]; // side
+      m[m_offset + 3 * 4 + 0] = 0;
+
+      m[m_offset + 0 * 4 + 1] = mat4Tmp[0+up2_off]; // up2
+      m[m_offset + 1 * 4 + 1] = mat4Tmp[1+up2_off]; // up2
+      m[m_offset + 2 * 4 + 1] = mat4Tmp[2+up2_off]; // up2
+      m[m_offset + 3 * 4 + 1] = 0;
+
+      m[m_offset + 0 * 4 + 2] = -mat4Tmp[0]; // forward
+      m[m_offset + 1 * 4 + 2] = -mat4Tmp[1]; // forward
+      m[m_offset + 2 * 4 + 2] = -mat4Tmp[2]; // forward
+      m[m_offset + 3 * 4 + 2] = 0;
+
+      m[m_offset + 0 * 4 + 3] = 0;
+      m[m_offset + 1 * 4 + 3] = 0;
+      m[m_offset + 2 * 4 + 3] = 0;
+      m[m_offset + 3 * 4 + 3] = 1;
+
+      makeTranslation(mat4Tmp, true, -eye[0+eye_offset], -eye[1+eye_offset], -eye[2+eye_offset]);
+      multMatrix(m, m_offset, mat4Tmp, 0);
+
+      return m;
+  }
+
+  /**
+   * Make given matrix the <i>pick</i> matrix based on given parameters.
+   * <p>
+   * Traditional <code>gluPickMatrix</code> implementation.
+   * </p>
+   * <p>
+   * Consist out of two matrix multiplications:
+   * <pre>
+   *   <b>R</b> = <b>T</b> x <b>S</b>,
+   *   with <b>T</b> for viewport translation matrix and
+   *        <b>S</b> for viewport scale matrix.
+   *
+   *   Result <b>R</b> can be utilized for <i>projection</i> multiplication, i.e.
+   *          <b>P</b> = <b>P</b> x <b>R</b>,
+   *          with <b>P</b> being the <i>projection</i> matrix.
+   * </pre>
+   * </p>
+   * <p>
+   * All matrix fields are set.
+   * </p>
+   * @param m 4x4 matrix in column-major order, result only
+   * @param m_offset offset in given array <i>m</i>, i.e. start of the 4x4 matrix
+   * @param x
+   * @param y
+   * @param deltaX
+   * @param deltaY
+   * @param viewport 4 component viewport vector
+   * @param viewport_offset
+   * @param mat4Tmp temp float[16] storage
+   * @return given matrix <code>m</code> for chaining or <code>null</code> if either delta value is <= zero.
+   */
+  public static float[] makePick(final float[] m, final int m_offset,
+                                 final float x, final float y,
+                                 final float deltaX, final float deltaY,
+                                 final int[] viewport, final int viewport_offset,
+                                 final float[] mat4Tmp) {
+      if (deltaX <= 0 || deltaY <= 0) {
+          return null;
+      }
+
+      /* Translate and scale the picked region to the entire window */
+      makeTranslation(m, m_offset, true,
+              (viewport[2+viewport_offset] - 2 * (x - viewport[0+viewport_offset])) / deltaX,
+              (viewport[3+viewport_offset] - 2 * (y - viewport[1+viewport_offset])) / deltaY,
+              0);
+      makeScale(mat4Tmp, true,
+              viewport[2+viewport_offset] / deltaX, viewport[3+viewport_offset] / deltaY, 1.0f);
+      multMatrix(m, m_offset, mat4Tmp, 0);
+      return m;
+  }
+
+  /**
+   * Transpose the given matrix.
+   *
+   * @param msrc 4x4 matrix in column-major order, the source
+   * @param msrc_offset offset in given array <i>msrc</i>, i.e. start of the 4x4 matrix
+   * @param mres 4x4 matrix in column-major order, the result - may be <code>msrc</code> (in-place)
+   * @param mres_offset offset in given array <i>mres</i>, i.e. start of the 4x4 matrix - may be <code>msrc_offset</code> (in-place)
+   * @return given result matrix <i>mres</i> for chaining
+   */
+  public static float[] transposeMatrix(final float[] msrc, final int msrc_offset, final float[] mres, final int mres_offset) {
+      for (int i = 0; i < 4; i++) {
+          final int i4 = i*4;
+          for (int j = 0; j < 4; j++) {
+              mres[mres_offset+j+i4] = msrc[msrc_offset+i+j*4];
+          }
+      }
+      return mres;
+  }
+
+  /**
+   * Transpose the given matrix in place.
+   *
+   * @param m 4x4 matrix in column-major order, the source
+   * @param m_offset offset in given array <i>msrc</i>, i.e. start of the 4x4 matrix
+   * @param temp temporary 4*4 float storage
+   * @return given result matrix <i>m</i> for chaining
+   */
+  public static float[] transposeMatrix(final float[] m, final int m_offset, final float[/*4*4*/] temp) {
+      int i, j;
+      for (i = 0; i < 4; i++) {
+          final int i4 = i*4;
+          for (j = 0; j < 4; j++) {
+              temp[i4+j] = m[i4+j+m_offset];
+          }
+      }
+      for (i = 0; i < 4; i++) {
+          final int i4 = i*4;
+          for (j = 0; j < 4; j++) {
+              m[m_offset+j+i4] = temp[i+j*4];
+          }
+      }
+      return m;
+  }
+
+  /**
+   * Transpose the given matrix.
+   *
+   * @param msrc 4x4 matrix in column-major order, the source
+   * @param mres 4x4 matrix in column-major order, the result - may be <code>msrc</code> (in-place)
+   * @return given result matrix <i>mres</i> for chaining
+   */
+  public static FloatBuffer transposeMatrix(final FloatBuffer msrc, final FloatBuffer mres) {
+        final int msrc_offset = msrc.position();
+        final int mres_offset = mres.position();
+        for (int i = 0; i < 4; i++) {
+            final int i4 = i*4;
+            for (int j = 0; j < 4; j++) {
+                mres.put(mres_offset+j+i4, msrc.get(msrc_offset+i+j*4));
+            }
+        }
+        return mres;
+  }
+
+  /**
+   * Transpose the given matrix in place.
+   *
+   * @param m 4x4 matrix in column-major order, the source
+   * @param temp temporary 4*4 float storage
+   * @return given matrix <i>m</i> for chaining
+   */
+  public static FloatBuffer transposeMatrix(FloatBuffer m, final float[/*4*4*/] temp) {
+      final int m_offset = m.position();
+      int i, j;
+      for (i = 0; i < 4; i++) {
+          final int i4 = i*4;
+          for (j = 0; j < 4; j++) {
+              temp[i4+j] = m.get(i4+j+m_offset);
+          }
+      }
+      for (i = 0; i < 4; i++) {
+          final int i4 = i*4;
+          for (j = 0; j < 4; j++) {
+              m.put(m_offset+j+i4, temp[i+j*4]);
+          }
+      }
+      return m;
+  }
+
+  /**
+   * Invert the given matrix.
+   * <p>
+   * Returns <code>null</code> if inversion is not possible,
+   * e.g. matrix is singular due to a bad matrix.
+   * </p>
+   *
+   * @param msrc 4x4 matrix in column-major order, the source
+   * @param msrc_offset offset in given array <i>msrc</i>, i.e. start of the 4x4 matrix
+   * @param mres 4x4 matrix in column-major order, the result - may be <code>msrc</code> (in-place)
+   * @param mres_offset offset in given array <i>mres</i>, i.e. start of the 4x4 matrix - may be <code>msrc_offset</code> (in-place)
+   * @param temp temporary 4*4 float storage
+   * @return given result matrix <i>mres</i> for chaining if successful, otherwise <code>null</code>. See above.
+   */
+  public static float[] invertMatrix(final float[] msrc, final int msrc_offset, final float[] mres, final int mres_offset, final float[/*4*4*/] temp) {
+      int i, j, k, swap;
+      float t;
+      for (i = 0; i < 4; i++) {
+          final int i4 = i*4;
+          for (j = 0; j < 4; j++) {
+              temp[i4+j] = msrc[i4+j+msrc_offset];
+          }
+      }
+      makeIdentity(mres, mres_offset);
+
+      for (i = 0; i < 4; i++) {
+          final int i4 = i*4;
+
+          //
+          // Look for largest element in column
+          //
+          swap = i;
+          for (j = i + 1; j < 4; j++) {
+              if (Math.abs(temp[j*4+i]) > Math.abs(temp[i4+i])) {
+                  swap = j;
+              }
+          }
+
+          if (swap != i) {
+              final int swap4 = swap*4;
+              //
+              // Swap rows.
+              //
+              for (k = 0; k < 4; k++) {
+                  t = temp[i4+k];
+                  temp[i4+k] = temp[swap4+k];
+                  temp[swap4+k] = t;
+
+                  t = mres[i4+k+mres_offset];
+                  mres[i4+k+mres_offset] = mres[swap4+k+mres_offset];
+                  mres[swap4+k+mres_offset] = t;
+              }
+          }
+
+          if (temp[i4+i] == 0) {
+              //
+              // No non-zero pivot. The matrix is singular, which shouldn't
+              // happen. This means the user gave us a bad matrix.
+              //
+              return null;
+          }
+
+          t = temp[i4+i];
+          for (k = 0; k < 4; k++) {
+              temp[i4+k] /= t;
+              mres[i4+k+mres_offset] /= t;
+          }
+          for (j = 0; j < 4; j++) {
+              if (j != i) {
+                  final int j4 = j*4;
+                  t = temp[j4+i];
+                  for (k = 0; k < 4; k++) {
+                      temp[j4+k] -= temp[i4+k] * t;
+                      mres[j4+k+mres_offset] -= mres[i4+k+mres_offset]*t;
+                  }
+              }
+          }
+      }
+      return mres;
+  }
+
+  /**
+   * Invert the given matrix.
+   * <p>
+   * Returns <code>null</code> if inversion is not possible,
+   * e.g. matrix is singular due to a bad matrix.
+   * </p>
+   *
+   * @param msrc 4x4 matrix in column-major order, the source
+   * @param mres 4x4 matrix in column-major order, the result - may be <code>msrc</code> (in-place)
+   * @param temp temporary 4*4 float storage
+   * @return given result matrix <i>mres</i> for chaining if successful, otherwise <code>null</code>. See above.
+   */
+  public static FloatBuffer invertMatrix(final FloatBuffer msrc, final FloatBuffer mres, final float[/*4*4*/] temp) {
+    int i, j, k, swap;
+    float t;
+
+    final int msrc_offset = msrc.position();
+    final int mres_offset = mres.position();
+
+    for (i = 0; i < 4; i++) {
+      final int i4 = i*4;
+      for (j = 0; j < 4; j++) {
+        temp[i4+j] = msrc.get(i4+j + msrc_offset);
+      }
+    }
+    makeIdentity(mres);
+
+    for (i = 0; i < 4; i++) {
+      final int i4 = i*4;
+
+      //
+      // Look for largest element in column
+      //
+      swap = i;
+      for (j = i + 1; j < 4; j++) {
+        if (Math.abs(temp[j*4+i]) > Math.abs(temp[i4+i])) {
+          swap = j;
+        }
+      }
+
+      if (swap != i) {
+        final int swap4 = swap*4;
+        //
+        // Swap rows.
+        //
+        for (k = 0; k < 4; k++) {
+          t = temp[i4+k];
+          temp[i4+k] = temp[swap4+k];
+          temp[swap4+k] = t;
+
+          t = mres.get(i4+k + mres_offset);
+          mres.put(i4+k + mres_offset, mres.get(swap4+k + mres_offset));
+          mres.put(swap4+k + mres_offset, t);
+        }
+      }
+
+      if (temp[i4+i] == 0) {
+        //
+        // No non-zero pivot. The matrix is singular, which shouldn't
+        // happen. This means the user gave us a bad matrix.
+        //
+        return null;
+      }
+
+      t = temp[i4+i];
+      for (k = 0; k < 4; k++) {
+        temp[i4+k] /= t;
+        final int z = i4+k + mres_offset;
+        mres.put(z, mres.get(z) / t);
+      }
+      for (j = 0; j < 4; j++) {
+        if (j != i) {
+          final int j4 = j*4;
+          t = temp[j4+i];
+          for (k = 0; k < 4; k++) {
+            temp[j4+k] -= temp[i4+k] * t;
+            final int z = j4+k + mres_offset;
+            mres.put(z, mres.get(z) - mres.get(i4+k + mres_offset) * t);
+          }
+        }
+      }
+    }
+    return mres;
+  }
+
+
+  /**
+   * Map object coordinates to window coordinates.
+   * <p>
+   * Traditional <code>gluProject</code> implementation.
+   * </p>
+   *
+   * @param objx
+   * @param objy
+   * @param objz
+   * @param modelMatrix 4x4 modelview matrix
+   * @param modelMatrix_offset
+   * @param projMatrix 4x4 projection matrix
+   * @param projMatrix_offset
+   * @param viewport 4 component viewport vector
+   * @param viewport_offset
+   * @param win_pos 3 component window coordinate, the result
+   * @param win_pos_offset
+   * @param vec4Tmp1 4 component vector for temp storage
+   * @param vec4Tmp2 4 component vector for temp storage
+   * @return true if successful, otherwise false (z is 1)
+   */
+  public static boolean mapObjToWinCoords(final float objx, final float objy, final float objz,
+                                          final float[] modelMatrix, final int modelMatrix_offset,
+                                          final float[] projMatrix, final int projMatrix_offset,
+                                          final int[] viewport, final int viewport_offset,
+                                          final float[] win_pos, int win_pos_offset,
+                                          final float[/*4*/] vec4Tmp1, final float[/*4*/] vec4Tmp2) {
+      vec4Tmp1[0] = objx;
+      vec4Tmp1[1] = objy;
+      vec4Tmp1[2] = objz;
+      vec4Tmp1[3] = 1.0f;
+
+      // vec4Tmp2 = Mv * o
+      // vec4Tmp1 = P  * vec4Tmp2
+      // vec4Tmp1 = P * ( Mv * o )
+      // vec4Tmp1 = P * Mv * o
+      multMatrixVec(modelMatrix, modelMatrix_offset, vec4Tmp1, 0, vec4Tmp2, 0);
+      multMatrixVec(projMatrix, projMatrix_offset, vec4Tmp2, 0, vec4Tmp1, 0);
+
+      if (vec4Tmp1[3] == 0.0f) {
+          return false;
+      }
+
+      vec4Tmp1[3] = (1.0f / vec4Tmp1[3]) * 0.5f;
+
+      // Map x, y and z to range 0-1
+      vec4Tmp1[0] = vec4Tmp1[0] * vec4Tmp1[3] + 0.5f;
+      vec4Tmp1[1] = vec4Tmp1[1] * vec4Tmp1[3] + 0.5f;
+      vec4Tmp1[2] = vec4Tmp1[2] * vec4Tmp1[3] + 0.5f;
+
+      // Map x,y to viewport
+      win_pos[0+win_pos_offset] = vec4Tmp1[0] * viewport[2+viewport_offset] + viewport[0+viewport_offset];
+      win_pos[1+win_pos_offset] = vec4Tmp1[1] * viewport[3+viewport_offset] + viewport[1+viewport_offset];
+      win_pos[2+win_pos_offset] = vec4Tmp1[2];
+
+      return true;
+  }
+
+  /**
+   * Map object coordinates to window coordinates.
+   * <p>
+   * Traditional <code>gluProject</code> implementation.
+   * </p>
+   *
+   * @param objx
+   * @param objy
+   * @param objz
+   * @param mat4PMv [projection] x [modelview] matrix, i.e. P x Mv
+   * @param viewport 4 component viewport vector
+   * @param viewport_offset
+   * @param win_pos 3 component window coordinate, the result
+   * @param win_pos_offset
+   * @param vec4Tmp1 4 component vector for temp storage
+   * @param vec4Tmp2 4 component vector for temp storage
+   * @return true if successful, otherwise false (z is 1)
+   */
+  public static boolean mapObjToWinCoords(final float objx, final float objy, final float objz,
+                                          final float[/*16*/] mat4PMv,
+                                          final int[] viewport, final int viewport_offset,
+                                          final float[] win_pos, int win_pos_offset,
+                                          final float[/*4*/] vec4Tmp1, final float[/*4*/] vec4Tmp2) {
+      vec4Tmp2[0] = objx;
+      vec4Tmp2[1] = objy;
+      vec4Tmp2[2] = objz;
+      vec4Tmp2[3] = 1.0f;
+
+      // vec4Tmp1 = P * Mv * o
+      multMatrixVec(mat4PMv, vec4Tmp2, vec4Tmp1);
+
+      if (vec4Tmp1[3] == 0.0f) {
+          return false;
+      }
+
+      vec4Tmp1[3] = (1.0f / vec4Tmp1[3]) * 0.5f;
+
+      // Map x, y and z to range 0-1
+      vec4Tmp1[0] = vec4Tmp1[0] * vec4Tmp1[3] + 0.5f;
+      vec4Tmp1[1] = vec4Tmp1[1] * vec4Tmp1[3] + 0.5f;
+      vec4Tmp1[2] = vec4Tmp1[2] * vec4Tmp1[3] + 0.5f;
+
+      // Map x,y to viewport
+      win_pos[0+win_pos_offset] = vec4Tmp1[0] * viewport[2+viewport_offset] + viewport[0+viewport_offset];
+      win_pos[1+win_pos_offset] = vec4Tmp1[1] * viewport[3+viewport_offset] + viewport[1+viewport_offset];
+      win_pos[2+win_pos_offset] = vec4Tmp1[2];
+
+      return true;
+  }
+
+  /**
+   * Map window coordinates to object coordinates.
+   * <p>
+   * Traditional <code>gluUnProject</code> implementation.
+   * </p>
+   *
+   * @param winx
+   * @param winy
+   * @param winz
+   * @param modelMatrix 4x4 modelview matrix
+   * @param modelMatrix_offset
+   * @param projMatrix 4x4 projection matrix
+   * @param projMatrix_offset
+   * @param viewport 4 component viewport vector
+   * @param viewport_offset
+   * @param obj_pos 3 component object coordinate, the result
+   * @param obj_pos_offset
+   * @param mat4Tmp1 16 component matrix for temp storage
+   * @param mat4Tmp2 16 component matrix for temp storage
+   * @return true if successful, otherwise false (failed to invert matrix, or becomes infinity due to zero z)
+   */
+  public static boolean mapWinToObjCoords(final float winx, final float winy, final float winz,
+                                          final float[] modelMatrix, final int modelMatrix_offset,
+                                          final float[] projMatrix, final int projMatrix_offset,
+                                          final int[] viewport, final int viewport_offset,
+                                          final float[] obj_pos, final int obj_pos_offset,
+                                          final float[/*16*/] mat4Tmp1, final float[/*16*/] mat4Tmp2) {
+    // mat4Tmp1 = P x Mv
+    multMatrix(projMatrix, projMatrix_offset, modelMatrix, modelMatrix_offset, mat4Tmp1, 0);
+
+    // mat4Tmp1 = Inv(P x Mv)
+    if ( null == invertMatrix(mat4Tmp1, 0, mat4Tmp1, 0, mat4Tmp2) ) {
+      return false;
+    }
+    mat4Tmp2[0] = winx;
+    mat4Tmp2[1] = winy;
+    mat4Tmp2[2] = winz;
+    mat4Tmp2[3] = 1.0f;
+
+    // Map x and y from window coordinates
+    mat4Tmp2[0] = (mat4Tmp2[0] - viewport[0+viewport_offset]) / viewport[2+viewport_offset];
+    mat4Tmp2[1] = (mat4Tmp2[1] - viewport[1+viewport_offset]) / viewport[3+viewport_offset];
+
+    // Map to range -1 to 1
+    mat4Tmp2[0] = mat4Tmp2[0] * 2 - 1;
+    mat4Tmp2[1] = mat4Tmp2[1] * 2 - 1;
+    mat4Tmp2[2] = mat4Tmp2[2] * 2 - 1;
+
+    final int raw_off = 4;
+    // object raw coords = Inv(P x Mv) *  winPos  -> mat4Tmp2
+    multMatrixVec(mat4Tmp1, 0, mat4Tmp2, 0, mat4Tmp2, raw_off);
+
+    if (mat4Tmp2[3+raw_off] == 0.0) {
+      return false;
+    }
+
+    mat4Tmp2[3+raw_off] = 1.0f / mat4Tmp2[3+raw_off];
+
+    obj_pos[0+obj_pos_offset] = mat4Tmp2[0+raw_off] * mat4Tmp2[3+raw_off];
+    obj_pos[1+obj_pos_offset] = mat4Tmp2[1+raw_off] * mat4Tmp2[3+raw_off];
+    obj_pos[2+obj_pos_offset] = mat4Tmp2[2+raw_off] * mat4Tmp2[3+raw_off];
+
+    return true;
+  }
+
+  /**
+   * Map window coordinates to object coordinates.
+   * <p>
+   * Traditional <code>gluUnProject</code> implementation.
+   * </p>
+   *
+   * @param winx
+   * @param winy
+   * @param winz
+   * @param mat4PMvI inverse [projection] x [modelview] matrix, i.e. Inv(P x Mv)
+   * @param viewport 4 component viewport vector
+   * @param viewport_offset
+   * @param obj_pos 3 component object coordinate, the result
+   * @param obj_pos_offset
+   * @param vec4Tmp1 4 component vector for temp storage
+   * @param vec4Tmp2 4 component vector for temp storage
+   * @return true if successful, otherwise false (failed to invert matrix, or becomes infinity due to zero z)
+   */
+  public static boolean mapWinToObjCoords(final float winx, final float winy, final float winz,
+                                          final float[/*16*/] mat4PMvI,
+                                          final int[] viewport, final int viewport_offset,
+                                          final float[] obj_pos, final int obj_pos_offset,
+                                          final float[/*4*/] vec4Tmp1, final float[/*4*/] vec4Tmp2) {
+    vec4Tmp1[0] = winx;
+    vec4Tmp1[1] = winy;
+    vec4Tmp1[2] = winz;
+    vec4Tmp1[3] = 1.0f;
+
+    // Map x and y from window coordinates
+    vec4Tmp1[0] = (vec4Tmp1[0] - viewport[0+viewport_offset]) / viewport[2+viewport_offset];
+    vec4Tmp1[1] = (vec4Tmp1[1] - viewport[1+viewport_offset]) / viewport[3+viewport_offset];
+
+    // Map to range -1 to 1
+    vec4Tmp1[0] = vec4Tmp1[0] * 2 - 1;
+    vec4Tmp1[1] = vec4Tmp1[1] * 2 - 1;
+    vec4Tmp1[2] = vec4Tmp1[2] * 2 - 1;
+
+    // object raw coords = Inv(P x Mv) *  winPos  -> mat4Tmp2
+    multMatrixVec(mat4PMvI, vec4Tmp1, vec4Tmp2);
+
+    if (vec4Tmp2[3] == 0.0) {
+      return false;
+    }
+
+    vec4Tmp2[3] = 1.0f / vec4Tmp2[3];
+
+    obj_pos[0+obj_pos_offset] = vec4Tmp2[0] * vec4Tmp2[3];
+    obj_pos[1+obj_pos_offset] = vec4Tmp2[1] * vec4Tmp2[3];
+    obj_pos[2+obj_pos_offset] = vec4Tmp2[2] * vec4Tmp2[3];
+
+    return true;
+  }
+
+  /**
+   * Map two window coordinates to two object coordinates,
+   * distinguished by their z component.
+   *
+   * @param winx
+   * @param winy
+   * @param winz1
+   * @param winz2
+   * @param mat4PMvI inverse [projection] x [modelview] matrix, i.e. Inv(P x Mv)
+   * @param viewport 4 component viewport vector
+   * @param viewport_offset
+   * @param obj1_pos 3 component object coordinate, the result for winz1
+   * @param obj1_pos_offset
+   * @param obj2_pos 3 component object coordinate, the result for winz2
+   * @param obj2_pos_offset
+   * @param vec4Tmp1 4 component vector for temp storage
+   * @param vec4Tmp2 4 component vector for temp storage
+   * @return true if successful, otherwise false (failed to invert matrix, or becomes infinity due to zero z)
+   */
+  public static boolean mapWinToObjCoords(final float winx, final float winy, final float winz1, final float winz2,
+                                          final float[/*16*/] mat4PMvI,
+                                          final int[] viewport, final int viewport_offset,
+                                          final float[] obj1_pos, final int obj1_pos_offset,
+                                          final float[] obj2_pos, final int obj2_pos_offset,
+                                          final float[/*4*/] vec4Tmp1, final float[/*4*/] vec4Tmp2) {
+    vec4Tmp1[0] = winx;
+    vec4Tmp1[1] = winy;
+    vec4Tmp1[3] = 1.0f;
+
+    // Map x and y from window coordinates
+    vec4Tmp1[0] = (vec4Tmp1[0] - viewport[0+viewport_offset]) / viewport[2+viewport_offset];
+    vec4Tmp1[1] = (vec4Tmp1[1] - viewport[1+viewport_offset]) / viewport[3+viewport_offset];
+
+    // Map to range -1 to 1
+    vec4Tmp1[0] = vec4Tmp1[0] * 2 - 1;
+    vec4Tmp1[1] = vec4Tmp1[1] * 2 - 1;
+
+    //
+    // winz1
+    //
+    vec4Tmp1[2] = winz1;
+    vec4Tmp1[2] = vec4Tmp1[2] * 2 - 1;
+
+    // object raw coords = Inv(P x Mv) *  winPos  -> mat4Tmp2
+    multMatrixVec(mat4PMvI, vec4Tmp1, vec4Tmp2);
+
+    if (vec4Tmp2[3] == 0.0) {
+      return false;
+    }
+
+    vec4Tmp2[3] = 1.0f / vec4Tmp2[3];
+
+    obj1_pos[0+obj1_pos_offset] = vec4Tmp2[0] * vec4Tmp2[3];
+    obj1_pos[1+obj1_pos_offset] = vec4Tmp2[1] * vec4Tmp2[3];
+    obj1_pos[2+obj1_pos_offset] = vec4Tmp2[2] * vec4Tmp2[3];
+
+    //
+    // winz2
+    //
+    vec4Tmp1[2] = winz2;
+    vec4Tmp1[2] = vec4Tmp1[2] * 2 - 1;
+
+    // object raw coords = Inv(P x Mv) *  winPos  -> mat4Tmp2
+    multMatrixVec(mat4PMvI, vec4Tmp1, vec4Tmp2);
+
+    if (vec4Tmp2[3] == 0.0) {
+      return false;
+    }
+
+    vec4Tmp2[3] = 1.0f / vec4Tmp2[3];
+
+    obj2_pos[0+obj2_pos_offset] = vec4Tmp2[0] * vec4Tmp2[3];
+    obj2_pos[1+obj2_pos_offset] = vec4Tmp2[1] * vec4Tmp2[3];
+    obj2_pos[2+obj2_pos_offset] = vec4Tmp2[2] * vec4Tmp2[3];
+
+    return true;
+  }
+
+  /**
+   * Map window coordinates to object coordinates.
+   * <p>
+   * Traditional <code>gluUnProject4</code> implementation.
+   * </p>
+   *
+   * @param winx
+   * @param winy
+   * @param winz
+   * @param clipw
+   * @param modelMatrix 4x4 modelview matrix
+   * @param modelMatrix_offset
+   * @param projMatrix 4x4 projection matrix
+   * @param projMatrix_offset
+   * @param viewport 4 component viewport vector
+   * @param viewport_offset
+   * @param near
+   * @param far
+   * @param obj_pos 4 component object coordinate, the result
+   * @param obj_pos_offset
+   * @param mat4Tmp1 16 component matrix for temp storage
+   * @param mat4Tmp2 16 component matrix for temp storage
+   * @return true if successful, otherwise false (failed to invert matrix, or becomes infinity due to zero z)
+   */
+  public static boolean mapWinToObjCoords(final float winx, final float winy, final float winz, final float clipw,
+                                          float[] modelMatrix, int modelMatrix_offset,
+                                          float[] projMatrix, int projMatrix_offset,
+                                          int[] viewport, int viewport_offset,
+                                          float near, float far,
+                                          float[] obj_pos, int obj_pos_offset,
+                                          final float[/*16*/] mat4Tmp1, final float[/*16*/] mat4Tmp2) {
+    // mat4Tmp1 = P x Mv
+    multMatrix(projMatrix, projMatrix_offset, modelMatrix, modelMatrix_offset, mat4Tmp1, 0);
+
+    // mat4Tmp1 = Inv(P x Mv)
+    if ( null == invertMatrix(mat4Tmp1, 0, mat4Tmp1, 0, mat4Tmp2) ) {
+      return false;
+    }
+
+    mat4Tmp2[0] = winx;
+    mat4Tmp2[1] = winy;
+    mat4Tmp2[2] = winz;
+    mat4Tmp2[3] = 1.0f;
+
+    // Map x and y from window coordinates
+    mat4Tmp2[0] = (mat4Tmp2[0] - viewport[0+viewport_offset]) / viewport[2+viewport_offset];
+    mat4Tmp2[1] = (mat4Tmp2[1] - viewport[1+viewport_offset]) / viewport[3+viewport_offset];
+    mat4Tmp2[2] = (mat4Tmp2[2] - near) / (far - near);
+
+    // Map to range -1 to 1
+    mat4Tmp2[0] = mat4Tmp2[0] * 2 - 1;
+    mat4Tmp2[1] = mat4Tmp2[1] * 2 - 1;
+    mat4Tmp2[2] = mat4Tmp2[2] * 2 - 1;
+
+    final int raw_off = 4;
+    // object raw coords = Inv(P x Mv) *  winPos  -> mat4Tmp2
+    multMatrixVec(mat4Tmp1, 0, mat4Tmp2, 0, mat4Tmp2, raw_off);
+
+    if (mat4Tmp2[3+raw_off] == 0.0) {
+      return false;
+    }
+
+    mat4Tmp2[3+raw_off] = 1.0f / mat4Tmp2[3+raw_off];
+
+    obj_pos[0+obj_pos_offset] = mat4Tmp2[0+raw_off];
+    obj_pos[1+obj_pos_offset] = mat4Tmp2[1+raw_off];
+    obj_pos[2+obj_pos_offset] = mat4Tmp2[2+raw_off];
+    obj_pos[3+obj_pos_offset] = mat4Tmp2[3+raw_off];
+
+    return true;
+  }
+
+
+  /**
+   * Map two window coordinates w/ shared X/Y and distinctive Z
+   * to a {@link Ray}. The resulting {@link Ray} maybe used for <i>picking</i>
+   * using a {@link AABBox#getRayIntersection(Ray, float[]) bounding box}.
+   * <p>
+   * Notes for picking <i>winz0</i> and <i>winz1</i>:
+   * <ul>
+   *   <li>see {@link #getZBufferEpsilon(int, float, float)}</li>
+   *   <li>see {@link #getZBufferValue(int, float, float, float)}</li>
+   *   <li>see {@link #getOrthoWinZ(float, float, float)}</li>
+   * </ul>
+   * </p>
+   * @param winx
+   * @param winy
+   * @param winz0
+   * @param winz1
+   * @param modelMatrix 4x4 modelview matrix
+   * @param modelMatrix_offset
+   * @param projMatrix 4x4 projection matrix
+   * @param projMatrix_offset
+   * @param viewport 4 component viewport vector
+   * @param viewport_offset
+   * @param ray storage for the resulting {@link Ray}
+   * @param mat4Tmp1 16 component matrix for temp storage
+   * @param mat4Tmp2 16 component matrix for temp storage
+   * @param vec4Tmp2 4 component vector for temp storage
+   * @return true if successful, otherwise false (failed to invert matrix, or becomes z is infinity)
+   */
+  public static boolean mapWinToRay(final float winx, final float winy, final float winz0, final float winz1,
+                                    final float[] modelMatrix, final int modelMatrix_offset,
+                                    final float[] projMatrix, final int projMatrix_offset,
+                                    final int[] viewport, final int viewport_offset,
+                                    final Ray ray,
+                                    final float[/*16*/] mat4Tmp1, final float[/*16*/] mat4Tmp2, final float[/*4*/] vec4Tmp2) {
+      // mat4Tmp1 = P x Mv
+      multMatrix(projMatrix, projMatrix_offset, modelMatrix, modelMatrix_offset, mat4Tmp1, 0);
+
+      // mat4Tmp1 = Inv(P x Mv)
+      if ( null == invertMatrix(mat4Tmp1, 0, mat4Tmp1, 0, mat4Tmp2) ) {
+          return false;
+      }
+      if( mapWinToObjCoords(winx, winy, winz0, winz1, mat4Tmp1,
+                            viewport, viewport_offset,
+                            ray.orig, 0, ray.dir, 0,
+                            mat4Tmp2, vec4Tmp2) ) {
+          VectorUtil.normalizeVec3( VectorUtil.subVec3(ray.dir, ray.dir, ray.orig) );
+          return true;
+      } else {
+          return false;
+      }
   }
 
   /**
@@ -323,14 +1407,33 @@ public class FloatUtil {
    * @param b 4x4 matrix in column-major order
    * @param d result a*b in column-major order
    */
-  public static final void multMatrixf(final float[] a, int a_off, final float[] b, int b_off, float[] d, int d_off) {
+  public static void multMatrix(final float[] a, final int a_off, final float[] b, final int b_off, float[] d, final int d_off) {
      for (int i = 0; i < 4; i++) {
         // one row in column-major order
-        final float ai0=a[a_off+i+0*4],  ai1=a[a_off+i+1*4],  ai2=a[a_off+i+2*4],  ai3=a[a_off+i+3*4]; // row-i of a
-        d[d_off+i+0*4] = ai0 * b[b_off+0+0*4] + ai1 * b[b_off+1+0*4] + ai2 * b[b_off+2+0*4] + ai3 * b[b_off+3+0*4] ;
-        d[d_off+i+1*4] = ai0 * b[b_off+0+1*4] + ai1 * b[b_off+1+1*4] + ai2 * b[b_off+2+1*4] + ai3 * b[b_off+3+1*4] ;
-        d[d_off+i+2*4] = ai0 * b[b_off+0+2*4] + ai1 * b[b_off+1+2*4] + ai2 * b[b_off+2+2*4] + ai3 * b[b_off+3+2*4] ;
-        d[d_off+i+3*4] = ai0 * b[b_off+0+3*4] + ai1 * b[b_off+1+3*4] + ai2 * b[b_off+2+3*4] + ai3 * b[b_off+3+3*4] ;
+        final int a_off_i = a_off+i;
+        final int d_off_i = d_off+i;
+        final float ai0=a[a_off_i+0*4],  ai1=a[a_off_i+1*4],  ai2=a[a_off_i+2*4],  ai3=a[a_off_i+3*4]; // row-i of a
+        d[d_off_i+0*4] = ai0 * b[b_off+0+0*4] + ai1 * b[b_off+1+0*4] + ai2 * b[b_off+2+0*4] + ai3 * b[b_off+3+0*4] ;
+        d[d_off_i+1*4] = ai0 * b[b_off+0+1*4] + ai1 * b[b_off+1+1*4] + ai2 * b[b_off+2+1*4] + ai3 * b[b_off+3+1*4] ;
+        d[d_off_i+2*4] = ai0 * b[b_off+0+2*4] + ai1 * b[b_off+1+2*4] + ai2 * b[b_off+2+2*4] + ai3 * b[b_off+3+2*4] ;
+        d[d_off_i+3*4] = ai0 * b[b_off+0+3*4] + ai1 * b[b_off+1+3*4] + ai2 * b[b_off+2+3*4] + ai3 * b[b_off+3+3*4] ;
+     }
+  }
+
+  /**
+   * Multiply matrix: [d] = [a] x [b]
+   * @param a 4x4 matrix in column-major order
+   * @param b 4x4 matrix in column-major order
+   * @param d result a*b in column-major order
+   */
+  public static void multMatrix(final float[] a, final float[] b, float[] d) {
+     for (int i = 0; i < 4; i++) {
+        // one row in column-major order
+        final float ai0=a[i+0*4],  ai1=a[i+1*4],  ai2=a[i+2*4],  ai3=a[i+3*4]; // row-i of a
+        d[i+0*4] = ai0 * b[0+0*4] + ai1 * b[1+0*4] + ai2 * b[2+0*4] + ai3 * b[3+0*4] ;
+        d[i+1*4] = ai0 * b[0+1*4] + ai1 * b[1+1*4] + ai2 * b[2+1*4] + ai3 * b[3+1*4] ;
+        d[i+2*4] = ai0 * b[0+2*4] + ai1 * b[1+2*4] + ai2 * b[2+2*4] + ai3 * b[3+2*4] ;
+        d[i+3*4] = ai0 * b[0+3*4] + ai1 * b[1+3*4] + ai2 * b[2+3*4] + ai3 * b[3+3*4] ;
      }
   }
 
@@ -339,7 +1442,7 @@ public class FloatUtil {
    * @param a 4x4 matrix in column-major order (also result)
    * @param b 4x4 matrix in column-major order
    */
-  public static final void multMatrixf(final float[] a, int a_off, final float[] b, int b_off) {
+  public static void multMatrix(final float[] a, final int a_off, final float[] b, final int b_off) {
      for (int i = 0; i < 4; i++) {
         // one row in column-major order
         final int a_off_i = a_off+i;
@@ -352,20 +1455,18 @@ public class FloatUtil {
   }
 
   /**
-   * Multiply matrix: [d] = [a] x [b]
-   * @param a 4x4 matrix in column-major order
+   * Multiply matrix: [a] = [a] x [b]
+   * @param a 4x4 matrix in column-major order (also result)
    * @param b 4x4 matrix in column-major order
-   * @param d result a*b in column-major order
    */
-  public static final void multMatrixf(final float[] a, int a_off, final float[] b, int b_off, FloatBuffer d) {
-     final int dP = d.position();
+  public static void multMatrix(final float[] a, final float[] b) {
      for (int i = 0; i < 4; i++) {
         // one row in column-major order
-        final float ai0=a[a_off+i+0*4],  ai1=a[a_off+i+1*4],  ai2=a[a_off+i+2*4],  ai3=a[a_off+i+3*4]; // row-i of a
-        d.put(dP+i+0*4 , ai0 * b[b_off+0+0*4] + ai1 * b[b_off+1+0*4] + ai2 * b[b_off+2+0*4] + ai3 * b[b_off+3+0*4] );
-        d.put(dP+i+1*4 , ai0 * b[b_off+0+1*4] + ai1 * b[b_off+1+1*4] + ai2 * b[b_off+2+1*4] + ai3 * b[b_off+3+1*4] );
-        d.put(dP+i+2*4 , ai0 * b[b_off+0+2*4] + ai1 * b[b_off+1+2*4] + ai2 * b[b_off+2+2*4] + ai3 * b[b_off+3+2*4] );
-        d.put(dP+i+3*4 , ai0 * b[b_off+0+3*4] + ai1 * b[b_off+1+3*4] + ai2 * b[b_off+2+3*4] + ai3 * b[b_off+3+3*4] );
+        final float ai0=a[i+0*4],  ai1=a[i+1*4],  ai2=a[i+2*4],  ai3=a[i+3*4]; // row-i of a
+        a[i+0*4] = ai0 * b[0+0*4] + ai1 * b[1+0*4] + ai2 * b[2+0*4] + ai3 * b[3+0*4] ;
+        a[i+1*4] = ai0 * b[0+1*4] + ai1 * b[1+1*4] + ai2 * b[2+1*4] + ai3 * b[3+1*4] ;
+        a[i+2*4] = ai0 * b[0+2*4] + ai1 * b[1+2*4] + ai2 * b[2+2*4] + ai3 * b[3+2*4] ;
+        a[i+3*4] = ai0 * b[0+3*4] + ai1 * b[1+3*4] + ai2 * b[2+3*4] + ai3 * b[3+3*4] ;
      }
   }
 
@@ -375,16 +1476,38 @@ public class FloatUtil {
    * @param b 4x4 matrix in column-major order
    * @param d result a*b in column-major order
    */
-  public static final void multMatrixf(final FloatBuffer a, final float[] b, int b_off, FloatBuffer d) {
-     final int aP = a.position();
-     final int dP = d.position();
+  public static void multMatrix(final float[] a, final int a_off, final float[] b, final int b_off, final FloatBuffer d) {
+     final int d_off = d.position();
      for (int i = 0; i < 4; i++) {
         // one row in column-major order
-        final float ai0=a.get(aP+i+0*4),  ai1=a.get(aP+i+1*4),  ai2=a.get(aP+i+2*4),  ai3=a.get(aP+i+3*4); // row-i of a
-        d.put(dP+i+0*4 , ai0 * b[b_off+0+0*4] + ai1 * b[b_off+1+0*4] + ai2 * b[b_off+2+0*4] + ai3 * b[b_off+3+0*4] );
-        d.put(dP+i+1*4 , ai0 * b[b_off+0+1*4] + ai1 * b[b_off+1+1*4] + ai2 * b[b_off+2+1*4] + ai3 * b[b_off+3+1*4] );
-        d.put(dP+i+2*4 , ai0 * b[b_off+0+2*4] + ai1 * b[b_off+1+2*4] + ai2 * b[b_off+2+2*4] + ai3 * b[b_off+3+2*4] );
-        d.put(dP+i+3*4 , ai0 * b[b_off+0+3*4] + ai1 * b[b_off+1+3*4] + ai2 * b[b_off+2+3*4] + ai3 * b[b_off+3+3*4] );
+        final int a_off_i = a_off+i;
+        final int d_off_i = d_off+i;
+        final float ai0=a[a_off_i+0*4],  ai1=a[a_off_i+1*4],  ai2=a[a_off_i+2*4],  ai3=a[a_off_i+3*4]; // row-i of a
+        d.put(d_off_i+0*4 , ai0 * b[b_off+0+0*4] + ai1 * b[b_off+1+0*4] + ai2 * b[b_off+2+0*4] + ai3 * b[b_off+3+0*4] );
+        d.put(d_off_i+1*4 , ai0 * b[b_off+0+1*4] + ai1 * b[b_off+1+1*4] + ai2 * b[b_off+2+1*4] + ai3 * b[b_off+3+1*4] );
+        d.put(d_off_i+2*4 , ai0 * b[b_off+0+2*4] + ai1 * b[b_off+1+2*4] + ai2 * b[b_off+2+2*4] + ai3 * b[b_off+3+2*4] );
+        d.put(d_off_i+3*4 , ai0 * b[b_off+0+3*4] + ai1 * b[b_off+1+3*4] + ai2 * b[b_off+2+3*4] + ai3 * b[b_off+3+3*4] );
+     }
+  }
+
+  /**
+   * Multiply matrix: [d] = [a] x [b]
+   * @param a 4x4 matrix in column-major order
+   * @param b 4x4 matrix in column-major order
+   * @param d result a*b in column-major order
+   */
+  public static void multMatrix(final FloatBuffer a, final float[] b, final int b_off, final FloatBuffer d) {
+     final int a_off = a.position();
+     final int d_off = d.position();
+     for (int i = 0; i < 4; i++) {
+        // one row in column-major order
+        final int a_off_i = a_off+i;
+        final int d_off_i = d_off+i;
+        final float ai0=a.get(a_off_i+0*4),  ai1=a.get(a_off_i+1*4),  ai2=a.get(a_off_i+2*4),  ai3=a.get(a_off_i+3*4); // row-i of a
+        d.put(d_off_i+0*4 , ai0 * b[b_off+0+0*4] + ai1 * b[b_off+1+0*4] + ai2 * b[b_off+2+0*4] + ai3 * b[b_off+3+0*4] );
+        d.put(d_off_i+1*4 , ai0 * b[b_off+0+1*4] + ai1 * b[b_off+1+1*4] + ai2 * b[b_off+2+1*4] + ai3 * b[b_off+3+1*4] );
+        d.put(d_off_i+2*4 , ai0 * b[b_off+0+2*4] + ai1 * b[b_off+1+2*4] + ai2 * b[b_off+2+2*4] + ai3 * b[b_off+3+2*4] );
+        d.put(d_off_i+3*4 , ai0 * b[b_off+0+3*4] + ai1 * b[b_off+1+3*4] + ai2 * b[b_off+2+3*4] + ai3 * b[b_off+3+3*4] );
      }
   }
 
@@ -393,16 +1516,16 @@ public class FloatUtil {
    * @param a 4x4 matrix in column-major order (also result)
    * @param b 4x4 matrix in column-major order
    */
-  public static final void multMatrixf(final FloatBuffer a, final float[] b, int b_off) {
-     final int aP = a.position();
+  public static void multMatrix(final FloatBuffer a, final float[] b, final int b_off) {
+     final int a_off = a.position();
      for (int i = 0; i < 4; i++) {
         // one row in column-major order
-        final int aP_i = aP+i;
-        final float ai0=a.get(aP_i+0*4),  ai1=a.get(aP_i+1*4),  ai2=a.get(aP_i+2*4),  ai3=a.get(aP_i+3*4); // row-i of a
-        a.put(aP_i+0*4 , ai0 * b[b_off+0+0*4] + ai1 * b[b_off+1+0*4] + ai2 * b[b_off+2+0*4] + ai3 * b[b_off+3+0*4] );
-        a.put(aP_i+1*4 , ai0 * b[b_off+0+1*4] + ai1 * b[b_off+1+1*4] + ai2 * b[b_off+2+1*4] + ai3 * b[b_off+3+1*4] );
-        a.put(aP_i+2*4 , ai0 * b[b_off+0+2*4] + ai1 * b[b_off+1+2*4] + ai2 * b[b_off+2+2*4] + ai3 * b[b_off+3+2*4] );
-        a.put(aP_i+3*4 , ai0 * b[b_off+0+3*4] + ai1 * b[b_off+1+3*4] + ai2 * b[b_off+2+3*4] + ai3 * b[b_off+3+3*4] );
+        final int a_off_i = a_off+i;
+        final float ai0=a.get(a_off_i+0*4),  ai1=a.get(a_off_i+1*4),  ai2=a.get(a_off_i+2*4),  ai3=a.get(a_off_i+3*4); // row-i of a
+        a.put(a_off_i+0*4 , ai0 * b[b_off+0+0*4] + ai1 * b[b_off+1+0*4] + ai2 * b[b_off+2+0*4] + ai3 * b[b_off+3+0*4] );
+        a.put(a_off_i+1*4 , ai0 * b[b_off+0+1*4] + ai1 * b[b_off+1+1*4] + ai2 * b[b_off+2+1*4] + ai3 * b[b_off+3+1*4] );
+        a.put(a_off_i+2*4 , ai0 * b[b_off+0+2*4] + ai1 * b[b_off+1+2*4] + ai2 * b[b_off+2+2*4] + ai3 * b[b_off+3+2*4] );
+        a.put(a_off_i+3*4 , ai0 * b[b_off+0+3*4] + ai1 * b[b_off+1+3*4] + ai2 * b[b_off+2+3*4] + ai3 * b[b_off+3+3*4] );
      }
   }
 
@@ -412,17 +1535,19 @@ public class FloatUtil {
    * @param b 4x4 matrix in column-major order
    * @param d result a*b in column-major order
    */
-  public static final void multMatrixf(final FloatBuffer a, final FloatBuffer b, FloatBuffer d) {
-     final int aP = a.position();
-     final int bP = b.position();
-     final int dP = d.position();
+  public static void multMatrix(final FloatBuffer a, final FloatBuffer b, final FloatBuffer d) {
+     final int a_off = a.position();
+     final int b_off = b.position();
+     final int d_off = d.position();
      for (int i = 0; i < 4; i++) {
         // one row in column-major order
-        final float ai0=a.get(aP+i+0*4),  ai1=a.get(aP+i+1*4),  ai2=a.get(aP+i+2*4),  ai3=a.get(aP+i+3*4); // row-i of a
-        d.put(dP+i+0*4 , ai0 * b.get(bP+0+0*4) + ai1 * b.get(bP+1+0*4) + ai2 * b.get(bP+2+0*4) + ai3 * b.get(bP+3+0*4) );
-        d.put(dP+i+1*4 , ai0 * b.get(bP+0+1*4) + ai1 * b.get(bP+1+1*4) + ai2 * b.get(bP+2+1*4) + ai3 * b.get(bP+3+1*4) );
-        d.put(dP+i+2*4 , ai0 * b.get(bP+0+2*4) + ai1 * b.get(bP+1+2*4) + ai2 * b.get(bP+2+2*4) + ai3 * b.get(bP+3+2*4) );
-        d.put(dP+i+3*4 , ai0 * b.get(bP+0+3*4) + ai1 * b.get(bP+1+3*4) + ai2 * b.get(bP+2+3*4) + ai3 * b.get(bP+3+3*4) );
+        final int a_off_i = a_off+i;
+        final int d_off_i = d_off+i;
+        final float ai0=a.get(a_off_i+0*4),  ai1=a.get(a_off_i+1*4),  ai2=a.get(a_off_i+2*4),  ai3=a.get(a_off_i+3*4); // row-i of a
+        d.put(d_off_i+0*4 , ai0 * b.get(b_off+0+0*4) + ai1 * b.get(b_off+1+0*4) + ai2 * b.get(b_off+2+0*4) + ai3 * b.get(b_off+3+0*4) );
+        d.put(d_off_i+1*4 , ai0 * b.get(b_off+0+1*4) + ai1 * b.get(b_off+1+1*4) + ai2 * b.get(b_off+2+1*4) + ai3 * b.get(b_off+3+1*4) );
+        d.put(d_off_i+2*4 , ai0 * b.get(b_off+0+2*4) + ai1 * b.get(b_off+1+2*4) + ai2 * b.get(b_off+2+2*4) + ai3 * b.get(b_off+3+2*4) );
+        d.put(d_off_i+3*4 , ai0 * b.get(b_off+0+3*4) + ai1 * b.get(b_off+1+3*4) + ai2 * b.get(b_off+2+3*4) + ai3 * b.get(b_off+3+3*4) );
      }
   }
 
@@ -431,17 +1556,17 @@ public class FloatUtil {
    * @param a 4x4 matrix in column-major order (also result)
    * @param b 4x4 matrix in column-major order
    */
-  public static final void multMatrixf(final FloatBuffer a, final FloatBuffer b) {
-     final int aP = a.position();
-     final int bP = b.position();
+  public static void multMatrix(final FloatBuffer a, final FloatBuffer b) {
+     final int a_off = a.position();
+     final int b_off = b.position();
      for (int i = 0; i < 4; i++) {
         // one row in column-major order
-        final int aP_i = aP+i;
-        final float ai0=a.get(aP_i+0*4),  ai1=a.get(aP_i+1*4),  ai2=a.get(aP_i+2*4),  ai3=a.get(aP_i+3*4); // row-i of a
-        a.put(aP_i+0*4 , ai0 * b.get(bP+0+0*4) + ai1 * b.get(bP+1+0*4) + ai2 * b.get(bP+2+0*4) + ai3 * b.get(bP+3+0*4) );
-        a.put(aP_i+1*4 , ai0 * b.get(bP+0+1*4) + ai1 * b.get(bP+1+1*4) + ai2 * b.get(bP+2+1*4) + ai3 * b.get(bP+3+1*4) );
-        a.put(aP_i+2*4 , ai0 * b.get(bP+0+2*4) + ai1 * b.get(bP+1+2*4) + ai2 * b.get(bP+2+2*4) + ai3 * b.get(bP+3+2*4) );
-        a.put(aP_i+3*4 , ai0 * b.get(bP+0+3*4) + ai1 * b.get(bP+1+3*4) + ai2 * b.get(bP+2+3*4) + ai3 * b.get(bP+3+3*4) );
+        final int a_off_i = a_off+i;
+        final float ai0=a.get(a_off_i+0*4),  ai1=a.get(a_off_i+1*4),  ai2=a.get(a_off_i+2*4),  ai3=a.get(a_off_i+3*4); // row-i of a
+        a.put(a_off_i+0*4 , ai0 * b.get(b_off+0+0*4) + ai1 * b.get(b_off+1+0*4) + ai2 * b.get(b_off+2+0*4) + ai3 * b.get(b_off+3+0*4) );
+        a.put(a_off_i+1*4 , ai0 * b.get(b_off+0+1*4) + ai1 * b.get(b_off+1+1*4) + ai2 * b.get(b_off+2+1*4) + ai3 * b.get(b_off+3+1*4) );
+        a.put(a_off_i+2*4 , ai0 * b.get(b_off+0+2*4) + ai1 * b.get(b_off+1+2*4) + ai2 * b.get(b_off+2+2*4) + ai3 * b.get(b_off+3+2*4) );
+        a.put(a_off_i+3*4 , ai0 * b.get(b_off+0+3*4) + ai1 * b.get(b_off+1+3*4) + ai2 * b.get(b_off+2+3*4) + ai3 * b.get(b_off+3+3*4) );
      }
   }
 
@@ -451,16 +1576,38 @@ public class FloatUtil {
    * @param b 4x4 matrix in column-major order
    * @param d result a*b in column-major order
    */
-  public static final void multMatrixf(final FloatBuffer a, final FloatBuffer b, float[] d, int d_off) {
-     final int aP = a.position();
-     final int bP = b.position();
+  public static void multMatrix(final FloatBuffer a, final FloatBuffer b, final float[] d, final int d_off) {
+     final int a_off = a.position();
+     final int b_off = b.position();
      for (int i = 0; i < 4; i++) {
         // one row in column-major order
-        final float ai0=a.get(aP+i+0*4),  ai1=a.get(aP+i+1*4),  ai2=a.get(aP+i+2*4),  ai3=a.get(aP+i+3*4); // row-i of a
-        d[d_off+i+0*4] = ai0 * b.get(bP+0+0*4) + ai1 * b.get(bP+1+0*4) + ai2 * b.get(bP+2+0*4) + ai3 * b.get(bP+3+0*4) ;
-        d[d_off+i+1*4] = ai0 * b.get(bP+0+1*4) + ai1 * b.get(bP+1+1*4) + ai2 * b.get(bP+2+1*4) + ai3 * b.get(bP+3+1*4) ;
-        d[d_off+i+2*4] = ai0 * b.get(bP+0+2*4) + ai1 * b.get(bP+1+2*4) + ai2 * b.get(bP+2+2*4) + ai3 * b.get(bP+3+2*4) ;
-        d[d_off+i+3*4] = ai0 * b.get(bP+0+3*4) + ai1 * b.get(bP+1+3*4) + ai2 * b.get(bP+2+3*4) + ai3 * b.get(bP+3+3*4) ;
+        final int a_off_i = a_off+i;
+        final int d_off_i = d_off+i;
+        final float ai0=a.get(a_off_i+0*4),  ai1=a.get(a_off_i+1*4),  ai2=a.get(a_off_i+2*4),  ai3=a.get(a_off_i+3*4); // row-i of a
+        d[d_off_i+0*4] = ai0 * b.get(b_off+0+0*4) + ai1 * b.get(b_off+1+0*4) + ai2 * b.get(b_off+2+0*4) + ai3 * b.get(b_off+3+0*4) ;
+        d[d_off_i+1*4] = ai0 * b.get(b_off+0+1*4) + ai1 * b.get(b_off+1+1*4) + ai2 * b.get(b_off+2+1*4) + ai3 * b.get(b_off+3+1*4) ;
+        d[d_off_i+2*4] = ai0 * b.get(b_off+0+2*4) + ai1 * b.get(b_off+1+2*4) + ai2 * b.get(b_off+2+2*4) + ai3 * b.get(b_off+3+2*4) ;
+        d[d_off_i+3*4] = ai0 * b.get(b_off+0+3*4) + ai1 * b.get(b_off+1+3*4) + ai2 * b.get(b_off+2+3*4) + ai3 * b.get(b_off+3+3*4) ;
+     }
+  }
+
+  /**
+   * Multiply matrix: [d] = [a] x [b]
+   * @param a 4x4 matrix in column-major order
+   * @param b 4x4 matrix in column-major order
+   * @param d result a*b in column-major order
+   */
+  public static void multMatrix(final FloatBuffer a, final FloatBuffer b, final float[] d) {
+     final int a_off = a.position();
+     final int b_off = b.position();
+     for (int i = 0; i < 4; i++) {
+        // one row in column-major order
+        final int a_off_i = a_off+i;
+        final float ai0=a.get(a_off_i+0*4),  ai1=a.get(a_off_i+1*4),  ai2=a.get(a_off_i+2*4),  ai3=a.get(a_off_i+3*4); // row-i of a
+        d[i+0*4] = ai0 * b.get(b_off+0+0*4) + ai1 * b.get(b_off+1+0*4) + ai2 * b.get(b_off+2+0*4) + ai3 * b.get(b_off+3+0*4) ;
+        d[i+1*4] = ai0 * b.get(b_off+0+1*4) + ai1 * b.get(b_off+1+1*4) + ai2 * b.get(b_off+2+1*4) + ai3 * b.get(b_off+3+1*4) ;
+        d[i+2*4] = ai0 * b.get(b_off+0+2*4) + ai1 * b.get(b_off+1+2*4) + ai2 * b.get(b_off+2+2*4) + ai3 * b.get(b_off+3+2*4) ;
+        d[i+3*4] = ai0 * b.get(b_off+0+3*4) + ai1 * b.get(b_off+1+3*4) + ai2 * b.get(b_off+2+3*4) + ai3 * b.get(b_off+3+3*4) ;
      }
   }
 
@@ -470,14 +1617,17 @@ public class FloatUtil {
    * @param v_in 4-component column-vector
    * @param v_out m_in * v_in
    */
-  public static final void multMatrixVecf(float[] m_in, int m_in_off, float[] v_in, int v_in_off, float[] v_out, int v_out_off) {
+  public static void multMatrixVec(final float[] m_in, final int m_in_off,
+                                   final float[] v_in, final int v_in_off,
+                                   final float[] v_out, final int v_out_off) {
     for (int i = 0; i < 4; i++) {
       // (one matrix row in column-major order) X (column vector)
+      final int i_m_in_off = i+m_in_off;
       v_out[i + v_out_off] =
-        v_in[0+v_in_off] * m_in[0*4+i+m_in_off] +
-        v_in[1+v_in_off] * m_in[1*4+i+m_in_off] +
-        v_in[2+v_in_off] * m_in[2*4+i+m_in_off] +
-        v_in[3+v_in_off] * m_in[3*4+i+m_in_off];
+        v_in[0+v_in_off] * m_in[0*4+i_m_in_off] +
+        v_in[1+v_in_off] * m_in[1*4+i_m_in_off] +
+        v_in[2+v_in_off] * m_in[2*4+i_m_in_off] +
+        v_in[3+v_in_off] * m_in[3*4+i_m_in_off];
     }
   }
 
@@ -487,7 +1637,7 @@ public class FloatUtil {
    * @param v_in 4-component column-vector
    * @param v_out m_in * v_in
    */
-  public static final void multMatrixVecf(float[] m_in, float[] v_in, float[] v_out) {
+  public static void multMatrixVec(final float[] m_in, final float[] v_in, final float[] v_out) {
     for (int i = 0; i < 4; i++) {
       // (one matrix row in column-major order) X (column vector)
       v_out[i] =
@@ -503,15 +1653,16 @@ public class FloatUtil {
    * @param v_in 4-component column-vector
    * @param v_out m_in * v_in
    */
-  public static final void multMatrixVecf(FloatBuffer m_in, float[] v_in, int v_in_off, float[] v_out, int v_out_off) {
-    final int matrixPos = m_in.position();
+  public static void multMatrixVec(final FloatBuffer m_in, final float[] v_in, final int v_in_off, final float[] v_out, final int v_out_off) {
+    final int m_in_off = m_in.position();
     for (int i = 0; i < 4; i++) {
       // (one matrix row in column-major order) X (column vector)
+      final int i_m_in_off = i+m_in_off;
       v_out[i+v_out_off] =
-        v_in[0+v_in_off] * m_in.get(0*4+i+matrixPos) +
-        v_in[1+v_in_off] * m_in.get(1*4+i+matrixPos) +
-        v_in[2+v_in_off] * m_in.get(2*4+i+matrixPos) +
-        v_in[3+v_in_off] * m_in.get(3*4+i+matrixPos);
+        v_in[0+v_in_off] * m_in.get(0*4+i_m_in_off) +
+        v_in[1+v_in_off] * m_in.get(1*4+i_m_in_off) +
+        v_in[2+v_in_off] * m_in.get(2*4+i_m_in_off) +
+        v_in[3+v_in_off] * m_in.get(3*4+i_m_in_off);
     }
   }
 
@@ -520,15 +1671,16 @@ public class FloatUtil {
    * @param v_in 4-component column-vector
    * @param v_out m_in * v_in
    */
-  public static final void multMatrixVecf(FloatBuffer m_in, float[] v_in, float[] v_out) {
-    final int matrixPos = m_in.position();
+  public static void multMatrixVec(final FloatBuffer m_in, final float[] v_in, final float[] v_out) {
+    final int m_in_off = m_in.position();
     for (int i = 0; i < 4; i++) {
       // (one matrix row in column-major order) X (column vector)
+      final int i_m_in_off = i+m_in_off;
       v_out[i] =
-        v_in[0] * m_in.get(0*4+i+matrixPos) +
-        v_in[1] * m_in.get(1*4+i+matrixPos) +
-        v_in[2] * m_in.get(2*4+i+matrixPos) +
-        v_in[3] * m_in.get(3*4+i+matrixPos);
+        v_in[0] * m_in.get(0*4+i_m_in_off) +
+        v_in[1] * m_in.get(1*4+i_m_in_off) +
+        v_in[2] * m_in.get(2*4+i_m_in_off) +
+        v_in[3] * m_in.get(3*4+i_m_in_off);
     }
   }
 
@@ -537,17 +1689,18 @@ public class FloatUtil {
    * @param v_in 4-component column-vector
    * @param v_out m_in * v_in
    */
-  public static final void multMatrixVecf(FloatBuffer m_in, FloatBuffer v_in, FloatBuffer v_out) {
-    final int inPos = v_in.position();
-    final int outPos = v_out.position();
-    final int matrixPos = m_in.position();
+  public static void multMatrixVec(final FloatBuffer m_in, final FloatBuffer v_in, final FloatBuffer v_out) {
+    final int v_in_off = v_in.position();
+    final int v_out_off = v_out.position();
+    final int m_in_off = m_in.position();
     for (int i = 0; i < 4; i++) {
       // (one matrix row in column-major order) X (column vector)
-      v_out.put(i + outPos,
-              v_in.get(0+inPos) * m_in.get(0*4+i+matrixPos) +
-              v_in.get(1+inPos) * m_in.get(1*4+i+matrixPos) +
-              v_in.get(2+inPos) * m_in.get(2*4+i+matrixPos) +
-              v_in.get(3+inPos) * m_in.get(3*4+i+matrixPos));
+      final int i_m_in_off = i+m_in_off;
+      v_out.put(i + v_out_off,
+              v_in.get(0+v_in_off) * m_in.get(0*4+i_m_in_off) +
+              v_in.get(1+v_in_off) * m_in.get(1*4+i_m_in_off) +
+              v_in.get(2+v_in_off) * m_in.get(2*4+i_m_in_off) +
+              v_in.get(3+v_in_off) * m_in.get(3*4+i_m_in_off));
     }
   }
 
@@ -562,7 +1715,7 @@ public class FloatUtil {
    * @param v_out the column-vector storage, at least 3 components long
    * @param v_out_off offset to storage
    */
-  public static final void copyMatrixColumn(final float[] m_in, final int m_in_off, final int column, final float[] v_out, final int v_out_off) {
+  public static void copyMatrixColumn(final float[] m_in, final int m_in_off, final int column, final float[] v_out, final int v_out_off) {
       v_out[0+v_out_off]=m_in[0+column*4+m_in_off];
       v_out[1+v_out_off]=m_in[1+column*4+m_in_off];
       v_out[2+v_out_off]=m_in[2+column*4+m_in_off];
@@ -582,7 +1735,7 @@ public class FloatUtil {
    * @param v_out the row-vector storage, at least 3 components long
    * @param v_out_off offset to storage
    */
-  public static final void copyMatrixRow(final float[] m_in, final int m_in_off, final int row, final float[] v_out, final int v_out_off) {
+  public static void copyMatrixRow(final float[] m_in, final int m_in_off, final int row, final float[] v_out, final int v_out_off) {
       v_out[0+v_out_off]=m_in[row+0*4+m_in_off];
       v_out[1+v_out_off]=m_in[row+1*4+m_in_off];
       v_out[2+v_out_off]=m_in[row+2*4+m_in_off];
@@ -602,7 +1755,9 @@ public class FloatUtil {
    * @param row row number to print
    * @return matrix row string representation
    */
-  public static StringBuilder matrixRowToString(StringBuilder sb, String f, FloatBuffer a, int aOffset, int rows, int columns, boolean rowMajorOrder, int row) {
+  public static StringBuilder matrixRowToString(StringBuilder sb, final String f,
+                                                final FloatBuffer a, final int aOffset,
+                                                final int rows, final int columns, final boolean rowMajorOrder, final int row) {
       if(null == sb) {
           sb = new StringBuilder();
       }
@@ -630,7 +1785,8 @@ public class FloatUtil {
    * @param row row number to print
    * @return matrix row string representation
    */
-  public static StringBuilder matrixRowToString(StringBuilder sb, String f, float[] a, int aOffset, int rows, int columns, boolean rowMajorOrder, int row) {
+  public static StringBuilder matrixRowToString(StringBuilder sb, final String f,
+                                                final float[] a, final int aOffset, final int rows, final int columns, final boolean rowMajorOrder, final int row) {
       if(null == sb) {
           sb = new StringBuilder();
       }
@@ -657,7 +1813,8 @@ public class FloatUtil {
    * @param rowMajorOrder if true floats are layed out in row-major-order, otherwise column-major-order (OpenGL)
    * @return matrix string representation
    */
-  public static StringBuilder matrixToString(StringBuilder sb, String rowPrefix, String f, FloatBuffer a, int aOffset, int rows, int columns, boolean rowMajorOrder) {
+  public static StringBuilder matrixToString(StringBuilder sb, final String rowPrefix, final String f,
+                                             final FloatBuffer a, final int aOffset, final int rows, final int columns, final boolean rowMajorOrder) {
       if(null == sb) {
           sb = new StringBuilder();
       }
@@ -681,7 +1838,8 @@ public class FloatUtil {
    * @param rowMajorOrder if true floats are layed out in row-major-order, otherwise column-major-order (OpenGL)
    * @return matrix string representation
    */
-  public static StringBuilder matrixToString(StringBuilder sb, String rowPrefix, String f, float[] a, int aOffset, int rows, int columns, boolean rowMajorOrder) {
+  public static StringBuilder matrixToString(StringBuilder sb, final String rowPrefix, final String f,
+                                             final float[] a, final int aOffset, final int rows, final int columns, final boolean rowMajorOrder) {
       if(null == sb) {
           sb = new StringBuilder();
       }
@@ -707,7 +1865,9 @@ public class FloatUtil {
    * @param rowMajorOrder if true floats are layed out in row-major-order, otherwise column-major-order (OpenGL)
    * @return side by side representation
    */
-  public static StringBuilder matrixToString(StringBuilder sb, String rowPrefix, String f, FloatBuffer a, int aOffset, FloatBuffer b, int bOffset, int rows, int columns, boolean rowMajorOrder) {
+  public static StringBuilder matrixToString(StringBuilder sb, final String rowPrefix, final String f,
+                                             final FloatBuffer a, final int aOffset, final FloatBuffer b, final int bOffset,
+                                             final int rows, final int columns, final boolean rowMajorOrder) {
       if(null == sb) {
           sb = new StringBuilder();
       }
@@ -735,7 +1895,9 @@ public class FloatUtil {
    * @param rowMajorOrder if true floats are layed out in row-major-order, otherwise column-major-order (OpenGL)
    * @return side by side representation
    */
-  public static StringBuilder matrixToString(StringBuilder sb, String rowPrefix, String f, float[] a, int aOffset, float[] b, int bOffset, int rows, int columns, boolean rowMajorOrder) {
+  public static StringBuilder matrixToString(StringBuilder sb, final String rowPrefix, final String f,
+                                             final float[] a, final int aOffset, final float[] b, final int bOffset,
+                                             final int rows, final int columns, final boolean rowMajorOrder) {
       if(null == sb) {
           sb = new StringBuilder();
       }
@@ -749,6 +1911,10 @@ public class FloatUtil {
       }
       return sb;
   }
+
+  //
+  // Scalar Ops
+  //
 
   @SuppressWarnings("unused")
   private static void calculateMachineEpsilonFloat() {
@@ -973,7 +2139,7 @@ public class FloatUtil {
   public static float getZBufferEpsilon(final int zBits, final float z, final float zNear) {
       return z * z / ( zNear * ( 1 << zBits ) - z );
   }
-  
+
   /**
    * Returns Z buffer value of given parameter,
    * see <a href="http://www.sjbaker.org/steve/omniv/love_your_z_buffer.html">Love Your Z-Buffer</a>.

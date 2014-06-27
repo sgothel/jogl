@@ -254,7 +254,7 @@ public class TestQuaternion01NOUI {
         //
         // IDENTITY CHECK
         //
-        FloatUtil.makeIdentityf(mat1, 0);
+        FloatUtil.makeIdentity(mat1);
         quat.set(0, 0, 0, 0);
         quat.toMatrix(mat2, 0);
         Assert.assertArrayEquals(mat1, mat2, FloatUtil.EPSILON);
@@ -291,7 +291,7 @@ public class TestQuaternion01NOUI {
         Assert.assertArrayEquals(mat1, mat2, FloatUtil.EPSILON);
 
         quat.rotateVector(vecHas, 0, NEG_ONE, 0);
-        FloatUtil.multMatrixVecf(mat2, NEG_ONE_v4, vecOut2);
+        FloatUtil.multMatrixVec(mat2, NEG_ONE_v4, vecOut2);
         Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(vecHas, vecOut2) ), Quaternion.ALLOWED_DEVIANCE );
 
         //
@@ -325,7 +325,7 @@ public class TestQuaternion01NOUI {
         Assert.assertArrayEquals(mat1, mat2, FloatUtil.EPSILON);
 
         quat.rotateVector(vecHas, 0, ONE, 0);
-        FloatUtil.multMatrixVecf(mat2, ONE_v4, vecOut2);
+        FloatUtil.multMatrixVec(mat2, ONE_v4, vecOut2);
         Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(vecHas, vecOut2) ), Quaternion.ALLOWED_DEVIANCE );
 
         //
@@ -359,7 +359,7 @@ public class TestQuaternion01NOUI {
         Assert.assertArrayEquals(mat1, mat2, FloatUtil.EPSILON);
 
         quat.rotateVector(vecHas, 0, NEG_ONE, 0);
-        FloatUtil.multMatrixVecf(mat2, NEG_ONE_v4, vecOut2);
+        FloatUtil.multMatrixVec(mat2, NEG_ONE_v4, vecOut2);
         Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(vecHas, vecOut2) ), Quaternion.ALLOWED_DEVIANCE );
 
         //
@@ -393,7 +393,7 @@ public class TestQuaternion01NOUI {
         Assert.assertArrayEquals(mat1, mat2, FloatUtil.EPSILON);
 
         quat.rotateVector(vecHas, 0, ONE, 0);
-        FloatUtil.multMatrixVecf(mat2, ONE_v4, vecOut2);
+        FloatUtil.multMatrixVec(mat2, ONE_v4, vecOut2);
         Assert.assertEquals( 0f, Math.abs( VectorUtil.distVec3(vecHas, vecOut2) ), Quaternion.ALLOWED_DEVIANCE );
 
         //
@@ -436,7 +436,7 @@ public class TestQuaternion01NOUI {
     public void test15aAxesAndMatrix() {
         final float[] eulerExp = new float[] { 0f, FloatUtil.HALF_PI, 0f };
         final float[] matExp = new float[4*4];
-        FloatUtil.makeRotationEuler(eulerExp[0], eulerExp[1], eulerExp[2], matExp, 0); // 45 degr on X, 90 degr on Y
+        FloatUtil.makeRotationEuler(matExp, 0, eulerExp[0], eulerExp[1], eulerExp[2]); // 45 degr on X, 90 degr on Y
 
         final float[] matHas = new float[4*4];
         final Quaternion quat1 = new Quaternion();
@@ -465,7 +465,7 @@ public class TestQuaternion01NOUI {
     public void test15bAxesAndMatrix() {
         final float[] eulerExp = new float[] { FloatUtil.HALF_PI, 0f, 0f };
         final float[] matExp = new float[4*4];
-        FloatUtil.makeRotationEuler(eulerExp[0], eulerExp[1], eulerExp[2], matExp, 0); // 45 degr on X, 90 degr on Y
+        FloatUtil.makeRotationEuler(matExp, 0, eulerExp[0], eulerExp[1], eulerExp[2]); // 45 degr on X, 90 degr on Y
 
         final float[] matHas = new float[4*4];
         final Quaternion quat1 = new Quaternion();
@@ -494,7 +494,7 @@ public class TestQuaternion01NOUI {
     public void test15cAxesAndMatrix() {
         final float[] eulerExp = new float[] { FloatUtil.QUARTER_PI, FloatUtil.HALF_PI, 0f };
         final float[] matExp = new float[4*4];
-        FloatUtil.makeRotationEuler(eulerExp[0], eulerExp[1], eulerExp[2], matExp, 0); // 45 degr on X, 90 degr on Y
+        FloatUtil.makeRotationEuler(matExp, 0, eulerExp[0], eulerExp[1], eulerExp[2]); // 45 degr on X, 90 degr on Y
 
         final float[] matHas = new float[4*4];
         final Quaternion quat1 = new Quaternion();

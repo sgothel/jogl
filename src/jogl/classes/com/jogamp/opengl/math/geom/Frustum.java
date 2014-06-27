@@ -68,7 +68,7 @@ import com.jogamp.common.os.Platform;
  */
 public class Frustum {
     /** Normalized planes[l, r, b, t, n, f] */
-	protected Plane[] planes = new Plane[6];
+	protected final Plane[] planes = new Plane[6];
 
 	/**
 	 * Creates an undefined instance w/o calculating the frustum.

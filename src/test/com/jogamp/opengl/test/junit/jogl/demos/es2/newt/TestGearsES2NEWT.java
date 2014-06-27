@@ -89,7 +89,6 @@ public class TestGearsES2NEWT extends UITestCase {
     static boolean undecorated = false;
     static boolean alwaysOnTop = false;
     static boolean fullscreen = false;
-    static boolean pmvUseBackingArray = true;
     static int swapInterval = 1;
     static boolean waitForKey = false;
     static boolean mouseVisible = true;
@@ -146,7 +145,6 @@ public class TestGearsES2NEWT extends UITestCase {
         glWindow.confinePointer(mouseConfined);
 
         final GearsES2 demo = new GearsES2(swapInterval);
-        demo.setPMVUseBackingArray(pmvUseBackingArray);
         demo.setUseMappedBuffers(useMappedBuffers);
         demo.setValidateBuffers(true);
         glWindow.addGLEventListener(demo);
@@ -584,8 +582,6 @@ public class TestGearsES2NEWT extends UITestCase {
                 alwaysOnTop = true;
             } else if(args[i].equals("-fullscreen")) {
                 fullscreen = true;
-            } else if(args[i].equals("-pmvDirect")) {
-                pmvUseBackingArray = false;
             } else if(args[i].equals("-vsync")) {
                 i++;
                 swapInterval = MiscUtils.atoi(args[i], swapInterval);
@@ -670,7 +666,6 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("undecorated "+undecorated);
         System.err.println("atop "+alwaysOnTop);
         System.err.println("fullscreen "+fullscreen);
-        System.err.println("pmvDirect "+(!pmvUseBackingArray));
         System.err.println("mouseVisible "+mouseVisible);
         System.err.println("mouseConfined "+mouseConfined);
         System.err.println("pointerIcon "+setPointerIcon);

@@ -166,8 +166,8 @@ public class VBORegion2PMSAAES2  extends GLRegion {
             gcu_ColorTexBBox = null;
         }
 
-        FloatUtil.makeIdentityf(pmvMatrix02, 0);
-        FloatUtil.makeIdentityf(pmvMatrix02, 16);
+        FloatUtil.makeIdentity(pmvMatrix02, 0);
+        FloatUtil.makeIdentity(pmvMatrix02, 16);
         gcu_PMVMatrix02 = new GLUniformData(UniformNames.gcu_PMVMatrix02, 4, 4, FloatBuffer.wrap(pmvMatrix02));
 
         // Pass 2:
@@ -288,7 +288,11 @@ public class VBORegion2PMSAAES2  extends GLRegion {
 
     private final AABBox drawWinBox = new AABBox();
     private final int[] drawView = new int[] { 0, 0, 0, 0 };
-    private final float[] drawTmpV3 = new float[3];
+    private final float[] drawVec4Tmp0 = new float[4];
+    private final float[] drawVec4Tmp1 = new float[4];
+    private final float[] drawVec4Tmp2 = new float[4];
+    private final float[] drawMat4PMv = new float[16];
+
     private final int border = 2; // surrounding border, i.e. width += 2*border, height +=2*border
 
     @Override
@@ -328,7 +332,11 @@ public class VBORegion2PMSAAES2  extends GLRegion {
                 // considering the sampleCount.
                 drawView[2] = vpWidth;
                 drawView[3] = vpHeight;
-                box.mapToWindow(drawWinBox, renderer.getMatrix(), drawView, true /* useCenterZ */, drawTmpV3);
+
+                renderer.getMatrix().multPMvMatrixf(drawMat4PMv, 0);
+                box.mapToWindow(drawWinBox, drawMat4PMv, drawView, true /* useCenterZ */,
+                                drawVec4Tmp0, drawVec4Tmp1, drawVec4Tmp2);
+
                 winWidth = drawWinBox.getWidth();
                 winHeight = drawWinBox.getHeight();
                 targetWinWidth = (int)Math.ceil(winWidth);
@@ -392,7 +400,7 @@ public class VBORegion2PMSAAES2  extends GLRegion {
                     fb.position(12);
                 }
                 gca_FboVerticesAttr.seal(true);
-                FloatUtil.makeOrthof(pmvMatrix02, 0, true, minX, maxX, minY, maxY, -1, 1);
+                FloatUtil.makeOrtho(pmvMatrix02, 0, true, minX, maxX, minY, maxY, -1, 1);
                 useShaderProgram(gl, renderer, getRenderModes(), true, getQuality(), sampleCount[0]);
                 renderRegion2FBO(gl, rs, targetFboWidth, targetFboHeight, vpWidth, vpHeight, sampleCount);
             } else if( isStateDirty() ) {

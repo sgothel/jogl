@@ -29,7 +29,7 @@ package com.jogamp.opengl.math;
 
 import java.util.ArrayList;
 
-public class VectorUtil {
+public final class VectorUtil {
 
     public static final float[] VEC3_ONE = { 1f, 1f, 1f };
     public static final float[] VEC3_ZERO = { 0f, 0f, 0f };
@@ -248,8 +248,30 @@ public class VectorUtil {
     /**
      * Return the squared length of a vector, a.k.a the squared <i>norm</i> or squared <i>magnitude</i>
      */
+    public static float normSquareVec2(final float[] vec, final int offset) {
+        float v = vec[0+offset];
+        float r = v*v;
+        v = vec[1+offset];
+        return r + v*v;
+    }
+
+    /**
+     * Return the squared length of a vector, a.k.a the squared <i>norm</i> or squared <i>magnitude</i>
+     */
     public static float normSquareVec3(final float[] vec) {
         return vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2];
+    }
+
+    /**
+     * Return the squared length of a vector, a.k.a the squared <i>norm</i> or squared <i>magnitude</i>
+     */
+    public static float normSquareVec3(final float[] vec, final int offset) {
+        float v = vec[0+offset];
+        float r = v*v;
+        v = vec[1+offset];
+        r += v*v;
+        v = vec[2+offset];
+        return r + v*v;
     }
 
     /**
@@ -342,6 +364,26 @@ public class VectorUtil {
             vector[0] *= invSqr;
             vector[1] *= invSqr;
             vector[2] *= invSqr;
+        }
+        return vector;
+    }
+
+    /**
+     * Normalize a vector in place
+     * @param vector input vector
+     * @return normalized output vector
+     */
+    public static float[] normalizeVec3(final float[] vector, final int offset) {
+        final float lengthSq = normSquareVec3(vector, offset);
+        if ( FloatUtil.isZero(lengthSq, FloatUtil.EPSILON) ) {
+            vector[0+offset] = 0f;
+            vector[1+offset] = 0f;
+            vector[2+offset] = 0f;
+        } else {
+            final float invSqr = 1f / FloatUtil.sqrt(lengthSq);
+            vector[0+offset] *= invSqr;
+            vector[1+offset] *= invSqr;
+            vector[2+offset] *= invSqr;
         }
         return vector;
     }
@@ -468,6 +510,20 @@ public class VectorUtil {
         result[1] = v1[2] * v2[0] - v1[0] * v2[2];
         result[2] = v1[0] * v2[1] - v1[1] * v2[0];
         return result;
+    }
+
+    /**
+     * cross product vec1 x vec2
+     * @param v1 vector 1
+     * @param v2 vector 2
+     * @return the resulting vector
+     */
+    public static float[] crossVec3(final float[] r, final int r_offset, final float[] v1, final int v1_offset, final float[] v2, final int v2_offset)
+    {
+        r[0+r_offset] = v1[1+v1_offset] * v2[2+v2_offset] - v1[2+v1_offset] * v2[1+v2_offset];
+        r[1+r_offset] = v1[2+v1_offset] * v2[0+v2_offset] - v1[0+v1_offset] * v2[2+v2_offset];
+        r[2+r_offset] = v1[0+v1_offset] * v2[1+v2_offset] - v1[1+v1_offset] * v2[0+v2_offset];
+        return r;
     }
 
     /**

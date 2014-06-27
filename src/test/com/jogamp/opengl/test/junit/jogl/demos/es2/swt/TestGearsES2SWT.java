@@ -74,7 +74,6 @@ public class TestGearsES2SWT extends UITestCase {
     static boolean opaque = true;
     static int forceAlpha = -1;
     static boolean fullscreen = false;
-    static boolean pmvUseBackingArray = true;
     static int swapInterval = 1;
     static boolean showFPS = false;
     static int loops = 1;
@@ -149,7 +148,6 @@ public class TestGearsES2SWT extends UITestCase {
         Assert.assertNotNull( canvas );
 
         final GearsES2 demo = new GearsES2(swapInterval);
-        demo.setPMVUseBackingArray(pmvUseBackingArray);
         canvas.addGLEventListener(demo);
 
         Animator animator = new Animator();
@@ -273,8 +271,6 @@ public class TestGearsES2SWT extends UITestCase {
                 forceAlpha = MiscUtils.atoi(args[i], 0);
             } else if(args[i].equals("-fullscreen")) {
                 fullscreen = true;
-            } else if(args[i].equals("-pmvDirect")) {
-                pmvUseBackingArray = false;
             } else if(args[i].equals("-vsync")) {
                 i++;
                 swapInterval = MiscUtils.atoi(args[i], swapInterval);
@@ -331,7 +327,6 @@ public class TestGearsES2SWT extends UITestCase {
         System.err.println("translucent "+(!opaque));
         System.err.println("forceAlpha "+forceAlpha);
         System.err.println("fullscreen "+fullscreen);
-        System.err.println("pmvDirect "+(!pmvUseBackingArray));
         System.err.println("loops "+loops);
         System.err.println("loop shutdown "+loop_shutdown);
         System.err.println("forceES2 "+forceES2);

@@ -75,7 +75,7 @@ public class TestFloatUtil01MatrixMatrixMultNOUI {
         
         float[] r = new float[16];
         
-        FloatUtil.multMatrixf(m1, 0, m2, 0, r, 0);
+        FloatUtil.multMatrix(m1, 0, m2, 0, r, 0);
 
         Assert.assertArrayEquals(m2xm1_RM, r, 0f);
     }
@@ -85,7 +85,7 @@ public class TestFloatUtil01MatrixMatrixMultNOUI {
         
         float[] r = new float[16];
         
-        FloatUtil.multMatrixf(m2, 0, m1, 0, r, 0);
+        FloatUtil.multMatrix(m2, 0, m1, 0, r, 0);
 
         Assert.assertArrayEquals(m1xm2_RM, r, 0f);
     }
