@@ -785,7 +785,7 @@ public class MacOSXCGLContext extends GLContextImpl
                             ols.detachSurfaceLayer();
                         }
                     } catch(Throwable t) {
-                        System.err.println("Catched Exception on thread "+getThreadName());
+                        System.err.println("Caught exception on thread "+getThreadName());
                         t.printStackTrace();
                     }
                     CGL.releaseNSOpenGLLayer(cmd.nsOpenGLLayer);
@@ -963,7 +963,7 @@ public class MacOSXCGLContext extends GLContextImpl
               }
           } catch (GLException gle) {
               if(DEBUG) {
-                  System.err.println("MacOSXCGLContext.NSOpenGLImpl.release: INFO: glFlush() catched exception:");
+                  System.err.println("MacOSXCGLContext.NSOpenGLImpl.release: INFO: glFlush() caught exception:");
                   gle.printStackTrace();
               }
           }
@@ -1211,7 +1211,7 @@ public class MacOSXCGLContext extends GLContextImpl
               }
           } catch (GLException gle) {
               if(DEBUG) {
-                  System.err.println("MacOSXCGLContext.CGLImpl.release: INFO: glFlush() catched exception:");
+                  System.err.println("MacOSXCGLContext.CGLImpl.release: INFO: glFlush() caught exception:");
                   gle.printStackTrace();
               }
           }

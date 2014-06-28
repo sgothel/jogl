@@ -184,7 +184,7 @@ public class AWTMisc {
                 _nulCursor = toolkit.createCustomCursor(img, new Point(0,0), "nullCursor");
             } catch (Exception he) {
                 if( JAWTUtil.DEBUG ) {
-                    System.err.println("Catched exception: "+he.getMessage());
+                    System.err.println("Caught exception: "+he.getMessage());
                     he.printStackTrace();
                 }
             }

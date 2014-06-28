@@ -273,7 +273,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
                 }
             } catch (GLException gle) {
                 if (DEBUG) {
-                    System.err.println("MacOSXCGLDrawableFactory.createShared: INFO: makeCurrent catched exception:");
+                    System.err.println("MacOSXCGLDrawableFactory.createShared: INFO: makeCurrent caught exception:");
                     gle.printStackTrace();
                 }
             } finally {
@@ -281,7 +281,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
                     sharedContext.destroy();
                 } catch (GLException gle) {
                     if (DEBUG) {
-                        System.err.println("MacOSXCGLDrawableFactory.createShared: INFO: destroy catched exception:");
+                        System.err.println("MacOSXCGLDrawableFactory.createShared: INFO: destroy caught exception:");
                         gle.printStackTrace();
                     }
                 }

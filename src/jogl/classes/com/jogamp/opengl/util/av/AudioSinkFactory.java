@@ -59,7 +59,7 @@ public class AudioSinkFactory {
                     return audioSink;
                 }
             } catch (Throwable t) {
-                if(AudioSink.DEBUG) { System.err.println("Catched "+t.getClass().getName()+": "+t.getMessage()); t.printStackTrace(); }
+                if(AudioSink.DEBUG) { System.err.println("Caught "+t.getClass().getName()+": "+t.getMessage()); t.printStackTrace(); }
             }
         }
         return null;

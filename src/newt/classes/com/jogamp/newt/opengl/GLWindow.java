@@ -626,7 +626,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                                     animThread.stop();
                                 } catch(Throwable t) {
                                     if( DEBUG ) {
-                                        System.err.println("Catched "+t.getClass().getName()+": "+t.getMessage());
+                                        System.err.println("Caught "+t.getClass().getName()+": "+t.getMessage());
                                         t.printStackTrace();
                                     }
                                 }

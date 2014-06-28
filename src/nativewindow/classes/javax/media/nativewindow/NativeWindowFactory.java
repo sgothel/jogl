@@ -263,7 +263,7 @@ public abstract class NativeWindowFactory {
                     }
                     customShutdownHooks.get(i).run();
                 } catch(Throwable t) {
-                    System.err.println("NativeWindowFactory.shutdown: Catched "+t.getClass().getName()+" during customShutdownHook #"+(i+1)+"/"+cshCount);
+                    System.err.println("NativeWindowFactory.shutdown: Caught "+t.getClass().getName()+" during customShutdownHook #"+(i+1)+"/"+cshCount);
                     if( DEBUG ) {
                         t.printStackTrace();
                     }

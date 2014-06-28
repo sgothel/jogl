@@ -551,7 +551,7 @@ public class X11Util implements ToolkitProperties {
         try {
             res = X11Lib.XCloseDisplay(display);
         } catch (Exception ex) {
-            System.err.println("X11Util: Catched Exception:");
+            System.err.println("X11Util: Caught exception:");
             ex.printStackTrace();
         }
         return res;

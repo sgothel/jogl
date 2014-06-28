@@ -838,7 +838,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
               }
           }
       } catch (NoninvertibleTransformException nte) {
-          System.err.println("Catched: Inversion failed of: "+g2d.getTransform());
+          System.err.println("Caught: Inversion failed of: "+g2d.getTransform());
           nte.printStackTrace();
       }
       if( DEBUG ) {

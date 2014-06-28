@@ -60,7 +60,7 @@ public class GLMediaPlayerFactory {
             if(((Boolean)ReflectionUtil.callStaticMethod(implName, isAvailableMethodName, null, null, cl)).booleanValue()) {
                 return (GLMediaPlayer) ReflectionUtil.createInstance(implName, cl);
             }
-        } catch (Throwable t) { if(GLMediaPlayer.DEBUG) { System.err.println("Catched "+t.getClass().getName()+": "+t.getMessage()); t.printStackTrace(); } }
+        } catch (Throwable t) { if(GLMediaPlayer.DEBUG) { System.err.println("Caught "+t.getClass().getName()+": "+t.getMessage()); t.printStackTrace(); } }
         return null;
     }
 }

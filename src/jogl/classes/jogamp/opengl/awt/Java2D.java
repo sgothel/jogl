@@ -121,7 +121,7 @@ public class Java2D {
           if (DEBUG) {
             System.err.println("Checking for Java2D/OpenGL support");
           }
-          Throwable catched = null;
+          Throwable caught = null;
           try {
             isHeadless = true;
             // Figure out whether the default graphics configuration is an
@@ -269,7 +269,7 @@ public class Java2D {
                     }
                 }
               } catch (Exception e) {
-                catched = e;
+                caught = e;
                 if (DEBUG) {
                   System.err.println("Info: Disabling Java2D/JOGL integration");
                 }
@@ -281,12 +281,12 @@ public class Java2D {
             // The AWT is running in headless mode, so the Java 2D / JOGL bridge is clearly disabled
           } catch (Error e) {
             // issued on OSX Java7: java.lang.Error: Could not find class: sun.awt.HeadlessGraphicsEnvironment
-            catched = e;
+            caught = e;
           }
 
           if (DEBUG) {
-            if(null != catched) {
-                catched.printStackTrace();
+            if(null != caught) {
+                caught.printStackTrace();
             }
             System.err.println("JOGL/Java2D OGL Pipeline active " + isOGLPipelineActive + ", resourceCompatible "+isOGLPipelineResourceCompatible);
           }

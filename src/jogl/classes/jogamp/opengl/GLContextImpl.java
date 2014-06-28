@@ -1158,7 +1158,7 @@ public abstract class GLContextImpl extends GLContext {
           finalizeInit = ReflectionUtil.getMethod(gl.getClass(), "finalizeInit", new Class<?>[]{ });
       } catch ( Throwable t ) {
           if(DEBUG) {
-              System.err.println("Catched "+t.getClass().getName()+": "+t.getMessage());
+              System.err.println("Caught "+t.getClass().getName()+": "+t.getMessage());
               t.printStackTrace();
           }
       }

@@ -1568,7 +1568,7 @@ public class GLProfile {
             return ReflectionUtil.getConstructor(clazzName, glObject ? ctorGLArgs : ctorProcArgs, false, cl);
         } catch (Throwable t) {
             if( DEBUG ) {
-                System.err.println("Catched: "+t.getMessage());
+                System.err.println("Caught: "+t.getMessage());
                 t.printStackTrace();
             }
             return null;

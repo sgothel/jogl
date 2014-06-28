@@ -374,7 +374,7 @@ public class DefaultEDTUtil implements EDTUtil {
                         }
                         if(!task.hasWaiter() && null != task.getThrowable()) {
                             // at least dump stack-trace in case nobody waits for result
-                            System.err.println("DefaultEDT.run(): Catched exception occured on thread "+Thread.currentThread().getName()+": "+task.toString());
+                            System.err.println("DefaultEDT.run(): Caught exception occured on thread "+Thread.currentThread().getName()+": "+task.toString());
                             task.getThrowable().printStackTrace();
                         }
                     }

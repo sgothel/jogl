@@ -173,7 +173,7 @@ public class EGLContext extends GLContextImpl {
         try {
             // might be unavailable on EGL < 1.2
             if( !EGL.eglBindAPI(EGL.EGL_OPENGL_ES_API) ) {
-                throw new GLException("Catched: eglBindAPI to ES failed , error "+toHexString(EGL.eglGetError()));
+                throw new GLException("Caught: eglBindAPI to ES failed , error "+toHexString(EGL.eglGetError()));
             }
         } catch (GLException glex) {
             if (DEBUG) {

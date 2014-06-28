@@ -257,7 +257,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
             window.removeMouseListener(gearsMouse);
             window.removeKeyListener(gearsKeys);
         }
-    } catch (Exception e) { System.err.println("Catched: "); e.printStackTrace(); }
+    } catch (Exception e) { System.err.println("Caught: "); e.printStackTrace(); }
     setGears(0, 0, 0);
   }
 

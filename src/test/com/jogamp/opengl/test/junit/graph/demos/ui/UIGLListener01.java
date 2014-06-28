@@ -60,7 +60,7 @@ public class UIGLListener01 extends UIListenerBase01 {
              */
             System.err.println(button);
         } catch (IOException ex) {
-            System.err.println("Catched: "+ex.getMessage());
+            System.err.println("Caught: "+ex.getMessage());
             ex.printStackTrace();
         }
     }

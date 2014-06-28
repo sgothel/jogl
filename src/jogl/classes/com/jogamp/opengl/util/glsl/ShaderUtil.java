@@ -173,7 +173,7 @@ public class ShaderUtil {
                         }
                     }
                 } catch (GLException gle) {
-                    System.err.println("Catched Exception on thread "+Thread.currentThread().getName());
+                    System.err.println("Caught exception on thread "+Thread.currentThread().getName());
                     gle.printStackTrace();
                 }
             }
@@ -203,7 +203,7 @@ public class ShaderUtil {
                     info.shaderCompilerAvailable = new Boolean(v);
                     queryOK = true;
                 } catch (GLException gle) {
-                    System.err.println("Catched Exception on thread "+Thread.currentThread().getName());
+                    System.err.println("Caught exception on thread "+Thread.currentThread().getName());
                     gle.printStackTrace();
                 }
                 if(!queryOK) {

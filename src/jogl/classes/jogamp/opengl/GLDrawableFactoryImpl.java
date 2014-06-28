@@ -97,7 +97,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
           }
       } catch (GLException gle) {
           if(DEBUG) {
-              System.err.println("Catched Exception on thread "+getThreadName());
+              System.err.println("Caught exception on thread "+getThreadName());
               gle.printStackTrace();
           }
       }

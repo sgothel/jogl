@@ -33,7 +33,7 @@ public class AppContextInfo {
                   final Class<?> appContextClass = Class.forName("sun.awt.AppContext");
                   _getAppContextMethod[0] = appContextClass.getMethod("getAppContext");
               } catch(Throwable ex) {
-                  System.err.println("Bug 1004: Catched @ static: "+ex.getMessage());
+                  System.err.println("Bug 1004: Caught @ static: "+ex.getMessage());
                   ex.printStackTrace();
               }
               return null;
@@ -186,7 +186,7 @@ public class AppContextInfo {
       try {
           return getAppContextMethod.invoke(null);
       } catch(Exception ex) {
-          System.err.println("Bug 1004: Catched: "+ex.getMessage());
+          System.err.println("Bug 1004: Caught: "+ex.getMessage());
           ex.printStackTrace();
           return null;
       }

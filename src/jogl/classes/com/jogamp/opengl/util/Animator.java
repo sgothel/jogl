@@ -194,7 +194,7 @@ public class Animator extends AnimatorBase {
                 }
             } catch( ThreadDeath td) {
                 if(DEBUG) {
-                    System.err.println("Animator Catched: "+td.getClass().getName()+": "+td.getMessage());
+                    System.err.println("Animator caught: "+td.getClass().getName()+": "+td.getMessage());
                     td.printStackTrace();
                 }
             } finally {

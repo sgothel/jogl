@@ -126,7 +126,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
 
             this.fontName = font.toString();
         } catch (IOException ioe) {
-            System.err.println("Catched: "+ioe.getMessage());
+            System.err.println("Caught: "+ioe.getMessage());
             ioe.printStackTrace();
         }
         setMatrix(0, 0, 0, 0f, sampleCount);
@@ -326,7 +326,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                 return true;
             }
         } catch (IOException ex) {
-            System.err.println("Catched: "+ex.getMessage());
+            System.err.println("Caught: "+ex.getMessage());
         }
         return false;
     }
@@ -343,7 +343,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                 return true;
             }
         } catch (IOException ex) {
-            System.err.println("Catched: "+ex.getMessage());
+            System.err.println("Caught: "+ex.getMessage());
         }
         return false;
     }

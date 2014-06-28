@@ -43,7 +43,7 @@ public class MSAATool {
                 System.err.println("glIsEnabled(0x"+Integer.toHexString(name)+") -> error 0x"+Integer.toHexString(glerr));
             }
         } catch (Exception e) {
-            System.err.println("Catched Exception: "+e.getMessage());
+            System.err.println("Caught exception: "+e.getMessage());
             // e.printStackTrace();
         }
         return isEnabled;

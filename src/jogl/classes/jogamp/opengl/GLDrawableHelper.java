@@ -1045,7 +1045,7 @@ public class GLDrawableHelper {
           }
           flushGLRunnables();
       } catch (Exception e) {
-          System.err.println("Catched Exception on thread "+getThreadName());
+          System.err.println("Caught exception on thread "+getThreadName());
           e.printStackTrace();
       }
       if (lastContext != null) {
@@ -1131,7 +1131,7 @@ public class GLDrawableHelper {
                       try {
                           context.release();
                       } catch (Exception e) {
-                          System.err.println("Catched Exception on thread "+getThreadName());
+                          System.err.println("Caught exception on thread "+getThreadName());
                           e.printStackTrace();
                       }
                   }
@@ -1237,7 +1237,7 @@ public class GLDrawableHelper {
                           context.release();
                           ctxReleased = true;
                       } catch (Exception e) {
-                          System.err.println("Catched Exception on thread "+getThreadName());
+                          System.err.println("Caught exception on thread "+getThreadName());
                           e.printStackTrace();
                       }
                   }

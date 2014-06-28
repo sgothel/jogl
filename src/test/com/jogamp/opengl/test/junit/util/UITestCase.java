@@ -170,7 +170,7 @@ public abstract class UITestCase {
                     }
                 }
             } catch (Exception e) {
-                System.err.println("Catched "+e.getClass().getName()+": "+e.getMessage());
+                System.err.println("Caught "+e.getClass().getName()+": "+e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -203,7 +203,7 @@ public abstract class UITestCase {
                 errorCode = p.exitValue();
             }
         } catch (Exception e) {
-            System.err.println("Catched "+e.getClass().getName()+": "+e.getMessage());
+            System.err.println("Caught "+e.getClass().getName()+": "+e.getMessage());
             e.printStackTrace();
             errorCode = Integer.MIN_VALUE;
         }

@@ -222,7 +222,7 @@ public abstract class GLDrawableFactory {
                 gldf.resetDisplayGamma();
                 gldf.shutdownImpl();
             } catch (Throwable t) {
-                System.err.println("GLDrawableFactory.shutdownImpl: Catched "+t.getClass().getName()+" during factory shutdown #"+(i+1)+"/"+gldfCount+" "+gldf.getClass().getName());
+                System.err.println("GLDrawableFactory.shutdownImpl: Caught "+t.getClass().getName()+" during factory shutdown #"+(i+1)+"/"+gldfCount+" "+gldf.getClass().getName());
                 if( DEBUG ) {
                     t.printStackTrace();
                 }

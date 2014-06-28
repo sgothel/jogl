@@ -123,7 +123,7 @@ public class ALAudioSink implements AudioSink {
             _alExt = ALFactory.getALExt();
         } catch(Throwable t) {
             if( DEBUG ) {
-                System.err.println("ALAudioSink: Catched "+t.getClass().getName()+": "+t.getMessage());
+                System.err.println("ALAudioSink: Caught "+t.getClass().getName()+": "+t.getMessage());
                 t.printStackTrace();
             }
         }
@@ -287,7 +287,7 @@ public class ALAudioSink implements AudioSink {
                     alc.alcDestroyContext(context);
                 } catch (Throwable t) {
                     if( DEBUG ) {
-                        System.err.println("Catched "+t.getClass().getName()+": "+t.getMessage());
+                        System.err.println("Caught "+t.getClass().getName()+": "+t.getMessage());
                         t.printStackTrace();
                     }
                 }
@@ -495,7 +495,7 @@ public class ALAudioSink implements AudioSink {
                 al.alDeleteBuffers(alBufferNames.length, alBufferNames, 0);
             } catch (Throwable t) {
                 if( DEBUG ) {
-                    System.err.println("Catched "+t.getClass().getName()+": "+t.getMessage());
+                    System.err.println("Caught "+t.getClass().getName()+": "+t.getMessage());
                     t.printStackTrace();
                 }
             }
@@ -525,7 +525,7 @@ public class ALAudioSink implements AudioSink {
                     al.alDeleteSources(1, alSource, 0);
                 } catch (Throwable t) {
                     if( DEBUG ) {
-                        System.err.println("Catched "+t.getClass().getName()+": "+t.getMessage());
+                        System.err.println("Caught "+t.getClass().getName()+": "+t.getMessage());
                         t.printStackTrace();
                     }
                 }
@@ -541,7 +541,7 @@ public class ALAudioSink implements AudioSink {
                 alc.alcCloseDevice(device);
             } catch (Throwable t) {
                 if( DEBUG ) {
-                    System.err.println("Catched "+t.getClass().getName()+": "+t.getMessage());
+                    System.err.println("Caught "+t.getClass().getName()+": "+t.getMessage());
                     t.printStackTrace();
                 }
             }

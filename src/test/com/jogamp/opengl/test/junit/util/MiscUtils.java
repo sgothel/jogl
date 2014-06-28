@@ -204,7 +204,7 @@ public class MiscUtils {
                         }
                     }
                 } catch (IOException ioe) {
-                    System.err.println("Catched "+ioe.getClass().getName()+": "+ioe.getMessage());
+                    System.err.println("Caught "+ioe.getClass().getName()+": "+ioe.getMessage());
                     ioe.printStackTrace();
                 } finally {
                     eos = true;
