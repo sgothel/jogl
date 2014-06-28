@@ -27,8 +27,6 @@
  */
 package com.jogamp.opengl.math;
 
-import java.nio.FloatBuffer;
-
 /**
  * Quaternion implementation supporting
  * <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q34">Gimbal-Lock</a> free rotations.
@@ -50,7 +48,7 @@ public class Quaternion {
     /**
      * Quaternion Epsilon, used with equals method to determine if two Quaternions are close enough to be considered equal.
      * <p>
-     * Using {@value}, which is ~20 times {@link FloatUtil#EPSILON}.
+     * Using {@value}, which is ~10 times {@link FloatUtil#EPSILON}.
      * </p>
      */
     public static final float ALLOWED_DEVIANCE = 1.0E-6f; // FloatUtil.EPSILON == 1.1920929E-7f; double ALLOWED_DEVIANCE: 1.0E-8f
@@ -943,27 +941,6 @@ public class Quaternion {
     }
 
     /**
-     * Initializes this quaternion from a 4x4 column rotation matrix
-     * <p>
-     * See <a href="ftp://ftp.cis.upenn.edu/pub/graphics/shoemake/quatut.ps.Z">Graphics Gems Code</a>,<br/>
-     * <a href="http://mathworld.wolfram.com/MatrixTrace.html">MatrixTrace</a>.
-     * </p>
-     * <p>
-     * Buggy <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q55">Matrix-FAQ Q55</a>
-     * </p>
-     *
-     * @param m 4x4 column matrix
-     * @return this quaternion for chaining.
-     * @see #toMatrix(FloatBuffer)
-     */
-    public final Quaternion setFromMatrix(final FloatBuffer m) {
-        final int m_off = m.position();
-        return setFromMatrix(m.get(0+0*4+m_off), m.get(0+1*4+m_off), m.get(0+2*4+m_off),
-                             m.get(1+0*4+m_off), m.get(1+1*4+m_off), m.get(1+2*4+m_off),
-                             m.get(2+0*4+m_off), m.get(2+1*4+m_off), m.get(2+2*4+m_off));
-    }
-
-    /**
      * Compute the quaternion from a 3x3 column rotation matrix
      * <p>
      * See <a href="ftp://ftp.cis.upenn.edu/pub/graphics/shoemake/quatut.ps.Z">Graphics Gems Code</a>,<br/>
@@ -1080,73 +1057,6 @@ public class Quaternion {
         matrix[3+1*4+mat_offset]  = 0f;
         matrix[3+2*4+mat_offset]  = 0f;
         matrix[3+3*4+mat_offset]  = 1f;
-        return matrix;
-    }
-
-    /**
-     * Transform this quaternion to a normalized 4x4 column matrix representing the rotation.
-     * <p>
-     * Implementation Details:
-     * <ul>
-     *   <li> makes identity matrix if {@link #magnitudeSquared()} is {@link FloatUtil#isZero(float, float) is zero} using {@link FloatUtil#EPSILON epsilon}</li>
-     * </ul>
-     * </p>
-     *
-     * @param matrix FloatBuffer store for the resulting normalized column matrix 4x4
-     * @param mat_offset
-     * @return the given matrix store
-     * @see <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q54">Matrix-FAQ Q54</a>
-     * @see #setFromMatrix(FloatBuffer)
-     */
-    public final FloatBuffer toMatrix(final FloatBuffer matrix) {
-        final int mat_offset = matrix.position();
-
-        // pre-multipliy scaled-reciprocal-magnitude to reduce multiplications
-        final float norm = magnitudeSquared();
-        if ( FloatUtil.isZero(norm, FloatUtil.EPSILON) ) {
-            // identity matrix -> srecip = 0f
-            return FloatUtil.makeIdentity(matrix);
-        }
-        final float srecip;
-        if ( FloatUtil.isEqual(1f, norm, FloatUtil.EPSILON) ) {
-            srecip = 2f;
-        } else {
-            srecip = 2.0f / norm;
-        }
-
-        final float xs = srecip * x;
-        final float ys = srecip * y;
-        final float zs = srecip * z;
-
-        final float xx = x  * xs;
-        final float xy = x  * ys;
-        final float xz = x  * zs;
-        final float xw = xs * w;
-        final float yy = y  * ys;
-        final float yz = y  * zs;
-        final float yw = ys * w;
-        final float zz = z  * zs;
-        final float zw = zs * w;
-
-        matrix.put(0+0*4+mat_offset,  1f - ( yy + zz ));
-        matrix.put(0+1*4+mat_offset,       ( xy - zw ));
-        matrix.put(0+2*4+mat_offset,       ( xz + yw ));
-        matrix.put(0+3*4+mat_offset,  0f);
-
-        matrix.put(1+0*4+mat_offset,       ( xy + zw ));
-        matrix.put(1+1*4+mat_offset,  1f - ( xx + zz ));
-        matrix.put(1+2*4+mat_offset,       ( yz - xw ));
-        matrix.put(1+3*4+mat_offset,  0f);
-
-        matrix.put(2+0*4+mat_offset,       ( xz - yw ));
-        matrix.put(2+1*4+mat_offset,       ( yz + xw ));
-        matrix.put(2+2*4+mat_offset,  1f - ( xx + yy ));
-        matrix.put(2+3*4+mat_offset,  0f);
-
-        matrix.put(3+0*4+mat_offset,  0f);
-        matrix.put(3+1*4+mat_offset,  0f);
-        matrix.put(3+2*4+mat_offset,  0f);
-        matrix.put(3+3*4+mat_offset,  1f);
         return matrix;
     }
 

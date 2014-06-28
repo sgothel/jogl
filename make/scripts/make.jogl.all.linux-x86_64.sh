@@ -18,6 +18,7 @@ if [ "$1" = "-libdir" ] ; then
 fi
 
 #    -Dc.compiler.debug=true \
+#    -Djavacdebuglevel="source,lines,vars" \
 
 #    -Dgluegen.cpptasks.detected.os=true \
 #    -DisUnix=true \

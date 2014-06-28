@@ -51,16 +51,28 @@ import com.jogamp.opengl.math.geom.AABBox;
         | 8  9  10 11 |            | 2  6  10 14 |
         |             |            |             |
         | 12 13 14 15 |            | 3  7  11 15 |
+
+           C   R                      C   R
+         m[0*4+3] = tx;             m[0+4*3] = tx;
+         m[1*4+3] = ty;             m[1+4*3] = ty;
+         m[2*4+3] = tz;             m[2+4*3] = tz;
  * </pre>
  * </p>
  * <p>
- * See <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html">Matrix-FAQ</a>
+ * <ul>
+ *   <li><a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html">Matrix-FAQ</a></li>
+ *   <li><a href="https://en.wikipedia.org/wiki/Matrix_%28mathematics%29">Wikipedia-Matrix</a></li>
+ *   <li><a href="http://www.euclideanspace.com/maths/algebra/matrix/index.htm">euclideanspace.com-Matrix</a></li>
+ * </ul>
  * </p>
  * <p>
- * Derived from ProjectFloat.java - Created 11-jan-2004
+ * Implementation utilizes unrolling of small vertices and matrices wherever possible
+ * while trying to access memory in a linear fashion for performance reasons, see:
+ * <ul>
+ *   <li><a href="https://code.google.com/p/java-matrix-benchmark/">java-matrix-benchmark</a></li>
+ *   <li><a href="https://github.com/lessthanoptimal/ejml">EJML Efficient Java Matrix Library</a></li>
+ * </ul>
  * </p>
- *
- * @author Erik Duijs, Kenneth Russell, et al.
  */
 public final class FloatUtil {
   public static final boolean DEBUG = Debug.debug("Math");
@@ -123,35 +135,6 @@ public final class FloatUtil {
       m[1+4*3] = 0f;
       m[2+4*3] = 0f;
       m[3+4*3] = 1f;
-      return m;
-  }
-
-  /**
-   * Make matrix an identity matrix
-   * @param m 4x4 matrix in column-major order (also result)
-   * @return given matrix for chaining
-   */
-  public static FloatBuffer makeIdentity(final FloatBuffer m) {
-      final int m_offset = m.position();
-      m.put(m_offset+0+4*0, 1f);
-      m.put(m_offset+1+4*0, 0f);
-      m.put(m_offset+2+4*0, 0f);
-      m.put(m_offset+3+4*0, 0f);
-
-      m.put(m_offset+0+4*1, 0f);
-      m.put(m_offset+1+4*1, 1f);
-      m.put(m_offset+2+4*1, 0f);
-      m.put(m_offset+3+4*1, 0f);
-
-      m.put(m_offset+0+4*2, 0f);
-      m.put(m_offset+1+4*2, 0f);
-      m.put(m_offset+2+4*2, 1f);
-      m.put(m_offset+3+4*2, 0f);
-
-      m.put(m_offset+0+4*3, 0f);
-      m.put(m_offset+1+4*3, 0f);
-      m.put(m_offset+2+4*3, 0f);
-      m.put(m_offset+3+4*3, 1f);
       return m;
   }
 
@@ -319,41 +302,41 @@ public final class FloatUtil {
    * @return given matrix for chaining
    */
   public static float[] makeRotationAxis(final float[] m, final int m_offset, final float angrad, float x, float y, float z, final float[] tmpVec3f) {
-        final float c = cos(angrad);
-        final float ic= 1.0f - c;
-        final float s = sin(angrad);
+      final float c = cos(angrad);
+      final float ic= 1.0f - c;
+      final float s = sin(angrad);
 
-        tmpVec3f[0]=x; tmpVec3f[1]=y; tmpVec3f[2]=z;
-        VectorUtil.normalizeVec3(tmpVec3f);
-        x = tmpVec3f[0]; y = tmpVec3f[1]; z = tmpVec3f[2];
+      tmpVec3f[0]=x; tmpVec3f[1]=y; tmpVec3f[2]=z;
+      VectorUtil.normalizeVec3(tmpVec3f);
+      x = tmpVec3f[0]; y = tmpVec3f[1]; z = tmpVec3f[2];
 
-        final float xy = x*y;
-        final float xz = x*z;
-        final float xs = x*s;
-        final float ys = y*s;
-        final float yz = y*z;
-        final float zs = z*s;
-        m[0+0*4+m_offset] = x*x*ic+c;
-        m[1+0*4+m_offset] = xy*ic+zs;
-        m[2+0*4+m_offset] = xz*ic-ys;
-        m[3+0*4+m_offset] = 0;
+      final float xy = x*y;
+      final float xz = x*z;
+      final float xs = x*s;
+      final float ys = y*s;
+      final float yz = y*z;
+      final float zs = z*s;
+      m[0+0*4+m_offset] = x*x*ic+c;
+      m[1+0*4+m_offset] = xy*ic+zs;
+      m[2+0*4+m_offset] = xz*ic-ys;
+      m[3+0*4+m_offset] = 0;
 
-        m[0+1*4+m_offset] = xy*ic-zs;
-        m[1+1*4+m_offset] = y*y*ic+c;
-        m[2+1*4+m_offset] = yz*ic+xs;
-        m[3+1*4+m_offset] = 0;
+      m[0+1*4+m_offset] = xy*ic-zs;
+      m[1+1*4+m_offset] = y*y*ic+c;
+      m[2+1*4+m_offset] = yz*ic+xs;
+      m[3+1*4+m_offset] = 0;
 
-        m[0+2*4+m_offset] = xz*ic+ys;
-        m[1+2*4+m_offset] = yz*ic-xs;
-        m[2+2*4+m_offset] = z*z*ic+c;
-        m[3+2*4+m_offset] = 0;
+      m[0+2*4+m_offset] = xz*ic+ys;
+      m[1+2*4+m_offset] = yz*ic-xs;
+      m[2+2*4+m_offset] = z*z*ic+c;
+      m[3+2*4+m_offset] = 0;
 
-        m[0+3*4+m_offset]  = 0f;
-        m[1+3*4+m_offset]  = 0f;
-        m[2+3*4+m_offset]  = 0f;
-        m[3+3*4+m_offset]  = 1f;
+      m[0+3*4+m_offset]  = 0f;
+      m[1+3*4+m_offset]  = 0f;
+      m[2+3*4+m_offset]  = 0f;
+      m[3+3*4+m_offset]  = 1f;
 
-        return m;
+      return m;
   }
 
   /**
@@ -392,23 +375,23 @@ public final class FloatUtil {
       final float sb = sin(bankX);
 
       m[0+0*4+m_offset] =  ch*ca;
-      m[0+1*4+m_offset] =  sh*sb    - ch*sa*cb;
-      m[0+2*4+m_offset] =  ch*sa*sb + sh*cb;
-      m[0+3*4+m_offset] =  0;
-
       m[1+0*4+m_offset] =  sa;
-      m[1+1*4+m_offset] =  ca*cb;
-      m[1+2*4+m_offset] = -ca*sb;
-      m[1+3*4+m_offset] =  0;
-
       m[2+0*4+m_offset] = -sh*ca;
-      m[2+1*4+m_offset] =  sh*sa*cb + ch*sb;
-      m[2+2*4+m_offset] = -sh*sa*sb + ch*cb;
-      m[2+3*4+m_offset] =  0;
-
       m[3+0*4+m_offset] =  0;
+
+      m[0+1*4+m_offset] =  sh*sb    - ch*sa*cb;
+      m[1+1*4+m_offset] =  ca*cb;
+      m[2+1*4+m_offset] =  sh*sa*cb + ch*sb;
       m[3+1*4+m_offset] =  0;
+
+      m[0+2*4+m_offset] =  ch*sa*sb + sh*cb;
+      m[1+2*4+m_offset] = -ca*sb;
+      m[2+2*4+m_offset] = -sh*sa*sb + ch*cb;
       m[3+2*4+m_offset] =  0;
+
+      m[0+3*4+m_offset] =  0;
+      m[1+3*4+m_offset] =  0;
+      m[2+3*4+m_offset] =  0;
       m[3+3*4+m_offset] =  1;
 
       return m;
@@ -641,23 +624,23 @@ public final class FloatUtil {
       VectorUtil.crossVec3(mat4Tmp, up2_off, mat4Tmp, side_off, mat4Tmp, forward_off);
 
       m[m_offset + 0 * 4 + 0] = mat4Tmp[0+side_off]; // side
-      m[m_offset + 1 * 4 + 0] = mat4Tmp[1+side_off]; // side
-      m[m_offset + 2 * 4 + 0] = mat4Tmp[2+side_off]; // side
-      m[m_offset + 3 * 4 + 0] = 0;
-
-      m[m_offset + 0 * 4 + 1] = mat4Tmp[0+up2_off]; // up2
-      m[m_offset + 1 * 4 + 1] = mat4Tmp[1+up2_off]; // up2
-      m[m_offset + 2 * 4 + 1] = mat4Tmp[2+up2_off]; // up2
-      m[m_offset + 3 * 4 + 1] = 0;
-
-      m[m_offset + 0 * 4 + 2] = -mat4Tmp[0]; // forward
-      m[m_offset + 1 * 4 + 2] = -mat4Tmp[1]; // forward
-      m[m_offset + 2 * 4 + 2] = -mat4Tmp[2]; // forward
-      m[m_offset + 3 * 4 + 2] = 0;
-
+      m[m_offset + 0 * 4 + 1] = mat4Tmp[0+up2_off];  // up2
+      m[m_offset + 0 * 4 + 2] = -mat4Tmp[0];         // forward
       m[m_offset + 0 * 4 + 3] = 0;
+
+      m[m_offset + 1 * 4 + 0] = mat4Tmp[1+side_off]; // side
+      m[m_offset + 1 * 4 + 1] = mat4Tmp[1+up2_off];  // up2
+      m[m_offset + 1 * 4 + 2] = -mat4Tmp[1];         // forward
       m[m_offset + 1 * 4 + 3] = 0;
+
+      m[m_offset + 2 * 4 + 0] = mat4Tmp[2+side_off]; // side
+      m[m_offset + 2 * 4 + 1] = mat4Tmp[2+up2_off];  // up2
+      m[m_offset + 2 * 4 + 2] = -mat4Tmp[2];         // forward
       m[m_offset + 2 * 4 + 3] = 0;
+
+      m[m_offset + 3 * 4 + 0] = 0;
+      m[m_offset + 3 * 4 + 1] = 0;
+      m[m_offset + 3 * 4 + 2] = 0;
       m[m_offset + 3 * 4 + 3] = 1;
 
       makeTranslation(mat4Tmp, true, -eye[0+eye_offset], -eye[1+eye_offset], -eye[2+eye_offset]);
@@ -727,12 +710,29 @@ public final class FloatUtil {
    * @return given result matrix <i>mres</i> for chaining
    */
   public static float[] transposeMatrix(final float[] msrc, final int msrc_offset, final float[] mres, final int mres_offset) {
-      for (int i = 0; i < 4; i++) {
-          final int i4 = i*4;
-          for (int j = 0; j < 4; j++) {
-              mres[mres_offset+j+i4] = msrc[msrc_offset+i+j*4];
-          }
-      }
+      mres[mres_offset+0] = msrc[msrc_offset+0*4];
+      mres[mres_offset+1] = msrc[msrc_offset+1*4];
+      mres[mres_offset+2] = msrc[msrc_offset+2*4];
+      mres[mres_offset+3] = msrc[msrc_offset+3*4];
+
+      final int i4_1 = 1*4;
+      mres[mres_offset+0+i4_1] = msrc[msrc_offset+1+0*4];
+      mres[mres_offset+1+i4_1] = msrc[msrc_offset+1+1*4];
+      mres[mres_offset+2+i4_1] = msrc[msrc_offset+1+2*4];
+      mres[mres_offset+3+i4_1] = msrc[msrc_offset+1+3*4];
+
+      final int i4_2 = 2*4;
+      mres[mres_offset+0+i4_2] = msrc[msrc_offset+2+0*4];
+      mres[mres_offset+1+i4_2] = msrc[msrc_offset+2+1*4];
+      mres[mres_offset+2+i4_2] = msrc[msrc_offset+2+2*4];
+      mres[mres_offset+3+i4_2] = msrc[msrc_offset+2+3*4];
+
+      final int i4_3 = 3*4;
+      mres[mres_offset+0+i4_3] = msrc[msrc_offset+3+0*4];
+      mres[mres_offset+1+i4_3] = msrc[msrc_offset+3+1*4];
+      mres[mres_offset+2+i4_3] = msrc[msrc_offset+3+2*4];
+      mres[mres_offset+3+i4_3] = msrc[msrc_offset+3+3*4];
+
       return mres;
   }
 
@@ -740,70 +740,81 @@ public final class FloatUtil {
    * Transpose the given matrix in place.
    *
    * @param m 4x4 matrix in column-major order, the source
-   * @param m_offset offset in given array <i>msrc</i>, i.e. start of the 4x4 matrix
+   * @param m_offset offset in given array <i>m</i>, i.e. start of the 4x4 matrix
    * @param temp temporary 4*4 float storage
    * @return given result matrix <i>m</i> for chaining
    */
   public static float[] transposeMatrix(final float[] m, final int m_offset, final float[/*4*4*/] temp) {
-      int i, j;
-      for (i = 0; i < 4; i++) {
-          final int i4 = i*4;
-          for (j = 0; j < 4; j++) {
-              temp[i4+j] = m[i4+j+m_offset];
-          }
-      }
-      for (i = 0; i < 4; i++) {
-          final int i4 = i*4;
-          for (j = 0; j < 4; j++) {
-              m[m_offset+j+i4] = temp[i+j*4];
-          }
-      }
-      return m;
+      System.arraycopy(m, m_offset, temp, 0, 16);
+      return transposeMatrix(temp, 0, m, m_offset);
   }
 
   /**
-   * Transpose the given matrix.
-   *
-   * @param msrc 4x4 matrix in column-major order, the source
-   * @param mres 4x4 matrix in column-major order, the result - may be <code>msrc</code> (in-place)
-   * @return given result matrix <i>mres</i> for chaining
-   */
-  public static FloatBuffer transposeMatrix(final FloatBuffer msrc, final FloatBuffer mres) {
-        final int msrc_offset = msrc.position();
-        final int mres_offset = mres.position();
-        for (int i = 0; i < 4; i++) {
-            final int i4 = i*4;
-            for (int j = 0; j < 4; j++) {
-                mres.put(mres_offset+j+i4, msrc.get(msrc_offset+i+j*4));
-            }
-        }
-        return mres;
-  }
-
-  /**
-   * Transpose the given matrix in place.
-   *
+   * Returns the determinant of the given matrix
    * @param m 4x4 matrix in column-major order, the source
-   * @param temp temporary 4*4 float storage
-   * @return given matrix <i>m</i> for chaining
+   * @param m_offset offset in given array <i>m</i>, i.e. start of the 4x4 matrix
+   * @return the matrix determinant
    */
-  public static FloatBuffer transposeMatrix(FloatBuffer m, final float[/*4*4*/] temp) {
-      final int m_offset = m.position();
-      int i, j;
-      for (i = 0; i < 4; i++) {
-          final int i4 = i*4;
-          for (j = 0; j < 4; j++) {
-              temp[i4+j] = m.get(i4+j+m_offset);
-          }
-      }
-      for (i = 0; i < 4; i++) {
-          final int i4 = i*4;
-          for (j = 0; j < 4; j++) {
-              m.put(m_offset+j+i4, temp[i+j*4]);
-          }
-      }
-      return m;
-  }
+  public static float matrixDeterminant(final float[] m, final int m_offset) {
+        float a11 = m[ 1+4*1 + m_offset ];
+        float a21 = m[ 2+4*1 + m_offset ];
+        float a31 = m[ 3+4*1 + m_offset ];
+        float a12 = m[ 1+4*2 + m_offset ];
+        float a22 = m[ 2+4*2 + m_offset ];
+        float a32 = m[ 3+4*2 + m_offset ];
+        float a13 = m[ 1+4*3 + m_offset ];
+        float a23 = m[ 2+4*3 + m_offset ];
+        float a33 = m[ 3+4*3 + m_offset ];
+
+        float ret = 0;
+        ret += m[     0 + m_offset ] * ( + a11*(a22*a33 - a23*a32) - a12*(a21*a33 - a23*a31) + a13*(a21*a32 - a22*a31));
+        a11  = m[ 1+4*0 + m_offset ];
+        a21  = m[ 2+4*0 + m_offset ];
+        a31  = m[ 3+4*0 + m_offset ];
+        ret -= m[ 0+4*1 + m_offset ] * ( + a11*(a22*a33 - a23*a32) - a12*(a21*a33 - a23*a31) + a13*(a21*a32 - a22*a31));
+        a12  = m[ 1+4*1 + m_offset ];
+        a22  = m[ 2+4*1 + m_offset ];
+        a32  = m[ 3+4*1 + m_offset ];
+        ret += m[ 0+4*2 + m_offset ] * ( + a11*(a22*a33 - a23*a32) - a12*(a21*a33 - a23*a31) + a13*(a21*a32 - a22*a31));
+        a13  = m[ 1+4*2 + m_offset ];
+        a23  = m[ 2+4*2 + m_offset ];
+        a33  = m[ 3+4*2 + m_offset ];
+        ret -= m[ 0+4*3 + m_offset ] * ( + a11*(a22*a33 - a23*a32) - a12*(a21*a33 - a23*a31) + a13*(a21*a32 - a22*a31));
+        return ret;
+   }
+
+  /**
+   * Returns the determinant of the given matrix
+   * @param m 4x4 matrix in column-major order, the source
+   * @return the matrix determinant
+   */
+  public static float matrixDeterminant(final float[] m) {
+        float a11 = m[ 1+4*1 ];
+        float a21 = m[ 2+4*1 ];
+        float a31 = m[ 3+4*1 ];
+        float a12 = m[ 1+4*2 ];
+        float a22 = m[ 2+4*2 ];
+        float a32 = m[ 3+4*2 ];
+        float a13 = m[ 1+4*3 ];
+        float a23 = m[ 2+4*3 ];
+        float a33 = m[ 3+4*3 ];
+
+        float ret = 0;
+        ret += m[     0 ] * ( + a11*(a22*a33 - a23*a32) - a12*(a21*a33 - a23*a31) + a13*(a21*a32 - a22*a31));
+        a11  = m[ 1+4*0 ];
+        a21  = m[ 2+4*0 ];
+        a31  = m[ 3+4*0 ];
+        ret -= m[ 0+4*1 ] * ( + a11*(a22*a33 - a23*a32) - a12*(a21*a33 - a23*a31) + a13*(a21*a32 - a22*a31));
+        a12  = m[ 1+4*1 ];
+        a22  = m[ 2+4*1 ];
+        a32  = m[ 3+4*1 ];
+        ret += m[ 0+4*2 ] * ( + a11*(a22*a33 - a23*a32) - a12*(a21*a33 - a23*a31) + a13*(a21*a32 - a22*a31));
+        a13  = m[ 1+4*2 ];
+        a23  = m[ 2+4*2 ];
+        a33  = m[ 3+4*2 ];
+        ret -= m[ 0+4*3 ] * ( + a11*(a22*a33 - a23*a32) - a12*(a21*a33 - a23*a31) + a13*(a21*a32 - a22*a31));
+        return ret;
+   }
 
   /**
    * Invert the given matrix.
@@ -816,73 +827,79 @@ public final class FloatUtil {
    * @param msrc_offset offset in given array <i>msrc</i>, i.e. start of the 4x4 matrix
    * @param mres 4x4 matrix in column-major order, the result - may be <code>msrc</code> (in-place)
    * @param mres_offset offset in given array <i>mres</i>, i.e. start of the 4x4 matrix - may be <code>msrc_offset</code> (in-place)
-   * @param temp temporary 4*4 float storage
    * @return given result matrix <i>mres</i> for chaining if successful, otherwise <code>null</code>. See above.
    */
-  public static float[] invertMatrix(final float[] msrc, final int msrc_offset, final float[] mres, final int mres_offset, final float[/*4*4*/] temp) {
-      int i, j, k, swap;
-      float t;
-      for (i = 0; i < 4; i++) {
-          final int i4 = i*4;
-          for (j = 0; j < 4; j++) {
-              temp[i4+j] = msrc[i4+j+msrc_offset];
+  public static float[] invertMatrix(final float[] msrc, final int msrc_offset, final float[] mres, final int mres_offset) {
+      final float scale;
+      {
+          float max = Math.abs(msrc[0]);
+
+          for( int i = 1; i < 16; i++ ) {
+              final float a = Math.abs(msrc[i]);
+              if( a > max ) max = a;
           }
-      }
-      makeIdentity(mres, mres_offset);
-
-      for (i = 0; i < 4; i++) {
-          final int i4 = i*4;
-
-          //
-          // Look for largest element in column
-          //
-          swap = i;
-          for (j = i + 1; j < 4; j++) {
-              if (Math.abs(temp[j*4+i]) > Math.abs(temp[i4+i])) {
-                  swap = j;
-              }
-          }
-
-          if (swap != i) {
-              final int swap4 = swap*4;
-              //
-              // Swap rows.
-              //
-              for (k = 0; k < 4; k++) {
-                  t = temp[i4+k];
-                  temp[i4+k] = temp[swap4+k];
-                  temp[swap4+k] = t;
-
-                  t = mres[i4+k+mres_offset];
-                  mres[i4+k+mres_offset] = mres[swap4+k+mres_offset];
-                  mres[swap4+k+mres_offset] = t;
-              }
-          }
-
-          if (temp[i4+i] == 0) {
-              //
-              // No non-zero pivot. The matrix is singular, which shouldn't
-              // happen. This means the user gave us a bad matrix.
-              //
+          if( 0 == max ) {
               return null;
           }
-
-          t = temp[i4+i];
-          for (k = 0; k < 4; k++) {
-              temp[i4+k] /= t;
-              mres[i4+k+mres_offset] /= t;
-          }
-          for (j = 0; j < 4; j++) {
-              if (j != i) {
-                  final int j4 = j*4;
-                  t = temp[j4+i];
-                  for (k = 0; k < 4; k++) {
-                      temp[j4+k] -= temp[i4+k] * t;
-                      mres[j4+k+mres_offset] -= mres[i4+k+mres_offset]*t;
-                  }
-              }
-          }
+          scale = 1.0f/max;
       }
+
+      final float a11 = msrc[0+4*0+msrc_offset]*scale;
+      final float a21 = msrc[1+4*0+msrc_offset]*scale;
+      final float a31 = msrc[2+4*0+msrc_offset]*scale;
+      final float a41 = msrc[3+4*0+msrc_offset]*scale;
+      final float a12 = msrc[0+4*1+msrc_offset]*scale;
+      final float a22 = msrc[1+4*1+msrc_offset]*scale;
+      final float a32 = msrc[2+4*1+msrc_offset]*scale;
+      final float a42 = msrc[3+4*1+msrc_offset]*scale;
+      final float a13 = msrc[0+4*2+msrc_offset]*scale;
+      final float a23 = msrc[1+4*2+msrc_offset]*scale;
+      final float a33 = msrc[2+4*2+msrc_offset]*scale;
+      final float a43 = msrc[3+4*2+msrc_offset]*scale;
+      final float a14 = msrc[0+4*3+msrc_offset]*scale;
+      final float a24 = msrc[1+4*3+msrc_offset]*scale;
+      final float a34 = msrc[2+4*3+msrc_offset]*scale;
+      final float a44 = msrc[3+4*3+msrc_offset]*scale;
+
+      final float m11 = + a22*(a33*a44 - a34*a43) - a23*(a32*a44 - a34*a42) + a24*(a32*a43 - a33*a42);
+      final float m12 = -( + a21*(a33*a44 - a34*a43) - a23*(a31*a44 - a34*a41) + a24*(a31*a43 - a33*a41));
+      final float m13 = + a21*(a32*a44 - a34*a42) - a22*(a31*a44 - a34*a41) + a24*(a31*a42 - a32*a41);
+      final float m14 = -( + a21*(a32*a43 - a33*a42) - a22*(a31*a43 - a33*a41) + a23*(a31*a42 - a32*a41));
+      final float m21 = -( + a12*(a33*a44 - a34*a43) - a13*(a32*a44 - a34*a42) + a14*(a32*a43 - a33*a42));
+      final float m22 = + a11*(a33*a44 - a34*a43) - a13*(a31*a44 - a34*a41) + a14*(a31*a43 - a33*a41);
+      final float m23 = -( + a11*(a32*a44 - a34*a42) - a12*(a31*a44 - a34*a41) + a14*(a31*a42 - a32*a41));
+      final float m24 = + a11*(a32*a43 - a33*a42) - a12*(a31*a43 - a33*a41) + a13*(a31*a42 - a32*a41);
+      final float m31 = + a12*(a23*a44 - a24*a43) - a13*(a22*a44 - a24*a42) + a14*(a22*a43 - a23*a42);
+      final float m32 = -( + a11*(a23*a44 - a24*a43) - a13*(a21*a44 - a24*a41) + a14*(a21*a43 - a23*a41));
+      final float m33 = + a11*(a22*a44 - a24*a42) - a12*(a21*a44 - a24*a41) + a14*(a21*a42 - a22*a41);
+      final float m34 = -( + a11*(a22*a43 - a23*a42) - a12*(a21*a43 - a23*a41) + a13*(a21*a42 - a22*a41));
+      final float m41 = -( + a12*(a23*a34 - a24*a33) - a13*(a22*a34 - a24*a32) + a14*(a22*a33 - a23*a32));
+      final float m42 = + a11*(a23*a34 - a24*a33) - a13*(a21*a34 - a24*a31) + a14*(a21*a33 - a23*a31);
+      final float m43 = -( + a11*(a22*a34 - a24*a32) - a12*(a21*a34 - a24*a31) + a14*(a21*a32 - a22*a31));
+      final float m44 = + a11*(a22*a33 - a23*a32) - a12*(a21*a33 - a23*a31) + a13*(a21*a32 - a22*a31);
+
+      final float det = (a11*m11 + a12*m12 + a13*m13 + a14*m14)/scale;
+
+      if( 0 == det ) {
+          return null;
+      }
+
+      mres[0+4*0+mres_offset] = m11 / det;
+      mres[1+4*0+mres_offset] = m12 / det;
+      mres[2+4*0+mres_offset] = m13 / det;
+      mres[3+4*0+mres_offset] = m14 / det;
+      mres[0+4*1+mres_offset] = m21 / det;
+      mres[1+4*1+mres_offset] = m22 / det;
+      mres[2+4*1+mres_offset] = m23 / det;
+      mres[3+4*1+mres_offset] = m24 / det;
+      mres[0+4*2+mres_offset] = m31 / det;
+      mres[1+4*2+mres_offset] = m32 / det;
+      mres[2+4*2+mres_offset] = m33 / det;
+      mres[3+4*2+mres_offset] = m34 / det;
+      mres[0+4*3+mres_offset] = m41 / det;
+      mres[1+4*3+mres_offset] = m42 / det;
+      mres[2+4*3+mres_offset] = m43 / det;
+      mres[3+4*3+mres_offset] = m44 / det;
       return mres;
   }
 
@@ -895,82 +912,81 @@ public final class FloatUtil {
    *
    * @param msrc 4x4 matrix in column-major order, the source
    * @param mres 4x4 matrix in column-major order, the result - may be <code>msrc</code> (in-place)
-   * @param temp temporary 4*4 float storage
    * @return given result matrix <i>mres</i> for chaining if successful, otherwise <code>null</code>. See above.
    */
-  public static FloatBuffer invertMatrix(final FloatBuffer msrc, final FloatBuffer mres, final float[/*4*4*/] temp) {
-    int i, j, k, swap;
-    float t;
+  public static float[] invertMatrix(final float[] msrc, final float[] mres) {
+      final float scale;
+      {
+          float max = Math.abs(msrc[0]);
 
-    final int msrc_offset = msrc.position();
-    final int mres_offset = mres.position();
-
-    for (i = 0; i < 4; i++) {
-      final int i4 = i*4;
-      for (j = 0; j < 4; j++) {
-        temp[i4+j] = msrc.get(i4+j + msrc_offset);
-      }
-    }
-    makeIdentity(mres);
-
-    for (i = 0; i < 4; i++) {
-      final int i4 = i*4;
-
-      //
-      // Look for largest element in column
-      //
-      swap = i;
-      for (j = i + 1; j < 4; j++) {
-        if (Math.abs(temp[j*4+i]) > Math.abs(temp[i4+i])) {
-          swap = j;
-        }
-      }
-
-      if (swap != i) {
-        final int swap4 = swap*4;
-        //
-        // Swap rows.
-        //
-        for (k = 0; k < 4; k++) {
-          t = temp[i4+k];
-          temp[i4+k] = temp[swap4+k];
-          temp[swap4+k] = t;
-
-          t = mres.get(i4+k + mres_offset);
-          mres.put(i4+k + mres_offset, mres.get(swap4+k + mres_offset));
-          mres.put(swap4+k + mres_offset, t);
-        }
-      }
-
-      if (temp[i4+i] == 0) {
-        //
-        // No non-zero pivot. The matrix is singular, which shouldn't
-        // happen. This means the user gave us a bad matrix.
-        //
-        return null;
-      }
-
-      t = temp[i4+i];
-      for (k = 0; k < 4; k++) {
-        temp[i4+k] /= t;
-        final int z = i4+k + mres_offset;
-        mres.put(z, mres.get(z) / t);
-      }
-      for (j = 0; j < 4; j++) {
-        if (j != i) {
-          final int j4 = j*4;
-          t = temp[j4+i];
-          for (k = 0; k < 4; k++) {
-            temp[j4+k] -= temp[i4+k] * t;
-            final int z = j4+k + mres_offset;
-            mres.put(z, mres.get(z) - mres.get(i4+k + mres_offset) * t);
+          for( int i = 1; i < 16; i++ ) {
+              final float a = Math.abs(msrc[i]);
+              if( a > max ) max = a;
           }
-        }
+          if( 0 == max ) {
+              return null;
+          }
+          scale = 1.0f/max;
       }
-    }
-    return mres;
-  }
 
+      final float a11 = msrc[0+4*0]*scale;
+      final float a21 = msrc[1+4*0]*scale;
+      final float a31 = msrc[2+4*0]*scale;
+      final float a41 = msrc[3+4*0]*scale;
+      final float a12 = msrc[0+4*1]*scale;
+      final float a22 = msrc[1+4*1]*scale;
+      final float a32 = msrc[2+4*1]*scale;
+      final float a42 = msrc[3+4*1]*scale;
+      final float a13 = msrc[0+4*2]*scale;
+      final float a23 = msrc[1+4*2]*scale;
+      final float a33 = msrc[2+4*2]*scale;
+      final float a43 = msrc[3+4*2]*scale;
+      final float a14 = msrc[0+4*3]*scale;
+      final float a24 = msrc[1+4*3]*scale;
+      final float a34 = msrc[2+4*3]*scale;
+      final float a44 = msrc[3+4*3]*scale;
+
+      final float m11 = + a22*(a33*a44 - a34*a43) - a23*(a32*a44 - a34*a42) + a24*(a32*a43 - a33*a42);
+      final float m12 = -( + a21*(a33*a44 - a34*a43) - a23*(a31*a44 - a34*a41) + a24*(a31*a43 - a33*a41));
+      final float m13 = + a21*(a32*a44 - a34*a42) - a22*(a31*a44 - a34*a41) + a24*(a31*a42 - a32*a41);
+      final float m14 = -( + a21*(a32*a43 - a33*a42) - a22*(a31*a43 - a33*a41) + a23*(a31*a42 - a32*a41));
+      final float m21 = -( + a12*(a33*a44 - a34*a43) - a13*(a32*a44 - a34*a42) + a14*(a32*a43 - a33*a42));
+      final float m22 = + a11*(a33*a44 - a34*a43) - a13*(a31*a44 - a34*a41) + a14*(a31*a43 - a33*a41);
+      final float m23 = -( + a11*(a32*a44 - a34*a42) - a12*(a31*a44 - a34*a41) + a14*(a31*a42 - a32*a41));
+      final float m24 = + a11*(a32*a43 - a33*a42) - a12*(a31*a43 - a33*a41) + a13*(a31*a42 - a32*a41);
+      final float m31 = + a12*(a23*a44 - a24*a43) - a13*(a22*a44 - a24*a42) + a14*(a22*a43 - a23*a42);
+      final float m32 = -( + a11*(a23*a44 - a24*a43) - a13*(a21*a44 - a24*a41) + a14*(a21*a43 - a23*a41));
+      final float m33 = + a11*(a22*a44 - a24*a42) - a12*(a21*a44 - a24*a41) + a14*(a21*a42 - a22*a41);
+      final float m34 = -( + a11*(a22*a43 - a23*a42) - a12*(a21*a43 - a23*a41) + a13*(a21*a42 - a22*a41));
+      final float m41 = -( + a12*(a23*a34 - a24*a33) - a13*(a22*a34 - a24*a32) + a14*(a22*a33 - a23*a32));
+      final float m42 = + a11*(a23*a34 - a24*a33) - a13*(a21*a34 - a24*a31) + a14*(a21*a33 - a23*a31);
+      final float m43 = -( + a11*(a22*a34 - a24*a32) - a12*(a21*a34 - a24*a31) + a14*(a21*a32 - a22*a31));
+      final float m44 = + a11*(a22*a33 - a23*a32) - a12*(a21*a33 - a23*a31) + a13*(a21*a32 - a22*a31);
+
+      final float det = (a11*m11 + a12*m12 + a13*m13 + a14*m14)/scale;
+
+      if( 0 == det ) {
+          return null;
+      }
+
+      mres[0+4*0] = m11 / det;
+      mres[1+4*0] = m12 / det;
+      mres[2+4*0] = m13 / det;
+      mres[3+4*0] = m14 / det;
+      mres[0+4*1] = m21 / det;
+      mres[1+4*1] = m22 / det;
+      mres[2+4*1] = m23 / det;
+      mres[3+4*1] = m24 / det;
+      mres[0+4*2] = m31 / det;
+      mres[1+4*2] = m32 / det;
+      mres[2+4*2] = m33 / det;
+      mres[3+4*2] = m34 / det;
+      mres[0+4*3] = m41 / det;
+      mres[1+4*3] = m42 / det;
+      mres[2+4*3] = m43 / det;
+      mres[3+4*3] = m44 / det;
+      return mres;
+  }
 
   /**
    * Map object coordinates to window coordinates.
@@ -1111,7 +1127,7 @@ public final class FloatUtil {
     multMatrix(projMatrix, projMatrix_offset, modelMatrix, modelMatrix_offset, mat4Tmp1, 0);
 
     // mat4Tmp1 = Inv(P x Mv)
-    if ( null == invertMatrix(mat4Tmp1, 0, mat4Tmp1, 0, mat4Tmp2) ) {
+    if ( null == invertMatrix(mat4Tmp1, mat4Tmp1) ) {
       return false;
     }
     mat4Tmp2[0] = winx;
@@ -1311,7 +1327,7 @@ public final class FloatUtil {
     multMatrix(projMatrix, projMatrix_offset, modelMatrix, modelMatrix_offset, mat4Tmp1, 0);
 
     // mat4Tmp1 = Inv(P x Mv)
-    if ( null == invertMatrix(mat4Tmp1, 0, mat4Tmp1, 0, mat4Tmp2) ) {
+    if ( null == invertMatrix(mat4Tmp1, mat4Tmp1) ) {
       return false;
     }
 
@@ -1387,7 +1403,7 @@ public final class FloatUtil {
       multMatrix(projMatrix, projMatrix_offset, modelMatrix, modelMatrix_offset, mat4Tmp1, 0);
 
       // mat4Tmp1 = Inv(P x Mv)
-      if ( null == invertMatrix(mat4Tmp1, 0, mat4Tmp1, 0, mat4Tmp2) ) {
+      if ( null == invertMatrix(mat4Tmp1, mat4Tmp1) ) {
           return false;
       }
       if( mapWinToObjCoords(winx, winy, winz0, winz1, mat4Tmp1,
@@ -1408,16 +1424,58 @@ public final class FloatUtil {
    * @param d result a*b in column-major order
    */
   public static void multMatrix(final float[] a, final int a_off, final float[] b, final int b_off, float[] d, final int d_off) {
-     for (int i = 0; i < 4; i++) {
-        // one row in column-major order
-        final int a_off_i = a_off+i;
-        final int d_off_i = d_off+i;
-        final float ai0=a[a_off_i+0*4],  ai1=a[a_off_i+1*4],  ai2=a[a_off_i+2*4],  ai3=a[a_off_i+3*4]; // row-i of a
-        d[d_off_i+0*4] = ai0 * b[b_off+0+0*4] + ai1 * b[b_off+1+0*4] + ai2 * b[b_off+2+0*4] + ai3 * b[b_off+3+0*4] ;
-        d[d_off_i+1*4] = ai0 * b[b_off+0+1*4] + ai1 * b[b_off+1+1*4] + ai2 * b[b_off+2+1*4] + ai3 * b[b_off+3+1*4] ;
-        d[d_off_i+2*4] = ai0 * b[b_off+0+2*4] + ai1 * b[b_off+1+2*4] + ai2 * b[b_off+2+2*4] + ai3 * b[b_off+3+2*4] ;
-        d[d_off_i+3*4] = ai0 * b[b_off+0+3*4] + ai1 * b[b_off+1+3*4] + ai2 * b[b_off+2+3*4] + ai3 * b[b_off+3+3*4] ;
-     }
+      final float b00 = b[b_off+0+0*4];
+      final float b10 = b[b_off+1+0*4];
+      final float b20 = b[b_off+2+0*4];
+      final float b30 = b[b_off+3+0*4];
+      final float b01 = b[b_off+0+1*4];
+      final float b11 = b[b_off+1+1*4];
+      final float b21 = b[b_off+2+1*4];
+      final float b31 = b[b_off+3+1*4];
+      final float b02 = b[b_off+0+2*4];
+      final float b12 = b[b_off+1+2*4];
+      final float b22 = b[b_off+2+2*4];
+      final float b32 = b[b_off+3+2*4];
+      final float b03 = b[b_off+0+3*4];
+      final float b13 = b[b_off+1+3*4];
+      final float b23 = b[b_off+2+3*4];
+      final float b33 = b[b_off+3+3*4];
+
+      float ai0=a[a_off+  0*4]; // row-0 of a
+      float ai1=a[a_off+  1*4];
+      float ai2=a[a_off+  2*4];
+      float ai3=a[a_off+  3*4];
+      d[d_off+ 0*4] = ai0 * b00  +  ai1 * b10  +  ai2 * b20  +  ai3 * b30 ;
+      d[d_off+ 1*4] = ai0 * b01  +  ai1 * b11  +  ai2 * b21  +  ai3 * b31 ;
+      d[d_off+ 2*4] = ai0 * b02  +  ai1 * b12  +  ai2 * b22  +  ai3 * b32 ;
+      d[d_off+ 3*4] = ai0 * b03  +  ai1 * b13  +  ai2 * b23  +  ai3 * b33 ;
+
+      ai0=a[a_off+1+0*4]; // row-1 of a
+      ai1=a[a_off+1+1*4];
+      ai2=a[a_off+1+2*4];
+      ai3=a[a_off+1+3*4];
+      d[d_off+1+0*4] = ai0 * b00  +  ai1 * b10  +  ai2 * b20  +  ai3 * b30 ;
+      d[d_off+1+1*4] = ai0 * b01  +  ai1 * b11  +  ai2 * b21  +  ai3 * b31 ;
+      d[d_off+1+2*4] = ai0 * b02  +  ai1 * b12  +  ai2 * b22  +  ai3 * b32 ;
+      d[d_off+1+3*4] = ai0 * b03  +  ai1 * b13  +  ai2 * b23  +  ai3 * b33 ;
+
+      ai0=a[a_off+2+0*4]; // row-2 of a
+      ai1=a[a_off+2+1*4];
+      ai2=a[a_off+2+2*4];
+      ai3=a[a_off+2+3*4];
+      d[d_off+2+0*4] = ai0 * b00  +  ai1 * b10  +  ai2 * b20  +  ai3 * b30 ;
+      d[d_off+2+1*4] = ai0 * b01  +  ai1 * b11  +  ai2 * b21  +  ai3 * b31 ;
+      d[d_off+2+2*4] = ai0 * b02  +  ai1 * b12  +  ai2 * b22  +  ai3 * b32 ;
+      d[d_off+2+3*4] = ai0 * b03  +  ai1 * b13  +  ai2 * b23  +  ai3 * b33 ;
+
+      ai0=a[a_off+3+0*4]; // row-3 of a
+      ai1=a[a_off+3+1*4];
+      ai2=a[a_off+3+2*4];
+      ai3=a[a_off+3+3*4];
+      d[d_off+3+0*4] = ai0 * b00  +  ai1 * b10  +  ai2 * b20  +  ai3 * b30 ;
+      d[d_off+3+1*4] = ai0 * b01  +  ai1 * b11  +  ai2 * b21  +  ai3 * b31 ;
+      d[d_off+3+2*4] = ai0 * b02  +  ai1 * b12  +  ai2 * b22  +  ai3 * b32 ;
+      d[d_off+3+3*4] = ai0 * b03  +  ai1 * b13  +  ai2 * b23  +  ai3 * b33 ;
   }
 
   /**
@@ -1427,14 +1485,58 @@ public final class FloatUtil {
    * @param d result a*b in column-major order
    */
   public static void multMatrix(final float[] a, final float[] b, float[] d) {
-     for (int i = 0; i < 4; i++) {
-        // one row in column-major order
-        final float ai0=a[i+0*4],  ai1=a[i+1*4],  ai2=a[i+2*4],  ai3=a[i+3*4]; // row-i of a
-        d[i+0*4] = ai0 * b[0+0*4] + ai1 * b[1+0*4] + ai2 * b[2+0*4] + ai3 * b[3+0*4] ;
-        d[i+1*4] = ai0 * b[0+1*4] + ai1 * b[1+1*4] + ai2 * b[2+1*4] + ai3 * b[3+1*4] ;
-        d[i+2*4] = ai0 * b[0+2*4] + ai1 * b[1+2*4] + ai2 * b[2+2*4] + ai3 * b[3+2*4] ;
-        d[i+3*4] = ai0 * b[0+3*4] + ai1 * b[1+3*4] + ai2 * b[2+3*4] + ai3 * b[3+3*4] ;
-     }
+      final float b00 = b[0+0*4];
+      final float b10 = b[1+0*4];
+      final float b20 = b[2+0*4];
+      final float b30 = b[3+0*4];
+      final float b01 = b[0+1*4];
+      final float b11 = b[1+1*4];
+      final float b21 = b[2+1*4];
+      final float b31 = b[3+1*4];
+      final float b02 = b[0+2*4];
+      final float b12 = b[1+2*4];
+      final float b22 = b[2+2*4];
+      final float b32 = b[3+2*4];
+      final float b03 = b[0+3*4];
+      final float b13 = b[1+3*4];
+      final float b23 = b[2+3*4];
+      final float b33 = b[3+3*4];
+
+      float ai0=a[  0*4]; // row-0 of a
+      float ai1=a[  1*4];
+      float ai2=a[  2*4];
+      float ai3=a[  3*4];
+      d[ 0*4] = ai0 * b00  +  ai1 * b10  +  ai2 * b20  +  ai3 * b30 ;
+      d[ 1*4] = ai0 * b01  +  ai1 * b11  +  ai2 * b21  +  ai3 * b31 ;
+      d[ 2*4] = ai0 * b02  +  ai1 * b12  +  ai2 * b22  +  ai3 * b32 ;
+      d[ 3*4] = ai0 * b03  +  ai1 * b13  +  ai2 * b23  +  ai3 * b33 ;
+
+      ai0=a[1+0*4]; // row-1 of a
+      ai1=a[1+1*4];
+      ai2=a[1+2*4];
+      ai3=a[1+3*4];
+      d[1+0*4] = ai0 * b00  +  ai1 * b10  +  ai2 * b20  +  ai3 * b30 ;
+      d[1+1*4] = ai0 * b01  +  ai1 * b11  +  ai2 * b21  +  ai3 * b31 ;
+      d[1+2*4] = ai0 * b02  +  ai1 * b12  +  ai2 * b22  +  ai3 * b32 ;
+      d[1+3*4] = ai0 * b03  +  ai1 * b13  +  ai2 * b23  +  ai3 * b33 ;
+
+      ai0=a[2+0*4]; // row-2 of a
+      ai1=a[2+1*4];
+      ai2=a[2+2*4];
+      ai3=a[2+3*4];
+      d[2+0*4] = ai0 * b00  +  ai1 * b10  +  ai2 * b20  +  ai3 * b30 ;
+      d[2+1*4] = ai0 * b01  +  ai1 * b11  +  ai2 * b21  +  ai3 * b31 ;
+      d[2+2*4] = ai0 * b02  +  ai1 * b12  +  ai2 * b22  +  ai3 * b32 ;
+      d[2+3*4] = ai0 * b03  +  ai1 * b13  +  ai2 * b23  +  ai3 * b33 ;
+
+      ai0=a[3+0*4]; // row-3 of a
+      ai1=a[3+1*4];
+      ai2=a[3+2*4];
+      ai3=a[3+3*4];
+      d[3+0*4] = ai0 * b00  +  ai1 * b10  +  ai2 * b20  +  ai3 * b30 ;
+      d[3+1*4] = ai0 * b01  +  ai1 * b11  +  ai2 * b21  +  ai3 * b31 ;
+      d[3+2*4] = ai0 * b02  +  ai1 * b12  +  ai2 * b22  +  ai3 * b32 ;
+      d[3+3*4] = ai0 * b03  +  ai1 * b13  +  ai2 * b23  +  ai3 * b33 ;
   }
 
   /**
@@ -1443,15 +1545,58 @@ public final class FloatUtil {
    * @param b 4x4 matrix in column-major order
    */
   public static void multMatrix(final float[] a, final int a_off, final float[] b, final int b_off) {
-     for (int i = 0; i < 4; i++) {
-        // one row in column-major order
-        final int a_off_i = a_off+i;
-        final float ai0=a[a_off_i+0*4],  ai1=a[a_off_i+1*4],  ai2=a[a_off_i+2*4],  ai3=a[a_off_i+3*4]; // row-i of a
-        a[a_off_i+0*4] = ai0 * b[b_off+0+0*4] + ai1 * b[b_off+1+0*4] + ai2 * b[b_off+2+0*4] + ai3 * b[b_off+3+0*4] ;
-        a[a_off_i+1*4] = ai0 * b[b_off+0+1*4] + ai1 * b[b_off+1+1*4] + ai2 * b[b_off+2+1*4] + ai3 * b[b_off+3+1*4] ;
-        a[a_off_i+2*4] = ai0 * b[b_off+0+2*4] + ai1 * b[b_off+1+2*4] + ai2 * b[b_off+2+2*4] + ai3 * b[b_off+3+2*4] ;
-        a[a_off_i+3*4] = ai0 * b[b_off+0+3*4] + ai1 * b[b_off+1+3*4] + ai2 * b[b_off+2+3*4] + ai3 * b[b_off+3+3*4] ;
-     }
+      final float b00 = b[b_off+0+0*4];
+      final float b10 = b[b_off+1+0*4];
+      final float b20 = b[b_off+2+0*4];
+      final float b30 = b[b_off+3+0*4];
+      final float b01 = b[b_off+0+1*4];
+      final float b11 = b[b_off+1+1*4];
+      final float b21 = b[b_off+2+1*4];
+      final float b31 = b[b_off+3+1*4];
+      final float b02 = b[b_off+0+2*4];
+      final float b12 = b[b_off+1+2*4];
+      final float b22 = b[b_off+2+2*4];
+      final float b32 = b[b_off+3+2*4];
+      final float b03 = b[b_off+0+3*4];
+      final float b13 = b[b_off+1+3*4];
+      final float b23 = b[b_off+2+3*4];
+      final float b33 = b[b_off+3+3*4];
+
+      float ai0=a[a_off+  0*4]; // row-0 of a
+      float ai1=a[a_off+  1*4];
+      float ai2=a[a_off+  2*4];
+      float ai3=a[a_off+  3*4];
+      a[a_off+ 0*4] = ai0 * b00  +  ai1 * b10  +  ai2 * b20  +  ai3 * b30 ;
+      a[a_off+ 1*4] = ai0 * b01  +  ai1 * b11  +  ai2 * b21  +  ai3 * b31 ;
+      a[a_off+ 2*4] = ai0 * b02  +  ai1 * b12  +  ai2 * b22  +  ai3 * b32 ;
+      a[a_off+ 3*4] = ai0 * b03  +  ai1 * b13  +  ai2 * b23  +  ai3 * b33 ;
+
+      ai0=a[a_off+1+0*4]; // row-1 of a
+      ai1=a[a_off+1+1*4];
+      ai2=a[a_off+1+2*4];
+      ai3=a[a_off+1+3*4];
+      a[a_off+1+0*4] = ai0 * b00  +  ai1 * b10  +  ai2 * b20  +  ai3 * b30 ;
+      a[a_off+1+1*4] = ai0 * b01  +  ai1 * b11  +  ai2 * b21  +  ai3 * b31 ;
+      a[a_off+1+2*4] = ai0 * b02  +  ai1 * b12  +  ai2 * b22  +  ai3 * b32 ;
+      a[a_off+1+3*4] = ai0 * b03  +  ai1 * b13  +  ai2 * b23  +  ai3 * b33 ;
+
+      ai0=a[a_off+2+0*4]; // row-2 of a
+      ai1=a[a_off+2+1*4];
+      ai2=a[a_off+2+2*4];
+      ai3=a[a_off+2+3*4];
+      a[a_off+2+0*4] = ai0 * b00  +  ai1 * b10  +  ai2 * b20  +  ai3 * b30 ;
+      a[a_off+2+1*4] = ai0 * b01  +  ai1 * b11  +  ai2 * b21  +  ai3 * b31 ;
+      a[a_off+2+2*4] = ai0 * b02  +  ai1 * b12  +  ai2 * b22  +  ai3 * b32 ;
+      a[a_off+2+3*4] = ai0 * b03  +  ai1 * b13  +  ai2 * b23  +  ai3 * b33 ;
+
+      ai0=a[a_off+3+0*4]; // row-3 of a
+      ai1=a[a_off+3+1*4];
+      ai2=a[a_off+3+2*4];
+      ai3=a[a_off+3+3*4];
+      a[a_off+3+0*4] = ai0 * b00  +  ai1 * b10  +  ai2 * b20  +  ai3 * b30 ;
+      a[a_off+3+1*4] = ai0 * b01  +  ai1 * b11  +  ai2 * b21  +  ai3 * b31 ;
+      a[a_off+3+2*4] = ai0 * b02  +  ai1 * b12  +  ai2 * b22  +  ai3 * b32 ;
+      a[a_off+3+3*4] = ai0 * b03  +  ai1 * b13  +  ai2 * b23  +  ai3 * b33 ;
   }
 
   /**
@@ -1460,14 +1605,58 @@ public final class FloatUtil {
    * @param b 4x4 matrix in column-major order
    */
   public static void multMatrix(final float[] a, final float[] b) {
-     for (int i = 0; i < 4; i++) {
-        // one row in column-major order
-        final float ai0=a[i+0*4],  ai1=a[i+1*4],  ai2=a[i+2*4],  ai3=a[i+3*4]; // row-i of a
-        a[i+0*4] = ai0 * b[0+0*4] + ai1 * b[1+0*4] + ai2 * b[2+0*4] + ai3 * b[3+0*4] ;
-        a[i+1*4] = ai0 * b[0+1*4] + ai1 * b[1+1*4] + ai2 * b[2+1*4] + ai3 * b[3+1*4] ;
-        a[i+2*4] = ai0 * b[0+2*4] + ai1 * b[1+2*4] + ai2 * b[2+2*4] + ai3 * b[3+2*4] ;
-        a[i+3*4] = ai0 * b[0+3*4] + ai1 * b[1+3*4] + ai2 * b[2+3*4] + ai3 * b[3+3*4] ;
-     }
+      final float b00 = b[0+0*4];
+      final float b10 = b[1+0*4];
+      final float b20 = b[2+0*4];
+      final float b30 = b[3+0*4];
+      final float b01 = b[0+1*4];
+      final float b11 = b[1+1*4];
+      final float b21 = b[2+1*4];
+      final float b31 = b[3+1*4];
+      final float b02 = b[0+2*4];
+      final float b12 = b[1+2*4];
+      final float b22 = b[2+2*4];
+      final float b32 = b[3+2*4];
+      final float b03 = b[0+3*4];
+      final float b13 = b[1+3*4];
+      final float b23 = b[2+3*4];
+      final float b33 = b[3+3*4];
+
+      float ai0=a[  0*4]; // row-0 of a
+      float ai1=a[  1*4];
+      float ai2=a[  2*4];
+      float ai3=a[  3*4];
+      a[ 0*4] = ai0 * b00  +  ai1 * b10  +  ai2 * b20  +  ai3 * b30 ;
+      a[ 1*4] = ai0 * b01  +  ai1 * b11  +  ai2 * b21  +  ai3 * b31 ;
+      a[ 2*4] = ai0 * b02  +  ai1 * b12  +  ai2 * b22  +  ai3 * b32 ;
+      a[ 3*4] = ai0 * b03  +  ai1 * b13  +  ai2 * b23  +  ai3 * b33 ;
+
+      ai0=a[1+0*4]; // row-1 of a
+      ai1=a[1+1*4];
+      ai2=a[1+2*4];
+      ai3=a[1+3*4];
+      a[1+0*4] = ai0 * b00  +  ai1 * b10  +  ai2 * b20  +  ai3 * b30 ;
+      a[1+1*4] = ai0 * b01  +  ai1 * b11  +  ai2 * b21  +  ai3 * b31 ;
+      a[1+2*4] = ai0 * b02  +  ai1 * b12  +  ai2 * b22  +  ai3 * b32 ;
+      a[1+3*4] = ai0 * b03  +  ai1 * b13  +  ai2 * b23  +  ai3 * b33 ;
+
+      ai0=a[2+0*4]; // row-2 of a
+      ai1=a[2+1*4];
+      ai2=a[2+2*4];
+      ai3=a[2+3*4];
+      a[2+0*4] = ai0 * b00  +  ai1 * b10  +  ai2 * b20  +  ai3 * b30 ;
+      a[2+1*4] = ai0 * b01  +  ai1 * b11  +  ai2 * b21  +  ai3 * b31 ;
+      a[2+2*4] = ai0 * b02  +  ai1 * b12  +  ai2 * b22  +  ai3 * b32 ;
+      a[2+3*4] = ai0 * b03  +  ai1 * b13  +  ai2 * b23  +  ai3 * b33 ;
+
+      ai0=a[3+0*4]; // row-3 of a
+      ai1=a[3+1*4];
+      ai2=a[3+2*4];
+      ai3=a[3+3*4];
+      a[3+0*4] = ai0 * b00  +  ai1 * b10  +  ai2 * b20  +  ai3 * b30 ;
+      a[3+1*4] = ai0 * b01  +  ai1 * b11  +  ai2 * b21  +  ai3 * b31 ;
+      a[3+2*4] = ai0 * b02  +  ai1 * b12  +  ai2 * b22  +  ai3 * b32 ;
+      a[3+3*4] = ai0 * b03  +  ai1 * b13  +  ai2 * b23  +  ai3 * b33 ;
   }
 
   /**
@@ -1475,127 +1664,7 @@ public final class FloatUtil {
    * @param a 4x4 matrix in column-major order
    * @param b 4x4 matrix in column-major order
    * @param d result a*b in column-major order
-   */
-  public static void multMatrix(final float[] a, final int a_off, final float[] b, final int b_off, final FloatBuffer d) {
-     final int d_off = d.position();
-     for (int i = 0; i < 4; i++) {
-        // one row in column-major order
-        final int a_off_i = a_off+i;
-        final int d_off_i = d_off+i;
-        final float ai0=a[a_off_i+0*4],  ai1=a[a_off_i+1*4],  ai2=a[a_off_i+2*4],  ai3=a[a_off_i+3*4]; // row-i of a
-        d.put(d_off_i+0*4 , ai0 * b[b_off+0+0*4] + ai1 * b[b_off+1+0*4] + ai2 * b[b_off+2+0*4] + ai3 * b[b_off+3+0*4] );
-        d.put(d_off_i+1*4 , ai0 * b[b_off+0+1*4] + ai1 * b[b_off+1+1*4] + ai2 * b[b_off+2+1*4] + ai3 * b[b_off+3+1*4] );
-        d.put(d_off_i+2*4 , ai0 * b[b_off+0+2*4] + ai1 * b[b_off+1+2*4] + ai2 * b[b_off+2+2*4] + ai3 * b[b_off+3+2*4] );
-        d.put(d_off_i+3*4 , ai0 * b[b_off+0+3*4] + ai1 * b[b_off+1+3*4] + ai2 * b[b_off+2+3*4] + ai3 * b[b_off+3+3*4] );
-     }
-  }
-
-  /**
-   * Multiply matrix: [d] = [a] x [b]
-   * @param a 4x4 matrix in column-major order
-   * @param b 4x4 matrix in column-major order
-   * @param d result a*b in column-major order
-   */
-  public static void multMatrix(final FloatBuffer a, final float[] b, final int b_off, final FloatBuffer d) {
-     final int a_off = a.position();
-     final int d_off = d.position();
-     for (int i = 0; i < 4; i++) {
-        // one row in column-major order
-        final int a_off_i = a_off+i;
-        final int d_off_i = d_off+i;
-        final float ai0=a.get(a_off_i+0*4),  ai1=a.get(a_off_i+1*4),  ai2=a.get(a_off_i+2*4),  ai3=a.get(a_off_i+3*4); // row-i of a
-        d.put(d_off_i+0*4 , ai0 * b[b_off+0+0*4] + ai1 * b[b_off+1+0*4] + ai2 * b[b_off+2+0*4] + ai3 * b[b_off+3+0*4] );
-        d.put(d_off_i+1*4 , ai0 * b[b_off+0+1*4] + ai1 * b[b_off+1+1*4] + ai2 * b[b_off+2+1*4] + ai3 * b[b_off+3+1*4] );
-        d.put(d_off_i+2*4 , ai0 * b[b_off+0+2*4] + ai1 * b[b_off+1+2*4] + ai2 * b[b_off+2+2*4] + ai3 * b[b_off+3+2*4] );
-        d.put(d_off_i+3*4 , ai0 * b[b_off+0+3*4] + ai1 * b[b_off+1+3*4] + ai2 * b[b_off+2+3*4] + ai3 * b[b_off+3+3*4] );
-     }
-  }
-
-  /**
-   * Multiply matrix: [a] = [a] x [b]
-   * @param a 4x4 matrix in column-major order (also result)
-   * @param b 4x4 matrix in column-major order
-   */
-  public static void multMatrix(final FloatBuffer a, final float[] b, final int b_off) {
-     final int a_off = a.position();
-     for (int i = 0; i < 4; i++) {
-        // one row in column-major order
-        final int a_off_i = a_off+i;
-        final float ai0=a.get(a_off_i+0*4),  ai1=a.get(a_off_i+1*4),  ai2=a.get(a_off_i+2*4),  ai3=a.get(a_off_i+3*4); // row-i of a
-        a.put(a_off_i+0*4 , ai0 * b[b_off+0+0*4] + ai1 * b[b_off+1+0*4] + ai2 * b[b_off+2+0*4] + ai3 * b[b_off+3+0*4] );
-        a.put(a_off_i+1*4 , ai0 * b[b_off+0+1*4] + ai1 * b[b_off+1+1*4] + ai2 * b[b_off+2+1*4] + ai3 * b[b_off+3+1*4] );
-        a.put(a_off_i+2*4 , ai0 * b[b_off+0+2*4] + ai1 * b[b_off+1+2*4] + ai2 * b[b_off+2+2*4] + ai3 * b[b_off+3+2*4] );
-        a.put(a_off_i+3*4 , ai0 * b[b_off+0+3*4] + ai1 * b[b_off+1+3*4] + ai2 * b[b_off+2+3*4] + ai3 * b[b_off+3+3*4] );
-     }
-  }
-
-  /**
-   * Multiply matrix: [d] = [a] x [b]
-   * @param a 4x4 matrix in column-major order
-   * @param b 4x4 matrix in column-major order
-   * @param d result a*b in column-major order
-   */
-  public static void multMatrix(final FloatBuffer a, final FloatBuffer b, final FloatBuffer d) {
-     final int a_off = a.position();
-     final int b_off = b.position();
-     final int d_off = d.position();
-     for (int i = 0; i < 4; i++) {
-        // one row in column-major order
-        final int a_off_i = a_off+i;
-        final int d_off_i = d_off+i;
-        final float ai0=a.get(a_off_i+0*4),  ai1=a.get(a_off_i+1*4),  ai2=a.get(a_off_i+2*4),  ai3=a.get(a_off_i+3*4); // row-i of a
-        d.put(d_off_i+0*4 , ai0 * b.get(b_off+0+0*4) + ai1 * b.get(b_off+1+0*4) + ai2 * b.get(b_off+2+0*4) + ai3 * b.get(b_off+3+0*4) );
-        d.put(d_off_i+1*4 , ai0 * b.get(b_off+0+1*4) + ai1 * b.get(b_off+1+1*4) + ai2 * b.get(b_off+2+1*4) + ai3 * b.get(b_off+3+1*4) );
-        d.put(d_off_i+2*4 , ai0 * b.get(b_off+0+2*4) + ai1 * b.get(b_off+1+2*4) + ai2 * b.get(b_off+2+2*4) + ai3 * b.get(b_off+3+2*4) );
-        d.put(d_off_i+3*4 , ai0 * b.get(b_off+0+3*4) + ai1 * b.get(b_off+1+3*4) + ai2 * b.get(b_off+2+3*4) + ai3 * b.get(b_off+3+3*4) );
-     }
-  }
-
-  /**
-   * Multiply matrix: [a] = [a] x [b]
-   * @param a 4x4 matrix in column-major order (also result)
-   * @param b 4x4 matrix in column-major order
-   */
-  public static void multMatrix(final FloatBuffer a, final FloatBuffer b) {
-     final int a_off = a.position();
-     final int b_off = b.position();
-     for (int i = 0; i < 4; i++) {
-        // one row in column-major order
-        final int a_off_i = a_off+i;
-        final float ai0=a.get(a_off_i+0*4),  ai1=a.get(a_off_i+1*4),  ai2=a.get(a_off_i+2*4),  ai3=a.get(a_off_i+3*4); // row-i of a
-        a.put(a_off_i+0*4 , ai0 * b.get(b_off+0+0*4) + ai1 * b.get(b_off+1+0*4) + ai2 * b.get(b_off+2+0*4) + ai3 * b.get(b_off+3+0*4) );
-        a.put(a_off_i+1*4 , ai0 * b.get(b_off+0+1*4) + ai1 * b.get(b_off+1+1*4) + ai2 * b.get(b_off+2+1*4) + ai3 * b.get(b_off+3+1*4) );
-        a.put(a_off_i+2*4 , ai0 * b.get(b_off+0+2*4) + ai1 * b.get(b_off+1+2*4) + ai2 * b.get(b_off+2+2*4) + ai3 * b.get(b_off+3+2*4) );
-        a.put(a_off_i+3*4 , ai0 * b.get(b_off+0+3*4) + ai1 * b.get(b_off+1+3*4) + ai2 * b.get(b_off+2+3*4) + ai3 * b.get(b_off+3+3*4) );
-     }
-  }
-
-  /**
-   * Multiply matrix: [d] = [a] x [b]
-   * @param a 4x4 matrix in column-major order
-   * @param b 4x4 matrix in column-major order
-   * @param d result a*b in column-major order
-   */
-  public static void multMatrix(final FloatBuffer a, final FloatBuffer b, final float[] d, final int d_off) {
-     final int a_off = a.position();
-     final int b_off = b.position();
-     for (int i = 0; i < 4; i++) {
-        // one row in column-major order
-        final int a_off_i = a_off+i;
-        final int d_off_i = d_off+i;
-        final float ai0=a.get(a_off_i+0*4),  ai1=a.get(a_off_i+1*4),  ai2=a.get(a_off_i+2*4),  ai3=a.get(a_off_i+3*4); // row-i of a
-        d[d_off_i+0*4] = ai0 * b.get(b_off+0+0*4) + ai1 * b.get(b_off+1+0*4) + ai2 * b.get(b_off+2+0*4) + ai3 * b.get(b_off+3+0*4) ;
-        d[d_off_i+1*4] = ai0 * b.get(b_off+0+1*4) + ai1 * b.get(b_off+1+1*4) + ai2 * b.get(b_off+2+1*4) + ai3 * b.get(b_off+3+1*4) ;
-        d[d_off_i+2*4] = ai0 * b.get(b_off+0+2*4) + ai1 * b.get(b_off+1+2*4) + ai2 * b.get(b_off+2+2*4) + ai3 * b.get(b_off+3+2*4) ;
-        d[d_off_i+3*4] = ai0 * b.get(b_off+0+3*4) + ai1 * b.get(b_off+1+3*4) + ai2 * b.get(b_off+2+3*4) + ai3 * b.get(b_off+3+3*4) ;
-     }
-  }
-
-  /**
-   * Multiply matrix: [d] = [a] x [b]
-   * @param a 4x4 matrix in column-major order
-   * @param b 4x4 matrix in column-major order
-   * @param d result a*b in column-major order
+   * @deprecated use on of the float[] variants
    */
   public static void multMatrix(final FloatBuffer a, final FloatBuffer b, final float[] d) {
      final int a_off = a.position();
@@ -1612,6 +1681,26 @@ public final class FloatUtil {
   }
 
   /**
+   * Multiply matrix: [a] = [a] x [b]
+   * @param a 4x4 matrix in column-major order (also result)
+   * @param b 4x4 matrix in column-major order
+   * @deprecated use on of the float[] variants
+   */
+  public static void multMatrix(final FloatBuffer a, final FloatBuffer b) {
+     final int a_off = a.position();
+     final int b_off = b.position();
+     for (int i = 0; i < 4; i++) {
+        // one row in column-major order
+        final int a_off_i = a_off+i;
+        final float ai0=a.get(a_off_i+0*4),  ai1=a.get(a_off_i+1*4),  ai2=a.get(a_off_i+2*4),  ai3=a.get(a_off_i+3*4); // row-i of a
+        a.put(a_off_i+0*4 , ai0 * b.get(b_off+0+0*4) + ai1 * b.get(b_off+1+0*4) + ai2 * b.get(b_off+2+0*4) + ai3 * b.get(b_off+3+0*4) );
+        a.put(a_off_i+1*4 , ai0 * b.get(b_off+0+1*4) + ai1 * b.get(b_off+1+1*4) + ai2 * b.get(b_off+2+1*4) + ai3 * b.get(b_off+3+1*4) );
+        a.put(a_off_i+2*4 , ai0 * b.get(b_off+0+2*4) + ai1 * b.get(b_off+1+2*4) + ai2 * b.get(b_off+2+2*4) + ai3 * b.get(b_off+3+2*4) );
+        a.put(a_off_i+3*4 , ai0 * b.get(b_off+0+3*4) + ai1 * b.get(b_off+1+3*4) + ai2 * b.get(b_off+2+3*4) + ai3 * b.get(b_off+3+3*4) );
+     }
+  }
+
+  /**
    * @param m_in 4x4 matrix in column-major order
    * @param m_in_off
    * @param v_in 4-component column-vector
@@ -1620,15 +1709,21 @@ public final class FloatUtil {
   public static void multMatrixVec(final float[] m_in, final int m_in_off,
                                    final float[] v_in, final int v_in_off,
                                    final float[] v_out, final int v_out_off) {
-    for (int i = 0; i < 4; i++) {
       // (one matrix row in column-major order) X (column vector)
-      final int i_m_in_off = i+m_in_off;
-      v_out[i + v_out_off] =
-        v_in[0+v_in_off] * m_in[0*4+i_m_in_off] +
-        v_in[1+v_in_off] * m_in[1*4+i_m_in_off] +
-        v_in[2+v_in_off] * m_in[2*4+i_m_in_off] +
-        v_in[3+v_in_off] * m_in[3*4+i_m_in_off];
-    }
+      v_out[0 + v_out_off] = v_in[0+v_in_off] * m_in[0*4+m_in_off  ]  +  v_in[1+v_in_off] * m_in[1*4+m_in_off  ] +
+                             v_in[2+v_in_off] * m_in[2*4+m_in_off  ]  +  v_in[3+v_in_off] * m_in[3*4+m_in_off  ];
+
+      final int m_in_off_1 = 1+m_in_off;
+      v_out[1 + v_out_off] = v_in[0+v_in_off] * m_in[0*4+m_in_off_1]  +  v_in[1+v_in_off] * m_in[1*4+m_in_off_1] +
+                             v_in[2+v_in_off] * m_in[2*4+m_in_off_1]  +  v_in[3+v_in_off] * m_in[3*4+m_in_off_1];
+
+      final int m_in_off_2 = 2+m_in_off;
+      v_out[2 + v_out_off] = v_in[0+v_in_off] * m_in[0*4+m_in_off_2]  +  v_in[1+v_in_off] * m_in[1*4+m_in_off_2] +
+                             v_in[2+v_in_off] * m_in[2*4+m_in_off_2]  +  v_in[3+v_in_off] * m_in[3*4+m_in_off_2];
+
+      final int m_in_off_3 = 3+m_in_off;
+      v_out[3 + v_out_off] = v_in[0+v_in_off] * m_in[0*4+m_in_off_3]  +  v_in[1+v_in_off] * m_in[1*4+m_in_off_3] +
+                             v_in[2+v_in_off] * m_in[2*4+m_in_off_3]  +  v_in[3+v_in_off] * m_in[3*4+m_in_off_3];
   }
 
   /**
@@ -1638,38 +1733,25 @@ public final class FloatUtil {
    * @param v_out m_in * v_in
    */
   public static void multMatrixVec(final float[] m_in, final float[] v_in, final float[] v_out) {
-    for (int i = 0; i < 4; i++) {
       // (one matrix row in column-major order) X (column vector)
-      v_out[i] =
-        v_in[0] * m_in[0*4+i] +
-        v_in[1] * m_in[1*4+i] +
-        v_in[2] * m_in[2*4+i] +
-        v_in[3] * m_in[3*4+i];
-    }
+      v_out[0] = v_in[0] * m_in[0*4  ]  +  v_in[1] * m_in[1*4  ] +
+                 v_in[2] * m_in[2*4  ]  +  v_in[3] * m_in[3*4  ];
+
+      v_out[1] = v_in[0] * m_in[0*4+1]  +  v_in[1] * m_in[1*4+1] +
+                 v_in[2] * m_in[2*4+1]  +  v_in[3] * m_in[3*4+1];
+
+      v_out[2] = v_in[0] * m_in[0*4+2]  +  v_in[1] * m_in[1*4+2] +
+                 v_in[2] * m_in[2*4+2]  +  v_in[3] * m_in[3*4+2];
+
+      v_out[3] = v_in[0] * m_in[0*4+3]  +  v_in[1] * m_in[1*4+3] +
+                 v_in[2] * m_in[2*4+3]  +  v_in[3] * m_in[3*4+3];
   }
 
   /**
    * @param m_in 4x4 matrix in column-major order
    * @param v_in 4-component column-vector
    * @param v_out m_in * v_in
-   */
-  public static void multMatrixVec(final FloatBuffer m_in, final float[] v_in, final int v_in_off, final float[] v_out, final int v_out_off) {
-    final int m_in_off = m_in.position();
-    for (int i = 0; i < 4; i++) {
-      // (one matrix row in column-major order) X (column vector)
-      final int i_m_in_off = i+m_in_off;
-      v_out[i+v_out_off] =
-        v_in[0+v_in_off] * m_in.get(0*4+i_m_in_off) +
-        v_in[1+v_in_off] * m_in.get(1*4+i_m_in_off) +
-        v_in[2+v_in_off] * m_in.get(2*4+i_m_in_off) +
-        v_in[3+v_in_off] * m_in.get(3*4+i_m_in_off);
-    }
-  }
-
-  /**
-   * @param m_in 4x4 matrix in column-major order
-   * @param v_in 4-component column-vector
-   * @param v_out m_in * v_in
+   * @deprecated use on of the float[] variants
    */
   public static void multMatrixVec(final FloatBuffer m_in, final float[] v_in, final float[] v_out) {
     final int m_in_off = m_in.position();
@@ -1681,26 +1763,6 @@ public final class FloatUtil {
         v_in[1] * m_in.get(1*4+i_m_in_off) +
         v_in[2] * m_in.get(2*4+i_m_in_off) +
         v_in[3] * m_in.get(3*4+i_m_in_off);
-    }
-  }
-
-  /**
-   * @param m_in 4x4 matrix in column-major order
-   * @param v_in 4-component column-vector
-   * @param v_out m_in * v_in
-   */
-  public static void multMatrixVec(final FloatBuffer m_in, final FloatBuffer v_in, final FloatBuffer v_out) {
-    final int v_in_off = v_in.position();
-    final int v_out_off = v_out.position();
-    final int m_in_off = m_in.position();
-    for (int i = 0; i < 4; i++) {
-      // (one matrix row in column-major order) X (column vector)
-      final int i_m_in_off = i+m_in_off;
-      v_out.put(i + v_out_off,
-              v_in.get(0+v_in_off) * m_in.get(0*4+i_m_in_off) +
-              v_in.get(1+v_in_off) * m_in.get(1*4+i_m_in_off) +
-              v_in.get(2+v_in_off) * m_in.get(2*4+i_m_in_off) +
-              v_in.get(3+v_in_off) * m_in.get(3*4+i_m_in_off));
     }
   }
 
@@ -1754,6 +1816,7 @@ public final class FloatUtil {
    * @param rowMajorOrder if true floats are layed out in row-major-order, otherwise column-major-order (OpenGL)
    * @param row row number to print
    * @return matrix row string representation
+   * @deprecated use on of the float[] variants
    */
   public static StringBuilder matrixRowToString(StringBuilder sb, final String f,
                                                 final FloatBuffer a, final int aOffset,
@@ -1812,6 +1875,7 @@ public final class FloatUtil {
    * @param columns
    * @param rowMajorOrder if true floats are layed out in row-major-order, otherwise column-major-order (OpenGL)
    * @return matrix string representation
+   * @deprecated use on of the float[] variants
    */
   public static StringBuilder matrixToString(StringBuilder sb, final String rowPrefix, final String f,
                                              final FloatBuffer a, final int aOffset, final int rows, final int columns, final boolean rowMajorOrder) {
@@ -1864,6 +1928,7 @@ public final class FloatUtil {
    * @param columns
    * @param rowMajorOrder if true floats are layed out in row-major-order, otherwise column-major-order (OpenGL)
    * @return side by side representation
+   * @deprecated use on of the float[] variants
    */
   public static StringBuilder matrixToString(StringBuilder sb, final String rowPrefix, final String f,
                                              final FloatBuffer a, final int aOffset, final FloatBuffer b, final int bOffset,
@@ -2004,6 +2069,14 @@ public final class FloatUtil {
    * @see #isZero(float, float)
    */
   public static final float EPSILON = 1.1920929E-7f; // Float.MIN_VALUE == 1.4e-45f ; double EPSILON 2.220446049250313E-16d
+
+  /**
+   * Inversion Epsilon, used with equals method to determine if two inverted matrices are close enough to be considered equal.
+   * <p>
+   * Using {@value}, which is ~100 times {@link FloatUtil#EPSILON}.
+   * </p>
+   */
+  public static final float INV_DEVIANCE = 1.0E-5f; // FloatUtil.EPSILON == 1.1920929E-7f; double ALLOWED_DEVIANCE: 1.0E-8f
 
   /**
    * Return true if both values are equal w/o regarding an epsilon.

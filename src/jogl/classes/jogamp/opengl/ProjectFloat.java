@@ -374,7 +374,7 @@ public class ProjectFloat {
     FloatUtil.multMatrix(projMatrix, modelMatrix, mat4Tmp1);
 
     // mat4Tmp1 = Inv(P x M)
-    if ( null == FloatUtil.invertMatrix(mat4Tmp1, 0, mat4Tmp1, 0, mat4Tmp2) ) {
+    if ( null == FloatUtil.invertMatrix(mat4Tmp1, mat4Tmp1) ) {
       return false;
     }
 
@@ -434,7 +434,7 @@ public class ProjectFloat {
     FloatUtil.multMatrix(projMatrix, modelMatrix, mat4Tmp1);
 
     // mat4Tmp1 = Inv(P x M)
-    if ( null == FloatUtil.invertMatrix(mat4Tmp1, 0, mat4Tmp1, 0, mat4Tmp2) ) {
+    if ( null == FloatUtil.invertMatrix(mat4Tmp1, mat4Tmp1) ) {
       return false;
     }
 
@@ -530,7 +530,7 @@ public class ProjectFloat {
                                final FloatBuffer obj_pos) {
     FloatUtil.multMatrix(projMatrix, modelMatrix, mat4Tmp1);
 
-    if ( null == FloatUtil.invertMatrix(mat4Tmp1, 0, mat4Tmp1, 0, mat4Tmp2) ) {
+    if ( null == FloatUtil.invertMatrix(mat4Tmp1, mat4Tmp1) ) {
       return false;
     }
 

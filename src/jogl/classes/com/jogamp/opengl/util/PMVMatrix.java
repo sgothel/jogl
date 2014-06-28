@@ -174,6 +174,7 @@ public final class PMVMatrix implements GLMatrixFunc {
      * @param a 4x4 matrix in column major order (OpenGL)
      * @return matrix string representation
      */
+    @SuppressWarnings("deprecation")
     public static StringBuilder matrixToString(StringBuilder sb, String f, FloatBuffer a) {
         return FloatUtil.matrixToString(sb, null, f, a, 0, 4, 4, false);
     }
@@ -185,6 +186,7 @@ public final class PMVMatrix implements GLMatrixFunc {
      * @param b 4x4 matrix in column major order (OpenGL)
      * @return side by side representation
      */
+    @SuppressWarnings("deprecation")
     public static StringBuilder matrixToString(StringBuilder sb, String f, FloatBuffer a, FloatBuffer b) {
         return FloatUtil.matrixToString(sb, null, f, a, 0, b, 0, 4, 4, false);
     }
@@ -205,9 +207,9 @@ public final class PMVMatrix implements GLMatrixFunc {
           // Mvit Modelview-Inverse-Transpose
           matrixArray = new float[5*16];
 
-          mP_offset  = 0*16;
-          mMv_offset = 1*16;
-          mTex_offset  = 4*16;
+          mP_offset   = 0*16;
+          mMv_offset  = 1*16;
+          mTex_offset = 4*16;
 
           matrixPMvMvit = Buffers.slice2Float(matrixArray,  0*16, 4*16);  // P + Mv + Mvi + Mvit
           matrixPMvMvi  = Buffers.slice2Float(matrixArray,  0*16, 3*16);  // P + Mv + Mvi
@@ -535,17 +537,17 @@ public final class PMVMatrix implements GLMatrixFunc {
      */
     public final void glLoadMatrix(final Quaternion quat) {
         if(matrixMode==GL_MODELVIEW) {
-            quat.toMatrix(matrixMv);
+            quat.toMatrix(matrixArray, mMv_offset);
             matrixMv.reset();
             dirtyBits |= DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW | DIRTY_FRUSTUM ;
             modifiedBits |= MODIFIED_MODELVIEW;
         } else if(matrixMode==GL_PROJECTION) {
-            quat.toMatrix(matrixP);
+            quat.toMatrix(matrixArray, mP_offset);
             matrixP.reset();
             dirtyBits |= DIRTY_FRUSTUM ;
             modifiedBits |= MODIFIED_PROJECTION;
         } else if(matrixMode==GL.GL_TEXTURE) {
-            quat.toMatrix(matrixTex);
+            quat.toMatrix(matrixArray, mTex_offset);
             matrixTex.reset();
             modifiedBits |= MODIFIED_TEXTURE;
         }
@@ -597,6 +599,7 @@ public final class PMVMatrix implements GLMatrixFunc {
         }
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public final void glMultMatrixf(final FloatBuffer m) {
         if(matrixMode==GL_MODELVIEW) {
@@ -1033,7 +1036,7 @@ public final class PMVMatrix implements GLMatrixFunc {
         final int _matrixMviOffset = matrixMvi.position();
         boolean res = false;
         if( 0 != ( dirtyBits & DIRTY_INVERSE_MODELVIEW ) ) { // only if dirt; always requested at this point, see update()
-            if( null == FloatUtil.invertMatrix(matrixArray, mMv_offset, _matrixMvi, _matrixMviOffset, mat4Tmp1) ) {
+            if( null == FloatUtil.invertMatrix(matrixArray, mMv_offset, _matrixMvi, _matrixMviOffset) ) {
                 throw new GLException(msgCantComputeInverse);
             }
             dirtyBits &= ~DIRTY_INVERSE_MODELVIEW;
