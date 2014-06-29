@@ -68,6 +68,7 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 
 import jogamp.newt.DefaultEDTUtil;
+import jogamp.newt.driver.PNGIcon;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -217,7 +218,7 @@ public class TestGearsES2NEWT extends UITestCase {
                 }
                 pointerIcons[1] = _pointerIcon;
             }
-            {
+            if( PNGIcon.isAvailable() ) {
                 PointerIcon _pointerIcon = null;
                 final IOUtil.ClassResources res = new IOUtil.ClassResources(glWindow.getClass(), new String[] { "jogamp-pointer-64x64.png" } );
                 try {

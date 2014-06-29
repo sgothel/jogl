@@ -284,12 +284,12 @@ function jrun() {
         export USE_CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
         echo USE_CLASSPATH $USE_CLASSPATH
         X_ARGS="-Djava.awt.headless=true $X_ARGS"
+    elif [ $awton -eq -1 ] ; then
+        export USE_CLASSPATH=$JOGAMP_ATOMICS_NOAWT_CLASSPATH
     else
         #export USE_CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
         export USE_CLASSPATH=$JOGAMP_ALL_NOAWT_CLASSPATH
         #export USE_CLASSPATH=$JOGAMP_MOBILE_CLASSPATH
-        #export USE_CLASSPATH=$JOGAMP_ALL_NOAWT_ALT_CLASSPATH
-        #export USE_CLASSPATH=$JOGAMP_MOBILE_ALT_CLASSPATH
         #export USE_CLASSPATH=.:$GLUEGEN_JAR:$JOGL_BUILD_DIR/jar/atomic/jogl-core.jar:$JOGL_BUILD_DIR/jar/atomic/jogl-gldesktop.jar:$JOGL_BUILD_DIR/jar/atomic/jogl-os-x11.jar:$JOGL_BUILD_DIR/jar/atomic/jogl-util.jar:$JOGL_BUILD_DIR/jar/atomic/nativewindow-core.jar:$JOGL_BUILD_DIR/jar/atomic/nativewindow-os-x11.jar:$JOGL_BUILD_DIR/jar/atomic/newt-core.jar:$JOGL_BUILD_DIR/jar/atomic/newt-driver-x11.jar:$JOGL_BUILD_DIR/jar/atomic/newt-ogl.jar:$JOGL_BUILD_DIR/jar/jogl-test.jar:$SWT_CLASSPATH:$JUNIT_JAR:$ANT_JARS
         X_ARGS="-Djava.awt.headless=true $X_ARGS"
     fi
@@ -327,21 +327,25 @@ function jrun() {
     echo
 }
 
+function testnoawtatomics() {
+    jrun -1 0 $* 2>&1 | tee -a java-run.log
+}
+
 function testnoawt() {
-    jrun 0 0 $* 2>&1 | tee -a java-run.log
+    jrun  0 0 $* 2>&1 | tee -a java-run.log
 }
 
 function testawt() {
     MOSX_MT=0
-    jrun 1 0 $* 2>&1 | tee -a java-run.log
+    jrun  1 0 $* 2>&1 | tee -a java-run.log
 }
 
 function testswt() {
-    jrun 0 1 $* 2>&1 | tee -a java-run.log
+    jrun  0 1 $* 2>&1 | tee -a java-run.log
 }
 
 function testawtswt() {
-    jrun 1 1 $* 2>&1 | tee -a java-run.log
+    jrun  1 1 $* 2>&1 | tee -a java-run.log
 }
 
 #
@@ -352,7 +356,8 @@ function testawtswt() {
 #testnoawt com.jogamp.nativewindow.NativeWindowVersion $*
 #testnoawt com.jogamp.opengl.JoglVersion $*
 #testnoawt com.jogamp.newt.NewtVersion $*
-testnoawt com.jogamp.oculusvr.OVRVersion $*
+#testnoawt com.jogamp.oculusvr.OVRVersion $*
+
 #testnoawt com.jogamp.newt.opengl.GLWindow $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLVersionParsing00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT $*
@@ -389,6 +394,7 @@ testnoawt com.jogamp.oculusvr.OVRVersion $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NEWT $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT $*
+testnoawtatomics com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestRedSquareES2NEWT $*
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
@@ -435,12 +441,13 @@ testnoawt com.jogamp.oculusvr.OVRVersion $*
 # CORE [NEWT + AWT] (testnoawt and testawt)
 #
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestFloatUtil01NOUI $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestFloatUtil02MatrixMatrixMultNOUI $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestFloatUtil03InversionNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix02NOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix03NOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestGluUnprojectFloatNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestGluUnprojectDoubleNOUI $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestFloatUtil01MatrixMatrixMultNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestBinary16NOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestQuaternion01NOUI $*
 

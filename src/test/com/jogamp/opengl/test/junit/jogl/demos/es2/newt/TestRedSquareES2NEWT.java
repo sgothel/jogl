@@ -203,6 +203,7 @@ public class TestRedSquareES2NEWT extends UITestCase {
                 loop_shutdown = true;
             }
         }
+        System.err.println("duration "+duration);
         System.err.println("loops "+loops);
         System.err.println("loop shutdown "+loop_shutdown);
         System.err.println("forceES2 "+forceES2);

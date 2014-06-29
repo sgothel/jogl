@@ -333,12 +333,24 @@ public abstract class UITestCase {
      *                 If <code>null</code> the current working directory is being used.
      */
     public void snapshot(int sn, String postSNDetail, GL gl, GLReadBufferUtil readBufferUtil, String fileSuffix, String destPath) {
+
         final GLDrawable drawable = gl.getContext().getGLReadDrawable();
         final String filename = getSnapshotFilename(sn, postSNDetail,
                                                     drawable.getChosenGLCapabilities(), drawable.getSurfaceWidth(), drawable.getSurfaceHeight(),
                                                     readBufferUtil.hasAlpha(), fileSuffix, destPath);
         System.err.println(Thread.currentThread().getName()+": ** screenshot: "+filename);
         gl.glFinish(); // just make sure rendering finished ..
+        try {
+            snapshot(gl, readBufferUtil, filename);
+        } catch (ClassNotFoundException cnfe) {
+            // Texture class belongs to jogl-util.jar which my not be included in test environment!
+            System.err.println("Caught ClassNotFoundException: "+cnfe.getMessage());
+        } catch (NoClassDefFoundError cnfe) {
+            // Texture class belongs to jogl-util.jar which my not be included in test environment!
+            System.err.println("Caught NoClassDefFoundError: "+cnfe.getMessage());
+        }
+    }
+    private void snapshot(GL gl, GLReadBufferUtil readBufferUtil, String filename) throws ClassNotFoundException, NoClassDefFoundError {
         if(readBufferUtil.readPixels(gl, false)) {
             readBufferUtil.write(new File(filename));
         }
