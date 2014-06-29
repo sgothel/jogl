@@ -26,7 +26,11 @@
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="jogl/build/newt/obj"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="src" path="build/oculusvr/gensrc/classes"/>
+	<classpathentry kind="src" output="build/oculusvr/gensrc/classes" path="build/oculusvr/gensrc/classes">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="jogl/build/oculusvr/obj"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="src" path="src/oculusvr/classes"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/gluegen"/>

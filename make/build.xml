@@ -253,6 +253,11 @@
             <fileset dir="${src}/jogl/classes"/>
             <fileset dir="${build}/jogl/gensrc/classes"/>
             <fileset dir="${src}/newt/classes"/>
+            <fileset dir="${src}/oculusvr/classes"/>
+            <fileset dir="${build}/oculusvr/gensrc/classes"/>
+        </zip>
+        <zip destfile="${build}/jogl-test-java-src.zip" level="0">
+            <fileset dir="${src}/test"/>
         </zip>
     </target>
 
