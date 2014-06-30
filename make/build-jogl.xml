@@ -1719,7 +1719,7 @@
             <srcfileset dir="${src.java}"
                      includes="${java.part.nonjava}"/>
             <targetfileset dir="."
-                     includes="${jogl-core.jar} ${jogl-util.jar} ${jogl-util-graph.jar} ${jogl-util-fixedfuncemu.jar}" />
+                     includes="${jogl.jar} ${jogl-util.jar} ${jogl-util-graph.jar} ${jogl-util-fixedfuncemu.jar}" />
         </dependset>
     </target>
     <target name="build-jars" depends="build-jars-dependset,build-jars-javase" />
@@ -1814,7 +1814,7 @@
 
     <target name="build-jars-javase" depends="setup-manifestfile, build-jars-android, build-jars-mobile-javase, 
                                               build-jars-desktop-javase, build-jars-awt-javase, build-jars-swt-javase">
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-core.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"
                      excludes="${java.part.core.exclude}"/>

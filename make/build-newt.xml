@@ -804,7 +804,7 @@
     </target>
 
     <target name="build-jars-javase" depends="setup-manifestfile,build-jars-opengl,build-jars-awt,build-jars-swt,build-jars-driver">
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-core.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"/>
             <fileset dir="resources/assets" includes="newt/data/**" />

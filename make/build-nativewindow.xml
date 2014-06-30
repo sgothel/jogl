@@ -827,7 +827,7 @@
     </target>
 
     <target name="build-jars-javase" depends="setup-manifestfile,build-jars-awt,build-jars-x11,build-jars-windows,build-jars-macosx">
-        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow-core.jar}" filesonly="true">
+        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"
                      excludes="${java.part.awt} ${java.part.x11} ${java.part.windows}"/>

@@ -49,7 +49,7 @@ public final class CgDynamicLibraryBundleInfo implements DynamicLibraryBundleInf
 
                 if(TempJarCache.isInitialized()) {
                    // only: jogl-cg.jar -> jogl-cg-natives-<os.and.arch>.jar [atomic JAR files only]
-                   JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { CgDynamicLibraryBundleInfo.class }, null, null );
+                   JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { CgDynamicLibraryBundleInfo.class }, null);
                 }
                 return null;
             }

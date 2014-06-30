@@ -14,7 +14,7 @@
       <all-permissions/>
   </security>
     <resources>
-      <jar href="jar/atomic/nativewindow-core.jar" />
+      <jar href="jar/atomic/nativewindow.jar" />
       <jar href="jar/atomic/nativewindow-awt.jar"/>
       <extension name="gluegen-rt"   href="GLUEGEN_CODEBASE_TAG/gluegen-rt.jnlp" />
     </resources>

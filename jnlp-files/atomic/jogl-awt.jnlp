@@ -14,7 +14,7 @@
       <all-permissions/>
   </security>
     <resources>
-      <jar href="jar/atomic/jogl-core.jar" />
+      <jar href="jar/atomic/jogl.jar" />
       <jar href="jar/atomic/jogl-sdk.jar" />
       <jar href="jar/atomic/jogl-util.jar" />
       <jar href="jar/atomic/jogl-awt.jar" />
