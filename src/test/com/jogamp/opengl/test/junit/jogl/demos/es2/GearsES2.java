@@ -45,7 +45,7 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLEventListener;
+import javax.media.opengl.GLEventListener2;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLUniformData;
 
@@ -53,7 +53,7 @@ import javax.media.opengl.GLUniformData;
  * GearsES2.java <BR>
  * @author Brian Paul (converted to Java by Ron Cemer and Sven Gothel) <P>
  */
-public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererListener {
+public class GearsES2 implements GLEventListener2, TileRendererBase.TileRendererListener {
     private final FloatBuffer lightPos = Buffers.newDirectFloatBuffer( new float[] { 5.0f, 5.0f, 10.0f } );
 
     private ShaderState st = null;
@@ -89,7 +89,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
     private PinchToZoomGesture pinchToZoomGesture = null;
 
 
-    public GearsES2(int swapInterval) {
+    public GearsES2(final int swapInterval) {
         this.swapInterval = swapInterval;
     }
 
@@ -98,49 +98,49 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
     }
 
     @Override
-    public void addTileRendererNotify(TileRendererBase tr) {
+    public void addTileRendererNotify(final TileRendererBase tr) {
         tileRendererInUse = tr;
         doRotateBeforePrinting = doRotate;
         setDoRotation(false);
     }
     @Override
-    public void removeTileRendererNotify(TileRendererBase tr) {
+    public void removeTileRendererNotify(final TileRendererBase tr) {
         tileRendererInUse = null;
         setDoRotation(doRotateBeforePrinting);
     }
     @Override
-    public void startTileRendering(TileRendererBase tr) {
+    public void startTileRendering(final TileRendererBase tr) {
         System.err.println("GearsES2.startTileRendering: "+sid()+""+tr);
     }
     @Override
-    public void endTileRendering(TileRendererBase tr) {
+    public void endTileRendering(final TileRendererBase tr) {
         System.err.println("GearsES2.endTileRendering: "+sid()+""+tr);
     }
 
-    public void setIgnoreFocus(boolean v) { ignoreFocus = v; }
-    public void setDoRotation(boolean rotate) { this.doRotate = rotate; }
-    public void setClearBuffers(boolean v) { clearBuffers = v; }
-    public void setVerbose(boolean v) { verbose = v; }
-    public void setFlipVerticalInGLOrientation(boolean v) { flipVerticalInGLOrientation=v; }
+    public void setIgnoreFocus(final boolean v) { ignoreFocus = v; }
+    public void setDoRotation(final boolean rotate) { this.doRotate = rotate; }
+    public void setClearBuffers(final boolean v) { clearBuffers = v; }
+    public void setVerbose(final boolean v) { verbose = v; }
+    public void setFlipVerticalInGLOrientation(final boolean v) { flipVerticalInGLOrientation=v; }
 
     /** float[4] */
-    public void setClearColor(float[] clearColor) {
+    public void setClearColor(final float[] clearColor) {
         this.clearColor = clearColor;
     }
 
-    public void setGearsColors(FloatBuffer gear1Color, FloatBuffer gear2Color, FloatBuffer gear3Color) {
+    public void setGearsColors(final FloatBuffer gear1Color, final FloatBuffer gear2Color, final FloatBuffer gear3Color) {
         this.gear1Color = gear1Color;
         this.gear2Color = gear2Color;
         this.gear3Color = gear3Color;
     }
 
-    public void setSharedGearsObjects(GearsObjectES2 g1, GearsObjectES2 g2, GearsObjectES2 g3) {
+    public void setSharedGearsObjects(final GearsObjectES2 g1, final GearsObjectES2 g2, final GearsObjectES2 g3) {
         gear1 = g1;
         gear2 = g2;
         gear3 = g3;
     }
 
-    public void setSharedGears(GearsES2 shared) {
+    public void setSharedGears(final GearsES2 shared) {
         sharedGears = shared;
     }
 
@@ -161,8 +161,12 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
 
     public boolean usesSharedGears() { return usesSharedGears; }
 
-    public void setUseMappedBuffers(boolean v) { useMappedBuffers = v; }
-    public void setValidateBuffers(boolean v) { validateBuffers = v; }
+    public void setUseMappedBuffers(final boolean v) { useMappedBuffers = v; }
+    public void setValidateBuffers(final boolean v) { validateBuffers = v; }
+
+    public PMVMatrix getPMVMatrix() {
+        return pmvMatrix;
+    }
 
     private static final int TIME_OUT     = 2000; // 2s
     private static final int POLL_DIVIDER   = 20; // TO/20
@@ -171,7 +175,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
     /**
      * @return True if this GLEventListener became initialized within TIME_OUT 2s
      */
-    public boolean waitForInit(boolean initialized) throws InterruptedException {
+    public boolean waitForInit(final boolean initialized) throws InterruptedException {
         int wait;
         for (wait=0; wait<POLL_DIVIDER && initialized != isInit ; wait++) {
             Thread.sleep(TIME_SLICE);
@@ -182,7 +186,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
     private final String sid() { return "0x"+Integer.toHexString(hashCode()); }
 
     @Override
-    public void init(GLAutoDrawable drawable) {
+    public void init(final GLAutoDrawable drawable) {
         if(null != sharedGears && !sharedGears.isInit() ) {
             System.err.println(Thread.currentThread()+" GearsES2.init.0 "+sid()+": pending shared Gears .. re-init later XXXXX");
             drawable.setGLEventListenerInitState(this, false);
@@ -201,8 +205,6 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
             System.err.println("No GLSL available, no rendering.");
             return;
         }
-
-        gl.glEnable(GL.GL_DEPTH_TEST);
 
         st = new ShaderState();
         // st.setVerbose(true);
@@ -225,7 +227,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
         st.ownUniform(pmvMatrixUniform);
         st.uniform(gl, pmvMatrixUniform);
 
-        GLUniformData lightU = new GLUniformData("lightPos", 3, lightPos);
+        final GLUniformData lightU = new GLUniformData("lightPos", 3, lightPos);
         st.ownUniform(lightU);
         st.uniform(gl, lightU);
 
@@ -315,7 +317,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
 
     private final GestureHandler.GestureListener pinchToZoomListener = new GestureHandler.GestureListener() {
         @Override
-        public void gestureDetected(GestureEvent gh) {
+        public void gestureDetected(final GestureEvent gh) {
             final PinchToZoomGesture.ZoomEvent ze = (PinchToZoomGesture.ZoomEvent) gh;
             final float zoom = ze.getZoom(); //  * ( ze.getTrigger().getPointerCount() - 1 ); <- too much ..
             panZ = zoom * 30f - 30f; // [0 .. 2] -> [-30f .. 30f]
@@ -323,7 +325,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
     };
 
     @Override
-    public void reshape(GLAutoDrawable glad, int x, int y, int width, int height) {
+    public void reshape(final GLAutoDrawable glad, final int x, final int y, final int width, final int height) {
         if( !isInit ) { return; }
         final GL2ES2 gl = glad.getGL().getGL2ES2();
         if(-1 != swapInterval) {
@@ -333,16 +335,16 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
     }
 
     @Override
-    public void reshapeTile(TileRendererBase tr,
-                            int tileX, int tileY, int tileWidth, int tileHeight,
-                            int imageWidth, int imageHeight) {
+    public void reshapeTile(final TileRendererBase tr,
+                            final int tileX, final int tileY, final int tileWidth, final int tileHeight,
+                            final int imageWidth, final int imageHeight) {
         if( !isInit ) { return; }
         final GL2ES2 gl = tr.getAttachedDrawable().getGL().getGL2ES2();
         gl.setSwapInterval(0);
         reshapeImpl(gl, tileX, tileY, tileWidth, tileHeight, imageWidth, imageHeight);
     }
 
-    void reshapeImpl(GL2ES2 gl, int tileX, int tileY, int tileWidth, int tileHeight, int imageWidth, int imageHeight) {
+    void reshapeImpl(final GL2ES2 gl, final int tileX, final int tileY, final int tileWidth, final int tileHeight, final int imageWidth, final int imageHeight) {
         final boolean msaa = gl.getContext().getGLDrawable().getChosenGLCapabilities().getSampleBuffers();
         if(verbose) {
             System.err.println(Thread.currentThread()+" GearsES2.reshape "+sid()+" "+tileX+"/"+tileY+" "+tileWidth+"x"+tileHeight+" of "+imageWidth+"x"+imageHeight+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(gl.getContext().getGLDrawable().getHandle())+", msaa "+msaa+", tileRendererInUse "+tileRendererInUse);
@@ -352,18 +354,16 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
             return;
         }
 
-        st.useProgram(gl, true);
-
         // compute projection parameters 'normal'
         float left, right, bottom, top;
         if( imageHeight > imageWidth ) {
-            float a = (float)imageHeight / (float)imageWidth;
+            final float a = (float)imageHeight / (float)imageWidth;
             left = -1.0f;
             right = 1.0f;
             bottom = -a;
             top = a;
         } else {
-            float a = (float)imageWidth / (float)imageHeight;
+            final float a = (float)imageWidth / (float)imageHeight;
             left = -a;
             right = a;
             bottom = -1.0f;
@@ -394,15 +394,32 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
         pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0.0f, 0.0f, -40.0f);
+        st.useProgram(gl, true);
         st.uniform(gl, pmvMatrixUniform);
         st.useProgram(gl, false);
-
-        // System.err.println(Thread.currentThread()+" GearsES2.reshape FIN");
     }
     // private boolean useAndroidDebug = false;
 
     @Override
-    public void dispose(GLAutoDrawable drawable) {
+    public void setProjectionModelview(final GLAutoDrawable drawable, final float[] mat4Projection, final float[] mat4Modelview) {
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
+        pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
+        if( flipVerticalInGLOrientation && gl.getContext().getGLDrawable().isGLOriented() ) {
+            pmvMatrix.glLoadIdentity();
+            pmvMatrix.glScalef(1f, -1f, 1f);
+            pmvMatrix.glMultMatrixf(mat4Projection, 0);
+        } else {
+            pmvMatrix.glLoadMatrixf(mat4Projection, 0);
+        }
+        pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
+        pmvMatrix.glLoadMatrixf(mat4Modelview, 0);
+        st.useProgram(gl, true);
+        st.uniform(gl, pmvMatrixUniform);
+        st.useProgram(gl, false);
+    }
+
+    @Override
+    public void dispose(final GLAutoDrawable drawable) {
         if( !isInit ) { return; }
         isInit = false;
         if(verbose) {
@@ -439,16 +456,25 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
     }
 
     @Override
-    public void display(GLAutoDrawable drawable) {
+    public void display(final GLAutoDrawable drawable) {
+        display(drawable, 0);
+    }
+
+    @Override
+    public void display(final GLAutoDrawable drawable, final int flags) {
         if( !isInit ) { return; }
         if(null != sharedGears && !sharedGears.isInit() ) { return; }
-        GLAnimatorControl anim = drawable.getAnimator();
+        final GLAnimatorControl anim = drawable.getAnimator();
         if( verbose && ( null == anim || !anim.isAnimating() ) ) {
             System.err.println(Thread.currentThread()+" GearsES2.display "+sid()+" "+drawable.getSurfaceWidth()+"x"+drawable.getSurfaceHeight()+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(drawable.getHandle()));
         }
+
+        final boolean repeatedFrame = 0 != ( GLEventListener2.DISPLAY_REPEAT & flags );
+        final boolean dontClear = 0 != ( GLEventListener2.DISPLAY_DONTCLEAR & flags );
+
         // Turn the gears' teeth
-        if(doRotate) {
-            angle += 2.0f;
+        if( doRotate && !repeatedFrame ) {
+            angle += 0.5f;
         }
 
         // Get the GL corresponding to the drawable we are animating
@@ -462,7 +488,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
           hasFocus = true;
         }
 
-        if( clearBuffers ) {
+        if( clearBuffers && !dontClear ) {
             if( null != clearColor ) {
               gl.glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
             } else if( null != tileRendererInUse ) {
@@ -487,11 +513,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
             return;
         }
 
-        // Only possible if we do not flip the projection matrix
-        final boolean enableCullFace = ! ( flipVerticalInGLOrientation && gl.getContext().getGLDrawable().isGLOriented() );
-        if( enableCullFace ) {
-            gl.glEnable(GL.GL_CULL_FACE);
-        }
+        setGLStates(gl, true);
 
         st.useProgram(gl, true);
         pmvMatrix.glPushMatrix();
@@ -506,8 +528,22 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
         pmvMatrix.glPopMatrix();
         st.useProgram(gl, false);
 
-        if( enableCullFace ) {
-            gl.glDisable(GL.GL_CULL_FACE);
+        setGLStates(gl, false);
+    }
+
+    public void setGLStates(final GL2ES2 gl, final boolean enable) {
+        // Culling only possible if we do not flip the projection matrix
+        final boolean enableCullFace = ! ( flipVerticalInGLOrientation && gl.getContext().getGLDrawable().isGLOriented() );
+        if( enable ) {
+            gl.glEnable(GL.GL_DEPTH_TEST);
+            if( enableCullFace ) {
+                gl.glEnable(GL.GL_CULL_FACE);
+            }
+        } else {
+            gl.glDisable(GL.GL_DEPTH_TEST);
+            if( enableCullFace ) {
+                gl.glDisable(GL.GL_CULL_FACE);
+            }
         }
     }
 
@@ -518,13 +554,13 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
 
     boolean confinedFixedCenter = false;
 
-    public void setConfinedFixedCenter(boolean v) {
+    public void setConfinedFixedCenter(final boolean v) {
         confinedFixedCenter = v;
     }
 
     class GearsKeyAdapter extends KeyAdapter {
-        public void keyPressed(KeyEvent e) {
-            int kc = e.getKeyCode();
+        public void keyPressed(final KeyEvent e) {
+            final int kc = e.getKeyCode();
             if(KeyEvent.VK_LEFT == kc) {
                 view_roty -= 1;
             } else if(KeyEvent.VK_RIGHT == kc) {
@@ -541,20 +577,20 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
         private int prevMouseX, prevMouseY;
 
         @Override
-        public void mouseClicked(MouseEvent e) {
+        public void mouseClicked(final MouseEvent e) {
         }
 
         @Override
-        public void mouseEntered(MouseEvent e) {
+        public void mouseEntered(final MouseEvent e) {
         }
 
         @Override
-        public void mouseExited(MouseEvent e) {
+        public void mouseExited(final MouseEvent e) {
         }
 
         @Override
-        public void mouseWheelMoved(MouseEvent e) {
-            float[] rot = e.getRotation();
+        public void mouseWheelMoved(final MouseEvent e) {
+            final float[] rot = e.getRotation();
             if( e.isControlDown() ) {
                 // alternative zoom
                 final float incr = e.isShiftDown() ? rot[0] : rot[1] * 0.5f ;
@@ -567,7 +603,7 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
             }
         }
 
-        public void mousePressed(MouseEvent e) {
+        public void mousePressed(final MouseEvent e) {
             if( e.getPointerCount()==1 ) {
                 prevMouseX = e.getX();
                 prevMouseY = e.getY();
@@ -579,10 +615,10 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
             }
         }
 
-        public void mouseReleased(MouseEvent e) {
+        public void mouseReleased(final MouseEvent e) {
         }
 
-        public void mouseMoved(MouseEvent e) {
+        public void mouseMoved(final MouseEvent e) {
             if( e.isConfined() ) {
                 navigate(e);
             } else {
@@ -593,27 +629,27 @@ public class GearsES2 implements GLEventListener, TileRendererBase.TileRendererL
             }
         }
 
-        public void mouseDragged(MouseEvent e) {
+        public void mouseDragged(final MouseEvent e) {
             navigate(e);
         }
 
-        private void navigate(MouseEvent e) {
+        private void navigate(final MouseEvent e) {
             int x = e.getX();
             int y = e.getY();
 
             int width, height;
-            Object source = e.getSource();
+            final Object source = e.getSource();
             Window window = null;
             if(source instanceof Window) {
                 window = (Window) source;
                 width=window.getSurfaceWidth();
                 height=window.getSurfaceHeight();
             } else if (source instanceof GLAutoDrawable) {
-                GLAutoDrawable glad = (GLAutoDrawable) source;
+                final GLAutoDrawable glad = (GLAutoDrawable) source;
                 width = glad.getSurfaceWidth();
                 height = glad.getSurfaceHeight();
             } else if (GLProfile.isAWTAvailable() && source instanceof java.awt.Component) {
-                java.awt.Component comp = (java.awt.Component) source;
+                final java.awt.Component comp = (java.awt.Component) source;
                 width=comp.getWidth(); // FIXME HiDPI: May need to convert window units -> pixel units!
                 height=comp.getHeight();
             } else {

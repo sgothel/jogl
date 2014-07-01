@@ -513,6 +513,20 @@
             <path refid="nativewindow_all_atoms.classpath" />
             <path refid="jogl_all_atoms.classpath" />
             <path refid="newt_all_atoms.classpath" />
+        </path>
+
+        <path id="junit_jogl_newt_oculusvr.compile.classpath">
+            <pathelement location="${junit.jar}" />
+            <pathelement location="${ant.jar}" />
+            <pathelement location="${ant-junit.jar}" />
+            <pathelement location="${ant-junit4.jar}" />
+            <pathelement location="${semver.jar}" />
+            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${gluegen-test-util.jar}" />
+            <pathelement location="${swt.jar}" />
+            <path refid="nativewindow_all_atoms.classpath" />
+            <path refid="jogl_all_atoms.classpath" />
+            <path refid="newt_all_atoms.classpath" />
             <path refid="oculusvr_all_atoms.classpath"/>
         </path>
 

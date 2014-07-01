@@ -124,6 +124,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLBufferObjectTracker"
     #D_ARGS="-Djogl.debug.GLBufferObjectTracker -Djogl.debug.GLArrayData -Djogl.debug.TraceGL -Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.GLSLCode"
+    #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.GLContext -Dnativewindow.debug.JAWT -Dnewt.debug.Window"
     #D_ARGS="-Dnativewindow.debug.JAWT -Djogl.debug.GLCanvas"
@@ -367,6 +368,11 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestVersionSemanticsNOUI $*
 
 #
+# Stereo
+#
+testnoawt com.jogamp.opengl.test.junit.jogl.stereo.ovr.OVRDemo01 $*
+
+#
 # HiDPI
 #
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
@@ -394,7 +400,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NEWT $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT $*
-testnoawtatomics com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+#testnoawtatomics com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestRedSquareES2NEWT $*
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*

@@ -16,9 +16,15 @@
       -->
     <target name="partitioning.setup" depends="common.init">
         <property name="java.part.oculusvr" 
-                  value="com/jogamp/oculusvr/* jogamp/oculusvr/*"/>
+                  value="com/jogamp/oculusvr/**"/>
+        <property name="java.part.opengl.oculusvr" 
+                  value="com/jogamp/opengl/oculusvr/** jogamp/opengl/oculusvr/**"/>
         <property name="java.part.oculusvr.exclude" 
-                  value="com/jogamp/oculusvr/renderer/*" />
+                  value="" />
+        <property name="java.part.oculusvr.shadercode"
+                  value="jogamp/opengl/oculusvr/shader/**"/>
+        <property name="java.part.nonjava" 
+                  value="${java.part.oculusvr.shadercode}"/>
     </target>
 
     <!-- ================================================================== -->
@@ -127,7 +133,7 @@
 
         <!-- Now check for the presence of one well-known file -->
         <uptodate property="java.generate.skip.ovr"
-                  targetfile="${src.generated.java}/com/jogamp/oculusvr/OVR.java">
+                  targetfile="${src.generated.java}/com/jogamp/opengl/oculusvr/OVR.java">
             <srcfiles refid="stub.includes.dependencies.fileset.1" />
             <srcfiles refid="stub.includes.dependencies.fileset.2" />
             <srcfiles refid="stub.includes.dependencies.fileset.3" />
@@ -161,7 +167,22 @@
     <!-- ================================================================== -->
 
     <target name="java.compile" depends="java.generate">
-        <!-- Perform the second pass Java compile; everything except portion of fixed function emulation depending on generated code. -->
+        <!-- Pure non JOGL OculusVR part -->
+        <javac destdir="${classes}"
+               excludes="${java.part.oculusvr.exclude} ${java.part.opengl.oculusvr}"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}" 
+               bootclasspath="${target.rt.jar}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="nativewindow_gluegen.classpath"/>
+            <src path="${src.java}" />
+            <src path="${src.generated.java}" />
+        </javac>
+        <!-- Add JOGL OculusVR part -->
         <javac destdir="${classes}"
                excludes="${java.part.oculusvr.exclude}"
                fork="yes"
@@ -172,11 +193,16 @@
                target="${target.targetlevel}" 
                bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
-            <!-- classpath refid="nativewindow_gluegen.classpath"/ -->
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />
             <src path="${src.generated.java}" />
         </javac>
+        <!-- make shadercode and fonts available in classpath -->
+        <copy todir="${classes}">
+            <fileset dir="${src.java}"
+                     includes="${java.part.nonjava}"
+                     excludes="**/*.java"/>
+        </copy>
     </target>
 
     <!-- ================================================================== -->
@@ -616,7 +642,7 @@
     <target name="build-jars-javase" depends="setup-manifestfile">
         <jar manifest="${build.oculusvr}/manifest.mf" destfile="${build.oculusvr}/oculusvr.jar" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.oculusvr}"
+                     includes="${java.part.oculusvr} ${java.part.opengl.oculusvr}"
                      excludes="${java.part.oculusvr.exclude}"/>
         </jar>
         <jar manifest="${build.oculusvr}/manifest.mf" destfile="${build.oculusvr}/oculusvr-natives-${os.and.arch}.jar" filesonly="true">

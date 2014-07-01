@@ -123,7 +123,8 @@ public class Matrix4 {
     }
 
     public final void transpose() {
-        FloatUtil.transposeMatrix(matrix, 0, mat4Tmp1);
+        System.arraycopy(matrix, 0, mat4Tmp1, 0, 16);
+        FloatUtil.transposeMatrix(mat4Tmp1, matrix);
     }
 
     public final float determinant() {

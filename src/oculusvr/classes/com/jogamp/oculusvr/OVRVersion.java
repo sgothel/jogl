@@ -29,10 +29,15 @@
 package com.jogamp.oculusvr;
 
 import com.jogamp.common.GlueGenVersion;
-
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.common.util.JogampVersion;
+import com.jogamp.oculusvr.OVR;
+import com.jogamp.oculusvr.OvrHmdContext;
+import com.jogamp.oculusvr.ovrHmdDesc;
+import com.jogamp.oculusvr.ovrSensorDesc;
+import com.jogamp.oculusvr.ovrSizei;
+import com.jogamp.oculusvr.ovrVector2i;
 
 import java.util.jar.Manifest;
 

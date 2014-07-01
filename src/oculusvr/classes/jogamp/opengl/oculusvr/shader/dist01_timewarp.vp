@@ -1,0 +1,44 @@
+//Copyright 2014 JogAmp Community. All rights reserved.
+
+#if __VERSION__ >= 130
+  #define attribute in
+  #define varying out
+#endif
+
+uniform vec2    ovr_EyeToSourceUVScale;
+uniform vec2    ovr_EyeToSourceUVOffset;
+uniform mat4    ovr_EyeRotationStart;
+uniform mat4    ovr_EyeRotationEnd;
+
+attribute vec2  ovr_Position;
+attribute vec2  ovr_Params;
+attribute vec2  ovr_TexCoordR;
+
+varying vec3    ovv_Fade;
+varying vec2    ovv_TexCoordR;
+
+void main(void)
+{
+    gl_Position = vec4(ovr_Position.xy, 0.0, 1.0);
+    ovv_Fade = vec3(ovr_Params.r); // vignetteFade
+    
+    // Vertex inputs are in TanEyeAngle space for the R,G,B channels (i.e. after chromatic aberration and distortion).
+    // These are now "real world" vectors in direction (x,y,1) relative to the eye of the HMD.
+    vec3 TanEyeAngle = vec3 ( ovr_TexCoordR, 1.0 );
+    
+    // Accurate time warp lerp vs. faster
+    // Apply the two 3x3 timewarp rotations to these vectors.
+	vec3 TransformedStart = (ovr_EyeRotationStart * vec4(TanEyeAngle, 0)).xyz;
+	vec3 TransformedEnd   = (ovr_EyeRotationEnd * vec4(TanEyeAngle, 0)).xyz;
+    // And blend between them.
+    vec3 Transformed = mix ( TransformedStart, TransformedEnd, ovr_Params.g /* timewarpLerpFactor */ );
+    
+    // Project them back onto the Z=1 plane of the rendered images.
+    float RecipZ = 1.0 / Transformed.z;
+    vec2 Flattened = vec2 ( Transformed.x * RecipZ, Transformed.y * RecipZ );
+    
+    // These are now still in TanEyeAngle space.
+    // Scale them into the correct [0-1],[0-1] UV lookup space (depending on eye)
+    ovv_TexCoordR = Flattened * ovr_EyeToSourceUVScale + ovr_EyeToSourceUVOffset;
+    ovv_TexCoordR.y = 1.0-ovv_TexCoordR.y;
+}

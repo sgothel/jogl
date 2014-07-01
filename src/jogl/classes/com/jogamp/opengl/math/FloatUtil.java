@@ -705,8 +705,8 @@ public final class FloatUtil {
    *
    * @param msrc 4x4 matrix in column-major order, the source
    * @param msrc_offset offset in given array <i>msrc</i>, i.e. start of the 4x4 matrix
-   * @param mres 4x4 matrix in column-major order, the result - may be <code>msrc</code> (in-place)
-   * @param mres_offset offset in given array <i>mres</i>, i.e. start of the 4x4 matrix - may be <code>msrc_offset</code> (in-place)
+   * @param mres 4x4 matrix in column-major order, the result
+   * @param mres_offset offset in given array <i>mres</i>, i.e. start of the 4x4 matrix
    * @return given result matrix <i>mres</i> for chaining
    */
   public static float[] transposeMatrix(final float[] msrc, final int msrc_offset, final float[] mres, final int mres_offset) {
@@ -737,16 +737,37 @@ public final class FloatUtil {
   }
 
   /**
-   * Transpose the given matrix in place.
+   * Transpose the given matrix.
    *
-   * @param m 4x4 matrix in column-major order, the source
-   * @param m_offset offset in given array <i>m</i>, i.e. start of the 4x4 matrix
-   * @param temp temporary 4*4 float storage
-   * @return given result matrix <i>m</i> for chaining
+   * @param msrc 4x4 matrix in column-major order, the source
+   * @param mres 4x4 matrix in column-major order, the result
+   * @return given result matrix <i>mres</i> for chaining
    */
-  public static float[] transposeMatrix(final float[] m, final int m_offset, final float[/*4*4*/] temp) {
-      System.arraycopy(m, m_offset, temp, 0, 16);
-      return transposeMatrix(temp, 0, m, m_offset);
+  public static float[] transposeMatrix(final float[] msrc, final float[] mres) {
+      mres[0] = msrc[0*4];
+      mres[1] = msrc[1*4];
+      mres[2] = msrc[2*4];
+      mres[3] = msrc[3*4];
+
+      final int i4_1 = 1*4;
+      mres[0+i4_1] = msrc[1+0*4];
+      mres[1+i4_1] = msrc[1+1*4];
+      mres[2+i4_1] = msrc[1+2*4];
+      mres[3+i4_1] = msrc[1+3*4];
+
+      final int i4_2 = 2*4;
+      mres[0+i4_2] = msrc[2+0*4];
+      mres[1+i4_2] = msrc[2+1*4];
+      mres[2+i4_2] = msrc[2+2*4];
+      mres[3+i4_2] = msrc[2+3*4];
+
+      final int i4_3 = 3*4;
+      mres[0+i4_3] = msrc[3+0*4];
+      mres[1+i4_3] = msrc[3+1*4];
+      mres[2+i4_3] = msrc[3+2*4];
+      mres[3+i4_3] = msrc[3+3*4];
+
+      return mres;
   }
 
   /**
@@ -1422,8 +1443,9 @@ public final class FloatUtil {
    * @param a 4x4 matrix in column-major order
    * @param b 4x4 matrix in column-major order
    * @param d result a*b in column-major order
+   * @return given result matrix <i>d</i> for chaining
    */
-  public static void multMatrix(final float[] a, final int a_off, final float[] b, final int b_off, float[] d, final int d_off) {
+  public static float[] multMatrix(final float[] a, final int a_off, final float[] b, final int b_off, float[] d, final int d_off) {
       final float b00 = b[b_off+0+0*4];
       final float b10 = b[b_off+1+0*4];
       final float b20 = b[b_off+2+0*4];
@@ -1476,6 +1498,8 @@ public final class FloatUtil {
       d[d_off+3+1*4] = ai0 * b01  +  ai1 * b11  +  ai2 * b21  +  ai3 * b31 ;
       d[d_off+3+2*4] = ai0 * b02  +  ai1 * b12  +  ai2 * b22  +  ai3 * b32 ;
       d[d_off+3+3*4] = ai0 * b03  +  ai1 * b13  +  ai2 * b23  +  ai3 * b33 ;
+
+      return d;
   }
 
   /**
@@ -1483,8 +1507,9 @@ public final class FloatUtil {
    * @param a 4x4 matrix in column-major order
    * @param b 4x4 matrix in column-major order
    * @param d result a*b in column-major order
+   * @return given result matrix <i>d</i> for chaining
    */
-  public static void multMatrix(final float[] a, final float[] b, float[] d) {
+  public static float[] multMatrix(final float[] a, final float[] b, float[] d) {
       final float b00 = b[0+0*4];
       final float b10 = b[1+0*4];
       final float b20 = b[2+0*4];
@@ -1537,14 +1562,17 @@ public final class FloatUtil {
       d[3+1*4] = ai0 * b01  +  ai1 * b11  +  ai2 * b21  +  ai3 * b31 ;
       d[3+2*4] = ai0 * b02  +  ai1 * b12  +  ai2 * b22  +  ai3 * b32 ;
       d[3+3*4] = ai0 * b03  +  ai1 * b13  +  ai2 * b23  +  ai3 * b33 ;
+
+      return d;
   }
 
   /**
    * Multiply matrix: [a] = [a] x [b]
    * @param a 4x4 matrix in column-major order (also result)
    * @param b 4x4 matrix in column-major order
+   * @return given result matrix <i>a</i> for chaining
    */
-  public static void multMatrix(final float[] a, final int a_off, final float[] b, final int b_off) {
+  public static float[] multMatrix(final float[] a, final int a_off, final float[] b, final int b_off) {
       final float b00 = b[b_off+0+0*4];
       final float b10 = b[b_off+1+0*4];
       final float b20 = b[b_off+2+0*4];
@@ -1597,14 +1625,17 @@ public final class FloatUtil {
       a[a_off+3+1*4] = ai0 * b01  +  ai1 * b11  +  ai2 * b21  +  ai3 * b31 ;
       a[a_off+3+2*4] = ai0 * b02  +  ai1 * b12  +  ai2 * b22  +  ai3 * b32 ;
       a[a_off+3+3*4] = ai0 * b03  +  ai1 * b13  +  ai2 * b23  +  ai3 * b33 ;
+
+      return a;
   }
 
   /**
    * Multiply matrix: [a] = [a] x [b]
    * @param a 4x4 matrix in column-major order (also result)
    * @param b 4x4 matrix in column-major order
+   * @return given result matrix <i>a</i> for chaining
    */
-  public static void multMatrix(final float[] a, final float[] b) {
+  public static float[] multMatrix(final float[] a, final float[] b) {
       final float b00 = b[0+0*4];
       final float b10 = b[1+0*4];
       final float b20 = b[2+0*4];
@@ -1657,6 +1688,8 @@ public final class FloatUtil {
       a[3+1*4] = ai0 * b01  +  ai1 * b11  +  ai2 * b21  +  ai3 * b31 ;
       a[3+2*4] = ai0 * b02  +  ai1 * b12  +  ai2 * b22  +  ai3 * b32 ;
       a[3+3*4] = ai0 * b03  +  ai1 * b13  +  ai2 * b23  +  ai3 * b33 ;
+
+      return a;
   }
 
   /**
@@ -1705,10 +1738,11 @@ public final class FloatUtil {
    * @param m_in_off
    * @param v_in 4-component column-vector
    * @param v_out m_in * v_in
+   * @return given result vector <i>v_out</i> for chaining
    */
-  public static void multMatrixVec(final float[] m_in, final int m_in_off,
-                                   final float[] v_in, final int v_in_off,
-                                   final float[] v_out, final int v_out_off) {
+  public static float[] multMatrixVec(final float[] m_in, final int m_in_off,
+                                      final float[] v_in, final int v_in_off,
+                                      final float[] v_out, final int v_out_off) {
       // (one matrix row in column-major order) X (column vector)
       v_out[0 + v_out_off] = v_in[0+v_in_off] * m_in[0*4+m_in_off  ]  +  v_in[1+v_in_off] * m_in[1*4+m_in_off  ] +
                              v_in[2+v_in_off] * m_in[2*4+m_in_off  ]  +  v_in[3+v_in_off] * m_in[3*4+m_in_off  ];
@@ -1724,6 +1758,8 @@ public final class FloatUtil {
       final int m_in_off_3 = 3+m_in_off;
       v_out[3 + v_out_off] = v_in[0+v_in_off] * m_in[0*4+m_in_off_3]  +  v_in[1+v_in_off] * m_in[1*4+m_in_off_3] +
                              v_in[2+v_in_off] * m_in[2*4+m_in_off_3]  +  v_in[3+v_in_off] * m_in[3*4+m_in_off_3];
+
+      return v_out;
   }
 
   /**
@@ -1731,8 +1767,9 @@ public final class FloatUtil {
    * @param m_in_off
    * @param v_in 4-component column-vector
    * @param v_out m_in * v_in
+   * @return given result vector <i>v_out</i> for chaining
    */
-  public static void multMatrixVec(final float[] m_in, final float[] v_in, final float[] v_out) {
+  public static float[] multMatrixVec(final float[] m_in, final float[] v_in, final float[] v_out) {
       // (one matrix row in column-major order) X (column vector)
       v_out[0] = v_in[0] * m_in[0*4  ]  +  v_in[1] * m_in[1*4  ] +
                  v_in[2] * m_in[2*4  ]  +  v_in[3] * m_in[3*4  ];
@@ -1745,6 +1782,8 @@ public final class FloatUtil {
 
       v_out[3] = v_in[0] * m_in[0*4+3]  +  v_in[1] * m_in[1*4+3] +
                  v_in[2] * m_in[2*4+3]  +  v_in[3] * m_in[3*4+3];
+
+      return v_out;
   }
 
   /**
@@ -1776,14 +1815,16 @@ public final class FloatUtil {
    * @param column named column to copy
    * @param v_out the column-vector storage, at least 3 components long
    * @param v_out_off offset to storage
+   * @return given result vector <i>v_out</i> for chaining
    */
-  public static void copyMatrixColumn(final float[] m_in, final int m_in_off, final int column, final float[] v_out, final int v_out_off) {
+  public static float[] copyMatrixColumn(final float[] m_in, final int m_in_off, final int column, final float[] v_out, final int v_out_off) {
       v_out[0+v_out_off]=m_in[0+column*4+m_in_off];
       v_out[1+v_out_off]=m_in[1+column*4+m_in_off];
       v_out[2+v_out_off]=m_in[2+column*4+m_in_off];
       if( v_out.length > 3+v_out_off ) {
           v_out[3+v_out_off]=m_in[3+column*4+m_in_off];
       }
+      return v_out;
   }
 
   /**
@@ -1796,14 +1837,16 @@ public final class FloatUtil {
    * @param row named row to copy
    * @param v_out the row-vector storage, at least 3 components long
    * @param v_out_off offset to storage
+   * @return given result vector <i>v_out</i> for chaining
    */
-  public static void copyMatrixRow(final float[] m_in, final int m_in_off, final int row, final float[] v_out, final int v_out_off) {
+  public static float[] copyMatrixRow(final float[] m_in, final int m_in_off, final int row, final float[] v_out, final int v_out_off) {
       v_out[0+v_out_off]=m_in[row+0*4+m_in_off];
       v_out[1+v_out_off]=m_in[row+1*4+m_in_off];
       v_out[2+v_out_off]=m_in[row+2*4+m_in_off];
       if( v_out.length > 3+v_out_off ) {
           v_out[3+v_out_off]=m_in[row+3*4+m_in_off];
       }
+      return v_out;
   }
 
   /**
