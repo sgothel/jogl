@@ -644,15 +644,13 @@ public class OVRDistortion {
      * {@link CustomRendererListener#reshape(javax.media.opengl.GLAutoDrawable, int, int, int, int, EyeParameter, EyePose) upstream client code}.
      * </p>
      * @param eyeNum eye denominator
-     * @param eyePos float[3] eye postion vector
-     * @param eyeYaw eye direction, i.e. {@link FloatUtil#PI} for 180 degrees
      * @param zNear frustum near value
      * @param zFar frustum far value
      * @param mat4Projection float[16] projection matrix result
      * @param mat4Modelview float[16] modelview matrix result
      * @deprecated Only an example implementation, which should be adopted by the {@link CustomRendererListener#reshape(javax.media.opengl.GLAutoDrawable, int, int, int, int, EyeParameter, EyePose) upstream client code}.
      */
-    public void getSBSUpstreamPMV(final int eyeNum, final float[] eyePos, final float eyeYaw, final float zNear, final float zFar,
+    public void getSBSUpstreamPMV(final int eyeNum, final float zNear, final float zFar,
                                   final float[] mat4Projection, final float[] mat4Modelview) {
         final EyeData eyeDist = eyes[eyeNum];
 
@@ -669,9 +667,10 @@ public class OVRDistortion {
         // Modelview
         //
         final Quaternion rollPitchYaw = new Quaternion();
-        rollPitchYaw.rotateByAngleY(eyeYaw);
+        // private final float eyeYaw = FloatUtil.PI; // 180 degrees in radians
+        // rollPitchYaw.rotateByAngleY(eyeYaw);
         final float[] shiftedEyePos = rollPitchYaw.rotateVector(vec3Tmp1, 0, eyeDist.eyePose.position, 0);
-        VectorUtil.addVec3(shiftedEyePos, shiftedEyePos, eyePos);
+        VectorUtil.addVec3(shiftedEyePos, shiftedEyePos, eyeDist.eyeParameter.positionOffset);
 
         rollPitchYaw.mult(eyeDist.eyePose.orientation);
         final float[] up = rollPitchYaw.rotateVector(vec3Tmp2, 0, VEC3_UP, 0);
