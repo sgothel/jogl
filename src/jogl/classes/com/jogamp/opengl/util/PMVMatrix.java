@@ -175,7 +175,7 @@ public final class PMVMatrix implements GLMatrixFunc {
      * @return matrix string representation
      */
     @SuppressWarnings("deprecation")
-    public static StringBuilder matrixToString(StringBuilder sb, String f, FloatBuffer a) {
+    public static StringBuilder matrixToString(final StringBuilder sb, final String f, final FloatBuffer a) {
         return FloatUtil.matrixToString(sb, null, f, a, 0, 4, 4, false);
     }
 
@@ -187,7 +187,7 @@ public final class PMVMatrix implements GLMatrixFunc {
      * @return side by side representation
      */
     @SuppressWarnings("deprecation")
-    public static StringBuilder matrixToString(StringBuilder sb, String f, FloatBuffer a, FloatBuffer b) {
+    public static StringBuilder matrixToString(final StringBuilder sb, final String f, final FloatBuffer a, final FloatBuffer b) {
         return FloatUtil.matrixToString(sb, null, f, a, 0, b, 0, 4, 4, false);
     }
 
@@ -450,7 +450,7 @@ public final class PMVMatrix implements GLMatrixFunc {
 
     @Override
     public final void glGetFloatv(final int matrixGetName, final FloatBuffer params) {
-        int pos = params.position();
+        final int pos = params.position();
         if(matrixGetName==GL_MATRIX_MODE) {
             params.put(matrixMode);
         } else {
@@ -462,7 +462,7 @@ public final class PMVMatrix implements GLMatrixFunc {
     }
 
     @Override
-    public final void glGetFloatv(final int matrixGetName, float[] params, final int params_offset) {
+    public final void glGetFloatv(final int matrixGetName, final float[] params, final int params_offset) {
         if(matrixGetName==GL_MATRIX_MODE) {
             params[params_offset]=matrixMode;
         } else {
@@ -474,7 +474,7 @@ public final class PMVMatrix implements GLMatrixFunc {
 
     @Override
     public final void glGetIntegerv(final int pname, final IntBuffer params) {
-        int pos = params.position();
+        final int pos = params.position();
         if(pname==GL_MATRIX_MODE) {
             params.put(matrixMode);
         } else {
@@ -513,7 +513,7 @@ public final class PMVMatrix implements GLMatrixFunc {
 
     @Override
     public final void glLoadMatrixf(final java.nio.FloatBuffer m) {
-        int spos = m.position();
+        final int spos = m.position();
         if(matrixMode==GL_MODELVIEW) {
             matrixMv.put(m);
             matrixMv.reset();
@@ -787,10 +787,13 @@ public final class PMVMatrix implements GLMatrixFunc {
      * <p>
      * Traditional <code>gluPickMatrix</code> implementation.
      * </p>
-     * @param x
-     * @param y
-     * @param deltaX
-     * @param deltaY
+     * <p>
+     * See {@link FloatUtil#makePick(float[], int, float, float, float, float, int[], int, float[]) FloatUtil.makePick(..)} for details.
+     * </p>
+     * @param x the center x-component of a picking region in window coordinates
+     * @param y the center y-component of a picking region in window coordinates
+     * @param deltaX the width of the picking region in window coordinates.
+     * @param deltaY the height of the picking region in window coordinates.
      * @param viewport 4 component viewport vector
      * @param viewport_offset
      */
@@ -834,7 +837,7 @@ public final class PMVMatrix implements GLMatrixFunc {
                 mat4Tmp1, mat4Tmp2, mat4Tmp3);
     }
 
-    public StringBuilder toString(StringBuilder sb, String f) {
+    public StringBuilder toString(StringBuilder sb, final String f) {
         if(null == sb) {
             sb = new StringBuilder();
         }
@@ -885,7 +888,7 @@ public final class PMVMatrix implements GLMatrixFunc {
      * @see #MODIFIED_MODELVIEW
      * @see #MODIFIED_TEXTURE
      */
-    public final int getModifiedBits(boolean clear) {
+    public final int getModifiedBits(final boolean clear) {
         final int r = modifiedBits;
         if(clear) {
             modifiedBits = 0;
@@ -1002,7 +1005,7 @@ public final class PMVMatrix implements GLMatrixFunc {
     public final boolean update() {
         return updateImpl(true);
     }
-    private final boolean updateImpl(boolean clearModBits) {
+    private final boolean updateImpl(final boolean clearModBits) {
         boolean mod = 0 != modifiedBits;
         if(clearModBits) {
             modifiedBits = 0;

@@ -735,14 +735,20 @@ public final class FloatUtil {
    * </pre>
    * </p>
    * <p>
+   * To effectively use the generated pick matrix for picking,
+   * call {@link #makePick(float[], int, float, float, float, float, int[], int, float[]) makePick}
+   * and multiply a {@link #makePerspective(float[], int, boolean, float, float, float, float) custom perspective matrix}
+   * by this pick matrix. Then you may load the result onto the perspective matrix stack.
+   * </p>
+   * <p>
    * All matrix fields are set.
    * </p>
    * @param m 4x4 matrix in column-major order, result only
    * @param m_offset offset in given array <i>m</i>, i.e. start of the 4x4 matrix
-   * @param x
-   * @param y
-   * @param deltaX
-   * @param deltaY
+   * @param x the center x-component of a picking region in window coordinates
+   * @param y the center y-component of a picking region in window coordinates
+   * @param deltaX the width of the picking region in window coordinates.
+   * @param deltaY the height of the picking region in window coordinates.
    * @param viewport 4 component viewport vector
    * @param viewport_offset
    * @param mat4Tmp temp float[16] storage
