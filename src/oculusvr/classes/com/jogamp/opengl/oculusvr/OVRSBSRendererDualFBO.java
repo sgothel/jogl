@@ -37,6 +37,7 @@ import jogamp.opengl.oculusvr.OVRDistortion;
 import com.jogamp.oculusvr.OVR;
 import com.jogamp.oculusvr.ovrFrameTiming;
 import com.jogamp.opengl.FBObject;
+import com.jogamp.opengl.FBObject.Attachment;
 import com.jogamp.opengl.FBObject.TextureAttachment;
 import com.jogamp.opengl.FBObject.Attachment.Type;
 import com.jogamp.opengl.util.CustomRendererListener;
@@ -55,19 +56,25 @@ public class OVRSBSRendererDualFBO implements GLEventListener {
     private final boolean ownsDist;
     private final StereoRendererListener upstream;
     private final FBObject[] fbos;
+    private final int magFilter;
+    private final int minFilter;
 
     private int numSamples;
     private final TextureAttachment[] fboTexs;
 
-    public OVRSBSRendererDualFBO(final OVRDistortion dist, final boolean ownsDist, final StereoRendererListener upstream, final int numSamples) {
+    public OVRSBSRendererDualFBO(final OVRDistortion dist, final boolean ownsDist, final StereoRendererListener upstream,
+                                 final int magFilter, final int minFilter, final int numSamples) {
         this.dist = dist;
         this.ownsDist = ownsDist;
         this.upstream = upstream;
+        this.fbos = new FBObject[2];
+        this.fbos[0] = new FBObject();
+        this.fbos[1] = new FBObject();
+        this.magFilter = magFilter;
+        this.minFilter = minFilter;
+
         this.numSamples = numSamples;
-        fbos = new FBObject[2];
-        fbos[0] = new FBObject();
-        fbos[1] = new FBObject();
-        fboTexs = new TextureAttachment[2];
+        this.fboTexs = new TextureAttachment[2];
     }
 
     private void initFBOs(final GL gl, final int width, final int height) {
@@ -84,20 +91,36 @@ public class OVRSBSRendererDualFBO implements GLEventListener {
         numSamples = fbos[0].getNumSamples();
 
         if(numSamples>0) {
-            fbos[0].attachColorbuffer(gl, 0, true);
-            fbos[0].resetSamplingSink(gl);
-            fbos[1].attachColorbuffer(gl, 0, true);
-            fbos[1].resetSamplingSink(gl);
+            fbos[0].attachColorbuffer(gl, 0, true); // MSAA requires alpha
+            fbos[0].attachRenderbuffer(gl, Type.DEPTH, 24);
+            final FBObject ssink0 = new FBObject();
+            {
+                ssink0.reset(gl, width, height);
+                ssink0.attachTexture2D(gl, 0, false, magFilter, minFilter, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
+                ssink0.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
+            }
+            fbos[0].setSamplingSink(ssink0);
+            fbos[0].resetSamplingSink(gl); // validate
             fboTexs[0] = fbos[0].getSamplingSink();
+
+            fbos[1].attachColorbuffer(gl, 0, true); // MSAA requires alpha
+            fbos[1].attachRenderbuffer(gl, Type.DEPTH, 24);
+            final FBObject ssink1 = new FBObject();
+            {
+                ssink1.reset(gl, width, height);
+                ssink1.attachTexture2D(gl, 0, false, magFilter, minFilter, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
+                ssink1.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
+            }
+            fbos[1].setSamplingSink(ssink1);
+            fbos[1].resetSamplingSink(gl); // validate
             fboTexs[1] = fbos[1].getSamplingSink();
         } else {
-            fboTexs[0] = fbos[0].attachTexture2D(gl, 0, true);
-            fboTexs[1] = fbos[1].attachTexture2D(gl, 0, true);
+            fboTexs[0] = fbos[0].attachTexture2D(gl, 0, false, magFilter, minFilter, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
+            fbos[0].attachRenderbuffer(gl, Type.DEPTH, 24);
+            fboTexs[1] = fbos[1].attachTexture2D(gl, 0, false, magFilter, minFilter, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
+            fbos[1].attachRenderbuffer(gl, Type.DEPTH, 24);
         }
-        numSamples=fbos[0].getNumSamples();
-        fbos[0].attachRenderbuffer(gl, Type.DEPTH, 24);
         fbos[0].unbind(gl);
-        fbos[1].attachRenderbuffer(gl, Type.DEPTH, 24);
         fbos[1].unbind(gl);
     }
 

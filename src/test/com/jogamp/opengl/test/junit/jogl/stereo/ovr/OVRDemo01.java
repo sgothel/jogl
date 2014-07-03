@@ -27,6 +27,7 @@
  */
 package com.jogamp.opengl.test.junit.jogl.stereo.ovr;
 
+import javax.media.opengl.GL;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
@@ -50,17 +51,25 @@ import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.util.Animator;
 
 /**
- * All distortions, multisampling and using two FBOs
+ * All distortions, no multisampling, bilinear filtering, manual-swap and using two FBOs (default, good)
  * <pre>
- * java OVRDemo01 -time 10000000 -vignette -chromatic -timewarp -samples 8
+ * java OVRDemo01 -time 10000000
  * </pre>
- * All distortions, multisampling and using a big single FBO
+ * All distortions, 8x multisampling, bilinear filtering, manual-swap and using two FBOs (best - slowest)
  * <pre>
- * java OVRDemo01 -time 10000000 -vignette -chromatic -timewarp -samples 8 -singleFBO
+ * java OVRDemo01 -time 10000000 -samples 8
+ * </pre>
+ * All distortions, 8x multisampling, bilinear filtering, manual-swap and using one a big single FBO (w/ all commandline params)
+ * <pre>
+ * java OVRDemo01 -time 10000000 -vignette true -chromatic true -timewarp false -samples 8 -biLinear true -autoSwap false -singleFBO true -mainScreen false
+ * </pre>
+ * No distortions, no multisampling, no filtering, auto-swap and using a big single FBO (worst and fastest)
+ * <pre>
+ * java OVRDemo01 -time 10000000 -vignette false -chromatic false -timewarp false -samples 0 -biLinear false -autoSwap true -singleFBO true
  * </pre>
  * Test on main screen:
  * <pre>
- * java OVRDemo01 -time 10000000 -mainScreen
+ * java OVRDemo01 -time 10000000 -mainScreen true
  * </pre>
  *
  */
@@ -70,10 +79,11 @@ public class OVRDemo01 {
     static boolean useOVRScreen = true;
 
     static int numSamples = 0;
+    static boolean biLinear = true;
     static boolean useSingleFBO = false;
-    static boolean useVignette = false;
-    static boolean useChromatic = false;
-    static boolean useTimewarp = false;
+    static boolean useVignette = true;
+    static boolean useChromatic = true;
+    static boolean useTimewarp = true;
     static boolean useAutoSwap = false;
 
     public static void main(final String args[]) throws InterruptedException {
@@ -84,28 +94,38 @@ public class OVRDemo01 {
             } else if(args[i].equals("-samples")) {
                 i++;
                 numSamples = MiscUtils.atoi(args[i], numSamples);
+            } else if(args[i].equals("-biLinear")) {
+                i++;
+                biLinear = MiscUtils.atob(args[i], biLinear);
             } else if(args[i].equals("-singleFBO")) {
-                useSingleFBO = true;
+                i++;
+                useSingleFBO = MiscUtils.atob(args[i], useSingleFBO);
             } else if(args[i].equals("-vignette")) {
-                useVignette = true;
+                i++;
+                useVignette = MiscUtils.atob(args[i], useVignette);
             } else if(args[i].equals("-chromatic")) {
-                useChromatic = true;
+                i++;
+                useChromatic = MiscUtils.atob(args[i], useChromatic);
             } else if(args[i].equals("-timewarp")) {
-                useTimewarp = true;
+                i++;
+                useTimewarp = MiscUtils.atob(args[i], useTimewarp);
             } else if(args[i].equals("-vignette")) {
-                useVignette = true;
+                i++;
+                useVignette = MiscUtils.atob(args[i], useVignette);
             } else if(args[i].equals("-mainScreen")) {
-                useOVRScreen = false;
+                i++;
+                useOVRScreen = !MiscUtils.atob(args[i], useOVRScreen);
             } else if(args[i].equals("-autoSwap")) {
-                useAutoSwap = true;
+                i++;
+                useAutoSwap = MiscUtils.atob(args[i], useAutoSwap);
             }
         }
         final OVRDemo01 demo01 = new OVRDemo01();
-        demo01.doIt(0, numSamples, useSingleFBO, useVignette, useChromatic, useTimewarp,
+        demo01.doIt(0, biLinear, numSamples, useSingleFBO, useVignette, useChromatic, useTimewarp,
                     useAutoSwap, true /* useAnimator */, false /* exclusiveContext*/);
     }
 
-    public void doIt(final int ovrHmdIndex, final int numSamples,
+    public void doIt(final int ovrHmdIndex, final boolean biLinear, final int numSamples,
                      final boolean useSingleFBO,
                      final boolean useVignette, final boolean useChromatic, final boolean useTimewarp,
                      final boolean useAutoSwap,
@@ -113,6 +133,7 @@ public class OVRDemo01 {
 
         System.err.println("glob duration "+duration);
         System.err.println("glob useOVRScreen "+useOVRScreen);
+        System.err.println("biLinear "+biLinear);
         System.err.println("numSamples "+numSamples);
         System.err.println("useSingleFBO "+useSingleFBO);
         System.err.println("useVignette "+useVignette);
@@ -174,13 +195,14 @@ public class OVRDemo01 {
         final OVRDistortion dist = OVRDistortion.create(hmdCtx, useSingleFBO, eyePositionOffset, defaultEyeFov, pixelsPerDisplayPixel, distortionCaps);
         System.err.println("OVRDistortion: "+dist);
 
+        final int texFilter = biLinear ? GL.GL_LINEAR : GL.GL_NEAREST;
         final GearsES2 upstream = new GearsES2(0);
         upstream.setVerbose(false);
         final GLEventListener renderer;
         if( useSingleFBO ) {
-            renderer = new OVRSBSRendererSingleFBO(dist, true /* ownsDist */, upstream, numSamples);
+            renderer = new OVRSBSRendererSingleFBO(dist, true /* ownsDist */, upstream, texFilter, texFilter, numSamples);
         } else {
-            renderer = new OVRSBSRendererDualFBO(dist, true /* ownsDist */, upstream, numSamples);
+            renderer = new OVRSBSRendererDualFBO(dist, true /* ownsDist */, upstream, texFilter, texFilter, numSamples);
         }
         window.addGLEventListener(renderer);
 

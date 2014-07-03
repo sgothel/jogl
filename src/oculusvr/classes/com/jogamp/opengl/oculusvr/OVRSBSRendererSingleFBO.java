@@ -37,6 +37,7 @@ import jogamp.opengl.oculusvr.OVRDistortion;
 import com.jogamp.oculusvr.OVR;
 import com.jogamp.oculusvr.ovrFrameTiming;
 import com.jogamp.opengl.FBObject;
+import com.jogamp.opengl.FBObject.Attachment;
 import com.jogamp.opengl.FBObject.TextureAttachment;
 import com.jogamp.opengl.FBObject.Attachment.Type;
 import com.jogamp.opengl.util.CustomRendererListener;
@@ -55,47 +56,68 @@ public class OVRSBSRendererSingleFBO implements GLEventListener {
     private final OVRDistortion dist;
     private final boolean ownsDist;
     private final StereoRendererListener upstream;
-    private final FBObject fbo0;
+    private final FBObject fbo;
+    private final int magFilter;
+    private final int minFilter;
 
     private int numSamples;
-    private TextureAttachment fbo0Tex;
+    private TextureAttachment fboTex;
 
-    public OVRSBSRendererSingleFBO(final OVRDistortion dist, final boolean ownsDist, final StereoRendererListener upstream, final int numSamples) {
+    /**
+     * @param dist {@link OVRDistortion} instance used for rendering.
+     * @param ownsDist if true, {@link OVRDistortion#dispose(GL2ES2)} is issued on this instance's {@link #dispose(GLAutoDrawable)} method, otherwise not.
+     * @param upstream the upstream {@link StereoRendererListener}, a.k.a the <i>content</i> to render for both eyes
+     * @param magFilter if > 0 value for {@link GL#GL_TEXTURE_MAG_FILTER}
+     * @param minFilter if > 0 value for {@link GL#GL_TEXTURE_MIN_FILTER}
+     * @param numSamples sample-count, if > 0 using multisampling w/ given samples, otherwise no multisampling applies
+     */
+    public OVRSBSRendererSingleFBO(final OVRDistortion dist, final boolean ownsDist, final StereoRendererListener upstream,
+                                   final int magFilter, final int minFilter, final int numSamples) {
         this.dist = dist;
         this.ownsDist = ownsDist;
         this.upstream = upstream;
+        this.fbo = new FBObject();
+        this.magFilter = magFilter;
+        this.minFilter = minFilter;
+
         this.numSamples = numSamples;
-        fbo0 = new FBObject();
     }
 
     private void initFBOs(final GL gl, final int width, final int height) {
         // remove all texture attachments, since MSAA uses just color-render-buffer
         // and non-MSAA uses texture2d-buffer
-        fbo0.detachAllColorbuffer(gl);
+        fbo.detachAllColorbuffer(gl);
 
-        fbo0.reset(gl, width, height, numSamples, false);
-        numSamples = fbo0.getNumSamples();
+        fbo.reset(gl, width, height, numSamples, false);
+        numSamples = fbo.getNumSamples();
 
         if(numSamples>0) {
-            fbo0.attachColorbuffer(gl, 0, true);
-            fbo0.resetSamplingSink(gl);
-            fbo0Tex = fbo0.getSamplingSink();
+            fbo.attachColorbuffer(gl, 0, true); // MSAA requires alpha
+            fbo.attachRenderbuffer(gl, Type.DEPTH, 24);
+            final FBObject ssink = new FBObject();
+            {
+                ssink.reset(gl, width, height);
+                ssink.attachTexture2D(gl, 0, false, magFilter, minFilter, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
+                ssink.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
+            }
+            fbo.setSamplingSink(ssink);
+            fbo.resetSamplingSink(gl); // validate
+            fboTex = fbo.getSamplingSink();
         } else {
-            fbo0Tex = fbo0.attachTexture2D(gl, 0, true);
+            fboTex = fbo.attachTexture2D(gl, 0, false, magFilter, minFilter, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
+            fbo.attachRenderbuffer(gl, Type.DEPTH, 24);
         }
-        numSamples=fbo0.getNumSamples();
-        fbo0.attachRenderbuffer(gl, Type.DEPTH, 24);
-        fbo0.unbind(gl);
+        fbo.unbind(gl);
     }
 
     @SuppressWarnings("unused")
     private void resetFBOs(final GL gl, final int width, final int height) {
-        fbo0.reset(gl, width, height, numSamples, true);
-        numSamples = fbo0.getNumSamples();
+        fbo.reset(gl, width, height, numSamples, true);
+        numSamples = fbo.getNumSamples();
         if(numSamples>0) {
-            fbo0Tex = fbo0.getSamplingSink();
+            fboTex = fbo.getSamplingSink();
         } else {
-            fbo0Tex = (TextureAttachment) fbo0.getColorbuffer(0);
+            fboTex = (TextureAttachment) fbo.getColorbuffer(0);
         }
     }
 
@@ -120,7 +142,7 @@ public class OVRSBSRendererSingleFBO implements GLEventListener {
         // FIXME complete release
         if( null != upstream ) {
             upstream.dispose(drawable);
-            fbo0.destroy(gl);
+            fbo.destroy(gl);
         }
         if( ownsDist ) {
             dist.dispose(gl);
@@ -139,7 +161,7 @@ public class OVRSBSRendererSingleFBO implements GLEventListener {
         // FIXME: Instead of setting the viewport,
         // it's better to change the projection matrix!
         if( null != upstream ) {
-            fbo0.bind(gl);
+            fbo.bind(gl);
 
             for(int eyeNum=0; eyeNum<2; eyeNum++) {
                 // final ovrPosef eyeRenderPose = OVR.ovrHmd_GetEyePose(hmdCtx, eyeNum);
@@ -152,7 +174,7 @@ public class OVRSBSRendererSingleFBO implements GLEventListener {
                                     dist.getEyeParam(eyeNum), dist.updateEyePose(eyeNum));
                 upstream.display(drawable, eyeNum > 0 ? CustomRendererListener.DISPLAY_REPEAT | CustomRendererListener.DISPLAY_DONTCLEAR : 0);
             }
-            fbo0.unbind(gl);
+            fbo.unbind(gl);
             gl.glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
         }
 
@@ -161,9 +183,9 @@ public class OVRSBSRendererSingleFBO implements GLEventListener {
         gl.glActiveTexture(GL.GL_TEXTURE0 + dist.texUnit0.intValue());
 
         if( null != upstream ) {
-            fbo0.use(gl, fbo0Tex);
+            fbo.use(gl, fboTex);
             dist.display(gl, frameTiming.getTimewarpPointSeconds());
-            fbo0.unuse(gl);
+            fbo.unuse(gl);
         } else {
             dist.display(gl, frameTiming.getTimewarpPointSeconds());
         }
