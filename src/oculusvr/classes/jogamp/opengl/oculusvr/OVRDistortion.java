@@ -646,13 +646,13 @@ public class OVRDistortion {
      * @param eyeNum eye denominator
      * @param eyePos float[3] eye postion vector
      * @param eyeYaw eye direction, i.e. {@link FloatUtil#PI} for 180 degrees
-     * @param near frustum near value
-     * @param far frustum far value
+     * @param zNear frustum near value
+     * @param zFar frustum far value
      * @param mat4Projection float[16] projection matrix result
      * @param mat4Modelview float[16] modelview matrix result
      * @deprecated Only an example implementation, which should be adopted by the {@link CustomRendererListener#reshape(javax.media.opengl.GLAutoDrawable, int, int, int, int, EyeParameter, EyePose) upstream client code}.
      */
-    public void getSBSUpstreamPMV(final int eyeNum, final float[] eyePos, final float eyeYaw, final float near, final float far,
+    public void getSBSUpstreamPMV(final int eyeNum, final float[] eyePos, final float eyeYaw, final float zNear, final float zFar,
                                   final float[] mat4Projection, final float[] mat4Modelview) {
         final EyeData eyeDist = eyes[eyeNum];
 
@@ -663,8 +663,7 @@ public class OVRDistortion {
         //
         // Projection
         //
-        final ovrMatrix4f pm = OVR.ovrMatrix4f_Projection(eyeDist.ovrEyeFov, near, far, true /* rightHanded*/);
-        /* final float[] mat4Projection = */ FloatUtil.transposeMatrix(pm.getM(0, mat4Tmp1), mat4Projection);
+        FloatUtil.makePerspective(mat4Projection, 0, true, eyeDist.eyeParameter.fovhv, zNear, zFar);
 
         //
         // Modelview
